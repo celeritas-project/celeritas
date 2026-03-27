@@ -6,16 +6,26 @@
 //---------------------------------------------------------------------------//
 #include "CelerPhysics.hh"
 
+#include <fstream>
 #include <DD4hep/Detector.h>
 #include <DD4hep/FieldTypes.h>
 #include <DDG4/Factories.h>
 #include <DDG4/Geant4ActionPhase.h>
 #include <DDG4/Geant4Kernel.h>
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/Logger.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Field.hh"
 #include "accel/TrackingManagerIntegration.hh"
+
+#if CELERITAS_USE_COVFIE
+#    include "celeritas/field/CartMapFieldInput.hh"
+#    include "celeritas/field/RZMapFieldInput.hh"
+
+#    include "LoadCovfieField.hh"
+#endif
 
 using TMI = celeritas::TrackingManagerIntegration;
 using Geant4Context = dd4hep::sim::Geant4Context;
@@ -63,6 +73,8 @@ CelerPhysics::CelerPhysics(Geant4Context* ctxt, std::string const& name)
     declareProperty("MaxNumTracks", max_num_tracks_);
     declareProperty("InitCapacity", init_capacity_);
     declareProperty("IgnoreProcesses", ignore_processes_);
+    declareProperty("FieldMapFile", field_map_file_);
+    declareProperty("FieldMapCoordType", field_map_coord_type_);
 }
 
 //---------------------------------------------------------------------------//
@@ -87,54 +99,10 @@ SetupOptions CelerPhysics::make_options()
         opts.ignore_processes.push_back(proc);
     }
 
-    // Get the field from DD4hep detector description and validate its type
-    auto& detector = context()->detectorDescription();
-    auto&& field = detector.field();
-    auto* overlaid_obj = field.data<OverlayedField::Object>();
-
-    // Validate field configuration: no electric components
-    CELER_VALIDATE(overlaid_obj->electric_components.empty(),
-                   << "Celeritas does not support electric field components. "
-                      "Found "
-                   << overlaid_obj->electric_components.size()
-                   << " electric component(s).");
-
-    CELER_VALIDATE(!overlaid_obj->magnetic_components.empty(),
-                   << "No magnetic field components found in DD4hep field "
-                      "description.");
-
-    // Check that all magnetic components are ConstantField and sum them
-    Direction field_direction(0, 0, 0);
-    for (auto const& mag_component : overlaid_obj->magnetic_components)
-    {
-        auto* cartesian_obj = mag_component.data<CartesianField::Object>();
-        auto* const_field = dynamic_cast<ConstantField const*>(cartesian_obj);
-
-        CELER_VALIDATE(const_field,
-                       << "Celeritas currently only supports ConstantField "
-                          "magnetic "
-                       << "fields. Found non-constant field component in "
-                          "DD4hep "
-                       << "description.");
-        field_direction += const_field->direction;
-    }
-
-    // Print field strength
-    // Note: field_direction is already in DD4hep internal units (parsed from
-    // XML) DD4hep supports tesla, gauss, kilogauss, etc. in XML and converts
-    // to internal units
-    constexpr double dd4hep_tesla = dd4hep::tesla;
-    CELER_LOG(debug) << "Field strength: ("
-                     << field_direction.X() / dd4hep_tesla << ", "
-                     << field_direction.Y() / dd4hep_tesla << ", "
-                     << field_direction.Z() / dd4hep_tesla << ") T";
-
-    // Get field tracking parameters from DD4hep FieldSetup action
-    // These parameters are set in the steering file (runner.field.*)
+    // Load field driver options from the DD4hep MagFieldTrackingSetup action
     dd4hep::sim::Geant4Action* field_action = nullptr;
     if (auto* config_phase = context()->kernel().getPhase("configure"))
     {
-        // Find the MagFieldTrackingSetup action in the configure phase
         for (auto const& [action, callback] : config_phase->members())
         {
             if (action->name() == "MagFieldTrackingSetup")
@@ -167,18 +135,101 @@ SetupOptions CelerPhysics::make_options()
         << " mm, delta_intersection="
         << driver_options.delta_intersection / celer_mm << " mm";
 
-    // Use a uniform magnetic field based on DD4hep ConstantField
-    auto make_field_input = [field_direction, driver_options] {
-        inp::UniformField input;
+    CELER_VALIDATE(field_map_file_.empty() || CELERITAS_USE_COVFIE,
+                   << "FieldMapFile='" << field_map_file_
+                   << "' was set but Celeritas was built without covfie "
+                      "support (CELERITAS_USE_covfie=OFF)");
 
-        // Convert from DD4hep (tesla) to Celeritas field units
-        input.strength = {field_direction.X() / dd4hep_tesla,
-                          field_direction.Y() / dd4hep_tesla,
-                          field_direction.Z() / dd4hep_tesla};
-        input.driver_options = driver_options;
-        return input;
-    };
-    opts.make_along_step = UniformAlongStepFactory(make_field_input);
+#if CELERITAS_USE_COVFIE
+    if (!field_map_file_.empty())
+    {
+        // Covfie field map mode: load binary field file
+        CELER_LOG(info) << "Loading covfie field map from '" << field_map_file_
+                        << "' (coord_type=" << field_map_coord_type_ << ")";
+
+        CELER_VALIDATE(field_map_coord_type_ == "BrBz"
+                           || field_map_coord_type_ == "BxByBz",
+                       << "invalid FieldMapCoordType='" << field_map_coord_type_
+                       << "': must be \"BrBz\" or \"BxByBz\"");
+
+        if (field_map_coord_type_ == "BrBz")
+        {
+            auto load_field = [filename = field_map_file_, driver_options] {
+                RZMapFieldInput inp = LoadCovfieFieldBrBz(filename);
+                inp.driver_options = driver_options;
+                std::ofstream("rzmap-field-dump.json") << inp;
+                CELER_LOG(debug) << "Dumped RZMapFieldInput to "
+                                    "rzmap-field-dump.json";
+                return inp;
+            };
+            opts.make_along_step = RZMapFieldAlongStepFactory(load_field);
+            CELER_LOG(info) << "Using covfie RZMapField for along-step";
+        }
+        else
+        {
+            auto load_field = [filename = field_map_file_, driver_options] {
+                CartMapFieldInput inp = LoadCovfieField(filename);
+                inp.driver_options = driver_options;
+                return inp;
+            };
+            opts.make_along_step = CartMapFieldAlongStepFactory(load_field);
+            CELER_LOG(info) << "Using covfie CartMapField for along-step";
+        }
+    }
+    else
+#endif
+    {
+        // Uniform field mode: read ConstantField from DD4hep detector
+        // description
+        auto& detector = context()->detectorDescription();
+        auto&& field = detector.field();
+        auto* overlaid_obj = field.data<OverlayedField::Object>();
+
+        CELER_VALIDATE(overlaid_obj->electric_components.empty(),
+                       << "Celeritas does not support electric field "
+                          "components. Found "
+                       << overlaid_obj->electric_components.size()
+                       << " electric component(s).");
+
+        CELER_VALIDATE(!overlaid_obj->magnetic_components.empty(),
+                       << "No magnetic field components found in DD4hep field "
+                          "description.");
+
+        // Sum all ConstantField components
+        Direction field_direction(0, 0, 0);
+        for (auto const& mag_component : overlaid_obj->magnetic_components)
+        {
+            auto* cartesian_obj = mag_component.data<CartesianField::Object>();
+            auto* const_field
+                = dynamic_cast<ConstantField const*>(cartesian_obj);
+
+            CELER_VALIDATE(const_field,
+                           << "Celeritas uniform field mode only supports "
+                              "ConstantField "
+                              "components. Found non-constant field in DD4hep "
+                              "description."
+                              " Set FieldMapFile to use a covfie field map "
+                              "instead.");
+            field_direction += const_field->direction;
+        }
+
+        constexpr double dd4hep_tesla = dd4hep::tesla;
+        CELER_LOG(debug) << "Field strength: ("
+                         << field_direction.X() / dd4hep_tesla << ", "
+                         << field_direction.Y() / dd4hep_tesla << ", "
+                         << field_direction.Z() / dd4hep_tesla << ") T";
+
+        auto make_field_input = [field_direction, driver_options] {
+            inp::UniformField input;
+            constexpr double dd4hep_t = dd4hep::tesla;
+            input.strength = {field_direction.X() / dd4hep_t,
+                              field_direction.Y() / dd4hep_t,
+                              field_direction.Z() / dd4hep_t};
+            input.driver_options = driver_options;
+            return input;
+        };
+        opts.make_along_step = UniformAlongStepFactory(make_field_input);
+    }
     opts.sd.ignore_zero_deposition = false;
 
     // Save diagnostic file to a unique name

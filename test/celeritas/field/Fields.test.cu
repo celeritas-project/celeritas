@@ -16,9 +16,13 @@
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
+#include "geocel/UnitUtils.hh"
 #include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 
 #include "TestMacros.hh"
 
@@ -107,6 +111,69 @@ void field_test(CartMapFieldInput& inp,
                         inp.y,
                         inp.z,
                         n_samples,
+                        field_values_d.data());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
+
+    field_values_d.copy_to_host(field_values);
+}
+
+//---------------------------------------------------------------------------//
+// RZ FIELD TESTING
+//---------------------------------------------------------------------------//
+
+namespace
+{
+using RZDeviceCRef = RZMapFieldParams::DeviceRef;
+
+__global__ void rzfield_test_kernel(unsigned int const size,
+                                    RZDeviceCRef field_map_data,
+                                    real_type delta_r,
+                                    real_type delta_z,
+                                    unsigned int num_samples,
+                                    real_type* field_values)
+{
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    if (tid.get() >= size)
+        return;
+
+    RZMapField calc_field(field_map_data);
+
+    size_type index = 0;
+    for (unsigned int i = 0; i < num_samples; ++i)
+    {
+        Real3 field = calc_field({i * delta_r, i * delta_r, i * delta_z});
+        field_values[index++] = field[0];
+        field_values[index++] = field[1];
+        field_values[index++] = field[2];
+    }
+}
+
+}  // namespace
+
+//---------------------------------------------------------------------------//
+//! Run RZ field on device and return results
+void rzfield_test(RZMapFieldInput& inp,
+                  Span<real_type>& field_values,
+                  unsigned int num_samples)
+{
+    RZMapFieldParams field_map{inp};
+
+    DeviceVector<real_type> field_values_d(field_values.size());
+
+    RZDeviceCRef device_cref = field_map.device_ref();
+
+    // Use the same sampling deltas as the host test
+    real_type delta_r = from_cm(12.0);
+    real_type delta_z = from_cm(25.0);
+
+    CELER_LAUNCH_KERNEL(rzfield_test,
+                        1,
+                        0,
+                        1,
+                        device_cref,
+                        delta_r,
+                        delta_z,
+                        num_samples,
                         field_values_d.data());
     CELER_DEVICE_API_CALL(DeviceSynchronize());
 
