@@ -11,6 +11,7 @@
 #include <string_view>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"

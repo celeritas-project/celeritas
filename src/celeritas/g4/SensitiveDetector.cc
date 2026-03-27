@@ -54,7 +54,7 @@ void SensitiveDetector::Initialize(G4HCofThisEvent*)
 G4bool SensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
 {
     CELER_EXPECT(step);
-    hit_func_(g4_worker_stream(), *step);
+    hit_func_(g4_stream(), *step);
     return true;
 }
 

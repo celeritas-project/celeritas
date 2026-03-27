@@ -193,7 +193,7 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new PGPrimaryGeneratorAction{std::move(pg_inp)});
 
         // User actions
-        if (auto track_action = test_->make_tracking_action(g4_worker_stream()))
+        if (auto track_action = test_->make_tracking_action(g4_stream()))
         {
             TypeDemangler<G4UserTrackingAction> demangle_type;
             CELER_LOG_LOCAL(debug) << "Setting track action of type "
@@ -205,8 +205,7 @@ class ActionInitialization final : public G4VUserActionInitialization
             CELER_LOG_LOCAL(debug)
                 << "Setting step action of type "
                 << demangled_typeid_name(step_cb_.target_type().name());
-            this->SetUserAction(
-                new SteppingAction{g4_worker_stream(), step_cb_});
+            this->SetUserAction(new SteppingAction{g4_stream(), step_cb_});
         }
     }
 

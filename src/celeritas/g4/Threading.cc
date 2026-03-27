@@ -17,7 +17,7 @@ namespace celeritas
  * The result is null if this is the "master" thread in MT or if the run
  * manager hasn't been started.
  */
-StreamId g4_worker_stream()
+StreamId g4_stream()
 {
     if (!G4Threading::IsMultithreadedApplication())
     {
