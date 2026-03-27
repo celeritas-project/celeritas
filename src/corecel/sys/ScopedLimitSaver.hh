@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
