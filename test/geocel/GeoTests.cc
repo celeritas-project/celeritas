@@ -908,7 +908,7 @@ void FourLevelsGeoTest::test_safety() const
         3.1,
     };
     auto tol = test_->tracking_tol();
-    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties, tol.safety);
+    EXPECT_VEC_NEAR(expected_safeties, safeties, tol.safety);
 
     std::vector<double> expected_lim_safeties = {
         2.9,
