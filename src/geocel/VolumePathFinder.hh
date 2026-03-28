@@ -28,21 +28,22 @@ namespace celeritas
  * returns a (possibly shorter) span of the result.
  *
  * \c VolumeUniqueInstanceId{0} (or \c world_unique_instance ) always denotes
- the world volume itself
- * (empty path), and \c VolumeUniqueInstanceId{} (null/invalid) is rejected
- * with a precondition failure.  The valid range is
- * \f$[0,\, N_\text{unique})\f$.
+ * the world volume itself (empty path), and \c VolumeUniqueInstanceId{}
+ * (null/invalid) is rejected with a precondition failure.
+ * The valid range is \f$[0,\, N_\text{unique})\f$.
  *
  * The algorithm descends from the world volume level by level, always seeding
- * from the world's direct children.  At each level it scans the current
- * volume's children to find the unique child whose subtree contains the
- * remaining UID, exploiting the fact that sibling offsets are strictly
- * increasing.  The cost is \f$O(D \log C)\f$ where \f$D\f$ is the path
- * depth and \f$C\f$ is the maximum number of children of any volume.
+ * from the world's direct children.
+ * At each level it scans the current volume's children to find the unique
+ * child whose subtree contains the remaining UID, exploiting the fact that
+ * sibling offsets are strictly increasing.
+ * The cost is \f$O(D \log C)\f$ where \f$D\f$ is the path depth and \f$C\f$ is
+ * the maximum number of children of any volume.
  *
  * The scratch buffer must be at least \c num_volume_levels - 1 long (the
- * maximum possible path depth).  Successive calls reuse the same buffer, so
- * callers must consume the returned span before the next call.
+ * maximum possible path depth).
+ * Successive calls reuse the same buffer, so callers must consume the returned
+ * span before the next call.
  *
  * \par Example:
  * \code
