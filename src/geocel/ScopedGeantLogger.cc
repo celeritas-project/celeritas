@@ -48,6 +48,13 @@ std::string_view to_string_view(std::sub_match<T> const& cs)
 //---------------------------------------------------------------------------//
 /*!
  * Log the actual message.
+ *
+ * Example inputs (cout):
+ * - "*** G4Navigator::LocateGlobalPointAndSetup: ***"
+ * - "    Called with arguments: "
+ * Examples (cerr):
+ * - "!!! Csv file name not defined."
+ * - "ERROR : G4VScoringMesh::SetPrimitiveScorer() : <message>"
  */
 G4int log_impl(celeritas::Logger& log, G4String const& str, LogLevel level)
 {
@@ -55,6 +62,8 @@ G4int log_impl(celeritas::Logger& log, G4String const& str, LogLevel level)
     static std::regex const err_warn_regex{
         R"regex(^\W*(\w+)?\s*(warning|error|!+|\*+)\W+)regex",
         std::regex::icase};
+    static std::regex const highlighted_regex{
+        R"regex(^\s*\*+\s+(\S+):\s+\*+\s*$)regex"};
     static std::regex const info_regex{R"regex(^(\w+):\s+)regex"};
 
     std::smatch m;
@@ -73,9 +82,21 @@ G4int log_impl(celeritas::Logger& log, G4String const& str, LogLevel level)
         msg = to_string_view(m.suffix());
         // Update the warning level
         auto first_char = std::tolower(static_cast<unsigned char>(*m[2].first));
-        if (first_char == 'w' || first_char == '*')
+        if (first_char == 'w')
         {
             level = LogLevel::warning;
+        }
+        else if (first_char == '*')
+        {
+            if (std::regex_search(str, m, highlighted_regex))
+            {
+                // Not actually a warning: just code location (leave as is)
+                msg = str;
+            }
+            else
+            {
+                level = LogLevel::warning;
+            }
         }
         else if (first_char == 'e' || first_char == '!')
         {
