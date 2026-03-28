@@ -109,6 +109,8 @@ auto NeutronInelasticModel::applicability() const -> SetApplicability
     neutron_applic.particle = this->host_ref().scalars.neutron_id;
     neutron_applic.lower = zero_quantity();
     neutron_applic.upper = this->host_ref().scalars.max_valid_energy();
+    // TODO: Replace hardcoded limits with lower and upper bounds from
+    // cross-section data
 
     return {neutron_applic};
 }

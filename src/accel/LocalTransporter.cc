@@ -32,6 +32,7 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
@@ -251,6 +252,7 @@ void LocalTransporter::Push(G4Track& g4track)
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
+    GeantParticleView pv{*g4track.GetParticleDefinition()};
 
     units::ClhepEnergy const energy{g4track.GetKineticEnergy()};
     if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
@@ -260,8 +262,7 @@ void LocalTransporter::Push(G4Track& g4track)
         // geometry
         CELER_LOG_LOCAL(error)
             << "Discarding track outside world bounds: " << energy << " from "
-            << g4track.GetDefinition()->GetParticleName() << " at " << pos
-            << " along "
+            << pv.name() << " at " << pos << " along "
             << convert_from_geant(g4track.GetMomentumDirection(), 1);
 
         buffer_accum_.lost_energy += energy.value();
@@ -271,7 +272,7 @@ void LocalTransporter::Push(G4Track& g4track)
 
     Primary track;
 
-    PDGNumber const pdg{g4track.GetDefinition()->GetPDGEncoding()};
+    PDGNumber const pdg{pv.pdg()};
     track.particle_id = particles_->find(pdg);
 
     // Generate Celeritas-specific PrimaryID and capture user info
@@ -285,9 +286,7 @@ void LocalTransporter::Push(G4Track& g4track)
     track.energy = energy;
 
     CELER_VALIDATE(track.particle_id,
-                   << "cannot offload '"
-                   << g4track.GetDefinition()->GetParticleName()
-                   << "' particles");
+                   << "cannot offload '" << pv.name() << "' particles");
 
     track.position = native_from_geant<lengthunits::ClhepLength, real_type>(
         g4track.GetPosition());

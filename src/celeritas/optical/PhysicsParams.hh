@@ -8,6 +8,7 @@
 
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/data/ParamsDataStore.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 #include "Model.hh"
 #include "PhysicsData.hh"
@@ -16,7 +17,6 @@
 namespace celeritas
 {
 class ActionRegistry;
-struct ImportData;
 class MaterialParams;
 
 namespace optical
@@ -34,34 +34,21 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
   public:
     //!@{
     //! \name Type aliases
+    using ActionIdRange = Range<ActionId>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
     using SPConstModel = std::shared_ptr<Model const>;
     using SPConstCoreMaterials
         = std::shared_ptr<celeritas::MaterialParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
-
     using VecModels = std::vector<SPConstModel>;
-    using VecModelBuilders = std::vector<Model::ModelBuilder>;
-
-    using ActionIdRange = Range<ActionId>;
     //!@}
 
-    struct Input
-    {
-        VecModelBuilders model_builders;
-        SPConstMaterials materials;
-        ActionRegistry* action_registry = nullptr;
-    };
-
   public:
-    // Construct with imported data, material params, and action registry
-    static std::shared_ptr<PhysicsParams> from_import(ImportData const&,
-                                                      SPConstCoreMaterials,
-                                                      SPConstMaterials,
-                                                      SPActionRegistry);
-
     // Construct from models
-    explicit PhysicsParams(Input input);
+    explicit PhysicsParams(inp::OpticalBulkPhysics const&,
+                           SPConstMaterials const&,
+                           SPConstCoreMaterials const&,
+                           SPActionRegistry);
 
     //! Number of optical models
     inline ModelId::size_type num_models() const { return models_.size(); }
@@ -91,8 +78,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
 
     //!@{
     //! \name Data construction helper functions
-    VecModels build_models(VecModelBuilders const& model_builders,
-                           ActionRegistry& action_reg) const;
+    VecModels build_models(inp::OpticalBulkPhysics const&,
+                           SPConstMaterials,
+                           SPConstCoreMaterials,
+                           ActionRegistry&) const;
     void build_mfps(MaterialParams const& mats, HostValue& data) const;
     //!@}
 };

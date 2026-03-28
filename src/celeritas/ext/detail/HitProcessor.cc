@@ -30,6 +30,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -350,7 +351,7 @@ void HitProcessor::update_track(G4Track& track) const
     // Copy data from step to track
     track.SetStepLength(step_->GetStepLength());
 
-    G4ParticleDefinition const& pd = *track.GetParticleDefinition();
+    GeantParticleView pv{*track.GetParticleDefinition()};
 
     for (G4StepPoint* p : step_points_)
     {
@@ -360,8 +361,8 @@ void HitProcessor::update_track(G4Track& track) const
         }
 
         // Copy data from track to step points
-        p->SetMass(pd.GetPDGMass());
-        p->SetCharge(pd.GetPDGCharge());
+        p->SetMass(pv.mass().value());
+        p->SetCharge(pv.charge().value());
     }
 
     if (G4StepPoint* pre_step = step_points_[StepPoint::pre])

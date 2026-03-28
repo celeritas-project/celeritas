@@ -1,0 +1,65 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 23, "patch": 0},
+  "configurePresets": [
+    {
+      "name": ".base",
+      "hidden": true,
+      "inherits": ["default", ".cuda", ".spack-env"],
+      "cacheVariables": {
+        "CMAKE_CUDA_ARCHITECTURES":         {"type": "STRING", "value": "80"},
+        "CELERITAS_CORE_GEO":               {"type": "STRING", "value": "ORANGE"},
+        "CELERITAS_BUILD_DOCS":             {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_Geant4":             {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_HepMC3":             {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_PNG":                {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_ROOT":               {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_VecGeom":            {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_DD4hep":             {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie":             {"type": "BOOL", "value": "ON"},
+        "CMAKE_CXX_EXTENSIONS":             {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_OpenMP":             {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_MPI":                {"type": "BOOL", "value": "OFF"},
+        "CMAKE_INSTALL_PREFIX":             "${sourceDir}/install-${presetName}"
+      }
+    },
+    {
+      "name": "rivanna",
+      "description": "Build on UVA's Rivanna HPC",
+      "inherits": [".base", ".ndebug"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
+      }
+    },
+    {
+      "name": "rivanna-debug",
+      "description": "Build on UVA's Rivanna HPC (debug)",
+      "inherits": [".base", ".debug"],
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-march=x86-64-v3",
+        "CMAKE_CUDA_FLAGS": "-lineinfo -Xptxas=-v -Xcompiler -Wno-psabi"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "base",
+      "configurePreset": ".base",
+      "jobs": 8,
+      "nativeToolOptions": ["-k0"]
+    },
+    {"name": "rivanna", "configurePreset": "rivanna", "inherits": "base"},
+    {"name": "rivanna-debug", "configurePreset": "rivanna-debug", "inherits": "base"}
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "configurePreset": ".base",
+      "output": {"outputOnFailure": true},
+      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8},
+      "environment": {"CELER_DISABLE_DEVICE": "1"}
+    },
+    {"name": "rivanna", "configurePreset": "rivanna", "inherits": "base"},
+    {"name": "rivanna-debug", "configurePreset": "rivanna-debug", "inherits": "base"}
+  ]
+}

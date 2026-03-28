@@ -120,44 +120,154 @@ struct OpticalGenPhysics
 // VOLUMETRIC (BULK) MODELS
 //---------------------------------------------------------------------------//
 /*!
- * Optical material data with an associated MFP grid.
- *
- * \todo This will be removed; it's currently just an adapter for old IO data
- * classes.
+ * Absorption properties for a single material.
  */
-template<class ModelMat>
-struct OpticalModelMaterial : ModelMat
+struct AbsorptionMaterial
 {
+    //! Mean free path grid [MeV, len]
     inp::Grid mfp;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const { return static_cast<bool>(mfp); }
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * A single model for all optical materials.
- *
- * Each material instance
- *
- * \todo This will be removed; it's currently just an adapter for old IO data
- * classes.
+ * Mie scattering properties (Henyey-Greenstein model) for a single material.
  */
-template<class ModelMat, optical::ImportModelClass IMC>
-struct OpticalBulkModel
+struct MieMaterial
 {
-    using OMM = OpticalModelMaterial<ModelMat>;
+    //! Henyey-Greenstein "g" parameter for forward scattering
+    double forward_g{};
 
-    //! Model class for backward compatibility
-    static constexpr auto model_class = IMC;
+    //! Henyey-Greenstein "g" parameter for backward scattering
+    double backward_g{};
 
-    //! Model data for each material
-    std::map<OptMatId, OMM> materials;
+    //! Fraction of forward vs backward scattering
+    double forward_ratio{};
 
-    //! True if any materials have the model
-    explicit operator bool() const { return !materials.empty(); }
+    //! Mean free path grid [MeV, len]
+    inp::Grid mfp;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return forward_ratio >= 0 && forward_ratio <= 1 && forward_g >= -1
+               && forward_g <= 1 && backward_g >= -1 && backward_g <= 1 && mfp;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rayleigh scattering properties for calculating the MFP analytically.
+ */
+struct OpticalRayleighAnalytic
+{
+    //! Scale the scattering length
+    std::optional<double> scale_factor;
+
+    //! Isothermal compressibility [len-time^2/mass]
+    double compressibility{0};
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return (!scale_factor || *scale_factor > 0) && compressibility > 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Rayleigh scattering properties for a single material.
+ */
+struct OpticalRayleighMaterial
+{
+    //! Mean free path grid [MeV, len]
+    std::variant<inp::Grid, OpticalRayleighAnalytic> mfp;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return std::visit([](auto const& v) { return static_cast<bool>(v); },
+                          mfp);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wavelength shifting properties for a single material.
+ *
+ * The component vector represents the relative population as a function of the
+ * re-emission energy. It is used to define an inverse CDF needed to sample the
+ * re-emitted optical photon energy.
+ */
+struct WavelengthShiftMaterial
+{
+    //! Mean number of reemitted photons
+    double mean_num_photons{};
+
+    //! Time delay between absorption and reemission
+    double time_constant{};
+
+    //! Reemission population [MeV, unitless]
+    inp::Grid component;
+
+    //! Mean free path grid [MeV, len]
+    inp::Grid mfp;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return mean_num_photons > 0 && time_constant > 0 && component && mfp;
+    }
 };
 
 //! Absorption
 struct OpticalBulkAbsorption
 {
+    //! Model data for each material
+    std::map<OptMatId, AbsorptionMaterial> materials;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const { return !materials.empty(); }
+};
+
+//! Mie scattering
+struct OpticalBulkMie
+{
+    //! Model data for each material
+    std::map<OptMatId, MieMaterial> materials;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const { return !materials.empty(); }
+};
+
+//! Rayleigh scattering
+struct OpticalBulkRayleigh
+{
+    //! Model data for each material
+    std::map<OptMatId, OpticalRayleighMaterial> materials;
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const { return !materials.empty(); }
+};
+
+//! Wavelength shifting
+struct OpticalBulkWavelengthShift
+{
+    using Dist = optical::WlsDistribution;
+
+    //! Model data for each material
+    std::map<OptMatId, WavelengthShiftMaterial> materials;
+
+    //! Time profile distribution type
+    Dist time_profile{Dist::size_};
+
+    //! Whether all data are assigned and valid
+    explicit operator bool() const
+    {
+        return !materials.empty() && time_profile != Dist::size_;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -168,20 +278,18 @@ struct OpticalBulkAbsorption
  */
 struct OpticalBulkPhysics
 {
-    using IMC = optical::ImportModelClass;
-
     //! Absorption models for all materials
-    OpticalBulkModel<OpticalBulkAbsorption, IMC::absorption> absorption;
+    OpticalBulkAbsorption absorption;
 
     //! Mie scattering models for materials
-    OpticalBulkModel<ImportMie, IMC::mie> mie;
+    OpticalBulkMie mie;
 
     //! Rayleigh scattering models for all materials
-    OpticalBulkModel<ImportOpticalRayleigh, IMC::rayleigh> rayleigh;
+    OpticalBulkRayleigh rayleigh;
 
     //! WLS models (TODO: merge into a single WLS with arbitrary components)
-    OpticalBulkModel<ImportWavelengthShift, IMC::wls> wls;
-    OpticalBulkModel<ImportWavelengthShift, IMC::wls2> wls2;
+    OpticalBulkWavelengthShift wls;
+    OpticalBulkWavelengthShift wls2;
 
     //! Whether optical physics is enabled
     explicit operator bool() const

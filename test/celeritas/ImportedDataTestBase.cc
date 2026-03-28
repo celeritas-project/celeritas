@@ -13,7 +13,6 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/MaterialParams.hh"
-#include "celeritas/optical/ModelImporter.hh"
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
@@ -36,12 +35,6 @@ auto ImportedDataTestBase::build_physics_options() const -> PhysicsOptions
     PhysicsOptions options;
     options.secondary_stack_factor = 3.0;
     return options;
-}
-
-//---------------------------------------------------------------------------//
-auto ImportedDataTestBase::select_optical_models() const -> std::vector<IMC>
-{
-    return {IMC::absorption, IMC::rayleigh, IMC::wls};
 }
 
 //---------------------------------------------------------------------------//
@@ -167,24 +160,11 @@ auto ImportedDataTestBase::build_scintillation() -> SPConstScintillation
 //---------------------------------------------------------------------------//
 auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
 {
-    using IMC = celeritas::optical::ImportModelClass;
-
-    optical::PhysicsParams::Input input;
-    input.materials = this->optical_material();
-    input.action_registry = this->optical_action_reg().get();
-
-    optical::ModelImporter importer(
-        this->imported_data(), this->optical_material(), this->material());
-
-    for (IMC imc : this->select_optical_models())
-    {
-        if (auto builder = importer(imc))
-        {
-            input.model_builders.push_back(builder);
-        }
-    }
-
-    return std::make_shared<optical::PhysicsParams>(std::move(input));
+    return std::make_shared<optical::PhysicsParams>(
+        this->imported_data().optical_physics.bulk,
+        this->optical_material(),
+        this->material(),
+        this->optical_action_reg());
 }
 
 //---------------------------------------------------------------------------//

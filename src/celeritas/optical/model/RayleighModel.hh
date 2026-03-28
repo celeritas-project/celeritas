@@ -6,18 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "celeritas/optical/ImportedModelAdapter.hh"
+#include <memory>
+
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/Model.hh"
 #include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
 class MaterialParams;
-struct ImportOpticalRayleigh;
 
 namespace optical
 {
-class ImportedMaterials;
 class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
@@ -28,33 +28,17 @@ class RayleighModel : public Model
   public:
     //!@{
     //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedModels const>;
-    using SPConstImportedMaterials = std::shared_ptr<ImportedMaterials const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using SPConstCoreMaterials
         = std::shared_ptr<::celeritas::MaterialParams const>;
     //!@}
 
-    //! Optional input for calculating MFP tables from material parameters
-    struct Input
-    {
-        SPConstMaterials materials;
-        SPConstCoreMaterials core_materials;
-        SPConstImportedMaterials imported_materials;
-
-        //! Whether data is available to calculate material MFP tables
-        explicit operator bool() const
-        {
-            return materials && core_materials && imported_materials;
-        }
-    };
-
   public:
-    // Create a model builder from imported data and material parameters
-    static ModelBuilder make_builder(SPConstImported, Input);
-
     // Construct with imported data and imported material parameters
-    RayleighModel(ActionId id, SPConstImported imported, Input input);
+    RayleighModel(ActionId,
+                  inp::OpticalBulkRayleigh,
+                  SPConstMaterials const&,
+                  SPConstCoreMaterials const&);
 
     // Build the mean free paths for this model
     void build_mfps(OptMatId, MfpBuilder&) const final;
@@ -66,8 +50,9 @@ class RayleighModel : public Model
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
-    ImportedModelAdapter imported_;
-    Input input_;
+    inp::OpticalBulkRayleigh input_;
+    SPConstMaterials materials_;
+    SPConstCoreMaterials core_materials_;
 };
 
 //---------------------------------------------------------------------------//
