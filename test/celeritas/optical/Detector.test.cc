@@ -339,8 +339,7 @@ TEST_F(DetectorTest, efficiency)
     optical::Runner(std::move(osi_))();
 
     // Check results
-
-    if (reference_configuration)
+    if constexpr (reference_configuration)
     {
         static size_type const expected_hits[] = {2776, 2713, 2703};
 

@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/VolumeParams.hh
+//! \sa test/geocel/Volume.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
 #include <memory>
 
 #include "corecel/Macros.hh"
@@ -39,8 +41,10 @@ struct Volumes;
  * state. The \em root of the graph is the world volume, and the \em level of a
  * volume in the path is the distance to the root: zero for the root volume,
  * one for its direct child, etc. The maximum value of the level in any path is
- * one less than \c num_volume_levels : an array of \c VolumeId with that size
- * can represent any path.
+ * one less than \c num_volume_levels : an array of \c VolumeInstanceId with
+ * that size can represent any path. (When explicitly constructing this array,
+ * we omit the world volume since it is implicit.) The total number of paths to
+ * any node in the geometry is \c num_unique_instances .
  *
  * In conjunction with \c GeantGeoParams, this class allows conversion between
  * the Celeritas geometry implementation and the Geant4 geometry navigation.
@@ -87,13 +91,19 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     //! World volume
     VolumeId world() const { return this->view().world(); }
 
+    // Enclosing instance of the world volume (null if world is a true root)
+    inline VolumeInstanceId world_instance() const;
+
     // Number of volumes
     inline VolumeId::size_type num_volumes() const;
 
     // Number of volume instances
     inline VolumeInstanceId::size_type num_volume_instances() const;
 
-    //! Depth of the volume DAG (a world without children is 1)
+    // Total number of unique root-to-node paths
+    inline VolumeUniqueInstanceId::size_type num_unique_instances() const;
+
+    // Depth of the volume DAG (a world without children is 1)
     inline vol_level_uint num_volume_levels() const;
 
     //! Get volume metadata
@@ -114,6 +124,10 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     // Get the volume being instantiated by an instance (VolumeAccessor
     // interface)
     inline VolumeId volume(VolumeInstanceId vi_id) const;
+
+    // Get the raw unique-instance offset for a volume instance
+    inline VolumeUniqueInstanceId::size_type
+    offset(VolumeInstanceId vi_id) const;
 
     //!@{
     //! \deprecated Use \c get instead
@@ -156,6 +170,15 @@ std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
+ * Enclosing instance of the world volume (null if world is a true root).
+ */
+VolumeInstanceId VolumeParams::world_instance() const
+{
+    return this->view().world_instance();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Depth of the volume DAG.
  */
 CELER_FORCEINLINE auto VolumeParams::num_volumes() const -> VolumeId::size_type
@@ -170,6 +193,16 @@ CELER_FORCEINLINE auto VolumeParams::num_volumes() const -> VolumeId::size_type
 auto VolumeParams::num_volume_instances() const -> VolumeInstanceId::size_type
 {
     return this->view().num_volume_instances();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of unique root-to-node paths (= num_desc of the world volume).
+ */
+auto VolumeParams::num_unique_instances() const
+    -> VolumeUniqueInstanceId::size_type
+{
+    return this->view().num_unique_instances();
 }
 
 //---------------------------------------------------------------------------//
@@ -215,6 +248,19 @@ auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
     return this->view().volume_id(vi_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the precomputed unique-instance offset for a volume instance.
+ *
+ * This is the sum of \c num_desc(volume(vj)) for all preceding sibling
+ * instances in the same parent volume's children list.
+ */
+auto VolumeParams::offset(VolumeInstanceId vi_id) const
+    -> VolumeUniqueInstanceId::size_type
+{
+    return this->view().offset(vi_id);
 }
 
 //---------------------------------------------------------------------------//

@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/io/Label.hh"
 
 #include "Range.hh"
@@ -48,6 +49,8 @@ namespace celeritas
 template<class I>
 class LabelIdMultiMap
 {
+    static_assert(is_opaque_id_v<I>, "invalid template type");
+
   public:
     //!@{
     //! \name Type aliases
@@ -66,6 +69,11 @@ class LabelIdMultiMap
 
     // Construct from a vector of label+sublabel pairs, with no type
     inline explicit LabelIdMultiMap(VecLabel&& keys);
+
+    // Construct from a vector of items that each have a .label member
+    template<class T>
+    static inline LabelIdMultiMap
+    from_labeled_items(std::string type_label, std::vector<T> const& items);
 
     // Access the range of IDs corresponding to a name
     inline SpanConstIdT find_all(std::string const& name) const;
@@ -110,6 +118,25 @@ template<class I>
 LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel&& keys)
     : LabelIdMultiMap{{}, std::move(keys)}
 {
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a vector of items that each have a .label member.
+ */
+template<class I>
+template<class T>
+LabelIdMultiMap<I>
+LabelIdMultiMap<I>::from_labeled_items(std::string type_label,
+                                       std::vector<T> const& items)
+{
+    VecLabel labels;
+    labels.reserve(items.size());
+    for (auto const& item : items)
+    {
+        labels.push_back(item.label);
+    }
+    return LabelIdMultiMap{std::move(type_label), std::move(labels)};
 }
 
 //---------------------------------------------------------------------------//
