@@ -646,8 +646,7 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
             this->geo_status(GeoStatus::error);
             return;
         }
-        else if ((dot_product(norm, newdir) > 0)
-                 != (dot_product(norm, this->dir()) > 0))
+        else if ((new_dot > 0) != (dot_product(norm, this->dir()) > 0))
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.
