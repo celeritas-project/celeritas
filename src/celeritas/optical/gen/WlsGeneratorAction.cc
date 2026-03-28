@@ -68,7 +68,7 @@ WlsGeneratorAction::WlsGeneratorAction(Input&& input)
     , capacity_(input.capacity)
 {
     CELER_EXPECT(capacity_ > 0);
-    CELER_EXPECT(wls_);
+    CELER_EXPECT(wls_ || wls2_);
 }
 
 //---------------------------------------------------------------------------//
@@ -192,7 +192,7 @@ void WlsGeneratorAction::generate(CoreParams const& params,
     detail::WlsGeneratorExecutor execute{
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        wls_->host_ref(),
+        wls_ ? wls_->host_ref() : NativeCRef<WavelengthShiftData>{},
         wls2_ ? wls2_->host_ref() : NativeCRef<WavelengthShiftData>{},
         aux_state.store.ref(),
         aux_state.counters.buffer_size};

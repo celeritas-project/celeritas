@@ -103,7 +103,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     // https://github.com/celeritas-project/celeritas/pull/1507/files#r1844973621
     NonuniformGridCalculator calc_energy = calc_cdf_.make_inverse();
     real_type energy = calc_energy(generate_canonical(rng));
-    if (CELER_UNLIKELY(energy > value_as<Energy>(distribution_.energy)))
+    if (CELER_UNLIKELY(energy >= value_as<Energy>(distribution_.energy)))
     {
         // Sample a restricted energy below the incident photon energy
         real_type cdf_max = calc_cdf_(value_as<Energy>(distribution_.energy));

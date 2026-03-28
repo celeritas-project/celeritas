@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <!-- Material properties -->
+    <matrix name="RI" coldim="2" values="1.8785e-06 1.2221243542166 1.9101e-06 1.2222825413456 1.9424e-06 1.2224381070094 1.9762e-06 1.2225949497339 2.0108e-06 1.2227511290774 2.0470e-06 1.2229104393633 2.0845e-06 1.2230723199947 2.1230e-06 1.2232361043232 2.1634e-06 1.2234056897612 2.2049e-06 1.2235788347965 2.2485e-06 1.2237596566990 2.2939e-06 1.2239475391085 2.3406e-06 1.2241416640706 2.3898e-06 1.2243467108633 2.4406e-06 1.2245600757483 2.4942e-06 1.2247869894369 2.5501e-06 1.2250269429781 2.6080e-06 1.2252790990981 2.6692e-06 1.2255498628245 2.7327e-06 1.2258361874525 2.8000e-06 1.2261455681055 2.8707e-06 1.2264779455048 2.9443e-06 1.2268327625990 3.0225e-06 1.2272198383341 3.1043e-06 1.2276357672922 3.1914e-06 1.2280925883611 3.2835e-06 1.2285917000180 3.3802e-06 1.2291338166016 3.4837e-06 1.2297359753784 3.5927e-06 1.2303953408143 3.7099e-06 1.2311340756410 3.8350e-06 1.2319584795948 3.9675e-06 1.2328742967333 4.1109e-06 1.2339164497558 4.2636e-06 1.2350878388706 4.4296e-06 1.2364381478993 4.6091e-06 1.2379930862779 4.8019e-06 1.2397811112689 5.0135e-06 1.2418956339948 5.2425e-06 1.2443774409398 5.4958e-06 1.2473825079216 5.7748e-06 1.2510450704786 6.0806e-06 1.2555430061400 6.4241e-06 1.2612929591155 6.8048e-06 1.2687046921432 7.2378e-06 1.2787793729478 7.7297e-06 1.2930098842738 8.2877e-06 1.3142220339702 8.9390e-06 1.3497665943227 9.6938e-06 1.4188784984198 1.0597e-05 1.6167515615703"/>
+    <matrix name="ABS" coldim="2" values="1.3778e-06 864.473 1.3855e-06 1155.59 1.3933e-06 1362.31 1.4011e-06 1160.33 1.4091e-06 814.719 1.4171e-06 698.035 1.4253e-06 1032.69 1.4335e-06 1834.67 1.4419e-06 3135.38 1.4503e-06 4139.34 1.4588e-06 4886.24 1.4675e-06 5387.63 1.4762e-06 5408.36 1.485e-06 5246.66 1.494e-06 4967.98 1.503e-06 5393.26 1.5122e-06 5842.52 1.5215e-06 6184.28 1.5309e-06 6894.17 1.5404e-06 8167.33 1.55e-06 9605.75 1.5597e-06 11563.3 1.5696e-06 12612 1.5796e-06 13183 1.5897e-06 10848.1 1.6e-06 8219.45 1.6104e-06 5008.26 1.6209e-06 3241.4 1.6316e-06 2900.83 1.6424e-06 3203.5 1.6533e-06 3408.73 1.6644e-06 3868.36 1.6757e-06 5550.52 1.6871e-06 7706.52 1.6986e-06 9629.74 1.7103e-06 10236.6 1.7222e-06 7371.57 1.7343e-06 5704.22 1.7465e-06 7815.8 1.7589e-06 10675.5 1.7714e-06 13217.1 1.7842e-06 14801.2 1.7971e-06 16798.7 1.8102e-06 19083.9 1.8235e-06 20557.8 1.837e-06 21533.1 1.8507e-06 22119.4 1.8647e-06 21533.1 1.8788e-06 20314.4 1.8931e-06 15737 1.9077e-06 13857.6 1.9225e-06 14973.5 1.9375e-06 15499.8 1.9528e-06 16725.9 1.9683e-06 19946.8 1.984e-06 38359.7 2e-06 44836.7 2.0163e-06 41242.6 2.0328e-06 33700.9 2.0496e-06 36115.6 2.0771e-06 50641.8 2.1306e-06 65857.5 2.1869e-06 112604 2.2464e-06 97234.2 2.3091e-06 97106.2 2.3755e-06 88415.4 2.4458e-06 116681 2.5203e-06 104357 2.5996e-06 82323.7 2.684e-06 73502.5 2.774e-06 74090.6 2.8704e-06 77581.9 2.9176e-06 63001.2 2.9524e-06 40551.8 2.988e-06 12143.8 3.0244e-06 4061.75 3.0617e-06 868.915 3.1e-06 213.438 3.1117e-06 144.375 3.1234e-06 92.9923 3.1392e-06 66.4273 3.1592e-06 41.5504 3.1795e-06 28.6085 3.2e-06 21.4119 3.2208e-06 17.0585 3.2418e-06 14.1562 3.2632e-06 12.2015 3.2848e-06 10.7208 3.3067e-06 9.59538 3.3289e-06 8.61808 3.3514e-06 7.78885 3.3741e-06 7.07808 3.3973e-06 6.545 3.4207e-06 6.04154 3.4444e-06 5.65654 3.4685e-06 5.27154 3.493e-06 4.76808 3.5177e-06 4.08692 3.5429e-06 3.19846 3.5683e-06 2.07308 1.033e-05 0.00296154"/>
+    <matrix name="RAY" coldim="2" values="1.55e-06 321429 1.7714e-06 192857 2.102e-06 109286 2.255e-06 64285.7 2.531e-06 39857.1 2.884e-06 27000 3.024e-06 19285.7 4.133e-06 4885.71 6.2e-06 546.429"/>
+    <matrix name="WLSABS1" coldim="2" values="5.0e-6 100000000 7.0e-6 10 8.0e-6 1 9.0e-6 0.2 9.5e-6 0.1 10.0e-6 0.05 1.1e-5 0.05"/>
+    <matrix name="WLSC1" coldim="2" values="2.6e-6 0.05 2.7e-6 0.15 2.8e-6 0.35 2.9e-6 0.80 3.0e-6 1.00 3.1e-6 0.80 3.2e-6 0.35 3.3e-6 0.15 3.4e-6 0.05"/>
+    <matrix name="WLSMNP1" coldim="1" values="1.0"/>
+    <matrix name="WLSTC1" coldim="1" values="1.0"/>
+    <matrix name="WLSABS2" coldim="2" values="2.3e-6 100000000 2.5e-6 50 2.7e-6 5 2.9e-6 0.5 3.0e-6 0.2 3.1e-6 0.5 3.3e-6 5 3.5e-6 50 4.0e-6 100000000"/>
+    <matrix name="WLSC2" coldim="2" values="2.3e-6 0.05 2.4e-6 0.15 2.5e-6 0.40 2.6e-6 0.85 2.7e-6 1.00 2.8e-6 0.85 2.9e-6 0.40 3.0e-6 0.15 3.1e-6 0.05"/>
+    <matrix name="WLSMNP2" coldim="1" values="0.9"/>
+    <matrix name="WLSTC2" coldim="1" values="2.5"/>
+  </define>
+
+  <materials>
+    <!-- Vacuum -->
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+
+    <!-- Liquid argon -->
+    <isotope N="36" Z="18" name="Ar36">
+      <atom unit="g/mole" value="35.9675"/>
+    </isotope>
+    <isotope N="38" Z="18" name="Ar38">
+      <atom unit="g/mole" value="37.9627"/>
+    </isotope>
+    <isotope N="40" Z="18" name="Ar40">
+      <atom unit="g/mole" value="39.9624"/>
+    </isotope>
+    <element name="Ar">
+      <fraction n="0.003365" ref="Ar36"/>
+      <fraction n="0.000632" ref="Ar38"/>
+      <fraction n="0.996003" ref="Ar40"/>
+    </element>
+    <material name="lAr" state="liquid">
+      <T unit="K" value="293.15"/>
+      <MEE unit="eV" value="188"/>
+      <D unit="g/cm3" value="1.396"/>
+      <fraction n="1" ref="Ar"/>
+
+      <!-- Optical bulk properties -->
+      <property name="RINDEX" ref="RI"/>
+      <property name="ABSLENGTH" ref="ABS"/>
+      <property name="RAYLEIGH" ref="RAY"/>
+      <property name="WLSABSLENGTH" ref="WLSABS1"/>
+      <property name="WLSCOMPONENT" ref="WLSC1"/>
+      <property name="WLSMEANNUMBERPHOTONS" ref="WLSMNP1"/>
+      <property name="WLSTIMECONSTANT" ref="WLSTC1"/>
+      <property name="WLSABSLENGTH2" ref="WLSABS2"/>
+      <property name="WLSCOMPONENT2" ref="WLSC2"/>
+      <property name="WLSMEANNUMBERPHOTONS2" ref="WLSMNP2"/>
+      <property name="WLSTIMECONSTANT2" ref="WLSTC2"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="cm" name="lar_box"  x="50" y="50" z="10"/>
+    <box lunit="cm" name="world_box" x="200" y="200" z="200"/>
+  </solids>
+
+  <structure>
+    <volume name="slab">
+      <solidref ref="lar_box"/>
+      <materialref ref="lAr"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world_box"/>
+      <materialref ref="vacuum"/>
+      <physvol>
+        <volumeref ref="slab"/>
+        <position name="slab_pos" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

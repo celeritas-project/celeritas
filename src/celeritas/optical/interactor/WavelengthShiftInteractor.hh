@@ -97,6 +97,8 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
+    using DistId = ItemId<WlsDistributionData>;
+
     Interaction result = Interaction::from_absorption();
 
     if (distribution_.energy <= emission_threshold_)
@@ -111,8 +113,8 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
         distribution_.num_photons = sample_num_photons_(rng);
     }
     CELER_ASSERT(distribution_ || distribution_.num_photons == 0);
-    data_.distributions[ItemId<WlsDistributionData>(distribution_idx_)]
-        = distribution_;
+    data_.distributions[DistId(distribution_idx_)] = distribution_;
+
     return result;
 }
 
