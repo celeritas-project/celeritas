@@ -6,6 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+
+#include "corecel/Macros.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
+
 namespace celeritas
 {
 namespace detail
@@ -19,6 +25,14 @@ CELER_FUNCTION Array<T, N> load_array(Span<T const, N> s)
     for (std::size_t i = 0; i != N; ++i)
         result[i] = s[i];
     return result;
+}
+
+//! Load a const span into a fixed-size array.
+//! \todo Delete in follow-up PR when implicit const conversion works.
+template<class T, std::size_t N>
+CELER_FUNCTION Array<T, N> load_array(Span<T, N> s)
+{
+    return load_array(make_span(const_cast<T const>(s.data()), s.size()));
 }
 
 //---------------------------------------------------------------------------//

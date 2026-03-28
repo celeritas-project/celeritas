@@ -166,7 +166,6 @@ TEST(SpanUtilsTest, rotate)
 
     Dbl3 const rot = make_unit_vector(Dbl3{-1.1, 2.3, 0.9});
     Dbl3 result{};
-    // Use as_const so make_span returns Span<double const, 3>
     Dbl3 const& cdir = dir;
     rotate(make_span(cdir), make_span(rot), make_span(result));
 

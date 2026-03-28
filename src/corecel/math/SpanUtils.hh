@@ -10,7 +10,6 @@
 
 #include <cstddef>
 
-#include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 
 #include "ArrayUtils.hh"
@@ -70,7 +69,8 @@ inline CELER_FUNCTION void axpy(T a, Span<T const, N> x, Span<T, N> y)
  * Dot product of two vector spans.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION T dot_product(Span<T const, N> x, Span<T const, N> y)
+[[nodiscard]] inline CELER_FUNCTION T dot_product(Span<T const, N> x,
+                                                  Span<T const, N> y)
 {
     return dot_product(detail::load_array(x), detail::load_array(y));
 }
@@ -94,7 +94,7 @@ cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
  * Calculate the Euclidean (2) norm of a vector span.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION T norm(Span<T const, N> v)
+[[nodiscard]] inline CELER_FUNCTION T norm(Span<T const, N> v)
 {
     return norm(detail::load_array(v));
 }
@@ -162,7 +162,8 @@ is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
  * Calculate the Euclidean (2) distance between two point spans.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION T distance(Span<T const, N> x, Span<T const, N> y)
+[[nodiscard]] inline CELER_FUNCTION T distance(Span<T const, N> x,
+                                               Span<T const, N> y)
 {
     return distance(detail::load_array(x), detail::load_array(y));
 }
