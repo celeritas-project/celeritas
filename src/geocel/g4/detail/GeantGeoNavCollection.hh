@@ -20,6 +20,10 @@ class G4Navigator;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<Ownership W, MemSpace M>
+struct GeantGeoParamsData;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -80,7 +84,9 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
     std::vector<UPNavigator> navigators;
 
     // Resize with a number of states on the given Geant4 thread ID
-    void resize(size_type size, G4VPhysicalVolume* world, StreamId sid);
+    void resize(HostCRef<GeantGeoParamsData> const& params,
+                StreamId sid,
+                size_type size);
 
     //! State size
     CELER_FUNCTION TrackSlotId::size_type size() const

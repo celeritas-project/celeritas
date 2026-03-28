@@ -202,6 +202,16 @@ CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Change whether a boundary crossing is reentrant or exiting.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
+{
+    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
+                                           : GeoStatus::boundary_inc;
+}
+
+//---------------------------------------------------------------------------//
 //! Whether a volume is outside the canonical geometry extents
 CELER_CONSTEXPR_FUNCTION bool is_outside(VolumeId v)
 {

@@ -361,16 +361,6 @@ extern template struct Tolerance<double>;
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
- * Change whether a boundary crossing is reentrant or exiting.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
-{
-    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
-                                           : GeoStatus::boundary_inc;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Sentinel value indicating "no intersection".
  *
  * \todo There is probably a better place to put this since it's not a "type".

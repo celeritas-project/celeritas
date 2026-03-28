@@ -290,13 +290,8 @@ if(CELERITAS_USE_Geant4)
   set(_geo_mat_filter
     "-Em3*:MultiLevel*"
     "Em3Test.*"
+    "MultiLevelTest.*"
   )
-  if(NOT CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    # TODO: ORANGE reflection is not implemented
-    list(APPEND _geo_mat_filter
-      "MultiLevelTest.*"
-    )
-  endif()
 elseif(CELERITAS_USE_ROOT)
   set(_geo_mat_filter
     "SimpleCmsTest"
