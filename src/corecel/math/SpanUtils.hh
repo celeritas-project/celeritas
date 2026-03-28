@@ -18,6 +18,7 @@
 
 namespace celeritas
 {
+//! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 /*!
  * Copy all elements from src to dst.
@@ -197,4 +198,6 @@ rotate(Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst)
 }
 
 //---------------------------------------------------------------------------//
+//! \endcond
+
 }  // namespace celeritas
