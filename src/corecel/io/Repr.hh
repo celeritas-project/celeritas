@@ -487,7 +487,7 @@ struct ReprTraits<std::set<T>> : public ContainerReprTraits<std::set<T>>
     }
 };
 
-template<class T, size_type N>
+template<class T, std::size_t N>
 struct ReprTraits<Array<T, N>> : public ContainerReprTraits<Array<T, N>>
 {
     using value_type = std::decay_t<T>;

@@ -19,7 +19,7 @@ namespace celeritas
 /*!
  * Store several PRNG engine results and return them.
  */
-template<class Engine, size_type N>
+template<class Engine, std::size_t N>
 class CachedRngEngine
 {
     static_assert(N > 0);
@@ -61,7 +61,7 @@ class CachedRngEngine
 /*!
  * Return an RNG with the given number of calls cached.
  */
-template<size_type N, class Engine>
+template<std::size_t N, class Engine>
 inline CELER_FUNCTION auto cache_rng_count(Engine& e)
 {
     return CachedRngEngine<Engine, N>{e};

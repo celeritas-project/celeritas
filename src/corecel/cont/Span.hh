@@ -209,7 +209,7 @@ Span(T (&)[N]) -> Span<T, N>;
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 {
     return {x.data(), N};
@@ -217,7 +217,7 @@ CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 
 //---------------------------------------------------------------------------//
 //! Get a constant fixed-size view to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T const, N> make_span(Array<T, N> const& x)
 {
     return {x.data(), N};

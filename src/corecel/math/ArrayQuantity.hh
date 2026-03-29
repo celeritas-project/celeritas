@@ -50,7 +50,7 @@ make_quantity_array(Args const&... args) noexcept
  * auto pos = make_quantity_array<CmLength>(hardcoded_pos_cm);
  * \endcode
  */
-template<class Q, size_type N>
+template<class Q, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Array<Q, N>
 make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
 {
@@ -69,7 +69,7 @@ make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
  *
  * This applies native_value_from element-wise to each component.
  */
-template<class UnitT, class ValueT, size_type N>
+template<class UnitT, class ValueT, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto
 native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
 {
@@ -88,7 +88,7 @@ native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
  *
  * This applies native_value_to element-wise to each component.
  */
-template<class Q, class T, size_type N>
+template<class Q, class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
 {
     static_assert(is_quantity_v<Q>);
@@ -106,7 +106,7 @@ CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
  *
  * This applies value_as element-wise to each component.
  */
-template<class Q, size_type N>
+template<class Q, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     -> std::enable_if_t<is_quantity_v<Q>, Array<typename Q::value_type, N>>
 {

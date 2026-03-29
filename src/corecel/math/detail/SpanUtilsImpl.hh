@@ -19,7 +19,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 //! Load a const span into a fixed-size array.
 template<class T, std::size_t N>
-CELER_FUNCTION Array<T, size_type(N)> load_array(Span<T const, N> s)
+CELER_FUNCTION Array<T, N> load_array(Span<T const, N> s)
 {
     static_assert(N != dynamic_extent);
     Array<T, N> result;
@@ -39,9 +39,8 @@ CELER_FUNCTION Array<T, size_type(N)> load_array(Span<T, N> s)
 
 //---------------------------------------------------------------------------//
 //! Store a fixed-size array into a span.
-template<class T, size_type N>
-CELER_FUNCTION void
-store_array(Array<T, N> const& a, Span<T, std::size_t(N)> dst)
+template<class T, std::size_t N>
+CELER_FUNCTION void store_array(Array<T, N> const& a, Span<T, N> dst)
 {
     static_assert(N != dynamic_extent);
     for (std::size_t i = 0; i != N; ++i)
