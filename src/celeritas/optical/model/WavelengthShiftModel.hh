@@ -6,20 +6,20 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "corecel/Types.hh"
 #include "corecel/data/ParamsDataStore.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/ImportedModelAdapter.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 #include "celeritas/optical/Model.hh"
 
 #include "../WavelengthShiftData.hh"
 
 namespace celeritas
 {
-struct ImportData;
-
 namespace optical
 {
+class MaterialParams;
 //---------------------------------------------------------------------------//
 /*!
  * Set up and launch the optical WLS model interaction.
@@ -29,25 +29,17 @@ class WavelengthShiftModel : public Model
   public:
     //!@{
     //! \name Type aliases
-    using SPConstImported = std::shared_ptr<ImportedModels const>;
+    using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using HostRef = HostCRef<WavelengthShiftData>;
     using DeviceRef = DeviceCRef<WavelengthShiftData>;
     //!@}
 
-    //! Material-dependent WLS data, indexed by \c OptMatId
-    struct Input
-    {
-        ImportModelClass model{ImportModelClass::size_};
-        std::vector<ImportWavelengthShift> data;
-        WlsDistribution time_profile{WlsDistribution::size_};
-    };
-
   public:
-    // Create a model builder from imported data
-    static ModelBuilder make_builder(SPConstImported, Input);
-
     // Construct with WLS input data
-    WavelengthShiftModel(ActionId, SPConstImported, Input);
+    WavelengthShiftModel(ActionId,
+                         inp::OpticalBulkWavelengthShift,
+                         SPConstMaterials const&,
+                         std::string label);
 
     // Build the mean free paths for this model
     void build_mfps(OptMatId, MfpBuilder&) const final;
@@ -65,7 +57,7 @@ class WavelengthShiftModel : public Model
     DeviceRef const& device_ref() const { return data_.device_ref(); }
 
   private:
-    ImportedModelAdapter imported_;
+    inp::OpticalBulkWavelengthShift input_;
     ParamsDataStore<WavelengthShiftData> data_;
 };
 

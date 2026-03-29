@@ -1778,7 +1778,10 @@ TEST_F(LarSphere, optical)
 
     auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
-    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
+    CELER_ASSERT(std::holds_alternative<inp::Grid>(
+        bulk.rayleigh.materials.at(OptMatId{0}).mfp));
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1910,7 +1913,10 @@ TEST_F(LarSphereExtramat, optical)
     EXPECT_FALSE(bulk.wls2.materials.count(OptMatId{0}));
 
     // Check Rayleigh optical properties
-    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
+    CELER_ASSERT(std::holds_alternative<inp::Grid>(
+        bulk.rayleigh.materials.at(OptMatId{0}).mfp));
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());

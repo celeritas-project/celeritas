@@ -53,7 +53,7 @@
     "name" : "G4_STAINLESS-STEEL",
     "state" : 1,
     "temperature" : 293.15,
-    "number_density" : 86993489258991547580416,
+    "number_density" : 86993489258991530803200,
     "elements" : [{
       "_typename" : "celeritas::ImportMatElemComponent",
       "element_id" : 0,
@@ -343,7 +343,7 @@
           "_typename" : "celeritas::EnumArray<celeritas::Bound,double>",
           "data_" : [-9.21034037197618, 4.60517018598809]
         },
-        "y" : [0.0919755519795959, 128.588033594672],
+        "y" : [0.0919755519795958, 128.588033594672],
         "interpolation" : {
           "_typename" : "celeritas::inp::Interpolation",
           "type" : 0,
@@ -443,11 +443,6 @@
       "important_energy" : 250
     }}],
     "max_substeps" : 1000
-  },
-  "optical_params" : {
-    "_typename" : "celeritas::ImportOpticalParameters",
-    "wls_time_profile" : 0,
-    "wls2_time_profile" : 0
   },
   "optical_materials" : [],
   "units" : "cgs",

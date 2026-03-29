@@ -322,8 +322,11 @@ auto build_optical_params(inp::Problem const& p,
     pi.geometry = core.geometry();
     pi.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, core.material(), pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk,
+        pi.material,
+        core.material(),
+        pi.action_reg);
     pi.rng = core.rng();
     pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     pi.surface = core.surface();
@@ -381,8 +384,8 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.geometry = std::move(loaded_model.geometry);
     pi.material = optical::MaterialParams::from_import(
         imported, *geomaterial, *material);
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, material, pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk, pi.material, material, pi.action_reg);
     pi.rng = std::make_shared<RngParams>(p.seed);
     pi.sim = std::make_shared<optical::SimParams>(p.limits);
     pi.surface = std::move(loaded_model.surface);

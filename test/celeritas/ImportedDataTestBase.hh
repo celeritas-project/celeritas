@@ -37,9 +37,6 @@ class ImportedDataTestBase : virtual public GlobalTestBase
     // Set up options for physics
     virtual PhysicsOptions build_physics_options() const;
 
-    // Determine which optical models to build
-    virtual std::vector<IMC> select_optical_models() const;
-
     // Implemented overrides that load from import data
     SPConstMaterial build_material() override;
     SPConstGeoMaterial build_geomaterial() override;

@@ -48,15 +48,16 @@ class RayleighInteractorTest : public InteractorHostTestBase
 class RayleighModelTest : public OpticalMockTestBase
 {
   protected:
-    void SetUp() override {}
-
-    //! Create Rayleigh model from mock data
-    std::shared_ptr<RayleighModel const> create_model()
+    void SetUp() override
     {
-        auto models = ImportedModels::from_import(this->imported_data());
-        return std::make_shared<RayleighModel const>(
-            ActionId{0}, models, RayleighModel::Input{});
+        model = std::make_shared<RayleighModel const>(
+            ActionId{0},
+            this->imported_data().optical_physics.bulk.rayleigh,
+            this->optical_material(),
+            this->material());
     }
+
+    std::shared_ptr<RayleighModel const> model;
 };
 
 //---------------------------------------------------------------------------//
@@ -161,8 +162,6 @@ TEST_F(RayleighInteractorTest, stress_test)
 // Check model name and description are properly initialized
 TEST_F(RayleighModelTest, description)
 {
-    auto model = create_model();
-
     EXPECT_EQ(ActionId{0}, model->action_id());
     EXPECT_EQ("optical-rayleigh", model->label());
     EXPECT_EQ("interact by optical Rayleigh", model->description());
@@ -174,9 +173,7 @@ TEST_F(RayleighModelTest, interaction_mfp)
 {
     OwningGridAccessor storage;
 
-    auto model = create_model();
     auto builder = storage.create_mfp_builder();
-
     for (auto mat : range(OptMatId(this->num_optical_materials())))
     {
         model->build_mfps(mat, builder);

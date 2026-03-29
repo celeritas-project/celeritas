@@ -22,24 +22,13 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a model builder for the optical absorption model.
+ * Construct the model from input data.
  */
-auto AbsorptionModel::make_builder(SPConstImported imported) -> ModelBuilder
-{
-    CELER_EXPECT(imported);
-    return [i = std::move(imported)](ActionId id) {
-        return std::make_shared<AbsorptionModel>(id, i);
-    };
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct the model from imported data.
- */
-AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
+AbsorptionModel::AbsorptionModel(ActionId id, inp::OpticalBulkAbsorption input)
     : Model(id, "absorption", "interact by optical absorption")
-    , imported_(ImportModelClass::absorption, imported)
+    , input_(std::move(input))
 {
+    CELER_VALIDATE(input_, << "invalid input for optical absorption model");
 }
 
 //---------------------------------------------------------------------------//
@@ -48,8 +37,14 @@ AbsorptionModel::AbsorptionModel(ActionId id, SPConstImported imported)
  */
 void AbsorptionModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
-    CELER_EXPECT(mat < imported_.num_materials());
-    build(imported_.mfp(mat));
+    if (auto iter = input_.materials.find(mat); iter != input_.materials.end())
+    {
+        build(iter->second.mfp);
+    }
+    else
+    {
+        build();
+    }
 }
 
 //---------------------------------------------------------------------------//

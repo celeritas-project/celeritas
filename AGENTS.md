@@ -2,7 +2,6 @@
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
 ## Mandatory Behaviors
-
 These three behaviors apply unconditionally, every session. Read them before starting any task.
 
 ### Before any modification — verify code state
@@ -19,7 +18,6 @@ These three behaviors apply unconditionally, every session. Read them before sta
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
 ### After any completed task — commit
-
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
 **Pre-commit checklist — execute in order:**
@@ -27,15 +25,30 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
 3. **Compile**: confirm the build still succeeds.
 
+Inline `-m` strings break with multi-line messages in the shell. Instead,
+write the commit message to `<build>/commit_msg.txt` (gitignored) and use
+the helper script. Use `create_file` to write it (never exists after a
+successful commit):
+
 ```bash
-git add -a
-pre-commit run || git add -a
-git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)" -m "<Imperative-mood subject, no tags>
+# Write message to file first, then commit (script handles add/format/rm)
+scripts/dev/agent-commit.sh <build>/commit_msg.txt
+```
+
+The script runs `git add -A`, `pre-commit run`, `git commit --trailer
+"Assisted-by: GitHub Copilot"`, and `rm <build>/commit_msg.txt`. Pass
+`--no-verify` as an extra argument only if pre-commit is already known to
+pass.
+
+The commit message format for `build/commit_msg.txt`:
+
+```
+<Imperative-mood subject, no tags>
 
 <Body summarizes changes>
 
 Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
-attachments>"
+attachments>
 ```
 
 **Common failure modes:**

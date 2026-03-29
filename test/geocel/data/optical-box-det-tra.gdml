@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <!-- Material properties -->
+    <matrix name="RI_vacuum" coldim="2" values="1e-06 1 1e-05 1"/>
+    <matrix name="RI_water" coldim="2" values="1e-07 1 5e-07 1 1.5e-06 1.3333 2.5e-06 1.3333 3.5e-06 2 1e-05 2"/>
+    <!-- Bulk absorption (dummy values) -->
+    <matrix name="ABS" coldim="2" values="1e-06 1e8 1e-05 1e8"/>
+    <matrix name="REF" coldim="2" values="1e-06 1 1e-05 1"/>
+    <!-- Surface properties -->
+    <matrix name="Surface_Ref" coldim="2" values="1e-06 0 2e-05 0"/>
+    <matrix name="Surface_Tra" coldim="2" values="1e-06 1 2e-05 1"/>
+  </define>
+
+  <materials>
+    <element name="Hydrogen" formula="H"  Z="1.">  <atom value="1.01"/>   </element>
+    <element name="Oxygen"   formula="O"  Z="8.">  <atom value="16.0"/>   </element>
+    <material name="Water" formula="H20" state="liquid">
+        <D unit="g/cm3" value="1.0"/>
+     <composite n="2" ref="Hydrogen"/>
+     <composite n="1" ref="Oxygen"/>
+     <property name="RINDEX" ref="RI_water"/>
+     <property name="ABSLENGTH" ref="ABS"/>
+    </material>
+    <material name="Vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="Hydrogen"/>
+      <property name="RINDEX" ref="RI_vacuum"/>
+      <property name="ABSLENGTH" ref="ABS"/>
+    </material>
+  </materials>
+
+  <solids>
+    <box lunit="cm" name="voxel_box" x="100.0" y="100.0" z="100.0"/>
+    <box lunit="cm" name="world_box" x="1000.0" y="1000.0" z="1000.0"/>
+
+    <opticalsurface name="detector_surface" model="glisur" finish="polished" type="dielectric_dielectric" value="1">
+      <property name="REFLECTIVITY" ref="Surface_Ref"/>
+      <property name="TRANSMITTANCE" ref="Surface_Tra"/>
+    </opticalsurface>
+  </solids>
+
+  <structure>
+    <volume name="center_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Water"/>
+    </volume>
+
+    <volume name="top_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="y-detectors"/>
+    </volume>
+    <volume name="bottom_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="y-detectors"/>
+    </volume>
+    <volume name="left_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="x-detectors"/>
+    </volume>
+    <volume name="right_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="x-detectors"/>
+    </volume>
+    <volume name="front_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="z-detectors"/>
+    </volume>
+    <volume name="rear_box">
+      <solidref ref="voxel_box"/>
+      <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="z-detectors"/>
+    </volume>
+
+    <volume name="world">
+      <solidref ref="world_box"/>
+      <materialref ref="Vacuum"/>
+      <physvol name="center_box_pv">
+        <volumeref ref="center_box"/>
+        <position name="center_pos" unit="cm" x="0" y="0" z="0"/>
+      </physvol>
+      <physvol name="top_box_pv">
+        <volumeref ref="top_box"/>
+        <position name="top_pos" unit="cm" x="0" y="100" z="0"/>
+      </physvol>
+      <physvol name="bottom_box_pv">
+        <volumeref ref="bottom_box"/>
+        <position name="bottom_pos" unit="cm" x="0" y="-100" z="0"/>
+      </physvol>
+      <physvol name="left_box_pv">
+        <volumeref ref="left_box"/>
+        <position name="left_pos" unit="cm" x="-100" y="0" z="0"/>
+      </physvol>
+      <physvol name="right_box_pv">
+        <volumeref ref="right_box"/>
+        <position name="right_pos" unit="cm" x="100" y="0" z="0"/>
+      </physvol>
+      <physvol name="front_box_pv">
+        <volumeref ref="front_box"/>
+        <position name="front_pos" unit="cm" x="0" y="0" z="100"/>
+      </physvol>
+      <physvol name="rear_box_pv">
+        <volumeref ref="rear_box"/>
+        <position name="rear_pos" unit="cm" x="0" y="0" z="-100"/>
+      </physvol>
+    </volume>
+
+    <skinsurface name="detector_skin_surface" surfaceproperty="detector_surface">
+      <volumeref ref="center_box"/>
+    </skinsurface>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

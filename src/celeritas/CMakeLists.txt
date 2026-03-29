@@ -122,11 +122,8 @@ list(APPEND SOURCES
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorBase.cc
-  optical/ImportedModelAdapter.cc
-  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
-  optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/Runner.cc
   optical/SimParams.cc

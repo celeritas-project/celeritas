@@ -8,6 +8,7 @@
  "coulomb": false,
  "msc": "none"
 },
+"optical": null,
 "eloss_fluctuation": true,
 "em_bins_per_decade": 7,
 "integral_approach": true,
