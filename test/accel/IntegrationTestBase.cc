@@ -46,7 +46,6 @@
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
 #include "celeritas/g4/SensitiveDetector.hh"
-#include "celeritas/g4/StateDependent.hh"
 #include "celeritas/g4/SteppingAction.hh"
 #include "celeritas/g4/Threading.hh"
 #include "celeritas/inp/Events.hh"
@@ -105,9 +104,6 @@ class RunAction final : public G4UserRunAction
         , tracing_{std::move(tracing)}
         , exceptions_(
               [t = test_](std::exception_ptr ep) { t->handle_exception(ep); })
-        , state_dep_{[t = test_](StreamId s, GeantStateChange c) {
-            return t->state_changed(s, c);
-        }}
     {
         CELER_EXPECT(test_);
     }
@@ -134,7 +130,6 @@ class RunAction final : public G4UserRunAction
     IntegrationTestBase* test_;
     SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
-    StateDependent state_dep_;
 };
 
 //---------------------------------------------------------------------------//

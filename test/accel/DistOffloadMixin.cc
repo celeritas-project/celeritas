@@ -18,7 +18,6 @@
 #include "geocel/GeoOpticalIdMap.hh"  // IWYU pragma: keep
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
-#include "celeritas/g4/StateDependent.hh"
 #include "celeritas/g4/Threading.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/IntegrationTestBase.hh"
