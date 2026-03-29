@@ -28,6 +28,8 @@ class G4Step;
 namespace celeritas
 {
 struct SetupOptions;
+enum class GeantStateChange;
+
 namespace test
 {
 //! Enum for querying how we're testing
@@ -119,14 +121,13 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create a "sensitive detector" based on GDML tags (default null)
     virtual LocalStepFunc make_hit_callback(std::string const& sd_name);
 
-    //! Initialize once with the number of threads
-    virtual void initialize(StreamId::size_type num_threads) = 0;
-
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
     //!@{
     //! \name Dispatch from user setup/run/event actions
+    //! Callback for state change, called for  on any thread
+    virtual void state_changed(StreamId, GeantStateChange) {}
     virtual void ConstructSDandField() {}
     virtual void BeginOfRunAction(G4Run const* run) = 0;
     virtual void EndOfRunAction(G4Run const* run) = 0;

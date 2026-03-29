@@ -33,9 +33,8 @@ class DistOffloadMixin : virtual public IntegrationTestBase
     SetupOptions make_setup_options() const override;
     LocalStepFunc make_step_callback() override;
 
-    // Initialize counters at beginning: call *after* UAI BeginOfRunAction
-    void BeginOfRunAction(G4Run const* run) override;
     // Check counters at end-of-run on master
+    void BeginOfRunAction(G4Run const* run) override;
     void EndOfRunAction(G4Run const* run) override;
 
   private:

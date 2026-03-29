@@ -84,6 +84,19 @@ std::string thread_description()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * The integration run action dispatches to the test.
+ *
+ * It wraps the begin/end test calls with \c CELER_TRY_HANDLE, forwards
+ * thread-local \c G4Exception to the test harness, and informs the test
+ * harness about changes in state.
+ *
+ * The run manager member data are thread-local, live throughout the app
+ * lifetime, and are destroyed on the same thread in which they're created
+ * - \c G4VExceptionHandler override (must be thread-local)
+ * - \c G4VStateDependent (must be thread-local \em and destroyed on the same
+ *   thread on which it was created)
+ */
 class RunAction final : public G4UserRunAction
 {
   public:
@@ -91,24 +104,12 @@ class RunAction final : public G4UserRunAction
         : test_{test}
         , tracing_{std::move(tracing)}
         , exceptions_(
-              [this](std::exception_ptr ep) { test_->handle_exception(ep); })
+              [t = test_](std::exception_ptr ep) { t->handle_exception(ep); })
+        , state_dep_{[t = test_](StreamId s, GeantStateChange c) {
+            return t->state_changed(s, c);
+        }}
     {
         CELER_EXPECT(test_);
-
-        // Add a state dependent to call 'initailize' once on the main thread.
-        // It's in the run manager because the StateDependent has to be
-        // destroyed on the same thread it's created.
-        if (geant_stream() == geant_main_stream())
-        {
-            state_dep_ = std::make_unique<StateDependent>(
-                [t = test_](StreamId sid, GeantStateChange change) {
-                    if (change == GeantStateChange::initialize
-                        && sid == geant_main_stream())
-                    {
-                        t->initialize(geant_num_threads());
-                    }
-                });
-        }
     }
 
     void BeginOfRunAction(G4Run const* run) final
@@ -133,7 +134,7 @@ class RunAction final : public G4UserRunAction
     IntegrationTestBase* test_;
     SPTracing tracing_;
     ScopedGeantExceptionHandler exceptions_;
-    std::unique_ptr<StateDependent> state_dep_;
+    StateDependent state_dep_;
 };
 
 //---------------------------------------------------------------------------//

@@ -57,7 +57,8 @@ using LocalGeantStateChangeFunc
  * register/deregister(this) on the thread-local G4StateManager, which means
  * it's not very safe to destroy this on a thread other than the one that
  * created it. The StreamId accessor can be used to check on what thread it was
- * created.
+ * created. You should probably put an instance of this in your RunAction or
+ * TrackManager in order to prevent the world from exploding.
  */
 class StateDependent final : public G4VStateDependent
 {

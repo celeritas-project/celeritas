@@ -17,7 +17,6 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"

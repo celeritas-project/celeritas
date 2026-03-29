@@ -14,9 +14,11 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantGeoParams.hh"  // IWYU pragma: keep
+#include "geocel/GeantUtils.hh"
 #include "geocel/GeoOpticalIdMap.hh"  // IWYU pragma: keep
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
+#include "celeritas/g4/StateDependent.hh"
 #include "celeritas/g4/Threading.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/IntegrationTestBase.hh"
@@ -199,15 +201,12 @@ auto DistOffloadMixin::make_step_callback() -> LocalStepFunc
 //---------------------------------------------------------------------------//
 /*!
  * Save geant geo at run beginning and resize to number of streams.
- *
- * \todo It might be better if we add a \c initialize(StreamId::size_type)
- * method to the integration test harness.
  */
 void DistOffloadMixin::BeginOfRunAction(G4Run const*)
 {
-    if (geant_stream() == StreamId{0})
+    if (geant_stream() == geant_main_stream())
     {
-        counters_.resize(this->num_streams());
+        counters_.resize(get_geant_num_threads());
         geant_geo_ = celeritas::global_geant_geo().lock();
     }
 }
