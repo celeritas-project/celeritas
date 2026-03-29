@@ -296,6 +296,7 @@ TEST_F(WlsGeneratorTest, primary)
 {
     osi_.geant_setup.wavelength_shifting.emplace();
     osi_.geant_setup.wavelength_shifting2.emplace();
+    osi_.geant_setup.rayleigh_scattering = true;
 
     // Create primary generator input
     osi_.problem.generator = [] {
@@ -320,8 +321,8 @@ TEST_F(WlsGeneratorTest, primary)
 
     if (reference_configuration)
     {
-        EXPECT_EQ(245429, result.counters.steps);
-        EXPECT_EQ(15, result.counters.step_iters);
+        EXPECT_EQ(221248, result.counters.steps);
+        EXPECT_EQ(20, result.counters.step_iters);
     }
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(2, result.counters.generators.size());
@@ -333,7 +334,7 @@ TEST_F(WlsGeneratorTest, primary)
                   run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(0, gen.buffer_size);
         EXPECT_EQ(0, gen.num_pending);
-        EXPECT_EQ(179893, gen.num_generated);
+        EXPECT_EQ(155575, gen.num_generated);
     }
     {
         GeneratorId gen_id(1);
@@ -359,6 +360,7 @@ TEST_F(WlsGeneratorTest, primary)
         "optical-boundary-init",
         "optical-boundary-post",
         "optical-discrete-select",
+        "optical-rayleigh",
         "optical-surface-stepping",
         "optical-wls-generate",
         "pre-step",

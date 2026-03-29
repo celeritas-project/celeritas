@@ -230,6 +230,10 @@ TEST_F(WavelengthShiftTest, wls_stress)
 
         for (size_type i : range(num_samples))
         {
+            auto& distribution
+                = aux_data_.ref().distributions[ItemId<WlsDistributionData>(i)];
+            distribution = {};
+
             WavelengthShiftInteractor interact(data_,
                                                aux_data_.ref(),
                                                this->particle_track(),
@@ -240,8 +244,6 @@ TEST_F(WavelengthShiftTest, wls_stress)
             Interaction result = interact(rng);
             EXPECT_EQ(Interaction::Action::absorbed, result.action);
 
-            auto const& distribution
-                = aux_data_.ref().distributions[ItemId<WlsDistributionData>(i)];
             size_type num_emitted = distribution.num_photons;
             sum_emitted += num_emitted;
 

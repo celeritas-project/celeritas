@@ -49,6 +49,8 @@ class WavelengthShiftInteractor
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
+    using DistId = ItemId<WlsDistributionData>;
+
     NativeRef<WlsGeneratorStateData> data_;
     PoissonDistribution<real_type> sample_num_photons_;
     size_type distribution_idx_;
@@ -79,6 +81,7 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     CELER_EXPECT(data_);
     CELER_EXPECT(mat_id);
     CELER_EXPECT(distribution_idx_ < data_.distributions.size());
+    CELER_EXPECT(!data_.distributions[DistId(distribution_idx_)]);
 
     distribution_.type = shared.type;
     distribution_.energy = particle.energy();
@@ -97,8 +100,6 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
-    using DistId = ItemId<WlsDistributionData>;
-
     Interaction result = Interaction::from_absorption();
 
     if (distribution_.energy <= emission_threshold_)
