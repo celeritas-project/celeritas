@@ -174,7 +174,8 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     // Clear data that tracks might write distributions to in this step, which
     // is in an unspecified state after calling \c remove_if on the buffer
     Filler<WlsDistributionData, M> fill{{}, state.stream_id()};
-    fill(buffer[DistRange(DistId(counters.buffer_size), DistId(state.size()))]);
+    fill(buffer[DistRange(DistId(counters.buffer_size),
+                          DistId(counters.buffer_size + state.size()))]);
 
     // Update the generator and optical core state counters
     this->update_counters(state);

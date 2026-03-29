@@ -21,10 +21,9 @@
 
 namespace celeritas
 {
-class CoreParams;
-
 namespace optical
 {
+class CoreParams;
 class CoreStateBase;
 class WavelengthShiftModel;
 

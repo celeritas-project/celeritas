@@ -169,7 +169,7 @@ struct WlsGeneratorState : public GeneratorStateBase
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize optical buffere.
+ * Resize optical buffers.
  */
 template<MemSpace M>
 void resize(WlsGeneratorStateData<Ownership::value, M>* state,

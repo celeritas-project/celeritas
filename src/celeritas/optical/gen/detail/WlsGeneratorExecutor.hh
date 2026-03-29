@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/gen/detail/GeneratorExecutor.hh
+//! \file celeritas/optical/gen/detail/WlsGeneratorExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
