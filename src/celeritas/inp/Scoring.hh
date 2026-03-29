@@ -162,13 +162,13 @@ struct OpticalDetector
 {
     //!@{
     //! \name Type aliases
-    using SpanHitFunc = std::function<void(Span<optical::DetectorHit const>)>;
+    using FuncSpanHit = std::function<void(Span<optical::DetectorHit const>)>;
     // DEPRECATED: remove in v0.7
-    using HitCallbackFunc [[deprecated]] = SpanHitFunc;
+    using HitCallbackFunc [[deprecated]] = FuncSpanHit;
     //!@}
 
     //! Hit callback function for optical detectors
-    SpanHitFunc callback;
+    FuncSpanHit callback;
 
     //! Whether detector input is valid and should be built
     explicit operator bool() const { return static_cast<bool>(callback); }

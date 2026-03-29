@@ -192,7 +192,7 @@ auto DistOffloadMixin::make_setup_options() const -> SetupOptions
 }
 
 //---------------------------------------------------------------------------//
-auto DistOffloadMixin::make_step_callback() -> LocalStepFunc
+auto DistOffloadMixin::make_step_callback() -> FuncLocalStep
 {
     return [this](StreamId sid, G4Step const& step) { this->step(sid, step); };
 }

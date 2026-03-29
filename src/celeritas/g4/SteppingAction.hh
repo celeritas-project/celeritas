@@ -25,19 +25,19 @@ class SteppingAction final : public G4UserSteppingAction
   public:
     //!@{
     //! \name Type aliases
-    using LocalStepFunc = std::function<void(StreamId, G4Step const&)>;
+    using FuncLocalStep = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
     // Construct with a stream ID and per-step callback
-    explicit SteppingAction(StreamId sid, LocalStepFunc f);
+    explicit SteppingAction(StreamId sid, FuncLocalStep f);
 
     // Dispatch a step to the user callback
     void UserSteppingAction(G4Step const* step) final;
 
   private:
     StreamId sid_;
-    LocalStepFunc callback_;
+    FuncLocalStep callback_;
 };
 
 //---------------------------------------------------------------------------//

@@ -20,7 +20,7 @@ namespace celeritas
  * Construct from a step callback, or return null if no callback given.
  */
 std::unique_ptr<G4VSensitiveDetector>
-SensitiveDetector::from_hit_function(std::string sd_name, LocalStepFunc f)
+SensitiveDetector::from_hit_function(std::string sd_name, FuncLocalStep f)
 {
     if (!f)
         return nullptr;
@@ -32,7 +32,7 @@ SensitiveDetector::from_hit_function(std::string sd_name, LocalStepFunc f)
 /*!
  * Construct with a detector name and step callback.
  */
-SensitiveDetector::SensitiveDetector(std::string const& name, LocalStepFunc f)
+SensitiveDetector::SensitiveDetector(std::string const& name, FuncLocalStep f)
     : G4VSensitiveDetector(name), hit_func_{std::move(f)}
 {
     CELER_EXPECT(hit_func_);

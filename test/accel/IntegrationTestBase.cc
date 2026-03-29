@@ -167,7 +167,7 @@ class EventAction final : public G4UserEventAction
 //---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
-    using LocalStepFunc = IntegrationTestBase::LocalStepFunc;
+    using FuncLocalStep = IntegrationTestBase::FuncLocalStep;
 
   public:
     // NOTE: step callback construction *could* be deferred to build
@@ -227,7 +227,7 @@ class ActionInitialization final : public G4VUserActionInitialization
   private:
     IntegrationTestBase* test_;
     SPTracing tracing_;
-    LocalStepFunc step_cb_;
+    FuncLocalStep step_cb_;
 };
 
 //---------------------------------------------------------------------------//
@@ -437,7 +437,7 @@ auto IntegrationTestBase::make_tracking_action(StreamId) -> UPTrackAction
  * resulting callback is executed at every step at runtime, using the local
  * stream ID.
  */
-auto IntegrationTestBase::make_step_callback() -> LocalStepFunc
+auto IntegrationTestBase::make_step_callback() -> FuncLocalStep
 {
     return {};
 }
@@ -470,7 +470,7 @@ SetupOptions IntegrationTestBase::make_setup_options() const
  * The default is to not create any SDs for any detector name. Currently the
  * function is invoked by each thread at runtime.
  */
-auto IntegrationTestBase::make_hit_callback(std::string const&) -> LocalStepFunc
+auto IntegrationTestBase::make_hit_callback(std::string const&) -> FuncLocalStep
 {
     return {};
 }
@@ -582,7 +582,7 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
  * Create sensitive detector callback for a detector name.
  */
 auto LarSphereIntegrationMixin::make_hit_callback(std::string const& sd_name)
-    -> LocalStepFunc
+    -> FuncLocalStep
 {
     EXPECT_EQ("detshell", sd_name);
     return [this](StreamId sid, G4Step const& step) {
@@ -676,7 +676,7 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
  * Return null pointer for the sensitive detector
  */
 auto OpNoviceIntegrationMixin::make_hit_callback(std::string const&)
-    -> LocalStepFunc
+    -> FuncLocalStep
 {
     return {};
 }
@@ -721,7 +721,7 @@ auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
  * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
  */
 auto TestEm3IntegrationMixin::make_hit_callback(std::string const& sd_name)
-    -> LocalStepFunc
+    -> FuncLocalStep
 {
     EXPECT_EQ("lAr", sd_name);
     return [](StreamId, G4Step const&) { /* No-op but still adds an SD */ };

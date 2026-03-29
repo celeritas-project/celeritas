@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Construct with a stream ID and per-step callback.
  */
-SteppingAction::SteppingAction(StreamId sid, LocalStepFunc f)
+SteppingAction::SteppingAction(StreamId sid, FuncLocalStep f)
     : sid_{sid}, callback_{std::move(f)}
 {
     CELER_EXPECT(callback_);

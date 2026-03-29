@@ -27,16 +27,16 @@ class SensitiveDetector : public G4VSensitiveDetector
   public:
     //!@{
     //! \name Type aliases
-    using LocalStepFunc = std::function<void(StreamId, G4Step const&)>;
+    using FuncLocalStep = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
     // Construct from a step callback, or return null if no callback given
     static std::unique_ptr<G4VSensitiveDetector>
-    from_hit_function(std::string sd_name, LocalStepFunc f);
+    from_hit_function(std::string sd_name, FuncLocalStep f);
 
     // Construct with a detector name and step callback
-    SensitiveDetector(std::string const& name, LocalStepFunc f);
+    SensitiveDetector(std::string const& name, FuncLocalStep f);
 
     // Clear hit collection at the beginning of each event
     void Initialize(G4HCofThisEvent*) final;
@@ -44,7 +44,7 @@ class SensitiveDetector : public G4VSensitiveDetector
     G4bool ProcessHits(G4Step* step, G4TouchableHistory*) final;
 
   private:
-    LocalStepFunc hit_func_;
+    FuncLocalStep hit_func_;
 };
 
 //---------------------------------------------------------------------------//
