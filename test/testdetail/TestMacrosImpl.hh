@@ -15,6 +15,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
