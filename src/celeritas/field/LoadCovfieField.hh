@@ -8,12 +8,17 @@
 
 #include <string>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Macros.hh"
+
 #include "CartMapFieldInput.hh"
 #include "RZMapFieldInput.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+#if CELERITAS_USE_COVFIE
 /*!
  * Load a Cartesian magnetic field map from a binary covfie file.
  *
@@ -57,6 +62,19 @@ CartMapFieldInput load_covfie_cart_field(std::string const& filename);
  * input to a factory.
  */
 RZMapFieldInput load_covfie_rz_field(std::string const& filename);
+
+#else
+
+inline CartMapFieldInput load_covfie_cart_field(std::string const&)
+{
+    CELER_NOT_CONFIGURED("covfie");
+}
+
+inline RZMapFieldInput load_covfie_rz_field(std::string const&)
+{
+    CELER_NOT_CONFIGURED("covfie");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
