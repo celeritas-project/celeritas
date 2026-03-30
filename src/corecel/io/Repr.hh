@@ -20,7 +20,6 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Quantity.hh"
-#include "celeritas/phys/AtomicNumber.hh"
 
 #include "Join.hh"
 
@@ -337,34 +336,6 @@ struct ReprTraits<std::pair<T1, T2>>
         RT1::print_value(os, value.first);
         os << ',';
         RT2::print_value(os, value.second);
-        os << '}';
-    }
-};
-
-//! Specialization for AtomicNumber
-template<>
-struct ReprTraits<AtomicNumber>
-{
-    using RT = ReprTraits<int>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        os << "AtomicNumber";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-
-    static void init(std::ostream& os) { RT::init(os); }
-
-    static void print_value(std::ostream& os, AtomicNumber const& value)
-    {
-        os << '{';
-        if (value)
-        {
-            RT::print_value(os, value.unchecked_get());
-        }
         os << '}';
     }
 };
