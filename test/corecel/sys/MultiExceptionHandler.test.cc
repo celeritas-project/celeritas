@@ -6,11 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "corecel/sys/MultiExceptionHandler.hh"
 
-#include <regex>
 #include <string>
 
 #include "corecel/Assert.hh"
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 
 #include "celeritas_test.hh"

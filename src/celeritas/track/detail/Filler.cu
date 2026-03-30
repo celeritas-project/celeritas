@@ -6,10 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "corecel/data/Filler.device.t.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/track/CoreStateCounters.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 template class Filler<TrackStatus, MemSpace::device>;
+template class Filler<CoreStateCounters, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

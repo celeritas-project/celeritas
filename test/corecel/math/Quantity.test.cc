@@ -8,11 +8,10 @@
 
 #include <type_traits>
 
-#include "corecel/Config.hh"
-
+#include "corecel/cont/Range.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayQuantity.hh"
-#include "corecel/math/QuantityIO.json.hh"
+#include "corecel/math/QuantityIO.json.hh"  //IWYU pragma: include
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
