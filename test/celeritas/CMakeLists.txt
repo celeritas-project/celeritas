@@ -260,7 +260,12 @@ if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
   )
 endif()
 
+set(_field_test_sources)
+if(CELERITAS_USE_covfie)
+  list(APPEND _field_test_sources field/CovfieTestField.covfie.cc)
+endif()
 celeritas_add_device_test(field/Fields
+  SOURCES ${_field_test_sources}
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
