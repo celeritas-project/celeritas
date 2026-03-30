@@ -359,7 +359,7 @@ inline char const* accessor_unit_label()
 #if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//
 /*!
- * Output an quantity with its label.
+ * Output a quantity with its label.
  */
 template<class UnitT, class ValueT>
 std::ostream& operator<<(std::ostream& os, Quantity<UnitT, ValueT> const& q)
@@ -369,6 +369,7 @@ std::ostream& operator<<(std::ostream& os, Quantity<UnitT, ValueT> const& q)
     os << q.value() << " [" << UnitT::label() << ']';
     return os;
 }
+
 #endif
 
 //---------------------------------------------------------------------------//

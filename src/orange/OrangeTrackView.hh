@@ -946,8 +946,22 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
-        if ((dot_product(normal, newdir) >= 0)
-            != (dot_product(normal, this->dir()) >= 0))
+        auto new_dot = dot_product(normal, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+#endif
+            // Scattered exactly perpendicular to the surface normal: oops!
+            // The inc/out status now depends on the concavity at the local
+            // point, or if we're along a planar surface then we can't move
+            // consistently with the boundary state.
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((new_dot > 0) != (dot_product(normal, this->dir()) > 0))
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.

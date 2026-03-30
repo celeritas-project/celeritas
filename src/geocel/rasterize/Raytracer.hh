@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "ImageLineView.hh"
 
@@ -203,7 +204,7 @@ CELER_FUNCTION void Raytracer<GTV, F>::find_next_step()
         // Skip this pixel since not all navigation engines can trace from
         // outside the geometry
         pixel_ = invalid_pixel();
-        distance_ = numeric_limits<real_type>::infinity();
+        distance_ = NumericLimits<real_type>::infinity();
     }
     else
     {

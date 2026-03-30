@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <utility>
+
 #include "detail/Joined.hh"  // IWYU pragma: export
 
 namespace celeritas

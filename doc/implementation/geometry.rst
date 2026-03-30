@@ -38,6 +38,10 @@ their enclosing parent volume.
    +------------------+-------------------------+----------------+--------------------+
    | Surface          | Logical surface         | ---            | ---                |
    +------------------+-------------------------+----------------+--------------------+
+   | Region [#re]_    | Region                  | ---            | ---                |
+   +------------------+-------------------------+----------------+--------------------+
+   | Detector         | Sensitive detector      | ---            | Cell tally         |
+   +------------------+-------------------------+----------------+--------------------+
 
 .. [#sc] The KENO geometry package in SCALE :cite:`scale-632` differs
    substantially from Geant4 geometry definitions. In KENO-VI :cite:`kenovi`
@@ -52,6 +56,9 @@ their enclosing parent volume.
 
 .. [#cn] One ``G4PVReplica`` volume is expanded into *several* volume
    instances, one per "multiplicity".
+
+.. [#re] Geant4 logical volumes with custom properties (e.g., field manager)
+   are converted into a Celeritas region.
 
 Celeritas defines abstract geometry concepts, indexed as IDs, to support
 multiple geometry applications [#ga]_ and to make the code backend-agnostic for
@@ -88,13 +95,16 @@ Volume instance
 
 Unique instance
    A *unique* instance of a volume refers to the logical definition of a
-   specific region of global space in the geometry model. It is the full
-   directed path :cite:`bender-listsdecisions-2010` from the root volume node
-   (world volume) to a node (logical volume) somewhere in the graph, thereby
-   describing all enclosing volumes and their locations. This path can be
-   encoded uniquely as a single integer by pre-calculating the number of direct
-   and indirect children for each node.  Celeritas always uses 64-bit integers
-   to store the ``VolumeUniqueInstanceId``.
+   specific region of global space in the geometry model.
+   It is the full directed path :cite:`bender-listsdecisions-2010` from the
+   root volume node (world volume) to a node (logical volume) somewhere in the
+   graph, thereby describing all enclosing volumes and their locations.
+   The unique instance of the world,
+   :cpp:var:`celeritas::world_unique_instance`, is zero.
+   This path can be encoded uniquely as a single integer by pre-calculating the
+   number of direct and indirect children for each node.
+   Celeritas always uses 64-bit integers to store the
+   ``VolumeUniqueInstanceId``.
 
 Surface
    A *surface* is defined as a contiguous area on the boundary of a volume,
@@ -105,6 +115,14 @@ Surface
    interface from one volume instance to another. *Boundary* surfaces ("skin"
    surfaces in Geant4) surround an entire volume, and their properties apply
    symmetrically to tracks entering or exiting.
+
+Region
+   A *region* is a set of volumes that are tagged with common attributes,
+   usually to define custom physics behavior.
+
+Detector
+   A *detector* associates a set of volumes with a single tallying/scoring
+   behavior.
 
 ImplVolume
    An *implementation volume* is a low-level detail used by each separate
@@ -117,6 +135,12 @@ ImplVolume
    :cpp:class:`celeritas::GeantGeoParams` to convert between the local geometry
    state and the Geant4 navigation.
 
+.. doxygentypedef:: celeritas::VolumeId
+.. doxygentypedef:: celeritas::VolumeInstanceId
+.. doxygentypedef:: celeritas::VolumeUniqueInstanceId
+.. doxygentypedef:: celeritas::SurfaceId
+.. doxygentypedef:: celeritas::DetectorId
+.. doxygentypedef:: celeritas::ImplVolumeId
 
 .. toctree::
    :maxdepth: 2

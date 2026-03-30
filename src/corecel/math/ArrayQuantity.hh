@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/math/ArrayQuantity.hh
 //! \brief Create and convert arrays of quantities
+//! \sa corecel/math/Quantity.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,6 +15,10 @@
 #include "corecel/cont/Array.hh"
 
 #include "Quantity.hh"
+
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
 
 namespace celeritas
 {
@@ -112,6 +117,23 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     }
     return result;
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Output a quantity array with its label.
+ *
+ * This overload is more specialized than the generic Array operator<< and is
+ * therefore preferred by partial ordering for Quantity element types.
+ */
+template<class UnitT, class ValueT, size_type N>
+std::ostream&
+operator<<(std::ostream& os, Array<Quantity<UnitT, ValueT>, N> const& q)
+{
+    os << value_as<Quantity<UnitT, ValueT>>(q) << " [" << UnitT::label() << ']';
+    return os;
+}
+#endif
 
 //! \endcond
 //---------------------------------------------------------------------------//

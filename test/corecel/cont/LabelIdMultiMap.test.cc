@@ -6,9 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/LabelIdMultiMap.hh"
 
-#include <iostream>
-#include <sstream>
-
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Range.hh"
 
@@ -25,15 +22,6 @@ namespace
 using CatId = OpaqueId<struct Cat_>;
 using CatMultiMap = LabelIdMultiMap<CatId>;
 using VecLabel = CatMultiMap::VecLabel;
-
-std::ostream& operator<<(std::ostream& os, CatId const& cat)
-{
-    os << "CatId{";
-    if (cat)
-        os << cat.unchecked_get();
-    os << "}";
-    return os;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -99,6 +87,27 @@ TEST(LabelIdMultiMapTest, some_labels)
         EXPECT_VEC_EQ(expected_found, found);
     }
 
+    EXPECT_THROW(cats.find_unique("fluffy"), RuntimeError);
+}
+
+TEST(LabelIdMultiMapTest, from_labeled_items)
+{
+    struct NamedCat
+    {
+        Label label;
+        int age{0};
+    };
+    std::vector<NamedCat> const items = {
+        {{"dexter"}, 3},
+        {{"fluffy", "jr"}, 1},
+        {{"fluffy", "sr"}, 7},
+    };
+    auto cats = CatMultiMap::from_labeled_items("cat", items);
+    EXPECT_TRUE(cats);
+    EXPECT_EQ(3, cats.size());
+    EXPECT_EQ(CatId{0}, cats.find_exact("dexter"));
+    EXPECT_EQ(CatId{1}, cats.find_exact(Label{"fluffy", "jr"}));
+    EXPECT_EQ(CatId{2}, cats.find_exact(Label{"fluffy", "sr"}));
     EXPECT_THROW(cats.find_unique("fluffy"), RuntimeError);
 }
 

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/random/distribution/InverseSquareDistribution.hh"
 
+#include "corecel/cont/Range.hh"
 #include "corecel/random/Histogram.hh"
 
 #include "celeritas_test.hh"

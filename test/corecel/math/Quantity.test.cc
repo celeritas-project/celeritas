@@ -8,10 +8,10 @@
 
 #include <type_traits>
 
-#include "corecel/Config.hh"
-
+#include "corecel/cont/Range.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayQuantity.hh"
-#include "corecel/math/QuantityIO.json.hh"
+#include "corecel/math/QuantityIO.json.hh"  //IWYU pragma: include
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
@@ -281,6 +281,13 @@ TEST(QuantityTest, io)
         static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
+}
+
+TEST(QuantityTest, stream)
+{
+    EXPECT_EQ("5 [dozen]", stream_to_string(Dozen{5}));
+    EXPECT_EQ("{1,2,3} [dozen]",
+              stream_to_string(make_quantity_array<Dozen>(1, 2, 3)));
 }
 
 TEST(TurnTest, basic)
