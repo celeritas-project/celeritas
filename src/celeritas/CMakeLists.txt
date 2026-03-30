@@ -232,6 +232,8 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantStepPointView.cc
+    ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
     ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc

@@ -36,3 +36,13 @@ Utility interfaces
 
 .. doxygenclass:: celeritas::ScopedGeantLogger
 .. doxygenclass:: celeritas::ScopedGeantExceptionHandler
+
+.. _g4_views:
+
+Views
+^^^^^
+
+.. doxygenclass:: celeritas::GeantParticleView
+.. doxygenclass:: celeritas::GeantStepPointView
+.. doxygenclass:: celeritas::GeantTrackView
+.. doxygenclass:: celeritas::GeantStepView
