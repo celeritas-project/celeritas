@@ -42,7 +42,7 @@ inclusive_scan_photons(ItemsRef<T, MemSpace::host> const& buffer,
     auto* const stop = data + size;
     for (; data != stop; ++data)
     {
-        acc += data->num_photons;
+        acc += GetNumPhotons<T>{}(*data);
         *result++ = acc;
     }
 

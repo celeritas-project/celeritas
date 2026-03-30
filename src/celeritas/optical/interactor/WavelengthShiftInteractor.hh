@@ -34,6 +34,12 @@ namespace optical
 class WavelengthShiftInteractor
 {
   public:
+    //!@{
+    //! \name Type aliases
+    using DistId = ItemId<WlsDistributionData>;
+    //!@}
+
+  public:
     // Construct with shared and state data
     inline CELER_FUNCTION
     WavelengthShiftInteractor(NativeCRef<WavelengthShiftData> const& shared,
@@ -42,18 +48,16 @@ class WavelengthShiftInteractor
                               SimTrackView const& sim,
                               Real3 const& pos,
                               OptMatId const& mat_id,
-                              size_type distribution_idx);
+                              DistId distribution_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
     inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
-    using DistId = ItemId<WlsDistributionData>;
-
     NativeRef<WlsGeneratorStateData> data_;
     PoissonDistribution<real_type> sample_num_photons_;
-    size_type distribution_idx_;
+    DistId distribution_id_;
     units::MevEnergy emission_threshold_;
     WlsDistributionData distribution_;
 };
@@ -72,16 +76,16 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     SimTrackView const& sim,
     Real3 const& pos,
     OptMatId const& mat_id,
-    size_type distribution_idx)
+    DistId distribution_id)
     : data_(data)
     , sample_num_photons_(shared.wls_record[mat_id].mean_num_photons)
-    , distribution_idx_(distribution_idx)
+    , distribution_id_(distribution_id)
     , emission_threshold_(shared.reals[shared.energy_cdf[mat_id].grid.front()])
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(mat_id);
-    CELER_EXPECT(distribution_idx_ < data_.distributions.size());
-    CELER_EXPECT(!data_.distributions[DistId(distribution_idx_)]);
+    CELER_EXPECT(distribution_id_ < data_.distributions.size());
+    CELER_EXPECT(!data_.distributions[distribution_id_]);
 
     distribution_.type = shared.type;
     distribution_.energy = particle.energy();
@@ -114,7 +118,7 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
         distribution_.num_photons = sample_num_photons_(rng);
     }
     CELER_ASSERT(distribution_ || distribution_.num_photons == 0);
-    data_.distributions[DistId(distribution_idx_)] = distribution_;
+    data_.distributions[distribution_id_] = distribution_;
 
     return result;
 }

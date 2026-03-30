@@ -25,7 +25,7 @@ struct WavelengthShiftExecutor
 
     NativeCRef<WavelengthShiftData> data;
     NativeRef<WlsGeneratorStateData> aux_data;
-    size_type buffer_size;
+    size_type buffer_size{};
 };
 
 //---------------------------------------------------------------------------//
@@ -38,11 +38,12 @@ WavelengthShiftExecutor::operator()(CoreTrackView const& track)
     auto particle = track.particle();
     auto sim = track.sim();
     auto mat_id = track.material_record().material_id();
-    size_type dist_idx = buffer_size + track.track_slot_id().get();
+    auto dist_id = id_cast<ItemId<WlsDistributionData>>(
+        buffer_size + track.track_slot_id().get());
     auto rng = track.rng();
 
     WavelengthShiftInteractor interact{
-        data, aux_data, particle, sim, track.geometry().pos(), mat_id, dist_idx};
+        data, aux_data, particle, sim, track.geometry().pos(), mat_id, dist_id};
 
     return interact(rng);
 }

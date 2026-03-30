@@ -35,6 +35,7 @@ class WavelengthShiftTest : public InteractorHostBase,
   protected:
     using HostStateStore
         = StateDataStore<WlsGeneratorStateData, MemSpace::host>;
+    using DistId = ItemId<WlsDistributionData>;
 
     void SetUp() override {}
 
@@ -179,12 +180,11 @@ TEST_F(WavelengthShiftTest, wls_basic)
                                            this->sim_track(),
                                            position_,
                                            material_id_,
-                                           i);
+                                           DistId(i));
         Interaction result = interact(rng);
         EXPECT_EQ(Interaction::Action::absorbed, result.action);
 
-        auto const& distribution
-            = aux_data_.ref().distributions[ItemId<WlsDistributionData>(i)];
+        auto const& distribution = aux_data_.ref().distributions[DistId(i)];
         size_type num_emitted = distribution.num_photons;
         num_photons.push_back(num_emitted);
 
@@ -230,8 +230,7 @@ TEST_F(WavelengthShiftTest, wls_stress)
 
         for (size_type i : range(num_samples))
         {
-            auto& distribution
-                = aux_data_.ref().distributions[ItemId<WlsDistributionData>(i)];
+            auto& distribution = aux_data_.ref().distributions[DistId(i)];
             distribution = {};
 
             WavelengthShiftInteractor interact(data_,
@@ -240,7 +239,7 @@ TEST_F(WavelengthShiftTest, wls_stress)
                                                this->sim_track(),
                                                position_,
                                                material_id_,
-                                               i);
+                                               DistId(i));
             Interaction result = interact(rng);
             EXPECT_EQ(Interaction::Action::absorbed, result.action);
 
