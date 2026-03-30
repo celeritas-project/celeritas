@@ -66,8 +66,9 @@ class OpaqueId
   public:
     //!@{
     //! \name Type aliases
-    using value_type [[deprecated]] = ItemT;
+    using tag_type = ItemT;
     using size_type = SizeT;
+    using value_type = SizeT;
     //!@}
 
   public:
@@ -318,6 +319,11 @@ stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
 //! True if T is an OpaqueID
 template<class T>
 inline constexpr bool is_opaque_id_v = detail::IsOpaqueId<T>::value;
+
+//! Get the unsigned integer corresponding to the maximum allowed value
+template<class T>
+using id_size_t
+    = std::conditional_t<is_opaque_id_v<T>, typename T::value_type, void>;
 
 //---------------------------------------------------------------------------//
 /*!
