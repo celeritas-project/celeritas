@@ -12,18 +12,15 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Macros.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "../AssertionHelper.hh"
 
 namespace celeritas
 {
+class Constant;
 namespace testdetail
 {
 //---------------------------------------------------------------------------//
