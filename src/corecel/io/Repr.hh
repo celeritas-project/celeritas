@@ -9,18 +9,12 @@
 #include <algorithm>
 #include <iomanip>
 #include <set>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/Array.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/math/Quantity.hh"
-#include "celeritas/phys/AtomicNumber.hh"
 
 #include "Join.hh"
 
@@ -28,6 +22,16 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<class T, Ownership W, MemSpace M, class I>
+class Collection;
+
+template<class T, size_type N>
+class Array;
+
+template<class T, std::size_t>
+class Span;
+
 //---------------------------------------------------------------------------//
 /*!
  * Return a streamable object that prints out a C++-style.
@@ -55,7 +59,7 @@ detail::Repr<T> repr(T const& obj, char const* name = nullptr)
  * The "streamable" traits usually write so that the object can be injected
  * into test code.  The default tries to use whatever ostream operator is
  * available.
- * Other overrides are provided for collections, characters, and more?
+ * Other overrides are provided for collections, characters, and more.
  */
 template<class T>
 struct ReprTraits
@@ -341,34 +345,6 @@ struct ReprTraits<std::pair<T1, T2>>
     }
 };
 
-//! Specialization for AtomicNumber
-template<>
-struct ReprTraits<AtomicNumber>
-{
-    using RT = ReprTraits<int>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        os << "AtomicNumber";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-
-    static void init(std::ostream& os) { RT::init(os); }
-
-    static void print_value(std::ostream& os, AtomicNumber const& value)
-    {
-        os << '{';
-        if (value)
-        {
-            RT::print_value(os, value.unchecked_get());
-        }
-        os << '}';
-    }
-};
-
 //! Specialization for OpaqueId
 template<class V, class S>
 struct ReprTraits<OpaqueId<V, S>>
@@ -393,31 +369,6 @@ struct ReprTraits<OpaqueId<V, S>>
         {
             RT::print_value(os, value.unchecked_get());
         }
-        os << '}';
-    }
-};
-
-//! Specialization for Quantity
-template<class U, class V>
-struct ReprTraits<Quantity<U, V>>
-{
-    using RT = ReprTraits<V>;
-
-    static void print_type(std::ostream& os, char const* name = nullptr)
-    {
-        os << "Quantity<?,?>";
-        if (name)
-        {
-            os << ' ' << name;
-        }
-    }
-
-    static void init(std::ostream& os) { RT::init(os); }
-
-    static void print_value(std::ostream& os, Quantity<U, V> const& q)
-    {
-        os << '{';
-        RT::print_value(os, q.value());
         os << '}';
     }
 };

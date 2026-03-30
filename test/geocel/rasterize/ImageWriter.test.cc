@@ -7,6 +7,7 @@
 #include "geocel/rasterize/ImageWriter.hh"
 
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 

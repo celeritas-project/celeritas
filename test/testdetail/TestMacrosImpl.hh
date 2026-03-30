@@ -12,17 +12,15 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Macros.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "../AssertionHelper.hh"
 
 namespace celeritas
 {
+class Constant;
 namespace testdetail
 {
 //---------------------------------------------------------------------------//
@@ -437,7 +435,7 @@ template<class ContainerE, class ContainerA, class BinaryOp>
             return failure;
         }
 
-        for (auto i : range(exp_size))
+        for (int i = 0; i < exp_size; ++i)
         {
             auto result = IsVecSoftEquivImpl(
                 expected[i], expected_expr, actual[i], actual_expr, comp);
@@ -632,7 +630,7 @@ template<class ContainerE, class ContainerA>
             return failure;
         }
 
-        for (auto i : range(exp_size))
+        for (int i = 0; i < exp_size; ++i)
         {
             auto result
                 = IsVecEq(expected_expr, actual_expr, expected[i], actual[i]);

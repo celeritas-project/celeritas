@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/grid/DerivativeGridCalculator.hh"
 
+#include "corecel/math/NumericLimits.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -13,16 +15,9 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-// TEST HARNESS
-//---------------------------------------------------------------------------//
 
-class DerivativeGridCalculatorTest : public ::celeritas::test::Test
-{
-};
+using DerivativeGridCalculatorTest = Test;
 
-//---------------------------------------------------------------------------//
-// TESTS
-//---------------------------------------------------------------------------//
 // Test derivative grid construction
 TEST_F(DerivativeGridCalculatorTest, build)
 {

@@ -192,6 +192,7 @@ endif()
 if(CELERITAS_USE_covfie)
   set(_celer_covfie_src
     field/CartMapFieldParams.covfie.cc
+    field/LoadCovfieField.covfie.cc
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
@@ -233,6 +234,8 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantStepPointView.cc
+    ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
     ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc

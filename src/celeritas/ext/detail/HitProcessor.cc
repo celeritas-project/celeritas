@@ -28,14 +28,13 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
 #include "LevelTouchableUpdater.hh"
-#include "../GeantUnits.hh"
+#include "../GeantStepPointView.hh"
+#include "../GeantStepView.hh"
 
 namespace celeritas
 {
@@ -110,72 +109,41 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     // Allocate secondary vector, needed to keep some SDs from crashing
     step_->NewSecondaryVector();
 
-#if G4VERSION_NUMBER >= 1103
-#    define HP_CLEAR_STEP_POINT(CMD) step_->CMD(nullptr)
-#else
-#    define HP_CLEAR_STEP_POINT(CMD) /* no "reset" before v11.0.3 */
-#endif
+    GeantStepView step_view{*step_};
 
-#define HP_SETUP_POINT(LOWER, TITLE)                      \
-    do                                                    \
-    {                                                     \
-        if (!selection.points[StepPoint::LOWER])          \
-        {                                                 \
-            HP_CLEAR_STEP_POINT(Reset##TITLE##StepPoint); \
-        }                                                 \
-        else                                              \
-        {                                                 \
-            auto* sp = step_->Get##TITLE##StepPoint();    \
-            sp->SetStepStatus(fUserDefinedLimit);         \
-            step_points_[StepPoint::LOWER] = sp;          \
-        }                                                 \
-    } while (0)
-
-    HP_SETUP_POINT(pre, Pre);
-    HP_SETUP_POINT(post, Post);
-#undef HP_SETUP_POINT
-#undef HP_CLEAR_STEP_POINT
-
-    for (auto p : range(StepPoint::size_))
+    for (auto sp : range(StepPoint::size_))
     {
-        if (locate_touchable[p])
+        if (!selection.points[sp])
         {
-            // Create touchable handle for this step point
-            touch_handle_[p] = new G4TouchableHistory;
-            CELER_ASSERT(step_points_[p]);
-            step_points_[p]->SetTouchableHandle(touch_handle_[p]);
+            step_view.delete_step_point(sp);
+            CELER_ASSERT(!locate_touchable[sp]);
         }
-        if (locate_touchable[p] && !update_touchable_)
+        else
         {
-            CELER_EXPECT(selection.points[p].volume_instance_ids);
-            // FIXME: pass geant geo into this constructor
-            auto ggeo = ::celeritas::global_geant_geo().lock();
-            CELER_ASSERT(ggeo);
-            update_touchable_
-                = std::make_unique<LevelTouchableUpdater>(std::move(ggeo));
+            auto point_view = step_view.step_point(sp);
+            point_view.clear_unsupported();
+            step_points_[sp] = &point_view.step_point();
+            if (locate_touchable[sp])
+            {
+                // Create touchable handle for this step point
+                touch_handle_[sp] = new G4TouchableHistory;
+                step_points_[sp]->SetTouchableHandle(touch_handle_[sp]);
+                if (!update_touchable_)
+                {
+                    CELER_EXPECT(selection.points[sp].volume_instance_ids);
+                    // FIXME: pass geant geo into this constructor
+                    auto ggeo = ::celeritas::global_geant_geo().lock();
+                    CELER_ASSERT(ggeo);
+                    update_touchable_ = std::make_unique<LevelTouchableUpdater>(
+                        std::move(ggeo));
+                }
+            }
         }
     }
 
     // Set invalid values for unsupported SD attributes
     step_->SetNonIonizingEnergyDeposit(
         -std::numeric_limits<double>::infinity());
-    for (G4StepPoint* p : step_points_)
-    {
-        if (!p)
-        {
-            continue;
-        }
-        // Time since track was created
-        p->SetLocalTime(std::numeric_limits<double>::infinity());
-        // Time in rest frame since track was created
-        p->SetProperTime(std::numeric_limits<double>::infinity());
-        // Speed (TODO: use ParticleView)
-        p->SetVelocity(std::numeric_limits<double>::infinity());
-        // Safety distance
-        p->SetSafety(std::numeric_limits<double>::infinity());
-        // Polarization (default to zero)
-        p->SetPolarization(G4ThreeVector());
-    }
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
@@ -246,19 +214,18 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
     CELER_EXPECT(!out.detector.empty());
     CELER_EXPECT(i < out.size());
-#define HP_SET(SETTER, OUT, UNITS)                   \
-    do                                               \
-    {                                                \
-        if (!OUT.empty())                            \
-        {                                            \
-            SETTER(convert_to_geant(OUT[i], UNITS)); \
-        }                                            \
-    } while (0)
 
-    G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
-
-    HP_SET(step_->SetTotalEnergyDeposit, out.energy_deposition, CLHEP::MeV);
-    HP_SET(step_->SetStepLength, out.step_length, clhep_length);
+    GeantStepView step_view{*step_};
+    if (!out.energy_deposition.empty())
+    {
+        step_view.energy_deposition(
+            GeantStepView::Energy{out.energy_deposition[i].value()});
+    }
+    if (!out.step_length.empty())
+    {
+        step_view.step_length(
+            native_value_to<GeantStepView::Length>(out.step_length[i]));
+    }
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -277,55 +244,63 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
             if (CELER_UNLIKELY(!success))
             {
                 // Inconsistent touchable: skip this energy deposition
-                CELER_LOG_LOCAL(error)
-                    << "Omitting energy deposition of "
-                    << step_->GetTotalEnergyDeposit() / CLHEP::MeV << " [MeV]";
+                CELER_LOG_LOCAL(error) << "Omitting energy deposition of "
+                                       << step_view.energy_deposition();
                 return;
             }
         }
 
-        HP_SET(g4sp->SetGlobalTime, out.points[sp].time, clhep_time);
-        HP_SET(g4sp->SetPosition, out.points[sp].pos, clhep_length);
-        HP_SET(g4sp->SetKineticEnergy, out.points[sp].energy, CLHEP::MeV);
-        HP_SET(g4sp->SetMomentumDirection, out.points[sp].dir, 1);
+        auto const& celer_sp = out.points[sp];
+        GeantStepPointView sp_view{*g4sp};
 
+        if (!celer_sp.time.empty())
+        {
+            sp_view.time(
+                native_value_to<GeantStepPointView::Time>(celer_sp.time[i]));
+        }
+        if (!celer_sp.pos.empty())
+        {
+            sp_view.pos(
+                native_value_to<GeantStepPointView::Length>(celer_sp.pos[i]));
+        }
+        if (!celer_sp.energy.empty())
+        {
+            sp_view.energy(
+                GeantStepPointView::Energy{celer_sp.energy[i].value()});
+        }
+        if (!celer_sp.dir.empty())
+        {
+            sp_view.dir(static_array_cast<double>(celer_sp.dir[i]));
+        }
         if (!out.weight.empty())
         {
-            g4sp->SetWeight(out.weight[i]);
+            // Celeritas weight does not currently change across a step
+            sp_view.weight(out.weight[i]);
         }
-        G4LogicalVolume const* point_lv = [&]() -> G4LogicalVolume const* {
-            if (sp == StepPoint::pre)
-                return lv;
 
-            // NOTE: post-step volume is only fetched if we're locating the
-            // touchable
-            if (auto* touch = g4sp->GetTouchable())
-            {
-                // The physical volume could be null if post-step is outside
-                if (auto* pv = touch->GetVolume())
-                {
-                    return pv->GetLogicalVolume();
-                }
-            }
-            return nullptr;
-        }();
-
-        if (point_lv)
+        // Copy attributes from logical volume
+        if (sp == StepPoint::pre)
         {
-            // Copy attributes from logical volume
-            g4sp->SetMaterial(point_lv->GetMaterial());
-            g4sp->SetMaterialCutsCouple(point_lv->GetMaterialCutsCouple());
-            g4sp->SetSensitiveDetector(point_lv->GetSensitiveDetector());
+            G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
+            CELER_ASSERT(lv);
+            // Use lv already known from the in-volume detector
+            sp_view.update_from_volume(*lv);
+        }
+        else
+        {
+            // Look up LV from the touchable
+            sp_view.update_from_volume();
         }
     }
-#undef HP_SET
 
     if (!out.particle.empty())
     {
         G4Track& g4track = track_reconstruction_.view(
             out.particle[i],
             !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
-        this->update_track(g4track);
+        CELER_ASSERT(&g4track == step_->GetTrack());
+        // Copy step information to the corresponding track
+        GeantStepView{*step_}.update_track();
     }
 
     if (step_post_status_)
@@ -338,51 +313,6 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     // Hit sensitive detector
     this->detector(out.detector[i])->Hit(step_.get());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Recreate the track from the particle ID and saved post-step data.
- *
- * This is a bit like \c G4Step::UpdateTrack .
- */
-void HitProcessor::update_track(G4Track& track) const
-{
-    // Copy data from step to track
-    track.SetStepLength(step_->GetStepLength());
-
-    GeantParticleView pv{*track.GetParticleDefinition()};
-
-    for (G4StepPoint* p : step_points_)
-    {
-        if (!p)
-        {
-            continue;
-        }
-
-        // Copy data from track to step points
-        p->SetMass(pv.mass().value());
-        p->SetCharge(pv.charge().value());
-    }
-
-    if (G4StepPoint* pre_step = step_points_[StepPoint::pre])
-    {
-        // Copy data from post-step to track
-        track.SetTouchableHandle(pre_step->GetTouchableHandle());
-    }
-
-    if (G4StepPoint* post_step = step_points_[StepPoint::post])
-    {
-        // Copy data from post-step to track
-        track.SetGlobalTime(post_step->GetGlobalTime());
-        track.SetPosition(post_step->GetPosition());
-        track.SetKineticEnergy(post_step->GetKineticEnergy());
-        track.SetMomentumDirection(post_step->GetMomentumDirection());
-        track.SetWeight(post_step->GetWeight());
-
-        track.SetNextTouchableHandle(post_step->GetTouchableHandle());
-        track.SetVelocity(post_step->GetVelocity());
-    }
 }
 
 //---------------------------------------------------------------------------//

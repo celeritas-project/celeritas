@@ -8,6 +8,10 @@
 
 #include "corecel/Assert.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -83,6 +87,26 @@ CELER_DEFINE_ATOMICNUMBER_CMP(<=)
 CELER_DEFINE_ATOMICNUMBER_CMP(>=)
 
 #undef CELER_DEFINE_ATOMICNUMBER_CMP
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+// STREAMING
+//---------------------------------------------------------------------------//
+/*!
+ * Output an atomic number.
+ */
+inline std::ostream& operator<<(std::ostream& os, AtomicNumber num)
+{
+    os << '{';
+    if (num)
+    {
+        os << num.get();
+    }
+    os << '}';
+    return os;
+}
+
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

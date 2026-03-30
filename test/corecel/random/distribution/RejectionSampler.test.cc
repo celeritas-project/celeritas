@@ -8,9 +8,9 @@
 
 #include <random>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
-#include "corecel/random/SequenceEngine.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include "celeritas_test.hh"

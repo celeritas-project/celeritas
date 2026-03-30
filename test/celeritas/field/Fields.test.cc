@@ -29,6 +29,7 @@
 #include "celeritas/field/CylMapField.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
+#include "celeritas/field/LoadCovfieField.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -36,6 +37,7 @@
 #include "celeritas/field/UniformZField.hh"
 
 #include "CMSParameterizedField.hh"
+#include "CovfieTestField.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -284,6 +286,112 @@ TEST_F(CylMapFieldTest, all)
 
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
+
+//---------------------------------------------------------------------------//
+// COVFIE IMPORT TESTS
+//---------------------------------------------------------------------------//
+
+#if !CELERITAS_USE_COVFIE
+#    define CovfieCartImportTest DISABLED_CovfieCartImportTest
+#    define CovfieRZImportTest DISABLED_CovfieRZImportTest
+#endif
+
+using CovfieCartImportTest = Test;
+using CovfieRZImportTest = Test;
+
+TEST_F(CovfieCartImportTest, load_2x3x4)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_cart_covfie(path, 2, 3, 4);
+
+    auto inp = load_covfie_cart_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.x.num);
+    EXPECT_EQ(3u, inp.y.num);
+    EXPECT_EQ(4u, inp.z.num);
+
+    // Check grid bounds (identity affine: [0, n-1])
+    EXPECT_SOFT_EQ(0.0, inp.x.min);
+    EXPECT_SOFT_EQ(1.0, inp.x.max);
+    EXPECT_SOFT_EQ(0.0, inp.y.min);
+    EXPECT_SOFT_EQ(2.0, inp.y.max);
+    EXPECT_SOFT_EQ(0.0, inp.z.min);
+    EXPECT_SOFT_EQ(3.0, inp.z.max);
+
+    // Check total field size: 3 * 2 * 3 * 4 = 72
+    EXPECT_EQ(72u, inp.field.size());
+
+    // Check field values at corners to verify stride ordering [X][Y][Z][3]
+    // At (ix=0, iy=0, iz=0): base = 0, expect (0, 0, 0)
+    EXPECT_SOFT_EQ(0.0, inp.field[0]);
+    EXPECT_SOFT_EQ(0.0, inp.field[1]);
+    EXPECT_SOFT_EQ(0.0, inp.field[2]);
+
+    // At (ix=1, iy=0, iz=0): base = (1*3 + 0)*4 + 0 = 12, offset*3 = 36
+    EXPECT_SOFT_EQ(1.0, inp.field[36]);  // Bx = ix = 1
+    EXPECT_SOFT_EQ(0.0, inp.field[37]);  // By = iy = 0
+    EXPECT_SOFT_EQ(0.0, inp.field[38]);  // Bz = iz = 0
+
+    // At (ix=0, iy=2, iz=3): base = (0*3 + 2)*4 + 3 = 11, offset*3 = 33
+    EXPECT_SOFT_EQ(0.0, inp.field[33]);  // Bx = 0
+    EXPECT_SOFT_EQ(2.0, inp.field[34]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[35]);  // Bz = 3
+
+    // At (ix=1, iy=2, iz=3): base = (1*3 + 2)*4 + 3 = 23, offset*3 = 69
+    EXPECT_SOFT_EQ(1.0, inp.field[69]);  // Bx = 1
+    EXPECT_SOFT_EQ(2.0, inp.field[70]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[71]);  // Bz = 3
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+TEST_F(CovfieRZImportTest, load_2x3)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_rz_covfie(path, 2, 3);
+
+    auto inp = load_covfie_rz_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.num_grid_r);
+    EXPECT_EQ(3u, inp.num_grid_z);
+
+    // Check grid bounds (identity affine: r=[0,1], z=[0,2])
+    EXPECT_SOFT_EQ(0.0, inp.min_r);
+    EXPECT_SOFT_EQ(1.0, inp.max_r);
+    EXPECT_SOFT_EQ(0.0, inp.min_z);
+    EXPECT_SOFT_EQ(2.0, inp.max_z);
+
+    // Check total field size: 2 * 3 = 6
+    EXPECT_EQ(6u, inp.field_r.size());
+    EXPECT_EQ(6u, inp.field_z.size());
+
+    // Check field values with [Z][R] indexing (R stride 1)
+    // At (ir=0, iz=0): idx = 0*2 + 0 = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_r[0]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_z[0]);  // Bz = iz = 0
+
+    // At (ir=1, iz=0): idx = 0*2 + 1 = 1
+    EXPECT_SOFT_EQ(1.0, inp.field_r[1]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(0.0, inp.field_z[1]);  // Bz = iz = 0
+
+    // At (ir=0, iz=2): idx = 2*2 + 0 = 4
+    EXPECT_SOFT_EQ(0.0, inp.field_r[4]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(2.0, inp.field_z[4]);  // Bz = iz = 2
+
+    // At (ir=1, iz=2): idx = 2*2 + 1 = 5
+    EXPECT_SOFT_EQ(1.0, inp.field_r[5]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(2.0, inp.field_z[5]);  // Bz = iz = 2
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+//---------------------------------------------------------------------------//
+// CART MAP FIELD TESTS (covfie-only)
+//---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_COVFIE
 #    define CartMapFieldTest DISABLED_CartMapFieldTest
