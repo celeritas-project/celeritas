@@ -90,7 +90,6 @@ std::string_view OpticalLaunchAction::description() const
 auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
     -> UPState
 {
-    CELER_LOG(info) << "State size : " << this->state_size();
     if (m == MemSpace::host)
     {
         return std::make_unique<optical::CoreState<MemSpace::host>>(

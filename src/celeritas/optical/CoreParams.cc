@@ -175,7 +175,14 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
 
-    CELER_LOG(info) << "Optical state : " << enable_optical_step_;
+    // Construct detector callback action
+    // TODO: Is there a better place to build this?
+    if (input_.optical_detector)
+    {
+        input_.action_reg->insert(std::make_shared<DetectorAction>(
+            input_.action_reg->next_id(), input_.optical_detector.callback));
+    }
+
     if (enable_optical_step_)
     {
         CELER_LOG(info) << "==== Optical Action Registry ====";
@@ -188,10 +195,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
         }
         step_params_ = std::make_shared<optical::detail::OpticalStepParams>(
             "optical-step", input_.aux_reg->next_id());
-        // step_params_ = std::make_shared<optical::detail::OpticalStepParams>(
-        //     "optical-step", input_.aux_reg->next_id(),
-        //     input_.capacity.tracks);
-
         input_.aux_reg->insert(step_params_);
 
         CELER_LOG(info) << "Optical step params registered with aux id "
@@ -202,12 +205,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
         input_.action_reg->insert(
             std::make_shared<optical::OpticalStepGatherAction>(gather_id,
                                                                step_params_));
-        //  input_.output_reg->insert(
-        //      OutputInterfaceAdapter<std::vector<OpticalStepRecord>>::from_getter(
-        //          OutputInterface::Category::internal,
-        //          "optical-steps",
-        //          [sp = step_params_]() -> auto const& { return
-        //          sp->records(); }));
     }
     // Save maximum number of streams
     scalars.max_streams = input_.max_streams;
