@@ -32,9 +32,9 @@ TEST(SurfacePhysicsUtilsTest, local_surf_id)
 
     EXPECT_EQ(LocalSurfaceId{0},
               local_surf_id(LocalPositionId{0}, SD::forward));
-    EXPECT_EQ(LocalSurfaceId{1},
+    EXPECT_EQ(LocalSurfaceId{0},
               local_surf_id(LocalPositionId{1}, SD::reverse));
-    EXPECT_EQ(LocalSurfaceId{2},
+    EXPECT_EQ(LocalSurfaceId{1},
               local_surf_id(LocalPositionId{1}, SD::forward));
     if (CELERITAS_DEBUG)
     {
@@ -45,7 +45,7 @@ TEST(SurfacePhysicsUtilsTest, local_surf_id)
     }
 }
 
-TEST(SurfacePhysicsUtilsTest, next_local_mat_id)
+TEST(SurfacePhysicsUtilsTest, next_local_pos_id)
 {
     using SD = LocalDirection;
 

@@ -41,7 +41,7 @@ inline CELER_FUNCTION LocalSurfaceId local_surf_id(LocalPositionId pos,
                                                    LocalDirection dir)
 {
     CELER_EXPECT(
-        pos > LocalPositionId{0}
+        pos && pos > LocalPositionId{0}
         || (pos == LocalPositionId{0} && dir == LocalDirection::forward));
     return id_cast<LocalSurfaceId>(static_cast<int>(pos.unchecked_get())
                                    + static_cast<int>(dir) - 1);
@@ -59,8 +59,7 @@ inline CELER_FUNCTION LocalPositionId next_local_pos_id(LocalPositionId pos,
                                                         LocalDirection dir)
 {
     CELER_EXPECT(pos);
-    return id_cast<LocalPositionId>(pos.unchecked_get()
-                                    + to_signed_offset(dir));
+    return LocalPositionId(pos.unchecked_get() + to_signed_offset(dir));
 }
 
 //---------------------------------------------------------------------------//

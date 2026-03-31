@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/surface/SurfacePhysicsView.hh
+//! \sa celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -161,14 +162,16 @@ CELER_FUNCTION PhysSurfaceId
 SurfacePhysicsView::interface(LocalPositionId pos, LocalDirection dir) const
 {
     auto const& ids = this->surface_record().local_surface_ids;
-    CELER_EXPECT(pos >= LocalPositionId{0} && pos < ids.size());
+    CELER_EXPECT(pos >= LocalPositionId{0} && pos <= ids.size());
 
     auto local_surf = local_surf_id(pos, dir);
     if (orientation_ == LocalDirection::reverse)
     {
-        local_surf
-            = id_cast<LocalSurfaceId>(ids.size() - local_surf.unchecked_get());
+        // Reverse index in ids: 0 -> N-1; 1 -> N-2; ...
+        local_surf = id_cast<LocalSurfaceId>(ids.size() - 1
+                                             - local_surf.unchecked_get());
     }
+
     CELER_ENSURE(local_surf < ids.size());
     return ids[local_surf];
 }
