@@ -109,7 +109,7 @@ void SurfacePhysicsParams::build_surfaces(
     CELER_EXPECT(!interstitial_materials.empty());
 
     auto build_surface = make_builder(&data.surfaces);
-    auto build_material = make_builder(&data.subsurface_materials);
+    auto build_material = make_builder(&data.opt_mat_ids);
 
     PhysSurfaceId next_phys_surface{0};
     for (auto const& materials : interstitial_materials)
@@ -120,7 +120,7 @@ void SurfacePhysicsParams::build_surfaces(
         next_phys_surface
             = PhysSurfaceId(phys_surface_start.get() + materials.size() + 1);
 
-        build_surface.push_back(SurfaceRecord{
+        build_surface.push_back(SurfacePhysicsRecord{
             build_material.insert_back(materials.begin(), materials.end()),
             range(phys_surface_start, next_phys_surface)});
     }

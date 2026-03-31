@@ -43,7 +43,7 @@ class VolumeSurfaceSelector
     struct OrientedSurface
     {
         SurfaceId surface{};
-        SubsurfaceDirection orientation;
+        LocalDirection orientation;
 
         explicit CELER_FUNCTION operator bool() const
         {
@@ -96,18 +96,18 @@ VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
     if (auto surface_id
         = pre_surface_.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        return {surface_id, SubsurfaceDirection::forward};
+        return {surface_id, LocalDirection::forward};
     }
 
     // L0 boundary surface in forward direction
     if (auto surface_id = pre_surface_.boundary_id())
     {
-        return {surface_id, SubsurfaceDirection::forward};
+        return {surface_id, LocalDirection::forward};
     }
 
     // Return the L1 boundary surface from the opposite direction.
     // If no boundary surface exists, an invalid OrientedSurface is returned.
-    return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
+    return {post_surface.boundary_id(), LocalDirection::reverse};
 }
 
 //---------------------------------------------------------------------------//

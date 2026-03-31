@@ -20,7 +20,11 @@ namespace optical
 /*!
  * Manage one-dimensional logic for traversing an optical surface.
  *
- * \todo Add documentation and diagram
+ * During surface crossing, tracks maintain a "within-surface state" that
+ * stores the current layer and direction, decoupling the geometry state from
+ * the material state.
+ *
+ * See \c SurfacePhysicsView for documentation.
  */
 class SurfaceTraversalView
 {
@@ -54,28 +58,28 @@ class SurfaceTraversalView
     inline CELER_FUNCTION bool is_exiting() const;
 
     // Whether track is in pre-/post-volume and direction is off the surface
-    inline CELER_FUNCTION bool is_exiting(SubsurfaceDirection) const;
+    inline CELER_FUNCTION bool is_exiting(LocalDirection) const;
 
     // Position of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition pos() const;
+    inline CELER_FUNCTION LocalPositionId pos() const;
 
     // Next pos of the track in the given direction
-    inline CELER_FUNCTION SurfaceTrackPosition next_pos() const;
+    inline CELER_FUNCTION LocalPositionId next_pos() const;
 
     // Set position of the track in the surface crossing
-    inline CELER_FUNCTION void pos(SurfaceTrackPosition);
+    inline CELER_FUNCTION void pos(LocalPositionId);
 
     // Number of valid positions of the track in the surface crossing
-    inline CELER_FUNCTION SurfaceTrackPosition::size_type num_positions() const;
+    inline CELER_FUNCTION LocalSurfaceId::size_type num_local_pos() const;
 
     // Current track traversal direction
-    inline CELER_FUNCTION SubsurfaceDirection dir() const;
+    inline CELER_FUNCTION LocalDirection dir() const;
 
     // Set track traversal direction
-    inline CELER_FUNCTION void dir(SubsurfaceDirection);
+    inline CELER_FUNCTION void dir(LocalDirection);
 
     // Cross subsurface interface in the given direction
-    inline CELER_FUNCTION void cross_interface(SubsurfaceDirection);
+    inline CELER_FUNCTION void cross_interface(LocalDirection);
 
   private:
     SurfaceParamsRef const& params_;
@@ -106,8 +110,8 @@ SurfaceTraversalView::SurfaceTraversalView(SurfaceParamsRef const& params,
 CELER_FUNCTION SurfaceTraversalView&
 SurfaceTraversalView::operator=(Initializer const&)
 {
-    states_.surface_position[track_id_] = SurfaceTrackPosition{0};
-    states_.track_direction[track_id_] = SubsurfaceDirection::forward;
+    states_.local_position[track_id_] = LocalPositionId{0};
+    states_.local_direction[track_id_] = LocalDirection::forward;
     return *this;
 }
 
@@ -126,7 +130,7 @@ CELER_FUNCTION bool SurfaceTraversalView::in_pre_volume() const
  */
 CELER_FUNCTION bool SurfaceTraversalView::in_post_volume() const
 {
-    return this->pos().get() + 1 == this->num_positions();
+    return this->pos().get() + 1 == this->num_local_pos();
 }
 
 //---------------------------------------------------------------------------//
@@ -142,13 +146,12 @@ CELER_FUNCTION bool SurfaceTraversalView::is_exiting() const
 /*!
  * Whether the direction is exiting the surface.
  */
-CELER_FUNCTION bool
-SurfaceTraversalView::is_exiting(SubsurfaceDirection d) const
+CELER_FUNCTION bool SurfaceTraversalView::is_exiting(LocalDirection d) const
 {
     // Use unsigned underflow when moving reverse (-1) on the pre-surface
     // (position 0) to wrap to an invalid position value
-    return next_subsurface_position(this->pos(), d).unchecked_get()
-           >= this->num_positions();
+    return next_local_pos_id(this->pos(), d).unchecked_get()
+           >= this->num_local_pos();
 }
 
 //---------------------------------------------------------------------------//
@@ -160,17 +163,17 @@ SurfaceTraversalView::is_exiting(SubsurfaceDirection d) const
  * pre-volume and N is the post-volume. Depending on the surface orientation,
  * this will be mapped to the appropriate sub-surface material and interface.
  */
-CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::pos() const
+CELER_FUNCTION LocalPositionId SurfaceTraversalView::pos() const
 {
-    return states_.surface_position[track_id_];
+    return states_.local_position[track_id_];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  */
-CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::next_pos() const
+CELER_FUNCTION LocalPositionId SurfaceTraversalView::next_pos() const
 {
-    return next_subsurface_position(this->pos(), this->dir());
+    return next_local_pos_id(this->pos(), this->dir());
 }
 
 //---------------------------------------------------------------------------//
@@ -178,10 +181,10 @@ CELER_FUNCTION SurfaceTrackPosition SurfaceTraversalView::next_pos() const
  * Set current position of the track in the sub-surfaces, in track-local
  * coordinates.
  */
-CELER_FUNCTION void SurfaceTraversalView::pos(SurfaceTrackPosition pos)
+CELER_FUNCTION void SurfaceTraversalView::pos(LocalPositionId pos)
 {
-    CELER_EXPECT(pos < this->num_positions());
-    states_.surface_position[track_id_] = pos;
+    CELER_EXPECT(pos < this->num_local_pos());
+    states_.local_position[track_id_] = pos;
 }
 
 //---------------------------------------------------------------------------//
@@ -193,12 +196,11 @@ CELER_FUNCTION void SurfaceTraversalView::pos(SurfaceTrackPosition pos)
  *
  * \todo Check if caching this would improve performance over redirections.
  */
-CELER_FUNCTION SurfaceTrackPosition::size_type
-SurfaceTraversalView::num_positions() const
+CELER_FUNCTION LocalSurfaceId::size_type
+SurfaceTraversalView::num_local_pos() const
 {
-    return params_.surfaces[states_.surface[track_id_]]
-               .subsurface_materials.size()
-           + 2;
+    auto const& surface = params_.surfaces[states_.surface[track_id_]];
+    return surface.interstitial_mat_ids.size() + 2;
 }
 
 //---------------------------------------------------------------------------//
@@ -209,28 +211,28 @@ SurfaceTraversalView::num_positions() const
  * avoid repeated queries of the geometry. The traversal direction should be
  * updated when the geometry direction is updated after an interaction.
  */
-CELER_FUNCTION SubsurfaceDirection SurfaceTraversalView::dir() const
+CELER_FUNCTION LocalDirection SurfaceTraversalView::dir() const
 {
-    return states_.track_direction[track_id_];
+    return states_.local_direction[track_id_];
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Set current track traversal direction.
  */
-CELER_FUNCTION void SurfaceTraversalView::dir(SubsurfaceDirection dir)
+CELER_FUNCTION void SurfaceTraversalView::dir(LocalDirection dir)
 {
-    states_.track_direction[track_id_] = dir;
+    states_.local_direction[track_id_] = dir;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Cross the subsurface interface in the given direction.
  */
-CELER_FUNCTION void SurfaceTraversalView::cross_interface(SubsurfaceDirection d)
+CELER_FUNCTION void SurfaceTraversalView::cross_interface(LocalDirection d)
 {
     CELER_EXPECT(!this->is_exiting(d));
-    this->pos(next_subsurface_position(this->pos(), d));
+    this->pos(next_local_pos_id(this->pos(), d));
 }
 
 //---------------------------------------------------------------------------//

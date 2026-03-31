@@ -20,25 +20,23 @@ namespace optical
 /*!
  * Storage for physics data of a geometric surface.
  *
- * The \c subsurface_materials indexes into the \c
- * SurfacePhysicsParamsData::subsurface_materials and represents a list of
- * interstitial optical materials that make up a geometric surface. The \c
- * subsurface_interfaces represents the physics surfaces that separate the
- * optical materials that make up a geometric surface.
+ * See \c SurfacePhysicsView for documentation.
  *
- * By convention, \c subsurface_interfaces[0] separates the pre-volume and the
- * first subsurface material, while the last interface separates the last
- * subsurface material and the post-volume.
+ * - \c interstitial_mats indexes into \c SurfacePhysicsParamsData::opt_mat_ids
+ * - \c local_surface_ids give \c PhysSurfaceId for models
+ * - physical surfaces map to models is done by \c model_maps
  */
-struct SurfaceRecord
+struct SurfacePhysicsRecord
 {
-    ItemMap<SurfaceTrackPosition, OpaqueId<OptMatId>> subsurface_materials;
-    ItemMap<SurfaceTrackPosition, PhysSurfaceId> subsurface_interfaces;
+    //! Indirection to a stored optical mat ID (interstitial 0 = LPId{1})
+    ItemRange<OptMatId> interstitial_mat_ids;
+    //! Physics surface ID from the forward-oriented local surface ID
+    ItemMap<LocalSurfaceId, PhysSurfaceId> local_surface_ids;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return subsurface_materials.size() + 1 == subsurface_interfaces.size();
+        return interstitial_mat_ids.size() + 1 == local_surface_ids.size();
     }
 };
 
@@ -92,10 +90,12 @@ struct SurfacePhysicsParamsData
     SurfacePhysicsParamsScalars scalars;
 
     //! Optical surface model data
-
-    GeoSurfaceItems<SurfaceRecord> surfaces;
+    GeoSurfaceItems<SurfacePhysicsRecord> surfaces;
     SurfaceStepModelMaps model_maps;
-    Items<OptMatId> subsurface_materials;
+
+    //// BACKEND STORAGE ////
+
+    Items<OptMatId> opt_mat_ids;
 
     //! Whether data is assigned
     explicit CELER_FUNCTION operator bool() const
@@ -111,7 +111,7 @@ struct SurfacePhysicsParamsData
         CELER_EXPECT(other);
         scalars = other.scalars;
         surfaces = other.surfaces;
-        subsurface_materials = other.subsurface_materials;
+        opt_mat_ids = other.opt_mat_ids;
         for (auto step : range(SurfacePhysicsOrder::size_))
         {
             model_maps[step] = other.model_maps[step];
@@ -136,7 +136,7 @@ struct SurfacePhysicsStateData
     //!@{
     //! \name Constant state for a single boundary crossing
     StateItems<SurfaceId> surface;
-    StateItems<SubsurfaceDirection> surface_orientation;
+    StateItems<LocalDirection> surface_orientation;
     StateItems<Real3> global_normal;
     StateItems<OptMatId> pre_volume_material;
     StateItems<OptMatId> post_volume_material;
@@ -144,8 +144,8 @@ struct SurfacePhysicsStateData
 
     //!@{
     //! \name Mutable state for a single boundary crossing
-    StateItems<SurfaceTrackPosition> surface_position;
-    StateItems<SubsurfaceDirection> track_direction;
+    StateItems<LocalPositionId> local_position;
+    StateItems<LocalDirection> local_direction;
     StateItems<Real3> facet_normal;
     StateItems<ReflectivityAction> reflectivity_action;
     //!@}
@@ -154,8 +154,8 @@ struct SurfacePhysicsStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !surface.empty() && surface.size() == surface_orientation.size()
-               && surface.size() == surface_position.size()
-               && surface.size() == track_direction.size()
+               && surface.size() == local_position.size()
+               && surface.size() == local_direction.size()
                && surface.size() == pre_volume_material.size()
                && surface.size() == post_volume_material.size()
                && surface.size() == global_normal.size()
@@ -175,8 +175,8 @@ struct SurfacePhysicsStateData
         surface = other.surface;
         surface_orientation = other.surface_orientation;
         global_normal = other.global_normal;
-        surface_position = other.surface_position;
-        track_direction = other.track_direction;
+        local_position = other.local_position;
+        local_direction = other.local_direction;
         pre_volume_material = other.pre_volume_material;
         post_volume_material = other.post_volume_material;
         facet_normal = other.facet_normal;
@@ -199,8 +199,8 @@ resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
     resize(&state->surface, size);
     resize(&state->surface_orientation, size);
     resize(&state->global_normal, size);
-    resize(&state->surface_position, size);
-    resize(&state->track_direction, size);
+    resize(&state->local_position, size);
+    resize(&state->local_direction, size);
     resize(&state->pre_volume_material, size);
     resize(&state->post_volume_material, size);
     resize(&state->facet_normal, size);
