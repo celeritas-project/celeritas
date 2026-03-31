@@ -6,17 +6,23 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
+#include "corecel/Config.hh"
 
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/grid/FindInterp.hh"
-#include "corecel/grid/UniformGrid.hh"
-#include "corecel/math/Algorithms.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
+#if CELERITAS_USE_COVFIE || __DOXYGEN__
+#    include "RZMapField.covfie.hh"
+#else
 
-#include "RZMapFieldData.hh"
+#    include <cmath>
+
+#    include "corecel/Macros.hh"
+#    include "corecel/Types.hh"
+#    include "corecel/grid/FindInterp.hh"
+#    include "corecel/grid/UniformGrid.hh"
+#    include "corecel/math/Algorithms.hh"
+#    include "celeritas/Types.hh"
+#    include "celeritas/Units.hh"
+
+#    include "RZMapFieldData.hh"
 
 namespace celeritas
 {
@@ -107,3 +113,4 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+#endif  // CELERITAS_USE_COVFIE

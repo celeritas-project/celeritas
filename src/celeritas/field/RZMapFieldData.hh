@@ -6,12 +6,18 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
-#include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/grid/UniformGridData.hh"
+#include "corecel/Config.hh"
 
-#include "FieldDriverOptions.hh"
+#if CELERITAS_USE_COVFIE || __DOXYGEN__
+#    include "RZMapFieldData.covfie.hh"
+#else
+
+#    include "corecel/Macros.hh"
+#    include "corecel/Types.hh"
+#    include "corecel/data/Collection.hh"
+#    include "corecel/grid/UniformGridData.hh"
+
+#    include "FieldDriverOptions.hh"
 
 namespace celeritas
 {
@@ -89,3 +95,4 @@ struct RZMapFieldParamsData
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+#endif  // CELERITAS_USE_COVFIE

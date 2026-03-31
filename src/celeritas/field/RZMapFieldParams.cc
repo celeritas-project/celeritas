@@ -4,20 +4,23 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/field/RZMapFieldParams.cc
 //---------------------------------------------------------------------------//
-#include "RZMapFieldParams.hh"
+#include "corecel/Config.hh"
 
-#include <utility>
-#include <vector>
+#if !CELERITAS_USE_COVFIE
 
-#include "corecel/Assert.hh"
-#include "corecel/Types.hh"
-#include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/grid/UniformGridData.hh"
-#include "celeritas/Units.hh"
+#    include <utility>
+#    include <vector>
 
-#include "RZMapFieldData.hh"
-#include "RZMapFieldInput.hh"
+#    include "corecel/Assert.hh"
+#    include "corecel/Types.hh"
+#    include "corecel/cont/Range.hh"
+#    include "corecel/data/CollectionBuilder.hh"
+#    include "corecel/grid/UniformGridData.hh"
+#    include "celeritas/Units.hh"
+
+#    include "RZMapFieldData.hh"
+#    include "RZMapFieldInput.hh"
+#    include "RZMapFieldParams.hh"
 
 namespace celeritas
 {
@@ -84,3 +87,4 @@ RZMapFieldParams::RZMapFieldParams(RZMapFieldInput const& inp)
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+#endif  // !CELERITAS_USE_COVFIE
