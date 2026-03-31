@@ -63,14 +63,9 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     VolumeSurfaceSelector select_surface{track.surface(),
                                          geo.volume_instance_id()};
     OptMatId pre_volume_material = track.material_record().material_id();
-    // CELER_LOG(info) << "Pre crossing material "
-    //                 << pre_volume_material.unchecked_get();
-    //
+
     // Move the particle across the boundary
     geo.cross_boundary();
-    // CELER_LOG(info) << "Post crossing volume "
-    //                 << geo.volume_id().unchecked_get();
-    //
     if (CELER_UNLIKELY(geo.failed()))
     {
         track.apply_errored();
@@ -85,8 +80,6 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     auto oriented_surface
         = select_surface(track.surface(), geo.volume_instance_id());
 
-    CELER_LOG(info) << "Post crossing material  "
-                    << post_volume_material.unchecked_get();
     if (!oriented_surface)
     {
         // Use default surface properties: typically dielectric-dielectric

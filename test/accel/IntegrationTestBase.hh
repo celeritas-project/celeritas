@@ -185,21 +185,5 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
 };
 
 //---------------------------------------------------------------------------//
-//! Generate Rich-simplified geometry with 10 GeV muons
-class RichSimplifiedIntegrationMixin : virtual public IntegrationTestBase
-{
-    using Base = IntegrationTestBase;
-
-  public:
-    std::string_view gdml_basename() const final
-    {
-        return "lhcb-rich-simplified";
-    }
-    PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
-    SetupOptions make_setup_options() override;
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

@@ -1103,20 +1103,6 @@ TEST_F(ZnenvTest, trace)
 {
     this->impl().test_trace();
 }
-class RichTest : public GeantGeoTest
-{
-  public:
-    std::string_view gdml_basename() const final
-    {
-        return "lhcb-rich-simplified";
-    }
-};
-
-TEST_F(RichTest, model)
-{
-    auto result = this->summarize_model();
-    result.print_expected();
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

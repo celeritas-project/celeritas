@@ -79,27 +79,16 @@ CELER_FUNCTION SurfaceInteraction
 DielectricInteractor::Executor::operator()(CoreTrackView const& track) const
 {
     auto s_phys = track.surface_physics();
-    //  CELER_LOG(info) << "Dielectric interactor material : "
-    //                  << s_phys.material().unchecked_get() << " Traveling
-    //                  from "
-    //                  << s_phys.traversal().pos().unchecked_get() << " to "
-    //                  << s_phys.traversal().next_pos().unchecked_get();
-    //
+
     // Can't do analytic interaction if there's no post-volume optical material
     if (!s_phys.next_material())
     {
-        //     CELER_LOG(info) << "No next material"
-        //                     << s_phys.material().unchecked_get();
-        //
         return SurfaceInteraction::from_absorption();
     }
 
     // No interaction if optical materials are identical
     if (s_phys.material() == s_phys.next_material())
     {
-        CELER_LOG(info) << "Dielectric interactor material transmission : "
-                        << s_phys.material().unchecked_get();
-
         return SurfaceInteraction::from_transmission();
     }
 

@@ -52,28 +52,11 @@ SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
 
     if (result.action == SurfaceInteraction::Action::absorbed)
     {
-        auto pos = track.geometry().pos();
-        CELER_LOG(info) << "position is : " << pos[0] << " , " << pos[1]
-                        << " , " << pos[2];
-        auto sphys = track.surface_physics();
-
-        //{
-        auto surf_view = sphys.surface();
-        auto sid = surf_view.surface().unchecked_get();  // surface id
-
-        CELER_LOG(info) << "Surface ID: " << sid;
-
         // Mark particle as killed
         track.sim().status(TrackStatus::killed);
     }
     else
     {
-        auto pos = track.geometry().pos();
-        CELER_LOG(info)
-            << "No absorption : refracted or transmit/ position is : "
-            << pos[0] << " , " << pos[1] << " , " << pos[2];
-        auto sphys = track.surface_physics();
-
         // Cross boundary if refracted or transmitted
         auto surface_physics = track.surface_physics();
         auto traverse = surface_physics.traversal();
