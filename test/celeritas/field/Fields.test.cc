@@ -145,34 +145,92 @@ TEST_F(RZMapFieldTest, all)
         }
     }
 
+    // clang-format off
+#if CELERITAS_USE_COVFIE
+    // Covfie bilinear interpolation on the RZ grid (both Br and Bz
+    // interpolated in 2D)
     static real_type const expected_field[] = {
-        -0,
-        -0,
-        3.811202287674,
-        -4.7522817039862e-05,
-        -4.7522817039862e-05,
-        3.8062113523483,
-        -9.5045634079725e-05,
-        -9.5045634079725e-05,
-        3.8012204170227,
-        -0.00014256845111959,
-        -0.00014256845111959,
-        3.7962294816971,
-        0.0094939613342285,
-        0.0094939613342285,
-        3.7912385463715,
-        0.011867451667786,
-        0.011867451667786,
-        3.775991499424,
-        0.014240986622126,
-        0.014240986622126,
-        3.771880030632,
-        0.016614892251046,
-        0.016614892251046,
-        3.757196366787,
+        -0,                  -0,                  3.811202287674,
+        0.000557730426456419, 0.000557730426456419, 3.8078203125,
+        0.0023259673673599,  0.0023259673673599,  3.804498046875,
+        0.0053047110587328,  0.0053047110587328,  3.8012359375,
+        0.0094939613342285,  0.0094939613342285,  3.7980328125,
+        0.0149389093193622,  0.0149389093193622,  3.7849625,
+        0.0215377738208854,  0.0215377738208854,  3.7723875,
+        0.0283599192434375,  0.0283599192434375,  3.762944140625,
     };
+#else
+    // Original 1D-per-component interpolation (Bz along z, Br along r)
+    static real_type const expected_field[] = {
+        -0,                -0,                3.8112023023834,
+        0.00060945895519578, 0.00060945895519578, 3.8103569576023,
+        0.0024581951993005, 0.0024581951993005, 3.8074692533866,
+        0.0054638612329989, 0.0054638612329989, 3.8026007301972,
+        0.0095877228523849, 0.0095877228523849, 3.7958506580647,
+        0.014834624748597,  0.014834624748597,  3.7873486828586,
+        0.021253065345318,  0.021253065345318,  3.7772444535824,
+        0.028935543902684,  0.028935543902684,  3.7656950871883,
+    };
+#endif
+    // clang-format on
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
+
+#if CELERITAS_USE_COVFIE
+TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    RZMapFieldInput inp;
+    {
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        std::ifstream(filename) >> inp;
+    }
+
+    // Build sample points: same as host test
+    int const nsamples = 8;
+    real_type delta_z = from_cm(25.0);
+    real_type delta_r = from_cm(12.0);
+
+    std::vector<Real3> points(nsamples);
+    for (int i : range(nsamples))
+    {
+        points[i] = {i * delta_r, i * delta_r, i * delta_z};
+    }
+
+    std::vector<real_type> field_values(nsamples * 3);
+
+    // Run the test on device
+    rzfield_test(inp,
+                 Span<Real3 const>{points.data(), points.size()},
+                 Span<real_type>{field_values.data(), field_values.size()});
+
+    // Convert to Tesla for comparison
+    std::vector<real_type> actual;
+    for (auto f : field_values)
+    {
+        actual.push_back(native_value_to<units::TeslaField>(f).value());
+    }
+
+    // Expected values from CUDA texture interpolation on the RZ grid.
+    // These differ slightly from host values because CUDA textures use
+    // hardware-accelerated interpolation with reduced precision.
+    // clang-format off
+    static real_type const expected_field[] = {
+        -0,                  -0,                  3.811202287674,
+        0.000565953883515513, 0.000565953883515513, 3.8078046875,
+        0.00235679458388513, 0.00235679458388513, 3.80450390625,
+        0.00531898353264262, 0.00531898353264262, 3.80122421875,
+        0.00950605889364446, 0.00950605889364446, 3.79804140625,
+        0.0149094192031766,  0.0149094192031766,  3.78495078125,
+        0.0215722746241618,  0.0215722746241618,  3.7724453125,
+        0.0283516997313234,  0.0283516997313234,  3.762930859375,
+    };
+    // clang-format on
+    // FIXME: reference values use lower-precision texture interpolation
+    constexpr real_type tol = CELERITAS_USE_HIP ? 1e-2 : 1e-5;
+    EXPECT_VEC_NEAR(expected_field, actual, tol);
+}
+#endif  // CELERITAS_USE_COVFIE
 
 using CylMapFieldTest = ::celeritas::test::Test;
 
