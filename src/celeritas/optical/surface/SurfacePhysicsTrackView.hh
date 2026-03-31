@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/surface/SurfacePhysicsTrackView.hh
+//! \sa celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -30,8 +31,7 @@ namespace optical
  * direction (current state) to access relevant material and interface data in
  * storage.
  *
- * \sa SurfacePhysicsView
- * \sa SurfaceTraversalView
+ * See \c SurfacePhysicsView, \c SurfaceTraversalView .
  */
 class SurfacePhysicsTrackView
 {
