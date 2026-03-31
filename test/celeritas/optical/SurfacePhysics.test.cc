@@ -235,17 +235,17 @@ TEST_F(SurfacePhysicsTest, init_params)
 
         auto& surface = surfaces[geo_surface.get()];
 
-        for (auto i :
-             range(LocalSurfaceId{surface_record.local_surface_ids.size()}))
+        // Add all interstitial materials
+        for (auto i : range(surface_record.interstitial_mat_ids.size()))
         {
             surface.materials.push_back(
-                data.local_surface_ids[surface_record.local_surface_ids[i]]);
+                data.opt_mat_ids[surface_record.interstitial_mat_ids[i]]);
         }
 
         for (auto i :
-             range(LocalSurfaceId{surface_record.subsurface_interfaces.size()}))
+             range(LocalSurfaceId{surface_record.local_surface_ids.size()}))
         {
-            auto phys_surface = surface_record.subsurface_interfaces[i];
+            auto phys_surface = surface_record.local_surface_ids[i];
             surface.interfaces.push_back(phys_surface);
 
             for (auto step : range(SurfacePhysicsOrder::size_))
@@ -430,7 +430,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     {
         auto s_physics = this->surface_physics_view(track);
         s_physics.traversal().pos(
-            LocalSurfaceId(s_physics.traversal().num_local_pos() - 1));
+            LocalPositionId(s_physics.traversal().num_local_pos() - 1));
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
@@ -440,14 +440,14 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     }
 
     // Check some intermediate positions
-    std::vector<LocalSurfaceId> expected_intermediate_positions{
-        LocalSurfaceId{2},
-        LocalSurfaceId{1},
-        LocalSurfaceId{},
-        LocalSurfaceId{},
-        LocalSurfaceId{3},
-        LocalSurfaceId{1},
-        LocalSurfaceId{1},
+    std::vector<LocalPositionId> expected_intermediate_positions{
+        LocalPositionId{2},
+        LocalPositionId{1},
+        LocalPositionId{},
+        LocalPositionId{},
+        LocalPositionId{3},
+        LocalPositionId{1},
+        LocalPositionId{1},
     };
 
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
@@ -502,7 +502,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{as_id_vec<LocalSurfaceId>(0, 1),
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1),
                              {
                                  as_id_vec<SurfaceModelId>(0),
                                  as_id_vec<SurfaceModelId>(1),
@@ -557,7 +557,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{as_id_vec<LocalSurfaceId>(0, 1),
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1),
                              {
                                  as_id_vec<SurfaceModelId>(0),
                                  as_id_vec<SurfaceModelId>(1),
@@ -622,7 +622,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{
-            as_id_vec<LocalSurfaceId>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
+            as_id_vec<LocalPositionId>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
             {
                 as_id_vec<SurfaceModelId>(0, 0, 0, 0, 1, 2, 2, 1, 0, 0),
                 as_id_vec<SurfaceModelId>(0, 1, 1, 1, 0, 1, 1, 0, 1, 0),
@@ -682,7 +682,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{as_id_vec<LocalSurfaceId>(0, 1, 2, 1, 0, 1, 2),
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1, 2, 1, 0, 1, 2),
                              {
                                  as_id_vec<SurfaceModelId>(1, 2, 2, 1, 1, 2),
                                  as_id_vec<SurfaceModelId>(0, 1, 1, 0, 0, 1),
