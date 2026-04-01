@@ -72,21 +72,16 @@ class OpaqueId
 
   public:
     //! Default to null state
-    CELER_CONSTEXPR_FUNCTION OpaqueId() : value_(null_) {}
+    CELER_CEF OpaqueId() : value_(null_) {}
 
     //! Construct explicitly with stored value
-    explicit CELER_CONSTEXPR_FUNCTION OpaqueId(size_type index) : value_(index)
-    {
-    }
+    explicit CELER_CEF OpaqueId(size_type index) : value_(index) {}
 
     //! Whether this ID is in a valid (assigned) state
-    explicit CELER_CONSTEXPR_FUNCTION operator bool() const
-    {
-        return value_ != null_;
-    }
+    explicit CELER_CEF operator bool() const { return value_ != null_; }
 
     //! Pre-increment of the ID
-    CELER_FUNCTION OpaqueId& operator++()
+    CELER_CEF OpaqueId& operator++()
     {
         CELER_EXPECT(*this);
         value_ += 1;
@@ -94,7 +89,7 @@ class OpaqueId
     }
 
     //! Post-increment of the ID
-    CELER_FUNCTION OpaqueId operator++(int)
+    CELER_CEF OpaqueId operator++(int)
     {
         OpaqueId old{*this};
         ++*this;
@@ -102,7 +97,7 @@ class OpaqueId
     }
 
     //! Pre-decrement of the ID
-    CELER_FUNCTION OpaqueId& operator--()
+    CELER_CEF OpaqueId& operator--()
     {
         CELER_EXPECT(*this && value_ > 0);
         value_ -= 1;
@@ -110,7 +105,7 @@ class OpaqueId
     }
 
     //! Post-decrement of the ID
-    CELER_FUNCTION OpaqueId operator--(int)
+    CELER_CEF OpaqueId operator--(int)
     {
         OpaqueId old{*this};
         --*this;
@@ -118,7 +113,7 @@ class OpaqueId
     }
 
     //! Get the ID's value
-    CELER_FORCEINLINE_FUNCTION size_type get() const
+    CELER_CEF size_type get() const
     {
         CELER_EXPECT(*this);
         return value_;
