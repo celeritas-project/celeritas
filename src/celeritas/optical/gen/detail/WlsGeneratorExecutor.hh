@@ -63,7 +63,7 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
 
     using DistId = ItemId<WlsDistributionData>;
 
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
 
     // Get the cumulative sum of the number of photons in the distributions.
     // The values are used to determine which threads will generate from the

@@ -172,7 +172,7 @@ TEST_F(WavelengthShiftTest, wls_basic)
 
     std::vector<size_type> num_photons;
 
-    for (size_type i : range(num_samples))
+    for (auto dist_id : range(id_cast<DistId>(num_samples)))
     {
         WavelengthShiftInteractor interact(data_,
                                            aux_data_.ref(),
@@ -180,11 +180,11 @@ TEST_F(WavelengthShiftTest, wls_basic)
                                            this->sim_track(),
                                            position_,
                                            material_id_,
-                                           DistId(i));
+                                           dist_id);
         Interaction result = interact(rng);
         EXPECT_EQ(Interaction::Action::absorbed, result.action);
 
-        auto const& distribution = aux_data_.ref().distributions[DistId(i)];
+        auto const& distribution = aux_data_.ref().distributions[dist_id];
         size_type num_emitted = distribution.num_photons;
         num_photons.push_back(num_emitted);
 
@@ -228,9 +228,9 @@ TEST_F(WavelengthShiftTest, wls_stress)
         real_type sum_orthogonality{};
         real_type sum_time{};
 
-        for (size_type i : range(num_samples))
+        for (auto dist_id : range(id_cast<DistId>(num_samples)))
         {
-            auto& distribution = aux_data_.ref().distributions[DistId(i)];
+            auto& distribution = aux_data_.ref().distributions[dist_id];
             distribution = {};
 
             WavelengthShiftInteractor interact(data_,
@@ -239,7 +239,7 @@ TEST_F(WavelengthShiftTest, wls_stress)
                                                this->sim_track(),
                                                position_,
                                                material_id_,
-                                               DistId(i));
+                                               dist_id);
             Interaction result = interact(rng);
             EXPECT_EQ(Interaction::Action::absorbed, result.action);
 

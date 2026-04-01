@@ -55,7 +55,7 @@ struct ProcessPrimariesExecutor
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size());
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
     CELER_EXPECT(primaries.size() <= counters->num_initializers + tid.get());
 
     Primary const& primary = primaries[tid.unchecked_get()];

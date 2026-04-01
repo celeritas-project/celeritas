@@ -64,7 +64,7 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
 
     // Find the index of the first distribution that has a nonzero number of
     // primaries left to generate
