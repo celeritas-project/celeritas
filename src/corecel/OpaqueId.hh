@@ -222,8 +222,6 @@ class OpaqueId
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-template<class IdT, class U>
-inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG);
 
 namespace detail
 {
@@ -295,11 +293,9 @@ inline constexpr bool is_opaque_id_v = detail::IsOpaqueId<T>::value;
  * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
  */
 template<class IdT, class U>
-inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG)
+inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
+    -> std::enable_if_t<is_opaque_id_v<IdT> && std::is_integral_v<U>, IdT>
 {
-    static_assert(is_opaque_id_v<IdT>, "target type must be an opaque ID");
-    static_assert(std::is_integral_v<U>, "source type must be an integer");
-
     return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
 }
 
