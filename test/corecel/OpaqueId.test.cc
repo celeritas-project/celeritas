@@ -65,6 +65,8 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_TRUE(Id_t{22} < Id_t{23});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
     EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
+    EXPECT_EQ(Id_t{24}, Id_t{22} + std::size_t(2));
+    EXPECT_EQ(Id_t{20}, Id_t{22} + std::ptrdiff_t(-2));
     EXPECT_EQ(Id_t{24}, Id_t{22} - (-2));
     EXPECT_EQ(Id_t{22}, Id_t{22} + 0);
     EXPECT_EQ(Id_t{22}, Id_t{22} - 0);

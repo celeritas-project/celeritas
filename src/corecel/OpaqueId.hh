@@ -175,21 +175,19 @@ class OpaqueId
         return self.unchecked_get() - other.unchecked_get();
     }
 
-    //! Increment an opaque ID by an offset
+    //! Increment an opaque ID by an offset, checking against underflow
     template<class U>
     CELER_FUNCTION friend auto operator+(OpaqueId id, U offset)
         -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         CELER_EXPECT(id);
-        CELER_EXPECT(
-            offset >= 0
-            || static_cast<SizeT>(-static_cast<std::make_signed_t<U>>(offset))
-                   <= id.unchecked_get());
+        CELER_EXPECT(offset >= 0
+                     || static_cast<SizeT>(U{0} - offset)
+                            <= id.unchecked_get());
 
         // Note: an extra cast is needed for short SizeT due to integer
         // promotion
-        return OpaqueId{static_cast<SizeT>(id.unchecked_get()
-                                           + static_cast<SizeT>(offset))};
+        return OpaqueId{static_cast<SizeT>(id.unchecked_get() + offset)};
     }
 
     //! Increment an opaque ID by an offset (symmetric)
