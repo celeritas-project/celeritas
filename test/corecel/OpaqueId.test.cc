@@ -61,8 +61,21 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_EQ(assigned, assigned);
     EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));
 
-    EXPECT_EQ(10, Id_t{22} - Id_t{12});
+    EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
+    EXPECT_TRUE(Id_t{22} < 23u);
+    EXPECT_TRUE(Id_t{23} > Id_t{22});
+    EXPECT_TRUE(Id_t{23} >= Id_t{22});
+    EXPECT_TRUE(Id_t{22} <= Id_t{23});
+    EXPECT_TRUE(Id_t{22} <= 23u);
+
+    EXPECT_FALSE(Id_t{23} <= Id_t{22});
+    EXPECT_FALSE(Id_t{23} < Id_t{22});
+    EXPECT_FALSE(Id_t{22} > Id_t{23});
+    EXPECT_FALSE(Id_t{22} >= Id_t{23});
+    EXPECT_FALSE(Id_t{23} <= Id_t{22});
+
+    EXPECT_EQ(10, Id_t{22} - Id_t{12});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
     EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} + std::size_t(2));
