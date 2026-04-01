@@ -88,6 +88,12 @@ class Constant;
 template<class UnitT, class ValueT>
 class Quantity
 {
+    static_assert(std::is_arithmetic_v<ValueT>,
+                  "value type must be arithmetic");
+    static_assert(std::is_arithmetic_v<decltype(UnitT::value())>
+                      || std::is_same_v<decltype(UnitT::value()), Constant>,
+                  "unit value type must be arithmetic or constant");
+
   public:
     //!@{
     //! \name Type aliases

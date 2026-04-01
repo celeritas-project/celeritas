@@ -115,7 +115,7 @@ void InfixStringBuilder::operator()(False const&)
  */
 void InfixStringBuilder::operator()(Surface const& s)
 {
-    CELER_EXPECT(s.id < logic::lbegin);
+    CELER_EXPECT(s.id < static_cast<SurfaceId::size_type>(logic::lbegin));
 
     static_assert(to_sense(true) == Sense::outside);
     *os_ << (negated_ ? '-' : '+') << s.id.unchecked_get();

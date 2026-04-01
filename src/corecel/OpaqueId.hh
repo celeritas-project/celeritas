@@ -152,7 +152,7 @@ class OpaqueId
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
     template<class U>                                                  \
     CELER_CEF friend auto operator TOKEN(OpaqueId lhs, U rhs) noexcept \
-        -> bool                                                        \
+        -> std::enable_if_t<std::is_unsigned_v<U>, bool>               \
     {                                                                  \
         return lhs && (static_cast<U>(lhs.unchecked_get()) TOKEN rhs); \
     }
@@ -177,7 +177,8 @@ class OpaqueId
 
     //! Increment an opaque ID by an offset
     template<class U>
-    CELER_FUNCTION friend auto operator+(OpaqueId id, U offset) -> OpaqueId
+    CELER_FUNCTION friend auto operator+(OpaqueId id, U offset)
+        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         CELER_EXPECT(id);
         CELER_EXPECT(
@@ -193,14 +194,16 @@ class OpaqueId
 
     //! Increment an opaque ID by an offset (symmetric)
     template<class U>
-    CELER_FUNCTION friend auto operator+(U offset, OpaqueId id) -> OpaqueId
+    CELER_FUNCTION friend auto operator+(U offset, OpaqueId id)
+        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         return id + offset;
     }
 
     //! Decrement an opaque ID by an offset
     template<class U>
-    CELER_FUNCTION friend auto operator-(OpaqueId id, U offset) -> OpaqueId
+    CELER_FUNCTION friend auto operator-(OpaqueId id, U offset)
+        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         CELER_EXPECT(id);
         CELER_EXPECT(offset <= 0

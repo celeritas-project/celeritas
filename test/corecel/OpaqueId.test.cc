@@ -97,7 +97,7 @@ TEST(OpaqueIdTest, multi_int)
     using limits_t = std::numeric_limits<Uint32>;
 
     // Unassigned is always out-of-range
-    EXPECT_FALSE(UId8{} < 0);
+    EXPECT_FALSE(UId8{} < 0u);
     EXPECT_FALSE(UId8{} < Uint32(limits_t::max()));
     EXPECT_FALSE(UId8{} < Uint32(255));
     EXPECT_FALSE(UId8{} < Uint32(256));
