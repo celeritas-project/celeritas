@@ -6,12 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/Quantity.hh"
 
+#include <functional>
 #include <type_traits>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayQuantity.hh"
-#include "corecel/math/QuantityIO.json.hh"  //IWYU pragma: include
+#include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
