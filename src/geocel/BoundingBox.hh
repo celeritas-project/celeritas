@@ -106,6 +106,22 @@ class BoundingBox
     // Increase the bounding box's extent on both bounds
     CELER_CONSTEXPR_FUNCTION void grow(Axis axis, real_type position);
 
+    //// FRIENDLY COMPARATORS ////
+
+    //! Test equality of two bounding boxes
+    CELER_CONSTEXPR_FUNCTION friend bool
+    operator==(BoundingBox const& lhs, BoundingBox const& rhs)
+    {
+        return lhs.lower() == rhs.lower() && lhs.upper() == rhs.upper();
+    }
+
+    //! Test inequality of two bounding boxes
+    CELER_CONSTEXPR_FUNCTION friend bool
+    operator!=(BoundingBox const& lhs, BoundingBox const& rhs)
+    {
+        return !(lhs == rhs);
+    }
+
   private:
     Array<Real3, 2> points_;  //!< lo/hi points
 
@@ -123,28 +139,6 @@ using BBox = BoundingBox<>;
 
 //---------------------------------------------------------------------------//
 // INLINE FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Test equality of two bounding boxes.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION bool
-operator==(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
-{
-    return lhs.lower() == rhs.lower() && lhs.upper() == rhs.upper();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Test inequality of two bounding boxes.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION bool
-operator!=(BoundingBox<T> const& lhs, BoundingBox<T> const& rhs)
-{
-    return !(lhs == rhs);
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Determine if a point is contained in a bounding box.

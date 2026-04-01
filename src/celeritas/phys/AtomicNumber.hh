@@ -53,6 +53,23 @@ class AtomicNumber
     // Get the Z or A value
     inline CELER_FUNCTION int get() const;
 
+    //// FRIENDLY OPERATORS ////
+
+#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN)                                 \
+    CELER_CEF friend bool operator TOKEN(AtomicNumber lhs, AtomicNumber rhs) \
+    {                                                                        \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                \
+    }
+
+    CELER_DEFINE_ATOMICNUMBER_CMP(==)
+    CELER_DEFINE_ATOMICNUMBER_CMP(!=)
+    CELER_DEFINE_ATOMICNUMBER_CMP(<)
+    CELER_DEFINE_ATOMICNUMBER_CMP(>)
+    CELER_DEFINE_ATOMICNUMBER_CMP(<=)
+    CELER_DEFINE_ATOMICNUMBER_CMP(>=)
+
+#undef CELER_DEFINE_ATOMICNUMBER_CMP
+
   private:
     int value_{0};
 };
@@ -68,25 +85,6 @@ inline CELER_FUNCTION int AtomicNumber::get() const
     CELER_ENSURE(*this);
     return value_;
 }
-
-//---------------------------------------------------------------------------//
-// COMPARATORS
-//---------------------------------------------------------------------------//
-#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN)                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(AtomicNumber lhs, \
-                                                 AtomicNumber rhs) \
-    {                                                              \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();      \
-    }
-
-CELER_DEFINE_ATOMICNUMBER_CMP(==)
-CELER_DEFINE_ATOMICNUMBER_CMP(!=)
-CELER_DEFINE_ATOMICNUMBER_CMP(<)
-CELER_DEFINE_ATOMICNUMBER_CMP(>)
-CELER_DEFINE_ATOMICNUMBER_CMP(<=)
-CELER_DEFINE_ATOMICNUMBER_CMP(>=)
-
-#undef CELER_DEFINE_ATOMICNUMBER_CMP
 
 #if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//

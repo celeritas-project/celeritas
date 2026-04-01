@@ -50,6 +50,9 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
  * integer values (avoid compile-time warnings or errors from signed/truncated
  * integers).
  *
+ * \note Comparators are defined as inline friend functions to allow
+ * ADL-assisted conversion, including from \c LdgRefWrapper.
+ *
  * \todo This interface will be changed to be more like \c std::optional : \c
  * size_type will become \c value_type (the value of a 'dereferenced' ID) and
  * \c operator* or \c value will be used to access the integer.
@@ -127,6 +130,87 @@ class OpaqueId
     //! Access the underlying data for more efficient loading from memory
     CELER_CONSTEXPR_FUNCTION size_type const* data() const { return &value_; }
 
+    //// INLINE COMPARATOR FRIENDS ////
+
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
+    CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
+    {                                                                         \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                 \
+    }
+
+    //!@{
+    //! Compare two OpaqueId of the same type
+    CELER_DEFINE_OPAQUEID_CMP(==)
+    CELER_DEFINE_OPAQUEID_CMP(!=)
+    CELER_DEFINE_OPAQUEID_CMP(<)
+    CELER_DEFINE_OPAQUEID_CMP(>)
+    CELER_DEFINE_OPAQUEID_CMP(<=)
+    CELER_DEFINE_OPAQUEID_CMP(>=)
+    //!@}
+
+#undef CELER_DEFINE_OPAQUEID_CMP
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
+    template<class U>                                                  \
+    CELER_CEF friend auto operator TOKEN(OpaqueId lhs, U rhs) noexcept \
+        -> bool                                                        \
+    {                                                                  \
+        return lhs && (static_cast<U>(lhs.unchecked_get()) TOKEN rhs); \
+    }
+
+    //!@{
+    //! Allow less-than comparison with unsigned int for containers
+    CELER_DEFINE_OPAQUEID_CMP(<)
+    CELER_DEFINE_OPAQUEID_CMP(<=)
+    //!@}
+
+#undef CELER_DEFINE_OPAQUEID_CMP
+
+    //// INLINE OPERATOR FRIENDS ////
+
+    //! Get the distance between two opaque IDs
+    CELER_FUNCTION friend SizeT operator-(OpaqueId self, OpaqueId other)
+    {
+        CELER_EXPECT(self);
+        CELER_EXPECT(other);
+        return self.unchecked_get() - other.unchecked_get();
+    }
+
+    //! Increment an opaque ID by an offset
+    template<class U>
+    CELER_FUNCTION friend auto operator+(OpaqueId id, U offset) -> OpaqueId
+    {
+        CELER_EXPECT(id);
+        CELER_EXPECT(
+            offset >= 0
+            || static_cast<SizeT>(-static_cast<std::make_signed_t<U>>(offset))
+                   <= id.unchecked_get());
+
+        // Note: an extra cast is needed for short SizeT due to integer
+        // promotion
+        return OpaqueId{static_cast<SizeT>(id.unchecked_get()
+                                           + static_cast<SizeT>(offset))};
+    }
+
+    //! Increment an opaque ID by an offset (symmetric)
+    template<class U>
+    CELER_FUNCTION friend auto operator+(U offset, OpaqueId id) -> OpaqueId
+    {
+        return id + offset;
+    }
+
+    //! Decrement an opaque ID by an offset
+    template<class U>
+    CELER_FUNCTION friend auto operator-(OpaqueId id, U offset) -> OpaqueId
+    {
+        CELER_EXPECT(id);
+        CELER_EXPECT(offset <= 0
+                     || static_cast<SizeT>(offset) <= id.unchecked_get());
+        // Note: an extra cast is needed for short SizeT due to integer
+        // promotion
+        return OpaqueId{static_cast<SizeT>(id.unchecked_get()
+                                           - static_cast<SizeT>(offset))};
+    }
+
   private:
     size_type value_;
 
@@ -139,89 +223,6 @@ class OpaqueId
 //---------------------------------------------------------------------------//
 template<class IdT, class U>
 inline CELER_FUNCTION IdT id_cast(U value) noexcept(!CELERITAS_DEBUG);
-
-//---------------------------------------------------------------------------//
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                             \
-    template<class I, class T>                                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(OpaqueId<I, T> lhs, \
-                                                 OpaqueId<I, T> rhs) \
-    {                                                                \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();        \
-    }
-
-//!@{
-//! Comparison for OpaqueId
-CELER_DEFINE_OPAQUEID_CMP(==)
-CELER_DEFINE_OPAQUEID_CMP(!=)
-CELER_DEFINE_OPAQUEID_CMP(<)
-CELER_DEFINE_OPAQUEID_CMP(>)
-CELER_DEFINE_OPAQUEID_CMP(<=)
-CELER_DEFINE_OPAQUEID_CMP(>=)
-//!@}
-
-#undef CELER_DEFINE_OPAQUEID_CMP
-
-//---------------------------------------------------------------------------//
-//! Allow less-than comparison with *integer* for container comparison
-template<class I, class T, class U>
-CELER_CONSTEXPR_FUNCTION bool operator<(OpaqueId<I, T> lhs, U rhs)
-{
-    // Cast to RHS
-    return lhs && (U(lhs.unchecked_get()) < rhs);
-}
-
-//---------------------------------------------------------------------------//
-//! Allow less-than-equal comparison with *integer* for container comparison
-template<class I, class T, class U>
-CELER_CONSTEXPR_FUNCTION bool operator<=(OpaqueId<I, T> lhs, U rhs)
-{
-    // Cast to RHS
-    return lhs && (U(lhs.unchecked_get()) <= rhs);
-}
-
-//---------------------------------------------------------------------------//
-//! Get the distance between two opaque IDs
-template<class I, class T>
-inline CELER_FUNCTION T operator-(OpaqueId<I, T> self, OpaqueId<I, T> other)
-{
-    CELER_EXPECT(self);
-    CELER_EXPECT(other);
-    return self.unchecked_get() - other.unchecked_get();
-}
-
-//---------------------------------------------------------------------------//
-//! Increment an opaque ID by an offset
-template<class I, class T>
-inline CELER_FUNCTION OpaqueId<I, T>
-operator+(OpaqueId<I, T> id, std::make_signed_t<T> offset)
-{
-    CELER_EXPECT(id);
-    CELER_EXPECT(offset >= 0 || static_cast<T>(-offset) <= id.unchecked_get());
-    // Note: an extra cast is needed for short T due to integer promotion
-    return OpaqueId<I, T>{
-        static_cast<T>(id.unchecked_get() + static_cast<T>(offset))};
-}
-
-//! Increment an opaque ID by an offset
-template<class I, class T>
-CELER_FORCEINLINE_FUNCTION auto
-operator+(std::make_signed_t<T> offset, OpaqueId<I, T> id)
-{
-    return id + offset;
-}
-
-//---------------------------------------------------------------------------//
-//! Decrement an opaque ID by an offset
-template<class I, class T>
-inline CELER_FUNCTION OpaqueId<I, T>
-operator-(OpaqueId<I, T> id, std::make_signed_t<T> offset)
-{
-    CELER_EXPECT(id);
-    CELER_EXPECT(offset <= 0 || static_cast<T>(offset) <= id.unchecked_get());
-    // Note: an extra cast is needed for short T due to integer promotion
-    return OpaqueId<I, T>{
-        static_cast<T>(id.unchecked_get() - static_cast<T>(offset))};
-}
 
 namespace detail
 {

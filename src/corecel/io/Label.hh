@@ -71,26 +71,27 @@ struct Label
 
     // Construct a label from by splitting on a separator
     static Label from_separator(std::string_view name, char sep = default_sep);
+
+    //// FRIENDLY COMPARATORS ////
+
+    //! Test equality
+    friend bool operator==(Label const& lhs, Label const& rhs)
+    {
+        return lhs.name == rhs.name && lhs.ext == rhs.ext;
+    }
+
+    //! Test inequality
+    friend bool operator!=(Label const& lhs, Label const& rhs)
+    {
+        return !(lhs == rhs);
+    }
+
+    //! Less-than comparison for sorting
+    friend bool operator<(Label const& lhs, Label const& rhs)
+    {
+        return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
+    }
 };
-
-//---------------------------------------------------------------------------//
-//! Test equality
-inline bool operator==(Label const& lhs, Label const& rhs)
-{
-    return lhs.name == rhs.name && lhs.ext == rhs.ext;
-}
-
-//! Test inequality
-inline bool operator!=(Label const& lhs, Label const& rhs)
-{
-    return !(lhs == rhs);
-}
-
-//! Less-than comparison for sorting
-inline bool operator<(Label const& lhs, Label const& rhs)
-{
-    return std::tie(lhs.name, lhs.ext) < std::tie(rhs.name, rhs.ext);
-}
 
 //---------------------------------------------------------------------------//
 // Write a label to a stream
