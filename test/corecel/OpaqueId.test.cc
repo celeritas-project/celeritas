@@ -90,6 +90,9 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
+
+    EXPECT_EQ("{1}", stream_to_string(Id_t{1}));
+    EXPECT_EQ("{}", stream_to_string(Id_t{}));
 }
 
 TEST(OpaqueIdTest, multi_int)

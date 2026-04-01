@@ -220,7 +220,8 @@ class OpaqueId
 };
 
 //---------------------------------------------------------------------------//
-// FREE FUNCTIONS
+// DETAIL IMPLEMENTATION
+// (not a separate file due to living in the top level)
 //---------------------------------------------------------------------------//
 
 namespace detail
@@ -271,6 +272,29 @@ struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
 {
 };
 
+#if !CELER_DEVICE_COMPILE
+// Print an opaque ID: ignore instantiator to reduce duplicate symbols
+template<class S>
+inline void stream_opaqueid_impl(std::ostream& os, S v, S nullid)
+{
+    os << '{';
+    if (v != nullid)
+    {
+        os << v;
+    }
+    os << '}';
+}
+
+// Specialization avoids printing integers as '\x1'
+template<>
+CELER_FORCEINLINE void
+stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
+{
+    return stream_opaqueid_impl(
+        os, static_cast<unsigned int>(v), static_cast<unsigned int>(nullid));
+}
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
@@ -305,16 +329,10 @@ inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
  * Output an opaque ID's value or a placeholder if unavailable.
  */
 template<class V, class S>
-std::ostream& operator<<(std::ostream& os, OpaqueId<V, S> const& v)
+CELER_FORCEINLINE std::ostream&
+operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 {
-    if (v)
-    {
-        os << v.unchecked_get();
-    }
-    else
-    {
-        os << "<null>";
-    }
+    detail::stream_opaqueid_impl(os, v.unchecked_get(), nullid_value<S>);
     return os;
 }
 #endif
