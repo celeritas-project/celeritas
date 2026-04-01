@@ -120,6 +120,15 @@ TEST(QuantityTest, mixed_precision)
     }
 }
 
+TEST(QuantityTest, ref)
+{
+    using DozenDbl = Quantity<DozenUnit, double>;
+    auto two_dozen = native_value_to<DozenDbl>(24);
+
+    auto td_ref = std::ref(two_dozen);
+    EXPECT_EQ(two_dozen * 2, td_ref * 2);
+}
+
 TEST(QuantityTest, comparators)
 {
     EXPECT_TRUE(zero_quantity() < Revolution{4});
