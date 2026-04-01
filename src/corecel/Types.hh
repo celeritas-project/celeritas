@@ -45,7 +45,7 @@ using real_type = void;
 using ull_int = unsigned long long int;
 
 //! Three-dimensional cartesian coordinates
-template<class T, size_type N>
+template<class T, std::size_t N>
 class Array;
 using Real3 = Array<real_type, 3>;
 

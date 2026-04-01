@@ -28,8 +28,6 @@ namespace celeritas
  *
  * This is not fully compatible with std::array:
  * - no support for N=0
- * - uses the native celeritas \c size_type (even though this has \em no effect
-     on generated code for values of N inside the range of \c size_type
  * - zero-initialized by default
  *
  * \note For supplementary functionality, include:
@@ -37,7 +35,7 @@ namespace celeritas
  * - \c corecel/math/ArrayOperators.hh for mathematical operators
  * - \c ArrayIO.json.hh for JSON input and output
  */
-template<class T, ::celeritas::size_type N>
+template<class T, std::size_t N>
 class Array
 {
     static_assert(N > 0);
@@ -161,7 +159,7 @@ CELER_FUNCTION Array(T, Us...)
 /*!
  * Test equality of two arrays.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CEF bool operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     for (size_type i = 0; i != N; ++i)
@@ -176,7 +174,7 @@ CELER_CEF bool operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
 /*!
  * Test inequality of two arrays.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 {
     return !(lhs == rhs);
@@ -187,7 +185,7 @@ CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
 /*!
  * Write the elements of array \a a to stream \a os.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FORCEINLINE std::ostream&
 operator<<(std::ostream& os, Array<T, N> const& a)
 {
@@ -204,7 +202,7 @@ operator<<(std::ostream& os, Array<T, N> const& a)
  *
  * The standard library version of this function is available since C++20.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto to_array(T (&x)[N])
 {
     static_assert(!std::is_array_v<T>,
@@ -224,7 +222,7 @@ CELER_CONSTEXPR_FUNCTION auto to_array(T (&x)[N])
 /*!
  * Convert an array from type \c T2 to \c T1.
  */
-template<class T1, class T2, size_type N>
+template<class T1, class T2, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Array<T1, N> static_array_cast(Array<T2, N> const& x)
 {
     Array<T1, N> result;
@@ -244,14 +242,14 @@ namespace std
 {
 //---------------------------------------------------------------------------//
 //! Support structured binding: array size
-template<class T, celeritas::size_type N>
+template<class T, std::size_t N>
 struct tuple_size<celeritas::Array<T, N>>
 {
     static constexpr std::size_t value = N;
 };
 
 //! Support structured binding: array element type
-template<std::size_t I, class T, celeritas::size_type N>
+template<std::size_t I, class T, std::size_t N>
 struct tuple_element<I, celeritas::Array<T, N>>
 {
     static_assert(I < std::tuple_size<celeritas::Array<T, N>>::value);

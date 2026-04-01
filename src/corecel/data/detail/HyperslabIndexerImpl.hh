@@ -11,7 +11,7 @@ namespace celeritas
 namespace detail
 {
 // Utility function for calculating the size of hyperslab data
-template<celeritas::size_type N>
+template<std::size_t N>
 inline CELER_FUNCTION celeritas::size_type
 hyperslab_size(celeritas::Array<celeritas::size_type, N> const& dims)
 {

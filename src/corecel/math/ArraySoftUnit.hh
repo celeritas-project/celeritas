@@ -58,7 +58,7 @@ class ArraySoftUnit
     CELER_CONSTEXPR_FUNCTION ArraySoftUnit();
 
     // Calculate whether the array is nearly a unit vector
-    template<::celeritas::size_type N>
+    template<std::size_t N>
     CELER_CONSTEXPR_FUNCTION bool operator()(Array<T, N> const& arr) const;
 
   private:
@@ -75,7 +75,7 @@ CELER_FUNCTION ArraySoftUnit(T) -> ArraySoftUnit<T>;
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Test for being approximately a unit vector
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
@@ -110,7 +110,7 @@ CELER_CONSTEXPR_FUNCTION ArraySoftUnit<T>::ArraySoftUnit()
  * \endcode.
  */
 template<class T>
-template<::celeritas::size_type N>
+template<std::size_t N>
 CELER_CONSTEXPR_FUNCTION bool
 ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
 {
@@ -124,7 +124,7 @@ ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
 
 //---------------------------------------------------------------------------//
 //! Test with default tolerance for being a unit vector
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION bool is_soft_unit_vector(Array<T, N> const& v)
 {
     return ArraySoftUnit<T>{}(v);

@@ -50,13 +50,13 @@ make_quantity_array(Args const&... args) noexcept
  * auto pos = make_quantity_array<CmLength>(hardcoded_pos_cm);
  * \endcode
  */
-template<class Q, size_type N>
+template<class Q, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Array<Q, N>
 make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
 {
     static_assert(is_quantity_v<Q>);
     Array<Q, N> result;
-    for (size_type i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = Q{arr[i]};
     }
@@ -69,13 +69,13 @@ make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
  *
  * This applies native_value_from element-wise to each component.
  */
-template<class UnitT, class ValueT, size_type N>
+template<class UnitT, class ValueT, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto
 native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
     Array<common_type, N> result;
-    for (size_type i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = native_value_from(quant[i]);
     }
@@ -88,12 +88,12 @@ native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
  *
  * This applies native_value_to element-wise to each component.
  */
-template<class Q, class T, size_type N>
+template<class Q, class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
 {
     static_assert(is_quantity_v<Q>);
     Array<Q, N> result;
-    for (size_type i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = native_value_to<Q>(value[i]);
     }
@@ -106,12 +106,12 @@ CELER_CONSTEXPR_FUNCTION auto native_value_to(Array<T, N> const& value) noexcept
  *
  * This applies value_as element-wise to each component.
  */
-template<class Q, size_type N>
+template<class Q, std::size_t N>
 CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
     -> std::enable_if_t<is_quantity_v<Q>, Array<typename Q::value_type, N>>
 {
     Array<typename Q::value_type, N> result;
-    for (size_type i = 0; i < N; ++i)
+    for (std::size_t i = 0; i < N; ++i)
     {
         result[i] = value_as<Q>(quant[i]);
     }
@@ -126,7 +126,7 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
  * This overload is more specialized than the generic Array operator<< and is
  * therefore preferred by partial ordering for Quantity element types.
  */
-template<class UnitT, class ValueT, size_type N>
+template<class UnitT, class ValueT, std::size_t N>
 std::ostream&
 operator<<(std::ostream& os, Array<Quantity<UnitT, ValueT>, N> const& q)
 {

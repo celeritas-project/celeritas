@@ -32,7 +32,7 @@ namespace detail
  *
  *  Within this array, index of 4 (element b3) returns coords [1, 2].
  */
-template<size_type N>
+template<std::size_t N>
 class RaggedRightIndexer
 {
   public:
@@ -72,7 +72,7 @@ class RaggedRightIndexer
  *
  *  Within this array, coords [1, 2] (element b3) returns index 4.
  */
-template<size_type N>
+template<std::size_t N>
 class RaggedRightInverseIndexer
 {
   public:
@@ -99,7 +99,7 @@ class RaggedRightInverseIndexer
 /*!
  * Construct from RaggedRightIndexerData.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION
 RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
     : rrd_(rrd)
@@ -110,7 +110,7 @@ RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
 /*!
  * Convert ragged indices to a flattened index.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 {
     auto const& offsets = rrd_.offsets;
@@ -124,7 +124,7 @@ CELER_FUNCTION size_type RaggedRightIndexer<N>::operator()(Coords coords) const
 /*!
  * Construct from RaggedRightIndexerData.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION RaggedRightInverseIndexer<N>::RaggedRightInverseIndexer(
     RaggedRightIndexerData<N> const& rrd)
     : rrd_(rrd)
@@ -135,7 +135,7 @@ CELER_FUNCTION RaggedRightInverseIndexer<N>::RaggedRightInverseIndexer(
 /*!
  * Convert a flattened index into ragged indices.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION typename RaggedRightInverseIndexer<N>::Coords
 RaggedRightInverseIndexer<N>::operator()(size_type index) const
 {

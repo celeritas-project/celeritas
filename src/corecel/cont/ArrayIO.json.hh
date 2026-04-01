@@ -18,7 +18,7 @@ namespace celeritas
 /*!
  * Read an array from a JSON file.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 void from_json(nlohmann::json const& j, Array<T, N>& value)
 {
     CELER_VALIDATE(j.size() == N,
@@ -34,7 +34,7 @@ void from_json(nlohmann::json const& j, Array<T, N>& value)
 /*!
  * Write an array to a JSON file.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 void to_json(nlohmann::json& j, Array<T, N> const& value)
 {
     j = nlohmann::json::array();
