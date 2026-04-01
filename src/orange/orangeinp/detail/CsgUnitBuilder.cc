@@ -108,7 +108,7 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 {
     CELER_EXPECT(n < unit_->tree.size());
 
-    LocalVolumeId result{static_cast<size_type>(unit_->tree.volumes().size())};
+    auto result = id_cast<LocalVolumeId>(unit_->tree.volumes().size());
 
     unit_->tree.insert_volume(std::move(n));
     unit_->fills.resize(unit_->tree.volumes().size());
