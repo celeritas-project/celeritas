@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/LdgIterator.hh"
+#include "corecel/data/LdgRefWrapper.hh"
 
 namespace celeritas
 {

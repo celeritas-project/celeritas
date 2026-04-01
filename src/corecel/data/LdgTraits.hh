@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/data/LdgTraits.hh
+//! \sa corecel/data/Ldg.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -61,6 +62,12 @@ struct LdgTraits<T, std::enable_if_t<std::is_enum_v<T>>>
         return reinterpret_cast<underlying_type const*>(ptr);
     }
 };
+
+//---------------------------------------------------------------------------//
+//! Whether a type is supported by \c ldg
+template<class T>
+inline constexpr bool is_ldg_supported_v
+    = !std::is_void_v<typename LdgTraits<T>::underlying_type>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

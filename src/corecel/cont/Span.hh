@@ -46,7 +46,7 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * by \c front, \c back, \c operator[] and \c begin / \c end iterators use
  * value semantics instead of reference. The \c data accessor still returns a
  * pointer to the underlying memory and can be used to bypass using \c
- * LdgIterator .
+ * LdgIterator  or \c LdgRefWrapper .
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span

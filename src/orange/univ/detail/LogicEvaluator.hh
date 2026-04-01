@@ -9,8 +9,8 @@
 #include <type_traits>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/LdgIterator.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "LogicStack.hh"

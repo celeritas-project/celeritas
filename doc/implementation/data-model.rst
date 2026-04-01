@@ -77,6 +77,11 @@ Storage
 .. doxygenclass:: celeritas::ParamsDataStore
 .. doxygenclass:: celeritas::StateDataStore
 
+Device optimizations
+^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::LdgRefWrapper
+
 .. doxygenfunction:: celeritas::ldg
 
 .. _api_containers:

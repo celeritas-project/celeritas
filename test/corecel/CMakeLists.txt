@@ -45,7 +45,7 @@ celeritas_add_test(data/DeviceVector.test.cc GPU)
 celeritas_add_test(data/Filler.test.cc GPU)
 celeritas_add_device_test(data/ObserverPtr
   LINK_LIBRARIES Celeritas::ExtThrust)
-celeritas_add_test(data/LdgIterator.test.cc)
+celeritas_add_test(data/Ldg.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator
   LINK_LIBRARIES Celeritas::ExtThrust)
