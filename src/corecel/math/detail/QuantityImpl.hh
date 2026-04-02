@@ -52,6 +52,21 @@ CELER_CONSTEXPR_FUNCTION T get_constant(QConstant qc)
 template<QConstant QC>
 struct UnitlessQuantity
 {
+    // Define friend comparators
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                        \
+    template<QConstant C2>                                      \
+    CELER_CONSTEXPR_FUNCTION bool friend operator TOKEN(        \
+        UnitlessQuantity, UnitlessQuantity<C2>) noexcept        \
+    {                                                           \
+        return static_cast<int>(QC) TOKEN static_cast<int>(C2); \
+    }
+    CELER_DEFINE_QUANTITY_CMP(==)
+    CELER_DEFINE_QUANTITY_CMP(!=)
+    CELER_DEFINE_QUANTITY_CMP(<)
+    CELER_DEFINE_QUANTITY_CMP(>)
+    CELER_DEFINE_QUANTITY_CMP(<=)
+    CELER_DEFINE_QUANTITY_CMP(>=)
+#undef CELER_DEFINE_QUANTITY_CMP
 };
 
 //---------------------------------------------------------------------------//
