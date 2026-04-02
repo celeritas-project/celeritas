@@ -176,9 +176,7 @@ class OpaqueId
         -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         CELER_EXPECT(id);
-        CELER_EXPECT(offset >= 0
-                     || static_cast<SizeT>(U{0} - offset)
-                            <= id.unchecked_get());
+        CELER_EXPECT(OpaqueId::is_safe_offset(id.unchecked_get(), offset));
 
         // Note: an extra cast is needed for short SizeT due to integer
         // promotion
@@ -212,6 +210,26 @@ class OpaqueId
 
     //! Value indicating the ID is not assigned
     static constexpr size_type null_ = nullid_value<size_type>;
+
+    //// HELPER FUNCTIONS ////
+
+    template<class U>
+    static CELER_CONSTEXPR_FUNCTION bool is_safe_offset(SizeT value, U offset)
+    {
+        if constexpr (std::is_unsigned_v<U>)
+        {
+            return true;
+        }
+        else
+        {
+            if (offset >= 0)
+            {
+                // NOTE: we do not check for overflow
+                return true;
+            }
+            return static_cast<SizeT>(U{0} - offset) <= value;
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
