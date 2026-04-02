@@ -334,7 +334,10 @@ TEST_F(WlsGeneratorTest, primary)
                   run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(0, gen.buffer_size);
         EXPECT_EQ(0, gen.num_pending);
-        EXPECT_EQ(155575, gen.num_generated);
+        if (reference_configuration)
+        {
+            EXPECT_EQ(155575, gen.num_generated);
+        }
     }
     {
         GeneratorId gen_id(1);
