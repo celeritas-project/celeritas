@@ -25,9 +25,9 @@ struct LdgTraits
     using underlying_type = void;
     static CELER_CONSTEXPR_FUNCTION underlying_type const* data(T const*)
     {
-        static_assert(sizeof(T) == 0,
-                      "Only arithmetic underlying types can be loaded with "
-                      "LDG");
+        static_assert(
+            sizeof(T) == 0,
+            R"(Only arithmetic underlying types can be loaded with LDG)");
         return {};
     }
 };
