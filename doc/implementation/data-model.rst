@@ -78,13 +78,11 @@ Storage
 .. doxygenclass:: celeritas::StateDataStore
 
 Optimized device data access
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+----------------------------
 
 .. doxygenpage:: ldg
 
 .. doxygenfunction:: celeritas::ldg
-
-.. doxygenfunction:: celeritas::ldg_data
 
 .. doxygentypedef:: celeritas::LdgSpan
 

@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * \page ldg Cached device loading
  *
- * On GPUs, reading from global memory through the texture cache can improve
+ * On GPUs, reading from global memory through the L1/texture cache can improve
  * throughput when many threads access the same address. The \c __ldg
  * intrinsic (CUDA/HIP) performs such a cached load, using L1/texture memory
  * rather than the ordinary data cache. The hardware contract is that the
@@ -25,19 +25,18 @@ namespace celeritas
  * this is generally true for \em Params data (physics tables, geometry) but
  * not for \em State data. On the host the \c ldg family of functions falls
  * back to a plain dereference, so no special-casing is needed in caller code.
+ * Because \c ldg is only for read-only addresses, all arguments \em must
+ * match only \c const types.
  *
- * The interfaces below are declared in \c corecel/data/Ldg.hh. The span
- * helper \c LdgSpan lives in \c corecel/cont/LdgSpan.hh.
+ * \par Scalar values
  *
- * \section ldg-scalar Scalar values
- *
- * Pass a pointer to any supported type to the one-argument \c ldg:
+ * Pass a const pointer to any supported type to the one-argument \c ldg:
  * \code
  *   real_type energy = ldg(&record.energy);
  *   MaterialId mat   = ldg(&record.material);  // OpaqueId supported
  * \endcode
  *
- * \section ldg-struct Struct members
+ * \par Struct members
  *
  * Load a single member without reading the whole struct using the
  * two-argument overload or the storable \c LdgMember projector:
@@ -50,7 +49,7 @@ namespace celeritas
  *   BIHNodeId parent = load_parent(node);
  * \endcode
  *
- * \section ldg-span Spans and collections
+ * \par Spans and collections
  *
  * \c LdgSpan<T const> (from \c corecel/cont/LdgSpan.hh) is an alias for
  * \c Span whose iterator triggers \c __ldg on every element access. Use it
@@ -66,7 +65,7 @@ namespace celeritas
  * classes built on device \c const_reference collections benefit without any
  * extra work.
  *
- * \section ldg-custom Extending ldg to a new type
+ * \par Extending ldg to a new type
  *
  * \c ldg dispatches through the customization point \c ldg_data, found by
  * argument-dependent lookup (ADL). To support a new type, define a free
@@ -90,15 +89,15 @@ namespace celeritas
  * - \c OpaqueId<I,T> (pointer to the underlying index \c T), and
  * - \c Quantity<U,T> (pointer to the underlying value \c T).
  *
- * \section ldg-impl Under the hood
+ * \internal
  *
- * \subsection ldg-impl-wrapper LdgWrapper
+ * \par Implementation details
+ *
  * \c detail::LdgWrapper<T const> is a thin proxy (similar to
  * \c std::reference_wrapper) that stores a \c const pointer and implicitly
  * converts to the value type by calling \c ldg. The result is always a
  * \em value, not a reference, and the load goes through \c __ldg on device.
  *
- * \subsection ldg-impl-iter LdgIterator
  * \c detail::LdgIterator<T const> is a random-access iterator whose
  * \c operator* returns an \c LdgWrapper. Wrapping it in \c Span yields
  * \c LdgSpan: range-for loops and standard algorithms transparently trigger
@@ -111,11 +110,6 @@ namespace celeritas
  * Get a pointer to the arithmetic data for use with \c __ldg .
  *
  * Default overload for arithmetic types: returns the pointer unchanged.
- *
- * To extend \c ldg support to a new type, define a free function
- * \c ldg_data(MyType const*) in the namespace of \c MyType (enabling
- * ADL-based lookup). The function must return a \c const pointer to an
- * arithmetic type.
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T const*>
@@ -167,6 +161,7 @@ CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
 }
 
 //---------------------------------------------------------------------------//
+//! \cond (CELERITAS_DOC_DEV)
 /*!
  * Load a struct member via \c ldg using a pointer-to-member.
  *
@@ -181,6 +176,7 @@ CELER_FUNCTION T ldg(Class const& obj, T Class::* mp)
     return ldg(&(obj.*mp));
 }
 
+//! \endcond
 //---------------------------------------------------------------------------//
 /*!
  * Storable projector that loads a struct member via \c ldg .
