@@ -15,8 +15,10 @@
 #include "celeritas/Types.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
 
@@ -122,6 +124,12 @@ class DuneGeneratorTest : public GeneratorTestBase
 {
   public:
     std::string gdml_basename() const final { return "dune-cryostat"; }
+};
+
+class WlsGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "wls-slab"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -282,6 +290,89 @@ TEST_F(DuneGeneratorTest, offload)
 
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
+}
+
+TEST_F(WlsGeneratorTest, primary)
+{
+    osi_.geant_setup.wavelength_shifting.emplace();
+    osi_.geant_setup.wavelength_shifting2.emplace();
+    osi_.geant_setup.rayleigh_scattering = true;
+
+    // Create primary generator input
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 65536;
+        gen.energy = inp::MonoenergeticDistribution{9.5e-6};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
+
+    // Set number of track slots
+    osi_.problem.capacity.tracks = 16384;
+    osi_.problem.capacity.generators = 2 * osi_.problem.capacity.tracks;
+
+    // Enable action times
+    osi_.problem.timers.action = true;
+
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    auto result = run();
+
+    if (reference_configuration)
+    {
+        EXPECT_EQ(221248, result.counters.steps);
+        EXPECT_EQ(20, result.counters.step_iters);
+    }
+    EXPECT_EQ(1, result.counters.flushes);
+    ASSERT_EQ(2, result.counters.generators.size());
+
+    {
+        GeneratorId gen_id(0);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("optical-wls-generate",
+                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ(0, gen.buffer_size);
+        EXPECT_EQ(0, gen.num_pending);
+        if (reference_configuration)
+        {
+            EXPECT_EQ(155575, gen.num_generated);
+        }
+    }
+    {
+        GeneratorId gen_id(1);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("primary-generate",
+                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ(0, gen.buffer_size);
+        EXPECT_EQ(0, gen.num_pending);
+        EXPECT_EQ(65536, gen.num_generated);
+    }
+
+    // Check accumulated action times
+    std::set<std::string> labels;
+    for (auto const& [label, time] : result.action_times)
+    {
+        labels.insert(label);
+        EXPECT_GT(time, 0);
+    }
+    static std::string const expected_labels[] = {
+        "absorption",
+        "along-step",
+        "locate-vacancies",
+        "optical-boundary-init",
+        "optical-boundary-post",
+        "optical-discrete-select",
+        "optical-rayleigh",
+        "optical-surface-stepping",
+        "optical-wls-generate",
+        "pre-step",
+        "primary-generate",
+        "tracking-cut",
+        "wls",
+        "wls2",
+    };
+    EXPECT_VEC_EQ(expected_labels, labels);
 }
 
 //---------------------------------------------------------------------------//

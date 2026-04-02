@@ -33,11 +33,15 @@ namespace optical
  * Construct the model from imported data and imported material parameters.
  */
 WavelengthShiftModel::WavelengthShiftModel(ActionId id,
+                                           AuxId aux_id,
                                            inp::OpticalBulkWavelengthShift input,
                                            SPConstMaterials const& materials,
-                                           std::string label)
-    : Model(id, label, "interact by WLS"), input_(std::move(input))
+                                           GeneratorType type)
+    : Model(id, to_cstring(type), "interact by WLS")
+    , input_(std::move(input))
+    , aux_id_(aux_id)
 {
+    CELER_EXPECT(aux_id_);
     CELER_EXPECT(materials);
 
     CELER_VALIDATE(input_, << "invalid input for optical WLS model");
@@ -45,6 +49,7 @@ WavelengthShiftModel::WavelengthShiftModel(ActionId id,
     SegmentIntegrator integrate_emission{TrapezoidSegmentIntegrator{}};
 
     HostVal<WavelengthShiftData> data;
+    data.type = type;
     data.time_profile = input_.time_profile;
     CollectionBuilder wls_record{&data.wls_record};
     NonuniformGridInserter insert_energy_cdf(&data.reals, &data.energy_cdf);
@@ -110,13 +115,20 @@ void WavelengthShiftModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 void WavelengthShiftModel::step(CoreParams const& params,
                                 CoreStateHost& state) const
 {
+    CELER_EXPECT(state.aux());
+
+    auto& aux_state
+        = get<WlsGeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+
     launch_action(
         state,
-        make_action_thread_executor(
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            this->action_id(),
-            InteractionApplier{WavelengthShiftExecutor{this->host_ref()}}));
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr(),
+                                    this->action_id(),
+                                    InteractionApplier{WavelengthShiftExecutor{
+                                        this->host_ref(),
+                                        aux_state.store.ref(),
+                                        aux_state.counters.buffer_size}}));
 }
 
 //---------------------------------------------------------------------------//
