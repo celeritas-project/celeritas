@@ -15,14 +15,13 @@
 #include <covfie/core/vector.hpp>
 
 #include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 
 #if CELERITAS_USE_CUDA
-#    include <covfie/cuda/backend/primitive/cuda_texture.hpp>
+#    include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
 #elif CELERITAS_USE_HIP
 #    include <covfie/hip/backend/primitive/hip_device_array.hpp>
 #endif
@@ -59,23 +58,17 @@ struct CovfieRZFieldTraits<MemSpace::device>
 {
     using float2 = covfie::vector::float2;
 #if CELERITAS_USE_CUDA
-    using storage_t = covfie::backend::cuda_texture<float2, float2>;
-    using transformed_t = covfie::backend::affine<storage_t>;
-#else
-// Manually interpolate rather than relying on texture memory
-#    if CELERITAS_USE_HIP
+    using storage_t = covfie::backend::cuda_device_array<float2>;
+#elif CELERITAS_USE_HIP
     using storage_t = covfie::backend::hip_device_array<float2>;
-#    else
+#else
     using storage_t = covfie::backend::array<float2>;
-#    endif
-
+#endif
     using dimensioned_t
         = covfie::backend::strided<covfie::vector::size2, storage_t>;
     using interp_t = covfie::backend::linear<dimensioned_t>;
     using clamped_t = covfie::backend::clamp<interp_t>;
     using transformed_t = covfie::backend::affine<clamped_t>;
-#endif
-
     using field_t = covfie::field<transformed_t>;
 
     CELER_FUNCTION static Array<real_type, 2>

@@ -50,20 +50,27 @@ class RZMapFieldParams final : public ParamsDataInterface<RZMapFieldParamsData>
     DeviceRef const& device_ref() const final;
 
   private:
-#if CELERITAS_USE_COVFIE
     struct Impl;
     struct ImplDeleter
     {
         void operator()(Impl*) const noexcept;
     };
     std::unique_ptr<Impl, ImplDeleter> impl_;
-#else
+
+#if !CELERITAS_USE_COVFIE
     // Host/device storage and reference
     ParamsDataStore<RZMapFieldParamsData> mirror_;
 #endif
 };
 
-#if !CELERITAS_USE_COVFIE
+#if !(CELERITAS_USE_COVFIE || __DOXYGEN__)
+
+struct RZMapFieldParams::Impl
+{
+};
+
+inline void RZMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept {}
+
 //! Access field map data on the host
 inline auto RZMapFieldParams::host_ref() const -> HostRef const&
 {

@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "Fields.test.hh"
 
-#include <cstdio>
-
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
@@ -86,6 +84,7 @@ __global__ void field_test_kernel(unsigned int const size,
         }
     }
 }
+
 __global__ void rzfield_test_kernel(unsigned int const num_points,
                                     RZDeviceCRef field_map_data,
                                     Real3 const* points,
@@ -96,12 +95,10 @@ __global__ void rzfield_test_kernel(unsigned int const num_points,
         return;
 
     RZMapField calc_field(field_map_data);
-
     Real3 field = calc_field(points[tid.get()]);
-    auto base = tid.get() * 3;
-    field_values[base + 0] = field[0];
-    field_values[base + 1] = field[1];
-    field_values[base + 2] = field[2];
+    field_values[tid.get() * 3 + 0] = field[0];
+    field_values[tid.get() * 3 + 1] = field[1];
+    field_values[tid.get() * 3 + 2] = field[2];
 }
 
 }  // namespace

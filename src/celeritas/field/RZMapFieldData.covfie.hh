@@ -9,8 +9,6 @@
 #include <memory>
 #include <type_traits>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -61,12 +59,9 @@ template<>
 struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
     : RZMapFieldParamsDataBase<MemSpace::device>
 {
-    CELER_FUNCTION view_t const& get_view() const
-    {
-        return field_view.device_ref()[0];
-    }
+    view_t const& get_view() const { return field_view.device_ref()[0]; }
 
-    CELER_FUNCTION explicit operator bool() const
+    explicit operator bool() const
     {
         return field.get() && field_view.size() == 1;
     }
@@ -74,23 +69,37 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
     RZMapFieldParamsData& operator=(
         RZMapFieldParamsData<Ownership::value, MemSpace::host> const& other)
     {
-        if constexpr (!std::is_same_v<
-                          field_t,
-                          detail::CovfieRZFieldTraits<MemSpace::host>::field_t>)
+        using host_field_t
+            = detail::CovfieRZFieldTraits<MemSpace::host>::field_t;
+        if constexpr (!std::is_same_v<field_t, host_field_t>)
         {
-            if constexpr (CELERITAS_USE_HIP)
-            {
-                // No texture memory support: simply copy from the host field
-                field = std::make_unique<field_t>(*other.field);
-            }
-            else
-            {
-                auto const& host_backend = other.field->backend();
-                auto const& strided_backend
-                    = host_backend.get_backend().get_backend().get_backend();
-                field = std::make_unique<field_t>(covfie::make_parameter_pack(
-                    host_backend.get_configuration(), strided_backend));
-            }
+            // Build the device field bottom-up using cross-type constructors.
+            // strided's cross-type constructor copies the host array data into
+            // cuda_device_array (H2D transfer). Each transformer layer wraps
+            // the one below with its config preserved.
+            using dev_traits = detail::CovfieRZFieldTraits<MemSpace::device>;
+            using dev_strided_t = typename dev_traits::dimensioned_t;
+            using dev_linear_t = typename dev_traits::interp_t;
+            using dev_clamp_t = typename dev_traits::clamped_t;
+            using dev_affine_t = typename dev_traits::transformed_t;
+
+            auto const& affine_b = other.field->backend();
+            auto const& clamp_b = affine_b.get_backend();
+            auto const& linear_b = clamp_b.get_backend();
+            auto const& strided_b = linear_b.get_backend();
+
+            auto dev_strided = typename dev_strided_t::owning_data_t{strided_b};
+            auto dev_linear =
+                typename dev_linear_t::owning_data_t{std::move(dev_strided)};
+            auto dev_clamp = typename dev_clamp_t::owning_data_t{
+                clamp_b.get_configuration(), std::move(dev_linear)};
+            auto dev_affine = typename dev_affine_t::owning_data_t{
+                affine_b.get_configuration(), std::move(dev_clamp)};
+
+            field = std::make_unique<field_t>(
+                covfie::make_parameter_pack(std::move(dev_affine)));
+
+            // Store view_t in device memory; pass pointer to kernel
             field_view = DeviceVector<view_t>{1};
             field_view.copy_to_device(make_span<view_t const>({{*field}}));
         }
@@ -121,7 +130,7 @@ struct RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>
         return *this;
     }
 
-    view_t const* field_view;
+    view_t const* field_view{nullptr};
 };
 
 //---------------------------------------------------------------------------//

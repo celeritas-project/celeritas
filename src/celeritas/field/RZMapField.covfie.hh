@@ -6,11 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/Types.hh"
 
 #include "RZMapFieldData.hh"  // IWYU pragma: keep
@@ -69,7 +68,7 @@ RZMapField::RZMapField(ParamsRef const& shared) : field_{shared.get_view()} {}
  */
 CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 {
-    celeritas::real_type r = std::hypot(pos[0], pos[1]);
+    celeritas::real_type r = hypot(pos[0], pos[1]);
 
     auto bvec = detail::CovfieRZFieldTraits<MemSpace::native>::to_array(
         field_.at(static_cast<real_type>(r), static_cast<real_type>(pos[2])));

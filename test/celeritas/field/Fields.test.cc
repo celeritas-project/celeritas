@@ -211,24 +211,21 @@ TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
         actual.push_back(native_value_to<units::TeslaField>(f).value());
     }
 
-    // Expected values from CUDA texture interpolation on the RZ grid.
-    // These differ slightly from host values because CUDA textures use
-    // hardware-accelerated interpolation with reduced precision.
+    // Same expected values as host: device uses software interpolation
+    // (no CUDA texture), so results are identical.
     // clang-format off
     static real_type const expected_field[] = {
         -0,                  -0,                  3.811202287674,
-        0.000565953883515513, 0.000565953883515513, 3.8078046875,
-        0.00235679458388513, 0.00235679458388513, 3.80450390625,
-        0.00531898353264262, 0.00531898353264262, 3.80122421875,
-        0.00950605889364446, 0.00950605889364446, 3.79804140625,
-        0.0149094192031766,  0.0149094192031766,  3.78495078125,
-        0.0215722746241618,  0.0215722746241618,  3.7724453125,
-        0.0283516997313234,  0.0283516997313234,  3.762930859375,
+        0.000557730426456419, 0.000557730426456419, 3.8078203125,
+        0.0023259673673599,  0.0023259673673599,  3.804498046875,
+        0.0053047110587328,  0.0053047110587328,  3.8012359375,
+        0.0094939613342285,  0.0094939613342285,  3.7980328125,
+        0.0149389093193622,  0.0149389093193622,  3.7849625,
+        0.0215377738208854,  0.0215377738208854,  3.7723875,
+        0.0283599192434375,  0.0283599192434375,  3.762944140625,
     };
     // clang-format on
-    // FIXME: reference values use lower-precision texture interpolation
-    constexpr real_type tol = CELERITAS_USE_HIP ? 1e-2 : 1e-5;
-    EXPECT_VEC_NEAR(expected_field, actual, tol);
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 #endif  // CELERITAS_USE_COVFIE
 
