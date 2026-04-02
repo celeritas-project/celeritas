@@ -36,6 +36,31 @@ using Dozen = Quantity<DozenUnit, int>;
 //---------------------------------------------------------------------------//
 using LdgWrapperTest = celeritas::test::Test;
 
+TEST_F(LdgWrapperTest, equality)
+{
+    // Comparing two LdgWrapper instances was previously ambiguous because
+    // both operator==(LdgWrapper, type) and operator==(type, LdgWrapper)
+    // matched via implicit conversion, causing a compile error when
+    // std::equal is used over two LdgSpans.
+    static double const vals[] = {1.0, 2.0};
+    LdgWrapper<double const> w1{vals[0]};
+    LdgWrapper<double const> w2{vals[0]};
+    LdgWrapper<double const> w3{vals[1]};
+    EXPECT_EQ(w1, w2);  // LdgWrapper == LdgWrapper (was ambiguous)
+    EXPECT_NE(w1, w3);  // LdgWrapper != LdgWrapper (was ambiguous)
+    EXPECT_EQ(w1, 1.0);  // LdgWrapper == type
+    EXPECT_EQ(1.0, w2);  // type == LdgWrapper
+
+    // std::equal triggers LdgWrapper == LdgWrapper comparison internally
+    static double const same_vals[] = {1.0, 2.0};
+    LdgSpan<double const> span1{vals};
+    LdgSpan<double const> span2{same_vals};
+    EXPECT_TRUE(std::equal(span1.begin(), span1.end(), span2.begin()));
+    static double const diff_vals[] = {1.0, 3.0};
+    LdgSpan<double const> span3{diff_vals};
+    EXPECT_FALSE(std::equal(span1.begin(), span1.end(), span3.begin()));
+}
+
 TEST_F(LdgWrapperTest, quantity)
 {
     static Dozen const eggs[] = {Dozen{1}, Dozen{3}, Dozen{5}};

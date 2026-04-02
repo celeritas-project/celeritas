@@ -71,11 +71,17 @@ class LdgWrapper
 
     //!@{
     /*!
-     * Comparison operators against the underlying type.
+     * Comparison operators against the underlying type or another wrapper.
      *
      * Defined here so template \c operator== (e.g. \c OpaqueId) are found via
      * ADL without requiring implicit conversion during deduction.
+     * The \c LdgWrapper vs \c LdgWrapper overloads prevent ambiguity when
+     * both arguments are wrappers (e.g., \c std::equal over two LdgSpans).
      */
+    CELER_CEF friend bool operator==(LdgWrapper a, LdgWrapper b) noexcept
+    {
+        return a.get() == b.get();
+    }
     CELER_CEF friend bool operator==(LdgWrapper a, type b) noexcept
     {
         return a.get() == b;
@@ -83,6 +89,10 @@ class LdgWrapper
     CELER_CEF friend bool operator==(type a, LdgWrapper b) noexcept
     {
         return a == b.get();
+    }
+    CELER_CEF friend bool operator!=(LdgWrapper a, LdgWrapper b) noexcept
+    {
+        return a.get() != b.get();
     }
     CELER_CEF friend bool operator!=(LdgWrapper a, type b) noexcept
     {

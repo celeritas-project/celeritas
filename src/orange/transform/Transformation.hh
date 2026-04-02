@@ -136,25 +136,23 @@ class Transformation
     // Calculate properties about the matrix
     Properties calc_properties() const;
 
+    //!@{
+    //! Host-only comparators
+    friend bool operator==(Transformation const& a, Transformation const& b)
+    {
+        auto a_data = a.data();
+        return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+    }
+    friend bool operator!=(Transformation const& a, Transformation const& b)
+    {
+        return !(a == b);
+    }
+    //!@}
+
   private:
     Mat3 rot_;
     Real3 tra_;
 };
-
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline bool operator==(Transformation const& a, Transformation const& b)
-{
-    auto a_data = a.data();
-    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
-}
-
-inline bool operator!=(Transformation const& a, Transformation const& b)
-{
-    return !(a == b);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

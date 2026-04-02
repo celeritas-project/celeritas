@@ -67,25 +67,21 @@ class NoTransformation
 
     // Calculate the inverse during preprocessing
     inline NoTransformation calc_inverse() const { return {}; }
+
+    //!@{
+    //! Host-only comparators
+    friend constexpr bool
+    operator==(NoTransformation const&, NoTransformation const&) noexcept
+    {
+        return true;
+    }
+    friend constexpr bool
+    operator!=(NoTransformation const&, NoTransformation const&) noexcept
+    {
+        return false;
+    }
+    //!@}
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline constexpr bool
-operator==(NoTransformation const&, NoTransformation const&)
-{
-    return true;
-}
-
-inline constexpr bool
-operator!=(NoTransformation const&, NoTransformation const&)
-{
-    return false;
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
