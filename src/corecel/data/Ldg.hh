@@ -15,7 +15,95 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * \page ldg Cached global loading with __ldg wrappers
+ * \page ldg Cached device loading
+ *
+ * On GPUs, reading from global memory through the texture cache can improve
+ * throughput when many threads access the same address. The \c __ldg
+ * intrinsic (CUDA/HIP) performs such a cached load, using L1/texture memory
+ * rather than the ordinary data cache. The hardware contract is that the
+ * pointed-to memory must be \em read-only for the lifetime of the kernel;
+ * this is generally true for \em Params data (physics tables, geometry) but
+ * not for \em State data. On the host the \c ldg family of functions falls
+ * back to a plain dereference, so no special-casing is needed in caller code.
+ *
+ * The interfaces below are declared in \c corecel/data/Ldg.hh. The span
+ * helper \c LdgSpan lives in \c corecel/cont/LdgSpan.hh.
+ *
+ * \section ldg-scalar Scalar values
+ *
+ * Pass a pointer to any supported type to the one-argument \c ldg:
+ * \code
+ *   real_type energy = ldg(&record.energy);
+ *   MaterialId mat   = ldg(&record.material);  // OpaqueId supported
+ * \endcode
+ *
+ * \section ldg-struct Struct members
+ *
+ * Load a single member without reading the whole struct using the
+ * two-argument overload or the storable \c LdgMember projector:
+ * \code
+ *   // Immediate two-argument form
+ *   BIHNodeId parent = ldg(node, &BIHLeafNode::parent);
+ *
+ *   // Storable callable -- useful with algorithms
+ *   auto load_parent = LdgMember{&BIHLeafNode::parent};
+ *   BIHNodeId parent = load_parent(node);
+ * \endcode
+ *
+ * \section ldg-span Spans and collections
+ *
+ * \c LdgSpan<T const> (from \c corecel/cont/LdgSpan.hh) is an alias for
+ * \c Span whose iterator triggers \c __ldg on every element access. Use it
+ * as you would any ordinary span:
+ * \code
+ *   LdgSpan<real_type const> energies = params.get_energies();
+ *   for (real_type e : energies)   // each read uses __ldg
+ *       process(e);
+ * \endcode
+ *
+ * \c Collection<T, Ownership::const_reference, MemSpace::device> returns
+ * \c LdgSpan automatically when the element type supports \c ldg, so View
+ * classes built on device \c const_reference collections benefit without any
+ * extra work.
+ *
+ * \section ldg-custom Extending ldg to a new type
+ *
+ * \c ldg dispatches through the customization point \c ldg_data, found by
+ * argument-dependent lookup (ADL). To support a new type, define a free
+ * function in its namespace that returns a \c const pointer to an arithmetic
+ * type. For a wrapper struct holding a single \c int member:
+ * \code
+ *   namespace myns
+ *   {
+ *   struct MyCount { int value; };
+ *
+ *   CELER_CONSTEXPR_FUNCTION int const* ldg_data(MyCount const* p) noexcept
+ *   {
+ *       return &p->value;
+ *   }
+ *   }  // namespace myns
+ * \endcode
+ *
+ * Built-in overloads cover:
+ * - arithmetic types (identity, the default),
+ * - enum types (reinterpret-cast to the underlying integer),
+ * - \c OpaqueId<I,T> (pointer to the underlying index \c T), and
+ * - \c Quantity<U,T> (pointer to the underlying value \c T).
+ *
+ * \section ldg-impl Under the hood
+ *
+ * \subsection ldg-impl-wrapper LdgWrapper
+ * \c detail::LdgWrapper<T const> is a thin proxy (similar to
+ * \c std::reference_wrapper) that stores a \c const pointer and implicitly
+ * converts to the value type by calling \c ldg. The result is always a
+ * \em value, not a reference, and the load goes through \c __ldg on device.
+ *
+ * \subsection ldg-impl-iter LdgIterator
+ * \c detail::LdgIterator<T const> is a random-access iterator whose
+ * \c operator* returns an \c LdgWrapper. Wrapping it in \c Span yields
+ * \c LdgSpan: range-for loops and standard algorithms transparently trigger
+ * \c __ldg on every element access without requiring any change at the
+ * call site.
  */
 
 //---------------------------------------------------------------------------//
@@ -53,15 +141,11 @@ CELER_CONSTEXPR_FUNCTION
 /*!
  * Wrap the low-level CUDA/HIP "load read-only global memory" function.
  *
- * This relies on a default implementation of \c ldg_data that allows user
- * overrides via ADL. To extend this functionality, provide an overload in your
- class's namespace that returns a const pointer to an arithmetic type. <insert
- example here>
+ * This relies on \c ldg_data found by ADL to obtain a pointer to the
+ * underlying arithmetic type; see \ref ldg for usage and extension examples.
  *
- * This low-level capability allows improved caching because we're \em
- * promising that the data is not mem. For CUDA the load is cached in
- * L1/texture memory, theoretically improving performance if repeatedly
- * accessed.
+ * On CUDA the load is cached in L1/texture memory, improving performance when
+ * data is repeatedly read by many threads in a kernel.
  *
  * \warning The target address must be read-only for the lifetime of the
  * kernel. This is generally true for Params data but not State data.
