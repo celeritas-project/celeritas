@@ -8,7 +8,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/LdgSpan.hh"
-#include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
