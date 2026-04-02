@@ -2,8 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/detail/LdgIterator.hh
-//! \sa corecel/data/Ldg.test.cc
+//! \file corecel/cont/detail/LdgSpanImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
 

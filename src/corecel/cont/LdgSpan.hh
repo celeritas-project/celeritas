@@ -10,7 +10,7 @@
 
 #include "Span.hh"
 
-#include "detail/LdgIterator.hh"
+#include "detail/LdgSpanImpl.hh"
 
 namespace celeritas
 {
