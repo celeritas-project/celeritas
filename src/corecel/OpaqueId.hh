@@ -333,24 +333,15 @@ operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 #endif
 
 //---------------------------------------------------------------------------//
-// TRAITS
+// FREE FUNCTION LDG SUPPORT
 //---------------------------------------------------------------------------//
 
-template<class T, class>
-struct LdgTraits;
-
-// Set up cached const global loading for OpaqueId
+//! Cached const global loading support for OpaqueId
 template<class I, class T>
-struct LdgTraits<OpaqueId<I, T>, void>
+CELER_CONSTEXPR_FUNCTION T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
 {
-    using underlying_type = T;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const*
-    data(OpaqueId<I, T> const* ptr)
-    {
-        return ptr->data();
-    }
-};
+    return ptr->data();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

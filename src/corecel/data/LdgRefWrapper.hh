@@ -31,17 +31,32 @@ namespace celeritas
 template<class T>
 CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
 {
-    using TraitsT = LdgTraits<T>;
-    using underlying_type = typename TraitsT::underlying_type;
-    static_assert(std::is_arithmetic_v<underlying_type>,
+    auto const* data_ptr = ldg_data(ptr);
+    using data_type
+        = std::remove_cv_t<std::remove_pointer_t<decltype(data_ptr)>>;
+    static_assert(std::is_arithmetic_v<data_type>,
                   R"(Only arithmetic-underlying types are supported by __ldg)");
 
-    auto const* data_ptr = TraitsT::data(ptr);
 #if CELER_DEVICE_COMPILE
     return T{__ldg(data_ptr)};
 #else
     return T{*data_ptr};
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load a struct member via \c ldg using a pointer-to-member.
+ *
+ * Convenience overload for when the member is known at the call site.
+ * \code
+ * BIHNodeId parent = ldg(node, &BIHLeafNode::parent);
+ * \endcode
+ */
+template<class Class, class T>
+CELER_FUNCTION T ldg(Class const& obj, T Class::* mp)
+{
+    return ldg(&(obj.*mp));
 }
 
 //---------------------------------------------------------------------------//
@@ -107,6 +122,34 @@ class LdgRefWrapper
   private:
     T* ptr_;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Storable projector that loads a struct member via \c ldg .
+ *
+ * Stores a pointer-to-member and, when called with an object, returns the
+ * member value loaded via \c __ldg . Use this when the load must be captured
+ * as a callable; for immediate use prefer the two-argument \c ldg overload.
+ *
+ * \code
+ * auto load_parent = LdgMember{&BIHLeafNode::parent};
+ * BIHNodeId parent = load_parent(node);
+ * \endcode
+ */
+template<class Class, class T>
+struct LdgMember
+{
+    T Class::* mp;
+
+    CELER_FUNCTION T operator()(Class const& obj) const
+    {
+        return ldg(&(obj.*mp));
+    }
+};
+
+//! Deduction guide: \c LdgMember{&Foo::bar} deduces \c LdgMember<Foo,Bar>
+template<class Class, class T>
+LdgMember(T Class::*) -> LdgMember<Class, T>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

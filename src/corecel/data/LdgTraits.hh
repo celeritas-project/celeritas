@@ -15,59 +15,57 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Traits for extracting underlying type and pointer for __ldg operations.
+ * Get a pointer to the arithmetic data for use with \c __ldg .
  *
- * Specialize this class on the base type, not a const type.
+ * Overload for arithmetic types: returns the pointer unchanged.
+ *
+ * To extend \c ldg support to a new type, define a free function
+ * \c ldg_data(MyType const*) in the namespace of \c MyType (enabling
+ * ADL-based lookup). The function must return a \c const pointer to an
+ * arithmetic type.
  */
+template<class T>
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T const*>
+ldg_data(T const* ptr) noexcept
+{
+    return ptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a pointer to the underlying integer for an enum type.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION
+    std::enable_if_t<std::is_enum_v<T>, std::underlying_type_t<T> const*>
+    ldg_data(T const* ptr) noexcept
+{
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    return reinterpret_cast<std::underlying_type_t<T> const*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+namespace detail
+{
+//---------------------------------------------------------------------------//
 template<class T, class = void>
-struct LdgTraits
+struct IsLdgSupported : std::false_type
 {
-    using underlying_type = void;
-    static CELER_CONSTEXPR_FUNCTION underlying_type const* data(T const*)
-    {
-        static_assert(
-            sizeof(T) == 0,
-            R"(Only arithmetic underlying types can be loaded with LDG)");
-        return {};
-    }
+};
+
+template<class T>
+struct IsLdgSupported<T, std::void_t<decltype(ldg_data(std::declval<T const*>()))>>
+    : std::true_type
+{
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Specialization for arithmetic types.
- */
-template<class T>
-struct LdgTraits<T, std::enable_if_t<std::is_arithmetic_v<T>>>
-{
-    using underlying_type = T;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const* data(T const* ptr)
-    {
-        return ptr;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Specialization for enum types.
- */
-template<class T>
-struct LdgTraits<T, std::enable_if_t<std::is_enum_v<T>>>
-{
-    using underlying_type = std::underlying_type_t<T>;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const* data(T const* ptr)
-    {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return reinterpret_cast<underlying_type const*>(ptr);
-    }
-};
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 //! Whether a type is supported by \c ldg
 template<class T>
-inline constexpr bool is_ldg_supported_v
-    = !std::is_void_v<typename LdgTraits<T>::underlying_type>;
+inline constexpr bool is_ldg_supported_v = detail::IsLdgSupported<T>::value;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
