@@ -464,6 +464,7 @@ celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
