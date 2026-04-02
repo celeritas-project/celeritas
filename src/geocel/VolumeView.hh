@@ -8,7 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/LdgRefWrapper.hh"
+#include "corecel/data/Ldg.hh"
 #include "geocel/Types.hh"
 
 #include "VolumeData.hh"

@@ -391,8 +391,7 @@ inline constexpr bool is_quantity_v = detail::IsQuantity<T>::value;
 //---------------------------------------------------------------------------//
 //! Cached const global loading support for Quantity
 template<class U, class T>
-CELER_CONSTEXPR_FUNCTION typename Quantity<U, T>::value_type const*
-ldg_data(Quantity<U, T> const* ptr) noexcept
+CELER_CONSTEXPR_FUNCTION T const* ldg_data(Quantity<U, T> const* ptr) noexcept
 {
     return ptr->data();
 }

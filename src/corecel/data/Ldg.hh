@@ -2,8 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/data/LdgRefWrapper.hh
-//! \sa corecel/data/Ldg.test.cc
+//! \file corecel/data/Ldg.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -12,13 +11,52 @@
 
 #include "corecel/Macros.hh"
 
-#include "LdgTraits.hh"
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * \page ldg Cached global loading with __ldg wrappers
+ */
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a pointer to the arithmetic data for use with \c __ldg .
+ *
+ * Default overload for arithmetic types: returns the pointer unchanged.
+ *
+ * To extend \c ldg support to a new type, define a free function
+ * \c ldg_data(MyType const*) in the namespace of \c MyType (enabling
+ * ADL-based lookup). The function must return a \c const pointer to an
+ * arithmetic type.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T const*>
+ldg_data(T const* ptr) noexcept
+{
+    return ptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a pointer to the underlying integer for an enum type.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION
+    std::enable_if_t<std::is_enum_v<T>, std::underlying_type_t<T> const*>
+    ldg_data(T const* ptr) noexcept
+{
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    return reinterpret_cast<std::underlying_type_t<T> const*>(ptr);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Wrap the low-level CUDA/HIP "load read-only global memory" function.
+ *
+ * This relies on a default implementation of \c ldg_data that allows user
+ * overrides via ADL. To extend this functionality, provide an overload in your
+ class's namespace that returns a const pointer to an arithmetic type. <insert
+ example here>
  *
  * This low-level capability allows improved caching because we're \em
  * promising that the data is not mem. For CUDA the load is cached in
@@ -58,70 +96,6 @@ CELER_FUNCTION T ldg(Class const& obj, T Class::* mp)
 {
     return ldg(&(obj.*mp));
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Reference wrapper that loads data safely via \c ldg on conversion.
- *
- * Like \c std::reference_wrapper, this stores a pointer to a const object
- * and provides an implicit conversion to the value type. However, the value
- * being wrapped \em must be a const reference, and the return is a \c value
- * rather than a reference .
- *
- * The \c __ldg intrinsic is invoked during the implicit load, so client code
- * can bind the wrapper to an ordinary value variable transparently.
- */
-template<class T>
-class LdgRefWrapper
-{
-    static_assert(std::is_const_v<T>);
-    static_assert(is_ldg_supported_v<std::remove_const_t<T>>,
-                  "const arithmetic, OpaqueId or enum type required");
-
-  public:
-    //!@{
-    //! \name Type aliases
-    using type = std::remove_const_t<T>;
-    //!@}
-
-  public:
-    //! Construct from a const reference to the target
-    CELER_CEF LdgRefWrapper(T& ref) noexcept : ptr_{&ref} {}
-
-    //! Load the referenced value using __ldg
-    CELER_CEF type get() const noexcept { return ldg(ptr_); }
-
-    //! Implicit conversion: load via __ldg
-    CELER_CEF operator type() const noexcept { return this->get(); }
-
-    //!@{
-    /*!
-     * Comparison operators against the underlying type.
-     *
-     * Defined here so template \c operator== (e.g. \c OpaqueId) are found via
-     * ADL without requiring implicit conversion during deduction.
-     */
-    CELER_CEF friend bool operator==(LdgRefWrapper a, type b) noexcept
-    {
-        return a.get() == b;
-    }
-    CELER_CEF friend bool operator==(type a, LdgRefWrapper b) noexcept
-    {
-        return a == b.get();
-    }
-    CELER_CEF friend bool operator!=(LdgRefWrapper a, type b) noexcept
-    {
-        return a.get() != b;
-    }
-    CELER_CEF friend bool operator!=(type a, LdgRefWrapper b) noexcept
-    {
-        return a != b.get();
-    }
-    //!@}
-
-  private:
-    T* ptr_;
-};
 
 //---------------------------------------------------------------------------//
 /*!

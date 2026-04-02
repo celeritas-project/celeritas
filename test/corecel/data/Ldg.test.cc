@@ -4,6 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/data/LdgIterator.test.cc
 //---------------------------------------------------------------------------//
+#include "corecel/data/Ldg.hh"
+
 #include <algorithm>
 #include <numeric>
 #include <vector>
@@ -12,10 +14,11 @@
 #include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/cont/detail/LdgIterator.hh"
-#include "corecel/data/LdgRefWrapper.hh"
 #include "corecel/math/Quantity.hh"
 
 #include "celeritas_test.hh"
+
+using celeritas::detail::LdgWrapper;
 
 namespace celeritas
 {
@@ -31,9 +34,9 @@ struct DozenUnit
 using Dozen = Quantity<DozenUnit, int>;
 
 //---------------------------------------------------------------------------//
-using LdgRefWrapperTest = Test;
+using LdgWrapperTest = Test;
 
-TEST_F(LdgRefWrapperTest, quantity)
+TEST_F(LdgWrapperTest, quantity)
 {
     static Dozen const eggs[] = {Dozen{1}, Dozen{3}, Dozen{5}};
     LdgSpan<Dozen const> view{eggs};
@@ -41,7 +44,7 @@ TEST_F(LdgRefWrapperTest, quantity)
     EXPECT_EQ(dynamic_extent, view.extent);
 
     EXPECT_TRUE(
-        (std::is_same_v<decltype(view.back()), LdgRefWrapper<Dozen const>>));
+        (std::is_same_v<decltype(view.back()), LdgWrapper<Dozen const>>));
 
     auto implicitly_converted = view.back() * 2;
     EXPECT_TRUE((std::is_same_v<decltype(implicitly_converted), Dozen>));
@@ -57,7 +60,7 @@ using LdgIteratorTest = Test;
 TEST_F(LdgIteratorTest, arithmetic_t)
 {
     using VecInt = std::vector<int>;
-    using RefInt = LdgRefWrapper<int const>;
+    using RefInt = LdgWrapper<int const>;
     VecInt const some_data = {1, 2, 3, 4};
     auto n = some_data.size();
     auto start = some_data.begin();
@@ -228,7 +231,7 @@ using LdgSpanTest = Test;
 
 TEST_F(LdgSpanTest, pod)
 {
-    using LdgInt = LdgRefWrapper<int const>;
+    using LdgInt = LdgWrapper<int const>;
     int local_data[] = {123, 456, 789};
     Span<int> mutable_span(local_data);
     EXPECT_TRUE((std::is_same_v<decltype(mutable_span[0]), int&>));
@@ -262,7 +265,7 @@ TEST_F(LdgSpanTest, pod)
 TEST_F(LdgSpanTest, opaque_id)
 {
     using TestId = OpaqueId<struct SpanTestLdgOpaqueId_>;
-    using LdgId = LdgRefWrapper<TestId const>;
+    using LdgId = LdgWrapper<TestId const>;
 
     TestId local_data[] = {TestId{123}, TestId{456}, TestId{789}};
     Span<TestId> mutable_span(local_data);

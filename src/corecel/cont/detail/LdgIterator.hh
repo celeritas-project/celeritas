@@ -11,21 +11,99 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
+#include "corecel/data/Ldg.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-template<class T>
-class LdgRefWrapper;
-
 namespace detail
 {
 //---------------------------------------------------------------------------//
+template<class T, class = void>
+struct IsLdgSupported : std::false_type
+{
+    static_assert(std::is_const_v<T>);
+};
+
+template<class T>
+struct IsLdgSupported<T, std::void_t<decltype(ldg_data(std::declval<T*>()))>>
+    : std::true_type
+{
+};
+
+//! Whether a type is supported by \c ldg
+template<class T>
+inline constexpr bool is_ldg_supported_v = IsLdgSupported<T>::value;
+
+//---------------------------------------------------------------------------//
 /*!
- * Proxy iterator that constructs a LdgRefWrapper when dereferenced.
+ * Wrapper that loads data safely via \c ldg on conversion.
+ * \tparam T value type (must be const) being accessed
+ *
+ * This class mirrors \c std::reference_wrapper, storing a pointer to a const
+ * object and provides an implicit conversion to the value type.
+ * However, the value being wrapped \em must be a const reference, and the
+ * return is a \c value rather than a reference .
+ *
+ * The \c __ldg intrinsic is invoked during the implicit load, so client code
+ * can bind the wrapper to an ordinary value variable transparently.
+ */
+template<class T>
+class LdgWrapper
+{
+    static_assert(std::is_const_v<T>);
+    static_assert(is_ldg_supported_v<T>, "type is incompatible with ldg");
+
+  public:
+    //!@{
+    //! \name Type aliases
+    using type = std::remove_const_t<T>;
+    //!@}
+
+  public:
+    //! Construct from a const reference to the target
+    CELER_CEF LdgWrapper(T& ref) noexcept : ptr_{&ref} {}
+
+    //! Load the referenced value using __ldg
+    CELER_CEF type get() const noexcept { return ldg(ptr_); }
+
+    //! Implicit conversion: load via __ldg
+    CELER_CEF operator type() const noexcept { return this->get(); }
+
+    //!@{
+    /*!
+     * Comparison operators against the underlying type.
+     *
+     * Defined here so template \c operator== (e.g. \c OpaqueId) are found via
+     * ADL without requiring implicit conversion during deduction.
+     */
+    CELER_CEF friend bool operator==(LdgWrapper a, type b) noexcept
+    {
+        return a.get() == b;
+    }
+    CELER_CEF friend bool operator==(type a, LdgWrapper b) noexcept
+    {
+        return a == b.get();
+    }
+    CELER_CEF friend bool operator!=(LdgWrapper a, type b) noexcept
+    {
+        return a.get() != b;
+    }
+    CELER_CEF friend bool operator!=(type a, LdgWrapper b) noexcept
+    {
+        return a != b.get();
+    }
+    //!@}
+
+  private:
+    T* ptr_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Proxy iterator that constructs a LdgWrapper when dereferenced.
  * \tparam T value type being accessed
  *
- * See LdgRefWrapper and \c ldg .
+ * See \c ldg .
  */
 template<class T>
 class LdgIterator
@@ -38,7 +116,7 @@ class LdgIterator
     using difference_type = std::ptrdiff_t;
     using value_type = std::remove_const_t<T>;
     using pointer = T*;
-    using reference = LdgRefWrapper<T>;
+    using reference = LdgWrapper<T>;
     using iterator_category = std::random_access_iterator_tag;
     //!@}
 
@@ -57,7 +135,7 @@ class LdgIterator
     //! \name RandomAccessIterator requirements
     CELER_CONSTEXPR_FUNCTION reference operator*() const noexcept
     {
-        return LdgRefWrapper<T>{*ptr_};
+        return LdgWrapper<T>{*ptr_};
     }
     CELER_CONSTEXPR_FUNCTION LdgIterator& operator++() noexcept
     {
@@ -97,7 +175,7 @@ class LdgIterator
     }
     CELER_CONSTEXPR_FUNCTION reference operator[](difference_type n) const noexcept
     {
-        return LdgRefWrapper<T>{*(ptr_ + n)};
+        return LdgWrapper<T>{*(ptr_ + n)};
     }
     //!@}
 

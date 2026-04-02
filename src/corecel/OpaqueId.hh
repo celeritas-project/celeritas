@@ -51,7 +51,7 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
  * integers).
  *
  * \note Comparators are defined as inline friend functions to allow
- * ADL-assisted conversion, including from \c LdgRefWrapper.
+ * ADL-assisted conversion, including from \c LdgWrapper (see \ref ldg).
  *
  * \todo This interface will be changed to be more like \c std::optional : \c
  * size_type will become \c value_type (the value of a 'dereferenced' ID) and

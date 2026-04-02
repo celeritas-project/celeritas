@@ -8,8 +8,6 @@
 
 #include <cstddef>
 
-#include "corecel/data/LdgRefWrapper.hh"
-
 #include "Span.hh"
 
 #include "detail/LdgIterator.hh"
@@ -19,7 +17,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Alias for a Span iterating over device const values read using __ldg
 template<class T, std::size_t Extent = dynamic_extent>
-using LdgSpan = Span<LdgRefWrapper<T>, Extent>;
+using LdgSpan = Span<detail::LdgWrapper<T>, Extent>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +30,7 @@ using LdgSpan = Span<LdgRefWrapper<T>, Extent>;
  *    extended until the end of the expression and we return a copy...
  */
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto to_array(Span<LdgRefWrapper<T const>, N> s)
+CELER_CONSTEXPR_FUNCTION auto to_array(Span<detail::LdgWrapper<T const>, N> s)
 {
     Array<std::remove_cv_t<T>, N> result{};
     for (std::size_t i = 0; i < N; ++i)

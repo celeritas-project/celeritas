@@ -14,17 +14,15 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 template<class T>
-class LdgRefWrapper;
-namespace detail
-{
+class LdgWrapper;
+
 template<class T>
 class LdgIterator;
-}
 
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Default type aliases for Span.
@@ -45,22 +43,21 @@ struct SpanTraits
 /*!
  * Type aliases when data is read using __ldg.
  *
- * \c LdgRefWrapper checks that T is a valid type (must be const, can be
- * a fundamental arithmetic type, OpaqueId, or other explicitly supported
- * types). Dereferencing the iterator returns an \c LdgRefWrapper, which
- * implicitly converts to the value type by calling \c __ldg.
+ * \c LdgWrapper checks that \c T, which \em must be const, is a valid type.
+ * Dereferencing the iterator returns an \c LdgWrapper, which implicitly
+ * converts to the value type by calling \c __ldg.
  */
 template<class T>
-struct SpanTraits<LdgRefWrapper<T>>
+struct SpanTraits<LdgWrapper<T>>
 {
     static_assert(std::is_const_v<T>);
 
     using element_type = T;
     using pointer = std::add_pointer_t<T>;
     using const_pointer = pointer;
-    using iterator = detail::LdgIterator<T>;
+    using iterator = LdgIterator<T>;
     using const_iterator = iterator;
-    using reference = LdgRefWrapper<T>;
+    using reference = LdgWrapper<T>;
     using const_reference = reference;
 };
 
