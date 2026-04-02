@@ -168,7 +168,7 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
     }
 
     VolumeIndexer to_index(record_.dims);
-    return {LocalVolumeId{to_index(coords)}, {}};
+    return {id_cast<LocalVolumeId>(to_index(coords)), {}};
 }
 
 //---------------------------------------------------------------------------//

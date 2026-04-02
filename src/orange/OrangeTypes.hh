@@ -32,7 +32,7 @@ class BoundingBox;
 using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
-using logic_int = size_type;
+using logic_int = ImplSurfaceId::size_type;
 
 //! Integer type for canonical volume level
 using vol_level_uint = VolumeLevelId::size_type;
@@ -62,10 +62,10 @@ using FastBBoxId = OpaqueId<FastBBox>;
 using FastReal3 = Array<float, 3>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_, ImplSurfaceId::size_type>;
 
 //! Local identifier for an ImplVolume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume_>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_, ImplVolumeId::size_type>;
 
 //! Identifier for an OrientedBoundingZone
 using OrientedBoundingZoneId = OpaqueId<struct OrientedBoundingZoneRecord>;

@@ -28,6 +28,7 @@ TEST(ConstantTest, comparison)
     EXPECT_FALSE(pi == 3.0f);
     EXPECT_FALSE(pi == Constant{3});
     EXPECT_TRUE(pi != 3);
+    EXPECT_TRUE(pi != Constant{3});
     EXPECT_TRUE(pi == 3.14);
     EXPECT_TRUE(pi == 3.14f);
     EXPECT_TRUE(pi == Constant{3.14});
