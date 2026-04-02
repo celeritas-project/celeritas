@@ -55,7 +55,7 @@ namespace celeritas
  *
  * A <em>collection group</em> has the following requirements to be compatible
  * with the \c ParamsDataStore (for "params" collection groups), \c
- * StateDataStore (for "state" collection groups"), and other such helper
+ * StateDataStore (for "state" collection groups), and other such helper
  * classes:
  * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
  * - Contain only Collection objects and trivially copyable structs
