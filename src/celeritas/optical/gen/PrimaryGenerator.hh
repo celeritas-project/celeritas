@@ -13,7 +13,7 @@
 #include "corecel/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
 #include "corecel/random/distribution/DistributionVisitor.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 
 #include "PrimaryGeneratorData.hh"
 #include "../TrackInitializer.hh"
@@ -48,7 +48,6 @@ class PrimaryGenerator
   private:
     NativeCRef<DistributionParamsData> const& params_;
     PrimaryDistributionData const& data_;
-    IsotropicDistribution<real_type> sample_polarization_;
 };
 
 //---------------------------------------------------------------------------//
@@ -70,10 +69,6 @@ PrimaryGenerator::PrimaryGenerator(
 //---------------------------------------------------------------------------//
 /*!
  * Sample an optical photon from the energy, angular and spatial distributions.
- *
- * \todo There are a couple places in the code where we resample the
- * polarization if orthogonality fails: possibly add a helper function to
- * reduce duplication
  */
 template<class Generator>
 CELER_FUNCTION optical::TrackInitializer
@@ -88,12 +83,7 @@ PrimaryGenerator::operator()(Generator& rng)
     result.direction = sample_with(visit, data_.angle, rng);
     CELER_ASSERT(is_soft_unit_vector(result.direction));
     result.primary = {};  // No associated Geant4 primary
-    do
-    {
-        result.polarization = make_unit_vector(
-            make_orthogonal(sample_polarization_(rng), result.direction));
-    } while (CELER_UNLIKELY(
-        !is_soft_orthogonal(result.polarization, result.direction)));
+    result.polarization = TransversePolarizationSampler{result.direction}(rng);
 
     return result;
 }
