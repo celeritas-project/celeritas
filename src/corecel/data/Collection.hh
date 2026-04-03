@@ -467,8 +467,7 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
         {other.s_.data(), other.s_.size()}, &s_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
+    detail::validate_storage<W2>(this->size(), other.storage().size());
 }
 
 template<class T, Ownership W, MemSpace M, class I>
@@ -477,8 +476,7 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
         {other.s_.data(), other.s_.size()}, &s_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
+    detail::validate_storage<W2>(this->size(), other.storage().size());
 }
 
 template<class T, Ownership W, MemSpace M, class I>
@@ -488,8 +486,7 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
         {other.s_.data(), other.s_.size()}, &s_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
+    detail::validate_storage<W2>(this->size(), other.storage().size());
     return *this;
 }
 
@@ -500,8 +497,7 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
         {other.s_.data(), other.s_.size()}, &s_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
+    detail::validate_storage<W2>(this->size(), other.storage().size());
     return *this;
 }
 //!@}

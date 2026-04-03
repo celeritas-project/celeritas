@@ -113,27 +113,16 @@ struct CollectionTraits<T, Ownership::value, MemSpace::mapped>
 
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
-template<Ownership W>
-struct CollectionStorageValidator
+template<Ownership W, class Size, class OtherSize>
+void validate_storage(Size dst, OtherSize src)
 {
-    template<class Size, class OtherSize>
-    void operator()(Size, OtherSize)
-    {
-        /* No validation needed */
-    }
-};
-
-template<>
-struct CollectionStorageValidator<Ownership::value>
-{
-    template<class Size, class OtherSize>
-    void operator()(Size dst, OtherSize src)
+    if constexpr (W == Ownership::value)
     {
         CELER_VALIDATE(dst == src,
                        << "collection is too large (" << sizeof(Size)
                        << "-byte int cannot hold " << src << " elements)");
     }
-};
+}
 
 //---------------------------------------------------------------------------//
 /*!
