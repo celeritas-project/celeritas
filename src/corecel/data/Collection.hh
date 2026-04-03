@@ -390,14 +390,11 @@ class Collection
     //! Direct accessors to underlying data
     CELER_FIF size_type size() const
     {
-        return static_cast<size_type>(impl_.size());
+        return static_cast<size_type>(s_.size());
     }
-    CELER_FIF bool empty() const { return impl_.empty(); }
-    CELER_FIF pointer data() { return pointer{impl_.data()}; }
-    CELER_FIF const_pointer data() const
-    {
-        return const_pointer{impl_.data()};
-    }
+    CELER_FIF bool empty() const { return s_.empty(); }
+    CELER_FIF pointer data() { return pointer{s_.data()}; }
+    CELER_FIF const_pointer data() const { return const_pointer{s_.data()}; }
     //!@}
 
   private:
@@ -405,7 +402,7 @@ class Collection
     //// DATA ////
 
     //! Manage data/size with a std::vector, DeviceVector, or Span
-    StorageT impl_{};
+    StorageT s_{};
 
   protected:
     //// FRIENDS ////
@@ -421,8 +418,8 @@ class Collection
 
     //!@{
     // Private accessors for collection construction/access
-    CELER_FIF StorageT const& storage() const { return impl_; }
-    CELER_FIF StorageT& storage() { return impl_; }
+    CELER_FIF StorageT const& storage() const { return s_; }
+    CELER_FIF StorageT& storage() { return s_; }
     //@}
 };
 
@@ -469,7 +466,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
-        {other.impl_.data(), other.impl_.size()}, &impl_);
+        {other.s_.data(), other.s_.size()}, &s_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
 }
@@ -479,7 +476,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
-        {other.impl_.data(), other.impl_.size()}, &impl_);
+        {other.s_.data(), other.s_.size()}, &s_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
 }
@@ -490,7 +487,7 @@ Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
-        {other.impl_.data(), other.impl_.size()}, &impl_);
+        {other.s_.data(), other.s_.size()}, &s_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
     return *this;
@@ -502,7 +499,7 @@ Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(
-        {other.impl_.data(), other.impl_.size()}, &impl_);
+        {other.s_.data(), other.s_.size()}, &s_);
     detail::CollectionStorageValidator<W2>()(this->size(),
                                              other.storage().size());
     return *this;
@@ -518,7 +515,7 @@ CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
     -> reference
 {
     CELER_EXPECT(i < this->size());
-    return impl_[i.unchecked_get()];
+    return s_[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -530,7 +527,7 @@ CELER_FORCEINLINE_FUNCTION auto
 Collection<T, W, M, I>::operator[](ItemIdT i) const -> const_reference
 {
     CELER_EXPECT(i < this->size());
-    return impl_[i.unchecked_get()];
+    return s_[i.unchecked_get()];
 }
 
 //---------------------------------------------------------------------------//
@@ -542,7 +539,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
 {
     CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
-    auto* data = impl_.data();
+    auto* data = s_.data();
     return {data + ps.begin()->unchecked_get(),
             data + ps.end()->unchecked_get()};
 }
@@ -557,7 +554,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
 {
     CELER_EXPECT(*ps.begin() <= *ps.end());
     CELER_EXPECT(*ps.end() < this->size() + 1);
-    auto* data = impl_.data();
+    auto* data = s_.data();
     return {data + ps.begin()->unchecked_get(),
             data + ps.end()->unchecked_get()};
 }
@@ -570,7 +567,7 @@ template<class T, Ownership W, MemSpace M, class I>
 CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT)
     -> SpanT
 {
-    return {impl_.data(), impl_.size()};
+    return {s_.data(), s_.size()};
 }
 
 //---------------------------------------------------------------------------//
@@ -581,7 +578,7 @@ template<class T, Ownership W, MemSpace M, class I>
 CELER_FORCEINLINE_FUNCTION auto
 Collection<T, W, M, I>::operator[](AllItemsT) const -> SpanConstT
 {
-    return {impl_.data(), impl_.size()};
+    return {s_.data(), s_.size()};
 }
 
 //---------------------------------------------------------------------------//
