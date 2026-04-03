@@ -66,7 +66,7 @@ TEST(InteractionUtilsTest, sample_exiting_direction)
     }
 }
 
-TEST(InteractionUtilsTest, TEST_IF_CELERITAS_DOUBLE(sample_polarization))
+TEST(InteractionUtilsTest, sample_polarization)
 {
     DiagnosticRngEngine<std::mt19937> rng;
 
@@ -81,14 +81,17 @@ TEST(InteractionUtilsTest, TEST_IF_CELERITAS_DOUBLE(sample_polarization))
     {
         result.push_back(TransversePolarizationSampler{dir}(rng));
     }
-    static Real3 const expected_result[] = {
-        {0, -0.6285203911562, -0.77779310738837},
-        {0.18099540215833, 0.98348394211474, 0},
-        {-0.96349621318245, 0.13467426584993, 0.2313825604942},
-        {0.99896510069951, -0.045471273756906, -0.0010444363744566},
-    };
-    EXPECT_VEC_SOFT_EQ(expected_result, result);
-    EXPECT_EQ(4, rng.exchange_count() / real_type(direction.size()));
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static Real3 const expected_result[] = {
+            {0, -0.6285203911562, -0.77779310738837},
+            {0.18099540215833, 0.98348394211474, 0},
+            {-0.96349621318245, 0.13467426584993, 0.2313825604942},
+            {0.99896510069951, -0.045471273756906, -0.0010444363744566},
+        };
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+        EXPECT_EQ(4, rng.exchange_count() / real_type(direction.size()));
+    }
 
     size_type num_samples = 10000;
     for (size_type i = 0; i < num_samples; ++i)
@@ -97,19 +100,10 @@ TEST(InteractionUtilsTest, TEST_IF_CELERITAS_DOUBLE(sample_polarization))
         auto pol = TransversePolarizationSampler{dir}(rng);
         EXPECT_TRUE(is_soft_orthogonal(dir, pol));
     }
-    EXPECT_EQ(8, rng.exchange_count() / real_type(num_samples));
-
-#if 0
-    // The following takes O(1e9) iterations in the rejection loop
-
-    // Direction nearly along +z
-    auto direction = make_unit_vector(Real3{1e-3, -1e-3, 1});
-    Real3 polarization;
-    do
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        polarization = ExitingDirectionSampler{0, direction}(rng);
-    } while (CELER_UNLIKELY(!is_soft_orthogonal(polarization, direction)));
-#endif
+        EXPECT_EQ(8, rng.exchange_count() / real_type(num_samples));
+    }
 }
 
 //---------------------------------------------------------------------------//
