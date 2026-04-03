@@ -285,6 +285,19 @@ using LdgSpan = Span<LdgValue<T>, Extent>;
 
 //---------------------------------------------------------------------------//
 /*!
+ * An LdgSpan when referencing device memory but simply Span on host.
+ *
+ * Note that T must be const.
+ */
+template<MemSpace M, class T, std::size_t Extent = dynamic_extent>
+using AutoLdgSpan
+    = Span<std::conditional_t<M == MemSpace::device && is_ldg_supported_v<T>,
+                              LdgValue<T>,
+                              T>,
+           Extent>;
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct an array from a fixed-size span, removing LdgValue marker.
  *
  * Note: \code to_array(Span<T,N> const&) \endcode is not reused because:

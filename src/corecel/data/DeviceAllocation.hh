@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
