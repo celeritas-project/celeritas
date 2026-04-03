@@ -307,24 +307,27 @@ class Collection
     static_assert(TriviallyCopyable_v<T>,
                   "Collection element is not trivially copyable");
 
-    using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
-    using const_value_type = typename CollectionTraitsT::const_type;
+    using TraitsT = detail::CollectionTraits<T, W, M>;
+    using const_value_type = typename TraitsT::const_type;
 
   public:
     //!@{
     //! \name Type aliases
-    using value_type = typename CollectionTraitsT::type;
-    using SpanT = typename CollectionTraitsT::SpanT;
-    using SpanConstT = typename CollectionTraitsT::SpanConstT;
+    using value_type = typename TraitsT::type;
+    using SpanT = typename TraitsT::SpanT;
+    using SpanConstT = typename TraitsT::SpanConstT;
     using pointer = ObserverPtr<value_type, M>;
     using const_pointer = ObserverPtr<const_value_type, M>;
-    using reference_type = typename CollectionTraitsT::reference_type;
-    using const_reference_type =
-        typename CollectionTraitsT::const_reference_type;
+    using reference = typename TraitsT::reference_type;
+    using const_reference = typename TraitsT::const_reference_type;
     using size_type = typename I::size_type;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT = AllItems<T, M>;
+
+    // DEPRECATED: remove in v1.0
+    using reference_type [[deprecated]] = reference;
+    using const_reference_type [[deprecated]] = const_reference;
     //!@}
 
     static constexpr Ownership ownership = W;
@@ -367,8 +370,8 @@ class Collection
     //// ACCESS ////
 
     // Access a single element
-    CELER_FORCEINLINE_FUNCTION reference_type operator[](ItemIdT i);
-    CELER_FORCEINLINE_FUNCTION const_reference_type operator[](ItemIdT i) const;
+    CELER_FORCEINLINE_FUNCTION reference operator[](ItemIdT i);
+    CELER_FORCEINLINE_FUNCTION const_reference operator[](ItemIdT i) const;
 
     // Access a subset of the data with a slice
     CELER_FORCEINLINE_FUNCTION SpanT operator[](ItemRangeT ps);
@@ -401,7 +404,7 @@ class Collection
   private:
     //// DATA ////
 
-    detail::CollectionStorage<T, W, M> storage_{};
+    detail::CollectionImpl<T, W, M> storage_{};
 
   protected:
     //// FRIENDS ////
@@ -417,7 +420,7 @@ class Collection
 
     //!@{
     // Private accessors for collection construction/access
-    using StorageT = typename detail::CollectionStorage<T, W, M>::type;
+    using StorageT = typename detail::CollectionImpl<T, W, M>::type;
     CELER_FORCEINLINE_FUNCTION StorageT const& storage() const
     {
         return storage_.data;
@@ -488,8 +491,7 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
  * Access a single element.
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
-    -> reference_type
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) -> reference
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.unchecked_get()];
@@ -501,7 +503,7 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
  */
 template<class T, Ownership W, MemSpace M, class I>
 CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
-    -> const_reference_type
+    -> const_reference
 {
     CELER_EXPECT(i < this->size());
     return this->storage()[i.unchecked_get()];
