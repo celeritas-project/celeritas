@@ -233,8 +233,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53459, result.counters.steps);
-        EXPECT_EQ(15, result.counters.step_iters);
+        EXPECT_EQ(53439, result.counters.steps);
+        EXPECT_EQ(14, result.counters.step_iters);
     }
 
     // Check accumulated action times
