@@ -20,6 +20,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/data/LdgIterator.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 
@@ -29,6 +30,11 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//
+template<class Container, MemSpace M>
+using ContainerObserverPtr
+    = ObserverPtr<std::remove_pointer_t<typename Container::pointer>, M>;
+
 //---------------------------------------------------------------------------//
 template<class T>
 struct DefaultCollectionTraits

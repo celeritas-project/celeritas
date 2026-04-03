@@ -418,14 +418,14 @@ CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
  */
 CELER_FUNCTION CoreStateCounters& CoreTrackView::counters()
 {
-    return *states_.init.counters.data().get();
+    return *states_.init.counters.data();
 }
 
 //---------------------------------------------------------------------------//
 //! \cond
 CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
 {
-    return *states_.init.counters.data().get();
+    return *states_.init.counters.data();
 }
 //! \endcond
 

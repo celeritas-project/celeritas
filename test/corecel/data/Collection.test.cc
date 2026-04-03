@@ -297,6 +297,12 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_ref[IntId{0}]);
     host_ref[irange].back() = 321;
     EXPECT_EQ(321, host_ref[IntId{3}]);
+    {
+        auto data = host_ref.data();
+        EXPECT_TRUE((
+            std::is_same_v<decltype(data), ObserverPtr<int, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
     Ref<host> const& host_ref_cref = host_ref;
     EXPECT_TRUE((std::is_same_v<decltype(host_ref_cref[IntId{0}]), int&>));
@@ -306,6 +312,12 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_ref_cref[IntId{0}]);
     EXPECT_EQ(321, host_ref_cref[irange].back());
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
+    {
+        auto data = host_ref_cref.data();
+        EXPECT_TRUE((
+            std::is_same_v<decltype(data), ObserverPtr<int, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
     CRef<host> host_cref{host_val};
     EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int const&>));
@@ -316,6 +328,12 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
     EXPECT_EQ(321, host_cref[AllInts<host>{}].back());
+    {
+        auto data = host_cref.data();
+        EXPECT_TRUE((std::is_same_v<decltype(data),
+                                    ObserverPtr<int const, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
     auto host_cref_2 = make_ref(host_val);
     EXPECT_TRUE((std::is_same_v<decltype(host_cref), decltype(host_cref_2)>));

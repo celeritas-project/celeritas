@@ -14,8 +14,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "ObserverPtr.hh"
-
 #include "detail/CollectionImpl.hh"
 
 namespace celeritas
@@ -323,8 +321,8 @@ class Collection
     using value_type = typename TraitsT::type;
     using SpanT = typename TraitsT::SpanT;
     using SpanConstT = typename TraitsT::SpanConstT;  // Mutable if ref!
-    using pointer = ObserverPtr<typename SpanT::pointer, M>;
-    using const_pointer = ObserverPtr<typename SpanConstT::pointer, M>;
+    using pointer = detail::ContainerObserverPtr<SpanT, M>;
+    using const_pointer = detail::ContainerObserverPtr<SpanConstT, M>;
     using reference = typename SpanT::reference;
     using const_reference = typename SpanConstT::reference;  // Mutable if ref!
     using size_type = typename I::size_type;
@@ -395,8 +393,11 @@ class Collection
         return static_cast<size_type>(impl_.size());
     }
     CELER_FIF bool empty() const { return impl_.empty(); }
-    CELER_FIF pointer data() { return {impl_.data()}; }
-    CELER_FIF const_pointer data() const { return {impl_.data()}; }
+    CELER_FIF pointer data() { return pointer{impl_.data()}; }
+    CELER_FIF const_pointer data() const
+    {
+        return const_pointer{impl_.data()};
+    }
     //!@}
 
   private:
