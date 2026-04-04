@@ -15,16 +15,13 @@
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/KernelLauncher.hh"
-#include "accel/detail/UpdatePendingExecutor.hh"
-// #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "accel/detail/UpdatePendingExecutor.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -190,25 +187,10 @@ void LocalOpticalGenOffload::Flush()
     generate_->insert(*state_, make_span(buffer_));
 
     // Update the number of primaries waiting to be generated based on the
-    // number of photons, using only one thread
+    // number of photons
     auto const& optical_params = *transport_->params();
-    // optical::detail::UpdatePendingExecutor execute_thread{
-    // optical_params.ptr<MemSpace::native>(), *s, num_photons_};
-    if (celeritas::device())
-    {
-        // auto* s =
-        // dynamic_cast<optical::CoreState<MemSpace::device>*>(&(*state_));
-        // optical::detail::UpdatePendingExecutor execute_thread{
-        // optical_params.ptr<MemSpace::native>(), s->ptr(), num_photons_};
-        // launch_kernel(1, s->stream_id(), execute_thread);
-    }
-    else
-    {
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&(*state_));
-        optical::detail::UpdatePendingExecutor execute_thread{
-            optical_params.ptr<MemSpace::native>(), s->ptr(), num_photons_};
-        launch_kernel(1, execute_thread);
-    }
+    auto* s = static_cast<optical::CoreState<MemSpace::native>*>(&(*state_));
+    update_primaries(optical_params, *s);
 
     num_photons_ = 0;
     buffer_.clear();
@@ -263,6 +245,31 @@ void LocalOpticalGenOffload::Finalize()
 
     CELER_ENSURE(!*this);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Call the UpdatePending functor to update the number of primaries to be
+ * generated to include the buffered optical photons; use only one host thread.
+ */
+void LocalOpticalGenOffload::update_primaries(
+    optical::CoreParams const& optical_params,
+    optical::CoreState<MemSpace::host>& state) const
+{
+    optical::detail::UpdatePendingExecutor execute_thread{
+        optical_params.ptr<MemSpace::host>(), state.ptr(), num_photons_};
+    launch_kernel(1, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+// DEVICE-DISABLED IMPLEMENTATION
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+inline void LocalOpticalGenOffload::update_primaries(
+    optical::CoreParams const&, optical::CoreState<MemSpace::device>&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

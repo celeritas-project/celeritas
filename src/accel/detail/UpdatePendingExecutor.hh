@@ -45,7 +45,7 @@ struct UpdatePendingExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Update number of primaries to be generated to include buffered optical
+ * Update number of primaries to be generated to include the buffered optical
  * photons.
  */
 CELER_FORCEINLINE_FUNCTION void UpdatePendingExecutor::operator()(ThreadId tid)

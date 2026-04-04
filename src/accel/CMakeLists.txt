@@ -47,7 +47,9 @@ list(APPEND SOURCES
   detail/IntegrationSingleton.cc
 )
 
-celeritas_polysource(ExceptionConverter)
+celeritas_polysource(ExceptionConverter
+  LocalOpticalGenOffload
+)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES
