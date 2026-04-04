@@ -54,9 +54,10 @@ CELER_FUNCTION void AlongStepExecutor::operator()(CoreTrackView& track)
     if (sim.num_steps() == sim.max_steps())
     {
 #if !CELER_DEVICE_COMPILE
-        CELER_LOG_LOCAL(error) << R"(Track exceeded maximum step count)";
+        CELER_LOG_LOCAL(debug) << "Optical track " << track.track_slot_id()
+                               << " exceeded maximum step count";
 #endif
-        track.apply_errored();
+        track.apply_cut();
         return;
     }
 

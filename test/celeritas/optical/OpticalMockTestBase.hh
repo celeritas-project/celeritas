@@ -84,9 +84,8 @@ class OpticalMockTestBase : public GlobalTestBase
     }
     //!@}
 
-  private:
     // Construct mock import data in place
-    void build_import_data(ImportData&) const;
+    virtual void build_import_data(ImportData&) const;
 };
 
 //---------------------------------------------------------------------------//

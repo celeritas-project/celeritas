@@ -23,7 +23,7 @@ namespace test
 class TransformationTest : public ::celeritas::test::Test
 {
   protected:
-    template<class T, size_type N>
+    template<class T, std::size_t N>
     std::vector<T> flattened(SquareMatrix<T, N> const& inp) const
     {
         std::vector<T> result;

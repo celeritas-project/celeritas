@@ -8,7 +8,6 @@
 
 #include <utility>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -140,6 +139,8 @@ auto Stepper<M>::operator()() -> result_type
     result.active = counters.num_active;
     result.alive = counters.num_alive;
     result.queued = counters.num_initializers;
+    result.cut = counters.num_cut;
+    result.errored = counters.num_errored;
 
     return result;
 }

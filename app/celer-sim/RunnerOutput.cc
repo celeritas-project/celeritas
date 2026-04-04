@@ -49,6 +49,8 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto num_tracks = json::array();
     auto num_steps = json::array();
     auto num_aborted = json::array();
+    auto num_cut = json::array();
+    auto num_errored = json::array();
     auto max_queued = json::array();
     auto step_times = json::array();
     auto optical = json::array();
@@ -67,6 +69,8 @@ void RunnerOutput::output(JsonPimpl* j) const
         num_tracks.push_back(event.num_tracks);
         num_steps.push_back(event.num_steps);
         num_aborted.push_back(event.num_aborted);
+        num_cut.push_back(event.num_cut);
+        num_errored.push_back(event.num_errored);
         max_queued.push_back(event.max_queued);
         if (!event.step_times.empty())
         {
@@ -119,6 +123,8 @@ void RunnerOutput::output(JsonPimpl* j) const
          {"num_tracks", std::move(num_tracks)},
          {"num_steps", std::move(num_steps)},
          {"num_aborted", std::move(num_aborted)},
+         {"num_cut", std::move(num_cut)},
+         {"num_errored", std::move(num_errored)},
          {"optical", optical},
          {"max_queued", std::move(max_queued)},
          {"num_streams", result_.num_streams},

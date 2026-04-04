@@ -8,7 +8,7 @@
 
 #include <iosfwd>
 
-#include "corecel/io/StreamToString.hh"  // IWYU pragma: export
+#include "corecel/io/StreamUtils.hh"  // IWYU pragma: export
 #include "celeritas/phys/Interaction.hh"
 
 namespace celeritas

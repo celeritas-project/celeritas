@@ -35,6 +35,32 @@ Celeritas is a collaborative project with *collective* ownership.
 .. _GitHub terms of service: https://docs.github.com/en/github/site-policy/github-terms-of-service#6-contributions-under-repository-license
 
 
+.. _ai_assisted:
+
+AI-authored and -assisted pull requests
+---------------------------------------
+
+As of the year 2026, automated agentic software development tools have advanced
+to the point of providing considerable utility for large software projects.
+They can greatly accelerate the implementation of new features and code
+refactors. However, because the underpinning Large Language Models (LLMs) are
+essentially optimized for generating *plausible* output in *large quantities*,
+they can generate code that is *(1)* incorrect or superfluous while
+superficially seeming necessary and *(2)* unnecessarily complex/verbose. For
+this reason, and for ethical considerations, we make three requirements:
+
+- Pull requests with substantial code additions/changes performed by AI agents
+  *must* clearly note this in the description, and/or tagged with the
+  ``ai-assisted`` label.
+- AI-assisted code commits *must* be tagged with an ``Assisted-by`` trailer
+  (see `AGENTS file`_)
+- Every pull request to Celeritas *must* be submitted in draft mode with a
+  human in the loop.
+- The submitting person *must* perform a review of the submitted code before
+  marking the PR as "ready."
+
+.. _AGENTS file: ./AGENTS.md#Commit
+
 Attribution
 -----------
 
@@ -102,6 +128,7 @@ and :ref:`style <style_guidelines>` guidelines have been followed for all new
 code and code changes.  Ensure the use of the correct formatting as well as the
 addition of documentation and unit tests for new code and bug fixes.
 
+
 After opening the pull request, the `pre-commit.ci`_ bot will run automatically
 and check your formatting. If it fails, you probably did not install the
 utility mentioned in the previous section. You can ``git pull`` the suggested
@@ -155,3 +182,39 @@ Congratulations!
 
 .. _pull request: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
 .. _pre-commit.ci: https://pre-commit.ci
+
+.. _pr_style:
+
+Pull request style
+------------------
+
+Title
+^^^^^
+
+The title should be an imperative statement (title-cased first word, no
+trailing punctuation) summarizing the PR's effect on the user. These titles
+are copied directly into the release notes. For example:
+
+ - Implement the FooBar model
+ - Handle errors in track initialization
+ - Fix sampling of low-energy Celeritons
+ - Refactor code in preparation for new tracker type
+ - Add CI support for multiple Geant4 versions
+
+Do not add textual or emoji tags to the title (e.g., no ``CI:`` or ``🐛``).
+
+Description
+^^^^^^^^^^^
+
+The description should summarize or enumerate the main changes in the pull
+request. Illustrative images (flow charts, performance plots) make excellent
+additions.
+
+Draft status
+^^^^^^^^^^^^
+
+Submit your pull request as a *draft* if you want to run further testing
+before beginning the review process. The "Create pull request" button has a
+drop-down menu arrow that lets you select "Draft pull request". Any PR
+with AI-assisted changes *must* be opened in draft mode with a human in
+the loop before marking it ready for review.

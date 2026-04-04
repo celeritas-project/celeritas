@@ -12,8 +12,6 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/Logger.hh"
@@ -324,23 +322,32 @@ auto build_optical_params(inp::Problem const& p,
     pi.geometry = core.geometry();
     pi.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, core.material(), pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk,
+        pi.material,
+        core.material(),
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.control.optical_capacity->generators);
     pi.rng = core.rng();
     pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     pi.surface = core.surface();
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.optical.surfaces);
     pi.detectors = core.detectors();
+    pi.volume = core.volume();
 
     // Photon generating processes
-    if (p.physics.optical.cherenkov)
+    if (p.physics.optical.gen.cherenkov)
     {
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.optical.scintillation)
+    if (p.physics.optical.gen.scintillation)
     {
-        pi.scintillation = ScintillationParams::from_import(imported);
+        CELER_ASSERT(imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
     }
 
     // Streams and capacities
@@ -374,14 +381,20 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.action_reg = std::make_shared<ActionRegistry>();
     pi.output_reg = nullptr;
     pi.gen_reg = std::make_shared<GeneratorRegistry>();
-    pi.aux_reg = nullptr;  // TODO: require instead of building in CP
+    pi.aux_reg = std::make_shared<AuxParamsRegistry>();
 
     // Geometry, materials, physics
     pi.geometry = std::move(loaded_model.geometry);
     pi.material = optical::MaterialParams::from_import(
         imported, *geomaterial, *material);
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, material, pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk,
+        pi.material,
+        material,
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.capacity.generators);
     pi.rng = std::make_shared<RngParams>(p.seed);
     pi.sim = std::make_shared<optical::SimParams>(p.limits);
     pi.surface = std::move(loaded_model.surface);
@@ -389,20 +402,35 @@ auto build_optical_params(inp::OpticalProblem const& p,
         pi.action_reg.get(), p.physics.surfaces);
     pi.detectors = std::move(loaded_model.detector);
     pi.optical_detector = p.detectors;
+    pi.volume = std::move(loaded_model.volume);
 
     // Streams and capacities
     pi.max_streams = p.num_streams;
     pi.capacity = p.capacity;
 
     // Photon generating processes are needed to offload via Geant4 optical
-    if (p.physics.cherenkov)
+    if (p.physics.gen.cherenkov)
     {
+        // TODO: pass additional parameters such as step limit
         pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
-    if (p.physics.scintillation)
+    if (p.physics.gen.scintillation)
     {
-        pi.scintillation = ScintillationParams::from_import(imported);
-        CELER_ASSERT(pi.scintillation);
+        // TODO: optical physics is redundantly copied into ImportData:
+        // remove entirely from import when we simplify the bulk physics
+        // construction
+        std::optional<inp::ScintillationProcess> const& s
+            = imported.optical_physics.gen.scintillation;
+        if (s && !s->empty())
+        {
+            pi.scintillation
+                = std::make_shared<ScintillationParams>(*pi.material, *s);
+        }
+        else
+        {
+            CELER_LOG(warning) << "Disabling user-requested scintillation: no "
+                                  "process data available";
+        }
     }
 
     std::move(loaded_model) = {};

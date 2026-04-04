@@ -17,6 +17,7 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/InteractionApplier.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/MfpBuilder.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
@@ -29,38 +30,40 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create a model builder from imported data.
+ * Construct the model from input data.
  */
-auto MieModel::make_builder(SPConstImported imported, Input input)
-    -> ModelBuilder
-{
-    CELER_EXPECT(imported);
-    return [imported = std::move(imported),
-            input = std::move(input)](ActionId id) {
-        return std::make_shared<MieModel>(id, imported, input);
-    };
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Construct the model from imported data and imported material parameters.
- */
-MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
+MieModel::MieModel(ActionId id,
+                   inp::OpticalBulkMie input,
+                   SPConstMaterials const& materials)
     : Model(id, "optical-mie", "interact by optical Mie scattering")
-    , imported_(ImportModelClass::mie, std::move(imported))
+    , input_(std::move(input))
 {
     HostVal<MieData> data;
     CollectionBuilder builder{&data.mie_record};
 
-    for (auto const& mie : input.data)
+    for (auto mat_id : range(OptMatId(materials->num_materials())))
     {
+        auto iter = input_.materials.find(mat_id);
+        if (iter == input_.materials.end())
+        {
+            // No Mie data for this material
+            builder.push_back({});
+            continue;
+        }
+
         MieMaterialData record;
-        record.backward_g = mie.backward_g;
-        record.forward_g = mie.forward_g;
-        record.forward_ratio = mie.forward_ratio;
+        record.backward_g = iter->second.backward_g;
+        record.forward_g = iter->second.forward_g;
+        record.forward_ratio = iter->second.forward_ratio;
+        CELER_VALIDATE(record || !iter->second.mfp,
+                       << "Mie parameters out of bounds for material "
+                       << mat_id.get() << ": forward_g=" << record.forward_g
+                       << ", backward_g=" << record.backward_g
+                       << ", forward_ratio=" << record.forward_ratio);
 
         builder.push_back(record);
     }
+    CELER_ASSERT(data.mie_record.size() == materials->num_materials());
 
     data_ = ParamsDataStore<MieData>{std::move(data)};
     CELER_ENSURE(data_);
@@ -72,22 +75,12 @@ MieModel::MieModel(ActionId id, SPConstImported imported, Input input)
  */
 void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
-    CELER_EXPECT(mat < imported_.num_materials());
-
-    if (auto const& mfp = imported_.mfp(mat))
+    if (auto iter = input_.materials.find(mat); iter != input_.materials.end())
     {
-        auto const& mie_data = this->host_ref().mie_record[mat];
-        CELER_VALIDATE(mie_data,
-                       << "Mie parameters out of bounds for material "
-                       << mat.get() << ": forward_g=" << mie_data.forward_g
-                       << ", backward_g=" << mie_data.backward_g
-                       << ", forward_ratio=" << mie_data.forward_ratio);
-
-        build(mfp);
+        build(iter->second.mfp);
     }
     else
     {
-        // Cross sections are not available: disable for this material
         build();
     }
 }

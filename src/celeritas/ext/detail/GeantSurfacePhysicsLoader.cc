@@ -218,9 +218,16 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
 {
     CELER_EXPECT(sid);
 
+    GeantSurfacePhysicsHelper helper(sid);
+    if (!helper)
+    {
+        CELER_LOG(warning) << "Surface " << sid.get()
+                           << " has no optical surface properties";
+        return;
+    }
+
     models_.materials.push_back({});
 
-    GeantSurfacePhysicsHelper helper(sid);
     auto const& surf = helper.surface();
     auto const model = surf.GetModel();
     try

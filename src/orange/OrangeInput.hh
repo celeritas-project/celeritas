@@ -53,7 +53,7 @@ struct OrientedBoundingZoneInput
  */
 struct VolumeInput
 {
-    using Flags = VolumeRecord::Flags;
+    using Flags = LocalVolumeRecord::Flags;
     using VariantLabel = std::variant<Label, VolumeInstanceId>;
 
     //! Volume label or instance ID

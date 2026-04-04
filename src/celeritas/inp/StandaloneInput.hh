@@ -88,6 +88,8 @@ struct OpticalStandaloneInput
     OpticalProblem problem;
     //! Set up Geant4 (if all the data isn't already loaded into Problem)
     GeantOpticalPhysicsOptions geant_setup;
+    //! Optical detector detector (SensDet aux) names
+    std::unordered_set<std::string> detectors;
 };
 
 //---------------------------------------------------------------------------//

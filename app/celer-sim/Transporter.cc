@@ -126,6 +126,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         ++result.num_step_iterations;
         result.num_steps += track_counts.active;
+        result.num_cut += track_counts.cut;
+        result.num_errored += track_counts.errored;
         result.max_queued = std::max(result.max_queued, track_counts.queued);
     };
 
@@ -141,6 +143,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     {
         result.step_times.reserve(std::min(min_alloc, max_steps_));
     }
+
+    CELER_LOG(status) << "Running";
 
     // Abort cleanly for interrupt and user-defined signals
 #ifndef _WIN32
@@ -192,6 +196,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             optical_counts = optical_->buffer_counts(aux);
         }
     }
+
+    CELER_LOG(status) << "Run complete";
 
     auto counters = copy_to_host(stepper_->state_ref().init.track_counters);
     result.num_tracks = std::accumulate(counters.data().get(),

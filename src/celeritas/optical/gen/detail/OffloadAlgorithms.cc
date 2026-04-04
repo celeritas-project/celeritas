@@ -39,11 +39,11 @@ struct AccumNumPhotons
  *
  * \return Total number of valid distributions in the buffer
  */
-size_type
-remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
-                  size_type offset,
-                  size_type size,
-                  StreamId)
+template<class T>
+size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const& buffer,
+                            size_type offset,
+                            size_type size,
+                            StreamId)
 {
     auto* start = buffer.data().get();
     auto* stop = std::remove_if(start + offset, start + size, LogicalNot{});
@@ -54,17 +54,32 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::host> const& buffer,
 /*!
  * Count the number of optical photons in the distributions.
  */
-size_type
-count_num_photons(GeneratorDistributionRef<MemSpace::host> const& buffer,
-                  size_type offset,
-                  size_type size,
-                  StreamId)
+size_type count_num_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
+    size_type offset,
+    size_type size,
+    StreamId)
 {
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
         start + offset, start + size, size_type(0), AccumNumPhotons{});
     return count;
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template size_type
+remove_if_invalid(ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
+template size_type
+remove_if_invalid(ItemsRef<WlsDistributionData, MemSpace::host> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

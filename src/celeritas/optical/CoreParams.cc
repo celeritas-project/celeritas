@@ -16,6 +16,7 @@
 #include "corecel/sys/ScopedMem.hh"
 #include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/optical/OpticalSizes.json.hh"
@@ -62,6 +63,7 @@ build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
     ref.surface = get_ref<M>(*p.surface);
     ref.surface_physics = get_ref<M>(*p.surface_physics);
     ref.detectors = get_ref<M>(*p.detectors);
+    ref.volumes = get_ref<M>(*p.volume);
     if (p.cherenkov)
     {
         ref.cherenkov = get_ref<M>(*p.cherenkov);
@@ -122,22 +124,20 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(geometry);
     CP_VALIDATE_INPUT(material);
     CP_VALIDATE_INPUT(physics);
+    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(rng);
     CP_VALIDATE_INPUT(sim);
+    CP_VALIDATE_INPUT(volume);
     CP_VALIDATE_INPUT(surface);
-    CP_VALIDATE_INPUT(surface_physics);
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(aux_reg);
     CP_VALIDATE_INPUT(gen_reg);
     CP_VALIDATE_INPUT(max_streams);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
-    if (!input_.aux_reg)
-    {
-        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
-    }
     if (!input_.output_reg)
     {
         input_.output_reg = std::make_shared<OutputRegistry>();

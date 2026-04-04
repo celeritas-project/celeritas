@@ -44,8 +44,8 @@
 #include <G4eplusAnnihilation.hh>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 

@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
+#include "geocel/AllVolumesView.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"
 #include "celeritas/geo/CoreGeoTrackView.hh"
@@ -82,6 +84,9 @@ class CoreTrackView
     // Return a sensitive detector view
     inline CELER_FUNCTION DetectorView detectors() const;
 
+    // Return a device-compatible view of all volumes
+    inline CELER_FUNCTION AllVolumesView volumes() const;
+
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
@@ -90,6 +95,13 @@ class CoreTrackView
 
     // Flag a track for deletion
     inline CELER_FUNCTION void apply_errored();
+
+    // Apply a tracking cut without setting the error state
+    inline CELER_FUNCTION void apply_cut();
+
+    // Access global step counters (mutable for atomic operations)
+    inline CELER_FUNCTION CoreStateCounters& counters();
+    inline CELER_FUNCTION CoreStateCounters const& counters() const;
 
   private:
     ParamsRef const& params_;
@@ -150,9 +162,6 @@ CoreTrackView::operator=(TrackInitializer const& init)
 
     // Initialize the surface state
     this->surface_physics().reset();
-
-    // Clear detector state data
-    states_.detectors.detector_hits[track_slot_id_].detector = {};
 
     return *this;
 }
@@ -264,6 +273,15 @@ CELER_FUNCTION auto CoreTrackView::detectors() const -> DetectorView
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a device-compatible view of all volumes.
+ */
+CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
+{
+    return AllVolumesView{params_.volumes};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return the RNG engine.
  */
 CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
@@ -291,6 +309,23 @@ CELER_FORCEINLINE_FUNCTION TrackSlotId CoreTrackView::track_slot_id() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Access the global step counters.
+ */
+CELER_FUNCTION CoreStateCounters& CoreTrackView::counters()
+{
+    return *states_.init.counters.data().get();
+}
+
+//---------------------------------------------------------------------------//
+//! \cond
+CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
+{
+    return *states_.init.counters.data().get();
+}
+//! \endcond
+
+//---------------------------------------------------------------------------//
+/*!
  * Set the 'errored' flag and tracking cut post-step action.
  *
  * \pre This cannot be applied if the current action is *after* post-step. (You
@@ -305,6 +340,19 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&this->counters().num_errored, size_type{1});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply a tracking cut without setting the error state.
+ */
+CELER_FUNCTION void CoreTrackView::apply_cut()
+{
+    auto sim = this->sim();
+    CELER_EXPECT(is_track_valid(sim.status()));
+    sim.post_step_action(params_.scalars.tracking_cut_action);
+    atomic_add(&this->counters().num_cut, size_type{1});
 }
 
 //---------------------------------------------------------------------------//

@@ -5,12 +5,21 @@
 //! \file geocel/Volume.test.cc
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
+#include <fstream>
 #include <unordered_map>
+
+#include "celeritas_test_config.h"
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
+#include "corecel/io/Join.hh"
+#include "corecel/io/Label.hh"
+#include "corecel/io/StreamUtils.hh"
+#include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathAccumulator.hh"
+#include "geocel/VolumePathFinder.hh"
 #include "geocel/VolumeToString.hh"
 #include "geocel/VolumeVisitor.hh"
 
@@ -107,6 +116,7 @@ TEST_F(NoVolumeTest, params)
     EXPECT_TRUE(params.empty());
     EXPECT_EQ(0, params.num_volumes());
     EXPECT_EQ(VolumeId{}, params.world());
+    EXPECT_EQ(VolumeInstanceId{}, params.world_instance());
     EXPECT_EQ(0, params.num_volume_levels());
 }
 
@@ -134,6 +144,7 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_EQ(1, params.num_volumes());
     EXPECT_EQ(0, params.num_volume_instances());
     EXPECT_EQ(VolumeId{0}, params.world());
+    EXPECT_EQ(VolumeInstanceId{}, params.world_instance());
     EXPECT_EQ(1, params.num_volume_levels());
     EXPECT_EQ(1, params.volume_labels().size());
     EXPECT_EQ(0, params.volume_instance_labels().size());
@@ -143,17 +154,17 @@ TEST_F(SingleVolumeTest, params)
     EXPECT_TRUE(params.volume_labels().find_unique("A") == vol_id);
 
     // Verify material assignment
-    EXPECT_EQ(GeoMatId{0}, params.material(vol_id));
+    EXPECT_EQ(GeoMatId{0}, params.get(vol_id).material());
 
     // A single volume should have no parents or children
-    EXPECT_TRUE(params.parents(vol_id).empty());
+    EXPECT_TRUE(params.get(vol_id).parents().empty());
     EXPECT_TRUE(params.children(vol_id).empty());
 
     // Test out-of-bounds access should assert
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(params.material(VolumeId{1}), DebugError);
-        EXPECT_THROW(params.parents(VolumeId{1}), DebugError);
+        EXPECT_THROW(params.get(VolumeId{1}).material(), DebugError);
+        EXPECT_THROW(params.get(VolumeId{1}).parents(), DebugError);
         EXPECT_THROW(params.children(VolumeId{1}), DebugError);
         EXPECT_THROW(params.volume(VolumeInstanceId{0}), DebugError);
     }
@@ -210,9 +221,10 @@ TEST_F(ComplexVolumeTest, params)
     // Loop over all volumes to collect children and parents
     for (auto vol_id : range(VolumeId(params.num_volumes())))
     {
+        auto v = params.get(vol_id);
         children.push_back(id_to_int(params.children(vol_id)));
-        parents.push_back(id_to_int(params.parents(vol_id)));
-        geo_mat.push_back(id_to_int(params.material(vol_id)));
+        parents.push_back(id_to_int(v.parents()));
+        geo_mat.push_back(id_to_int(v.material()));
     }
 
     static std::vector<int> const expected_children[]
@@ -233,6 +245,34 @@ TEST_F(ComplexVolumeTest, params)
 
     static int const expected_volume_mapping[] = {1, 2, 2, 2, 3, -1, 4};
     EXPECT_VEC_EQ(expected_volume_mapping, volume_mapping);
+}
+
+TEST_F(ComplexVolumeTest, view)
+{
+    VolumeParams const& params = this->volumes();
+    AllVolumesView vv = params.view();
+
+    // Scalar accessors match params
+    EXPECT_EQ(params.world(), vv.world());
+    EXPECT_EQ(params.num_volume_levels(), vv.num_volume_levels());
+
+    // volume_id maps instance -> logical volume
+    std::vector<int> vol_ids;
+    for (auto vi : range(VolumeInstanceId{params.num_volume_instances()}))
+    {
+        vol_ids.push_back(id_to_int(vv.volume_id(vi)));
+    }
+    static int const expected_vol_ids[] = {1, 2, 2, 2, 3, -1, 4};
+    EXPECT_VEC_EQ(expected_vol_ids, vol_ids);
+
+    // volume() constructs a VolumeView with correct material
+    static int const expected_geo_mat[] = {0, 1, 2, 3, 4};
+    std::vector<int> geo_mat;
+    for (auto v : range(VolumeId{params.num_volumes()}))
+    {
+        geo_mat.push_back(id_to_int(vv.volume(v).material()));
+    }
+    EXPECT_VEC_EQ(expected_geo_mat, geo_mat);
 }
 
 TEST_F(ComplexVolumeTest, volume_to_string)
@@ -370,6 +410,223 @@ TEST_F(MultiLevelTest, visit)
             "2:boxtri",
         };
         EXPECT_VEC_EQ(expected_names, mpv.get_names());
+    }
+}
+
+TEST_F(MultiLevelTest, io)
+{
+    auto const& vols = this->volumes();
+    auto vols_json_str = stream_to_string(vols);
+    EXPECT_JSON_EQ(R"json({
+"children": [
+[],
+[],
+[0, 1, 2 ],
+[3, 4, 5, 6, 10 ],
+[7, 8, 9 ],
+[],
+[]
+],
+"instance_to_volume": [ 0, 0, 1, 2, 0, 2, 2, 5, 5, 6, 4, 3 ],
+"volume_instances": [ "boxsph1@0", "boxsph2@0", "boxtri@0", "topbox1", "topsph1", "topbox2", "topbox3", "boxsph1@1", "boxsph2@1", "boxtri@1", "topbox4", "world_PV" ],
+"volumes": [ "sph", "tri", "box", "world", "box_refl", "sph_refl", "tri_refl" ],
+"world": 3
+})json",
+                   vols_json_str);
+}
+
+TEST_F(MultiLevelTest, unique_instance)
+{
+    // Check offsets
+    auto const& vols = this->volumes();
+
+    // world_PV (vi 11) is the enclosing instance of the world volume
+    auto world_pv = vols.volume_instance_labels().find_unique("world_PV");
+    EXPECT_EQ(world_pv, vols.world_instance());
+
+    constexpr auto all = AllItems<VolumeUniqueInstanceId::size_type>{};
+    auto offsets = vols.host_ref().unique_instance_offsets[all];
+    static int const expected_offsets[] = {0, 1, 2, 0, 4, 5, 9, 0, 1, 2, 13, 0};
+    EXPECT_VEC_EQ(expected_offsets, offsets);
+}
+
+TEST_F(MultiLevelTest, unique_instance_accumulator)
+{
+    // vi indices (from JSON):
+    //  0:boxsph1@0->sph, 1:boxsph2@0->sph, 2:boxtri@0->tri,
+    //  3:topbox1->box,   4:topsph1->sph,   5:topbox2->box, 6:topbox3->box,
+    //  7:boxsph1@1->sph_refl, 8:boxsph2@1->sph_refl, 9:boxtri@1->tri_refl,
+    //  10:topbox4->box_refl, 11:world_PV->world
+    auto const& vols = this->volumes();
+    VolumePathAccumulator acc{vols.host_ref()};
+    auto const& vi_labels = vols.volume_instance_labels();
+
+    auto topbox1 = vi_labels.find_unique("topbox1");
+    auto topsph1 = vi_labels.find_unique("topsph1");
+    auto topbox4 = vi_labels.find_unique("topbox4");
+    auto boxsph1_0 = vi_labels.find_exact(Label::from_separator("boxsph1@0"));
+    auto boxsph1_1 = vi_labels.find_exact(Label::from_separator("boxsph1@1"));
+    auto boxtri_1 = vi_labels.find_exact(Label::from_separator("boxtri@1"));
+    constexpr auto world_uid = world_unique_instance;
+
+    // Accumulation always starts from uid{0} = world (empty path)
+    // Path [topbox1] -> uid 1  (box)
+    VolumeUniqueInstanceId uid = world_uid;
+    EXPECT_EQ(VolumeUniqueInstanceId{1}, uid = acc(uid, topbox1));
+
+    // Path [topbox1, boxsph1@0] -> uid 2  (sph)
+    EXPECT_EQ(VolumeUniqueInstanceId{2}, uid = acc(uid, boxsph1_0));
+
+    // Path [topsph1] -> uid 5  (sph directly under world)
+    EXPECT_EQ(VolumeUniqueInstanceId{5}, uid = acc(world_uid, topsph1));
+
+    // Path [topbox4] -> uid 14  (box_refl)
+    uid = acc(world_uid, topbox4);
+    EXPECT_EQ(VolumeUniqueInstanceId{14}, uid);
+
+    // Path [topbox4, boxsph1@1] -> uid 15  (sph_refl)
+    EXPECT_EQ(VolumeUniqueInstanceId{15}, uid = acc(uid, boxsph1_1));
+
+    // Path [topbox4, boxtri@1] -> uid 17  (tri_refl, last)
+    uid = acc(world_uid, topbox4);
+    EXPECT_EQ(VolumeUniqueInstanceId{17}, uid = acc(uid, boxtri_1));
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, offset)
+{
+    auto const& vols = this->volumes();
+    auto const& vi_labels = vols.volume_instance_labels();
+
+    // First child of any volume always has offset 0
+    auto world_pv = vi_labels.find_unique("world_PV");
+    EXPECT_EQ(0u, vols.offset(world_pv));
+    auto topbox1 = vi_labels.find_unique("topbox1");
+    EXPECT_EQ(0u, vols.offset(topbox1));
+
+    // topsph1 follows topbox1 whose subtree has num_desc = 4
+    // (box itself + boxsph1@0, boxsph2@0, boxtri@0)
+    auto topsph1 = vi_labels.find_unique("topsph1");
+    EXPECT_EQ(4u, vols.offset(topsph1));
+
+    // topbox4 follows topbox1+topsph1+topbox2+topbox3; each sph/tri leaf
+    // contributes 1, each box contributes 4 -> 4+1+4+4 = 13
+    auto topbox4 = vi_labels.find_unique("topbox4");
+    EXPECT_EQ(13u, vols.offset(topbox4));
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, path_round_trip)
+{
+    auto const& vols = this->volumes();
+    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
+    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
+    VolumePathAccumulator acc{vols.host_ref()};
+
+    for (auto uid : range(VolumeUniqueInstanceId{vols.num_unique_instances()}))
+    {
+        auto path = find_path(uid);
+        VolumeUniqueInstanceId result{0};
+        for (VolumeInstanceId vi : path)
+        {
+            result = acc(result, vi);
+        }
+        EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, path_finder)
+{
+    auto const& vols = this->volumes();
+    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
+    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
+
+    auto path_str = [&vols](Span<VolumeInstanceId const> path) {
+        return to_string(
+            join(path.begin(), path.end(), '/', [&vols](VolumeInstanceId vi) {
+                return to_string(vols.volume_instance_labels().at(vi));
+            }));
+    };
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find_path(VolumeUniqueInstanceId{}), DebugError);
+    }
+    EXPECT_EQ("", path_str(find_path(VolumeUniqueInstanceId{0})));
+    EXPECT_EQ("topbox1", path_str(find_path(VolumeUniqueInstanceId{1})));
+    EXPECT_EQ("topbox1/boxsph1@0",
+              path_str(find_path(VolumeUniqueInstanceId{2})));
+    EXPECT_EQ("topsph1", path_str(find_path(VolumeUniqueInstanceId{5})));
+    EXPECT_EQ("topbox4", path_str(find_path(VolumeUniqueInstanceId{14})));
+    EXPECT_EQ("topbox4/boxsph1@1",
+              path_str(find_path(VolumeUniqueInstanceId{15})));
+    EXPECT_EQ("topbox4/boxtri@1",
+              path_str(find_path(VolumeUniqueInstanceId{17})));
+}
+
+//---------------------------------------------------------------------------//
+using StressTest = StressVolumeTestBase;
+
+TEST_F(StressTest, params)
+{
+    auto const& vols = this->volumes();
+
+    EXPECT_EQ(num_levels_, vols.num_volumes());
+    EXPECT_EQ((num_levels_ - 1) * num_children_ + (num_levels_ - 2),
+              vols.num_volume_instances());
+    EXPECT_EQ(num_levels_, vols.num_volume_levels());
+    // Stress tree has no world-enclosing instance
+    EXPECT_EQ(VolumeInstanceId{}, vols.world_instance());
+
+    // f[leaf]=1; f[n-2]=k+1 (no skip at penultimate level);
+    // f[d] = 1 + k*f[d+1] + f[d+2] for d <= n-3 (skip child adds f[d+2])
+    ASSERT_GE(num_levels_, 2);
+    auto num_unique = [&] {
+        VolumeUniqueInstanceId::size_type f1{1};
+        VolumeUniqueInstanceId::size_type f0{num_children_ + 1};
+        for ([[maybe_unused]] auto i : range(num_levels_ - 2))
+        {
+            auto f_new = 1 + num_children_ * f0 + f1;
+            f1 = f0;
+            f0 = f_new;
+        }
+        return f0;
+    }();
+    EXPECT_EQ(num_unique, vols.num_unique_instances());
+
+    cout << vols.num_volume_levels() << " levels, " << vols.num_volumes()
+         << " volumes, " << vols.num_volume_instances() << " instances, "
+         << num_unique << " unique instances" << endl;
+}
+
+TEST_F(StressTest, DISABLED_io)
+{
+    auto filename = this->make_unique_filename(".json");
+    std::string script{celeritas_source_dir};
+    script += "/scripts/user/volumes-to-dot.py";
+
+    std::ofstream{filename} << this->volumes();
+    cout << script << " --ids " << filename << " | dot -Tpdf -o "
+         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf";
+}
+
+TEST_F(StressTest, path_round_trip)
+{
+    auto const& vols = this->volumes();
+    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
+    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
+    VolumePathAccumulator acc{vols.host_ref()};
+
+    for (auto uid : range(VolumeUniqueInstanceId{vols.num_unique_instances()}))
+    {
+        auto path = find_path(uid);
+        VolumeUniqueInstanceId result{0};
+        for (VolumeInstanceId vi : path)
+        {
+            result = acc(result, vi);
+        }
+        EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
     }
 }
 

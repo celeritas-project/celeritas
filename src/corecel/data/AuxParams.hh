@@ -23,7 +23,7 @@ namespace celeritas
  * values used across multiple kernels or processed into user space). Each
  * state/stream will have an instance of \c AuxState accessible by this
  * class. An instance of this class can be shared among multiple actions, or an
- * action could inherit from it. 
+ * action could inherit from it.
  *
  * \par Example:
  * The \c StepParams inherits from this class to provide access to host and

@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "celeritas/em/process/BremsstrahlungProcess.hh"
 #include "celeritas/em/process/ComptonProcess.hh"
 #include "celeritas/em/process/CoulombScatteringProcess.hh"

@@ -44,10 +44,6 @@ class GeantMaterialPropertyGetter
     inline bool
     operator()(double& dst, std::string const& name, ImportUnits q) const;
 
-    // Get scalar property for an indexed component
-    inline bool
-    operator()(double& dst, std::string name, int comp, ImportUnits q) const;
-
     // Get physics vector property
     inline bool operator()(inp::Grid& dst,
                            std::string const& name,
@@ -98,24 +94,6 @@ bool GeantMaterialPropertyGetter::operator()(double& dst,
     }
     dst = mpt_->GetConstProperty(name.c_str()) * native_value_from_clhep(q);
     return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get scalar property for an indexed component.
- */
-bool GeantMaterialPropertyGetter::operator()(double& dst,
-                                             std::string name,
-                                             int comp,
-                                             ImportUnits q) const
-{
-    if (!*this)
-    {
-        return false;
-    }
-    // Geant4 10.6 and earlier require a const char* argument
-    name += std::to_string(comp);
-    return (*this)(dst, name.c_str(), q);
 }
 
 //---------------------------------------------------------------------------//

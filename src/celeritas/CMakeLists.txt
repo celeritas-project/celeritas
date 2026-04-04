@@ -113,6 +113,7 @@ list(APPEND SOURCES
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
   neutron/model/CascadeOptionsIO.json.cc
+  neutron/process/NeutronCaptureProcess.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CoreParams.cc
@@ -121,11 +122,8 @@ list(APPEND SOURCES
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorBase.cc
-  optical/ImportedModelAdapter.cc
-  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
-  optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/Runner.cc
   optical/SimParams.cc
@@ -185,6 +183,7 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
+    optical/detail/Filler.cu
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
@@ -193,6 +192,7 @@ endif()
 if(CELERITAS_USE_covfie)
   set(_celer_covfie_src
     field/CartMapFieldParams.covfie.cc
+    field/LoadCovfieField.covfie.cc
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
@@ -234,12 +234,16 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantStepPointView.cc
+    ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
+    ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
+    ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
@@ -388,6 +392,7 @@ celeritas_polysource(global/detail/SetGenerated)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(mucf/model/DTMixMucfModel)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronCaptureModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/MieModel)
@@ -405,6 +410,7 @@ celeritas_polysource(optical/gen/OffloadAction)
 celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
+celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)

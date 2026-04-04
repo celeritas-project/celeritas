@@ -8,6 +8,8 @@
 
 #include <cstdlib>
 
+#include "corecel/Macros.hh"
+
 #include "detail/PinnedAllocatorImpl.hh"
 
 namespace celeritas
@@ -39,19 +41,18 @@ struct PinnedAllocator
     {
         return detail::free_pinned(ptr);
     }
+
+    template<class U>
+    friend bool operator==(PinnedAllocator const&, PinnedAllocator<U> const&)
+    {
+        return true;
+    }
+    template<class U>
+    friend bool operator!=(PinnedAllocator const&, PinnedAllocator<U> const&)
+    {
+        return false;
+    }
 };
-
-template<class T, class U>
-bool operator==(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
-{
-    return true;
-}
-
-template<class T, class U>
-bool operator!=(PinnedAllocator<T> const&, PinnedAllocator<U> const&)
-{
-    return false;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -12,7 +12,6 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/ImportedMaterials.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
@@ -40,7 +39,7 @@ CELER_FUNCTION Interaction MieExecutor::operator()(CoreTrackView const& track)
 
     // Access the current particle track (optical photon)
     auto particle = track.particle();
-    // Photon’s current direction
+    // Photon's current direction
     auto const& direction = track.geometry().dir();
     // RNG stream for sampling scattering
     auto rng = track.rng();

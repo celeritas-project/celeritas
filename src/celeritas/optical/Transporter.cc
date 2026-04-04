@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "corecel/cont/Range.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -107,19 +108,36 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 << counters.num_generated << " generated tracks, "
                 << counters.num_active << " active tracks, "
                 << counters.num_alive << " alive tracks, "
-                << counters.num_vacancies << " vacancies, and "
-                << counters.num_pending << " queued";
+                << counters.num_vacancies << " vacancies, "
+                << counters.num_pending << " queued, " << counters.num_cut
+                << " cut, and " << counters.num_errored << " errored";
+            // Add all untransported tracks to 'cut' counter
+            counters.num_cut += counters.num_active + counters.num_pending;
 
             this->params()->gen_reg()->reset(*state.aux());
             state.reset();
             break;
         }
     }
+    if (counters.num_cut > 0)
+    {
+        CELER_LOG_LOCAL(warning) << "Terminated " << counters.num_cut
+                                 << " optical tracks due to cutoff/limits";
+    }
+    if (counters.num_errored > 0)
+    {
+        CELER_LOG_LOCAL(error) << "Terminated " << counters.num_errored
+                               << " optical tracks that errored";
+    }
 
     // Update statistics
     state.accum().steps += num_steps;
     state.accum().step_iters += num_step_iters;
     ++state.accum().flushes;
+
+    // Accumulate cut/error counters from the last synchronized counters
+    state.accum().num_cut += counters.num_cut;
+    state.accum().num_errored += counters.num_errored;
 }
 
 //---------------------------------------------------------------------------//

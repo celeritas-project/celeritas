@@ -171,8 +171,7 @@ CELER_FUNCTION Toroid::Toroid(Span<R, StorageSpan::extent> data)
    |         |       |         | o
    |         |       |    i    s
     \       /         \       /
-     \     /           \     /
-       ⁻⁻⁻   ⁻⁻⁻⁻⁻⁻⁻⁻⁻   ⁻⁻⁻
+     \_____/___________\_____/
    \endverbatim
  */
 CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const

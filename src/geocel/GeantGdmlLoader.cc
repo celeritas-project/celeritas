@@ -101,6 +101,7 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
 
     Result result;
     result.world = gdml_parser.GetWorldVolume();
+    CELER_VALIDATE(result.world, << "failed to load GDML");
 
     if (opts_.detectors)
     {
@@ -133,7 +134,6 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
         remove_pointers(*G4LogicalVolumeStore::GetInstance());
     }
 
-    CELER_ENSURE(result.world);
     return result;
 }
 

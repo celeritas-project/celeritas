@@ -131,7 +131,7 @@ void ChipsNeutronElasticModel::step(CoreParams const&, CoreStateDevice&) const
  * of lastPAR are not used for sampling the momentum transfer between neutron
  * and nucleus (Z > 0, N >= 1).
  *
- * M.V. Kossov, “Manual for the CHIPS event generator”, KEK internal report
+ * M.V. Kossov, "Manual for the CHIPS event generator", KEK internal report
  * 2000-17, Feb. 2001 H/R; P.V. Degtyarenko, M.V. Kossov and H.P. Wellisch,
  * Eur. Phys. J. A8, 217 (2000); P.V. Degtyarenko, M.V. Kossov and H.P.
  * Wellisch, Eur. Phys. J. A9 (2001).

@@ -88,9 +88,9 @@ int calc_depth(Span<logic_int const> logic)
  */
 bool supports_simple_safety(logic_int flags)
 {
-    return (flags & VolumeRecord::implicit_vol)
-           || ((flags & VolumeRecord::simple_safety)
-               && !(flags & VolumeRecord::internal_surfaces));
+    return (flags & LocalVolumeRecord::implicit_vol)
+           || ((flags & LocalVolumeRecord::simple_safety)
+               && !(flags & LocalVolumeRecord::internal_surfaces));
 }
 
 //---------------------------------------------------------------------------//
@@ -387,7 +387,8 @@ void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
     v.faces.resize(num_surfaces);
     std::iota(v.faces.begin(), v.faces.end(), LocalSurfaceId{0});
     v.zorder = ZOrder::background;
-    v.flags = VolumeRecord::implicit_vol | VolumeRecord::simple_safety;
+    v.flags = LocalVolumeRecord::implicit_vol
+              | LocalVolumeRecord::simple_safety;
     v.logic = nowhere_logic;
     v.bbox = {};
     v.obz = {};
@@ -451,7 +452,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     fixup_background_volume(unit.surfaces.size(), inp.volumes.back());
 
     // Define volumes
-    std::vector<VolumeRecord> vol_records(inp.volumes.size());
+    std::vector<LocalVolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
     BIHBuilder::SetLocalVolId implicit_vol_ids;
@@ -475,7 +476,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
         }
 
         // Create a set of background volume ids for BIH construction
-        if (inp.volumes[i].flags & VolumeRecord::Flags::implicit_vol)
+        if (inp.volumes[i].flags & LocalVolumeRecord::Flags::implicit_vol)
         {
             implicit_vol_ids.insert(id_cast<LocalVolumeId>(i));
         }
@@ -494,7 +495,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
         }
 
         // Add connectivity for explicitly connected volumes
-        if (!(vol_records[i].flags & VolumeRecord::implicit_vol))
+        if (!(vol_records[i].flags & LocalVolumeRecord::implicit_vol))
         {
             for (LocalSurfaceId f : inp.volumes[i].faces)
             {
@@ -523,7 +524,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     }
 
     // Save volumes
-    unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::VolumeRecordId>(
+    unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::LocalVolumeRecordId>(
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
     // Create BIH tree
@@ -572,10 +573,11 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     // Simple safety if all volumes provide support, excluding the external
     // volume, which appears first in the list
     static_assert(orange_exterior_volume == LocalVolumeId{0});
-    unit.simple_safety = std::all_of(
-        vol_records.begin() + 1, vol_records.end(), [](VolumeRecord const& v) {
-            return supports_simple_safety(v.flags);
-        });
+    unit.simple_safety = std::all_of(vol_records.begin() + 1,
+                                     vol_records.end(),
+                                     [](LocalVolumeRecord const& v) {
+                                         return supports_simple_safety(v.flags);
+                                     });
     CELER_ASSERT(unit);
     simple_units_.push_back(unit);
     auto surf_labels = make_surface_labels(inp);
@@ -596,8 +598,8 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
 /*!
  * Insert data from a single volume.
  */
-VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
-                                         VolumeInput const& v)
+LocalVolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
+                                              VolumeInput const& v)
 {
     CELER_EXPECT(v);
     CELER_EXPECT(std::is_sorted(v.faces.begin(), v.faces.end()));
@@ -628,7 +630,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         }
     }
 
-    VolumeRecord output;
+    LocalVolumeRecord output;
     output.faces
         = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
     output.logic = logic_ints_.insert_back(v.logic.begin(), v.logic.end());
@@ -636,7 +638,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
     output.flags = v.flags;
     if (simple_safety)
     {
-        output.flags |= VolumeRecord::Flags::simple_safety;
+        output.flags |= LocalVolumeRecord::Flags::simple_safety;
     }
 
     if (output.max_intersections > forced_scalar_max().intersections
@@ -652,8 +654,8 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
         auto nowhere = detail::make_nowhere_expr(orange_tracking_logic);
         output.logic = logic_ints_.insert_back(nowhere.begin(), nowhere.end());
         output.max_intersections = 0;
-        output.flags = VolumeRecord::implicit_vol
-                       | VolumeRecord::Flags::simple_safety;
+        output.flags = LocalVolumeRecord::implicit_vol
+                       | LocalVolumeRecord::Flags::simple_safety;
     }
 
     // Update global max faces/intersections/logic
@@ -679,7 +681,7 @@ VolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
 /*!
  * Process a single oriented bounding zone record.
  */
-void UnitInserter::process_obz_record(VolumeRecord* vol_record,
+void UnitInserter::process_obz_record(LocalVolumeRecord* vol_record,
                                       OrientedBoundingZoneInput const& obz_input)
 {
     CELER_EXPECT(obz_input);
@@ -709,7 +711,7 @@ void UnitInserter::process_obz_record(VolumeRecord* vol_record,
 /*!
  * Process a single daughter universe.
  */
-void UnitInserter::process_daughter(VolumeRecord* vol_record,
+void UnitInserter::process_daughter(LocalVolumeRecord* vol_record,
                                     DaughterInput const& daughter_input)
 {
     Daughter daughter;
@@ -717,7 +719,7 @@ void UnitInserter::process_daughter(VolumeRecord* vol_record,
     daughter.trans_id = insert_transform_(daughter_input.transform);
 
     vol_record->daughter_id = daughters_.push_back(daughter);
-    vol_record->flags |= VolumeRecord::embedded_universe;
+    vol_record->flags |= LocalVolumeRecord::embedded_universe;
 }
 
 //---------------------------------------------------------------------------//

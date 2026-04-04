@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/univ/VolumeView.test.cc
+//! \file orange/univ/LocalVolumeView.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/univ/VolumeView.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 
 #include "corecel/Config.hh"
 
@@ -15,23 +15,26 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
 
-class VolumeViewTest : public OrangeGeoTestBase
+class VolumeViewTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
-    VolumeView make_view(LocalVolumeId v) const
+    LocalVolumeView make_view(LocalVolumeId v) const
     {
         CELER_EXPECT(v);
         auto const& host_ref = this->host_params();
-        return VolumeView{host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
+        return LocalVolumeView{
+            host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
     }
 
-    void test_face_accessors(VolumeView const& volumes)
+    void test_face_accessors(LocalVolumeView const& volumes)
     {
         auto faces = volumes.faces();
         ASSERT_EQ(faces.size(), volumes.num_faces());
@@ -55,7 +58,7 @@ TEST_F(VolumeViewTest, one_volume)
     this->build_geometry(OneVolInput{});
     ASSERT_EQ(1, this->num_volumes());
 
-    VolumeView vol = this->make_view(LocalVolumeId{0});
+    LocalVolumeView vol = this->make_view(LocalVolumeId{0});
     EXPECT_EQ(0, vol.num_faces());
     this->test_face_accessors(vol);
 
@@ -78,7 +81,7 @@ TEST_F(VolumeViewTest, five_volumes)
 
     for (auto vol_id : range(LocalVolumeId{this->num_volumes()}))
     {
-        VolumeView vol = this->make_view(vol_id);
+        LocalVolumeView vol = this->make_view(vol_id);
         num_faces.push_back(vol.num_faces());
         this->test_face_accessors(vol);
     }
@@ -87,14 +90,14 @@ TEST_F(VolumeViewTest, five_volumes)
     EXPECT_VEC_EQ(expected_num_faces, num_faces);
 
     {
-        VolumeView vol = this->make_view(LocalVolumeId{0});
+        LocalVolumeView vol = this->make_view(LocalVolumeId{0});
         EXPECT_FALSE(vol.internal_surfaces());
         EXPECT_FALSE(vol.implicit_vol());
         EXPECT_TRUE(vol.simple_safety());
         EXPECT_TRUE(vol.simple_intersection());
     }
     {
-        VolumeView vol = this->make_view(LocalVolumeId{4});
+        LocalVolumeView vol = this->make_view(LocalVolumeId{4});
         EXPECT_TRUE(vol.internal_surfaces());
         EXPECT_FALSE(vol.implicit_vol());
         EXPECT_TRUE(vol.simple_safety());
@@ -104,4 +107,5 @@ TEST_F(VolumeViewTest, five_volumes)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas

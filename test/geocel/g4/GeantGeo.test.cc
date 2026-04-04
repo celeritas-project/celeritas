@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4/GeantGeo.test.cc
+//! \note Most of the tests in this file actually live in GeoTests.cc
 //---------------------------------------------------------------------------//
 #include <regex>
 #include <string_view>
@@ -81,22 +82,29 @@ class GeantGeoTest : public GeantGeoTestBase
     }
 
     ScopedGeantExceptionHandler exception_handler;
-    ScopedGeantLogger logger{celeritas::world_logger()};
+    std::optional<ScopedGeantLogger> logger{std::in_place,
+                                            celeritas::world_logger()};
 
     void SetUp() override
     {
-        GeantGeoTestBase::SetUp();
+        // Load the geometry
         ASSERT_TRUE(this->geometry());
 
         auto* sm = G4StateManager::GetStateManager();
         CELER_ASSERT(sm);
         // Have ScopedGeantExceptionHandler treat tracking errors like runtime
         EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
+
+        // Use *local* logger during tracking
+        logger.emplace(celeritas::self_logger());
     }
 
     void TearDown() override
     {
         ASSERT_TRUE(this->geometry());
+
+        // Use global logger during teardown
+        logger.emplace(celeritas::world_logger());
 
         // Restore G4 state just in case it matters
         auto* sm = G4StateManager::GetStateManager();
@@ -324,6 +332,55 @@ TEST_F(CmsEeBackDeeTest, trace)
 }
 
 //---------------------------------------------------------------------------//
+using DuneCryostatTest
+    = GenericGeoParameterizedTest<GeantGeoTest, DuneCryostatGeoTest>;
+
+TEST_F(DuneCryostatTest, model)
+{
+    auto result = this->summarize_model();
+    GenericGeoModelInp ref;
+    ref.volume.labels = {
+        "volGaseousArgon",
+        "volArapuca_0-0",
+        "volOpDetSensitive_0-0-0",
+        "volOpDetSensitive_0-0-1",
+        "volOpDetSensitive_0-0-2",
+        "volOpDetSensitive_0-0-3",
+        "volCryostat",
+        "volDetEnclosure",
+    };
+    ref.volume.materials = {0, 1, 2, 2, 2, 2, 3, 4};
+    ref.volume.daughters = {{}, {}, {}, {}, {}, {}, {2, 3, 4, 5, 6, 7}, {1}};
+    ref.volume_instance.labels = {
+        "volDetEnclosure_PV",
+        "volCryostat_PV",
+        "volGaseousArgon_PV",
+        "volArapuca_0-0_PV",
+        "volOpDetSensitive_0-0-0_PV",
+        "volOpDetSensitive_0-0-1_PV",
+        "volOpDetSensitive_0-0-2_PV",
+        "volOpDetSensitive_0-0-3_PV",
+    };
+    ref.volume_instance.volumes = {7, 6, 0, 1, 2, 3, 4, 5};
+    ref.world = "volDetEnclosure";
+    ref.surface.labels = {
+        "volOpDetSensitive_0-0-0_Surface",
+        "volOpDetSensitive_0-0-1_Surface",
+        "volOpDetSensitive_0-0-2_Surface",
+        "volOpDetSensitive_0-0-3_Surface",
+    };
+    ref.surface.volumes = {"2", "3", "4", "5"};
+    ref.detector.labels = {"PhotonDetector"};
+    ref.detector.volumes = {{2, 3, 4, 5}};
+    EXPECT_REF_EQ(ref, result);
+}
+
+TEST_F(DuneCryostatTest, locate_point)
+{
+    this->impl().test_locate_point();
+}
+
+//---------------------------------------------------------------------------//
 using FourLevelsTest
     = GenericGeoParameterizedTest<GeantGeoTest, FourLevelsGeoTest>;
 
@@ -371,11 +428,6 @@ TEST_F(FourLevelsTest, model)
     EXPECT_REF_EQ(ref, result);
 }
 
-TEST_F(FourLevelsTest, trace)
-{
-    this->impl().test_trace();
-}
-
 TEST_F(FourLevelsTest, consecutive_compute)
 {
     this->impl().test_consecutive_compute();
@@ -397,53 +449,37 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_reentrant_normal();
+
+    static char const* const expected_log_messages[] = {
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
+
 TEST_F(FourLevelsTest, safety)
 {
-    auto geo = this->make_geo_track_view();
-    std::vector<real_type> safeties;
-    std::vector<real_type> lim_safeties;
+    ScopedLogStorer scoped_log_{&self_logger()};
+    this->impl().test_safety();
+    // Don't test messages, which are unit system-dependent (they come from the
+    // CheckedGeoTrackView)
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning", "warning", "warning", "warning"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
 
-    for (auto i : range(11))
-    {
-        real_type r = from_cm(2.0 * i + 0.1);
-        geo = {{r, r, r}, {1, 0, 0}};
-        if (!geo.is_outside())
-        {
-            geo.find_next_step();
-            safeties.push_back(to_cm(geo.find_safety()));
-            lim_safeties.push_back(to_cm(geo.find_safety(from_cm(1.5))));
-        }
-    }
-
-    static double const expected_safeties[] = {
-        2.9,
-        0.9,
-        0.1,
-        1.7549981495186,
-        1.7091034656191,
-        4.8267949192431,
-        1.3626933041054,
-        1.9,
-        0.1,
-        1.1,
-        3.1,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_safeties, safeties);
-
-    static double const expected_lim_safeties[] = {
-        2.9,
-        0.9,
-        0.1,
-        1.7549981495186,
-        1.7091034656191,
-        4.8267949192431,
-        1.3626933041054,
-        1.9,
-        0.1,
-        1.1,
-        3.1,
-    };
-    EXPECT_VEC_SOFT_EQ(expected_lim_safeties, lim_safeties);
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
@@ -835,12 +871,7 @@ TEST_F(SimpleCmsTest, detailed_track)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_detailed_tracking();
-    if (geant4_version >= Version{11})
-    {
-        // G4 11.3: "Accuracy error or slightly inaccurate position shift."
-        static char const* const expected_log_levels[] = {"error", "error"};
-        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels()) << scoped_log_;
-    }
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
 //---------------------------------------------------------------------------//

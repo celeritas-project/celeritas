@@ -200,13 +200,14 @@ endif()
 #-----------------------------------------------------------------------------#
 # External
 set(_import_filter
+  "DuneCryostat.*"
   "FourSteelSlabs*"
-  "TestEm3*"
-  "OneSteelSphere.*"
-  "OneSteelSphereGG.*"
   "LarSphere.*"
   "LarSphereExtramat.*"
+  "OneSteelSphere.*"
+  "OneSteelSphereGG.*"
   "Solids.*"
+  "TestEm3*"
 )
 if(Geant4_VERSION VERSION_LESS 11.0)
   list(REMOVE_ITEM _import_filter
@@ -259,7 +260,12 @@ if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
   )
 endif()
 
+set(_field_test_sources)
+if(CELERITAS_USE_covfie)
+  list(APPEND _field_test_sources field/CovfieTestField.covfie.cc)
+endif()
 celeritas_add_device_test(field/Fields
+  SOURCES ${_field_test_sources}
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -289,13 +295,8 @@ if(CELERITAS_USE_Geant4)
   set(_geo_mat_filter
     "-Em3*:MultiLevel*"
     "Em3Test.*"
+    "MultiLevelTest.*"
   )
-  if(NOT CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    # TODO: ORANGE reflection is not implemented
-    list(APPEND _geo_mat_filter
-      "MultiLevelTest.*"
-    )
-  endif()
 elseif(CELERITAS_USE_ROOT)
   set(_geo_mat_filter
     "SimpleCmsTest"
@@ -428,15 +429,17 @@ function(celeritas_standalone_add_tests basename suite test backend)
   set(_env ${CELER_G4ENV})
   set(_labels "unit")
 
-  if("${backend}" STREQUAL "cpu")
+  if(backend STREQUAL "cpu")
     if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
       list(APPEND _env "CELER_DISABLE_DEVICE=1")
     endif()
-  elseif("${backend}" STREQUAL "gpu")
-    if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
-      list(APPEND _test_props RESOURCE_LOCK gpu)
-      list(APPEND _labels gpu)
-    else()
+  elseif(backend STREQUAL "gpu")
+    # Set option to disable GPU environment
+    celeritas_get_disable_device(CELER_DISABLE_DEVICE)
+
+    list(APPEND _test_props RESOURCE_LOCK gpu)
+    list(APPEND _labels gpu)
+    if(CELER_DISABLE_DEVICE)
       list(APPEND _test_props DISABLED TRUE)
     endif()
   else()
@@ -460,6 +463,8 @@ endfunction()
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
@@ -494,6 +499,7 @@ celeritas_add_device_test(mat/Material
 
 #-----------------------------------------------------------------------------#
 # Neutron
+celeritas_add_test(neutron/NeutronCapture.test.cc ${_needs_double})
 celeritas_add_test(neutron/NeutronElastic.test.cc ${_needs_double})
 celeritas_add_test(neutron/NeutronInelastic.test.cc ${_needs_double})
 

@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/data/DeviceVector.hh"
 
 #include "celeritas_test.hh"

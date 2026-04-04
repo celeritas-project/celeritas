@@ -159,9 +159,19 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 if (sec_par.is_antiparticle())
                 {
                     // Conservation of energy for positrons
+                    // TODO: This is unphysical (but is consistent with
+                    // Geant4): we should ONLY do this if the gamma tracking
+                    // cut is also below 511 keV. We should probably just stop
+                    // the positron and deposit its energy locally, but leave
+                    // the secondary.
                     deposition += 2 * value_as<MassCSq>(sec_par.mass());
                 }
                 secondary = {};
+
+                // Mark as a cut track
+                atomic_add(
+                    &const_cast<CoreTrackView&>(track).counters().num_cut,
+                    size_type{1});
             }
         }
     }

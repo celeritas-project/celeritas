@@ -129,13 +129,13 @@ celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe
-celeritas_add_test(univ/VolumeView.test.cc)
 celeritas_add_test(univ/RectArrayTracker.test.cc)
 celeritas_add_device_test(univ/SimpleUnitTracker)
 celeritas_add_test(univ/TrackerVisitor.test.cc)
 
 # Universe details
 celeritas_add_test(univ/detail/InfixEvaluator.test.cc)
+celeritas_add_test(univ/detail/LocalVolumeView.test.cc)
 celeritas_add_test(univ/detail/LogicEvaluator.test.cc)
 celeritas_add_test(univ/detail/LogicStack.test.cc)
 celeritas_add_test(univ/detail/RaggedRightIndexer.test.cc)

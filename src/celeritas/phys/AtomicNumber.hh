@@ -8,6 +8,10 @@
 
 #include "corecel/Assert.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -49,6 +53,23 @@ class AtomicNumber
     // Get the Z or A value
     inline CELER_FUNCTION int get() const;
 
+    //// FRIENDLY OPERATORS ////
+
+#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN)                                 \
+    CELER_CEF friend bool operator TOKEN(AtomicNumber lhs, AtomicNumber rhs) \
+    {                                                                        \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                \
+    }
+
+    CELER_DEFINE_ATOMICNUMBER_CMP(==)
+    CELER_DEFINE_ATOMICNUMBER_CMP(!=)
+    CELER_DEFINE_ATOMICNUMBER_CMP(<)
+    CELER_DEFINE_ATOMICNUMBER_CMP(>)
+    CELER_DEFINE_ATOMICNUMBER_CMP(<=)
+    CELER_DEFINE_ATOMICNUMBER_CMP(>=)
+
+#undef CELER_DEFINE_ATOMICNUMBER_CMP
+
   private:
     int value_{0};
 };
@@ -65,24 +86,25 @@ inline CELER_FUNCTION int AtomicNumber::get() const
     return value_;
 }
 
+#if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//
-// COMPARATORS
+// STREAMING
 //---------------------------------------------------------------------------//
-#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN)                       \
-    CELER_CONSTEXPR_FUNCTION bool operator TOKEN(AtomicNumber lhs, \
-                                                 AtomicNumber rhs) \
-    {                                                              \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();      \
+/*!
+ * Output an atomic number.
+ */
+inline std::ostream& operator<<(std::ostream& os, AtomicNumber num)
+{
+    os << '{';
+    if (num)
+    {
+        os << num.get();
     }
+    os << '}';
+    return os;
+}
 
-CELER_DEFINE_ATOMICNUMBER_CMP(==)
-CELER_DEFINE_ATOMICNUMBER_CMP(!=)
-CELER_DEFINE_ATOMICNUMBER_CMP(<)
-CELER_DEFINE_ATOMICNUMBER_CMP(>)
-CELER_DEFINE_ATOMICNUMBER_CMP(<=)
-CELER_DEFINE_ATOMICNUMBER_CMP(>=)
-
-#undef CELER_DEFINE_ATOMICNUMBER_CMP
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

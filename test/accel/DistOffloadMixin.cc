@@ -69,7 +69,7 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
-    auto* pm = step->GetTrack()->GetDefinition()->GetProcessManager();
+    auto* pm = step->GetTrack()->GetParticleDefinition()->GetProcessManager();
     CELER_ASSERT(pm);
 
     // Determine how many Cherenkov and scintillation photons to generate

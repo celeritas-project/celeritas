@@ -342,7 +342,6 @@ void SupportedOpticalPhysics::ConstructProcess()
 #endif
 
     // Add photon-generating processes to all particles they apply to
-
     if (process_is_active(OpticalProcessType::scintillation, options_))
     {
         // Only update scintillation properties if there are particles that the

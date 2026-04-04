@@ -440,6 +440,7 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
         detector_map;
 
     // Process each logical volume
+    std::size_t detector_volume_count{0};
     for (auto iv_id : range(ImplVolumeId{vol_labels.size()}))
     {
         auto vol_id = geo.volume_id(iv_id);
@@ -454,6 +455,7 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
         if (G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector())
         {
             detector_map[sd].push_back(vol_id);
+            ++detector_volume_count;
         }
     }
 
@@ -470,6 +472,17 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
     std::sort(result.begin(), result.end(), [](auto& left, auto& right) {
         return left.volumes.front() < right.volumes.front();
     });
+
+    auto msg = CELER_LOG(debug);
+    if (detector_volume_count > 0)
+    {
+        msg << "Loaded " << result.size() << " detectors in a total of "
+            << detector_volume_count << " logical volumes";
+    }
+    else
+    {
+        msg << "No volumes contained sensitive detectors";
+    }
 
     return result;
 }
@@ -707,7 +720,8 @@ GeantGeoParams::from_gdml(std::string const& filename)
     // Create geo params
     auto result
         = std::make_shared<GeantGeoParams>(loaded.world, Ownership::value);
-    // Set detectors (hack)
+    // We own constructed detectors (note that these live only on the main
+    // thread and are not suitable for G4 MT: use DetectorConstruction instead)
     result->built_detectors_ = std::move(built_detectors);
 
     // Save for use outside in Celeritas
@@ -748,6 +762,15 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         {
             msg << "unset";
         }
+    }
+
+    // Set verbosity if requested
+    if (auto verb = celeritas::getenv("G4_GEO_VERBOSITY"); !verb.empty())
+    {
+        data_.nav_verbosity_ = std::stoi(verb);
+        CELER_VALIDATE(data_.nav_verbosity_ >= 0,
+                       << "G4_GEO_VERBOSITY=" << data_.nav_verbosity_
+                       << " is out of range");
     }
 
     if (ownership_ == Ownership::value)

@@ -296,8 +296,7 @@ TEST_F(TestEm3MctruthTest, four_step)
 {
     auto result = this->run(4, 4);
 
-    if (this->is_ci_build() || this->is_summit_build()
-        || this->is_wildstyle_build())
+    if (this->is_ci_build())
     {
         static int const expected_event[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

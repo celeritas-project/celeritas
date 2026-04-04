@@ -16,7 +16,7 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
-#include "orange/univ/VolumeView.hh"
+#include "orange/univ/detail/LocalVolumeView.hh"
 #include "orange/univ/detail/Types.hh"
 
 #include "celeritas_test.hh"
@@ -58,11 +58,12 @@ TEST(Types, OnFace)
 class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
 {
   protected:
-    VolumeView make_volume_view(LocalVolumeId v) const
+    LocalVolumeView make_volume_view(LocalVolumeId v) const
     {
         CELER_EXPECT(v);
         auto const& host_ref = this->host_params();
-        return VolumeView{host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
+        return LocalVolumeView{
+            host_ref, host_ref.simple_units[SimpleUnitId{0}], v};
     }
 
     LocalSurfaceVisitor make_surf_visitor() const
@@ -71,7 +72,7 @@ class SenseCalculatorTest : public ::celeritas::test::OrangeGeoTestBase
     }
 
     SenseCalculator construct_sense_calculator(LocalSurfaceVisitor const& visit,
-                                               VolumeView const& vol,
+                                               LocalVolumeView const& vol,
                                                Real3 const& pos,
                                                OnFace& face)
     {
@@ -110,8 +111,8 @@ TEST_F(SenseCalculatorTest, two_volumes)
 
     // Note that since these have the same faces, the results should be the
     // same for both.
-    VolumeView outer = this->make_volume_view(LocalVolumeId{0});
-    VolumeView inner = this->make_volume_view(LocalVolumeId{1});
+    LocalVolumeView outer = this->make_volume_view(LocalVolumeId{0});
+    LocalVolumeView inner = this->make_volume_view(LocalVolumeId{1});
 
     {
         // Point is in the inner sphere
@@ -174,7 +175,7 @@ TEST_F(SenseCalculatorTest, five_volumes)
 
     std::vector<Sense> storage;
 
-    auto calc_senses = [&](VolumeView vol, Real3 pos, OnFace face = {}) {
+    auto calc_senses = [&](LocalVolumeView vol, Real3 pos, OnFace face = {}) {
         SenseCalculator calc_senses = this->construct_sense_calculator(
             this->make_surf_visitor(), vol, pos, face);
         storage.clear();
@@ -187,9 +188,9 @@ TEST_F(SenseCalculatorTest, five_volumes)
     };
 
     // Volume definitions
-    VolumeView vol_b = this->make_volume_view(LocalVolumeId{2});
-    VolumeView vol_c = this->make_volume_view(LocalVolumeId{3});
-    VolumeView vol_e = this->make_volume_view(LocalVolumeId{5});
+    LocalVolumeView vol_b = this->make_volume_view(LocalVolumeId{2});
+    LocalVolumeView vol_c = this->make_volume_view(LocalVolumeId{3});
+    LocalVolumeView vol_e = this->make_volume_view(LocalVolumeId{5});
 
     {
         // Point is in the inner sphere

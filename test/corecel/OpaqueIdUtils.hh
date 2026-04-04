@@ -11,6 +11,7 @@
 
 #include "corecel/OpaqueId.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/LdgIterator.hh"
 
 namespace celeritas
 {
@@ -44,6 +45,16 @@ inline auto id_to_int(Span<OpaqueId<I, T> const> vals)
         result.push_back(id_to_int(val));
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a vector of opaque IDs for easier testing.
+ */
+template<class I, class T>
+inline auto id_to_int(LdgSpan<OpaqueId<I, T> const> vals)
+{
+    return id_to_int(Span<OpaqueId<I, T> const>(vals));
 }
 
 //---------------------------------------------------------------------------//

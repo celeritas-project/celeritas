@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "NonuniformGridBuilder.hh"
 
-#include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "detail/GridUtils.hh"
 

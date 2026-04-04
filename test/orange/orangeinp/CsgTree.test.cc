@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/CsgTree.hh"
 
-#include "corecel/io/StreamToString.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "CsgTestUtils.hh"
 #include "celeritas_test.hh"

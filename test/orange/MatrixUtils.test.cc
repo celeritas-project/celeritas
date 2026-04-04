@@ -8,6 +8,7 @@
 
 #include <cmath>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
 
 #include "celeritas_test.hh"
@@ -20,7 +21,7 @@ namespace test
 class MatrixUtilsTest : public Test
 {
   public:
-    template<class T, size_type N>
+    template<class T, std::size_t N>
     std::vector<T> flattened(SquareMatrix<T, N> const& inp) const
     {
         std::vector<T> result;

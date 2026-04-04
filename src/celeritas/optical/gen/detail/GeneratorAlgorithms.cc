@@ -8,6 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/WavelengthShiftData.hh"
+
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
@@ -21,11 +24,12 @@ namespace detail
  *
  * \return Total accumulated value
  */
-size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
-    ItemsRef<size_type, MemSpace::host> const& offsets,
-    size_type size,
-    StreamId)
+template<class T>
+size_type
+inclusive_scan_photons(ItemsRef<T, MemSpace::host> const& buffer,
+                       ItemsRef<size_type, MemSpace::host> const& offsets,
+                       size_type size,
+                       StreamId)
 {
     CELER_EXPECT(!buffer.empty());
     CELER_EXPECT(size > 0 && size <= buffer.size());
@@ -38,13 +42,28 @@ size_type inclusive_scan_photons(
     auto* const stop = data + size;
     for (; data != stop; ++data)
     {
-        acc += data->num_photons;
+        acc += GetNumPhotons<T>{}(*data);
         *result++ = acc;
     }
 
     // Return the final value
     return acc;
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template size_type inclusive_scan_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+    ItemsRef<size_type, MemSpace::host> const&,
+    size_type,
+    StreamId);
+template size_type
+inclusive_scan_photons(ItemsRef<WlsDistributionData, MemSpace::host> const&,
+                       ItemsRef<size_type, MemSpace::host> const&,
+                       size_type,
+                       StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

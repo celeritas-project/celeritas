@@ -13,6 +13,9 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
+#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/optical/MaterialParams.hh"
 #include "celeritas/optical/TrackInitializer.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
@@ -31,6 +34,9 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+using celeritas::inp::Grid;
+using celeritas::inp::NormalDistribution;
+using celeritas::inp::SpectrumArgument;
 using celeritas::test::from_cm;
 using celeritas::test::to_cm;
 using TimeSecond = celeritas::RealQuantity<celeritas::units::Second>;
@@ -49,7 +55,6 @@ class ScintillationTestBase : public ::celeritas::test::OpticalTestBase
     using MevEnergy = units::MevEnergy;
     using LightSpeed = units::LightSpeed;
     using SPParams = std::shared_ptr<ScintillationParams>;
-    using VecScintComponents = std::vector<ImportScintComponent>;
     //!@}
 
   protected:
@@ -82,31 +87,54 @@ class MaterialScintillationGaussianTest : public ScintillationTestBase
     //! Create scintillation params
     SPParams build_scintillation_params() override
     {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One material, three components
-        ImportMaterialScintSpectrum mat_spec;
-        mat_spec.yield_per_energy = 5;
-        mat_spec.components = this->build_material_components();
-        inp.materials.push_back(std::move(mat_spec));
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create material components
-    std::vector<ImportScintComponent> build_material_components()
-    {
         static constexpr real_type nm{units::meter * 1e-9};
         static constexpr real_type ns{units::nanosecond};
 
-        // Note second component has zero rise time
-        std::vector<ImportScintComponent> comps;
-        comps.push_back({0.5, 10 * ns, 6 * ns, {100 * nm, 5 * nm}, {}});
-        comps.push_back({0.3, 0, 1500 * ns, {200 * nm, 10 * nm}, {}});
-        comps.push_back({0.2, 10 * ns, 3000 * ns, {400 * nm, 20 * nm}, {}});
+        // Build optical material params with minimal refractive index
+        optical::MaterialParams::Input mat_input;
+        ImportOpticalProperty prop;
+        // Simple refractive index: n=1.5 across visible spectrum [1-5 eV]
+        prop.refractive_index.x = {1.0, 5.0};
+        prop.refractive_index.y = {1.5, 1.5};
+        mat_input.properties.push_back(prop);
+        mat_input.volume_to_mat = {OptMatId{0}};
+        mat_input.optical_to_core = {PhysMatId{0}};
+        auto optical_mat
+            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
 
-        return comps;
+        // Build scintillation process with three components
+        // Total yield: 2.5 + 1.5 + 1.0 = 5.0 photons/MeV
+        inp::ScintillationProcess process;
+        inp::ScintillationMaterial scint_mat;
+        scint_mat.resolution_scale = 1.0;
+
+        inp::ScintillationSpectrum comp1;
+        comp1.yield = 2.5;  // 50% of total (was yield_frac=0.5 with total=5)
+        comp1.rise_time = 10 * ns;
+        comp1.fall_time = 6 * ns;
+        comp1.spectrum_distribution = NormalDistribution{100 * nm, 5 * nm};
+        comp1.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp1);
+
+        inp::ScintillationSpectrum comp2;
+        comp2.yield = 1.5;  // 30% of total (was yield_frac=0.3 with total=5)
+        comp2.rise_time = 0;
+        comp2.fall_time = 1500 * ns;
+        comp2.spectrum_distribution = NormalDistribution{200 * nm, 10 * nm};
+        comp2.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp2);
+
+        inp::ScintillationSpectrum comp3;
+        comp3.yield = 1.0;  // 20% of total (was yield_frac=0.2 with total=5)
+        comp3.rise_time = 10 * ns;
+        comp3.fall_time = 3000 * ns;
+        comp3.spectrum_distribution = NormalDistribution{400 * nm, 20 * nm};
+        comp3.spectrum_argument = SpectrumArgument::wavelength;
+        scint_mat.components.push_back(comp3);
+
+        process.materials[OptMatId{0}] = scint_mat;
+
+        return std::make_shared<ScintillationParams>(*optical_mat, process);
     }
 };
 
@@ -116,29 +144,37 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
     //! Create scintillation params
     SPParams build_scintillation_params() override
     {
-        ScintillationParams::Input inp;
-        inp.resolution_scale.push_back(1);
-
-        // One material, three components
-        ImportMaterialScintSpectrum mat_spec;
-        mat_spec.yield_per_energy = 5;
-        mat_spec.components = this->build_material_components();
-        inp.materials.push_back(std::move(mat_spec));
-
-        return std::make_shared<ScintillationParams>(std::move(inp));
-    }
-
-    //! Create material components
-    std::vector<ImportScintComponent> build_material_components()
-    {
         static constexpr real_type ns{units::nanosecond};
 
-        // Note these components are in tabular form
-        std::vector<ImportScintComponent> comps;
-        comps.push_back(
-            {0.2, 10 * ns, 1500 * ns, {}, {{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}}});
+        // Build optical material params with minimal refractive index
+        optical::MaterialParams::Input mat_input;
+        ImportOpticalProperty prop;
+        // Simple refractive index: n=1.5 across visible spectrum [1-5 eV]
+        prop.refractive_index.x = {1.0, 5.0};
+        prop.refractive_index.y = {1.5, 1.5};
+        mat_input.properties.push_back(prop);
+        mat_input.volume_to_mat = {OptMatId{0}};
+        mat_input.optical_to_core = {PhysMatId{0}};
+        auto optical_mat
+            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
 
-        return comps;
+        // Build scintillation process with tabular spectrum
+        inp::ScintillationProcess process;
+        inp::ScintillationMaterial scint_mat;
+        scint_mat.resolution_scale = 1.0;
+
+        inp::ScintillationSpectrum comp;
+        comp.yield = 1.0;  // Total 1.0 photons/MeV (was yield_frac=0.2 with
+                           // total=5)
+        comp.rise_time = 10 * ns;
+        comp.fall_time = 1500 * ns;
+        comp.spectrum_distribution = Grid{{1.0, 2.0, 3.0}, {0.5, 0.3, 0.2}};
+        comp.spectrum_argument = SpectrumArgument::energy;
+        scint_mat.components.push_back(comp);
+
+        process.materials[OptMatId{0}] = scint_mat;
+
+        return std::make_shared<ScintillationParams>(*optical_mat, process);
     }
 };
 
@@ -148,51 +184,48 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
 
 TEST_F(MaterialScintillationGaussianTest, data)
 {
+    static constexpr real_type nm{units::meter * 1e-9};
+    static constexpr real_type ns{units::nanosecond};
+
     auto const params = this->build_scintillation_params();
     EXPECT_FALSE(params->is_geant_compatible());
     auto const& data = params->host_ref();
 
-    EXPECT_EQ(1, data.materials.size());
+    EXPECT_EQ(1, data.spectra.size());
 
-    auto const& mat_record = data.materials[opt_mat_];
-    EXPECT_REAL_EQ(5, mat_record.yield_per_energy);
+    auto const& s = data.spectra[opt_mat_];
+    // Total yield: 2.5 + 1.5 + 1.0 = 5.0
+    EXPECT_REAL_EQ(5.0, s.yield_per_energy);
     EXPECT_REAL_EQ(1, data.resolution_scale[opt_mat_]);
     EXPECT_EQ(3, data.scint_records.size());
 
     std::vector<real_type> yield_fracs, lambda_means, lambda_sigmas,
         rise_times, fall_times;
-    for (auto comp_idx : range(mat_record.components.size()))
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& comp
-            = data.scint_records[mat_record.components[comp_idx]];
-        yield_fracs.push_back(data.reals[mat_record.yield_pdf[comp_idx]]);
-        lambda_means.push_back(comp.lambda_mean);
-        lambda_sigmas.push_back(comp.lambda_sigma);
-        rise_times.push_back(comp.rise_time);
-        fall_times.push_back(comp.fall_time);
+        ScintDistributionRecord const& comp
+            = data.scint_records[s.components[comp_idx]];
+        yield_fracs.push_back(data.reals[s.yield_pdf[comp_idx]]);
+        lambda_means.push_back(comp.lambda_mean / nm);
+        lambda_sigmas.push_back(comp.lambda_sigma / nm);
+        rise_times.push_back(comp.rise_time / ns);
+        fall_times.push_back(comp.fall_time / ns);
     }
 
-    real_type norm{0};
-    for (auto const& comp : this->build_material_components())
-    {
-        norm += comp.yield_frac;
-    }
-    std::vector<real_type> expected_yield_fracs, expected_lambda_means,
-        expected_lambda_sigmas, expected_rise_times, expected_fall_times;
-    for (auto const& comp : this->build_material_components())
-    {
-        expected_yield_fracs.push_back(comp.yield_frac / norm);
-        expected_lambda_means.push_back(comp.gauss.lambda_mean);
-        expected_lambda_sigmas.push_back(comp.gauss.lambda_sigma);
-        expected_rise_times.push_back(comp.rise_time);
-        expected_fall_times.push_back(comp.fall_time);
-    }
+    // Expected values (O(1) units for testing)
+    double const total_yield = 5.0;
+    static double const expected_yield_fracs[]
+        = {2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
+    static real_type const expected_lambda_means[] = {100, 200, 400};
+    static real_type const expected_lambda_sigmas[] = {5, 10, 20};
+    static real_type const expected_rise_times[] = {10, 0, 10};
+    static real_type const expected_fall_times[] = {6, 1500, 3000};
 
-    EXPECT_VEC_EQ(expected_yield_fracs, yield_fracs);
-    EXPECT_VEC_EQ(expected_lambda_means, lambda_means);
-    EXPECT_VEC_EQ(expected_lambda_sigmas, lambda_sigmas);
-    EXPECT_VEC_EQ(expected_rise_times, rise_times);
-    EXPECT_VEC_EQ(expected_fall_times, fall_times);
+    EXPECT_VEC_SOFT_EQ(expected_yield_fracs, yield_fracs);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_means, lambda_means);
+    EXPECT_VEC_SOFT_EQ(expected_lambda_sigmas, lambda_sigmas);
+    EXPECT_VEC_SOFT_EQ(expected_rise_times, rise_times);
+    EXPECT_VEC_SOFT_EQ(expected_fall_times, fall_times);
 }
 
 //---------------------------------------------------------------------------//
@@ -307,50 +340,50 @@ TEST_F(MaterialScintillationGaussianTest, basic)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        EXPECT_SOFT_EQ(1.8455823106866e-05, avg_lambda);
-        EXPECT_SOFT_EQ(869.57091905169, avg_time);
-        EXPECT_SOFT_EQ(0.023544714177305, avg_cosine);
-        EXPECT_EQ(8250, rng.exchange_count());
+        EXPECT_SOFT_EQ(1.939220574857e-05, avg_lambda);
+        EXPECT_SOFT_EQ(1143.994787854, avg_time);
+        EXPECT_SOFT_EQ(0.00023285021811913, avg_cosine);
+        EXPECT_EQ(8992, rng.exchange_count());
 
         static double const expected_energy[] = {
             6.1650902874689e-06,
-            5.3609823654525e-06,
-            1.1892383769681e-05,
+            1.2359597158853e-05,
             6.0546751413336e-06,
-            1.3582229285385e-05,
-            6.1392669704928e-06,
-            3.1773246015197e-06,
-            2.9038196053521e-06,
+            5.8329374922145e-06,
+            3.2255409151959e-06,
+            3.0888032280851e-06,
+            1.2486685087625e-05,
+            6.4735856383819e-06,
         };
         static double const expected_time[] = {
-            3312.8806914137,
-            338.64626300081,
-            10.532092321203,
-            404.28257965362,
-            35.26357244485,
-            295.4003690722,
-            4407.0565774611,
-            138.14745536841,
+            338.28022906717,
+            10.527016296506,
+            1068.2865021538,
+            346.09571919691,
+            1666.7247712873,
+            5534.4360660306,
+            16.241055894704,
+            1358.7806326338,
         };
         static double const expected_cos_theta[] = {
             0.99292265109602,
-            -0.77507096788764,
-            -0.20252296017542,
+            0.27952671419631,
             -0.70177204718526,
-            -0.57958185096199,
-            0.14750933319318,
-            -0.15366976713254,
-            -0.97292174666956,
+            -0.89756714842957,
+            -0.99436313487603,
+            0.64168156835022,
+            -0.33510343532344,
+            0.35963958142597,
         };
         static double const expected_polarization_x[] = {
-            -0.48061717648891,
-            0.74609610658139,
-            0.99419460248005,
-            -0.57457399792055,
-            0.5101014413042,
-            0.30947392565286,
-            0.11400602132643,
-            -0.47137697798179,
+            0.98676014710283,
+            -0.53225191336739,
+            0.60041678770806,
+            -0.8766193034968,
+            -0.97032602989238,
+            -0.50785369457567,
+            0.22953263774201,
+            0.61705838755229,
         };
         EXPECT_VEC_SOFT_EQ(expected_energy, energy);
         EXPECT_VEC_SOFT_EQ(expected_time, time);
@@ -399,14 +432,14 @@ TEST_F(MaterialScintillationGaussianTest, time)
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             static double const expected_time[] = {
-                7.3670494614798,
-                10.58035645366,
-                3117.0542454245,
-                4968.1642964938,
-                2.1742646282647,
-                319.54758544355,
-                3.3419800716698,
-                6453.3407764283,
+                32.139021771616,
+                1379.2576287607,
+                204.79482025888,
+                12.517269999399,
+                35.31295179735,
+                295.48239066317,
+                4407.0764816682,
+                138.16011685841,
             };
             EXPECT_VEC_SOFT_EQ(expected_time, time);
         }
@@ -424,14 +457,14 @@ TEST_F(MaterialScintillationGaussianTest, time)
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             static double const expected_time[] = {
-                7.367041567676,
-                10.580348559856,
-                3117.0542375307,
-                4968.1642886,
-                2.1742567344609,
-                319.54757754975,
-                3.341972177866,
-                6453.3407685345,
+                32.139013877813,
+                1379.2576208669,
+                204.79481236507,
+                12.517262105595,
+                35.312943903546,
+                295.48238276936,
+                4407.0764737744,
+                138.16010896461,
             };
             EXPECT_VEC_SOFT_EQ(expected_time, time);
         }
@@ -480,19 +513,18 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
         EXPECT_SOFT_NEAR(
-            20.71518597719,
+            22.6292,
             rng.exchange_count() / static_cast<real_type>(num_photons),
             1e-2);
     }
 
     real_type expected_lambda{0};
 
-    auto const& mat_record = data.materials[result.material];
-    for (auto comp_idx : range(mat_record.components.size()))
+    auto const& s = data.spectra[result.material];
+    for (auto comp_idx : range(s.components.size()))
     {
-        ScintRecord const& component
-            = data.scint_records[mat_record.components[comp_idx]];
-        real_type yield = data.reals[mat_record.yield_pdf[comp_idx]];
+        auto const& component = data.scint_records[s.components[comp_idx]];
+        real_type yield = data.reals[s.yield_pdf[comp_idx]];
         expected_lambda += component.lambda_mean * yield;
     }
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
@@ -507,7 +539,8 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
     // Iterate components and, when an energy CDF is present, construct grid
     for (auto i : range(data.scint_records.size()))
     {
-        auto const& rec = data.scint_records[ItemId<ScintRecord>(i)];
+        auto const& rec
+            = data.scint_records[ItemId<ScintDistributionRecord>(i)];
 
         if (rec.energy_cdf)
         {

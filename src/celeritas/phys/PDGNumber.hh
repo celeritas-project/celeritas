@@ -45,6 +45,26 @@ class PDGNumber
     // Get the PDG value
     inline int get() const;
 
+    //// FRIENDLY OPERATORS ////
+
+    //! Test equality
+    constexpr friend bool operator==(PDGNumber lhs, PDGNumber rhs)
+    {
+        return lhs.unchecked_get() == rhs.unchecked_get();
+    }
+
+    //! Test inequality
+    constexpr friend bool operator!=(PDGNumber lhs, PDGNumber rhs)
+    {
+        return !(lhs == rhs);
+    }
+
+    //! Allow less-than comparison for sorting
+    constexpr friend bool operator<(PDGNumber lhs, PDGNumber rhs)
+    {
+        return lhs.unchecked_get() < rhs.unchecked_get();
+    }
+
   private:
     int value_{0};
 };
@@ -59,27 +79,6 @@ inline int PDGNumber::get() const
 {
     CELER_ENSURE(*this);
     return value_;
-}
-
-//---------------------------------------------------------------------------//
-// COMPARATORS
-//---------------------------------------------------------------------------//
-//! Test equality
-inline constexpr bool operator==(PDGNumber lhs, PDGNumber rhs)
-{
-    return lhs.unchecked_get() == rhs.unchecked_get();
-}
-
-//! Test inequality
-inline constexpr bool operator!=(PDGNumber lhs, PDGNumber rhs)
-{
-    return !(lhs == rhs);
-}
-
-//! Allow less-than comparison for sorting
-inline constexpr bool operator<(PDGNumber lhs, PDGNumber rhs)
-{
-    return lhs.unchecked_get() < rhs.unchecked_get();
 }
 
 /*!
@@ -123,7 +122,7 @@ CELER_DEFINE_PDGNUMBER(tau_plus, -15)
 // Gauge bosons
 CELER_DEFINE_PDGNUMBER(gamma, 22)
 
-// Codes 81–100 are reserved for generator-specific pseudoparticles
+// Codes 81-100 are reserved for generator-specific pseudoparticles
 CELER_DEFINE_PDGNUMBER(ion, 90)
 
 // Light mesons

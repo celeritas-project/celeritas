@@ -55,6 +55,12 @@ struct CoreStateCounters
     //! \name Set by CUDA CUB when partitioning the tracks, unused by celeritas
     size_type num_neutral{0};  //!< Number of neutral tracks
     //!@}
+
+    //!@{
+    //! \name Atomically incremented during stepping
+    size_type num_cut{0};  //!< Number of tracks killed by tracking cuts
+    size_type num_errored{0};  //!< Number of tracks killed due to errors
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

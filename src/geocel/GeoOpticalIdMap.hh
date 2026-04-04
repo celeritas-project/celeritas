@@ -10,10 +10,14 @@
 #include <G4MaterialTable.hh>
 
 #include "geocel/Types.hh"
-#include "celeritas/Types.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+
+//! Opaque index to a material with optical properties
+using OptMatId = OpaqueId<struct OpticalMaterial_, unsigned int>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct optical material IDs and map from a geometry material ID.
@@ -27,6 +31,8 @@ namespace celeritas
  * \todo Use GeantGeoParams (or an upcoming GeantModel) to translate geometry
  * IDs: the G4Material's "index" can be offset from the GeantGeoParams material
  * if the geometry has been reloaded.
+ *
+ * \todo This class is a physics-specific mapping and should live in celeritas
  */
 class GeoOpticalIdMap
 {

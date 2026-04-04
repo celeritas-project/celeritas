@@ -22,15 +22,17 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Helper class used by \c GeantSurfacePhysicsLoader .
+ * Helper class to load optical surface properties.
+ *
+ * Used by \c GeantSurfacePhysicsLoader .
  */
 class GeantSurfacePhysicsHelper
 {
   public:
     // Construct with SurfaceId; this expects a valid GeantGeoParams
-    GeantSurfacePhysicsHelper(SurfaceId sid);
+    explicit GeantSurfacePhysicsHelper(SurfaceId sid);
 
-    //! True if this helper is fully constructed and valid
+    //! True if optical surface properties are attached
     explicit operator bool() const { return surface_ != nullptr; }
 
     // Get optical surface id

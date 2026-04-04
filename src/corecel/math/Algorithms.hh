@@ -14,8 +14,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
-#include "NumericLimits.hh"
-
 #include "detail/AlgorithmsImpl.hh"
 
 #if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)

@@ -49,7 +49,7 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(params);
     CELER_EXPECT(state);
 
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
     // Create view to new track to be initialized
     CoreTrackView vacancy(*params, *state, [&] {
         TrackSlotId idx{

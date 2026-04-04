@@ -3,16 +3,23 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/VolumeParams.hh
+//! \sa test/geocel/Volume.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <iosfwd>
 #include <memory>
-#include <vector>
 
+#include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/ParamsDataInterface.hh"
+#include "corecel/data/ParamsDataStore.hh"
 
+#include "AllVolumesView.hh"
 #include "Types.hh"
+#include "VolumeData.hh"
+#include "VolumeView.hh"
 
 namespace celeritas
 {
@@ -34,21 +41,24 @@ struct Volumes;
  * state. The \em root of the graph is the world volume, and the \em level of a
  * volume in the path is the distance to the root: zero for the root volume,
  * one for its direct child, etc. The maximum value of the level in any path is
- * one less than \c num_volume_levels : an array of \c VolumeId with that size
- * can represent any path.
+ * one less than \c num_volume_levels : an array of \c VolumeInstanceId with
+ * that size can represent any path. (When explicitly constructing this array,
+ * we omit the world volume since it is implicit.) The total number of paths to
+ * any node in the geometry is \c num_unique_instances .
  *
  * In conjunction with \c GeantGeoParams, this class allows conversion between
  * the Celeritas geometry implementation and the Geant4 geometry navigation.
  *
+ * Label-based lookup (volume and volume instance names) is provided through
+ * the \c volume_labels and \c volume_instance_labels accessors. Graph
+ * properties (material, connectivity, world) are stored in the underlying
+ * \c VolumeParamsData and accessed efficiently via \c VolumeView.
+ *
  * \internal Construction requirements:
  * - At least one volume must be defined.
  * - Material IDs are allowed to be null for testing purposes.
- *
- * \todo We should be able to easily move the ID-related methods to a
- * GPU-friendly view rather than just this metadata class. It's not needed at
- * the moment though.
  */
-class VolumeParams
+class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
 {
   public:
     //!@{
@@ -73,53 +83,71 @@ class VolumeParams
     // Construct empty volume params for unit testing: no volumes
     VolumeParams();
 
+    CELER_DEFAULT_MOVE_DELETE_COPY(VolumeParams);
+
     //! Empty if no volumes are present (e.g., ORANGE debugging)
     bool empty() const { return v_labels_.empty(); }
 
     //! World volume
-    VolumeId world() const { return world_; }
+    VolumeId world() const { return this->view().world(); }
 
-    //! Depth of the volume DAG (a world without children is 1)
-    vol_level_uint num_volume_levels() const { return num_volume_levels_; }
+    // Enclosing instance of the world volume (null if world is a true root)
+    inline VolumeInstanceId world_instance() const;
 
-    //! Number of volumes
-    VolumeId::size_type num_volumes() const { return v_labels_.size(); }
+    // Number of volumes
+    inline VolumeId::size_type num_volumes() const;
 
-    //! Number of volume instances
-    VolumeInstanceId::size_type num_volume_instances() const
-    {
-        return vi_labels_.size();
-    }
+    // Number of volume instances
+    inline VolumeInstanceId::size_type num_volume_instances() const;
+
+    // Total number of unique root-to-node paths
+    inline VolumeUniqueInstanceId::size_type num_unique_instances() const;
+
+    // Depth of the volume DAG (a world without children is 1)
+    inline vol_level_uint num_volume_levels() const;
 
     //! Get volume metadata
     VolumeMap const& volume_labels() const { return v_labels_; }
 
-    //! Get volume instance metadata
+    // Get volume instance metadata
     VolInstMap const& volume_instance_labels() const { return vi_labels_; }
 
-    // Find all instances of a volume (incoming edges)
-    inline SpanVolInst parents(VolumeId v_id) const;
+    // Construct view of device-compatible volume data
+    inline AllVolumesView view() const;
 
-    // Get the list of daughter volumes (outgoing edges)
+    // Construct a view for accessing volume properties
+    inline VolumeView get(VolumeId v_id) const;
+
+    // Get the child instance edges from a volume (VolumeAccessor interface)
     inline SpanVolInst children(VolumeId v_id) const;
 
-    // Get the geometry material of a volume
-    inline GeoMatId material(VolumeId v_id) const;
-
-    // Get the volume being instantiated (outgoing node)
+    // Get the volume being instantiated by an instance (VolumeAccessor
+    // interface)
     inline VolumeId volume(VolumeInstanceId vi_id) const;
+
+    // Get the raw unique-instance offset for a volume instance
+    inline VolumeUniqueInstanceId::size_type
+    offset(VolumeInstanceId vi_id) const;
+
+    //!@{
+    //! \deprecated Use \c get instead
+    [[deprecated]] inline SpanVolInst parents(VolumeId v_id) const;
+    [[deprecated]] inline GeoMatId material(VolumeId v_id) const;
+    //!@}
+
+    //!@{
+    //! \name Data interface
+
+    //! Access volume graph data on the host
+    HostRef const& host_ref() const final { return data_.host_ref(); }
+    //! Access volume graph data on the device
+    DeviceRef const& device_ref() const final { return data_.device_ref(); }
+    //!@}
 
   private:
     VolumeMap v_labels_;
     VolInstMap vi_labels_;
-
-    VolumeId world_;
-    vol_level_uint num_volume_levels_{0};
-
-    std::vector<std::vector<VolumeInstanceId>> parents_;
-    std::vector<std::vector<VolumeInstanceId>> children_;
-    std::vector<GeoMatId> materials_;
-    std::vector<VolumeId> volumes_;
+    ParamsDataStore<VolumeParamsData> data_;
 };
 
 //---------------------------------------------------------------------------//
@@ -132,35 +160,85 @@ void global_volumes(std::shared_ptr<VolumeParams const> const&);
 std::weak_ptr<VolumeParams const> const& global_volumes();
 
 //---------------------------------------------------------------------------//
+// FREE FUNCTIONS
+//---------------------------------------------------------------------------//
+// Write volume hierarchy to a stream (defined in IO.json.cc)
+// see scripts/user/volumes-to-dot.py
+std::ostream& operator<<(std::ostream& os, VolumeParams const& vp);
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Find all instances of a volume (incoming edges).
+ * Enclosing instance of the world volume (null if world is a true root).
  */
-auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
+VolumeInstanceId VolumeParams::world_instance() const
 {
-    CELER_EXPECT(v_id < parents_.size());
-    return make_span(parents_[v_id.unchecked_get()]);
+    return this->view().world_instance();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the list of daughter volumes (outgoing edges).
+ * Depth of the volume DAG.
+ */
+CELER_FORCEINLINE auto VolumeParams::num_volumes() const -> VolumeId::size_type
+{
+    return this->view().num_volumes();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of volume instances.
+ */
+auto VolumeParams::num_volume_instances() const -> VolumeInstanceId::size_type
+{
+    return this->view().num_volume_instances();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Total number of unique root-to-node paths (= num_desc of the world volume).
+ */
+auto VolumeParams::num_unique_instances() const
+    -> VolumeUniqueInstanceId::size_type
+{
+    return this->view().num_unique_instances();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Depth of the volume DAG.
+ */
+CELER_FORCEINLINE auto VolumeParams::num_volume_levels() const -> vol_level_uint
+{
+    return this->view().num_volume_levels();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a device-compatible view of all volume data.
+ */
+CELER_FORCEINLINE AllVolumesView VolumeParams::view() const
+{
+    return AllVolumesView{this->host_ref()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a lightweight view for accessing volume properties.
+ */
+CELER_FORCEINLINE VolumeView VolumeParams::get(VolumeId v_id) const
+{
+    return this->view().volume(v_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the child instance edges from a volume.
  */
 auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    CELER_EXPECT(v_id < children_.size());
-    return make_span(children_[v_id.unchecked_get()]);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the geometry material of a volume.
- */
-GeoMatId VolumeParams::material(VolumeId v_id) const
-{
-    CELER_EXPECT(v_id < materials_.size());
-    return materials_[v_id.unchecked_get()];
+    return this->get(v_id).children();
 }
 
 //---------------------------------------------------------------------------//
@@ -169,8 +247,32 @@ GeoMatId VolumeParams::material(VolumeId v_id) const
  */
 VolumeId VolumeParams::volume(VolumeInstanceId vi_id) const
 {
-    CELER_EXPECT(vi_id < volumes_.size());
-    return volumes_[vi_id.unchecked_get()];
+    return this->view().volume_id(vi_id);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the precomputed unique-instance offset for a volume instance.
+ *
+ * This is the sum of \c num_desc(volume(vj)) for all preceding sibling
+ * instances in the same parent volume's children list.
+ */
+auto VolumeParams::offset(VolumeInstanceId vi_id) const
+    -> VolumeUniqueInstanceId::size_type
+{
+    return this->view().offset(vi_id);
+}
+
+//---------------------------------------------------------------------------//
+// DEPRECATED
+//---------------------------------------------------------------------------//
+auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
+{
+    return this->get(v_id).parents();
+}
+GeoMatId VolumeParams::material(VolumeId v_id) const
+{
+    return this->get(v_id).material();
 }
 
 //---------------------------------------------------------------------------//

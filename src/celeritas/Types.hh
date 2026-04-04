@@ -220,7 +220,8 @@ enum class CylAxis
 //---------------------------------------------------------------------------//
 // HELPER STRUCTS
 //---------------------------------------------------------------------------//
-//! Step length and limiting action to take
+//! Step length and limiting action to take (TODO: remove; used only by
+//! PhysicsStepUtils)
 struct StepLimit
 {
     real_type step{};

@@ -28,6 +28,7 @@ class GeneratorRegistry;
 class OutputRegistry;
 class ScintillationParams;
 class SurfaceParams;
+class VolumeParams;
 
 namespace optical
 {
@@ -55,6 +56,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     using SPConstPhysics = std::shared_ptr<PhysicsParams const>;
     using SPConstRng = std::shared_ptr<RngParams const>;
     using SPConstSim = std::shared_ptr<SimParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     using SPConstSurface = std::shared_ptr<SurfaceParams const>;
     using SPConstSurfacePhysics = std::shared_ptr<SurfacePhysicsParams const>;
     using SPConstDetectors = std::shared_ptr<DetectorParams const>;
@@ -74,7 +76,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
         SPGeneratorRegistry gen_reg;
-        SPAuxRegistry aux_reg;  //!< Optional, empty default
+        SPAuxRegistry aux_reg;
 
         // Problem definition and state
         SPConstCoreGeo geometry;
@@ -82,6 +84,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstPhysics physics;
         SPConstRng rng;
         SPConstSim sim;
+        SPConstVolume volume;
         SPConstSurface surface;
         SPConstSurfacePhysics surface_physics;
         SPConstDetectors detectors;
@@ -99,10 +102,10 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
-            return geometry && material && rng && sim && surface
-                   && surface_physics && action_reg && gen_reg && max_streams
-                   && capacity.generators > 0 && capacity.tracks > 0
-                   && capacity.primaries > 0;
+            return geometry && material && rng && sim && volume && surface
+                   && surface_physics && action_reg && aux_reg && gen_reg
+                   && max_streams && capacity.generators > 0
+                   && capacity.tracks > 0 && capacity.primaries > 0;
         }
     };
 
@@ -126,6 +129,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     SPConstPhysics const& physics() const { return input_.physics; }
     SPConstRng const& rng() const { return input_.rng; }
     SPConstSim const& sim() const { return input_.sim; }
+    SPConstVolume const& volume() const { return input_.volume; }
     SPConstSurface const& surface() const { return input_.surface; }
     SPConstSurfacePhysics const& surface_physics() const
     {

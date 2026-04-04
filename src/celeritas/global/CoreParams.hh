@@ -108,7 +108,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
-                   && physics && rng && sim && surface && init && volume
+                   && physics && rng && sim && volume && surface && init
                    && action_reg && output_reg && max_streams;
         }
     };

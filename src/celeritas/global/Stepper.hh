@@ -61,6 +61,8 @@ struct StepperResult
     size_type queued{};  //!< Pending track initializers at end of step
     size_type active{};  //!< Active tracks at start of step
     size_type alive{};  //!< Active and alive at end of step
+    size_type cut{};  //!< Tracks killed by tracking cuts during step
+    size_type errored{};  //!< Tracks killed due to errors during step
 
     //! True if more steps need to be run
     explicit operator bool() const { return queued > 0 || alive > 0; }

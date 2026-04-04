@@ -46,9 +46,9 @@ namespace detail
  *
  * The correction factor is described in:
  *
- *   Kim, Longhuan, R. H. Pratt, S. M. Seltzer, and M. J. Berger. “Ratio of
+ *   Kim, Longhuan, R. H. Pratt, S. M. Seltzer, and M. J. Berger. "Ratio of
  *   Positron to Electron Bremsstrahlung Energy Loss: An Approximate Scaling
- *   Law.” Physical Review A 33, no. 5 (May 1, 1986): 3002–9.
+ *   Law." Physical Review A 33, no. 5 (May 1, 1986): 3002-9.
  *   https://doi.org/10.1103/PhysRevA.33.3002.
  */
 class SBPositronXsCorrector

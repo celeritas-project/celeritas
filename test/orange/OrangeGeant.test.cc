@@ -124,6 +124,30 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger(), LogLevel::warning};
+    this->impl().test_reentrant_normal();
+
+    /*** ADD THE FOLLOWING UNIT TEST CODE ***/
+    static char const* const expected_log_messages[] = {
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    /*** END CODE ***/
+}
+
+TEST_F(FourLevelsTest, DISABLED_safety)
+{
+    this->impl().test_safety();
+}
+
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;

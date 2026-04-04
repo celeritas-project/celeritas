@@ -203,7 +203,8 @@ Label descriptions
 
 The labels_ used in Celeritas GitHub pull requests and issues have specific
 meanings. There should be one "change type" and one "category" selected. A few
-special labels ("backport", "performance") can also be added when appropriate.
+special labels ("backport", "performance", "ai-assisted") can also be added
+when appropriate.
 
 .. _labels: https://github.com/celeritas-project/celeritas/labels
 
@@ -259,6 +260,22 @@ Physics
 User
    hits and track diagnostics (i.e., extracting data from tracks running on the
    GPU).
+
+Special
+"""""""
+
+These labels can be added in addition to change type and category.
+
+Backport
+   This change should be backported to a previous release branch.
+
+Performance
+   This change is designed to improve simulation throughput.
+
+AI-assisted
+   This pull request contains substantial code additions or changes performed
+   by AI agents. See the :ref:`ai-assisted code <ai_assisted>` requirements in
+   the contributing guide.
 
 
 Approving

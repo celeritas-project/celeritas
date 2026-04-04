@@ -7,8 +7,8 @@
 #include "RangeGridCalculator.hh"
 
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 
 #include "UniformLogGridCalculator.hh"
 

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/interactor/WavelengthShiftGenerator.hh
+//! \file celeritas/optical/gen/WavelengthShiftGenerator.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -102,7 +102,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     // https://github.com/celeritas-project/celeritas/pull/1507/files#r1844973621
     NonuniformGridCalculator calc_energy = calc_cdf_.make_inverse();
     real_type energy = calc_energy(generate_canonical(rng));
-    if (CELER_UNLIKELY(energy > value_as<Energy>(distribution_.energy)))
+    if (CELER_UNLIKELY(energy >= value_as<Energy>(distribution_.energy)))
     {
         // Sample a restricted energy below the incident photon energy
         real_type cdf_max = calc_cdf_(value_as<Energy>(distribution_.energy));
@@ -117,7 +117,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
 
     // Sample the emitted photon (incoherent) direction and polarization
     result.direction = IsotropicDistribution{}(rng);
-    result.polarization = ExitingDirectionSampler{0, result.direction}(rng);
+    result.polarization = TransversePolarizationSampler{result.direction}(rng);
 
     // Sample the delta time (based on the exponential relaxation)
     result.time
@@ -127,8 +127,6 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
                  : ExponentialDistribution(real_type{1} / time_constant_)(rng));
     result.primary = distribution_.primary;
 
-    CELER_ENSURE(is_soft_unit_vector(result.polarization));
-    CELER_ENSURE(is_soft_orthogonal(result.direction, result.polarization));
     return result;
 }
 

@@ -38,20 +38,12 @@ class MieTest : public InteractorHostBase, public OpticalMockTestBase
   protected:
     using HostDataCRef = HostCRef<MieData>;
 
-    void SetUp() override {}
-
-    void build_model()
+    void SetUp() override
     {
-        auto const& data = this->imported_data();
-        MieModel::Input input;
-        input.data.resize(data.optical_materials.size());
-        for (auto&& [opt_mat_id, mie] : data.optical_physics.bulk.mie.materials)
-        {
-            input.data[opt_mat_id.get()] = mie;
-        }
-
-        auto models = ImportedModels::from_import(data);
-        model_ = std::make_shared<MieModel const>(ActionId{0}, models, input);
+        model_ = std::make_shared<MieModel const>(
+            ActionId{0},
+            this->imported_data().optical_physics.bulk.mie,
+            this->optical_material());
         data_ = model_->host_ref();
     }
 
@@ -67,8 +59,6 @@ class MieTest : public InteractorHostBase, public OpticalMockTestBase
 
 TEST_F(MieTest, mie_params)
 {
-    this->build_model();
-
     // Test the material properties of mie scattering parameters
     MieMaterialData mie_record = data_.mie_record[material_id_];
     EXPECT_SOFT_EQ(0.99, mie_record.forward_g);
@@ -79,8 +69,6 @@ TEST_F(MieTest, mie_params)
 TEST_F(MieTest, mie_basic)
 {
     int const num_samples = 4;
-
-    this->build_model();
 
     MieInteractor interact(
         data_, this->particle_track(), direction_, material_id_);
@@ -128,9 +116,7 @@ TEST_F(MieTest, mfp)
 {
     OwningGridAccessor storage;
 
-    this->build_model();
     auto builder = storage.create_mfp_builder();
-
     for (auto mat : range(OptMatId(this->num_optical_materials())))
     {
         model_->build_mfps(mat, builder);
@@ -143,7 +129,6 @@ TEST_F(MieTest, mfp)
 TEST_F(MieTest, stress_test)
 {
     constexpr size_type num_samples = 1'000'000;
-    this->build_model();
     MieInteractor interact(
         data_, this->particle_track(), direction_, material_id_);
 

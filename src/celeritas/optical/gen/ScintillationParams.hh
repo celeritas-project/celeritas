@@ -9,13 +9,16 @@
 #include "corecel/Types.hh"
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/data/ParamsDataStore.hh"
-#include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/inp/OpticalPhysics.hh"
 
 #include "ScintillationData.hh"
 
 namespace celeritas
 {
-struct ImportData;
+namespace optical
+{
+class MaterialParams;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -28,27 +31,9 @@ struct ImportData;
 class ScintillationParams final : public ParamsDataInterface<ScintillationData>
 {
   public:
-    //! Scintillation data for all materials
-    struct Input
-    {
-        std::vector<double> resolution_scale;
-
-        //! Material-only spectra
-        std::vector<ImportMaterialScintSpectrum> materials;
-
-        explicit operator bool() const
-        {
-            return !resolution_scale.empty() && !materials.empty();
-        }
-    };
-
-  public:
-    // Construct with imported data
-    static std::shared_ptr<ScintillationParams>
-    from_import(ImportData const& data);
-
-    // Construct with scintillation components
-    explicit ScintillationParams(Input const& input);
+    // Construct with optical materials and scintillation process data
+    ScintillationParams(optical::MaterialParams const& optical_mat,
+                        inp::ScintillationProcess const& process);
 
     // Whether any celeritas-only features are present
     bool is_geant_compatible() const;

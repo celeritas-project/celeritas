@@ -41,31 +41,37 @@
     <volume name="center_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Water"/>
-  </volume>
+    </volume>
 
     <volume name="top_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="y-detectors"/>
     </volume>
     <volume name="bottom_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="y-detectors"/>
     </volume>
     <volume name="left_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="x-detectors"/>
     </volume>
     <volume name="right_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="x-detectors"/>
     </volume>
     <volume name="front_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="z-detectors"/>
     </volume>
     <volume name="rear_box">
       <solidref ref="voxel_box"/>
       <materialref ref="Vacuum"/>
+      <auxiliary auxtype="SensDet" auxvalue="z-detectors"/>
     </volume>
 
     <volume name="world">

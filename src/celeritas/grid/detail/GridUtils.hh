@@ -11,8 +11,8 @@
 #include "corecel/data/DedupeCollectionBuilder.hh"
 #include "corecel/grid/SplineDerivCalculator.hh"
 #include "corecel/inp/Grid.hh"
-#include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 
 namespace celeritas
 {

@@ -132,6 +132,12 @@ Some "secondary extensions" provide additional context:
   guarded by ``#if CELER_USE_DEVICE`` macros then the special extension is not
   necessary.
 
+It is allowable to have a test name different from a class name if it combines
+several closely related classes into a single test.
+As an example, ``PhysicsParams`` and ``PhysicsTrackView`` are both tested in a
+``test/celeritas/Physics.test.cc``.
+When doing this, add the Doxygen decorator ``\sa test/celeritas/Physics.test.cc`` underneath the ``\file`` directive, which helps new developers and AI agents determine where the test lives.
+
 .. _device_compilation:
 
 Device compilation

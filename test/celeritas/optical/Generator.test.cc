@@ -11,9 +11,14 @@
 #include "corecel/Types.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
 #include "geocel/UnitUtils.hh"
+#include "celeritas/Quantities.hh"
+#include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "celeritas_test.hh"
 
@@ -34,17 +39,20 @@ constexpr bool reference_configuration
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
 
-class LArSphereGeneratorTest : public Test
+class GeneratorTestBase : public Test
 {
   public:
     using VecDistribution = std::vector<optical::GeneratorDistributionData>;
 
   public:
+    //! Get an identifying key for the geometry (basename, description, etc)
+    virtual std::string gdml_basename() const = 0;
+
     void SetUp() override
     {
         // Set geometry filename
         osi_.problem.model.geometry
-            = Test::test_data_path("geocel", "lar-sphere.gdml");
+            = Test::test_data_path("geocel", this->gdml_basename() + ".gdml");
 
         // Set per-process state sizes
         osi_.problem.capacity = [] {
@@ -71,6 +79,15 @@ class LArSphereGeneratorTest : public Test
             return opt;
         }();
     }
+
+  protected:
+    inp::OpticalStandaloneInput osi_;
+};
+
+class LArSphereGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "lar-sphere"; }
 
     //! Buffer host distribution data for Cherenkov and scintillation
     VecDistribution make_distributions(size_type count)
@@ -101,9 +118,18 @@ class LArSphereGeneratorTest : public Test
         }
         return result;
     }
+};
 
-  protected:
-    inp::OpticalStandaloneInput osi_;
+class DuneGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "dune-cryostat"; }
+};
+
+class WlsGeneratorTest : public GeneratorTestBase
+{
+  public:
+    std::string gdml_basename() const final { return "wls-slab"; }
 };
 
 //---------------------------------------------------------------------------//
@@ -180,8 +206,6 @@ TEST_F(LArSphereGeneratorTest, offload)
 {
     // Generate Cherenkov and scintillation photons
     osi_.problem.generator = inp::OpticalOffloadGenerator{};
-
-    // Enable Cherenkov and scintillation
     osi_.geant_setup.cherenkov = CherenkovPhysicsOptions{};
     osi_.geant_setup.scintillation = ScintillationPhysicsOptions{};
 
@@ -209,8 +233,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53459, result.counters.steps);
-        EXPECT_EQ(15, result.counters.step_iters);
+        EXPECT_EQ(53439, result.counters.steps);
+        EXPECT_EQ(14, result.counters.step_iters);
     }
 
     // Check accumulated action times
@@ -231,6 +255,122 @@ TEST_F(LArSphereGeneratorTest, offload)
         "optical-surface-stepping",
         "pre-step",
         "tracking-cut",
+    };
+    EXPECT_VEC_EQ(expected_labels, labels);
+}
+
+TEST_F(DuneGeneratorTest, offload)
+{
+    // Generate Cherenkov and scintillation photons
+    osi_.problem.generator = inp::OpticalOffloadGenerator{};
+    osi_.geant_setup.scintillation.emplace();
+
+    // Enable action times
+    osi_.problem.timers.action = true;
+
+    // Create host distributions and copy to generator
+    optical::GeneratorDistributionData gdd;
+    gdd.type = GeneratorType::scintillation;
+    gdd.num_photons = 4096;
+    gdd.primary = PrimaryId{123};
+    gdd.step_length = 2.0 * units::centimeter;
+    gdd.charge = units::ElementaryCharge{-1};
+    gdd.material = OptMatId{0};  // Should be LAr
+    gdd.continuous_edep_fraction = 1.0;
+    gdd.points[StepPoint::pre] = {units::LightSpeed(0.7),
+                                  1e-9 * units::nanosecond,
+                                  from_cm(Real3{-1, -98, 0})};
+    gdd.points[StepPoint::post] = {units::LightSpeed(0.6),
+                                   3e-9 * units::nanosecond,
+                                   from_cm(Real3{1, -98, 0})};
+    CELER_ASSERT(gdd);
+
+    // Construct the runner and transport the single distribution
+    auto result = optical::Runner(std::move(osi_))({&gdd, 1});
+
+    EXPECT_EQ(1, result.counters.flushes);
+    ASSERT_EQ(1, result.counters.generators.size());
+}
+
+TEST_F(WlsGeneratorTest, primary)
+{
+    osi_.geant_setup.wavelength_shifting.emplace();
+    osi_.geant_setup.wavelength_shifting2.emplace();
+    osi_.geant_setup.rayleigh_scattering = true;
+
+    // Create primary generator input
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 65536;
+        gen.energy = inp::MonoenergeticDistribution{9.5e-6};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
+
+    // Set number of track slots
+    osi_.problem.capacity.tracks = 16384;
+    osi_.problem.capacity.generators = 2 * osi_.problem.capacity.tracks;
+
+    // Enable action times
+    osi_.problem.timers.action = true;
+
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    auto result = run();
+
+    if (reference_configuration)
+    {
+        EXPECT_EQ(221248, result.counters.steps);
+        EXPECT_EQ(20, result.counters.step_iters);
+    }
+    EXPECT_EQ(1, result.counters.flushes);
+    ASSERT_EQ(2, result.counters.generators.size());
+
+    {
+        GeneratorId gen_id(0);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("optical-wls-generate",
+                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ(0, gen.buffer_size);
+        EXPECT_EQ(0, gen.num_pending);
+        if (reference_configuration)
+        {
+            EXPECT_EQ(155575, gen.num_generated);
+        }
+    }
+    {
+        GeneratorId gen_id(1);
+        auto const& gen = result.counters.generators[gen_id.get()];
+        EXPECT_EQ("primary-generate",
+                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ(0, gen.buffer_size);
+        EXPECT_EQ(0, gen.num_pending);
+        EXPECT_EQ(65536, gen.num_generated);
+    }
+
+    // Check accumulated action times
+    std::set<std::string> labels;
+    for (auto const& [label, time] : result.action_times)
+    {
+        labels.insert(label);
+        EXPECT_GT(time, 0);
+    }
+    static std::string const expected_labels[] = {
+        "absorption",
+        "along-step",
+        "locate-vacancies",
+        "optical-boundary-init",
+        "optical-boundary-post",
+        "optical-discrete-select",
+        "optical-rayleigh",
+        "optical-surface-stepping",
+        "optical-wls-generate",
+        "pre-step",
+        "primary-generate",
+        "tracking-cut",
+        "wls",
+        "wls2",
     };
     EXPECT_VEC_EQ(expected_labels, labels);
 }

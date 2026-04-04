@@ -80,6 +80,8 @@ struct TransporterResult
     size_type num_tracks{};  //!< Total number of tracks
     size_type num_aborted{};  //!< Number of unconverged tracks
     size_type max_queued{};  //!< Maximum track initializer count
+    size_type num_cut{};  //!< Tracks killed by tracking cuts
+    size_type num_errored{};  //!< Tracks killed due to errors
 
     // Optical photons
     CounterAccumStats num_optical;

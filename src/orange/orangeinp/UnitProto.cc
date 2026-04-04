@@ -391,7 +391,7 @@ void UnitProto::build(ProtoBuilder& pb) const
          */
         if (has_internal_surfaces(node_id))
         {
-            vi.flags |= VolumeRecord::internal_surfaces;
+            vi.flags |= LocalVolumeRecord::internal_surfaces;
         }
 
         vi.zorder = ZOrder::media;
@@ -403,7 +403,7 @@ void UnitProto::build(ProtoBuilder& pb) const
         // Background volume input is filled in by UnitInserter
         VolumeInput vi;
         vi.zorder = ZOrder::background;
-        vi.flags = VolumeRecord::implicit_vol;
+        vi.flags = LocalVolumeRecord::implicit_vol;
         CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
@@ -444,7 +444,7 @@ void UnitProto::build(ProtoBuilder& pb) const
     if (!pb.is_global_universe())
     {
         vol_iter->zorder = ZOrder::implicit_exterior;
-        vol_iter->flags |= VolumeRecord::implicit_vol;
+        vol_iter->flags |= LocalVolumeRecord::implicit_vol;
     }
     else
     {

@@ -32,7 +32,7 @@ class BoundingBox;
 using fast_real_type = float;
 
 //! Integer type for volume CSG tree representation
-using logic_int = size_type;
+using logic_int = ImplSurfaceId::size_type;
 
 //! Integer type for canonical volume level
 using vol_level_uint = VolumeLevelId::size_type;
@@ -62,10 +62,10 @@ using FastBBoxId = OpaqueId<FastBBox>;
 using FastReal3 = Array<float, 3>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_, ImplSurfaceId::size_type>;
 
 //! Local identifier for an ImplVolume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume_>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_, ImplVolumeId::size_type>;
 
 //! Identifier for an OrientedBoundingZone
 using OrientedBoundingZoneId = OpaqueId<struct OrientedBoundingZoneRecord>;
@@ -217,23 +217,6 @@ enum class SurfaceState : bool
 
 //---------------------------------------------------------------------------//
 /*!
- * When crossing a boundary, whether the track is entering or exiting the
- * current boundary.
- *
- * After moving to a boundary, the track is considered `entering` the boundary.
- * Changing direction while on a boundary will change whether the track is
- * `entering` or `exiting` relative to the surface normal. When
- * `cross_boundary` is called, the track is only relocated to the new volume if
- * it is `entering` the boundary, after which it is considered `exiting`.
- */
-enum class BoundaryResult : bool
-{
-    entering,
-    exiting
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Chirality of a twirly object (currently only Involute).
  */
 enum class Chirality : bool
@@ -376,16 +359,6 @@ extern template struct Tolerance<double>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
-//---------------------------------------------------------------------------//
-/*!
- * Change whether a boundary crossing is reentrant or exiting.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION BoundaryResult
-flip_boundary(BoundaryResult orig)
-{
-    return static_cast<BoundaryResult>(!static_cast<bool>(orig));
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Sentinel value indicating "no intersection".

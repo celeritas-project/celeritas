@@ -14,7 +14,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
-#include "celeritas/Constants.hh"
 
 #include "GenerateCanonical.hh"
 

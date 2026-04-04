@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/sys/Environment.hh"
 

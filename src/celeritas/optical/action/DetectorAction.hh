@@ -36,7 +36,7 @@ class DetectorAction final : public OpticalStepActionInterface,
   public:
     //!@{
     //! \name Type aliases
-    using CallbackFunc = typename inp::OpticalDetector::HitCallbackFunc;
+    using CallbackFunc = inp::OpticalDetector::HitCallbackFunc;
     //!@}
 
   public:

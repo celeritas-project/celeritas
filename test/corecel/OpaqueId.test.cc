@@ -61,10 +61,25 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_EQ(assigned, assigned);
     EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));
 
-    EXPECT_EQ(10, Id_t{22} - Id_t{12});
+    EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
+    EXPECT_TRUE(Id_t{22} < 23u);
+    EXPECT_TRUE(Id_t{23} > Id_t{22});
+    EXPECT_TRUE(Id_t{23} >= Id_t{22});
+    EXPECT_TRUE(Id_t{22} <= Id_t{23});
+    EXPECT_TRUE(Id_t{22} <= 23u);
+
+    EXPECT_FALSE(Id_t{23} <= Id_t{22});
+    EXPECT_FALSE(Id_t{23} < Id_t{22});
+    EXPECT_FALSE(Id_t{22} > Id_t{23});
+    EXPECT_FALSE(Id_t{22} >= Id_t{23});
+    EXPECT_FALSE(Id_t{23} <= Id_t{22});
+
+    EXPECT_EQ(10, Id_t{22} - Id_t{12});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
     EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
+    EXPECT_EQ(Id_t{24}, Id_t{22} + std::size_t(2));
+    EXPECT_EQ(Id_t{20}, Id_t{22} + std::ptrdiff_t(-2));
     EXPECT_EQ(Id_t{24}, Id_t{22} - (-2));
     EXPECT_EQ(Id_t{22}, Id_t{22} + 0);
     EXPECT_EQ(Id_t{22}, Id_t{22} - 0);
@@ -88,6 +103,9 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
+
+    EXPECT_EQ("{1}", stream_to_string(Id_t{1}));
+    EXPECT_EQ("{}", stream_to_string(Id_t{}));
 }
 
 TEST(OpaqueIdTest, multi_int)
@@ -97,7 +115,7 @@ TEST(OpaqueIdTest, multi_int)
     using limits_t = std::numeric_limits<Uint32>;
 
     // Unassigned is always out-of-range
-    EXPECT_FALSE(UId8{} < 0);
+    EXPECT_FALSE(UId8{} < 0u);
     EXPECT_FALSE(UId8{} < Uint32(limits_t::max()));
     EXPECT_FALSE(UId8{} < Uint32(255));
     EXPECT_FALSE(UId8{} < Uint32(256));
