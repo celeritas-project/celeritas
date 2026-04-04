@@ -17,7 +17,6 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
-#include "corecel/sys/Device.hh"
 
 #include "Collection.test.hh"
 #include "celeritas_test.hh"
@@ -285,6 +284,7 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(4, host_val[irange].size());
     EXPECT_EQ(4, host_val[AllInts<host>{}].size());
 
+    // Construct (mutable)
     Ref<host> host_ref(host_val);
     EXPECT_EQ(4, host_ref.size());
     host_ref = {};
@@ -319,7 +319,7 @@ TEST_F(SimpleCollectionTest, accessors)
         EXPECT_EQ(123, *data);
     }
 
-    CRef<host> host_cref{host_val};
+    CRef<host> host_cref{host_ref_cref};
     EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int const&>));
     EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), Span<int const>>));
     EXPECT_TRUE((

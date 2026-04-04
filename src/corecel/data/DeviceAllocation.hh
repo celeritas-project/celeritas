@@ -25,9 +25,6 @@ namespace celeritas
  * to device memory. It allows Storage classes to allocate and manage device
  * memory without using \c thrust, which requires NVCC and propagates that
  * requirement into all downstream code.
- *
- * TODO: remove the stream constructor data members and rely on \c Copier or
- * \c thrust to do streamed async operations?
  */
 class DeviceAllocation
 {

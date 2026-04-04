@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
@@ -39,8 +37,7 @@ namespace celeritas
     myvec.copy_to_host(make_span(hostvec));
    \endcode
  *
- * - TODO: remove stream? it complicates things
- * - TODO: move to detail since this is basically only a backend for Collection
+ * \todo move to detail since this is basically only a backend for Collection
  */
 template<class T>
 class DeviceVector

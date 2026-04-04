@@ -248,6 +248,8 @@ class ItemMap
 //---------------------------------------------------------------------------//
 /*!
  * Sentinel class for obtaining a view to all items of a collection.
+ *
+ * \todo Rename AllItems_t and add inline constexpr instance all_items
  */
 template<class T, MemSpace M = MemSpace::native>
 struct AllItems

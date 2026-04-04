@@ -7,15 +7,11 @@
 #pragma once
 
 #include <type_traits>
-
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
-
-#    include "corecel/data/DeviceVector.hh"
 #endif
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Copier.hh"
@@ -24,7 +20,11 @@
 #include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 
-#include "DisabledStorage.hh"
+#ifdef CELER_DEVICE_COMPILE
+#    include "DisabledStorage.hh"
+#else
+#    include "corecel/data/DeviceVector.hh"
+#endif
 
 namespace celeritas
 {
@@ -75,7 +75,7 @@ template<class T>
 struct CollectionTraits<T, Ownership::value, MemSpace::host>
     : DefaultCollectionTraits<T>
 {
-    static_assert(!std::is_same<T, bool>::value,
+    static_assert(!std::is_same_v<T, bool>,
                   "bool is not compatible between vector and anything else");
 
 #ifdef CELER_DEVICE_COMPILE
@@ -114,7 +114,7 @@ struct CollectionTraits<T, Ownership::value, MemSpace::mapped>
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
 template<Ownership W, class Size, class OtherSize>
-void validate_storage(Size dst, OtherSize src)
+inline void validate_storage(Size dst, OtherSize src)
 {
     if constexpr (W == Ownership::value)
     {
@@ -126,11 +126,15 @@ void validate_storage(Size dst, OtherSize src)
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy assign a collection via its storage.
+ * Copy-assign a collection via its storage.
+ *
+ * Since the copy operation is done only on the default stream, this should
+ * only be performed during setup and during testing. State allocations should
+ * use a separate resize+copy.
  */
 template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
-void copy_collection(Span<T const> src,
-                     typename CollectionTraits<T, DW, DM>::StorageT* dst)
+inline void copy_collection(Span<T const> src,
+                            typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
     using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;
 
@@ -145,22 +149,27 @@ void copy_collection(Span<T const> src,
                        << "device " << celeritas::device().device_id()
                        << " doesn't support unified addressing");
     }
-    if constexpr (DW == Ownership::value && DM == SM)
+    if constexpr (DM == SM)
     {
-        // Allocate and copy at the same time: destination "owns" the memory
-        dst->assign(data, data + size);
-    }
-    else if constexpr (DM == SM)
-    {
-        // Copy pointers in same memspace, prohibiting const violation
-        static_assert(
-            !(SW == Ownership::const_reference && DW == Ownership::reference),
-            "cannot assign from const reference to reference");
+        // Copy/reference within the same memory space
+        if constexpr (DW == Ownership::value)
+        {
+            // Allocate (if necessary) and copy to the new collection
+            dst->assign(data, data + size);
+        }
+        else
+        {
+            // Make span in same memspace, prohibiting const violation
+            static_assert(!(SW == Ownership::const_reference
+                            && DW == Ownership::reference),
+                          "cannot assign from const reference to reference");
 
-        *dst = DstStorageT{data, size};
+            *dst = DstStorageT{data, size};
+        }
     }
     else
     {
+        // Copy from one memspace to another
         if constexpr (DW == Ownership::value)
         {
             // Allocate destination
