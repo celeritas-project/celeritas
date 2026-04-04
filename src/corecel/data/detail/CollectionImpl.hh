@@ -132,7 +132,7 @@ template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
 void copy_collection(Span<T const> src,
                      typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
-    using DstStorageT = CollectionTraits<T, DW, DM>::StorageT;
+    using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;
 
     // Const cast is OK because the only time it's used is when this is called
     // with Ownership::reference and the caller is doing T* -> const T*
