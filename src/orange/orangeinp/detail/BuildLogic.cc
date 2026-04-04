@@ -112,7 +112,7 @@ void BaseLogicBuilder<Impl>::operator()(False const&)
 template<class Impl>
 void BaseLogicBuilder<Impl>::operator()(Surface const& s)
 {
-    CELER_EXPECT(s.id < logic::lbegin);
+    CELER_EXPECT(s.id < static_cast<logic_int>(logic::lbegin));
     // Get index of original surface or remapped
     logic_int sidx = [this, sid = s.id] {
         if (!mapping_)

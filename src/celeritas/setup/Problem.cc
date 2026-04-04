@@ -326,7 +326,10 @@ auto build_optical_params(inp::Problem const& p,
         imported.optical_physics.bulk,
         pi.material,
         core.material(),
-        pi.action_reg);
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.control.optical_capacity->generators);
     pi.rng = core.rng();
     pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     pi.surface = core.surface();
@@ -378,14 +381,20 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.action_reg = std::make_shared<ActionRegistry>();
     pi.output_reg = nullptr;
     pi.gen_reg = std::make_shared<GeneratorRegistry>();
-    pi.aux_reg = nullptr;  // TODO: require instead of building in CP
+    pi.aux_reg = std::make_shared<AuxParamsRegistry>();
 
     // Geometry, materials, physics
     pi.geometry = std::move(loaded_model.geometry);
     pi.material = optical::MaterialParams::from_import(
         imported, *geomaterial, *material);
     pi.physics = std::make_shared<optical::PhysicsParams>(
-        imported.optical_physics.bulk, pi.material, material, pi.action_reg);
+        imported.optical_physics.bulk,
+        pi.material,
+        material,
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.capacity.generators);
     pi.rng = std::make_shared<RngParams>(p.seed);
     pi.sim = std::make_shared<optical::SimParams>(p.limits);
     pi.surface = std::move(loaded_model.surface);

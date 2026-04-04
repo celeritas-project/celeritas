@@ -76,7 +76,7 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPActionRegistry action_reg;
         SPOutputRegistry output_reg;
         SPGeneratorRegistry gen_reg;
-        SPAuxRegistry aux_reg;  //!< Optional, empty default
+        SPAuxRegistry aux_reg;
 
         // Problem definition and state
         SPConstCoreGeo geometry;
@@ -103,9 +103,9 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         explicit operator bool() const
         {
             return geometry && material && rng && sim && volume && surface
-                   && surface_physics && action_reg && gen_reg && max_streams
-                   && capacity.generators > 0 && capacity.tracks > 0
-                   && capacity.primaries > 0;
+                   && surface_physics && action_reg && aux_reg && gen_reg
+                   && max_streams && capacity.generators > 0
+                   && capacity.tracks > 0 && capacity.primaries > 0;
         }
     };
 

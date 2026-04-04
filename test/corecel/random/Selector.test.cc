@@ -100,7 +100,7 @@ TEST_F(SelectorTest, selector_element)
     static double const macro_xs[] = {1.0, 2.0, 4.0};
     std::vector<int> evaluated;
     auto get_xs = [&evaluated](ElementId el) {
-        CELER_EXPECT(el < 3);
+        CELER_EXPECT(el < ElementId{3});
         evaluated.push_back(el.get());
         return macro_xs[el.get()];
     };

@@ -301,7 +301,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             DaughterInput daughter;
             daughter.univ_id = UnivId{daughters[i]};
             daughter.transform = std::move(transforms[i]);
-            value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
+            value.daughter_map.emplace(id_cast<LocalVolumeId>(parent_vols[i]),
                                        std::move(daughter));
         }
     }

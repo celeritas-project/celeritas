@@ -139,6 +139,29 @@ class Array
     }
     //!@}
 
+    //// FRIENDLY OPERATORS ////
+
+    //! Test equality of two arrays
+    template<class U>
+    CELER_CEF friend auto operator==(Array const& lhs, Array<U, N> const& rhs)
+        -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
+    {
+        for (size_type i = 0; i != N; ++i)
+        {
+            if (lhs[i] != rhs[i])
+                return false;
+        }
+        return true;
+    }
+
+    //! Test inequality of two arrays
+    template<class U>
+    CELER_CEF friend auto operator!=(Array const& lhs, Array<U, N> const& rhs)
+        -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
+    {
+        return !(lhs == rhs);
+    }
+
   private:
     T d_[N];  //!< Storage
 };
@@ -155,30 +178,6 @@ CELER_FUNCTION Array(T, Us...)
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Test equality of two arrays.
- */
-template<class T, std::size_t N>
-CELER_CEF bool operator==(Array<T, N> const& lhs, Array<T, N> const& rhs)
-{
-    for (size_type i = 0; i != N; ++i)
-    {
-        if (lhs[i] != rhs[i])
-            return false;
-    }
-    return true;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Test inequality of two arrays.
- */
-template<class T, std::size_t N>
-CELER_CEF bool operator!=(Array<T, N> const& lhs, Array<T, N> const& rhs)
-{
-    return !(lhs == rhs);
-}
 
 #if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//

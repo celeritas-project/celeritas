@@ -20,6 +20,7 @@
 #include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
+#include "celeritas/phys/InteractionUtils.hh"
 
 #include "GeneratorData.hh"
 #include "ScintillationData.hh"
@@ -68,19 +69,8 @@ class ScintillationGenerator
     inline CELER_FUNCTION TrackInitializer operator()(Generator& rng);
 
   private:
-    //// TYPES ////
-
-    using UniformRealDist = UniformRealDistribution<real_type>;
-    using ExponentialDist = ExponentialDistribution<real_type>;
-
-    //// DATA ////
-
     GeneratorDistributionData const& dist_;
     NativeCRef<ScintillationData> const& shared_;
-
-    UniformRealDist sample_cost_;
-    UniformRealDist sample_phi_;
-
     units::LightSpeed delta_speed_{};
     Real3 delta_pos_{};
 };
@@ -95,10 +85,7 @@ CELER_FUNCTION
 ScintillationGenerator::ScintillationGenerator(
     NativeCRef<ScintillationData> const& shared,
     GeneratorDistributionData const& dist)
-    : dist_(dist)
-    , shared_(shared)
-    , sample_cost_(-1, 1)
-    , sample_phi_(0, real_type(2 * constants::pi))
+    : dist_(dist), shared_(shared)
 {
     CELER_EXPECT(dist_);
     CELER_EXPECT(shared_);
@@ -141,8 +128,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         CELER_ASSERT(component.lambda_mean > 0);
         auto wavelength = TruncatedDistribution<NormalDistribution<real_type>>{
             0, inf, component.lambda_mean, component.lambda_sigma}(rng);
-        energy_val = value_as<units::MevEnergy>(
-            detail::wavelength_to_energy(wavelength));
+        energy_val = value_as<Energy>(detail::wavelength_to_energy(wavelength));
     }
     else
     {
@@ -154,31 +140,14 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         energy_val = calc_energy(generate_canonical(rng));
     }
 
-    ExponentialDist sample_time(real_type{1} / component.fall_time);
+    ExponentialDistribution sample_time(real_type{1} / component.fall_time);
 
     TrackInitializer photon;
     photon.energy = Energy{energy_val};
 
-    // Sample direction
-    real_type cost = sample_cost_(rng);
-    real_type phi = sample_phi_(rng);
-    photon.direction = from_spherical(cost, phi);
-
-    // Sample polarization perpendicular to the photon direction
-    photon.polarization = [&] {
-        Real3 pol = from_spherical(
-            (cost > 0 ? -1 : 1) * std::sqrt(1 - ipow<2>(cost)), phi);
-        Real3 perp = {-std::sin(phi), std::cos(phi), 0};
-        real_type sinphi, cosphi;
-        sincospi(UniformRealDist{}(rng), &sinphi, &cosphi);
-        for (auto j : range(3))
-        {
-            pol[j] = cosphi * pol[j] + sinphi * perp[j];
-        }
-        // Enforce orthogonality
-        return make_unit_vector(make_orthogonal(pol, photon.direction));
-    }();
-    CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
+    // Sample the photon direction and polarization perpendicular to direction
+    photon.direction = IsotropicDistribution{}(rng);
+    photon.polarization = TransversePolarizationSampler{photon.direction}(rng);
 
     // Sample the position
     real_type u = [&rng, &p = dist_.continuous_edep_fraction] {
@@ -195,7 +164,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         if (p == 1 || (p != 0 && BernoulliDistribution{p}(rng)))
         {
             // Sample uniformly along the step
-            return UniformRealDist{}(rng);
+            return UniformRealDistribution<real_type>{}(rng);
         }
         // Generate the photon at the discrete interaction site
         return real_type(1);
