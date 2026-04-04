@@ -176,6 +176,12 @@ inline void copy_collection(Span<T const> src,
             *dst = DstStorageT(size);
         }
 
+        if constexpr (!CELER_USE_DEVICE)
+        {
+            // Mark unreachable for optimization and coverage
+            CELER_ASSERT_UNREACHABLE();
+        }
+
         CELER_VALIDATE(dst->size() == size,
                        << "collection assignment from " << to_cstring(SM)
                        << " to " << to_cstring(DM)
