@@ -14,6 +14,7 @@
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
+#include "celeritas/optical/Types.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
 #include "celeritas/optical/surface/SurfacePhysicsTrackView.hh"
 
@@ -25,14 +26,14 @@ namespace celeritas
 namespace optical
 {
 
-std::ostream& operator<<(std::ostream& out, SubsurfaceDirection const& d)
+std::ostream& operator<<(std::ostream& out, LocalDirection const& d)
 {
     switch (d)
     {
-        case SubsurfaceDirection::forward:
+        case LocalDirection::forward:
             out << "forward";
             break;
-        case SubsurfaceDirection::reverse:
+        case LocalDirection::reverse:
             out << "reverse";
             break;
         default:
@@ -48,8 +49,8 @@ using namespace ::celeritas::test;
 template<class T>
 using SurfaceOrderArray = EnumArray<SurfacePhysicsOrder, T>;
 
-auto constexpr forward = SubsurfaceDirection::forward;
-auto constexpr reverse = SubsurfaceDirection::reverse;
+auto constexpr forward = LocalDirection::forward;
+auto constexpr reverse = LocalDirection::reverse;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -71,7 +72,7 @@ struct SurfaceResult
 
 struct TraceResult
 {
-    std::vector<SurfaceTrackPosition> position{};
+    std::vector<LocalPositionId> position{};
 
     SurfaceOrderArray<std::vector<SurfaceModelId>> models;
     SurfaceOrderArray<std::vector<SubModelId>> per_model_ids;
@@ -80,7 +81,7 @@ struct TraceResult
 };
 
 TraceResult trace_directions(SurfacePhysicsTrackView& s_physics,
-                             std::vector<SubsurfaceDirection> const& directions)
+                             std::vector<LocalDirection> const& directions)
 {
     TraceResult result;
 
@@ -234,17 +235,17 @@ TEST_F(SurfacePhysicsTest, init_params)
 
         auto& surface = surfaces[geo_surface.get()];
 
-        for (auto i : range(SurfaceTrackPosition{
-                 surface_record.subsurface_materials.size()}))
+        // Add all interstitial materials
+        for (auto i : range(surface_record.interstitial_mat_ids.size()))
         {
             surface.materials.push_back(
-                data.subsurface_materials[surface_record.subsurface_materials[i]]);
+                data.opt_mat_ids[surface_record.interstitial_mat_ids[i]]);
         }
 
-        for (auto i : range(SurfaceTrackPosition{
-                 surface_record.subsurface_interfaces.size()}))
+        for (auto i :
+             range(LocalSurfaceId{surface_record.local_surface_ids.size()}))
         {
-            auto phys_surface = surface_record.subsurface_interfaces[i];
+            auto phys_surface = surface_record.local_surface_ids[i];
             surface.interfaces.push_back(phys_surface);
 
             for (auto step : range(SurfacePhysicsOrder::size_))
@@ -377,7 +378,7 @@ TEST_F(SurfacePhysicsTest, init_params)
 TEST_F(SurfacePhysicsTest, init_surface_physics_view)
 {
     auto expected_surfaces = as_id_vec<SurfaceId>(0, 1, 2, 2, 0, 1, 0);
-    std::vector<SubsurfaceDirection> expected_orientations{
+    std::vector<LocalDirection> expected_orientations{
         forward,
         forward,
         forward,
@@ -386,7 +387,7 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
         reverse,
         forward,
     };
-    std::vector<size_type> expected_num_positions{5, 3, 2, 2, 5, 3, 5};
+    std::vector<size_type> expected_num_local_mats{5, 3, 2, 2, 5, 3, 5};
 
     auto params = this->optical_surface_physics();
     this->initialize_states(expected_surfaces.size());
@@ -404,15 +405,15 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
 
     // Check initialization
     std::vector<SurfaceId> surfaces;
-    std::vector<SubsurfaceDirection> orientations;
-    std::vector<size_type> num_positions;
+    std::vector<LocalDirection> orientations;
+    std::vector<size_type> num_local_mats;
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
     {
         auto s_physics = this->surface_physics_view(track);
 
         surfaces.push_back(s_physics.surface().surface());
         orientations.push_back(s_physics.surface().orientation());
-        num_positions.push_back(s_physics.traversal().num_positions());
+        num_local_mats.push_back(s_physics.traversal().num_local_pos());
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_TRUE(s_physics.traversal().in_pre_volume());
@@ -422,31 +423,31 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
 
     EXPECT_VEC_EQ(expected_surfaces, surfaces);
     EXPECT_VEC_EQ(expected_orientations, orientations);
-    EXPECT_VEC_EQ(expected_num_positions, num_positions);
+    EXPECT_VEC_EQ(expected_num_local_mats, num_local_mats);
 
     // Check position in post-volume
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
     {
         auto s_physics = this->surface_physics_view(track);
         s_physics.traversal().pos(
-            SurfaceTrackPosition(s_physics.traversal().num_positions() - 1));
+            LocalPositionId(s_physics.traversal().num_local_pos() - 1));
 
         EXPECT_TRUE(s_physics.is_crossing_boundary());
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
-        EXPECT_EQ(expected_num_positions[track.get()] - 1,
+        EXPECT_EQ(expected_num_local_mats[track.get()] - 1,
                   s_physics.traversal().pos().get());
     }
 
     // Check some intermediate positions
-    std::vector<SurfaceTrackPosition> expected_intermediate_positions{
-        SurfaceTrackPosition{2},
-        SurfaceTrackPosition{1},
-        SurfaceTrackPosition{},
-        SurfaceTrackPosition{},
-        SurfaceTrackPosition{3},
-        SurfaceTrackPosition{1},
-        SurfaceTrackPosition{1},
+    std::vector<LocalPositionId> expected_intermediate_positions{
+        LocalPositionId{2},
+        LocalPositionId{1},
+        LocalPositionId{},
+        LocalPositionId{},
+        LocalPositionId{3},
+        LocalPositionId{1},
+        LocalPositionId{1},
     };
 
     for (auto track : range(TrackSlotId(expected_surfaces.size())))
@@ -483,7 +484,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
     {
         // Geometric surface 2 (forward): A | B
         // Path: A -> B
-        std::vector<SubsurfaceDirection> directions{
+        std::vector<LocalDirection> directions{
             forward,
         };
 
@@ -501,7 +502,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1),
                              {
                                  as_id_vec<SurfaceModelId>(0),
                                  as_id_vec<SurfaceModelId>(1),
@@ -538,7 +539,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
     {
         // Geometric surface 2 (reverse): B | A
         // Path: B -> A
-        std::vector<SubsurfaceDirection> directions{
+        std::vector<LocalDirection> directions{
             forward,
         };
 
@@ -556,7 +557,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{as_id_vec<SurfaceTrackPosition>(0, 1),
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1),
                              {
                                  as_id_vec<SurfaceModelId>(0),
                                  as_id_vec<SurfaceModelId>(1),
@@ -593,7 +594,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
     {
         // Geometric surface 0 (forward): A | D | B' | C | B
         // Path: A -> D -> B' -> D -> B' -> C -> B -> C -> B' -> D -> A
-        std::vector<SubsurfaceDirection> directions{
+        std::vector<LocalDirection> directions{
             forward,
             forward,
             reverse,
@@ -621,7 +622,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_post_volume());
 
         TraceResult expected{
-            as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
+            as_id_vec<LocalPositionId>(0, 1, 2, 1, 2, 3, 4, 3, 2, 1, 0),
             {
                 as_id_vec<SurfaceModelId>(0, 0, 0, 0, 1, 2, 2, 1, 0, 0),
                 as_id_vec<SurfaceModelId>(0, 1, 1, 1, 0, 1, 1, 0, 1, 0),
@@ -658,7 +659,7 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
     {
         // Geometric surface 1 (reverse): B | C | A
         // Path: B -> C -> A -> C -> B -> C -> A
-        std::vector<SubsurfaceDirection> directions{
+        std::vector<LocalDirection> directions{
             forward,
             forward,
             reverse,
@@ -681,28 +682,27 @@ TEST_F(SurfacePhysicsTest, traverse_subsurface)
         EXPECT_FALSE(s_physics.traversal().in_pre_volume());
         EXPECT_TRUE(s_physics.traversal().in_post_volume());
 
-        TraceResult expected{
-            as_id_vec<SurfaceTrackPosition>(0, 1, 2, 1, 0, 1, 2),
-            {
-                as_id_vec<SurfaceModelId>(1, 2, 2, 1, 1, 2),
-                as_id_vec<SurfaceModelId>(0, 1, 1, 0, 0, 1),
-                as_id_vec<SurfaceModelId>(0, 0, 0, 0, 0, 0),
-            },
-            {
-                as_id_vec<SubModelId>(1, 1, 1, 1, 1, 1),
-                as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
-                as_id_vec<SubModelId>(5, 4, 4, 5, 5, 4),
-            },
-            {
-                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
-                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
-                as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
-            },
-            {
-                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
-                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
-                as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
-            }};
+        TraceResult expected{as_id_vec<LocalPositionId>(0, 1, 2, 1, 0, 1, 2),
+                             {
+                                 as_id_vec<SurfaceModelId>(1, 2, 2, 1, 1, 2),
+                                 as_id_vec<SurfaceModelId>(0, 1, 1, 0, 0, 1),
+                                 as_id_vec<SurfaceModelId>(0, 0, 0, 0, 0, 0),
+                             },
+                             {
+                                 as_id_vec<SubModelId>(1, 1, 1, 1, 1, 1),
+                                 as_id_vec<SubModelId>(2, 2, 2, 2, 2, 2),
+                                 as_id_vec<SubModelId>(5, 4, 4, 5, 5, 4),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+                                 as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+                                 as_id_vec<OptMatId>(1, 2, 0, 2, 1, 2),
+                             },
+                             {
+                                 as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+                                 as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+                                 as_id_vec<OptMatId>(2, 0, 2, 1, 2, 0),
+                             }};
 
         EXPECT_VEC_EQ(expected.position, result.position);
         for (auto step : range(SurfacePhysicsOrder::size_))
@@ -741,14 +741,14 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
             make_unit_vector(Real3{1, 0, 0}),
         };
 
-        std::vector<SubsurfaceDirection> directions;
+        std::vector<LocalDirection> directions;
         for (auto const& dir : geo_directions)
         {
             s_physics.update_traversal_direction(dir);
             directions.push_back(s_physics.traversal().dir());
         }
 
-        std::vector<SubsurfaceDirection> expected_directions{
+        std::vector<LocalDirection> expected_directions{
             reverse,
             reverse,
             forward,
@@ -773,14 +773,14 @@ TEST_F(SurfacePhysicsTest, traversal_direction)
             make_unit_vector(Real3{0, 0, 1}),
         };
 
-        std::vector<SubsurfaceDirection> directions;
+        std::vector<LocalDirection> directions;
         for (auto const& dir : geo_directions)
         {
             s_physics.update_traversal_direction(dir);
             directions.push_back(s_physics.traversal().dir());
         }
 
-        std::vector<SubsurfaceDirection> expected_directions{
+        std::vector<LocalDirection> expected_directions{
             forward,
             reverse,
             forward,

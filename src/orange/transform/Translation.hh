@@ -74,26 +74,22 @@ class Translation
     //! Calculate the inverse during preprocessing
     Translation calc_inverse() const { return Translation{negate(tra_)}; }
 
+    //!@{
+    //! Host-only comparators
+    friend bool operator==(Translation const& a, Translation const& b)
+    {
+        auto a_data = a.data();
+        return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+    }
+    friend bool operator!=(Translation const& a, Translation const& b)
+    {
+        return !(a == b);
+    }
+    //!@}
+
   private:
     Real3 tra_;
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline bool operator==(Translation const& a, Translation const& b)
-{
-    auto a_data = a.data();
-    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
-}
-
-inline bool operator!=(Translation const& a, Translation const& b)
-{
-    return !(a == b);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

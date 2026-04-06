@@ -40,13 +40,8 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * correct for the use cases needed by Celeritas (and, as a bonus, it will be
  * device-compatible).
  *
- * \c Span can be instantiated with the special marker type \c LdgValue<T> to
- * optimize constant data access in global device memory.
- * In that case, data returned
- * by \c front, \c back, \c operator[] and \c begin / \c end iterators use
- * value semantics instead of reference. The \c data accessor still returns a
- * pointer to the underlying memory and can be used to bypass using \c
- * LdgIterator .
+ * See \c LdgSpan for a specialization optimized for on-device memory access of
+ * immutable data.
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span

@@ -51,7 +51,7 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
  * integers).
  *
  * \note Comparators are defined as inline friend functions to allow
- * ADL-assisted conversion, including from \c LdgRefWrapper.
+ * ADL-assisted conversion, including from \c LdgWrapper (see \ref ldg).
  *
  * \todo This interface will be changed to be more like \c std::optional : \c
  * size_type will become \c value_type (the value of a 'dereferenced' ID) and
@@ -176,9 +176,7 @@ class OpaqueId
         -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
     {
         CELER_EXPECT(id);
-        CELER_EXPECT(offset >= 0
-                     || static_cast<SizeT>(U{0} - offset)
-                            <= id.unchecked_get());
+        CELER_EXPECT(OpaqueId::is_safe_offset(id.unchecked_get(), offset));
 
         // Note: an extra cast is needed for short SizeT due to integer
         // promotion
@@ -212,6 +210,26 @@ class OpaqueId
 
     //! Value indicating the ID is not assigned
     static constexpr size_type null_ = nullid_value<size_type>;
+
+    //// HELPER FUNCTIONS ////
+
+    template<class U>
+    static CELER_CONSTEXPR_FUNCTION bool is_safe_offset(SizeT value, U offset)
+    {
+        if constexpr (std::is_unsigned_v<U>)
+        {
+            return true;
+        }
+        else
+        {
+            if (offset >= 0)
+            {
+                // NOTE: we do not check for overflow
+                return true;
+            }
+            return static_cast<SizeT>(U{0} - offset) <= value;
+        }
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -333,24 +351,15 @@ operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 #endif
 
 //---------------------------------------------------------------------------//
-// TRAITS
+// FREE FUNCTION LDG SUPPORT
 //---------------------------------------------------------------------------//
 
-template<class T, class>
-struct LdgTraits;
-
-// Set up cached const global loading for OpaqueId
+//! Cached const global loading support for OpaqueId
 template<class I, class T>
-struct LdgTraits<OpaqueId<I, T>, void>
+CELER_CONSTEXPR_FUNCTION T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
 {
-    using underlying_type = T;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const*
-    data(OpaqueId<I, T> const* ptr)
-    {
-        return ptr->data();
-    }
-};
+    return ptr->data();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

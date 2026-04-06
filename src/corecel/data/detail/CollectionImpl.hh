@@ -13,9 +13,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Copier.hh"
-#include "corecel/data/LdgIterator.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"

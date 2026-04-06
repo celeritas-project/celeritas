@@ -14,11 +14,7 @@ properties.
 
 .. doxygenenum:: celeritas::optical::SurfacePhysicsOrder
 
-During surface crossing, tracks maintain a "within-surface state" that stores
-the current layer and direction, decoupling the geometry state from the
-material state.
-
-.. doxygenclass:: celeritas::optical::SurfaceTraversalView
+.. doxygenclass:: celeritas::optical::SurfacePhysicsView
 
 .. _surface_boundary_init:
 

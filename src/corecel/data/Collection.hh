@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -212,6 +210,7 @@ class ItemMap
     //! \name Type aliases
     using key_type = T1;
     using mapped_type = T2;
+    using size_type = typename T1::size_type;
     //!@}
 
   public:

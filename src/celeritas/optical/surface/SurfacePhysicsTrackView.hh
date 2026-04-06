@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/surface/SurfacePhysicsTrackView.hh
+//! \sa celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,9 +25,13 @@ namespace optical
  * Optical surface physics data for a track.
  *
  * Tracks maintain a position while traversing the interstitial materials of an
- * optical surface. This class provides transformations from this position
- * based on the surface orientation and traversal direction to access relevant
- * material and interface data in storage.
+ * optical surface.
+ * This class provides transformations from this position based on the surface
+ * orientation (pre/post volume when the crossing began) and traversal
+ * direction (current state) to access relevant material and interface data in
+ * storage.
+ *
+ * See \c SurfacePhysicsView, \c SurfaceTraversalView .
  */
 class SurfacePhysicsTrackView
 {
@@ -40,7 +45,7 @@ class SurfacePhysicsTrackView
     struct Initializer
     {
         SurfaceId surface{};
-        SubsurfaceDirection orientation;
+        LocalDirection orientation;
         Real3 global_normal{0, 0, 0};
         OptMatId pre_volume_material{};
         OptMatId post_volume_material{};
@@ -105,7 +110,7 @@ class SurfacePhysicsTrackView
     TrackSlotId const track_id_;
 
     // Get material at the given track position
-    inline CELER_FUNCTION OptMatId material(SurfaceTrackPosition) const;
+    inline CELER_FUNCTION OptMatId material(LocalPositionId) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -302,11 +307,9 @@ SurfacePhysicsTrackView::scalars() const
 /*!
  * Get material at given track position.
  */
-CELER_FUNCTION OptMatId
-SurfacePhysicsTrackView::material(SurfaceTrackPosition pos) const
+CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material(LocalPositionId pos) const
 {
-    auto pos_range
-        = range(SurfaceTrackPosition{this->traversal().num_positions()});
+    auto pos_range = range(LocalPositionId{this->traversal().num_local_pos()});
     CELER_EXPECT(pos < pos_range.size());
 
     if (pos == pos_range.front())

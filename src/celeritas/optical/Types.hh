@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
@@ -16,9 +17,11 @@ namespace celeritas
 namespace optical
 {
 
-//! Opaque index into subsurface track position, in range [0, num subsurface
-//! interfaces + 1]
-using SurfaceTrackPosition = OpaqueId<struct SurfaceTrackPosition_>;
+//! Opaque index of sub-surface interface
+using LocalSurfaceId = OpaqueId<struct LocalSurface_, unsigned short int>;
+
+//! Opaque index of sub-surface material region
+using LocalPositionId = OpaqueId<struct LocalMat_, unsigned short int>;
 
 }  // namespace optical
 
@@ -51,7 +54,7 @@ enum class SurfacePhysicsOrder
 };
 
 //! Traversal direction of a sub-subsurface
-enum class SubsurfaceDirection : bool
+enum class LocalDirection : bool
 {
     reverse = false,
     forward = true
@@ -103,7 +106,7 @@ char const* to_cstring(ReflectionMode);
 char const* to_cstring(WlsDistribution);
 
 //! Convert sub-surface direction to a sign (+1/-1 for forward/reverse resp.)
-CELER_FORCEINLINE_FUNCTION int to_signed_offset(SubsurfaceDirection d)
+CELER_CONSTEXPR_FUNCTION int to_signed_offset(LocalDirection d)
 {
     return 2 * static_cast<int>(d) - 1;
 }
