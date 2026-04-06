@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -120,6 +121,8 @@ struct OpticalEmGenerator
  */
 struct OpticalOffloadGenerator
 {
+    // Read the distribution data from a jsonl file
+    std::optional<std::string> distribution_file;
 };
 
 //---------------------------------------------------------------------------//
