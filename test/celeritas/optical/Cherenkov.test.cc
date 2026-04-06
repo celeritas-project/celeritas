@@ -184,12 +184,12 @@ TEST_F(CherenkovWaterTest, angle_integral)
 
     auto const& energy = params->host_ref().reals[grid.grid];
     EXPECT_EQ(101, energy.size());
-    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front());
-    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back());
+    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front().get());
+    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back().get());
 
     auto const& angle_integral = params->host_ref().reals[grid.value];
-    EXPECT_EQ(0, angle_integral.front());
-    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back());
+    EXPECT_EQ(0, angle_integral.front().get());
+    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back().get());
 }
 
 //---------------------------------------------------------------------------//

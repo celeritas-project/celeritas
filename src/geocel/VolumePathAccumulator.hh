@@ -86,7 +86,7 @@ CELER_FUNCTION VolumeUniqueInstanceId VolumePathAccumulator::operator()(
 {
     CELER_EXPECT(vi < params_.unique_instance_offsets.size());
     auto const offset = params_.unique_instance_offsets[vi];
-    return uid + offset + 1;
+    return uid + offset.get() + 1;
 }
 
 //---------------------------------------------------------------------------//

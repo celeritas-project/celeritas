@@ -88,9 +88,9 @@ TEST_F(WentzelVIMscTest, params)
     }
     EXPECT_EQ(2, wentzel.inv_mass_cbrt_sq.size());
     EXPECT_SOFT_EQ(9.947409502757395e-1,
-                   wentzel.inv_mass_cbrt_sq[PhysMatId(0)]);
+                   wentzel.inv_mass_cbrt_sq[PhysMatId(0)].get());
     EXPECT_SOFT_EQ(6.8867357655995998e-2,
-                   wentzel.inv_mass_cbrt_sq[PhysMatId(1)]);
+                   wentzel.inv_mass_cbrt_sq[PhysMatId(1)].get());
 }
 
 TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
