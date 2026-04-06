@@ -91,10 +91,11 @@ class CollectionBuilder
     StorageT const& storage() const { return col_.storage(); }
     //!@}
 
-    //! Maximum elements in a Collection
+    //! Maximum valid element size in a Collection
     static constexpr std::size_t max_size()
     {
-        return std::numeric_limits<size_type>::max();
+        // Account for prohibited nullid value
+        return nullid_value<size_type> - 1;
     }
 
     CollectionT& col_;
@@ -117,7 +118,7 @@ CollectionBuilder(Collection<T, Ownership::value, M, I>*)
 template<class T, MemSpace M, class I>
 void CollectionBuilder<T, M, I>::reserve(std::size_t count)
 {
-    CELER_EXPECT(count <= max_size());
+    CELER_EXPECT(count < max_size());
     static_assert(M == MemSpace::host,
                   "Reserve currently works only for host memory");
     this->storage().reserve(count);

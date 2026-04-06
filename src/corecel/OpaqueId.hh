@@ -7,7 +7,6 @@
 #pragma once
 
 #include <cstddef>
-#include <functional>
 #include <type_traits>
 
 #include "Assert.hh"
@@ -15,6 +14,7 @@
 #include "Types.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include <functional>
 #    include <ostream>
 #endif
 
@@ -48,7 +48,8 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
  *
  * See also \c id_cast below for checked construction of OpaqueIds from generic
  * integer values (avoid compile-time warnings or errors from signed/truncated
- * integers).
+ * integers). Use \c id_size_type<FooId> as a return type for a container's
+ * \c num_foo() .
  *
  * \note Comparators are defined as inline friend functions to allow
  * ADL-assisted conversion, including from \c LdgWrapper (see \ref ldg).
@@ -66,7 +67,7 @@ class OpaqueId
   public:
     //!@{
     //! \name Type aliases
-    using tag_type = ItemT;
+    using Item = ItemT;
     using size_type = SizeT;
     using value_type = SizeT;
     //!@}
@@ -320,9 +321,9 @@ stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
 template<class T>
 inline constexpr bool is_opaque_id_v = detail::IsOpaqueId<T>::value;
 
-//! Get the unsigned integer corresponding to the maximum allowed value
+//! Get the unsigned integer corresponding to the ID's capacity
 template<class T>
-using id_size_t
+using id_size_type
     = std::conditional_t<is_opaque_id_v<T>, typename T::value_type, void>;
 
 //---------------------------------------------------------------------------//
@@ -342,6 +343,16 @@ inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
     return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Support loading OpaqueId via GPU cache.
+ */
+template<class I, class T>
+CELER_CONSTEXPR_FUNCTION T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
+{
+    return ptr->data();
+}
+
 #if !CELER_DEVICE_COMPILE
 //---------------------------------------------------------------------------//
 /*!
@@ -357,20 +368,9 @@ operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 #endif
 
 //---------------------------------------------------------------------------//
-// FREE FUNCTION LDG SUPPORT
-//---------------------------------------------------------------------------//
-
-//! Cached const global loading support for OpaqueId
-template<class I, class T>
-CELER_CONSTEXPR_FUNCTION T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
-{
-    return ptr->data();
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-//---------------------------------------------------------------------------//
+#if !CELER_DEVICE_COMPILE
 //! \cond
 namespace std
 {
@@ -385,3 +385,4 @@ struct hash<celeritas::OpaqueId<I, T>>
 };
 }  // namespace std
 //! \endcond
+#endif

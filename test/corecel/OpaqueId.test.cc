@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <numeric>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
@@ -38,8 +39,9 @@ TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes, );
 
 TYPED_TEST(OpaqueIdTypedTest, operations)
 {
-    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
-    constexpr auto sizemax = static_cast<TypeParam>(-1);
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
+    constexpr auto sizemax = static_cast<Int_t>(-1);
 
     Id_t unassigned;
     EXPECT_FALSE(unassigned);
@@ -106,6 +108,8 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
 
     EXPECT_EQ("{1}", stream_to_string(Id_t{1}));
     EXPECT_EQ("{}", stream_to_string(Id_t{}));
+
+    EXPECT_TRUE((std::is_same_v<Int_t, id_size_type<Id_t>>));
 }
 
 TEST(OpaqueIdTest, multi_int)

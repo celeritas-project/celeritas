@@ -329,7 +329,7 @@ class Collection
     using const_pointer = detail::ContainerObserverPtr<SpanConstT, M>;
     using reference = typename SpanT::reference;
     using const_reference = typename SpanConstT::reference;  // Mutable if ref!
-    using size_type = typename I::size_type;
+    using size_type = id_size_type<I>;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT = detail::AllItems_t<T, M>;
