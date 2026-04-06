@@ -20,8 +20,8 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
+#include "celeritas/optical/gen/detail/UpdatePendingExecutor.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
-#include "accel/detail/UpdatePendingExecutor.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"

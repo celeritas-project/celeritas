@@ -7,7 +7,7 @@
 #include "LocalOpticalGenOffload.hh"
 
 #include "corecel/sys/KernelLauncher.device.hh"
-#include "accel/detail/UpdatePendingExecutor.hh"
+#include "celeritas/optical/gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
