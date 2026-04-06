@@ -8,6 +8,8 @@
 
 #include <cstddef>
 
+#include "corecel/Types.hh"
+
 #include "Span.hh"
 
 #include "detail/LdgSpanImpl.hh"
@@ -39,6 +41,9 @@ using AutoLdgSpan = Span<
                        T>,
     Extent>;
 
+template<class T, std::size_t Extent = dynamic_extent>
+using NativeAutoLdgSpan = AutoLdgSpan<MemSpace::native, T, Extent>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct an array from a fixed-size LdgSpan.
@@ -64,7 +69,7 @@ CELER_CONSTEXPR_FUNCTION auto to_array(Span<detail::LdgWrapper<T const>, N> s)
 //! Convert an LdgSpan to a regular Span, \em not using \c ldg
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T const, N>
-remove_ldg_wrapper(LdgSpan<T const, N> cont)
+remove_ldg_wrapper(Span<detail::LdgWrapper<T const>, N> cont)
 {
     return {cont.data(), cont.size()};
 }
