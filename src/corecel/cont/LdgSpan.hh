@@ -30,19 +30,14 @@ using LdgSpan = Span<detail::LdgWrapper<T>, Extent>;
 
 //---------------------------------------------------------------------------//
 /*!
- * An LdgSpan when referencing device memory but simply Span on host.
+ * An LdgSpan when referencing compatible types, or Span otherwise.
  *
  * Note that T must be const.
  */
-template<MemSpace M, class T, std::size_t Extent = dynamic_extent>
-using AutoLdgSpan = Span<
-    std::conditional_t<M == MemSpace::device && detail::is_ldg_supported_v<T>,
-                       detail::LdgWrapper<T>,
-                       T>,
-    Extent>;
-
 template<class T, std::size_t Extent = dynamic_extent>
-using NativeAutoLdgSpan = AutoLdgSpan<MemSpace::native, T, Extent>;
+using AutoLdgSpan = Span<
+    std::conditional_t<detail::is_ldg_supported_v<T>, detail::LdgWrapper<T>, T>,
+    Extent>;
 
 //---------------------------------------------------------------------------//
 /*!

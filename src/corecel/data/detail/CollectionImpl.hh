@@ -66,7 +66,7 @@ struct CollectionTraits<T, Ownership::const_reference, M>
     : DefaultCollectionTraits<T>
 {
     using type = T const;
-    using SpanT = AutoLdgSpan<M, T const>;
+    using SpanT = AutoLdgSpan<T const>;
     using SpanConstT = SpanT;
 };
 
