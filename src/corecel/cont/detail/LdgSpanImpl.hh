@@ -283,6 +283,9 @@ class LdgIterator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
+LdgWrapper(T&) -> LdgWrapper<std::add_const_t<T>>;
+
+template<class T>
 LdgIterator(T*) -> LdgIterator<std::add_const_t<T>>;
 
 //---------------------------------------------------------------------------//

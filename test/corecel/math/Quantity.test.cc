@@ -128,6 +128,15 @@ TEST(QuantityTest, ref)
 
     auto td_ref = std::ref(two_dozen);
     EXPECT_EQ(two_dozen * 2, td_ref * 2);
+
+    Dozen four_dozen{4};
+    auto fd_ref = std::ref(four_dozen);
+
+#ifdef CELER_SHOULD_COMPILE
+    // TODO: doesn't compile due to template operators
+    EXPECT_TRUE(td_ref < fd_ref);
+#endif
+    EXPECT_TRUE(td_ref.get() < fd_ref.get());
 }
 
 TEST(QuantityTest, comparators)

@@ -17,6 +17,13 @@
 #include "celeritas_test.hh"
 
 using std::is_same_v;
+struct DozenUnit
+{
+    static constexpr int value() { return 12; }
+    static constexpr char const* label() { return "dozen"; }
+};
+
+using Dozen = celeritas::Quantity<DozenUnit, int>;
 
 namespace celeritas
 {
@@ -24,15 +31,6 @@ namespace detail
 {
 namespace test
 {
-//---------------------------------------------------------------------------//
-struct DozenUnit
-{
-    static constexpr int value() { return 12; }
-    static constexpr char const* label() { return "dozen"; }
-};
-
-using Dozen = Quantity<DozenUnit, int>;
-
 //---------------------------------------------------------------------------//
 using LdgWrapperTest = celeritas::test::Test;
 
@@ -63,16 +61,16 @@ TEST_F(LdgWrapperTest, equality)
 
 TEST_F(LdgWrapperTest, quantity)
 {
-    static Dozen const eggs[] = {Dozen{1}, Dozen{3}, Dozen{5}};
-    LdgSpan<Dozen const> view{eggs};
-    ASSERT_EQ(3, view.size());
-    EXPECT_EQ(dynamic_extent, view.extent);
+    Dozen const eggs{3};
+    Dozen bacon{2};
+    LdgWrapper eggs_w{eggs};
+    EXPECT_TRUE((is_same_v<decltype(eggs_w), LdgWrapper<Dozen const>>));
+    LdgWrapper bacon_w{bacon};
+    EXPECT_TRUE((is_same_v<decltype(bacon_w), LdgWrapper<Dozen const>>));
 
-    EXPECT_TRUE((is_same_v<decltype(view.back()), LdgWrapper<Dozen const>>));
-
-    auto implicitly_converted = view.back() * 2;
+    auto implicitly_converted = eggs_w * 2;
     EXPECT_TRUE((is_same_v<decltype(implicitly_converted), Dozen>));
-    EXPECT_EQ(Dozen{10}, implicitly_converted);
+    EXPECT_EQ(Dozen{6}, implicitly_converted);
 }
 
 //---------------------------------------------------------------------------//
@@ -278,7 +276,8 @@ TEST_F(LdgSpanTest, pod)
     EXPECT_EQ(local_span.first(2).back(), 456);
     EXPECT_TRUE(
         (is_same_v<decltype(local_span), decltype(local_span.first(2))>));
-    EXPECT_EQ(local_span.subspan(1, 1)[1], 789);
+    EXPECT_LT(local_span[0], local_span[1]);
+    EXPECT_GT(local_span[2], local_span[1]);
 
     auto begin = local_span.begin();
     EXPECT_EQ(*begin++, 123);
@@ -312,7 +311,9 @@ TEST_F(LdgSpanTest, opaque_id)
 
     EXPECT_EQ(s.first(2).back(), TestId{456});
     EXPECT_TRUE((is_same_v<decltype(s), decltype(s.first(2))>));
-    EXPECT_EQ(s.subspan(1, 1)[1], TestId{789});
+    EXPECT_EQ(s.subspan(1, 2)[1], TestId{789});
+    EXPECT_LT(s[0], s[1]);
+    EXPECT_GT(s[2], s[1]);
 
     auto begin = s.begin();
     EXPECT_EQ(*begin++, TestId{123});
@@ -321,6 +322,21 @@ TEST_F(LdgSpanTest, opaque_id)
     EXPECT_EQ(begin, s.end());
     EXPECT_EQ(s[2], TestId{789});
     EXPECT_EQ(s.end()[-3], TestId{123});
+}
+
+TEST_F(LdgSpanTest, quantity)
+{
+    static Dozen const eggs[] = {Dozen{1}, Dozen{3}, Dozen{5}};
+    LdgSpan<Dozen const> view{eggs};
+    ASSERT_EQ(3, view.size());
+    EXPECT_EQ(dynamic_extent, view.extent);
+
+    EXPECT_TRUE(
+        (is_same_v<decltype(view.back()), detail::LdgWrapper<Dozen const>>));
+
+    auto implicitly_converted = view.back() * 2;
+    EXPECT_TRUE((is_same_v<decltype(implicitly_converted), Dozen>));
+    EXPECT_EQ(Dozen{10}, implicitly_converted);
 }
 
 //---------------------------------------------------------------------------//
