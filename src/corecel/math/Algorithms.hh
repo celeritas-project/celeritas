@@ -524,8 +524,9 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
   assert(9.0 == fastpow(3.0, 2.0));
  \endcode
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline CELER_FUNCTION T fastpow(T a, T b)
+template<class T>
+inline CELER_FUNCTION std::enable_if_t<std::is_floating_point<T>::value, T>
+fastpow(T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
