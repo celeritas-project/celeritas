@@ -31,7 +31,6 @@ struct UpdatePendingExecutor
 {
     //// DATA ////
 
-    CRefPtr<CoreParamsData, MemSpace::native> params;
     RefPtr<CoreStateData, MemSpace::native> state;
     size_type num_photons;
 
@@ -50,7 +49,6 @@ struct UpdatePendingExecutor
  */
 CELER_FORCEINLINE_FUNCTION void UpdatePendingExecutor::operator()(ThreadId tid)
 {
-    CELER_EXPECT(params);
     CELER_EXPECT(state);
     CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
 

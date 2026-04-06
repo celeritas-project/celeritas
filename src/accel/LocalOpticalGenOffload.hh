@@ -84,10 +84,8 @@ class LocalOpticalGenOffload final : public LocalOffloadInterface
   private:
     // Update the number of primaries waiting to be generated on host/device
     // Called by Flush()
-    void update_primaries(optical::CoreParams const&,
-                          optical::CoreState<MemSpace::host>&) const;
-    void update_primaries(optical::CoreParams const&,
-                          optical::CoreState<MemSpace::device>&) const;
+    void update_primaries(optical::CoreState<MemSpace::host>&) const;
+    void update_primaries(optical::CoreState<MemSpace::device>&) const;
 
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;

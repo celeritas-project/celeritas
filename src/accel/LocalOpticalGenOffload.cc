@@ -189,16 +189,15 @@ void LocalOpticalGenOffload::Flush()
     // Update the number of primaries waiting to be generated based on the
     // number of photons. Can use static_cast since the appropriate derived
     // class is specified in the constructor.
-    auto const& optical_params = *transport_->params();
     if (celeritas::device())
     {
         auto* s = static_cast<optical::CoreState<MemSpace::device>*>(&*state_);
-        update_primaries(optical_params, *s);
+        update_primaries(*s);
     }
     else
     {
         auto* s = static_cast<optical::CoreState<MemSpace::host>*>(&*state_);
-        update_primaries(optical_params, *s);
+        update_primaries(*s);
     }
 
     num_photons_ = 0;
@@ -261,11 +260,10 @@ void LocalOpticalGenOffload::Finalize()
  * generated to include the buffered optical photons; use only one host thread.
  */
 void LocalOpticalGenOffload::update_primaries(
-    optical::CoreParams const& optical_params,
     optical::CoreState<MemSpace::host>& state) const
 {
-    optical::detail::UpdatePendingExecutor execute_thread{
-        optical_params.ptr<MemSpace::host>(), state.ptr(), num_photons_};
+    optical::detail::UpdatePendingExecutor execute_thread{state.ptr(),
+                                                          num_photons_};
     launch_kernel(1, execute_thread);
 }
 
@@ -274,7 +272,7 @@ void LocalOpticalGenOffload::update_primaries(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline void LocalOpticalGenOffload::update_primaries(
-    optical::CoreParams const&, optical::CoreState<MemSpace::device>&) const
+    optical::CoreState<MemSpace::device>&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

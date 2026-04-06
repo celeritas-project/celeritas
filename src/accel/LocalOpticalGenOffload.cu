@@ -17,11 +17,10 @@ namespace celeritas
  * to include the buffered optical photons; use only one device thread.
  */
 void LocalOpticalGenOffload::update_primaries(
-    optical::CoreParams const& optical_params,
     optical::CoreState<MemSpace::device>& state) const
 {
-    optical::detail::UpdatePendingExecutor execute_thread{
-        optical_params.ptr<MemSpace::device>(), state.ptr(), num_photons_};
+    optical::detail::UpdatePendingExecutor execute_thread{state.ptr(),
+                                                          num_photons_};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, state.stream_id(), execute_thread);
