@@ -31,7 +31,7 @@ void set_generated(CoreParams const& params, CoreState<MemSpace::host>& state)
 // DEVICE-DISABLED IMPLEMENTATION
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void set_generated(CoreParams const&, CoreState<MemSpace::device>&, size_type)
+void set_generated(CoreParams const&, CoreState<MemSpace::device>&)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
