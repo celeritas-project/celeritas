@@ -64,7 +64,6 @@ class WavelengthShiftGenerator
     real_type time_constant_;
     WlsDistribution time_profile_;
     NonuniformGridCalculator calc_cdf_;
-    IsotropicDistribution<real_type> sample_polarization_;
 };
 
 //---------------------------------------------------------------------------//
@@ -118,12 +117,7 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
 
     // Sample the emitted photon (incoherent) direction and polarization
     result.direction = IsotropicDistribution{}(rng);
-    do
-    {
-        result.polarization = make_unit_vector(
-            make_orthogonal(sample_polarization_(rng), result.direction));
-    } while (CELER_UNLIKELY(
-        !is_soft_orthogonal(result.polarization, result.direction)));
+    result.polarization = TransversePolarizationSampler{result.direction}(rng);
 
     // Sample the delta time (based on the exponential relaxation)
     result.time
