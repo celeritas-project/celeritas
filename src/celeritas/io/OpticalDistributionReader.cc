@@ -36,6 +36,8 @@ auto OpticalDistributionReader::operator()() -> VecDistribution
     VecDistribution result;
     std::string line;
 
+    // First record contains metadata
+    std::getline(infile_, line);
     while (std::getline(infile_, line))
     {
         auto j = nlohmann::json::parse(line);

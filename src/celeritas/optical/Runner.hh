@@ -70,6 +70,12 @@ class Runner
         return loaded_.problem.transporter->params();
     }
 
+    //! Access the problem setup
+    setup::OpticalProblemLoaded const& problem() const
+    {
+        return loaded_.problem;
+    }
+
   private:
     setup::OpticalStandaloneLoaded loaded_;
     std::shared_ptr<CoreStateBase> state_;

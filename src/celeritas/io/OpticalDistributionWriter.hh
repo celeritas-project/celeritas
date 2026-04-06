@@ -7,6 +7,7 @@
 #pragma once
 
 #include <fstream>
+#include <mutex>
 #include <string>
 
 #include "corecel/Macros.hh"
@@ -16,7 +17,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Export optical distribution data to JSON.
+ * Export optical distribution data to JSONL.
+ *
+ * This class is thread-safe for concurrent writes: calls to \c operator() are
+ * serialized using an internal mutex. The writer must be constructed on the
+ * main thread.
  */
 class OpticalDistributionWriter
 {
@@ -37,6 +42,7 @@ class OpticalDistributionWriter
     void operator()(VecDistribution const&);
 
   private:
+    std::mutex write_mutex_;
     std::ofstream outfile_;
 };
 
