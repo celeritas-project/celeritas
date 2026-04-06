@@ -320,10 +320,12 @@ TEST_F(SimpleCollectionTest, accessors)
     }
 
     CRef<host> host_cref{host_ref_cref};
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int const&>));
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), Span<int const>>));
-    EXPECT_TRUE((
-        std::is_same_v<decltype(host_cref[AllInts<host>{}]), Span<int const>>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]),
+                                detail::LdgWrapper<int const>>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(host_cref[irange]), LdgSpan<int const>>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[AllInts<host>{}]),
+                                LdgSpan<int const>>));
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
