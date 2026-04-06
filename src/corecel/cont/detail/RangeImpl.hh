@@ -235,6 +235,15 @@ class range_iter
         return !(*this == other);
     }
 
+    // Subtract two range iterators
+    CELER_CONSTEXPR_FUNCTION friend auto operator-(range_iter a, range_iter b)
+    {
+        using TraitsT = RangeTypeTraits<T>;
+        using DT = typename TraitsT::difference_type;
+        return static_cast<DT>(TraitsT::to_counter(a.value()))
+               - static_cast<DT>(TraitsT::to_counter(b.value()));
+    }
+
     // Access the underlying value
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
@@ -242,16 +251,6 @@ class range_iter
     // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     value_type value_;
 };
-
-// Subtract two range iterators
-template<class T>
-CELER_CONSTEXPR_FUNCTION auto operator-(range_iter<T> a, range_iter<T> b)
-{
-    using TraitsT = RangeTypeTraits<T>;
-    using DT = typename TraitsT::difference_type;
-    return static_cast<DT>(TraitsT::to_counter(a.value()))
-           - static_cast<DT>(TraitsT::to_counter(b.value()));
-}
 
 //---------------------------------------------------------------------------//
 template<class T>

@@ -26,21 +26,47 @@ TEST(SurfacePhysicsUtilsTest, is_entering_surface)
     EXPECT_FALSE(is_entering_surface({0, 0, -1}, {0, 0, -1}));
 }
 
-TEST(SurfacePhysicsUtilsTest, next_subsurface_position)
+TEST(SurfacePhysicsUtilsTest, local_surf_id)
 {
-    using SD = SubsurfaceDirection;
+    using SD = LocalDirection;
 
-    EXPECT_EQ(SurfaceTrackPosition{2},
-              next_subsurface_position(SurfaceTrackPosition{1}, SD::forward));
-    EXPECT_EQ(SurfaceTrackPosition{0},
-              next_subsurface_position(SurfaceTrackPosition{1}, SD::reverse));
-    EXPECT_EQ(SurfaceTrackPosition{},
-              next_subsurface_position(SurfaceTrackPosition{0}, SD::reverse));
+    EXPECT_EQ(LocalSurfaceId{0},
+              local_surf_id(LocalPositionId{0}, SD::forward));
+    EXPECT_EQ(LocalSurfaceId{0},
+              local_surf_id(LocalPositionId{1}, SD::reverse));
+    EXPECT_EQ(LocalSurfaceId{1},
+              local_surf_id(LocalPositionId{1}, SD::forward));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(local_surf_id(LocalPositionId{0}, SD::reverse),
+                     DebugError);
+        EXPECT_THROW(local_surf_id(LocalPositionId{}, SD::forward), DebugError);
+        EXPECT_THROW(local_surf_id(LocalPositionId{}, SD::reverse), DebugError);
+    }
+}
+
+TEST(SurfacePhysicsUtilsTest, next_local_pos_id)
+{
+    using SD = LocalDirection;
+
+    EXPECT_EQ(LocalPositionId{},
+              next_local_pos_id(LocalPositionId{0}, SD::reverse));
+    EXPECT_EQ(LocalPositionId{1},
+              next_local_pos_id(LocalPositionId{0}, SD::forward));
+    EXPECT_EQ(LocalPositionId{0},
+              next_local_pos_id(LocalPositionId{1}, SD::reverse));
+    EXPECT_EQ(LocalPositionId{2},
+              next_local_pos_id(LocalPositionId{1}, SD::forward));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(next_local_pos_id(LocalPositionId{}, SD::forward),
+                     DebugError);
+    }
 }
 
 TEST(SurfacePhysicsUtilsTest, calc_subsurface_direction)
 {
-    using SD = SubsurfaceDirection;
+    using SD = LocalDirection;
 
     EXPECT_EQ(calc_subsurface_direction({0, 0, -1}, {0, 0, 1}), SD::forward);
     EXPECT_EQ(calc_subsurface_direction({0, 0, 1}, {0, 0, 1}), SD::reverse);
