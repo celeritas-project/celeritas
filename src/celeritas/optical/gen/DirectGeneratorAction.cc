@@ -20,6 +20,7 @@
 
 #include "detail/DirectGeneratorExecutor.hh"
 #include "detail/GeneratorAlgorithms.hh"
+#include "detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
@@ -144,9 +145,7 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     // Update counters and copy distributions to aux state storage
     aux_state.counters.buffer_size = data.size();
     aux_state.counters.num_pending = data.size();
-    auto counters = state.sync_get_counters();
-    counters.num_pending += data.size();
-    state.sync_put_counters(counters);
+    update_pending(state, data.size());
     Copier<TrackInitializer, M> copy_to_aux{aux_state.initializers(),
                                             state.stream_id()};
 
@@ -225,10 +224,27 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update the number of pending optical photons.
+ */
+void DirectGeneratorAction::update_pending(CoreStateHost& state,
+                                           size_type num_pending) const
+{
+    // Update the number of pending optical photons
+    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
+    launch_kernel(1, execute);
+}
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void DirectGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
 {
-    CELER_NOT_IMPLEMENTED("device");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void DirectGeneratorAction::update_pending(CoreStateDevice&, size_type) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 
