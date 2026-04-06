@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"

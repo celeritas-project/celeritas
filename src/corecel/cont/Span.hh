@@ -11,8 +11,6 @@
 
 #include "corecel/Macros.hh"
 
-#include "Array.hh"
-
 #include "detail/SpanImpl.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -201,6 +199,12 @@ template<class T, std::size_t N>
 Span(T (&)[N]) -> Span<T, N>;
 
 //---------------------------------------------------------------------------//
+// FORWARD DECLARATIONS
+//---------------------------------------------------------------------------//
+template<class T, std::size_t N>
+class Array;
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array
@@ -223,7 +227,7 @@ CELER_CONSTEXPR_FUNCTION Span<T const, N> make_span(Array<T, N> const& x)
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(T (&arr)[N])
 {
-    return {arr};
+    return {arr, N};
 }
 
 //---------------------------------------------------------------------------//
@@ -241,27 +245,6 @@ CELER_CONSTEXPR_FUNCTION Span<typename T::value_type const>
 make_span(T const& cont)
 {
     return {cont.data(), cont.size()};
-}
-
-//---------------------------------------------------------------------------//
-//! Construct an array from a fixed-size span
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto to_array(Span<T, N> s)
-{
-    Array<std::remove_cv_t<T>, N> result{};
-    for (std::size_t i = 0; i < N; ++i)
-    {
-        result[i] = s[i];
-    }
-    return result;
-}
-
-// DEPRECATED: remove in v1.0
-template<class T, std::size_t N>
-[[deprecated("use to_array")]] CELER_CONSTEXPR_FUNCTION auto
-make_array(Span<T, N> s)
-{
-    return to_array(s);
 }
 
 #if !CELER_DEVICE_COMPILE
