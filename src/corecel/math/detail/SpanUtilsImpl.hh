@@ -28,15 +28,6 @@ CELER_FUNCTION Array<T, N> load_array(Span<T const, N> s)
     return result;
 }
 
-//! Load a const span into a fixed-size array.
-//! \todo Delete in follow-up PR when implicit const conversion works.
-template<class T, std::size_t N>
-CELER_FUNCTION Array<T, N> load_array(Span<T, N> s)
-{
-    static_assert(N != dynamic_extent);
-    return load_array(make_span(const_cast<T const>(s.data()), s.size()));
-}
-
 //---------------------------------------------------------------------------//
 //! Store a fixed-size array into a span.
 template<class T, std::size_t N>

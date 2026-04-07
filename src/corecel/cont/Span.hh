@@ -25,21 +25,57 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
 
 //---------------------------------------------------------------------------//
 /*!
- * Non-owning reference to a contiguous span of data.
+ * Non-owning device-compatible reference to a contiguous span of data.
  * \tparam T value type
  * \tparam Extent fixed size; defaults to dynamic.
  *
- * This Span class is a modified backport of the C++20 \c std::span . In
- * Celeritas, it is often used as a return value from accessing elements in a
- * \c Collection.
+ * A \c Span, like \c std::string_view, provides access to externally managed
+ * data. In Celeritas, this class is typically used as a return result
+ * from accessing a range of elements in a \c Collection.
  *
- * Like the \ref celeritas::Array , this class is not 100% compatible
- * with the \c std::span class. The hope is that it will be complete and
- * correct for the use cases needed by Celeritas (and, as a bonus, it will be
- * device-compatible).
+ * This implementation is a \em nonconforming backport of the C++20 \c
+ * std::span. Improvements for standards compatibility are welcome as long as
+ * they retain the same behavior in device code. Important differences from
+ * the standard \c std::span include:
+ * - Supports a special marker/tag type `LdgValue<T>` which causes element
+ *   accessors and iterators to use value-semantics loads (optimized device
+ *   loads) instead of references.
+ * - Uses a restricted constructor for iterators: instead of two separate
+ *   iterator/end types, it uses only one.
+ * - Provides additional free helpers tailored to Celeritas: `make_span`
+ *   overloads for `Array<T,N>`, C arrays, and generic containers, plus
+ *   `to_array()` convenience and a host-only `operator<<` using
+ *   `StreamableContainer`.
+ * - All public methods are decorated with `CELER_CONSTEXPR_FUNCTION` for
+ *   host/device compatibility.
+ * - Some subview helpers use `CELER_EXPECT` to check for bounds validation in
+ *   debug builds.
+ * - Dynamic-to-fixed conversion performs runtime checks when `CELERITAS_DEBUG`
+ *   is on.
  *
- * See \c LdgSpan for a specialization optimized for on-device memory access of
- * immutable data.
+ * \par Synopsis
+ *
+ * Construction:
+ * - Default constructs to an empty span.
+ * - Construct from a pointer and size: `Span(pointer, size)`.
+ * - Construct from two contiguous random-access iterators: `Span(first,
+ *   last)` (non-standard convenience).
+ * - Construct from C arrays or `Array<T,N>` (fixed-size spans).
+ * - Converting constructor from a compatible `Span<U,N>` (e.g., mutable to
+ *   const element type) when extents are compatible.
+ *
+ * Data access:
+ * - Element access: `operator[]`, `front()`, `back()`.
+ * - Observers: `data()`, `size()`, `size_bytes()`, `empty()`.
+ * - Iteration: `begin()`, `end()`.
+ *
+ * Subviews and utilities:
+ * - `first<Count>()`, `first(count)`, `last<Count>()`, `last(count)`.
+ * - `subspan<Offset,Count>()` and `subspan(offset,count)` for compile-time
+ *   and runtime subviews.
+ * - Deduction guides are provided for pointer+size, iterator pairs and
+ *   C arrays; free functions `make_span(...)` and `to_array(...)` are
+ *   provided for convenience.
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
@@ -85,12 +121,45 @@ class Span
     {
     }
 
-    //! Construct from another span
-    template<class U, std::size_t N>
-    CELER_CONSTEXPR_FUNCTION Span(Span<U, N> const& other)
+    /*!
+     * Construct \c implicitly from convertible span and extent.
+     *
+     * Note that the enable-if prevents LdgSpan->Span conversion.
+     * Conversions that may require a runtime size check (dynamic-extent
+     * source to fixed-extent destination) are made explicit to avoid
+     * accidental UB, matching std::span's behavior.
+     *
+     * Implicit conversion for cases that are statically safe (e.g.,
+     * fixed->dynamic, fixed->same-fixed, or just element-type
+     * qualification changes).
+     */
+    template<class U,
+             std::size_t E2,
+             std::enable_if_t<detail::is_array_convertible_v<U, T>
+                                  && (E2 == Extent || Extent == dynamic_extent),
+                              bool>
+             = true>
+    CELER_CONSTEXPR_FUNCTION Span(Span<U, E2> const& other)
         : s_(other.data(), other.size())
     {
     }
+
+    /*!
+     * Require \em explicit conversion from dynamic to fixed extent.
+     *
+     * Runtime size compatibility is checked in \c detail::SpanImpl.
+     */
+    template<class U,
+             std::size_t E2,
+             std::enable_if_t<detail::is_array_convertible_v<U, T>
+                                  && Extent != dynamic_extent && E2 == dynamic_extent,
+                              bool>
+             = true>
+    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> const& other)
+        : s_(other.data(), other.size())
+    {
+    }
+
     CELER_DEFAULT_COPY_MOVE(Span);
     ~Span() = default;
 
