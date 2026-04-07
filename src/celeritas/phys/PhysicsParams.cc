@@ -7,12 +7,9 @@
 #include "PhysicsParams.hh"
 
 #include <algorithm>
-#include <cmath>
 #include <map>
-#include <set>
 #include <string_view>
 #include <tuple>
-#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -21,7 +18,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/UniformGrid.hh"
-#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/Algorithms.hh"

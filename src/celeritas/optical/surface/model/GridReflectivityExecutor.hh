@@ -10,6 +10,7 @@
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 #include "GridReflectivityData.hh"
 
