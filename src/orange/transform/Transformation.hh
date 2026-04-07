@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/Types.hh"
 #include "orange/MatrixUtils.hh"
@@ -61,7 +61,7 @@ class Transformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 12>;
+    using StorageSpan = LdgSpan<real_type const, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
 

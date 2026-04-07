@@ -28,7 +28,7 @@ class GridAccessor
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = Span<real_type const>;
+    using SpanConstReal = LdgSpan<real_type const>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}

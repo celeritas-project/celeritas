@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/OrangeTypes.hh"
@@ -27,7 +27,7 @@ class Translation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 3>;
+    using StorageSpan = LdgSpan<real_type const, 3>;
     //@}
 
     //! Transform type identifier

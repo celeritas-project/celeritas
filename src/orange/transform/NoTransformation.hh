@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -24,7 +24,7 @@ class NoTransformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 0>;
+    using StorageSpan = LdgSpan<real_type const, 0>;
     //@}
 
     //! Transform type identifier
