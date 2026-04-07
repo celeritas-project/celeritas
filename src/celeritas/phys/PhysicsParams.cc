@@ -13,6 +13,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -193,7 +194,8 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->host_ref().process_groups.size());
     auto const& data = this->host_ref();
-    return data.process_ids[data.process_groups[id].processes];
+    return remove_ldg_wrapper(
+        data.process_ids[data.process_groups[id].processes]);
 }
 
 //---------------------------------------------------------------------------//

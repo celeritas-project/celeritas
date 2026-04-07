@@ -343,7 +343,7 @@ void adl_serializer<CelerVarTransform>::to_json(json& j,
     std::visit(
         [&j](auto&& tr) {
             j = {{"_type", to_cstring(tr.transform_type())},
-                 {"data", tr.data()}};
+                 {"data", remove_ldg_wrapper(tr.data())}};
         },
         vt);
 }
