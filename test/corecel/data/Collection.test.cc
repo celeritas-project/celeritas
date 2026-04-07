@@ -10,6 +10,8 @@
 #include <random>
 #include <type_traits>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -443,6 +445,27 @@ TEST_F(AssignmentTest, host_host)
         temp = host_cref_;
         EXPECT_EQ(4, temp.size());
     }
+}
+
+TEST_F(AssignmentTest, mapped)
+{
+    Value<MemSpace::mapped> mapped_val;
+    if (!celeritas::device().can_map_host_memory())
+    {
+        EXPECT_THROW(mapped_val = host_val_, RuntimeError);
+        GTEST_SKIP() << "Device not enabled or memory mapping unsupported";
+    }
+    mapped_val = host_val_;
+    EXPECT_EQ(4, mapped_val.size());
+    ASSERT_EQ(1, host_val_[IntId{1}]);
+    mapped_val[IntId{1}] = 123;
+    EXPECT_EQ(1, host_val_[IntId{1}]);
+    EXPECT_EQ(123, mapped_val[IntId{1}]);
+
+    Ref<MemSpace::mapped> mapped_ref;
+    mapped_ref = mapped_val;
+    mapped_ref[IntId{2}] = 234;
+    EXPECT_EQ(234, mapped_val[IntId{2}]);
 }
 
 TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(host_device))
