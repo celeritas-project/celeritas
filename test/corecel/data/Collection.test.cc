@@ -259,6 +259,8 @@ class SimpleCollectionTest : public Test
   protected:
     using IntId = ItemId<int>;
     using IntRange = ItemRange<int>;
+    using IntLdgWrapper = detail::LdgWrapper<int const>;
+    using IntLdgSpan = LdgSpan<int const>;
     template<MemSpace M>
     using AllInts = AllItems<int, M>;
 
@@ -322,12 +324,10 @@ TEST_F(SimpleCollectionTest, accessors)
     }
 
     CRef<host> host_cref{host_ref_cref};
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]),
-                                detail::LdgWrapper<int const>>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), IntLdgWrapper>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), IntLdgSpan>));
     EXPECT_TRUE(
-        (std::is_same_v<decltype(host_cref[irange]), LdgSpan<int const>>));
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[AllInts<host>{}]),
-                                LdgSpan<int const>>));
+        (std::is_same_v<decltype(host_cref[AllInts<host>{}]), IntLdgSpan>));
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
@@ -377,12 +377,13 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
     fill(123, &src);
 
     CRef<device> device_cref{src};
-    EXPECT_TRUE((std::is_same_v<decltype(device_cref[IntId{0}]), int>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(device_cref[IntId{0}]), IntLdgWrapper>));
     EXPECT_TRUE(
         (std::is_same_v<decltype(device_cref[IntRange{IntId{0}, IntId{2}}]),
-                        LdgSpan<int const>>));
-    EXPECT_TRUE((std::is_same_v<decltype(device_cref[AllInts<device>{}]),
-                                LdgSpan<int const>>));
+                        IntLdgSpan>));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(device_cref[AllInts<device>{}]), IntLdgSpan>));
 
     // Test 'fill_sequence'
     fill_sequence(&src, StreamId{});
