@@ -73,6 +73,8 @@ Storage
 .. doxygentypedef:: celeritas::ItemRange
 .. doxygenclass:: celeritas::ItemMap
 
+.. doxygenvariable:: celeritas::all_items
+
 .. doxygenclass:: celeritas::Collection
 .. doxygenclass:: celeritas::ParamsDataStore
 .. doxygenclass:: celeritas::StateDataStore
