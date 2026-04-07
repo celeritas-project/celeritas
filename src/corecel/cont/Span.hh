@@ -106,12 +106,12 @@ class Span
     constexpr Span() = default;
 
     //! Construct from data and size
-    CELER_CONSTEXPR_FUNCTION Span(pointer d, size_type s) : s_(d, s) {}
+    CELER_CONSTEXPR_FUNCTION Span(pointer d, std::size_t s) : s_(d, s) {}
 
     //! Construct from two contiguous random-access iterators
     template<class Iter>
     CELER_CONSTEXPR_FUNCTION Span(Iter first, Iter last)
-        : s_(&(*first), static_cast<size_type>(last - first))
+        : s_(&(*first), static_cast<std::size_t>(last - first))
     {
     }
 
@@ -173,7 +173,7 @@ class Span
 
     //!@{
     //! \name Element access
-    CELER_CONSTEXPR_FUNCTION reference operator[](size_type i) const
+    CELER_CONSTEXPR_FUNCTION reference operator[](std::size_t i) const
     {
         return s_.data[i];
     }
@@ -191,8 +191,8 @@ class Span
     //!@{
     //! \name Observers
     CELER_CONSTEXPR_FUNCTION bool empty() const { return s_.size == 0; }
-    CELER_CONSTEXPR_FUNCTION size_type size() const { return s_.size; }
-    CELER_CONSTEXPR_FUNCTION size_type size_bytes() const
+    CELER_CONSTEXPR_FUNCTION std::size_t size() const { return s_.size; }
+    CELER_CONSTEXPR_FUNCTION std::size_t size_bytes() const
     {
         return sizeof(element_type) * s_.size;
     }
