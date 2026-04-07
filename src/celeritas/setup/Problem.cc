@@ -62,6 +62,7 @@
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/OffloadWriter.hh"
+#include "celeritas/io/OpticalDistributionWriter.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -862,6 +863,13 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                 return nullptr;
             },
             [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {
+                if (!p.offload_file.empty())
+                {
+                    // Dump optical distribution data to a file
+                    result.offload_writer
+                        = std::make_shared<OpticalDistributionWriter>(
+                            p.offload_file);
+                }
                 return optical::GeneratorAction::make_and_insert(
                     *params, p.capacity.generators);
             },

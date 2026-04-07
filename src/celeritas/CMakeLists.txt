@@ -102,6 +102,8 @@ list(APPEND SOURCES
   io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
+  io/OpticalDistributionReader.cc
+  io/OpticalDistributionWriter.cc
   io/SeltzerBergerReader.cc
   io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
@@ -121,6 +123,7 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
