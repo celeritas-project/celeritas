@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <type_traits>
 
 #include "corecel/Types.hh"
 
@@ -61,12 +62,37 @@ CELER_CONSTEXPR_FUNCTION auto to_array(Span<detail::LdgWrapper<T const>, N> s)
 }
 
 //---------------------------------------------------------------------------//
+//! Make an LdgSpan directly from a container, primarily for testing
+template<class T>
+CELER_CONSTEXPR_FUNCTION auto make_ldg_span(T const& cont)
+{
+    using pointer_type = decltype(cont.data());
+    using value_type = std::add_const_t<std::remove_pointer_t<pointer_type>>;
+    return LdgSpan<value_type>{cont.data(), cont.size()};
+}
+
+//! Make an LdgSpan directly from a C array, primarily for testing
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION LdgSpan<T const, N> make_ldg_span(T const (&arr)[N])
+{
+    return {arr, N};
+}
+
+//---------------------------------------------------------------------------//
 //! Convert an LdgSpan to a regular Span, \em not using \c ldg
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T const, N>
 remove_ldg_wrapper(Span<detail::LdgWrapper<T const>, N> cont)
 {
     return {cont.data(), cont.size()};
+}
+
+//! Convert an LdgSpan to a regular Span, \em not using \c ldg
+template<class T, std::size_t N>
+CELER_CONSTEXPR_FUNCTION Span<T const, N>
+remove_ldg_wrapper(Span<T const, N> cont)
+{
+    return cont;
 }
 
 //---------------------------------------------------------------------------//
