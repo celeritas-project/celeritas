@@ -388,10 +388,10 @@ class Collection
 
     //!@{
     //! Access all data as a span (memspace-safe)
-    CELER_FIF auto operator[](AllItemsT) { return SpanT{this->raw_span()}; }
-    CELER_FIF auto operator[](AllItemsT) const
+    CELER_FIF SpanT operator[](AllItemsT) { return {s_.data(), s_.size()}; }
+    CELER_FIF SpanConstT operator[](AllItemsT) const
     {
-        return SpanConstT{this->raw_span()};
+        return {s_.data(), s_.size()};
     }
     //!@}
 
