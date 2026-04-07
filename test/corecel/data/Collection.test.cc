@@ -383,7 +383,8 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
         (std::is_same_v<decltype(device_cref[IntRange{IntId{0}, IntId{2}}]),
                         IntLdgSpan>));
     EXPECT_TRUE((
-        std::is_same_v<decltype(device_cref[AllInts<device>{}]), IntLdgSpan>));
+        std::is_same_v<decltype(device_cref[all_items<int, MemSpace::device>]),
+                       IntLdgSpan>));
 
     // Test 'fill_sequence'
     fill_sequence(&src, StreamId{});

@@ -33,11 +33,20 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+//! Tag structure for accessing a memspace-local span of data
+template<class T, MemSpace M>
+struct AllItems_t
+{
+};
+
+//---------------------------------------------------------------------------//
+//! Memspace-safe pointer based on a container type
 template<class Container, MemSpace M>
 using ContainerObserverPtr
     = ObserverPtr<std::remove_pointer_t<typename Container::pointer>, M>;
 
 //---------------------------------------------------------------------------//
+//! Common traits for collections (unusual ones override these inherited types)
 template<class T>
 struct DefaultCollectionTraits
 {
@@ -138,7 +147,7 @@ inline void validate_mappable_memory()
         << (d ? "does not support unified addressing" : "is not enabled"));
 }
 
-//! Check before assignment that the sizes are compatible
+//! Check before assignment that the sizes are equal
 inline void validate_compatible_size(std::size_t dst_size,
                                      MemSpace dm,
                                      std::size_t src_size,

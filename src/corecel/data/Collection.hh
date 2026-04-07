@@ -245,15 +245,14 @@ class ItemMap
 };
 
 //---------------------------------------------------------------------------//
-/*!
- * Sentinel class for obtaining a view to all items of a collection.
- *
- * \todo Rename AllItems_t and add inline constexpr instance all_items
- */
+// DEPRECATED: remove in v1.0
+//! Deprecated tag class for obtaining a span of all items of a collection
 template<class T, MemSpace M = MemSpace::native>
-struct AllItems
-{
-};
+using AllItems = detail::AllItems_t<T, M>;
+
+//! Memspace-safe sentinel for obtaining a span of a collection
+template<class T, MemSpace M = MemSpace::native>
+inline constexpr detail::AllItems_t<T, M> all_items;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -265,10 +264,10 @@ struct AllItems
  * Spans can point to host or device memory, but the \c MemSpace template
  * argument protects against accidental accesses from the wrong memory space.
  *
- * Each Collection object is usually accessed with an ItemRange, which
+ * Each Collection object is usually accessed with an \c ItemRange, which
  * references a contiguous set of elements in the Collection.
  * For example, setup code on the host would extend the Collection with a
- * series of vectors, the addition of which returns a ItemRange that returns
+ * series of vectors, the addition of which returns a \c ItemRange that returns
  * the equivalent data on host or device.
  * This methodology allows complex nested data structures to be built
  * up quickly at setup time without knowing the size requirements beforehand.
@@ -276,9 +275,9 @@ struct AllItems
  * Host-device functions and classes should use \c Collection with a reference
  * or const_reference Ownership, and the \c MemSpace::native type, which
  * expects device memory when compiled inside a CUDA file and host memory when
- * used inside a C++ source or test. (This design choice prevents a single CUDA
+ * used inside a C++ source or test. This design choice prevents a single CUDA
  * file from compiling separate host-compatible and device-compatible compute
- * kernels, but in the case of Celeritas this situation won't arise, because
+ * kernels. (In the case of Celeritas this situation won't arise, because
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  *
@@ -333,7 +332,7 @@ class Collection
     using size_type = typename I::size_type;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
-    using AllItemsT = AllItems<T, M>;
+    using AllItemsT = detail::AllItems_t<T, M>;
 
     // DEPRECATED: remove in v1.0
     using reference_type [[deprecated]] = reference;
@@ -387,9 +386,14 @@ class Collection
     inline CELER_FUNCTION SpanT operator[](ItemRangeT ps);
     inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
 
-    // Access all data.
-    inline CELER_FUNCTION SpanT operator[](AllItemsT);
-    inline CELER_FUNCTION SpanConstT operator[](AllItemsT) const;
+    //!@{
+    //! Access all data as a span (memspace-safe)
+    CELER_FIF auto operator[](AllItemsT) { return SpanT{this->raw_span()}; }
+    CELER_FIF auto operator[](AllItemsT) const
+    {
+        return SpanConstT{this->raw_span()};
+    }
+    //!@}
 
     //!@{
     //! Direct accessors to underlying data
@@ -474,9 +478,8 @@ inline auto make_const_ref(Collection<T, Ownership::value, M, I> const& c)
  * Construct or assign from another collection.
  *
  * These are generally used to create "references" to "values" (same memory
- * space) but can also be used to copy from device to host. The \c
- * detail::CollectionAssigner class statically checks for allowable
- * transformations and memory moves.
+ * space) but can also be used to copy from device to host. Allowable
+ * transformations and memory moves are statically checked.
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
@@ -566,28 +569,6 @@ CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
     auto* data = s_.data();
     return {data + ps.begin()->unchecked_get(),
             data + ps.end()->unchecked_get()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access all of the data as a Span.
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT)
-    -> SpanT
-{
-    return {s_.data(), s_.size()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access all of the data as a Span (const).
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FORCEINLINE_FUNCTION auto
-Collection<T, W, M, I>::operator[](AllItemsT) const -> SpanConstT
-{
-    return {s_.data(), s_.size()};
 }
 
 //---------------------------------------------------------------------------//
