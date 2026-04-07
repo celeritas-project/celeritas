@@ -160,11 +160,20 @@ inline void validate_compatible_size(std::size_t dst_size,
  * use a separate resize+copy.
  */
 template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
-inline void
-copy_collection_impl(Span<T> src,
-                     typename CollectionTraits<T, DW, DM>::StorageT* dst)
+inline void copy_collection(Span<T const> csrc,
+                            typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
+    CELER_EXPECT(dst);
     using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;
+
+    static_assert(
+        !(SW == Ownership::const_reference && DW == Ownership::reference),
+        "cannot assign from const reference to reference");
+
+    // Const cast is OK: we need something like it because of the different
+    // combinations of mutable/const operator=, and the static assertion above
+    // ensures the correct semantics
+    Span<T> src = {const_cast<T*>(csrc.data()), csrc.size()};
 
     if constexpr (DM == MemSpace::mapped)
     {
@@ -209,39 +218,6 @@ copy_collection_impl(Span<T> src,
         Copier<T, DM> copy_to_dst{{dst->data(), dst->size()}};
         copy_to_dst(SM, src);
     }
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Copy-assign a collection via its storage.
- *
- * Since the copy operation is done only on the default stream, this should
- * only be performed during setup and during testing. State allocations should
- * use a separate resize+copy.
- */
-template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM, class ST>
-CELER_FORCEINLINE void
-copy_collection(Span<ST> src,
-                typename CollectionTraits<T, DW, DM>::StorageT* dst)
-{
-    static_assert(
-        !(SW == Ownership::const_reference && DW == Ownership::reference),
-        "cannot assign from const reference to reference");
-
-    Span<T> mutable_src;
-    if constexpr (std::is_const_v<ST>)
-    {
-        // Const cast is OK because the only time it's used is when this is
-        // called with Ownership::reference in a mutable assignment operator:
-        // the caller is doing T* -> const T*
-        mutable_src = {const_cast<T*>(src.data()), src.size()};
-    }
-    else
-    {
-        mutable_src = src;
-    }
-
-    return copy_collection_impl<T, SW, SM, DW, DM>(mutable_src, dst);
 }
 
 //---------------------------------------------------------------------------//
