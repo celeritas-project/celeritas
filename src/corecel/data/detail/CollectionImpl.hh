@@ -7,6 +7,8 @@
 #pragma once
 
 #include <type_traits>
+
+#include "corecel/Macros.hh"
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
 #endif
@@ -126,6 +128,30 @@ inline void validate_storage(Size dst, OtherSize src)
 }
 
 //---------------------------------------------------------------------------//
+//! Check that mappable memory is a valid destination
+inline void validate_mappable_memory()
+{
+    auto& d = celeritas::device();
+    CELER_VALIDATE(
+        d.can_map_host_memory(),
+        << "invalid collection MemSpace::mapped: device "
+        << (d ? "does not support unified addressing" : "is not enabled"));
+}
+
+//! Check before assignment that the sizes are compatible
+inline void validate_compatible_size(std::size_t dst_size,
+                                     MemSpace dm,
+                                     std::size_t src_size,
+                                     MemSpace sm)
+
+{
+    CELER_VALIDATE(dst_size == src_size,
+                   << "collection assignment from " << to_cstring(sm) << " to "
+                   << to_cstring(dm) << " failed: cannot copy from source size "
+                   << src_size << " to destination size " << dst_size);
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Copy-assign a collection via its storage.
  *
@@ -134,21 +160,15 @@ inline void validate_storage(Size dst, OtherSize src)
  * use a separate resize+copy.
  */
 template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
-inline void copy_collection(Span<T const> src,
-                            typename CollectionTraits<T, DW, DM>::StorageT* dst)
+inline void
+copy_collection_impl(Span<T> src,
+                     typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
     using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;
 
-    // Const cast is OK because the only time it's used is when this is called
-    // with Ownership::reference and the caller is doing T* -> const T*
-    auto* data = const_cast<T*>(src.data());
-    auto size = src.size();
-
-    if constexpr (DW == Ownership::value && DM == MemSpace::mapped)
+    if constexpr (DM == MemSpace::mapped)
     {
-        CELER_VALIDATE(celeritas::device().can_map_host_memory(),
-                       << "device " << celeritas::device().device_id()
-                       << " doesn't support unified addressing");
+        validate_mappable_memory();
     }
     if constexpr (DM == SM)
     {
@@ -156,16 +176,12 @@ inline void copy_collection(Span<T const> src,
         if constexpr (DW == Ownership::value)
         {
             // Allocate (if necessary) and copy to the new collection
-            dst->assign(data, data + size);
+            dst->assign(src.data(), src.data() + src.size());
         }
         else
         {
             // Make span in same memspace, prohibiting const violation
-            static_assert(!(SW == Ownership::const_reference
-                            && DW == Ownership::reference),
-                          "cannot assign from const reference to reference");
-
-            *dst = DstStorageT{data, size};
+            *dst = DstStorageT{src.data(), src.size()};
         }
     }
     else
@@ -174,7 +190,7 @@ inline void copy_collection(Span<T const> src,
         if constexpr (DW == Ownership::value)
         {
             // Allocate destination
-            *dst = DstStorageT(size);
+            *dst = DstStorageT(src.size());
         }
 
         if constexpr (!CELER_USE_DEVICE)
@@ -183,16 +199,49 @@ inline void copy_collection(Span<T const> src,
             CELER_ASSERT_UNREACHABLE();
         }
 
-        CELER_VALIDATE(dst->size() == size,
-                       << "collection assignment from " << to_cstring(SM)
-                       << " to " << to_cstring(DM)
-                       << " failed: cannot copy from source size " << size
-                       << " to destination size " << dst->size());
+        // When crossing memspace, we're copying the underlying data, *not*
+        // copying pointers: so the destination "view" should be to some
+        // already-allocated memory that we're copying to
+        validate_compatible_size(dst->size(), DM, src.size(), SM);
 
-        // Copy across memory boundary
+        // Copy across memory boundary with raw pointer/size
+        // (cannot use make_span since dst could be DeviceVector)
         Copier<T, DM> copy_to_dst{{dst->data(), dst->size()}};
-        copy_to_dst(SM, {data, size});
+        copy_to_dst(SM, src);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy-assign a collection via its storage.
+ *
+ * Since the copy operation is done only on the default stream, this should
+ * only be performed during setup and during testing. State allocations should
+ * use a separate resize+copy.
+ */
+template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM, class ST>
+CELER_FORCEINLINE void
+copy_collection(Span<ST> src,
+                typename CollectionTraits<T, DW, DM>::StorageT* dst)
+{
+    static_assert(
+        !(SW == Ownership::const_reference && DW == Ownership::reference),
+        "cannot assign from const reference to reference");
+
+    Span<T> mutable_src;
+    if constexpr (std::is_const_v<ST>)
+    {
+        // Const cast is OK because the only time it's used is when this is
+        // called with Ownership::reference in a mutable assignment operator:
+        // the caller is doing T* -> const T*
+        mutable_src = {const_cast<T*>(src.data()), src.size()};
+    }
+    else
+    {
+        mutable_src = src;
+    }
+
+    return copy_collection_impl<T, SW, SM, DW, DM>(mutable_src, dst);
 }
 
 //---------------------------------------------------------------------------//
