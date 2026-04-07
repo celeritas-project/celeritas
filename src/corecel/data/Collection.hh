@@ -307,6 +307,10 @@ struct AllItems
  *
  * Accessing a \c reference collection returns \em mutable pointers, even when
  * given the collection as a const reference.
+ *
+ * \internal Since the behavior of this class does \em not depend on the item
+ * ID (only the types do), the implementation of each function directly
+ * forwards to a less-templated function to reduce object size.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
@@ -400,12 +404,12 @@ class Collection
 
   private:
     using StorageT = typename TraitsT::StorageT;
+
     //// DATA ////
 
     //! Manage data/size with a std::vector, DeviceVector, or Span
     StorageT s_{};
 
-  protected:
     //// FRIENDS ////
 
     template<class T2, Ownership W2, MemSpace M2, class Id2>
@@ -417,10 +421,22 @@ class Collection
     template<class T2, class Id2>
     friend class DedupeCollectionBuilder;
 
+    //// IMPLEMENTATION FUNCTIONS ////
+
     //!@{
     // Private accessors for collection construction/access
     CELER_FIF StorageT const& storage() const { return s_; }
     CELER_FIF StorageT& storage() { return s_; }
+
+    // Note that these are different from SpanT, which has Ldg/etc
+    CELER_FIF Span<typename TraitsT::const_type> raw_span() const
+    {
+        return {s_.data(), s_.size()};
+    }
+    CELER_FIF Span<typename TraitsT::type> raw_span()
+    {
+        return {s_.data(), s_.size()};
+    }
     //@}
 };
 
@@ -466,8 +482,7 @@ template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
 {
-    detail::copy_collection<T, W2, M2, W, M>(
-        {other.s_.data(), other.s_.size()}, &s_);
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
 }
 
@@ -475,8 +490,7 @@ template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 {
-    detail::copy_collection<T, W2, M2, W, M>(
-        {other.s_.data(), other.s_.size()}, &s_);
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
 }
 
@@ -485,8 +499,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
-    detail::copy_collection<T, W2, M2, W, M>(
-        {other.s_.data(), other.s_.size()}, &s_);
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
     return *this;
 }
@@ -496,8 +509,7 @@ template<Ownership W2, MemSpace M2>
 Collection<T, W, M, I>&
 Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
-    detail::copy_collection<T, W2, M2, W, M>(
-        {other.s_.data(), other.s_.size()}, &s_);
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
     return *this;
 }
