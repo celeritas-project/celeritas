@@ -122,7 +122,7 @@ CELER_FUNCTION T
 TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
 {
     CELER_EXPECT(data_offset <= reals_.size());
-    using SpanT = T::StorageSpan;
+    using SpanT = typename T::StorageSpan;
     constexpr size_type size{SpanT::extent};
     CELER_ASSERT(data_offset + size <= reals_.size());
 
