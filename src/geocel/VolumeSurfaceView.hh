@@ -10,7 +10,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
 #include "SurfaceData.hh"
