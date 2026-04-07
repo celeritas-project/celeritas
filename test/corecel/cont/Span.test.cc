@@ -10,7 +10,6 @@
 #include <sstream>
 #include <type_traits>
 
-#include "corecel/OpaqueId.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
@@ -67,6 +66,15 @@ TEST(SpanTest, fixed_size_zero)
     Span<int const> const_dynamic{empty_span};
     EXPECT_EQ(0, const_dynamic.size());
 
+    // Removing const must not be allowed
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 0>, Span<int const, 0>>))
+        << "const->mutable span is prohibited";
+    EXPECT_FALSE((std::is_constructible_v<Span<int>, Span<int const>>))
+        << "const->mutable dynamic span is prohibited";
+    // Incompatible fixed extents must not be allowed
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 2>, Span<int, 3>>))
+        << "fixed span with different extent is prohibited";
+
     // Test pointer constructor
     Span<int, 0> ptr_span(empty_span.begin(), empty_span.end());
     EXPECT_EQ(0, ptr_span.size());
@@ -121,6 +129,30 @@ TEST(SpanTest, fixed_size)
     // Test pointer constructor
     Span<int, 2> ptr_span(local_data, local_data + 2);
     EXPECT_EQ(local_data, ptr_span.data());
+}
+
+TEST(SpanTest, implicit_const_conversion)
+{
+    // Test that Span<int, 3> implicitly converts to Span<int const>
+    // (i.e., the converting constructor is not explicit)
+    int local_data[] = {1, 2, 3};
+    Span<int, 3> span(local_data);
+
+    Span<int const> const_span = span;
+    EXPECT_EQ(local_data, const_span.data());
+    EXPECT_EQ(3, const_span.size());
+
+    // Should be able to convert back *explicitly* to fixed-size
+    Span<int const, 3> const_fixed_span{const_span};
+    EXPECT_EQ(local_data, const_fixed_span.data());
+    EXPECT_EQ(3, const_fixed_span.size());
+
+    // Converting dynamic to wrong size should result in assertion failure
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW((Span<int const, 2>{const_span}), DebugError);
+        EXPECT_THROW((Span<int const, 4>{const_span}), DebugError);
+    }
 }
 
 TEST(SpanTest, dynamic_size)
