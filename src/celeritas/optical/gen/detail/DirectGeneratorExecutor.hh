@@ -50,19 +50,28 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(state);
 
     auto* counters = state->init.counters.data().get();
-    // Create view to new track to be initialized
-    CoreTrackView vacancy(*params, *state, [&] {
-        TrackSlotId idx{
-            index_before(counters->num_vacancies, ThreadId(tid.get()))};
-        return state->init.vacancies[idx];
-    }());
 
-    // Get initializer from the back
-    TrackInitializer const& init = data.initializers[ItemId<TrackInitializer>(
-        index_before(counters->num_pending, ThreadId(tid.get())))];
+    // Original code set the number of threads to the minimum between of number
+    // of vacancies and the number of pending in the auxiliary state. To avoid
+    // accessing the state counters to compute this min, we instead skip the
+    // excess if state.counters.num_vacancies < aux_state.counters.num_pending
+    if (tid < counters->num_vacancies)
+    {
+        // Create view to new track to be initialized
+        CoreTrackView vacancy(*params, *state, [&] {
+            TrackSlotId idx{
+                index_before(counters->num_vacancies, ThreadId(tid.get()))};
+            return state->init.vacancies[idx];
+        }());
 
-    // Initialize track
-    vacancy = init;
+        // Get initializer from the back
+        TrackInitializer const& init
+            = data.initializers[ItemId<TrackInitializer>(
+                index_before(counters->num_pending, ThreadId(tid.get())))];
+
+        // Initialize track
+        vacancy = init;
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -185,9 +185,10 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
         = get<DirectGeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies until later.
         this->generate(params, state);
     }
 
@@ -214,13 +215,11 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<DirectGeneratorState<MemSpace::native>>(
         *state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::DirectGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
-    launch_action(num_gen, execute);
+    launch_action(aux_state.counters.num_pending, execute);
 }
 
 //---------------------------------------------------------------------------//

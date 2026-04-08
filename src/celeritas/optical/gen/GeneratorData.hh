@@ -162,7 +162,7 @@ struct GeneratorState : public GeneratorStateBase
 
 //---------------------------------------------------------------------------//
 /*!
- * Resize optical buffere.
+ * Resize optical buffers.
  */
 template<MemSpace M>
 void resize(GeneratorStateData<Ownership::value, M>* state,
