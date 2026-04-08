@@ -32,10 +32,11 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
 //! Tag type used for \c nullid
 struct nullid_t
 {
+    constexpr explicit nullid_t(int) {}
 };
 
 //! Tag instance used to instantiate and compare to a null OpaqueId
-inline constexpr nullid_t nullid;
+inline constexpr nullid_t nullid{0};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -139,18 +140,16 @@ class OpaqueId
 
     //! Get the value, asserting non-null in debug builds
     CELER_CEF value_type value() const noexcept(ndebug)
-
     {
         CELER_EXPECT(*this);
         return value_;
     }
 
-    //! Access the underlying data for more efficient loading on device
+    //! Access the underlying data for cached loading on device
     CELER_CEF value_type const* data() const noexcept { return &value_; }
 
     //!@{
-    //! \name Deprecated modification
-    //! \deprecated Remove in v1.0
+    //! \name Index-like modifiers
 
     //! Pre-increment of the ID
     CELER_CEF OpaqueId& operator++() noexcept(ndebug)
@@ -214,6 +213,26 @@ class OpaqueId
     CELER_DEFINE_OPAQUEID_CMP(>)
     CELER_DEFINE_OPAQUEID_CMP(<=)
     CELER_DEFINE_OPAQUEID_CMP(>=)
+    //!@}
+
+    //!@{
+    //! Compare with nullid
+    CELER_CEF friend bool operator==(OpaqueId id, nullid_t) noexcept
+    {
+        return !id;
+    }
+    CELER_CEF friend bool operator==(nullid_t, OpaqueId id) noexcept
+    {
+        return !id;
+    }
+    CELER_CEF friend bool operator!=(OpaqueId id, nullid_t) noexcept
+    {
+        return static_cast<bool>(id);
+    }
+    CELER_CEF friend bool operator!=(nullid_t, OpaqueId id) noexcept
+    {
+        return static_cast<bool>(id);
+    }
     //!@}
 
 #undef CELER_DEFINE_OPAQUEID_CMP

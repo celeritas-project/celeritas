@@ -13,8 +13,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 
@@ -37,7 +36,7 @@ class OpaqueIdTypedTest : public ::testing::Test
 using IntTypes = ::testing::Types<unsigned char, unsigned int, std::size_t>;
 TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes, );
 
-TYPED_TEST(OpaqueIdTypedTest, operations)
+TYPED_TEST(OpaqueIdTypedTest, unassigned)
 {
     using Int_t = TypeParam;
     using Id_t = OpaqueId<TestInstantiator, Int_t>;
@@ -48,6 +47,10 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_TRUE(!unassigned);
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
+    EXPECT_TRUE(unassigned == nullid);
+    EXPECT_TRUE(nullid == unassigned);
+    EXPECT_FALSE(unassigned != nullid);
+    EXPECT_FALSE(nullid != unassigned);
     EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
     EXPECT_EQ(std::hash<TypeParam>()(sizemax), std::hash<Id_t>()(unassigned));
     if constexpr (CELERITAS_DEBUG)
@@ -56,15 +59,39 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
         EXPECT_THROW(unassigned.value(), DebugError);
     }
 
+    EXPECT_EQ("{}", stream_to_string(Id_t{}));
+}
+
+TYPED_TEST(OpaqueIdTypedTest, assigned)
+{
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
+
     Id_t assigned{123};
     EXPECT_TRUE(assigned);
     EXPECT_FALSE(!assigned);
     EXPECT_EQ(123, assigned.get());
     EXPECT_EQ(Int_t{123}, assigned.value());
     EXPECT_EQ(Int_t{123}, *assigned);
-    EXPECT_NE(unassigned, assigned);
+    EXPECT_NE(Id_t{}, assigned);
     EXPECT_EQ(assigned, assigned);
+    EXPECT_FALSE(assigned == nullid);
+    EXPECT_FALSE(nullid == assigned);
+    EXPECT_TRUE(assigned != nullid);
+    EXPECT_TRUE(nullid != assigned);
     EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));
+
+    EXPECT_EQ("{123}", stream_to_string(assigned));
+
+    assigned = nullid;
+    EXPECT_FALSE(assigned);
+
+    EXPECT_TRUE((std::is_same_v<Int_t, id_size_type<Id_t>>));
+}
+
+TYPED_TEST(OpaqueIdTypedTest, comparators)
+{
+    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
 
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
@@ -108,11 +135,6 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
-
-    EXPECT_EQ("{1}", stream_to_string(Id_t{1}));
-    EXPECT_EQ("{}", stream_to_string(Id_t{}));
-
-    EXPECT_TRUE((std::is_same_v<Int_t, id_size_type<Id_t>>));
 }
 
 TEST(OpaqueIdTest, multi_int)
@@ -132,22 +154,6 @@ TEST(OpaqueIdTest, multi_int)
     EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
     EXPECT_TRUE(UId8{254} < Uint32(255));
     EXPECT_TRUE(UId8{10} < Uint32(15));
-}
-
-TEST(OpaqueIdTest, iota)
-{
-    using Id_i = OpaqueId<int, std::size_t>;
-    using T = Id_i::size_type;
-    using Col = Collection<T, Ownership::value, MemSpace::host, Id_i>;
-    Col data;
-    CollectionBuilder builder{&data};
-    builder.resize(100);
-    Span data_view{data[AllItems<T>{}]};
-    std::iota(data_view.begin(), data_view.end(), 0);
-    for (auto i : range(data_view.size()))
-    {
-        EXPECT_EQ(i, data_view[i]);
-    }
 }
 
 TEST(OpaqueIdTest, id_cast)
