@@ -39,7 +39,7 @@ inline constexpr nullid_t nullid;
 
 //---------------------------------------------------------------------------//
 /*!
- * Type-safe index for accessing an array or collection of data.
+ * Type-safe "optional" index for accessing an array or collection of data.
  *
  * \tparam ItemT Type of an item at the index corresponding to this ID
  * \tparam SizeT Unsigned integer index
@@ -57,15 +57,13 @@ inline constexpr nullid_t nullid;
  * As an example, it prevents index arguments in a function call from being
  * provided out of order.
  *
- * In addition to representing an offset and type, this can also model a null
- * pointer: an \c OpaqueId object evaluates to \c true if it has a value
- * (`OpaqueId{3}`), or \c false if it does not (`OpaqueId{}`).
- * The invalid state is usually referred to in the codebase as a "null ID".
- *
  * The class is roughly modeled after \c std::optional<SizeT> (but efficient
  * as it has no extra boolean flag thanks to the use of a sentinel value).
  * The default-constructed value, \c nullid, cannot be used to index into an
  * array, nor does it represent a valid element.
+ * An \c OpaqueId object evaluates to \c true if it has a value
+ * (`OpaqueId{3}`), or \c false if it does not (`OpaqueId{}`).
+ * The invalid state is usually referred to in the codebase as a "null ID".
  *
  * \tip A valid ID will always compare less than a null ID: you can use
  *      \c std::partition and \c erase to remove null IDs from a vector.
@@ -79,7 +77,7 @@ inline constexpr nullid_t nullid;
  * Usage:
  * - Index into \c Collection objects
  * - Check for nullity with \c bool, by comparing with \c nullid,
- * - Access with \c operator* (unchecked) or \c .value() (debug-asserts
+ * - Access with \c operator* (unchecked) or \c .value() (debug asserts
  *   non-null)
  *
  * The OpaqueId is hashable, sortable, and printable. It can be loaded via
@@ -89,8 +87,8 @@ inline constexpr nullid_t nullid;
  * - \c nullid is an instance of \c nullid_t that compares to any OpaqueId as
  *   its "null" value.
  * - \c is_opaque_id_v allows checking for generic types
- * - \c id_size_t is a descriptive alias to get the unsigned integer \c
- *   value_type of an opaque ID, used for capacities.
+ * - \c id_size_t is a descriptive alias to get the unsigned integer
+ *   \c value_type of an opaque ID, used for capacities.
  * - \c id_cast safely converts integers to OpaqueId .
  *
  * \par About the ItemT tag
@@ -141,10 +139,14 @@ class OpaqueId
 
     //! Get the value, asserting non-null in debug builds
     CELER_CEF value_type value() const noexcept(ndebug)
+
     {
         CELER_EXPECT(*this);
         return value_;
     }
+
+    //! Access the underlying data for more efficient loading on device
+    CELER_CEF value_type const* data() const noexcept { return &value_; }
 
     //!@{
     //! \name Deprecated modification
@@ -184,18 +186,15 @@ class OpaqueId
 
     //!@}
 
-    //! Get the value without checking for validity
-    CELER_CEF value_type unchecked_get() const noexcept { return value_; }
-
-    //! Access the underlying data for more efficient loading on device
-    CELER_CEF value_type const* data() const noexcept { return &value_; }
-
     //!@{
     //! \name Deprecated access
     //! \deprecated Remove in v1.0
 
     //! Get the ID's value: use \c value() instead
     CELER_CEF value_type get() const noexcept(ndebug) { return this->value(); }
+
+    //! Get the value without checking: use \c operator* instead
+    CELER_CEF value_type unchecked_get() const noexcept { return value_; }
 
     //!@}
 
