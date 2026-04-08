@@ -5,7 +5,7 @@ spack:
   - cmake
   - nlohmann-json
   # ... plus packages required for *basic* realistic development
-  - geant4@11.3
+  - geant4
   - git
   - googletest
   - py-pre-commit
@@ -15,7 +15,7 @@ spack:
   - g4vg
   - hepmc3
   - ninja
-  - vecgeom@1
+  - vecgeom
   # Uncomment the following lines for additional supported optional packages
 #   - root
 #   # documentation
@@ -27,8 +27,10 @@ spack:
 #   # experimental
 #   - dd4hep
 #   - mpi
-#   # R&D repositories
+#   # Utilities
 #   - git-lfs
+#   - gh
+#   - py-gcovr
   view: true
   concretizer:
     unify: true
@@ -50,6 +52,8 @@ spack:
       require: '@3.7.0:'
     geant4:
       require: '@10.5:'
+      prefer:
+      - '@11.3'
     googletest:
       require: '@1.10:'
     py-identify: # needed by py-pre-commit
@@ -72,5 +76,5 @@ spack:
       - ~aqua ~davix ~examples ~opengl ~x ~tbb ~webgui +root7
     dd4hep:
       require:
-      - '@1.18:'
+      - '@1.33:'
       - ~utilityapps ~ddeve

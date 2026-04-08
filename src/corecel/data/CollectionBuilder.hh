@@ -95,7 +95,7 @@ class CollectionBuilder
     static constexpr std::size_t max_size()
     {
         // Account for prohibited nullid value
-        return nullid_value<size_type> - 1;
+        return detail::nullid_value<size_type> - 1;
     }
 
     CollectionT& col_;

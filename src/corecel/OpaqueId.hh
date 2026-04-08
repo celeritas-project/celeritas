@@ -20,10 +20,22 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 //! Sentinel value for an unassigned opaque ID
 template<class T>
 inline constexpr T nullid_value{static_cast<T>(-1)};
+//---------------------------------------------------------------------------//
+}  // namespace detail
+
+//! Tag type used for \c nullid
+struct nullid_t
+{
+};
+
+//! Tag instance used to instantiate and compare to a null OpaqueId
+inline constexpr nullid_t nullid;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,31 +44,64 @@ inline constexpr T nullid_value{static_cast<T>(-1)};
  * \tparam ItemT Type of an item at the index corresponding to this ID
  * \tparam SizeT Unsigned integer index
  *
- * It's common for classes and functions to take multiple indices, especially
- * for O(1) indexing for performance. By annotating these values with a type,
- * we give them semantic meaning, and we gain compile-time type safety.
+ * Indexing into arrays with integers, rather than storing pointers, is
+ * \em key to easy and safe data management across host/device boundaries.
+ * Pointers in C++ can act as a reference to an array or element of data, and
+ * they also have a \em type, which not only gives the stride width in bytes
+ * but also <em>prevents accidental aliasing</em>.
  *
+ * The \c OpaqueId class is an attempt to model integer indexing
+ * (device-friendly) with pointer semantics (type-safe).
+ * Annotating index offsets with a type gives the offsets a semantic meaning,
+ * and it gives the developer compile-time type safety.
+ * As an example, it prevents index arguments in a function call from being
+ * provided out of order.
+ *
+ * In addition to representing an offset and type, this can also model a null
+ * pointer: an \c OpaqueId object evaluates to \c true if it has a value
+ * (`OpaqueId{3}`), or \c false if it does not (`OpaqueId{}`).
+ * The invalid state is usually referred to in the codebase as a "null ID".
+ *
+ * The class is roughly modeled after \c std::optional<SizeT> (but efficient
+ * as it has no extra boolean flag thanks to the use of a sentinel value).
+ * The default-constructed value, \c nullid, cannot be used to index into an
+ * array, nor does it represent a valid element.
+ *
+ * \tip A valid ID will always compare less than a null ID: you can use
+ *      \c std::partition and \c erase to remove null IDs from a vector.
+ *
+ * \par Synopsis
+ *
+ * A default-constructed OpaqueId is "null". It can be constructed explicitly
+ * from unsigned integers. (Use \c id_cast for safe construction from integer
+ * or differently-sized values.)
+ *
+ * Usage:
+ * - Index into \c Collection objects
+ * - Check for nullity with \c bool, by comparing with \c nullid,
+ * - Access with \c .value() or \c operator*
+ *
+ * The OpaqueId is hashable, sortable, and printable. It can be loaded via
+ * texture-backed device memory using \c ldg .
+ *
+ * \par Related helper functions and types
+ * - \c nullid is an instance of \c nullid_t that compares to any OpaqueId as
+ *   its "null" value.
+ * - \c is_opaque_id_v allows checking for generic types
+ * - \c id_size_t is a descriptive alias to get the unsigned integer \c
+ *   value_type of an opaque ID, used for capacities.
+ * - \c id_cast safely converts integers to OpaqueId .
+ *
+ * \par About the ItemT tag
  * If this class is used for indexing into an array, then \c ValueT argument
  * should usually be the value type of the array:
- * <code>Foo operator[](OpaqueId<Foo>)</code>
- *
- * An \c OpaqueId object evaluates to \c true if it has a value, or \c false if
- * it does not (a "null" ID, analogous to a null pointer: it does not
- * correspond to a valid value). A "true" ID will always compare less than a
- * "false" ID: you can use \c std::partition and \c erase to remove invalid IDs
- * from a vector.
- *
- * See also \c id_cast below for checked construction of OpaqueIds from generic
- * integer values (avoid compile-time warnings or errors from signed/truncated
- * integers). Use \c id_size_type<FooId> as a return type for a container's
- * \c num_foo() .
+ * <code>FooRecord operator[](OpaqueId<FooRecord>)</code>
+ * Otherwise, the convention is to use an anonymous <code>struct Bar_</code> to
+ * tag the ID type.
  *
  * \note Comparators are defined as inline friend functions to allow
- * ADL-assisted conversion, including from \c LdgWrapper (see \ref ldg).
+ * ADL-assisted conversion, including from \c LdgWrapper.
  *
- * \todo This interface will be changed to be more like \c std::optional : \c
- * size_type will become \c value_type (the value of a 'dereferenced' ID) and
- * \c operator* or \c value will be used to access the integer.
  */
 template<class ItemT, class SizeT = ::celeritas::size_type>
 class OpaqueId
@@ -64,26 +109,45 @@ class OpaqueId
     static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
                   "SizeT must be unsigned.");
 
+    static constexpr bool ndebug = !CELERITAS_DEBUG;
+
   public:
     //!@{
     //! \name Type aliases
-    using Item = ItemT;
-    using size_type = SizeT;
+    using tag_type = ItemT;
     using value_type = SizeT;
+    using size_type = value_type;  // DEPRECATED
     //!@}
 
   public:
-    //! Default to null state
-    CELER_CEF OpaqueId() : value_(null_) {}
+    //! Construct implicitly from a null type
+    CELER_CEF OpaqueId(nullid_t) : value_(null_) {}
 
-    //! Construct explicitly with stored value
-    explicit CELER_CEF OpaqueId(size_type index) : value_(index) {}
+    //! Default to null state
+    CELER_CEF OpaqueId() : OpaqueId(nullid) {}
+
+    //! Construct explicitly with a stored value
+    explicit CELER_CEF OpaqueId(value_type index) : value_(index) {}
 
     //! Whether this ID is in a valid (assigned) state
-    explicit CELER_CEF operator bool() const { return value_ != null_; }
+    explicit CELER_CEF operator bool() const noexcept
+    {
+        return value_ != null_;
+    }
+
+    //! Dereference to access the value
+    CELER_CEF const value_type& operator*() const& noexcept(ndebug)
+    {
+        CELER_EXPECT(*this);
+        return value_;
+    }
+
+    //!@{
+    //! \name Deprecated modification
+    //! \deprecated Remove in v1.0
 
     //! Pre-increment of the ID
-    CELER_CEF OpaqueId& operator++()
+    CELER_CEF OpaqueId& operator++() noexcept(ndebug)
     {
         CELER_EXPECT(*this);
         value_ += 1;
@@ -91,7 +155,7 @@ class OpaqueId
     }
 
     //! Post-increment of the ID
-    CELER_CEF OpaqueId operator++(int)
+    CELER_CEF OpaqueId operator++(int) noexcept(ndebug)
     {
         OpaqueId old{*this};
         ++*this;
@@ -99,7 +163,7 @@ class OpaqueId
     }
 
     //! Pre-decrement of the ID
-    CELER_CEF OpaqueId& operator--()
+    CELER_CEF OpaqueId& operator--() noexcept(ndebug)
     {
         CELER_EXPECT(*this && value_ > 0);
         value_ -= 1;
@@ -107,25 +171,33 @@ class OpaqueId
     }
 
     //! Post-decrement of the ID
-    CELER_CEF OpaqueId operator--(int)
+    CELER_CEF OpaqueId operator--(int) noexcept(ndebug)
     {
         OpaqueId old{*this};
         --*this;
         return old;
     }
 
+    //!@}
+
+    //!@{
+    //! \name Deprecated access
+    //! \deprecated Remove in v1.0
+
     //! Get the ID's value
-    CELER_CEF size_type get() const
+    CELER_FIF value_type get() const noexcept(ndebug)
     {
         CELER_EXPECT(*this);
         return value_;
     }
 
     //! Get the value without checking for validity (atypical)
-    CELER_CONSTEXPR_FUNCTION size_type unchecked_get() const { return value_; }
+    CELER_CEF value_type unchecked_get() const noexcept { return value_; }
 
-    //! Access the underlying data for more efficient loading from memory
-    CELER_CONSTEXPR_FUNCTION size_type const* data() const { return &value_; }
+    //! Access the underlying data for more efficient loading on device
+    CELER_CEF value_type const* data() const noexcept { return &value_; }
+
+    //!@}
 
     //// INLINE COMPARATOR FRIENDS ////
 
@@ -211,12 +283,12 @@ class OpaqueId
     size_type value_;
 
     //! Value indicating the ID is not assigned
-    static constexpr size_type null_ = nullid_value<size_type>;
+    static constexpr size_type null_ = detail::nullid_value<size_type>;
 
     //// HELPER FUNCTIONS ////
 
     template<class U>
-    static CELER_CONSTEXPR_FUNCTION bool is_safe_offset(SizeT value, U offset)
+    static CELER_CEF bool is_safe_offset(SizeT value, U offset)
     {
         if constexpr (std::is_unsigned_v<U>)
         {
@@ -246,6 +318,8 @@ namespace detail
 template<class T, class U>
 inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
 {
+    constexpr auto null_val = detail::nullid_value<T>;
+
     if constexpr (std::is_signed_v<U>)
     {
         CELER_EXPECT(value >= 0);
@@ -259,12 +333,12 @@ inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
         {
             CELER_EXPECT(static_cast<C>(value) >= 0);
         }
-        CELER_EXPECT(static_cast<C>(value) < static_cast<C>(nullid_value<T>));
+        CELER_EXPECT(static_cast<C>(value) < static_cast<C>(null_val));
     }
     else
     {
         // Check that value is *not* the null value
-        CELER_EXPECT(static_cast<T>(value) != nullid_value<T>);
+        CELER_EXPECT(static_cast<T>(value) != null_val);
     }
 
     return static_cast<T>(value);
@@ -348,7 +422,7 @@ inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
  * Support loading OpaqueId via GPU cache.
  */
 template<class I, class T>
-CELER_CONSTEXPR_FUNCTION T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
+CELER_CEF T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
 {
     return ptr->data();
 }
@@ -362,7 +436,7 @@ template<class V, class S>
 CELER_FORCEINLINE std::ostream&
 operator<<(std::ostream& os, OpaqueId<V, S> const& v)
 {
-    detail::stream_opaqueid_impl(os, v.unchecked_get(), nullid_value<S>);
+    detail::stream_opaqueid_impl(os, *v.data(), detail::nullid_value<S>);
     return os;
 }
 #endif
