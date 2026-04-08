@@ -53,12 +53,15 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     if constexpr (CELERITAS_DEBUG)
     {
         EXPECT_THROW(unassigned.get(), DebugError);
+        EXPECT_THROW(unassigned.value(), DebugError);
     }
 
     Id_t assigned{123};
     EXPECT_TRUE(assigned);
     EXPECT_FALSE(!assigned);
     EXPECT_EQ(123, assigned.get());
+    EXPECT_EQ(Int_t{123}, assigned.value());
+    EXPECT_EQ(Int_t{123}, *assigned);
     EXPECT_NE(unassigned, assigned);
     EXPECT_EQ(assigned, assigned);
     EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));

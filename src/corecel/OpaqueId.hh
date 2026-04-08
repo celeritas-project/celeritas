@@ -79,7 +79,8 @@ inline constexpr nullid_t nullid;
  * Usage:
  * - Index into \c Collection objects
  * - Check for nullity with \c bool, by comparing with \c nullid,
- * - Access with \c .value() or \c operator*
+ * - Access with \c operator* (unchecked) or \c .value() (debug-asserts
+ *   non-null)
  *
  * The OpaqueId is hashable, sortable, and printable. It can be loaded via
  * texture-backed device memory using \c ldg .
@@ -135,8 +136,11 @@ class OpaqueId
         return value_ != null_;
     }
 
-    //! Dereference to access the value
-    CELER_CEF const value_type& operator*() const& noexcept(ndebug)
+    //! Unchecked dereference: caller must ensure the ID is valid
+    CELER_CEF value_type operator*() const noexcept { return value_; }
+
+    //! Get the value, asserting non-null in debug builds
+    CELER_CEF value_type value() const noexcept(ndebug)
     {
         CELER_EXPECT(*this);
         return value_;
@@ -180,22 +184,18 @@ class OpaqueId
 
     //!@}
 
-    //!@{
-    //! \name Deprecated access
-    //! \deprecated Remove in v1.0
-
-    //! Get the ID's value
-    CELER_FIF value_type get() const noexcept(ndebug)
-    {
-        CELER_EXPECT(*this);
-        return value_;
-    }
-
-    //! Get the value without checking for validity (atypical)
+    //! Get the value without checking for validity
     CELER_CEF value_type unchecked_get() const noexcept { return value_; }
 
     //! Access the underlying data for more efficient loading on device
     CELER_CEF value_type const* data() const noexcept { return &value_; }
+
+    //!@{
+    //! \name Deprecated access
+    //! \deprecated Remove in v1.0
+
+    //! Get the ID's value: use \c value() instead
+    CELER_CEF value_type get() const noexcept(ndebug) { return this->value(); }
 
     //!@}
 
