@@ -27,6 +27,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/inp/StandaloneInput.hh"  // IWYU pragma: keep
+#include "celeritas/io/OpticalDistributionWriter.hh"
 #include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/optical/Runner.hh"
 
@@ -207,6 +208,12 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         CELER_LOG(warning) << "No energy deposition resulted in photons: "
                               "skipping optical transport";
         return {};
+    }
+
+    if (runner_->problem().offload_writer)
+    {
+        // Dump distribution data to a file
+        (*runner_->problem().offload_writer)(gdd);
     }
 
     // Execute

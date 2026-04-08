@@ -389,21 +389,12 @@ template<class T>
 inline constexpr bool is_quantity_v = detail::IsQuantity<T>::value;
 
 //---------------------------------------------------------------------------//
-template<class T, class>
-struct LdgTraits;
-
-// Set up cached const global loading for Quantity
+//! Cached const global loading support for Quantity
 template<class U, class T>
-struct LdgTraits<Quantity<U, T>, void>
+CELER_CONSTEXPR_FUNCTION T const* ldg_data(Quantity<U, T> const* ptr) noexcept
 {
-    using underlying_type = typename Quantity<U, T>::value_type;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const*
-    data(Quantity<U, T> const* ptr)
-    {
-        return ptr->data();
-    }
-};
+    return ptr->data();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -27,6 +27,7 @@ class Transporter;
 class ActionSequence;
 class CoreParams;
 class GeantSd;
+class OpticalDistributionWriter;
 class OffloadWriter;
 class OpticalCollector;
 class RootFileManager;
@@ -73,6 +74,8 @@ struct OpticalProblemLoaded
     std::shared_ptr<optical::Transporter> transporter;
     //! Optical photon generation action
     std::shared_ptr<optical::GeneratorBase> generator;
+    //! Write data for generating optical photons
+    std::shared_ptr<OpticalDistributionWriter> offload_writer;
 };
 
 //---------------------------------------------------------------------------//

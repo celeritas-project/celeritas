@@ -10,6 +10,7 @@
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 #include "GridReflectivityData.hh"
 
@@ -125,7 +126,7 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 
     if (action == ReflectivityAction::absorb)
     {
-        if (auto e_grid_id = data.efficiency_ids[sub_model_id])
+        if (auto e_grid_id = data.efficiency_ids[sub_model_id].get())
         {
             // If absorbed and has efficiency grid, sample efficiency
             auto const& e_grid = data.efficiency[e_grid_id];

@@ -90,7 +90,7 @@ class FnvHasher
     explicit inline FnvHasher(value_type* hash_result);
 
     // Hash a byte of data
-    CELER_FORCEINLINE void operator()(std::byte b) const;
+    inline void operator()(std::byte b) const;
 
     // Hash a size_t (useful for std::hash integration)
     inline void operator()(std::size_t value) const;

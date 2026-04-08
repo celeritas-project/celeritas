@@ -407,7 +407,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
  * This function is specialized so that floating point types use \c std::fmax
  * for better performance on GPU and ARM.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
     return (b > a) ? b : a;
@@ -415,7 +415,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 
 //!\cond (CELERITAS_DOC_DEV)
 // Note: fmax treats NaN as "missing data"
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
     return std::fmax(a, b);
@@ -429,7 +429,7 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
  * This function is specialized so that floating point types use \c std::fmin
  * for better performance on GPU and ARM.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
     return (b < a) ? b : a;
@@ -437,7 +437,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 
 //!\cond (CELERITAS_DOC_DEV)
 // Note: fmin treats NaN as "missing data"
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
     return std::fmin(a, b);
@@ -524,8 +524,9 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
   assert(9.0 == fastpow(3.0, 2.0));
  \endcode
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline CELER_FUNCTION T fastpow(T a, T b)
+template<class T>
+inline CELER_FUNCTION std::enable_if_t<std::is_floating_point_v<T>, T>
+fastpow(T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
@@ -544,7 +545,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
  * Because of the single template parameter, it may be easier to use \c
  * std::fma directly in most cases.
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 {
     return std::fma(a, b, y);
@@ -555,7 +556,7 @@ CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 /*!
  * Provide an FMA-like interface for integers.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
@@ -668,7 +669,7 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
    eumod(-2, 2) == 0
    \endcode
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T eumod(T num, T denom)
 {
     T r = std::fmod(num, denom);

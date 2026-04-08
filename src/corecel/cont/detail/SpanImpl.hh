@@ -14,15 +14,15 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 template<class T>
-struct LdgValue;
+class LdgWrapper;
+
 template<class T>
 class LdgIterator;
 
-//---------------------------------------------------------------------------//
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Default type aliases for Span.
@@ -43,22 +43,22 @@ struct SpanTraits
 /*!
  * Type aliases when data is read using __ldg.
  *
- * \c LdgValue checks that T is a
- * valid type (const arithmetic or OpaqueId). Since \c LdgIterator returns a
- * copy of the data read, we can't return a reference to the original data, we
- * need to return a copy as well.
+ * \c LdgWrapper checks that \c T, which \em must be const, is a valid type.
+ * Dereferencing the iterator returns an \c LdgWrapper, which implicitly
+ * converts to the value type by calling \c __ldg.
  */
 template<class T>
-struct SpanTraits<LdgValue<T>>
+struct SpanTraits<LdgWrapper<T>>
 {
     static_assert(std::is_const_v<T>);
-    using element_type = typename LdgValue<T>::value_type;  // Always const!
-    using pointer = std::add_pointer_t<element_type const>;
+
+    using element_type = T;
+    using pointer = std::add_pointer_t<T>;
     using const_pointer = pointer;
-    using iterator = LdgIterator<element_type const>;
+    using iterator = LdgIterator<T>;
     using const_iterator = iterator;
-    using reference = std::remove_const_t<element_type>;
-    using const_reference = std::remove_const_t<element_type>;
+    using reference = LdgWrapper<T>;
+    using const_reference = reference;
 };
 
 //---------------------------------------------------------------------------//

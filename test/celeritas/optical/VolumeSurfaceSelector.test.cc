@@ -18,8 +18,8 @@ namespace optical
 {
 
 using OSurface = VolumeSurfaceSelector::OrientedSurface;
-constexpr auto forward = SubsurfaceDirection::forward;
-constexpr auto reverse = SubsurfaceDirection::reverse;
+constexpr auto forward = LocalDirection::forward;
+constexpr auto reverse = LocalDirection::reverse;
 
 bool operator==(OSurface const& a, OSurface const& b)
 {

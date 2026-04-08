@@ -33,7 +33,7 @@ using Hasher = detail::FnvHasher<std::size_t>;
  * uninitialized data or giving two equal structs different hashes.
  */
 template<class T, std::size_t N>
-std::size_t hash_as_bytes(Span<T const, N> s)
+CELER_FORCEINLINE std::size_t hash_as_bytes(Span<T const, N> s)
 {
     std::size_t result{};
     Hasher hash{&result};

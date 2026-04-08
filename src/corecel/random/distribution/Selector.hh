@@ -72,6 +72,8 @@ class Selector
     using real_type = typename std::invoke_result<F, arg_type>::type;
     //!@}
 
+    static_assert(std::is_floating_point_v<real_type>);
+
   public:
     // Construct with function, size, accumulated value, and normalization
     inline CELER_FUNCTION

@@ -102,8 +102,8 @@ UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
     : data_(data)
 {
     CELER_EXPECT(data_.surfaces.size() == data_.volumes.size());
-    CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0);
-    CELER_EXPECT(data_.volumes[AllVals{}].front() == 0);
+    CELER_EXPECT(data_.surfaces[AllVals{}].front() == size_type{0});
+    CELER_EXPECT(data_.volumes[AllVals{}].front() == size_type{0});
 }
 
 //---------------------------------------------------------------------------//
@@ -144,8 +144,8 @@ UniverseIndexer::local_surface(ImplSurfaceId id) const
     CELER_EXPECT(id < this->num_surfaces());
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
 
-    UnivId uni(iter - data_.surfaces[AllVals{}].begin());
-    LocalSurfaceId surface((id - *iter).unchecked_get());
+    auto uni = id_cast<UnivId>(iter - data_.surfaces[AllVals{}].begin());
+    auto surface = id_cast<LocalSurfaceId>(id.unchecked_get() - *iter);
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }
@@ -160,9 +160,9 @@ UniverseIndexer::local_volume(ImplVolumeId id) const
     CELER_EXPECT(id < this->num_volumes());
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
 
-    UnivId uni(iter - data_.volumes[AllVals{}].begin());
-    LocalVolumeId volume((id - *iter).unchecked_get());
-    CELER_ENSURE(uni.get() < this->num_universes());
+    auto uni = id_cast<UnivId>(iter - data_.volumes[AllVals{}].begin());
+    auto volume = id_cast<LocalVolumeId>(id.unchecked_get() - *iter);
+    CELER_ENSURE(uni < this->num_universes());
     return {uni, volume};
 }
 

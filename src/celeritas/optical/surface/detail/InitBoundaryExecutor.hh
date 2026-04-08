@@ -83,7 +83,7 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
     {
         // Use default surface properties: typically dielectric-dielectric
         oriented_surface.surface = surface_physics.scalars().default_surface;
-        oriented_surface.orientation = SubsurfaceDirection::forward;
+        oriented_surface.orientation = LocalDirection::forward;
     }
 
     // Enforce surface normal convention, swapping normal if geometry returns

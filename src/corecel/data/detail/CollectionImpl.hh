@@ -8,241 +8,224 @@
 
 #include <type_traits>
 
+#include "corecel/Macros.hh"
 #ifndef CELER_DEVICE_COMPILE
 #    include <vector>
-
-#    include "corecel/data/DeviceVector.hh"
 #endif
 
 #include "corecel/Assert.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Copier.hh"
-#include "corecel/data/LdgIterator.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 
-#include "DisabledStorage.hh"
+#ifdef CELER_DEVICE_COMPILE
+#    include "DisabledStorage.hh"
+#else
+#    include "corecel/data/DeviceVector.hh"
+#endif
 
 namespace celeritas
 {
 namespace detail
 {
 //---------------------------------------------------------------------------//
-template<class T, Ownership W, MemSpace M, typename = void>
-struct CollectionTraits
-{
-    using type = T;
-    using const_type = T const;
-    using reference_type = type&;
-    using const_reference_type = const_type&;
-    using SpanT = Span<type>;
-    using SpanConstT = Span<const_type>;
-};
-
-//---------------------------------------------------------------------------//
+//! Tag structure for accessing a memspace-local span of data
 template<class T, MemSpace M>
-struct CollectionTraits<T, Ownership::reference, M, void>
+struct AllItems_t
 {
-    using type = T;
-    using const_type = T;
-    using reference_type = type&;
-    using const_reference_type = const_type&;
-    using SpanT = Span<type>;
-    using SpanConstT = Span<const_type>;
 };
 
 //---------------------------------------------------------------------------//
-template<class T, MemSpace M>
-struct CollectionTraits<T,
-                        Ownership::const_reference,
-                        M,
-                        std::enable_if_t<!is_ldg_supported_v<std::add_const_t<T>>>>
-{
-    using type = T const;
-    using const_type = T const;
-    using reference_type = type&;
-    using const_reference_type = const_type&;
-    using SpanT = Span<type>;
-    using SpanConstT = Span<const_type>;
-};
+//! Memspace-safe pointer based on a container type
+template<class Container, MemSpace M>
+using ContainerObserverPtr
+    = ObserverPtr<std::remove_pointer_t<typename Container::pointer>, M>;
 
 //---------------------------------------------------------------------------//
-template<class T, MemSpace M>
-struct CollectionTraits<T,
-                        Ownership::const_reference,
-                        M,
-                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
-{
-    using type = T const;
-    using const_type = T const;
-    using reference_type = type&;
-    using const_reference_type = const_type&;
-    using SpanT = Span<type>;
-    using SpanConstT = Span<const_type>;
-};
-
-//---------------------------------------------------------------------------//
+//! Common traits for collections (unusual ones override these inherited types)
 template<class T>
-struct CollectionTraits<T,
-                        Ownership::const_reference,
-                        MemSpace::device,
-                        std::enable_if_t<is_ldg_supported_v<std::add_const_t<T>>>>
+struct DefaultCollectionTraits
 {
-    using type = T const;
+    using type = T;
     using const_type = T const;
-    using reference_type = type;
-    using const_reference_type = const_type;
-    using SpanT = LdgSpan<const_type>;
-    using SpanConstT = LdgSpan<const_type>;
+    using SpanT = Span<type>;
+    using SpanConstT = Span<const_type>;
+    using StorageT = SpanT;
 };
 
 //---------------------------------------------------------------------------//
-//! Memspace-dependent storage for a collection
 template<class T, Ownership W, MemSpace M>
-struct CollectionStorage
+struct CollectionTraits : DefaultCollectionTraits<T>
 {
-    using type = typename CollectionTraits<T, W, M>::SpanT;
-    type data;
-
-    inline static constexpr Ownership ownership = W;
-    inline static constexpr MemSpace memspace = M;
 };
 
 //---------------------------------------------------------------------------//
-//! Storage implementation for managed host data
+template<class T, MemSpace M>
+struct CollectionTraits<T, Ownership::reference, M> : DefaultCollectionTraits<T>
+{
+    using const_type = T;  //!< Return type is *mutable* for reference!
+    using SpanConstT = Span<T>;
+};
+
+//---------------------------------------------------------------------------//
+template<class T, MemSpace M>
+struct CollectionTraits<T, Ownership::const_reference, M>
+    : DefaultCollectionTraits<T>
+{
+    using type = T const;
+    using SpanT = AutoLdgSpan<T const>;
+    using SpanConstT = SpanT;
+    using StorageT = Span<T const>;
+};
+
+//---------------------------------------------------------------------------//
 template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::host>
+struct CollectionTraits<T, Ownership::value, MemSpace::host>
+    : DefaultCollectionTraits<T>
+{
+    static_assert(!std::is_same_v<T, bool>,
+                  "bool is not compatible between vector and anything else");
+
+#ifdef CELER_DEVICE_COMPILE
+    using StorageT = DisabledStorage<T>;
+#else
+    using StorageT = std::vector<T>;
+#endif
+};
+
+//---------------------------------------------------------------------------//
+template<class T>
+struct CollectionTraits<T, Ownership::value, MemSpace::device>
+    : DefaultCollectionTraits<T>
+{
+#ifdef CELER_DEVICE_COMPILE
+    using StorageT = DisabledStorage<T>;
+#else
+    using StorageT = DeviceVector<T>;
+#endif
+};
+
+//---------------------------------------------------------------------------//
+template<class T>
+struct CollectionTraits<T, Ownership::value, MemSpace::mapped>
+    : DefaultCollectionTraits<T>
 {
     static_assert(!std::is_same<T, bool>::value,
                   "bool is not compatible between vector and anything else");
 #ifdef CELER_DEVICE_COMPILE
-    // Use "not implemented" but __host__ __device__ decorated functions when
-    // compiling in CUDA
-    using type = DisabledStorage<T>;
+    using StorageT = DisabledStorage<T>;
 #else
-    using type = std::vector<T>;
+    using StorageT = std::vector<T, PinnedAllocator<T>>;
 #endif
-    type data;
-
-    inline static constexpr Ownership ownership = Ownership::value;
-    inline static constexpr MemSpace memspace = MemSpace::host;
-};
-
-//! Storage implementation for managed device data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::device>
-{
-#ifdef CELER_DEVICE_COMPILE
-    // Use "not implemented" but __host__ __device__ decorated functions when
-    // compiling in CUDA
-    using type = DisabledStorage<T>;
-#else
-    using type = DeviceVector<T>;
-#endif
-    type data;
-
-    inline static constexpr Ownership ownership = Ownership::value;
-    inline static constexpr MemSpace memspace = MemSpace::device;
-};
-
-//! Storage implementation for mapped host/device data
-template<class T>
-struct CollectionStorage<T, Ownership::value, MemSpace::mapped>
-{
-    static_assert(!std::is_same<T, bool>::value,
-                  "bool is not compatible between vector and anything else");
-#ifdef CELER_DEVICE_COMPILE
-    // Use "not implemented" but __host__ __device__ decorated functions when
-    // compiling in CUDA
-    using type = DisabledStorage<T>;
-#else
-    using type = std::vector<T, PinnedAllocator<T>>;
-#endif
-    type data;
-
-    inline static constexpr Ownership ownership = Ownership::value;
-    inline static constexpr MemSpace memspace = MemSpace::mapped;
 };
 
 //---------------------------------------------------------------------------//
 //! Check that sizes are acceptable when creating references from values
-template<Ownership W>
-struct CollectionStorageValidator
+template<Ownership W, class Size, class OtherSize>
+inline void validate_storage(Size dst, OtherSize src)
 {
-    template<class Size, class OtherSize>
-    void operator()(Size, OtherSize)
-    {
-        /* No validation needed */
-    }
-};
-
-template<>
-struct CollectionStorageValidator<Ownership::value>
-{
-    template<class Size, class OtherSize>
-    void operator()(Size dst, OtherSize src)
+    if constexpr (W == Ownership::value)
     {
         CELER_VALIDATE(dst == src,
                        << "collection is too large (" << sizeof(Size)
                        << "-byte int cannot hold " << src << " elements)");
     }
-};
+}
+
+//---------------------------------------------------------------------------//
+//! Check that mappable memory is a valid destination
+inline void validate_mappable_memory()
+{
+    auto& d = celeritas::device();
+    CELER_VALIDATE(
+        d.can_map_host_memory(),
+        << "invalid collection MemSpace::mapped: device "
+        << (d ? "does not support unified addressing" : "is not enabled"));
+}
+
+//! Check before assignment that the sizes are equal
+inline void validate_compatible_size(std::size_t dst_size,
+                                     MemSpace dm,
+                                     std::size_t src_size,
+                                     MemSpace sm)
+
+{
+    CELER_VALIDATE(dst_size == src_size,
+                   << "collection assignment from " << to_cstring(sm) << " to "
+                   << to_cstring(dm) << " failed: cannot copy from source size "
+                   << src_size << " to destination size " << dst_size);
+}
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy assign a collection via its storage.
+ * Copy-assign a collection via its storage.
+ *
+ * Since the copy operation is done only on the default stream, this should
+ * only be performed during setup and during testing. State allocations should
+ * use a separate resize+copy.
  */
-template<class S, class T, Ownership DW, MemSpace DM>
-void copy_collection(S& src, CollectionStorage<T, DW, DM>* dst)
+template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
+inline void copy_collection(Span<T const> csrc,
+                            typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
-    constexpr MemSpace SM = std::remove_const_t<S>::memspace;
-    using DstStorageT = typename CollectionStorage<T, DW, DM>::type;
+    CELER_EXPECT(dst);
+    using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;
 
-    auto* data = src.data.data();
-    size_type size = src.data.size();
+    static_assert(
+        !(SW == Ownership::const_reference && DW == Ownership::reference),
+        "cannot assign from const reference to reference");
 
-    if constexpr (DW == Ownership::value && DM == MemSpace::mapped)
+    // Const cast is OK: we need something like it because of the different
+    // combinations of mutable/const operator=, and the static assertion above
+    // ensures the correct semantics
+    Span<T> src = {const_cast<T*>(csrc.data()), csrc.size()};
+
+    if constexpr (DM == MemSpace::mapped)
     {
-        CELER_VALIDATE(celeritas::device().can_map_host_memory(),
-                       << "device " << celeritas::device().device_id()
-                       << " doesn't support unified addressing");
+        validate_mappable_memory();
     }
-
-    if constexpr (DW == Ownership::value && DM == SM)
+    if constexpr (DM == SM)
     {
-        // Allocate and copy at the same time: destination "owns" the memory
-        dst->data.assign(data, data + size);
-    }
-    else if constexpr (DM == SM)
-    {
-        // Copy pointers in same memspace, prohibiting const violation
-        constexpr Ownership SW = std::remove_const_t<S>::ownership;
-
-        static_assert(
-            !(SW == Ownership::const_reference && DW == Ownership::reference),
-            "cannot assign from const reference to reference");
-
-        dst->data = DstStorageT{data, size};
+        // Copy/reference within the same memory space
+        if constexpr (DW == Ownership::value)
+        {
+            // Allocate (if necessary) and copy to the new collection
+            dst->assign(src.data(), src.data() + src.size());
+        }
+        else
+        {
+            // Make span in same memspace, prohibiting const violation
+            *dst = DstStorageT{src.data(), src.size()};
+        }
     }
     else
     {
+        // Copy from one memspace to another
         if constexpr (DW == Ownership::value)
         {
             // Allocate destination
-            dst->data = DstStorageT(size);
+            *dst = DstStorageT(src.size());
         }
 
-        CELER_VALIDATE(dst->data.size() == size,
-                       << "collection assignment from " << to_cstring(SM)
-                       << " to " << to_cstring(DM)
-                       << " failed: cannot copy from source size " << size
-                       << " to destination size " << dst->data.size());
+        if constexpr (!CELER_USE_DEVICE)
+        {
+            // Mark unreachable for optimization and coverage
+            CELER_ASSERT_UNREACHABLE();
+        }
 
-        // Copy across memory boundary
-        Copier<T, DM> copy_to_dst{{dst->data.data(), dst->data.size()}};
-        copy_to_dst(SM, {data, size});
+        // When crossing memspace, we're copying the underlying data, *not*
+        // copying pointers: so the destination "view" should be to some
+        // already-allocated memory that we're copying to
+        validate_compatible_size(dst->size(), DM, src.size(), SM);
+
+        // Copy across memory boundary with raw pointer/size
+        // (cannot use make_span since dst could be DeviceVector)
+        Copier<T, DM> copy_to_dst{{dst->data(), dst->size()}};
+        copy_to_dst(SM, src);
     }
 }
 

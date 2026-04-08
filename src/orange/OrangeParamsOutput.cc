@@ -8,6 +8,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/sys/Environment.hh"
@@ -58,7 +59,7 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     {
         auto const& leaf = view.leaf_node(BIHNodeId{offset + i});
         auto vols = json::array();
-        for (auto id : view.leaf_vol_ids(leaf))
+        for (auto id : remove_ldg_wrapper(view.leaf_vol_ids(leaf)))
         {
             vols.push_back(id.unchecked_get());
         }
@@ -67,7 +68,7 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
 
     // Handle inf vols
     auto inf_vols = nlohmann::json::array();
-    for (auto id : view.inf_vol_ids())
+    for (auto id : remove_ldg_wrapper(view.inf_vol_ids()))
     {
         inf_vols.push_back(id.unchecked_get());
     }

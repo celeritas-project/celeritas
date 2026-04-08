@@ -112,8 +112,9 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         auto const& s = shared_.spectra[spectrum_id];
 
         auto pdf = shared_.reals[s.yield_pdf];
-        auto select_idx = make_selector([&pdf](size_type i) { return pdf[i]; },
-                                        pdf.size());
+        auto select_idx = make_selector(
+            [&pdf](size_type i) { return static_cast<real_type>(pdf[i]); },
+            pdf.size());
         size_type component_idx = select_idx(rng);
         CELER_ASSERT(component_idx < s.components.size());
         return shared_.scint_records[s.components[component_idx]];

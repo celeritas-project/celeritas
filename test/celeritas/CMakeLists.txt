@@ -390,6 +390,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc})
 celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
+celeritas_add_test(io/OpticalDistributionIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
