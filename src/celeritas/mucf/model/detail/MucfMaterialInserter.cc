@@ -20,12 +20,12 @@ MucfMaterialInserter::MucfMaterialInserter(HostVal<DTMixMucfData>* host_data,
                                            inp::MucfPhysics const& data)
     : mucfmatid_to_matid_(&host_data->mucfmatid_to_matid)
     , isotopic_fractions_(&host_data->isotopic_fractions)
-    , cycle_times_(&host_data->cycle_times)
+    , cycle_rates_(&host_data->cycle_rates)
     , data_(data)
 {
     CELER_EXPECT(data_);
 
-    // Initialize interpolators for cycle time tables
+    // Initialize interpolators for cycle rate tables
     for (auto const& cycle_data : data_.cycle_rates)
     {
         // Use emplace to avoid copy/move of InterpolatorHelper objects
@@ -43,7 +43,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
     using LhdArray = EquilibrateDensitiesSolver::LhdArray;
 
     MaterialFractionsArray isotopic_fractions;
-    CycleTimesArray cycle_times;
+    CycleRatesArray cycle_rates;
     LhdArray lhd_densities{};
 
     auto from_mass_number = [&](AtomicMassNumber mass) -> MucfIsotope {
@@ -94,19 +94,19 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     if (lhd_densities[MucfIsotope::deuterium])
     {
-        cycle_times[MucfMuonicMolecule::deuterium_deuterium]
+        cycle_rates[MucfMuonicMolecule::deuterium_deuterium]
             = this->calc_dd_cycle(equilibrium_densities,
                                   material.temperature());
     }
     if (lhd_densities[MucfIsotope::tritium])
     {
-        cycle_times[MucfMuonicMolecule::tritium_tritium] = this->calc_tt_cycle(
+        cycle_rates[MucfMuonicMolecule::tritium_tritium] = this->calc_tt_cycle(
             equilibrium_densities, material.temperature());
     }
     if (lhd_densities[MucfIsotope::deuterium]
         && lhd_densities[MucfIsotope::tritium])
     {
-        cycle_times[MucfMuonicMolecule::deuterium_tritium]
+        cycle_rates[MucfMuonicMolecule::deuterium_tritium]
             = this->calc_dt_cycle(equilibrium_densities,
                                   material.temperature());
     }
@@ -114,7 +114,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
     // Add muCF material to the model's host/device data
     mucfmatid_to_matid_.push_back(material.material_id());
     isotopic_fractions_.push_back(std::move(isotopic_fractions));
-    cycle_times_.push_back(std::move(cycle_times));
+    cycle_rates_.push_back(std::move(cycle_rates));
 
     //! \todo Store mean atom spin flip and transfer times
 
@@ -123,7 +123,7 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate dd muonic molecules cycle times.
+ * Calculate dd muonic molecules cycle rates.
  *
  * F = 1/2 and F = 3/2 are the reactive spin states for dd fusion.
  */
@@ -143,10 +143,8 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
         = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{3});
 
     MoleculeCycles result;
-    result[0] = real_type{1}
-                / (dd_dens * dd_1_over_2_interpolate(temperature));  // F = 1/2
-    result[1] = real_type{1}
-                / (dd_dens * dd_3_over_2_interpolate(temperature));  // F = 3/2
+    result[0] = (dd_dens * dd_1_over_2_interpolate(temperature));  // F = 1/2
+    result[1] = (dd_dens * dd_3_over_2_interpolate(temperature));  // F = 3/2
 
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
@@ -154,7 +152,7 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate dt muonic molecules cycle times.
+ * Calculate dt muonic molecules cycle rates.
  *
  * F = 0 and F = 1 are the reactive spin states for dt fusion.
  */
@@ -189,14 +187,12 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
 
     // Interpolate over rates, store final cycle time (1/rate)
     MoleculeCycles result;
-    result[0] = real_type{1}
-                / (hd_dens * hd0_interpolate(temperature)
-                   + dd_dens * dd0_interpolate(temperature)
-                   + dt_dens * dt0_interpolate(temperature));  // F = 0
-    result[1] = real_type{1}
-                / (hd_dens * hd1_interpolate(temperature)
-                   + dd_dens * dd1_interpolate(temperature)
-                   + dt_dens * dt1_interpolate(temperature));  // F = 1
+    result[0] = hd_dens * hd0_interpolate(temperature)
+                + dd_dens * dd0_interpolate(temperature)
+                + dt_dens * dt0_interpolate(temperature);  // F = 0
+    result[1] = hd_dens * hd1_interpolate(temperature)
+                + dd_dens * dd1_interpolate(temperature)
+                + dt_dens * dt1_interpolate(temperature);  // F = 1
 
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
@@ -204,7 +200,7 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate tt muonic molecules cycle times.
+ * Calculate tt muonic molecules cycle rates.
  *
  * F = 1/2 is the only reactive spin state for tt fusion.
  */
@@ -221,7 +217,7 @@ MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
         = this->interpolator(CTT::tritium_tritium, HalfSpinInt{1});
 
     MoleculeCycles result;
-    result[0] = real_type{1} / (tt_dens * tt_interpolate(temperature));
+    result[0] = tt_dens * tt_interpolate(temperature);  // F = 1/2
 
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;

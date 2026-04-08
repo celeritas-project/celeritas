@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {
@@ -55,7 +56,23 @@ enum class MucfMuonicMolecule
 //---------------------------------------------------------------------------//
 
 //! Opaque index of a muCF material component
-using MuCfMatId = OpaqueId<struct MuCfMaterialComponent_>;
+using MucfMatId = OpaqueId<struct MucfMaterialComponent_>;
+
+//---------------------------------------------------------------------------//
+// REACTIVE SPIN STATES
+//---------------------------------------------------------------------------//
+
+//! State F = 1/2 (dd and tt)
+inline constexpr units::HalfSpinInt spin_one_half{1};
+
+//! State F = 3/2 (dd)
+inline constexpr units::HalfSpinInt spin_three_halves{3};
+
+//! State F = 0 (dt)
+inline constexpr units::HalfSpinInt spin_zero{0};
+
+//! State F = 1 (dt)
+inline constexpr units::HalfSpinInt spin_one{2};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "celeritas/mucf/interactor/DTMucfInteractor.hh"
 
 namespace celeritas
@@ -16,8 +17,11 @@ namespace detail
 /*!
  * Select final channel for muonic dt molecules.
  *
- * This selection already accounts for sticking, as that is one of the possible
- * outcomes.
+ * The selection is based on a constant sticking fraction from
+ * \citet{kamimura-mucf-2023, https://doi.org/10.1103/PhysRevC.107.034607}
+ * in which ~0.8% of the time the muonic alpha channel is selected.
+ *
+ * \todo Update I/O with user-defined sticking fractions.
  */
 class DTChannelSelector
 {
@@ -27,41 +31,38 @@ class DTChannelSelector
     using Channel = DTMucfInteractor::Channel;
     //!@}
 
-  public:
-    //! Construct with args; \todo Update documentation
-    inline CELER_FUNCTION DTChannelSelector(/* args */);
+    //! Default constructor
+    inline CELER_FUNCTION DTChannelSelector() = default;
 
     // Select fusion channel to be used by the interactor
     template<class Engine>
-    inline CELER_FUNCTION Channel operator()(Engine&);
+    inline CELER_FUNCTION Channel operator()(Engine& rng);
+
+  private:
+    // Constant sticking fraction of dt fusion
+    inline CELER_FUNCTION static constexpr real_type sticking_fraction()
+    {
+        return 0.00857;
+    }
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with args.
- *
- * \todo Update documentation
- */
-CELER_FUNCTION DTChannelSelector::DTChannelSelector(/* args */)
-{
-    CELER_NOT_IMPLEMENTED("Mucf dt fusion channel selection");
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Return a sampled channel to be used as input in the dt muCF interactor.
+ * Return a selected fusion channel for the \f$ (dt)_\mu \f$ muonic molecule.
  *
  * \sa celeritas::DTMucfInteractor
  */
 template<class Engine>
-CELER_FUNCTION DTChannelSelector::Channel DTChannelSelector::operator()(Engine&)
+CELER_FUNCTION DTChannelSelector::Channel
+DTChannelSelector::operator()(Engine& rng)
 {
     Channel result{Channel::size_};
 
-    //! \todo Implement
-    // Final channel selection already takes into account sticking.
+    result = (BernoulliDistribution(this->sticking_fraction())(rng))
+                 ? Channel::muonicalpha_neutron
+                 : Channel::alpha_muon_neutron;
 
     CELER_ENSURE(result < Channel::size_);
     return result;
