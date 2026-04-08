@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"

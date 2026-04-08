@@ -291,7 +291,7 @@ LdgIterator(T*) -> LdgIterator<std::add_const_t<T>>;
 //---------------------------------------------------------------------------//
 //! Get the item that's wrapped
 
-template<class T, std::size_t N>
+template<class T>
 CELER_CONSTEXPR_FUNCTION T remove_ldg_wrapper(LdgWrapper<T const> val)
 {
     return val.get();
