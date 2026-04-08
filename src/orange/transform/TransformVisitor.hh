@@ -126,12 +126,11 @@ TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
     constexpr size_type size{SpanT::extent};
     CELER_ASSERT(data_offset + size <= reals_.size());
 
-    // ItemRangeT returns a Span<Ldg..., dynamic>
-    // but each Transform class expects Span<..., N>, which requires an
-    // explicit cast
-    // TODO: templated 'subspan' for collection?
+    // ItemRangeT returns a LdgSpan<Ldg..., dynamic>
+    // but each Transform class expects LdgSpan<..., N>,
+    // which requires an explicit cast
     auto dynspan = reals_[Reals::ItemRangeT{data_offset, data_offset + size}];
-    return T{SpanT{dynspan}};
+    return T{SpanT{dynspan.data(), dynspan.size()}};
 }
 
 //---------------------------------------------------------------------------//

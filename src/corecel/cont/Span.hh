@@ -109,10 +109,13 @@ class Span
     CELER_CONSTEXPR_FUNCTION Span(pointer d, std::size_t s) : s_(d, s) {}
 
     //! Construct from two contiguous random-access iterators
+    //! NOTE: should be explicit unless dynamic_span (requires C++20)
     template<class Iter>
     CELER_CONSTEXPR_FUNCTION Span(Iter first, Iter last)
-        : s_(&(*first), static_cast<std::size_t>(last - first))
+        : s_(first == last ? nullptr : &(*first),
+             static_cast<std::size_t>(last - first))
     {
+        CELER_EXPECT(last >= first);
     }
 
     //! Construct from a C array
