@@ -11,8 +11,6 @@
 
 #include "corecel/Macros.hh"
 
-#include "Array.hh"
-
 #include "detail/SpanImpl.hh"
 
 #if !CELER_DEVICE_COMPILE
@@ -40,13 +38,8 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * correct for the use cases needed by Celeritas (and, as a bonus, it will be
  * device-compatible).
  *
- * \c Span can be instantiated with the special marker type \c LdgValue<T> to
- * optimize constant data access in global device memory.
- * In that case, data returned
- * by \c front, \c back, \c operator[] and \c begin / \c end iterators use
- * value semantics instead of reference. The \c data accessor still returns a
- * pointer to the underlying memory and can be used to bypass using \c
- * LdgIterator .
+ * See \c LdgSpan for a specialization optimized for on-device memory access of
+ * immutable data.
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
@@ -206,10 +199,16 @@ template<class T, std::size_t N>
 Span(T (&)[N]) -> Span<T, N>;
 
 //---------------------------------------------------------------------------//
+// FORWARD DECLARATIONS
+//---------------------------------------------------------------------------//
+template<class T, std::size_t N>
+class Array;
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Get a mutable fixed-size view to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 {
     return {x.data(), N};
@@ -217,7 +216,7 @@ CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(Array<T, N>& x)
 
 //---------------------------------------------------------------------------//
 //! Get a constant fixed-size view to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T const, N> make_span(Array<T, N> const& x)
 {
     return {x.data(), N};
@@ -228,7 +227,7 @@ CELER_CONSTEXPR_FUNCTION Span<T const, N> make_span(Array<T, N> const& x)
 template<class T, std::size_t N>
 CELER_CONSTEXPR_FUNCTION Span<T, N> make_span(T (&arr)[N])
 {
-    return {arr};
+    return {arr, N};
 }
 
 //---------------------------------------------------------------------------//
@@ -246,27 +245,6 @@ CELER_CONSTEXPR_FUNCTION Span<typename T::value_type const>
 make_span(T const& cont)
 {
     return {cont.data(), cont.size()};
-}
-
-//---------------------------------------------------------------------------//
-//! Construct an array from a fixed-size span
-template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto to_array(Span<T, N> s)
-{
-    Array<std::remove_cv_t<T>, N> result{};
-    for (std::size_t i = 0; i < N; ++i)
-    {
-        result[i] = s[i];
-    }
-    return result;
-}
-
-// DEPRECATED: remove in v1.0
-template<class T, std::size_t N>
-[[deprecated("use to_array")]] CELER_CONSTEXPR_FUNCTION auto
-make_array(Span<T, N> s)
-{
-    return to_array(s);
 }
 
 #if !CELER_DEVICE_COMPILE

@@ -24,6 +24,7 @@ class BIHView
     //!@{
     //! \name Type aliases
     using Storage = NativeCRef<BIHTreeData>;
+    using SpanLocalVol = LdgSpan<LocalVolumeId const>;
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
@@ -43,11 +44,11 @@ class BIHView
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
 
     // Get the vol_ids on a given leaf node
-    inline CELER_FUNCTION Span<LocalVolumeId const>
+    inline CELER_FUNCTION SpanLocalVol
     leaf_vol_ids(BIHLeafNode const& leaf) const;
 
     // Get the inf_vol_ids
-    inline CELER_FUNCTION Span<LocalVolumeId const> inf_vol_ids() const;
+    inline CELER_FUNCTION SpanLocalVol inf_vol_ids() const;
 
   private:
     //// DATA ////
@@ -115,8 +116,8 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
 /*!
  *  Get the vol_ids on a given leaf node.
  */
-CELER_FUNCTION Span<LocalVolumeId const>
-BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
+CELER_FUNCTION auto BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
+    -> SpanLocalVol
 {
     return storage_.local_volume_ids[leaf.vol_ids];
 }
@@ -125,7 +126,7 @@ BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
 /*!
  *  Get the inf_vol_ids.
  */
-CELER_FUNCTION Span<LocalVolumeId const> BIHView::inf_vol_ids() const
+CELER_FUNCTION auto BIHView::inf_vol_ids() const -> SpanLocalVol
 {
     return storage_.local_volume_ids[tree_.inf_vol_ids];
 }

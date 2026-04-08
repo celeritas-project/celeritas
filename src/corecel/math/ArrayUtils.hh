@@ -23,12 +23,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Perform y <- ax + y
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y);
 
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION T dot_product(Array<T, N> const& x,
                                                   Array<T, N> const& y);
 
@@ -40,36 +40,36 @@ cross_product(Array<T, 3> const& x, Array<T, 3> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) norm of a vector
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION T norm(Array<T, N> const& vec);
 
 //---------------------------------------------------------------------------//
 // Construct a vector with unit magnitude
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION Array<T, N>
 make_unit_vector(Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
 // Return x - (x . y) * y for a unit vector y
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION Array<T, N>
 make_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Check whether two vectors are approximately orthogonal
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Check whether two vectors are approximately collinear
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION bool
 is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION T distance(Array<T, N> const& x,
                                                Array<T, N> const& y);
 
@@ -98,7 +98,7 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
  * Note that this uses \c celeritas::fma which supports types other than
  * floating point.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
 {
     CELER_EXPECT(y);
@@ -115,7 +115,7 @@ CELER_FUNCTION void axpy(T a, Array<T, N> const& x, Array<T, N>* y)
  * Note that this uses \c celeritas::fma which supports types other than
  * floating point.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
 {
     T result{};
@@ -143,7 +143,7 @@ cross_product(Array<T, 3> const& x, Array<T, 3> const& y)
 /*!
  * Calculate the Euclidean (2) norm of a vector.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION T norm(Array<T, N> const& v)
 {
     return std::sqrt(dot_product(v, v));
@@ -155,7 +155,7 @@ CELER_FUNCTION T norm(Array<T, N> const& v)
  *
  * Unit vectors have an Euclidean norm magnitude of 1.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
 {
     Array<T, N> result{v};
@@ -179,7 +179,7 @@ CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
 \, , \quad \|\mathbf{y}\| = 1
 \f]
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 [[nodiscard]] inline CELER_FUNCTION Array<T, N>
 make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 {
@@ -196,7 +196,7 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
  * Note that the test for orthogonality should use relative tolerance, not
  * absolute.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION bool
 is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
 {
@@ -210,7 +210,7 @@ is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
  *
  * \pre Vectors must be normalized, i.e., have unit magnitude.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION bool
 is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
 {
@@ -223,7 +223,7 @@ is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
 /*!
  * Calculate the Euclidean (2) distance between two points.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION T distance(Array<T, N> const& x, Array<T, N> const& y)
 {
     T dist_sq = 0;

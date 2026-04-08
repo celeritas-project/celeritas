@@ -17,6 +17,7 @@
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/FileOrConsole.hh"
@@ -33,6 +34,7 @@
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/io/OpticalDistributionReader.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
 
@@ -53,6 +55,8 @@ void run(std::shared_ptr<OutputRegistry>& output,
          std::string& output_filename,
          std::string const& input_filename)
 {
+    using Runner = celeritas::optical::Runner;
+
     ScopedMem record_mem("celer-optical.run");
 
     // Read input options
@@ -66,17 +70,11 @@ void run(std::shared_ptr<OutputRegistry>& output,
     // Standalone optical is run on a single GPU stream
     input.problem.num_streams = 1;
 
-    /*! \todo Add readers/writers for distributions or initializers similar to
-     * the EM "primary offload" to support other generator types.
-     */
-    CELER_VALIDATE(
-        std::holds_alternative<celeritas::inp::OpticalPrimaryGenerator>(
-            input.problem.generator),
-        << "primary generator is the only optical photon generation mechanism "
-           "currently supported");
-
     // Get the output filename
     output_filename = input.problem.output_file;
+
+    // Save the generator input
+    auto generator = input.problem.generator;
 
     // Start profiling
     TracingSession tracing_session{input.problem.perfetto_file};
@@ -86,7 +84,7 @@ void run(std::shared_ptr<OutputRegistry>& output,
 
     // Set up optical problem
     Stopwatch get_setup_time;
-    auto run = celeritas::optical::Runner(std::move(input));
+    auto run = Runner(std::move(input));
     result.time.setup = get_setup_time();
 
     //! \todo Optical loop warmup
@@ -96,7 +94,34 @@ void run(std::shared_ptr<OutputRegistry>& output,
 
     // Transport all tracks to completion
     Stopwatch get_transport_time;
-    auto run_result = run();
+    Runner::Result run_result = std::visit(
+        Overload{
+            [&run](celeritas::inp::OpticalPrimaryGenerator const&) {
+                return run();
+            },
+            [&run](celeritas::inp::OpticalOffloadGenerator const& g) {
+                CELER_VALIDATE(g.distribution_file,
+                               << "missing file for loading optical "
+                                  "distribution data");
+                auto const distributions
+                    = OpticalDistributionReader(*g.distribution_file)();
+                return run(make_span(distributions));
+            },
+            [](celeritas::inp::OpticalDirectGenerator const&) {
+                //! \todo Add support for direct generation from file
+                CELER_VALIDATE(false,
+                               << "direct optical photon generation is not "
+                                  "yet supported");
+                return Runner::Result{};
+            },
+            [](celeritas::inp::OpticalEmGenerator const&) {
+                CELER_VALIDATE(false,
+                               << "optical photon generation from EM "
+                                  "particles is not supported");
+                return Runner::Result{};
+            },
+        },
+        generator);
     result.time.total = get_transport_time();
     result.time.actions = std::move(run_result.action_times);
     result.counters = std::move(run_result.counters);

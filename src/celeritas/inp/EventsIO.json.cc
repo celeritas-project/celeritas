@@ -92,12 +92,18 @@ void to_json(nlohmann::json& j, OpticalEmGenerator const&)
 
 void from_json(nlohmann::json const&, OpticalEmGenerator&) {}
 
-void to_json(nlohmann::json& j, OpticalOffloadGenerator const&)
+void to_json(nlohmann::json& j, OpticalOffloadGenerator const& v)
 {
-    j = nlohmann::json{json_type_pair("offload")};
+    j = nlohmann::json{
+        json_type_pair("offload"),
+        CELER_JSON_PAIR_OPTIONAL(v, distribution_file),
+    };
 }
 
-void from_json(nlohmann::json const&, OpticalOffloadGenerator&) {}
+void from_json(nlohmann::json const& j, OpticalOffloadGenerator& v)
+{
+    CELER_JSON_LOAD_OPTIONAL(j, v, distribution_file);
+}
 
 void to_json(nlohmann::json& j, OpticalDirectGenerator const&)
 {

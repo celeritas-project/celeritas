@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/HashUtils.hh"
 
 namespace celeritas
@@ -20,7 +21,7 @@ namespace celeritas
 template<class T>
 auto TransformHasher::operator()(T const& t) const -> result_type
 {
-    return hash_as_bytes(t.data());
+    return hash_as_bytes(remove_ldg_wrapper(t.data()));
 }
 
 //---------------------------------------------------------------------------//

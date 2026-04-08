@@ -17,6 +17,8 @@
 namespace celeritas
 {
 class ActionRegistry;
+class AuxParamsRegistry;
+class GeneratorRegistry;
 class MaterialParams;
 
 namespace optical
@@ -36,6 +38,8 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     //! \name Type aliases
     using ActionIdRange = Range<ActionId>;
     using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
+    using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstModel = std::shared_ptr<Model const>;
     using SPConstCoreMaterials
         = std::shared_ptr<celeritas::MaterialParams const>;
@@ -48,7 +52,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     explicit PhysicsParams(inp::OpticalBulkPhysics const&,
                            SPConstMaterials const&,
                            SPConstCoreMaterials const&,
-                           SPActionRegistry);
+                           SPActionRegistry,
+                           SPAuxRegistry,
+                           SPGeneratorRegistry,
+                           size_type);
 
     //! Number of optical models
     inline ModelId::size_type num_models() const { return models_.size(); }
@@ -81,7 +88,10 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     VecModels build_models(inp::OpticalBulkPhysics const&,
                            SPConstMaterials,
                            SPConstCoreMaterials,
-                           ActionRegistry&) const;
+                           ActionRegistry&,
+                           AuxParamsRegistry&,
+                           GeneratorRegistry&,
+                           size_type) const;
     void build_mfps(MaterialParams const& mats, HostValue& data) const;
     //!@}
 };

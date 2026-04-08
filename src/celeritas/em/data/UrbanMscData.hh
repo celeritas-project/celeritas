@@ -11,7 +11,7 @@
 #include "corecel/data/Collection.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/XsGridData.hh"
+#include "celeritas/grid/XsGridData.hh"  // IWYU pragma: keep
 
 #include "CommonCoulombData.hh"
 
@@ -25,6 +25,8 @@ enum class UrbanParMatType
     muhad,
     size_
 };
+
+using UrbanParMatId = OpaqueId<struct UrbanMscParMatData>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -124,8 +126,6 @@ struct UrbanMscMaterialData
  */
 struct UrbanMscParMatData
 {
-    using UrbanParMatId = OpaqueId<UrbanMscParMatData>;
-
     real_type scaled_zeff{};  //!< a * Z^b
     real_type d_over_r{};  //!< Maximum distance/range heuristic
 
@@ -164,7 +164,7 @@ struct UrbanMscData
     //! Number of particle categories for particle and material-dependent data
     ParticleId::size_type num_par_mat;
     //! Map from particle ID to index in particle and material-dependent data
-    ParticleItems<UrbanMscParMatData::UrbanParMatId> pid_to_pmdata;
+    ParticleItems<UrbanParMatId> pid_to_pmdata;
     //! Map from particle ID to index in cross sections
     ParticleItems<MscParticleId> pid_to_xs;
     //! Particle and material-dependent data

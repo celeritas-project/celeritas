@@ -11,7 +11,6 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -26,9 +25,6 @@ namespace celeritas
  * to device memory. It allows Storage classes to allocate and manage device
  * memory without using \c thrust, which requires NVCC and propagates that
  * requirement into all downstream code.
- *
- * TODO: remove the stream constructor data members and rely on \c Copier or
- * \c thrust to do streamed async operations?
  */
 class DeviceAllocation
 {

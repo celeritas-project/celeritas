@@ -8,6 +8,7 @@
 
 #include <sstream>
 
+#include "corecel/cont/LdgSpan.hh"
 #include "orange/transform/TransformIO.hh"
 
 #include "celeritas_test.hh"
@@ -52,7 +53,7 @@ TEST_F(TranslatorTest, serialization)
 {
     Translation tr{Real3{3, 2, 1}};
 
-    EXPECT_VEC_EQ((Real3{3, 2, 1}), tr.data());
+    EXPECT_VEC_EQ((Real3{3, 2, 1}), remove_ldg_wrapper(tr.data()));
 
     Translation tr2(tr.data());
     EXPECT_VEC_EQ((Real3{3, 2, 1}), tr2.translation());

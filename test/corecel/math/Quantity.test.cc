@@ -6,12 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/Quantity.hh"
 
+#include <functional>
 #include <type_traits>
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayQuantity.hh"
-#include "corecel/math/QuantityIO.json.hh"  //IWYU pragma: include
+#include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
@@ -118,6 +119,24 @@ TEST(QuantityTest, mixed_precision)
         demoted = DozenDbl{6.5};
         EXPECT_FLOAT_EQ(6.5f, demoted.value());
     }
+}
+
+TEST(QuantityTest, ref)
+{
+    using DozenDbl = Quantity<DozenUnit, double>;
+    auto two_dozen = native_value_to<DozenDbl>(24);
+
+    auto td_ref = std::ref(two_dozen);
+    EXPECT_EQ(two_dozen * 2, td_ref * 2);
+
+    Dozen four_dozen{4};
+    auto fd_ref = std::ref(four_dozen);
+
+#ifdef CELER_SHOULD_COMPILE
+    // TODO: doesn't compile due to template operators
+    EXPECT_TRUE(td_ref < fd_ref);
+#endif
+    EXPECT_TRUE(td_ref.get() < fd_ref.get());
 }
 
 TEST(QuantityTest, comparators)

@@ -102,6 +102,8 @@ list(APPEND SOURCES
   io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
+  io/OpticalDistributionReader.cc
+  io/OpticalDistributionWriter.cc
   io/SeltzerBergerReader.cc
   io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
@@ -121,6 +123,7 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
@@ -183,6 +186,7 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
+    optical/detail/Filler.cu
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
@@ -408,6 +412,7 @@ celeritas_polysource(optical/gen/OffloadAction)
 celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
+celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)
