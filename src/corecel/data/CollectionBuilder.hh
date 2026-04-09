@@ -80,7 +80,7 @@ class CollectionBuilder
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
 
-    //! Get the size as an ID type
+    //! Get the size as an ID type (invalid if max_size)
     ItemIdT size_id() const { return ItemIdT{size()}; }
 
   private:
@@ -94,8 +94,9 @@ class CollectionBuilder
     //! Maximum valid element size in a Collection
     static constexpr std::size_t max_size()
     {
-        // Account for prohibited nullid value
-        return detail::nullid_value<size_type> - 1;
+        // This accounts for the prohibited nullid value:
+        // e.g., 8-bit uint has max size of 255, max id of 254
+        return detail::nullid_value<size_type>;
     }
 
     CollectionT& col_;
@@ -118,7 +119,7 @@ CollectionBuilder(Collection<T, Ownership::value, M, I>*)
 template<class T, MemSpace M, class I>
 void CollectionBuilder<T, M, I>::reserve(std::size_t count)
 {
-    CELER_EXPECT(count < max_size());
+    CELER_EXPECT(count <= max_size());
     static_assert(M == MemSpace::host,
                   "Reserve currently works only for host memory");
     this->storage().reserve(count);

@@ -132,12 +132,11 @@ TEST(CollectionBuilder, size_limits)
     EXPECT_EQ(0, irange.begin()->unchecked_get());
     EXPECT_EQ(254, irange.end()->unchecked_get());
 
-    // Inserting a 255-element "range" would have caused an exception in debug
-    // because the "final" value `uint8_t(-1) = 255` of OpaqueId is
-    // reserved. Let's say that inserting N-1 elements is "unspecified"
-    // behavior -- but for now it should be OK to insert 255 as long as it's
-    // with a push_back and not a range insertion.
-    build.push_back(123);
+    // Inserting a 255-element "range" should be prohibited because the "final"
+    // value `uint8_t(-1) = 255` of OpaqueId is actually nullid.
+    ASSERT_NO_THROW(build.push_back(-1.0));
+    ASSERT_NE(IdType{254}, IdType{});
+    EXPECT_EQ(-1.0, host_val[IdType{254}]);
 
     if (CELERITAS_DEBUG)
     {
