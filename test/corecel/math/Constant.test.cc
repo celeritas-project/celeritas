@@ -16,26 +16,28 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+using namespace celeritas::literals;
+
 TEST(ConstantTest, comparison)
 {
     constexpr Constant pi{3.14};
     EXPECT_TRUE(pi > 3);
     EXPECT_TRUE(pi > 3.0);
     EXPECT_TRUE(pi > 3.0f);
-    EXPECT_TRUE(pi > Constant{3});
+    EXPECT_TRUE(pi > 3_C);
     EXPECT_FALSE(pi == 3);
     EXPECT_FALSE(pi == 3.0);
     EXPECT_FALSE(pi == 3.0f);
-    EXPECT_FALSE(pi == Constant{3});
+    EXPECT_FALSE(pi == 3_C);
     EXPECT_TRUE(pi != 3);
-    EXPECT_TRUE(pi != Constant{3});
+    EXPECT_TRUE(pi != 3_C);
     EXPECT_TRUE(pi == 3.14);
     EXPECT_TRUE(pi == 3.14f);
-    EXPECT_TRUE(pi == Constant{3.14});
+    EXPECT_TRUE(pi == 3.14_C);
     EXPECT_TRUE(pi < 4);
     EXPECT_TRUE(pi < 4.0);
     EXPECT_TRUE(pi < 4.0f);
-    EXPECT_TRUE(pi < Constant{4});
+    EXPECT_TRUE(pi < 4_C);
 }
 
 TEST(ConstantTest, multiplication)
@@ -57,7 +59,7 @@ TEST(ConstantTest, multiplication)
     }
 
     {
-        auto halfpi = Constant{0.5} * pi;
+        auto halfpi = 0.5_C * pi;
         EXPECT_TRUE((std::is_same_v<Constant, decltype(halfpi)>));
     }
 

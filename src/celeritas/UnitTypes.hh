@@ -24,6 +24,8 @@ namespace celeritas
 {
 namespace units
 {
+using namespace celeritas::literals;
+
 //! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 //!@{
@@ -61,7 +63,7 @@ struct ElectronVolt
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-        return units::megaelectronvolt / Constant(1e6);
+        return units::megaelectronvolt / 1e6_C;
 #else
         return constants::e_electron * units::volt;
 #endif
@@ -77,7 +79,7 @@ struct Mev
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
         return units::megaelectronvolt;
 #else
-        return Constant(1e6) * constants::e_electron * units::volt;
+        return 1e6_C * constants::e_electron * units::volt;
 #endif
     }
     static char const* label() { return "MeV"; }
@@ -117,7 +119,7 @@ struct Millibarn
 {
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
-        return Constant(1e-3) * units::barn;
+        return 1e-3_C * units::barn;
     }
     static char const* label() { return "mb"; }
 };
@@ -242,11 +244,11 @@ struct ClhepUnitMass
         {
             // Floating point errors make the true expression below difficult
             // to be exactly unity
-            return Constant(1);
+            return 1_C;
         }
         else
         {
-            return constants::e_electron / coulomb * kilogram * Constant(1e-6);
+            return constants::e_electron / coulomb * kilogram * 1e-6_C;
         }
     }
     static char const* label() { return "mass_clhep"; }
@@ -255,10 +257,7 @@ struct ClhepUnitMass
 //! Unit magnetic flux density in CLHEP system
 struct ClhepUnitBField
 {
-    static CELER_CONSTEXPR_FUNCTION Constant value()
-    {
-        return Constant{1e3} * tesla;
-    }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return 1e3_C * tesla; }
     static char const* label() { return "field_clhep"; }
 };
 
@@ -271,14 +270,14 @@ struct ClhepUnitBField
 //! Mark as being in the native/builtin unit system
 struct Native
 {
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return Constant{1}; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return 1_C; }
 };
 
 //! Annotate a quantity represented the logarithm of (E/MeV)
 struct LogMev
 {
     //! Conversion factor is not multiplicative
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return Constant{0}; }
+    static CELER_CONSTEXPR_FUNCTION Constant value() { return 0_C; }
 };
 
 //!@}

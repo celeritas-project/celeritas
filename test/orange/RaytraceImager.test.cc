@@ -17,6 +17,9 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+
+using namespace celeritas::literals;
+
 std::string to_ascii(ImageInterface const& image, Span<char const> id_to_char)
 {
     ImageParams const& params = *image.params();
@@ -180,7 +183,7 @@ class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
     //! Length scale is hardcoded into JSON input
-    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
+    UnitLength unit_length() const override { return {1_C, "length"}; }
 
     void SetUp() override
     {

@@ -55,6 +55,8 @@ namespace units
 {
 //---------------------------------------------------------------------------//
 
+using namespace celeritas::literals;
+
 #define CELER_ICC inline constexpr Constant
 
 #if CELERITAS_UNITS == CELERITAS_UNITS_CGS
@@ -86,8 +88,8 @@ CELER_ICC farad = coulomb / volt;
 
 //!@{
 //! \name CLHEP units
-CELER_ICC millimeter = Constant{0.1} * centimeter;
-CELER_ICC nanosecond = Constant{1e-9} * second;
+CELER_ICC millimeter = 0.1_C * centimeter;
+CELER_ICC nanosecond = 1e-9_C * second;
 //!@}
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_SI
@@ -112,15 +114,15 @@ CELER_ICC farad = coulomb / volt;
 
 //!@{
 //! \name CGS units
-CELER_ICC gauss = Constant{1e-4} * tesla;
-CELER_ICC centimeter = Constant{1e-2} * meter;
-CELER_ICC gram = Constant{1e-3} * kilogram;
+CELER_ICC gauss = 1e-4_C * tesla;
+CELER_ICC centimeter = 1e-2_C * meter;
+CELER_ICC gram = 1e-3_C * kilogram;
 //!@}
 
 //!@{
 //! \name CLHEP units
-CELER_ICC millimeter = Constant{1e-3} * meter;
-CELER_ICC nanosecond = Constant{1e-9} * second;
+CELER_ICC millimeter = 1e-3_C * meter;
+CELER_ICC nanosecond = 1e-9_C * second;
 //!@}
 
 #elif CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
@@ -135,11 +137,11 @@ CELER_ICC kelvin{1};  //!< Temperature
 //!@}
 
 // Note: conversion constant is the value from SI 2019
-CELER_ICC coulomb = e_electron / Constant{1.602176634e-19};
-CELER_ICC volt = Constant{1e-6} * (megaelectronvolt / e_electron);
+CELER_ICC coulomb = e_electron / 1.602176634e-19_C;
+CELER_ICC volt = 1e-6_C * (megaelectronvolt / e_electron);
 CELER_ICC joule = coulomb * volt;
 
-CELER_ICC second = Constant{1e9} * nanosecond;
+CELER_ICC second = 1e9_C * nanosecond;
 CELER_ICC meter = 1000 * millimeter;
 
 CELER_ICC ampere = coulomb / second;
@@ -151,18 +153,18 @@ CELER_ICC newton = joule / meter;
 //!@{
 //! \name CGS-specific units
 CELER_ICC centimeter = 10 * millimeter;
-CELER_ICC gram = Constant{1e-3} * kilogram;
-CELER_ICC gauss = Constant{1e-4} * tesla;
+CELER_ICC gram = 1e-3_C * kilogram;
+CELER_ICC gauss = 1e-4_C * tesla;
 //!@}
 
 #endif
 
 //!@{
 //! \name Other common units
-CELER_ICC micrometer = Constant{1e-4} * centimeter;
-CELER_ICC nanometer = Constant{1e-7} * centimeter;
-CELER_ICC femtometer = Constant{1e-13} * centimeter;
-CELER_ICC barn = Constant{1e-24} * centimeter * centimeter;
+CELER_ICC micrometer = 1e-4_C * centimeter;
+CELER_ICC nanometer = 1e-7_C * centimeter;
+CELER_ICC femtometer = 1e-13_C * centimeter;
+CELER_ICC barn = 1e-24_C * centimeter * centimeter;
 //!@}
 
 #undef CELER_ICC

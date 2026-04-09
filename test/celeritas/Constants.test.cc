@@ -27,7 +27,6 @@ namespace constants
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // CLHEP units introduce extra error due to repeated operations with
 // non-representable values
@@ -71,6 +70,8 @@ TEST(ConstantsTest, formulas)
 
 TEST(ConstantsTest, clhep_codata)
 {
+    using celeritas::literals::operator""_C;
+
     // Values differ from the CLHEP constants (CODATA 2006) by ~1e-7 due to
     // the 2019 change in SI using e- charge as an exact definition
     // rather than a measured constant
@@ -123,6 +124,8 @@ TEST(ConstantsTest, clhep)
 
 TEST(ConstantsTest, derivative)
 {
+    using namespace celeritas::units::literals;
+
     // Compared against definition of Dalton, table 8 of SI 2019
     EXPECT_SOFT_EQ(1.66053906660e-27_kg, atomic_mass);
     EXPECT_SOFT_EQ(1.602176634e-19_J, e_electron * units::volt);
