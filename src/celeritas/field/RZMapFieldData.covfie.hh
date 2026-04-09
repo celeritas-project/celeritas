@@ -73,31 +73,11 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
             = detail::CovfieRZFieldTraits<MemSpace::host>::field_t;
         if constexpr (!std::is_same_v<field_t, host_field_t>)
         {
-            // Build the device field bottom-up using cross-type constructors.
-            // strided's cross-type constructor copies the host array data into
-            // cuda_device_array (H2D transfer). Each transformer layer wraps
-            // the one below with its config preserved.
-            using dev_traits = detail::CovfieRZFieldTraits<MemSpace::device>;
-            using dev_strided_t = typename dev_traits::dimensioned_t;
-            using dev_linear_t = typename dev_traits::interp_t;
-            using dev_clamp_t = typename dev_traits::clamped_t;
-            using dev_affine_t = typename dev_traits::transformed_t;
-
-            auto const& affine_b = other.field->backend();
-            auto const& clamp_b = affine_b.get_backend();
-            auto const& linear_b = clamp_b.get_backend();
-            auto const& strided_b = linear_b.get_backend();
-
-            auto dev_strided = typename dev_strided_t::owning_data_t{strided_b};
-            auto dev_linear =
-                typename dev_linear_t::owning_data_t{std::move(dev_strided)};
-            auto dev_clamp = typename dev_clamp_t::owning_data_t{
-                clamp_b.get_configuration(), std::move(dev_linear)};
-            auto dev_affine = typename dev_affine_t::owning_data_t{
-                affine_b.get_configuration(), std::move(dev_clamp)};
-
-            field = std::make_unique<field_t>(
-                covfie::make_parameter_pack(std::move(dev_affine)));
+            // Use covfie's cross-type field constructor: propagates through
+            // all transformer layers (affine->clamp->linear->strided), with
+            // strided's cross-type constructor performing the H2D transfer
+            // into cuda_device_array at the bottom of the chain.
+            field = std::make_unique<field_t>(*other.field);
 
             // Store view_t in device memory; pass pointer to kernel
             field_view = DeviceVector<view_t>{1};
