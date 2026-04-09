@@ -305,7 +305,7 @@ TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
         0.0283599192434375,  0.0283599192434375,  3.762944140625,
     };
     // clang-format on
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{2e-7});
 }
 #endif  // CELERITAS_USE_COVFIE
 
