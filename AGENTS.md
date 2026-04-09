@@ -32,11 +32,10 @@ successful commit):
 
 ```bash
 # Write message to file first, then commit (script handles add/format/rm)
-scripts/dev/agent-commit.sh <build>/commit_msg.txt
+scripts/dev/agent-commit.sh <build>/commit_msg.txt "<agentic-tool>" "<model-name>"
 ```
 
-The script runs `git add -A`, `pre-commit run`, `git commit --trailer
-"Assisted-by: GitHub Copilot"`, and `rm <build>/commit_msg.txt`. Pass
+The script runs `git add -A`, `pre-commit run`, `git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)"`, and `rm <build>/commit_msg.txt`. Pass
 `--no-verify` as an extra argument only if pre-commit is already known to
 pass.
 
