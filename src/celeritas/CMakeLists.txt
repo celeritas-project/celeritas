@@ -62,7 +62,6 @@ list(APPEND SOURCES
   field/FieldDriverOptions.cc
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
-  field/RZMapFieldParams.cc
   field/CylMapFieldParams.cc
   field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc

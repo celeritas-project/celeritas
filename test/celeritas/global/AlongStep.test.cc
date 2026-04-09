@@ -161,8 +161,13 @@ class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
     bool fluct_{false};
 };
 
-#define SimpleCmsRZFieldAlongStepTest \
-    TEST_IF_CELERITAS_GEANT(SimpleCmsRZFieldAlongStepTest)
+#if CELERITAS_USE_COVFIE
+#    define SimpleCmsRZFieldAlongStepTest \
+        TEST_IF_CELERITAS_GEANT(SimpleCmsRZFieldAlongStepTest)
+#else
+#    define SimpleCmsRZFieldAlongStepTest \
+        DISABLED_SimpleCmsRZFieldAlongStepTest
+#endif
 class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
 {
   public:

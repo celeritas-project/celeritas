@@ -10,13 +10,8 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/data/ParamsDataInterface.hh"
-
-#if !CELERITAS_USE_COVFIE
-#    include "corecel/data/ParamsDataStore.hh"
-
-#    include "RZMapFieldData.hh"
-#endif
 
 namespace celeritas
 {
@@ -56,11 +51,6 @@ class RZMapFieldParams final : public ParamsDataInterface<RZMapFieldParamsData>
         void operator()(Impl*) const noexcept;
     };
     std::unique_ptr<Impl, ImplDeleter> impl_;
-
-#if !CELERITAS_USE_COVFIE
-    // Host/device storage and reference
-    ParamsDataStore<RZMapFieldParamsData> mirror_;
-#endif
 };
 
 #if !(CELERITAS_USE_COVFIE || __DOXYGEN__)
@@ -69,18 +59,26 @@ struct RZMapFieldParams::Impl
 {
 };
 
-inline void RZMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept {}
+inline void RZMapFieldParams::ImplDeleter::operator()(Impl*) const noexcept
+{
+    CELER_UNREACHABLE;
+}
+
+inline RZMapFieldParams::RZMapFieldParams(Input const&)
+{
+    CELER_NOT_CONFIGURED("covfie");
+}
 
 //! Access field map data on the host
 inline auto RZMapFieldParams::host_ref() const -> HostRef const&
 {
-    return mirror_.host_ref();
+    CELER_NOT_CONFIGURED("covfie");
 }
 
 //! Access field map data on the device
 inline auto RZMapFieldParams::device_ref() const -> DeviceRef const&
 {
-    return mirror_.device_ref();
+    CELER_NOT_CONFIGURED("covfie");
 }
 #endif
 

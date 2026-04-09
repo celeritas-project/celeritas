@@ -114,6 +114,9 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
+#if !CELERITAS_USE_COVFIE
+#    define RZMapFieldTest DISABLED_RZMapFieldTest
+#endif
 using RZMapFieldTest = ::celeritas::test::Test;
 
 TEST_F(RZMapFieldTest, all)
@@ -146,7 +149,6 @@ TEST_F(RZMapFieldTest, all)
     }
 
     // clang-format off
-#if CELERITAS_USE_COVFIE
     // Covfie bilinear interpolation on the RZ grid (both Br and Bz
     // interpolated in 2D)
     static real_type const expected_field[] = {
@@ -159,72 +161,19 @@ TEST_F(RZMapFieldTest, all)
         0.0215377738208854,  0.0215377738208854,  3.7723875,
         0.0283599192434375,  0.0283599192434375,  3.762944140625,
     };
-#else
-    // Original 1D-per-component interpolation (Bz along z, Br along r)
-    static real_type const expected_field[] = {
-        -0,                  -0,                  3.811202287674,
-        -4.7522817039862e-05, -4.7522817039862e-05, 3.8062113523483,
-        -9.5045634079725e-05, -9.5045634079725e-05, 3.8012204170227,
-        -0.00014256845111959, -0.00014256845111959, 3.7962294816971,
-        0.0094939613342285,  0.0094939613342285,  3.7912385463715,
-        0.011867451667786,   0.011867451667786,   3.775991499424,
-        0.014240986622126,   0.014240986622126,   3.771880030632,
-        0.016614892251046,   0.016614892251046,   3.757196366787,
-    };
-#endif
     // clang-format on
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    // Float32 covfie interpolation; allow for AVX2 rounding variation
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{2e-7});
 }
 
 TEST_F(RZMapFieldTest, interp_validation)
 {
-    // Validate interpolation with a synthetic field whose values at non-grid
-    // points are analytically known.
-    //
-    // Case 1: Br(r,z) = r, Bz(r,z) = z (each component varies on one axis
-    // only). Both the non-covfie 1D-per-component scheme and covfie bilinear
-    // reproduce linear functions exactly, so this gives a ground-truth check
-    // for both paths.
-    //
-    // All values are in native units (no unit conversion).
-    {
-        constexpr int nr = 3, nz = 3;
-        RZMapFieldInput inp;
-        inp.num_grid_r = nr;
-        inp.num_grid_z = nz;
-        inp.min_r = 0;
-        inp.max_r = 2;
-        inp.min_z = 0;
-        inp.max_z = 2;
-        inp.field_r.resize(nr * nz);
-        inp.field_z.resize(nr * nz);
-        for (int iz = 0; iz < nz; ++iz)
-            for (int ir = 0; ir < nr; ++ir)
-            {
-                inp.field_r[iz * nr + ir] = ir * 1.0;  // Br = r
-                inp.field_z[iz * nr + ir] = iz * 1.0;  // Bz = z
-            }
-
-        RZMapFieldParams params(inp);
-        RZMapField field(params.host_ref());
-
-        // Query at a non-grid point: use pos=(r,0,z) so hypot(x,y)=r exactly.
-        // Bx = Br*(x/r) = r*(r/r) = r, By = Br*(y/r) = 0, Bz = z.
-        // Tolerance of 1e-6 accommodates float32 rounding in covfie storage.
-        auto result = field(Real3{real_type(0.5), 0, real_type(1.7)});
-        EXPECT_SOFT_NEAR(0.5, result[0], real_type{1e-6});
-        EXPECT_SOFT_EQ(0.0, result[1]);
-        EXPECT_SOFT_NEAR(1.7, result[2], real_type{1e-6});
-    }
-
-#if CELERITAS_USE_COVFIE
-    // Case 2: Br(r,z) = r + z, Bz(r,z) = r + z (each component varies on
-    // both axes). True bilinear interpolation reproduces linear functions
-    // exactly; the non-covfie 1D-per-component scheme does not (it evaluates
-    // Br along r at a fixed iz and Bz along z at a fixed ir, missing the
-    // cross contribution).
+    // Validate bilinear interpolation with a synthetic field: Br(r,z) = r + z,
+    // Bz(r,z) = r + z (each component varies on both axes). True bilinear
+    // interpolation reproduces linear functions exactly.
     //
     // Use a 2x2 grid so the midpoint r=1, z=1 has frac=(0.5, 0.5) exactly.
+    // All values are in native units (no unit conversion).
     {
         RZMapFieldInput inp;
         inp.num_grid_r = 2;
@@ -253,10 +202,8 @@ TEST_F(RZMapFieldTest, interp_validation)
         EXPECT_SOFT_EQ(0.0, result[1]);
         EXPECT_SOFT_EQ(2.0, result[2]);
     }
-#endif
 }
 
-#if CELERITAS_USE_COVFIE
 TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
 {
     RZMapFieldInput inp;
@@ -307,7 +254,6 @@ TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
     // clang-format on
     EXPECT_VEC_NEAR(expected_field, actual, real_type{2e-7});
 }
-#endif  // CELERITAS_USE_COVFIE
 
 using CylMapFieldTest = ::celeritas::test::Test;
 
