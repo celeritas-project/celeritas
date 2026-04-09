@@ -24,6 +24,12 @@ namespace celeritas
 constexpr std::size_t dynamic_extent = detail::dynamic_extent;
 
 //---------------------------------------------------------------------------//
+// FORWARD DECLARATIONS
+//---------------------------------------------------------------------------//
+template<class T, std::size_t N>
+class Array;
+
+//---------------------------------------------------------------------------//
 /*!
  * Non-owning device-compatible reference to a contiguous span of data.
  * \tparam T value type
@@ -58,9 +64,11 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * - Default: empty span
  * - Implicit: pointer and size
  * - Implicit: two \c contiguous_iterator \c (first,last)
- * - Implicit: C arrays and celeritas::Array
+ * - Implicit: C arrays and celeritas::Array (requires C++20; explicit in
+ * C++17)
  * - Implicit: fixed-to-dynamic Span
  * - Explicit: dynamic-to-fixed Span
+ * - Explicit (always): fixed-extent Span from Array
  *
  * \par Data access
  *
@@ -121,6 +129,43 @@ class Span
     // (FIXME: template enable only if N == Extent or Extent == dynamic)
     template<std::size_t N>
     CELER_CONSTEXPR_FUNCTION Span(element_type (&arr)[N]) : s_(arr, N)
+    {
+    }
+
+    /*!
+     * Construct from a mutable \c Array, implicit iff Extent is dynamic.
+     *
+     * Mirrors the \c std::span constructor from \c std::array. In C++20 the
+     * constructor is implicit when \c Extent is \c dynamic_extent and
+     * explicit otherwise; in C++17 it is always explicit.
+     */
+    template<class U,
+             std::size_t N,
+             std::enable_if_t<detail::is_array_convertible_v<U, T>
+                                  && (N == Extent || Extent == dynamic_extent),
+                              bool>
+             = true>
+    CELER_EXPLICIT_IF(Extent != dynamic_extent)
+    CELER_CONSTEXPR_FUNCTION Span(Array<U, N>& arr) : s_(arr.data(), N)
+    {
+    }
+
+    /*!
+     * Construct from a const \c Array, implicit iff Extent is dynamic.
+     *
+     * Mirrors the \c std::span constructor from <code>const std::array</code>.
+     * In C++20 the constructor is implicit when \c Extent is
+     * \c dynamic_extent and explicit otherwise; in C++17 it is always
+     * explicit.
+     */
+    template<class U,
+             std::size_t N,
+             std::enable_if_t<detail::is_array_convertible_v<U const, T>
+                                  && (N == Extent || Extent == dynamic_extent),
+                              bool>
+             = true>
+    CELER_EXPLICIT_IF(Extent != dynamic_extent)
+    CELER_CONSTEXPR_FUNCTION Span(Array<U, N> const& arr) : s_(arr.data(), N)
     {
     }
 
@@ -269,12 +314,6 @@ Span(Iter, Iter) -> Span<typename std::iterator_traits<Iter>::value_type>;
 // Deduction guide for C array
 template<class T, std::size_t N>
 Span(T (&)[N]) -> Span<T, N>;
-
-//---------------------------------------------------------------------------//
-// FORWARD DECLARATIONS
-//---------------------------------------------------------------------------//
-template<class T, std::size_t N>
-class Array;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
