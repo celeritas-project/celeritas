@@ -13,7 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/field/FieldDriverOptions.hh"
+
+#include "RZMapFieldData.hh"  // primary template + const_reference/device spec
 
 #include "detail/CovfieRZFieldTraits.hh"
 
@@ -29,10 +30,9 @@ struct RZMapFieldParamsDataBase
     FieldDriverOptions options;
 };
 
-// We need to specialize this for every combination of ownership and memory
-// space to handle covfie move, ownership semantics.
-template<Ownership W, MemSpace M>
-struct RZMapFieldParamsData;
+// Specializations for value/host, const_reference/host, and value/device are
+// defined below. const_reference/device is in RZMapFieldData.hh (no covfie
+// dependency, safe for C++17 TUs).
 
 template<>
 struct RZMapFieldParamsData<Ownership::value, MemSpace::host>
@@ -94,24 +94,5 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
     std::unique_ptr<field_t> field;
     DeviceVector<view_t> field_view;
 };
-template<>
-struct RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>
-    : RZMapFieldParamsDataBase<MemSpace::device>
-{
-    CELER_FUNCTION view_t const& get_view() const { return *field_view; }
-
-    CELER_FUNCTION explicit operator bool() const { return field_view; }
-
-    RZMapFieldParamsData& operator=(
-        RZMapFieldParamsData<Ownership::value, MemSpace::device> const& other)
-    {
-        field_view = &other.field_view.device_ref()[0];
-        options = other.options;
-        return *this;
-    }
-
-    view_t const* field_view{nullptr};
-};
-
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

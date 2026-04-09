@@ -14,7 +14,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/FluctuationData.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
-#include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
 #include "celeritas/global/ActionInterface.hh"
 

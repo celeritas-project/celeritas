@@ -16,6 +16,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/sys/Device.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/field/RZMapFieldData.covfie.hh"
 #include "celeritas/field/RZMapFieldData.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 
@@ -103,7 +104,11 @@ struct RZMapFieldParams::Impl
         if (celeritas::device())
         {
             device_ = host_;
-            device_ref_ = device_;
+            // const_reference/device uses void const* (no covfie types), so
+            // assign fields manually instead of operator=(value,device).
+            device_ref_.field_view = static_cast<void const*>(
+                &device_.field_view.device_ref()[0]);
+            device_ref_.options = device_.options;
             CELER_ENSURE(static_cast<bool>(device_)
                          && static_cast<bool>(device_ref_));
         }
