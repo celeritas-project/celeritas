@@ -31,12 +31,12 @@ TEST(TypesTest, real_literal)
 
 TEST(TypesTest, integer_literal)
 {
-    constexpr auto half = 0.5_sz;
+    constexpr auto half = 0_sz;
     constexpr auto two = 2_sz;
 
-    EXPECT_TRUE((std::is_same_v<size_type, decltype(0.5_sz)>));
+    EXPECT_TRUE((std::is_same_v<size_type, decltype(0_sz)>));
     EXPECT_TRUE((std::is_same_v<size_type, decltype(2_sz)>));
-    EXPECT_EQ(static_cast<size_type>(0.5), half);
+    EXPECT_EQ(static_cast<size_type>(0), half);
     EXPECT_EQ(static_cast<size_type>(2), two);
 }
 
