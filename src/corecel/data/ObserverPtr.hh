@@ -109,8 +109,10 @@ class ObserverPtr
     template<class, MemSpace>
     friend class ObserverPtr;
 
-//!@{
-//! Comparators
+    //// TEMPLATE FRIEND OPERATORS ////
+
+    //!@{
+    //! \name Comparators
 #define CELER_DEFINE_OBSPTR_CMP(TOKEN)                    \
     template<class T2>                                    \
     CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(  \
@@ -125,6 +127,10 @@ class ObserverPtr
     CELER_DEFINE_OBSPTR_CMP(<=)
     CELER_DEFINE_OBSPTR_CMP(>=)
 #undef CELER_DEFINE_OBSPTR_CMP
+    //!@}
+
+    //!@{
+    //! \name Comparators
 
     CELER_CONSTEXPR_FUNCTION friend bool
     operator==(ObserverPtr const& lhs, std::nullptr_t) noexcept

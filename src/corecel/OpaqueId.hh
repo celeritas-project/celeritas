@@ -26,6 +26,12 @@ namespace detail
 //! Sentinel value for an unassigned opaque ID
 template<class T>
 inline constexpr T nullid_value{static_cast<T>(-1)};
+
+#if !CELER_DEVICE_COMPILE
+template<class S>
+void stream_opaqueid_impl(std::ostream&, S, S);
+#endif
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 
@@ -58,39 +64,43 @@ inline constexpr nullid_t nullid{0};
  * As an example, it prevents index arguments in a function call from being
  * provided out of order.
  *
- * The class is roughly modeled after \c std::optional<SizeT> (but efficient
- * as it has no extra boolean flag thanks to the use of a sentinel value).
+ * The typical usage of an OpaqueId should be as \c std::optional<SizeT>.
  * The default-constructed value, \c nullid, cannot be used to index into an
  * array, nor does it represent a valid element.
  * An \c OpaqueId object evaluates to \c true if it has a value
  * (`OpaqueId{3}`), or \c false if it does not (`OpaqueId{}`).
  * The invalid state is usually referred to in the codebase as a "null ID".
- *
- * \tip A valid ID will always compare less than a null ID: you can use
- *      \c std::partition and \c erase to remove null IDs from a vector.
+ * Analogous to \c std::optional, \c nullid can be used for comparison,
+ * assignment, and construction.
  *
  * \par Synopsis
+ * A default-constructed OpaqueId is "null".
+ * It can be constructed explicitly from unsigned integers.
+ * Use \c id_cast for safe construction from integer or differently-sized
+ * values.
  *
- * A default-constructed OpaqueId is "null". It can be constructed explicitly
- * from unsigned integers. (Use \c id_cast for safe construction from integer
- * or differently-sized values.)
- *
- * Usage:
+ * \par Usage
  * - Index into \c Collection objects
  * - Check for nullity with \c bool, by comparing with \c nullid,
  * - Access with \c operator* (unchecked) or \c .value() (debug asserts
  *   non-null)
  *
- * The OpaqueId is hashable, sortable, and printable. It can be loaded via
- * texture-backed device memory using \c ldg .
+ * The OpaqueId is hashable, sortable, and printable.
+ * It can be loaded via cached device memory using \c ldg .
+ *
+ * \note A valid ID will always compare less than a null ID: you can use
+ *      \c std::partition and \c erase to remove null IDs from a vector.
+ *
+ * \note Comparators are defined as inline friend functions to allow
+ * ADL-assisted conversion, including from \c LdgWrapper.
  *
  * \par Related helper functions and types
  * - \c nullid is an instance of \c nullid_t that compares to any OpaqueId as
  *   its "null" value.
  * - \c is_opaque_id_v allows checking for generic types
- * - \c id_size_t is a descriptive alias to get the unsigned integer
+ * - \c id_size_type is a descriptive alias to get the unsigned integer
  *   \c value_type of an opaque ID, used for capacities.
- * - \c id_cast safely converts integers to OpaqueId .
+ * - \c id_cast safely converts integers to OpaqueId.
  *
  * \par About the ItemT tag
  * If this class is used for indexing into an array, then \c ValueT argument
@@ -98,10 +108,6 @@ inline constexpr nullid_t nullid{0};
  * <code>FooRecord operator[](OpaqueId<FooRecord>)</code>
  * Otherwise, the convention is to use an anonymous <code>struct Bar_</code> to
  * tag the ID type.
- *
- * \note Comparators are defined as inline friend functions to allow
- * ADL-assisted conversion, including from \c LdgWrapper.
- *
  */
 template<class ItemT, class SizeT = ::celeritas::size_type>
 class OpaqueId
@@ -149,9 +155,8 @@ class OpaqueId
     CELER_CEF value_type const* data() const noexcept { return &value_; }
 
     //!@{
-    //! \name Index-like modifiers
+    //! \name Pointer-like operators
 
-    //! Pre-increment of the ID
     CELER_CEF OpaqueId& operator++() noexcept(ndebug)
     {
         CELER_EXPECT(*this);
@@ -159,7 +164,6 @@ class OpaqueId
         return *this;
     }
 
-    //! Post-increment of the ID
     CELER_CEF OpaqueId operator++(int) noexcept(ndebug)
     {
         OpaqueId old{*this};
@@ -167,7 +171,6 @@ class OpaqueId
         return old;
     }
 
-    //! Pre-decrement of the ID
     CELER_CEF OpaqueId& operator--() noexcept(ndebug)
     {
         CELER_EXPECT(*this && value_ > 0);
@@ -175,7 +178,6 @@ class OpaqueId
         return *this;
     }
 
-    //! Post-decrement of the ID
     CELER_CEF OpaqueId operator--(int) noexcept(ndebug)
     {
         OpaqueId old{*this};
@@ -186,74 +188,7 @@ class OpaqueId
     //!@}
 
     //!@{
-    //! \name Deprecated access
-    //! \deprecated Remove in v1.0
-
-    //! Get the ID's value: use \c value() instead
-    CELER_CEF value_type get() const noexcept(ndebug) { return this->value(); }
-
-    //! Get the value without checking: use \c operator* instead
-    CELER_CEF value_type unchecked_get() const noexcept { return value_; }
-
-    //!@}
-
-    //// INLINE COMPARATOR FRIENDS ////
-
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
-    CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
-    {                                                                         \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                 \
-    }
-
-    //!@{
-    //! Compare two OpaqueId of the same type
-    CELER_DEFINE_OPAQUEID_CMP(==)
-    CELER_DEFINE_OPAQUEID_CMP(!=)
-    CELER_DEFINE_OPAQUEID_CMP(<)
-    CELER_DEFINE_OPAQUEID_CMP(>)
-    CELER_DEFINE_OPAQUEID_CMP(<=)
-    CELER_DEFINE_OPAQUEID_CMP(>=)
-    //!@}
-
-    //!@{
-    //! Compare with nullid
-    CELER_CEF friend bool operator==(OpaqueId id, nullid_t) noexcept
-    {
-        return !id;
-    }
-    CELER_CEF friend bool operator==(nullid_t, OpaqueId id) noexcept
-    {
-        return !id;
-    }
-    CELER_CEF friend bool operator!=(OpaqueId id, nullid_t) noexcept
-    {
-        return static_cast<bool>(id);
-    }
-    CELER_CEF friend bool operator!=(nullid_t, OpaqueId id) noexcept
-    {
-        return static_cast<bool>(id);
-    }
-    //!@}
-
-#undef CELER_DEFINE_OPAQUEID_CMP
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
-    template<class U>                                                  \
-    CELER_CEF friend auto operator TOKEN(OpaqueId lhs, U rhs) noexcept \
-        -> std::enable_if_t<std::is_unsigned_v<U>, bool>               \
-    {                                                                  \
-        return lhs && (static_cast<U>(lhs.unchecked_get()) TOKEN rhs); \
-    }
-
-    //!@{
-    //! Allow less-than comparison with unsigned int for containers
-    CELER_DEFINE_OPAQUEID_CMP(<)
-    CELER_DEFINE_OPAQUEID_CMP(<=)
-    //!@}
-
-#undef CELER_DEFINE_OPAQUEID_CMP
-
-    //// INLINE OPERATOR FRIENDS ////
-
+    //! \name Pointer-like arithmetic
     //! Get the distance between two opaque IDs
     CELER_FUNCTION friend SizeT operator-(OpaqueId self, OpaqueId other)
     {
@@ -296,8 +231,89 @@ class OpaqueId
         return OpaqueId{static_cast<SizeT>(id.unchecked_get()
                                            - static_cast<SizeT>(offset))};
     }
+    //!@}
+
+    //!@{
+    //! \name Deprecated access
+    //! \deprecated Remove in v1.0
+
+    //! Get the ID's value: use \c value() instead
+    CELER_CEF value_type get() const noexcept(ndebug) { return this->value(); }
+
+    //! Get the value without checking: use \c operator* instead
+    CELER_CEF value_type unchecked_get() const noexcept { return value_; }
+
+    //!@}
+
+    //// TEMPLATE FRIEND OPERATORS ////
+
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
+    CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
+    {                                                                         \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                 \
+    }
+
+    //!@{
+    //! \name Compare two OpaqueId of the same type
+    CELER_DEFINE_OPAQUEID_CMP(==)
+    CELER_DEFINE_OPAQUEID_CMP(!=)
+    CELER_DEFINE_OPAQUEID_CMP(<)
+    CELER_DEFINE_OPAQUEID_CMP(>)
+    CELER_DEFINE_OPAQUEID_CMP(<=)
+    CELER_DEFINE_OPAQUEID_CMP(>=)
+    //!@}
+
+    //!@{
+    //! \name Compare with nullid
+    CELER_CEF friend bool operator==(OpaqueId id, nullid_t) noexcept
+    {
+        return !id;
+    }
+    CELER_CEF friend bool operator==(nullid_t, OpaqueId id) noexcept
+    {
+        return !id;
+    }
+    CELER_CEF friend bool operator!=(OpaqueId id, nullid_t) noexcept
+    {
+        return static_cast<bool>(id);
+    }
+    CELER_CEF friend bool operator!=(nullid_t, OpaqueId id) noexcept
+    {
+        return static_cast<bool>(id);
+    }
+    //!@}
+
+#undef CELER_DEFINE_OPAQUEID_CMP
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
+    template<class U>                                                  \
+    CELER_CEF friend auto operator TOKEN(OpaqueId lhs, U rhs) noexcept \
+        -> std::enable_if_t<std::is_unsigned_v<U>, bool>               \
+    {                                                                  \
+        return lhs && (static_cast<U>(lhs.unchecked_get()) TOKEN rhs); \
+    }
+
+    //!@{
+    //! \name Compare with unsigned int
+    //! This allows size checking for containers
+    CELER_DEFINE_OPAQUEID_CMP(<)
+    CELER_DEFINE_OPAQUEID_CMP(<=)
+    //!@}
+
+#undef CELER_DEFINE_OPAQUEID_CMP
+
+#if !CELER_DEVICE_COMPILE
+    //! Output an opaque ID's value or a placeholder if unavailable.
+    CELER_FORCEINLINE friend std::ostream&
+    operator<<(std::ostream& os, OpaqueId v)
+    {
+        detail::stream_opaqueid_impl(os, v.value_, v.null_);
+        return os;
+    }
+#endif
 
   private:
+    //// DATA ////
+
     size_type value_;
 
     //! Value indicating the ID is not assigned
@@ -382,10 +398,10 @@ struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
 #if !CELER_DEVICE_COMPILE
 // Print an opaque ID: ignore instantiator to reduce duplicate symbols
 template<class S>
-inline void stream_opaqueid_impl(std::ostream& os, S v, S nullid)
+inline void stream_opaqueid_impl(std::ostream& os, S v, S nullint)
 {
     os << '{';
-    if (v != nullid)
+    if (v != nullint)
     {
         os << v;
     }
@@ -444,20 +460,6 @@ CELER_CEF T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
 {
     return ptr->data();
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Output an opaque ID's value or a placeholder if unavailable.
- */
-template<class V, class S>
-CELER_FORCEINLINE std::ostream&
-operator<<(std::ostream& os, OpaqueId<V, S> const& v)
-{
-    detail::stream_opaqueid_impl(os, *v.data(), detail::nullid_value<S>);
-    return os;
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
