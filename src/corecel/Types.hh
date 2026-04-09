@@ -196,6 +196,18 @@ CELER_CONSTEXPR_FUNCTION real_type operator""_r(unsigned long long int value)
     return static_cast<real_type>(value);
 }
 
+//! Convert a literal to the configured \c size_type
+CELER_CONSTEXPR_FUNCTION size_type operator""_sz(long double value)
+{
+    return static_cast<size_type>(value);
+}
+
+//! Convert an integer literal to the configured \c size_type
+CELER_CONSTEXPR_FUNCTION size_type operator""_sz(unsigned long long int value)
+{
+    return static_cast<size_type>(value);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace literals
 
