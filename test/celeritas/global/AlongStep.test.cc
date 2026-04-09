@@ -758,16 +758,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-#if CELERITAS_USE_COVFIE
-            // Covfie uses true bilinear interpolation; non-covfie uses
-            // 1D-per-component interpolation, giving different field values
-            // in regions with strong cross-axis gradients
             EXPECT_SOFT_EQ(0.49482548031266, result.displacement);
             EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-11);
-#else
-            EXPECT_SOFT_EQ(0.55155207893668967, result.displacement);
-            EXPECT_SOFT_NEAR(0.095305171122713847, result.angle, 1e-11);
-#endif
             EXPECT_EQ("geo-propagation-limit", result.action);
         }
     }
