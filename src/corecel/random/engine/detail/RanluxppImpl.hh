@@ -633,8 +633,7 @@ CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
 CELER_FUNCTION RanluxppNumber to_ranlux(RanluxppArray9 const& lcg)
 {
     RanluxppNumber result;
-    int64_t c = compute_remainder(celeritas::make_span(lcg),
-                                  celeritas::make_span(result.number));
+    int64_t c = compute_remainder(lcg, result.number);
 
     // ranlux = t1 + t2 + c
     unsigned int carry = 0;

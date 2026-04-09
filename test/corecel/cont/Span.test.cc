@@ -323,59 +323,34 @@ TEST(SpanTest, array_conversion)
     ArrInt3 arr = {1, 2, 3};
     ArrInt3 const carr = {4, 5, 6};
 
-    // Direct (explicit) construction always works
-    Span<int, 3> fixed{arr};
+    // Implicit copy-initialization for both fixed and dynamic extents
+    Span<int, 3> fixed = arr;
     EXPECT_EQ(arr.data(), fixed.data());
     EXPECT_EQ(3, fixed.size());
 
-    Span<int const, 3> cfixed{arr};
+    Span<int const, 3> cfixed = arr;
     EXPECT_EQ(arr.data(), cfixed.data());
 
-    Span<int const, 3> cfixed2{carr};
+    Span<int const, 3> cfixed2 = carr;
     EXPECT_EQ(carr.data(), cfixed2.data());
 
-    // Dynamic extent: explicit construction always works
-    Span<int> dyn{arr};
+    Span<int> dyn = arr;
     EXPECT_EQ(arr.data(), dyn.data());
     EXPECT_EQ(3, dyn.size());
 
-    Span<int const> cdyn{carr};
+    Span<int const> cdyn = carr;
     EXPECT_EQ(carr.data(), cdyn.data());
     EXPECT_EQ(3, cdyn.size());
 
-    // In C++20, construction is implicit for dynamic-extent spans
-#if __cplusplus >= 202002L
-    // Implicit copy-initialization only works if constructor is not explicit
-    Span<int> implicit_dyn = arr;
-    EXPECT_EQ(arr.data(), implicit_dyn.data());
-    EXPECT_EQ(3, implicit_dyn.size());
+    // All size-compatible conversions are implicit in all standards
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3&, Span<int, 3>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3&, Span<int>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3 const&, Span<int const, 3>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3 const&, Span<int const>>));
 
-    Span<int const> implicit_cdyn = carr;
-    EXPECT_EQ(carr.data(), implicit_cdyn.data());
-    EXPECT_EQ(3, implicit_cdyn.size());
-
-    // Dynamic extent is implicitly constructible from Array
-    EXPECT_TRUE((std::is_convertible_v<ArrInt3&, Span<int>>))
-        << "Array to dynamic Span must be implicit in C++20";
-    EXPECT_TRUE((std::is_convertible_v<ArrInt3 const&, Span<int const>>))
-        << "const Array to dynamic const Span must be implicit in C++20";
-
-    // Fixed extent is NOT implicitly constructible from Array
-    EXPECT_FALSE((std::is_convertible_v<ArrInt3&, Span<int, 3>>))
-        << "Array to fixed Span must be explicit in C++20";
-#else
-    // In C++17 all Array-to-Span constructors are explicit
-    EXPECT_FALSE((std::is_convertible_v<ArrInt3&, Span<int>>))
-        << "Array to dynamic Span must be explicit in C++17";
-    EXPECT_FALSE((std::is_convertible_v<ArrInt3 const&, Span<int const>>))
-        << "const Array to dynamic const Span must be explicit in C++17";
-#endif
-
-    // Constructible (explicit) in all standards
-    EXPECT_TRUE((std::is_constructible_v<Span<int>, ArrInt3&>));
-    EXPECT_TRUE((std::is_constructible_v<Span<int, 3>, ArrInt3&>));
-    EXPECT_TRUE((std::is_constructible_v<Span<int const>, ArrInt3 const&>));
-    EXPECT_TRUE((std::is_constructible_v<Span<int const, 3>, ArrInt3 const&>));
+    // Wrong fixed extent: not constructible
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 2>, ArrInt3&>))
+        << "Array to fixed Span with different extent is prohibited";
 
     // Removing const must not be allowed
     EXPECT_FALSE((std::is_constructible_v<Span<int>, ArrInt3 const&>))

@@ -64,11 +64,8 @@ class Array;
  * - Default: empty span
  * - Implicit: pointer and size
  * - Implicit: two \c contiguous_iterator \c (first,last)
- * - Implicit: C arrays and celeritas::Array (requires C++20; explicit in
- * C++17)
+ * - Implicit: C arrays and celeritas::Array when extents are compatible
  * - Implicit: fixed-to-dynamic Span
- * - Explicit: dynamic-to-fixed Span
- * - Explicit (always): fixed-extent Span from Array
  *
  * \par Data access
  *
@@ -133,11 +130,11 @@ class Span
     }
 
     /*!
-     * Construct from a mutable \c Array, implicit iff Extent is dynamic.
+     * Construct implicitly from a mutable \c Array.
      *
-     * Mirrors the \c std::span constructor from \c std::array. In C++20 the
-     * constructor is implicit when \c Extent is \c dynamic_extent and
-     * explicit otherwise; in C++17 it is always explicit.
+     * Enabled only when \c N matches \c Extent exactly or \c Extent is
+     * \c dynamic_extent, so the conversion is always statically safe and
+     * can be implicit unconditionally.
      */
     template<class U,
              std::size_t N,
@@ -145,18 +142,16 @@ class Span
                                   && (N == Extent || Extent == dynamic_extent),
                               bool>
              = true>
-    CELER_EXPLICIT_IF(Extent != dynamic_extent)
     CELER_CONSTEXPR_FUNCTION Span(Array<U, N>& arr) : s_(arr.data(), N)
     {
     }
 
     /*!
-     * Construct from a const \c Array, implicit iff Extent is dynamic.
+     * Construct implicitly from a const \c Array.
      *
-     * Mirrors the \c std::span constructor from <code>const std::array</code>.
-     * In C++20 the constructor is implicit when \c Extent is
-     * \c dynamic_extent and explicit otherwise; in C++17 it is always
-     * explicit.
+     * Enabled only when \c N matches \c Extent exactly or \c Extent is
+     * \c dynamic_extent, so the conversion is always statically safe and
+     * can be implicit unconditionally.
      */
     template<class U,
              std::size_t N,
@@ -164,7 +159,6 @@ class Span
                                   && (N == Extent || Extent == dynamic_extent),
                               bool>
              = true>
-    CELER_EXPLICIT_IF(Extent != dynamic_extent)
     CELER_CONSTEXPR_FUNCTION Span(Array<U, N> const& arr) : s_(arr.data(), N)
     {
     }
