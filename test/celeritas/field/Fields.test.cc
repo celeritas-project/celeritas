@@ -176,6 +176,86 @@ TEST_F(RZMapFieldTest, all)
     EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
 }
 
+TEST_F(RZMapFieldTest, interp_validation)
+{
+    // Validate interpolation with a synthetic field whose values at non-grid
+    // points are analytically known.
+    //
+    // Case 1: Br(r,z) = r, Bz(r,z) = z (each component varies on one axis
+    // only). Both the non-covfie 1D-per-component scheme and covfie bilinear
+    // reproduce linear functions exactly, so this gives a ground-truth check
+    // for both paths.
+    //
+    // All values are in native units (no unit conversion).
+    {
+        constexpr int nr = 3, nz = 3;
+        RZMapFieldInput inp;
+        inp.num_grid_r = nr;
+        inp.num_grid_z = nz;
+        inp.min_r = 0;
+        inp.max_r = 2;
+        inp.min_z = 0;
+        inp.max_z = 2;
+        inp.field_r.resize(nr * nz);
+        inp.field_z.resize(nr * nz);
+        for (int iz = 0; iz < nz; ++iz)
+            for (int ir = 0; ir < nr; ++ir)
+            {
+                inp.field_r[iz * nr + ir] = ir * 1.0;  // Br = r
+                inp.field_z[iz * nr + ir] = iz * 1.0;  // Bz = z
+            }
+
+        RZMapFieldParams params(inp);
+        RZMapField field(params.host_ref());
+
+        // Query at a non-grid point: use pos=(r,0,z) so hypot(x,y)=r exactly.
+        // Bx = Br*(x/r) = r*(r/r) = r, By = Br*(y/r) = 0, Bz = z.
+        // Tolerance of 1e-6 accommodates float32 rounding in covfie storage.
+        auto result = field(Real3{real_type(0.5), 0, real_type(1.7)});
+        EXPECT_SOFT_NEAR(0.5, result[0], real_type{1e-6});
+        EXPECT_SOFT_EQ(0.0, result[1]);
+        EXPECT_SOFT_NEAR(1.7, result[2], real_type{1e-6});
+    }
+
+#if CELERITAS_USE_COVFIE
+    // Case 2: Br(r,z) = r + z, Bz(r,z) = r + z (each component varies on
+    // both axes). True bilinear interpolation reproduces linear functions
+    // exactly; the non-covfie 1D-per-component scheme does not (it evaluates
+    // Br along r at a fixed iz and Bz along z at a fixed ir, missing the
+    // cross contribution).
+    //
+    // Use a 2x2 grid so the midpoint r=1, z=1 has frac=(0.5, 0.5) exactly.
+    {
+        RZMapFieldInput inp;
+        inp.num_grid_r = 2;
+        inp.num_grid_z = 2;
+        inp.min_r = 0;
+        inp.max_r = 2;
+        inp.min_z = 0;
+        inp.max_z = 2;
+        inp.field_r.resize(4);
+        inp.field_z.resize(4);
+        for (int iz = 0; iz < 2; ++iz)
+            for (int ir = 0; ir < 2; ++ir)
+            {
+                double r = ir * 2.0, z = iz * 2.0;
+                inp.field_r[iz * 2 + ir] = r + z;  // Br = r + z
+                inp.field_z[iz * 2 + ir] = r + z;  // Bz = r + z
+            }
+
+        RZMapFieldParams params(inp);
+        RZMapField field(params.host_ref());
+
+        // At midpoint r=1, z=1: Br = Bz = 2 (exact bilinear).
+        // Bx = Br*(x/r) = 2*(1/1) = 2, By = 0, Bz = 2.
+        auto result = field(Real3{real_type(1), 0, real_type(1)});
+        EXPECT_SOFT_EQ(2.0, result[0]);
+        EXPECT_SOFT_EQ(0.0, result[1]);
+        EXPECT_SOFT_EQ(2.0, result[2]);
+    }
+#endif
+}
+
 #if CELERITAS_USE_COVFIE
 TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
 {
