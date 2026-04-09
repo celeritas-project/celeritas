@@ -5,6 +5,7 @@
 /*!
  * \file corecel/Types.hh
  * \brief Type definitions for common Celeritas functionality.
+ * \sa corecel/Types.test.cc
  *
  * This file includes types and properties particular to the build
  * configuration.
@@ -175,6 +176,28 @@ char const* to_cstring(UnitSystem);
 
 // Get a unit system corresponding to a string
 UnitSystem to_unit_system(std::string const& s);
+
+//---------------------------------------------------------------------------//
+/*!
+ * \name User-defined literals for Celeritas scalar types
+ */
+namespace literals
+{
+//---------------------------------------------------------------------------//
+//! Convert a literal to the configured \c real_type
+CELER_CONSTEXPR_FUNCTION real_type operator""_r(long double value)
+{
+    return static_cast<real_type>(value);
+}
+
+//! Convert an integer literal to the configured \c real_type
+CELER_CONSTEXPR_FUNCTION real_type operator""_r(unsigned long long int value)
+{
+    return static_cast<real_type>(value);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace literals
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
