@@ -199,5 +199,7 @@ CELER_CONSTEXPR_FUNCTION real_type operator""_r(unsigned long long int value)
 //---------------------------------------------------------------------------//
 }  // namespace literals
 
+using namespace celeritas::literals;
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
