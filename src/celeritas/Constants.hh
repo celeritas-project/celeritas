@@ -62,14 +62,16 @@ namespace constants
 
 #define CELER_ICC inline constexpr Constant
 
+using namespace celeritas::literals;
+
 //!@{
 //! \name Physical constants with exact value as defined by SI
-CELER_ICC c_light = Constant{299792458.} * units::meter / units::second;
-CELER_ICC h_planck = Constant{6.62607015e-34} * units::joule * units::second;
+CELER_ICC c_light = 299792458._C * units::meter / units::second;
+CELER_ICC h_planck = 6.62607015e-34_C * units::joule * units::second;
 #if CELERITAS_UNITS != CELERITAS_UNITS_CLHEP
-CELER_ICC e_electron = Constant{1.602176634e-19} * units::coulomb;
+CELER_ICC e_electron = 1.602176634e-19_C * units::coulomb;
 #endif
-CELER_ICC k_boltzmann = Constant{1.380649e-23} * units::joule / units::kelvin;
+CELER_ICC k_boltzmann = 1.380649e-23_C * units::joule / units::kelvin;
 CELER_ICC na_avogadro{6.02214076e23};
 CELER_ICC kcd_luminous{683};
 //!@}
