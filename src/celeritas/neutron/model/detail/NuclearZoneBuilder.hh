@@ -280,12 +280,12 @@ auto NuclearZoneBuilder::calc_zones_heavy(AtomicMassNumber a) const
     if (a < AtomicMassNumber{100})
     {
         static real_type const alpha_i[] = {0.7, 0.3, 0.01};
-        alpha = make_span(alpha_i);
+        alpha = alpha_i;
     }
     else
     {
         static real_type const alpha_h[] = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
-        alpha = make_span(alpha_h);
+        alpha = alpha_h;
     }
 
     VecZoneDensity result(alpha.size());
