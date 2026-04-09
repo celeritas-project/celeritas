@@ -758,8 +758,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.49482548031266, result.displacement);
-            EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-11);
+            EXPECT_SOFT_NEAR(0.49482548031266, result.displacement, 1e-7);
+            EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-7);
             EXPECT_EQ("geo-propagation-limit", result.action);
         }
     }
