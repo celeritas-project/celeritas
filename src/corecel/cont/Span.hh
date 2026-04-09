@@ -37,45 +37,44 @@ constexpr std::size_t dynamic_extent = detail::dynamic_extent;
  * std::span. Improvements for standards compatibility are welcome as long as
  * they retain the same behavior in device code. Important differences from
  * the standard \c std::span include:
- * - Supports a special marker/tag type `LdgValue<T>` which causes element
+ * - Supports a special marker/tag type \c LdgValue<T> which causes element
  *   accessors and iterators to use value-semantics loads (optimized device
  *   loads) instead of references.
  * - Uses a restricted constructor for iterators: instead of two separate
  *   iterator/end types, it uses only one.
- * - Provides additional free helpers tailored to Celeritas: `make_span`
- *   overloads for `Array<T,N>`, C arrays, and generic containers, plus
- *   `to_array()` convenience and a host-only `operator<<` using
- *   `StreamableContainer`.
- * - All public methods are decorated with `CELER_CONSTEXPR_FUNCTION` for
+ * - Provides additional free helpers tailored to Celeritas: \c make_span
+ *   overloads for \c Array<T,N>, C arrays, and generic containers, plus
+ *   \c to_array() convenience and a host-only \c operator<< using
+ *   \c StreamableContainer.
+ * - All public methods are decorated with \c CELER_CONSTEXPR_FUNCTION for
  *   host/device compatibility.
- * - Some subview helpers use `CELER_EXPECT` to check for bounds validation in
+ * - Some subview helpers use \c CELER_EXPECT to check for bounds validation in
  *   debug builds.
- * - Dynamic-to-fixed conversion performs runtime checks when `CELERITAS_DEBUG`
- *   is on.
+ * - Dynamic-to-fixed conversion performs runtime checks when \c
+ *   CELERITAS_DEBUG is on.
  *
- * \par Synopsis
+ * \par Construction
  *
- * Construction:
- * - Default constructs to an empty span.
- * - Construct from a pointer and size: `Span(pointer, size)`.
- * - Construct from two contiguous random-access iterators: `Span(first,
- *   last)` (non-standard convenience).
- * - Construct from C arrays or `Array<T,N>` (fixed-size spans).
- * - Converting constructor from a compatible `Span<U,N>` (e.g., mutable to
- *   const element type) when extents are compatible.
+ * - Default: empty span
+ * - Implicit: pointer and size
+ * - Implicit: two \c contiguous_iterator \c (first,last)
+ * - Implicit: C arrays and celeritas::Array
+ * - Implicit: fixed-to-dynamic Span
+ * - Explicit: dynamic-to-fixed Span
  *
- * Data access:
- * - Element access: `operator[]`, `front()`, `back()`.
- * - Observers: `data()`, `size()`, `size_bytes()`, `empty()`.
- * - Iteration: `begin()`, `end()`.
+ * \par Data access
  *
- * Subviews and utilities:
- * - `first<Count>()`, `first(count)`, `last<Count>()`, `last(count)`.
- * - `subspan<Offset,Count>()` and `subspan(offset,count)` for compile-time
- *   and runtime subviews.
- * - Deduction guides are provided for pointer+size, iterator pairs and
- *   C arrays; free functions `make_span(...)` and `to_array(...)` are
- *   provided for convenience.
+ * - Element access: \c operator[], \c front(), \c back()
+ * - Observers: \c data(), \c size(), \c size_bytes(), \c empty()
+ * - Iteration: \c begin(), \c end()
+ *
+ * \par Subviews and utilities
+ *
+ * - \c first<Count>(), \c first(count), \c last<Count>(), \c last(count)
+ * - \c subspan<Offset,Count>() and \c subspan(offset,count) for compile-time
+ *   and runtime subviews
+ * - Deduction guides for pointer+size, iterator pairs, and C arrays
+ * - Free functions \c make_span(...) and \c to_array(...)
  */
 template<class T, std::size_t Extent = dynamic_extent>
 class Span
@@ -119,6 +118,7 @@ class Span
     }
 
     //! Construct from a C array
+    // (FIXME: template enable only if N == Extent or Extent == dynamic)
     template<std::size_t N>
     CELER_CONSTEXPR_FUNCTION Span(element_type (&arr)[N]) : s_(arr, N)
     {
