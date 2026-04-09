@@ -384,6 +384,24 @@ TEST(SpanTest, array_conversion)
         << "const Array to mutable fixed Span is prohibited";
 }
 
+TEST(SpanTest, array_deduction)
+{
+    Array<int, 3> arr = {1, 2, 3};
+    Array<int, 3> const carr = {4, 5, 6};
+
+    // Mutable Array -> Span<T, N>
+    Span mspan{arr};
+    EXPECT_TRUE((std::is_same_v<Span<int, 3>, decltype(mspan)>));
+    EXPECT_EQ(arr.data(), mspan.data());
+    EXPECT_EQ(3, mspan.size());
+
+    // Const Array -> Span<T const, N>
+    Span cspan{carr};
+    EXPECT_TRUE((std::is_same_v<Span<int const, 3>, decltype(cspan)>));
+    EXPECT_EQ(carr.data(), cspan.data());
+    EXPECT_EQ(3, cspan.size());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

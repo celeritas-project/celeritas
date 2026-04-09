@@ -81,7 +81,7 @@ class Array;
  * - \c first<Count>(), \c first(count), \c last<Count>(), \c last(count)
  * - \c subspan<Offset,Count>() and \c subspan(offset,count) for compile-time
  *   and runtime subviews
- * - Deduction guides for pointer+size, iterator pairs, and C arrays
+ * - Deduction guides for pointer+size, iterator pairs, C arrays, and Array
  * - Free functions \c make_span(...) and \c to_array(...)
  */
 template<class T, std::size_t Extent = dynamic_extent>
@@ -314,6 +314,14 @@ Span(Iter, Iter) -> Span<typename std::iterator_traits<Iter>::value_type>;
 // Deduction guide for C array
 template<class T, std::size_t N>
 Span(T (&)[N]) -> Span<T, N>;
+
+// Deduction guide for mutable Array
+template<class T, std::size_t N>
+Span(Array<T, N>&) -> Span<T, N>;
+
+// Deduction guide for const Array
+template<class T, std::size_t N>
+Span(Array<T, N> const&) -> Span<T const, N>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
