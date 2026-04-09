@@ -13,6 +13,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/NuclearFormFactors.hh"
@@ -271,8 +272,8 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    using namespace celeritas::units::literals;
-    return native_value_to<units::MevMomentum>(2.0_fm / constants::hbar_planck)
+    return native_value_to<units::MevMomentum>(2.0 * units::femtometer
+                                               / constants::hbar_planck)
         .value();
 }
 

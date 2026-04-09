@@ -13,6 +13,7 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 
 #include "TestMacros.hh"
 
@@ -22,7 +23,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 void EventIOTestBase::ReadAllResult::print_expected() const
 {
@@ -130,14 +130,14 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       MevEnergy{1.23},
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
-                      5.67e-9_s,
+                      5.67e-9 * units::second,
                       EventId{0},
                       PrimaryId{0}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
-                       5.78e-9_s,
+                       5.78e-9 * units::second,
                        EventId{0},
                        PrimaryId{0}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};

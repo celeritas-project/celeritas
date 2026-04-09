@@ -13,6 +13,7 @@
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -81,8 +82,7 @@ class UrbanMscSafetyStepLimit
     //! Minimum range for an empirical step-function approach
     static CELER_CONSTEXPR_FUNCTION real_type min_range()
     {
-        using namespace celeritas::units::literals;
-        return 1e-3_cm;
+        return 1e-3 * units::centimeter;
     }
 
     //! Maximum step over the range
