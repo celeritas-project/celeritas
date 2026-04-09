@@ -8,14 +8,14 @@
 
 #include <iterator>
 #include <type_traits>
-#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {
+template<class ItemT, class SizeT>
+class OpaqueId;
 namespace detail
 {
 //---------------------------------------------------------------------------//

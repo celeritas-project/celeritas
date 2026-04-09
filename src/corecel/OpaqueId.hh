@@ -73,17 +73,21 @@ inline constexpr nullid_t nullid{0};
  * Analogous to \c std::optional, \c nullid can be used for comparison,
  * assignment, and construction.
  *
- * \par Synopsis
- * A default-constructed OpaqueId is "null".
- * It can be constructed explicitly from unsigned integers.
- * Use \c id_cast for safe construction from integer or differently-sized
- * values.
+ * \par Construction
+ * - Default: result is \c nullid
+ * - Implicitly from \c nullid
+ * - Explicitly from a compatible unsigned integer
+ * - Via \c id_cast for safe construction from general (or differently sized)
+ *   integers
  *
  * \par Usage
- * - Index into \c Collection objects
- * - Check for nullity with \c bool, by comparing with \c nullid,
- * - Access with \c operator* (unchecked) or \c .value() (debug asserts
- *   non-null)
+ * - Check for nullity with \c bool or by comparing with \c nullid
+ * - Check for validity as a container index with
+ *   <code>id &lt; vec.size()</code>
+ * - Access value with \c operator* : <code>vec[*id]</code>
+ * - Access data with \c Collection::operator[]
+ * - Loop over consecutive IDs with \c range
+ * - Increment, decrement, subtract, add with pointer-like operations
  *
  * The OpaqueId is hashable, sortable, and printable.
  * It can be loaded via cached device memory using \c ldg .

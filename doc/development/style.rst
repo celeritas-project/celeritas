@@ -300,7 +300,7 @@ easier to differentiate from a free function in the current scope.
 
 Use `template friend operators`_ for class comparators.
 This "hidden-friend idiom" enables implicit conversions, such as those needed by
-:cpp:class:`celeritas::LdgSpan`, and exposes those operators only via
+:cpp:type:`celeritas::LdgSpan`, and exposes those operators only via
 argument-dependent lookup (ADL).
 Relying on ADL shrinks overload sets, speeds up compilation, and avoids
 unintentionally operator matches.

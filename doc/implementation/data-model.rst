@@ -68,7 +68,7 @@ Storage
 
 .. doxygenclass:: celeritas::OpaqueId
 .. doxygenfunction:: celeritas::id_cast
-.. doxygenfunction:: celeritas::id_size_type
+.. doxygentypedef:: celeritas::id_size_type
 
 .. doxygentypedef:: celeritas::ItemId
 .. doxygentypedef:: celeritas::ItemRange
