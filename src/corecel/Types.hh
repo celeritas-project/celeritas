@@ -204,6 +204,4 @@ CELER_CONSTEXPR_FUNCTION size_type operator""_sz(unsigned long long int value)
 
 //---------------------------------------------------------------------------//
 }  // namespace literals
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
