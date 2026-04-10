@@ -24,7 +24,6 @@ namespace optical
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -72,7 +71,7 @@ TEST_F(WavelengthShiftTest, data)
     // Test the material properties of WLS
     WlsMaterialRecord wls_record = data_.wls_record[material_id_];
     EXPECT_SOFT_EQ(2, wls_record.mean_num_photons);
-    EXPECT_SOFT_EQ(1_ns, wls_record.time_constant);
+    EXPECT_SOFT_EQ(1 * units::nanosecond, wls_record.time_constant);
 
     // Test the vector property (emission spectrum) of WLS
 
@@ -116,7 +115,7 @@ TEST_F(WavelengthShiftTest, time_profile)
     dist.type = GeneratorType::wls;
     dist.num_photons = 1000;
     dist.energy = Energy{2e-6};
-    dist.time = 5.0_ns;
+    dist.time = 5.0 * units::nanosecond;
     dist.material = material_id_;
 
     {

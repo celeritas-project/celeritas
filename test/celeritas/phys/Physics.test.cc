@@ -33,7 +33,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 using MevEnergy = units::MevEnergy;
 
@@ -532,7 +531,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1_cm, params_ref.scalars.light.min_range);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.light.min_range);
     EXPECT_SOFT_EQ(0.2, params_ref.scalars.light.max_step_over_range);
     std::vector<real_type> eloss;
     std::vector<real_type> range;
