@@ -30,8 +30,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using namespace celeritas::literals;
-
 constexpr real_type sqrt_two{constants::sqrt_two};
 
 class OrangeTest : public OrangeGeoTestBase

@@ -16,8 +16,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using namespace celeritas::literals;
-
 TEST(TypesTest, real_literal)
 {
     constexpr auto half = 0.5_r;

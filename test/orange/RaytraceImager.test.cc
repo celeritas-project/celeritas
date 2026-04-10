@@ -17,9 +17,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-using namespace celeritas::literals;
-
 std::string to_ascii(ImageInterface const& image, Span<char const> id_to_char)
 {
     ImageParams const& params = *image.params();

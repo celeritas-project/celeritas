@@ -21,7 +21,6 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/CoreGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/field/DormandPrinceIntegrator.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"

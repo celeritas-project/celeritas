@@ -11,7 +11,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/phys/CutoffParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/PhysicsParams.hh"

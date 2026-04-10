@@ -15,7 +15,6 @@
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/MockTestBase.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/em/process/EPlusAnnihilationProcess.hh"
 #include "celeritas/grid/EnergyLossCalculator.hh"
 #include "celeritas/grid/RangeCalculator.hh"

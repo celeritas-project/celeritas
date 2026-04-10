@@ -13,7 +13,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/NuclearFormFactors.hh"

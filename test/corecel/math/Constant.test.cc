@@ -16,8 +16,6 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-using namespace celeritas::literals;
-
 TEST(ConstantTest, comparison)
 {
     constexpr Constant pi{3.14};

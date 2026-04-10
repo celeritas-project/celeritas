@@ -28,9 +28,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-
-using namespace celeritas::literals;
-
 //! Test precompiled geometry loaded from OrangeInput
 class JsonOrangeTest : public OrangeGeoTestBase
 {

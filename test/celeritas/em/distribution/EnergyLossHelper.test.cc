@@ -10,7 +10,6 @@
 #include "corecel/random/HistogramSampler.hh"
 #include "celeritas/MockTestBase.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/em/distribution/EnergyLossDeltaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGammaDistribution.hh"
 #include "celeritas/em/distribution/EnergyLossGaussianDistribution.hh"

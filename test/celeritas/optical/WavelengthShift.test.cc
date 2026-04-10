@@ -9,7 +9,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/Histogram.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/gen/WavelengthShiftGenerator.hh"
 #include "celeritas/optical/interactor/WavelengthShiftInteractor.hh"

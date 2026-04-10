@@ -13,7 +13,6 @@
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/Units.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/Interaction.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
