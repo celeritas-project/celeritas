@@ -73,7 +73,7 @@ TEST(ConstantsTest, clhep_codata)
     // Values differ from the CLHEP constants (CODATA 2006) by ~1e-7 due to
     // the 2019 change in SI using e- charge as an exact definition
     // rather than a measured constant
-    constexpr Constant old_e_electron{1.602176487e-19 * units::coulomb};
+    constexpr auto old_e_electron{1.602176487e-19_C * units::coulomb};
 
     using MevMass = Quantity<units::MevPerCsq, double>;
 

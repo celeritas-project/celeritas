@@ -62,16 +62,14 @@ namespace constants
 
 #define CELER_ICC inline constexpr Constant
 
-using namespace celeritas::literals;
-
 //!@{
 //! \name Physical constants with exact value as defined by SI
-CELER_ICC c_light = 299792458._C * units::meter / units::second;
-CELER_ICC h_planck = 6.62607015e-34_C * units::joule * units::second;
+CELER_ICC c_light = Constant{299792458.} * units::meter / units::second;
+CELER_ICC h_planck = Constant{6.62607015e-34} * units::joule * units::second;
 #if CELERITAS_UNITS != CELERITAS_UNITS_CLHEP
-CELER_ICC e_electron = 1.602176634e-19_C * units::coulomb;
+CELER_ICC e_electron = Constant{1.602176634e-19} * units::coulomb;
 #endif
-CELER_ICC k_boltzmann = 1.380649e-23_C * units::joule / units::kelvin;
+CELER_ICC k_boltzmann = Constant{1.380649e-23} * units::joule / units::kelvin;
 CELER_ICC na_avogadro{6.02214076e23};
 CELER_ICC kcd_luminous{683};
 //!@}
@@ -95,18 +93,19 @@ inline
 #endif
     namespace codata2006
 {
-CELER_ICC a0_bohr = 5.2917720859e-11_C * units::meter;
-CELER_ICC alpha_fine_structure = 7.2973525376e-3_C;
-CELER_ICC atomic_mass = 1.660538782e-24_C * units::gram;
-CELER_ICC electron_mass = 9.10938215e-28_C * units::gram;
-CELER_ICC proton_mass = 1.672621637e-24_C * units::gram;
-CELER_ICC eps_electric = 8.854187817e-12_C * units::farad / units::meter;
-CELER_ICC mu_magnetic = 1.2566370614e-6_C * units::newton
+CELER_ICC a0_bohr = Constant{5.2917720859e-11} * units::meter;
+CELER_ICC alpha_fine_structure = Constant{7.2973525376e-3};
+CELER_ICC atomic_mass = Constant{1.660538782e-24} * units::gram;
+CELER_ICC electron_mass = Constant{9.10938215e-28} * units::gram;
+CELER_ICC proton_mass = Constant{1.672621637e-24} * units::gram;
+CELER_ICC eps_electric = Constant{8.854187817e-12} * units::farad
+                         / units::meter;
+CELER_ICC mu_magnetic = Constant{1.2566370614e-6} * units::newton
                         / (units::ampere * units::ampere);
-CELER_ICC r_electron = 2.8179402894e-15_C * units::meter;
-CELER_ICC rinf_rydberg = 10973731.568527_C / units::meter;
-CELER_ICC eh_hartree = 4.35974394e-18_C / units::meter;
-CELER_ICC lambdabar_electron = 3.8615926459e-13_C * units::meter;
+CELER_ICC r_electron = Constant{2.8179402894e-15} * units::meter;
+CELER_ICC rinf_rydberg = Constant{10973731.568527} / units::meter;
+CELER_ICC eh_hartree = Constant{4.35974394e-18} / units::meter;
+CELER_ICC lambdabar_electron = Constant{3.8615926459e-13} * units::meter;
 }
 
 //! Experimental physical constants from CODATA 2018
@@ -115,18 +114,19 @@ inline
 #endif
     namespace codata2018
 {
-CELER_ICC a0_bohr = 5.29177210903e-11_C * units::meter;
-CELER_ICC alpha_fine_structure = 7.2973525693e-3_C;
-CELER_ICC atomic_mass = 1.66053906660e-24_C * units::gram;
-CELER_ICC electron_mass = 9.1093837015e-28_C * units::gram;
-CELER_ICC proton_mass = 1.67262192369e-24_C * units::gram;
-CELER_ICC eps_electric = 8.8541878128e-12_C * units::farad / units::meter;
-CELER_ICC mu_magnetic = 1.25663706212e-6_C * units::newton
+CELER_ICC a0_bohr = Constant{5.29177210903e-11} * units::meter;
+CELER_ICC alpha_fine_structure = Constant{7.2973525693e-3};
+CELER_ICC atomic_mass = Constant{1.66053906660e-24} * units::gram;
+CELER_ICC electron_mass = Constant{9.1093837015e-28} * units::gram;
+CELER_ICC proton_mass = Constant{1.67262192369e-24} * units::gram;
+CELER_ICC eps_electric = Constant{8.8541878128e-12} * units::farad
+                         / units::meter;
+CELER_ICC mu_magnetic = Constant{1.25663706212e-6} * units::newton
                         / (units::ampere * units::ampere);
-CELER_ICC r_electron = 2.8179403262e-15_C * units::meter;
-CELER_ICC rinf_rydberg = 10973731.568160_C / units::meter;
-CELER_ICC eh_hartree = 4.3597447222071e-18_C / units::meter;
-CELER_ICC lambdabar_electron = 3.8615926796e-13_C * units::meter;
+CELER_ICC r_electron = Constant{2.8179403262e-15} * units::meter;
+CELER_ICC rinf_rydberg = Constant{10973731.568160} / units::meter;
+CELER_ICC eh_hartree = Constant{4.3597447222071e-18} / units::meter;
+CELER_ICC lambdabar_electron = Constant{3.8615926796e-13} * units::meter;
 }
 
 //! Experimental physical constants from CODATA 2022
@@ -135,18 +135,19 @@ inline
 #endif
     namespace codata2022
 {
-CELER_ICC a0_bohr = 5.29177210544e-11_C * units::meter;
-CELER_ICC alpha_fine_structure = 7.2973525643e-3_C;
-CELER_ICC atomic_mass = 1.66053906892e-24_C * units::gram;
-CELER_ICC electron_mass = 9.1093837139e-28_C * units::gram;
-CELER_ICC proton_mass = 1.67262192595e-24_C * units::gram;
-CELER_ICC eps_electric = 8.8541878188e-12_C * units::farad / units::meter;
-CELER_ICC mu_magnetic = 1.25663706127e-6_C * units::newton
+CELER_ICC a0_bohr = Constant{5.29177210544e-11} * units::meter;
+CELER_ICC alpha_fine_structure = Constant{7.2973525643e-3};
+CELER_ICC atomic_mass = Constant{1.66053906892e-24} * units::gram;
+CELER_ICC electron_mass = Constant{9.1093837139e-28} * units::gram;
+CELER_ICC proton_mass = Constant{1.67262192595e-24} * units::gram;
+CELER_ICC eps_electric = Constant{8.8541878188e-12} * units::farad
+                         / units::meter;
+CELER_ICC mu_magnetic = Constant{1.25663706127e-6} * units::newton
                         / (units::ampere * units::ampere);
-CELER_ICC r_electron = 2.8179403205e-15_C * units::meter;
-CELER_ICC rinf_rydberg = 10973731.568157_C / units::meter;
-CELER_ICC eh_hartree = 4.3597447222060e-18_C / units::meter;
-CELER_ICC lambdabar_electron = 3.8615926744e-13_C * units::meter;
+CELER_ICC r_electron = Constant{2.8179403205e-15} * units::meter;
+CELER_ICC rinf_rydberg = Constant{10973731.568157} / units::meter;
+CELER_ICC eh_hartree = Constant{4.3597447222060e-18} / units::meter;
+CELER_ICC lambdabar_electron = Constant{3.8615926744e-13} * units::meter;
 }
 
 //!@{

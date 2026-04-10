@@ -24,8 +24,6 @@ namespace celeritas
 {
 namespace units
 {
-using namespace celeritas::literals;
-
 //! \cond (CELERITAS_DOC_DEV)
 //---------------------------------------------------------------------------//
 //!@{
@@ -79,6 +77,7 @@ struct Mev
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
         return units::megaelectronvolt;
 #else
+        using namespace celeritas::literals;
         return 1e6_C * constants::e_electron * units::volt;
 #endif
     }
@@ -119,6 +118,7 @@ struct Millibarn
 {
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
+        using namespace celeritas::literals;
         return 1e-3_C * units::barn;
     }
     static char const* label() { return "mb"; }
@@ -240,6 +240,7 @@ struct ClhepUnitMass
 {
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
+        using namespace celeritas::literals;
         if constexpr (CELERITAS_UNITS == CELERITAS_UNITS_CLHEP)
         {
             // Floating point errors make the true expression below difficult
@@ -257,7 +258,11 @@ struct ClhepUnitMass
 //! Unit magnetic flux density in CLHEP system
 struct ClhepUnitBField
 {
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return 1e3_C * tesla; }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        using namespace celeritas::literals;
+        return 1e3_C * tesla;
+    }
     static char const* label() { return "field_clhep"; }
 };
 
@@ -270,14 +275,22 @@ struct ClhepUnitBField
 //! Mark as being in the native/builtin unit system
 struct Native
 {
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return 1_C; }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        using namespace celeritas::literals;
+        return 1_C;
+    }
 };
 
 //! Annotate a quantity represented the logarithm of (E/MeV)
 struct LogMev
 {
     //! Conversion factor is not multiplicative
-    static CELER_CONSTEXPR_FUNCTION Constant value() { return 0_C; }
+    static CELER_CONSTEXPR_FUNCTION Constant value()
+    {
+        using namespace celeritas::literals;
+        return 0_C;
+    }
 };
 
 //!@}
