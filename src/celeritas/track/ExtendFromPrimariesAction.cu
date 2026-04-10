@@ -11,6 +11,7 @@
 #include "celeritas/global/CoreState.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"
+#include "detail/UpdateCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -25,12 +26,26 @@ void ExtendFromPrimariesAction::process_primaries(
 {
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), primaries};
+        params.ptr<MemSpace::native>(), state.ptr(), primaries, pstate.count};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (!primaries.empty())
     {
         launch_kernel(primaries.size(), state.stream_id(), execute_thread);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel to update state counters for number of primary particles.
+ */
+void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
+                                                CoreStateDevice& state,
+                                                size_type num_primaries) const
+{
+    detail::UpdateCountersExecutor execute_thread{
+        params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
+    launch_kernel(1, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//

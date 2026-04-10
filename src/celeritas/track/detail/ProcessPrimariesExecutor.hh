@@ -41,6 +41,7 @@ struct ProcessPrimariesExecutor
     StatePtr state;
 
     Span<Primary const> primaries;
+    size_type num_primaries;
 
     //// FUNCTIONS ////
 
@@ -56,7 +57,8 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size());
     auto* counters = state->init.counters.data().get();
-    CELER_EXPECT(primaries.size() <= counters->num_initializers + tid.get());
+    CELER_EXPECT(primaries.size()
+                 <= counters->num_initializers + num_primaries + tid.get());
 
     Primary const& primary = primaries[tid.unchecked_get()];
 
@@ -83,7 +85,8 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     }
 
     // Store the initializer
-    size_type idx = counters->num_initializers - primaries.size() + tid.get();
+    size_type idx = counters->num_initializers + num_primaries
+                    - primaries.size() + tid.get();
     state->init.initializers[ItemId<TrackInitializer>(idx)] = ti;
 }
 
