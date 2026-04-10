@@ -85,8 +85,20 @@ TYPED_TEST(OpaqueIdTypedTest, assigned)
 
     assigned = nullid;
     EXPECT_FALSE(assigned);
+}
 
-    EXPECT_TRUE((std::is_same_v<Int_t, id_size_type<Id_t>>));
+TYPED_TEST(OpaqueIdTypedTest, traits)
+{
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
+
+    EXPECT_TRUE(is_opaque_id_v<Id_t>);
+    EXPECT_TRUE(is_opaque_id_v<Id_t const>);
+    EXPECT_FALSE(is_opaque_id_v<Int_t>);
+
+    EXPECT_TRUE((std::is_same_v<Int_t, size_type_t<Id_t>>));
+    EXPECT_TRUE((std::is_same_v<Int_t, size_type_t<Id_t const>>));
+    EXPECT_TRUE((std::is_same_v<void, size_type_t<bool>>));
 }
 
 TYPED_TEST(OpaqueIdTypedTest, operators)

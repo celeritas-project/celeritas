@@ -49,7 +49,7 @@ inline constexpr nullid_t nullid{0};
  * Type-safe "optional" index for accessing an array or collection of data.
  *
  * \tparam ItemT Type of an item at the index corresponding to this ID
- * \tparam SizeT Unsigned integer index
+ * \tparam ValueT Unsigned integer index
  *
  * Indexing into arrays with integers, rather than storing pointers, is
  * \em key to easy and safe data management across host/device boundaries.
@@ -102,21 +102,21 @@ inline constexpr nullid_t nullid{0};
  * - \c nullid is an instance of \c nullid_t that compares to any OpaqueId as
  *   its "null" value.
  * - \c is_opaque_id_v allows checking for generic types
- * - \c id_size_type is a descriptive alias to get the unsigned integer
- *   \c value_type of an opaque ID, used for capacities.
+ * - \c size_type_t is a descriptive type alias to get the unsigned integer
+ *   \c value_type of an opaque ID, used for container capacities.
  * - \c id_cast safely converts integers to OpaqueId.
  *
  * \par About the ItemT tag
- * If this class is used for indexing into an array, then \c ValueT argument
+ * If this class is used for indexing into an array, then \c ItemT argument
  * should usually be the value type of the array:
  * <code>FooRecord operator[](OpaqueId<FooRecord>)</code>
  * Otherwise, the convention is to use an anonymous <code>struct Bar_</code> to
  * tag the ID type.
  */
-template<class ItemT, class SizeT = ::celeritas::size_type>
+template<class ItemT, class ValueT = ::celeritas::size_type>
 class OpaqueId
 {
-    static_assert(std::is_unsigned_v<SizeT> && !std::is_same_v<SizeT, bool>,
+    static_assert(std::is_unsigned_v<ValueT> && !std::is_same_v<ValueT, bool>,
                   "SizeT must be unsigned.");
 
     static constexpr bool ndebug = !CELERITAS_DEBUG;
@@ -125,7 +125,7 @@ class OpaqueId
     //!@{
     //! \name Type aliases
     using tag_type = ItemT;
-    using value_type = SizeT;
+    using value_type = ValueT;
     using size_type = value_type;  // DEPRECATED
     //!@}
 
@@ -194,7 +194,7 @@ class OpaqueId
     //!@{
     //! \name Pointer-like arithmetic
     //! Get the distance between two opaque IDs
-    CELER_FUNCTION friend SizeT operator-(OpaqueId self, OpaqueId other)
+    CELER_FUNCTION friend ValueT operator-(OpaqueId self, OpaqueId other)
     {
         CELER_EXPECT(self);
         CELER_EXPECT(other);
@@ -211,7 +211,7 @@ class OpaqueId
 
         // Note: an extra cast is needed for short SizeT due to integer
         // promotion
-        return OpaqueId{static_cast<SizeT>(id.unchecked_get() + offset)};
+        return OpaqueId{static_cast<ValueT>(id.unchecked_get() + offset)};
     }
 
     //! Increment an opaque ID by an offset (symmetric)
@@ -229,11 +229,11 @@ class OpaqueId
     {
         CELER_EXPECT(id);
         CELER_EXPECT(offset <= 0
-                     || static_cast<SizeT>(offset) <= id.unchecked_get());
+                     || static_cast<ValueT>(offset) <= id.unchecked_get());
         // Note: an extra cast is needed for short SizeT due to integer
         // promotion
-        return OpaqueId{static_cast<SizeT>(id.unchecked_get()
-                                           - static_cast<SizeT>(offset))};
+        return OpaqueId{static_cast<ValueT>(id.unchecked_get()
+                                            - static_cast<ValueT>(offset))};
     }
     //!@}
 
@@ -318,15 +318,15 @@ class OpaqueId
   private:
     //// DATA ////
 
-    size_type value_;
+    value_type value_;
 
     //! Value indicating the ID is not assigned
-    static constexpr size_type null_ = detail::nullid_value<size_type>;
+    static constexpr value_type null_ = detail::nullid_value<value_type>;
 
     //// HELPER FUNCTIONS ////
 
     template<class U>
-    static CELER_CEF bool is_safe_offset(SizeT value, U offset)
+    static CELER_CEF bool is_safe_offset(ValueT value, U offset)
     {
         if constexpr (std::is_unsigned_v<U>)
         {
@@ -339,7 +339,7 @@ class OpaqueId
                 // NOTE: we do not check for overflow
                 return true;
             }
-            return static_cast<SizeT>(U{0} - offset) <= value;
+            return static_cast<ValueT>(U{0} - offset) <= value;
         }
     }
 };
@@ -389,20 +389,28 @@ struct IsOpaqueId : std::false_type
 {
 };
 
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S>> : std::true_type
+template<class I, class V>
+struct IsOpaqueId<OpaqueId<I, V>> : std::true_type
 {
 };
 
-template<class V, class S>
-struct IsOpaqueId<OpaqueId<V, S> const> : std::true_type
+template<class T>
+struct SizeTypeTraits
 {
+    using type = void;
+};
+
+//! Specialization for opaque IDs
+template<class I, class V>
+struct SizeTypeTraits<OpaqueId<I, V>>
+{
+    using type = V;
 };
 
 #if !CELER_DEVICE_COMPILE
 // Print an opaque ID: ignore instantiator to reduce duplicate symbols
-template<class S>
-inline void stream_opaqueid_impl(std::ostream& os, S v, S nullint)
+template<class V>
+inline void stream_opaqueid_impl(std::ostream& os, V v, V nullint)
 {
     os << '{';
     if (v != nullint)
@@ -431,12 +439,12 @@ stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
 
 //! True if T is an OpaqueID
 template<class T>
-inline constexpr bool is_opaque_id_v = detail::IsOpaqueId<T>::value;
+inline constexpr bool is_opaque_id_v
+    = detail::IsOpaqueId<std::remove_cv_t<T>>::value;
 
-//! Get the unsigned integer corresponding to the ID's capacity
+//! Get the unsigned integer corresponding to an ID's capacity
 template<class T>
-using id_size_type
-    = std::conditional_t<is_opaque_id_v<T>, typename T::value_type, void>;
+using size_type_t = typename detail::SizeTypeTraits<std::remove_cv_t<T>>::type;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -452,7 +460,7 @@ template<class IdT, class U>
 inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
     -> std::enable_if_t<is_opaque_id_v<IdT> && std::is_integral_v<U>, IdT>
 {
-    return IdT{detail::id_cast_impl<typename IdT::size_type, U>(value)};
+    return IdT{detail::id_cast_impl<typename IdT::value_type, U>(value)};
 }
 
 //---------------------------------------------------------------------------//
