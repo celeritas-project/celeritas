@@ -57,7 +57,7 @@ CELER_FORCEINLINE_FUNCTION void SetGeneratedExecutor::operator()(ThreadId tid)
     CELER_EXPECT(state);
     CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
 
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
     counters->num_generated = 0;
     return;
 }
