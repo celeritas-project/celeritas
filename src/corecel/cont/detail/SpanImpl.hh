@@ -31,12 +31,12 @@ template<class T>
 struct SpanTraits
 {
     using element_type = T;
-    using pointer = std::add_pointer_t<element_type>;
-    using const_pointer = std::add_pointer_t<element_type const>;
+    using pointer = std::add_pointer_t<T>;
+    using const_pointer = std::add_pointer_t<std::add_const_t<T>>;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reference = std::add_lvalue_reference_t<element_type>;
-    using const_reference = std::add_lvalue_reference_t<element_type const>;
+    using reference = std::add_lvalue_reference_t<T>;
+    using const_reference = std::add_lvalue_reference_t<std::add_const_t<T>>;
 };
 
 //---------------------------------------------------------------------------//
@@ -52,7 +52,7 @@ struct SpanTraits<LdgWrapper<T>>
 {
     static_assert(std::is_const_v<T>);
 
-    using element_type = T;
+    using element_type = T;  //!< Underlying type
     using pointer = std::add_pointer_t<T>;
     using const_pointer = pointer;
     using iterator = LdgIterator<T>;
@@ -63,7 +63,18 @@ struct SpanTraits<LdgWrapper<T>>
 
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
-inline constexpr std::size_t dynamic_extent = std::size_t(-1);
+inline constexpr std::size_t dynamic_extent = static_cast<std::size_t>(-1);
+
+//---------------------------------------------------------------------------//
+//! Pointer to a fixed-size array
+template<class T>
+using array_ptr_t = T (*)[];
+
+//---------------------------------------------------------------------------//
+//! Whether one type array is convertible to another
+template<class T, class U>
+inline constexpr bool is_array_convertible_v
+    = std::is_convertible_v<array_ptr_t<T>, array_ptr_t<U>>;
 
 //---------------------------------------------------------------------------//
 //! Calculate the return type for a subspan
@@ -85,7 +96,7 @@ subspan_size(std::size_t size, std::size_t offset, std::size_t count)
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for a Span.
+ * Storage for a fixed-size nonzero Span.
  */
 template<class T, std::size_t Extent>
 struct SpanImpl

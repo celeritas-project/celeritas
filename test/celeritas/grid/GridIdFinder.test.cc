@@ -35,7 +35,7 @@ TEST_F(GridIdFinderTest, all)
     grid = {1e-3, 1, 10, 11};
     ids = {IdT{5}, IdT{3}, IdT{7}};
 
-    FinderT find_id(make_span(grid), make_span(ids));
+    FinderT find_id(make_ldg_span(grid), make_ldg_span(ids));
     EXPECT_EQ(invalid, find_id(Energy{1e-6}).unchecked_get());
     EXPECT_EQ(5, find_id(Energy{1e-3}).unchecked_get());
     EXPECT_EQ(5, find_id(Energy{0.1}).unchecked_get());

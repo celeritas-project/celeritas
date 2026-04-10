@@ -51,11 +51,11 @@ TEST(InfixEvaluatorTest, evaluate)
 
     //// CREATE ////
 
-    InfixEvaluator eval_alpha(make_span(alpha_logic));
-    InfixEvaluator eval_beta(make_span(beta_logic));
-    InfixEvaluator eval_gamma(make_span(gamma_logic));
-    InfixEvaluator eval_delta(make_span(delta_logic));
-    InfixEvaluator eval_everywhere(make_span(everywhere_logic));
+    InfixEvaluator eval_alpha(make_ldg_span(alpha_logic));
+    InfixEvaluator eval_beta(make_ldg_span(beta_logic));
+    InfixEvaluator eval_gamma(make_ldg_span(gamma_logic));
+    InfixEvaluator eval_delta(make_ldg_span(delta_logic));
+    InfixEvaluator eval_everywhere(make_ldg_span(everywhere_logic));
 
     //// EVALUATE ////
 
