@@ -136,7 +136,7 @@ class OpaqueId
     //! Default to null state
     CELER_CEF OpaqueId() : OpaqueId(nullid) {}
 
-    //! Construct explicitly with a stored value
+    //! Construct explicitly with a stored value (validity *not* checked)
     explicit CELER_CEF OpaqueId(value_type index) : value_(index) {}
 
     //! Whether this ID is in a valid (assigned) state

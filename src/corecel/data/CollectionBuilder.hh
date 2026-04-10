@@ -80,7 +80,7 @@ class CollectionBuilder
     //! Number of elements in the collection
     size_type size() const { return col_.size(); }
 
-    //! Get the size as an ID type (invalid if max_size)
+    //! Get the size as an ID type
     ItemIdT size_id() const { return ItemIdT{size()}; }
 
   private:
@@ -94,9 +94,10 @@ class CollectionBuilder
     //! Maximum valid element size in a Collection
     static constexpr std::size_t max_size()
     {
-        // This accounts for the prohibited nullid value:
-        // e.g., 8-bit uint has max size of 255, max id of 254
-        return detail::nullid_value<size_type>;
+        // This ensures the final \c size_id (i.e., one past the end) remains
+        // valid: e.g., 8-bit uint has nullid_value of 255, maximum valid
+        // ItemIdT{254}, so max size 254
+        return detail::nullid_value<size_type> - 1;
     }
 
     CollectionT& col_;
@@ -140,6 +141,7 @@ auto CollectionBuilder<T, M, I>::insert_back(InputIterator first,
                   "Insertion currently works only for host memory");
     auto start = this->size_id();
     this->storage().insert(this->storage().end(), first, last);
+    CELER_ENSURE(this->size_id());
     return {start, this->size_id()};
 }
 
@@ -166,6 +168,7 @@ auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
                   "Insertion currently works only for host memory");
     auto result = this->size_id();
     this->storage().push_back(el);
+    CELER_ENSURE(this->size_id());
     return result;
 }
 

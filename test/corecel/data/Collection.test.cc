@@ -129,28 +129,32 @@ TEST(CollectionBuilder, size_limits)
 
     std::vector<double> dummy(254);
     auto irange = build.insert_back(dummy.begin(), dummy.end());
-    EXPECT_EQ(0, irange.begin()->unchecked_get());
-    EXPECT_EQ(254, irange.end()->unchecked_get());
+    EXPECT_EQ(0, **irange.begin());
+    EXPECT_EQ(254, **irange.end());
+    EXPECT_EQ(IdType{254}, build.size_id());
 
-    // Inserting a 255-element "range" should be prohibited because the "final"
-    // value `uint8_t(-1) = 255` of OpaqueId is actually nullid.
-    ASSERT_NO_THROW(build.push_back(-1.0));
-    ASSERT_NE(IdType{254}, IdType{});
-    EXPECT_EQ(-1.0, host_val[IdType{254}]);
-
+    // Inserting a 255-element "range" should be prohibited because the
+    // subsequent `size_id()` is actually nullid.
     if (CELERITAS_DEBUG)
     {
-        // Inserting 256 elements when 255 is the max int *must* raise an error
-        // when debug assertions are enabled.
         EXPECT_THROW(build.push_back(1234.5), DebugError);
+        EXPECT_THROW(build.insert_back(dummy.begin(), dummy.end()), DebugError);
     }
     else
     {
         // With bounds checking disabled, a one-off check when getting a
-        // reference should catch the size failure.
-        build.push_back(12345.6);
+        // reference will catch when the *size* exceeds the maximum, but not
+        // when the next size_id is invalid
+        build.push_back(12.0);
+        EXPECT_EQ(IdType{}, build.size_id());
         Collection<double, Ownership::const_reference, MemSpace::host, IdType>
             host_ref;
+        EXPECT_NO_THROW(host_ref = host_val);
+        // Note that the next size ID has wrapped around (due to uint
+        // arithmetic)
+        build.push_back(13.0);
+        EXPECT_EQ(IdType{0}, build.size_id());
+        // And now making a reference will catch the error
         EXPECT_THROW(host_ref = host_val, RuntimeError);
     }
 }
