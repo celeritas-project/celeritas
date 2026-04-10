@@ -89,17 +89,15 @@ TYPED_TEST(OpaqueIdTypedTest, assigned)
     EXPECT_TRUE((std::is_same_v<Int_t, id_size_type<Id_t>>));
 }
 
-TYPED_TEST(OpaqueIdTypedTest, comparators)
+TYPED_TEST(OpaqueIdTypedTest, operators)
 {
     using Id_t = OpaqueId<TestInstantiator, TypeParam>;
 
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
-    EXPECT_TRUE(Id_t{22} < 23u);
     EXPECT_TRUE(Id_t{23} > Id_t{22});
     EXPECT_TRUE(Id_t{23} >= Id_t{22});
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
-    EXPECT_TRUE(Id_t{22} <= 23u);
 
     EXPECT_FALSE(Id_t{23} <= Id_t{22});
     EXPECT_FALSE(Id_t{23} < Id_t{22});
@@ -154,6 +152,11 @@ TEST(OpaqueIdTest, multi_int)
     EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
     EXPECT_TRUE(UId8{254} < Uint32(255));
     EXPECT_TRUE(UId8{10} < Uint32(15));
+
+    // Check less-or-equal
+    EXPECT_FALSE(UId8{} <= Uint32(9));
+    EXPECT_TRUE(UId8{253} <= Uint32(254));
+    EXPECT_TRUE(UId8{254} <= Uint32(254));
 }
 
 TEST(OpaqueIdTest, id_cast)
