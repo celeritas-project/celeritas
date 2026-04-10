@@ -66,10 +66,15 @@ struct SpanTraits<LdgWrapper<T>>
 inline constexpr std::size_t dynamic_extent = static_cast<std::size_t>(-1);
 
 //---------------------------------------------------------------------------//
+//! Pointer to a fixed-size array
+template<class T>
+using array_ptr_t = T (*)[];
+
+//---------------------------------------------------------------------------//
 //! Whether one type array is convertible to another
 template<class T, class U>
 inline constexpr bool is_array_convertible_v
-    = std::is_convertible_v<T (*)[], U (*)[]>;
+    = std::is_convertible_v<array_ptr_t<T>, array_ptr_t<U>>;
 
 //---------------------------------------------------------------------------//
 //! Calculate the return type for a subspan

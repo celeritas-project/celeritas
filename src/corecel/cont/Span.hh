@@ -85,6 +85,8 @@ template<class T, std::size_t Extent = dynamic_extent>
 class Span
 {
     using SpanTraitsT = detail::SpanTraits<T>;
+    static constexpr bool ndebug = !CELERITAS_DEBUG;
+    static constexpr bool ndebug_or_dyn = (ndebug || Extent == dynamic_extent);
 
   public:
     //!@{
@@ -110,12 +112,18 @@ class Span
     constexpr Span() = default;
 
     //! Construct from data and size
-    CELER_CONSTEXPR_FUNCTION Span(pointer d, std::size_t s) : s_(d, s) {}
+    CELER_CONSTEXPR_FUNCTION
+    Span(pointer d, std::size_t s) noexcept(ndebug_or_dyn) : s_(d, s) {}
 
-    //! Construct from two contiguous random-access iterators
-    //! NOTE: should be explicit unless dynamic_span (requires C++20)
+    /*!
+     * Construct from two contiguous random-access iterators.
+     *
+     * \note If \c Extent is fixed-size, the \c SpanImpl will fire an assertion
+     * in debug mode if the size does not match.
+     * \todo should be explicit unless dynamic size (requires C++20)
+     */
     template<class Iter>
-    CELER_CONSTEXPR_FUNCTION Span(Iter first, Iter last)
+    CELER_CONSTEXPR_FUNCTION Span(Iter first, Iter last) noexcept(ndebug_or_dyn)
         : s_(first == last ? nullptr : &(*first),
              static_cast<std::size_t>(last - first))
     {
@@ -123,9 +131,9 @@ class Span
     }
 
     //! Construct from a C array
-    // (FIXME: template enable only if N == Extent or Extent == dynamic)
-    template<std::size_t N>
-    CELER_CONSTEXPR_FUNCTION Span(element_type (&arr)[N]) : s_(arr, N)
+    template<std::size_t N,
+             std::enable_if_t<N == Extent || Extent == dynamic_extent, bool> = true>
+    CELER_CONSTEXPR_FUNCTION Span(element_type (&arr)[N]) noexcept : s_(arr, N)
     {
     }
 
@@ -142,7 +150,8 @@ class Span
                                   && (N == Extent || Extent == dynamic_extent),
                               bool>
              = true>
-    CELER_CONSTEXPR_FUNCTION Span(Array<U, N>& arr) : s_(arr.data(), N)
+    CELER_CONSTEXPR_FUNCTION Span(Array<U, N>& arr) noexcept
+        : s_(arr.data(), N)
     {
     }
 
@@ -159,7 +168,8 @@ class Span
                                   && (N == Extent || Extent == dynamic_extent),
                               bool>
              = true>
-    CELER_CONSTEXPR_FUNCTION Span(Array<U, N> const& arr) : s_(arr.data(), N)
+    CELER_CONSTEXPR_FUNCTION Span(Array<U, N> const& arr) noexcept
+        : s_(arr.data(), N)
     {
     }
 
@@ -181,7 +191,8 @@ class Span
                                   && (E2 == Extent || Extent == dynamic_extent),
                               bool>
              = true>
-    CELER_CONSTEXPR_FUNCTION Span(Span<U, E2> const& other)
+    CELER_CONSTEXPR_FUNCTION
+    Span(Span<U, E2> const& other) noexcept(ndebug_or_dyn)
         : s_(other.data(), other.size())
     {
     }
@@ -197,7 +208,8 @@ class Span
                                   && Extent != dynamic_extent && E2 == dynamic_extent,
                               bool>
              = true>
-    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> const& other)
+    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> const& other) noexcept(
+        ndebug_or_dyn)
         : s_(other.data(), other.size())
     {
     }
@@ -243,13 +255,13 @@ class Span
     //!@{
     //! \name Subviews
     template<std::size_t Count>
-    CELER_CONSTEXPR_FUNCTION Span<T, Count> first() const
+    CELER_CONSTEXPR_FUNCTION Span<T, Count> first() const noexcept(ndebug)
     {
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data(), Count};
     }
     CELER_CONSTEXPR_FUNCTION
-    Span<T, dynamic_extent> first(std::size_t count) const
+    Span<T, dynamic_extent> first(std::size_t count) const noexcept(ndebug)
     {
         CELER_EXPECT(count <= this->size());
         return {this->data(), count};
@@ -258,7 +270,7 @@ class Span
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
     CELER_CONSTEXPR_FUNCTION
         Span<T, detail::subspan_extent(Extent, Offset, Count)>
-        subspan() const
+        subspan() const noexcept(ndebug)
     {
         CELER_EXPECT((Count == dynamic_extent) || (Offset == 0 && Count == 0)
                      || (Offset + Count <= this->size()));
@@ -268,6 +280,7 @@ class Span
     CELER_CONSTEXPR_FUNCTION
     Span<T, dynamic_extent>
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
+        noexcept(ndebug)
     {
         CELER_EXPECT(offset + count <= this->size());
         return {this->data() + offset,
@@ -275,13 +288,13 @@ class Span
     }
 
     template<std::size_t Count>
-    CELER_CONSTEXPR_FUNCTION Span<T, Count> last() const
+    CELER_CONSTEXPR_FUNCTION Span<T, Count> last() const noexcept(ndebug)
     {
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data() + this->size() - Count, Count};
     }
     CELER_CONSTEXPR_FUNCTION
-    Span<T, dynamic_extent> last(std::size_t count) const
+    Span<T, dynamic_extent> last(std::size_t count) const noexcept(ndebug)
     {
         CELER_EXPECT(count <= this->size());
         return {this->data() + this->size() - count, count};
@@ -289,7 +302,7 @@ class Span
     //!@}
 
   private:
-    //! Storage
+    //// DATA ////
     detail::SpanImpl<T, Extent> s_;
 };
 
