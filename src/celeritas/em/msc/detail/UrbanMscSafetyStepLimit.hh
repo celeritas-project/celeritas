@@ -81,8 +81,7 @@ class UrbanMscSafetyStepLimit
     //! Minimum range for an empirical step-function approach
     static CELER_CONSTEXPR_FUNCTION real_type min_range()
     {
-        using namespace celeritas::units::literals;
-        return 1e-3_cm;
+        return 1e-3 * units::centimeter;
     }
 
     //! Maximum step over the range

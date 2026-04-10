@@ -40,7 +40,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 constexpr real_type pi{constants::pi};
 constexpr real_type sqrt_three{constants::sqrt_three};
@@ -155,7 +154,8 @@ struct HorribleZField
 
 // Field value (native units) for 10 MeV electron/positron to have a radius of
 // 1 cm
-constexpr real_type unit_radius_field_strength{3.5019461121752274_T};
+constexpr real_type unit_radius_field_strength{3.5019461121752274
+                                               * units::tesla};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -169,7 +169,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0_T);
+    UniformZField field(1.0 * units::tesla);
 
     // Check expected field curvature and geometry cell
     EXPECT_SOFT_EQ(radius, this->calc_field_curvature(particle, geo, field));
@@ -340,7 +340,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
-    HorribleZField field{1.2345_T, 5};
+    HorribleZField field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
@@ -438,7 +438,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
 TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
-    UniformZField field(static_cast<real_type>(1_T));
+    UniformZField field(static_cast<real_type>(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     std::vector<real_type> intersect_distance;
@@ -1133,7 +1133,7 @@ TEST_F(LayersTest, revolutions_through_layers)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0_T);
+    UniformZField field(1.0 * units::tesla);
 
     // Build propagator
     FieldDriverOptions driver_options;
@@ -1220,7 +1220,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 {
     auto particle = this->make_particle_view(pdg::electron(),
                                              MevEnergy{4.25402379798713e-01});
-    UniformZField field(real_type(1_T));
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view(
@@ -1318,7 +1318,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
 TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
-    UniformZField field(real_type(1_T));
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
     driver_options.max_substeps = 100;
 
