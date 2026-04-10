@@ -9,6 +9,7 @@
 #include <memory>
 #include <type_traits>
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/DeviceVector.hh"
@@ -94,5 +95,38 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
     std::unique_ptr<field_t> field;
     DeviceVector<view_t> field_view;
 };
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert shared parameter data to a covfie field view.
+ */
+template<MemSpace M>
+CELER_FUNCTION inline auto get_rz_map_field_view(
+    RZMapFieldParamsData<Ownership::const_reference, M> const& params) ->
+    typename detail::CovfieRZFieldTraits<M>::field_t::view_t const&
+{
+    if constexpr (M == MemSpace::host)
+    {
+        return params.get_view();
+    }
+    else
+    {
+        using view_t = typename detail::CovfieRZFieldTraits<M>::field_t::view_t;
+        CELER_EXPECT(params.field_view);
+        return *static_cast<view_t const*>(params.field_view);
+    }
+}
+
+//---------------------------------------------------------------------------//
+inline auto
+RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>::operator=(
+    RZMapFieldParamsData<Ownership::value, MemSpace::device> const& other)
+    -> RZMapFieldParamsData&
+{
+    field_view = static_cast<void const*>(&other.get_view());
+    options = other.options;
+    return *this;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

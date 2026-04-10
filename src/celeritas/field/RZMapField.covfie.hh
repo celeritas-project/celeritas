@@ -18,36 +18,6 @@
 
 namespace celeritas
 {
-namespace detail
-{
-//---------------------------------------------------------------------------//
-/*!
- * Return the covfie view for the given params.
- *
- * This must be a function template (M as a template parameter) so that
- * \c if constexpr actually suppresses instantiation of the discarded branch.
- * In the device specialization, \c params.field_view is a \c void const*
- * that must be cast to the concrete view type; in the host specialization,
- * \c params.get_view() returns a stored \c view_t const& directly.
- */
-template<MemSpace M>
-CELER_FUNCTION auto
-rzmap_get_view(RZMapFieldParamsData<Ownership::const_reference, M> const& params)
-    -> typename CovfieRZFieldTraits<M>::field_t::view_t const&
-{
-    if constexpr (M == MemSpace::device)
-    {
-        using view_t = typename CovfieRZFieldTraits<M>::field_t::view_t;
-        return *static_cast<view_t const*>(params.field_view);
-    }
-    else
-    {
-        return params.get_view();
-    }
-}
-//---------------------------------------------------------------------------//
-}  // namespace detail
-
 //---------------------------------------------------------------------------//
 /*!
  * Evaluate the value of magnetic field based on a volume-based RZ field map.
@@ -75,7 +45,9 @@ class RZMapField
     inline Real3 operator()(Real3 const& pos) const;
 
   private:
-    ParamsRef const& params_;
+    using field_view_t =
+        typename detail::CovfieRZFieldTraits<MemSpace::native>::field_t::view_t;
+    field_view_t const& field_;
 };
 
 //---------------------------------------------------------------------------//
@@ -85,7 +57,10 @@ class RZMapField
  * Construct with the shared magnetic field map data.
  */
 CELER_FUNCTION
-RZMapField::RZMapField(ParamsRef const& shared) : params_{shared} {}
+RZMapField::RZMapField(ParamsRef const& shared)
+    : field_{get_rz_map_field_view(shared)}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -100,9 +75,8 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
     using traits_t = detail::CovfieRZFieldTraits<MemSpace::native>;
     celeritas::real_type r = hypot(pos[0], pos[1]);
 
-    auto const& view = detail::rzmap_get_view<MemSpace::native>(params_);
     auto bvec = traits_t::to_array(
-        view.at(static_cast<real_type>(r), static_cast<real_type>(pos[2])));
+        field_.at(static_cast<real_type>(r), static_cast<real_type>(pos[2])));
 
     // bvec = {Br, Bz}
     Real3 value;

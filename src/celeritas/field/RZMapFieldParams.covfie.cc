@@ -104,11 +104,7 @@ struct RZMapFieldParams::Impl
         if (celeritas::device())
         {
             device_ = host_;
-            // const_reference/device uses void const* (no covfie types), so
-            // assign fields manually instead of operator=(value,device).
-            device_ref_.field_view = static_cast<void const*>(
-                &device_.field_view.device_ref()[0]);
-            device_ref_.options = device_.options;
+            device_ref_ = device_;
             CELER_ENSURE(static_cast<bool>(device_)
                          && static_cast<bool>(device_ref_));
         }
