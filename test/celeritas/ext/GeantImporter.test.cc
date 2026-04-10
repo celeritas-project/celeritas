@@ -461,8 +461,8 @@ TEST_F(DuneCryostat, optical_gen)
     ASSERT_EQ(2, m.components.size());
     EXPECT_SOFT_EQ(50000 * 0.8, m.components[0].yield);
     EXPECT_SOFT_EQ(50000 * 0.2, m.components[1].yield);
-    EXPECT_SOFT_EQ(6, m.components[0].fall_time / 1 * units::nanosecond);
-    EXPECT_SOFT_EQ(1590, m.components[1].fall_time / 1 * units::nanosecond);
+    EXPECT_SOFT_EQ(6, m.components[0].fall_time / (1 * units::nanosecond));
+    EXPECT_SOFT_EQ(1590, m.components[1].fall_time / (1 * units::nanosecond));
 }
 
 //---------------------------------------------------------------------------//
