@@ -118,8 +118,9 @@ class ContainerVisitor
 };
 
 //---------------------------------------------------------------------------//
-// TEMPLATE DEDUCTION
+// DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
+
 template<class T>
 ContainerVisitor(T&&) -> ContainerVisitor<T>;
 

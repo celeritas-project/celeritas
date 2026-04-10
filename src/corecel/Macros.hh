@@ -227,6 +227,29 @@
 #    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 0
 #endif
 
+/*!
+ * \def CELER_EXPLICIT_IF(COND)
+ *
+ * Conditionally explicit constructor or conversion operator annotation,
+ * analogous to \c std::span and other standard library types.
+ *
+ * In C++20 and later, this expands to <code>explicit(COND)</code>: when
+ * \c COND is \c false the constructor is implicit; when \c true it is
+ * explicit. In C++17 the condition is ignored and the annotated function
+ * is unconditionally explicit.
+ *
+ * Example usage mirroring \c std::span 's array constructor:
+ * \code
+ *   CELER_EXPLICIT_IF(Extent != dynamic_extent)
+ *   Span(Array<value_type, N>& arr);
+ * \endcode
+ */
+#if __cplusplus >= 202002L
+#    define CELER_EXPLICIT_IF(COND) explicit(COND)
+#else
+#    define CELER_EXPLICIT_IF(COND) explicit
+#endif
+
 //!@}
 //---------------------------------------------------------------------------//
 //!@{

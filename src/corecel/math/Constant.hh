@@ -174,13 +174,11 @@ class Constant
 namespace literals
 {
 //---------------------------------------------------------------------------//
-//! Convert a literal to a \c Constant
 CELER_CONSTEXPR_FUNCTION Constant operator""_C(long double value)
 {
     return Constant{static_cast<Constant::real_type>(value)};
 }
 
-//! Convert an integer literal to a \c Constant
 CELER_CONSTEXPR_FUNCTION Constant operator""_C(unsigned long long int value)
 {
     return Constant{static_cast<Constant::real_type>(value)};

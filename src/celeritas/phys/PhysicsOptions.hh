@@ -64,7 +64,7 @@ struct ParticleOptions
     static ParticleOptions default_light()
     {
         ParticleOptions opts;
-        opts.min_range = 1.0 * units::millimeter;
+        opts.min_range = real_type{1} * units::millimeter;
         opts.max_step_over_range = 0.2;
         opts.lowest_energy = ParticleOptions::Energy{0.001};
         opts.displaced = true;

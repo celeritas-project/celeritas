@@ -216,7 +216,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 auto SurfaceSimplifier::operator()(Plane const& p) const
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
-    auto signs = SignCounter{tol_}(make_span(p.normal()));
+    auto signs = SignCounter{tol_}(p.normal());
     CELER_ASSERT(signs);
 
     if (signs.should_flip())
