@@ -61,6 +61,7 @@ struct ElectronVolt
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
+        using namespace celeritas::literals;
         return units::megaelectronvolt / 1e6_C;
 #else
         return constants::e_electron * units::volt;
