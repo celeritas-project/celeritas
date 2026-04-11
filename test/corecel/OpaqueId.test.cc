@@ -98,12 +98,13 @@ TYPED_TEST(OpaqueIdTypedTest, traits)
 
     EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t>>));
     EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t const>>));
-    EXPECT_TRUE((std::is_same_v<void, MakeSize_t<bool>>));
 }
 
 TYPED_TEST(OpaqueIdTypedTest, operators)
 {
     using Id_t = OpaqueId<TestInstantiator, TypeParam>;
+    constexpr auto nullid_value = detail::nullid_value<TypeParam>;
+    constexpr auto largest_valid = nullid_value - 1;
 
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
@@ -118,6 +119,7 @@ TYPED_TEST(OpaqueIdTypedTest, operators)
     EXPECT_FALSE(Id_t{23} <= Id_t{22});
 
     EXPECT_EQ(10, Id_t{22} - Id_t{12});
+    EXPECT_EQ(-10, Id_t{12} - Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
     EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} + std::size_t(2));
@@ -131,12 +133,17 @@ TYPED_TEST(OpaqueIdTypedTest, operators)
     EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));
     EXPECT_EQ(Id_t{1}, ++Id_t{0});
+    EXPECT_EQ(largest_valid - 1, *(--Id_t{largest_valid}));
     if constexpr (CELERITAS_DEBUG)
     {
         EXPECT_THROW(Id_t{} + (-2), DebugError);
         EXPECT_THROW(Id_t{} - 2, DebugError);
         EXPECT_THROW(Id_t{1} + (-2), DebugError);
+        EXPECT_THROW((-2) + Id_t{1}, DebugError);
         EXPECT_THROW(Id_t{1} - 2, DebugError);
+        EXPECT_THROW(--Id_t{}, DebugError);
+        EXPECT_THROW(++Id_t{}, DebugError);
+        EXPECT_THROW(++Id_t{largest_valid}, DebugError);
         // NOTE: since the operators take a signed integer, adding/subtracting
         // sizemax will cause it to overflow (UB)
     }
@@ -150,25 +157,35 @@ TYPED_TEST(OpaqueIdTypedTest, operators)
 TEST(OpaqueIdTest, multi_int)
 {
     using UId8 = OpaqueId<TestInstantiator, std::uint_least8_t>;
-    using Uint32 = std::uint_least32_t;
-    using limits_t = std::numeric_limits<Uint32>;
+    using UInt32 = std::uint_least32_t;
+    using Int32 = std::make_signed_t<UInt32>;
+    using Limits_t = std::numeric_limits<UInt32>;
 
     // Unassigned is always out-of-range
     EXPECT_FALSE(UId8{} < 0u);
-    EXPECT_FALSE(UId8{} < Uint32(limits_t::max()));
-    EXPECT_FALSE(UId8{} < Uint32(255));
-    EXPECT_FALSE(UId8{} < Uint32(256));
-    EXPECT_FALSE(UId8{10} < Uint32(5));
+    EXPECT_FALSE(UId8{} < UInt32(Limits_t::max()));
+    EXPECT_FALSE(UId8{} < UInt32(255));
+    EXPECT_FALSE(UId8{} < UInt32(256));
+    EXPECT_FALSE(UId8{10} < UInt32(5));
 
     // Check 'true' conditions
-    EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
-    EXPECT_TRUE(UId8{254} < Uint32(255));
-    EXPECT_TRUE(UId8{10} < Uint32(15));
+    EXPECT_TRUE(UId8{254} < UInt32(Limits_t::max()));
+    EXPECT_TRUE(UId8{254} < UInt32(255));
+    EXPECT_TRUE(UId8{10} < UInt32(15));
 
     // Check less-or-equal
-    EXPECT_FALSE(UId8{} <= Uint32(9));
-    EXPECT_TRUE(UId8{253} <= Uint32(254));
-    EXPECT_TRUE(UId8{254} <= Uint32(254));
+    EXPECT_FALSE(UId8{} <= UInt32(9));
+    EXPECT_TRUE(UId8{253} <= UInt32(254));
+    EXPECT_TRUE(UId8{254} <= UInt32(254));
+
+    EXPECT_EQ(UId8{1}, UId8{254} - UInt32{253});
+    EXPECT_EQ(UId8{1}, UId8{254} - Int32{253});
+    EXPECT_EQ(UId8{1}, UId8{254} + Int32{-253});
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(UId8{3} + Int32{-4}, DebugError);
+        // NOTE: UId8{3} + Int32{-256 - 2} is UB
+    }
 }
 
 TEST(OpaqueIdTest, id_cast)

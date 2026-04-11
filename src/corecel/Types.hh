@@ -165,12 +165,10 @@ constexpr inline bool is_launchable_v
        || CELER_COMPILER == CELER_COMPILER_CLANG)
       && !std::is_pointer_v<F> && !std::is_reference_v<F>;
 
-//! Get the appropriate size_type for an index-like object (uint or OpaqueId)
+//! Get the appropriate size_type for an integer or OpaqueId
 template<class T>
-struct MakeSize
+struct MakeSize : std::make_unsigned_t<T>
 {
-    using type
-        = std::conditional_t<std::is_integral_v<T>, std::make_unsigned_t<T>, void>;
 };
 
 //! Get the unsigned integer corresponding to an ID's capacity

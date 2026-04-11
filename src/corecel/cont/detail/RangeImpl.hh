@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-template<class ItemT, class SizeT>
+template<class TagT, class IndexT>
 class OpaqueId;
 namespace detail
 {

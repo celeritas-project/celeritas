@@ -24,12 +24,12 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 //! Sentinel value for an unassigned opaque ID
-template<class T>
-inline constexpr T nullid_value{static_cast<T>(-1)};
+template<class I>
+inline constexpr I nullid_value{static_cast<I>(-1)};
 
 #if !CELER_DEVICE_COMPILE
-template<class S>
-void stream_opaqueid_impl(std::ostream&, S, S);
+template<class I>
+void stream_opaqueid_impl(std::ostream&, I, I);
 #endif
 
 //---------------------------------------------------------------------------//
@@ -48,8 +48,8 @@ inline constexpr nullid_t nullid{0};
 /*!
  * Type-safe "optional" index for accessing an array or collection of data.
  *
- * \tparam ItemT Type of an item at the index corresponding to this ID
- * \tparam ValueT Unsigned integer index
+ * \tparam TagT Type of an item at the index corresponding to this ID
+ * \tparam IndexT Unsigned integer acting as the stored value
  *
  * Indexing into arrays with integers, rather than storing pointers, is
  * \em key to easy and safe data management across host/device boundaries.
@@ -64,7 +64,7 @@ inline constexpr nullid_t nullid{0};
  * As an example, it prevents index arguments in a function call from being
  * provided out of order.
  *
- * The typical usage of an OpaqueId should be as \c std::optional<SizeT>.
+ * The typical usage of an OpaqueId should be as \c std::optional<IndexT>.
  * The default-constructed value, \c nullid, cannot be used to index into an
  * array, nor does it represent a valid element.
  * An \c OpaqueId object evaluates to \c true if it has a value
@@ -87,7 +87,8 @@ inline constexpr nullid_t nullid{0};
  * - Access value with \c operator* : <code>vec[*id]</code>
  * - Access data with \c Collection::operator[]
  * - Loop over consecutive IDs with \c range
- * - Increment, decrement, subtract, add with pointer-like operations
+ * - Pre- and post- increment and decrement
+ * - Subtract two IDs to get a difference
  *
  * The OpaqueId is hashable, sortable, and printable.
  * It can be loaded via cached device memory using \c ldg .
@@ -106,26 +107,32 @@ inline constexpr nullid_t nullid{0};
  *   \c value_type of an opaque ID, used for container capacities.
  * - \c id_cast safely converts integers to OpaqueId.
  *
- * \par About the ItemT tag
- * If this class is used for indexing into an array, then \c ItemT argument
+ * \par About the TagT template parameter
+ * If this class is used for indexing into an array, then \c TagT argument
  * should usually be the value type of the array:
- * <code>FooRecord operator[](OpaqueId<FooRecord>)</code>
- * Otherwise, the convention is to use an anonymous <code>struct Bar_</code> to
- * tag the ID type.
+ * \code
+ * FooRecord operator[](OpaqueId<FooRecord>);
+ * \endcode
+ * Otherwise, the convention is to use an anonymous tag:
+ * \code
+  using FooId = OpaqueId<struct Foo_>;
+ * \endcode
  */
-template<class ItemT, class ValueT = ::celeritas::size_type>
+template<class TagT, class IndexT = ::celeritas::size_type>
 class OpaqueId
 {
-    static_assert(std::is_unsigned_v<ValueT> && !std::is_same_v<ValueT, bool>,
-                  "SizeT must be unsigned.");
+    static_assert(std::is_unsigned_v<IndexT> && !std::is_same_v<IndexT, bool>,
+                  "IndexT must be unsigned.");
 
     static constexpr bool ndebug = !CELERITAS_DEBUG;
 
   public:
     //!@{
     //! \name Type aliases
-    using tag_type = ItemT;
-    using value_type = ValueT;
+    using tag_type = TagT;
+    using value_type = IndexT;  // like std::optional
+    using index_type = IndexT;
+    using difference_type = std::make_signed_t<IndexT>;
     using size_type = value_type;  // DEPRECATED
     //!@}
 
@@ -160,10 +167,11 @@ class OpaqueId
 
     //!@{
     //! \name Pointer-like operators
+    //! \note Incrementing/decrementing to/from null is prohibited
 
     CELER_CEF OpaqueId& operator++() noexcept(ndebug)
     {
-        CELER_EXPECT(*this);
+        CELER_EXPECT(value_ < (null_ - 1));
         value_ += 1;
         return *this;
     }
@@ -194,46 +202,43 @@ class OpaqueId
     //!@{
     //! \name Pointer-like arithmetic
     //! Get the distance between two opaque IDs
-    CELER_FUNCTION friend ValueT operator-(OpaqueId self, OpaqueId other)
+    CELER_FUNCTION friend difference_type
+    operator-(OpaqueId self, OpaqueId other)
     {
         CELER_EXPECT(self);
         CELER_EXPECT(other);
-        return self.unchecked_get() - other.unchecked_get();
+        return static_cast<difference_type>(*self - *other);
     }
 
     //! Increment an opaque ID by an offset, checking against underflow
-    template<class U>
-    CELER_FUNCTION friend auto operator+(OpaqueId id, U offset)
-        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
+    template<class J>
+    CELER_FUNCTION friend auto operator+(OpaqueId id, J offset)
+        -> std::enable_if_t<std::is_integral_v<J>, OpaqueId>
     {
         CELER_EXPECT(id);
-        CELER_EXPECT(OpaqueId::is_safe_offset(id.unchecked_get(), offset));
+        CELER_EXPECT(OpaqueId::is_safe_offset(*id, offset));
 
-        // Note: an extra cast is needed for short SizeT due to integer
-        // promotion
-        return OpaqueId{static_cast<ValueT>(id.unchecked_get() + offset)};
+        // Note: an extra cast is needed for short IndexT with long J
+        return OpaqueId{static_cast<IndexT>(*id + offset)};
     }
 
     //! Increment an opaque ID by an offset (symmetric)
-    template<class U>
-    CELER_FUNCTION friend auto operator+(U offset, OpaqueId id)
-        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
+    template<class J>
+    CELER_FUNCTION friend auto operator+(J offset, OpaqueId id)
+        -> std::enable_if_t<std::is_integral_v<J>, OpaqueId>
     {
         return id + offset;
     }
 
     //! Decrement an opaque ID by an offset
-    template<class U>
-    CELER_FUNCTION friend auto operator-(OpaqueId id, U offset)
-        -> std::enable_if_t<std::is_integral_v<U>, OpaqueId>
+    template<class J>
+    CELER_FUNCTION friend auto operator-(OpaqueId id, J offset)
+        -> std::enable_if_t<std::is_integral_v<J>, OpaqueId>
     {
         CELER_EXPECT(id);
-        CELER_EXPECT(offset <= 0
-                     || static_cast<ValueT>(offset) <= id.unchecked_get());
-        // Note: an extra cast is needed for short SizeT due to integer
-        // promotion
-        return OpaqueId{static_cast<ValueT>(id.unchecked_get()
-                                            - static_cast<ValueT>(offset))};
+        CELER_EXPECT(offset <= 0 || static_cast<IndexT>(offset) <= *id);
+        // Note: an extra cast is needed for short I with long J
+        return OpaqueId{static_cast<IndexT>(*id - static_cast<IndexT>(offset))};
     }
     //!@}
 
@@ -254,7 +259,7 @@ class OpaqueId
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
     CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
     {                                                                         \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                 \
+        return *lhs TOKEN * rhs;                                              \
     }
 
     //!@{
@@ -289,11 +294,11 @@ class OpaqueId
 
 #undef CELER_DEFINE_OPAQUEID_CMP
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
-    template<class U>                                                  \
-    CELER_CEF friend auto operator TOKEN(OpaqueId lhs, U rhs) noexcept \
-        -> std::enable_if_t<std::is_unsigned_v<U>, bool>               \
+    template<class J>                                                  \
+    CELER_CEF friend auto operator TOKEN(OpaqueId lhs, J rhs) noexcept \
+        -> std::enable_if_t<std::is_unsigned_v<J>, bool>               \
     {                                                                  \
-        return lhs && (static_cast<U>(lhs.unchecked_get()) TOKEN rhs); \
+        return lhs && (static_cast<J>(*lhs) TOKEN rhs);                \
     }
 
     //!@{
@@ -325,10 +330,10 @@ class OpaqueId
 
     //// HELPER FUNCTIONS ////
 
-    template<class U>
-    static CELER_CEF bool is_safe_offset(ValueT value, U offset)
+    template<class J>
+    static CELER_CEF bool is_safe_offset(IndexT value, J offset)
     {
-        if constexpr (std::is_unsigned_v<U>)
+        if constexpr (std::is_unsigned_v<J>)
         {
             return true;
         }
@@ -339,12 +344,12 @@ class OpaqueId
                 // NOTE: we do not check for overflow
                 return true;
             }
-            return static_cast<ValueT>(U{0} - offset) <= value;
+            return static_cast<IndexT>(J{0} - offset) <= value;
         }
     }
 };
 
-//! Specialization for opaque IDs
+//! Specialize size type for opaque IDs
 template<class I, class V>
 struct MakeSize<OpaqueId<I, V>>
 {
@@ -359,21 +364,21 @@ struct MakeSize<OpaqueId<I, V>>
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Safely cast from one integer T to another U, avoiding the sentinel value
-template<class T, class U>
-inline CELER_FUNCTION T id_cast_impl(U value) noexcept(!CELERITAS_DEBUG)
+//! Safely cast from one integer T to another J, avoiding the sentinel value
+template<class T, class J>
+inline CELER_FUNCTION T id_cast_impl(J value) noexcept(!CELERITAS_DEBUG)
 {
     constexpr auto null_val = detail::nullid_value<T>;
 
-    if constexpr (std::is_signed_v<U>)
+    if constexpr (std::is_signed_v<J>)
     {
         CELER_EXPECT(value >= 0);
     }
 
-    if constexpr (!std::is_same_v<T, U>)
+    if constexpr (!std::is_same_v<T, J>)
     {
         // Check that the cast value is within the integer range [0, N-1)
-        using C = std::common_type_t<T, std::make_unsigned_t<U>>;
+        using C = std::common_type_t<T, std::make_unsigned_t<J>>;
         if constexpr (std::is_signed_v<C>)
         {
             CELER_EXPECT(static_cast<C>(value) >= 0);
@@ -444,13 +449,13 @@ inline constexpr bool is_opaque_id_v
  * type, and casts to it.
  *
  * \note The value cannot be the underlying "null" value; i.e.
- * <code> static_cast<FooId>(FooId{}.unchecked_get()) </code> will not work.
+ * <code> static_cast<FooId>(*FooId{}) </code> will not work.
  */
-template<class IdT, class U>
-inline CELER_FUNCTION auto id_cast(U value) noexcept(!CELERITAS_DEBUG)
-    -> std::enable_if_t<is_opaque_id_v<IdT> && std::is_integral_v<U>, IdT>
+template<class IdT, class J>
+inline CELER_FUNCTION auto id_cast(J value) noexcept(!CELERITAS_DEBUG)
+    -> std::enable_if_t<is_opaque_id_v<IdT> && std::is_integral_v<J>, IdT>
 {
-    return IdT{detail::id_cast_impl<typename IdT::value_type, U>(value)};
+    return IdT{detail::id_cast_impl<typename IdT::value_type, J>(value)};
 }
 
 //---------------------------------------------------------------------------//
@@ -476,7 +481,7 @@ struct hash<celeritas::OpaqueId<I, T>>
 {
     std::size_t operator()(celeritas::OpaqueId<I, T> const& id) const noexcept
     {
-        return std::hash<T>()(id.unchecked_get());
+        return std::hash<T>()(*id);
     }
 };
 }  // namespace std
