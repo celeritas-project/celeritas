@@ -98,8 +98,6 @@ template<class Generator>
 CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    using namespace celeritas::literals;
-
     if (lambda_ <= PoissonDistribution::lambda_threshold())
     {
         // Use direct method
@@ -113,7 +111,7 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
         return static_cast<result_type>(k - 1);
     }
     // Use Gaussian approximation rounded to nearest integer
-    return result_type(sample_normal_(rng) + 0.5_r);
+    return result_type(sample_normal_(rng) + real_type(0.5));
 }
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
