@@ -166,6 +166,14 @@ if(CELERITAS_USE_covfie)
     list(APPEND _covfie_libs $<COMPILE_ONLY:covfie::hip> Celeritas::ExtDeviceApi)
   endif()
   target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
+
+  if(CELERITAS_USE_CUDA AND covfie_VERSION VERSION_LESS_EQUAL 0.15.3)
+    # See https://github.com/acts-project/covfie/pull/98 :
+    # avoid warning/runtime failure due to use of std::clamp in device code
+    target_compile_options(Extcovfie
+      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>"
+    )
+  endif()
 endif()
 
 #----------------------------------------------------------------------------#
