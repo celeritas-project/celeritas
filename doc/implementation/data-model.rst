@@ -66,7 +66,7 @@ software infrastructure.
 
 .. doxygenclass:: celeritas::OpaqueId
 .. doxygenfunction:: celeritas::id_cast
-.. doxygentypedef:: celeritas::id_size_type
+.. doxygentypedef:: celeritas::MakeSize_t
 
 Storage
 -------

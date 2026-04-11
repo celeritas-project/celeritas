@@ -102,7 +102,7 @@ inline constexpr nullid_t nullid{0};
  * - \c nullid is an instance of \c nullid_t that compares to any OpaqueId as
  *   its "null" value.
  * - \c is_opaque_id_v allows checking for generic types
- * - \c size_type_t is a descriptive type alias to get the unsigned integer
+ * - \c MakeSize_t is a descriptive type alias to get the unsigned integer
  *   \c value_type of an opaque ID, used for container capacities.
  * - \c id_cast safely converts integers to OpaqueId.
  *
@@ -344,6 +344,13 @@ class OpaqueId
     }
 };
 
+//! Specialization for opaque IDs
+template<class I, class V>
+struct MakeSize<OpaqueId<I, V>>
+{
+    using type = V;
+};
+
 //---------------------------------------------------------------------------//
 // DETAIL IMPLEMENTATION
 // (not a separate file due to living in the top level)
@@ -394,19 +401,6 @@ struct IsOpaqueId<OpaqueId<I, V>> : std::true_type
 {
 };
 
-template<class T>
-struct SizeTypeTraits
-{
-    using type = void;
-};
-
-//! Specialization for opaque IDs
-template<class I, class V>
-struct SizeTypeTraits<OpaqueId<I, V>>
-{
-    using type = V;
-};
-
 #if !CELER_DEVICE_COMPILE
 // Print an opaque ID: ignore instantiator to reduce duplicate symbols
 template<class V>
@@ -441,10 +435,6 @@ stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
 template<class T>
 inline constexpr bool is_opaque_id_v
     = detail::IsOpaqueId<std::remove_cv_t<T>>::value;
-
-//! Get the unsigned integer corresponding to an ID's capacity
-template<class T>
-using size_type_t = typename detail::SizeTypeTraits<std::remove_cv_t<T>>::type;
 
 //---------------------------------------------------------------------------//
 /*!

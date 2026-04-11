@@ -28,7 +28,7 @@ namespace celeritas
  * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
  * \em essentially trivial, but implement null-op destructors or optimized copy
  * constructors, so we allow specialization through the
- * celeritas::TriviallyCopyable class.
+ * celeritas::IsTriviallyCopyable class.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
@@ -314,7 +314,7 @@ inline constexpr detail::AllItems_t<T, M> all_items;
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
-    static_assert(TriviallyCopyable_v<T>,
+    static_assert(is_trivially_copyable_v<T>,
                   "Collection element is not trivially copyable");
 
     using TraitsT = detail::CollectionTraits<T, W, M>;
@@ -329,7 +329,7 @@ class Collection
     using const_pointer = detail::ContainerObserverPtr<SpanConstT, M>;
     using reference = typename SpanT::reference;
     using const_reference = typename SpanConstT::reference;  // Mutable if ref!
-    using size_type = size_type_t<I>;
+    using size_type = MakeSize_t<I>;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
     using AllItemsT = detail::AllItems_t<T, M>;

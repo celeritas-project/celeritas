@@ -32,10 +32,10 @@ class UniformZField;
 template<class EquationT>
 class ZHelixIntegrator
 {
+    using Field_t = typename std::remove_reference_t<EquationT>::Field_t;
     static_assert(
-        std::is_same<std::remove_cv_t<std::remove_reference_t<
-                         typename std::remove_reference_t<EquationT>::Field_t>>,
-                     UniformZField>::value,
+        std::is_same_v<std::remove_cv_t<std::remove_reference_t<Field_t>>,
+                       UniformZField>,
         "ZHelix stepper only works with UniformZField");
 
   public:
