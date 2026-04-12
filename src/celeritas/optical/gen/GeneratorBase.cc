@@ -8,6 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/sys/KernelLauncher.hh"
+
+#include "detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
@@ -46,6 +49,26 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 {
     return dynamic_cast<GeneratorStateBase const&>(aux.at(aux_id_));
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update the number of pending optical photons.
+ */
+void GeneratorBase::update_pending(CoreStateHost& state,
+                                   size_type num_pending) const
+{
+    // Update the number of pending optical photons
+    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
+    launch_kernel(1, execute);
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void GeneratorBase::update_pending(CoreStateDevice&, size_type) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

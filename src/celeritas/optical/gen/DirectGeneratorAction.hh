@@ -71,9 +71,6 @@ class DirectGeneratorAction final : public GeneratorBase
 
     void generate(CoreParams const&, CoreStateHost&) const;
     void generate(CoreParams const&, CoreStateDevice&) const;
-
-    void update_pending(CoreStateHost&, size_type) const;
-    void update_pending(CoreStateDevice&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//

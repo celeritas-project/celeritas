@@ -223,25 +223,8 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Launch a (host) kernel to update the number of pending optical photons.
- */
-void DirectGeneratorAction::update_pending(CoreStateHost& state,
-                                           size_type num_pending) const
-{
-    // Update the number of pending optical photons
-    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
-    launch_kernel(1, execute);
-}
-
-//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void DirectGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-void DirectGeneratorAction::update_pending(CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
