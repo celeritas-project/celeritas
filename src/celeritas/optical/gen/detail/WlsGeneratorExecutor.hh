@@ -58,7 +58,6 @@ struct WlsGeneratorExecutor
  */
 CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
 {
-    using namespace celeritas::literals;
     CELER_EXPECT(state);
     CELER_EXPECT(data);
 
@@ -102,7 +101,7 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
     }
 
     // Update the number of photons left to generate
-    atomic_add(&dist.num_photons, -1_sz);
+    atomic_add(&dist.num_photons, size_type(-1));
 }
 
 //---------------------------------------------------------------------------//
