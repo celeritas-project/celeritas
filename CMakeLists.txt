@@ -416,7 +416,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES)
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT "$ENV{CUDAARCHS}")
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "
