@@ -134,10 +134,12 @@ template<Axis T>
 auto SurfaceSimplifier::operator()(PlaneAligned<T> const& p) const
     -> Optional<PlaneAligned<T>>
 {
-    if (p.position() != real_type{0} && SoftZero{tol_}(p.position()))
+    using namespace celeritas::literals;
+
+    if (p.position() != 0_r && SoftZero{tol_}(p.position()))
     {
         // Snap to zero since it's not already zero
-        return PlaneAligned<T>{real_type{0}};
+        return PlaneAligned<T>{0_r};
     }
     // No simplification performed
     return {};

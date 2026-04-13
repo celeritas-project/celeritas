@@ -43,7 +43,7 @@ TEST(UnitsTest, equivalence)
     {
         constexpr auto erg = gram * centimeter * centimeter / (second * second);
 
-        EXPECT_EQ(real_type(1), erg);
+        EXPECT_EQ(1_r, erg);
         EXPECT_EQ(1e7 * erg, joule);
         EXPECT_REAL_EQ(1e4, tesla);
         EXPECT_REAL_EQ(0.1, coulomb);

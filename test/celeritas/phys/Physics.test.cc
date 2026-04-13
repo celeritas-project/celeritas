@@ -343,19 +343,19 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
     std::vector<real_type> step;
     real_type const eps = std::numeric_limits<real_type>::epsilon();
 
-    for (real_type r : {real_type(0.1) * rho,
-                        real_type(1 - 1000 * eps) * rho,
-                        real_type(1 - 100 * eps) * rho,
-                        real_type(1 + 10 * eps) * rho,
-                        real_type(1 + 100 * eps) * rho,
-                        real_type(1.00000001) * rho,
-                        real_type(1.000001) * rho,
-                        real_type{1.5} * rho,
+    for (real_type r : {0.1_r * rho,
+                        (1.0_r - 1000 * eps) * rho,
+                        (1.0_r - 100 * eps) * rho,
+                        (1.0_r + 10 * eps) * rho,
+                        (1.0_r + 100 * eps) * rho,
+                        1.00000001_r * rho,
+                        1.000001_r * rho,
+                        1.5_r * rho,
                         10 * rho,
                         100 * rho})
     {
         auto s = celer.range_to_step(r);
-        EXPECT_GT(s, real_type(0));
+        EXPECT_GT(s, 0.0_r);
         EXPECT_LE(s, r) << "s - r == " << s - r;
         step.push_back(to_cm(s));
     }

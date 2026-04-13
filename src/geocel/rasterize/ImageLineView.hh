@@ -87,8 +87,9 @@ ImageLineView::ImageLineView(ParamsRef const& params,
  */
 CELER_FUNCTION auto ImageLineView::start_pos() const -> Real3
 {
-    real_type down_offset = (row_index_ + real_type(0.5))
-                            * scalars_.pixel_width;
+    using namespace celeritas::literals;
+
+    real_type down_offset = (row_index_ + 0.5_r) * scalars_.pixel_width;
     Real3 result = scalars_.origin;
     axpy(down_offset, scalars_.down, &result);
     return result;

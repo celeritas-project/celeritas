@@ -99,6 +99,8 @@ template<class Generator>
 CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
+    using namespace celeritas::literals;
+
     real_type u, v, z;
     do
     {
@@ -109,9 +111,8 @@ CELER_FUNCTION auto GammaDistribution<RealType>::operator()(Generator& rng)
         } while (v <= 0);
         v = ipow<3>(v);
         u = generate_canonical<real_type>(rng);
-    } while (u > 1 - real_type(0.0331) * ipow<4>(z)
-             && std::log(u) > real_type(0.5) * ipow<2>(z)
-                                  + d_ * (1 - v + std::log(v)));
+    } while (u > 1 - 0.0331_r * ipow<4>(z)
+             && std::log(u) > 0.5_r * ipow<2>(z) + d_ * (1 - v + std::log(v)));
 
     result_type result = d_ * v * beta_;
     if (alpha_ != alpha_p_)

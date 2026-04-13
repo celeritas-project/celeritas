@@ -121,6 +121,8 @@ template<class Engine>
 CELER_FUNCTION AtomicRelaxation::result_type
 AtomicRelaxation::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     AtomicRelaxElement const& el = shared_.elements[el_id_];
     auto const& shells = shared_.shells[el.shells];
     MiniStack<SubshellId> vacancies(vacancies_);
@@ -150,7 +152,7 @@ AtomicRelaxation::operator()(Engine& rng)
                 return transitions[i.unchecked_get()].probability;
             },
             id_cast<TransitionId>(transitions.size()),
-            real_type{1})(rng);
+            1_r)(rng);
 
         if (trans_id == id_cast<TransitionId>(transitions.size()))
         {

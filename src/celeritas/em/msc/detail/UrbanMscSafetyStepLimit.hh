@@ -190,6 +190,8 @@ UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // TODO: if start energy is below min_energy, also skip since we won't
     // sample MSC
     if (max_step_ <= limit_)
@@ -204,8 +206,8 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
     }
 
     // Randomize the limit if this step should be determined by msc
-    NormalDistribution<real_type> sample_gauss(
-        limit_, real_type(0.1) * (limit_ - limit_min_));
+    NormalDistribution<real_type> sample_gauss(limit_,
+                                               0.1_r * (limit_ - limit_min_));
     real_type sampled_limit = sample_gauss(rng);
 
     // Keep sampled limit between the minimum value and maximum step
@@ -221,6 +223,8 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::operator()(Engine& rng)
 CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     UrbanMscMaterialData const& msc, Energy const inc_energy) const
 {
+    using namespace celeritas::literals;
+
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
     // Calculate minimum step
@@ -233,8 +237,8 @@ CELER_FUNCTION real_type UrbanMscSafetyStepLimit::calc_limit_min(
     if (inc_energy < shared_.params.min_scaling_energy)
     {
         // Energy is below a pre-defined limit
-        xm *= (real_type(0.5)
-               + real_type(0.5) * value_as<Energy>(inc_energy)
+        xm *= (0.5_r
+               + 0.5_r * value_as<Energy>(inc_energy)
                      / value_as<Energy>(shared_.params.min_scaling_energy));
     }
 

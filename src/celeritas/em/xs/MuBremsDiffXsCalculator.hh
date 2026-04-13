@@ -127,13 +127,15 @@ MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
     , total_energy_(inc_energy_ + inc_mass_)
     , electron_mass_(value_as<Mass>(electron_mass))
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(inc_energy_ > 0);
 
-    d_n_ = real_type(1.54) * std::pow(atomic_mass_, real_type(0.27));
+    d_n_ = 1.54_r * std::pow(atomic_mass_, 0.27_r);
     if (atomic_number_ == 1)
     {
         // Constants calculated calculated analytically
-        b_ = real_type(202.4);
+        b_ = 202.4_r;
         b_prime_ = 446;
     }
     else
@@ -141,7 +143,7 @@ MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
         // Constants calculated using the Thomas-Fermi model
         b_ = 183;
         b_prime_ = 1429;
-        d_n_ = std::pow(d_n_, 1 - real_type(1) / atomic_number_);
+        d_n_ = std::pow(d_n_, 1 - 1.0_r / atomic_number_);
     }
 }
 
@@ -152,6 +154,8 @@ MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
 CELER_FUNCTION
 real_type MuBremsDiffXsCalculator::operator()(Energy energy)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(energy > zero_quantity());
 
     using namespace celeritas::constants;
@@ -165,7 +169,7 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
     real_type v = value_as<Energy>(energy) / total_energy_;
 
     // Calculate the minimum momentum transfer
-    real_type delta = real_type(0.5) * inc_mass_sq_ * v
+    real_type delta = 0.5_r * inc_mass_sq_ * v
                       / (total_energy_ - value_as<Energy>(energy));
 
     // Calculate the contribution to the cross section from the nucleus
@@ -174,10 +178,9 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
         / (d_n_ * (electron_mass_ + delta * sqrt_euler * b_ * inv_cbrt_z_))));
 
     // Photon energy above which there is no contribution from electrons
-    real_type energy_max_prime = total_energy_
-                                 / (1
-                                    + real_type(0.5) * inc_mass_sq_
-                                          / (electron_mass_ * total_energy_));
+    real_type energy_max_prime
+        = total_energy_
+          / (1 + 0.5_r * inc_mass_sq_ / (electron_mass_ * total_energy_));
 
     // Calculate the contribution to the cross section from electrons
     real_type phi_e = 0;
@@ -194,8 +197,7 @@ real_type MuBremsDiffXsCalculator::operator()(Energy energy)
     // Calculate the differential cross section
     return 16 * alpha_fine_structure * na_avogadro
            * ipow<2>(electron_mass_ * r_electron) * atomic_number_
-           * (atomic_number_ * phi_n + phi_e)
-           * (1 - v * (1 - real_type(0.75) * v))
+           * (atomic_number_ * phi_n + phi_e) * (1 - v * (1 - 0.75_r * v))
            / (3 * inc_mass_sq_ * value_as<Energy>(energy) * atomic_mass_);
 }
 

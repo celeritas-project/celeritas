@@ -17,6 +17,8 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace test
@@ -472,7 +474,7 @@ void CheckedGeoTrackView::cross_boundary()
         CGTV_VALIDATE(
             *this,
             soft_equal(std::fabs(dot_product(*pre_crossing_normal, post_norm)),
-                       real_type{1}),
+                       1_r),
             << "inconsistent surface normal: pre-crossing "
             << *pre_crossing_normal << ", post-crossing " << post_norm);
 

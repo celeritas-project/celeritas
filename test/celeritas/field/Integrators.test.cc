@@ -89,7 +89,7 @@ class IntegratorsTest : public Test
         {
             // Initial state and the expected state after revolutions
             OdeState y;
-            y.pos = {param.radius, 0, i * real_type{1e-6}};
+            y.pos = {param.radius, 0, i * 1e-6_r};
             y.mom = {0, param.momentum_y, param.momentum_z};
 
             OdeState expected_y = y;
@@ -100,8 +100,7 @@ class IntegratorsTest : public Test
             for (int nr : range(param.revolutions))
             {
                 // Travel hstep for num_steps times in the field
-                expected_y.pos[2] = param.delta_z * (nr + 1)
-                                    + i * real_type{1e-6};
+                expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1e-6_r;
                 for ([[maybe_unused]] int j : range(param.nsteps))
                 {
                     FieldIntegration result = integrate(hstep, y);
@@ -128,8 +127,7 @@ class IntegratorsTest : public Test
         {
             real_type error = std::sqrt(output.error[i]);
             EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
-            EXPECT_SOFT_NEAR(
-                output.pos_z[i], zstep + i * real_type{1e-6}, error);
+            EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1e-6_r, error);
             EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
             EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
             EXPECT_LT(output.error[i], param.epsilon);

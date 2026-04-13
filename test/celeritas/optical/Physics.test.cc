@@ -301,7 +301,7 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
 
         auto const& expected_model_xs = expected_model_xs_per_energy[i];
         real_type expected_total_xs = std::accumulate(
-            expected_model_xs.begin(), expected_model_xs.end(), real_type{0});
+            expected_model_xs.begin(), expected_model_xs.end(), 0_r);
 
         StepLimit limits = calc_physics_step_limit(particle, physics);
 

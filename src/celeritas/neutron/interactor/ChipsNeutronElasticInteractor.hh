@@ -114,6 +114,8 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // Scattered neutron with respect to the axis of incident direction
     Interaction result;
 
@@ -127,7 +129,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     // Sample the scattered direction from the invariant momentum transfer
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
     real_type cos_theta
-        = 1 - real_type(0.5) * sample_momentum_square_(rng) / ipow<2>(cm_p);
+        = 1 - 0.5_r * sample_momentum_square_(rng) / ipow<2>(cm_p);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
     // Boost to the center of mass (c.m.) frame

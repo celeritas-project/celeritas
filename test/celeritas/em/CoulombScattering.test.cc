@@ -417,7 +417,7 @@ TEST_F(CoulombScatteringTest, simple_scattering)
     {
         for (auto log_energy : range(-4, 6).step(2))
         {
-            real_type energy = std::pow(real_type{10}, log_energy);
+            real_type energy = std::pow(10_r, log_energy);
             this->set_inc_particle(particle, MevEnergy{energy});
             for (auto i : range(all_wentzel.size()))
             {
@@ -458,10 +458,8 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                     accum_costheta += ct;
                     accum_eloss += eloss;
                 }
-                cos_theta.push_back(accum_costheta
-                                    * (real_type{1} / num_samples));
-                eloss_frac.push_back(accum_eloss
-                                     * (real_type{1} / num_samples));
+                cos_theta.push_back(accum_costheta * (1_r / num_samples));
+                eloss_frac.push_back(accum_eloss * (1_r / num_samples));
             }
         }
     }

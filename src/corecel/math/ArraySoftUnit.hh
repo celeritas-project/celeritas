@@ -114,12 +114,14 @@ template<std::size_t N>
 CELER_CONSTEXPR_FUNCTION bool
 ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
 {
+    using namespace celeritas::literals;
+
     T length_sq{};
     for (size_type i = 0; i != N; ++i)
     {
         length_sq = std::fma(arr[i], arr[i], length_sq);
     }
-    return std::fabs(length_sq - 1) < tol_ * std::fmax(real_type(1), length_sq);
+    return std::fabs(length_sq - 1) < tol_ * std::fmax(1.0_r, length_sq);
 }
 
 //---------------------------------------------------------------------------//

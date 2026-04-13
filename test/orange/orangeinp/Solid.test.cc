@@ -373,7 +373,7 @@ TEST_F(SolidTest, sphere_polar)
 {
     using SS = SphereSolid;
     using EP = EnclosedPolar;
-    constexpr real_type one_third = 1 / real_type{3};
+    constexpr real_type one_third = 1 / 3_r;
     {
         this->build_volume(
             SS("top", Sphere{10.0}, {}, {}, EP{Turn{0.0}, Turn{0.125}}));

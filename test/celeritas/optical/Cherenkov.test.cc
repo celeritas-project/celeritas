@@ -535,10 +535,8 @@ TEST_F(CherenkovAirTest, dndx)
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
 
-    std::vector<real_type> betas{real_type{1.0 / 1.2},
-                                 real_type{1.0 / 1.3},
-                                 1 / 1.31,
-                                 real_type{1.0 / 1.4}};
+    std::vector<real_type> betas{
+        1.0_r / 1.2, 1.0_r / 1.3, 1 / 1.31, 1.0_r / 1.4};
 
     std::vector<real_type> dndx;
     for (real_type beta : betas)

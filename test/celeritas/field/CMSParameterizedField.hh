@@ -91,6 +91,7 @@ CELER_FUNCTION
 auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     -> Real3
 {
+    using namespace celeritas::literals;
     using units::meter;
 
     real_type const prm[9] = {4.24326,
@@ -104,7 +105,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
                               1.77436};
 
     real_type ap2 = 4 * ipow<2>(prm[0] / prm[1]);
-    real_type hb0 = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
+    real_type hb0 = 0.5_r * prm[2] * std::sqrt(1 + ap2);
     real_type hlova = 1 / std::sqrt(ap2);
     real_type ainv = 2 * hlova / prm[1];
     real_type coeff = 1 / ipow<2>(prm[8]);
@@ -123,7 +124,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     Real4 fu = this->evaluate_parameters(u);
     Real4 gv = this->evaluate_parameters(v);
 
-    real_type rat = real_type(0.5) * r * ainv;
+    real_type rat = 0.5_r * r * ainv;
     real_type rat2 = ipow<2>(rat);
 
     Real3 bw;

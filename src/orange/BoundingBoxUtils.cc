@@ -15,6 +15,8 @@
 #include "transform/Transformation.hh"
 #include "transform/Translation.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -58,7 +60,7 @@ BBox calc_transform(Transformation const& tr, BBox const& a)
             result[i] = 0;
             for (auto j : range(3))
             {
-                if (r[i][j] != real_type{0})
+                if (r[i][j] != 0_r)
                 {
                     result[i] += r[i][j] * x[j];
                 }

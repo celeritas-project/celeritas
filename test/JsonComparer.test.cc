@@ -31,7 +31,7 @@ TEST_F(JsonComparerTest, parse_errors)
 
 TEST_F(JsonComparerTest, scalars)
 {
-    JsonComparer compare{real_type(0.001)};
+    JsonComparer compare{0.001_r};
 
     EXPECT_TRUE(compare("null", "null"));
 
@@ -60,7 +60,7 @@ TEST_F(JsonComparerTest, array)
 
 TEST_F(JsonComparerTest, object)
 {
-    JsonComparer compare{real_type(0.001)};
+    JsonComparer compare{0.001_r};
 
     EXPECT_TRUE(compare(R"json({"a": 1, "b": 2})json"));
     EXPECT_TRUE(
@@ -74,7 +74,7 @@ TEST_F(JsonComparerTest, object)
 
 TEST_F(JsonComparerTest, stringification)
 {
-    JsonComparer compare{real_type(0.001)};
+    JsonComparer compare{0.001_r};
     auto r = compare(R"json({"a": 1, "b": [1, 2, [0]]})json",
                      R"json({"a": 2, "b": [2, 3, [4, 5]]})json");
     EXPECT_STREQ(R"(JSON objects differ:

@@ -103,12 +103,14 @@ class UrbanLargeAngleDistribution
 CELER_FUNCTION
 UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(tau > 0);
     // Eq. 8.2 and \f$ \cos^2\theta \f$ term in Eq. 8.3 in PRM
     real_type mumean = std::exp(-tau);
     // NOTE: tau_big = 8 -> ~0.0003 < mumean < 1
 
-    real_type musqmean = (1 + 2 * std::exp(real_type(-2.5) * tau)) / 3;
+    real_type musqmean = (1 + 2 * std::exp(-2.5_r * tau)) / 3;
     real_type a = (2 * mumean + 9 * musqmean - 3)
                   / (2 * mumean - 3 * musqmean + 1);
 

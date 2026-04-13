@@ -22,6 +22,8 @@
 #include "PhysicalVolumeConverter.hh"
 #include "ProtoConstructor.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace g4org
@@ -65,7 +67,7 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
         opts_.tol = Tolerance<>::from_default(opts_.unit_length);
     }
 
-    if (real_type{1} - ipow<2>(opts_.tol.rel) == real_type{1})
+    if (1_r - ipow<2>(opts_.tol.rel) == 1_r)
     {
         CELER_LOG(warning)
             << "Requested relative tolerance (" << opts_.tol.rel

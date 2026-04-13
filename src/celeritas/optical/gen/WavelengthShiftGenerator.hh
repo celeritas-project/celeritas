@@ -94,6 +94,8 @@ WavelengthShiftGenerator::WavelengthShiftGenerator(
 template<class Engine>
 CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // Sample wavelength shifted optical photon
     TrackInitializer result;
 
@@ -120,11 +122,10 @@ CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng
     result.polarization = TransversePolarizationSampler{result.direction}(rng);
 
     // Sample the delta time (based on the exponential relaxation)
-    result.time
-        = distribution_.time
-          + (time_profile_ == WlsDistribution::delta
-                 ? time_constant_
-                 : ExponentialDistribution(real_type{1} / time_constant_)(rng));
+    result.time = distribution_.time
+                  + (time_profile_ == WlsDistribution::delta
+                         ? time_constant_
+                         : ExponentialDistribution(1_r / time_constant_)(rng));
     result.primary = distribution_.primary;
 
     return result;

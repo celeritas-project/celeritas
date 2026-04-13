@@ -59,6 +59,8 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
                                           MaterialView const& mat,
                                           units::MevEnergy energy)
 {
+    using namespace celeritas::literals;
+
     // Calc total macro_xs over processes
     real_type total_xs = 0;
     for (auto ppid : range(ParticleProcessId{phys.num_particle_processes()}))
@@ -95,7 +97,7 @@ inline CELER_FUNCTION real_type calc_step(PhysicsTrackView& phys,
     }
 
     // Take minimum of step and half the MFP
-    step = min(step, real_type{0.5} * phys.interaction_mfp());
+    step = min(step, 0.5_r * phys.interaction_mfp());
     return step;
 }
 

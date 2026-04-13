@@ -136,6 +136,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     real_type beta_sq)
     : max_energy_(max_energy.value())
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(unscaled_mean_loss > zero_quantity());
     CELER_EXPECT(two_mebsgs > zero_quantity());
     CELER_EXPECT(beta_sq > 0);
@@ -146,10 +148,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     // rescaling the energy levels and number of excitations. The width
     // correction algorithm is discussed (though not in much detail) in PRM
     // section 7.3.3
-    loss_scaling_
-        = real_type(0.5)
-              * min(this->fwhm_min_energy() / max_energy_, real_type(1))
-          + real_type(1);
+    loss_scaling_ = 0.5_r * min(this->fwhm_min_energy() / max_energy_, 1.0_r)
+                    + 1.0_r;
     real_type const mean_loss = unscaled_mean_loss.value() / loss_scaling_;
 
     // Material-dependent data
@@ -194,8 +194,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
             real_type scaling = 4;
             if (xs_exc_[0] < this->exc_thresh())
             {
-                scaling = real_type(0.5)
-                          + (scaling - real_type(0.5))
+                scaling = 0.5_r
+                          + (scaling - 0.5_r)
                                 * std::sqrt(xs_exc_[0] / this->exc_thresh());
             }
             binding_energy_[0] *= scaling;

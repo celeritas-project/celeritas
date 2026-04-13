@@ -163,7 +163,7 @@ TEST_F(RZMapFieldTest, all)
     };
     // clang-format on
     // Float32 covfie interpolation; allow for AVX2 rounding variation
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{2e-7});
+    EXPECT_VEC_NEAR(expected_field, actual, 2e-7_r);
 }
 
 TEST_F(RZMapFieldTest, interp_validation)
@@ -365,7 +365,7 @@ TEST_F(CylMapFieldTest, all)
     };
     // clang-format on
 
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-7_r);
 }
 
 //---------------------------------------------------------------------------//
@@ -641,7 +641,7 @@ TEST_F(CartMapFieldTest, host)
         -0.54941475391388,
         0.33834865689278,
     };
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-6});
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-6_r);
 }
 
 TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))

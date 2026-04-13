@@ -176,6 +176,16 @@ State collections need `resize(size)` operators for track slots.
 | `CELER_ENSURE` | Postconditions at function exit |
 | `CELER_VALIDATE` | User input validation (always active) |
 
+### Literal UDLs
+
+- When converting numeric literals to `_r`, replace explicit `real_type{...}` wrappers or equivalent explicit casts that were written only to force a literal to `real_type`.
+- When doing an `_r` sweep, audit for missed explicit wrappers with a regex search such as `real_type[\{\(][0-9\-\.e]*[\}\)]` over `src`, `test`, and `doc/example`, then resolve each match or consciously leave it because `_r` is not legal there (for example namespace-scope public-header initializers or non-literal expressions).
+- Before closing an `_r` sweep, rerun that regex over the full user-requested tree, not just the files already touched, and verify that every remaining match is an intentional exception with a concrete reason.
+- Do **not** treat every public-header match as an exception. If the explicit cast is inside a function body in a public header, including a `static` member helper like `default_light()`, it is still eligible for `_r` with a function-scope `using namespace celeritas::literals;`.
+- Do **not** rewrite standalone initializers whose target type is already explicit at the declaration site, such as `real_type x = 1.5;`, `real_type const tol = 1e-4;`, or `static constexpr real_type eps = 1e-4;`.
+- In `test/`, do **not** rewrite ordinary expressions to use `_r` unless the old code explicitly cast that literal to `real_type`. For example, leave `0.5 * value`, `find_root(0.5, 1.5)`, and `pi * 0.5` unchanged; replace `real_type{0.5} * value`, `real_type{1e-6}`, or similar explicit casts.
+- In public headers, function/block-scope `using namespace celeritas::literals;` is allowed. Never introduce namespace-scope `using namespace` there.
+
 ### Type-Safe Indices & Collections
 
 | Type | Purpose |

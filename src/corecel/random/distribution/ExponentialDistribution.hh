@@ -71,7 +71,9 @@ CELER_FUNCTION
 ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
     : neg_inv_lambda_(real_type{-1} / lambda)
 {
-    CELER_EXPECT(lambda > real_type{0});
+    using namespace celeritas::literals;
+
+    CELER_EXPECT(lambda > 0.0_r);
 }
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,8 @@
 #include "celeritas/Units.hh"
 #include "celeritas/geo/GeoData.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace test
@@ -161,7 +163,7 @@ inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
     fill(LifeStatus::unborn, &state->status);
 
     resize(&state->accum_path, params.s.num_volumes);
-    fill(real_type{0}, &state->accum_path);
+    fill(0.0_r, &state->accum_path);
 }
 
 //---------------------------------------------------------------------------//

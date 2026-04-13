@@ -91,6 +91,8 @@ MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
 template<class Engine>
 CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
 {
+    using namespace celeritas::literals;
+
     Interaction result;
     Real3& new_dir = result.direction;
     Real3& new_pol = result.polarization;
@@ -113,7 +115,7 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
         real_type costheta = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r))
                                  * (1 - g + g * r)
                              - 1;
-        costheta = celeritas::min(costheta, real_type{1});
+        costheta = celeritas::min(costheta, 1_r);
 
         CELER_ASSERT(costheta >= -1 && costheta <= 1);
 

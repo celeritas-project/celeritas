@@ -22,9 +22,9 @@ Real3 dummy_field(Real3 const& pos)
 {
     // Rotate and scale
     Real3 result;
-    result[0] = real_type(0.5) * to_cm(pos[1]) * units::gauss;
-    result[1] = real_type(1.0) * to_cm(pos[2]) * units::gauss;
-    result[2] = real_type(2.0) * to_cm(pos[0]) * units::gauss;
+    result[0] = 0.5_r * to_cm(pos[1]) * units::gauss;
+    result[1] = 1.0_r * to_cm(pos[2]) * units::gauss;
+    result[2] = 2.0_r * to_cm(pos[0]) * units::gauss;
     return result;
 }
 

@@ -70,6 +70,7 @@
 #include "Scaler.hh"
 #include "Transformer.hh"
 
+using namespace celeritas::literals;
 using namespace celeritas::orangeinp;
 
 namespace celeritas
@@ -90,10 +91,10 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
     auto delta_turn = value_as<RealTurn>(stop - start);
-    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
+    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, 1_r),
                    << "azimuthal restriction [" << start.value() << ", "
                    << stop.value() << "] [turn] exceeds 1 turn");
-    if (delta_turn >= real_type{1} || soft_equal(delta_turn, real_type{1}))
+    if (delta_turn >= 1_r || soft_equal(delta_turn, 1_r))
     {
         // Avoid roundoff error: return full region
         return EnclosedAzi{};
@@ -769,8 +770,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // there are only two sides, the opening angle must be less than 2pi.
     CELER_VALIDATE(
         num_sides > 2
-            || (azi
-                && azi.stop() - azi.start() < Turn{real_type{0.5} * num_sides}),
+            || (azi && azi.stop() - azi.start() < Turn{0.5_r * num_sides}),
         << "invalid number of sizes for the opening angle");
 
     // Scale input values
