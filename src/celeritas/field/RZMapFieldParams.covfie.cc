@@ -97,9 +97,15 @@ struct RZMapFieldParams::Impl
                 typename traits_t::interp_t::configuration_t{},
                 builder.backend()));
             host.options = inp.driver_options;
+            host.min_r = static_cast<field_real_type>(inp.min_r);
+            host.max_r = static_cast<field_real_type>(inp.max_r);
+            host.min_z = static_cast<field_real_type>(inp.min_z);
+            host.max_z = static_cast<field_real_type>(inp.max_z);
             return host;
         }()}
-        , host_ref_{{host_.options}, *host_.field}
+        , host_ref_{
+              {host_.options, host_.min_r, host_.max_r, host_.min_z, host_.max_z},
+              *host_.field}
     {
         if (celeritas::device())
         {

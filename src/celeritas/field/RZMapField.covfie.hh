@@ -22,9 +22,7 @@ namespace celeritas
 /*!
  * Evaluate the value of magnetic field based on a volume-based RZ field map.
  *
- * \warning Accessing values outside the grid clamps to boundary values.
- * This behavior differs from the non-covfie implementation, where values
- * outside the map are assumed zero.
+ * Values outside the grid are returned as zero.
  */
 class RZMapField
 {
@@ -47,6 +45,7 @@ class RZMapField
   private:
     using field_view_t =
         typename detail::CovfieRZFieldTraits<MemSpace::native>::field_t::view_t;
+    ParamsRef const& shared_;
     field_view_t const& field_;
 };
 
@@ -58,7 +57,7 @@ class RZMapField
  */
 CELER_FUNCTION
 RZMapField::RZMapField(ParamsRef const& shared)
-    : field_{get_rz_map_field_view(shared)}
+    : shared_{shared}, field_{get_rz_map_field_view(shared)}
 {
 }
 
@@ -74,6 +73,13 @@ CELER_FUNCTION auto RZMapField::operator()(Real3 const& pos) const -> Real3
 {
     using traits_t = detail::CovfieRZFieldTraits<MemSpace::native>;
     celeritas::real_type r = hypot(pos[0], pos[1]);
+
+    // Return zero outside the grid
+    if (r < shared_.min_r || r > shared_.max_r || pos[2] < shared_.min_z
+        || pos[2] > shared_.max_z)
+    {
+        return {0, 0, 0};
+    }
 
     auto bvec = traits_t::to_array(
         field_.at(static_cast<real_type>(r), static_cast<real_type>(pos[2])));

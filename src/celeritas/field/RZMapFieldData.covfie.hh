@@ -29,6 +29,10 @@ struct RZMapFieldParamsDataBase
     using view_t = typename field_t::view_t;
 
     FieldDriverOptions options;
+    real_type min_r{};
+    real_type max_r{};
+    real_type min_z{};
+    real_type max_z{};
 };
 
 // Specializations for value/host, const_reference/host, and value/device are
@@ -89,6 +93,10 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
             field = std::make_unique<field_t>(*other.field);
         }
         options = other.options;
+        min_r = other.min_r;
+        max_r = other.max_r;
+        min_z = other.min_z;
+        max_z = other.max_z;
         return *this;
     }
 
@@ -125,6 +133,10 @@ RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>::operator=(
 {
     field_view = static_cast<void const*>(&other.get_view());
     options = other.options;
+    min_r = other.min_r;
+    max_r = other.max_r;
+    min_z = other.min_z;
+    max_z = other.max_z;
     return *this;
 }
 

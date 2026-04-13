@@ -31,6 +31,10 @@ struct RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>
         RZMapFieldParamsData<Ownership::value, MemSpace::device> const& other);
 
     FieldDriverOptions options;
+    real_type min_r{};
+    real_type max_r{};
+    real_type min_z{};
+    real_type max_z{};
     // underlying type: CovfieRZFieldTraits<MemSpace::device>::field_t:view_t
     void const* field_view{};
 };
