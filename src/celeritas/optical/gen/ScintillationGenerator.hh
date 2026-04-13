@@ -153,8 +153,6 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
 
     // Sample the position
     real_type u = [&rng, &p = dist_.continuous_edep_fraction] {
-        using namespace celeritas::literals;
-
         // The number of photons generated along the step (continuous energy
         // loss) and at the interaction site (local energy deposition) is
         // proportional to their respective energy contributions. If both
