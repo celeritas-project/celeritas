@@ -157,7 +157,7 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
 
     // Fill the differential nuclear volume by each zone
     using namespace celeritas::literals;
-    constexpr real_type four_thirds_pi = 4.0_r * constants::pi / 3.0;
+    constexpr real_type four_thirds_pi = 4.0_r * constants::pi / 3.0_r;
 
     ComponentVec components(zone_dens.size());
     real_type prev_volume{0};
