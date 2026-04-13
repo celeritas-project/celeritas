@@ -58,6 +58,7 @@ struct WlsGeneratorExecutor
  */
 CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(state);
     CELER_EXPECT(data);
 
@@ -69,7 +70,7 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
     // The values are used to determine which threads will generate from the
     // corresponding distribution
     auto offsets = data.offsets[ItemRange<size_type>(
-        ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
+        ItemId<size_type>(0_sz), ItemId<size_type>(buffer_size))];
 
     // Find the distribution this thread will generate from
     size_type dist_idx = find_distribution_index(offsets, tid.get());

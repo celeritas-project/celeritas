@@ -38,7 +38,7 @@ auto Histogram::calc_density() const -> VecDbl
 
     double norm
         = counts_.size() * inv_width_
-          / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
+          / std::accumulate(counts_.begin(), counts_.end(), size_type{0});
     for (auto count : counts_)
     {
         result.push_back(count * norm);

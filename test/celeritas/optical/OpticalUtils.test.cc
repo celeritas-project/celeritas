@@ -90,8 +90,7 @@ TEST(OpticalUtilsTest, find_distribution_index)
 
         // Find the index of the first distribution that has a nonzero number
         // of primaries left to generate
-        auto start = celeritas::upper_bound(
-            counts.begin(), counts.end(), size_type(0));
+        auto start = celeritas::upper_bound(counts.begin(), counts.end(), 0_sz);
 
         size_type offset = start - counts.begin();
         Span<size_type> span_counts{start, counts.end()};

@@ -1730,7 +1730,7 @@ Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
 {
     // Check that vertices are not coplanar by computing volume
     SquareMatrixReal3 delta;
-    for (auto i : range(size_type(3)))
+    for (auto i : range(3_sz))
     {
         delta[i] = v_[i + 1] - v_[0];
     }
@@ -1762,7 +1762,7 @@ void Tet::build(IntersectSurfaceBuilder& insert_surface) const
         {2, 0, 3}  // left
     };
 
-    for (auto i : range(size_type(4)))
+    for (auto i : range(4_sz))
     {
         auto const& indices = face_vertices[i];
         insert_surface(

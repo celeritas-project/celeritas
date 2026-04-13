@@ -48,6 +48,8 @@
 namespace cub = hipcub;
 #endif
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -147,11 +149,8 @@ size_type exclusive_scan_counts(
 #if CELER_USE_THRUST
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
-    auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
-                                       data,
-                                       data + counts.size(),
-                                       data,
-                                       size_type(0));
+    auto stop = thrust::exclusive_scan(
+        thrust_execute_on(stream_id), data, data + counts.size(), data, 0_sz);
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
@@ -259,7 +258,7 @@ void partition_initializers(
     size_t temp_storage_bytes = 0;
     // CUB doesn't support in-place partitioning, so use a counting iterator
     // because the indices are always sequential from zero
-    auto start = thrust::make_counting_iterator<size_type>(0);
+    auto start = thrust::make_counting_iterator<size_type>(0_sz);
     auto data = device_pointer_cast(init.indices.data());
     auto cub_error_code
         = cub::DevicePartition::Flagged(nullptr,

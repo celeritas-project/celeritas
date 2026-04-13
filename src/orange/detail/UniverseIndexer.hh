@@ -101,9 +101,10 @@ CELER_FUNCTION
 UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
     : data_(data)
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(data_.surfaces.size() == data_.volumes.size());
-    CELER_EXPECT(data_.surfaces[AllVals{}].front() == size_type{0});
-    CELER_EXPECT(data_.volumes[AllVals{}].front() == size_type{0});
+    CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0_sz);
+    CELER_EXPECT(data_.volumes[AllVals{}].front() == 0_sz);
 }
 
 //---------------------------------------------------------------------------//
