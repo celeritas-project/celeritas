@@ -225,8 +225,6 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     {
         // Calculate number of mean free paths traveled
         tau_ = true_path_ / [this, &helper] {
-            using namespace celeritas::literals;
-
             // Calculate the average MFP assuming the cross section varies
             // linearly over the step
             real_type lambda = helper_.msc_mfp();
@@ -381,8 +379,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
-        using namespace celeritas::literals;
-
         using PolyQuad = PolyEvaluator<real_type, 2>;
 
         real_type maxtau
@@ -422,8 +418,6 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 
     // From continuity of derivatives
     real_type c = [xsi] {
-        using namespace celeritas::literals;
-
         if (std::fabs(xsi - 3) < 0.001_r)
         {
             return 3.001_r;

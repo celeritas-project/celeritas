@@ -161,8 +161,6 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     , min_energy_(max(value_as<Energy>(cutoffs.energy(shared.ids.positron)),
                       min_pair_energy_))
 {
-    using namespace celeritas::literals;
-
     CELER_EXPECT(max_pair_energy_ > min_energy_);
 
     NonuniformGrid logz_grid(table_.logz_grid, table_.reals);

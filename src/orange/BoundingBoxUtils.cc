@@ -15,8 +15,6 @@
 #include "transform/Transformation.hh"
 #include "transform/Translation.hh"
 
-using namespace celeritas::literals;
-
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
