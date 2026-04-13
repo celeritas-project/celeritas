@@ -85,7 +85,7 @@ CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
     {
         real_type uu
             = -std::log(generate_canonical(rng) * generate_canonical(rng));
-        u = uu * (BernoulliDistribution(0.25)(rng) ? 1.6_r : 1.6_r / 3.0);
+        u = uu * (BernoulliDistribution(0.25)(rng) ? 1.6_r : 1.6_r / 3.0_r);
     } while (u > umax_);
 
     return 1 - 2 * ipow<2>(u / umax_);

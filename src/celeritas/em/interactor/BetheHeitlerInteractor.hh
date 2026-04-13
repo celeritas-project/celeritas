@@ -166,7 +166,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     else
     {
         screen_delta_ = epsilon0_ * 136 / element.cbrt_z();
-        f_z_ = 8.0_r / 3.0 * element.log_z();
+        f_z_ = 8.0_r / 3.0_r * element.log_z();
         if (inc_energy_ > coulomb_corr_threshold())
         {
             // Apply Coulomb correction function

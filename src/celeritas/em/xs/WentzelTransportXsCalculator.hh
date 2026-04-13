@@ -119,8 +119,8 @@ CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_contribution(
         real_type x_sq = ipow<2>(x);
         result
             = 0.5_r * x_sq
-              * ((1 - 4.0_r / 3.0 * x + 1.5_r * x_sq)
-                 - screening_coeff_ * spin * beta_sq_ * x * (2.0_r / 3.0 - x));
+              * ((1 - 4.0_r / 3.0_r * x + 1.5_r * x_sq)
+                 - screening_coeff_ * spin * beta_sq_ * x * (2.0_r / 3.0_r - x));
     }
     else
     {
