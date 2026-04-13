@@ -101,6 +101,8 @@ template<MemSpace M>
 auto Transporter<M>::operator()(SpanConstPrimary primaries)
     -> TransporterResult
 {
+    using namespace celeritas::literals;
+
     // Initialize results
     TransporterResult result;
     auto append_track_counts = [&](StepperResult const& track_counts) {
@@ -200,9 +202,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
     CELER_LOG(status) << "Run complete";
 
     auto counters = copy_to_host(stepper_->state_ref().init.track_counters);
-    result.num_tracks = std::accumulate(counters.data().get(),
-                                        counters.data().get() + counters.size(),
-                                        size_type(0));
+    result.num_tracks = std::accumulate(
+        counters.data().get(), counters.data().get() + counters.size(), 0_sz);
     result.num_aborted = track_counts.alive + track_counts.queued;
     result.num_track_slots = stepper_->state().size();
 

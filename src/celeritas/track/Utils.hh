@@ -54,9 +54,9 @@ make_track_id(NativeCRef<TrackInitParamsData> const&,
               NativeRef<TrackInitStateData>& state,
               EventId event)
 {
-    using namespace celeritas::literals;
     CELER_EXPECT(event < state.track_counters.size());
-    auto result = atomic_add(&state.track_counters[event], 1_sz);
+    auto result
+        = atomic_add(&state.track_counters[event], TrackId::size_type{1});
     return TrackId{result};
 }
 

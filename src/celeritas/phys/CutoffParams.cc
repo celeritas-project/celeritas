@@ -74,6 +74,8 @@ CutoffParams::CutoffParams(Input const& input)
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.particles);
 
+    using namespace celeritas::literals;
+
     ScopedMem record_mem("CutoffParams.construct");
 
     HostValue host_data;
@@ -89,7 +91,7 @@ CutoffParams::CutoffParams(Input const& input)
     std::vector<ParticleCutoff> cutoffs;
 
     // Initialize mapping of particle ID to index with invalid indices
-    std::vector<size_type> id_to_index(input.particles->size(), size_type(-1));
+    std::vector<size_type> id_to_index(input.particles->size(), -1_sz);
     size_type current_index = 0;
 
     for (auto const& pdg : CutoffParams::pdg_numbers())

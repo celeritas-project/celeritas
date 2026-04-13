@@ -258,7 +258,7 @@ void partition_initializers(
     size_t temp_storage_bytes = 0;
     // CUB doesn't support in-place partitioning, so use a counting iterator
     // because the indices are always sequential from zero
-    auto start = thrust::make_counting_iterator<size_type>(0_sz);
+    auto start = thrust::make_counting_iterator<size_type>(0);
     auto data = device_pointer_cast(init.indices.data());
     auto cub_error_code
         = cub::DevicePartition::Flagged(nullptr,
