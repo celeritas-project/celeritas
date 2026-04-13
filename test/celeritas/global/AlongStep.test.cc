@@ -783,9 +783,28 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
+        if (CELERITAS_DEBUG
+            && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // In float32, step length ~6e-7 cm is below machine epsilon at
+            // r~125 cm, so tracks fail to change position
+            EXPECT_FALSE(scoped_log.empty()) << scoped_log;
+        }
+        else
+        {
+            EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+        }
         EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4);
-        EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-11);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-11);
+        }
+        else
+        {
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-6);
+        }
     }
 }
 
