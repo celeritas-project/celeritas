@@ -57,7 +57,7 @@ template<class F>
 class KernelLauncher
 {
     static_assert(
-        Launchable_v<F>,
+        is_launchable_v<F>,
         R"(Launched action must be a trivially copyable function object)");
 
   public:

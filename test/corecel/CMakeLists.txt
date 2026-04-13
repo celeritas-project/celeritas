@@ -27,6 +27,7 @@ celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
 celeritas_add_test(OpaqueId.test.cc)
+celeritas_add_test(Types.test.cc)
 
 # Cont
 celeritas_add_test(cont/Array.test.cc)

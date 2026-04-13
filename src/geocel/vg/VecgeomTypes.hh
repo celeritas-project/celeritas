@@ -75,7 +75,7 @@ using vgbvh_real_type = double;
 #if VECGEOM_VERSION >= 0x020000
 // Allow trivial copying of tuple between device/host
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
-struct TriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
 {
 };
 #endif

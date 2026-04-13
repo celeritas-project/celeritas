@@ -164,25 +164,25 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class Value_E, class Value_A>
+template<class ValueE, class ValueA>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
-                                       Value_E&& expected,
-                                       Value_A&& actual)
+                                       ValueE&& expected,
+                                       ValueA&& actual)
 {
-    using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
-    using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
+    using VE = std::remove_cv_t<std::remove_reference_t<ValueE>>;
+    using VA = std::remove_cv_t<std::remove_reference_t<ValueA>>;
 
     static_assert(can_soft_equiv<VE, VA>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<VE, VA>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
+    using Value_t = typename SoftPrecisionType<VE, VA>::type;
+    using BinaryOp = EqualOr<SoftEqual<Value_t>>;
 
-    return IsSoftEquivImpl(static_cast<ValueT>(expected),
+    return IsSoftEquivImpl(static_cast<Value_t>(expected),
                            expected_expr,
-                           static_cast<ValueT>(actual),
+                           static_cast<Value_t>(actual),
                            actual_expr,
                            BinaryOp{});
 }
@@ -206,14 +206,14 @@ template<class Value_E, class Value_A, class T>
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<VE, VA>::type;
+    using Value_t = typename SoftPrecisionType<VE, VA>::type;
 
     return IsSoftEquivImpl(
-        static_cast<ValueT>(expected),
+        static_cast<Value_t>(expected),
         expected_expr,
-        static_cast<ValueT>(actual),
+        static_cast<Value_t>(actual),
         actual_expr,
-        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -691,8 +691,9 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
+    using Value_t =
+        typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using BinaryOp = EqualOr<SoftEqual<Value_t>>;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(
@@ -720,7 +721,8 @@ template<class ContainerE, class ContainerA, class T>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using Value_t =
+        typename SoftPrecisionType<value_type_E, value_type_A>::type;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -728,7 +730,7 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//

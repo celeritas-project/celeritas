@@ -443,10 +443,10 @@ CELER_FUNCTION RanluxppArray9 compute_modulus(RanluxppArray18 const& mul)
     }
 
     // Make a subspan of the last 9 elements of mul
-    auto mul_end = celeritas::make_span(mul).subspan<9, 9>();
+    auto mul_end = Span{mul}.subspan<9, 9>();
     static_assert(mul_end.size() == 9);
 
-    int64_t c = compute_remainder(mul_end, celeritas::make_span(r));
+    int64_t c = compute_remainder(mul_end, r);
 
     // To update r = r - c * m, it suffices to know c * (-2 ** 240 + 1)
     // because the 2 ** 576 will cancel out. Also note that c may be zero, but
@@ -633,8 +633,7 @@ CELER_FUNCTION RanluxppArray9 to_lcg(RanluxppNumber const& ranlux)
 CELER_FUNCTION RanluxppNumber to_ranlux(RanluxppArray9 const& lcg)
 {
     RanluxppNumber result;
-    int64_t c = compute_remainder(celeritas::make_span(lcg),
-                                  celeritas::make_span(result.number));
+    int64_t c = compute_remainder(lcg, result.number);
 
     // ranlux = t1 + t2 + c
     unsigned int carry = 0;
