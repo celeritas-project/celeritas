@@ -196,7 +196,6 @@ class BIHIntersectingVolFinderTest : public Test
         return result;
     }
 
-    std::vector<FastBBox> bboxes_;
     detail::BIHTreeRecord bih_tree_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
