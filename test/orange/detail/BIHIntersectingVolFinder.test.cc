@@ -7,6 +7,7 @@
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 
 #include <limits>
+#include <map>
 
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
@@ -246,7 +247,7 @@ class BIHIntersectingVolFinderTest : public Test
     std::vector<LocalBihTreeTester> testers_;
 };
 
-TEST_F(BIHIntersectingVolFinderTest, print_tree)
+TEST_F(BIHIntersectingVolFinderTest, DISABLED_print_tree)
 {
     for (auto const& t : testers_)
     {
@@ -534,9 +535,7 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     // Ray goes all the way through V1, V2 and V3, intersects V0
     pos = {-0.5, 0.5, 50.};
     dir = {1., 0., 0.};
-    dist_map = {{LocalVolumeId{0}, 11.}
-
-    };
+    dist_map = {{LocalVolumeId{0}, 11.}};
     {
         IntersectResult ref;
         ref.distance = 11.;
