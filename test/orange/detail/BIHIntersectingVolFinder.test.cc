@@ -185,27 +185,21 @@ class BIHIntersectingVolFinderTest : public Test
   public:
     using Ray = LocalBihTreeTester::Ray;
     using DistMap = MockIntersector::DistMap;
+    using VecBBox = detail::BIHBuilder::VecBBox;
 
   protected:
     void SetUp() override
     {
-        LocalBihTreeTester::VecBBox bboxes = {
-            FastBBox::from_infinite(),
-            {{0, 0, 0}, {1.6f, 1, 100}},
-            {{1.2f, 0, 0}, {2.8f, 1, 100}},
-            {{2.8f, 0, 0}, {5, 1, 100}},
-            {{0, -1, 0}, {5, 0, 100}},
-            {{0, -1, 0}, {5, 0, 100}},
-        };
-
         testers_.reserve(3);
-        for (auto leaf_size : {1, 3, 6})
+        for (auto leaf_size : {1, 4, 8})
         {
             inp::BIHBuilder setup;
             setup.max_leaf_size = leaf_size;
-            testers_.emplace_back(bboxes, setup);
+            testers_.emplace_back(this->make_bboxes(), setup);
         }
     }
+
+    virtual VecBBox make_bboxes() const = 0;
 
     // Get results for a ray across all leaf-size intersectors
     IntersectResult
@@ -247,7 +241,23 @@ class BIHIntersectingVolFinderTest : public Test
     std::vector<LocalBihTreeTester> testers_;
 };
 
-TEST_F(BIHIntersectingVolFinderTest, DISABLED_print_tree)
+class PathologicalBihTest : public BIHIntersectingVolFinderTest
+{
+  public:
+    VecBBox make_bboxes() const
+    {
+        return {
+            FastBBox::from_infinite(),
+            {{0, 0, 0}, {1.6f, 1, 100}},
+            {{1.2f, 0, 0}, {2.8f, 1, 100}},
+            {{2.8f, 0, 0}, {5, 1, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+            {{0, -1, 0}, {5, 0, 100}},
+        };
+    }
+};
+
+TEST_F(PathologicalBihTest, DISABLED_print_tree)
 {
     for (auto const& t : testers_)
     {
@@ -257,7 +267,7 @@ TEST_F(BIHIntersectingVolFinderTest, DISABLED_print_tree)
 
 // Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
-TEST_F(BIHIntersectingVolFinderTest, outside_first)
+TEST_F(PathologicalBihTest, outside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -375,7 +385,7 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
 
 // Test the case where the ray starts somewhere inside a bbox and this bbox
 // contains first intersecting volume.
-TEST_F(BIHIntersectingVolFinderTest, inside_first)
+TEST_F(PathologicalBihTest, inside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -509,7 +519,7 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
 
 // Test the case where the first intersection does not yields the first volume
 // collision
-TEST_F(BIHIntersectingVolFinderTest, not_first)
+TEST_F(PathologicalBihTest, not_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
