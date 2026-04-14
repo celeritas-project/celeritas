@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 
+#include <limits>
+
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/univ/detail/Types.hh"
@@ -137,13 +139,6 @@ class LocalBihTreeTester
     }
 
     template<class F>
-    detail::Intersection operator()(Ray ray, F&& visit_vol) const
-    {
-        detail::BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
-        return find_volume(ray, std::forward<F>(visit_vol));
-    }
-
-    template<class F>
     detail::Intersection
     operator()(Ray ray, F&& visit_vol, real_type max_dist) const
     {
@@ -196,22 +191,22 @@ class BIHIntersectingVolFinderTest : public Test
             {{0, -1, 0}, {5, 0, 100}},
         };
 
-        intersectors_.reserve(3);
+        testers_.reserve(3);
         for (auto leaf_size : range(size_type{1}, size_type{4}))
         {
-            intersectors_.emplace_back(bboxes,
-                                       detail::BIHBuilder::Input{leaf_size});
+            testers_.emplace_back(bboxes, detail::BIHBuilder::Input{leaf_size});
         }
     }
 
     // Get results for a ray across all leaf-size intersectors
-    IntersectResult get_result(Ray ray, DistMap const& dist_map)
+    IntersectResult
+    get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
         IntersectResult result;
-        for (auto& intersector : intersectors_)
+        for (auto& tester : testers_)
         {
             MockIntersector visit_vol{dist_map};
-            auto intersection = intersector(ray, visit_vol);
+            auto intersection = tester(ray, visit_vol, max_search_dist);
             auto hit = intersection
                            ? static_cast<int>(intersection.surface.id().value())
                            : IntersectResult::no_hit;
@@ -234,30 +229,13 @@ class BIHIntersectingVolFinderTest : public Test
 
     // Get results for a ray across all leaf-size intersectors, with a max
     // search distance
-    IntersectResult
-    get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
+    IntersectResult get_result(Ray ray, DistMap const& dist_map)
     {
-        IntersectResult result;
-        for (auto& intersector : intersectors_)
-        {
-            MockIntersector visit_vol{dist_map};
-            auto intersection = intersector(ray, visit_vol, max_search_dist);
-            if (result.hit_count.empty())
-            {
-                result.distance = intersection.distance;
-                if (intersection)
-                {
-                    result.hit = intersection.surface.id().value();
-                }
-            }
-            result.hit_count.push_back(static_cast<int>(visit_vol.hit_count()));
-            result.miss_count.push_back(
-                static_cast<int>(visit_vol.miss_count()));
-        }
-        return result;
+        constexpr auto infr = std::numeric_limits<real_type>::infinity();
+        return get_result(ray, dist_map, infr);
     }
 
-    std::vector<LocalBihTreeTester> intersectors_;
+    std::vector<LocalBihTreeTester> testers_;
 };
 
 // Test the case where the ray starts outside the bbox and the first bbox
