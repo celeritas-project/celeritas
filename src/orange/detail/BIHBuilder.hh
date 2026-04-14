@@ -10,11 +10,8 @@
 #include <variant>
 #include <vector>
 
-#include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "geocel/BoundingBox.hh"
 
-#include "BIHPartitioner.hh"
 #include "../OrangeData.hh"
 #include "../inp/Bih.hh"
 
