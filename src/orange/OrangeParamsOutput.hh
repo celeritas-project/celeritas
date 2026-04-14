@@ -7,11 +7,20 @@
 #pragma once
 #include <memory>
 
+#include "corecel/Types.hh"
 #include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class OrangeParams;
+template<Ownership W, MemSpace M>
+struct BIHTreeData;
+namespace detail
+{
+struct BIHTreeRecord;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Save detailed debugging information about the ORANGE geometry.
@@ -45,6 +54,11 @@ class OrangeParamsOutput final : public OutputInterface
   private:
     SPConstOrangeParams orange_;
 };
+
+//---------------------------------------------------------------------------//
+// Print a BIH structure to a JSON string for debugging
+std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
+                               NativeCRef<BIHTreeData> const& data);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

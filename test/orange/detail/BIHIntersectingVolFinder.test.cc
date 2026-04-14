@@ -8,6 +8,7 @@
 
 #include <limits>
 
+#include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/univ/detail/Types.hh"
@@ -146,6 +147,11 @@ class LocalBihTreeTester
         return find_volume(ray, std::forward<F>(visit_vol), max_dist);
     }
 
+    friend std::string to_string(LocalBihTreeTester const& btt)
+    {
+        return dump_bih_structure(btt.bih_tree_, btt.ref_storage_);
+    }
+
   private:
     detail::BIHTreeRecord bih_tree_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
@@ -192,9 +198,11 @@ class BIHIntersectingVolFinderTest : public Test
         };
 
         testers_.reserve(3);
-        for (auto leaf_size : range(size_type{1}, size_type{4}))
+        for (auto leaf_size : {1, 3, 6})
         {
-            testers_.emplace_back(bboxes, detail::BIHBuilder::Input{leaf_size});
+            inp::BIHBuilder setup;
+            setup.max_leaf_size = leaf_size;
+            testers_.emplace_back(bboxes, setup);
         }
     }
 
@@ -237,6 +245,14 @@ class BIHIntersectingVolFinderTest : public Test
 
     std::vector<LocalBihTreeTester> testers_;
 };
+
+TEST_F(BIHIntersectingVolFinderTest, print_tree)
+{
+    for (auto const& t : testers_)
+    {
+        cout << to_string(t) << endl;
+    }
+}
 
 // Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
