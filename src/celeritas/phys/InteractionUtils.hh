@@ -6,12 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "geocel/Types.hh"
-#include "celeritas/Constants.hh"
 
 namespace celeritas
 {
