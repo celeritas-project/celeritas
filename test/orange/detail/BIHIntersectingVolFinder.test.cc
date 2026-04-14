@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 
+#include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
@@ -18,6 +19,7 @@ namespace test
 //---------------------------------------------------------------------------//
 
 // Mock class with operator() to serve as a visit_vol functor
+// Acts as though the volume ID has a single surface with the same ID
 class MockIntersector
 {
   public:
@@ -27,8 +29,9 @@ class MockIntersector
   public:
     explicit MockIntersector(DistMap const& dist_map) : dist_map_(dist_map) {}
 
-    Intersection operator()(LocalVolumeId const& vol_id, real_type max_distance)
+    Intersection operator()(LocalVolumeId vol_id, real_type max_distance)
     {
+        CELER_EXPECT(vol_id);
         auto iter = dist_map_.find(vol_id);
         if (iter == dist_map_.end())
         {
@@ -43,14 +46,14 @@ class MockIntersector
             return {};
         }
 
-        detail::OnLocalSurface on_surface{
-            LocalSurfaceId{vol_id.unchecked_get()}, Sense::outside};
+        detail::OnLocalSurface on_surface{LocalSurfaceId{*vol_id},
+                                          Sense::outside};
         ++hits_;
         return Intersection{on_surface, iter->second};
     }
 
-    size_type hits() const { return hits_; }
-    size_type misses() const { return misses_; }
+    size_type hit_count() const { return hits_; }
+    size_type miss_count() const { return misses_; }
 
   private:
     DistMap const& dist_map_;
@@ -60,10 +63,12 @@ class MockIntersector
 
 struct IntersectResult
 {
+    static constexpr int no_hit{-1};
+
     real_type distance{};
-    LocalVolumeId vol_id{};
-    std::vector<int> hits;
-    std::vector<int> misses;
+    int hit{no_hit};
+    std::vector<int> hit_count;
+    std::vector<int> miss_count;
 };
 
 std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
@@ -72,9 +77,9 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
     os << "/*** INTERSECT RESULT ***/\n"
           "IntersectResult ref;\n"
        << CELER_REF_ATTR(distance)
-       << CELER_REF_ATTR(vol_id)
-       << CELER_REF_ATTR(hits)
-       << CELER_REF_ATTR(misses)
+       << CELER_REF_ATTR(hit)
+       << CELER_REF_ATTR(hit_count)
+       << CELER_REF_ATTR(miss_count)
        << "EXPECT_REF_EQ(ref, result) << result;\n"
           "/*** END CODE ***/\n";
     // clang-format on
@@ -102,9 +107,9 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
         result.fail() << "Expected distance: " << repr(val1.distance)
                       << " but got " << repr(val2.distance);
     }
-    IRE_COMPARE(vol_id);
-    IRE_COMPARE(hits);
-    IRE_COMPARE(misses);
+    IRE_COMPARE(hit);
+    IRE_COMPARE(hit_count);
+    IRE_COMPARE(miss_count);
 
 #undef IRE_COMPARE
     return result;
@@ -117,13 +122,13 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
  * This class owns the BIH tree storage and provides intersection testing via
  * a locally-constructed \c BIHIntersectingVolFinder.
  */
-class BihTreeIntersector
+class LocalBihTreeTester
 {
   public:
     using VecBBox = detail::BIHBuilder::VecBBox;
     using Ray = detail::BIHIntersectingVolFinder::Ray;
 
-    BihTreeIntersector(VecBBox bboxes, detail::BIHBuilder::Input input)
+    LocalBihTreeTester(VecBBox bboxes, detail::BIHBuilder::Input input)
     {
         detail::BIHBuilder build(&storage_, input);
         detail::BIHBuilder::SetLocalVolId implicit_vol_ids;
@@ -176,13 +181,13 @@ class BihTreeIntersector
 class BIHIntersectingVolFinderTest : public Test
 {
   public:
-    using Ray = BihTreeIntersector::Ray;
+    using Ray = LocalBihTreeTester::Ray;
     using DistMap = MockIntersector::DistMap;
 
   protected:
     void SetUp() override
     {
-        BihTreeIntersector::VecBBox bboxes = {
+        LocalBihTreeTester::VecBBox bboxes = {
             FastBBox::from_infinite(),
             {{0, 0, 0}, {1.6f, 1, 100}},
             {{1.2f, 0, 0}, {2.8f, 1, 100}},
@@ -207,17 +212,22 @@ class BIHIntersectingVolFinderTest : public Test
         {
             MockIntersector visit_vol{dist_map};
             auto intersection = intersector(ray, visit_vol);
-            if (result.hits.empty())
+            auto hit = intersection
+                           ? static_cast<int>(intersection.surface.id().value())
+                           : IntersectResult::no_hit;
+            if (result.hit_count.empty())
             {
                 result.distance = intersection.distance;
-                if (intersection)
-                {
-                    result.vol_id = LocalVolumeId{
-                        intersection.surface.id().unchecked_get()};
-                }
+                result.hit = hit;
             }
-            result.hits.push_back(static_cast<int>(visit_vol.hits()));
-            result.misses.push_back(static_cast<int>(visit_vol.misses()));
+            else
+            {
+                EXPECT_EQ(result.distance, intersection.distance);
+                EXPECT_EQ(result.hit, hit);
+            }
+            result.hit_count.push_back(static_cast<int>(visit_vol.hit_count()));
+            result.miss_count.push_back(
+                static_cast<int>(visit_vol.miss_count()));
         }
         return result;
     }
@@ -232,22 +242,22 @@ class BIHIntersectingVolFinderTest : public Test
         {
             MockIntersector visit_vol{dist_map};
             auto intersection = intersector(ray, visit_vol, max_search_dist);
-            if (result.hits.empty())
+            if (result.hit_count.empty())
             {
                 result.distance = intersection.distance;
                 if (intersection)
                 {
-                    result.vol_id = LocalVolumeId{
-                        intersection.surface.id().unchecked_get()};
+                    result.hit = intersection.surface.id().value();
                 }
             }
-            result.hits.push_back(static_cast<int>(visit_vol.hits()));
-            result.misses.push_back(static_cast<int>(visit_vol.misses()));
+            result.hit_count.push_back(static_cast<int>(visit_vol.hit_count()));
+            result.miss_count.push_back(
+                static_cast<int>(visit_vol.miss_count()));
         }
         return result;
     }
 
-    std::vector<BihTreeIntersector> intersectors_;
+    std::vector<LocalBihTreeTester> intersectors_;
 };
 
 // Test the case where the ray starts outside the bbox and the first bbox
@@ -269,9 +279,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.0;
-        ref.vol_id = LocalVolumeId{1};
-        ref.hits = {1, 1, 1};
-        ref.misses = {1, 1, 1};
+        ref.hit = 1;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -287,9 +297,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1;
-        ref.vol_id = LocalVolumeId{2};
-        ref.hits = {1, 1, 1};
-        ref.misses = {1, 1, 1};
+        ref.hit = 2;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -305,9 +315,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.0;
-        ref.vol_id = LocalVolumeId{3};
-        ref.hits = {3, 3, 3};
-        ref.misses = {1, 1, 1};
+        ref.hit = 3;
+        ref.hit_count = {3, 3, 3};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -319,9 +329,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{4};
-        ref.hits = {1, 1, 1};
-        ref.misses = {2, 2, 2};
+        ref.hit = 4;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {2, 2, 2};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -333,9 +343,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{5};
-        ref.hits = {2, 2, 2};
-        ref.misses = {1, 1, 1};
+        ref.hit = 5;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -347,9 +357,8 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.1;
-        ref.vol_id = LocalVolumeId{};
-        ref.hits = {0, 0, 0};
-        ref.misses = {3, 3, 3};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map, 1.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -361,9 +370,9 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{5};
-        ref.hits = {2, 2, 2};
-        ref.misses = {1, 1, 1};
+        ref.hit = 5;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 1.3);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -388,9 +397,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 0.5;
-        ref.vol_id = LocalVolumeId{0};
-        ref.hits = {2, 2, 2};
-        ref.misses = {0, 0, 0};
+        ref.hit = 0;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {0, 0, 0};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -407,9 +416,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 0.1;
-        ref.vol_id = LocalVolumeId{1};
-        ref.hits = {1, 1, 1};
-        ref.misses = {1, 1, 1};
+        ref.hit = 1;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -422,9 +431,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 1;
-        ref.vol_id = LocalVolumeId{2};
-        ref.hits = {1, 1, 1};
-        ref.misses = {1, 1, 1};
+        ref.hit = 2;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -440,9 +449,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 1.0;
-        ref.vol_id = LocalVolumeId{3};
-        ref.hits = {3, 3, 3};
-        ref.misses = {1, 1, 1};
+        ref.hit = 3;
+        ref.hit_count = {3, 3, 3};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -454,9 +463,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{4};
-        ref.hits = {1, 1, 1};
-        ref.misses = {2, 2, 2};
+        ref.hit = 4;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {2, 2, 2};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -468,9 +477,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{5};
-        ref.hits = {2, 2, 2};
-        ref.misses = {1, 1, 1};
+        ref.hit = 5;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -482,9 +491,8 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 0.1;
-        ref.vol_id = LocalVolumeId{};
-        ref.hits = {0, 0, 0};
-        ref.misses = {3, 3, 3};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map, 0.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -496,9 +504,9 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 1.2;
-        ref.vol_id = LocalVolumeId{5};
-        ref.hits = {2, 2, 2};
-        ref.misses = {1, 1, 1};
+        ref.hit = 5;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 1.6);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -522,9 +530,9 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 1.7;
-        ref.vol_id = LocalVolumeId{2};
-        ref.hits = {2, 2, 2};
-        ref.misses = {1, 1, 1};
+        ref.hit = 2;
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -538,9 +546,9 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 11.;
-        ref.vol_id = LocalVolumeId{0};
-        ref.hits = {1, 1, 1};
-        ref.misses = {3, 3, 3};
+        ref.hit = 0;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -552,9 +560,9 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 1.5;
-        ref.vol_id = LocalVolumeId{2};
-        ref.hits = {1, 1, 1};
-        ref.misses = {4, 4, 4};
+        ref.hit = 2;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {4, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -567,9 +575,8 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 0.8;
-        ref.vol_id = LocalVolumeId{};
-        ref.hits = {0, 0, 0};
-        ref.misses = {1, 1, 1};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 0.8);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -582,9 +589,9 @@ TEST_F(BIHIntersectingVolFinderTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 1.5;
-        ref.vol_id = LocalVolumeId{2};
-        ref.hits = {1, 1, 1};
-        ref.misses = {4, 4, 4};
+        ref.hit = 2;
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {4, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map, 2.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
