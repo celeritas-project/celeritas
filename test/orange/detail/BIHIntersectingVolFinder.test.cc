@@ -32,15 +32,15 @@ class MockIntersector
         auto iter = dist_map_.find(vol_id);
         if (iter == dist_map_.end())
         {
-            return {};
             ++misses_;
+            return {};
         }
 
         if (iter->second > max_distance)
         {
             // Distance is outside the maximum
-            return {};
             ++misses_;
+            return {};
         }
 
         detail::OnLocalSurface on_surface{
@@ -60,10 +60,10 @@ class MockIntersector
 
 struct IntersectResult
 {
-    int hits{0};
-    int misses{0};
     real_type distance{};
     LocalVolumeId vol_id{};
+    std::vector<int> hits;
+    std::vector<int> misses;
 };
 
 std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
@@ -71,10 +71,10 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
     // clang-format off
     os << "/*** INTERSECT RESULT ***/\n"
           "IntersectResult ref;\n"
-       << CELER_REF_ATTR(hits)
-       << CELER_REF_ATTR(misses)
        << CELER_REF_ATTR(distance)
        << CELER_REF_ATTR(vol_id)
+       << CELER_REF_ATTR(hits)
+       << CELER_REF_ATTR(misses)
        << "EXPECT_REF_EQ(ref, result) << result;\n"
           "/*** END CODE ***/\n";
     // clang-format on
@@ -103,10 +103,54 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
                       << " but got " << repr(val2.distance);
     }
     IRE_COMPARE(vol_id);
+    IRE_COMPARE(hits);
+    IRE_COMPARE(misses);
 
 #undef IRE_COMPARE
     return result;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build a BIH tree and test ray intersections with volumes.
+ *
+ * This class owns the BIH tree storage and provides intersection testing via
+ * a locally-constructed \c BIHIntersectingVolFinder.
+ */
+class BihTreeIntersector
+{
+  public:
+    using VecBBox = detail::BIHBuilder::VecBBox;
+    using Ray = detail::BIHIntersectingVolFinder::Ray;
+
+    BihTreeIntersector(VecBBox bboxes, detail::BIHBuilder::Input input)
+    {
+        detail::BIHBuilder build(&storage_, input);
+        detail::BIHBuilder::SetLocalVolId implicit_vol_ids;
+        bih_tree_ = build(std::move(bboxes), implicit_vol_ids);
+        ref_storage_ = storage_;
+    }
+
+    template<class F>
+    detail::Intersection operator()(Ray ray, F&& visit_vol) const
+    {
+        detail::BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
+        return find_volume(ray, std::forward<F>(visit_vol));
+    }
+
+    template<class F>
+    detail::Intersection
+    operator()(Ray ray, F&& visit_vol, real_type max_dist) const
+    {
+        detail::BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
+        return find_volume(ray, std::forward<F>(visit_vol), max_dist);
+    }
+
+  private:
+    detail::BIHTreeRecord bih_tree_;
+    BIHTreeData<Ownership::value, MemSpace::host> storage_;
+    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+};
 
 //---------------------------------------------------------------------------//
 /* The BIHIntersectingVolFinder class is tested with the following geometry,
@@ -132,15 +176,13 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 class BIHIntersectingVolFinderTest : public Test
 {
   public:
-    using BIHBuilder = detail::BIHBuilder;
-    using BIHIntersectingVolFinder = detail::BIHIntersectingVolFinder;
-    using Ray = detail::BIHIntersectingVolFinder::Ray;
+    using Ray = BihTreeIntersector::Ray;
     using DistMap = MockIntersector::DistMap;
 
   protected:
-    void setup(size_type max_leaf_size)
+    void SetUp() override
     {
-        BIHBuilder::VecBBox bboxes = {
+        BihTreeIntersector::VecBBox bboxes = {
             FastBBox::from_infinite(),
             {{0, 0, 0}, {1.6f, 1, 100}},
             {{1.2f, 0, 0}, {2.8f, 1, 100}},
@@ -149,168 +191,181 @@ class BIHIntersectingVolFinderTest : public Test
             {{0, -1, 0}, {5, 0, 100}},
         };
 
-        BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
-        BIHBuilder::SetLocalVolId implicit_vol_ids_;
-        bih_tree_ = build(std::move(bboxes), implicit_vol_ids_);
-        ref_storage_ = storage_;
+        intersectors_.reserve(3);
+        for (auto leaf_size : range(size_type{1}, size_type{4}))
+        {
+            intersectors_.emplace_back(bboxes,
+                                       detail::BIHBuilder::Input{leaf_size});
+        }
     }
 
-    // Get the result for a single ray
+    // Get results for a ray across all leaf-size intersectors
     IntersectResult get_result(Ray ray, DistMap const& dist_map)
     {
-        MockIntersector visit_vol{dist_map};
-
-        auto find_volume = BIHIntersectingVolFinder(bih_tree_, ref_storage_);
-        auto intersection = find_volume(ray, visit_vol);
-
         IntersectResult result;
-        result.hits = visit_vol.hits();
-        result.misses = visit_vol.misses();
-        result.distance = intersection.distance;
-        if (intersection)
+        for (auto& intersector : intersectors_)
         {
-            result.vol_id
-                = LocalVolumeId{intersection.surface.id().unchecked_get()};
+            MockIntersector visit_vol{dist_map};
+            auto intersection = intersector(ray, visit_vol);
+            if (result.hits.empty())
+            {
+                result.distance = intersection.distance;
+                if (intersection)
+                {
+                    result.vol_id = LocalVolumeId{
+                        intersection.surface.id().unchecked_get()};
+                }
+            }
+            result.hits.push_back(static_cast<int>(visit_vol.hits()));
+            result.misses.push_back(static_cast<int>(visit_vol.misses()));
         }
         return result;
     }
 
-    // Get the result for a single ray, with a max search distance
+    // Get results for a ray across all leaf-size intersectors, with a max
+    // search distance
     IntersectResult
     get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
-        MockIntersector visit_vol{dist_map};
-
-        auto find_volume = BIHIntersectingVolFinder(bih_tree_, ref_storage_);
-        auto intersection = find_volume(ray, visit_vol, max_search_dist);
-
         IntersectResult result;
-        result.hits = visit_vol.hits();
-        result.misses = visit_vol.misses();
-        result.distance = intersection.distance;
-        if (intersection)
+        for (auto& intersector : intersectors_)
         {
-            result.vol_id
-                = LocalVolumeId{intersection.surface.id().unchecked_get()};
+            MockIntersector visit_vol{dist_map};
+            auto intersection = intersector(ray, visit_vol, max_search_dist);
+            if (result.hits.empty())
+            {
+                result.distance = intersection.distance;
+                if (intersection)
+                {
+                    result.vol_id = LocalVolumeId{
+                        intersection.surface.id().unchecked_get()};
+                }
+            }
+            result.hits.push_back(static_cast<int>(visit_vol.hits()));
+            result.misses.push_back(static_cast<int>(visit_vol.misses()));
         }
         return result;
     }
 
-    detail::BIHTreeRecord bih_tree_;
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
-    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+    std::vector<BihTreeIntersector> intersectors_;
 };
 
 // Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
 TEST_F(BIHIntersectingVolFinderTest, outside_first)
 {
-    auto run_test = [&](size_type max_leaf_size) {
-        this->setup(max_leaf_size);
-        Real3 pos, dir;
-        DistMap dist_map;
+    Real3 pos, dir;
+    DistMap dist_map;
 
-        // Ray intersects V1 from the left
-        pos = {-1., 0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{0}, 10},
-            {LocalVolumeId{1}, 1},
-            {LocalVolumeId{2}, 1.2},
-            {LocalVolumeId{3}, 2.8},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 1.0;
-            ref.vol_id = LocalVolumeId{1};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V2 from above
-        pos = {2., 2., 50.};
-        dir = {0., -1., 0.};
-        dist_map = {
-            {LocalVolumeId{2}, 1.},
-            {LocalVolumeId{4}, 2.},
-            {LocalVolumeId{5}, 2.},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 1;
-            ref.vol_id = LocalVolumeId{2};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V3 from the right
-        pos = {6, 0.5, 50.};
-        dir = {-1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{1}, 4.4},
-            {LocalVolumeId{2}, 3.2},
-            {LocalVolumeId{3}, 1.},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 1.0;
-            ref.vol_id = LocalVolumeId{3};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V4 from the left
-        pos = {-0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.2}, {LocalVolumeId{5}, 1.3}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{4};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left
-        pos = {-0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{5};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left, max search distance is closer
-        pos = {-0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.1;
-            ref.vol_id = LocalVolumeId{};
-            auto result = this->get_result({pos, dir}, dist_map, 1.1);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left, max search distance is further
-        pos = {-0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{5};
-            auto result = this->get_result({pos, dir}, dist_map, 1.3);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
+    // Ray intersects V1 from the left
+    pos = {-1., 0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{0}, 10},
+        {LocalVolumeId{1}, 1},
+        {LocalVolumeId{2}, 1.2},
+        {LocalVolumeId{3}, 2.8},
     };
-
-    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(max_leaf_size);
+        IntersectResult ref;
+        ref.distance = 1.0;
+        ref.vol_id = LocalVolumeId{1};
+        ref.hits = {1, 1, 1};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V2 from above
+    pos = {2., 2., 50.};
+    dir = {0., -1., 0.};
+    dist_map = {
+        {LocalVolumeId{2}, 1.},
+        {LocalVolumeId{4}, 2.},
+        {LocalVolumeId{5}, 2.},
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 1;
+        ref.vol_id = LocalVolumeId{2};
+        ref.hits = {1, 1, 1};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V3 from the right
+    pos = {6, 0.5, 50.};
+    dir = {-1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{1}, 4.4},
+        {LocalVolumeId{2}, 3.2},
+        {LocalVolumeId{3}, 1.},
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 1.0;
+        ref.vol_id = LocalVolumeId{3};
+        ref.hits = {3, 3, 3};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V4 from the left
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.2}, {LocalVolumeId{5}, 1.3}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{4};
+        ref.hits = {1, 1, 1};
+        ref.misses = {2, 2, 2};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{5};
+        ref.hits = {2, 2, 2};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left, max search distance is closer
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.1;
+        ref.vol_id = LocalVolumeId{};
+        ref.hits = {0, 0, 0};
+        ref.misses = {3, 3, 3};
+        auto result = this->get_result({pos, dir}, dist_map, 1.1);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left, max search distance is further
+    pos = {-0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{5};
+        ref.hits = {2, 2, 2};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map, 1.3);
+        EXPECT_REF_EQ(ref, result) << result;
     }
 }
 
@@ -318,127 +373,134 @@ TEST_F(BIHIntersectingVolFinderTest, outside_first)
 // contains first intersecting volume.
 TEST_F(BIHIntersectingVolFinderTest, inside_first)
 {
-    auto run_test = [&](size_type max_leaf_size) {
-        this->setup(max_leaf_size);
-        Real3 pos, dir;
-        DistMap dist_map;
+    Real3 pos, dir;
+    DistMap dist_map;
 
-        // Ray starts in VO and intersects V0
-        pos = {-1., 0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{0}, 0.5},
-            {LocalVolumeId{1}, 1},
-            {LocalVolumeId{2}, 1.2},
-            {LocalVolumeId{3}, 2.8},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 0.5;
-            ref.vol_id = LocalVolumeId{0};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray starts in V1 and intersects V1
-        pos = {1., 0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{0}, 10},
-            {LocalVolumeId{1}, 0.1},
-            {LocalVolumeId{2}, 0.7},
-            {LocalVolumeId{3}, 2.3},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 0.1;
-            ref.vol_id = LocalVolumeId{1};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray starts in V2 and intersects V2
-        pos = {2., 2., 50.};
-        dir = {0., -1., 0.};
-        dist_map = {{LocalVolumeId{2}, 1.},
-                    {LocalVolumeId{4}, 2.},
-                    {LocalVolumeId{5}, 2.}};
-        {
-            IntersectResult ref;
-            ref.distance = 1;
-            ref.vol_id = LocalVolumeId{2};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray starts in V3 and intersects V3
-        pos = {4, 0.5, 50.};
-        dir = {-1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{1}, 2.4},
-            {LocalVolumeId{2}, 1.2},
-            {LocalVolumeId{3}, 1.},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 1.0;
-            ref.vol_id = LocalVolumeId{3};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V4 from the left
-        pos = {0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.2}, {LocalVolumeId{5}, 1.3}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{4};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left
-        pos = {0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{5};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left, max search distance is closer
-        pos = {0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 0.1;
-            ref.vol_id = LocalVolumeId{};
-            auto result = this->get_result({pos, dir}, dist_map, 0.1);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray intersects V5 from the left, max search distance is further
-        pos = {0.5, -0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.2;
-            ref.vol_id = LocalVolumeId{5};
-            auto result = this->get_result({pos, dir}, dist_map, 1.6);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
+    // Ray starts in VO and intersects V0
+    pos = {-1., 0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{0}, 0.5},
+        {LocalVolumeId{1}, 1},
+        {LocalVolumeId{2}, 1.2},
+        {LocalVolumeId{3}, 2.8},
     };
-
-    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(max_leaf_size);
+        IntersectResult ref;
+        ref.distance = 0.5;
+        ref.vol_id = LocalVolumeId{0};
+        ref.hits = {2, 2, 2};
+        ref.misses = {0, 0, 0};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray starts in V1 and intersects V1
+    pos = {1., 0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{0}, 10},
+        {LocalVolumeId{1}, 0.1},
+        {LocalVolumeId{2}, 0.7},
+        {LocalVolumeId{3}, 2.3},
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 0.1;
+        ref.vol_id = LocalVolumeId{1};
+        ref.hits = {1, 1, 1};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray starts in V2 and intersects V2
+    pos = {2., 2., 50.};
+    dir = {0., -1., 0.};
+    dist_map = {
+        {LocalVolumeId{2}, 1.}, {LocalVolumeId{4}, 2.}, {LocalVolumeId{5}, 2.}};
+    {
+        IntersectResult ref;
+        ref.distance = 1;
+        ref.vol_id = LocalVolumeId{2};
+        ref.hits = {1, 1, 1};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray starts in V3 and intersects V3
+    pos = {4, 0.5, 50.};
+    dir = {-1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{1}, 2.4},
+        {LocalVolumeId{2}, 1.2},
+        {LocalVolumeId{3}, 1.},
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 1.0;
+        ref.vol_id = LocalVolumeId{3};
+        ref.hits = {3, 3, 3};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V4 from the left
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.2}, {LocalVolumeId{5}, 1.3}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{4};
+        ref.hits = {1, 1, 1};
+        ref.misses = {2, 2, 2};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{5};
+        ref.hits = {2, 2, 2};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left, max search distance is closer
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 0.1;
+        ref.vol_id = LocalVolumeId{};
+        ref.hits = {0, 0, 0};
+        ref.misses = {3, 3, 3};
+        auto result = this->get_result({pos, dir}, dist_map, 0.1);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray intersects V5 from the left, max search distance is further
+    pos = {0.5, -0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{4}, 1.3}, {LocalVolumeId{5}, 1.2}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.2;
+        ref.vol_id = LocalVolumeId{5};
+        ref.hits = {2, 2, 2};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map, 1.6);
+        EXPECT_REF_EQ(ref, result) << result;
     }
 }
 
@@ -446,83 +508,85 @@ TEST_F(BIHIntersectingVolFinderTest, inside_first)
 // collision
 TEST_F(BIHIntersectingVolFinderTest, not_first)
 {
-    auto run_test = [&](size_type max_leaf_size) {
-        this->setup(max_leaf_size);
-        Real3 pos, dir;
-        DistMap dist_map;
+    Real3 pos, dir;
+    DistMap dist_map;
 
-        // Ray goes through V1 but intersects with V2 first
-        pos = {-0.5, 0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {
-            {LocalVolumeId{1}, 2.0},
-            {LocalVolumeId{2}, 1.7},
-            {LocalVolumeId{3}, 3.3},
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 1.7;
-            ref.vol_id = LocalVolumeId{2};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray goes all the way through V1, V2 and V3, intersects V0
-        pos = {-0.5, 0.5, 50.};
-        dir = {1., 0., 0.};
-        dist_map = {{LocalVolumeId{0}, 11.}
-
-        };
-        {
-            IntersectResult ref;
-            ref.distance = 11.;
-            ref.vol_id = LocalVolumeId{0};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray goes through V4 and V5 and intersects with V2
-        pos = {1.5, -2, 50.};
-        dir = {0., 1., 0.};
-        dist_map = {{LocalVolumeId{2}, 1.5}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.5;
-            ref.vol_id = LocalVolumeId{2};
-            auto result = this->get_result({pos, dir}, dist_map);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray goes through V4 and V5 and intersects with V2, max search is
-        // closer
-        pos = {1.5, -2, 50.};
-        dir = {0., 1., 0.};
-        dist_map = {{LocalVolumeId{2}, 1.5}};
-        {
-            IntersectResult ref;
-            ref.distance = 0.8;
-            ref.vol_id = LocalVolumeId{};
-            auto result = this->get_result({pos, dir}, dist_map, 0.8);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
-
-        // Ray goes through V4 and V5 and intersects with V2, max search is
-        // further
-        pos = {1.5, -2, 50.};
-        dir = {0., 1., 0.};
-        dist_map = {{LocalVolumeId{2}, 1.5}};
-        {
-            IntersectResult ref;
-            ref.distance = 1.5;
-            ref.vol_id = LocalVolumeId{2};
-            auto result = this->get_result({pos, dir}, dist_map, 2.1);
-            EXPECT_REF_EQ(ref, result) << result;
-        }
+    // Ray goes through V1 but intersects with V2 first
+    pos = {-0.5, 0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {
+        {LocalVolumeId{1}, 2.0},
+        {LocalVolumeId{2}, 1.7},
+        {LocalVolumeId{3}, 3.3},
     };
-
-    for (auto max_leaf_size : range(1, 4))
     {
-        run_test(max_leaf_size);
+        IntersectResult ref;
+        ref.distance = 1.7;
+        ref.vol_id = LocalVolumeId{2};
+        ref.hits = {2, 2, 2};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray goes all the way through V1, V2 and V3, intersects V0
+    pos = {-0.5, 0.5, 50.};
+    dir = {1., 0., 0.};
+    dist_map = {{LocalVolumeId{0}, 11.}
+
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 11.;
+        ref.vol_id = LocalVolumeId{0};
+        ref.hits = {1, 1, 1};
+        ref.misses = {3, 3, 3};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray goes through V4 and V5 and intersects with V2
+    pos = {1.5, -2, 50.};
+    dir = {0., 1., 0.};
+    dist_map = {{LocalVolumeId{2}, 1.5}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.5;
+        ref.vol_id = LocalVolumeId{2};
+        ref.hits = {1, 1, 1};
+        ref.misses = {4, 4, 4};
+        auto result = this->get_result({pos, dir}, dist_map);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray goes through V4 and V5 and intersects with V2, max search is
+    // closer
+    pos = {1.5, -2, 50.};
+    dir = {0., 1., 0.};
+    dist_map = {{LocalVolumeId{2}, 1.5}};
+    {
+        IntersectResult ref;
+        ref.distance = 0.8;
+        ref.vol_id = LocalVolumeId{};
+        ref.hits = {0, 0, 0};
+        ref.misses = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map, 0.8);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+
+    // Ray goes through V4 and V5 and intersects with V2, max search is
+    // further
+    pos = {1.5, -2, 50.};
+    dir = {0., 1., 0.};
+    dist_map = {{LocalVolumeId{2}, 1.5}};
+    {
+        IntersectResult ref;
+        ref.distance = 1.5;
+        ref.vol_id = LocalVolumeId{2};
+        ref.hits = {1, 1, 1};
+        ref.misses = {4, 4, 4};
+        auto result = this->get_result({pos, dir}, dist_map, 2.1);
+        EXPECT_REF_EQ(ref, result) << result;
     }
 }
 
