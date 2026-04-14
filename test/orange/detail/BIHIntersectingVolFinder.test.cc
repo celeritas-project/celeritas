@@ -18,6 +18,8 @@
 
 namespace celeritas
 {
+namespace detail
+{
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -27,7 +29,6 @@ namespace test
 class MockIntersector
 {
   public:
-    using Intersection = detail::Intersection;
     using DistMap = std::map<LocalVolumeId, real_type>;
 
   public:
@@ -50,8 +51,7 @@ class MockIntersector
             return {};
         }
 
-        detail::OnLocalSurface on_surface{LocalSurfaceId{*vol_id},
-                                          Sense::outside};
+        OnLocalSurface on_surface{LocalSurfaceId{*vol_id}, Sense::outside};
         ++hits_;
         return Intersection{on_surface, iter->second};
     }
@@ -129,22 +129,21 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 class LocalBihTreeTester
 {
   public:
-    using VecBBox = detail::BIHBuilder::VecBBox;
-    using Ray = detail::BIHIntersectingVolFinder::Ray;
+    using VecBBox = BIHBuilder::VecBBox;
+    using Ray = BIHIntersectingVolFinder::Ray;
 
-    LocalBihTreeTester(VecBBox bboxes, detail::BIHBuilder::Input input)
+    LocalBihTreeTester(VecBBox bboxes, BIHBuilder::Input input)
     {
-        detail::BIHBuilder build(&storage_, input);
-        detail::BIHBuilder::SetLocalVolId implicit_vol_ids;
+        BIHBuilder build(&storage_, input);
+        BIHBuilder::SetLocalVolId implicit_vol_ids;
         bih_tree_ = build(std::move(bboxes), implicit_vol_ids);
         ref_storage_ = storage_;
     }
 
     template<class F>
-    detail::Intersection
-    operator()(Ray ray, F&& visit_vol, real_type max_dist) const
+    Intersection operator()(Ray ray, F&& visit_vol, real_type max_dist) const
     {
-        detail::BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
+        BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
         return find_volume(ray, std::forward<F>(visit_vol), max_dist);
     }
 
@@ -154,7 +153,7 @@ class LocalBihTreeTester
     }
 
   private:
-    detail::BIHTreeRecord bih_tree_;
+    BIHTreeRecord bih_tree_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
     BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };
@@ -180,12 +179,12 @@ class LocalBihTreeTester
           x=0                                                x=5
    \endverbatim
  */
-class BIHIntersectingVolFinderTest : public Test
+class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
 {
   public:
     using Ray = LocalBihTreeTester::Ray;
     using DistMap = MockIntersector::DistMap;
-    using VecBBox = detail::BIHBuilder::VecBBox;
+    using VecBBox = BIHBuilder::VecBBox;
 
   protected:
     void SetUp() override
@@ -602,4 +601,5 @@ TEST_F(PathologicalBihTest, not_first)
 
 //---------------------------------------------------------------------------//
 }  // namespace test
+}  // namespace detail
 }  // namespace celeritas
