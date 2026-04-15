@@ -24,7 +24,7 @@ struct BIHBuilder
 
     //! Hard limit on the depth of most the embedded node (where 1 is the root
     //! node)
-    size_type depth_limit = 32;
+    size_type depth_limit = 18;
 
     //! The number of partition candidates to check per axis when partitioning
     //! a node during BIH construction
