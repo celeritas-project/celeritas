@@ -281,9 +281,11 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     auto bdy_outer = this->insert_surface(CCylZ{4.0});
     auto bdy = this->insert(Joined{op_and, {bdy_outer, mz, below_pz}});
     auto zslab = this->insert(Joined{op_and, {mz, below_pz}});
+    auto dumb_union
+        = this->insert(Joined(op_or, {mz, pz, r_inner, inside_outer}));
 
     EXPECT_JSON_EQ(
-        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[2,4,9,11]],["S",4],["&",[2,4,13]],["&",[2,4]]])json",
+        R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["~",5],["&",[2,4,6]],["S",3],["~",8],["&",[2,4,9]],["~",7],["&",[2,4,9,11]],["S",4],["&",[2,4,13]],["&",[2,4]],["|",[2,3,5,9]]])json",
         to_json_string(tree_));
 
     // Test infix and internal surface flagger
@@ -375,12 +377,19 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_VEC_EQ(expected_faces, faces);
         EXPECT_EQ("all(+0, -1, +4)", build_infix_string(tree_, bdy));
     }
+    {
+        auto&& [faces, lgc] = build_infix(dumb_union);
+        static S const expected_faces[] = {S{0}, S{1}, S{2}, S{3}};
+        EXPECT_VEC_EQ(string_to_logic("0 | 1 | 2 | ~ 3"), lgc)
+            << ::celeritas::detail::logic_to_string(lgc);
+        EXPECT_VEC_EQ(expected_faces, faces);
+    }
 
     // Imply inside boundary
     replace_and_simplify(&tree_, bdy, True{});
 
     EXPECT_JSON_EQ(
-        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0]])json",
+        R"json(["t",["~",0],["=",0],["=",1],["=",0],["S",2],["~",5],["=",6],["S",3],["~",8],["=",9],["=",5],["&",[5,9]],["=",0],["=",0],["=",0],["=",0]])json",
         to_json_string(tree_));
 
     // Test infix builder with remapping
