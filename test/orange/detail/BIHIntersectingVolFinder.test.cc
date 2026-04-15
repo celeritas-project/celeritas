@@ -9,11 +9,13 @@
 #include <limits>
 #include <map>
 
+#include "corecel/StringSimplifier.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
+#include "TestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -256,12 +258,18 @@ class PathologicalBihTest : public BIHIntersectingVolFinderTest
     }
 };
 
-TEST_F(PathologicalBihTest, DISABLED_print_tree)
+TEST_F(PathologicalBihTest, tree_output)
 {
-    for (auto const& t : testers_)
-    {
-        cout << to_string(t) << endl;
-    }
+    celeritas::test::StringSimplifier simplify{3};
+    ASSERT_EQ(3, testers_.size());
+    EXPECT_JSON_EQ(
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["i","x",[3,4],[1.60,1.20]],["i","x",[5,6],[5.0,2.80]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
+        simplify(to_string(testers_[0])));
+    EXPECT_JSON_EQ(
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["l",[1,2]],["l",[3,4,5]]]})json",
+        simplify(to_string(testers_[1])));
+    EXPECT_JSON_EQ(R"json({"inf_vol_ids":[0],"tree":[["l",[1,2,3,4,5]]]})json",
+                   simplify(to_string(testers_[2])));
 }
 
 // Test the case where the ray starts outside the bbox and the first bbox
