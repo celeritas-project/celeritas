@@ -43,11 +43,17 @@ log() {
   celerlog "$@"
 }
 
-# Get the hostname, trying to account for being on a compute node or cluster
+# Get the hostname, trying to account for being on a compute node or cluster or image
 fancy_hostname() {
-  sys=${LMOD_SYSTEM_NAME}
+  sys="${CELER_HOSTNAME}"
+  how=CELER_HOSTNAME
+  if [ -z "${sys}" ]; then
+    sys="${LMOD_SYSTEM_NAME}"
+    how=LMOD_SYSTEM_NAME
+  fi
   if [ -z "${sys}" ]; then
     sys="$(uname -n)"
+    how=uname
     # Trim login/compute from head of string
     case "${sys}" in
       login[0-9]*.*|compute[0-9]*.*) sys=${sys#*.} ;;
@@ -55,8 +61,10 @@ fancy_hostname() {
     # Trim all but the first component
     sys=${sys%%.*}
   fi
-  log debug "Determined system name: ${sys} (override with LMOD_SYSTEM_NAME)"
-  printf '%s\n' "${sys}"
+  if [ -n "${sys}" ]; then
+    log debug "Determined system name via ${how}: ${sys} (override with CELER_HOSTNAME)"
+    printf '%s\n' "${sys}"
+  fi
 }
 
 # Determine the environment script for the given hostname
@@ -227,8 +235,8 @@ cd ${CELER_SOURCE_DIR}
 # Determine system name, failing on an empty string
 SYSTEM_NAME="$(fancy_hostname)"
 if [ -z "${SYSTEM_NAME}" ]; then
-  log warning "Could not determine SYSTEM_NAME from LMOD_SYSTEM_NAME or HOSTNAME"
-  log error "Empty SYSTEM_NAME, needed to load environment and presets"
+  log error "Could not determine system name, needed for environment and presets"
+  log info "Set CELER_HOSTNAME to manually specify"
   exit 1
 fi
 
@@ -241,6 +249,16 @@ OLD_XDG_CACHE_HOME="${XDG_CACHE_HOME}"
 ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
 if [ -n "${ENV_SCRIPT}" ]; then
   source_script "${ENV_SCRIPT}"
+fi
+APPTAINER_NAME="${APPTAINER_CONTAINER%%:*}"
+if [ -n "${APPTAINER_NAME}" ]; then
+  # Apptainer environment overrides system
+  ENV_SCRIPT="$(get_system_env "${APPTAINER_NAME}")"
+  if [ -n "${ENV_SCRIPT}" ]; then
+    source_script "${ENV_SCRIPT}"
+  fi
+  log info "Overriding system ${SYSTEM_NAME} with apptainer ${APPTAINER_NAME}"
+  SYSTEM_NAME="${APPTAINER_NAME}"
 fi
 CMAKE="$(find_command cmake)"
 
@@ -258,9 +276,9 @@ if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
   log warning "Cache directory changed from XDG_CACHE_HOME=${OLD_XDG_CACHE_HOME} to ${XDG_CACHE_HOME}"
   needs_env=true
 fi
-if ${needs_env}; then
+if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
   rc_file="$(get_shell_rc_file)"
-  if install_shell_env "${rc_file}" "${ENV_SCRIPT}"; then
+  if install_shell_env "${rc_file}"; then
     needs_env=false
   else
     log warning "Please manually add the following to ${rc_file}:"
