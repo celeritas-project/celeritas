@@ -15,6 +15,7 @@
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/PowerDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
+#include "corecel/random/engine/CachedRngEngine.hh"
 
 namespace celeritas
 {
