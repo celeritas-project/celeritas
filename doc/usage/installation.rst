@@ -190,35 +190,42 @@ Toolchain installation
 
 The recommended way to install dependencies is with ``Spack``,
 an HPC-oriented package manager that includes numerous scientific packages,
-including those used in HEP. Celeritas includes a Spack development environment
-at :file:`scripts/spack.yaml` that describes the code's full suite
-of dependencies (including testing and documentation). To install these
-dependencies:
+including those used in HEP. Celeritas includes Spack development environments
+at :file:`scripts/env-{which}.yaml` for development and execution. To install these
+dependencies for basic use with an Nvidia GPU:
 
 - Clone and load Spack following its `getting started instructions
   <https://spack.readthedocs.io/en/latest/getting_started.html>`_.
-- If using CUDA: run ``spack external find cuda`` to inform Spack of the
-  existing installation.
+- Run ``spack external find cuda`` to inform Spack of the
+  existing CUDA installation.
 - Create the Celeritas development environment with ``spack env create
-  celeritas scripts/spack.yaml``.
+  celeritas scripts/spack/env-cuda.yaml``
+- Activate the environment with ``spack env activate celeritas``
 - Tell Spack to default to building with CUDA support with
-  the command ``spack -e celeritas config add packages:all:variants:"cxxstd=17 +cuda
-  cuda_arch=<ARCH>"``, where ``<ARCH>`` is the numeric portion of the
-  `CUDA architecture flags
-  <https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/>`_.
-- Install all the dependencies with ``spack -e celeritas install``.
+  the command ``spack config add "packages:all:prefer:cuda_arch=<ARCH>"``,
+  where ``<ARCH>`` is the numeric portion of the CUDA `architecture flags`_.
+- Install all the dependencies with ``spack install``.
 
-The current Spack environment for full-featured development is:
+The dependency requirements for Celeritas are:
 
-.. literalinclude:: ../../scripts/spack.yaml
+.. literalinclude:: ../../scripts/spack/packages.yaml
    :language: yaml
+
+and the full list of packages is:
+
+The dependency requirements for Celeritas are:
+
+.. literalinclude:: ../../scripts/spack/env-full.yaml
+   :language: yaml
+   :start-at: specs:
+   :end-before: view:
 
 With this environment (with CUDA enabled), all Celeritas tests should be
 enabled and all should pass. Celeritas is build-compatible with older versions
 of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.7), but some tests may
 fail, indicating a change in behavior or a bug fix in that package.
-Specifically, older versions of VecGeom have shapes and configurations that are
-incompatible on GPU with new CMS detector descriptions.
+
+.. _architecture flags: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 
 Building Celeritas
 ------------------

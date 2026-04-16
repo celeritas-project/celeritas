@@ -1,0 +1,42 @@
+packages:
+  all:
+    prefer:
+    - "generator=ninja build_system=cmake"
+    - "build_type=Release"
+    - "cxxstd=20"
+  cli11:
+    require: '@2.4:'
+  cmake:
+    require: '@3.21:'
+  nlohmann-json:
+    require: '@3.7.0:'
+  geant4:
+    require: '@10.5:'
+    prefer:
+    - '@11.3'
+  googletest:
+    require: '@1.10:'
+  py-identify: # needed by py-pre-commit
+    require: '@2.6:'
+  python:
+    require: '@3.9:'
+  covfie:
+    require: '@0.13:'
+  g4vg:
+    require: '@1.0.3:'
+  vecgeom:
+    require:
+    - '@1.2.10:'
+    - +gdml
+    prefer:
+    - '@1'
+  root:
+    require:
+    - '@6.28:'
+    prefer:
+    - ~aqua ~davix ~examples ~opengl ~x ~tbb ~webgui +root7
+  dd4hep:
+    require:
+    - '@1.33:'
+    prefer:
+    - ~utilityapps ~ddeve

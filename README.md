@@ -146,7 +146,7 @@ cards, execute the following steps from within the cloned Celeritas source
 directory:
 ```console
 # Create an environment from celeritas dependencies
-$ spack env create celeritas scripts/spack.yaml
+$ spack env create celeritas scripts/spack/spack.yaml
 $ spack env activate celeritas
 # Set up CUDA/HIP (optional; example here is for Nvidia A100)
 $ spack external find --not-buildable cuda
