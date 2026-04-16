@@ -14,21 +14,22 @@ apptainer_fermilab() {
     return 1
   fi
 
-  # Use the Scientific Linux distribution required for the dependencies
-  image=${1:-fnal-dev-sl7:latest}
-
   if ! [ -d "/cvmfs" ]; then
     echo "cannot run ${1}: CVMFS is not available on this host"
     return 1
   fi
 
   # Start apptainer, forwarding necessary directories
+
+  # BEGIN_LARCELER_EXAMPLE_APPTAINER
   IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
-  exec /usr/bin/apptainer \
-    shell --shell=/bin/bash \
+  image=${1:-fnal-dev-sl7:latest}
+  exec /usr/bin/apptainer shell \
+    --shell=/bin/bash \
     -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/auto/projects/celeritas/opt,/etc/hostname,/etc/hosts \
     --nv --ipc --pid  \
     ${IMAGE_DIR}/${image}
+  # END_LARCELER_EXAMPLE_APPTAINER
 }
 # END APPTAINER SCRIPT
 
