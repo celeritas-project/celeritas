@@ -65,43 +65,50 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
 
     auto* counters = state->init.counters.data().get();
 
-    // Get the cumulative sum of the number of photons in the distributions.
-    // The values are used to determine which threads will generate from the
-    // corresponding distribution
-    auto offsets = data.offsets[ItemRange<size_type>(
-        ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
-
-    // Find the distribution this thread will generate from
-    size_type dist_idx = find_distribution_index(offsets, tid.get());
-    CELER_ASSERT(dist_idx < data.distributions.size());
-    auto& dist = data.distributions[DistId(dist_idx)];
-    CELER_ASSERT(dist);
-
-    // Create the view to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there are more vacancies
-            // than photons to generate
-            TrackSlotId idx{
-                index_before(counters->num_vacancies, ThreadId(tid.get()))};
-            return state->init.vacancies[idx];
-        }()};
-
-    // Generate one track from the distribution
-    auto rng = vacancy.rng();
-    if (dist.type == GeneratorType::wls)
+    // Original code set the number of threads to the minimum between of number
+    // of vacancies and the number of pending in the auxiliary state. To avoid
+    // accessing the state counters to compute this min, we skip the extra
+    // threads if state.counters.num_vacancies < aux_state.counters.num_pending
+    if (tid < counters->num_vacancies)
     {
-        CELER_ASSERT(wls);
-        vacancy = WavelengthShiftGenerator(wls, dist)(rng);
-    }
-    else
-    {
-        CELER_ASSERT(wls2);
-        vacancy = WavelengthShiftGenerator(wls2, dist)(rng);
-    }
+        // Get the cumulative sum of the number of photons in the
+        // distributions. The values are used to determine which threads will
+        // generate from the corresponding distribution
+        auto offsets = data.offsets[ItemRange<size_type>(
+            ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
 
-    // Update the number of photons left to generate
-    atomic_add(&dist.num_photons, size_type(-1));
+        // Find the distribution this thread will generate from
+        size_type dist_idx = find_distribution_index(offsets, tid.get());
+        CELER_ASSERT(dist_idx < data.distributions.size());
+        auto& dist = data.distributions[DistId(dist_idx)];
+        CELER_ASSERT(dist);
+
+        // Create the view to the new track to be initialized
+        CoreTrackView vacancy{
+            *params, *state, [&] {
+                // Get the vacancy from the back in case there are more
+                // vacancies than photons to generate
+                TrackSlotId idx{index_before(counters->num_vacancies,
+                                             ThreadId(tid.get()))};
+                return state->init.vacancies[idx];
+            }()};
+
+        // Generate one track from the distribution
+        auto rng = vacancy.rng();
+        if (dist.type == GeneratorType::wls)
+        {
+            CELER_ASSERT(wls);
+            vacancy = WavelengthShiftGenerator(wls, dist)(rng);
+        }
+        else
+        {
+            CELER_ASSERT(wls2);
+            vacancy = WavelengthShiftGenerator(wls2, dist)(rng);
+        }
+
+        // Update the number of photons left to generate
+        atomic_add(&dist.num_photons, size_type(-1));
+    }
 }
 
 //---------------------------------------------------------------------------//

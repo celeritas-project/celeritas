@@ -202,9 +202,10 @@ void GeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies until later.
         this->generate(params, state);
     }
 
@@ -232,8 +233,7 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
+    size_type num_gen = aux_state.counters.num_pending;
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -247,7 +247,8 @@ void GeneratorAction::generate(CoreParams const& params,
     {
         // Update the cumulative sum of the number of photons per distribution
         // according to how many were generated
-        detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
+        detail::UpdateSumExecutor execute{
+            state.ptr(), aux_state.store.ref(), num_gen};
         launch_kernel(aux_state.counters.buffer_size, execute);
     }
 }

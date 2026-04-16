@@ -38,8 +38,7 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
+    size_type num_gen = aux_state.counters.num_pending;
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),
@@ -54,7 +53,8 @@ void GeneratorAction::generate(CoreParams const& params,
     {
         // Update the cumulative sum of the number of photons per distribution
         // according to how many were generated
-        detail::UpdateSumExecutor execute{aux_state.store.ref(), num_gen};
+        detail::UpdateSumExecutor execute{
+            state.ptr(), aux_state.store.ref(), num_gen};
         static KernelLauncher<decltype(execute)> const launch_kernel(
             "update-sum");
         launch_kernel(

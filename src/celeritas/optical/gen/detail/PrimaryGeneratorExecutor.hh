@@ -59,21 +59,30 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(TrackSlotId tid) const
     CELER_EXPECT(data);
     CELER_EXPECT(distributions);
 
-    CoreTrackView track(*params, *state, tid);
-    auto const& counters = track.counters();
+    CoreTrackView temp(*params, *state, TrackSlotId{0});
+    auto const& counters = temp.counters();
 
-    // Create the view to the new track to be initialized
-    CoreTrackView vacancy{*params, *state, [&] {
-                              // Get the vacancy from the back in case there
-                              // are more vacancies than photons to generate
-                              TrackSlotId idx{index_before(
-                                  counters.num_vacancies, ThreadId(tid.get()))};
-                              return state->init.vacancies[idx];
-                          }()};
+    // Original code set the number of threads to the minimum between of number
+    // of vacancies and the number of pending in the auxiliary state. To avoid
+    // accessing the state counters to compute this min, we skip the extra
+    // threads if counters.num_vacancies < aux_state.counters.num_pending
+    if (tid < counters.num_vacancies)
+    {
+        // Create the view to the new track to be initialized
+        CoreTrackView vacancy{
+            *params, *state, [&] {
+                // Get the vacancy from the back in case there
+                // are more vacancies than photons to generate
+                TrackSlotId idx{
+                    index_before(counters.num_vacancies, ThreadId(tid.get()))};
+                return state->init.vacancies[idx];
+            }()};
 
-    // Generate one primary from the distribution
-    auto rng = track.rng();
-    vacancy = PrimaryGenerator(distributions, data)(rng);
+        // Generate one primary from the distribution
+        CoreTrackView track(*params, *state, tid);
+        auto rng = track.rng();
+        vacancy = PrimaryGenerator(distributions, data)(rng);
+    }
 }
 
 //---------------------------------------------------------------------------//

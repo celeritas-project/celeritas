@@ -53,8 +53,8 @@ CELER_FUNCTION void DirectGeneratorExecutor::operator()(TrackSlotId tid) const
 
     // Original code set the number of threads to the minimum between of number
     // of vacancies and the number of pending in the auxiliary state. To avoid
-    // accessing the state counters to compute this min, we instead skip the
-    // excess if state.counters.num_vacancies < aux_state.counters.num_pending
+    // accessing the state counters to compute this min, we skip the extra
+    // threads if counters->num_vacancies < aux_state.counters.num_pending
     if (tid < counters->num_vacancies)
     {
         // Create view to new track to be initialized
