@@ -3,7 +3,8 @@ LArSoft workflow example
 
 # TL;DR
 
-**Sequence of commands to generate analysis files from a single GENIE event:**
+**Sequence of commands to generate analysis files from a single GENIE event,
+assuming a working environment:**
 
 ```sh
 # Run GENIE
@@ -58,8 +59,89 @@ edep-data --> det-optical-fast & det-optical-full --> optical-data --> analyzer
 analyzer --> analyzer-data
 ```
 
-The next sections describe each component and their invokation, assuming
-`dunesw` _and_ Celeritas are correctly set up.
+The next sections describe each component and their invokation, as well as a
+description of setting up a `dunesw` environment with native (non-spack) CUDA.
+
+# Setting up DUNESW
+
+The shell functions presented here can be added to your `.bashrc` (or
+equivalent).
+
+## Apptainer
+- Load Fermilab apptainer with the CUDA toolkit:
+```sh
+function load-cvmfs-cuda {
+    apptainer shell --shell=/bin/bash -B \
+    /cvmfs,/opt/nvidia/hpc_sdk,$HOME \
+    --ipc --pid --nv \
+    /cvmfs/singularity.opensciencegrid.org/fermilab/fnal-dev-sl7:latest
+}
+```
+
+## Setting up a development environment
+
+- See DUNESW [versions](https://github.com/DUNE/dunesw/releases)
+- See [qualifiers](https://cdcvs.fnal.gov/redmine/projects/cet-is-public/wiki/AboutQualifiers)
+- See `mrb` [documentation](https://cdcvs.fnal.gov/redmine/projects/mrb/wiki)
+
+```sh
+$ load-cvmfs-cuda
+$ source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
+$ setup dunesw [version] -q [qualifiers] # e.g. setup dunesw v10_20_00d00 -q e26:prof
+```
+
+### Creating a _new_ development area
+- Within a working folder
+```sh
+$ mrb newDev
+```
+This will create 3 folders:
+- build: `build_[system]`
+- install: `localProducts_[framework]_[version_qualifiers]`
+- source: `srcs`
+```sh
+$ source localProducts_[framework]_[version_qualifiers]/setup
+$ mrb g larsim # Or any other repo
+$ mrbsetenv # Compiler path is defined at this point
+4 mrb i # Build and install if needed
+```
+- Using `mrb g [repo]` is necessary to correctly invoke `mrbsetenv` so that the
+  compiler is added to the `PATH`.
+
+### Initializing an existing development area
+```sh
+$ source path/to/localProducts_[framework]_[version_qualifiers]/setup
+$ mrbsetenv
+```
+
+### Load native CUDA and build Celeritas
+- The tested systems (`excl` at ORNL, and `saul`/`perlmutter` at NERSC) have the
+  CUDA HPC SDK. Other systems may differ. Only export the CUDA environment after
+  the DUNESW development area setup is complete
+```sh
+function export-native-cuda() {
+    local cuda_root="/opt/nvidia/hpc_sdk/Linux_x86_64/25.5"
+
+    export CUDAToolkit_ROOT="$cuda_root/cuda/12.9"ee
+    export PATH="$CUDAToolkit_ROOT/bin":$PATH
+    export CUDACXX="$CUDAToolkit_ROOT/bin/nvcc"
+    export CUDAARCHS=70;80
+
+    export CPATH="$cuda_root/math_libs/12.9/include:$CPATH"
+    export LD_LIBRARY_PATH="$CUDAToolkit_ROOT/lib64:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$CUDAToolkit_ROOT/nvvm/lib64:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$CUDAToolkit_ROOT/extras/Debugger/lib64:$LD_LIBRARY_PATH"
+    export LD_LIBRARY_PATH="$cuda_root/math_libs/12.9/lib64:$LD_LIBRARY_PATH"
+}
+```
+```sh
+$ export-native-cuda
+```
+- Clone and build Celeritas; Once built, append Celeritas to the LArSoft
+  environment:
+```sh
+.../celeritas/build/bin $ eval $(./larceler)
+```
 
 # Generating GENIE samples
 
