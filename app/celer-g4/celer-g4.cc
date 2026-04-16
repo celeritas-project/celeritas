@@ -193,7 +193,7 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     {
         ScopedMem record_mem("run.initialize");
         ScopedTimeLog scoped_time;
-        ScopedProfiling profile_this{"initialize"};
+        ScopedProfiling profile_this{"setup"};
         CELER_LOG(status) << "Initializing run manager";
         run_manager->Initialize();
     }
