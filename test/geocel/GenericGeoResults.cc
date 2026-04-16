@@ -6,7 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoResults.hh"
 
+#include <algorithm>
+#include <initializer_list>
+
 #include "corecel/OpaqueIdUtils.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
