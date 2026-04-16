@@ -250,15 +250,16 @@ ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
 if [ -n "${ENV_SCRIPT}" ]; then
   source_script "${ENV_SCRIPT}"
 fi
-APPTAINER_NAME="${APPTAINER_CONTAINER%%:*}"
 if [ -n "${APPTAINER_NAME}" ]; then
-  # Apptainer environment overrides system
-  ENV_SCRIPT="$(get_system_env "${APPTAINER_NAME}")"
+  # Apptainer environment overrides system; but do this *after* the system
+  # so that it can set up things like cache variable names
+  PREV_SYSTEM_NAME="${SYSTEM_NAME}"
+  SYSTEM_NAME="${APPTAINER_NAME%%:*}"
+  log info "Overriding system ${PREV_SYSTEM_NAME} with apptainer ${SYSTEM_NAME}"
+  ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
   if [ -n "${ENV_SCRIPT}" ]; then
     source_script "${ENV_SCRIPT}"
   fi
-  log info "Overriding system ${SYSTEM_NAME} with apptainer ${APPTAINER_NAME}"
-  SYSTEM_NAME="${APPTAINER_NAME}"
 fi
 CMAKE="$(find_command cmake)"
 
@@ -280,9 +281,6 @@ if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
   rc_file="$(get_shell_rc_file)"
   if install_shell_env "${rc_file}"; then
     needs_env=false
-  else
-    log warning "Please manually add the following to ${rc_file}:"
-    printf ' . %s\n' "${ENV_SCRIPT}" >&2
   fi
 fi
 

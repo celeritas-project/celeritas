@@ -19,6 +19,10 @@ if [ -z "${SCRATCHDIR}" ]; then
   return 1
 fi
 
+if [ ! -z "${CMAKE_PREFIX_PATH}" ]; then
+  celerlog warning "Existing CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH} may interfere with build"
+fi
+
 #-----------------------------------------------------------------------------#
 
 celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"

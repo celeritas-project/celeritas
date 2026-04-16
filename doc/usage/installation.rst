@@ -310,8 +310,9 @@ for building Celeritas. It intelligently configures the build environment by:
 
 - detecting the system hostname and loading the corresponding environment file
   from :file:`scripts/env/{hostname}.sh` (if available)
+- detecting and loading apptainer-specific setups using environment variables
 - linking the appropriate CMake user presets from
-  :file:`scripts/cmake-presets/{hostname}.json`
+  :file:`scripts/cmake-presets/{system}.json`
 - detecting and enabling ccache_ for faster rebuilds
 - configuring, building, and testing, and
 - installing pre-commit hooks for code quality checks.
