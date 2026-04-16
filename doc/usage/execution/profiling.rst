@@ -62,7 +62,7 @@ generate a timeline:
 
 Line 2 specifies the APIs to be captured: in this case, CUDA calls, NVTX
 ranges, and OS runtime libraries.
-To use the NVTX ranges, you must enable the ``CELER_ENABLE_PROFILING`` variable
+To use the NVTX ranges, you **must** enable the ``CELER_ENABLE_PROFILING`` variable
 in addition to using the NVTX "trace" option (lines 1 and 2).
 The capture domain in line 3 restricts profiling to the Celeritas application.
 (You can use, e.g., ``--nvtx-capture run@celeritas`` to capture only the main stepping execution inside Celeritas.)
@@ -146,7 +146,7 @@ gathered with the `NVIDIA Compute systems`_ profiler.
 
 .. _NVIDIA Compute systems: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html
 
-This example gathers kernel statistics for 10 "propagate" kernels (for both
+This example gathers kernel statistics for 10 sets of "propagate" kernels (for both
 charged and uncharged particles) starting with the 300th launch.
 
 .. sourcecode::
@@ -154,7 +154,7 @@ charged and uncharged particles) starting with the 300th launch.
 
    $ CELER_ENABLE_PROFILING=1 \
    > ncu \
-   > --nvtx --nvtx-include "celeritas@celer-sim/step/*/propagate" \
+   > --nvtx --nvtx-include "celeritas@run/step/*/propagate" \
    > --launch-skip 300 --launch-count 10 \
    > -f -o propagate
    > celer-sim inp.json
