@@ -144,7 +144,7 @@ size_type exclusive_scan_counts(
         counts,
     StreamId stream_id)
 {
-    ScopedProfiling profile_this{"exclusive-scan-counts"};
+    ScopedProfiling profile_this{"prefix-sum-counts"};
     auto& stream = device().stream(stream_id);
 #if CELER_USE_THRUST
     // Exclusive scan:

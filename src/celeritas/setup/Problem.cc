@@ -498,7 +498,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     CELER_LOG(status) << "Initializing problem";
 
     ScopedMem record_mem("setup::problem");
-    ScopedProfiling profile_this{"setup::problem"};
+    ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
 
@@ -815,7 +815,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     CELER_LOG(status) << "Initializing problem";
 
     ScopedMem record_mem("setup::problem");
-    ScopedProfiling profile_this{"setup::problem"};
+    ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
