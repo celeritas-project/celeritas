@@ -116,7 +116,8 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
     else                                                           \
         CELER_DISCARD(int)
 
-    if (!SoftEqual<>{}(val1.distance, val2.distance))
+    if (!testdetail::make_soft_comparator<real_type>()(val1.distance,
+                                                       val2.distance))
     {
         result.fail() << "Expected distance: " << repr(val1.distance)
                       << " but got " << repr(val2.distance);
@@ -654,6 +655,134 @@ TEST_F(BasicBihTest, not_first)
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {4, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map, 2.1);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+}
+
+/*!
+ * Test a large number of adjacent bounding boxes along the Z axis.
+ *
+ * The extents of the problem are {-1, -1, 0}, {1, 1, num_boxes}. Bounding
+ * boxes less with even indices (`i % 2 == 0`) have pretend volumes in the
+ * range z=[0.5, 1] offset by the box.
+ */
+class KebabTest : public BIHIntersectingVolFinderTest
+{
+  public:
+    VecSetup make_bih_setups() const override
+    {
+        VecSetup result;
+        if (false)
+        {
+            // FIXME: depth limit is forced cutoff: tree is unbalanced
+            for (auto depth_limit : range(8))
+            {
+                inp::BIHBuilder setup;
+                setup.depth_limit = 1 + 4 * depth_limit;
+                result.push_back(setup);
+            }
+        }
+        else
+        {
+            for (auto leaf_size : {1, 2, 4, 8, 12, 16, 20, 24})
+            {
+                inp::BIHBuilder setup;
+                setup.max_leaf_size = leaf_size;
+                result.push_back(setup);
+            }
+            return result;
+        }
+        return result;
+    }
+
+    static constexpr size_type num_boxes{1024};
+
+    VecBBox make_bboxes() const override
+    {
+        using FastReal3 = FastBBox::Real3;
+        VecBBox result;
+        result.reserve(num_boxes);
+        for (auto i : range(num_boxes))
+        {
+            result.emplace_back(FastReal3{-1, -1, i}, FastReal3{1, 1, i + 1});
+        }
+        return result;
+    }
+};
+
+TEST_F(KebabTest, DISABLED_tree_output)
+{
+    for (auto&& s : this->get_bih_json_strings())
+    {
+        cout << "R\"json(" << s << ")json\"\n\n\n";
+    }
+}
+
+// Test the case where the ray starts somewhere inside a bbox and this bbox
+// contains first intersecting volume.
+TEST_F(KebabTest, all)
+{
+    Real3 pos{0, 0, 0}, dir{0, 0, 1};
+    DistMap dist_map;
+    {
+        SCOPED_TRACE("Test everything, no hits");
+        auto result = this->get_result({pos, dir}, dist_map, infr);
+
+        IntersectResult ref;
+        ref.distance = inf;
+        ref.intersect_surface = {};
+        ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
+        ref.miss_count = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    {
+        SCOPED_TRACE("Start halfway");
+        pos = {0, 0, 512};
+        auto result = this->get_result({pos, dir}, dist_map, infr);
+
+        IntersectResult ref;
+        ref.distance = inf;
+        ref.intersect_surface = {};
+        ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
+        ref.miss_count = {513, 513, 513, 513, 513, 513, 513, 513};
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    {
+        SCOPED_TRACE("Start halfway, hit quickly");
+        pos = {0, 0, 512};
+        dist_map = {
+            {LocalVolumeId{514}, 2.9},
+            {LocalVolumeId{1000}, 488.9},
+        };
+        auto result = this->get_result({pos, dir}, dist_map, infr);
+
+        IntersectResult ref;
+        ref.distance = 2.9;
+        ref.intersect_surface = LocalSurfaceId{514};
+        ref.hit_count = {1, 1, 1, 1, 1, 1, 1, 1};
+        ref.miss_count = {3, 3, 3, 3, 3, 3, 3, 3};
+        EXPECT_REF_EQ(ref, result) << result;
+    }
+    {
+        // WRONG: should be testing closer leaf first, so we get closer hits
+        // first and can eliminate further nodes
+        SCOPED_TRACE("Start halfway, hit less quickly");
+        pos = {0, 0, 512};
+        dir = {0, 0, -1};
+        dist_map = {
+            {LocalVolumeId{510}, 2.1},
+            {LocalVolumeId{500}, 12.1},
+            {LocalVolumeId{400}, 112.1},
+            {LocalVolumeId{200}, 312.1},
+            {LocalVolumeId{0}, 512.1},
+        };
+        auto result = this->get_result({pos, dir}, dist_map, infr);
+
+        IntersectResult ref;
+        ref.distance = 2.1;
+        ref.intersect_surface = LocalSurfaceId{510ul};
+        ref.hit_count = {5, 5, 5, 5, 5, 5, 5, 5};
+        ref.miss_count = {508, 508, 508, 508, 508, 508, 508, 508};
         EXPECT_REF_EQ(ref, result) << result;
     }
 }

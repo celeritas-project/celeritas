@@ -116,6 +116,16 @@ constexpr auto make_soft_comparator(CT&& cmp_or_tol)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a default soft comparison function.
+ */
+template<class VT>
+constexpr auto make_soft_comparator()
+{
+    return EqualOr<SoftEqual<VT>>{};
+}
+
+//---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
 template<class T1, class T2>
 constexpr bool can_soft_equiv()
@@ -178,13 +188,12 @@ template<class ValueE, class ValueA>
 
     // Construct with automatic or specified tolerances
     using Value_t = typename SoftPrecisionType<VE, VA>::type;
-    using BinaryOp = EqualOr<SoftEqual<Value_t>>;
 
     return IsSoftEquivImpl(static_cast<Value_t>(expected),
                            expected_expr,
                            static_cast<Value_t>(actual),
                            actual_expr,
-                           BinaryOp{});
+                           make_soft_comparator<Value_t>());
 }
 
 //---------------------------------------------------------------------------//
@@ -693,11 +702,13 @@ template<class ContainerE, class ContainerA>
 
     using Value_t =
         typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = EqualOr<SoftEqual<Value_t>>;
 
     // Construct with automatic or specified tolerances
-    return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp());
+    return IsVecSoftEquivImpl(expected,
+                              expected_expr,
+                              actual,
+                              actual_expr,
+                              make_soft_comparator<Value_t>());
 }
 
 //-------------------------------------------------------------------------//
