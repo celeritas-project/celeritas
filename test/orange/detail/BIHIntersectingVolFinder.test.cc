@@ -553,6 +553,24 @@ TEST_F(BasicBihTest, inside_first)
         auto result = this->get_result({pos, dir}, dist_map, 1.6);
         EXPECT_REF_EQ(ref, result) << result;
     }
+
+    // Intersecting volume 4/5 from below
+    pos = {4., -2., 50.};
+    dir = {0., 1., 0.};
+    dist_map = {
+        {LocalVolumeId{3}, 2},
+        {LocalVolumeId{4}, 1.5},
+        {LocalVolumeId{5}, 1},
+    };
+    {
+        IntersectResult ref;
+        ref.distance = 1;
+        ref.intersect_surface = LocalSurfaceId{5};
+        ref.hit_count = {2, 3, 3};
+        ref.miss_count = {1, 1, 1};
+        auto result = this->get_result({pos, dir}, dist_map, 3);
+        EXPECT_REF_EQ(ref, result) << result;
+    }
 }
 
 // Test the case where the first intersection does not yields the first volume
