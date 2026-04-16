@@ -7,7 +7,8 @@
 #include "orange/detail/BIHIntersectingVolFinder.hh"
 
 #include <limits>
-#include <map>
+#include <unordered_map>
+#include <vector>
 
 #include "corecel/StringSimplifier.hh"
 #include "orange/OrangeParamsOutput.hh"
@@ -31,7 +32,7 @@ namespace test
 class MockIntersector
 {
   public:
-    using DistMap = std::map<LocalVolumeId, real_type>;
+    using DistMap = std::unordered_map<LocalVolumeId, real_type>;
 
   public:
     explicit MockIntersector(DistMap const& dist_map) : dist_map_(dist_map) {}
@@ -74,8 +75,9 @@ struct IntersectResult
 
     /*
      * These vectors, with each element corresponding to the BIH tree
-     * tested(configured with different leaf size counts), are diagnostics
-     * collected by the MockIntersector class: the number of intersection tests
+     * tested (configured with different leaf size counts), are diagnostics
+     * collected by the MockIntersector class: the number of *volume*
+     * intersection tests (after the bbox was used to exclude intersections)
      * that result in a hit, and the number that result in a miss.
      * Their sum is the number of total "distance to intersection" calls.
      */
@@ -291,7 +293,7 @@ class BasicBihTest : public BIHIntersectingVolFinderTest
 
 TEST_F(BasicBihTest, tree_output)
 {
-    auto trees = get_bih_json_strings();
+    auto trees = this->get_bih_json_strings();
     ASSERT_EQ(3, trees.size());
     EXPECT_JSON_EQ(
         R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["i","x",[3,4],[1.60,1.20]],["i","x",[5,6],[5.0,2.80]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
@@ -554,7 +556,7 @@ TEST_F(BasicBihTest, inside_first)
         EXPECT_REF_EQ(ref, result) << result;
     }
 
-    // Intersecting volume 4/5 from below
+    // Intersecting volume 5 from below
     pos = {4., -2., 50.};
     dir = {0., 1., 0.};
     dist_map = {
