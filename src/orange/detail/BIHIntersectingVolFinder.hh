@@ -62,11 +62,6 @@ class BIHIntersectingVolFinder
     inline CELER_FUNCTION Intersection
     operator()(Ray ray, F&& visit_vol, real_type max_search_dist) const;
 
-    // Calculate the minimum intersection, without supplied maximum search
-    // distance
-    template<class F>
-    inline CELER_FUNCTION Intersection operator()(Ray ray, F&& visit_vol) const;
-
   private:
     //// DATA ////
     BIHView view_;
@@ -152,19 +147,6 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     } while (current_node);
 
     return this->visit_inf_vols(intersection, visit_vol);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Calculate the minimum intersection, without supplied maximum search
- * distance.
- */
-template<class F>
-CELER_FUNCTION auto
-BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
-                                     F&& visit_vol) const -> Intersection
-{
-    return (*this)(ray, visit_vol, numeric_limits<real_type>::infinity());
 }
 
 //---------------------------------------------------------------------------//
@@ -255,9 +237,10 @@ BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
         if (this->visit_bbox(bbox, ray, min_intersection.distance))
         {
             auto intersection = visit_vol(id, min_intersection.distance);
-            if (intersection
-                && (intersection.distance) < (min_intersection.distance))
+            if (intersection)
             {
+                CELER_ASSERT(intersection.distance
+                             <= min_intersection.distance);
                 min_intersection = intersection;
             }
         }
@@ -277,9 +260,9 @@ BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
     for (auto id : view_.inf_vol_ids())
     {
         auto intersection = visit_vol(id, min_intersection.distance);
-        if (intersection
-            && (intersection.distance) < (min_intersection.distance))
+        if (intersection)
         {
+            CELER_ASSERT(intersection.distance <= min_intersection.distance);
             min_intersection = intersection;
         }
     }

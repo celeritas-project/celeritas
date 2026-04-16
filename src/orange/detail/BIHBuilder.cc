@@ -7,8 +7,9 @@
 #include "BIHBuilder.hh"
 
 #include "corecel/cont/VariantUtils.hh"
+#include "geocel/BoundingBox.hh"
 
-#include "BIHUtils.hh"
+#include "BIHPartitioner.hh"
 #include "../BoundingBoxUtils.hh"
 
 namespace celeritas
