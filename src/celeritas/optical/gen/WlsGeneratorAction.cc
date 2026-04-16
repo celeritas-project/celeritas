@@ -153,7 +153,7 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     if (counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data. To avoid
-        // synchronization, we defer the check for vacancies until later.
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
 
         // Compact the buffer again to remove stale distributions and free up

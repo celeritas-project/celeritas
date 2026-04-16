@@ -150,10 +150,10 @@ void PrimaryGeneratorAction::step_impl(CoreParams const& params,
 
     auto const& counters = this->counters(*state.aux()).counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
-    // if (counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 

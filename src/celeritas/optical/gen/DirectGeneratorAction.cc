@@ -188,7 +188,7 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
     if (counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data. To avoid
-        // synchronization, we defer the check for vacancies until later.
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
