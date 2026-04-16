@@ -26,8 +26,8 @@ apptainer_fermilab() {
   IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
   exec /usr/bin/apptainer \
     shell --shell=/bin/bash \
-    -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/opt,/etc/hostname,/etc/hosts  \
-    --ipc --pid  \
+    -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/auto/projects/celeritas/opt,/etc/hostname,/etc/hosts \
+    --nv --ipc --pid  \
     ${IMAGE_DIR}/${image}
 }
 # END APPTAINER SCRIPT

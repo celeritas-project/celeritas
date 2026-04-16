@@ -62,6 +62,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
+    CELER_LOG_LOCAL(status) << "Transporting on " << to_cstring(M);
+
     size_type num_step_iters{0};
     size_type num_steps{0};
 
