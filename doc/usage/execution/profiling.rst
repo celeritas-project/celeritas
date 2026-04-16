@@ -65,8 +65,7 @@ ranges, and OS runtime libraries.
 To use the NVTX ranges, you must enable the ``CELER_ENABLE_PROFILING`` variable
 in addition to using the NVTX "trace" option (lines 1 and 2).
 The capture domain in line 3 restricts profiling to the Celeritas application.
-(You can use, e.g., ``--nvtx-capture celer-sim@celeritas`` to capture a smaller
-range.)
+(You can use, e.g., ``--nvtx-capture run@celeritas`` to capture only the main stepping execution inside Celeritas.)
 Additional frame-pointer-based backtracing is specified in line 5; line 6
 writes (and overwrites) to a particular output file; the final line invokes the
 application.

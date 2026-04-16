@@ -10,6 +10,7 @@
 
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
@@ -30,6 +31,8 @@ Runner::Runner(Input&& osi)
 {
     CELER_VALIDATE(osi.problem.num_streams == 1,
                    << "standalone optical runner expects a single stream");
+
+    ScopedProfiling profile_this{"setup"};
     StreamId stream_id{0};
     auto num_tracks = osi.problem.capacity.tracks;
 
@@ -139,6 +142,7 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
  */
 auto Runner::run() const -> Result
 {
+    ScopedProfiling profile_this{"run"};
     (*loaded_.problem.transporter)(*state_);
 
     Result result;

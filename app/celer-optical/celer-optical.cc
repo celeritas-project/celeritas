@@ -29,7 +29,6 @@
 #include "corecel/sys/DeviceIO.json.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
@@ -78,8 +77,6 @@ void run(std::shared_ptr<OutputRegistry>& output,
 
     // Start profiling
     TracingSession tracing_session{input.problem.perfetto_file};
-    ScopedProfiling profile_this{"celer-optical"};
-
     SimulationResult result;
 
     // Set up optical problem
