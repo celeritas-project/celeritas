@@ -44,6 +44,7 @@ StepParams::StepParams(AuxId aux_id,
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
     bool nonzero_energy_deposition{true};
+    bool track_death{false};
 
     // Loop over callbacks to take union of step selections
     HasDetectors has_det = HasDetectors::unknown;
@@ -73,6 +74,9 @@ StepParams::StepParams(AuxId aux_id,
         nonzero_energy_deposition = nonzero_energy_deposition
                                     && filters.nonzero_energy_deposition;
 
+        // Enable track death gathering if any interface requests it
+        track_death = track_death || filters.track_death;
+
         auto this_has_detectors = filters.detectors.empty()
                                       ? HasDetectors::none
                                       : HasDetectors::all;
@@ -101,6 +105,7 @@ StepParams::StepParams(AuxId aux_id,
     mirror_ = ParamsDataStore{[&] {
         HostVal<StepParamsData> host_data;
         host_data.selection = selection;
+        host_data.track_death = track_death;
 
         if (!detector_map.empty())
         {

@@ -49,6 +49,15 @@ struct HasDetector
 };
 
 //---------------------------------------------------------------------------//
+struct HasDeath
+{
+    CELER_FORCEINLINE_FUNCTION bool operator()(TrackId const& t)
+    {
+        return static_cast<bool>(t);
+    }
+};
+
+//---------------------------------------------------------------------------//
 size_type count_num_valid(
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
@@ -172,6 +181,97 @@ void copy_steps<MemSpace::device>(
 
     CELER_ENSURE(output->detector.size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy to host results from tracks that died (killed) this step.
+ */
+template<>
+void copy_deaths<MemSpace::device>(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state)
+{
+    CELER_EXPECT(output);
+
+    if (state.data.death_track_id.empty())
+    {
+        output->deaths.clear();
+        return;
+    }
+
+    ScopedProfiling profile_this{"copy-deaths"};
+
+    // Compact dying-track slot indices into death_valid_id
+    auto start = device_pointer_cast(state.death_valid_id.data());
+    auto end = thrust::copy_if(
+        thrust_execute_on(state.stream_id),
+        thrust::make_counting_iterator(0_sz),
+        thrust::make_counting_iterator(state.size()),
+        device_pointer_cast(state.data.death_track_id.data()),
+        start,
+        HasDeath{});
+    size_type const num_deaths = end - start;
+
+    if (num_deaths == 0)
+    {
+        output->deaths.clear();
+        return;
+    }
+
+    // Gather death fields into scratch indexed by death_valid_id
+    {
+        auto execute_thread
+            = detail::DeathScratchCopyExecutor{state, num_deaths};
+        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+            "gather-death-scratch");
+        launch_kernel(num_deaths, state.stream_id, execute_thread);
+    }
+
+    // Copy compacted scratch to pinned host memory
+    output->deaths.resize(num_deaths);
+
+    auto copy_death_field = [&](auto* dst_begin, auto const& src_col) {
+        using T = std::remove_reference_t<decltype(*dst_begin)>;
+        Copier<T, MemSpace::host> copy{{dst_begin, num_deaths},
+                                       state.stream_id};
+        copy(MemSpace::device, {src_col.data().get(), num_deaths});
+    };
+
+    // Extract fields one at a time into a temporary, then fill records
+    // Use per-field device->host copies with the stream synchronization
+    // deferred until after all copies are enqueued.
+    {
+        std::vector<TrackId> h_track_id(num_deaths);
+        std::vector<PrimaryId> h_primary_id(num_deaths);
+        std::vector<ParticleId> h_particle(num_deaths);
+        std::vector<Real3> h_pos(num_deaths);
+        std::vector<Real3> h_dir(num_deaths);
+        std::vector<TrackDeathRecord::Energy> h_energy(num_deaths);
+        std::vector<real_type> h_time(num_deaths);
+
+        copy_death_field(h_track_id.data(), state.scratch.death_track_id);
+        copy_death_field(h_primary_id.data(), state.scratch.death_primary_id);
+        copy_death_field(h_particle.data(), state.scratch.death_particle);
+        copy_death_field(h_pos.data(), state.scratch.death_pos);
+        copy_death_field(h_dir.data(), state.scratch.death_dir);
+        copy_death_field(h_energy.data(), state.scratch.death_energy);
+        copy_death_field(h_time.data(), state.scratch.death_time);
+
+        CELER_DEVICE_API_CALL(StreamSynchronize(
+            celeritas::device().stream(state.stream_id).get()));
+
+        for (size_type i = 0; i < num_deaths; ++i)
+        {
+            output->deaths[i] = {h_track_id[i],
+                                 h_primary_id[i],
+                                 h_particle[i],
+                                 h_pos[i],
+                                 h_dir[i],
+                                 h_energy[i],
+                                 h_time[i]};
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

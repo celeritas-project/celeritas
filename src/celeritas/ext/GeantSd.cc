@@ -144,6 +144,7 @@ auto GeantSd::filters() const -> Filters
     }
 
     result.nonzero_energy_deposition = nonzero_energy_deposition_;
+    result.track_death = true;
 
     return result;
 }
