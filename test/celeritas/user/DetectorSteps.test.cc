@@ -358,13 +358,17 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
 TEST_F(DetectorStepsTest, death_fields_allocated)
 {
-    // Build params with track_death enabled
+    // Build params with track_death enabled (no volume instances needed)
     celeritas::HostVal<StepParamsData> host_data;
     std::vector<DetectorId> detectors
         = {DetectorId{}, DetectorId{1}, DetectorId{0}};
     make_builder(&host_data.detector)
         .insert_back(detectors.begin(), detectors.end());
     host_data.selection = this->selection();
+    for (auto& sp : host_data.selection.points)
+    {
+        sp.volume_instance_ids = false;
+    }
     host_data.track_death = true;
     host_data.num_volume_levels = 0;
 
@@ -400,13 +404,17 @@ TEST_F(DetectorStepsTest, death_fields_not_allocated)
 
 TEST_F(DetectorStepsTest, copy_deaths_host)
 {
-    // Build params with track_death enabled
+    // Build params with track_death enabled (no volume instances needed)
     celeritas::HostVal<StepParamsData> host_data;
     std::vector<DetectorId> detectors
         = {DetectorId{}, DetectorId{1}, DetectorId{0}};
     make_builder(&host_data.detector)
         .insert_back(detectors.begin(), detectors.end());
     host_data.selection = this->selection();
+    for (auto& sp : host_data.selection.points)
+    {
+        sp.volume_instance_ids = false;
+    }
     host_data.track_death = true;
     host_data.num_volume_levels = 0;
 
