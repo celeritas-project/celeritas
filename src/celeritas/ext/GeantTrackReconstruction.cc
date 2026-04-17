@@ -22,12 +22,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
+ * Save G4Track reconstruction data along with the Celeritas particle type.
+ * Takes ownership of the user information by unsetting it in the original
+ * track.
  */
-GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
+GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track,
+                                                     ParticleId particle_id)
     : track_id_{track.GetTrackID()}
     , parent_id_{track.GetParentID()}
+    , particle_id_{particle_id}
     , user_info_{track.GetUserInformation()}
     , creator_process_{track.GetCreatorProcess()}
 {
@@ -127,10 +130,11 @@ void GeantTrackReconstruction::init_event()
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
  * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
+PrimaryId
+GeantTrackReconstruction::acquire(G4Track& primary, ParticleId particle_id)
 {
     auto primary_id = start_ + g4_track_data_.size();
-    g4_track_data_.emplace_back(AcquiredData{primary});
+    g4_track_data_.emplace_back(AcquiredData{primary, particle_id});
     return primary_id;
 }
 
@@ -151,8 +155,13 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 
     if (primary_id)
     {
-        CELER_ASSERT(primary_id < g4_track_data_.size());
-        g4_track_data_[primary_id.unchecked_get()].restore(track);
+        // primary_id is an absolute event-scoped ID; subtract the flush-local
+        // start offset to get the index into g4_track_data_ for this flush.
+        CELER_ASSERT(primary_id.unchecked_get() >= start_.unchecked_get());
+        size_type local_idx = primary_id.unchecked_get()
+                              - start_.unchecked_get();
+        CELER_ASSERT(local_idx < g4_track_data_.size());
+        g4_track_data_[local_idx].restore(track);
     }
     return track;
 }

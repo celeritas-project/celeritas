@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "celeritas/Types.hh"
 
 class G4ParticleDefinition;
@@ -48,7 +49,11 @@ class GeantTrackReconstruction
     void clear();
 
     // Register mapping from Celeritas PrimaryID to Geant4 track ID
-    [[nodiscard]] PrimaryId acquire(G4Track&);
+    [[nodiscard]] PrimaryId acquire(G4Track&, ParticleId);
+
+    // Iterate over all acquired primaries, calling func(G4Track&) for each
+    template<class F>
+    void for_each_primary(F&& func) const;
 
     // Reset primary ID at each event start
     void init_event();
@@ -61,18 +66,22 @@ class GeantTrackReconstruction
     class AcquiredData
     {
       public:
-        //! Save the G4Track reconstruction data
-        explicit AcquiredData(G4Track&);
+        //! Save the G4Track reconstruction data along with ParticleId
+        AcquiredData(G4Track&, ParticleId);
         //! Whether the data is valid
         explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
         void restore(G4Track&) const;
+        //! Celeritas particle type for this primary
+        ParticleId particle_id() const { return particle_id_; }
 
       private:
         //! Original Geant4 track ID
         int track_id_{-1};
         //! Original Geant4 parent ID
         int parent_id_{0};
+        //! Celeritas particle type
+        ParticleId particle_id_{};
         //! User track information
         std::unique_ptr<G4VUserTrackInformation> user_info_;
         //! Process that created the track
@@ -88,6 +97,29 @@ class GeantTrackReconstruction
     //! Starting primary id
     PrimaryId start_;
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Iterate over all acquired primaries, calling func(G4Track&) for each.
+ *
+ * The track is restored (track ID, parent ID, user info, creator process)
+ * before the callback is invoked. This is used in Flush() to fire
+ * PostUserTrackingAction for all offloaded primaries.
+ */
+template<class F>
+void GeantTrackReconstruction::for_each_primary(F&& func) const
+{
+    for (size_type i = 0; i < g4_track_data_.size(); ++i)
+    {
+        auto const& data = g4_track_data_[i];
+        PrimaryId pid
+            = celeritas::id_cast<PrimaryId>(start_.unchecked_get() + i);
+        G4Track& track = this->view(data.particle_id(), pid);
+        func(track);
+    }
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
