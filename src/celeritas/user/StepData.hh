@@ -95,6 +95,7 @@ struct StepSelection
             true,
             true,
             true,
+            true,
             true};
     }
 
@@ -102,8 +103,8 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || parent_id || track_step_count || action_id || step_length
-               || weight || particle || energy_deposition;
+               || parent_id || primary_id || track_step_count || action_id
+               || step_length || weight || particle || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -116,6 +117,7 @@ struct StepSelection
 
         this->event_id |= other.event_id;
         this->parent_id |= other.parent_id;
+        this->primary_id |= other.primary_id;
         this->track_step_count |= other.track_step_count;
         this->action_id |= other.action_id;
         this->step_length |= other.step_length;
@@ -462,6 +464,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
 
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(parent_id);
+    SD_RESIZE_IF_SELECTED(primary_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
     SD_RESIZE_IF_SELECTED(weight);
