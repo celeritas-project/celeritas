@@ -14,7 +14,7 @@ runner.action.calo = "Geant4CalorimeterAction"
 runner.action.calorimeterSDTypes = ["calorimeter"]
 
 # Output configuration
-runner.outputConfig.forceDD4HEP = True
+runner.outputConfig.forceEDM4HEP = True
 
 # Number of events
 runner.numberOfEvents = 100
@@ -57,5 +57,3 @@ def setup_physics(kernel):
 
 
 runner.physics.setupUserPhysics(setup_physics)
-
-runner.part.userParticleHandler = ""
