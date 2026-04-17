@@ -32,9 +32,12 @@ if [ -z "${MRB_PROJECT}" ]; then
   # export MRB_PROJECT_VERSION=v10_14_01
   export MRB_PROJECT_VERSION=v10_20_01
 fi
-export MRB_QUALS=e26:prof
+if [ -z "${MRB_QUALS}" ]; then
+  export MRB_QUALS=e26:prof
+fi
+
 if [ -n "${UPS_DIR}" ]; then
-  celerlog debug "Dune UPS already set up: ${UPS_DIR}"
+  celerlog debug "UPS already set up: ${UPS_DIR}"
 else
   celerlog info "Setting up DUNE UPS"
   . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh

@@ -26,7 +26,7 @@ apptainer_fermilab() {
   image=${1:-fnal-dev-sl7:latest}
   exec /usr/bin/apptainer shell \
     --shell=/bin/bash \
-    -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/auto/projects/celeritas/opt,/etc/hostname,/etc/hosts \
+    -B /cvmfs,/auto/projects/celeritas/opt,$SCRATCHDIR,$HOME \
     --nv --ipc --pid  \
     ${IMAGE_DIR}/${image}
   # END_LARCELER_EXAMPLE_APPTAINER
