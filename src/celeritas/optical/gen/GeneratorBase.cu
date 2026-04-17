@@ -7,10 +7,8 @@
 #include "GeneratorBase.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
-#include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "detail/UpdatePendingExecutor.hh"
 
@@ -20,7 +18,7 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (device) kernel to initialize optical photons.
+ * Launch a (device) kernel to update the number of pending optical photons.
  */
 void GeneratorBase::update_pending(CoreStateDevice& state,
                                    size_type num_pending) const

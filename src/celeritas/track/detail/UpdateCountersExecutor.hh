@@ -8,17 +8,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/random/engine/InitializeRngState.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/CoreTrackData.hh"
-#include "celeritas/phys/ParticleData.hh"
-#include "celeritas/phys/Primary.hh"
 
-#include "../SimData.hh"
 #include "../TrackInitData.hh"
-#include "../Utils.hh"
 
 namespace celeritas
 {

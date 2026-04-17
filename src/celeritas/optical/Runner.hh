@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "celeritas/inp/StandaloneInput.hh"
-#include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
 

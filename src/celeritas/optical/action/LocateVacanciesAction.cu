@@ -14,7 +14,6 @@
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 
-#include "detail/TrackInitAlgorithms.hh"
 #include "detail/UpdateAliveExecutor.hh"
 
 namespace celeritas
