@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
 
@@ -16,6 +17,7 @@
 #include "gen/DirectGeneratorAction.hh"
 #include "gen/GeneratorAction.hh"
 #include "gen/PrimaryGeneratorAction.hh"
+#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
@@ -83,6 +85,10 @@ class Runner
     //// HELPER FUNCTIONS ////
 
     Result run() const;
+
+    // Update the num_pending state counter
+    void update_pending(CoreState<MemSpace::host>&, size_type) const;
+    void update_pending(CoreState<MemSpace::device>&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//

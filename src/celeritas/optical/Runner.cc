@@ -10,6 +10,7 @@
 
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/KernelLauncher.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
@@ -123,12 +124,21 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
      * for some run modes, e.g. offloading distributions through accel where we
      * already know the number of pending tracks.
      */
-    auto counters = state_->sync_get_counters();
+    size_type total_pending(0);
     for (auto const& d : data)
     {
-        counters.num_pending += d.num_photons;
+        total_pending += d.num_photons;
     }
-    state_->sync_put_counters(counters);
+    if (celeritas::device())
+    {
+        auto* s = static_cast<optical::CoreState<MemSpace::device>*>(&*state_);
+        update_pending(*s, total_pending);
+    }
+    else
+    {
+        auto* s = static_cast<optical::CoreState<MemSpace::host>*>(&*state_);
+        update_pending(*s, total_pending);
+    }
 
     return this->run();
 }
@@ -155,6 +165,26 @@ auto Runner::run() const -> Result
 
     return result;
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update the number of pending optical photons.
+ */
+void Runner::update_pending(CoreState<MemSpace::host>& state,
+                            size_type num_pending) const
+{
+    // Update the number of pending optical photons
+    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
+    launch_kernel(1, execute);
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void Runner::update_pending(CoreState<MemSpace::device>&, size_type) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
