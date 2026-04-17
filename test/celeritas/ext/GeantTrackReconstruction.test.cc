@@ -388,5 +388,112 @@ TEST_F(GeantTrackReconstructionTest, multi_flush_view)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Verify view_initial restores handover-time kinematics and primary particle.
+ */
+TEST_F(GeantTrackReconstructionTest, view_initial)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+
+
+    // Create primary with known kinematics
+    auto primary_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 0, 1), 500.0),
+        3.14,
+        G4ThreeVector(10, 20, 30));
+    primary_track->SetTrackID(42);
+    primary_track->SetParentID(0);
+
+    PrimaryId pid = recon.acquire(*primary_track, ParticleId{1});
+
+    // Modify the track to simulate post-transport state
+    G4Track& track = recon.view(ParticleId{1}, pid);
+    track.SetPosition(G4ThreeVector(99, 99, 99));
+    track.SetKineticEnergy(0.0);
+
+    // view_initial should restore original handover state
+    G4Track& initial = recon.view_initial(ParticleId{1}, pid);
+    EXPECT_EQ(42, initial.GetTrackID());
+    EXPECT_EQ(0, initial.GetParentID());
+    EXPECT_DOUBLE_EQ(500.0, initial.GetKineticEnergy());
+    EXPECT_DOUBLE_EQ(3.14, initial.GetGlobalTime());
+    EXPECT_DOUBLE_EQ(10, initial.GetPosition().x());
+    EXPECT_DOUBLE_EQ(20, initial.GetPosition().y());
+    EXPECT_DOUBLE_EQ(30, initial.GetPosition().z());
+    EXPECT_DOUBLE_EQ(0, initial.GetMomentumDirection().x());
+    EXPECT_DOUBLE_EQ(0, initial.GetMomentumDirection().y());
+    EXPECT_DOUBLE_EQ(1, initial.GetMomentumDirection().z());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify is_generator_primary distinguishes generator primaries from
+ * re-offloaded secondaries.
+ */
+TEST_F(GeantTrackReconstructionTest, is_generator_primary)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+
+
+    // Generator primary (parent_id == 0)
+    auto gen_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    gen_track->SetTrackID(1);
+    gen_track->SetParentID(0);
+    PrimaryId gen_id = recon.acquire(*gen_track, ParticleId{0});
+
+    // Re-offloaded secondary (parent_id != 0)
+    auto sec_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
+        0.0,
+        G4ThreeVector());
+    sec_track->SetTrackID(2);
+    sec_track->SetParentID(1);
+    PrimaryId sec_id = recon.acquire(*sec_track, ParticleId{1});
+
+    EXPECT_TRUE(recon.is_generator_primary(gen_id));
+    EXPECT_FALSE(recon.is_generator_primary(sec_id));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify for_each_primary iterates all acquired primaries with restored state.
+ */
+TEST_F(GeantTrackReconstructionTest, for_each_primary)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+
+
+    // Register 5 primaries cycling through particle types (gamma, e-, e+)
+    int const expected_ids[] = {10, 20, 30, 40, 50};
+    std::vector<std::unique_ptr<G4Track>> src_tracks;
+    for (size_type i = 0; i < 5; ++i)
+    {
+        auto pidx = i % particles_.size();
+        src_tracks.push_back(std::make_unique<G4Track>(
+            new G4DynamicParticle(particles_[pidx], G4ThreeVector()),
+            0.0,
+            G4ThreeVector()));
+        src_tracks.back()->SetTrackID(expected_ids[i]);
+        PrimaryId pid = recon.acquire(
+            *src_tracks.back(), ParticleId{static_cast<size_type>(pidx)});
+        EXPECT_EQ(i, pid.unchecked_get());
+    }
+
+    std::vector<int> visited_ids;
+    recon.for_each_primary([&visited_ids](G4Track& track) {
+        visited_ids.push_back(track.GetTrackID());
+    });
+
+    ASSERT_EQ(5, visited_ids.size());
+    for (size_type i = 0; i < 5; ++i)
+    {
+        EXPECT_EQ(expected_ids[i], visited_ids[i]);
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
