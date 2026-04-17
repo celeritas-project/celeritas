@@ -11,6 +11,7 @@
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
+#include "../inp/Bih.hh"
 #include "../univ/detail/Types.hh"
 
 namespace celeritas
@@ -121,7 +122,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     -> Intersection
 {
     // Stack of deferred nodes
-    BIHNodeId stack[17];  // max tree depth
+    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];  // max tree depth
     int stack_ptr = 0;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};

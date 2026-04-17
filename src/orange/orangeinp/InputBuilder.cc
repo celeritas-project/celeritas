@@ -164,6 +164,7 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
     {
         size_type dl = std::stoul(var);
         CELER_EXPECT(dl > 0);
+        CELER_EXPECT(dl <= inp::BIHBuilder::max_depth_limit);
         result.construction_opts.bih_options.depth_limit = dl;
     }
 
