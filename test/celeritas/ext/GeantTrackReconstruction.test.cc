@@ -140,7 +140,7 @@ TEST_F(GeantTrackReconstructionTest, primary_registration)
     primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{0});
 
     // Verify primary ID
     EXPECT_EQ(0, primary_id.unchecked_get());
@@ -161,7 +161,7 @@ TEST_F(GeantTrackReconstructionTest, primary_registration)
     primary_track2->SetTrackID(456);
     primary_track2->SetParentID(0);
 
-    PrimaryId primary_id2 = recon.acquire(*primary_track2);
+    PrimaryId primary_id2 = recon.acquire(*primary_track2, ParticleId{1});
     EXPECT_EQ(1, primary_id2.unchecked_get());
 }
 
@@ -186,7 +186,7 @@ TEST_F(GeantTrackReconstructionTest, track_restoration)
     auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{1});
 
     // Restore track for electron (particle ID 1) with primary information
     G4Track& restored_track = recon.view(ParticleId{1}, primary_id);
@@ -254,8 +254,8 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
     auto mock_process2 = std::make_unique<MockProcess>("TestProcess2");
     primary_track2->SetCreatorProcess(mock_process2.get());
 
-    PrimaryId id1 = recon.acquire(*primary_track1);
-    PrimaryId id2 = recon.acquire(*primary_track2);
+    PrimaryId id1 = recon.acquire(*primary_track1, ParticleId{0});
+    PrimaryId id2 = recon.acquire(*primary_track2, ParticleId{1});
 
     // Verify primaries are registered
     EXPECT_EQ(0, id1.unchecked_get());
@@ -323,7 +323,7 @@ TEST_F(GeantTrackReconstructionTest, reconstruction_data_persistence)
     auto mock_process = std::make_unique<MockProcess>("TestIonization");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{2});
 
     // Test reconstruction data persists across multiple restore calls
     for (int i = 0; i < 3; ++i)
@@ -339,6 +339,55 @@ TEST_F(GeantTrackReconstructionTest, reconstruction_data_persistence)
         ASSERT_NE(nullptr, restored_info);
         EXPECT_EQ(777, restored_info->value());
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify view() uses flush-local indexing across multiple clear() cycles.
+ *
+ * Simulates two Flush() calls within one event (e.g. auto_flush_ triggered
+ * mid-event). After clear(), start_ advances so that absolute primary IDs
+ * from the second flush index correctly into a freshly-repopulated
+ * g4_track_data_ vector.
+ */
+TEST_F(GeantTrackReconstructionTest, multi_flush_view)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    // --- Flush 1: acquire one primary (absolute id = 0) ---
+    auto track1 = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    track1->SetTrackID(111);
+    auto mock_proc1 = std::make_unique<MockProcess>("proc1");
+    track1->SetCreatorProcess(mock_proc1.get());
+
+    PrimaryId id1 = recon.acquire(*track1, ParticleId{0});
+    EXPECT_EQ(0, id1.unchecked_get());
+
+    // view() must find track1 via id1
+    EXPECT_EQ(111, recon.view(ParticleId{0}, id1).GetTrackID());
+
+    // Simulate end of first flush
+    recon.clear();
+
+    // --- Flush 2: acquire one primary (absolute id = 1) ---
+    auto track2 = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
+        0.0,
+        G4ThreeVector());
+    track2->SetTrackID(222);
+    auto mock_proc2 = std::make_unique<MockProcess>("proc2");
+    track2->SetCreatorProcess(mock_proc2.get());
+
+    PrimaryId id2 = recon.acquire(*track2, ParticleId{1});
+    EXPECT_EQ(1, id2.unchecked_get());
+
+    // view() must find track2 via id2, not index out-of-bounds or return
+    // track1's stale data
+    EXPECT_EQ(222, recon.view(ParticleId{1}, id2).GetTrackID());
 }
 
 //---------------------------------------------------------------------------//
