@@ -60,7 +60,7 @@ class BhabhaEnergyDistribution
         return 1;
     }
 
-};  // namespace BhabhaEnergyDistribution
+};
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
