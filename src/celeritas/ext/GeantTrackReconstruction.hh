@@ -14,6 +14,7 @@
 #include "celeritas/Types.hh"
 
 class G4ParticleDefinition;
+class G4PrimaryParticle;
 class G4Step;
 class G4Track;
 class G4VProcess;
@@ -55,8 +56,15 @@ class GeantTrackReconstruction
     template<class F>
     void for_each_primary(F&& func) const;
 
-    // Restore track information for given primary and particle IDs
+    // Restore track with terminal state for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
+
+    // Restore track with initial (handover) state for given primary and
+    // particle IDs (for PreUserTrackingAction dispatch)
+    [[nodiscard]] G4Track& view_initial(ParticleId, PrimaryId) const;
+
+    // True if the given primary was created by the event generator
+    bool is_generator_primary(PrimaryId) const;
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
@@ -69,8 +77,21 @@ class GeantTrackReconstruction
         explicit operator bool() const { return track_id_ >= 0; }
         //! Restore the G4Track from the reconstruction data
         void restore(G4Track&) const;
+        //! Restore initial kinematic state (for PreUserTrackingAction)
+        void restore_initial(G4Track&) const;
         //! Celeritas particle type for this primary
         ParticleId particle_id() const { return particle_id_; }
+        //! Original Geant4 track ID
+        int track_id() const { return track_id_; }
+        //! Original Geant4 parent ID
+        int parent_id() const { return parent_id_; }
+        //! Generator-level G4PrimaryParticle pointer (null for secondaries)
+        G4PrimaryParticle const* primary_particle() const
+        {
+            return primary_particle_;
+        }
+        //! True if this track was created by the event generator (parent ID 0)
+        bool is_generator_primary() const { return parent_id_ == 0; }
 
       private:
         //! Original Geant4 track ID
@@ -79,6 +100,17 @@ class GeantTrackReconstruction
         int parent_id_{0};
         //! Celeritas particle type
         ParticleId particle_id_{};
+        //! Initial kinetic energy [MeV]
+        double kinetic_energy_{0};
+        //! Initial global time [ns]
+        double time_{0};
+        //! Initial position [mm]
+        double pos_[3]{0, 0, 0};
+        //! Initial momentum direction (unit vector)
+        double dir_[3]{0, 0, 1};
+        //! Generator-level primary particle pointer (non-owning, valid until
+        //! end of event)
+        G4PrimaryParticle const* primary_particle_{nullptr};
         //! User track information
         std::unique_ptr<G4VUserTrackInformation> user_info_;
         //! Process that created the track
@@ -101,7 +133,7 @@ class GeantTrackReconstruction
  *
  * The track is restored (track ID, parent ID, user info, creator process)
  * before the callback is invoked. This is used in Flush() to fire
- * PostUserTrackingAction for all offloaded primaries.
+ * Pre/PostUserTrackingAction for all offloaded primaries.
  */
 template<class F>
 void GeantTrackReconstruction::for_each_primary(F&& func) const

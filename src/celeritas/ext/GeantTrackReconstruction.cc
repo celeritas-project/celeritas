@@ -8,6 +8,7 @@
 
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
+#include <G4PrimaryParticle.hh>
 #include <G4Step.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
@@ -31,10 +32,21 @@ GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track,
     : track_id_{track.GetTrackID()}
     , parent_id_{track.GetParentID()}
     , particle_id_{particle_id}
+    , kinetic_energy_{track.GetKineticEnergy()}
+    , time_{track.GetGlobalTime()}
+    , primary_particle_{track.GetDynamicParticle()->GetPrimaryParticle()}
     , user_info_{track.GetUserInformation()}
     , creator_process_{track.GetCreatorProcess()}
 {
     CELER_EXPECT(*this);
+    auto const& pos = track.GetPosition();
+    pos_[0] = pos.x();
+    pos_[1] = pos.y();
+    pos_[2] = pos.z();
+    auto const& dir = track.GetMomentumDirection();
+    dir_[0] = dir.x();
+    dir_[1] = dir.y();
+    dir_[2] = dir.z();
     // Clear user information so that it doesn't get deleted with the G4Track
     track.SetUserInformation(nullptr);
 }
@@ -52,6 +64,42 @@ void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
     track.SetParentID(parent_id_);
     track.SetUserInformation(user_info_.get());
     track.SetCreatorProcess(creator_process_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the initial kinematic state for PreUserTrackingAction dispatch.
+ *
+ * Sets position, momentum direction, kinetic energy, global time, and the
+ * G4PrimaryParticle pointer on the dynamic particle so that MC-truth
+ * frameworks that check GetPrimaryParticle() in PreUserTrackingAction
+ * correctly identify the track as a generator-level primary.
+ */
+void GeantTrackReconstruction::AcquiredData::restore_initial(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    restore(track);
+    track.SetPosition(G4ThreeVector(pos_[0], pos_[1], pos_[2]));
+    track.SetMomentumDirection(G4ThreeVector(dir_[0], dir_[1], dir_[2]));
+    track.SetGlobalTime(time_);
+    auto* dp = const_cast<G4DynamicParticle*>(track.GetDynamicParticle());
+    dp->SetKineticEnergy(kinetic_energy_);
+    dp->SetPrimaryParticle(const_cast<G4PrimaryParticle*>(primary_particle_));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return true if the given primary was created by the event generator.
+ *
+ * Generator-level primaries have parent ID 0. Geant4-tracked secondaries that
+ * were re-offloaded to Celeritas via HandOverOneTrack have a non-zero parent
+ * ID, so Pre/PostUserTrackingAction should not be fired for them here.
+ */
+bool GeantTrackReconstruction::is_generator_primary(PrimaryId primary_id) const
+{
+    CELER_EXPECT(primary_id);
+    CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+    return g4_track_data_[primary_id.unchecked_get()].is_generator_primary();
 }
 
 //---------------------------------------------------------------------------//
@@ -148,6 +196,29 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
         CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
         g4_track_data_[primary_id.unchecked_get()].restore(track);
     }
+    return track;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the track with its initial (handover) state.
+ *
+ * Used to prepare the track for PreUserTrackingAction in Flush(), where the
+ * track must look exactly as it did when first handed over to Celeritas.
+ */
+G4Track& GeantTrackReconstruction::view_initial(ParticleId particle_id,
+                                                PrimaryId primary_id) const
+{
+    CELER_EXPECT(particle_id < tracks_.size());
+    CELER_EXPECT(primary_id);
+
+    G4Track& track = *tracks_[particle_id.unchecked_get()];
+    step_->SetTrack(&track);
+
+    // primary_id is flush-local: direct index into g4_track_data_
+    CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+    g4_track_data_[primary_id.unchecked_get()].restore_initial(track);
+
     return track;
 }
 
