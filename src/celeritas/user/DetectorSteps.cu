@@ -40,20 +40,13 @@ using ItemRef
     = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-struct HasDetector
+//! Predicate: true if the OpaqueId is valid (non-null).
+template<class T>
+struct IsValid
 {
-    CELER_FORCEINLINE_FUNCTION bool operator()(DetectorId const& d)
+    CELER_FORCEINLINE_FUNCTION bool operator()(T const& id)
     {
-        return static_cast<bool>(d);
-    }
-};
-
-//---------------------------------------------------------------------------//
-struct HasDeath
-{
-    CELER_FORCEINLINE_FUNCTION bool operator()(TrackId const& t)
-    {
-        return static_cast<bool>(t);
+        return static_cast<bool>(id);
     }
 };
 
@@ -68,7 +61,7 @@ size_type count_num_valid(
                                thrust::make_counting_iterator(state.size()),
                                device_pointer_cast(state.data.detector.data()),
                                start,
-                               HasDetector{});
+                               IsValid<DetectorId>{});
     return end - start;
 }
 
@@ -210,7 +203,7 @@ void copy_deaths<MemSpace::device>(
         thrust::make_counting_iterator(state.size()),
         device_pointer_cast(state.data.death_track_id.data()),
         start,
-        HasDeath{});
+        IsValid<TrackId>{});
     size_type const num_deaths = end - start;
 
     if (num_deaths == 0)
