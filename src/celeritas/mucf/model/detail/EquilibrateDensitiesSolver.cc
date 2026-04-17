@@ -12,6 +12,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -58,7 +60,7 @@ EquilibrateDensitiesSolver::EquilibrateDensitiesSolver(
                      + lhd_densities_[Iso::deuterium]
                      + lhd_densities_[Iso::tritium];
     CELER_ENSURE(total_density_ > 0);
-    inv_tot_density_ = real_type{1} / total_density_;
+    inv_tot_density_ = 1_r / total_density_;
 }
 
 //---------------------------------------------------------------------------//
@@ -248,11 +250,9 @@ void EquilibrateDensitiesSolver::equilibrate_pair(
     CELER_EXPECT(eq_constant_ab > 0);
 
     // AA + AB / 2
-    real_type const mix_a = input[molecule_aa]
-                            + input[molecule_ab] * real_type{0.5};
+    real_type const mix_a = input[molecule_aa] + input[molecule_ab] * 0.5_r;
     // BB + AB / 2
-    real_type const mix_b = input[molecule_bb]
-                            + input[molecule_ab] * real_type{0.5};
+    real_type const mix_b = input[molecule_bb] + input[molecule_ab] * 0.5_r;
 
     real_type sigma
         = ((mix_a + mix_b)

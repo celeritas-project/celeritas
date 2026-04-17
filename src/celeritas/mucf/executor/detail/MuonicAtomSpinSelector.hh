@@ -43,13 +43,15 @@ class MuonicAtomSpinSelector
     // Muonic deuterium spin probabilities: 2/3 for spin 3/2; 1/3 for spin 1/2
     constexpr CELER_FUNCTION real_type deuterium_spin_probability()
     {
-        return real_type{2} / real_type{3};
+        using namespace celeritas::literals;
+        return 2_r / 3;
     }
 
     // Muonic tritium spin probabilities: 3/4 for spin 1; 1/4 for spin 0
     constexpr CELER_FUNCTION real_type tritium_spin_probability()
     {
-        return real_type{0.75};
+        using namespace celeritas::literals;
+        return 0.75_r;
     }
 };
 

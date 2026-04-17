@@ -16,6 +16,8 @@
 #include "detail/BuildIntersectRegion.hh"
 #include "detail/ConvexHullFinder.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace orangeinp
@@ -251,7 +253,7 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
         std::swap(p_bot, p_top);
     }
 
-    real_type hh = 0.5 * (p_top[Z] - p_bot[Z]);
+    real_type hh = 0.5_r * (p_top[Z] - p_bot[Z]);
     Real2 radii{p_bot[R], p_top[R]};
 
     auto scoped_transform

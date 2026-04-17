@@ -326,10 +326,14 @@ if(CELERITAS_USE_Geant4)
     "SimpleCmsAlongStepTest.msc_field"
     "SimpleCmsAlongStepTest.msc_field_finegrid"
     "SimpleCmsFieldVolAlongStepTest.msc_field"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
     "LeadBoxAlongStepTest.*"
   )
+  if(CELERITAS_USE_covfie)
+    list(APPEND _along_step_filter
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+    )
+  endif()
   set(_stepper_filter
     "-TestEm*:LeadBox*"
     "TestEm3Compton.*"

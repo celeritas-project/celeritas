@@ -46,7 +46,7 @@ template<class F>
 class ActionLauncher : public KernelLauncher<F>
 {
     static_assert(
-        Launchable_v<F>,
+        is_launchable_v<F>,
         R"(Launched action must be a trivially copyable function object)");
 
     using StepActionT = CoreStepActionInterface;

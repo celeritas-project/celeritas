@@ -180,7 +180,7 @@ class RaytraceImagerTest : public OrangeGeoTestBase
 {
   protected:
     //! Length scale is hardcoded into JSON input
-    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
+    UnitLength unit_length() const override { return {1_C, "length"}; }
 
     void SetUp() override
     {

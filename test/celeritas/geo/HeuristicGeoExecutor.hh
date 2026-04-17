@@ -177,12 +177,14 @@ CELER_FUNCTION void HeuristicGeoExecutor::operator()(TrackSlotId tid) const
     BernoulliDistribution do_scatter(0.1);
     if (do_scatter(rng))
     {
+        using namespace celeritas::literals;
+
         // Forward scatter: anything up to a 90 degree angle if not on a
         // boundary, otherwise pretty close to forward peaked
-        real_type min_angle = (geo.is_on_boundary() ? real_type(0.9) : 0);
+        real_type min_angle = (geo.is_on_boundary() ? 0.9_r : 0);
         real_type mu = UniformRealDistribution<>{min_angle, 1}(rng);
         real_type phi
-            = UniformRealDistribution<>{0, real_type(2 * constants::pi)}(rng);
+            = UniformRealDistribution<>{0, 2.0_r * constants::pi}(rng);
 
         Real3 dir = rotate(from_spherical(mu, phi), geo.dir());
         geo.set_dir(dir);

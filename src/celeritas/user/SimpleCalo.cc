@@ -23,6 +23,8 @@
 
 #include "detail/SimpleCaloImpl.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -172,7 +174,7 @@ auto SimpleCalo::energy_deposition(StreamId stream_id) const
  */
 auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
 {
-    VecReal result(this->num_detectors(), real_type{0});
+    VecReal result(this->num_detectors(), 0_r);
 
     accumulate_over_streams(
         store_, [](auto& state) { return state.energy_deposition; }, &result);
@@ -185,9 +187,8 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
  */
 void SimpleCalo::clear()
 {
-    apply_to_all_streams(store_, [](auto& state) {
-        fill(real_type(0), &state.energy_deposition);
-    });
+    apply_to_all_streams(
+        store_, [](auto& state) { fill(0.0_r, &state.energy_deposition); });
 }
 
 //---------------------------------------------------------------------------//

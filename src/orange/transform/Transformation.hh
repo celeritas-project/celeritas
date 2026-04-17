@@ -176,7 +176,8 @@ CELER_FUNCTION Transformation::Transformation(StorageSpan s)
  */
 CELER_FUNCTION Real3 Transformation::transform_up(Real3 const& pos) const
 {
-    return gemv(real_type{1}, rot_, pos, real_type{1}, tra_);
+    using namespace celeritas::literals;
+    return gemv(1_r, rot_, pos, 1_r, tra_);
 }
 
 //---------------------------------------------------------------------------//

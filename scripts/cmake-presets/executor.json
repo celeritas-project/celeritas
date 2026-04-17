@@ -87,6 +87,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_PYTHONPATH": "/Users/seth/Code/py-breathe:/Users/seth/Code/py-sphinxcontrib-bibtex/src",
         "CELERITAS_PYTHONWARNINGS": "ignore:::urllib3,ignore:::breathe.project,ignore::UserWarning:pybtex.plugin",
         "CELERITAS_SPHINX_ARGS": "-W;--keep-going",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",

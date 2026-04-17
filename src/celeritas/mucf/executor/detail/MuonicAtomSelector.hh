@@ -65,11 +65,12 @@ class MuonicAtomSelector
 CELER_FUNCTION
 MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(deuterium_fraction >= 0 && deuterium_fraction <= 1);
 
-    real_type tritium_fraction = real_type{1} - deuterium_fraction;
-    real_type const q1s = real_type{1}
-                          / (real_type{1} + real_type{2.9} * tritium_fraction);
+    real_type tritium_fraction = 1_r - deuterium_fraction;
+    real_type const q1s = 1_r / (1_r + 2.9_r * tritium_fraction);
     deuterium_probability_ = deuterium_fraction * q1s;
 
     CELER_ENSURE(deuterium_probability_ >= 0 && deuterium_probability_ <= 1);

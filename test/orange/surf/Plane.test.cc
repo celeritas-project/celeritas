@@ -15,7 +15,7 @@ namespace celeritas
 {
 namespace test
 {
-constexpr auto sqrt_two = real_type{constants::sqrt_two};
+constexpr auto inv_sqrt_two = 1.0_r / constants::sqrt_two;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -40,8 +40,9 @@ class PlaneTest : public Test
 TEST_F(PlaneTest, construction)
 {
     // Make a rotated plane in the xy axis
-    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, {2 / sqrt_two, 2 / sqrt_two, 2}};
-    EXPECT_VEC_SOFT_EQ((Real3{1 / sqrt_two, 1 / sqrt_two, 0}), p.normal());
+    Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0},
+            {2 * inv_sqrt_two, 2 * inv_sqrt_two, 2}};
+    EXPECT_VEC_SOFT_EQ((Real3{inv_sqrt_two, inv_sqrt_two, 0}), p.normal());
     EXPECT_SOFT_EQ(2, p.displacement());
 
     Plane px{PlaneX{1.25}};
@@ -55,7 +56,7 @@ TEST_F(PlaneTest, construction)
 TEST_F(PlaneTest, tracking)
 {
     // Make a rotated plane in the xy axis
-    Plane p{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two};
+    Plane p{{inv_sqrt_two, inv_sqrt_two, 0.0}, 2.0_r * constants::sqrt_two};
 
     // Get a point that should have positive sense
     Real3 x{{5.41421356, 1.41421356, 0.0}};

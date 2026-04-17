@@ -173,6 +173,7 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
             StreamId stream,
             size_type size)
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
@@ -187,7 +188,7 @@ void resize(TrackInitStateData<Ownership::value, M>* data,
     }
 
     // Initialize the track counter for each event to zero
-    fill(size_type(0), &data->track_counters);
+    fill(0_sz, &data->track_counters);
 
     // Initialize vacancies to mark all track slots as empty
     resize(&data->vacancies, size);

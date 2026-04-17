@@ -357,7 +357,9 @@ CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() co
 template<class SubstepperT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::bump_distance() const
 {
-    return this->delta_intersection() * real_type(0.1);
+    using namespace celeritas::literals;
+
+    return this->delta_intersection() * 0.1_r;
 }
 
 //---------------------------------------------------------------------------//

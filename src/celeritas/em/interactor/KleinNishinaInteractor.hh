@@ -102,6 +102,8 @@ CELER_FUNCTION KleinNishinaInteractor::KleinNishinaInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     using Energy = units::MevEnergy;
 
     // Allocate space for the single electron to be emitted
@@ -119,7 +121,7 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
 
     // Probability of alpha_1 to choose f_1 (sample epsilon)
     BernoulliDistribution choose_f1(-std::log(epsilon_0),
-                                    real_type(0.5) * (1 - ipow<2>(epsilon_0)));
+                                    0.5_r * (1 - ipow<2>(epsilon_0)));
     // Sample f_1(\eps) \propto 1/\eps on [\eps_0, 1]
     ReciprocalDistribution<real_type> sample_f1(epsilon_0);
     // Sample square of f_2(\eps^2) \propto 1 on [\eps_0^2, 1]

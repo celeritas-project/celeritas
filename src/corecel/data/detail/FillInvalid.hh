@@ -51,7 +51,7 @@ struct InvalidValueTraits
             std::memset(reinterpret_cast<unsigned char*>(&v), 0xd0, sizeof(T));
             return v;
         }
-        else if constexpr (TriviallyCopyable_v<T>)
+        else if constexpr (celeritas::is_trivially_copyable_v<T>)
         {
             // The type is specialized by a developer as being "trivially
             // copyable" when it's technically not: examples are with the HIP

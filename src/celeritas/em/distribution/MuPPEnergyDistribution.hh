@@ -190,6 +190,8 @@ template<class Engine>
 CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
     -> PairEnergy
 {
+    using namespace celeritas::literals;
+
     // Sample the energy transfer
     real_type pair_energy
         = inc_energy_ * std::exp(coeff_ * this->sample_scaled_energy(rng));
@@ -204,7 +206,7 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
 
     // Calculate the electron and positron energies
     PairEnergy result;
-    real_type half_energy = pair_energy * real_type(0.5);
+    real_type half_energy = pair_energy * 0.5_r;
     result.electron = Energy((1 - r) * half_energy - electron_mass_);
     result.positron = Energy((1 + r) * half_energy - electron_mass_);
 

@@ -51,8 +51,8 @@ TEST_F(LdgWrapperTest, equality)
 
     // std::equal triggers LdgWrapper == LdgWrapper comparison internally
     static double const same_vals[] = {1.0, 2.0};
-    LdgSpan<double const> span1{vals};
-    LdgSpan<double const> span2{same_vals};
+    auto span1 = make_ldg_span(vals);
+    auto span2 = make_ldg_span(same_vals);
     EXPECT_TRUE(std::equal(span1.begin(), span1.end(), span2.begin()));
     static double const diff_vals[] = {1.0, 3.0};
     LdgSpan<double const> span3{diff_vals};
@@ -259,11 +259,14 @@ TEST_F(LdgSpanTest, pod)
     using LdgWrap = detail::LdgWrapper<int const>;
     using LdgIter = detail::LdgIterator<int const>;
 
-    int local_data[] = {123, 456, 789};
-    Span<int> mutable_span(local_data);
-    EXPECT_TRUE((is_same_v<decltype(mutable_span[0]), int&>));
+    // LdgSpan must not be implicitly convertible to Span
+    EXPECT_FALSE((std::is_constructible_v<Span<int const>, LdgSpan<int const>>))
+        << "LdgSpan->Span conversion is prohibited";
 
-    Span<LdgWrap> ldg_span(mutable_span);
+    int const local_data[] = {123, 456, 789};
+    Span<int const> basic_span(local_data);
+    EXPECT_TRUE((is_same_v<decltype(basic_span[0]), int const&>));
+
     Span<LdgWrap> local_span(local_data);
     EXPECT_TRUE((is_same_v<typename Span<LdgWrap>::element_type, int const>));
     EXPECT_TRUE((is_same_v<decltype(local_span.data()), int const*>));
@@ -298,7 +301,6 @@ TEST_F(LdgSpanTest, opaque_id)
     Span<TestId> mutable_span(local_data);
     EXPECT_TRUE((is_same_v<decltype(mutable_span[0]), TestId&>));
 
-    Span<LdgWrap> ldg_span(mutable_span);
     Span<LdgWrap> s(local_data);
     EXPECT_TRUE(
         (is_same_v<typename Span<LdgWrap>::element_type, TestId const>));

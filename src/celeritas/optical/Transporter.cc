@@ -77,7 +77,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     // Loop while photons are yet to be tracked
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
-        ScopedProfiling profile_this{"optical-step"};
+        ScopedProfiling profile_this{"step"};
         // Loop through actions
         for (auto const& action : actions_->step())
         {

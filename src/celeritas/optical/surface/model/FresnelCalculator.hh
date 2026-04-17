@@ -138,9 +138,9 @@ FresnelCalculator::FresnelCalculator(Real3 const& direction,
 
     // Sometimes dot product of normalized parallel vectors is the next
     // representation after 1. Round down to exactly 1 to avoid errors.
-    CELER_EXPECT(-dot_product(direction_, normal_)
-                 <= std::nextafter(real_type{1}, real_type{2}));
-    cos_theta_ = min(-dot_product(direction_, normal_), real_type{1});
+    using namespace celeritas::literals;
+    CELER_EXPECT(-dot_product(direction_, normal_) <= std::nextafter(1_r, 2_r));
+    cos_theta_ = min(-dot_product(direction_, normal_), 1_r);
 
     // Snell's law
     real_type sin_phi = sqrt(1 - ipow<2>(cos_theta_)) / relative_r_index_;

@@ -30,6 +30,8 @@
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
 
+using namespace celeritas::literals;
+
 /*!
  * Allow a statement to skip the test when using a certain geometry.
  *
@@ -265,7 +267,7 @@ void AtlasHgtdGeoTest::test_trace() const
         Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
         Real3 dir{
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
-        axpy(real_type{-1}, dir, &pos);
+        axpy(-1_r, dir, &pos);
 
         if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
         {
@@ -806,7 +808,7 @@ void FourLevelsGeoTest::test_reentrant() const
     EXPECT_EQ("Shape1", test_->volume_name(geo));
 
     // Test relocation without direction change on surface
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Check non-reentrant direction
     geo.set_dir(Real3{dx, dx, 0});
@@ -2855,7 +2857,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
 void TwoBoxesGeoTest::test_reentrant() const
 {
     auto geo = test_->make_checked_track_view();
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
@@ -2932,7 +2934,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 void TwoBoxesGeoTest::test_reentrant_undo() const
 {
     auto geo = test_->make_checked_track_view();
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
@@ -2987,7 +2989,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
  */
 void TwoBoxesGeoTest::test_tangent() const
 {
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
     auto geo = test_->make_checked_track_view();

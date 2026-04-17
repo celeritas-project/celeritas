@@ -141,7 +141,8 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         energy_val = calc_energy(generate_canonical(rng));
     }
 
-    ExponentialDistribution sample_time(real_type{1} / component.fall_time);
+    using namespace celeritas::literals;
+    ExponentialDistribution sample_time(1_r / component.fall_time);
 
     TrackInitializer photon;
     photon.energy = Energy{energy_val};
@@ -168,7 +169,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
             return UniformRealDistribution<real_type>{}(rng);
         }
         // Generate the photon at the discrete interaction site
-        return real_type(1);
+        return 1.0_r;
     }();
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);
@@ -179,7 +180,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
         {
             return dist_.step_length
                    / (native_value_from(dist_.points[StepPoint::pre].speed)
-                      + u * real_type(0.5) * native_value_from(delta_speed_));
+                      + u * 0.5_r * native_value_from(delta_speed_));
         }
         // Fall back to using pre- and post-step time if speed isn't available
         // (e.g. with the LArSoft SimEnergyDeposit)

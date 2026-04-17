@@ -271,8 +271,8 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    using namespace celeritas::units::literals;
-    return native_value_to<units::MevMomentum>(2.0_fm / constants::hbar_planck)
+    return native_value_to<units::MevMomentum>(2 * units::femtometer
+                                               / constants::hbar_planck)
         .value();
 }
 
@@ -295,9 +295,11 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
     real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
+    using namespace celeritas::literals;
+
     // Sample scattering angle [fern] eqn 92, where cos(theta) = 1 - 2*mu
-    real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
-    real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
+    real_type const mu1 = 0.5_r * (1 - cos_thetamin);
+    real_type const mu2 = 0.5_r * (1 - cos_thetamax);
     real_type const w = generate_canonical(rng) * (mu2 - mu1);
     real_type const sc = helper_.screening_coefficient();
 

@@ -42,7 +42,7 @@ namespace celeritas
 template<class T>
 class DeviceVector
 {
-    static_assert(TriviallyCopyable_v<T>,
+    static_assert(is_trivially_copyable_v<T>,
                   "DeviceVector element is not trivially copyable");
 
   public:

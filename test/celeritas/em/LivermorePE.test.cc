@@ -553,7 +553,7 @@ TEST_F(LivermorePEUtilsTest, one_neighbor)
     for (auto i : range(num_shells))
     {
         std::vector<AtomicRelaxTransition> transitions
-            = {{SubshellId{i + 1}, SubshellId{}, real_type{1}, MevEnergy{1}}};
+            = {{SubshellId{i + 1}, SubshellId{}, 1_r, MevEnergy{1}}};
         shells[i].transitions
             = make_builder(&data.transitions)
                   .insert_back(transitions.begin(), transitions.end());
@@ -589,7 +589,7 @@ TEST_F(LivermorePEUtilsTest, one_per_previous)
         {
             transitions.push_back({SubshellId{j + 1},
                                    SubshellId{j + 1},
-                                   real_type{1} / (num_shells - i),
+                                   1_r / (num_shells - i),
                                    MevEnergy{1}});
         }
         shells[i].transitions

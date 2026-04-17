@@ -174,6 +174,8 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
     // Sample fraction along the step
+    using namespace celeritas::literals;
+
     UniformRealDistribution<> sample_step_fraction;
     real_type u;
     do
@@ -184,7 +186,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     real_type delta_time
         = u * dist_.step_length
           / (native_value_from(dist_.points[StepPoint::pre].speed)
-             + u * real_type(0.5) * native_value_from(delta_speed_));
+             + u * 0.5_r * native_value_from(delta_speed_));
     photon.time = dist_.points[StepPoint::pre].time + delta_time;
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);

@@ -8,12 +8,12 @@
 
 #include <cstdint>
 #include <numeric>
+#include <type_traits>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/data/CollectionBuilder.hh"
+#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 
@@ -36,38 +36,81 @@ class OpaqueIdTypedTest : public ::testing::Test
 using IntTypes = ::testing::Types<unsigned char, unsigned int, std::size_t>;
 TYPED_TEST_SUITE(OpaqueIdTypedTest, IntTypes, );
 
-TYPED_TEST(OpaqueIdTypedTest, operations)
+TYPED_TEST(OpaqueIdTypedTest, unassigned)
 {
-    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
-    constexpr auto sizemax = static_cast<TypeParam>(-1);
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
+    constexpr auto sizemax = static_cast<Int_t>(-1);
 
     Id_t unassigned;
     EXPECT_FALSE(unassigned);
     EXPECT_TRUE(!unassigned);
     EXPECT_EQ(unassigned, unassigned);
     EXPECT_EQ(unassigned, Id_t{});
+    EXPECT_TRUE(unassigned == nullid);
+    EXPECT_TRUE(nullid == unassigned);
+    EXPECT_FALSE(unassigned != nullid);
+    EXPECT_FALSE(nullid != unassigned);
     EXPECT_EQ(sizemax, Id_t{}.unchecked_get());
     EXPECT_EQ(std::hash<TypeParam>()(sizemax), std::hash<Id_t>()(unassigned));
     if constexpr (CELERITAS_DEBUG)
     {
         EXPECT_THROW(unassigned.get(), DebugError);
+        EXPECT_THROW(unassigned.value(), DebugError);
     }
+
+    EXPECT_EQ("{}", stream_to_string(Id_t{}));
+}
+
+TYPED_TEST(OpaqueIdTypedTest, assigned)
+{
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
 
     Id_t assigned{123};
     EXPECT_TRUE(assigned);
     EXPECT_FALSE(!assigned);
     EXPECT_EQ(123, assigned.get());
-    EXPECT_NE(unassigned, assigned);
+    EXPECT_EQ(Int_t{123}, assigned.value());
+    EXPECT_EQ(Int_t{123}, *assigned);
+    EXPECT_NE(Id_t{}, assigned);
     EXPECT_EQ(assigned, assigned);
+    EXPECT_FALSE(assigned == nullid);
+    EXPECT_FALSE(nullid == assigned);
+    EXPECT_TRUE(assigned != nullid);
+    EXPECT_TRUE(nullid != assigned);
     EXPECT_EQ(std::hash<TypeParam>()(123), std::hash<Id_t>()(assigned));
+
+    EXPECT_EQ("{123}", stream_to_string(assigned));
+
+    assigned = nullid;
+    EXPECT_FALSE(assigned);
+}
+
+TYPED_TEST(OpaqueIdTypedTest, traits)
+{
+    using Int_t = TypeParam;
+    using Id_t = OpaqueId<TestInstantiator, Int_t>;
+
+    EXPECT_TRUE(is_opaque_id_v<Id_t>);
+    EXPECT_TRUE(is_opaque_id_v<Id_t const>);
+    EXPECT_FALSE(is_opaque_id_v<Int_t>);
+
+    EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t>>));
+    EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t const>>));
+}
+
+TYPED_TEST(OpaqueIdTypedTest, operators)
+{
+    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
+    constexpr auto nullid_value = detail::nullid_value<TypeParam>;
+    constexpr auto largest_valid = nullid_value - 1;
 
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
     EXPECT_TRUE(Id_t{22} < Id_t{23});
-    EXPECT_TRUE(Id_t{22} < 23u);
     EXPECT_TRUE(Id_t{23} > Id_t{22});
     EXPECT_TRUE(Id_t{23} >= Id_t{22});
     EXPECT_TRUE(Id_t{22} <= Id_t{23});
-    EXPECT_TRUE(Id_t{22} <= 23u);
 
     EXPECT_FALSE(Id_t{23} <= Id_t{22});
     EXPECT_FALSE(Id_t{23} < Id_t{22});
@@ -76,6 +119,7 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_FALSE(Id_t{23} <= Id_t{22});
 
     EXPECT_EQ(10, Id_t{22} - Id_t{12});
+    EXPECT_EQ(-10, Id_t{12} - Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} + 2);
     EXPECT_EQ(Id_t{24}, 2 + Id_t{22});
     EXPECT_EQ(Id_t{24}, Id_t{22} + std::size_t(2));
@@ -89,12 +133,17 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     EXPECT_EQ(Id_t{0}, Id_t{1} - 1);
     EXPECT_EQ(Id_t{0}, Id_t{2} + (-2));
     EXPECT_EQ(Id_t{1}, ++Id_t{0});
+    EXPECT_EQ(largest_valid - 1, *(--Id_t{largest_valid}));
     if constexpr (CELERITAS_DEBUG)
     {
         EXPECT_THROW(Id_t{} + (-2), DebugError);
         EXPECT_THROW(Id_t{} - 2, DebugError);
         EXPECT_THROW(Id_t{1} + (-2), DebugError);
+        EXPECT_THROW((-2) + Id_t{1}, DebugError);
         EXPECT_THROW(Id_t{1} - 2, DebugError);
+        EXPECT_THROW(--Id_t{}, DebugError);
+        EXPECT_THROW(++Id_t{}, DebugError);
+        EXPECT_THROW(++Id_t{largest_valid}, DebugError);
         // NOTE: since the operators take a signed integer, adding/subtracting
         // sizemax will cause it to overflow (UB)
     }
@@ -103,43 +152,39 @@ TYPED_TEST(OpaqueIdTypedTest, operations)
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
-
-    EXPECT_EQ("{1}", stream_to_string(Id_t{1}));
-    EXPECT_EQ("{}", stream_to_string(Id_t{}));
 }
 
 TEST(OpaqueIdTest, multi_int)
 {
     using UId8 = OpaqueId<TestInstantiator, std::uint_least8_t>;
-    using Uint32 = std::uint_least32_t;
-    using limits_t = std::numeric_limits<Uint32>;
+    using UInt32 = std::uint_least32_t;
+    using Int32 = std::make_signed_t<UInt32>;
+    using Limits_t = std::numeric_limits<UInt32>;
 
     // Unassigned is always out-of-range
     EXPECT_FALSE(UId8{} < 0u);
-    EXPECT_FALSE(UId8{} < Uint32(limits_t::max()));
-    EXPECT_FALSE(UId8{} < Uint32(255));
-    EXPECT_FALSE(UId8{} < Uint32(256));
-    EXPECT_FALSE(UId8{10} < Uint32(5));
+    EXPECT_FALSE(UId8{} < UInt32(Limits_t::max()));
+    EXPECT_FALSE(UId8{} < UInt32(255));
+    EXPECT_FALSE(UId8{} < UInt32(256));
+    EXPECT_FALSE(UId8{10} < UInt32(5));
 
     // Check 'true' conditions
-    EXPECT_TRUE(UId8{254} < Uint32(limits_t::max()));
-    EXPECT_TRUE(UId8{254} < Uint32(255));
-    EXPECT_TRUE(UId8{10} < Uint32(15));
-}
+    EXPECT_TRUE(UId8{254} < UInt32(Limits_t::max()));
+    EXPECT_TRUE(UId8{254} < UInt32(255));
+    EXPECT_TRUE(UId8{10} < UInt32(15));
 
-TEST(OpaqueIdTest, iota)
-{
-    using Id_i = OpaqueId<int, std::size_t>;
-    using T = Id_i::size_type;
-    using Col = Collection<T, Ownership::value, MemSpace::host, Id_i>;
-    Col data;
-    CollectionBuilder builder{&data};
-    builder.resize(100);
-    Span data_view{data[AllItems<T>{}]};
-    std::iota(data_view.begin(), data_view.end(), 0);
-    for (auto i : range(data_view.size()))
+    // Check less-or-equal
+    EXPECT_FALSE(UId8{} <= UInt32(9));
+    EXPECT_TRUE(UId8{253} <= UInt32(254));
+    EXPECT_TRUE(UId8{254} <= UInt32(254));
+
+    EXPECT_EQ(UId8{1}, UId8{254} - UInt32{253});
+    EXPECT_EQ(UId8{1}, UId8{254} - Int32{253});
+    EXPECT_EQ(UId8{1}, UId8{254} + Int32{-253});
+    if (CELERITAS_DEBUG)
     {
-        EXPECT_EQ(i, data_view[i]);
+        EXPECT_THROW(UId8{3} + Int32{-4}, DebugError);
+        // NOTE: UId8{3} + Int32{-256 - 2} is UB
     }
 }
 

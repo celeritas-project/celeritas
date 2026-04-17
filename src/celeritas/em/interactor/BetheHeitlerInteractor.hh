@@ -148,6 +148,8 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     , calc_lpm_functions_(
           material, element, shared_.dielectric_suppression(), inc_energy_)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(particle.particle_id() == shared_.ids.gamma);
     CELER_EXPECT(value_as<Energy>(inc_energy_)
                  >= 2 * value_as<Mass>(shared_.electron_mass));
@@ -164,7 +166,7 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
     else
     {
         screen_delta_ = epsilon0_ * 136 / element.cbrt_z();
-        f_z_ = real_type(8) / real_type(3) * element.log_z();
+        f_z_ = 8.0_r / 3.0_r * element.log_z();
         if (inc_energy_ > coulomb_corr_threshold())
         {
             // Apply Coulomb correction function
@@ -180,6 +182,8 @@ CELER_FUNCTION BetheHeitlerInteractor::BetheHeitlerInteractor(
 template<class Engine>
 CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // Allocate space for the electron/positron pair
     Secondary* secondaries = allocate_(2);
     if (secondaries == nullptr)
@@ -204,9 +208,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // \epsilon = \epsilon_1) values of screening variable, \delta. Above
         // 50 MeV, a Coulomb correction function is introduced.
         real_type const delta_min = 4 * screen_delta_;
-        real_type const delta_max
-            = std::exp((real_type(42.038) - f_z_) / real_type(8.29))
-              - real_type(0.958);
+        real_type const delta_max = std::exp((42.038_r - f_z_) / 8.29_r)
+                                    - 0.958_r;
         CELER_ASSERT(delta_min <= delta_max);
 
         // Calculate the lower limit of epsilon. Due to the Coulomb correction,
@@ -224,7 +227,7 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // c.f. Eq. 6.6 of Geant4 Physics Reference 10.6)
         Real2 const fmin = this->screening_f(delta_min) - f_z_;
         BernoulliDistribution choose_f1g1(
-            ipow<2>(half - epsilon_min) * fmin[0], real_type(1.5) * fmin[1]);
+            ipow<2>(half - epsilon_min) * fmin[0], 1.5_r * fmin[1]);
 
         // Rejection function g_1 or g_2. Note the it's possible for g to be
         // greater than one

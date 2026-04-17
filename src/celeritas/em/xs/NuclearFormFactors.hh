@@ -174,18 +174,19 @@ class UUNuclearFormFactor : public NuclearFormFactorTraits
 CELER_FUNCTION
 ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(a_mass);
     real_type nucl_radius_fm = [a_mass] {
         if (CELER_UNLIKELY(a_mass == AtomicMassNumber{1}))
         {
             // Special case for proton radius
-            return real_type{0.85};
+            return 0.85_r;
         }
-        return real_type{1.27}
-               * fastpow(real_type(a_mass.get()), real_type{0.27});
+        return 1.27_r * fastpow(real_type(a_mass.get()), 0.27_r);
     }();
     prefactor_ = ipow<2>(nucl_radius_fm * value_as<InvMomentum>(fm_par_hbar()))
-                 * (real_type{1} / 12);
+                 * (1_r / 12);
     CELER_ENSURE(prefactor_ > 0);
 }
 
@@ -248,9 +249,10 @@ GaussianNuclearFormFactor::operator()(Momentum target_mom) const
  */
 CELER_FUNCTION UUNuclearFormFactor::UUNuclearFormFactor(AtomicMassNumber a_mass)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(a_mass);
-    nucl_radius_fm_ = real_type{1.2}
-                      * fastpow(real_type(a_mass.get()), real_type{1} / 3);
+    nucl_radius_fm_ = 1.2_r * fastpow(real_type(a_mass.get()), 1_r / 3);
 }
 
 //---------------------------------------------------------------------------//
@@ -279,9 +281,10 @@ CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) co
     };
 
     // Due to catastrophic error for small x, clamp the result to 1
+    using namespace celeritas::literals;
     return min(sphere_ff(nucl_radius_fm_)
                    * sphere_ff(UUNuclearFormFactor::skin_radius_fm()),
-               real_type{1});
+               1_r);
 }
 
 //---------------------------------------------------------------------------//

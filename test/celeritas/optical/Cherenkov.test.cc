@@ -39,7 +39,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 
 struct InvCentimeter
@@ -117,8 +116,8 @@ Span<real_type const> get_water_refractive_index()
 // Convert a wavelength in [micrometer] to a photon energy in [MeV]
 real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(
-        optical::detail::wavelength_to_energy(1e-3_mm * wavelength_um));
+    return value_as<units::MevEnergy>(optical::detail::wavelength_to_energy(
+        1e-3 * units::millimeter * wavelength_um));
 }
 
 //---------------------------------------------------------------------------//
@@ -536,10 +535,8 @@ TEST_F(CherenkovAirTest, dndx)
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
 
-    std::vector<real_type> betas{real_type{1.0 / 1.2},
-                                 real_type{1.0 / 1.3},
-                                 1 / 1.31,
-                                 real_type{1.0 / 1.4}};
+    std::vector<real_type> betas{
+        1.0_r / 1.2, 1.0_r / 1.3, 1 / 1.31, 1.0_r / 1.4};
 
     std::vector<real_type> dndx;
     for (real_type beta : betas)

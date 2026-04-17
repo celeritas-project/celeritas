@@ -35,10 +35,9 @@ auto Histogram::calc_density() const -> VecDbl
 {
     VecDbl result;
     result.reserve(counts_.size());
-
-    double norm
-        = counts_.size() * inv_width_
-          / std::accumulate(counts_.begin(), counts_.end(), size_type(0));
+    using namespace celeritas::literals;
+    double norm = counts_.size() * inv_width_
+                  / std::accumulate(counts_.begin(), counts_.end(), 0_sz);
     for (auto count : counts_)
     {
         result.push_back(count * norm);

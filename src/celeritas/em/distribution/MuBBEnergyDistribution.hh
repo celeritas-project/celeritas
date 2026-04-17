@@ -151,6 +151,8 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle
 template<class Engine>
 CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
 {
+    using namespace celeritas::literals;
+
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
     real_type energy;
@@ -159,7 +161,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
     {
         energy = sample_energy(rng);
         target = 1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy
-                 + real_type(0.5) * ipow<2>(energy / total_energy_);
+                 + 0.5_r * ipow<2>(energy / total_energy_);
 
         if (use_rad_correction_
             && energy > value_as<Energy>(kin_energy_limit()))

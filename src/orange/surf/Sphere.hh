@@ -139,9 +139,11 @@ CELER_FUNCTION auto Sphere::calc_intersections(Real3 const& pos,
                                                SurfaceState on_surface) const
     -> Intersections
 {
+    using namespace celeritas::literals;
+
     Real3 tpos{pos[0] - origin_[0], pos[1] - origin_[1], pos[2] - origin_[2]};
 
-    detail::QuadraticSolver solve_quadric(real_type(1), dot_product(tpos, dir));
+    detail::QuadraticSolver solve_quadric(1.0_r, dot_product(tpos, dir));
     if (on_surface == SurfaceState::off)
     {
         return solve_quadric(dot_product(tpos, tpos) - radius_sq_);

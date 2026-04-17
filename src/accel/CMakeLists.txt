@@ -6,7 +6,7 @@
 set(SOURCES)
 set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
-  Celeritas::Extcovfie # NOTE: only needed by CartMapMagneticField.cc
+  Celeritas::Extcovfie # NOTE: only needed by Cart/RZMapMagneticField.cc
   Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
   Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
 )
@@ -25,6 +25,7 @@ list(APPEND SOURCES
   AlongStepFactory.cc
   CartMapMagneticField.cc
   CylMapMagneticField.cc
+  RZMapMagneticField.cc
   FastSimulationIntegration.cc
   FastSimulationModel.cc
   GeantSimpleCalo.cc

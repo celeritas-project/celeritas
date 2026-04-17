@@ -108,9 +108,8 @@ TEST_F(TransformationTest, transform)
 
         auto const daughter = Real3{-3.4, 2.1, 0.4};
         auto const parent = tr.transform_up(daughter);
-        EXPECT_VEC_NEAR((Real3{0.81191836, -4.5042777, 3.31300032}),
-                        parent,
-                        real_type(1e-6));
+        EXPECT_VEC_NEAR(
+            (Real3{0.81191836, -4.5042777, 3.31300032}), parent, 1e-6_r);
         EXPECT_VEC_SOFT_EQ(daughter, tr.transform_down(parent));
     }
 }

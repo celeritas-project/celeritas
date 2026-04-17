@@ -116,9 +116,8 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
         EXPECT_SOFT_EQ(0, dot_product(refract.direction, axes.p_hat));
 
-        real_type cos_theta = clamp(-dot_product(refract.direction, axes.n_hat),
-                                    real_type{0},
-                                    real_type{1});
+        real_type cos_theta
+            = clamp(-dot_product(refract.direction, axes.n_hat), 0_r, 1_r);
         real_type theta = std::acos(cos_theta);
 
         result.cos_theta.push_back(cos_theta);

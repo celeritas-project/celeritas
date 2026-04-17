@@ -439,12 +439,13 @@ CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
  */
 CELER_FUNCTION void CoreTrackView::apply_errored()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.along_step_action({});
     sim.post_step_action(this->tracking_cut_action());
-    atomic_add(&this->counters().num_errored, size_type{1});
+    atomic_add(&this->counters().num_errored, 1_sz);
 }
 
 //---------------------------------------------------------------------------//
@@ -453,10 +454,11 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
  */
 CELER_FUNCTION void CoreTrackView::apply_cut()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.post_step_action(this->tracking_cut_action());
-    atomic_add(&this->counters().num_cut, size_type{1});
+    atomic_add(&this->counters().num_cut, 1_sz);
 }
 
 //---------------------------------------------------------------------------//

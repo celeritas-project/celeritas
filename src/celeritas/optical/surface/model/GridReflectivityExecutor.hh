@@ -111,6 +111,8 @@ GridReflectivityCalculator::operator()(ReflectivityAction action) const
 CELER_FUNCTION ReflectivityAction
 GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 {
+    using namespace celeritas::literals;
+
     auto s_phys = track.surface_physics();
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::reflectivity)
                             .internal_surface_id();
@@ -122,7 +124,7 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
         GridReflectivityCalculator{
             data, sub_model_id, track.particle().energy()},
         ReflectivityAction::size_,
-        real_type{1})(rng);
+        1.0_r)(rng);
 
     if (action == ReflectivityAction::absorb)
     {

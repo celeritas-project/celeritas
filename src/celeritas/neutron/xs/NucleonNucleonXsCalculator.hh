@@ -98,9 +98,9 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
         }
         else
         {
+            using namespace celeritas::literals;
             using StepanovFunction = PolyEvaluator<real_type, 2>;
-            result
-                = StepanovFunction(par.coeffs)(real_type{1} / energy.value());
+            result = StepanovFunction(par.coeffs)(1_r / energy.value());
         }
     }
     else

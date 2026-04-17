@@ -62,7 +62,6 @@ list(APPEND SOURCES
   field/FieldDriverOptions.cc
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
-  field/RZMapFieldParams.cc
   field/CylMapFieldParams.cc
   field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
@@ -196,9 +195,12 @@ if(CELERITAS_USE_covfie)
   set(_celer_covfie_src
     field/CartMapFieldParams.covfie.cc
     field/LoadCovfieField.covfie.cc
+    field/RZMapFieldParams.covfie.cc
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepRZMapFieldMscAction)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
@@ -223,6 +225,8 @@ if(CELERITAS_USE_covfie)
 else()
   celeritas_polysource_append(SOURCES
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(SOURCES
+    alongstep/AlongStepRZMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -370,7 +374,6 @@ endmacro()
 celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
-celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)

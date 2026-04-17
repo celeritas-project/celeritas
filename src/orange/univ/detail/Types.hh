@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/Span.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 

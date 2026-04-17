@@ -133,6 +133,8 @@ FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
 CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     -> result_type
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(abcde[0] != 0);
     auto [a, b, c, d, e] = abcde;
 
@@ -140,7 +142,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
 
     constexpr real_type half{0.5};
-    real_type qb = real_type{0.25} * ba;
+    real_type qb = 0.25_r * ba;
 
     // Incomplete quartic
     real_type p = PolyEvaluator{-half * ca, 0, 3}(qb);
@@ -294,8 +296,10 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
                                            real_type c,
                                            real_type d) const -> Real3
 {
-    constexpr real_type half = real_type{0.5};
-    constexpr real_type third = real_type{1} / real_type{3};
+    using namespace celeritas::literals;
+
+    constexpr real_type half = 0.5_r;
+    constexpr real_type third = 1_r / 3;
     real_type third_b = b * third;
 
     // Intermediate values
@@ -314,15 +318,15 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
     else if (discrim <= 0)  // All roots real, calculate with trigomonetry
     {
         real_type theta = std::acos(r / std::sqrt(q3));
-        real_type n2_root_q = real_type{-2} * std::sqrt(q);
-        real_type twth_pi = constants::pi * real_type{2} * third;
+        real_type n2_root_q = -2_r * std::sqrt(q);
+        real_type twth_pi = constants::pi * 2_r * third;
         real_type third_theta = theta * third;
 
         real_type z0 = n2_root_q * std::cos(third_theta) - third_b;
         real_type z1 = n2_root_q * std::cos(third_theta + twth_pi) - third_b;
         real_type z2 = n2_root_q * std::cos(third_theta - twth_pi) - third_b;
 
-        if (real_type{2} * theta < constants::pi)
+        if (2_r * theta < constants::pi)
         {
             return Real3(z0, z1, z2);
         }

@@ -76,7 +76,7 @@ TEST_F(SplineCalculatorTest, simple)
 
 TEST_F(SplineCalculatorTest, quadratic)
 {
-    auto xs = [](real_type energy) { return real_type{0.1} * ipow<2>(energy); };
+    auto xs = [](real_type energy) { return 0.1_r * ipow<2>(energy); };
 
     inp::UniformGrid grid;
     grid.x = {1e-3, 1e2};
@@ -115,8 +115,7 @@ TEST_F(SplineCalculatorTest, quadratic)
 
 TEST_F(SplineCalculatorTest, cubic)
 {
-    auto xs
-        = [](real_type energy) { return real_type{0.01} * ipow<3>(energy); };
+    auto xs = [](real_type energy) { return 0.01_r * ipow<3>(energy); };
 
     inp::UniformGrid grid;
     grid.x = {1e-3, 1e4};

@@ -80,6 +80,8 @@ template<class F>
 CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
                                                             real_type right)
 {
+    using namespace celeritas::literals;
+
     // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_root = 1;
@@ -90,7 +92,7 @@ CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
     do
     {
         // Estimate root and update value
-        root = real_type(0.5) * (left + right);
+        root = 0.5_r * (left + right);
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root
