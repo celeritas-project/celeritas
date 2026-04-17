@@ -356,6 +356,48 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(0, post.volume_instance_ids.size());
 }
 
+TEST_F(DetectorStepsTest, death_fields_allocated)
+{
+    // Build params with track_death enabled
+    celeritas::HostVal<StepParamsData> host_data;
+    std::vector<DetectorId> detectors
+        = {DetectorId{}, DetectorId{1}, DetectorId{0}};
+    make_builder(&host_data.detector)
+        .insert_back(detectors.begin(), detectors.end());
+    host_data.selection = this->selection();
+    host_data.track_death = true;
+    host_data.num_volume_levels = 0;
+
+    auto params = ParamsDataStore<StepParamsData>(std::move(host_data));
+
+    HostStates states;
+    resize(&states, params.host_ref(), StreamId{0}, 16);
+
+    // Death fields must be allocated
+    EXPECT_EQ(16, states.data.death_track_id.size());
+    EXPECT_EQ(16, states.data.death_primary_id.size());
+    EXPECT_EQ(16, states.data.death_particle.size());
+    EXPECT_EQ(16, states.data.death_pos.size());
+    EXPECT_EQ(16, states.data.death_dir.size());
+    EXPECT_EQ(16, states.data.death_energy.size());
+    EXPECT_EQ(16, states.data.death_time.size());
+}
+
+TEST_F(DetectorStepsTest, death_fields_not_allocated)
+{
+    // Default params: track_death is false
+    auto states = this->build_states(16);
+
+    // Death fields must NOT be allocated
+    EXPECT_EQ(0, states.data.death_track_id.size());
+    EXPECT_EQ(0, states.data.death_primary_id.size());
+    EXPECT_EQ(0, states.data.death_particle.size());
+    EXPECT_EQ(0, states.data.death_pos.size());
+    EXPECT_EQ(0, states.data.death_dir.size());
+    EXPECT_EQ(0, states.data.death_energy.size());
+    EXPECT_EQ(0, states.data.death_time.size());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
