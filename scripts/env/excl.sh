@@ -9,7 +9,7 @@
 apptainer_fermilab() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
-  . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
+  . \${CELERITAS_SOURCE}/scripts/env/excl.sh
 "
     return 1
   fi

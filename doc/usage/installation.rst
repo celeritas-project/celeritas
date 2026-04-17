@@ -191,7 +191,7 @@ Toolchain installation
 The recommended way to install dependencies is with ``Spack``,
 an HPC-oriented package manager that includes numerous scientific packages,
 including those used in HEP. Celeritas includes Spack development environments
-at :file:`scripts/env-{which}.yaml` for development and execution. To install these
+at :file:`scripts/spack/env-{which}.yaml` for development and execution. To install these
 dependencies for basic use with an Nvidia GPU:
 
 - Clone and load Spack following its `getting started instructions
@@ -211,9 +211,7 @@ The dependency requirements for Celeritas are:
 .. literalinclude:: ../../scripts/spack/packages.yaml
    :language: yaml
 
-and the full list of packages is:
-
-The dependency requirements for Celeritas are:
+and the full list of packages used by Celeritas is:
 
 .. literalinclude:: ../../scripts/spack/env-full.yaml
    :language: yaml

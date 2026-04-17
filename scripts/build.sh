@@ -253,12 +253,14 @@ fi
 if [ -n "${APPTAINER_NAME}" ]; then
   # Apptainer environment overrides system; but do this *after* the system
   # so that it can set up things like cache variable names
-  PREV_SYSTEM_NAME="${SYSTEM_NAME}"
-  SYSTEM_NAME="${APPTAINER_NAME%%:*}"
-  log info "Overriding system ${PREV_SYSTEM_NAME} with apptainer ${SYSTEM_NAME}"
-  ENV_SCRIPT="$(get_system_env "${SYSTEM_NAME}")"
-  if [ -n "${ENV_SCRIPT}" ]; then
-    source_script "${ENV_SCRIPT}"
+  APPTAINER_SYSTEM_NAME="${APPTAINER_NAME%%:*}"
+  APPTAINER_ENV_SCRIPT="$(get_system_env "${APPTAINER_SYSTEM_NAME}")"
+  if [ -n "${APPTAINER_ENV_SCRIPT}" ]; then
+    log info "Overriding system ${SYSTEM_NAME} with apptainer ${APPTAINER_SYSTEM_NAME}"
+    SYSTEM_NAME="${APPTAINER_SYSTEM_NAME}"
+    source_script "${APPTAINER_ENV_SCRIPT}"
+  else
+    log warning "Inside apptainer ${APPTAINER_SYSTEM_NAME} but no env script exists"
   fi
 fi
 CMAKE="$(find_command cmake)"

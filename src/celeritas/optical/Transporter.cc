@@ -8,18 +8,14 @@
 
 #include <utility>
 
-#include "corecel/cont/Range.hh"
-#include "corecel/data/ParamsDataStore.hh"
-#include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"  // IWYU pragma: keep
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
-#include "SimParams.hh"
+#include "SimParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
