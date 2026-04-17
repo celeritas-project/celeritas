@@ -182,32 +182,19 @@ void copy_deaths<MemSpace::host>(
 
     ScopedProfiling profile_this{"copy-deaths"};
 
-    auto const& death_track_id = state.data.death_track_id;
-
-    // Count deaths this step
-    size_type num_deaths = 0;
-    for (TrackSlotId tid : range(TrackSlotId{death_track_id.size()}))
-    {
-        if (death_track_id[tid])
-            ++num_deaths;
-    }
-
-    // Compact death records
+    // Compact death records from sparse slots into contiguous output
     output->deaths.clear();
-    output->deaths.reserve(num_deaths);
-    for (TrackSlotId tid : range(TrackSlotId{death_track_id.size()}))
+    for (TrackSlotId tid : range(TrackSlotId{state.data.death_track_id.size()}))
     {
-        if (!death_track_id[tid])
+        if (!state.data.death_track_id[tid])
             continue;
-        TrackDeathRecord rec;
-        rec.track_id = state.data.death_track_id[tid];
-        rec.primary_id = state.data.death_primary_id[tid];
-        rec.particle = state.data.death_particle[tid];
-        rec.final_pos = state.data.death_pos[tid];
-        rec.final_dir = state.data.death_dir[tid];
-        rec.final_energy = state.data.death_energy[tid];
-        rec.final_time = state.data.death_time[tid];
-        output->deaths.push_back(rec);
+        output->deaths.push_back({state.data.death_track_id[tid],
+                                  state.data.death_primary_id[tid],
+                                  state.data.death_particle[tid],
+                                  state.data.death_pos[tid],
+                                  state.data.death_dir[tid],
+                                  state.data.death_energy[tid],
+                                  state.data.death_time[tid]});
     }
 }
 
