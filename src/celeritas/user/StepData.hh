@@ -151,6 +151,10 @@ struct StepParamsData
     //! Per-state volume instance size if volume_instance_ids selected
     size_type num_volume_levels{0};
 
+    //! Gather final state (pos, dir, energy, time) when a track is killed or
+    //! errored. Used to fire PostUserTrackingAction with correct GPU endpoint.
+    bool track_death{false};
+
     //// METHODS ////
 
     //! Whether the data is assigned
@@ -168,6 +172,7 @@ struct StepParamsData
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
         num_volume_levels = other.num_volume_levels;
+        track_death = other.track_death;
         return *this;
     }
 };
@@ -272,6 +277,18 @@ struct StepStateDataImpl
     StateItems<ParticleId> particle;
     StateItems<Energy> energy_deposition;
 
+    // Track death records: populated for terminal tracks when
+    // StepParamsData::track_death is true. death_track_id is valid (non-null)
+    // when a death occurred in this slot on the current step; invalid
+    // otherwise.
+    StateItems<TrackId> death_track_id;
+    StateItems<PrimaryId> death_primary_id;
+    StateItems<ParticleId> death_particle;
+    StateItems<Real3> death_pos;
+    StateItems<Real3> death_dir;
+    StateItems<Energy> death_energy;
+    StateItems<real_type> death_time;
+
     //// METHODS ////
 
     //! True if constructed and correctly sized
@@ -286,7 +303,7 @@ struct StepStateDataImpl
                && right_sized(primary_id) && right_sized(track_step_count)
                && right_sized(action_id) && right_sized(step_length)
                && right_sized(weight) && right_sized(particle)
-               && right_sized(energy_deposition);
+               && right_sized(energy_deposition) && right_sized(death_track_id);
     }
 
     //! State size
@@ -319,6 +336,13 @@ struct StepStateDataImpl
         weight = other.weight;
         particle = other.particle;
         energy_deposition = other.energy_deposition;
+        death_track_id = other.death_track_id;
+        death_primary_id = other.death_primary_id;
+        death_particle = other.death_particle;
+        death_pos = other.death_pos;
+        death_dir = other.death_dir;
+        death_energy = other.death_energy;
+        death_time = other.death_time;
         return *this;
     }
 };
@@ -355,6 +379,9 @@ struct StepStateData
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
 
+    //! Thread IDs of active tracks that died this step (device only)
+    StateItems<size_type> death_valid_id;
+
     // Copy of params max depth for dimensioning volume_instance_ids
     size_type num_volume_levels{0};
 
@@ -387,6 +414,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        death_valid_id = other.death_valid_id;
         num_volume_levels = other.num_volume_levels;
         stream_id = other.stream_id;
         return *this;
@@ -471,6 +499,17 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(action_id);
     SD_RESIZE_IF_SELECTED(particle);
     SD_RESIZE_IF_SELECTED(energy_deposition);
+
+    if (params.track_death)
+    {
+        resize(&state->death_track_id, size);
+        resize(&state->death_primary_id, size);
+        resize(&state->death_particle, size);
+        resize(&state->death_pos, size);
+        resize(&state->death_dir, size);
+        resize(&state->death_energy, size);
+        resize(&state->death_time, size);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -496,6 +535,10 @@ inline void resize(StepStateData<Ownership::value, M>* state,
         // Allocate extra space on device for gathering step data
         resize(&state->scratch, params, size);
         resize(&state->valid_id, size);
+        if (params.track_death)
+        {
+            resize(&state->death_valid_id, size);
+        }
     }
 }
 
