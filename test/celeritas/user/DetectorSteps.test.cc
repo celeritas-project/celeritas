@@ -398,6 +398,97 @@ TEST_F(DetectorStepsTest, death_fields_not_allocated)
     EXPECT_EQ(0, states.data.death_time.size());
 }
 
+TEST_F(DetectorStepsTest, copy_deaths_host)
+{
+    // Build params with track_death enabled
+    celeritas::HostVal<StepParamsData> host_data;
+    std::vector<DetectorId> detectors
+        = {DetectorId{}, DetectorId{1}, DetectorId{0}};
+    make_builder(&host_data.detector)
+        .insert_back(detectors.begin(), detectors.end());
+    host_data.selection = this->selection();
+    host_data.track_death = true;
+    host_data.num_volume_levels = 0;
+
+    auto params = ParamsDataStore<StepParamsData>(std::move(host_data));
+
+    HostStates states;
+    resize(&states, params.host_ref(), StreamId{0}, 8);
+
+    // Populate death fields: slots 1, 3, 5 have valid deaths
+    auto& d = states.data;
+    for (auto tid : range(TrackSlotId{8}))
+    {
+        d.death_track_id[tid] = TrackId{};
+        d.death_primary_id[tid] = PrimaryId{};
+        d.death_particle[tid] = ParticleId{};
+        d.death_energy[tid] = units::MevEnergy{0};
+        d.death_time[tid] = 0;
+        d.death_pos[tid] = {0, 0, 0};
+        d.death_dir[tid] = {0, 0, 1};
+    }
+
+    d.death_track_id[TrackSlotId{1}] = TrackId{10};
+    d.death_primary_id[TrackSlotId{1}] = PrimaryId{0};
+    d.death_particle[TrackSlotId{1}] = ParticleId{1};
+    d.death_energy[TrackSlotId{1}] = units::MevEnergy{100};
+    d.death_time[TrackSlotId{1}] = 1.5;
+    d.death_pos[TrackSlotId{1}] = {1, 2, 3};
+    d.death_dir[TrackSlotId{1}] = {0, 0, 1};
+
+    d.death_track_id[TrackSlotId{3}] = TrackId{30};
+    d.death_primary_id[TrackSlotId{3}] = PrimaryId{1};
+    d.death_particle[TrackSlotId{3}] = ParticleId{0};
+    d.death_energy[TrackSlotId{3}] = units::MevEnergy{200};
+    d.death_time[TrackSlotId{3}] = 2.5;
+    d.death_pos[TrackSlotId{3}] = {4, 5, 6};
+    d.death_dir[TrackSlotId{3}] = {1, 0, 0};
+
+    d.death_track_id[TrackSlotId{5}] = TrackId{50};
+    d.death_primary_id[TrackSlotId{5}] = PrimaryId{2};
+    d.death_particle[TrackSlotId{5}] = ParticleId{2};
+    d.death_energy[TrackSlotId{5}] = units::MevEnergy{300};
+    d.death_time[TrackSlotId{5}] = 3.5;
+    d.death_pos[TrackSlotId{5}] = {7, 8, 9};
+    d.death_dir[TrackSlotId{5}] = {0, 1, 0};
+
+    // Compact deaths
+    DetectorStepOutput output;
+    copy_deaths(&output, make_ref(states));
+
+    // Verify 3 deaths compacted
+    ASSERT_EQ(3, output.deaths.size());
+
+    EXPECT_EQ(TrackId{10}, output.deaths[0].track_id);
+    EXPECT_EQ(PrimaryId{0}, output.deaths[0].primary_id);
+    EXPECT_EQ(ParticleId{1}, output.deaths[0].particle);
+    EXPECT_DOUBLE_EQ(100, output.deaths[0].final_energy.value());
+    EXPECT_DOUBLE_EQ(1.5, output.deaths[0].final_time);
+    EXPECT_EQ((Real3{1, 2, 3}), output.deaths[0].final_pos);
+
+    EXPECT_EQ(TrackId{30}, output.deaths[1].track_id);
+    EXPECT_EQ(PrimaryId{1}, output.deaths[1].primary_id);
+    EXPECT_EQ(ParticleId{0}, output.deaths[1].particle);
+    EXPECT_DOUBLE_EQ(200, output.deaths[1].final_energy.value());
+
+    EXPECT_EQ(TrackId{50}, output.deaths[2].track_id);
+    EXPECT_EQ(PrimaryId{2}, output.deaths[2].primary_id);
+    EXPECT_EQ(ParticleId{2}, output.deaths[2].particle);
+    EXPECT_DOUBLE_EQ(300, output.deaths[2].final_energy.value());
+}
+
+TEST_F(DetectorStepsTest, copy_deaths_empty)
+{
+    // Without track_death, copy_deaths should clear output
+    auto states = this->build_states(8);
+
+    DetectorStepOutput output;
+    output.deaths.resize(5);  // Pre-populate to verify it gets cleared
+    copy_deaths(&output, make_ref(states));
+
+    EXPECT_TRUE(output.deaths.empty());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
