@@ -346,16 +346,14 @@ TEST_F(GeantTrackReconstructionTest, reconstruction_data_persistence)
  * Verify view() uses flush-local indexing across multiple clear() cycles.
  *
  * Simulates two Flush() calls within one event (e.g. auto_flush_ triggered
- * mid-event). After clear(), start_ advances so that absolute primary IDs
- * from the second flush index correctly into a freshly-repopulated
- * g4_track_data_ vector.
+ * mid-event). After clear(), primary IDs reset to 0 for the next flush so
+ * that they always index directly into the current g4_track_data_ vector.
  */
 TEST_F(GeantTrackReconstructionTest, multi_flush_view)
 {
     GeantTrackReconstruction recon(particles_, step_);
-    recon.init_event();
 
-    // --- Flush 1: acquire one primary (absolute id = 0) ---
+    // --- Flush 1: acquire one primary (flush-local id = 0) ---
     auto track1 = std::make_unique<G4Track>(
         new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
         0.0,
@@ -373,7 +371,7 @@ TEST_F(GeantTrackReconstructionTest, multi_flush_view)
     // Simulate end of first flush
     recon.clear();
 
-    // --- Flush 2: acquire one primary (absolute id = 1) ---
+    // --- Flush 2: acquire one primary (flush-local id = 0 again) ---
     auto track2 = std::make_unique<G4Track>(
         new G4DynamicParticle(particles_[1], G4ThreeVector(0, 1, 0)),
         0.0,
@@ -383,10 +381,9 @@ TEST_F(GeantTrackReconstructionTest, multi_flush_view)
     track2->SetCreatorProcess(mock_proc2.get());
 
     PrimaryId id2 = recon.acquire(*track2, ParticleId{1});
-    EXPECT_EQ(1, id2.unchecked_get());
+    EXPECT_EQ(0, id2.unchecked_get());
 
-    // view() must find track2 via id2, not index out-of-bounds or return
-    // track1's stale data
+    // view() must find track2 via id2
     EXPECT_EQ(222, recon.view(ParticleId{1}, id2).GetTrackID());
 }
 

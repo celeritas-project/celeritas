@@ -237,10 +237,6 @@ void LocalTransporter::InitializeEvent(int id)
             step_->reseed(event_id_);
         }
     }
-    if (hit_processor_)
-    {
-        hit_processor_->track_reconstruction().init_event();
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -285,8 +281,6 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = static_array_cast<real_type>(gtv.dir());
     track.time = static_cast<real_type>(native_value_from(gtv.time()));
     track.weight = gtv.weight();
-    track.primary_id = celeritas::id_cast<PrimaryId>(
-        track.primary_id.unchecked_get() + g4track.GetTrackID());
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '" << gtv.particle().name()

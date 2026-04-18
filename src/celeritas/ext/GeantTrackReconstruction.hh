@@ -55,9 +55,6 @@ class GeantTrackReconstruction
     template<class F>
     void for_each_primary(F&& func) const;
 
-    // Reset primary ID at each event start
-    void init_event();
-
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
 
@@ -94,8 +91,6 @@ class GeantTrackReconstruction
     std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Shared step object
     SPStep step_;
-    //! Starting primary id
-    PrimaryId start_;
 };
 
 //---------------------------------------------------------------------------//
@@ -114,8 +109,7 @@ void GeantTrackReconstruction::for_each_primary(F&& func) const
     for (size_type i = 0; i < g4_track_data_.size(); ++i)
     {
         auto const& data = g4_track_data_[i];
-        PrimaryId pid
-            = celeritas::id_cast<PrimaryId>(start_.unchecked_get() + i);
+        auto pid = celeritas::id_cast<PrimaryId>(i);
         G4Track& track = this->view(data.particle_id(), pid);
         func(track);
     }

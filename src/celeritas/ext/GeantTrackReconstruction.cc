@@ -60,7 +60,7 @@ void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
                                                    SPStep step)
-    : step_(std::move(step)), start_(0)
+    : step_(std::move(step))
 {
     CELER_EXPECT(step_);
 
@@ -105,8 +105,6 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
  */
 void GeantTrackReconstruction::clear()
 {
-    // Set starting primary id
-    start_ = celeritas::id_cast<PrimaryId>(g4_track_data_.size());
     for (auto& track : tracks_)
     {
         // Clear the user information to prevent double deletion:
@@ -118,22 +116,13 @@ void GeantTrackReconstruction::clear()
 
 //---------------------------------------------------------------------------//
 /*!
- * At the start of an event, reset the primary ID counter.
- */
-void GeantTrackReconstruction::init_event()
-{
-    start_ = PrimaryId(0);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
  * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
 PrimaryId
 GeantTrackReconstruction::acquire(G4Track& primary, ParticleId particle_id)
 {
-    auto primary_id = start_ + g4_track_data_.size();
+    auto primary_id = celeritas::id_cast<PrimaryId>(g4_track_data_.size());
     g4_track_data_.emplace_back(AcquiredData{primary, particle_id});
     return primary_id;
 }
@@ -155,13 +144,9 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 
     if (primary_id)
     {
-        // primary_id is an absolute event-scoped ID; subtract the flush-local
-        // start offset to get the index into g4_track_data_ for this flush.
-        CELER_ASSERT(primary_id.unchecked_get() >= start_.unchecked_get());
-        size_type local_idx = primary_id.unchecked_get()
-                              - start_.unchecked_get();
-        CELER_ASSERT(local_idx < g4_track_data_.size());
-        g4_track_data_[local_idx].restore(track);
+        // primary_id is flush-local: direct index into g4_track_data_
+        CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+        g4_track_data_[primary_id.unchecked_get()].restore(track);
     }
     return track;
 }
