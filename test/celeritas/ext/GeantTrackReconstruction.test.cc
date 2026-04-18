@@ -395,7 +395,6 @@ TEST_F(GeantTrackReconstructionTest, view_initial)
 {
     GeantTrackReconstruction recon(particles_, step_);
 
-
     // Create primary with known kinematics
     auto primary_track = std::make_unique<G4Track>(
         new G4DynamicParticle(particles_[1], G4ThreeVector(0, 0, 1), 500.0),
@@ -434,7 +433,6 @@ TEST_F(GeantTrackReconstructionTest, is_generator_primary)
 {
     GeantTrackReconstruction recon(particles_, step_);
 
-
     // Generator primary (parent_id == 0)
     auto gen_track = std::make_unique<G4Track>(
         new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
@@ -464,7 +462,6 @@ TEST_F(GeantTrackReconstructionTest, is_generator_primary)
 TEST_F(GeantTrackReconstructionTest, for_each_primary)
 {
     GeantTrackReconstruction recon(particles_, step_);
-
 
     // Register 5 primaries cycling through particle types (gamma, e-, e+)
     int const expected_ids[] = {10, 20, 30, 40, 50};
