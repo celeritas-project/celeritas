@@ -29,7 +29,7 @@ struct ImportVolume
     using Index = unsigned int;
     //!@}
 
-    static constexpr Index unspecified = -1;
+    static constexpr Index unspecified = static_cast<unsigned int>(-1);
 
     Index geo_material_id{unspecified};  //!< Material defined by geometry
     Index region_id{unspecified};  //!< Optional region associated
