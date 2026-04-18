@@ -13,50 +13,42 @@ Celeritas can run as a plugin to different integrated frameworks.
 LArSoft for DUNE
 ----------------
 
-LArSoft is an integral component of the DUNE simulation framework. Celeritas
-builds a tool to process optical photons from scintillation. It requires a
-soon-to-be-merged fork_ of LArSoft that refactors the scintillation-to-detector
-response calculation to allow Monte Carlo optical tracking as an alternative to
-the current map-based method.
+LArSoft is an integral component of the DUNE simulation framework.
+Celeritas builds the ``PDFullSimCeler`` module to process optical photons from
+scintillation.
+It requires ROOT input file with ``art::Event``
+``sim::SimEnergyDeposit``object data from the ``IonAndScint`` producer, exactly
+as the current ``PDFastSimPAR`` module in LArSoft.
+The ``PDFullSimCeler`` module enables replacing the map-based method for
+generating the scintillation-to-detector response by a full Monte Carlo optical
+tracking.
 
-.. _fork: https://github.com/nuRiceLab/larsim
+Once Celeritas has been installed (see :ref:`build_ups`), load the
+module/library/FHICL paths provided by Celeritas in its install directory (or
+build directory if doing development):
 
-Building Celeritas as a LArSoft extension requires the whole larsoft toolchain,
-available on Fermilab's ``scisoftbuild01``. The environment script at
-``env/scisoftbuild01.sh`` can be sourced at startup to define an
-``apptatiner_fermilab`` function that launches the container needed to build
-and run.
+.. code::
 
-Once inside the apptainer, initialize the UPS packaging system and load LArSoft and DUNE
-components:
+   $ eval $($CELER_DIR/bin/larceler-env)
+   Loaded Celeritas at $CELER_DIR
 
-.. sourcecode::
+Then you should be able to include Celeritas components including its photon
+detector replacement and analysis modules.
 
-   $ . /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
-   Setting up larsoft UPS area... /cvmfs/larsoft.opensciencegrid.org
-   Setting up DUNE UPS area... /cvmfs/dune.opensciencegrid.org/products/dune/
-   $ setup -B dunesw v10_14_01d00 -q e26:prof
+.. literalinclude:: ../../example/larceler/dune10kt_1x2x6_cpu.fcl
+   :language: none
+   :start-at: #include
 
-Finally, load the module/library/FHICL paths provided by Celeritas:
+PDFullSimCeler
+""""""""""""""
 
-.. sourcecode::
+This "producer" module is a replacement for LArSim's PDFastSimPar.
 
-   $ eval $($SCRATCHDIR/build/celeritas-reldeb-orange/bin/larceler-env)
-   Loaded Celeritas at .../build/celeritas-reldeb-orange
+GeoSimExporter
+""""""""""""""
 
-Then you should be able to include Celeritas components.
-
-.. sourcecode:: none
-
-   #include "PDFullSimCeler.fcl"
-   #include "standard_g4_dune10kt_1x2x6.fcl"
-
-   dunefd_pdfullsim_cpu: {
-     @table::PDFullSimCeler
-   }
-
-   # Use Celeritas full sim configuration
-   physics.producers.PDFastSim: @local::dunefd_pdfullsim_cpu
+This analysis module exports detector geometry data and energy deposition data
+for internal testing.
 
 DD4HEP
 ------

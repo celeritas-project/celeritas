@@ -27,10 +27,8 @@ if [ -z "${SYSTEM_NAME}" ]; then
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
-
-# BEGIN APPTAINER SCRIPT
 # Call this helper function on the login node bare metal
-apptainer_fermilab() {
+_apptainer_fermilab() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
   . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
@@ -38,18 +36,18 @@ apptainer_fermilab() {
     return 1
   fi
 
-  # Use the Scientific Linux distribution required for the dependencies
-  image=${1:-fnal-dev-sl7:latest}
-
-  # Start apptainer, forwarding necessary directories
-  MIS_DIR=/cvmfs/oasis.opensciencegrid.org/mis # codespell:ignore
-  exec $MIS_DIR/apptainer/current/bin/apptainer \
+  # BEGIN_DOC_APPTAINER
+  APPTAINER_DIR=/cvmfs/oasis.opensciencegrid.org/mis/apptainer/current # codespell:ignore
+  IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
+  IMAGE=fnal-dev-sl7:latest
+  exec $APPTAINER_DIR/bin/apptainer \
     shell --shell=/bin/bash \
     -B /cvmfs,$SCRATCHDIR,$HOME,$XDG_RUNTIME_DIR,/opt,/etc/hostname,/etc/hosts,/etc/krb5.conf  \
     --ipc --pid  \
-    /cvmfs/singularity.opensciencegrid.org/fermilab/${image}
+    ${IMAGE_DIR}/${IMAGE}
+  # END_DOC_APPTAINER
 }
-# END APPTAINER SCRIPT
+alias apptainer-fnal=_apptainer_fnal
 
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C

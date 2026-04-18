@@ -6,7 +6,7 @@
 
 # BEGIN APPTAINER SCRIPT
 # Call this helper function on the login node bare metal
-apptainer_fermilab() {
+_apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
   . \${CELERITAS_SOURCE}/scripts/env/excl.sh
@@ -19,18 +19,18 @@ apptainer_fermilab() {
     return 1
   fi
 
-  # Start apptainer, forwarding necessary directories
-
-  # BEGIN_LARCELER_EXAMPLE_APPTAINER
+  # BEGIN_DOC_APPTAINER
+  APPTAINER_DIR=/usr
   IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
-  image=${1:-fnal-dev-sl7:latest}
-  exec /usr/bin/apptainer shell \
-    --shell=/bin/bash \
-    -B /cvmfs,/auto/projects/celeritas/opt,$SCRATCHDIR,$HOME \
+  IMAGE=fnal-dev-sl7:latest
+  exec $APPTAINER_DIR/bin/apptainer \
+    shell --shell=/bin/bash \
+    -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,$HOME \
     --nv --ipc --pid  \
-    ${IMAGE_DIR}/${image}
-  # END_LARCELER_EXAMPLE_APPTAINER
+    ${IMAGE_DIR}/${IMAGE}
+  # END_DOC_APPTAINER
 }
+alias apptainer-fnal=_apptainer_fnal
 # END APPTAINER SCRIPT
 
 # Reduce I/O metadata overhead by avoiding language translation lookups

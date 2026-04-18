@@ -1,48 +1,43 @@
-LArSoft integration
-===================
+LArSoft workflow example
+========================
 
-This is a beginning-to-end demonstration of running Celeritas on GPU on ORNL's
-ExCL_ cluster using the Fermilab development apptainer image and a
-host-provided CUDA.
+This example assumes that:
 
-.. _ExCL: https://docs.excl.ornl.gov
+- A suitable Apptainer container has been activated (see :ref:`apptainer_env`),
+- LArSoft/DUNESW have been loaded via UPS (see :ref:`ups_mrb`),
+- Celeritas has been installed, and
+- Celeritas environment variables have been loaded (see :ref:`plugins_larsoft`).
 
-Launch apptainer on milan2
---------------------------
-
-Launch the ``fnal-dev-sl7:latest`` apptainer with CUDA forwarding enabled:
-
-.. literalinclude:: ../../scripts/env/excl.sh
-   :language: sh
-   :dedent: 2
-   :start-after: BEGIN_LARCELER_EXAMPLE_APPTAINER
-   :end-before: END_LARCELER_EXAMPLE_APPTAINER
-
-This command is wrapped into the ``apptainer_fermilab`` shell command when
-:file:`scripts/env/excl.sh` is sourced.
+Summary
+-------
 
 
-Build Celeritas
----------------
+Overview
+--------
 
-The :ref:`build_script` should be used to install Celeritas. It uses CUDA
-configuration from :file:`scripts/env/milan2.sh` and UPS LArSoft configuration
-from :file:`scripts/env/fnal-dev-sl7.sh`.
+The flow chart :numref:`fig-larsim` shows every step of the workflow,
+their respective ``fcl`` job file, along with the generated data type and
+their ``ModuleLabel``.
 
-See :ref:`plugins_larsoft`.
+.. _fig-larsim:
+
+.. figure:: /_static/dot/larsim.*
+   :align: center
+   :width: 80%
+
+Generating GENIE samples
+------------------------
 
 
-Run LArSoft
------------
+Running LArG4 + IonAndScint
+---------------------------
 
-TODO: see `#2318`_
+Running optical simulations
+---------------------------
 
-.. _#2318: https://github.com/celeritas-project/celeritas/pull/2318
+.. code::
 
-
-.. literalinclude:: ../../example/larceler/dune10kt_1x2x6_cpu.fcl
-   :language: none
-   :start-at: #include
+   $ lar -c dune10kt_1x2x6_cpu.fcl -s genie-output.root -o larg4-output.root
 
 
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
