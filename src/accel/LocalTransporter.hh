@@ -142,6 +142,10 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
+
+    // True while firing Pre/PostUserTrackingAction in Flush to prevent
+    // re-offloading of reconstructed tracks
+    bool flushing_tracking_actions_{false};
 };
 
 //---------------------------------------------------------------------------//

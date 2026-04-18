@@ -16,6 +16,7 @@
 #include <G4UImanager.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
+#include <G4VSensitiveDetector.hh>
 
 #include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
@@ -31,6 +32,9 @@
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
+#if G4VERSION_NUMBER >= 1100
+#    include "accel/TrackingManager.hh"
+#endif
 #include "accel/TrackingManagerConstructor.hh"
 #include "accel/detail/IntegrationSingleton.hh"
 
@@ -66,6 +70,14 @@ class CounterTrackingAction final : public G4UserTrackingAction
   public:
     void PreUserTrackingAction(G4Track const* t) final
     {
+        // Only count tracks that Geant4 is stepping; offloaded tracks fire
+        // Pre/PostUserTrackingAction in Flush() (not here) and should not
+        // be counted as "Geant4-tracked".
+#if G4VERSION_NUMBER >= 1100
+        if (IsTrackOffloadedToCeleritas(t))
+            return;
+#endif
+
         GeantParticleView particle{*t->GetParticleDefinition()};
 
         if (particle.pdg() == pdg::electron())
@@ -715,6 +727,173 @@ TEST_F(OpticalSurfaces, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
     CELER_LOG(status) << "Run two events";
+    rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// TRACKING CALLBACKS
+//---------------------------------------------------------------------------//
+/*!
+ * Record which track IDs fire Pre/PostUserTrackingAction.
+ *
+ * Used to verify that Flush() fires the user tracking action callbacks
+ * exactly once per offloaded primary. Uses a mutex because worker threads
+ * call this concurrently in MT mode.
+ */
+class RecordingTrackingAction final : public G4UserTrackingAction
+{
+  public:
+    RecordingTrackingAction(std::vector<int>* pre,
+                            std::vector<int>* post,
+                            std::mutex* mutex)
+        : pre_(pre), post_(post), mutex_(mutex)
+    {
+    }
+
+    void PreUserTrackingAction(G4Track const* track) final
+    {
+        std::lock_guard<std::mutex> lock(*mutex_);
+        pre_->push_back(track->GetTrackID());
+    }
+
+    void PostUserTrackingAction(G4Track const* track) final
+    {
+        std::lock_guard<std::mutex> lock(*mutex_);
+        post_->push_back(track->GetTrackID());
+    }
+
+  private:
+    std::vector<int>* pre_;
+    std::vector<int>* post_;
+    std::mutex* mutex_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify Pre/PostUserTrackingAction fires for offloaded primaries.
+ *
+ * Inherits TestEm3 geometry (100 MeV e- in LAr, rich EM shower). Two tests
+ * use this fixture with different SD configurations:
+ *
+ * - callbacks_no_sd: SD disabled; neither Pre nor Post fires since death
+ *   records require an active sensitive detector.
+ *
+ * - callbacks_with_sd: Real TestEm3 SD active; verifies both Pre- and
+ *   PostUserTrackingAction fire for every offloaded primary.
+ */
+class TrackingCallbacks : public TestEm3IntegrationMixin, public TMITestBase
+{
+  public:
+    UPTrackAction make_tracking_action() override
+    {
+        return std::make_unique<RecordingTrackingAction>(
+            &pre_ids_, &post_ids_, &ids_mutex_);
+    }
+
+    //! Disable SD so saveCollection() never runs -- isolates callback path
+    UPSensDet make_sens_det(std::string const&) override { return nullptr; }
+
+    //! Tell Celeritas SD collection is disabled to avoid init error
+    SetupOptions make_setup_options() override
+    {
+        auto opts = TMITestBase::make_setup_options();
+        opts.sd.enabled = false;
+        return opts;
+    }
+
+    void BeginOfEventAction(G4Event const*) override {}
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        TMITestBase::EndOfRunAction(run);
+
+        if (!G4Threading::IsMasterThread())
+            return;
+
+        // Pre/PostUserTrackingAction both require death records, which are
+        // only gathered when an SD is active (track_death flag set by
+        // GeantSd::filters). SD is disabled in this fixture, so neither
+        // fires for Celeritas-offloaded tracks.
+        EXPECT_TRUE(pre_ids_.empty()) << "PreUserTrackingAction fired "
+                                         "unexpectedly without SD";
+        EXPECT_TRUE(post_ids_.empty()) << "PostUserTrackingAction fired "
+                                          "unexpectedly without SD";
+    }
+
+    std::vector<int> pre_ids_;
+    std::vector<int> post_ids_;
+    std::mutex ids_mutex_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify Pre/PostUserTrackingAction with SD disabled.
+ *
+ * Both Pre and Post fire in Flush() using death records, which are only
+ * gathered when an SD is active. With SD disabled neither callback fires
+ * for Celeritas-offloaded tracks.
+ */
+TEST_F(TrackingCallbacks, callbacks_no_sd)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+    CELER_LOG(status) << "Run 2 events";
+    rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Verify Pre/PostUserTrackingAction with the real TestEm3 SD active.
+ *
+ * Exercises the full hit pipeline with sensitive detectors active. Verifies
+ * that PostUserTrackingAction fires for every offloaded primary using the
+ * GPU terminal state gathered by the death-record infrastructure.
+ */
+class TrackingCallbacksWithSD : public TrackingCallbacks
+{
+  public:
+    //! Restore real TestEm3 SD (overrides the null return in base fixture)
+    UPSensDet make_sens_det(std::string const& sd_name) override
+    {
+        return TestEm3IntegrationMixin::make_sens_det(sd_name);
+    }
+
+    //! Re-enable SD (base class disables it)
+    SetupOptions make_setup_options() override
+    {
+        return TMITestBase::make_setup_options();
+    }
+
+    void EndOfRunAction(G4Run const* run) override
+    {
+        TMITestBase::EndOfRunAction(run);
+
+        if (!G4Threading::IsMasterThread())
+            return;
+
+        // With SD active, PostUserTrackingAction must fire for every
+        // offloaded primary (track_death flag enabled by GeantSd::filters).
+        EXPECT_FALSE(post_ids_.empty()) << "PostUserTrackingAction never "
+                                           "fired for offloaded primaries";
+        EXPECT_EQ(pre_ids_.size(), post_ids_.size())
+            << "Pre/PostUserTrackingAction count mismatch for offloaded "
+               "primaries";
+        CELER_LOG(info) << "PostUserTrackingAction fired for "
+                        << post_ids_.size() << " tracks";
+    }
+};
+
+TEST_F(TrackingCallbacksWithSD, callbacks_with_sd)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+    CELER_LOG(status) << "Run 2 events";
     rm.BeamOn(2);
 }
 

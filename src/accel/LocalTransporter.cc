@@ -11,11 +11,13 @@
 #include <mutex>
 #include <string>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4DynamicParticle.hh>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4UserTrackingAction.hh>
 
 #include "corecel/Config.hh"
 
@@ -48,6 +50,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/DetectorSteps.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -141,6 +144,31 @@ void trace(StepperResult const& track_counts)
             }                                                       \
         }                                                           \
     } while (0)
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply GPU terminal state from a death record to the given G4Track.
+ *
+ * Called in Flush() before firing PostUserTrackingAction. The track must
+ * already be configured for the correct particle type via view().
+ * Celeritas positions are in cm (native), energies in MeV, time in s
+ * (native) -- convert to Geant4 CLHEP units (mm, MeV, ns) via standard
+ * quantity helpers.
+ */
+void apply_death_state(G4Track& track, TrackDeathRecord const& d)
+{
+    // Position: Celeritas native (cm) -> Geant4 (mm)
+    track.SetPosition(native_to_geant<lengthunits::ClhepLength>(d.final_pos));
+    // Momentum direction: dimensionless unit vector
+    track.SetMomentumDirection(
+        to_g4vector(static_array_cast<double>(d.final_dir)));
+    // Kinetic energy: MeV value -- CLHEP::MeV == 1, so value() is correct
+    const_cast<G4DynamicParticle*>(track.GetDynamicParticle())
+        ->SetKineticEnergy(d.final_energy.value());
+    // Time: Celeritas native (s) -> Geant4 (ns)
+    track.SetGlobalTime(native_to_geant<units::ClhepTime>(d.final_time));
+}
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -247,6 +275,13 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    if (flushing_tracking_actions_)
+    {
+        // Ignore re-offload attempts from PreUserTrackingAction callbacks
+        // fired during Flush() for reconstructed tracks
+        return;
+    }
+
     ScopedProfiling profile_this{"push"};
 
     GeantTrackView gtv{g4track};
@@ -313,21 +348,17 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    if (event_manager_ || !event_id_)
+    if (!event_manager_)
     {
-        if (CELER_UNLIKELY(!event_manager_))
-        {
-            // Save the event manager pointer, thereby marking that
-            // *subsequent* events need to have their IDs checked as well
-            event_manager_ = G4EventManager::GetEventManager();
-            CELER_ASSERT(event_manager_);
-        }
+        event_manager_ = G4EventManager::GetEventManager();
+        CELER_ASSERT(event_manager_);
+    }
 
+    {
         G4Event const* event = event_manager_->GetConstCurrentEvent();
         CELER_ASSERT(event);
         if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
         {
-            // The event ID has changed: reseed it
             this->InitializeEvent(event->GetEventID());
         }
     }
@@ -408,6 +439,31 @@ void LocalTransporter::Flush()
             CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
                                    << " hits for event " << event_id_.get();
             run_accum_.hits += num_hits;
+        }
+
+        // Fire Pre/PostUserTrackingAction back-to-back for each offloaded
+        // primary. Pre receives the original handover state (so MC-truth
+        // frameworks see the correct initial kinematics and primary particle
+        // pointer); Post receives the GPU terminal state.
+        if (auto* ta = event_manager_->GetUserTrackingAction())
+        {
+            flushing_tracking_actions_ = true;
+            auto& recon = hit_processor_->track_reconstruction();
+            auto const& deaths = hit_processor_->last_deaths();
+            for (auto const& d : deaths)
+            {
+                bool gen_primary = d.primary_id
+                                   && recon.is_generator_primary(d.primary_id);
+                if (!gen_primary)
+                {
+                    continue;
+                }
+                G4Track& g4track = recon.view_initial(d.particle, d.primary_id);
+                ta->PreUserTrackingAction(&g4track);
+                apply_death_state(g4track, d);
+                ta->PostUserTrackingAction(&g4track);
+            }
+            flushing_tracking_actions_ = false;
         }
         hit_processor_->track_reconstruction().clear();
     }

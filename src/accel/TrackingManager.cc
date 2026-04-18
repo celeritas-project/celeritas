@@ -122,7 +122,16 @@ void TrackingManager::PreparePhysicsTable(G4ParticleDefinition const& part)
 
 //---------------------------------------------------------------------------//
 /*!
- * Offload the incoming track to Celeritas.
+ * Offload the track to Celeritas for transport.
+ *
+ * A \c G4VTrackingManager is responsible for firing user action callbacks,
+ * just as \c G4TrackingManager::ProcessOneTrack does for standard tracks.
+ * For offloaded tracks, both \c PreUserTrackingAction and
+ * \c PostUserTrackingAction are fired together in
+ * \c LocalTransporter::Flush() after GPU transport completes, using the
+ * original handover state for Pre and the GPU terminal state for Post.
+ * This ensures MC-truth frameworks that read \c m_currTrack in Post see
+ * the state set by Pre, preserving the expected Pre/Post pairing semantics.
  *
  * This will \em not be called in the "master" thread of an MT run.
  */
