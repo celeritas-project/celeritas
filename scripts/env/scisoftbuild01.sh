@@ -15,20 +15,13 @@ if ! command -v celerlog >/dev/null 2>&1; then
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
-if ! command -v setup  >/dev/null 2>&1; then
-  celerlog debug "Missing 'setup' command: using local UPS"
-  setup ()
-  {
-      . `ups setup "$@"`
-  }
-fi
 if [ -z "${SYSTEM_NAME}" ]; then
   SYSTEM_NAME=$(uname -s)
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
 # Call this helper function on the login node bare metal
-_apptainer_fermilab() {
+_apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
   . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
