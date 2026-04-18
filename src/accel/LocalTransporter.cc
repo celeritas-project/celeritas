@@ -272,15 +272,15 @@ void LocalTransporter::Push(G4Track& g4track)
 
     Primary track;
 
+    track.energy = gtv.energy();
+    track.particle_id = particles_->find(gtv.particle().pdg());
+
     // Generate Celeritas-specific PrimaryID and capture user info
     if (hit_processor_)
     {
-        track.primary_id
-            = hit_processor_->track_reconstruction().acquire(g4track);
+        track.primary_id = hit_processor_->track_reconstruction().acquire(
+            g4track, track.particle_id);
     }
-
-    track.energy = gtv.energy();
-    track.particle_id = particles_->find(gtv.particle().pdg());
     track.position = static_array_cast<real_type>(native_value_from(gtv.pos()));
     track.direction = static_array_cast<real_type>(gtv.dir());
     track.time = static_cast<real_type>(native_value_from(gtv.time()));
