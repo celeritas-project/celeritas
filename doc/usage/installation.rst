@@ -482,7 +482,7 @@ Alternatively, for integration into DUNESW_ development environment:
    $ source /cvmfs/dune.opensciencegrid.org/products/dune/setup_dune.sh
    Setting up larsoft UPS area... /cvmfs/larsoft.opensciencegrid.org
    Setting up DUNE UPS area... /cvmfs/dune.opensciencegrid.org/products/dune/
-   $ setup dunesw v10_20_00d00 -q e26:prof
+   $ setup dunesw v10_20_01 -q e26:prof
 
 If using MRB_ with at least one repository (i.e. you called ``mrb g ...``),
 ``cmake`` will be available in your ``$PATH``.
