@@ -35,7 +35,7 @@ build directory if doing development):
 Then you should be able to include Celeritas components including its photon
 detector replacement and analysis modules.
 
-.. literalinclude:: ../../example/larceler/dune10kt_1x2x6_cpu.fcl
+.. literalinclude:: ../../../example/larceler/dune10kt_1x2x6_cpu.fcl
    :language: none
    :start-at: #include
 

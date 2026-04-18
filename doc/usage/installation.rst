@@ -389,8 +389,8 @@ On Fermilab machines, most of which require Kerberos authentication and do
    with the ``--nv`` flag, which forwards a number of host libraries to the
    container. If this happens, you will see an error:
 
-   .. code::
-     :language: none
+   .. code:: none
+
      Unable to load requested library .../liblarg4_Services_LArG4Detector_service.so
      /lib64/libc.so.6: version 'GLIBC_2.38' not found (required by /.singularity.d/libs/libGLX.so.0)
 

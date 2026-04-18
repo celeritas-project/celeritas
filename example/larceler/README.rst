@@ -20,8 +20,7 @@ their respective ``fcl`` job file, along with the generated data type and
 their ``ModuleLabel``.
 
 .. _fig-larsim:
-
-.. figure:: /_static/dot/larsim.*
+.. figure:: /_static/larsim.*
    :align: center
    :width: 80%
 
