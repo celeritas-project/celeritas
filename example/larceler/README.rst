@@ -15,12 +15,11 @@ Summary
 Overview
 --------
 
-The flow chart :numref:`fig-larsim` shows every step of the workflow,
+The following flow chart shows every step of the workflow,
 their respective ``fcl`` job file, along with the generated data type and
 their ``ModuleLabel``.
 
-.. _fig-larsim:
-.. figure:: /_static/larsim.*
+.. figure:: /_static/dot/larsim.*
    :align: center
    :width: 80%
 
@@ -30,6 +29,7 @@ Generating GENIE samples
 
 Running LArG4 + IonAndScint
 ---------------------------
+
 
 Running optical simulations
 ---------------------------

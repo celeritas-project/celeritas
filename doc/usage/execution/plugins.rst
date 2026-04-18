@@ -13,14 +13,15 @@ Celeritas can run as a plugin to different integrated frameworks.
 LArSoft for DUNE
 ----------------
 
-LArSoft is an integral component of the DUNE simulation framework.
+Celeritas provides interfaces for running optical photon transport within the
+LArSoft framework, an integral component of the DUNE software stack.
 Celeritas builds the ``PDFullSimCeler`` module to process optical photons from
 scintillation.
-It requires ROOT input file with ``art::Event``
-``sim::SimEnergyDeposit``object data from the ``IonAndScint`` producer, exactly
-as the current ``PDFastSimPAR`` module in LArSoft.
+It requires a ROOT file with ``art::Event`` inputs that have
+``sim::SimEnergyDeposit`` object data from the ``IonAndScint`` producer,
+exactly as the current ``PDFastSimPAR`` module in LArSoft.
 The ``PDFullSimCeler`` module enables replacing the map-based method for
-generating the scintillation-to-detector response by a full Monte Carlo optical
+generating the scintillation-to-detector response with full Monte Carlo optical
 tracking.
 
 Once Celeritas has been installed (see :ref:`build_ups`), load the
@@ -40,12 +41,33 @@ detector replacement and analysis modules.
    :start-at: #include
 
 PDFullSimCeler
-""""""""""""""
+^^^^^^^^^^^^^^
 
-This "producer" module is a replacement for LArSim's PDFastSimPar.
+This "producer" module is a replacement for LArSim's PDFastSimPar using full
+optical photon simulation on CPU or GPU.
+It tracks photons from simulated energy deposition steps, which are generated
+by LArG4 and other modules, and constructs simulated detector hits with
+metadata about the tracks that caused the hit.
+
+.. doxygenclass:: celeritas::PDFullSimCeler
+
+Note that this module differs substantially from direct Geant4 integration: it
+operates independently from the Geant4 run manager as a "postprocessing" step
+in a module after LArG4 runs.
+
+Its configuration options are input via the FHiCL interface:
+
+.. literalinclude:: ../../../src/larceler/PDFullSimCeler.fcl
+   :language: none
+   :start-after: BEGIN_PROLOG
+   :end-before: END_PROLOG
+
+Those options are used during execution time to set up and run a Celeritas
+optical physics problem.
+
 
 GeoSimExporter
-""""""""""""""
+^^^^^^^^^^^^^^
 
 This analysis module exports detector geometry data and energy deposition data
 for internal testing.

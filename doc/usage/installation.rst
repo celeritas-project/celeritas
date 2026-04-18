@@ -117,6 +117,14 @@ dependencies are missing, but they will update the CMake cache variable so that
 the next configure will succeed (with that component disabled).
 
 
+.. note::
+   The ``LArSoft`` metapackage in Celeritas looks for a few specific components
+   of the full LArSoft stack: cetmodules_, art_, and LArSoft's data object
+   model.
+
+   .. _cetmodules: https://fnalssi.github.io/cetmodules/
+
+
 .. _configuration:
 
 Configuration options
@@ -339,9 +347,19 @@ environment script at login.
 UPS for LArSoft
 ---------------
 
-Building Celeritas for LArSoft or DUNE (see :ref:`plugins_larsoft`) is
-straightforward once the Fermilab-developed UPS_ build environment has been set up.
+Since LArSoft and DUNE (see :ref:`plugins_larsoft`) require many infrastructure
+components specific to the Fermilab UPS_ packaging system and art_ framework,
+it is difficult to install on a typical user system.
+However, the necessary dependencies are available as "build products" via the
+DUNE/LArSoft/Fermilab CVMFS_ distribution and built through a standard
+Fermilab-provided Apptainer_ image.
+Building Celeritas for LArSoft is trivial once the LArSoft development
+environment has been set up.
 
+.. _MRB: https://cdcvs.fnal.gov/redmine/projects/mrb/wiki/MrbUserGuide
+.. _art: https://art.fnal.gov/
+.. _CVMFS: https://cvmfs.readthedocs.io/en/stable/
+.. _Apptainer: https://apptainer.org/docs/user/main/quick_start.html
 .. _UPS: https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Getting_Started_Using_UPS
 
 .. note:: UPS and these images are in the process of being replaced with a
@@ -357,6 +375,8 @@ Apptainer
 UPS-based builds always happen within a containerized system. These
 instructions demonstrate container execution for two use cases: using CUDA on the ExCL milan2_ system, and without CUDA on Fermilab's ``scisoftbuild01`` machine.
 
+.. _milan2: https://docs.excl.ornl.gov/system-overview/milan
+
 To enable CUDA, launch the ``fnal-dev-sl7:latest`` Apptainer_ image, stored on
 CVMFS_, with CUDA forwarding enabled (and the CUDA directory forwarded via
 ``-B``):
@@ -370,6 +390,10 @@ CVMFS_, with CUDA forwarding enabled (and the CUDA directory forwarded via
 This command is wrapped into the ``apptainer-fnal`` shell command when
 :file:`scripts/env/excl.sh` is sourced.
 
+The ``--ipc --pid`` options ask Apptainer to give the container isolated
+interprocess communication and process ID namespaces for VM-like process
+isolation.
+
 On Fermilab machines, most of which require Kerberos authentication and do
 *not* have CUDA support, omit the ``--nv`` flag and forward the hosts files.
 
@@ -379,10 +403,13 @@ On Fermilab machines, most of which require Kerberos authentication and do
    :start-after: BEGIN_DOC_APPTAINER
    :end-before: END_DOC_APPTAINER
 
-.. _milan2: https://docs.excl.ornl.gov/system-overview/milan
-.. _CVMFS: https://cvmfs.readthedocs.io/en/stable/
-.. _Apptainer: https://apptainer.org/docs/user/main/
+This script forwards:
 
+- the cvmfs and ``/opt`` directories to provide build tools and products,
+- the higher-performance temporary build directories in ``$SCRATCHDIR``,
+- the home directory for source code and shell scripts,
+- ``$XDG_RUNTIME_DIR`` to allow ssh-agent forwarding, and
+- network configuration files.
 
 .. important:: Because the ``fnal-dev-sl7`` uses a *very* old operating system,
    the default LArG4 installation will likely fail to load when enabling CUDA
@@ -397,6 +424,16 @@ On Fermilab machines, most of which require Kerberos authentication and do
    This is due to Geant4's visualization functionality (which uses OpenGL).
    It can be fixed by commenting out the lines in
    :file:`{/etc}/apptainer/nvliblist.conf` that start with libGL and libgl.
+
+.. tip:: Apptainer overrides the ``$PS1`` shell prompt variable even if your
+   forwarded home directory overrides it. To override it inside the apptainer,
+   define the ``APPTAINERENV_PS1`` environment variable in the bare-metal
+   machine (i.e., the login node). For example:
+
+   .. code:: sh
+
+      APPTAINERENV_PS1='\D{%b %d %H:%M:%S} \u@\h|$APPTAINER_NAME:\w\n$ '
+
 
 .. _ups_mrb:
 
@@ -421,7 +458,7 @@ inside the Apptainer image.
 
    Use the command :samp:`ups list -aK+ {package}` to list available packages.
 
-Alternatively, for integration into DUNE_ development environment:
+Alternatively, for integration into DUNESW_ development environment:
 
 .. code::
 
@@ -433,7 +470,7 @@ Alternatively, for integration into DUNE_ development environment:
 If using MRB_ with at least one repository (i.e. you called ``mrb g ...``),
 ``cmake`` will be available in your ``$PATH``.
 
-.. _DUNE: https://github.com/DUNE/dunesw/releases
+.. _DUNESW: https://github.com/DUNE/dunesw/releases
 .. _MRB: https://cdcvs.fnal.gov/redmine/projects/mrb/wiki/MrbUserGuide
 
 Installing Celeritas
@@ -441,7 +478,7 @@ Installing Celeritas
 
 Celeritas does not currently have a UPS package.
 Instead, build and install it like any other CMake package, using the build
-script, presets, or manually:
+script, the LArSoft preset (which activates ``CELERITAS_USE_LArSoft`` and disables unnecessary :ref:`dependencies`), or manually:
 
 .. code::
 
