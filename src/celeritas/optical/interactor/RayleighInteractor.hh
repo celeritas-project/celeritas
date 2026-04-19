@@ -73,6 +73,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     IsotropicDistribution sample_direction{};
+    RejectionSampler<real_type> reject_angle{1};
     do
     {
         do
@@ -94,13 +95,10 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
         }
         // Accept with the probability of the scattered polarization overlap
         // squared
-    } while (RejectionSampler{ipow<2>(
-        clamp<real_type>(dot_product(new_pol, inc_pol_), -1, 1))}(rng));
+    } while (reject_angle(ipow<2>(dot_product(new_pol, inc_pol_)), rng));
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
-    CELER_ENSURE(is_soft_orthogonal(new_pol, new_dir));
-
     return result;
 }
 
