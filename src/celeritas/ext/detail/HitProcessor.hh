@@ -106,6 +106,15 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
+    //! Death records accumulated across all stepper iterations in this flush
+    std::vector<TrackDeathRecord> const& last_deaths() const
+    {
+        return accumulated_deaths_;
+    }
+
+    //! Clear accumulated death records (call after consuming last_deaths)
+    void clear_deaths() { accumulated_deaths_.clear(); }
+
     //! Access Geant4 track metadata reconstruction
     GeantTrackReconstruction& track_reconstruction()
     {
@@ -135,6 +144,8 @@ class HitProcessor
     //! Whether geometry-related step status can be updated
     bool step_post_status_{false};
 
+    //! Death records accumulated across stepper iterations within a flush
+    std::vector<TrackDeathRecord> accumulated_deaths_;
     //! Accumulated number of hits
     size_type num_hits_{0};
 };
