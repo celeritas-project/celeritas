@@ -84,7 +84,7 @@ GeneratorAction::GeneratorAction(ActionId id,
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
-                    "optical-generate",
+                    "generate",
                     "generate Cherenkov or scintillation photons from optical "
                     "distribution data")
     , initial_capacity_(capacity)

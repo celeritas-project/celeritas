@@ -21,9 +21,8 @@ namespace optical
  * Construct surface stepping action from ID.
  */
 SurfaceSteppingAction::SurfaceSteppingAction(ActionId aid)
-    : ConcreteAction(aid,
-                     "optical-surface-stepping",
-                     "step through optical surface actions")
+    : ConcreteAction(
+          aid, "surface-stepping", "step through optical surface actions")
 {
 }
 

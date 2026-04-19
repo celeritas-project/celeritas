@@ -37,7 +37,7 @@ RayleighModel::RayleighModel(ActionId id,
                              inp::OpticalBulkRayleigh input,
                              SPConstMaterials const& materials,
                              SPConstCoreMaterials const& core_materials)
-    : Model(id, "optical-rayleigh", "interact by optical Rayleigh")
+    : Model(id, "rayleigh", "interact by optical Rayleigh")
     , input_(std::move(input))
     , materials_(materials)
     , core_materials_(core_materials)
