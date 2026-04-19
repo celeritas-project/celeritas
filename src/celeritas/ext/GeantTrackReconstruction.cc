@@ -104,6 +104,17 @@ bool GeantTrackReconstruction::is_generator_primary(PrimaryId primary_id) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the Celeritas particle type for a given primary.
+ */
+ParticleId GeantTrackReconstruction::particle_id(PrimaryId primary_id) const
+{
+    CELER_EXPECT(primary_id);
+    CELER_ASSERT(primary_id.unchecked_get() < g4_track_data_.size());
+    return g4_track_data_[primary_id.unchecked_get()].particle_id();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with particle definitions for track reconstruction.
  */
 GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,

@@ -66,6 +66,12 @@ class GeantTrackReconstruction
     // True if the given primary was created by the event generator
     bool is_generator_primary(PrimaryId) const;
 
+    //! Number of acquired primaries
+    size_type num_primaries() const { return g4_track_data_.size(); }
+
+    // Celeritas particle type for a given primary
+    ParticleId particle_id(PrimaryId) const;
+
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
     class AcquiredData

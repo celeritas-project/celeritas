@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4DynamicParticle.hh>
 #include <G4EventManager.hh>
@@ -441,26 +442,37 @@ void LocalTransporter::Flush()
             run_accum_.hits += num_hits;
         }
 
-        // Fire Pre/PostUserTrackingAction back-to-back for each offloaded
-        // primary. Pre receives the original handover state (so MC-truth
-        // frameworks see the correct initial kinematics and primary particle
-        // pointer); Post receives the GPU terminal state.
+        // Fire Pre/PostUserTrackingAction for every offloaded track so
+        // MC-truth frameworks (e.g. DD4hep Geant4ParticleHandler) can
+        // register equivalence entries. Pre receives the original handover
+        // state; Post receives the GPU terminal state if available.
         if (auto* ta = event_manager_->GetUserTrackingAction())
         {
             flushing_tracking_actions_ = true;
             auto& recon = hit_processor_->track_reconstruction();
+
             auto const& deaths = hit_processor_->last_deaths();
+            std::unordered_map<size_type, TrackDeathRecord const*> death_map;
             for (auto const& d : deaths)
             {
-                bool gen_primary = d.primary_id
-                                   && recon.is_generator_primary(d.primary_id);
-                if (!gen_primary)
+                if (d.primary_id)
                 {
-                    continue;
+                    death_map[d.primary_id.unchecked_get()] = &d;
                 }
-                G4Track& g4track = recon.view_initial(d.particle, d.primary_id);
+            }
+
+            for (size_type i = 0; i < recon.num_primaries(); ++i)
+            {
+                auto pid = id_cast<PrimaryId>(i);
+                G4Track& g4track
+                    = recon.view_initial(recon.particle_id(pid), pid);
                 ta->PreUserTrackingAction(&g4track);
-                apply_death_state(g4track, d);
+
+                if (auto it = death_map.find(i); it != death_map.end())
+                {
+                    apply_death_state(g4track, *it->second);
+                }
+
                 ta->PostUserTrackingAction(&g4track);
             }
             flushing_tracking_actions_ = false;
