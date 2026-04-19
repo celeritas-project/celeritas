@@ -465,6 +465,7 @@ void LocalTransporter::Flush()
             }
             flushing_tracking_actions_ = false;
         }
+        hit_processor_->clear_deaths();
         hit_processor_->track_reconstruction().clear();
     }
 }
