@@ -157,6 +157,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                             value_as<Energy>(max_energy_));
     real_type energy;
     real_type target;
+    RejectionSampler<> reject{envelope_};
     do
     {
         energy = sample_energy(rng);
@@ -171,7 +172,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                     / ipow<2>(inc_mass_));
             target *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
         }
-    } while (RejectionSampler<>(target, envelope_)(rng));
+    } while (reject(target, rng));
 
     CELER_ENSURE(energy > 0);
     return Energy{energy};

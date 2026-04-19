@@ -159,14 +159,14 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type electron_energy_frac{};
     real_type electron_nu_energy_frac{};
+    RejectionSampler<real_type> reject_nu_frac{0.25_r};
     do
     {
         do
         {
             electron_nu_energy_frac = generate_canonical(rng);
-        } while (RejectionSampler(
-            electron_nu_energy_frac * (1_r - electron_nu_energy_frac),
-            0.25_r)(rng));
+        } while (reject_nu_frac(
+            electron_nu_energy_frac * (1_r - electron_nu_energy_frac), rng));
 
         electron_energy_frac = generate_canonical(rng);
     } while (electron_nu_energy_frac + electron_energy_frac < 1_r);

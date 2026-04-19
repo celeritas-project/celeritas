@@ -141,6 +141,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     real_type energy;
     real_type cos_theta;
     real_type sin_theta_sq;
+    RejectionSampler<real_type> reject{sin_max_sq_};
     do
     {
         // Sample an energy uniformly within the grid bounds, rejecting
@@ -159,7 +160,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
             cos_theta = inv_beta_ / calc_refractive_index_(energy);
         } while (cos_theta > 1);
         sin_theta_sq = 1 - ipow<2>(cos_theta);
-    } while (RejectionSampler{sin_theta_sq, sin_max_sq_}(rng));
+    } while (reject(sin_theta_sq, rng));
 
     // Sample azimuthal photon direction
     real_type phi = sample_phi_(rng);

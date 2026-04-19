@@ -137,11 +137,11 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 
     // Sample the energy transfer
     real_type gamma_energy;
+    RejectionSampler<real_type> reject{envelope_};
     do
     {
         gamma_energy = sample_energy_(rng);
-    } while (RejectionSampler{gamma_energy * calc_dcs_(Energy{gamma_energy}),
-                              envelope_}(rng));
+    } while (reject(gamma_energy * calc_dcs_(Energy{gamma_energy}), rng));
 
     MuAngularDistribution sample_costheta(
         particle_.energy(), particle_.mass(), Energy{gamma_energy});

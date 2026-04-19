@@ -196,13 +196,14 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     {
         real_type scint_time{};
         real_type target;
+        RejectionSampler<real_type> reject{};
         do
         {
             // Sample time exponentially by fall time, then
             // accept with 1 - e^{-t/rise}
             scint_time = sample_time(rng);
             target = -std::expm1(-scint_time / component.rise_time);
-        } while (RejectionSampler(target)(rng));
+        } while (reject(target, rng));
         photon.time += scint_time;
     }
 
