@@ -12,26 +12,61 @@ Installation
 ============
 
 Celeritas is designed to be easy to install for a multitude of use cases.
+Users should probably use Spack or another package manager to install
+Celeritas, and developers should install the software dependencies, configure,
+and build themselves.
 
-Package managers
-----------------
+If *not* using a package manager, you should download the latest `develop archive`_ or `release version`_, or clone with Git:
+
+.. code::
+
+   $ git clone https://github.com/celeritas-project/celeritas.git
+
+Then, with the necessary dependencies installed, you can configure and build.
+
+.. code::
+
+   $ cd celeritas
+   $ mkdir build && cd build
+   $ cmake ..
+   $ ninja
+
+The following section describes details of configuration and more advanced use
+cases for building.
+
+.. _develop archive: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
+.. _release version: https://github.com/celeritas-project/celeritas/releases
+
+.. _install_spack:
+
+Installing with Spack
+---------------------
 
 Celeritas is available through the Spack_ package manager, which is designed
-for HPC environments and scientific software. The `Celeritas Spack package`_
+for HPC environments and scientific software, including HEP packages.
+The `Celeritas Spack package`_
 supports a wide range of configuration options including GPU acceleration
 (CUDA and HIP), geometry backends (VecGeom and ORANGE), I/O implementations
 (ROOT, HepMC3), and profiling (Perfetto).
 This makes it easy to install Celeritas with the exact feature set
 needed for the user's application.
 The typical HEP use case, which requires Geant4 and VecGeom, is built by default.
+.. code::
+
+   # Use an Nvidia A100 GPU with VecGeom
+   $ spack install celeritas +cuda cuda_arch=80 +vecgeom
+   # Use an AMD MI250x
+   $ spack install celeritas +rocm amdgpu_target=gfx90a
+   # Add celeritas to your $PATH
+   $ spack load celeritas
 
 .. _Spack: https://spack.io
 .. _Celeritas Spack package: https://packages.spack.io/package.html?name=celeritas
 
 .. _dependencies:
 
-Dependencies
-------------
+Software dependencies
+---------------------
 
 Celeritas is built using modern CMake_. It has multiple dependencies to operate
 as a full-featured code, but each dependency can be individually disabled as
@@ -107,32 +142,129 @@ internet if required but not available on the user's system.
 
 Ideally you will build Celeritas with all dependencies to gain the full
 functionality of the code, but there are circumstances in which you may not
-have (or want) all the dependencies or features available. By default, the CMake code in
-Celeritas queries available packages and sets several
-:samp:`CELERITAS_USE_{package}`
-options based on what it finds, so you have a good chance of successfully
-configuring Celeritas on the first go. Some optional features
-will error out in the configure if their required
-dependencies are missing, but they will update the CMake cache variable so that
-the next configure will succeed (with that component disabled).
-
+have (or want) all the dependencies or features available.
 
 .. note::
+
    The ``LArSoft`` metapackage in Celeritas looks for a few specific components
    of the full LArSoft stack: cetmodules_, art_, and LArSoft's data object
    model.
 
-   .. _cetmodules: https://fnalssi.github.io/cetmodules/
+.. _cetmodules: https://fnalssi.github.io/cetmodules/
+.. _art: https://art.fnal.gov/
 
+.. _spack_deps:
+
+Installing dependencies with Spack
+----------------------------------
+
+When building locally for development or deployment,
+the recommended way to install dependencies is with Spack_.
+Celeritas includes Spack development environments
+at :file:`scripts/spack/env-{which}.yaml` for development and execution.
+To install these dependencies for basic use with an Nvidia GPU:
+
+- Clone and load Spack following its `getting started`_ instructions.
+- Run ``spack external find cuda`` to inform Spack of the
+  existing CUDA installation.
+- Create the Celeritas development environment with
+  ``spack env create celeritas scripts/spack/env-cuda.yaml``
+- Activate the environment with ``spack env activate celeritas``
+- Tell Spack to default to building with CUDA support with
+  the command ``spack config add "packages:all:prefer:cuda_arch=<ARCH>"``,
+  where ``<ARCH>`` is the numeric portion of the CUDA `architecture flags`_.
+- Install all the dependencies with ``spack install``.
+
+The dependency requirements for Celeritas are:
+
+.. literalinclude:: ../../scripts/spack/packages.yaml
+   :language: yaml
+
+and the full list of packages used by Celeritas is:
+
+.. literalinclude:: ../../scripts/spack/env-full.yaml
+   :language: yaml
+   :start-at: specs:
+   :end-before: view:
+
+With this environment (with CUDA enabled), all Celeritas tests should be
+enabled and all should pass.
+Celeritas is build-compatible with older versions of some dependencies (e.g.,
+Geant4@10.6 and VecGeom@1.2.7), but some tests may fail, indicating a change in
+behavior or a bug fix in that package.
+
+Once the Celeritas Spack environment has been installed, set your shell's
+environment variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it
+with ``spack env activate celeritas``.
+
+.. _getting started: https://spack.readthedocs.io/en/latest/getting_started.html
+.. _architecture flags: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
+
+.. _build_script:
+
+Developer build script
+----------------------
+
+Celeritas includes a build script, :file:`scripts/build.sh`, that configures
+and builds the code on development machines.
+It includes environment files for quickly getting started on systems including NERSC's Perlmutter_, ORNL's ExCL_ and Frontier_ systems, and ANL's JLSE_.
+
+It intelligently configures the build environment by:
+
+- detecting the system hostname and loading the corresponding environment file
+  from :file:`scripts/env/{hostname}.sh` (if available)
+- detecting and loading apptainer-specific setups using environment variables
+- linking the appropriate CMake user presets from
+  :file:`scripts/cmake-presets/{system}.json`
+- detecting and enabling ccache_ for faster rebuilds
+- configuring, building, and testing, and
+- installing pre-commit hooks for code quality checks.
+
+The script accepts a preset name as the first argument, followed by any
+additional CMake configuration arguments. For example:
+
+.. code::
+
+   $ ./scripts/build.sh default -DCELERITAS_DEBUG=ON
+
+Common presets include ``minimal`` (fewest dependencies), ``default``
+(detecting dependencies from the environment), and ``full`` (all optional
+features enabled).
+System-specific presets such as ``reldeb-orange`` may also be available.
+
+The provided environment files for certain shared HPC systems may change key
+variables such as ``XDG_CACHE_HOME``.
+In such cases, the build script will modify the shell's rc file to source the
+environment script at login.
+
+.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
+.. _ExCL: https://docs.excl.ornl.gov
+.. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
+.. _JLSE: https://www.jlse.anl.gov/
+.. _ccache: https://ccache.dev/
 
 .. _configuration:
 
-Configuration options
-^^^^^^^^^^^^^^^^^^^^^
+Configuring Celeritas
+---------------------
+
+By default, the CMake code in Celeritas queries available packages and sets
+several :samp:`CELERITAS_USE_{package}` options based on what it finds, so you
+have a good chance of successfully configuring Celeritas on the first go.
+Some optional features will fail during configuration if their required
+dependencies are missing, but they will update the CMake cache variable so that
+the next configure will succeed (with that component disabled).
 
 The interactive ``ccmake`` tool is highly recommended for exploring the
 Celeritas configuration options, since it provides both documentation *and* an
 easy way to toggle through all the valid options.
+
+Additionally, CMake presets are included for both general and machine-specific
+cases.
+These presets bundle sets of useful options and compiler flags.
+
+CMake variables
+^^^^^^^^^^^^^^^
 
 :samp:`CELERITAS_USE_{package}`
   Enable features of the given dependency. The configuration will fail if the
@@ -193,88 +325,10 @@ enable shared libraries, ``CMAKE_POSITION_INDEPENDENT_CODE``, etc.
 
 .. _CMake variables: https://cmake.org/cmake/help/latest/manual/cmake-variables.7.html
 
-Toolchain installation
-----------------------
-
-The recommended way to install dependencies is with ``Spack``,
-an HPC-oriented package manager that includes numerous scientific packages,
-including those used in HEP. Celeritas includes Spack development environments
-at :file:`scripts/spack/env-{which}.yaml` for development and execution. To install these
-dependencies for basic use with an Nvidia GPU:
-
-- Clone and load Spack following its `getting started instructions
-  <https://spack.readthedocs.io/en/latest/getting_started.html>`_.
-- Run ``spack external find cuda`` to inform Spack of the
-  existing CUDA installation.
-- Create the Celeritas development environment with
-  ``spack env create celeritas scripts/spack/env-cuda.yaml``
-- Activate the environment with ``spack env activate celeritas``
-- Tell Spack to default to building with CUDA support with
-  the command ``spack config add "packages:all:prefer:cuda_arch=<ARCH>"``,
-  where ``<ARCH>`` is the numeric portion of the CUDA `architecture flags`_.
-- Install all the dependencies with ``spack install``.
-
-The dependency requirements for Celeritas are:
-
-.. literalinclude:: ../../scripts/spack/packages.yaml
-   :language: yaml
-
-and the full list of packages used by Celeritas is:
-
-.. literalinclude:: ../../scripts/spack/env-full.yaml
-   :language: yaml
-   :start-at: specs:
-   :end-before: view:
-
-With this environment (with CUDA enabled), all Celeritas tests should be
-enabled and all should pass. Celeritas is build-compatible with older versions
-of some dependencies (e.g., Geant4@10.6 and VecGeom@1.2.7), but some tests may
-fail, indicating a change in behavior or a bug fix in that package.
-
-.. _architecture flags: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
-
-Building Celeritas
-------------------
-
-Once the Celeritas Spack environment has been installed, set your shell's environment
-variables (``PATH``, ``CMAKE_PREFIX_PATH``, ...) by activating it.
-
-To clone the latest development version of Celeritas:
-
-.. code::
-
-   $ git clone https://github.com/celeritas-project/celeritas.git
-
-or download it from the GitHub-generated `zip file`_.
-
-Celeritas includes a :ref:`build_script` that helps setting up the code on development machines.
-It includes environment files for quickly getting started on systems including NERSC's Perlmutter_, ORNL's ExCL_ and Frontier_ systems, and ANL's JLSE_.
-
-.. code::
-
-   $ cd celeritas
-   $ ./scripts/build.sh base
-
-You can, of course, build manually:
-
-.. code::
-
-   $ cd celeritas
-   $ spack env activate celeritas # if using spack
-   $ mkdir build && cd build
-   $ cmake ..
-   $ make && ctest
-
-.. _zip file: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
-.. _Perlmutter: https://docs.nersc.gov/systems/perlmutter/
-.. _ExCL: https://docs.excl.ornl.gov
-.. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
-.. _JLSE: https://www.jlse.anl.gov/
-
 .. _cmake_presets:
 
-CMake Presets
--------------
+CMake presets
+^^^^^^^^^^^^^
 
 To manage multiple builds with different
 configure options (debug or release, VecGeom or ORANGE), you can use the
@@ -306,42 +360,6 @@ basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
 build, and test.
 
-.. _build_script:
-
-Build script
-------------
-
-The :file:`scripts/build.sh` helper script automates common development tasks
-for building Celeritas. It intelligently configures the build environment by:
-
-- detecting the system hostname and loading the corresponding environment file
-  from :file:`scripts/env/{hostname}.sh` (if available)
-- detecting and loading apptainer-specific setups using environment variables
-- linking the appropriate CMake user presets from
-  :file:`scripts/cmake-presets/{system}.json`
-- detecting and enabling ccache_ for faster rebuilds
-- configuring, building, and testing, and
-- installing pre-commit hooks for code quality checks.
-
-The script accepts a preset name as the first argument, followed by any
-additional CMake configuration arguments. For example:
-
-.. code::
-
-   $ ./scripts/build.sh default -DCELERITAS_DEBUG=ON
-
-Common presets include ``minimal`` (fewest dependencies), ``default``
-(detecting dependencies from the environment), and ``full`` (all optional
-features enabled).
-System-specific presets such as ``reldeb-orange`` may also be available.
-
-The provided environment files for certain shared HPC systems may change key
-variables such as ``XDG_CACHE_HOME``.
-In such cases, the build script will modify the shell's rc file to source the
-environment script at login.
-
-.. _ccache: https://ccache.dev/
-
 .. _build_ups:
 
 UPS for LArSoft
@@ -357,7 +375,6 @@ Building Celeritas for LArSoft is trivial once the LArSoft development
 environment has been set up.
 
 .. _MRB: https://cdcvs.fnal.gov/redmine/projects/mrb/wiki/MrbUserGuide
-.. _art: https://art.fnal.gov/
 .. _CVMFS: https://cvmfs.readthedocs.io/en/stable/
 .. _Apptainer: https://apptainer.org/docs/user/main/quick_start.html
 .. _UPS: https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Getting_Started_Using_UPS

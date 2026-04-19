@@ -13,44 +13,6 @@ Geant4 applications.
 The interface for Geant4 integration is quite stable, and
 additional lower level code, described in :ref:`api`, is also stable.
 
-.. _celer_g4_lib:
-
-Celeritas::G4 library
----------------------
-
-The ``Celeritas::G4`` provides a single, simple integration point for Geant4 applications.
-This section describes the main points of integrating using the *tracking interface*,
-recommended for all applications that support Geant4 11.0 or higher.
-
-1. Find and link in your CMake project:
-
-   - Find the Celeritas package.
-   - Link ``Celeritas::G4`` .
-   - Use ``celeritas_target_link_libraries`` instead of
-     ``target_link_libraries`` when both VecGeom and CUDA are enabled.
-
-2. Set up physics offloading in your "main" function.
-
-   - Include ``<CeleritasG4.hh>``
-   - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
-     tracks to Celeritas rather than the main tracking loop.
-   - Tweak the ``SetupOptions`` based on problem requirements, or use the
-     :ref:`g4_ui_macros`.
-
-3. Add hooks to safely set up and tear down Celeritas and its GPU code.
-
-   - Call ``BeginOfRunAction`` at the beginning of the run to initialize
-     problem data (master or serial) and local state (worker or serial).
-   - Call ``EndOfRunAction`` at the end of the run to safely deallocate
-     everything.
-
-The changes for a simple application look like:
-
-.. literalinclude:: ../../example/geant4/add-celer.diff
-   :language: diff
-
-See :ref:`api_g4_interface` for further details of Geant4 integration.
-
 CMake integration
 -----------------
 
@@ -139,6 +101,45 @@ These targets are:
 - Code libraries described in :ref:`api`: corecel, geocel, orange,
   celeritas, and accel;
 - Executables such as ``celer-sim`` and ``celer-geo``.
+
+
+.. _celer_g4_lib:
+
+Celeritas::G4 library
+---------------------
+
+The ``Celeritas::G4`` provides a single, simple integration point for Geant4 applications.
+This section describes the main points of integrating using the *tracking interface*,
+recommended for all applications that support Geant4 11.0 or higher.
+
+1. Find and link in your CMake project:
+
+   - Find the Celeritas package.
+   - Link ``Celeritas::G4`` .
+   - Use ``celeritas_target_link_libraries`` instead of
+     ``target_link_libraries`` when both VecGeom and CUDA are enabled.
+
+2. Set up physics offloading in your "main" function.
+
+   - Include ``<CeleritasG4.hh>``
+   - Register the ``TrackingManagerConstructor``, which tells Geant4 to send EM
+     tracks to Celeritas rather than the main tracking loop.
+   - Tweak the ``SetupOptions`` based on problem requirements, or use the
+     :ref:`g4_ui_macros`.
+
+3. Add hooks to safely set up and tear down Celeritas and its GPU code.
+
+   - Call ``BeginOfRunAction`` at the beginning of the run to initialize
+     problem data (master or serial) and local state (worker or serial).
+   - Call ``EndOfRunAction`` at the end of the run to safely deallocate
+     everything.
+
+The changes for a simple application look like:
+
+.. literalinclude:: ../../example/geant4/add-celer.diff
+   :language: diff
+
+See :ref:`api_g4_interface` for further details of Geant4 integration.
 
 
 App integration

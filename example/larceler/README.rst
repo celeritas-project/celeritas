@@ -31,6 +31,8 @@ Running LArG4 + IonAndScint
 ---------------------------
 
 
+.. _run_lar_optical:
+
 Running optical simulations
 ---------------------------
 

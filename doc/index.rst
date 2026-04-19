@@ -39,6 +39,10 @@ challenging simulation problems in HEP.
    :Release: |release|
    :Date: |today|
 
+   .. _quickstart:
+
+   .. include:: ../QUICKSTART.rst
+
 .. ***************************************************************************
 
 .. _introduction:
