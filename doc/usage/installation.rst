@@ -206,8 +206,8 @@ dependencies for basic use with an Nvidia GPU:
   <https://spack.readthedocs.io/en/latest/getting_started.html>`_.
 - Run ``spack external find cuda`` to inform Spack of the
   existing CUDA installation.
-- Create the Celeritas development environment with ``spack env create
-  celeritas scripts/spack/env-cuda.yaml``
+- Create the Celeritas development environment with
+  ``spack env create celeritas scripts/spack/env-cuda.yaml``
 - Activate the environment with ``spack env activate celeritas``
 - Tell Spack to default to building with CUDA support with
   the command ``spack config add "packages:all:prefer:cuda_arch=<ARCH>"``,

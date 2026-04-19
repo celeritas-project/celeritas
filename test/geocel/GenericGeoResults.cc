@@ -7,7 +7,6 @@
 #include "GenericGeoResults.hh"
 
 #include <algorithm>
-#include <initializer_list>
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/Types.hh"

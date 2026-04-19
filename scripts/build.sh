@@ -279,6 +279,9 @@ if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
   log warning "Cache directory changed from XDG_CACHE_HOME=${OLD_XDG_CACHE_HOME} to ${XDG_CACHE_HOME}"
   needs_env=true
 fi
+if [ -n "${APPTAINER_SYSTEM_NAME}"]; theb
+  needs_env=false
+fi
 if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
   rc_file="$(get_shell_rc_file)"
   if install_shell_env "${rc_file}"; then
@@ -331,5 +334,5 @@ fi
 
 if ${needs_env}; then
   log warning "Environment changed: please manually add the following to ${rc_file}:"
-  printf ' . %s\n' "${ENV_SCRIPT}" >&2
+  printf '. %s\n' "${ENV_SCRIPT}" >&2
 fi

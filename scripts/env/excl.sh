@@ -4,18 +4,34 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# BEGIN APPTAINER SCRIPT
+# Allow running from user rc setup outside of build.sh environment
+if ! command -v celerlog >/dev/null 2>&1; then
+  celerlog() {
+    printf "%s: %s\n" "$1" "$2" >&2
+  }
+fi
+if [ -z "${SYSTEM_NAME}" ]; then
+  SYSTEM_NAME=$(hostname -s)
+  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
+fi
+
+#-----------------------------------------------------------------------------#
 # Call this helper function on the login node bare metal
 _apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
-    echo "Scratch directory does not exist: run
+    celerlog error "Scratch directory does not exist: run
   . \${CELERITAS_SOURCE}/scripts/env/excl.sh
 "
     return 1
   fi
 
   if ! [ -d "/cvmfs" ]; then
-    echo "cannot run ${1}: CVMFS is not available on this host"
+    celerlog error "cannot run ${1}: CVMFS is not available on this host"
+    return 1
+  fi
+
+  if ! [ -d "${CUDA_HOME}" ]; then
+    celerlog error "CUDA_HOME=${CUDA_HOME} does not exist"
     return 1
   fi
 
@@ -35,17 +51,6 @@ alias apptainer-fnal=_apptainer_fnal
 
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C
-
-# Allow running from user rc setup outside of build.sh environment
-if ! command -v celerlog >/dev/null 2>&1; then
-  celerlog() {
-    printf "%s: %s\n" "$1" "$2" >&2
-  }
-fi
-if [ -z "${SYSTEM_NAME}" ]; then
-  SYSTEM_NAME=$(hostname -s)
-  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
-fi
 
 # Set default scratchdir; /scratch should exist according to excl docs
 export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
@@ -70,7 +75,7 @@ if [ -n "${APPTAINER_NAME}" ]; then
   unset CC CXX CMAKE_PREFIX_PATH
 
   # Override apptainer command
-  apptainer_fermilab() {
+  _apptainer_fnal() {
     printf "error: %s\n" "cannot run apptainer inside ${APPTAINER_NAME}"
     return 1
   }
