@@ -55,20 +55,20 @@ generate a timeline:
    $ CELER_ENABLE_PROFILING=1 \
    > nsys profile \
    >   --trace=cuda,nvtx,osrt \
-   >   --capture-range nvtx --nvtx-domain celeritas \
+   >   --nvtx-capture="celeritas" \
    >   --osrt-backtrace-stack-size=16384 --backtrace=fp \
-   >   -o report.qdrep -f true \
+   >   -o report.nsys-rep -f true \
    >   celer-sim inp.json
 
 Line 2 specifies the APIs to be captured: in this case, CUDA calls, NVTX
 ranges, and OS runtime libraries.
-To use the NVTX ranges, you **must** enable the ``CELER_ENABLE_PROFILING`` variable
-in addition to using the NVTX "trace" option (lines 1 and 2).
-The capture domain in line 3 restricts profiling to the Celeritas application.
-(You can use, e.g., ``--nvtx-capture run@celeritas`` to capture only the main stepping execution inside Celeritas.)
-Additional frame-pointer-based backtracing is specified in line 5; line 6
-writes (and overwrites) to a particular output file; the final line invokes the
-application.
+To use the NVTX ranges, which is strongly recommended for kernel annotations,
+you **must** enable the ``CELER_ENABLE_PROFILING`` variable
+in addition to using the NVTX "trace" option (line 3).
+The capture domain in line 4 restricts profiling to the Celeritas application.
+Additional frame-pointer-based backtracing is specified in line 5;
+line 6 writes (and overwrites) to a particular output file;
+the final line invokes the application.
 
 On AMD hardware using the ROCProfiler_, here's an example that writes out timeline information:
 
@@ -144,7 +144,7 @@ Kernel profiling
 Detailed kernel diagnostics including occupancy and memory bandwidth can be
 gathered with the `NVIDIA Nsight Compute`_ profiler.
 
-.. _NVIDIA Compute systems: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html
+.. _NVIDIA Nsight Compute: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html
 
 The ``Source`` tab is especially useful, as it maps diagnostics such as number
 of instructions executed and number of stalls to individual lines in the source
@@ -187,7 +187,7 @@ method is:
 3. Click ``Display the command line to use NVIDIA Nsight Compute CLI``
 4. Copy the ``launch-skip`` from the supplied ``ncu`` command.
 
-A final option is to profile a kernel within a particular NVTX domain via:
+A final option is to profile a kernel using NVTX annotations:
 
 .. sourcecode::
    :linenos:
@@ -195,12 +195,12 @@ A final option is to profile a kernel within a particular NVTX domain via:
    $ CELER_ENABLE_PROFILING=1 \
    > ncu \
    > --set full \
-   > --nvtx --nvtx-include "celeritas@DOMAIN" \
-   > --launch-skip 300 --launch-count 10 \
+   > --nvtx --nvtx-include "celeritas@{RANGE}" \
+   > --launch-skip 100 --launch-count 1 \
    > -f -o output \
    > celer-sim inp.json
 
-where DOMAIN is the name of the NVTX domain (e.g.
-``celer-optical/optical-step/.../...``). Note that the domain and range are
-flipped compared to ``nsys`` since the kernel profiling allows detailed
-top-down stack specification.
+Here, :samp:`celeritas@{RANGE}` is the name of the NVTX domain and
+slash-separated range, (e.g. ``run/step/*/propagate``).
+Note that the domain and range are flipped compared to ``nsys`` since the
+kernel profiling allows detailed top-down stack specification.
