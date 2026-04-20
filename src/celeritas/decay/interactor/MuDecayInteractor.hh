@@ -12,7 +12,7 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
-#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/decay/data/MuDecayData.hh"
 #include "celeritas/phys/FourVector.hh"
@@ -159,7 +159,7 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type electron_energy_frac{};
     real_type electron_nu_energy_frac{};
-    RejectionSampler<real_type> reject_nu_frac{0.25_r};
+    UniformRejectionSampler<real_type> reject_nu_frac{0.25_r};
     do
     {
         do

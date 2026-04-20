@@ -12,7 +12,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
-#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 
@@ -72,7 +72,7 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
     Real3& new_pol = result.polarization;
 
     IsotropicDistribution sample_direction{};
-    RejectionSampler<real_type> reject_angle{1};
+    UniformRejectionSampler<real_type> reject_angle{1};
     do
     {
         do

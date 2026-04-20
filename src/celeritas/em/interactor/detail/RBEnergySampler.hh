@@ -10,7 +10,7 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/ReciprocalDistribution.hh"
-#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
@@ -99,7 +99,7 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     // Sampled energy and corresponding cross section for rejection
     real_type gamma_energy{0};
     real_type dsigma{0};
-    RejectionSampler<real_type> reject{calc_dxsec_.maximum_value()};
+    UniformRejectionSampler<real_type> reject{calc_dxsec_.maximum_value()};
 
     do
     {

@@ -104,8 +104,8 @@ test::
    (lldb) bt
    * thread #1, queue = 'com.apple.main-thread', stop reason = breakpoint 1.1
      * frame #0: 0x182ef4158 libc++abi.dylib`__cxa_throw
-       frame #1: 0x100017f98 optical_Cerenkov`celeritas::RejectionSampler<double>::RejectionSampler(this=0x16fdfcda8, f=-0.0062093880005715963, fmax=0.17188544207007173) at RejectionSampler.hh:87:5
-       frame #2: 0x10001714c optical_Cerenkov`celeritas::RejectionSampler<double>::RejectionSampler(this=0x16fdfcda8, f=-0.0062093880005715963, fmax=0.17188544207007173) at RejectionSampler.hh:86:1
+       frame #1: 0x100017f98 optical_Cerenkov`celeritas::UniformRejectionSampler<double>::UniformRejectionSampler(this=0x16fdfcda8, f=-0.0062093880005715963, fmax=0.17188544207007173) at UniformRejectionSampler.hh:87:5
+       frame #2: 0x10001714c optical_Cerenkov`celeritas::UniformRejectionSampler<double>::UniformRejectionSampler(this=0x16fdfcda8, f=-0.0062093880005715963, fmax=0.17188544207007173) at UniformRejectionSampler.hh:86:1
        frame #3: 0x100014c64 optical_Cerenkov`celeritas::Span<celeritas::optical::Primary, 18446744073709551615ul> celeritas::optical::CerenkovGenerator::operator()<celeritas::test::DiagnosticRngEngine<std::__1::mersenne_twister_engine<unsigned int, 32ul, 624ul, 397ul, 31ul, 2567483615u, 11ul, 4294967295u, 7ul, 2636928640u, 15ul, 4022730752u, 18ul, 1812433253u>>>(this=0x16fdfd1f8, rng=0x16fdfdc48) at CerenkovGenerator.hh:165:18
        frame #4: 0x10000ed60 optical_Cerenkov`celeritas::test::CerenkovTest_generator_Test::TestBody()::$_0::operator()(this=0x16fdfdb20, pre_step=0x16fdfd910, particle=0x16fdfd8d0, sim=0x16fdfd8a8, pos=0x16fdfd890, num_samples=64) const at Cerenkov.test.cc:361:28
        --8<-- snip --8<--

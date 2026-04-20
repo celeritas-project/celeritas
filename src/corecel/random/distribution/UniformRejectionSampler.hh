@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/distribution/RejectionSampler.hh
+//! \file corecel/random/distribution/UniformRejectionSampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -19,33 +19,37 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Return whether a rejection loop needs to continue trying.
+ * Use rejection sampling with a uniform proposal distribution.
  *
  * A common implementation of sampling from a "difficult" (non-analytically
  * invertible) probability distribution function is to bound the difficult
- * distribution \em f(x) with another easily sampled function \em g(x) . Given
- * a maximum value \em M over the \em x interval being sampled, it is
- * equivalent to sampling \em f(x) by instead sampling from \em g(x) and
- * rejecting with probability \f[
+ * distribution \em f(x) with another easily sampled proposal distribution
+ * \em g(x) .
+ * Given a constant \em M such that \f$ f(x) < M g(x) \f$ over the \em x
+ interval
+ * being sampled, it is equivalent to sampling \em f(x) by instead sampling
+ * from \em g(x) and rejecting with probability \f[
    \frac{f(x)}{M g(x)}
- * \f]
+ * \f].
+ * This rejection sampler uses \f$ g(x) = 1 \f$, and the construction argument
+ * \em M is just the maximum value of \em f .
  *
  * These invocations generate statistically equivalent results:
  *  - `BernoulliDistribution(1 - p / pmax)(rng);`
  *  - `!BernoulliDistribution(p / pmax)(rng);`
  *  - `p < pmax * UniformDistribution{}(rng)`
- *  - `RejectionSampler(pmax)(p, rng);`
+ *  - `UniformRejectionSampler(pmax)(p, rng);`
  *
  * This is meant for rejection sampling, e.g., on cross section:
  * \code
-    RejectionSampler reject{xs_max}
+    UniformRejectionSampler reject{xs_max}
     do {
       xs = sample_xs(rng);
     } while (reject(xs, rng));
    \endcode
  */
 template<class RealType = ::celeritas::real_type>
-class RejectionSampler
+class UniformRejectionSampler
 {
     static_assert(std::is_floating_point_v<RealType>);
 
@@ -58,14 +62,17 @@ class RejectionSampler
 
   public:
     // Construct with acceptance probability
-    explicit CELER_CONSTEXPR_FUNCTION RejectionSampler(real_type fmax);
+    explicit CELER_CONSTEXPR_FUNCTION UniformRejectionSampler(real_type fmax);
 
     //! Construct when the distribution's maximum is normalized
-    CELER_CONSTEXPR_FUNCTION RejectionSampler() : RejectionSampler{1} {}
+    CELER_CONSTEXPR_FUNCTION UniformRejectionSampler()
+        : UniformRejectionSampler{1}
+    {
+    }
 
     // Reject with probability (f/fmax)
     template<class Generator>
-    inline CELER_FUNCTION bool operator()(real_type f, Generator& rng);
+    inline CELER_FUNCTION bool operator()(real_type f, Generator& rng) const;
 
     //! Allow a priori estimate of fmax to be *slightly* unconservative
     static CELER_CONSTEXPR_FUNCTION real_type tolerance()
@@ -85,7 +92,7 @@ class RejectionSampler
  */
 template<class RealType>
 CELER_CONSTEXPR_FUNCTION
-RejectionSampler<RealType>::RejectionSampler(real_type fmax)
+UniformRejectionSampler<RealType>::UniformRejectionSampler(real_type fmax)
     : fmax_{fmax}
 {
     CELER_EXPECT(fmax >= 0);
@@ -98,7 +105,7 @@ RejectionSampler<RealType>::RejectionSampler(real_type fmax)
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-RejectionSampler<RealType>::operator()(real_type f, Generator& rng)
+UniformRejectionSampler<RealType>::operator()(real_type f, Generator& rng) const
     -> result_type
 {
     CELER_EXPECT(f <= fmax_ * (1 + tolerance()));

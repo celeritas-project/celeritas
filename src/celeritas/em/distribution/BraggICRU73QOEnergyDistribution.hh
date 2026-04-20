@@ -12,7 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/InverseSquareDistribution.hh"
-#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -118,7 +118,7 @@ CELER_FUNCTION auto BraggICRU73QOEnergyDistribution::operator()(Engine& rng)
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
     real_type energy;
-    RejectionSampler<> reject{};
+    UniformRejectionSampler<> reject{};
     do
     {
         // Sample 1/E^2 from Emin to Emax

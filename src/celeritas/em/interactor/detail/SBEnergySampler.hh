@@ -6,17 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/math/Algorithms.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/em/distribution/SBEnergyDistHelper.hh"
 #include "celeritas/em/distribution/SBEnergyDistribution.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
-#include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "PhysicsConstants.hh"

@@ -11,7 +11,7 @@
 #include "corecel/data/StackAllocator.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/ReciprocalDistribution.hh"
-#include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/MuBremsstrahlungData.hh"
@@ -83,7 +83,7 @@ class MuBremsstrahlungInteractor
     // Distribution to sample energy
     ReciprocalDistribution<> sample_energy_;
     // Rejection sampler for gamma energy
-    RejectionSampler<real_type> reject_;
+    UniformRejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -117,8 +117,8 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     // Calculate rejection envelope: *assume* the highest cross section
     // is at its lowest value
     real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.gamma));
-    reject_ = RejectionSampler<real_type>{gamma_cutoff
-                                          * calc_dcs_(Energy{gamma_cutoff})};
+    reject_ = UniformRejectionSampler<real_type>{
+        gamma_cutoff * calc_dcs_(Energy{gamma_cutoff})};
 }
 
 //---------------------------------------------------------------------------//
