@@ -17,10 +17,8 @@ export CC=/usr/bin/cc
 
 export CUDAFLAGS="-Werror all-warnings -Wno-deprecated-gpu-targets"
 
-if [ -n "${APPTAINER_CONTAINER}" ]; then
-  export CUDA_HOME=/auto/projects/celeritas/opt/ubuntu24.04/x86_64_v3/cuda/12.9.1/nnvx55h
-  export CUDACXX=${CUDA_HOME}/bin/nvcc
-fi
+export CUDA_HOME=/auto/projects/celeritas/opt/ubuntu24.04/x86_64_v3/cuda/12.9.1/nnvx55h
+export CUDACXX=${CUDA_HOME}/bin/nvcc
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?

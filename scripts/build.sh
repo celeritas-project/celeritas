@@ -279,7 +279,7 @@ if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
   log warning "Cache directory changed from XDG_CACHE_HOME=${OLD_XDG_CACHE_HOME} to ${XDG_CACHE_HOME}"
   needs_env=true
 fi
-if [ -n "${APPTAINER_SYSTEM_NAME}"]; theb
+if [ -n "${APPTAINER_SYSTEM_NAME}" ]; then
   needs_env=false
 fi
 if ${needs_env} && [ -n "${ENV_SCRIPT}" ]; then
