@@ -82,8 +82,8 @@ class MuBremsstrahlungInteractor
     MuBremsDiffXsCalculator calc_dcs_;
     // Distribution to sample energy
     ReciprocalDistribution<> sample_energy_;
-    // Envelope distribution for rejection sampling of gamma energy
-    real_type envelope_;
+    // Rejection sampler for gamma energy
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -117,7 +117,8 @@ CELER_FUNCTION MuBremsstrahlungInteractor::MuBremsstrahlungInteractor(
     // Calculate rejection envelope: *assume* the highest cross section
     // is at its lowest value
     real_type gamma_cutoff = value_as<Energy>(cutoffs.energy(shared.gamma));
-    envelope_ = gamma_cutoff * calc_dcs_(Energy{gamma_cutoff});
+    reject_ = RejectionSampler<real_type>{gamma_cutoff
+                                          * calc_dcs_(Energy{gamma_cutoff})};
 }
 
 //---------------------------------------------------------------------------//
@@ -137,11 +138,10 @@ CELER_FUNCTION Interaction MuBremsstrahlungInteractor::operator()(Engine& rng)
 
     // Sample the energy transfer
     real_type gamma_energy;
-    RejectionSampler<real_type> reject{envelope_};
     do
     {
         gamma_energy = sample_energy_(rng);
-    } while (reject(gamma_energy * calc_dcs_(Energy{gamma_energy}), rng));
+    } while (reject_(gamma_energy * calc_dcs_(Energy{gamma_energy}), rng));
 
     MuAngularDistribution sample_costheta(
         particle_.energy(), particle_.mass(), Energy{gamma_energy});

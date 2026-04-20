@@ -76,6 +76,7 @@ class CherenkovGenerator
     real_type dndx_pre_;
     real_type sin_max_sq_;
     real_type inv_beta_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -120,6 +121,7 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     CELER_ASSERT(inv_beta_ >= 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = 1 - ipow<2>(cos_max);
+    reject_ = RejectionSampler<real_type>{sin_max_sq_};
 
     // Calculate changes over the step
     delta_pos_ = post_step.pos - pre_step.pos;
@@ -141,7 +143,6 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     real_type energy;
     real_type cos_theta;
     real_type sin_theta_sq;
-    RejectionSampler<real_type> reject{sin_max_sq_};
     do
     {
         // Sample an energy uniformly within the grid bounds, rejecting
@@ -160,7 +161,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
             cos_theta = inv_beta_ / calc_refractive_index_(energy);
         } while (cos_theta > 1);
         sin_theta_sq = 1 - ipow<2>(cos_theta);
-    } while (reject(sin_theta_sq, rng));
+    } while (reject_(sin_theta_sq, rng));
 
     // Sample azimuthal photon direction
     real_type phi = sample_phi_(rng);

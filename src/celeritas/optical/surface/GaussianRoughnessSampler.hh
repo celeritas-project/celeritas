@@ -61,6 +61,7 @@ class GaussianRoughnessSampler
     Real3 normal_;
     TruncatedDistribution<NormalDistribution<real_type>> sample_alpha_;
     real_type f_max_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -75,6 +76,7 @@ GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
     : normal_(normal)
     , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
+    , reject_(f_max_)
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -91,7 +93,6 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
 
     real_type cos_alpha{};
     real_type sin_alpha{};
-    RejectionSampler<real_type> reject{f_max_};
     do
     {
         // Sample positive angle according to gaussian (chances of having a
@@ -100,7 +101,7 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
         sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection
-    } while (sin_alpha < f_max_ && reject(sin_alpha, rng));
+    } while (sin_alpha < f_max_ && reject_(sin_alpha, rng));
 
     // Rotate normal by alpha and then sample azimuthal rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);
