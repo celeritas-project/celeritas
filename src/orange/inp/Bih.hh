@@ -18,13 +18,17 @@ namespace inp
  */
 struct BIHBuilder
 {
+    //! The maximum value the \p depth_limit parameter can be, as to not
+    //! overstep the BIH stack
+    static constexpr size_type max_depth_limit = 18;
+
     //! Maximum number of bboxes that can reside on a leaf node without
     //! triggering a partitioning attempt
     size_type max_leaf_size = 1;
 
     //! Hard limit on the depth of most the embedded node (where 1 is the root
     //! node)
-    size_type depth_limit = 32;
+    size_type depth_limit = max_depth_limit;
 
     //! The number of partition candidates to check per axis when partitioning
     //! a node during BIH construction

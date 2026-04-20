@@ -279,18 +279,21 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
 
     // Loop over all 6 planes to find the minimum intersection
     T min_dist = numeric_limits<T>::infinity();
-    for (auto bound : range(Bound::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        for (auto ax : range(to_int(Axis::size_)))
+        if (dir[ax] == 0)
         {
-            if (dir[ax] == 0)
-            {
-                // Short circuit if there is not movement in this dir
-                continue;
-            }
+            // Short circuit if there is not movement in this dir
+            continue;
+        }
 
+        T inv_dir = 1 / dir[ax];
+
+        for (auto bound : range(Bound::size_))
+        {
             T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
-                     / dir[ax];
+                     * inv_dir;
+
             if (dist <= 0)
             {
                 // Short circuit if the plane is behind us

@@ -29,7 +29,7 @@ class BoundingBox;
 //---------------------------------------------------------------------------//
 
 //! Real type used for acceleration
-using fast_real_type = float;
+using fast_real_type = double;
 
 //! Integer type for volume CSG tree representation
 using logic_int = ImplSurfaceId::size_type;
