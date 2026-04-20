@@ -46,7 +46,7 @@ can be gathered, the example below illustrates how to do it using `NVIDIA Nsight
 
 .. _NVIDIA Nsight systems: https://docs.nvidia.com/nsight-systems/UserGuide/index.html
 
-Here is an example invoking the ``celer-sim`` app through the Nvidia utility to
+Here is an example invoking the ``celer-sim`` app through the NVIDIA utility to
 generate a timeline:
 
 .. sourcecode::
@@ -55,20 +55,20 @@ generate a timeline:
    $ CELER_ENABLE_PROFILING=1 \
    > nsys profile \
    >   --trace=cuda,nvtx,osrt \
-   >   --capture-range nvtx --nvtx-domain celeritas \
+   >   --nvtx-capture="celeritas" \
    >   --osrt-backtrace-stack-size=16384 --backtrace=fp \
-   >   -o report.qdrep -f true \
+   >   -o report.nsys-rep -f true \
    >   celer-sim inp.json
 
 Line 2 specifies the APIs to be captured: in this case, CUDA calls, NVTX
 ranges, and OS runtime libraries.
-To use the NVTX ranges, you **must** enable the ``CELER_ENABLE_PROFILING`` variable
-in addition to using the NVTX "trace" option (lines 1 and 2).
-The capture domain in line 3 restricts profiling to the Celeritas application.
-(You can use, e.g., ``--nvtx-capture run@celeritas`` to capture only the main stepping execution inside Celeritas.)
-Additional frame-pointer-based backtracing is specified in line 5; line 6
-writes (and overwrites) to a particular output file; the final line invokes the
-application.
+To use the NVTX ranges, which is strongly recommended for kernel annotations,
+you **must** enable the ``CELER_ENABLE_PROFILING`` variable
+in addition to using the NVTX "trace" option (line 3).
+The capture domain in line 4 restricts profiling to the Celeritas application.
+Additional frame-pointer-based backtracing is specified in line 5;
+line 6 writes (and overwrites) to a particular output file;
+the final line invokes the application.
 
 On AMD hardware using the ROCProfiler_, here's an example that writes out timeline information:
 
@@ -142,23 +142,65 @@ Kernel profiling
 ----------------
 
 Detailed kernel diagnostics including occupancy and memory bandwidth can be
-gathered with the `NVIDIA Compute systems`_ profiler.
+gathered with the `NVIDIA Nsight Compute`_ profiler.
 
-.. _NVIDIA Compute systems: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html
+.. _NVIDIA Nsight Compute: https://docs.nvidia.com/nsight-compute/NsightComputeCli/index.html
 
-This example gathers kernel statistics for 10 sets of "propagate" kernels (for both
-charged and uncharged particles) starting with the 300th launch.
+The ``Source`` tab is especially useful, as it maps diagnostics such as number
+of instructions executed and number of stalls to individual lines in the source
+code. To obtain this mapping, Celeritas must be compiled with ``-lineinfo`` in
+``CMAKE_CUDA_FLAGS``. The following ``ncu`` command can be run to obtain an
+``.ncu-rep`` for use with NVIDIA Nsight Compute.
+
+.. sourcecode::
+   :linenos:
+
+    $ ncu \
+    > --set full \
+    > --kernel-name launch_action_impl \
+    > --launch-skip 254 --launch-count 1 \
+    > -f -o output \
+    > celer-sim inp.json
+
+The metric set must be ``full`` for detailed source-level profiling
+information.  Note that full metrics require 30+ passes and thus are very
+time-consuming; use ``basic`` to rapidly obtain coarse-grained profiling
+information.  This command will force-overwrite an output file named
+``output.ncu-rep``.  In this example, only a single kernel is profiled: the
+255th launch of the ``launch_action_impl``. Selecting how many kernels must be
+skipped before reaching the kernel of interest can be done in NVIDIA Nsight
+Systems prior to running NVIDIA Nsight Compute. This can be done in two ways. The
+first method is:
+
+1. Click ``CUDA HW`` then ``[All Streams]`` then ``Kernels``
+2. Right-click ``launch_action_impl`` and click ``Show in Events View``
+3. Select any kernel in the event view
+4. Obtain the launch number of the kernel in the ``#`` column
+5. Use ``#`` minus 1 as the ``launch-skip``
+
+This method can be used to profile the most expensive kernel by sorting the
+event view by duration and finding the ``#`` of the top kernel.  The second
+method is:
+
+1. Right-click the kernel of interest in the timeline
+2. Click ``Analyze the selected kernel with NVIDIA Nsight Compute``
+3. Click ``Display the command line to use NVIDIA Nsight Compute CLI``
+4. Copy the ``launch-skip`` from the supplied ``ncu`` command.
+
+A final option is to profile a kernel using NVTX annotations:
 
 .. sourcecode::
    :linenos:
 
    $ CELER_ENABLE_PROFILING=1 \
    > ncu \
-   > --nvtx --nvtx-include "celeritas@run/step/*/propagate" \
-   > --launch-skip 300 --launch-count 10 \
-   > -f -o propagate
+   > --set full \
+   > --nvtx --nvtx-include "celeritas@{RANGE}" \
+   > --launch-skip 100 --launch-count 1 \
+   > -f -o output \
    > celer-sim inp.json
 
-It will write to :file:`propagate.ncu-rep` output file. Note that the domain
-and range are flipped compared to ``nsys`` since the kernel profiling allows
-detailed top-down stack specification.
+Here, :samp:`celeritas@{RANGE}` is the name of the NVTX domain and
+slash-separated range, (e.g. ``run/step/*/propagate``).
+Note that the domain and range are flipped compared to ``nsys`` since the
+kernel profiling allows detailed top-down stack specification.

@@ -33,7 +33,7 @@ from pathlib import Path
 def make_dot(universe_id, tree):
     lines = []
     lines.append('digraph "bih_{}" {{'.format(universe_id))
-    lines.append("  rankdir=TB")
+    lines.append("  rankdir=LR")
     lines.append("  node [shape=box]")
 
     for i, node in enumerate(tree):
