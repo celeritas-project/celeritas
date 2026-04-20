@@ -246,7 +246,8 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * Calculate the distance to the inside of the bbox from a pos and dir.
  *
  * The supplied position is expected to be outside of the bbox. If there is no
- * intersection, the result will be inf.
+ * intersection, the result will be inf. This function employs the slab method
+ * \citep{kay-slab-1986, https://doi.org/10.1145/15886.15916}.
  */
 template<class T, class U>
 inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
@@ -255,59 +256,36 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
 {
     CELER_EXPECT(!is_inside(bbox, pos));
 
-    // Test if an intersection is outside the bbox for a given axis
-    auto out_of_bounds = [&bbox](T intersect, int ax) {
-        return !(intersect >= bbox.lower()[ax]
-                 && intersect <= bbox.upper()[ax]);
-    };
+    T max_entry = 0;
+    T min_exit = numeric_limits<T>::infinity();
 
-    // Check that the intersection point occurs within the region
-    // bounded by the planes of the other two axes
-    auto in_bounds = [&](int ax, T dist) {
-        for (auto other_ax : range(to_int(Axis::size_)))
-        {
-            if (other_ax == ax)
-                continue;
-
-            auto intersect
-                = celeritas::fma<T>(dist, dir[other_ax], pos[other_ax]);
-            if (out_of_bounds(intersect, other_ax))
-                return false;
-        }
-        return true;
-    };
-
-    // Loop over all 6 planes to find the minimum intersection
-    T min_dist = numeric_limits<T>::infinity();
+    // Loop over all three slab pairs to calculate the maximum distance
+    // required to enter the regions between each slab pair and the minimum
+    // distance to leave these regions
     for (auto ax : range(to_int(Axis::size_)))
     {
-        if (dir[ax] == 0)
+        // Calculate the inverse of the direction for this axis. Note that we
+        // do not have to check for dir != 0; we can rely on IEEE arithmetic to
+        // provide values of +/-inf for inv_dirs, leading to +/-inf slab
+        // distances that provide the correct behavior.
+        T inv_dir = 1 / T(dir[ax]);
+
+        // Calculate the entry/exit distance for this slab pair
+        T entry = (bbox.lower()[ax] - T(pos[ax])) * inv_dir;
+        T exit = (bbox.upper()[ax] - T(pos[ax])) * inv_dir;
+        if (entry > exit)
         {
-            // Short circuit if there is not movement in this dir
-            continue;
+            // Entry is actually exit; swap values
+            trivial_swap(entry, exit);
         }
 
-        T inv_dir = 1 / dir[ax];
-
-        for (auto bound : range(Bound::size_))
-        {
-            T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
-                     * inv_dir;
-
-            if (dist <= 0)
-            {
-                // Short circuit if the plane is behind us
-                continue;
-            }
-
-            if (in_bounds(ax, dist))
-            {
-                min_dist = celeritas::min(min_dist, dist);
-            }
-        }
+        max_entry = celeritas::max(max_entry, entry);
+        min_exit = celeritas::min(min_exit, exit);
     }
 
-    return min_dist;
+    // The distance to inside is the max entry, provided that it is greater
+    // than the minimum exit distance
+    return max_entry <= min_exit ? max_entry : numeric_limits<T>::infinity();
 }
 
 //---------------------------------------------------------------------------//
