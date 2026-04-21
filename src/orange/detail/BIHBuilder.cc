@@ -105,8 +105,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     {
         // Construct the tree recursively
         VecNodes nodes;
-        auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
+        this->construct_tree(indices, &nodes, BIHNodeId{}, 0, depth);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -145,7 +144,6 @@ BIHBuilder::operator()(VecBBox&& bboxes,
  *                           or placed on a leaf node in this function call
  * \param[in, out] nodes     All nodes constructed so far, to be added to
  * \param[in] parent         The parent node
- * \param[in] bbox           The bounding box of the parent node
  * \param[in] current_depth  The recursion depth of this function call
  * \param[in] depth          The maximum recursion depth encountered during the
  *                           full construction process
@@ -153,7 +151,6 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
                                 BIHNodeId parent,
-                                FastBBox const& bbox,
                                 size_type current_depth,
                                 size_type& depth)
 {
@@ -196,22 +193,14 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.parent = parent;
         node.axis = p.axis;
 
-        // Return the current bounding box, clipped by the supplied halfspace
-        auto get_shrunk_bbox
-            = [&bbox, axis = p.axis](Bound bound, FastBBox::real_type pos) {
-                  auto out_box = bbox;
-                  out_box.shrink(bound, axis, pos);
-                  return out_box;
-              };
-
         // Populate left/right bounding planes
         auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
         node.edges[Side::left].bounding_plane_pos = left_pos;
-        node.edges[Side::left].bbox = get_shrunk_bbox(Bound::hi, left_pos);
+        node.edges[Side::left].bbox = p.bboxes[Side::left];
 
         auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
         node.edges[Side::right].bounding_plane_pos = right_pos;
-        node.edges[Side::right].bbox = get_shrunk_bbox(Bound::lo, right_pos);
+        node.edges[Side::right].bbox = p.bboxes[Side::right];
 
         // Recursively construct the left and right branches
         for (auto side : range(Side::size_))
@@ -220,7 +209,6 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
             this->construct_tree(p.indices[side],
                                  nodes,
                                  BIHNodeId(current_index),
-                                 node.edges[side].bbox,
                                  current_depth,
                                  depth);
         }
