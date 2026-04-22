@@ -13,7 +13,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/NuclearFormFactors.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
@@ -196,7 +195,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
                                             std::sqrt(particle_.beta_sq()));
         real_type xs = calc_mott_ratio(cos_theta)
                        * ipow<2>(this->calculate_form_factor(cos_theta));
-        if (RejectionSampler(xs, helper_.mott_factor())(rng))
+        if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
         {
             // Reject scattering event: no change in direction
             cos_theta = 1;

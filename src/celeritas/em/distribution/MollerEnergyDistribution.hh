@@ -92,10 +92,11 @@ CELER_FUNCTION real_type MollerEnergyDistribution::operator()(Engine& rng)
 
     // Sample fraction of exiting energy
     real_type epsilon;
+    RejectionSampler<> reject{g_denominator};
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-    } while (RejectionSampler<>(calc_g_fraction(epsilon), g_denominator)(rng));
+    } while (reject(calc_g_fraction(epsilon), rng));
 
     return epsilon;
 }
