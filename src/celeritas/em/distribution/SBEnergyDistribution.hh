@@ -147,7 +147,6 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
     // Sampled energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
-    // FIXME: shouldn't the maximum xs be scaled?
     real_type xs{};
     UniformRejectionSampler<> reject{helper_.max_xs().value()};
     do

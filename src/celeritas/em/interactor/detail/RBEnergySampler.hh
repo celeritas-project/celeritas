@@ -15,7 +15,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/xs/RBDiffXsCalculator.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
