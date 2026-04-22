@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/grid/TwodSubgridCalculator.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/em/data/SeltzerBergerData.hh"
 
@@ -148,7 +149,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
     real_type xs{};
-    UniformRejectionSampler<> reject{helper_.max_xs().value()};
+    RejectionSampler<> reject{helper_.max_xs().value()};
     do
     {
         // Sample scaled energy and subtract correction factor

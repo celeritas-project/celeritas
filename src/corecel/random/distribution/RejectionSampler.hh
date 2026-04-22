@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/random/distribution/UniformRejectionSampler.hh
+//! \file corecel/random/distribution/RejectionSampler.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -38,18 +38,19 @@ namespace celeritas
  *  - `BernoulliDistribution(1 - p / pmax)(rng);`
  *  - `!BernoulliDistribution(p / pmax)(rng);`
  *  - `p < pmax * UniformDistribution{}(rng)`
- *  - `UniformRejectionSampler(pmax)(p, rng);`
+ *  - `RejectionSampler(pmax)(p, rng);`
  *
- * This is meant for rejection sampling, e.g., on cross section:
+ * \par Example
+ * This rejects over a cross section distribution with a known maximum bound.
  * \code
-    UniformRejectionSampler reject{xs_max}
+    RejectionSampler reject{xs_max}
     do {
       xs = sample_xs(rng);
     } while (reject(xs, rng));
    \endcode
  */
 template<class RealType = ::celeritas::real_type>
-class UniformRejectionSampler
+class RejectionSampler
 {
     static_assert(std::is_floating_point_v<RealType>);
 
@@ -62,13 +63,10 @@ class UniformRejectionSampler
 
   public:
     // Construct with acceptance probability
-    explicit CELER_CONSTEXPR_FUNCTION UniformRejectionSampler(real_type fmax);
+    explicit CELER_CONSTEXPR_FUNCTION RejectionSampler(real_type fmax);
 
     //! Construct when the distribution's maximum is normalized
-    CELER_CONSTEXPR_FUNCTION UniformRejectionSampler()
-        : UniformRejectionSampler{1}
-    {
-    }
+    CELER_CONSTEXPR_FUNCTION RejectionSampler() : RejectionSampler{1} {}
 
     // Reject with probability (f/fmax)
     template<class Generator>
@@ -92,7 +90,7 @@ class UniformRejectionSampler
  */
 template<class RealType>
 CELER_CONSTEXPR_FUNCTION
-UniformRejectionSampler<RealType>::UniformRejectionSampler(real_type fmax)
+RejectionSampler<RealType>::RejectionSampler(real_type fmax)
     : fmax_{fmax}
 {
     CELER_EXPECT(fmax >= 0);
@@ -105,7 +103,7 @@ UniformRejectionSampler<RealType>::UniformRejectionSampler(real_type fmax)
 template<class RealType>
 template<class Generator>
 CELER_FUNCTION auto
-UniformRejectionSampler<RealType>::operator()(real_type f, Generator& rng) const
+RejectionSampler<RealType>::operator()(real_type f, Generator& rng) const
     -> result_type
 {
     CELER_EXPECT(f <= fmax_ * (1 + tolerance()));

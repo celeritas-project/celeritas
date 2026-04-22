@@ -12,7 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/InverseSquareDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
 
@@ -93,7 +93,7 @@ class MuBBEnergyDistribution
     // Whether to apply the radiative correction
     bool use_rad_correction_;
     // Rejection sampler for secondary energy
-    UniformRejectionSampler<> reject_;
+    RejectionSampler<> reject_;
 
     //// CONSTANTS ////
 

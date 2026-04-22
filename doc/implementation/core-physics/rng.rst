@@ -61,7 +61,7 @@ three-vectors (such as sampling an isotropic direction).
 Additionally we define a few helper classes for common physics sampling
 routines.
 
-.. doxygenclass:: celeritas::UniformRejectionSampler
+.. doxygenclass:: celeritas::RejectionSampler
 .. doxygenclass:: celeritas::Selector
 .. doxygenclass:: celeritas::TruncatedDistribution
 .. doxygenfunction:: celeritas::make_selector

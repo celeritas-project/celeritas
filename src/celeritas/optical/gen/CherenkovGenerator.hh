@@ -13,8 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 
 #include "CherenkovDndxCalculator.hh"
@@ -76,7 +76,7 @@ class CherenkovGenerator
     real_type dndx_pre_;
     real_type sin_max_sq_;
     real_type inv_beta_;
-    UniformRejectionSampler<real_type> reject_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -121,7 +121,7 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     CELER_ASSERT(inv_beta_ >= 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = 1 - ipow<2>(cos_max);
-    reject_ = UniformRejectionSampler<real_type>{sin_max_sq_};
+    reject_ = RejectionSampler<real_type>{sin_max_sq_};
 
     // Calculate changes over the step
     delta_pos_ = post_step.pos - pre_step.pos;

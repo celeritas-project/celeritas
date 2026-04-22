@@ -10,8 +10,8 @@
 
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/TruncatedDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
@@ -61,7 +61,7 @@ class GaussianRoughnessSampler
     Real3 normal_;
     TruncatedDistribution<NormalDistribution<real_type>> sample_alpha_;
     real_type f_max_;
-    UniformRejectionSampler<real_type> reject_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//

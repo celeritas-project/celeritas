@@ -9,8 +9,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas
@@ -94,7 +94,7 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 
     // Sample epsilon
     real_type epsilon;
-    UniformRejectionSampler<> reject{g_denominator};
+    RejectionSampler<> reject{g_denominator};
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);

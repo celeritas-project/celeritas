@@ -12,7 +12,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 
@@ -43,7 +43,7 @@ class RayleighInteractor
     Real3 const& inc_dir_;  //!< Direction of incident photon
     Real3 const& inc_pol_;  //!< Polarization of incident photon
     IsotropicDistribution<real_type> sample_direction_{};
-    UniformRejectionSampler<real_type> reject_angle_{1};
+    RejectionSampler<real_type> reject_angle_{1};
 };
 
 //---------------------------------------------------------------------------//

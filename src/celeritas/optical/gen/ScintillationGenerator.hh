@@ -15,10 +15,10 @@
 #include "corecel/random/distribution/ExponentialDistribution.hh"
 #include "corecel/random/distribution/GenerateCanonical.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
+#include "corecel/random/distribution/RejectionSampler.hh"
 #include "corecel/random/distribution/Selector.hh"
 #include "corecel/random/distribution/TruncatedDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "corecel/random/distribution/UniformRejectionSampler.hh"
 #include "celeritas/optical/detail/OpticalUtils.hh"
 #include "celeritas/phys/InteractionUtils.hh"
 
@@ -196,7 +196,7 @@ CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rn
     {
         real_type scint_time{};
         real_type target;
-        UniformRejectionSampler<real_type> reject{};
+        RejectionSampler<real_type> reject{};
         do
         {
             // Sample time exponentially by fall time, then
