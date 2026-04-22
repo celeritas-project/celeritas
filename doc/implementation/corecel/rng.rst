@@ -40,7 +40,7 @@ example, a uniform distribution over the range :math:`[a, b)` takes the *a* and
 random engine as its sole argument.
 
 Celeritas extends this paradigm to physics distributions. At a low level,
-it has :ref:`random number distributions <celeritas_random>` that result in
+it has random number distributions that result in
 single real values (such as uniform, exponential, gamma) and correlated
 three-vectors (such as sampling an isotropic direction).
 
