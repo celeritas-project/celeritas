@@ -19,20 +19,23 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Use rejection sampling with a uniform proposal distribution.
+ * Return whether a rejection loop needs to continue trying.
  *
  * A common implementation of sampling from a "difficult" (non-analytically
  * invertible) probability distribution function is to bound the difficult
  * distribution \em f(x) with another easily sampled proposal distribution
  * \em g(x) .
  * Given a constant \em M such that \f$ f(x) < M g(x) \f$ over the \em x
- interval
- * being sampled, it is equivalent to sampling \em f(x) by instead sampling
- * from \em g(x) and rejecting with probability \f[
+ * interval being sampled, it is equivalent to sampling \em f(x) by instead
+ * sampling from \em g(x) and rejecting with probability \f[
    \frac{f(x)}{M g(x)}
  * \f].
- * This rejection sampler uses \f$ g(x) = 1 \f$, and the construction argument
- * \em M is just the maximum value of \em f .
+ *
+ * This rejection sampler is constructed with the maximum \em M and is invoked
+ * with the sampled ratio \f$ f(x)/g(x) \f$ and an RNG.
+ * It allows an underestimate of the constant \em M by
+ * \f$ 10 \epsilon_\textrm{mach} \f$ which may result in an imperceptible bias
+ * against selecting the peak of the PDF.
  *
  * These invocations generate statistically equivalent results:
  *  - `BernoulliDistribution(1 - p / pmax)(rng);`
