@@ -11,6 +11,7 @@
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
+#include "../inp/Bih.hh"
 #include "../univ/detail/Types.hh"
 
 namespace celeritas
@@ -68,12 +69,6 @@ class BIHIntersectingVolFinder
 
     //// HELPER FUNCTIONS ////
 
-    // Get the ID of the next node in the traversal sequence
-    inline CELER_FUNCTION BIHNodeId next_node(BIHNodeId current_id,
-                                              BIHNodeId previous_id,
-                                              Ray ray,
-                                              real_type min_dist) const;
-
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
     inline CELER_FUNCTION bool
@@ -126,86 +121,59 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    BIHNodeId previous_node;
-    BIHNodeId current_node{0};
+    // Stack of deferred nodes
+    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];  // max tree depth
+    int stack_ptr = 0;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
-    do
+    BIHNodeId current_node{0};
+
+    while (current_node)
     {
         if (!view_.is_inner(current_node))
         {
             intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
+
+            // Pop or stop
+            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
+            continue;
         }
 
-        previous_node = exchange(
-            current_node,
-            this->next_node(
-                current_node, previous_node, ray, intersection.distance));
+        auto const& node = view_.inner_node(current_node);
+        auto const& l_edge = node.edges[BIHInnerNode::Side::left];
+        auto const& r_edge = node.edges[BIHInnerNode::Side::right];
 
-    } while (current_node);
+        bool hit_left
+            = this->visit_bbox(l_edge.bbox, ray, intersection.distance);
+        bool hit_right
+            = this->visit_bbox(r_edge.bbox, ray, intersection.distance);
+
+        if (hit_left && hit_right)
+        {
+            stack[stack_ptr++] = r_edge.child;
+            current_node = l_edge.child;
+        }
+        else if (hit_left)
+        {
+            current_node = l_edge.child;
+        }
+        else if (hit_right)
+        {
+            current_node = r_edge.child;
+        }
+        else
+        {
+            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
+        }
+    }
 
     return this->visit_inf_vols(intersection, visit_vol);
 }
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- *  Get the ID of the next node in the traversal sequence.
- */
-CELER_FUNCTION
-BIHNodeId BIHIntersectingVolFinder::next_node(BIHNodeId current_id,
-                                              BIHNodeId previous_id,
-                                              Ray ray,
-                                              real_type min_dist) const
-{
-    using Side = BIHInnerNode::Side;
-
-    if (!view_.is_inner(current_id))
-    {
-        // Leaf node; return to parent
-        CELER_EXPECT(previous_id == view_.leaf_node(current_id).parent);
-        return previous_id;
-    }
-
-    auto const& current_node = view_.inner_node(current_id);
-    auto const& l_edge = current_node.edges[Side::left];
-    auto const& r_edge = current_node.edges[Side::right];
-
-    if (previous_id == current_node.parent)
-    {
-        // Visiting this inner node for the first time; go down either left
-        // edge, right edge, or return to the parent
-        if (this->visit_bbox(l_edge.bbox, ray, min_dist))
-        {
-            return l_edge.child;
-        }
-        else if (this->visit_bbox(r_edge.bbox, ray, min_dist))
-        {
-            return r_edge.child;
-        }
-        else
-        {
-            return current_node.parent;
-        }
-    }
-
-    if (previous_id == current_node.edges[Side::left].child)
-    {
-        // Visiting this inner node for the second time; go down right edge
-        // or return to parent
-        return this->visit_bbox(r_edge.bbox, ray, min_dist)
-                   ? r_edge.child
-                   : current_node.parent;
-    }
-
-    // Visiting this inner node for the third time; return to parent
-    CELER_ASSERT(previous_id == current_node.edges[Side::right].child);
-    return current_node.parent;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Determine if the intersection with an edge/vol bbox is less than min_dist.
