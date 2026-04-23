@@ -17,7 +17,7 @@ namespace celeritas
  * Write a span to a JSON file.
  */
 template<class T, std::size_t N>
-void to_json(nlohmann::json& j, Span<T, N> const& value)
+inline void to_json(nlohmann::json& j, Span<T, N> const& value)
 {
     j = nlohmann::json::array();
     for (std::size_t i = 0; i != value.size(); ++i)

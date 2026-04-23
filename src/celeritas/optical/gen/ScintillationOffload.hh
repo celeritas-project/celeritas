@@ -127,11 +127,13 @@ ScintillationOffload::operator()(Generator& rng)
     optical::GeneratorDistributionData result;
     if (mean_num_photons_ > poisson_threshold())
     {
+        using namespace celeritas::literals;
+
         real_type sigma = shared_.resolution_scale[pre_step_.material]
                           * std::sqrt(mean_num_photons_);
         result.num_photons = static_cast<size_type>(clamp_to_nonneg(
             NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
-            + real_type{0.5}));
+            + 0.5_r));
     }
     else if (mean_num_photons_ > 0)
     {

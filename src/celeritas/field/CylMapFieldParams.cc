@@ -22,6 +22,8 @@
 #include "CylMapFieldData.hh"
 #include "CylMapFieldInput.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -57,10 +59,9 @@ CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
-    CELER_VALIDATE(
-        soft_equal(celeritas::real_type{1}, inp.grid_phi.back().value()),
-        << "Phi grid must be a complete circle (grid_phi max="
-        << inp.grid_phi.back().value() << "): should be 1");
+    CELER_VALIDATE(soft_equal(1_r, inp.grid_phi.back().value()),
+                   << "Phi grid must be a complete circle (grid_phi max="
+                   << inp.grid_phi.back().value() << "): should be 1");
 
     CELER_VALIDATE(
         inp.field.size()

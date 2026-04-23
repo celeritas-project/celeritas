@@ -8,6 +8,7 @@
 
 #include <cmath>
 
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
 
@@ -23,7 +24,7 @@ struct DataGetter
     template<class T>
     Span<real_type const> operator()(T const& tf) const
     {
-        return tf.data();
+        return remove_ldg_wrapper(tf.data());
     }
 };
 

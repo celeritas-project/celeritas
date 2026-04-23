@@ -489,11 +489,6 @@ struct DielectricInteraction
 //---------------------------------------------------------------------------//
 /*!
  * Surface roughness description.
- *
- * \todo Future work will allow the of use multiple surface
- * paints/wrappings managed by different models. \c PhysSurfaceId will pair
- * a \c SurfaceId with a \c PhysSurfaceId that defines paint/wrapping
- * combinations.
  */
 struct RoughnessModels
 {

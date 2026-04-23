@@ -53,10 +53,11 @@ template<class T, MemSpace M>
 inline void
 resize(StackAllocatorData<T, Ownership::value, M>* data, size_type capacity)
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(capacity > 0);
     resize(&data->storage, capacity);
     resize(&data->size, 1);
-    celeritas::fill(size_type(0), &data->size);
+    celeritas::fill(0_sz, &data->size);
 }
 
 //---------------------------------------------------------------------------//

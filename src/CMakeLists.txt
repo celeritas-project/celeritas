@@ -34,13 +34,24 @@ if(WIN32)
   endif()
 
 endif()
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
-  # GCC 13 and 14 have *lots* of false positives, and not just on our project
-  # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
+
+
+macro(celer_silence_flag lang flag)
   celeritas_target_compile_options(BuildFlags
-    INTERFACE "$<$<COMPILE_LANGUAGE:CXX>:-Wno-dangling-reference>"
+    INTERFACE "$<$<COMPILE_LANGUAGE:${lang}>:-Wno-${flag}>"
   )
+endmacro()
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13)
+    # GCC 12 has false positives
+    celer_silence_flag(CXX nonnull)
+  endif()
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
+    # GCC 13 and 14 have *lots* of false positives, and not just on our project
+    # see: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107532
+    celer_silence_flag(CXX dangling-reference)
+  endif()
 endif()
 
 celeritas_target_include_directories(BuildFlags
@@ -166,6 +177,14 @@ if(CELERITAS_USE_covfie)
     list(APPEND _covfie_libs $<COMPILE_ONLY:covfie::hip> Celeritas::ExtDeviceApi)
   endif()
   target_link_libraries(Extcovfie INTERFACE ${_covfie_libs})
+
+  if(CELERITAS_USE_CUDA AND covfie_VERSION VERSION_LESS_EQUAL 0.15.5)
+    # See https://github.com/acts-project/covfie/pull/98 :
+    # avoid warning/runtime failure due to use of std::clamp in device code
+    target_compile_options(Extcovfie
+      INTERFACE "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>"
+    )
+  endif()
 endif()
 
 #----------------------------------------------------------------------------#

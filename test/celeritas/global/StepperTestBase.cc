@@ -11,6 +11,7 @@
 #include <numeric>
 #include <gtest/gtest.h>
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/io/Repr.hh"
@@ -132,9 +133,10 @@ auto StepperTestBase::run(StepperInterface& step,
 double StepperTestBase::RunResult::calc_avg_steps_per_primary() const
 {
     CELER_EXPECT(*this);
+    using namespace celeritas::literals;
     size_type num_primaries = this->active.front();
-    auto accum_steps = std::accumulate(
-        this->active.begin(), this->active.end(), size_type{0});
+    auto accum_steps
+        = std::accumulate(this->active.begin(), this->active.end(), 0_sz);
     return static_cast<double>(accum_steps)
            / static_cast<double>(num_primaries);
 }

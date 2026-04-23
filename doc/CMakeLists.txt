@@ -249,7 +249,8 @@ set(DOXYGEN_ALIASES
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
-  [[maybe_unused]] CFIF_)
+  CELER_FIF CELER_CEF
+  [[maybe_unused]])
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 

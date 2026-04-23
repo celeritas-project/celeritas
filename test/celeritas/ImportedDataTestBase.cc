@@ -9,6 +9,7 @@
 #include "geocel/SurfaceParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/geo/GeoMaterialParams.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -164,7 +165,10 @@ auto ImportedDataTestBase::build_optical_physics() -> SPConstOpticalPhysics
         this->imported_data().optical_physics.bulk,
         this->optical_material(),
         this->material(),
-        this->optical_action_reg());
+        this->optical_action_reg(),
+        this->core()->aux_reg(),
+        this->gen_reg(),
+        /* gen_capacity = */ 32);
 }
 
 //---------------------------------------------------------------------------//

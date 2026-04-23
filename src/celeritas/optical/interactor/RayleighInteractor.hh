@@ -10,7 +10,6 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/SoftEqual.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
@@ -38,11 +37,13 @@ class RayleighInteractor
 
     // Sample an interaction with the given RNG
     template<class Engine>
-    inline CELER_FUNCTION Interaction operator()(Engine& rng) const;
+    inline CELER_FUNCTION Interaction operator()(Engine& rng);
 
   private:
     Real3 const& inc_dir_;  //!< Direction of incident photon
     Real3 const& inc_pol_;  //!< Polarization of incident photon
+    IsotropicDistribution<real_type> sample_direction_{};
+    RejectionSampler<real_type> reject_angle_{1};
 };
 
 //---------------------------------------------------------------------------//
@@ -66,18 +67,16 @@ RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
  * Sample a single optical Rayleigh interaction.
  */
 template<class Engine>
-CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
+CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
     Interaction result;
     Real3& new_dir = result.direction;
     Real3& new_pol = result.polarization;
-
-    IsotropicDistribution sample_direction{};
     do
     {
         do
         {
-            new_dir = sample_direction(rng);
+            new_dir = sample_direction_(rng);
 
             // Project polarization onto plane perpendicular to new direction
             new_pol = make_unit_vector(make_orthogonal(inc_pol_, new_dir));
@@ -94,13 +93,10 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng) const
         }
         // Accept with the probability of the scattered polarization overlap
         // squared
-    } while (RejectionSampler{ipow<2>(
-        clamp<real_type>(dot_product(new_pol, inc_pol_), -1, 1))}(rng));
+    } while (reject_angle_(ipow<2>(dot_product(new_pol, inc_pol_)), rng));
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
-    CELER_ENSURE(is_soft_orthogonal(new_pol, new_dir));
-
     return result;
 }
 

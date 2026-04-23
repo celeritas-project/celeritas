@@ -161,8 +161,13 @@ class SimpleCmsFieldVolAlongStepTest : public SimpleCmsAlongStepTest
     bool fluct_{false};
 };
 
-#define SimpleCmsRZFieldAlongStepTest \
-    TEST_IF_CELERITAS_GEANT(SimpleCmsRZFieldAlongStepTest)
+#if CELERITAS_USE_COVFIE
+#    define SimpleCmsRZFieldAlongStepTest \
+        TEST_IF_CELERITAS_GEANT(SimpleCmsRZFieldAlongStepTest)
+#else
+#    define SimpleCmsRZFieldAlongStepTest \
+        DISABLED_SimpleCmsRZFieldAlongStepTest
+#endif
 class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
 {
   public:
@@ -753,8 +758,8 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.55155207893668967, result.displacement);
-            EXPECT_SOFT_NEAR(0.095305171122713847, result.angle, 1e-11);
+            EXPECT_SOFT_NEAR(0.49482548031266, result.displacement, 1e-7);
+            EXPECT_SOFT_NEAR(-0.92717558224434, result.angle, 1e-7);
             EXPECT_EQ("geo-propagation-limit", result.action);
         }
     }
@@ -778,9 +783,28 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
         inp.direction = {
             -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
+        if (CELERITAS_DEBUG
+            && CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            // In float32, step length ~6e-7 cm is below machine epsilon at
+            // r~125 cm, so tracks fail to change position
+            EXPECT_FALSE(scoped_log.empty()) << scoped_log;
+        }
+        else
+        {
+            EXPECT_TRUE(scoped_log.empty()) << scoped_log;
+        }
         EXPECT_SOFT_NEAR(6.1133e-07, result.displacement, 1e-4);
-        EXPECT_SOFT_EQ(0.99999999288499986, result.angle);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-11);
+        }
+        else
+        {
+            EXPECT_SOFT_NEAR(0.99999999288499986, result.angle, 1e-6);
+        }
     }
 }
 

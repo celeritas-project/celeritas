@@ -240,7 +240,7 @@ TEST_F(NeutronElasticTest, extended)
     for (auto i : range(10))
     {
         MevEnergy const inc_energy{
-            std::pow(real_type{10}, static_cast<real_type>(-5 + 1 * i))};
+            std::pow(10_r, static_cast<real_type>(-5 + 1 * i))};
         this->set_inc_particle(pdg::neutron(), inc_energy);
         ChipsNeutronElasticInteractor interact(
             shared, this->particle_track(), this->direction(), isotope_he4);

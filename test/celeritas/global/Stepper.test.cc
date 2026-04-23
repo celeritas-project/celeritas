@@ -341,7 +341,8 @@ TEST_F(SimpleComptonTest, max_steps)
         = {"debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
     ASSERT_EQ(4, scoped_log.messages().size());
-    EXPECT_EQ("Track 62 exceeded maximum step count", scoped_log.messages()[0]);
+    EXPECT_EQ("Track {62} exceeded maximum step count",
+              scoped_log.messages()[0]);
     EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
                 != std::string::npos);
 }

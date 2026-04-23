@@ -193,14 +193,14 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     {
         ScopedMem record_mem("run.initialize");
         ScopedTimeLog scoped_time;
-        ScopedProfiling profile_this{"celer-g4-setup"};
+        ScopedProfiling profile_this{"setup"};
         CELER_LOG(status) << "Initializing run manager";
         run_manager->Initialize();
     }
     {
         ScopedMem record_mem("run.beamon");
         ScopedTimeLog scoped_time;
-        ScopedProfiling profile_this{"celer-g4-run"};
+        ScopedProfiling profile_this{"run"};
         CELER_LOG(status) << "Transporting " << num_events << " events";
         run_manager->BeamOn(num_events);
     }

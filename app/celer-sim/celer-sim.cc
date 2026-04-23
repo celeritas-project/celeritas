@@ -6,12 +6,10 @@
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <exception>
-#include <fstream>
-#include <initializer_list>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <string_view>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #include <CLI/CLI.hpp>
@@ -22,8 +20,6 @@
 #endif
 
 #include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"
-#include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -34,7 +30,7 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/MultiExceptionHandler.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
@@ -89,7 +85,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
-    ScopedProfiling profile_this{"celer-sim"};
+    std::optional<ScopedProfiling> profile_this{std::in_place, "setup"};
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
@@ -117,6 +113,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     }
 
     // Start profiling *after* initialization and warmup are complete
+    profile_this.emplace("run");
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
@@ -154,6 +151,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         }
         log_and_rethrow(std::move(capture_exception));
     }
+    profile_this.reset();
 
     result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();

@@ -8,6 +8,7 @@
 
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 namespace celeritas
 {

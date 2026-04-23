@@ -16,13 +16,13 @@
 
 #include "TestMacros.hh"
 
+using namespace celeritas::literals;
 using celeritas::units::MevEnergy;
 
 namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 void EventIOTestBase::ReadAllResult::print_expected() const
 {
@@ -130,14 +130,14 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       MevEnergy{1.23},
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
-                      5.67e-9_s,
+                      5.67e-9 * units::second,
                       EventId{0},
                       PrimaryId{0}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
-                       5.78e-9_s,
+                       5.78e-9 * units::second,
                        EventId{0},
                        PrimaryId{0}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
@@ -193,13 +193,13 @@ void EventIOTestBase::read_check_test_event(Reader& read_event) const
     static int const expected_event[] = {0, 0, 0, 0, 1, 1, 1, 1, 1, 2};
     // clang-format on
 
-    real_type energy_tol = real_type{0.1} * coarse_eps;
+    real_type energy_tol = 0.1_r * coarse_eps;
 
     EXPECT_VEC_EQ(expected_pdg, result.pdg);
     EXPECT_VEC_NEAR(expected_energy, result.energy, energy_tol);
     EXPECT_VEC_SOFT_EQ(expected_pos, result.pos);
     EXPECT_VEC_SOFT_EQ(expected_dir, result.dir);
-    EXPECT_VEC_NEAR(expected_time, result.time, real_type(1e-6));
+    EXPECT_VEC_NEAR(expected_time, result.time, 1e-6_r);
     EXPECT_VEC_EQ(expected_event, result.event);
 }
 

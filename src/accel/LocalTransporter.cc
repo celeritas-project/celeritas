@@ -32,8 +32,8 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantTrackView.hh"
 #include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
@@ -252,28 +252,25 @@ void LocalTransporter::Push(G4Track& g4track)
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
-    GeantParticleView pv{*g4track.GetParticleDefinition()};
 
-    units::ClhepEnergy const energy{g4track.GetKineticEnergy()};
-    if (Real3 pos = convert_from_geant(g4track.GetPosition(), 1);
-        !is_inside(bbox_, pos))
+    GeantTrackView gtv{g4track};
+
+    if (!is_inside(bbox_,
+                   static_array_cast<real_type>(native_value_from(gtv.pos()))))
     {
         // Primary may have been created by a particle generator outside the
         // geometry
         CELER_LOG_LOCAL(error)
-            << "Discarding track outside world bounds: " << energy << " from "
-            << pv.name() << " at " << pos << " along "
-            << convert_from_geant(g4track.GetMomentumDirection(), 1);
+            << "Discarding track outside world bounds: " << gtv.energy()
+            << " from " << gtv.particle().name() << " at " << gtv.pos()
+            << " along " << gtv.dir();
 
-        buffer_accum_.lost_energy += energy.value();
+        buffer_accum_.lost_energy += gtv.energy().value();
         ++buffer_accum_.lost_primaries;
         return;
     }
 
     Primary track;
-
-    PDGNumber const pdg{pv.pdg()};
-    track.particle_id = particles_->find(pdg);
 
     // Generate Celeritas-specific PrimaryID and capture user info
     if (hit_processor_)
@@ -281,20 +278,19 @@ void LocalTransporter::Push(G4Track& g4track)
         track.primary_id
             = hit_processor_->track_reconstruction().acquire(g4track);
     }
+
+    track.energy = gtv.energy();
+    track.particle_id = particles_->find(gtv.particle().pdg());
+    track.position = static_array_cast<real_type>(native_value_from(gtv.pos()));
+    track.direction = static_array_cast<real_type>(gtv.dir());
+    track.time = static_cast<real_type>(native_value_from(gtv.time()));
+    track.weight = gtv.weight();
     track.primary_id = celeritas::id_cast<PrimaryId>(
         track.primary_id.unchecked_get() + g4track.GetTrackID());
-    track.energy = energy;
 
     CELER_VALIDATE(track.particle_id,
-                   << "cannot offload '" << pv.name() << "' particles");
-
-    track.position = native_from_geant<lengthunits::ClhepLength, real_type>(
-        g4track.GetPosition());
-    track.direction = static_array_cast<real_type>(
-        to_array(g4track.GetMomentumDirection()));
-    track.time = native_from_geant<units::ClhepTime, real_type>(
-        g4track.GetGlobalTime());
-    track.weight = g4track.GetWeight();
+                   << "cannot offload '" << gtv.particle().name()
+                   << "' particles");
 
     /*!
      * \todo Eliminate event ID from primary.
@@ -302,7 +298,7 @@ void LocalTransporter::Push(G4Track& g4track)
     track.event_id = EventId{0};
 
     buffer_.push_back(track);
-    buffer_accum_.energy += energy.value();
+    buffer_accum_.energy += gtv.energy().value();
     if (buffer_.size() >= auto_flush_)
     {
         this->Flush();

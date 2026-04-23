@@ -148,9 +148,9 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         TrackId{4},
     };
     dso.weight = {
-        real_type{1.0},  // si_tracker
-        real_type{0.5},  // em_calorimeter
-        real_type{0.8},  // had_calorimeter
+        1.0_r,  // si_tracker
+        0.5_r,  // em_calorimeter
+        0.8_r,  // had_calorimeter
     };
     if (selection_.energy_deposition)
     {

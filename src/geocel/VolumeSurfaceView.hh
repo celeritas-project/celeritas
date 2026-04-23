@@ -10,7 +10,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
 #include "SurfaceData.hh"
@@ -160,7 +159,7 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
         auto surf_id_offset = record.surface[index];
         CELER_ASSERT(surf_id_offset < params_.surface_ids.size());
         auto result = params_.surface_ids[surf_id_offset];
-        CELER_ENSURE(result);
+        CELER_ENSURE(result.get());
         return result;
     }
     return {};

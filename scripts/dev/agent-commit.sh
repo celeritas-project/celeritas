@@ -6,31 +6,33 @@
 # Commit staged and unstaged changes using a pre-written commit message file.
 #
 # Usage:
-#   scripts/dev/agent-commit.sh <message-file> [--no-verify]
+#   scripts/dev/agent-commit.sh <message-file> "<agentic-tool>" "<model-name>" [--no-verify]
 #
 # Intended for use by AI coding agents that cannot reliably pass multi-line
 # strings via shell heredocs. The agent writes the commit message to a file
 # (e.g. build/commit_msg.txt), calls this script, and the file is deleted on
 # success so that create_file can be used again next time.
 #
-# The commit is tagged with an Assisted-by trailer whose value is taken from
-# the AGENT_TRAILER environment variable, defaulting to "GitHub Copilot".
+# The commit is tagged with an Assisted-by trailer of the form:
+#   Assisted-by: <agentic-tool> (<model-name>)
 #-----------------------------------------------------------------------------#
 
-if [ $# -lt 1 ]; then
-  printf "Usage: %s <message-file> [extra git-commit options...]\n" "$0" >&2
+if [ $# -lt 3 ]; then
+  printf "Usage: %s <message-file> <agentic-tool> <model-name> [extra git-commit options...]\n" "$0" >&2
   exit 1
 fi
 
 MSG_FILE="$1"
-shift
+AGENT_TOOL="$2"
+MODEL_NAME="$3"
+shift 3
 
 if [ ! -f "$MSG_FILE" ]; then
   printf "error: message file not found: %s\n" "$MSG_FILE" >&2
   exit 1
 fi
 
-TRAILER="${AGENT_TRAILER:-GitHub Copilot}"
+TRAILER="${AGENT_TOOL} (${MODEL_NAME})"
 
 # Stage all changes (including new files)
 git add -A

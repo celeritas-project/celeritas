@@ -11,11 +11,13 @@
 #if CELERITAS_USE_COVFIE || __DOXYGEN__
 #    include "CartMapField.covfie.hh"
 #else
+#    include "CartMapFieldData.hh"
+
 #    include "detail/NotImplementedField.hh"
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 //! Dummy class for cartesian map magnetic field when no backend is available.
-using CartMapField = detail::NotImplementedField;
+using CartMapField = detail::NotImplementedField<CartMapFieldParamsData>;
 }  // namespace celeritas
 #endif  // CELERITAS_USE_COVFIE

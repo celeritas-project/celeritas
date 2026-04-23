@@ -17,6 +17,8 @@
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -49,7 +51,7 @@ WentzelOKVIParams::from_import(ImportData const& data,
         if (!wentzel)
         {
             // Set the minimum scattering angle for Coulomb single scattering
-            return real_type(0);
+            return 0.0_r;
         }
         // Polar angle limit between single and multiple scattering if both
         // models are present
@@ -79,7 +81,7 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
     host_data.params.is_combined = options.is_combined;
     host_data.params.costheta_limit = std::cos(options.polar_angle_limit);
     host_data.params.a_sq_factor
-        = real_type(0.5)
+        = 0.5_r
           * ipow<2>(native_value_to<units::MevEnergy>(
                         options.angle_limit_factor * constants::hbar_planck
                         * constants::c_light / units::femtometer)
@@ -150,7 +152,7 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
                 auto atomic_mass = mat.element_record(elcomp_id).atomic_mass();
                 inv_mass_cbrt_sq[mat_id.get()]
                     += el_comp.fraction
-                       / std::pow(atomic_mass.value(), real_type(2) / 3);
+                       / std::pow(atomic_mass.value(), 2.0_r / 3.0_r);
             }
         }
         make_builder(&host_data.inv_mass_cbrt_sq)

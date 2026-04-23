@@ -111,6 +111,8 @@ SBPositronXsCorrector::SBPositronXsCorrector(Mass positron_mass,
  */
 CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(energy > zero_quantity());
     CELER_EXPECT(energy.value() < inc_energy_);
     real_type delta = cutoff_invbeta_ - this->calc_invbeta(energy.value());
@@ -118,7 +120,7 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
     // Avoid positive delta values due to floating point inaccuracies
     // See https://github.com/celeritas-project/celeritas/issues/617
     CELER_ASSERT(delta < 100 * numeric_limits<real_type>::epsilon());
-    real_type result = std::exp(alpha_z_ * celeritas::min(delta, real_type{0}));
+    real_type result = std::exp(alpha_z_ * celeritas::min(delta, 0_r));
     CELER_ENSURE(result <= 1);
     return result;
 }

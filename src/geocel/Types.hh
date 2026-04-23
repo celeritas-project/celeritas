@@ -25,7 +25,7 @@ using Real2 = Array<real_type, 2>;
 using Size2 = Array<size_type, 2>;
 
 //! Alias for a small square dense matrix
-template<class T, size_type N>
+template<class T, std::size_t N>
 using SquareMatrix = Array<Array<T, N>, N>;
 
 //! Alias for a small square dense matrix

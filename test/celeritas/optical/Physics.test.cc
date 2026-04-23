@@ -10,6 +10,7 @@
 
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/PhysicsParams.hh"
@@ -45,7 +46,10 @@ class OpticalPhysicsTest : public OpticalMockTestBase
             this->imported_data().optical_physics.bulk,
             this->optical_material(),
             this->material(),
-            this->optical_action_reg());
+            this->optical_action_reg(),
+            this->aux_reg(),
+            this->gen_reg(),
+            /* gen_capacity = */ 16);
     }
 
     void build_import_data(ImportData&) const override;
@@ -297,7 +301,7 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
 
         auto const& expected_model_xs = expected_model_xs_per_energy[i];
         real_type expected_total_xs = std::accumulate(
-            expected_model_xs.begin(), expected_model_xs.end(), real_type{0});
+            expected_model_xs.begin(), expected_model_xs.end(), 0_r);
 
         StepLimit limits = calc_physics_step_limit(particle, physics);
 

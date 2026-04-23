@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "orange/OrangeTypes.hh"
 
 namespace celeritas
@@ -24,7 +24,7 @@ class NoTransformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 0>;
+    using StorageSpan = LdgSpan<real_type const, 0>;
     //@}
 
     //! Transform type identifier
@@ -67,25 +67,21 @@ class NoTransformation
 
     // Calculate the inverse during preprocessing
     inline NoTransformation calc_inverse() const { return {}; }
+
+    //!@{
+    //! Host-only comparators
+    friend constexpr bool
+    operator==(NoTransformation const&, NoTransformation const&) noexcept
+    {
+        return true;
+    }
+    friend constexpr bool
+    operator!=(NoTransformation const&, NoTransformation const&) noexcept
+    {
+        return false;
+    }
+    //!@}
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline constexpr bool
-operator==(NoTransformation const&, NoTransformation const&)
-{
-    return true;
-}
-
-inline constexpr bool
-operator!=(NoTransformation const&, NoTransformation const&)
-{
-    return false;
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

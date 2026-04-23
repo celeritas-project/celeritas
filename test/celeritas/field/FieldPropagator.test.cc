@@ -40,7 +40,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 constexpr real_type pi{constants::pi};
 constexpr real_type sqrt_three{constants::sqrt_three};
@@ -155,7 +154,8 @@ struct HorribleZField
 
 // Field value (native units) for 10 MeV electron/positron to have a radius of
 // 1 cm
-constexpr real_type unit_radius_field_strength{3.5019461121752274_T};
+constexpr real_type unit_radius_field_strength{3.5019461121752274
+                                               * units::tesla};
 
 //---------------------------------------------------------------------------//
 // TESTS
@@ -169,7 +169,7 @@ TEST_F(TwoBoxesTest, electron_interior)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0_T);
+    UniformZField field(1.0 * units::tesla);
 
     // Check expected field curvature and geometry cell
     EXPECT_SOFT_EQ(radius, this->calc_field_curvature(particle, geo, field));
@@ -340,7 +340,7 @@ TEST_F(TwoBoxesTest, gamma_pathological)
     auto particle = this->make_particle_view(pdg::gamma(), MevEnergy{1});
 
     // Construct field (shape and magnitude shouldn't matter)
-    HorribleZField field{1.2345_T, 5};
+    HorribleZField field{1.2345 * units::tesla, 5};
     FieldDriverOptions driver_options;
     auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
         field, particle.charge());
@@ -438,7 +438,7 @@ TEST_F(TwoBoxesTest, gamma_exit)
 TEST_F(TwoBoxesTest, electron_super_small_step)
 {
     auto particle = this->make_particle_view(pdg::electron(), MevEnergy{2});
-    UniformZField field(static_cast<real_type>(1_T));
+    UniformZField field(static_cast<real_type>(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     std::vector<real_type> intersect_distance;
@@ -461,10 +461,10 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
         {
             SCOPED_TRACE("Bump distance intersects boundary");
             real_type const bump_distance
-                = (driver_options.delta_intersection * real_type{0.1});
-            real_type const eps = bump_distance * real_type{0.99};
-            auto geo = this->make_geo_track_view({real_type{5.0} + eps, 0, 0},
-                                                 {-1, 0, 0});
+                = (driver_options.delta_intersection * 0.1_r);
+            real_type const eps = bump_distance * 0.99_r;
+            auto geo
+                = this->make_geo_track_view({5.0_r + eps, 0, 0}, {-1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
             auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
@@ -592,7 +592,7 @@ TEST_F(TwoBoxesTest, electron_tangent)
         EXPECT_SOFT_EQ(quarter, result.distance);
         EXPECT_LT(distance(Real3({std::cos(quarter), 4 + std::sin(quarter), 0}),
                            geo.pos()),
-                  real_type{2e-6});
+                  2e-6_r);
     }
     {
         SCOPED_TRACE("Short step tangent to boundary");
@@ -601,13 +601,13 @@ TEST_F(TwoBoxesTest, electron_tangent)
         auto geo = this->make_checked_track_view();
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
             field, driver_options, particle, geo);
-        auto result = propagate(real_type{0.02 * pi});
+        auto result = propagate(0.02_r * pi);
 
         EXPECT_FALSE(result.boundary);
-        EXPECT_SOFT_EQ(real_type{0.02 * pi}, result.distance);
+        EXPECT_SOFT_EQ(0.02_r * pi, result.distance);
         EXPECT_LT(distance(Real3({std::cos(quarter), 4 + std::sin(quarter), 0}),
                            geo.pos()),
-                  real_type{2e-6});
+                  2e-6_r);
     }
 }
 
@@ -768,7 +768,7 @@ TEST_F(TwoBoxesTest, electron_corner_hit)
         EXPECT_TRUE(result.boundary);
         EXPECT_LT(distance(Real3({-5 + x, 5, 0}), geo.pos()), 1e-5)
             << "Actually stopped at " << geo.pos();
-        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), real_type{1.5e-5})
+        EXPECT_LT(distance(Real3({dy - 1, x, 0}), geo.dir()), 1.5e-5_r)
             << "Ending direction at " << geo.dir();
 
         if (geo.check_normal())
@@ -851,7 +851,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_step_endpoint))
         field, particle.charge());
     auto propagate = [&](real_type start_delta, real_type move_delta) {
         Real3 start_pos{-5 + start_delta, 0, 0};
-        axpy(real_type(-1), first_pos, &start_pos);
+        axpy(-1.0_r, first_pos, &start_pos);
 
         geo = GeoTrackInitializer{start_pos, {0, 1, 0}};
         auto propagate
@@ -990,8 +990,7 @@ TEST_F(TwoBoxesTest,
     std::vector<int> substeps;
     std::vector<std::string> volumes;
 
-    for (real_type dtheta :
-         {pi / 4, pi / 7, real_type{1e-3}, real_type{1e-6}, real_type{1e-9}})
+    for (real_type dtheta : {pi / 4, pi / 7, 1e-3_r, 1e-6_r, 1e-9_r})
     {
         SCOPED_TRACE(dtheta);
         {
@@ -1082,7 +1081,7 @@ TEST_F(TwoBoxesTest,
     };
 
     EXPECT_VEC_EQ(expected_boundary, boundary) << repr(boundary);
-    EXPECT_VEC_NEAR(expected_distances, distances, real_type{.1} * coarse_eps)
+    EXPECT_VEC_NEAR(expected_distances, distances, 0.1_r * coarse_eps)
         << repr(distances);
     EXPECT_VEC_EQ(expected_substeps, substeps) << repr(substeps);
     EXPECT_VEC_EQ(expected_volumes, volumes) << repr(volumes);
@@ -1133,7 +1132,7 @@ TEST_F(LayersTest, revolutions_through_layers)
     auto particle
         = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
-    UniformZField field(1.0_T);
+    UniformZField field(1.0 * units::tesla);
 
     // Build propagator
     FieldDriverOptions driver_options;
@@ -1220,7 +1219,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 {
     auto particle = this->make_particle_view(pdg::electron(),
                                              MevEnergy{4.25402379798713e-01});
-    UniformZField field(real_type(1_T));
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
 
     auto geo = this->make_geo_track_view(
@@ -1318,7 +1317,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
 
 TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
 {
-    UniformZField field(real_type(1_T));
+    UniformZField field(real_type(1 * units::tesla));
     FieldDriverOptions driver_options;
     driver_options.max_substeps = 100;
 
@@ -1464,8 +1463,8 @@ TEST_F(CmseTest, coarse)
     {
         ScopedLogStorer scoped_log_{&celeritas::self_logger(),
                                     LogLevel::warning};
-        auto geo = this->make_geo_track_view(
-            {2 * radius + real_type{0.01}, 0, -300}, {0, 1, 1});
+        auto geo = this->make_geo_track_view({2 * radius + 0.01_r, 0, -300},
+                                             {0, 1, 1});
         // TODO: define a "reentrant" different propagation status: see
         // CheckedGeoTrackView, OrangeTrackView
         geo.check_zero_distance(false);

@@ -92,9 +92,11 @@ RungeKuttaIntegrator<E>::operator()(real_type step,
                                     OdeState const& beg_state) const
     -> result_type
 {
+    using namespace celeritas::literals;
+
     using celeritas::axpy;
-    real_type half_step = step / real_type(2);
-    constexpr real_type fourth_order_correction = 1 / real_type(15);
+    real_type half_step = step / 2.0_r;
+    constexpr real_type fourth_order_correction = 1.0_r / 15.0_r;
 
     result_type result;
     OdeState beg_slope = calc_rhs_(beg_state);
@@ -109,7 +111,7 @@ RungeKuttaIntegrator<E>::operator()(real_type step,
 
     // Integrator error: difference between the full step and two half steps
     result.err_state = result.end_state;
-    axpy(real_type(-1), yt, &result.err_state);
+    axpy(-1.0_r, yt, &result.err_state);
 
     // Output correction with the 4th order coefficient (1/15)
     axpy(fourth_order_correction, result.err_state, &result.end_state);
@@ -127,9 +129,11 @@ RungeKuttaIntegrator<E>::do_step(real_type step,
                                  OdeState const& beg_state,
                                  OdeState const& beg_slope) const -> OdeState
 {
+    using namespace celeritas::literals;
+
     using celeritas::axpy;
-    real_type half_step = step / real_type(2);
-    constexpr real_type sixth = 1 / real_type(6);
+    real_type half_step = step / 2.0_r;
+    constexpr real_type sixth = 1.0_r / 6.0_r;
 
     // 1st step k1 = (step/2)*beg_slope
     OdeState mid_est = beg_state;
@@ -147,9 +151,9 @@ RungeKuttaIntegrator<E>::do_step(real_type step,
     OdeState end_slope = calc_rhs_(end_est);
 
     // Average slope at all 4 points
-    axpy(real_type(1), beg_slope, &end_slope);
-    axpy(real_type(2), mid_slope, &end_slope);
-    axpy(real_type(2), mid_est_slope, &end_slope);
+    axpy(1.0_r, beg_slope, &end_slope);
+    axpy(2.0_r, mid_slope, &end_slope);
+    axpy(2.0_r, mid_est_slope, &end_slope);
 
     // 4th Step k4 = h*dydxt and the final RK4 output: k1/6+k4/6+(k2+k3)/3
     OdeState end_state = beg_state;

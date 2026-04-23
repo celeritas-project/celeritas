@@ -38,7 +38,7 @@ class OrangeTest : public OrangeGeoTestBase
     using Initializer_t = GeoTrackInitializer;
 
     //! Length scale is hardcoded into construction
-    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
+    UnitLength unit_length() const override { return {1_C, "length"}; }
 
     //! Shortcut to get the surface ID
     ImplSurfaceId impl_surface_id(WrappedGeoTrack const& geo) const

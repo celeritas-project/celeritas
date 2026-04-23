@@ -59,19 +59,20 @@ struct GeneratorExecutor
  */
 CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(state);
     CELER_EXPECT(offload);
 
     using DistId = ItemId<GeneratorDistributionData>;
 
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
 
     // Find the index of the first distribution that has a nonzero number of
     // primaries left to generate
     auto all_offsets = offload.offsets[ItemRange<size_type>(
         ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
-    auto buffer_start = celeritas::upper_bound(
-        all_offsets.begin(), all_offsets.end(), size_type(0));
+    auto buffer_start
+        = celeritas::upper_bound(all_offsets.begin(), all_offsets.end(), 0_sz);
     CELER_ASSERT(buffer_start != all_offsets.end());
 
     // Get the cumulative sum of the number of photons in the distributions.

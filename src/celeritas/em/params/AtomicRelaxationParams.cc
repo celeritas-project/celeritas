@@ -31,6 +31,8 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -130,7 +132,7 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
             designators.insert(transition.initial_shell);
             designators.insert(transition.auger_shell);
         }
-        CELER_ASSERT(soft_equal(real_type(1), norm));
+        CELER_ASSERT(soft_equal(1.0_r, norm));
     }
 
     // Create a mapping of subshell designator to index in the shells array (it

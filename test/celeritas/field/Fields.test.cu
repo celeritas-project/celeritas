@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "Fields.test.hh"
 
-#include <cstdio>
-
 #include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Types.hh"
@@ -19,6 +17,9 @@
 #include "celeritas/field/CartMapField.hh"
 #include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
+#include "celeritas/field/RZMapField.hh"
+#include "celeritas/field/RZMapFieldInput.hh"
+#include "celeritas/field/RZMapFieldParams.hh"
 
 #include "TestMacros.hh"
 
@@ -29,14 +30,15 @@ namespace test
 namespace
 {
 
-using DeviceCRef = CartMapFieldParams::DeviceRef;
+using CartDeviceCRef = CartMapFieldParams::DeviceRef;
+using RZDeviceCRef = RZMapFieldParams::DeviceRef;
 
 //---------------------------------------------------------------------------//
 // KERNELS
 //---------------------------------------------------------------------------//
 
 __global__ void field_test_kernel(unsigned int const size,
-                                  DeviceCRef field_map_data,
+                                  CartDeviceCRef field_map_data,
                                   AxisGrid<real_type> x_grid,
                                   AxisGrid<real_type> y_grid,
                                   AxisGrid<real_type> z_grid,
@@ -82,12 +84,29 @@ __global__ void field_test_kernel(unsigned int const size,
         }
     }
 }
+
+__global__ void rzfield_test_kernel(unsigned int const num_points,
+                                    RZDeviceCRef field_map_data,
+                                    Real3 const* points,
+                                    real_type* field_values)
+{
+    auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
+    if (tid.get() >= num_points)
+        return;
+
+    RZMapField calc_field(field_map_data);
+    Real3 field = calc_field(points[tid.get()]);
+    field_values[tid.get() * 3 + 0] = field[0];
+    field_values[tid.get() * 3 + 1] = field[1];
+    field_values[tid.get() * 3 + 2] = field[2];
+}
+
 }  // namespace
 
 //---------------------------------------------------------------------------//
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
-//! Run on device and return results
+//! Run CartMapField on device and return results
 void field_test(CartMapFieldInput& inp,
                 Span<real_type>& field_values,
                 Array<size_type, 3>& n_samples)
@@ -96,7 +115,7 @@ void field_test(CartMapFieldInput& inp,
 
     DeviceVector<real_type> field_values_d(field_values.size());
 
-    DeviceCRef device_cref = field_map.device_ref();
+    CartDeviceCRef device_cref = field_map.device_ref();
 
     CELER_LAUNCH_KERNEL(field_test,
                         1,
@@ -107,6 +126,33 @@ void field_test(CartMapFieldInput& inp,
                         inp.y,
                         inp.z,
                         n_samples,
+                        field_values_d.data());
+    CELER_DEVICE_API_CALL(DeviceSynchronize());
+
+    field_values_d.copy_to_host(field_values);
+}
+
+//---------------------------------------------------------------------------//
+//! Run RZMapField on device and return results
+void rzfield_test(RZMapFieldInput const& inp,
+                  Span<Real3 const> points,
+                  Span<real_type> field_values)
+{
+    CELER_EXPECT(field_values.size() == points.size() * 3);
+
+    RZMapFieldParams field_map{inp};
+
+    DeviceVector<Real3> points_d(points.size());
+    points_d.copy_to_device(points);
+
+    DeviceVector<real_type> field_values_d(field_values.size());
+
+    CELER_LAUNCH_KERNEL(rzfield_test,
+                        points.size(),
+                        0,
+                        static_cast<unsigned int>(points.size()),
+                        field_map.device_ref(),
+                        points_d.data(),
                         field_values_d.data());
     CELER_DEVICE_API_CALL(DeviceSynchronize());
 

@@ -137,8 +137,6 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_{0};
-
-    void update_track(G4Track&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -169,7 +167,8 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
  */
 size_type HitProcessor::exchange_hits()
 {
-    return std::exchange(num_hits_, size_type{0});
+    using namespace celeritas::literals;
+    return std::exchange(num_hits_, 0_sz);
 }
 
 //---------------------------------------------------------------------------//

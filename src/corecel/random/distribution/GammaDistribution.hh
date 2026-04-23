@@ -9,10 +9,10 @@
 #include <cmath>
 
 #include "corecel/Assert.hh"
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/Constants.hh"
 
 #include "NormalDistribution.hh"
 

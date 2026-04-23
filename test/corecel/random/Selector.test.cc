@@ -100,7 +100,7 @@ TEST_F(SelectorTest, selector_element)
     static double const macro_xs[] = {1.0, 2.0, 4.0};
     std::vector<int> evaluated;
     auto get_xs = [&evaluated](ElementId el) {
-        CELER_EXPECT(el < 3);
+        CELER_EXPECT(el < ElementId{3});
         evaluated.push_back(el.get());
         return macro_xs[el.get()];
     };
@@ -166,7 +166,7 @@ TEST_F(UnnormSelectorTest, make_selector)
     static double const prob[] = {0.1, 0.3, 0.5};
 
     auto sample_prob = make_unnormalized_selector(
-        [](int i) { return prob[i]; }, std::size(prob), real_type{1});
+        [](int i) { return prob[i]; }, std::size(prob), 1_r);
 
     auto rng = make_rng(0.0);
     EXPECT_EQ(0, sample_prob(rng));

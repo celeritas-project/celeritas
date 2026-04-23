@@ -18,6 +18,9 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Thrust.device.hh"
+#include "celeritas/optical/WavelengthShiftData.hh"
+
+#include "../GeneratorData.hh"
 
 namespace celeritas
 {
@@ -31,30 +34,46 @@ namespace detail
  *
  * \return Total accumulated value
  */
-size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
-    ItemsRef<size_type, MemSpace::device> const& offsets,
-    size_type size,
-    StreamId stream)
+template<class T>
+size_type
+inclusive_scan_photons(ItemsRef<T, MemSpace::device> const& buffer,
+                       ItemsRef<size_type, MemSpace::device> const& offsets,
+                       size_type size,
+                       StreamId stream)
 {
     CELER_EXPECT(!buffer.empty());
     CELER_EXPECT(size > 0 && size <= buffer.size());
     CELER_EXPECT(offsets.size() == buffer.size());
 
-    ScopedProfiling profile_this{"inclusive-scan-photons"};
+    ScopedProfiling profile_this{"prefix-sum-counts"};
     auto data = thrust::device_pointer_cast(buffer.data().get());
     auto result = thrust::device_pointer_cast(offsets.data().get());
     auto stop = thrust::transform_inclusive_scan(thrust_execute_on(stream),
                                                  data,
                                                  data + size,
                                                  result,
-                                                 GetNumPhotons{},
+                                                 GetNumPhotons<T>{},
                                                  thrust::plus<size_type>());
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
     return ItemCopier<size_type>{stream}(stop.get() - 1);
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template size_type inclusive_scan_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    ItemsRef<size_type, MemSpace::device> const&,
+    size_type,
+    StreamId);
+template size_type
+inclusive_scan_photons(ItemsRef<WlsDistributionData, MemSpace::device> const&,
+                       ItemsRef<size_type, MemSpace::device> const&,
+                       size_type,
+                       StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

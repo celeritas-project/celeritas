@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/math/NumericLimits.hh"
 
 #include "GenerateCanonical.hh"
 
@@ -22,24 +23,33 @@ namespace celeritas
  *
  * A common implementation of sampling from a "difficult" (non-analytically
  * invertible) probability distribution function is to bound the difficult
- * distribution \em f(x) with another easily sampled function \em g(x) . Given
- * a maximum value \em M over the \em x interval being sampled, it is
- * equivalent to sampling \em f(x) by instead sampling from \em g(x) and
- * rejecting with probability \f[
+ * distribution \em f(x) with another easily sampled proposal distribution
+ * \em g(x) .
+ * Given a constant \em M such that \f$ f(x) < M g(x) \f$ over the \em x
+ * interval being sampled, it is equivalent to sampling \em f(x) by instead
+ * sampling from \em g(x) and rejecting with probability \f[
    \frac{f(x)}{M g(x)}
- * \f]
+ * \f].
+ *
+ * This rejection sampler is constructed with the maximum \em M and is invoked
+ * with the sampled ratio \f$ f(x)/g(x) \f$ and an RNG.
+ * It allows an underestimate of the constant \em M by
+ * \f$ 10 \epsilon_\textrm{mach} \f$ which may result in an imperceptible bias
+ * against selecting the peak of the PDF.
  *
  * These invocations generate statistically equivalent results:
  *  - `BernoulliDistribution(1 - p / pmax)(rng);`
  *  - `!BernoulliDistribution(p / pmax)(rng);`
  *  - `p < pmax * UniformDistribution{}(rng)`
- *  - `RejectionSampler(p, pmax)(rng);`
+ *  - `RejectionSampler(pmax)(p, rng);`
  *
- * This is meant for rejection sampling, e.g., on cross section:
+ * \par Example
+ * This rejects over a cross section distribution with a known maximum bound.
  * \code
+    RejectionSampler reject{xs_max}
     do {
       xs = sample_xs(rng);
-    } while (RejectionSampler{xs, xs_max}(rng));
+    } while (reject(xs, rng));
    \endcode
  */
 template<class RealType = ::celeritas::real_type>
@@ -51,25 +61,27 @@ class RejectionSampler
     //!@{
     //! \name Type aliases
     using real_type = RealType;
-    using result_type = real_type;
+    using result_type = bool;
     //!@}
 
   public:
     // Construct with acceptance probability
-    inline CELER_FUNCTION RejectionSampler(real_type f, real_type fmax);
+    explicit CELER_CONSTEXPR_FUNCTION RejectionSampler(real_type fmax);
 
     //! Construct when the distribution's maximum is normalized
-    explicit CELER_FUNCTION RejectionSampler(real_type f)
-        : RejectionSampler{f, 1}
+    CELER_CONSTEXPR_FUNCTION RejectionSampler() : RejectionSampler{1} {}
+
+    // Reject with probability (f/fmax)
+    template<class Generator>
+    inline CELER_FUNCTION bool operator()(real_type f, Generator& rng) const;
+
+    //! Allow a priori estimate of fmax to be *slightly* unconservative
+    static CELER_CONSTEXPR_FUNCTION real_type tolerance()
     {
+        return 10 * NumericLimits<real_type>::epsilon();
     }
 
-    // Sample a random number according to the distribution
-    template<class Generator>
-    inline CELER_FUNCTION result_type operator()(Generator& rng);
-
   private:
-    RealType f_;
     RealType fmax_;
 };
 
@@ -80,24 +92,25 @@ class RejectionSampler
  * Construct with acceptance probability and maximum probability.
  */
 template<class RealType>
-CELER_FUNCTION
-RejectionSampler<RealType>::RejectionSampler(real_type f, real_type fmax)
-    : f_{f}, fmax_{fmax}
+CELER_CONSTEXPR_FUNCTION
+RejectionSampler<RealType>::RejectionSampler(real_type fmax)
+    : fmax_{fmax}
 {
-    CELER_EXPECT(f_ >= 0);
-    CELER_EXPECT(fmax_ >= f_);
+    CELER_EXPECT(fmax >= 0);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Sample a random number according to the distribution.
+ * Reject with a given probability.
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto RejectionSampler<RealType>::operator()(Generator& rng)
+CELER_FUNCTION auto
+RejectionSampler<RealType>::operator()(real_type f, Generator& rng) const
     -> result_type
 {
-    return f_ < fmax_ * generate_canonical<RealType>(rng);
+    CELER_EXPECT(f <= fmax_ * (1 + tolerance()));
+    return f < fmax_ * generate_canonical<RealType>(rng);
 }
 
 //---------------------------------------------------------------------------//

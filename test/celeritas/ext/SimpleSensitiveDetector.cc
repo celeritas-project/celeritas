@@ -15,6 +15,7 @@
 #include <G4Track.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Repr.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 

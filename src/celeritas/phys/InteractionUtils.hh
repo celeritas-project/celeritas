@@ -8,6 +8,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 #include "geocel/Types.hh"
 #include "celeritas/Constants.hh"
@@ -60,6 +61,28 @@ struct ExitingDirectionSampler
         UniformRealDistribution<real_type> sample_phi(
             0, real_type(2 * constants::pi));
         return rotate(from_spherical(costheta, sample_phi(rng)), direction);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a polarization uniformly in the plane orthogonal to the direction.
+ */
+struct TransversePolarizationSampler
+{
+    Real3 const& direction;
+
+    template<class Engine>
+    inline CELER_FUNCTION Real3 operator()(Engine& rng)
+    {
+        IsotropicDistribution<real_type> sample_polarization;
+        Real3 polarization;
+        do
+        {
+            polarization = make_unit_vector(
+                make_orthogonal(sample_polarization(rng), direction));
+        } while (CELER_UNLIKELY(!is_soft_orthogonal(polarization, direction)));
+        return polarization;
     }
 };
 

@@ -60,7 +60,6 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
-    using UrbanParMatId = UrbanMscParMatData::UrbanParMatId;
     using UPMT = UrbanParMatType;
 
     ScopedMem record_mem("UrbanMscParams.construct");

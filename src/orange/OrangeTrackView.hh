@@ -439,7 +439,7 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     // the parent placement (i.e., the volume instance in the parent universe)
     auto ui = this->make_univ_indexer();
     UnivLevelId ulev_id{this->univ_level()};
-    auto get_vol_inst = [&]() {
+    auto get_vol_inst = [&]() -> VolumeInstanceId {
         auto lsa = this->make_lsa(ulev_id);
         CELER_ASSERT(lsa.univ());
         ImplVolumeId impl_id = ui.global_volume(lsa.univ(), lsa.vol());
@@ -525,7 +525,7 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
         do
         {
             ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
-            if (auto vol_inst = params_.volume_instance_ids[impl_id])
+            if (auto vol_inst = params_.volume_instance_ids[impl_id].get())
             {
                 // Save volume instance ID at this canonical level
                 CELER_ASSERT(level_idx != 0);

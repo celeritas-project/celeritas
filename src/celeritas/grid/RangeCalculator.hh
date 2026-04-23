@@ -79,6 +79,8 @@ RangeCalculator::RangeCalculator(UniformGridRecord const& grid,
  */
 CELER_FUNCTION real_type RangeCalculator::operator()(Energy energy) const
 {
+    using namespace celeritas::literals;
+
     CELER_ASSERT(energy > zero_quantity());
     UniformGrid loge_grid(data_.grid);
     real_type const loge = std::log(energy.value());
@@ -87,7 +89,7 @@ CELER_FUNCTION real_type RangeCalculator::operator()(Energy energy) const
     {
         real_type result = this->get(0);
         // Scale by sqrt(E/Emin) = exp(.5 (log E - log Emin))
-        result *= std::exp(real_type(.5) * (loge - loge_grid.front()));
+        result *= std::exp(0.5_r * (loge - loge_grid.front()));
         return result;
     }
     else if (loge >= loge_grid.back())

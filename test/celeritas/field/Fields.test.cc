@@ -29,6 +29,7 @@
 #include "celeritas/field/CylMapField.hh"
 #include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
+#include "celeritas/field/LoadCovfieField.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldParams.hh"
@@ -36,6 +37,7 @@
 #include "celeritas/field/UniformZField.hh"
 
 #include "CMSParameterizedField.hh"
+#include "CovfieTestField.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -112,6 +114,9 @@ TEST(CMSParameterizedFieldTest, all)
     EXPECT_VEC_SOFT_EQ(expected_field, actual);
 }
 
+#if !CELERITAS_USE_COVFIE
+#    define RZMapFieldTest DISABLED_RZMapFieldTest
+#endif
 using RZMapFieldTest = ::celeritas::test::Test;
 
 TEST_F(RZMapFieldTest, all)
@@ -143,33 +148,111 @@ TEST_F(RZMapFieldTest, all)
         }
     }
 
+    // clang-format off
+    // Covfie bilinear interpolation on the RZ grid (both Br and Bz
+    // interpolated in 2D)
     static real_type const expected_field[] = {
-        -0,
-        -0,
-        3.811202287674,
-        -4.7522817039862e-05,
-        -4.7522817039862e-05,
-        3.8062113523483,
-        -9.5045634079725e-05,
-        -9.5045634079725e-05,
-        3.8012204170227,
-        -0.00014256845111959,
-        -0.00014256845111959,
-        3.7962294816971,
-        0.0094939613342285,
-        0.0094939613342285,
-        3.7912385463715,
-        0.011867451667786,
-        0.011867451667786,
-        3.775991499424,
-        0.014240986622126,
-        0.014240986622126,
-        3.771880030632,
-        0.016614892251046,
-        0.016614892251046,
-        3.757196366787,
+        -0,                  -0,                  3.811202287674,
+        0.000557730426456419, 0.000557730426456419, 3.8078203125,
+        0.0023259673673599,  0.0023259673673599,  3.804498046875,
+        0.0053047110587328,  0.0053047110587328,  3.8012359375,
+        0.0094939613342285,  0.0094939613342285,  3.7980328125,
+        0.0149389093193622,  0.0149389093193622,  3.7849625,
+        0.0215377738208854,  0.0215377738208854,  3.7723875,
+        0.0283599192434375,  0.0283599192434375,  3.762944140625,
     };
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    // clang-format on
+    // Float32 covfie interpolation; allow for AVX2 rounding variation
+    EXPECT_VEC_NEAR(expected_field, actual, 2e-7_r);
+}
+
+TEST_F(RZMapFieldTest, interp_validation)
+{
+    // Validate bilinear interpolation with a synthetic field: Br(r,z) = r + z,
+    // Bz(r,z) = r + z (each component varies on both axes). True bilinear
+    // interpolation reproduces linear functions exactly.
+    //
+    // Use a 2x2 grid so the midpoint r=1, z=1 has frac=(0.5, 0.5) exactly.
+    // All values are in native units (no unit conversion).
+    {
+        RZMapFieldInput inp;
+        inp.num_grid_r = 2;
+        inp.num_grid_z = 2;
+        inp.min_r = 0;
+        inp.max_r = 2;
+        inp.min_z = 0;
+        inp.max_z = 2;
+        inp.field_r.resize(4);
+        inp.field_z.resize(4);
+        for (int iz = 0; iz < 2; ++iz)
+            for (int ir = 0; ir < 2; ++ir)
+            {
+                double r = ir * 2.0, z = iz * 2.0;
+                inp.field_r[iz * 2 + ir] = r + z;  // Br = r + z
+                inp.field_z[iz * 2 + ir] = r + z;  // Bz = r + z
+            }
+
+        RZMapFieldParams params(inp);
+        RZMapField field(params.host_ref());
+
+        // At midpoint r=1, z=1: Br = Bz = 2 (exact bilinear).
+        // Bx = Br*(x/r) = 2*(1/1) = 2, By = 0, Bz = 2.
+        auto result = field(Real3{real_type(1), 0, real_type(1)});
+        EXPECT_SOFT_EQ(2.0, result[0]);
+        EXPECT_SOFT_EQ(0.0, result[1]);
+        EXPECT_SOFT_EQ(2.0, result[2]);
+    }
+}
+
+TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
+{
+    RZMapFieldInput inp;
+    {
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        std::ifstream(filename) >> inp;
+    }
+
+    // Build sample points: same as host test
+    int const nsamples = 8;
+    real_type delta_z = from_cm(25.0);
+    real_type delta_r = from_cm(12.0);
+
+    std::vector<Real3> points(nsamples);
+    for (int i : range(nsamples))
+    {
+        points[i] = {i * delta_r, i * delta_r, i * delta_z};
+    }
+
+    std::vector<real_type> field_values(nsamples * 3);
+
+    // Run the test on device
+    rzfield_test(inp,
+                 Span<Real3 const>{points.data(), points.size()},
+                 Span<real_type>{field_values.data(), field_values.size()});
+
+    // Convert to Tesla for comparison
+    std::vector<real_type> actual;
+    for (auto f : field_values)
+    {
+        actual.push_back(native_value_to<units::TeslaField>(f).value());
+    }
+
+    // Same expected values as host: device uses software interpolation
+    // (no CUDA texture), so results are identical.
+    // clang-format off
+    static real_type const expected_field[] = {
+        -0,                  -0,                  3.811202287674,
+        0.000557730426456419, 0.000557730426456419, 3.8078203125,
+        0.0023259673673599,  0.0023259673673599,  3.804498046875,
+        0.0053047110587328,  0.0053047110587328,  3.8012359375,
+        0.0094939613342285,  0.0094939613342285,  3.7980328125,
+        0.0149389093193622,  0.0149389093193622,  3.7849625,
+        0.0215377738208854,  0.0215377738208854,  3.7723875,
+        0.0283599192434375,  0.0283599192434375,  3.762944140625,
+    };
+    // clang-format on
+    EXPECT_VEC_NEAR(expected_field, actual, real_type{2e-7});
 }
 
 using CylMapFieldTest = ::celeritas::test::Test;
@@ -282,8 +365,114 @@ TEST_F(CylMapFieldTest, all)
     };
     // clang-format on
 
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-7});
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-7_r);
 }
+
+//---------------------------------------------------------------------------//
+// COVFIE IMPORT TESTS
+//---------------------------------------------------------------------------//
+
+#if !CELERITAS_USE_COVFIE
+#    define CovfieCartImportTest DISABLED_CovfieCartImportTest
+#    define CovfieRZImportTest DISABLED_CovfieRZImportTest
+#endif
+
+using CovfieCartImportTest = Test;
+using CovfieRZImportTest = Test;
+
+TEST_F(CovfieCartImportTest, load_2x3x4)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_cart_covfie(path, 2, 3, 4);
+
+    auto inp = load_covfie_cart_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.x.num);
+    EXPECT_EQ(3u, inp.y.num);
+    EXPECT_EQ(4u, inp.z.num);
+
+    // Check grid bounds (identity affine: [0, n-1])
+    EXPECT_SOFT_EQ(0.0, inp.x.min);
+    EXPECT_SOFT_EQ(1.0, inp.x.max);
+    EXPECT_SOFT_EQ(0.0, inp.y.min);
+    EXPECT_SOFT_EQ(2.0, inp.y.max);
+    EXPECT_SOFT_EQ(0.0, inp.z.min);
+    EXPECT_SOFT_EQ(3.0, inp.z.max);
+
+    // Check total field size: 3 * 2 * 3 * 4 = 72
+    EXPECT_EQ(72u, inp.field.size());
+
+    // Check field values at corners to verify stride ordering [X][Y][Z][3]
+    // At (ix=0, iy=0, iz=0): base = 0, expect (0, 0, 0)
+    EXPECT_SOFT_EQ(0.0, inp.field[0]);
+    EXPECT_SOFT_EQ(0.0, inp.field[1]);
+    EXPECT_SOFT_EQ(0.0, inp.field[2]);
+
+    // At (ix=1, iy=0, iz=0): base = (1*3 + 0)*4 + 0 = 12, offset*3 = 36
+    EXPECT_SOFT_EQ(1.0, inp.field[36]);  // Bx = ix = 1
+    EXPECT_SOFT_EQ(0.0, inp.field[37]);  // By = iy = 0
+    EXPECT_SOFT_EQ(0.0, inp.field[38]);  // Bz = iz = 0
+
+    // At (ix=0, iy=2, iz=3): base = (0*3 + 2)*4 + 3 = 11, offset*3 = 33
+    EXPECT_SOFT_EQ(0.0, inp.field[33]);  // Bx = 0
+    EXPECT_SOFT_EQ(2.0, inp.field[34]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[35]);  // Bz = 3
+
+    // At (ix=1, iy=2, iz=3): base = (1*3 + 2)*4 + 3 = 23, offset*3 = 69
+    EXPECT_SOFT_EQ(1.0, inp.field[69]);  // Bx = 1
+    EXPECT_SOFT_EQ(2.0, inp.field[70]);  // By = 2
+    EXPECT_SOFT_EQ(3.0, inp.field[71]);  // Bz = 3
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+TEST_F(CovfieRZImportTest, load_2x3)
+{
+    auto path = this->make_unique_filename(".covfie");
+    write_rz_covfie(path, 2, 3);
+
+    auto inp = load_covfie_rz_field(path);
+
+    // Check grid dimensions
+    EXPECT_EQ(2u, inp.num_grid_r);
+    EXPECT_EQ(3u, inp.num_grid_z);
+
+    // Check grid bounds (identity affine: r=[0,1], z=[0,2])
+    EXPECT_SOFT_EQ(0.0, inp.min_r);
+    EXPECT_SOFT_EQ(1.0, inp.max_r);
+    EXPECT_SOFT_EQ(0.0, inp.min_z);
+    EXPECT_SOFT_EQ(2.0, inp.max_z);
+
+    // Check total field size: 2 * 3 = 6
+    EXPECT_EQ(6u, inp.field_r.size());
+    EXPECT_EQ(6u, inp.field_z.size());
+
+    // Check field values with [Z][R] indexing (R stride 1)
+    // At (ir=0, iz=0): idx = 0*2 + 0 = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_r[0]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(0.0, inp.field_z[0]);  // Bz = iz = 0
+
+    // At (ir=1, iz=0): idx = 0*2 + 1 = 1
+    EXPECT_SOFT_EQ(1.0, inp.field_r[1]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(0.0, inp.field_z[1]);  // Bz = iz = 0
+
+    // At (ir=0, iz=2): idx = 2*2 + 0 = 4
+    EXPECT_SOFT_EQ(0.0, inp.field_r[4]);  // Br = ir = 0
+    EXPECT_SOFT_EQ(2.0, inp.field_z[4]);  // Bz = iz = 2
+
+    // At (ir=1, iz=2): idx = 2*2 + 1 = 5
+    EXPECT_SOFT_EQ(1.0, inp.field_r[5]);  // Br = ir = 1
+    EXPECT_SOFT_EQ(2.0, inp.field_z[5]);  // Bz = iz = 2
+
+    // Check validity
+    EXPECT_TRUE(static_cast<bool>(inp));
+}
+
+//---------------------------------------------------------------------------//
+// CART MAP FIELD TESTS (covfie-only)
+//---------------------------------------------------------------------------//
 
 #if !CELERITAS_USE_COVFIE
 #    define CartMapFieldTest DISABLED_CartMapFieldTest
@@ -452,7 +641,7 @@ TEST_F(CartMapFieldTest, host)
         -0.54941475391388,
         0.33834865689278,
     };
-    EXPECT_VEC_NEAR(expected_field, actual, real_type{1e-6});
+    EXPECT_VEC_NEAR(expected_field, actual, 1e-6_r);
 }
 
 TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))

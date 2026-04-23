@@ -820,8 +820,7 @@ class GenPrismTest : public IntersectRegionTest
             auto twist_cosine = pri.calc_twist_cosine(i);
             EXPECT_GT(twist_cosine, 0);
             EXPECT_LT(twist_cosine, 1 + SoftEqual<>{}.abs());
-            real_type twist_angle
-                = std::acos(std::fmin(twist_cosine, real_type(1)));
+            real_type twist_angle = std::acos(std::fmin(twist_cosine, 1_r));
             result.push_back(native_value_to<Turn>(twist_angle).value());
         }
         return result;
@@ -1247,7 +1246,7 @@ TEST_F(GenPrismTest, trap_thetaphi)
 
 TEST_F(GenPrismTest, trap_g4)
 {
-    constexpr Turn degree{real_type{1} / 360};
+    constexpr Turn degree{1_r / 360};
 
     auto pri = GenPrism::from_trap(4,
                                    5 * degree,
@@ -1668,11 +1667,11 @@ TEST_F(GenPrismTest, variable_twisted)
     };
     for (auto logeps : range(-6, -1))
     {
-        build_prism(std::pow(real_type{10}, static_cast<real_type>(logeps)));
+        build_prism(std::pow(10_r, static_cast<real_type>(logeps)));
     }
     for (auto fraceps : range(0, 5))
     {
-        build_prism(0.1 + real_type{0.025} * fraceps);
+        build_prism(0.1 + 0.025_r * fraceps);
     }
 
     auto const& u = this->unit();

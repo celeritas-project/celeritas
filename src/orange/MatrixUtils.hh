@@ -32,7 +32,7 @@ inline constexpr TransposePolicy transpose{};
 
 //---------------------------------------------------------------------------//
 // Apply a matrix to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION Array<T, N> gemv(T alpha,
                                        SquareMatrix<T, N> const& a,
                                        Array<T, N> const& x,
@@ -41,7 +41,7 @@ inline CELER_FUNCTION Array<T, N> gemv(T alpha,
 
 //---------------------------------------------------------------------------//
 // Apply the transpose of a matrix to an array
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
                                        T alpha,
                                        SquareMatrix<T, N> const& a,
@@ -52,14 +52,14 @@ inline CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
 //---------------------------------------------------------------------------//
 //!@{
 //! Apply a matrix or its transpose to an array, without scaling or addition
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION Array<T, N>
 gemv(SquareMatrix<T, N> const& a, Array<T, N> const& x)
 {
     return gemv(T{1}, a, x, T{0}, x);
 }
 
-template<class T, size_type N>
+template<class T, std::size_t N>
 inline CELER_FUNCTION Array<T, N>
 gemv(matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
 {
@@ -80,18 +80,18 @@ template<class T>
 T trace(SquareMatrix<T, 3> const& mat);
 
 // Perform a matrix-matrix multiply
-template<class T, size_type N>
+template<class T, std::size_t N>
 SquareMatrix<T, N>
 gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b);
 
 // Perform a matrix-matrix multiply with A transposed
-template<class T, size_type N>
+template<class T, std::size_t N>
 SquareMatrix<T, N> gemm(matrix::TransposePolicy,
                         SquareMatrix<T, N> const& a,
                         SquareMatrix<T, N> const& b);
 
 // Normalize and orthogonalize a small, dense matrix
-template<class T, size_type N>
+template<class T, std::size_t N>
 void orthonormalize(SquareMatrix<T, N>* mat);
 
 // Create an identity 3x3 matrix
@@ -136,7 +136,7 @@ SquareMatrixReal3 make_transpose(SquareMatrixReal3 const&);
  *
  * \warning This implementation is limited and slow.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION Array<T, N> gemv(T alpha,
                                 SquareMatrix<T, N> const& a,
                                 Array<T, N> const& x,
@@ -168,7 +168,7 @@ CELER_FUNCTION Array<T, N> gemv(T alpha,
  *
  * \warning This implementation is limited and slow.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
                                 T alpha,
                                 SquareMatrix<T, N> const& a,

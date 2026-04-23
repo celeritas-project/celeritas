@@ -109,16 +109,18 @@ WentzelTransportXsCalculator::operator()(real_type cos_thetamax) const
 CELER_FUNCTION real_type WentzelTransportXsCalculator::calc_xs_contribution(
     real_type cos_thetamax) const
 {
+    using namespace celeritas::literals;
+
     real_type result;
-    real_type const spin = real_type(0.5);
+    real_type const spin = 0.5_r;
     real_type x = (1 - cos_thetamax) / screening_coeff_;
     if (x < WentzelTransportXsCalculator::limit())
     {
         real_type x_sq = ipow<2>(x);
-        result = real_type(0.5) * x_sq
-                 * ((1 - real_type(4) / 3 * x + real_type(1.5) * x_sq)
+        result = 0.5_r * x_sq
+                 * ((1 - 4.0_r / 3.0_r * x + 1.5_r * x_sq)
                     - screening_coeff_ * spin * beta_sq_ * x
-                          * (real_type(2) / 3 - x));
+                          * (2.0_r / 3.0_r - x));
     }
     else
     {

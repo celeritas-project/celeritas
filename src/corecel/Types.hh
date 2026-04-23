@@ -5,6 +5,7 @@
 /*!
  * \file corecel/Types.hh
  * \brief Type definitions for common Celeritas functionality.
+ * \sa corecel/Types.test.cc
  *
  * This file includes types and properties particular to the build
  * configuration.
@@ -22,6 +23,11 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+// Forward declarations for aliases
+template<class T, std::size_t N>
+class Array;
+
 //---------------------------------------------------------------------------//
 // TYPE ALIASES
 //---------------------------------------------------------------------------//
@@ -45,8 +51,6 @@ using real_type = void;
 using ull_int = unsigned long long int;
 
 //! Three-dimensional cartesian coordinates
-template<class T, size_type N>
-class Array;
 using Real3 = Array<real_type, 3>;
 
 //---------------------------------------------------------------------------//
@@ -147,20 +151,30 @@ using MemSpaceCond_t
  * inspection are essentially trivial.
  */
 template<class T>
-struct TriviallyCopyable : std::is_trivially_copyable<T>
+struct IsTriviallyCopyable : std::is_trivially_copyable<T>
 {
 };
 
 //! True if a type can be copied from host/device without UB
 template<class T>
-constexpr inline bool TriviallyCopyable_v = TriviallyCopyable<T>::value;
+constexpr inline bool is_trivially_copyable_v = IsTriviallyCopyable<T>::value;
 
 //! True if an object (functor) is compatible with kernel launchers
 template<class F>
-constexpr inline bool Launchable_v
-    = (TriviallyCopyable_v<F> || CELERITAS_USE_HIP
+constexpr inline bool is_launchable_v
+    = (is_trivially_copyable_v<F> || CELERITAS_USE_HIP
        || CELER_COMPILER == CELER_COMPILER_CLANG)
       && !std::is_pointer_v<F> && !std::is_reference_v<F>;
+
+//! Get the appropriate size_type for an integer or OpaqueId
+template<class T>
+struct MakeSize : std::make_unsigned_t<T>
+{
+};
+
+//! Get the unsigned integer corresponding to an ID's capacity
+template<class T>
+using MakeSize_t = typename MakeSize<std::remove_cv_t<T>>::type;
 
 //!@}
 //---------------------------------------------------------------------------//
@@ -177,4 +191,30 @@ char const* to_cstring(UnitSystem);
 UnitSystem to_unit_system(std::string const& s);
 
 //---------------------------------------------------------------------------//
+/*!
+ * \name User-defined literals for Celeritas scalar types
+ */
+namespace literals
+{
+//---------------------------------------------------------------------------//
+//! Convert a literal to the configured \c real_type
+CELER_CONSTEXPR_FUNCTION real_type operator""_r(long double value)
+{
+    return static_cast<real_type>(value);
+}
+
+//! Convert an integer literal to the configured \c real_type
+CELER_CONSTEXPR_FUNCTION real_type operator""_r(unsigned long long int value)
+{
+    return static_cast<real_type>(value);
+}
+
+//! Convert an integer literal to the configured \c size_type
+CELER_CONSTEXPR_FUNCTION size_type operator""_sz(unsigned long long int value)
+{
+    return static_cast<size_type>(value);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace literals
 }  // namespace celeritas
