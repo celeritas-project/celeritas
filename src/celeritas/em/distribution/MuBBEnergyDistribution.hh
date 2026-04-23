@@ -92,8 +92,8 @@ class MuBBEnergyDistribution
     Energy max_energy_;
     // Whether to apply the radiative correction
     bool use_rad_correction_;
-    // Envelope distribution for rejection sampling
-    real_type envelope_;
+    // Rejection sampler for secondary energy
+    RejectionSampler<> reject_;
 
     //// CONSTANTS ////
 
@@ -140,7 +140,7 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle
     , max_energy_(detail::calc_max_secondary_energy(particle, electron_mass))
     , use_rad_correction_(particle.energy() > rad_correction_limit()
                           && max_energy_ > kin_energy_limit())
-    , envelope_(this->calc_envelope_distribution())
+    , reject_(this->calc_envelope_distribution())
 {
 }
 
@@ -171,7 +171,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                     / ipow<2>(inc_mass_));
             target *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
         }
-    } while (RejectionSampler<>(target, envelope_)(rng));
+    } while (reject_(target, rng));
 
     CELER_ENSURE(energy > 0);
     return Energy{energy};
