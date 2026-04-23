@@ -121,13 +121,14 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    // Stack of deferred nodes
-    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];  // max tree depth
-    int stack_ptr = 0;
+    using Side = BIHInnerNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
-
     BIHNodeId current_node{0};
+
+    // Stack of deferred nodes
+    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];
+    int stack_ptr = 0;
 
     while (current_node)
     {
@@ -135,43 +136,75 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         {
             intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
-
-            // Pop or stop
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
             continue;
         }
 
         auto const& node = view_.inner_node(current_node);
-        auto const& l_edge = node.edges[BIHInnerNode::Side::left];
-        auto const& r_edge = node.edges[BIHInnerNode::Side::right];
+        int ax = to_int(node.axis);
 
-        bool hit_left
-            = this->visit_bbox(l_edge.bbox, ray, intersection.distance);
-        bool hit_right
-            = this->visit_bbox(r_edge.bbox, ray, intersection.distance);
+        // Determine if either edge can be skipped on the basis of the position
+        // and direction of travel of the particle
+        bool skip_left
+            = (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos)
+              && (ray.dir[ax] >= 0);
+        bool skip_right
+            = (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos)
+              && (ray.dir[ax] <= 0);
 
-        if (hit_left && hit_right)
+        // Guess which edge should be traversed first; if the particle is on
+        // the near side of the right partition, go down the left side of the
+        // tree first
+        detail::BIHInnerNode::Edge first_edge, second_edge;
+        bool skip_first, skip_second;
+        if (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos)
         {
-            stack[stack_ptr++] = r_edge.child;
-            current_node = l_edge.child;
-        }
-        else if (hit_left)
-        {
-            current_node = l_edge.child;
-        }
-        else if (hit_right)
-        {
-            current_node = r_edge.child;
+            first_edge = node.edges[Side::left];
+            second_edge = node.edges[Side::right];
+            skip_first = skip_left;
+            skip_second = skip_right;
         }
         else
         {
+            first_edge = node.edges[Side::right];
+            second_edge = node.edges[Side::left];
+            skip_first = skip_right;
+            skip_second = skip_left;
+        }
+
+        // Determine if the first and second edges are hits, short circuiting
+        // with skip_* before testing bounding boxes
+        bool hit_first
+            = !skip_first
+              && this->visit_bbox(first_edge.bbox, ray, intersection.distance);
+        bool hit_second = !skip_second
+                          && this->visit_bbox(
+                              second_edge.bbox, ray, intersection.distance);
+
+        // Choose the next node on the basis of which edges are hits
+        if (hit_first && hit_second)
+        {
+            stack[stack_ptr++] = second_edge.child;
+            current_node = first_edge.child;
+        }
+        else if (hit_first)
+        {
+            current_node = first_edge.child;
+        }
+        else if (hit_second)
+        {
+            current_node = second_edge.child;
+        }
+        else
+        {
+            // No hits for this node, jump to the next node in the stack if
+            // there is one
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
         }
     }
 
     return this->visit_inf_vols(intersection, visit_vol);
 }
-
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
