@@ -149,6 +149,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
     real_type xs{};
+    RejectionSampler<> reject{helper_.max_xs().value()};
     do
     {
         // Sample scaled energy and subtract correction factor
@@ -157,7 +158,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
         // Interpolate the differential cross section at the sampled exit
         // energy
         xs = helper_.calc_xs(exit_energy).value() * scale_xs_(exit_energy);
-    } while (RejectionSampler<>(xs, helper_.max_xs().value())(rng));
+    } while (reject(xs, rng));
     return exit_energy;
 }
 
