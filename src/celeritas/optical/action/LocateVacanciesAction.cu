@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/action/LcateVacanciesAction.cu
+//! \file celeritas/optical/action/LocateVacanciesAction.cu
 //---------------------------------------------------------------------------//
 #include "LocateVacanciesAction.hh"
 
