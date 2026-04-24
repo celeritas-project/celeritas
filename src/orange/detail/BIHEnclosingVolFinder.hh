@@ -81,11 +81,11 @@ BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTreeRecord const& tree,
 
 //---------------------------------------------------------------------------//
 /*!
- * Find a volume that satisfies is_inside.
+ * Find a volume that satisfies is_inside_vol.
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
+BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
     using Side = BIHInnerNode::Side;
 
@@ -98,7 +98,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
         if (!view_.is_inner(current_node))
         {
             auto id = this->visit_leaf(
-                view_.leaf_node(current_node), pos, is_inside);
+                view_.leaf_node(current_node), pos, is_inside_vol);
 
             if (id)
             {
@@ -110,10 +110,9 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
         }
 
         auto const& node = view_.inner_node(current_node);
-        int ax = to_int(node.axis);
 
-        bool in_left = pos[ax] <= node.edges[Side::left].bounding_plane_pos;
-        bool in_right = pos[ax] >= node.edges[Side::right].bounding_plane_pos;
+        bool in_left = is_inside(node.edges[Side::left].bbox, pos);
+        bool in_right = is_inside(node.edges[Side::right].bbox, pos);
 
         if (in_left && in_right)
         {
@@ -134,7 +133,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside) const
         }
     }
 
-    return this->visit_inf_vols(is_inside);
+    return this->visit_inf_vols(is_inside_vol);
 }
 
 //---------------------------------------------------------------------------//
