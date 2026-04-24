@@ -170,17 +170,17 @@ void LocalOpticalGenOffload::Push(G4Step const& step,
     data.type = gen_type;
     data.num_photons = num_photons;
 
-    auto& pre = data.points[StepPoint::pre];
-    pre.speed = units::LightSpeed(pre_step->GetBeta());
-    pre.time = native_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
-    pre.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
-        pre_step->GetPosition());
+    auto load_step_point = [](G4StepPoint const* p) {
+        optical::GeneratorStepData data;
+        data.speed = units::LightSpeed(p->GetBeta());
+        data.time = native_from_geant<units::ClhepTime>(p->GetGlobalTime());
+        data.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
+            p->GetPosition());
+        return data;
+    };
 
-    auto& post = data.points[StepPoint::post];
-    post.speed = units::LightSpeed(post_step->GetBeta());
-    post.time = native_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
-    post.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
-        post_step->GetPosition());
+    data.points[StepPoint::pre] = load_step_point(pre_step);
+    data.points[StepPoint::post] = load_step_point(post_step);
 
     auto* g4mat = pre_step->GetMaterial();
     CELER_ASSERT(g4mat);

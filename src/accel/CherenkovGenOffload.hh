@@ -14,6 +14,10 @@ namespace celeritas
 /*!
  * A replacement for Geant4's \c G4Cerenkov process which constructs \c
  * GeneratorDistributionData from a \c PostStepDoIt call.
+ *
+ * Allows offloading directly to \c LocalOpticalGenOffload by skipping the
+ * secondary photon initialization and instead pushing a \c
+ * GeneratorDistributionData for the given step.
  */
 class CherenkovGenOffload : public G4Cerenkov
 {

@@ -19,6 +19,13 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create a generator distribution for the given track and step.
+ *
+ * A Cherenkov distribution is constructed from the given \c G4Step, skipping
+ * the initialization of secondary photon tracks in Geant4. The average number
+ * of photons is determined by \c G4Cerenkov::GetMeanNumberOfPhotons and
+ * sampled by \c G4Poisson. The resulting distribution is pushed to the local
+ * offload, which should be \c LocalOpticalGenOffload.
  */
 G4VParticleChange*
 CherenkovGenOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
@@ -52,9 +59,15 @@ CherenkovGenOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
     {
         // Push generator distribution for this step to offload
         auto& local = detail::IntegrationSingleton::instance().local_offload();
-        auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
+        auto* gen_offload = dynamic_cast<LocalOpticalGenOffload*>(&local);
+
+        CELER_VALIDATE(gen_offload,
+                       << "LocalOpticalGenOffload required for "
+                          "CherenkovGenOffload");
+
         CELER_LOG_LOCAL(debug)
             << "Offloading " << num_photons << " Cherenkov photons";
+
         gen_offload.Push(aStep, GeneratorType::cherenkov, num_photons);
     }
 
