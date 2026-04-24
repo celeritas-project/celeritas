@@ -24,7 +24,6 @@ set(PUBLIC_DEPS
 list(APPEND SOURCES
   AlongStepFactory.cc
   CartMapMagneticField.cc
-  CherenkovGenOffload.cc
   CylMapMagneticField.cc
   RZMapMagneticField.cc
   FastSimulationIntegration.cc
@@ -37,7 +36,6 @@ list(APPEND SOURCES
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc
-  ScintillationGenOffload.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc
@@ -48,6 +46,9 @@ list(APPEND SOURCES
   detail/GeantSimpleCaloSD.cc
   detail/LoggerImpl.cc
   detail/IntegrationSingleton.cc
+  gen/G4CherenkovOffload.cc
+  gen/G4OffloadUtils.cc
+  gen/G4ScintillationOffload.cc
 )
 
 celeritas_polysource(ExceptionConverter)

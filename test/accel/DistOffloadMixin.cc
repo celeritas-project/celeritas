@@ -18,11 +18,11 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
-#include "accel/CherenkovGenOffload.hh"
 #include "accel/IntegrationTestBase.hh"
 #include "accel/LocalOpticalGenOffload.hh"
-#include "accel/ScintillationGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"
+#include "accel/gen/G4CherenkovOffload.hh"
+#include "accel/gen/G4ScintillationOffload.hh"
 
 namespace celeritas
 {
@@ -81,10 +81,10 @@ auto DistOffloadMixin::make_physics_input() const -> PhysicsInput
         // since we're killing or sending to Celeritas
         optical->cherenkov->stack_photons = false;
         optical->cherenkov->custom_cherenkov
-            = []() { return std::make_unique<CherenkovGenOffload>(); };
+            = []() { return std::make_unique<G4CherenkovOffload>(); };
         optical->scintillation->stack_photons = false;
         optical->scintillation->custom_scintillation
-            = []() { return std::make_unique<ScintillationGenOffload>(); };
+            = []() { return std::make_unique<G4ScintillationOffload>(); };
     }
 
     // Disable WLS which isn't yet working (reemission) in Celeritas

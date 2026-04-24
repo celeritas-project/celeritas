@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/CherenkovGenOffload.hh
+//! \file accel/gen/G4CherenkovOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -15,11 +15,10 @@ namespace celeritas
  * A replacement for Geant4's \c G4Cerenkov process which constructs \c
  * GeneratorDistributionData from a \c PostStepDoIt call.
  *
- * Allows offloading directly to \c LocalOpticalGenOffload by skipping the
- * secondary photon initialization and instead pushing a \c
- * GeneratorDistributionData for the given step.
+ * This process should have stacking photons set to false so that photons are
+ * not initialized in Geant4.
  */
-class CherenkovGenOffload : public G4Cerenkov
+class G4CherenkovOffload : public G4Cerenkov
 {
   public:
     // Create a generator distribution for the given track and step
