@@ -380,7 +380,10 @@ void SupportedOpticalPhysics::ConstructProcess()
 
     if (process_is_active(OpticalProcessType::cherenkov, options_))
     {
-        auto cherenkov = ObservingUniquePtr{std::make_unique<G4Cerenkov>()};
+        ObservingUniquePtr<G4Cerenkov> cherenkov{
+            options_.cherenkov->custom_cherenkov
+                ? options_.cherenkov->custom_cherenkov()
+                : std::make_unique<G4Cerenkov>()};
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
         cherenkov->SetStackPhotons(options_.cherenkov->stack_photons);

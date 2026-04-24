@@ -18,6 +18,7 @@
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
+#include "accel/CherenkovGenOffload.hh"
 #include "accel/IntegrationTestBase.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -169,6 +170,8 @@ auto DistOffloadMixin::make_physics_input() const -> PhysicsInput
         // Disable generation of Cherenkov and scintillation photons in Geant4,
         // since we're killing or sending to Celeritas
         optical->cherenkov->stack_photons = false;
+        optical->cherenkov->custom_cherenkov
+            = []() { return std::make_unique<CherenkovGenOffload>(); };
         optical->scintillation->stack_photons = false;
     }
 

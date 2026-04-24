@@ -6,10 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+#include <memory>
 #include <optional>
 #include <utility>
 
 #include "celeritas/optical/Types.hh"
+
+class G4Cerenkov;
 
 namespace celeritas
 {
@@ -17,6 +21,8 @@ namespace celeritas
 //! Cherenkov process options (use \c std::nullopt to disable)
 struct CherenkovPhysicsOptions
 {
+    //! Use custom Cherenkov process
+    std::function<std::unique_ptr<G4Cerenkov>()> custom_cherenkov;
     //! Enable generation of Cherenkov photons
     bool stack_photons{true};
     //! Track generated photons before parent

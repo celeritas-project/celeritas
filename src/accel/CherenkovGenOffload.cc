@@ -10,6 +10,7 @@
 #include <G4Step.hh>
 #include <G4Track.hh>
 
+#include "corecel/io/Logger.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -52,6 +53,8 @@ CherenkovGenOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
         // Push generator distribution for this step to offload
         auto& local = detail::IntegrationSingleton::instance().local_offload();
         auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
+        CELER_LOG_LOCAL(debug)
+            << "Offloading " << num_photons << " Cherenkov photons";
         gen_offload.Push(aStep, GeneratorType::cherenkov, num_photons);
     }
 

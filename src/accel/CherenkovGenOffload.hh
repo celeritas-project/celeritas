@@ -23,9 +23,6 @@ class CherenkovGenOffload : public G4Cerenkov
     //!@}
 
   public:
-    // Construct with defaults
-    CherenkovGenOffload();
-
     // Create a generator distribution for the given track and step
     G4VParticleChange*
     PostStepDoIt(G4Track const& aTrack, G4Step const& aStep) override;
