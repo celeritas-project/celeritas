@@ -97,7 +97,6 @@ class BIHBuilder
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
-                        BIHNodeId parent,
                         size_type current_depth,
                         size_type& depth);
 

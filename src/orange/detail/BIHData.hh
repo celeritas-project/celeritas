@@ -53,7 +53,6 @@ struct BIHInnerNode
         size_
     };
 
-    BIHNodeId parent;  //!< Parent node ID
     Axis axis;  //!< Axis that the partition is performed on
     EnumArray<Side, Edge> edges;  //!< Left/right edges
 
@@ -69,7 +68,6 @@ struct BIHInnerNode
  */
 struct BIHLeafNode
 {
-    BIHNodeId parent;  //!< Parent node ID
     ItemRange<LocalVolumeId> vol_ids;
 
     explicit CELER_FUNCTION operator bool() const { return !vol_ids.empty(); }
