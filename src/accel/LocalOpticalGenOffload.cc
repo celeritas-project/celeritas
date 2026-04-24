@@ -187,16 +187,15 @@ void LocalOpticalGenOffload::Flush()
     generate_->insert(*state_, make_span(buffer_));
 
     // Update the number of primaries waiting to be generated based on the
-    // number of photons. Can use static_cast since the appropriate derived
-    // class is specified in the constructor.
+    // number of photons.
     if (celeritas::device())
     {
-        auto* s = static_cast<optical::CoreState<MemSpace::device>*>(&*state_);
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
         update_primaries(*s);
     }
     else
     {
-        auto* s = static_cast<optical::CoreState<MemSpace::host>*>(&*state_);
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
         update_primaries(*s);
     }
 

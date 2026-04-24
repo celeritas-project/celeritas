@@ -134,12 +134,12 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
     }
     if (celeritas::device())
     {
-        auto* s = static_cast<optical::CoreState<MemSpace::device>*>(&*state_);
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
         update_pending(*s, total_pending);
     }
     else
     {
-        auto* s = static_cast<optical::CoreState<MemSpace::host>*>(&*state_);
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
         update_pending(*s, total_pending);
     }
 
