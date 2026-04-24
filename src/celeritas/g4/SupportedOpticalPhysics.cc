@@ -351,6 +351,7 @@ void SupportedOpticalPhysics::ConstructProcess()
             options_.scintillation->custom_scintillation
                 ? options_.scintillation->custom_scintillation()
                 : std::make_unique<G4Scintillation>()};
+        CELER_ASSERT(scint);
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
         scint->SetStackPhotons(options_.scintillation->stack_photons);
@@ -387,6 +388,7 @@ void SupportedOpticalPhysics::ConstructProcess()
             options_.cherenkov->custom_cherenkov
                 ? options_.cherenkov->custom_cherenkov()
                 : std::make_unique<G4Cerenkov>()};
+        CELER_ASSERT(cherenkov);
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
         cherenkov->SetStackPhotons(options_.cherenkov->stack_photons);
