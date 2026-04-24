@@ -24,6 +24,7 @@ set(PUBLIC_DEPS
 list(APPEND SOURCES
   AlongStepFactory.cc
   CartMapMagneticField.cc
+  CherenkovGenOffload.cc
   CylMapMagneticField.cc
   RZMapMagneticField.cc
   FastSimulationIntegration.cc
