@@ -16,6 +16,7 @@
 #include "LocalOffloadInterface.hh"
 
 class G4EventManager;
+class G4Step;
 
 namespace celeritas
 {
@@ -75,6 +76,9 @@ class LocalOpticalGenOffload final : public LocalOffloadInterface
 
     // Offload optical distribution data to Celeritas
     void Push(DistributionData const&);
+
+    // Construct and offload optical distribution data to Celeritas from a step
+    void Push(G4Step const&, GeneratorType, size_type num_photons);
 
     //! Whether the class instance is initialized
     explicit operator bool() const { return this->Initialized(); }

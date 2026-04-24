@@ -89,53 +89,62 @@ void DistOffloadSteppingAction::UserSteppingAction(G4Step const* step)
         return;
     }
 
-    if (!geant_geo_)
-    {
-        geant_geo_ = celeritas::global_geant_geo().lock();
-        CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not loaded");
-    }
+    // if (!geant_geo_)
+    // {
+    //     geant_geo_ = celeritas::global_geant_geo().lock();
+    //     CELER_VALIDATE(geant_geo_, << "global Geant4 geometry is not
+    //     loaded");
+    // }
 
-    auto* pre_step = step->GetPreStepPoint();
-    auto* post_step = step->GetPostStepPoint();
-    CELER_ASSERT(pre_step && post_step);
+    // auto* pre_step = step->GetPreStepPoint();
+    // auto* post_step = step->GetPostStepPoint();
+    // CELER_ASSERT(pre_step && post_step);
 
-    // Create distribution and push to Celeritas
-    optical::GeneratorDistributionData data;
-    data.step_length
-        = native_from_geant<lengthunits::ClhepLength>(step->GetStepLength());
-    data.charge = units::ElementaryCharge{
-        static_cast<real_type>(post_step->GetCharge())};
-    auto& pre = data.points[StepPoint::pre];
-    pre.speed = units::LightSpeed(pre_step->GetBeta());
-    pre.time = native_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
-    pre.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
-        pre_step->GetPosition());
-    auto& post = data.points[StepPoint::post];
-    post.speed = units::LightSpeed(post_step->GetBeta());
-    post.time = native_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
-    post.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
-        post_step->GetPosition());
-    auto* g4mat = pre_step->GetMaterial();
-    CELER_ASSERT(g4mat);
-    data.material
-        = (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
+    // // Create distribution and push to Celeritas
+    // optical::GeneratorDistributionData data;
+    // data.step_length
+    //     =
+    //     native_from_geant<lengthunits::ClhepLength>(step->GetStepLength());
+    // data.charge = units::ElementaryCharge{
+    //     static_cast<real_type>(post_step->GetCharge())};
+    // auto& pre = data.points[StepPoint::pre];
+    // pre.speed = units::LightSpeed(pre_step->GetBeta());
+    // pre.time =
+    // native_from_geant<units::ClhepTime>(pre_step->GetGlobalTime()); pre.pos
+    // = native_from_geant<lengthunits::ClhepLength, real_type>(
+    //     pre_step->GetPosition());
+    // auto& post = data.points[StepPoint::post];
+    // post.speed = units::LightSpeed(post_step->GetBeta());
+    // post.time =
+    // native_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
+    // post.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
+    //     post_step->GetPosition());
+    // auto* g4mat = pre_step->GetMaterial();
+    // CELER_ASSERT(g4mat);
+    // data.material
+    //     =
+    //     (*geant_geo_->geo_optical_id_map())[geant_geo_->geant_to_id(*g4mat)];
 
     auto& local = detail::IntegrationSingleton::instance().local_offload();
     auto& gen_offload = dynamic_cast<LocalOpticalGenOffload&>(local);
     if (num_cherenkov > 0)
     {
-        data.type = GeneratorType::cherenkov;
-        data.num_photons = num_cherenkov;
-        CELER_ASSERT(data);
-        gen_offload.Push(data);
+        // data.type = GeneratorType::cherenkov;
+        // data.num_photons = num_cherenkov;
+        // CELER_ASSERT(data);
+        // gen_offload.Push(data);
+        gen_offload.Push(*step, GeneratorType::cherenkov, num_cherenkov);
     }
     if (num_scintillation > 0)
     {
-        data.type = GeneratorType::scintillation;
-        data.num_photons = num_scintillation;
-        CELER_ASSERT(data);
-        gen_offload.Push(data);
+        // data.type = GeneratorType::scintillation;
+        // data.num_photons = num_scintillation;
+        // CELER_ASSERT(data);
+        // gen_offload.Push(data);
+        gen_offload.Push(
+            *step, GeneratorType::scintillation, num_scintillation);
     }
+
     CELER_LOG(debug) << "Generating " << num_cherenkov
                      << " Cherenkov photons and " << num_scintillation
                      << " scintillation photons";

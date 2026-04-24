@@ -15,7 +15,10 @@
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
+#include "geocel/GeoOpticalIdMap.hh"
+#include "geocel/g4/Convert.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -140,6 +143,52 @@ void LocalOpticalGenOffload::Push(optical::GeneratorDistributionData const& data
     {
         this->Flush();
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a generator distribution from a \c G4Step and buffer it.
+ */
+void LocalOpticalGenOffload::Push(G4Step const& step,
+                                  GeneratorType gen_type,
+                                  size_type num_photons)
+{
+    CELER_EXPECT(num_photons > 0);
+
+    auto geant_geo = celeritas::global_geant_geo().lock();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
+
+    auto* pre_step = step.GetPreStepPoint();
+    auto* post_step = step.GetPostStepPoint();
+    CELER_ASSERT(pre_step && post_step);
+
+    optical::GeneratorDistributionData data;
+    data.step_length
+        = native_from_geant<lengthunits::ClhepLength>(step.GetStepLength());
+    data.charge = units::ElementaryCharge{
+        static_cast<real_type>(post_step->GetCharge())};
+    data.type = gen_type;
+    data.num_photons = num_photons;
+
+    auto& pre = data.points[StepPoint::pre];
+    pre.speed = units::LightSpeed(pre_step->GetBeta());
+    pre.time = native_from_geant<units::ClhepTime>(pre_step->GetGlobalTime());
+    pre.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
+        pre_step->GetPosition());
+
+    auto& post = data.points[StepPoint::post];
+    post.speed = units::LightSpeed(post_step->GetBeta());
+    post.time = native_from_geant<units::ClhepTime>(post_step->GetGlobalTime());
+    post.pos = native_from_geant<lengthunits::ClhepLength, real_type>(
+        post_step->GetPosition());
+
+    auto* g4mat = pre_step->GetMaterial();
+    CELER_ASSERT(g4mat);
+    data.material
+        = (*geant_geo->geo_optical_id_map())[geant_geo->geant_to_id(*g4mat)];
+
+    CELER_ASSERT(data);
+    this->Push(data);
 }
 
 //---------------------------------------------------------------------------//
