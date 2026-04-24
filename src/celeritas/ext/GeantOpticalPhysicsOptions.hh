@@ -14,6 +14,7 @@
 #include "celeritas/optical/Types.hh"
 
 class G4Cerenkov;
+class G4Scintillation;
 
 namespace celeritas
 {
@@ -49,6 +50,8 @@ operator==(CherenkovPhysicsOptions const& a, CherenkovPhysicsOptions const& b)
 //! Scintillation process options (use \c std::nullopt to disable)
 struct ScintillationPhysicsOptions
 {
+    //! Use custom scintillation process
+    std::function<std::unique_ptr<G4Scintillation>()> custom_scintillation;
     //! Enable generation of scintillation photons
     bool stack_photons{true};
     //! Track generated photons before parent

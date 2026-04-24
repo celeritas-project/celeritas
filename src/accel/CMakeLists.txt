@@ -37,6 +37,7 @@ list(APPEND SOURCES
   LocalTransporter.cc
   Logger.cc
   PGPrimaryGeneratorAction.cc
+  ScintillationGenOffload.cc
   SetupOptions.cc
   SetupOptionsMessenger.cc
   SharedParams.cc

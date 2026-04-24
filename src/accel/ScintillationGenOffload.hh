@@ -2,20 +2,20 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/CherenkovGenOffload.hh
+//! \file accel/ScintillationGenOffload.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <G4Cerenkov.hh>
+#include <G4Scintillation.hh>
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * A replacement for Geant4's \c G4Cerenkov process which constructs \c
+ * A replacement for Geant4's \c G4Scintillation process which constructs \c
  * GeneratorDistributionData from a \c PostStepDoIt call.
  */
-class CherenkovGenOffload : public G4Cerenkov
+class ScintillationGenOffload : public G4Scintillation
 {
   public:
     // Create a generator distribution for the given track and step

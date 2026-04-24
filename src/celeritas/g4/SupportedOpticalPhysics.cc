@@ -347,7 +347,10 @@ void SupportedOpticalPhysics::ConstructProcess()
         // Only update scintillation properties if there are particles that the
         // process applies to. \c G4EmSaturation requires both electron and
         // proton be defined, which is false for Celeritas optical-only runs.
-        auto scint = ObservingUniquePtr{std::make_unique<G4Scintillation>()};
+        ObservingUniquePtr<G4Scintillation> scint{
+            options_.scintillation->custom_scintillation
+                ? options_.scintillation->custom_scintillation()
+                : std::make_unique<G4Scintillation>()};
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
         scint->SetStackPhotons(options_.scintillation->stack_photons);
