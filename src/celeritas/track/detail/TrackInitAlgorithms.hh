@@ -59,12 +59,10 @@ size_type exclusive_scan_counts(
 void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::host> const&,
-    size_type,
     StreamId);
 void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    size_type,
     StreamId);
 
 //---------------------------------------------------------------------------//
@@ -87,7 +85,6 @@ inline size_type exclusive_scan_counts(
 inline void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    size_type,
     StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

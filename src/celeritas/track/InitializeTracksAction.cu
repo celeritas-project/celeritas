@@ -11,21 +11,28 @@
 #include "celeritas/global/CoreState.hh"
 
 #include "detail/InitTracksExecutor.hh"
+#include "detail/UpdateNewTracksExecutor.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to initialize tracks.
+ * Launch (device) kernels to initialize tracks and to update the corresponding
+ * counters.
  */
 void InitializeTracksAction::step_impl(CoreParams const& params,
                                        CoreStateDevice& state,
                                        size_type num_new_tracks) const
 {
-    detail::InitTracksExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), num_new_tracks};
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
-    launch_kernel(num_new_tracks, state.stream_id(), execute_thread);
+    detail::InitTracksExecutor execute{params.ptr<MemSpace::native>(),
+                                       state.ptr()};
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(num_new_tracks, state.stream_id(), execute);
+
+    detail::UpdateNewTracksExecutor execute_thread{
+        params.ptr<MemSpace::native>(), state.ptr()};
+    static ActionLauncher<decltype(execute_thread)> const launch_kernel2(*this);
+    launch_kernel2(1, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//
