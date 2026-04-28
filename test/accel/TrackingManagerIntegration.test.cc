@@ -20,10 +20,12 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/g4/StateDependent.hh"
+#include "celeritas/g4/Threading.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -258,17 +260,31 @@ TEST_F(LarSphere, state_dep)
     static std::map<StreamId, std::vector<GeantStateChange>> stream_state;
     // Record a change for the local stream ID
     static auto record_state_change = [](StreamId sid, GeantStateChange change) {
-        std::ostringstream debug_out;
-        debug_out << sid << ": " << change << '\n';
-        static std::mutex mu;
-        std::scoped_lock lock{mu};
-        stream_state[sid].emplace_back(change);
-        std::cerr << debug_out.str();
+        if (change != GeantStateChange::unknown)
+        {
+            static std::mutex mu;
+            std::scoped_lock lock{mu};
+            stream_state[sid].emplace_back(change);
+        }
+        CELER_LOG_LOCAL(debug) << sid << ": " << change;
     };
-    // Create the state dependent on the local threads
-    // NOTE that Geant4 state manager base class "registers" this pointer and
-    // deregisters on destruction
-    static thread_local StateDependent state_dep{record_state_change};
+
+    // Set a callback that constructs the state dependent on every thread:
+    // we should probably do this as part of the tracking manager.
+    this->set_build_cb([](StreamId s) {
+        // Create the state dependent on the local threads
+        // NOTE that Geant4 state manager base class "registers" this pointer
+        // and deregisters on destruction
+        // ALSO note that this thread_local declaration *must* be seen by each
+        // thread before it is used by that thread.
+        static thread_local StateDependent state_dep{record_state_change};
+
+        ASSERT_NE(&state_dep, nullptr);
+        EXPECT_EQ(state_dep.local_stream(), s);
+        CELER_LOG_LOCAL(error)
+            << "State dependent for " << state_dep.local_stream() << ": "
+            << static_cast<void*>(&state_dep);
+    });
 
     auto& rm = this->run_manager();
     TMI::Instance().SetOptions(this->make_setup_options());
@@ -276,7 +292,7 @@ TEST_F(LarSphere, state_dep)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
 
-    rm.BeamOn(1);
+    rm.BeamOn(2);
 
     if (this->HasFailure())
     {
@@ -299,7 +315,46 @@ TEST_F(LarSphere, state_dep)
                                        + stream_to_string(s));
         }
     }
-    PRINT_EXPECTED(merged_status);
+
+    std::vector<std::string> expected_status;
+    if (test_runman_type() == "mt")
+    {
+        expected_status = {
+            "{0}:initialize", "{0}:initialize",  "{0}:initialize",
+            "{0}:begin_run",  "{0}:end_run",     "{0}:initialize",
+            "{0}:begin_run",  "{0}:begin_event", "{0}:end_event",
+            "{0}:end_run",    "{0}:initialize",  "{0}:begin_run",
+            "{0}:end_run",    "{1}:initialize",  "{1}:initialize",
+            "{1}:initialize", "{1}:begin_run",   "{1}:end_run",
+            "{1}:initialize", "{1}:begin_run",   "{1}:begin_event",
+            "{1}:end_event",  "{1}:end_run",     "{1}:initialize",
+            "{1}:begin_run",  "{1}:begin_event", "{1}:end_event",
+            "{1}:end_run",    "{}:initialize",   "{}:initialize",
+            "{}:initialize",  "{}:begin_run",    "{}:end_run",
+            "{}:initialize",  "{}:begin_run",    "{}:end_run",
+            "{}:initialize",  "{}:begin_run",    "{}:end_run",
+        };
+    }
+    else if (test_runman_type() == "serial")
+    {
+        expected_status = {
+            "{0}:initialize",
+            "{0}:initialize",
+            "{0}:initialize",
+            "{0}:begin_run",
+            "{0}:begin_event",
+            "{0}:end_event",
+            "{0}:begin_event",
+            "{0}:end_event",
+            "{0}:end_run",
+            "{0}:initialize",
+            "{0}:begin_run",
+            "{0}:begin_event",
+            "{0}:end_event",
+            "{0}:end_run",
+        };
+    }
+    EXPECT_VEC_EQ(expected_status, merged_status);
 }
 
 /*!

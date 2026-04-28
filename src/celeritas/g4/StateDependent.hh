@@ -9,6 +9,7 @@
 #include <functional>
 #include <G4VStateDependent.hh>
 
+#include "corecel/Macros.hh"
 #include "corecel/sys/ThreadId.hh"
 
 class G4StateManager;
@@ -102,6 +103,9 @@ class StateDependent final : public G4VStateDependent
   public:
     // Construct locally with state-change callback
     explicit StateDependent(LocalStateChangeFunc cb);
+
+    // Prevent move/copy due to weird base class antics
+    CELER_DELETE_COPY_MOVE(StateDependent);
 
     // Invoke the callback when the Geant4 state changes
     G4bool Notify(G4ApplicationState state) final;
