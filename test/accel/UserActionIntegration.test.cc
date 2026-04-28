@@ -72,7 +72,7 @@ class UAITestBase : virtual public IntegrationTestBase
 
         EXPECT_EQ(0, local.GetBufferSize());
     }
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         return std::make_unique<UAITrackingAction>();
     }
@@ -114,12 +114,19 @@ TEST_F(LarSphere, run)
  *
  * The \c LarSphere base sets up geometry and primaries (electrons), and \c
  * DistOffloadMixin sets up the correct Geant4 physics and Celeritas run
- * options.
+ * options. Because \c LarSphere sets up celeritas, it should be called on the
+ * "outside" of the begin/end run.
  */
 class LarSphereOpticalOffload : public DistOffloadMixin, public LarSphere
 {
   public:
     PrimaryInput make_primary_input() const override;
+
+    void BeginOfRunAction(G4Run const* run) override
+    {
+        LarSphere::BeginOfRunAction(run);
+        DistOffloadMixin::BeginOfRunAction(run);
+    }
 
     void EndOfRunAction(G4Run const* run) override
     {
@@ -228,9 +235,9 @@ class LarSphereOpticalTrackOffload : public LarSphere
   public:
     PhysicsInput make_physics_input() const override;
     PrimaryInput make_primary_input() const override;
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
     void EndOfRunAction(G4Run const* run) override;
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<LSOOTrackingAction>();
         {
@@ -283,7 +290,7 @@ auto LarSphereOpticalTrackOffload::make_physics_input() const -> PhysicsInput
 /*!
  * Enable optical tracking offloading.
  */
-auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
+auto LarSphereOpticalTrackOffload::make_setup_options() const -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
     result.optical = [] {

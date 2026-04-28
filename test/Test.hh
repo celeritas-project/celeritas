@@ -39,10 +39,10 @@ class Test : public ::testing::Test
     Test() = default;
 
     // Generate test-unique filename
-    virtual std::string make_unique_filename(std::string_view ext);
+    virtual std::string make_unique_filename(std::string_view ext) const;
 
     // Make a unique filename with no extension
-    std::string make_unique_filename()
+    std::string make_unique_filename() const
     {
         return this->make_unique_filename({});
     }
@@ -73,7 +73,7 @@ class Test : public ::testing::Test
 #endif
 
   private:
-    int filename_counter_ = 0;
+    mutable int filename_counter_ = 0;
 };
 
 //---------------------------------------------------------------------------//

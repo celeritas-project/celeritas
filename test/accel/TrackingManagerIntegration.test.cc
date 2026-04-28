@@ -17,7 +17,6 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeantUtils.hh"
@@ -164,10 +163,9 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         }
     }
 
-    virtual void process_hit(G4Step const* step) override
+    virtual void process_hit(StreamId sid, G4Step const& step) override
     {
-        LarSphereIntegrationMixin::process_hit(step);
-        ASSERT_TRUE(step);
+        LarSphereIntegrationMixin::process_hit(sid, step);
 
         // Check the weight is consistent with our modification at
         // begin-of-event
@@ -175,7 +173,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
                             ->GetConstCurrentEvent()
                             ->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
-                         step->GetTrack()->GetWeight());
+                         step.GetTrack()->GetWeight());
     }
 
     //! Check wrapped RuntimeError caught by GeantExceptionHandler
@@ -352,11 +350,11 @@ class LarSphereOptical : public LarSphere
         return result;
     }
 
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
 
     void EndOfRunAction(G4Run const* run) override;
 
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<CounterTrackingAction>();
         {
@@ -377,7 +375,7 @@ class LarSphereOptical : public LarSphere
 /*!
  * Enable optical tracking.
  */
-auto LarSphereOptical::make_setup_options() -> SetupOptions
+auto LarSphereOptical::make_setup_options() const -> SetupOptions
 {
     auto result = LarSphereIntegrationMixin::make_setup_options();
 
@@ -490,7 +488,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
 {
   public:
     void EndOfRunAction(G4Run const* run) override;
-    UPTrackAction make_tracking_action() override
+    UPTrackAction make_tracking_action(StreamId) override
     {
         auto result = std::make_unique<CounterTrackingAction>();
         {
@@ -613,7 +611,7 @@ class OpticalSurfaces : public TMITestBase
     }
 
     PrimaryInput make_primary_input() const override;
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
     void EndOfRunAction(G4Run const* run) override;
 };
 
@@ -638,7 +636,7 @@ auto OpticalSurfaces::make_primary_input() const -> PrimaryInput
 /*!
  * Enable optical tracking.
  */
-auto OpticalSurfaces::make_setup_options() -> SetupOptions
+auto OpticalSurfaces::make_setup_options() const -> SetupOptions
 {
     auto result = TMITestBase::make_setup_options();
 

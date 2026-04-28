@@ -36,12 +36,14 @@ class DetectorAction final : public OpticalStepActionInterface,
   public:
     //!@{
     //! \name Type aliases
-    using CallbackFunc = inp::OpticalDetector::HitCallbackFunc;
+    using FuncSpanHit = inp::OpticalDetector::FuncSpanHit;
+    // DEPRECATED: remove in v0.7
+    using CallbackFunc [[deprecated]] = FuncSpanHit;
     //!@}
 
   public:
     // Construct with ID and callback function
-    explicit DetectorAction(ActionId, CallbackFunc const&);
+    explicit DetectorAction(ActionId, FuncSpanHit const&);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;
@@ -59,7 +61,7 @@ class DetectorAction final : public OpticalStepActionInterface,
 
     //// DATA ////
 
-    CallbackFunc callback_;
+    FuncSpanHit callback_;
 
     //// HELPER FUNCTIONS ////
 

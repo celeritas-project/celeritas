@@ -139,10 +139,9 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
         }
     }
 
-    virtual void process_hit(G4Step const* step) override
+    virtual void process_hit(StreamId sid, G4Step const& step) override
     {
-        LarSphereIntegrationMixin::process_hit(step);
-        ASSERT_TRUE(step);
+        LarSphereIntegrationMixin::process_hit(sid, step);
 
         // Check the weight is consistent with our modification at
         // begin-of-event
@@ -150,7 +149,7 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
                             ->GetConstCurrentEvent()
                             ->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
-                         step->GetTrack()->GetWeight());
+                         step.GetTrack()->GetWeight());
     }
 
     //! Check wrapped RuntimeError caught by GeantExceptionHandler

@@ -102,20 +102,24 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration Fast
     ${_basename} LarSphere run
   )
 
-  # Do TestEm3 only with celeritas cpu/gpu and serial run manager
-  celeritas_add_integration_tests(
-    ${_basename} TestEm3 run
-    OFFLOAD cpu gpu
-    RMTYPE serial
-  )
-
   # Test OpNovice with optical-friendly run manager types
   celeritas_add_integration_tests(
     ${_basename} OpNoviceOptical run
     OFFLOAD cpu gpu g4
     RMTYPE ${_optical_rm_type}
   )
+
+  # Do TestEm3 only with celeritas cpu/gpu and serial run manager
+  celeritas_add_integration_tests(
+    ${_basename} TestEm3 run
+    OFFLOAD cpu gpu
+    RMTYPE serial
+  )
 endforeach()
+
+#--------------------------------------#
+# TrackingManagerIntegration.test.cc
+# (in addition to the loop above)
 
 # Test that the UI integration works (and ignores if Celeritas is disabled)
 celeritas_add_integration_tests(
@@ -138,13 +142,6 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
-# Test with optical physics offloading distributions
-celeritas_add_integration_tests(
-  UserActionIntegration LarSphereOpticalOffload run
-  OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
-)
-
 # Test optical surface physics
 celeritas_add_integration_tests(
   TrackingManagerIntegration OpticalSurfaces run
@@ -152,7 +149,18 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
+#--------------------------------------#
+# UserActionIntegration.test.cc
+# (in addition to the loop above)
+
 # Test with optical physics offloading distributions
+celeritas_add_integration_tests(
+  UserActionIntegration LarSphereOpticalOffload run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
+)
+
+# Test with optical physics offloading tracks
 celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4

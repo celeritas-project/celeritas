@@ -45,7 +45,7 @@ Test::test_data_path(std::string_view subdir, std::string_view filename)
 /*!
  * Generate test-unique filename.
  */
-std::string Test::make_unique_filename(std::string_view ext)
+std::string Test::make_unique_filename(std::string_view ext) const
 {
     // Get filename based on unit test name
     ::testing::TestInfo const* const test_info

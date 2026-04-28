@@ -7,12 +7,10 @@
 #include "IntegrationTestBase.hh"
 
 #include <exception>
-#include <G4Threading.hh>
+#include <memory>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
-#include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
-#include <G4VSensitiveDetector.hh>
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
 #include <G4VUserPrimaryGeneratorAction.hh>
@@ -21,6 +19,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -45,8 +44,10 @@
 #include "celeritas/Units.hh"
 #include "celeritas/ext/EmPhysicsList.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
-#include "celeritas/ext/SimpleSensitiveDetector.hh"
 #include "celeritas/g4/DetectorConstruction.hh"
+#include "celeritas/g4/SensitiveDetector.hh"
+#include "celeritas/g4/SteppingAction.hh"
+#include "celeritas/g4/Threading.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "accel/AlongStepFactory.hh"
@@ -54,7 +55,6 @@
 #include "accel/SetupOptions.hh"
 
 #include "PersistentSP.hh"
-#include "ShimSensitiveDetector.hh"
 
 using SPTracing = std::shared_ptr<celeritas::TracingSession>;
 
@@ -83,6 +83,19 @@ std::string thread_description()
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * The integration run action dispatches to the test.
+ *
+ * It wraps the begin/end test calls with \c CELER_TRY_HANDLE, forwards
+ * thread-local \c G4Exception to the test harness, and informs the test
+ * harness about changes in state.
+ *
+ * The run manager member data are thread-local, live throughout the app
+ * lifetime, and are destroyed on the same thread in which they're created
+ * - \c G4VExceptionHandler override (must be thread-local)
+ * - \c G4VStateDependent (must be thread-local \em and destroyed on the same
+ *   thread on which it was created)
+ */
 class RunAction final : public G4UserRunAction
 {
   public:
@@ -90,7 +103,7 @@ class RunAction final : public G4UserRunAction
         : test_{test}
         , tracing_{std::move(tracing)}
         , exceptions_(
-              [this](std::exception_ptr ep) { this->handle_exception(ep); })
+              [t = test_](std::exception_ptr ep) { t->handle_exception(ep); })
     {
         CELER_EXPECT(test_);
     }
@@ -99,45 +112,17 @@ class RunAction final : public G4UserRunAction
     {
         CELER_EXPECT(run);
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
-        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
+        CELER_TRY_HANDLE(test_->BeginOfRunAction(run), test_->handle_exception);
     }
 
     void EndOfRunAction(G4Run const* run) final
     {
         CELER_LOG_LOCAL(debug) << "RunAction::EndOfRunAction";
-        CELER_TRY_HANDLE(test_->EndOfRunAction(run), this->handle_exception);
+        CELER_TRY_HANDLE(test_->EndOfRunAction(run), test_->handle_exception);
         if (tracing_)
         {
             CELER_LOG_LOCAL(debug) << "Flushing Perfetto trace";
             tracing_->flush();
-        }
-    }
-
-    void handle_exception(std::exception_ptr ep)
-    {
-        try
-        {
-            std::rethrow_exception(ep);
-        }
-        catch (RuntimeError const& e)
-        {
-            auto const& d = e.details();
-            if (cstring_equal(d.which, "Geant4"))
-            {
-                // GeantExceptionHandler wrapped this error
-                test_->caught_g4_runtime_error(e);
-            }
-            else
-            {
-                // Some other error
-                FAIL() << ansi_color('r') << "Caught runtime error from "
-                       << thread_description() << ansi_color(' ') << ": "
-                       << e.what();
-            }
-        }
-        catch (std::exception const& e)
-        {
-            FAIL() << "From " << thread_description() << ": " << e.what();
         }
     }
 
@@ -182,8 +167,12 @@ class EventAction final : public G4UserEventAction
 //---------------------------------------------------------------------------//
 class ActionInitialization final : public G4VUserActionInitialization
 {
+    using FuncLocalStep = IntegrationTestBase::FuncLocalStep;
+
   public:
-    explicit ActionInitialization(IntegrationTestBase* test) : test_{test}
+    // NOTE: step callback construction *could* be deferred to build
+    explicit ActionInitialization(IntegrationTestBase* test)
+        : test_{test}, step_cb_{test->make_step_callback()}
     {
         if (CELERITAS_USE_PERFETTO && ScopedProfiling::enabled())
         {
@@ -204,6 +193,7 @@ class ActionInitialization final : public G4VUserActionInitialization
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
     }
+
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
@@ -218,36 +208,42 @@ class ActionInitialization final : public G4VUserActionInitialization
         this->SetUserAction(new PGPrimaryGeneratorAction{std::move(pg_inp)});
 
         // User actions
-        if (auto track_action = test_->make_tracking_action())
+        if (auto track_action = test_->make_tracking_action(geant_stream()))
         {
             TypeDemangler<G4UserTrackingAction> demangle_type;
             CELER_LOG_LOCAL(debug) << "Setting track action of type "
                                    << demangle_type(*track_action);
             this->SetUserAction(track_action.release());
         }
-        if (auto stepping_action = test_->make_stepping_action())
+        if (step_cb_)
         {
-            TypeDemangler<G4UserSteppingAction> demangle_type;
-            CELER_LOG_LOCAL(debug) << "Setting step action of type "
-                                   << demangle_type(*stepping_action);
-            this->SetUserAction(stepping_action.release());
+            CELER_LOG_LOCAL(debug)
+                << "Setting step action of type "
+                << demangled_typeid_name(step_cb_.target_type().name());
+            this->SetUserAction(new SteppingAction{geant_stream(), step_cb_});
         }
     }
 
   private:
     IntegrationTestBase* test_;
     SPTracing tracing_;
+    FuncLocalStep step_cb_;
 };
 
+//---------------------------------------------------------------------------//
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
         : DetectorConstruction(filename,
-                               [test](std::string const& sd_name) {
-                                   return test->make_sens_det(sd_name);
+                               [test](std::string const& sd_name)
+                                   -> std::unique_ptr<G4VSensitiveDetector> {
+                                   return SensitiveDetector::from_hit_function(
+                                       sd_name,
+                                       test->make_hit_callback(sd_name));
                                })
+
         , test_(test)
     {
     }
@@ -265,21 +261,6 @@ class TestDetectorConstruction : public DetectorConstruction
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//! Convert TestOffload to string
-char const* to_cstring(TestOffload value)
-{
-    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
-    return map(value);
-}
-
-//! Convert string to TestOffload
-TestOffload to_test_offload(std::string const& s)
-{
-    static auto const map
-        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
-    return map(s);
-}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -333,7 +314,8 @@ IntegrationTestBase::~IntegrationTestBase() = default;
 /*!
  * Construct a unique filename accounting for the test environment.
  */
-std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
+std::string
+IntegrationTestBase::make_unique_filename(std::string_view ext) const
 {
     std::string new_ext = "-";
     new_ext += to_cstring(test_offload());
@@ -442,25 +424,29 @@ auto IntegrationTestBase::make_physics_list() const -> UPPhysicsList
 /*!
  * Create optional tracking action (local, default null).
  */
-auto IntegrationTestBase::make_tracking_action() -> UPTrackAction
+auto IntegrationTestBase::make_tracking_action(StreamId) -> UPTrackAction
 {
     return nullptr;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Create optional stepping action (local, default null).
+ * Create an optional "stepping action".
+ *
+ * This is called once during problem setup, before the run begins. The
+ * resulting callback is executed at every step at runtime, using the local
+ * stream ID.
  */
-auto IntegrationTestBase::make_stepping_action() -> UPStepAction
+auto IntegrationTestBase::make_step_callback() -> FuncLocalStep
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Create Celeritas setup options.
  */
-SetupOptions IntegrationTestBase::make_setup_options()
+SetupOptions IntegrationTestBase::make_setup_options() const
 {
     celeritas::SetupOptions opts;
 
@@ -479,16 +465,22 @@ SetupOptions IntegrationTestBase::make_setup_options()
 
 //---------------------------------------------------------------------------//
 /*!
- * Create an optional thread-local sensitive detector.
+ * Create an optional "thread-local" sensitive detector callback.
+ *
+ * The default is to not create any SDs for any detector name. Currently the
+ * function is invoked by each thread at runtime.
  */
-auto IntegrationTestBase::make_sens_det(std::string const&) -> UPSensDet
+auto IntegrationTestBase::make_hit_callback(std::string const&) -> FuncLocalStep
 {
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Fail when GeantExceptionHandler catches a celeritas RuntimeError.
+ *
+ * This default behavior can be overridden by child classes to check failure
+ * modes.
  */
 void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 {
@@ -500,8 +492,56 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Print debug info about an exception, and call `caught_g4_runtime_error`.
+ */
+void IntegrationTestBase::handle_exception(std::exception_ptr ep)
+{
+    try
+    {
+        std::rethrow_exception(ep);
+    }
+    catch (RuntimeError const& e)
+    {
+        auto const& d = e.details();
+        if (cstring_equal(d.which, "Geant4"))
+        {
+            // GeantExceptionHandler wrapped this error
+            this->caught_g4_runtime_error(e);
+        }
+        else
+        {
+            // Some other error
+            FAIL() << ansi_color('r') << "Caught runtime error from "
+                   << thread_description() << ansi_color(' ') << ": "
+                   << e.what();
+        }
+    }
+    catch (std::exception const& e)
+    {
+        FAIL() << "From " << thread_description() << ": " << e.what();
+    }
+}
+
+//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
+//! Convert TestOffload to string
+char const* to_cstring(TestOffload value)
+{
+    static EnumStringMapper<TestOffload> const map{"g4", "ko", "cpu", "gpu"};
+    return map(value);
+}
+
+//! Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s)
+{
+    static auto const map
+        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
+    return map(s);
+}
+
+//! Update a physics input to enable all optical physics *except* wls
 void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
 {
     // Set default optical physics (all processes enabled)
@@ -516,8 +556,10 @@ void enable_optical_physics(IntegrationTestBase::PhysicsInput& phys_inp)
     optical->wavelength_shifting2 = std::nullopt;
 }
 
-//---------------------------------------------------------------------------//
-// TEST PROBLEM MIXINS
+//===========================================================================//
+// TEST INTEGRATION MIXINS
+//===========================================================================//
+// LarSphere
 //---------------------------------------------------------------------------//
 /*!
  * Create a 10 MeV electron primary.
@@ -537,32 +579,31 @@ auto LarSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Create THREAD-LOCAL sensitive detectors.
+ * Create sensitive detector callback for a detector name.
  */
-auto LarSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
-    -> UPSensDet
+auto LarSphereIntegrationMixin::make_hit_callback(std::string const& sd_name)
+    -> FuncLocalStep
 {
     EXPECT_EQ("detshell", sd_name);
-    return std::make_unique<ShimSensitiveDetector>(
-        sd_name,
-        [this](G4Step const* step) { return this->process_hit(step); });
+    return [this](StreamId sid, G4Step const& step) {
+        this->process_hit(sid, step);
+    };
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Process a hit locally.
  */
-void LarSphereIntegrationMixin::process_hit(G4Step const* step)
+void LarSphereIntegrationMixin::process_hit(StreamId, G4Step const& step)
 {
-    if (CELER_UNLIKELY(!step || !step->GetTrack()))
+    if (CELER_UNLIKELY(!step.GetTrack()))
     {
         // Reduce testing overhead: google assertions allocate memory
-        ASSERT_TRUE(step);
-        ASSERT_TRUE(step->GetTrack());
+        ASSERT_TRUE(step.GetTrack());
         return;
     }
 
-    auto& track = *step->GetTrack();
+    auto& track = *step.GetTrack();
     if (CELER_UNLIKELY(!(track.GetWeight() > 0) || !track.GetVolume()
                        || !track.GetNextVolume()))
     {
@@ -574,50 +615,7 @@ void LarSphereIntegrationMixin::process_hit(G4Step const* step)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Create physics list: default is EM only using make_physics_input.
- */
-auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
-{
-    using MevEnergy = Quantity<units::Mev, double>;
-
-    PhysicsInput result = Base::make_physics_input();
-    result.em_bins_per_decade = 14;
-    // Increase the lower energy limit of the physics tables
-    result.min_energy = MevEnergy{0.1};
-    result.default_cutoff = 0.1 * units::centimeter;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create a 100 MeV electron primary.
- */
-auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
-{
-    PrimaryInput result;
-    result.pdg = {pdg::electron()};
-    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
-    result.shape = inp::PointDistribution{
-        static_array_cast<double>(from_cm({-22, 0, 0}))};
-    result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
-    result.num_events = 2;
-    result.primaries_per_event = 1;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
- */
-auto TestEm3IntegrationMixin::make_sens_det(std::string const& sd_name)
-    -> UPSensDet
-{
-    EXPECT_EQ("lAr", sd_name);
-
-    return std::make_unique<SimpleSensitiveDetector>(sd_name);
-}
-
+// OpNovice
 //---------------------------------------------------------------------------//
 /*!
  * Create physics list
@@ -657,18 +655,9 @@ auto OpNoviceIntegrationMixin::make_primary_input() const -> PrimaryInput
 
 //---------------------------------------------------------------------------//
 /*!
- * Return null pointer for the sensitive detector
- */
-auto OpNoviceIntegrationMixin::make_sens_det(std::string const&) -> UPSensDet
-{
-    return nullptr;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Enable optical physics options
  */
-SetupOptions OpNoviceIntegrationMixin::make_setup_options()
+SetupOptions OpNoviceIntegrationMixin::make_setup_options() const
 {
     auto result = Base::make_setup_options();
     result.sd.enabled = false;
@@ -680,6 +669,62 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
         return opt;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return null pointer for the sensitive detector
+ */
+auto OpNoviceIntegrationMixin::make_hit_callback(std::string const&)
+    -> FuncLocalStep
+{
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+// TestEm3
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list: default is EM only using make_physics_input.
+ */
+auto TestEm3IntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PhysicsInput result = Base::make_physics_input();
+    result.em_bins_per_decade = 14;
+    // Increase the lower energy limit of the physics tables
+    result.min_energy = MevEnergy{0.1};
+    result.default_cutoff = 0.1 * units::centimeter;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a 100 MeV electron primary.
+ */
+auto TestEm3IntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::electron()};
+    result.energy = inp::MonoenergeticDistribution{100};  // [MeV]
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({-22, 0, 0}))};
+    result.angle = inp::MonodirectionalDistribution{{1, 0, 0}};
+    result.num_events = 2;
+    result.primaries_per_event = 1;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
+ */
+auto TestEm3IntegrationMixin::make_hit_callback(std::string const& sd_name)
+    -> FuncLocalStep
+{
+    EXPECT_EQ("lAr", sd_name);
+    return [](StreamId, G4Step const&) { /* No-op but still adds an SD */ };
 }
 
 //---------------------------------------------------------------------------//

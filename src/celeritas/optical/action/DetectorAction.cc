@@ -22,7 +22,7 @@ namespace optical
 /*!
  * Construct with action ID.
  */
-DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
+DetectorAction::DetectorAction(ActionId aid, FuncSpanHit const& callback)
     : StaticConcreteAction(
           aid, "optical-detector", "Score optical detector hits")
     , callback_(callback)

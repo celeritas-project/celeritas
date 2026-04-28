@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string_view>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "geocel/GeantUtils.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"
 
@@ -17,18 +20,19 @@
 
 class G4RunManager;
 class G4Run;
-class G4UserSteppingAction;
 class G4UserTrackingAction;
 class G4Event;
 class G4VModularPhysicsList;
-class G4VSensitiveDetector;
 class G4Step;
 
 namespace celeritas
 {
 struct SetupOptions;
+enum class GeantStateChange;
+
 namespace test
 {
+//! Enum for querying how we're testing
 enum class TestOffload
 {
     g4,  //!< Run native Geant4
@@ -37,12 +41,6 @@ enum class TestOffload
     gpu,  //!< Run on celeritas GPU
     size_
 };
-
-// Convert TestOffload to string
-char const* to_cstring(TestOffload value);
-
-// Convert string to TestOffload
-TestOffload to_test_offload(std::string const& s);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -77,8 +75,7 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using PhysicsInput = celeritas::GeantPhysicsOptions;
     using UPPhysicsList = std::unique_ptr<G4VModularPhysicsList>;
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
-    using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
-    using UPSensDet = std::unique_ptr<G4VSensitiveDetector>;
+    using FuncLocalStep = std::function<void(StreamId, G4Step const&)>;
     //!@}
 
   public:
@@ -92,10 +89,13 @@ class IntegrationTestBase : public ::celeritas::test::Test
     virtual ~IntegrationTestBase();
 
     // Make a unique filename that incorporates run env information
-    std::string make_unique_filename(std::string_view ext) override;
+    std::string make_unique_filename(std::string_view ext) const override;
 
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
+
+    // Print debug info about an exception, call the above if geant4
+    void handle_exception(std::exception_ptr ep);
 
     //! Set the GDML filename (in test/geocel/data without ".gdml")
     virtual std::string_view gdml_basename() const = 0;
@@ -106,26 +106,28 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create options for EM physics setup
     virtual PhysicsInput make_physics_input() const;
 
+    // Create Celeritas setup options
+    virtual SetupOptions make_setup_options() const;
+
     // Create physics list: default is EM only using make_physics_input
     virtual UPPhysicsList make_physics_list() const;
 
     // Create optional tracking action (local, default null)
-    virtual UPTrackAction make_tracking_action();
+    virtual UPTrackAction make_tracking_action(StreamId);
 
-    // Create optional stepping action (local, default null)
-    virtual UPStepAction make_stepping_action();
+    // Create an optional shared "stepping action" (default null)
+    virtual FuncLocalStep make_step_callback();
 
-    // Create Celeritas setup options
-    virtual SetupOptions make_setup_options();
-
-    // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
-    virtual UPSensDet make_sens_det(std::string const& sd_name);
+    // Create a "sensitive detector" based on GDML tags (default null)
+    virtual FuncLocalStep make_hit_callback(std::string const& sd_name);
 
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
     //!@{
     //! \name Dispatch from user setup/run/event actions
+    //! Callback for state change, called for  on any thread
+    virtual void state_changed(StreamId, GeantStateChange) {}
     virtual void ConstructSDandField() {}
     virtual void BeginOfRunAction(G4Run const* run) = 0;
     virtual void EndOfRunAction(G4Run const* run) = 0;
@@ -138,6 +140,13 @@ class IntegrationTestBase : public ::celeritas::test::Test
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
+// Convert TestOffload to string
+char const* to_cstring(TestOffload value);
+
+// Convert string to TestOffload
+TestOffload to_test_offload(std::string const& s);
+
+// Update a physics input to enable all optical physics *except* wls
 void enable_optical_physics(IntegrationTestBase::PhysicsInput&);
 
 //---------------------------------------------------------------------------//
@@ -151,22 +160,9 @@ class LarSphereIntegrationMixin : virtual public IntegrationTestBase
   public:
     std::string_view gdml_basename() const final { return "lar-sphere"; }
     PrimaryInput make_primary_input() const override;
-    UPSensDet make_sens_det(std::string const&) final;
+    FuncLocalStep make_hit_callback(std::string const&) final;
 
-    virtual void process_hit(G4Step const*);
-};
-
-//---------------------------------------------------------------------------//
-//! Generate TestEM3 geometry with 100 MeV electrons
-class TestEm3IntegrationMixin : virtual public IntegrationTestBase
-{
-    using Base = IntegrationTestBase;
-
-  public:
-    std::string_view gdml_basename() const final { return "testem3"; }
-    PrimaryInput make_primary_input() const override;
-    PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(std::string const&) override;
+    virtual void process_hit(StreamId, G4Step const&);
 };
 
 //---------------------------------------------------------------------------//
@@ -180,8 +176,21 @@ class OpNoviceIntegrationMixin : virtual public IntegrationTestBase
     std::string_view gdml_basename() const final { return "op-novice"; }
     PrimaryInput make_primary_input() const override;
     PhysicsInput make_physics_input() const override;
-    UPSensDet make_sens_det(std::string const&) override;
-    SetupOptions make_setup_options() override;
+    SetupOptions make_setup_options() const override;
+    FuncLocalStep make_hit_callback(std::string const&) override;
+};
+
+//---------------------------------------------------------------------------//
+//! Generate TestEM3 geometry with 100 MeV electrons
+class TestEm3IntegrationMixin : virtual public IntegrationTestBase
+{
+    using Base = IntegrationTestBase;
+
+  public:
+    std::string_view gdml_basename() const final { return "testem3"; }
+    PrimaryInput make_primary_input() const override;
+    PhysicsInput make_physics_input() const override;
+    FuncLocalStep make_hit_callback(std::string const&) override;
 };
 
 //---------------------------------------------------------------------------//

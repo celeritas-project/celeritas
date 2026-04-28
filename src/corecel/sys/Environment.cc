@@ -14,8 +14,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 
-using BoolFunc = std::function<bool()>;
-
 namespace celeritas
 {
 namespace
@@ -94,7 +92,8 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
  * Like \c getenv_flag but calls a function only when a default is needed.
  */
 GetenvFlagResult
-getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
+getenv_flag_lazy(std::string const& key,
+                 std::function<bool()> const& get_default_value)
 {
     CELER_EXPECT(get_default_value);
     std::scoped_lock lock_{getenv_mutex()};
