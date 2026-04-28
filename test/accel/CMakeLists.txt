@@ -117,6 +117,12 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration Fast
   )
 endforeach()
 
+# Test state dependent output
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere state_dep
+  OFFLOAD g4
+)
+
 # Test that the UI integration works (and ignores if Celeritas is disabled)
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphere run_ui

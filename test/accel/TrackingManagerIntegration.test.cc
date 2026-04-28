@@ -17,12 +17,13 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
+#include "celeritas/g4/StateDependent.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -246,6 +247,59 @@ TEST_F(LarSphere, run)
 
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
+}
+
+/*!
+ * Print out state dependent data using a thread-local state change monitor.
+ */
+TEST_F(LarSphere, state_dep)
+{
+    // Map stream to status changes
+    static std::map<StreamId, std::vector<GeantStateChange>> stream_state;
+    // Record a change for the local stream ID
+    static auto record_state_change = [](StreamId sid, GeantStateChange change) {
+        std::ostringstream debug_out;
+        debug_out << sid << ": " << change << '\n';
+        static std::mutex mu;
+        std::scoped_lock lock{mu};
+        stream_state[sid].emplace_back(change);
+        std::cerr << debug_out.str();
+    };
+    // Create the state dependent on the local threads
+    // NOTE that Geant4 state manager base class "registers" this pointer and
+    // deregisters on destruction
+    static thread_local StateDependent state_dep{record_state_change};
+
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    rm.BeamOn(1);
+
+    if (this->HasFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+    if (using_surface_vg)
+    {
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
+    }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(1);
+
+    std::vector<std::string> merged_status;
+    for (auto&& [sid, all_state] : stream_state)
+    {
+        for (auto const& s : all_state)
+        {
+            merged_status.emplace_back(stream_to_string(sid) + ':'
+                                       + stream_to_string(s));
+        }
+    }
+    PRINT_EXPECTED(merged_status);
 }
 
 /*!

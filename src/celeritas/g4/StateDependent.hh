@@ -11,6 +11,8 @@
 
 #include "corecel/sys/ThreadId.hh"
 
+class G4StateManager;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -92,6 +94,9 @@ class StateDependent final : public G4VStateDependent
     // Construct locally with state-change callback
     explicit StateDependent(LocalStateChangeFunc cb);
 
+    // Log on deletion
+    ~StateDependent() override;
+
     // Invoke the callback when the Geant4 state changes
     G4bool Notify(G4ApplicationState state) final;
 
@@ -100,6 +105,7 @@ class StateDependent final : public G4VStateDependent
 
   private:
     StreamId local_stream_;
+    // G4StateManager* manager_{nullptr};
     LocalStateChangeFunc cb_;
 };
 

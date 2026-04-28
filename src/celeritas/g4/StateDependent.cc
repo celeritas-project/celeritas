@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
+#include "corecel/io/Logger.hh"
 
 #include "Threading.hh"
 
@@ -24,6 +25,16 @@ StateDependent::StateDependent(LocalStateChangeFunc cb)
     : local_stream_{geant_stream()}, cb_{std::move(cb)}
 {
     CELER_EXPECT(cb_);
+    CELER_LOG_LOCAL(error) << "Creating state dependent " << (void*)this;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Log on deletion
+ */
+StateDependent::~StateDependent()
+{
+    CELER_LOG_LOCAL(error) << "Deleting state dependent " << (void*)this;
 }
 
 //---------------------------------------------------------------------------//
@@ -84,6 +95,12 @@ G4bool StateDependent::Notify(G4ApplicationState state)
         default:
             break;
     };
+    if (change == GeantStateChange::unknown)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Unknown state change: " << sm->GetStateString(prev) << "->"
+            << sm->GetStateString(state);
+    }
 
     this->cb_(local_stream_, change);
     constexpr bool success{true};
