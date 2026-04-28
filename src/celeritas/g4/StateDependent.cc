@@ -11,6 +11,7 @@
 #include <G4VStateDependent.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/EnumStringMapper.hh"
 
 #include "Threading.hh"
 
@@ -40,6 +41,9 @@ G4bool StateDependent::Notify(G4ApplicationState state)
 
     switch (state)
     {
+        case G4State_PreInit:
+            // N
+            break;
         case G4State_Init:
             // Initializing
             if (prev == G4State_PreInit || prev == G4State_Idle)
@@ -76,9 +80,9 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             // Tearing down the run manager
             change = GeantStateChange::end_program;
             break;
-        case G4State_Quit:
+        case G4State_Abort:
             // Aborting
-            change = GeantStateChange::abort;
+            change = GeantStateChange::end_program;
             // NOTE: returning 'false' after abort is a way of avoiding a hard
             // termination inside G4Exception
             break;
@@ -89,6 +93,25 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     this->cb_(local_stream_, change);
     constexpr bool success{true};
     return success;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to a Geant4 state change.
+ */
+char const* to_cstring(GeantStateChange value)
+{
+    static EnumStringMapper<GeantStateChange> const to_cstring_impl{
+        "begin_program",
+        "initialize",
+        "begin_run",
+        "begin_event",
+        "end_event",
+        "end_run",
+        "end_program",
+        "unknown",
+    };
+    return to_cstring_impl(value);
 }
 
 //---------------------------------------------------------------------------//

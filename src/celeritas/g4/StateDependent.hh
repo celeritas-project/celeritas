@@ -20,20 +20,22 @@ namespace celeritas
  * The transitions are encoded as `GeantStateChange` values according to
  * the following table (previous -> requested):
  *
- * | Previous State         | Requested State        | Change        |
- * |------------------------|------------------------|---------------|
- * | `G4State_PreInit`      | `G4State_Init`         | `initialize`  |
- * | `G4State_Idle`         | `G4State_Init`         | `initialize`  |
- * | `G4State_Idle`         | `G4State_GeomClosed`   | `begin_run`   |
- * | `G4State_GeomClosed`   | `G4State_EventProc`    | `begin_event` |
- * | `G4State_EventProc`    | `G4State_GeomClosed`   | `end_event`   |
- * | `G4State_GeomClosed`   | `G4State_Idle`         | `end_run`     |
- * | *any*                  | `G4State_Quit`         | `end_program` |
- * | *any*                  | `G4State_Abort`        | `end_program` |
- * | *other*                | *other*                | `unknown`     |
+ * | Previous State         | Requested State        | Change          |
+ * |------------------------|------------------------|-----------------|
+ * | *none*                 | `G4State_PreInit`      | `begin_program` |
+ * | `G4State_PreInit`      | `G4State_Init`         | `initialize`    |
+ * | `G4State_Idle`         | `G4State_Init`         | `initialize`    |
+ * | `G4State_Idle`         | `G4State_GeomClosed`   | `begin_run`     |
+ * | `G4State_GeomClosed`   | `G4State_EventProc`    | `begin_event`   |
+ * | `G4State_EventProc`    | `G4State_GeomClosed`   | `end_event`     |
+ * | `G4State_GeomClosed`   | `G4State_Idle`         | `end_run`       |
+ * | *any*                  | `G4State_Quit`         | `end_program`   |
+ * | *any*                  | `G4State_Abort`        | `end_program`   |
+ * | *other*                | *other*                | `unknown`       |
  *
  * \par Notes:
  *
+ * - \c begin_program is called during the \c G4RunManagerKernel constructor
  * - \c end_program is called by the G4RunManager and G4RunManagerKernel
  *   destructor during normal execution (via \c G4State_Quit)
  * - \c end_program is called by \c G4Exception when a fatal error occurred
@@ -41,6 +43,7 @@ namespace celeritas
  */
 enum class GeantStateChange
 {
+    begin_program,
     initialize,
     begin_run,
     begin_event,
@@ -54,6 +57,13 @@ enum class GeantStateChange
 // Callback receives a stream id and the encoded `GeantStateChange`.
 using LocalGeantStateChangeFunc
     = std::function<void(StreamId, GeantStateChange)>;
+
+//---------------------------------------------------------------------------//
+// HELPER FUNCTIONS (HOST)
+//---------------------------------------------------------------------------//
+
+// Get a string corresponding to a Geant4 state change
+char const* to_cstring(GeantStateChange);
 
 //---------------------------------------------------------------------------//
 /*!

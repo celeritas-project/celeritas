@@ -145,6 +145,7 @@ class TMITestBase : virtual public IntegrationTestBase
 //---------------------------------------------------------------------------//
 // LAR SPHERE (EM only)
 //---------------------------------------------------------------------------//
+
 class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
   public:
