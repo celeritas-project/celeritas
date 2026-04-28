@@ -27,7 +27,6 @@ namespace celeritas
  * |------------------------|------------------------|-----------------|
  * | *none*                 | `G4State_PreInit`      | `begin_program` |
  * | `G4State_PreInit`      | `G4State_Init`         | `initialize`    |
- * | `G4State_Idle`         | `G4State_Init`         | `initialize`    |
  * | `G4State_Idle`         | `G4State_GeomClosed`   | `begin_run`     |
  * | `G4State_GeomClosed`   | `G4State_EventProc`    | `begin_event`   |
  * | `G4State_EventProc`    | `G4State_GeomClosed`   | `end_event`     |
@@ -39,8 +38,6 @@ namespace celeritas
  * \par Notes:
  *
  * - \c begin_program is called during the \c G4RunManagerKernel constructor
- * - \c initialize is called a couple of times before the run begins, since the
- *   internal state switches between init/idle a couple of times
  * - \c RunManager::Initialize actually calls begin/end run in MT mode for each
  *   thread, including master
  * - \c end_program is called by the G4RunManager and G4RunManagerKernel

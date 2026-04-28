@@ -53,8 +53,8 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             // Constructing run kernel
             break;
         case G4State_Init:
-            // Initializing
-            if (prev == G4State_PreInit || prev == G4State_Idle)
+            // First initialization
+            if (prev == G4State_PreInit)
             {
                 change = GeantStateChange::initialize;
             }
