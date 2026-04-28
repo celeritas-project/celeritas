@@ -75,12 +75,21 @@ char const* to_cstring(GeantStateChange);
  * given worker stream whenever the simulation transitions between Geant4
  * application states.
  *
- * \warning The Geant4 base class constructor/destructor calls
- * register/deregister(this) on the thread-local G4StateManager, which means
- * it's not very safe to destroy this on a thread other than the one that
- * created it. The StreamId accessor can be used to check on what thread it was
- * created. You should probably put an instance of this in your RunAction or
- * TrackManager in order to prevent the world from exploding.
+ * \warning  The Geant4 memory semantics for this class are bonkers.
+ * - The thread-local \c G4StateManager singleton keeps a pointer (via the \c
+ *   G4VStateDependent base constructor) to this local instance and calls \c
+ *   delete on it when it's deleted as the run manager shuts down.
+ *   Therefore this class \c must be deleted before \c G4StateManager ends.
+ * - The base class destructor calls the thread-local \c G4StateManager without
+ *   checking for validity, so the destructor this class \em after deleting the
+ *   run manager will also crash the code.
+ * - The thread-local pointer mapping means that this class \em must be
+ *   deallocated on the thread in which it's created.
+ *
+ * To bypass the first failure path, we use \c Notify to deregister ourselves
+ * when we see the run manager is about to exit or abort.
+ *
+ * The only truly safe way to manage memory for this class is to leak it.
  */
 class StateDependent final : public G4VStateDependent
 {
@@ -94,9 +103,6 @@ class StateDependent final : public G4VStateDependent
     // Construct locally with state-change callback
     explicit StateDependent(LocalStateChangeFunc cb);
 
-    // Log on deletion
-    ~StateDependent() override;
-
     // Invoke the callback when the Geant4 state changes
     G4bool Notify(G4ApplicationState state) final;
 
@@ -105,8 +111,8 @@ class StateDependent final : public G4VStateDependent
 
   private:
     StreamId local_stream_;
-    // G4StateManager* manager_{nullptr};
     LocalStateChangeFunc cb_;
+    G4StateManager* manager_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

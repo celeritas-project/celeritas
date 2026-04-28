@@ -20,21 +20,19 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a stream ID and state-change callback.
+ *
+ * Note that the base class performs the actual registration.
  */
 StateDependent::StateDependent(LocalStateChangeFunc cb)
-    : local_stream_{geant_stream()}, cb_{std::move(cb)}
+    : local_stream_{geant_stream()}
+    , cb_{std::move(cb)}
+    , manager_{G4StateManager::GetStateManager()}
 {
     CELER_EXPECT(cb_);
-    CELER_LOG_LOCAL(error) << "Creating state dependent " << (void*)this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Log on deletion
- */
-StateDependent::~StateDependent()
-{
-    CELER_LOG_LOCAL(error) << "Deleting state dependent " << (void*)this;
+    CELER_EXPECT(manager_);
+    CELER_LOG_LOCAL(debug) << "Registered state dependent "
+                           << static_cast<void*>(this) << " on "
+                           << local_stream_;
 }
 
 //---------------------------------------------------------------------------//
@@ -44,7 +42,7 @@ StateDependent::~StateDependent()
 G4bool StateDependent::Notify(G4ApplicationState state)
 {
     G4StateManager* sm = G4StateManager::GetStateManager();
-    CELER_ASSERT(sm);
+    CELER_ASSERT(sm == manager_);
     G4ApplicationState prev = sm->GetPreviousState();
     // Map (previous, requested) Geant4 states to our semantic enum.
     auto change = GeantStateChange::unknown;
@@ -100,6 +98,14 @@ G4bool StateDependent::Notify(G4ApplicationState state)
         CELER_LOG_LOCAL(warning)
             << "Unknown state change: " << sm->GetStateString(prev) << "->"
             << sm->GetStateString(state);
+    }
+    else if (change == GeantStateChange::end_program)
+    {
+        // Deregister before exiting to prevent G4StateManager from deleting us
+        CELER_LOG_LOCAL(debug)
+            << "Deregistering state dependent " << static_cast<void*>(this)
+            << " on " << local_stream_;
+        manager_->DeregisterDependent(this);
     }
 
     this->cb_(local_stream_, change);
