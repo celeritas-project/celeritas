@@ -38,30 +38,57 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     // Map (previous, requested) Geant4 states to our semantic enum.
     auto change = GeantStateChange::unknown;
 
-    if ((prev == G4State_PreInit && state == G4State_Init)
-        || (prev == G4State_Idle && state == G4State_Init))
+    switch (state)
     {
-        change = GeantStateChange::initialize;
-    }
-    else if (prev == G4State_Idle && state == G4State_GeomClosed)
-    {
-        change = GeantStateChange::begin_run;
-    }
-    else if (prev == G4State_GeomClosed && state == G4State_EventProc)
-    {
-        change = GeantStateChange::begin_event;
-    }
-    else if (prev == G4State_EventProc && state == G4State_GeomClosed)
-    {
-        change = GeantStateChange::end_event;
-    }
-    else if (prev == G4State_GeomClosed && state == G4State_Idle)
-    {
-        change = GeantStateChange::end_run;
-    }
+        case G4State_Init:
+            // Initializing
+            if (prev == G4State_PreInit || prev == G4State_Idle)
+            {
+                change = GeantStateChange::initialize;
+            }
+            break;
+        case G4State_GeomClosed:
+            // In between events
+            if (prev == G4State_Idle)
+            {
+                change = GeantStateChange::begin_run;
+            }
+            else if (prev == G4State_EventProc)
+            {
+                change = GeantStateChange::end_event;
+            }
+            break;
+        case G4State_EventProc:
+            // Starting an event
+            if (prev == G4State_GeomClosed)
+            {
+                change = GeantStateChange::begin_event;
+            }
+            break;
+        case G4State_Idle:
+            // Completing a run
+            if (prev == G4State_GeomClosed)
+            {
+                change = GeantStateChange::end_run;
+            }
+            break;
+        case G4State_Quit:
+            // Tearing down the run manager
+            change = GeantStateChange::end_program;
+            break;
+        case G4State_Quit:
+            // Aborting
+            change = GeantStateChange::abort;
+            // NOTE: returning 'false' after abort is a way of avoiding a hard
+            // termination inside G4Exception
+            break;
+        default:
+            break;
+    };
 
     this->cb_(local_stream_, change);
-    return true;
+    constexpr bool success{true};
+    return success;
 }
 
 //---------------------------------------------------------------------------//

@@ -28,7 +28,16 @@ namespace celeritas
  * | `G4State_GeomClosed`   | `G4State_EventProc`    | `begin_event` |
  * | `G4State_EventProc`    | `G4State_GeomClosed`   | `end_event`   |
  * | `G4State_GeomClosed`   | `G4State_Idle`         | `end_run`     |
+ * | *any*                  | `G4State_Quit`         | `end_program` |
+ * | *any*                  | `G4State_Abort`        | `end_program` |
  * | *other*                | *other*                | `unknown`     |
+ *
+ * \par Notes:
+ *
+ * - \c end_program is called by the G4RunManager and G4RunManagerKernel
+ *   destructor during normal execution (via \c G4State_Quit)
+ * - \c end_program is called by \c G4Exception when a fatal error occurred
+ *   (via \c G4State_Abort)
  */
 enum class GeantStateChange
 {
@@ -37,6 +46,7 @@ enum class GeantStateChange
     begin_event,
     end_event,
     end_run,
+    end_program,
     unknown,
     size_,
 };
@@ -65,7 +75,6 @@ class StateDependent final : public G4VStateDependent
   public:
     //!@{
     //! \name Type aliases
-    using AppState = G4ApplicationState;
     using LocalStateChangeFunc = LocalGeantStateChangeFunc;
     //!@}
 
