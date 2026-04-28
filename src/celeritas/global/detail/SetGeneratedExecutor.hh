@@ -7,7 +7,9 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 #include "../CoreState.hh"
 
@@ -24,19 +26,14 @@ namespace detail
 // LAUNCHER
 //---------------------------------------------------------------------------//
 /*!
- *     // Initialize the num_generated counter to zero.
+ * Initialize the num_generated counter to zero.
  */
 struct SetGeneratedExecutor
 {
-    //// DATA ////
-
-    CRefPtr<CoreParamsData, MemSpace::native> params;
-    RefPtr<CoreStateData, MemSpace::native> state;
-
     //// FUNCTIONS ////
 
     // Initialize the num_generated counter to zero
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid);
+    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
@@ -51,15 +48,11 @@ void set_generated(CoreParams const& params,
 /*!
  * Initialize the num_generated counter to zero.
  */
-CELER_FORCEINLINE_FUNCTION void SetGeneratedExecutor::operator()(ThreadId tid)
+CELER_FORCEINLINE_FUNCTION void
+SetGeneratedExecutor::operator()(CoreTrackView& track)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-    CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
-
-    auto* counters = state->init.counters.data().get();
-    counters->num_generated = 0;
-    return;
+    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
+    track.counters().num_generated = 0;
 }
 
 //---------------------------------------------------------------------------//

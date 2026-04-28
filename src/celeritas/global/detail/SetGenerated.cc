@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "SetGeneratedExecutor.hh"
 #include "../ActionLauncher.hh"
@@ -22,8 +23,9 @@ namespace detail
  */
 void set_generated(CoreParams const& params, CoreState<MemSpace::host>& state)
 {
-    SetGeneratedExecutor execute_thread{params.ptr<MemSpace::native>(),
-                                        state.ptr()};
+    auto execute_thread = make_single_track_executor(
+        params.ptr<MemSpace::native>(), state.ptr(), SetGeneratedExecutor{});
+
     launch_core(1, "set-generated", params, state, execute_thread);
 }
 

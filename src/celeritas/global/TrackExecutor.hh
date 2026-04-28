@@ -171,6 +171,20 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return a track executor that only applies to active, non-errored tracks.
+ */
+template<class T>
+inline CELER_FUNCTION decltype(auto)
+make_single_track_executor(CoreParamsPtr<MemSpace::native> params,
+                           CoreStatePtr<MemSpace::native> const& state,
+                           T&& apply_track)
+{
+    return ConditionalTrackExecutor{
+        params, state, IsThreadZero{}, celeritas::forward<T>(apply_track)};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Return a track executor that only applies if the action ID matches.
  *
  * \note This should generally only be used for post-step actions and other
