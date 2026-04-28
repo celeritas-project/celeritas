@@ -256,8 +256,10 @@ TEST_F(LarSphere, run)
  */
 TEST_F(LarSphere, state_dep)
 {
-    // Map stream to status changes
-    static std::map<StreamId, std::vector<std::string>> stream_state;
+    // Map stream to status changes: initialize with empty vectors for
+    // main thread to record test event
+    static std::map<StreamId, std::vector<std::string>> stream_state
+        = {{StreamId{0}, {}}};
     // Record a change for the local stream ID
     static auto record_state_change = [](StreamId sid, GeantStateChange change) {
         if (change != GeantStateChange::unknown)
@@ -325,30 +327,32 @@ TEST_F(LarSphere, state_dep)
         }
     }
 
-    std::vector<std::string> expected_status;
     if (test_runman_type() == "mt")
     {
-        expected_status = {
-            "{0}:initialize", "{0}:initialize",   "{0}:initialize",
-            "{0}:begin_run",  "{0}:end_run",      "{0}:before-beamon",
-            "{0}:initialize", "{0}:begin_run",    "{0}:begin_event",
-            "{0}:end_event",  "{0}:end_run",      "{0}:before-beamon",
-            "{0}:initialize", "{0}:begin_run",    "{0}:end_run",
-            "{1}:initialize", "{1}:initialize",   "{1}:initialize",
-            "{1}:begin_run",  "{1}:end_run",      "{1}:before-beamon",
-            "{1}:initialize", "{1}:begin_run",    "{1}:begin_event",
-            "{1}:end_event",  "{1}:end_run",      "{1}:before-beamon",
-            "{1}:initialize", "{1}:begin_run",    "{1}:begin_event",
-            "{1}:end_event",  "{1}:end_run",      "{}:initialize",
-            "{}:initialize",  "{}:initialize",    "{}:begin_run",
-            "{}:end_run",     "{}:before-beamon", "{}:initialize",
-            "{}:begin_run",   "{}:end_run",       "{}:before-beamon",
-            "{}:initialize",  "{}:begin_run",     "{}:end_run",
+        static char const* const expected_status[] = {
+            "{0}:before-init",   "{0}:initialize", "{0}:initialize",
+            "{0}:initialize",    "{0}:begin_run",  "{0}:end_run",
+            "{0}:before-beamon", "{0}:initialize", "{0}:begin_run",
+            "{0}:begin_event",   "{0}:end_event",  "{0}:end_run",
+            "{0}:before-beamon", "{0}:initialize", "{0}:begin_run",
+            "{0}:end_run",       "{1}:initialize", "{1}:initialize",
+            "{1}:initialize",    "{1}:begin_run",  "{1}:end_run",
+            "{1}:before-beamon", "{1}:initialize", "{1}:begin_run",
+            "{1}:begin_event",   "{1}:end_event",  "{1}:end_run",
+            "{1}:before-beamon", "{1}:initialize", "{1}:begin_run",
+            "{1}:begin_event",   "{1}:end_event",  "{1}:end_run",
+            "{}:initialize",     "{}:initialize",  "{}:initialize",
+            "{}:begin_run",      "{}:end_run",     "{}:before-beamon",
+            "{}:initialize",     "{}:begin_run",   "{}:end_run",
+            "{}:before-beamon",  "{}:initialize",  "{}:begin_run",
+            "{}:end_run",
         };
+        EXPECT_VEC_EQ(expected_status, merged_status);
     }
     else if (test_runman_type() == "serial")
     {
-        expected_status = {
+        static char const* const expected_status[] = {
+            "{0}:before-init",
             "{0}:initialize",
             "{0}:initialize",
             "{0}:before-beamon",
@@ -366,19 +370,17 @@ TEST_F(LarSphere, state_dep)
             "{0}:end_event",
             "{0}:end_run",
         };
+        EXPECT_VEC_EQ(expected_status, merged_status);
     }
     else if (test_runman_type() == "tasking")
     {
-        // Task parallel *may* be unreliable
-        expected_status = merged_status;
+        // Task parallel *may* be unreliable: just print
         PRINT_EXPECTED(merged_status);
     }
     else
     {
         FAIL() << "Unknown run manager type '" << test_runman_type() << "'";
     }
-
-    EXPECT_VEC_EQ(expected_status, merged_status);
 }
 
 /*!
