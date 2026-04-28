@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "StateDependent.hh"
 
-#include <memory>
 #include <G4StateManager.hh>
 #include <G4VStateDependent.hh>
 
@@ -42,13 +41,20 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     switch (state)
     {
         case G4State_PreInit:
-            // N
+            // Constructing run kernel
             break;
         case G4State_Init:
             // Initializing
             if (prev == G4State_PreInit || prev == G4State_Idle)
             {
                 change = GeantStateChange::initialize;
+            }
+            break;
+        case G4State_Idle:
+            // Completing a run
+            if (prev == G4State_GeomClosed)
+            {
+                change = GeantStateChange::end_run;
             }
             break;
         case G4State_GeomClosed:
@@ -69,22 +75,11 @@ G4bool StateDependent::Notify(G4ApplicationState state)
                 change = GeantStateChange::begin_event;
             }
             break;
-        case G4State_Idle:
-            // Completing a run
-            if (prev == G4State_GeomClosed)
-            {
-                change = GeantStateChange::end_run;
-            }
-            break;
         case G4State_Quit:
-            // Tearing down the run manager
-            change = GeantStateChange::end_program;
-            break;
+            [[fallthrough]];
         case G4State_Abort:
-            // Aborting
+            // Tearing down the run manager or aborting
             change = GeantStateChange::end_program;
-            // NOTE: returning 'false' after abort is a way of avoiding a hard
-            // termination inside G4Exception
             break;
         default:
             break;
