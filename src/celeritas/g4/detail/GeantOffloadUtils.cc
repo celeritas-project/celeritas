@@ -17,19 +17,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Populate a \c GeneratorStepData with \c G4StepPoint data.
- */
-optical::GeneratorStepData data_from_point(GeantStepPointView const& p)
-{
-    optical::GeneratorStepData data;
-    data.speed = p.speed();
-    data.time = native_value_from(p.time());
-    data.pos = native_value_from(p.pos());
-    return data;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Populate a \c GeneratorDistributionData with \c G4Step data.
  *
  * The global Geant4 geometry should be loaded so that the optical material may
@@ -40,22 +27,25 @@ optical::GeneratorStepData data_from_point(GeantStepPointView const& p)
  */
 optical::GeneratorDistributionData distribution_from_step(G4Step const& g4_step)
 {
-    auto geant_geo = celeritas::global_geant_geo().lock();
-    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
-
     GeantStepView step{const_cast<G4Step&>(g4_step)};
-    CELER_ASSERT(step.has_step_point(StepPoint::pre)
-                 && step.has_step_point(StepPoint::post));
-
-    auto pre_step = step.pre_step();
-    auto post_step = step.post_step();
 
     optical::GeneratorDistributionData data;
     data.step_length = native_value_from(step.step_length());
-    data.charge = post_step.charge();
 
-    data.points[StepPoint::pre] = data_from_point(pre_step);
-    data.points[StepPoint::post] = data_from_point(post_step);
+    for (auto p : range(StepPoint::size_))
+    {
+        CELER_ASSERT(step.has_step_point(p));
+        auto point = step.step_point(p);
+
+        auto& data_point = data.points[p];
+        data_point.speed = point.speed();
+        data_point.time = native_value_from(point.time());
+        data_point.pos = native_value_from(point.pos());
+    }
+    data.charge = step.post_step().charge();
+
+    auto geant_geo = celeritas::global_geant_geo().lock();
+    CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");
 
     auto* g4mat = g4_step.GetPreStepPoint()->GetMaterial();
     CELER_ASSERT(g4mat);
