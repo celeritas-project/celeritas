@@ -34,6 +34,8 @@ class GeantStepPointView
     using Energy = units::ClhepEnergy;
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;
+    using Speed = units::LightSpeed;
+    using Charge = units::ElementaryCharge;
     using real_type = double;
     //!@}
 
@@ -58,6 +60,12 @@ class GeantStepPointView
 
     //! Statistical weight
     real_type weight() const { return sp_.GetWeight(); }
+
+    //! Speed in units of the speed of light
+    inline Speed speed() const;
+
+    //! Charge in units of elementary charge
+    inline Charge charge() const;
 
     //!@}
     //!@{
@@ -135,6 +143,26 @@ GeantStepPointView::Energy GeantStepPointView::energy() const
 GeantStepPointView::Time GeantStepPointView::time() const
 {
     return Time{sp_.GetGlobalTime()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get speed as a fraction of the speed of light.
+ *
+ * Often denoted as a particle's beta speed.
+ */
+GeantStepPointView::Speed GeantStepPointView::speed() const
+{
+    return Speed{sp_.GetBeta()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get charge in units of elementary charge.
+ */
+GeantStepPointView::Charge GeantStepPointView::charge() const
+{
+    return Charge{static_cast<real_type>(sp_.GetCharge())};
 }
 
 //---------------------------------------------------------------------------//

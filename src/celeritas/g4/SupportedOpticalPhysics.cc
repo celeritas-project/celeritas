@@ -348,7 +348,8 @@ void SupportedOpticalPhysics::ConstructProcess()
         // process applies to. \c G4EmSaturation requires both electron and
         // proton be defined, which is false for Celeritas optical-only runs.
         ObservingUniquePtr<G4Scintillation> scint{
-            options_.scintillation->custom_scintillation
+            (options_.scintillation
+             && options_.scintillation->custom_scintillation)
                 ? options_.scintillation->custom_scintillation()
                 : std::make_unique<G4Scintillation>()};
         CELER_ASSERT(scint);
@@ -385,7 +386,7 @@ void SupportedOpticalPhysics::ConstructProcess()
     if (process_is_active(OpticalProcessType::cherenkov, options_))
     {
         ObservingUniquePtr<G4Cerenkov> cherenkov{
-            options_.cherenkov->custom_cherenkov
+            (options_.cherenkov && options_.cherenkov->custom_cherenkov)
                 ? options_.cherenkov->custom_cherenkov()
                 : std::make_unique<G4Cerenkov>()};
         CELER_ASSERT(cherenkov);

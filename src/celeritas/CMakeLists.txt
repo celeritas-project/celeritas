@@ -235,6 +235,7 @@ if(CELERITAS_USE_Geant4)
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
     g4/detail/GeantBremsstrahlungProcess.cc
+    g4/detail/GeantOffloadUtils.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
     ext/GeantImporter.cc

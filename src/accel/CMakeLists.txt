@@ -46,9 +46,8 @@ list(APPEND SOURCES
   detail/GeantSimpleCaloSD.cc
   detail/LoggerImpl.cc
   detail/IntegrationSingleton.cc
-  gen/G4CherenkovOffload.cc
-  gen/G4OffloadUtils.cc
-  gen/G4ScintillationOffload.cc
+  gen/CherenkovOffload.cc
+  gen/ScintillationOffload.cc
 )
 
 celeritas_polysource(ExceptionConverter)

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/gen/G4OffloadUtils.hh
+//! \file celeritas/g4/detail/G4OffloadUtils.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
