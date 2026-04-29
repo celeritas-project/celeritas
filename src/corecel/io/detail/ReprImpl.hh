@@ -6,13 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <string>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/ScopedStreamFormat.hh"
 #include "corecel/io/StreamUtils.hh"
-
-#include "../ScopedStreamFormat.hh"
 
 namespace celeritas
 {

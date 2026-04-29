@@ -12,7 +12,6 @@
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/CoreTrackView.hh"
-#include "celeritas/optical/ImportedMaterials.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/MieData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"

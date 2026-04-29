@@ -179,7 +179,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
     real_type t_upper = angle - a_;
 
     // Round t_upper to the first positive multiple of pi
-    t_upper += max<real_type>(real_type{0}, -std::floor(t_upper / pi)) * pi;
+    using namespace celeritas::literals;
+    t_upper += max<real_type>(0_r, -std::floor(t_upper / pi)) * pi;
 
     // Slow down factor to increment bounds when a root cannot be found
     int i = 1;

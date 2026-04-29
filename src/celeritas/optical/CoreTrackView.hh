@@ -163,9 +163,6 @@ CoreTrackView::operator=(TrackInitializer const& init)
     // Initialize the surface state
     this->surface_physics().reset();
 
-    // Clear detector state data
-    states_.detectors.detector_hits[track_slot_id_].detector = {};
-
     return *this;
 }
 
@@ -339,11 +336,12 @@ CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
  */
 CELER_FUNCTION void CoreTrackView::apply_errored()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.post_step_action(params_.scalars.tracking_cut_action);
-    atomic_add(&this->counters().num_errored, size_type{1});
+    atomic_add(&this->counters().num_errored, 1_sz);
 }
 
 //---------------------------------------------------------------------------//
@@ -352,10 +350,11 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
  */
 CELER_FUNCTION void CoreTrackView::apply_cut()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.post_step_action(params_.scalars.tracking_cut_action);
-    atomic_add(&this->counters().num_cut, size_type{1});
+    atomic_add(&this->counters().num_cut, 1_sz);
 }
 
 //---------------------------------------------------------------------------//

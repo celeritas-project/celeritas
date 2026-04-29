@@ -106,6 +106,8 @@ DormandPrinceIntegrator<E>::operator()(real_type step,
                                        OdeState const& beg_state) const
     -> result_type
 {
+    using namespace celeritas::literals;
+
     using celeritas::axpy;
     using R = real_type;
 
@@ -210,7 +212,7 @@ DormandPrinceIntegrator<E>::operator()(real_type step,
     axpy(d77 * step, k7, &result.err_state);
 
     // The mid point
-    real_type half_step = step / real_type(2);
+    real_type half_step = step / 2.0_r;
     result.mid_state = beg_state;
     axpy(c71 * half_step, k1, &result.mid_state);
     axpy(c73 * half_step, k3, &result.mid_state);

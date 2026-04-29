@@ -19,6 +19,11 @@ namespace optical
 //---------------------------------------------------------------------------//
 /*!
  * Simulation properties for a single track.
+ *
+ * Celeritas currently stores only the global time in the lab frame: the time
+ * since the creation of a track should be handled separately, and the
+ * "proper time" (local time in the inertial frame of the track since its
+ * creation) is not currently tracked.
  */
 class SimTrackView
 {

@@ -12,6 +12,8 @@
 
 #include "geocel/VolumeParams.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -194,10 +196,9 @@ UnivId UniverseInserter::update_counters(UnivType type,
     surfaces_.push_back(accum_surface_);
     volumes_.push_back(accum_volume_);
 
-    CELER_ENSURE(std::accumulate(num_univ_types_.begin(),
-                                 num_univ_types_.end(),
-                                 size_type(0))
-                 == types_.size());
+    CELER_ENSURE(
+        std::accumulate(num_univ_types_.begin(), num_univ_types_.end(), 0_sz)
+        == types_.size());
     CELER_ENSURE(surfaces_.size() == types_.size() + 1);
     CELER_ENSURE(volumes_.size() == surfaces_.size());
     return result;

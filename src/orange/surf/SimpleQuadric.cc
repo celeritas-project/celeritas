@@ -18,6 +18,8 @@
 
 namespace celeritas
 {
+using namespace celeritas::literals;
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with coefficients.
@@ -99,7 +101,7 @@ SimpleQuadric::SimpleQuadric(Sphere const& other) noexcept(!CELERITAS_DEBUG)
         zeroth += ipow<2>(origin[ax]);
     }
 
-    *this = SimpleQuadric{{1, 1, 1}, real_type{-2} * origin, zeroth};
+    *this = SimpleQuadric{{1, 1, 1}, -2.0_r * origin, zeroth};
 }
 
 //---------------------------------------------------------------------------//

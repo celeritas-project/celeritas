@@ -26,17 +26,13 @@
 #pragma link C++ class celeritas::ImportModelMaterial::EnergyBound+;
 #pragma link C++ class celeritas::ImportMscModel+;
 #pragma link C++ class celeritas::ImportOpticalMaterial+;
-#pragma link C++ class celeritas::ImportOpticalParameters+;
 #pragma link C++ class celeritas::ImportOpticalProperty+;
-#pragma link C++ class celeritas::ImportOpticalRayleigh+;
-#pragma link C++ class celeritas::ImportMie+;
 #pragma link C++ class celeritas::ImportPhysicsTable+;
 #pragma link C++ class celeritas::ImportPhysMaterial+;
 #pragma link C++ class celeritas::ImportProcess+;
 #pragma link C++ class celeritas::ImportProductionCut+;
 #pragma link C++ class celeritas::ImportTransParameters+;
 #pragma link C++ class celeritas::ImportVolume+;
-#pragma link C++ class celeritas::ImportWavelengthShift+;
 
 
 // Input data

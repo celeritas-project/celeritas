@@ -73,7 +73,7 @@ void GeantStepDiagnostic::Update(G4Track const* track)
     CELER_ASSERT(thread_id < thread_store_.size());
 
     // Get the vector of counts for this particle
-    auto pdg = track->GetDefinition()->GetPDGEncoding();
+    auto pdg = track->GetParticleDefinition()->GetPDGEncoding();
     VecCount& counts = thread_store_[thread_id][pdg];
     counts.resize(num_bins_);
 

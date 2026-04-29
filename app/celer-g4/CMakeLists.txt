@@ -95,10 +95,6 @@ if(Geant4_VERSION VERSION_LESS "10.7")
   # the JSON parsing
   set(_props DISABLED true)
 endif()
-if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # FIXME: geant4 navigator doesn't work with field navigator
-  set(_props DISABLED true)
-endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")
   # FIXME: propagation fails in single precision
   set(_props DISABLED true)

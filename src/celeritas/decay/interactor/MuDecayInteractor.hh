@@ -147,6 +147,8 @@ MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
 template<class Engine>
 CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // Allocate secondaries
     Secondary* secondaries = allocate_(1);
     if (secondaries == nullptr)
@@ -157,17 +159,17 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
 
     real_type electron_energy_frac{};
     real_type electron_nu_energy_frac{};
+    RejectionSampler<real_type> reject_nu_frac{0.25_r};
     do
     {
         do
         {
             electron_nu_energy_frac = generate_canonical(rng);
-        } while (RejectionSampler(
-            electron_nu_energy_frac * (real_type{1} - electron_nu_energy_frac),
-            real_type{0.25})(rng));
+        } while (reject_nu_frac(
+            electron_nu_energy_frac * (1_r - electron_nu_energy_frac), rng));
 
         electron_energy_frac = generate_canonical(rng);
-    } while (electron_nu_energy_frac + electron_energy_frac < real_type{1});
+    } while (electron_nu_energy_frac + electron_energy_frac < 1_r);
 
     // Decay isotropically in rest frame and boost secondaries to the lab frame
     auto charged_lep_fv = this->to_lab_frame(

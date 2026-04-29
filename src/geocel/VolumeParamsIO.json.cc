@@ -6,15 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "VolumeParamsIO.json.hh"
 
-#include <istream>
 #include <ostream>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/LabelIO.json.hh"
-
-#include "inp/Model.hh"
 
 namespace celeritas
 {

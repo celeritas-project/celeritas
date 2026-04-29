@@ -31,6 +31,8 @@
 
 #include "detail/ActionDiagnosticExecutor.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -213,8 +215,8 @@ void ActionDiagnostic::clear()
 {
     CELER_EXPECT(store_);
 
-    apply_to_all_streams(
-        store_, [](auto& state) { fill(size_type(0), &state.counts); });
+    apply_to_all_streams(store_,
+                         [](auto& state) { fill(0_sz, &state.counts); });
 }
 
 //---------------------------------------------------------------------------//

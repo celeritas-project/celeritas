@@ -12,8 +12,6 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 
-#include "../GeneratorData.hh"
-
 namespace celeritas
 {
 namespace optical
@@ -48,30 +46,32 @@ inline CELER_FUNCTION size_type find_distribution_index(Span<size_type> offsets,
 
 //---------------------------------------------------------------------------//
 // Calculate the inclusive prefix sum of the number of optical photons
-size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-    ItemsRef<size_type, MemSpace::host> const&,
-    size_type,
-    StreamId);
-size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-    ItemsRef<size_type, MemSpace::device> const&,
-    size_type,
-    StreamId);
+template<class T>
+size_type inclusive_scan_photons(ItemsRef<T, MemSpace::host> const&,
+                                 ItemsRef<size_type, MemSpace::host> const&,
+                                 size_type,
+                                 StreamId);
+template<class T>
+size_type inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
+                                 ItemsRef<size_type, MemSpace::device> const&,
+                                 size_type,
+                                 StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline size_type inclusive_scan_photons(
-    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-    ItemsRef<size_type, MemSpace::device> const&,
-    size_type,
-    StreamId)
+template<class T>
+inline size_type
+inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
+                       ItemsRef<size_type, MemSpace::device> const&,
+                       size_type,
+                       StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
+
 //---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace optical

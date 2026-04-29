@@ -13,6 +13,8 @@
 
 #include "../Utils.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -52,8 +54,7 @@ size_type exclusive_scan_counts(
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
 #ifdef __cpp_lib_parallel_algorithm
-    auto* stop
-        = std::exclusive_scan(data, data + counts.size(), data, size_type{0});
+    auto* stop = std::exclusive_scan(data, data + counts.size(), data, 0_sz);
 #else
     // Standard library shipped with GCC 8.5 does not include exclusive_scan
     // (I guess it's *too* exclusive)

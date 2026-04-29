@@ -122,10 +122,15 @@ CELER_FUNCTION T
 TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
 {
     CELER_EXPECT(data_offset <= reals_.size());
-    constexpr size_type size{T::StorageSpan::extent};
+    using SpanT = typename T::StorageSpan;
+    constexpr size_type size{SpanT::extent};
     CELER_ASSERT(data_offset + size <= reals_.size());
 
-    return T{reals_[Reals::ItemRangeT{data_offset, data_offset + size}]};
+    // ItemRangeT returns a LdgSpan<Ldg..., dynamic>
+    // but each Transform class expects LdgSpan<..., N>,
+    // which requires an explicit cast
+    auto dynspan = reals_[Reals::ItemRangeT{data_offset, data_offset + size}];
+    return T{SpanT{dynspan.data(), dynspan.size()}};
 }
 
 //---------------------------------------------------------------------------//

@@ -62,6 +62,7 @@
 #include "celeritas/io/ImportProcess.hh"
 #include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/OffloadWriter.hh"
+#include "celeritas/io/OpticalDistributionWriter.hh"
 #include "celeritas/io/RootCoreParamsOutput.hh"
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/mat/MaterialParams.hh"
@@ -322,8 +323,14 @@ auto build_optical_params(inp::Problem const& p,
     pi.geometry = core.geometry();
     pi.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, core.material(), pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk,
+        pi.material,
+        core.material(),
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.control.optical_capacity->generators);
     pi.rng = core.rng();
     pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     pi.surface = core.surface();
@@ -375,14 +382,20 @@ auto build_optical_params(inp::OpticalProblem const& p,
     pi.action_reg = std::make_shared<ActionRegistry>();
     pi.output_reg = nullptr;
     pi.gen_reg = std::make_shared<GeneratorRegistry>();
-    pi.aux_reg = nullptr;  // TODO: require instead of building in CP
+    pi.aux_reg = std::make_shared<AuxParamsRegistry>();
 
     // Geometry, materials, physics
     pi.geometry = std::move(loaded_model.geometry);
     pi.material = optical::MaterialParams::from_import(
         imported, *geomaterial, *material);
-    pi.physics = optical::PhysicsParams::from_import(
-        imported, material, pi.material, pi.action_reg);
+    pi.physics = std::make_shared<optical::PhysicsParams>(
+        imported.optical_physics.bulk,
+        pi.material,
+        material,
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        p.capacity.generators);
     pi.rng = std::make_shared<RngParams>(p.seed);
     pi.sim = std::make_shared<optical::SimParams>(p.limits);
     pi.surface = std::move(loaded_model.surface);
@@ -485,7 +498,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     CELER_LOG(status) << "Initializing problem";
 
     ScopedMem record_mem("setup::problem");
-    ScopedProfiling profile_this{"setup::problem"};
+    ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
 
@@ -802,7 +815,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     CELER_LOG(status) << "Initializing problem";
 
     ScopedMem record_mem("setup::problem");
-    ScopedProfiling profile_this{"setup::problem"};
+    ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
@@ -850,6 +863,13 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                 return nullptr;
             },
             [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {
+                if (!p.offload_file.empty())
+                {
+                    // Dump optical distribution data to a file
+                    result.offload_writer
+                        = std::make_shared<OpticalDistributionWriter>(
+                            p.offload_file);
+                }
                 return optical::GeneratorAction::make_and_insert(
                     *params, p.capacity.generators);
             },

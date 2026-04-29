@@ -6,12 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/Quantity.hh"
 
+#include <functional>
 #include <type_traits>
 
-#include "corecel/Config.hh"
-
+#include "corecel/cont/Range.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/math/ArrayQuantity.hh"
-#include "corecel/math/QuantityIO.json.hh"
+#include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Turn.hh"
 
 #include "celeritas_test.hh"
@@ -118,6 +119,24 @@ TEST(QuantityTest, mixed_precision)
         demoted = DozenDbl{6.5};
         EXPECT_FLOAT_EQ(6.5f, demoted.value());
     }
+}
+
+TEST(QuantityTest, ref)
+{
+    using DozenDbl = Quantity<DozenUnit, double>;
+    auto two_dozen = native_value_to<DozenDbl>(24);
+
+    auto td_ref = std::ref(two_dozen);
+    EXPECT_EQ(two_dozen * 2, td_ref * 2);
+
+    Dozen four_dozen{4};
+    auto fd_ref = std::ref(four_dozen);
+
+#ifdef CELER_SHOULD_COMPILE
+    // TODO: doesn't compile due to template operators
+    EXPECT_TRUE(td_ref < fd_ref);
+#endif
+    EXPECT_TRUE(td_ref.get() < fd_ref.get());
 }
 
 TEST(QuantityTest, comparators)
@@ -281,6 +300,13 @@ TEST(QuantityTest, io)
         static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
+}
+
+TEST(QuantityTest, stream)
+{
+    EXPECT_EQ("5 [dozen]", stream_to_string(Dozen{5}));
+    EXPECT_EQ("{1,2,3} [dozen]",
+              stream_to_string(make_quantity_array<Dozen>(1, 2, 3)));
 }
 
 TEST(TurnTest, basic)

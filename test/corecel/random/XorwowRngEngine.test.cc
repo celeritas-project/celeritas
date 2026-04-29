@@ -247,7 +247,7 @@ TEST_F(XorwowRngEngineTest, jump)
         // Skip 2**67 times to get to the next subsequence
         for (size_type i = 0; i < 8; ++i)
         {
-            rng.discard(numeric_limits<unsigned long long>::max());
+            rng.discard(std::numeric_limits<unsigned long long>::max());
             rng.discard(1);
         }
         // Skip to the right offset

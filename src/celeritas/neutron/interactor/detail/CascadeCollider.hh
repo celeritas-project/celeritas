@@ -93,7 +93,8 @@ class CascadeCollider
     //! A criteria [1/c] for coplanarity in the Lorentz transformation
     static CELER_CONSTEXPR_FUNCTION real_type epsilon()
     {
-        return real_type{1e-10};
+        using namespace celeritas::literals;
+        return 1e-10_r;
     }
 
     //// HELPER FUNCTIONS ////

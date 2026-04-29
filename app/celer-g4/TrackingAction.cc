@@ -53,7 +53,8 @@ void TrackingAction::PreUserTrackingAction(G4Track const* track)
         return;
 
     auto const& particles = params_->OffloadParticles();
-    if (std::find(particles.begin(), particles.end(), track->GetDefinition())
+    if (std::find(
+            particles.begin(), particles.end(), track->GetParticleDefinition())
         != particles.end())
     {
         if (mode == SharedParams::Mode::enabled)

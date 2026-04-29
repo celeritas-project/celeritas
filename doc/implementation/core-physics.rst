@@ -17,6 +17,5 @@ implementation for the Celeritas codebase.
    core-physics/stepping.rst
    core-physics/limits.rst
    core-physics/propagation.rst
-   core-physics/rng.rst
    core-physics/grids.rst
    core-physics/diagnostics.rst

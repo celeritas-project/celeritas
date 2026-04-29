@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoResults.hh"
 
+#include <algorithm>
+
 #include "corecel/OpaqueIdUtils.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -18,6 +21,8 @@
 
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
+
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -78,7 +83,7 @@ void GenericGeoTrackingResult::clear_boring_normals()
 {
     auto& dn = this->dot_normal;
     if (std::all_of(dn.begin(), dn.end(), [](real_type n) {
-            return soft_equal(n, real_type{1});
+            return soft_equal(n, 1_r);
         }))
     {
         dn.clear();

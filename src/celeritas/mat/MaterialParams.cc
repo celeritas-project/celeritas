@@ -28,6 +28,8 @@
 
 namespace celeritas
 {
+using namespace celeritas::literals;
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -440,7 +442,7 @@ MaterialParams::extend_elcomponents(MaterialInput const& inp,
     }
 
     // Renormalize component fractions that are not unity and log them
-    if (!inp.elements_fractions.empty() && !soft_equal(norm, real_type(1)))
+    if (!inp.elements_fractions.empty() && !soft_equal(norm, 1.0_r))
     {
         CELER_LOG(warning) << "Element component fractions for `" << inp.label
                            << "` should sum to 1 but instead sum to " << norm
@@ -454,7 +456,7 @@ MaterialParams::extend_elcomponents(MaterialInput const& inp,
             comp.fraction *= norm;
             total_fractions += comp.fraction;
         }
-        CELER_ASSERT(soft_equal(total_fractions, real_type(1)));
+        CELER_ASSERT(soft_equal(total_fractions, 1.0_r));
     }
 
     // Sort elements by increasing element ID for improved access

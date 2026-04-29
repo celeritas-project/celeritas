@@ -62,7 +62,6 @@ list(APPEND SOURCES
   field/FieldDriverOptions.cc
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
-  field/RZMapFieldParams.cc
   field/CylMapFieldParams.cc
   field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
@@ -102,6 +101,8 @@ list(APPEND SOURCES
   io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
+  io/OpticalDistributionReader.cc
+  io/OpticalDistributionWriter.cc
   io/SeltzerBergerReader.cc
   io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
@@ -113,6 +114,7 @@ list(APPEND SOURCES
   mucf/process/MucfProcess.cc
   neutron/model/CascadeOptions.cc
   neutron/model/CascadeOptionsIO.json.cc
+  neutron/process/NeutronCaptureProcess.cc
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CoreParams.cc
@@ -120,12 +122,10 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
-  optical/ImportedModelAdapter.cc
-  optical/ImportedMaterials.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
-  optical/ModelImporter.cc
   optical/PhysicsParams.cc
   optical/Runner.cc
   optical/SimParams.cc
@@ -185,6 +185,7 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
+    optical/detail/Filler.cu
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
@@ -193,9 +194,13 @@ endif()
 if(CELERITAS_USE_covfie)
   set(_celer_covfie_src
     field/CartMapFieldParams.covfie.cc
+    field/LoadCovfieField.covfie.cc
+    field/RZMapFieldParams.covfie.cc
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepRZMapFieldMscAction)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
@@ -220,6 +225,8 @@ if(CELERITAS_USE_covfie)
 else()
   celeritas_polysource_append(SOURCES
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(SOURCES
+    alongstep/AlongStepRZMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
@@ -234,6 +241,8 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantStepPointView.cc
+    ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
     ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
@@ -365,7 +374,6 @@ endmacro()
 celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
-celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
@@ -389,6 +397,7 @@ celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(mucf/model/DTMixMucfModel)
 celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
+celeritas_polysource(neutron/model/NeutronCaptureModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
 celeritas_polysource(optical/model/MieModel)
@@ -405,6 +414,7 @@ celeritas_polysource(optical/gen/OffloadAction)
 celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
+celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)

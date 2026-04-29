@@ -28,7 +28,7 @@ void GridReflectivityModel::step(CoreParams const& params,
     auto execute = make_surface_physics_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        SurfacePhysicsOrder::interaction,
+        SurfacePhysicsOrder::reflectivity,
         this->surface_model_id(),
         ReflectivityApplier{GridReflectivityExecutor{data_.device_ref()}});
 

@@ -7,9 +7,8 @@
 #pragma once
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 
 #include "../NonuniformGridData.hh"
 #include "../UniformGrid.hh"
@@ -28,7 +27,7 @@ class GridAccessor
   public:
     //!@{
     //! \name Type aliases
-    using SpanConstReal = Span<real_type const>;
+    using SpanConstReal = LdgSpan<real_type const>;
     using Values
         = Collection<real_type, Ownership::const_reference, MemSpace::native>;
     //!@}

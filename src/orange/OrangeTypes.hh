@@ -29,10 +29,10 @@ class BoundingBox;
 //---------------------------------------------------------------------------//
 
 //! Real type used for acceleration
-using fast_real_type = float;
+using fast_real_type = double;
 
 //! Integer type for volume CSG tree representation
-using logic_int = size_type;
+using logic_int = ImplSurfaceId::size_type;
 
 //! Integer type for canonical volume level
 using vol_level_uint = VolumeLevelId::size_type;
@@ -62,10 +62,10 @@ using FastBBoxId = OpaqueId<FastBBox>;
 using FastReal3 = Array<float, 3>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_, ImplSurfaceId::size_type>;
 
 //! Local identifier for an ImplVolume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume_>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_, ImplVolumeId::size_type>;
 
 //! Identifier for an OrientedBoundingZone
 using OrientedBoundingZoneId = OpaqueId<struct OrientedBoundingZoneRecord>;
@@ -359,16 +359,6 @@ extern template struct Tolerance<double>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST/DEVICE)
-//---------------------------------------------------------------------------//
-/*!
- * Change whether a boundary crossing is reentrant or exiting.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
-{
-    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
-                                           : GeoStatus::boundary_inc;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Sentinel value indicating "no intersection".

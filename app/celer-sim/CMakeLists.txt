@@ -53,6 +53,7 @@ function(celer_sim_test test_ext gdml_inp_name hepmc3_inp_name mctruth_name)
   if(CELERITAS_USE_Geant4 AND CELERITAS_USE_HepMC3
       AND (NOT CELERITAS_CORE_GEO STREQUAL "Geant4")
       AND (VecGeom_GDML_FOUND OR NOT (CELERITAS_CORE_GEO STREQUAL "VecGeom")))
+      # NOTE: G4 navigator crashes with optical, and also with cms...
     set(_needs_deps)
   else()
     set(_needs_deps DISABLED true)

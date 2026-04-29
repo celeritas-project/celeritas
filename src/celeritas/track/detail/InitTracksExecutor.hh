@@ -66,7 +66,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(tid < num_init);
 
     auto const& data = state->init;
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a

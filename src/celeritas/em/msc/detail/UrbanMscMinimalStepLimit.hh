@@ -116,6 +116,8 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscMinimalStepLimit::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
@@ -128,8 +130,8 @@ CELER_FUNCTION real_type UrbanMscMinimalStepLimit::operator()(Engine& rng)
     }
 
     // Randomize the limit if this step should be determined by MSC
-    NormalDistribution<real_type> sample_gauss(
-        limit_, real_type(0.1) * (limit_ - limit_min_));
+    NormalDistribution<real_type> sample_gauss(limit_,
+                                               0.1_r * (limit_ - limit_min_));
     real_type sampled_limit = sample_gauss(rng);
 
     // Keep sampled limit between the minimum value and maximum step

@@ -15,6 +15,7 @@
 #include "corecel/math/SoftEqual.hh"
 
 using Mat3 = celeritas::SquareMatrixReal3;
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -29,7 +30,7 @@ template<class T>
 T determinant(SquareMatrix<T, 3> const& mat)
 {
     T result = 0;
-    for (size_type i = 0; i != 3; ++i)  // GCOVR_EXCL_LINE
+    for (std::size_t i = 0; i != 3; ++i)  // GCOVR_EXCL_LINE
     {
         result += mat[0][i] * mat[1][(i + 1) % 3] * mat[2][(i + 2) % 3];
         result -= mat[0][i] * mat[1][(i + 2) % 3] * mat[2][(i + 1) % 3];
@@ -66,19 +67,19 @@ T trace(SquareMatrix<T, 3> const& mat)
  *
  * \warning This implementation is limited and slow.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 SquareMatrix<T, N>
 gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
 {
     SquareMatrix<T, N> result;
-    for (size_type i = 0; i != N; ++i)
+    for (std::size_t i = 0; i != N; ++i)
     {
-        for (size_type j = 0; j != N; ++j)
+        for (std::size_t j = 0; j != N; ++j)
         {
             // Reset target row
             result[i][j] = 0;
             // Accumulate dot products
-            for (size_type k = 0; k != N; ++k)
+            for (std::size_t k = 0; k != N; ++k)
             {
                 result[i][j] = fma(b[k][j], a[i][k], result[i][j]);
             }
@@ -98,20 +99,20 @@ gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
  * \note The first argument is a "tag" that alters the behavior of this
  * function versus the non-transposed one.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 SquareMatrix<T, N> gemm(matrix::TransposePolicy,
                         SquareMatrix<T, N> const& a,
                         SquareMatrix<T, N> const& b)
 {
     SquareMatrix<T, N> result;
-    for (size_type i = 0; i != N; ++i)
+    for (std::size_t i = 0; i != N; ++i)
     {
-        for (size_type j = 0; j != N; ++j)
+        for (std::size_t j = 0; j != N; ++j)
         {
             // Reset target row
             result[i][j] = 0;
             // Accumulate dot products
-            for (size_type k = 0; k != N; ++k)
+            for (std::size_t k = 0; k != N; ++k)
             {
                 result[i][j] = fma(b[k][j], a[k][i], result[i][j]);
             }
@@ -131,15 +132,15 @@ SquareMatrix<T, N> gemm(matrix::TransposePolicy,
  * If debug assertions are enabled, the normality of the resulting matrix will
  * be checked. A singular matrix will fail.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 void orthonormalize(SquareMatrix<T, N>* mat)
 {
-    for (size_type i = 0; i != N; ++i)
+    for (std::size_t i = 0; i != N; ++i)
     {
         Array<T, N>& cur = (*mat)[i];
 
         // Orthogonalize against previous rows
-        for (size_type ip = 0; ip != i; ++ip)
+        for (std::size_t ip = 0; ip != i; ++ip)
         {
             Array<T, N>& prev = (*mat)[ip];
             T proj = dot_product(cur, prev);
@@ -148,7 +149,7 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 
         // Normalize row
         T inv_mag = 1 / norm(cur);
-        for (size_type j = 0; j != N; ++j)
+        for (std::size_t j = 0; j != N; ++j)
         {
             cur[j] *= inv_mag;
         }
@@ -172,7 +173,7 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 Mat3 make_rotation(Real3 const& ax, Turn theta)
 {
     CELER_EXPECT(is_soft_unit_vector(ax));
-    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{real_type(0.5)});
+    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{0.5_r});
 
     // Axis/direction enumeration
     enum
@@ -196,7 +197,7 @@ Mat3 make_rotation(Real3 const& ax, Turn theta)
            Real3{ax[X] * ax[Z] * (1 - cost) - ax[Y] * sint,
                  ax[Y] * ax[Z] * (1 - cost) + ax[X] * sint,
                  cost + ipow<2>(ax[Z]) * (1 - cost)}};
-    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), real_type{1}));
+    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), 1_r));
     return r;
 }
 
@@ -347,9 +348,9 @@ SquareMatrixReal3 make_reflection(Axis ax)
 SquareMatrixReal3 make_transpose(SquareMatrixReal3 const& mat)
 {
     SquareMatrixReal3 result;
-    for (size_type i = 0; i != 3; ++i)
+    for (std::size_t i = 0; i != 3; ++i)
     {
-        for (size_type j = 0; j != 3; ++j)
+        for (std::size_t j = 0; j != 3; ++j)
         {
             result[i][j] = mat[j][i];
         }

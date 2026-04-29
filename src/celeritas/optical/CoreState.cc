@@ -41,7 +41,7 @@ CoreState<M>::CoreState(CoreParams const& params,
                    << params.max_streams());
     CELER_VALIDATE(num_track_slots > 0, << "number of track slots is not set");
 
-    ScopedProfiling profile_this{"construct-optical-state"};
+    ScopedProfiling profile_this{"construct-state"};
 
     states_ = StateDataStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);

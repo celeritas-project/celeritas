@@ -83,9 +83,11 @@ template<class GTV>
 CELER_FUNCTION real_type SafetyCalculator<GTV>::operator()(size_type x,
                                                            size_type y)
 {
+    using namespace celeritas::literals;
+
     geo_ = [&] {
         auto calc_offset = [pw = scalars_.pixel_width](size_type i) {
-            return pw * (static_cast<real_type>(i) + real_type(0.5));
+            return pw * (static_cast<real_type>(i) + 0.5_r);
         };
 
         GeoTrackInitializer init;

@@ -11,6 +11,8 @@
 #include "BIHUtils.hh"
 #include "../BoundingBoxUtils.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace
@@ -77,7 +79,7 @@ BIHPartitioner::operator()(VecIndices const& indices) const
         auto step_size
             = std::max(static_cast<size_type>(axes_centers[ax].size()
                                               / (num_part_cands_ + 1)),
-                       size_type{1});
+                       1_sz);
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
         {

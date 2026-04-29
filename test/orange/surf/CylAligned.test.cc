@@ -380,17 +380,13 @@ TEST_F(CylZTest, calc_intersections_degenerate)
     {
         CylZ cyl{{1.23, 2.34, 0}, 3.45};
 
-        auto distances = calc_intersections(cyl,
-                                            {real_type{4.68} - eps, 2.34, 1.23},
-                                            {-1, 0, 0},
-                                            SurfaceState::off);
+        auto distances = calc_intersections(
+            cyl, {4.68_r - eps, 2.34, 1.23}, {-1, 0, 0}, SurfaceState::off);
         EXPECT_SOFT_EQ(6.9 - eps, distances[0]);
         EXPECT_EQ(no_intersection(), distances[1]);
 
-        distances = calc_intersections(cyl,
-                                       {real_type{4.68} - eps, 2.34, 1.23},
-                                       {1, 0, 0},
-                                       SurfaceState::off);
+        distances = calc_intersections(
+            cyl, {4.68_r - eps, 2.34, 1.23}, {1, 0, 0}, SurfaceState::off);
         EXPECT_SOFT_NEAR(eps, distances[0], eps);
         EXPECT_EQ(no_intersection(), distances[1]);
     }
@@ -412,7 +408,7 @@ TEST_F(CylZTest, TEST_IF_CELERITAS_DOUBLE(degenerate_boundary))
         for (real_type xdir : {-1.0, 1.0})
         {
             SCOPED_TRACE(xdir < 0 ? "leftward" : "rightward");
-            for (real_type eps : {-coarse_eps, real_type{0}, coarse_eps})
+            for (real_type eps : {-coarse_eps, 0_r, coarse_eps})
             {
                 SCOPED_TRACE(eps < 0 ? "neg" : eps > 0 ? "pos" : "zero");
 

@@ -16,7 +16,7 @@ namespace celeritas
 /*!
  * Convert an array to a string representation for debugging.
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 std::string to_string(Array<T, N> const& a)
 {
     return stream_to_string(a);

@@ -18,6 +18,7 @@
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/UnitTypes.hh"
+#include "celeritas/Units.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
 #include "celeritas/io/ImportData.hh"
@@ -447,8 +448,6 @@ TEST_F(DuneCryostat, optical)
 
 TEST_F(DuneCryostat, optical_gen)
 {
-    using namespace celeritas::units::literals;
-
     selection_.particles = GeantImportDataSelection::optical
                            | GeantImportDataSelection::em_basic;
     selection_.processes = GeantImportDataSelection::optical;
@@ -457,13 +456,13 @@ TEST_F(DuneCryostat, optical_gen)
     ASSERT_TRUE(scint);
     EXPECT_EQ(1, scint->materials.size());
 
-    ASSERT_TRUE(scint->materials.count(OptMatId{1}));
-    auto const& m = scint->materials.at(OptMatId{1});
+    ASSERT_TRUE(scint->materials.count(OptMatId{0}));
+    auto const& m = scint->materials.at(OptMatId{0});
     ASSERT_EQ(2, m.components.size());
     EXPECT_SOFT_EQ(50000 * 0.8, m.components[0].yield);
     EXPECT_SOFT_EQ(50000 * 0.2, m.components[1].yield);
-    EXPECT_SOFT_EQ(6, m.components[0].fall_time / 1_ns);
-    EXPECT_SOFT_EQ(1590, m.components[1].fall_time / 1_ns);
+    EXPECT_SOFT_EQ(6, m.components[0].fall_time / (1 * units::nanosecond));
+    EXPECT_SOFT_EQ(1590, m.components[1].fall_time / (1 * units::nanosecond));
 }
 
 //---------------------------------------------------------------------------//
@@ -1778,7 +1777,10 @@ TEST_F(LarSphere, optical)
 
     auto& bulk = imported.optical_physics.bulk;
     // Check Rayleigh optical properties
-    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
+    CELER_ASSERT(std::holds_alternative<inp::Grid>(
+        bulk.rayleigh.materials.at(OptMatId{0}).mfp));
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1910,7 +1912,10 @@ TEST_F(LarSphereExtramat, optical)
     EXPECT_FALSE(bulk.wls2.materials.count(OptMatId{0}));
 
     // Check Rayleigh optical properties
-    auto const& rayleigh_mfp = bulk.rayleigh.materials.at(OptMatId{0}).mfp;
+    CELER_ASSERT(std::holds_alternative<inp::Grid>(
+        bulk.rayleigh.materials.at(OptMatId{0}).mfp));
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());

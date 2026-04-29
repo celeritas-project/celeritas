@@ -6,48 +6,25 @@
 //---------------------------------------------------------------------------//
 #include "PhysicsParams.hh"
 
+#include "corecel/data/AuxParamsRegistry.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/optical/ModelImporter.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "MaterialParams.hh"
 #include "MfpBuilder.hh"
 #include "Model.hh"
 #include "action/DiscreteSelectAction.hh"
+#include "gen/WlsGeneratorAction.hh"
+#include "model/AbsorptionModel.hh"
+#include "model/MieModel.hh"
+#include "model/RayleighModel.hh"
+#include "model/WavelengthShiftModel.hh"
 
 namespace celeritas
 {
 namespace optical
 {
-//---------------------------------------------------------------------------//
-/*!
- * Construct with imported data.
- */
-std::shared_ptr<PhysicsParams>
-PhysicsParams::from_import(ImportData const& io,
-                           SPConstCoreMaterials core_materials,
-                           SPConstMaterials materials,
-                           SPActionRegistry action_reg)
-{
-    Input input;
-    input.materials = materials;
-    input.action_registry = action_reg.get();
-    ModelImporter importer{io, materials, core_materials};
-    auto add_model
-        = [&importer, &mb = input.model_builders](auto const& op_bulk_model) {
-              if (auto builder = importer(op_bulk_model.model_class))
-              {
-                  mb.push_back(builder);
-              }
-          };
-    add_model(io.optical_physics.bulk.absorption);
-    add_model(io.optical_physics.bulk.rayleigh);
-    add_model(io.optical_physics.bulk.mie);
-    add_model(io.optical_physics.bulk.wls);
-    add_model(io.optical_physics.bulk.wls2);
-    return std::make_shared<PhysicsParams>(std::move(input));
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct from imported and shared data.
@@ -59,31 +36,46 @@ PhysicsParams::from_import(ImportData const& io,
  * registered in the action registry. Finally, scalar data and MFP tables are
  * constructed on the physics storage data.
  */
-PhysicsParams::PhysicsParams(Input input)
+PhysicsParams::PhysicsParams(inp::OpticalBulkPhysics const& input,
+                             SPConstMaterials const& materials,
+                             SPConstCoreMaterials const& core_materials,
+                             SPActionRegistry action_reg,
+                             SPAuxRegistry aux_reg,
+                             SPGeneratorRegistry gen_reg,
+                             size_type gen_capacity)
 {
-    CELER_EXPECT(input.materials);
-    CELER_EXPECT(input.action_registry);
+    CELER_EXPECT(materials);
+    CELER_EXPECT(core_materials);
+    CELER_EXPECT(action_reg);
+    CELER_EXPECT(aux_reg);
+    CELER_EXPECT(gen_reg);
+
+    CELER_VALIDATE(input, << "no optical bulk models are present");
 
     // Create and register actions
     {
-        auto& action_reg = *input.action_registry;
-
         // Discrete select action
         discrete_select_
-            = std::make_shared<DiscreteSelectAction>(action_reg.next_id());
-        action_reg.insert(discrete_select_);
+            = std::make_shared<DiscreteSelectAction>(action_reg->next_id());
+        action_reg->insert(discrete_select_);
 
         // Build models
-        models_ = this->build_models(input.model_builders, action_reg);
+        models_ = this->build_models(input,
+                                     materials,
+                                     core_materials,
+                                     *action_reg,
+                                     *aux_reg,
+                                     *gen_reg,
+                                     gen_capacity);
     }
 
     // Construct data
     HostValue data;
     data.scalars.num_models = models_.size();
-    data.scalars.num_materials = input.materials->num_materials();
+    data.scalars.num_materials = materials->num_materials();
     data.scalars.first_model_action = ActionId{1};
 
-    this->build_mfps(*input.materials, data);
+    this->build_mfps(*materials, data);
 
     CELER_ENSURE(data);
 
@@ -93,26 +85,76 @@ PhysicsParams::PhysicsParams(Input input)
 //---------------------------------------------------------------------------//
 /*!
  * Construct optical models and register them in the given registry.
+ *
+ * If WLS is enabled, a generator action is constructed for creating secondary
+ * photons.
  */
-auto PhysicsParams::build_models(VecModelBuilders const& model_builders,
-                                 ActionRegistry& action_reg) const -> VecModels
+auto PhysicsParams::build_models(inp::OpticalBulkPhysics const& input,
+                                 SPConstMaterials materials,
+                                 SPConstCoreMaterials core_materials,
+                                 ActionRegistry& action_reg,
+                                 AuxParamsRegistry& aux_reg,
+                                 GeneratorRegistry& gen_reg,
+                                 size_type gen_capacity) const -> VecModels
 {
     VecModels models;
-    models.reserve(model_builders.size());
-
-    for (auto const& build_model : model_builders)
+    if (input.absorption)
     {
-        CELER_ASSERT(build_model);
-
-        auto action_id = action_reg.next_id();
-        SPConstModel model = build_model(action_id);
-        CELER_ASSERT(model);
-        CELER_ASSERT(model->action_id() == action_id);
-
-        action_reg.insert(model);
-        models.push_back(std::move(model));
+        models.push_back(std::make_shared<AbsorptionModel>(
+            action_reg.next_id(), input.absorption));
+        action_reg.insert(models.back());
     }
+    if (input.mie)
+    {
+        models.push_back(std::make_shared<MieModel>(
+            action_reg.next_id(), input.mie, materials));
+        action_reg.insert(models.back());
+    }
+    if (input.rayleigh)
+    {
+        models.push_back(std::make_shared<RayleighModel>(
+            action_reg.next_id(), input.rayleigh, materials, core_materials));
+        action_reg.insert(models.back());
+    }
+    if (input.wls || input.wls2)
+    {
+        WlsGeneratorAction::Input gen_inp;
+        gen_inp.aux_id = aux_reg.next_id();
+        gen_inp.gen_id = gen_reg.next_id();
+        gen_inp.capacity = gen_capacity;
 
+        if (input.wls)
+        {
+            auto model
+                = std::make_shared<WavelengthShiftModel>(action_reg.next_id(),
+                                                         gen_inp.aux_id,
+                                                         input.wls,
+                                                         materials,
+                                                         GeneratorType::wls);
+            gen_inp.wls = model;
+            action_reg.insert(model);
+            models.push_back(std::move(model));
+        }
+        if (input.wls2)
+        {
+            auto model
+                = std::make_shared<WavelengthShiftModel>(action_reg.next_id(),
+                                                         gen_inp.aux_id,
+                                                         input.wls2,
+                                                         materials,
+                                                         GeneratorType::wls2);
+            gen_inp.wls2 = model;
+            action_reg.insert(model);
+            models.push_back(std::move(model));
+        }
+
+        // Action ID for the WLS generator must be greater than all model IDs
+        gen_inp.action_id = action_reg.next_id();
+        auto gen = std::make_shared<WlsGeneratorAction>(std::move(gen_inp));
+        action_reg.insert(gen);
+        aux_reg.insert(gen);
+        gen_reg.insert(gen);
+    }
     return models;
 }
 

@@ -137,7 +137,9 @@ SphereCentered::calc_intersections(Real3 const& pos,
                                    SurfaceState on_surface) const
     -> Intersections
 {
-    detail::QuadraticSolver solve_quadric(real_type(1), dot_product(pos, dir));
+    using namespace celeritas::literals;
+
+    detail::QuadraticSolver solve_quadric(1.0_r, dot_product(pos, dir));
     if (on_surface == SurfaceState::off)
     {
         return solve_quadric(dot_product(pos, pos) - radius_sq_);

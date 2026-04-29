@@ -278,7 +278,7 @@ TEST(PolygonUtilsTest, calc_extrema)
 
 TEST(PolygonUtilsTest, normal_from_triangle)
 {
-    constexpr auto dir = real_type{1} / constants::sqrt_three;
+    constexpr auto dir = 1_r / constants::sqrt_three;
 
     // Construct from three points, in this case a plane passing through the
     // point (1, 2, 3) with slope (1, 1, 1). Specifying the points in clockwise

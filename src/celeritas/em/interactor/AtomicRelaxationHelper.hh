@@ -9,9 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 
 #include "AtomicRelaxation.hh"

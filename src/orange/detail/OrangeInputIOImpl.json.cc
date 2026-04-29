@@ -8,6 +8,7 @@
 
 #include <vector>
 
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/StringEnumMapper.hh"
 
@@ -65,17 +66,18 @@ VariantTransform import_transform(nlohmann::json const& src)
 {
     std::vector<real_type> data;
     src.get_to(data);
+    LdgSpan<real_type const> data_span{data.data(), data.size()};
     if (data.size() == 0)
     {
         return NoTransformation{};
     }
     else if (data.size() == 3)
     {
-        return Translation{Translation::StorageSpan{make_span(data)}};
+        return Translation{Translation::StorageSpan{data_span}};
     }
     else if (data.size() == 12)
     {
-        return Transformation{Transformation::StorageSpan{make_span(data)}};
+        return Transformation{Transformation::StorageSpan{data_span}};
     }
     else
     {
@@ -97,7 +99,7 @@ nlohmann::json export_transform(VariantTransform const& t)
     return std::visit(
         [](auto&& tr) -> nlohmann::json {
             auto result = nlohmann::json::array();
-            for (auto v : tr.data())
+            for (auto v : remove_ldg_wrapper(tr.data()))
             {
                 result.push_back(v);
             }

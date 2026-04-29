@@ -39,8 +39,8 @@ namespace
 /*!
  * Get the i'th slice of a span of data.
  */
-template<size_type N, class T>
-decltype(auto) slice(Span<T> data, size_type i)
+template<std::size_t N, class T>
+decltype(auto) slice(Span<T> data, std::size_t i)
 {
     CELER_ASSERT(N * (i + 1) <= data.size());
     Array<std::remove_const_t<T>, N> result;
@@ -301,7 +301,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             DaughterInput daughter;
             daughter.univ_id = UnivId{daughters[i]};
             daughter.transform = std::move(transforms[i]);
-            value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
+            value.daughter_map.emplace(id_cast<LocalVolumeId>(parent_vols[i]),
                                        std::move(daughter));
         }
     }

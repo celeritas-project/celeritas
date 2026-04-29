@@ -39,7 +39,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 
 struct InvCentimeter
@@ -117,8 +116,8 @@ Span<real_type const> get_water_refractive_index()
 // Convert a wavelength in [micrometer] to a photon energy in [MeV]
 real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(
-        optical::detail::wavelength_to_energy(1e-3_mm * wavelength_um));
+    return value_as<units::MevEnergy>(optical::detail::wavelength_to_energy(
+        1e-3 * units::millimeter * wavelength_um));
 }
 
 //---------------------------------------------------------------------------//
@@ -184,12 +183,12 @@ TEST_F(CherenkovWaterTest, angle_integral)
 
     auto const& energy = params->host_ref().reals[grid.grid];
     EXPECT_EQ(101, energy.size());
-    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front());
-    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back());
+    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front().get());
+    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back().get());
 
     auto const& angle_integral = params->host_ref().reals[grid.value];
-    EXPECT_EQ(0, angle_integral.front());
-    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back());
+    EXPECT_EQ(0, angle_integral.front().get());
+    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back().get());
 }
 
 //---------------------------------------------------------------------------//
@@ -536,10 +535,8 @@ TEST_F(CherenkovAirTest, dndx)
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
 
-    std::vector<real_type> betas{real_type{1.0 / 1.2},
-                                 real_type{1.0 / 1.3},
-                                 1 / 1.31,
-                                 real_type{1.0 / 1.4}};
+    std::vector<real_type> betas{
+        1.0_r / 1.2, 1.0_r / 1.3, 1 / 1.31, 1.0_r / 1.4};
 
     std::vector<real_type> dndx;
     for (real_type beta : betas)

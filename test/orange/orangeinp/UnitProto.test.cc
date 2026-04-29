@@ -774,7 +774,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
         using VR2 = GenPrism::VecReal2;
         auto trd
             = make_shape<GenPrism>("turd",
-                                   real_type{3},
+                                   3_r,
                                    VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
                                    VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
         append_material(inp,

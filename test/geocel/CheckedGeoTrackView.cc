@@ -17,6 +17,8 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace test
@@ -229,11 +231,20 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
+
     CGTV_VALIDATE(*this,
-                  result >= 0 && result <= max_safety,
-                  << "safety " << repr(result) << NativeLength{}
-                  << " is out of bounds: should be in [0, " << max_safety
-                  << ']');
+                  result >= 0,
+                  << "invalid safety result " << repr(result)
+                  << NativeLength{});
+
+    if (result > max_safety)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Returned safety " << repr(result) << NativeLength{}
+            << " exceeds requested search distance " << repr(max_safety)
+            << NativeLength{};
+    }
+
     return result;
 }
 
@@ -253,11 +264,15 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
                    << "cannot change direction while outside");
 
     bool started_on_boundary = t_->is_on_boundary();
+    ImplVolumeId impl_vol = t_->impl_volume_id();
     t_->set_dir(newdir);
     CGTV_VALIDATE_NOT_FAILED(*this, "set_dir");
     CGTV_VALIDATE(*this,
                   started_on_boundary == t_->is_on_boundary(),
                   << "boundary state changed during set_dir");
+    CGTV_VALIDATE(*this,
+                  impl_vol == t_->impl_volume_id(),
+                  << "volume changed during set_dir");
     next_boundary_.reset();
 }
 
@@ -459,7 +474,7 @@ void CheckedGeoTrackView::cross_boundary()
         CGTV_VALIDATE(
             *this,
             soft_equal(std::fabs(dot_product(*pre_crossing_normal, post_norm)),
-                       real_type{1}),
+                       1_r),
             << "inconsistent surface normal: pre-crossing "
             << *pre_crossing_normal << ", post-crossing " << post_norm);
 

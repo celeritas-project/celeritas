@@ -8,18 +8,14 @@
 
 #include <utility>
 
-#include "corecel/cont/Range.hh"
-#include "corecel/data/ParamsDataStore.hh"
-#include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"  // IWYU pragma: keep
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
-#include "SimParams.hh"
+#include "SimParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -62,6 +58,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
 {
     CELER_EXPECT(state.aux());
 
+    CELER_LOG_LOCAL(status) << "Transporting on " << to_cstring(M);
+
     size_type num_step_iters{0};
     size_type num_steps{0};
 
@@ -77,7 +75,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
     // Loop while photons are yet to be tracked
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
-        ScopedProfiling profile_this{"optical-step"};
+        ScopedProfiling profile_this{"step"};
         // Loop through actions
         for (auto const& action : actions_->step())
         {

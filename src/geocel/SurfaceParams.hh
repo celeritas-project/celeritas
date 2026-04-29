@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/SurfaceParams.hh
+//! \sa test/geocel/Surface.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 

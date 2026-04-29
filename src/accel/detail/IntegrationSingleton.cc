@@ -64,7 +64,7 @@ validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
     return *user;
 }
 //---------------------------------------------------------------------------//
-};  // namespace
+}  // namespace
 
 //---------------------------------------------------------------------------//
 /*!

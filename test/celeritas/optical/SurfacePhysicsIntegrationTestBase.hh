@@ -117,7 +117,6 @@ class SurfacePhysicsIntegrationTestBase
 
     GeantPhysicsOptions build_geant_options() const override;
     GeantImportDataSelection build_import_data_selection() const override;
-    std::vector<IMC> select_optical_models() const override;
     SPConstOpticalSurfacePhysics build_optical_surface_physics() override;
 
     //! Initialize transporter and state for run

@@ -182,7 +182,7 @@ struct OrientedBoundingZoneRecord
 /*!
  * Class for storing offset data for RaggedRightIndexer.
  */
-template<size_type N>
+template<std::size_t N>
 struct RaggedRightIndexerData
 {
     using Sizes = Array<size_type, N>;

@@ -6,15 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Assert.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#include "ObserverPtr.hh"
 
 #include "detail/CollectionImpl.hh"
 
@@ -32,11 +28,11 @@ namespace celeritas
  * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
  * \em essentially trivial, but implement null-op destructors or optimized copy
  * constructors, so we allow specialization through the
- * celeritas::TriviallyCopyable class.
+ * celeritas::IsTriviallyCopyable class.
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
- * entirety of the data are accessed with \c AllItems<T>. All three of these
+ * entirety of the data are accessed with \c all_items. All three of these
  * classes are trivially copyable, so they can be embedded in structs that can
  * be managed by a Collection. A group of Collections, one for each data type,
  * can therefore be trivially copied to the GPU to enable arbitrarily deep and
@@ -57,7 +53,7 @@ namespace celeritas
  *
  * A <em>collection group</em> has the following requirements to be compatible
  * with the \c ParamsDataStore (for "params" collection groups), \c
- * StateDataStore (for "state" collection groups"), and other such helper
+ * StateDataStore (for "state" collection groups), and other such helper
  * classes:
  * - Be a struct templated with <code>template<Ownership W, MemSpace M></code>
  * - Contain only Collection objects and trivially copyable structs
@@ -106,14 +102,25 @@ namespace celeritas
  *
  * Finally, note that the templated type aliases \c HostVal, \c HostCRef,
  * \c DeviceRef, etc. are useful for functions that are specialized on
- MemSpace.
+ * \c MemSpace.
  */
 
+//---------------------------------------------------------------------------//
+// Forward declarations
+template<class T, class Id>
+class DedupeCollectionBuilder;
+template<class T2, MemSpace M2, class Id2>
+class CollectionBuilder;
+template<class T, Ownership W, MemSpace M, class I>
+class Collection;
+
+//---------------------------------------------------------------------------//
+// TYPE ALIASES
+//---------------------------------------------------------------------------//
 //! Opaque ID representing a single element of a container.
 template<class T, class U = size_type>
 using ItemId = OpaqueId<T, U>;
 
-//---------------------------------------------------------------------------//
 /*!
  * Reference a contiguous range of IDs corresponding to a slice of items.
  *
@@ -145,6 +152,10 @@ using ItemId = OpaqueId<T, U>;
  */
 template<class T, class Size = size_type>
 using ItemRange = Range<OpaqueId<T, Size>>;
+
+//! Collection for data of type T but indexed by TrackSlotId for use in States
+template<class T, Ownership W, MemSpace M>
+using StateCollection = Collection<T, W, M, TrackSlotId>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -199,6 +210,7 @@ class ItemMap
     //! \name Type aliases
     using key_type = T1;
     using mapped_type = T2;
+    using size_type = typename T1::size_type;
     //!@}
 
   public:
@@ -215,17 +227,17 @@ class ItemMap
     //// ACCESS ////
 
     //! Access Range via OpaqueId of type T1
-    CELER_FORCEINLINE_FUNCTION T2 operator[](T1 id) const
+    CELER_FIF T2 operator[](T1 id) const
     {
         CELER_EXPECT(id < this->size());
         return range_[id.unchecked_get()];
     }
 
     //! Whether the underlying Range<T2> is empty
-    CELER_FORCEINLINE_FUNCTION bool empty() const { return range_.empty(); }
+    CELER_FIF bool empty() const { return range_.empty(); }
 
     //! Size of the underlying Range<T2>
-    CELER_FORCEINLINE_FUNCTION size_type size() const { return range_.size(); }
+    CELER_FIF size_type size() const { return range_.size(); }
 
   private:
     //// DATA ////
@@ -233,22 +245,14 @@ class ItemMap
 };
 
 //---------------------------------------------------------------------------//
-// Forward declare DedupeCollectionBuilder for use as a friend class
-template<class T, class Id>
-class DedupeCollectionBuilder;
-
-// Forward-declare collection builder, needed for GCC7
-template<class T2, MemSpace M2, class Id2>
-class CollectionBuilder;
-
-//---------------------------------------------------------------------------//
-/*!
- * Sentinel class for obtaining a view to all items of a collection.
- */
+// DEPRECATED: remove in v1.0
+//! Deprecated tag class for obtaining a span of all items of a collection
 template<class T, MemSpace M = MemSpace::native>
-struct AllItems
-{
-};
+using AllItems = detail::AllItems_t<T, M>;
+
+//! Memspace-safe sentinel for obtaining a span of a collection
+template<class T, MemSpace M = MemSpace::native>
+inline constexpr detail::AllItems_t<T, M> all_items;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -260,10 +264,10 @@ struct AllItems
  * Spans can point to host or device memory, but the \c MemSpace template
  * argument protects against accidental accesses from the wrong memory space.
  *
- * Each Collection object is usually accessed with an ItemRange, which
+ * Each Collection object is usually accessed with an \c ItemRange, which
  * references a contiguous set of elements in the Collection.
  * For example, setup code on the host would extend the Collection with a
- * series of vectors, the addition of which returns a ItemRange that returns
+ * series of vectors, the addition of which returns a \c ItemRange that returns
  * the equivalent data on host or device.
  * This methodology allows complex nested data structures to be built
  * up quickly at setup time without knowing the size requirements beforehand.
@@ -271,9 +275,9 @@ struct AllItems
  * Host-device functions and classes should use \c Collection with a reference
  * or const_reference Ownership, and the \c MemSpace::native type, which
  * expects device memory when compiled inside a CUDA file and host memory when
- * used inside a C++ source or test. (This design choice prevents a single CUDA
+ * used inside a C++ source or test. This design choice prevents a single CUDA
  * file from compiling separate host-compatible and device-compatible compute
- * kernels, but in the case of Celeritas this situation won't arise, because
+ * kernels. (In the case of Celeritas this situation won't arise, because
  * we always want to build host code in C++ files for development ease and to
  * allow testing when CUDA is disabled.)
  *
@@ -293,38 +297,46 @@ struct AllItems
  https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#zero-copy).
  *
  * Accessing a \c const_reference collection in \c device memory will return a
- * wrapper container that accesses the low-level data through the \c
- celeritas::ldg
- * wrapper function, which can accelerate random access on GPU by telling the
- compiler
+ * wrapper container that accesses the low-level data through the
+ * \c celeritas::ldg wrapper function, which can accelerate random access
+ * on GPU by telling the compiler
  * <em>the memory will not be changed during the lifetime of the kernel</em>.
  * Therefore it is important to \em only use const Collections for shared,
  * immutable-after-creation "params" data.
+ *
+ * Accessing a \c reference collection returns \em mutable pointers, even when
+ * given the collection as a const reference.
+ *
+ * \internal Since the behavior of this class does \em not depend on the item
+ * ID (only the types do), the implementation of each function directly
+ * forwards to a less-templated function to reduce object size.
  */
 template<class T, Ownership W, MemSpace M, class I = ItemId<T>>
 class Collection
 {
-    static_assert(TriviallyCopyable_v<T>,
+    static_assert(is_trivially_copyable_v<T>,
                   "Collection element is not trivially copyable");
 
-    using CollectionTraitsT = detail::CollectionTraits<T, W, M>;
-    using const_value_type = typename CollectionTraitsT::const_type;
+    using TraitsT = detail::CollectionTraits<T, W, M>;
 
   public:
     //!@{
     //! \name Type aliases
-    using value_type = typename CollectionTraitsT::type;
-    using SpanT = typename CollectionTraitsT::SpanT;
-    using SpanConstT = typename CollectionTraitsT::SpanConstT;
-    using pointer = ObserverPtr<value_type, M>;
-    using const_pointer = ObserverPtr<const_value_type, M>;
-    using reference_type = typename CollectionTraitsT::reference_type;
-    using const_reference_type =
-        typename CollectionTraitsT::const_reference_type;
-    using size_type = typename I::size_type;
+    using value_type = typename TraitsT::type;
+    using SpanT = typename TraitsT::SpanT;
+    using SpanConstT = typename TraitsT::SpanConstT;  // Mutable if ref!
+    using pointer = detail::ContainerObserverPtr<SpanT, M>;
+    using const_pointer = detail::ContainerObserverPtr<SpanConstT, M>;
+    using reference = typename SpanT::reference;
+    using const_reference = typename SpanConstT::reference;  // Mutable if ref!
+    using size_type = MakeSize_t<I>;
     using ItemIdT = I;
     using ItemRangeT = Range<ItemIdT>;
-    using AllItemsT = AllItems<T, M>;
+    using AllItemsT = detail::AllItems_t<T, M>;
+
+    // DEPRECATED: remove in v1.0
+    using reference_type [[deprecated]] = reference;
+    using const_reference_type [[deprecated]] = const_reference;
     //!@}
 
     static constexpr Ownership ownership = W;
@@ -367,43 +379,41 @@ class Collection
     //// ACCESS ////
 
     // Access a single element
-    CELER_FORCEINLINE_FUNCTION reference_type operator[](ItemIdT i);
-    CELER_FORCEINLINE_FUNCTION const_reference_type operator[](ItemIdT i) const;
+    inline CELER_FUNCTION reference operator[](ItemIdT i);
+    inline CELER_FUNCTION const_reference operator[](ItemIdT i) const;
 
     // Access a subset of the data with a slice
-    CELER_FORCEINLINE_FUNCTION SpanT operator[](ItemRangeT ps);
-    CELER_FORCEINLINE_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
-
-    // Access all data.
-    CELER_FORCEINLINE_FUNCTION SpanT operator[](AllItemsT);
-    CELER_FORCEINLINE_FUNCTION SpanConstT operator[](AllItemsT) const;
+    inline CELER_FUNCTION SpanT operator[](ItemRangeT ps);
+    inline CELER_FUNCTION SpanConstT operator[](ItemRangeT ps) const;
 
     //!@{
-    //! Direct accessors to underlying data
-    CELER_FORCEINLINE_FUNCTION size_type size() const
+    //! Access all data as a span (memspace-safe)
+    CELER_FIF SpanT operator[](AllItemsT) { return {s_.data(), s_.size()}; }
+    CELER_FIF SpanConstT operator[](AllItemsT) const
     {
-        return static_cast<size_type>(this->storage().size());
-    }
-    CELER_FORCEINLINE_FUNCTION bool empty() const
-    {
-        return this->storage().empty();
-    }
-    CELER_FORCEINLINE_FUNCTION pointer data()
-    {
-        return pointer{this->storage().data()};
-    }
-    CELER_FORCEINLINE_FUNCTION const_pointer data() const
-    {
-        return const_pointer{this->storage().data()};
+        return {s_.data(), s_.size()};
     }
     //!@}
 
+    //!@{
+    //! Direct accessors to underlying data
+    CELER_FIF size_type size() const
+    {
+        return static_cast<size_type>(s_.size());
+    }
+    CELER_FIF bool empty() const { return s_.empty(); }
+    CELER_FIF pointer data() { return pointer{s_.data()}; }
+    CELER_FIF const_pointer data() const { return const_pointer{s_.data()}; }
+    //!@}
+
   private:
+    using StorageT = typename TraitsT::StorageT;
+
     //// DATA ////
 
-    detail::CollectionStorage<T, W, M> storage_{};
+    //! Manage data/size with a std::vector, DeviceVector, or Span
+    StorageT s_{};
 
-  protected:
     //// FRIENDS ////
 
     template<class T2, Ownership W2, MemSpace M2, class Id2>
@@ -415,148 +425,27 @@ class Collection
     template<class T2, class Id2>
     friend class DedupeCollectionBuilder;
 
+    //// IMPLEMENTATION FUNCTIONS ////
+
     //!@{
     // Private accessors for collection construction/access
-    using StorageT = typename detail::CollectionStorage<T, W, M>::type;
-    CELER_FORCEINLINE_FUNCTION StorageT const& storage() const
+    CELER_FIF StorageT const& storage() const { return s_; }
+    CELER_FIF StorageT& storage() { return s_; }
+
+    // Note that these are different from SpanT, which has Ldg/etc
+    CELER_FIF Span<typename TraitsT::const_type> raw_span() const
     {
-        return storage_.data;
+        return {s_.data(), s_.size()};
     }
-    CELER_FORCEINLINE_FUNCTION StorageT& storage() { return storage_.data; }
+    CELER_FIF Span<typename TraitsT::type> raw_span()
+    {
+        return {s_.data(), s_.size()};
+    }
     //@}
 };
 
-//! Collection for data of type T but indexed by TrackSlotId for use in States
-template<class T, Ownership W, MemSpace M>
-using StateCollection = Collection<T, W, M, TrackSlotId>;
-
 //---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-//!@{
-/*!
- * Construct or assign from another collection.
- *
- * These are generally used to create "references" to "values" (same memory
- * space) but can also be used to copy from device to host. The \c
- * detail::CollectionAssigner class statically checks for allowable
- * transformations and memory moves.
- */
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
-{
-    detail::copy_collection(other.storage_, &storage_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
-{
-    detail::copy_collection(other.storage_, &storage_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
-{
-    detail::copy_collection(other.storage_, &storage_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
-    return *this;
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
-{
-    detail::copy_collection(other.storage_, &storage_);
-    detail::CollectionStorageValidator<W2>()(this->size(),
-                                             other.storage().size());
-    return *this;
-}
-//!@}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a single element.
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
-    -> reference_type
-{
-    CELER_EXPECT(i < this->size());
-    return this->storage()[i.unchecked_get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a single element (const).
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i) const
-    -> const_reference_type
-{
-    CELER_EXPECT(i < this->size());
-    return this->storage()[i.unchecked_get()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a subset of the data as a Span.
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
-{
-    CELER_EXPECT(*ps.begin() <= *ps.end());
-    CELER_EXPECT(*ps.end() < this->size() + 1);
-    auto* data = this->storage().data();
-    return {data + ps.begin()->unchecked_get(),
-            data + ps.end()->unchecked_get()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access a subset of the data as a Span (const).
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
-    -> SpanConstT
-{
-    CELER_EXPECT(*ps.begin() <= *ps.end());
-    CELER_EXPECT(*ps.end() < this->size() + 1);
-    auto* data = this->storage().data();
-    return {data + ps.begin()->unchecked_get(),
-            data + ps.end()->unchecked_get()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access all of the data as a Span.
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) -> SpanT
-{
-    return {this->storage().data(), this->storage().size()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Access all of the data as a Span (const).
- */
-template<class T, Ownership W, MemSpace M, class I>
-CELER_FUNCTION auto Collection<T, W, M, I>::operator[](AllItemsT) const
-    -> SpanConstT
-{
-    return {this->storage().data(), this->storage().size()};
-}
-
+// FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
  * Construct a const reference collection.
@@ -579,6 +468,107 @@ template<class T, MemSpace M, class I>
 inline auto make_const_ref(Collection<T, Ownership::value, M, I> const& c)
 {
     return make_ref(c);
+}
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+//!@{
+/*!
+ * Construct or assign from another collection.
+ *
+ * These are generally used to create "references" to "values" (same memory
+ * space) but can also be used to copy from device to host. Allowable
+ * transformations and memory moves are statically checked.
+ */
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+}
+
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+}
+
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+    return *this;
+}
+
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+    return *this;
+}
+//!@}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a single element.
+ */
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
+    -> reference
+{
+    CELER_EXPECT(i < this->size());
+    return s_[i.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a single element (const).
+ */
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FORCEINLINE_FUNCTION auto
+Collection<T, W, M, I>::operator[](ItemIdT i) const -> const_reference
+{
+    CELER_EXPECT(i < this->size());
+    return s_[i.unchecked_get()];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a subset of the data as a Span.
+ */
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) -> SpanT
+{
+    CELER_EXPECT(*ps.begin() <= *ps.end());
+    CELER_EXPECT(*ps.end() < this->size() + 1);
+    auto* data = s_.data();
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access a subset of the data as a Span (const).
+ */
+template<class T, Ownership W, MemSpace M, class I>
+CELER_FUNCTION auto Collection<T, W, M, I>::operator[](ItemRangeT ps) const
+    -> SpanConstT
+{
+    CELER_EXPECT(*ps.begin() <= *ps.end());
+    CELER_EXPECT(*ps.end() < this->size() + 1);
+    auto* data = s_.data();
+    return {data + ps.begin()->unchecked_get(),
+            data + ps.end()->unchecked_get()};
 }
 
 //---------------------------------------------------------------------------//

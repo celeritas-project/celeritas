@@ -25,7 +25,7 @@ using Real2 = Array<real_type, 2>;
 using Size2 = Array<size_type, 2>;
 
 //! Alias for a small square dense matrix
-template<class T, size_type N>
+template<class T, std::size_t N>
 using SquareMatrix = Array<Array<T, N>, N>;
 
 //! Alias for a small square dense matrix
@@ -199,6 +199,16 @@ CELER_CONSTEXPR_FUNCTION bool is_valid(GeoStatus s)
 CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
 {
     return static_cast<char>(s) > 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Change whether a boundary crossing is reentrant or exiting.
+ */
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
+{
+    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
+                                           : GeoStatus::boundary_inc;
 }
 
 //---------------------------------------------------------------------------//

@@ -439,7 +439,7 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
     // the parent placement (i.e., the volume instance in the parent universe)
     auto ui = this->make_univ_indexer();
     UnivLevelId ulev_id{this->univ_level()};
-    auto get_vol_inst = [&]() {
+    auto get_vol_inst = [&]() -> VolumeInstanceId {
         auto lsa = this->make_lsa(ulev_id);
         CELER_ASSERT(lsa.univ());
         ImplVolumeId impl_id = ui.global_volume(lsa.univ(), lsa.vol());
@@ -525,7 +525,7 @@ OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
         do
         {
             ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
-            if (auto vol_inst = params_.volume_instance_ids[impl_id])
+            if (auto vol_inst = params_.volume_instance_ids[impl_id].get())
             {
                 // Save volume instance ID at this canonical level
                 CELER_ASSERT(level_idx != 0);
@@ -946,8 +946,22 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
 
         // Evaluate whether the direction dotted with the surface normal
         // changes (i.e. heading from inside to outside or vice versa).
-        if ((dot_product(normal, newdir) >= 0)
-            != (dot_product(normal, this->dir()) >= 0))
+        auto new_dot = dot_product(normal, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+#if !CELER_DEVICE_COMPILE
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+#endif
+            // Scattered exactly perpendicular to the surface normal: oops!
+            // The inc/out status now depends on the concavity at the local
+            // point, or if we're along a planar surface then we can't move
+            // consistently with the boundary state.
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((new_dot > 0) != (dot_product(normal, this->dir()) > 0))
         {
             // The boundary crossing direction has changed! Reverse our
             // plans to change the logical state and move to a new volume.

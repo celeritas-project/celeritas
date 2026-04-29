@@ -9,8 +9,11 @@
 #include <typeindex>
 #include <unordered_map>
 #include <G4Cerenkov.hh>
+#include <G4ElementData.hh>
 #include <G4Material.hh>
 #include <G4MaterialPropertiesTable.hh>
+#include <G4MuPairProduction.hh>
+#include <G4MuPairProductionModel.hh>
 #include <G4MuonMinusAtomicCapture.hh>
 #include <G4OpAbsorption.hh>
 #include <G4OpBoundaryProcess.hh>
@@ -21,7 +24,6 @@
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
-#include "corecel/inp/Distributions.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 
 #if G4VERSION_NUMBER >= 1070
@@ -40,6 +42,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/inp/MucfPhysics.hh"
 #include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/PhysicsModel.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/io/ImportOpticalModel.hh"
@@ -47,8 +50,16 @@
 
 #include "GeantMaterialPropertyGetter.hh"
 #include "GeantOpticalMatHelper.hh"
+#include "GeantProcessImporter.hh"
 #include "GeantScintillationLoader.hh"
 #include "GeantSurfacePhysicsLoader.hh"
+#include "../GeantParticleView.hh"
+
+// clang-format off
+//! Dispatch-table entry macro: maps a G4 class to a member function handler
+#define GPL_TYPE_FUNC(CLASSNAME, METHOD) \
+    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
+// clang-format on
 
 namespace celeritas
 {
@@ -82,17 +93,15 @@ class G4OpWLS2 : public G4OpWLS
  * This is from an implementation detail in \c
  * G4OpRayleigh::CalculateRayleighMeanFreePaths .
  */
-void load_rayleigh_water(
-    inp::OpticalModelMaterial<ImportOpticalRayleigh>& model_mat,
-    G4Material const& g4mat)
+void load_rayleigh_water(inp::OpticalRayleighAnalytic& analytic,
+                         G4Material const& g4mat)
 {
     double const betat = 7.658e-23 * CLHEP::m3 / CLHEP::MeV;
     constexpr auto units = ImportUnits::len_time_sq_per_mass;
-    model_mat.compressibility = betat * native_value_from_clhep(units);
+    analytic.compressibility = betat * native_value_from_clhep(units);
     CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh "
-                          "properties for water: setting to "
-                       << model_mat.compressibility << " "
-                       << to_cstring(units);
+                          "properties for water: setting compressibility to "
+                       << analytic.compressibility << " " << to_cstring(units);
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
@@ -104,6 +113,27 @@ void load_rayleigh_water(
                "are provided";
     }
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return a log message for the number of items loaded from a process.
+ */
+Logger::Message make_loaded_msg(LogProvenance prov, size_type result)
+{
+    auto msg = world_logger()(
+        std::move(prov), result == 0 ? LogLevel::warning : LogLevel::debug);
+    msg << "Loaded ";
+    if (result == 0)
+    {
+        msg << "no";
+    }
+    else
+    {
+        msg << result;
+    }
+    return msg;
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace
 
@@ -157,8 +187,6 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
 
     // clang-format off
-#define GPL_TYPE_FUNC(CLASSNAME, METHOD) \
-    {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
     static TypeHandlerMap const type_to_handler{
         // EM particles
         GPL_TYPE_FUNC(G4Cerenkov,               cerenkov),
@@ -173,7 +201,6 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         GPL_TYPE_FUNC(G4OpWLS2,            op_wls2),
     };
     // clang-format on
-#undef GPL_TYPE_FUNC
 
     auto iter = type_to_handler.find(std::type_index(typeid(p)));
     if (iter == type_to_handler.end())
@@ -194,20 +221,55 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
         throw;
     }
 
-    auto msg
-        = world_logger()(CELER_CODE_PROVENANCE,
-                         result == 0 ? LogLevel::warning : LogLevel::debug);
-    msg << "Loaded ";
-    if (result == 0)
-    {
-        msg << "no";
-    }
-    else
-    {
-        msg << result;
-    }
-    msg << " model data from process " << name << "(\"" << p.GetProcessName()
+    make_loaded_msg(CELER_CODE_PROVENANCE, result)
+        << " model data from process " << name << "(\"" << p.GetProcessName()
         << "\")";
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load per-particle data from a process, returning whether it was recognized.
+ *
+ * Returns \c true if the process type is known and \c false otherwise.
+ */
+bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
+                                    G4VProcess const& p)
+{
+    using MemberFuncPtr = size_type (GeantPhysicsLoader::*)(
+        GeantParticleView const&, G4VProcess const&);
+    using PairNameMfptr = std::pair<char const*, MemberFuncPtr>;
+    using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
+
+    // clang-format off
+    static TypeHandlerMap const type_to_handler{
+        GPL_TYPE_FUNC(G4MuPairProduction, mu_pair_production),
+    };
+    // clang-format on
+
+    auto iter = type_to_handler.find(std::type_index(typeid(p)));
+    if (iter == type_to_handler.end())
+    {
+        return false;
+    }
+    auto&& [name, mfptr] = iter->second;
+    size_type result{0};
+    try
+    {
+        result = (this->*mfptr)(particle, p);
+    }
+    catch (...)
+    {
+        CELER_LOG(error) << "Failed while loading per-particle process "
+                         << name << "(\"" << p.GetProcessName()
+                         << "\") for particle \"" << particle.name() << "\"";
+        throw;
+    }
+
+    make_loaded_msg(CELER_CODE_PROVENANCE, result)
+        << " per-particle model data from process " << name << "(\""
+        << p.GetProcessName() << "\") for particle \"" << particle.name()
+        << "\"";
     return true;
 }
 
@@ -269,7 +331,16 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
 size_type GeantPhysicsLoader::op_absorption(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.absorption;
-    this->load_mfps(model, "ABSLENGTH");
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "ABSLENGTH"))
+        {
+            inp::AbsorptionMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
     return model.materials.size();
 }
 
@@ -326,17 +397,23 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.mie;
-    this->load_mfps(model, "MIEHG");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.forward_ratio,
-                     "MIEHG_FORWARD_RATIO",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
-        get_property(
-            model_mat.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+        if (auto mfp = this->load_mfp(opt_id, "MIEHG"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::MieMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.forward_ratio,
+                         "MIEHG_FORWARD_RATIO",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.forward_g, "MIEHG_FORWARD", ImportUnits::unitless);
+            get_property(
+                model_mat.backward_g, "MIEHG_BACKWARD", ImportUnits::unitless);
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
     }
     return model.materials.size();
 }
@@ -346,49 +423,63 @@ size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 {
     auto& model = imported_.optical_physics.bulk.rayleigh;
-    this->load_mfps(model, "RAYLEIGH");
+    CELER_ASSERT(!model);
 
     // Look for additional material data or special cases if MFP isn't provided
     // as a grid
-    for (auto opt_mat_id : range(OptMatId{optical_ids_.num_optical()}))
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
     {
-        bool has_mfp = model.materials.count(opt_mat_id);
+        auto get_property = this->property_getter(opt_id);
+        inp::OpticalRayleighMaterial model_mat;
 
-        auto get_property = this->property_getter(opt_mat_id);
-        inp::OpticalModelMaterial<ImportOpticalRayleigh> model_mat;
-
-        // Check for optional scale factor
-        bool has_scale = get_property(
-            model_mat.scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless);
-        bool has_compr = get_property(model_mat.compressibility,
-                                      "ISOTHERMAL_COMPRESSIBILITY",
-                                      ImportUnits::len_time_sq_per_mass);
-        if (!has_mfp && !has_compr)
+        auto grid = this->load_mfp(opt_id, "RAYLEIGH");
+        inp::OpticalRayleighAnalytic analytic;
+        get_property(analytic.compressibility,
+                     "ISOTHERMAL_COMPRESSIBILITY",
+                     ImportUnits::len_time_sq_per_mass);
+        if (!grid && !analytic)
         {
             // Check for G4 special case for water if no other data given
-            auto& g4mat = *optical_g4mat_[opt_mat_id.get()];
+            auto& g4mat = *optical_g4mat_[opt_id.get()];
             if (g4mat.GetName() == "Water")
             {
-                load_rayleigh_water(model_mat, g4mat);
-                has_compr = true;
+                load_rayleigh_water(analytic, g4mat);
+            }
+            else
+            {
+                continue;
             }
         }
 
-        if (has_mfp && (has_scale || has_compr))
+        // Check for optional scale factor
+        double scale_factor;
+        if (get_property(scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
+        {
+            analytic.scale_factor = scale_factor;
+        }
+
+        if (grid && (analytic.scale_factor || analytic))
         {
             constexpr auto to_given_str
                 = [](bool v) { return v ? "provided" : "missing"; };
             CELER_LOG(warning)
                 << "Inconsistent Rayleigh input data: compressibility ("
-                << to_given_str(has_compr) << ") with optional scale ("
-                << to_given_str(has_scale)
+                << to_given_str(analytic.compressibility)
+                << ") with optional scale ("
+                << to_given_str(static_cast<bool>(analytic.scale_factor))
                 << ") is ignored in favor of MFP grid";
         }
-        if (!has_mfp && has_compr)
+
+        if (grid)
         {
-            // Add non-grid rayleigh
-            model.materials.emplace(opt_mat_id, std::move(model_mat));
+            model_mat.mfp = grid;
         }
+        else
+        {
+            model_mat.mfp = analytic;
+        }
+        CELER_ASSERT(model_mat);
+        model.materials.emplace(opt_id, std::move(model_mat));
     }
     return model.materials.size();
 }
@@ -397,28 +488,34 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 //! Load wavelength shifting
 size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 {
+    auto& model = imported_.optical_physics.bulk.wls;
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "WLSABSLENGTH"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::WavelengthShiftMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.mean_num_photons,
+                         "WLSMEANNUMBERPHOTONS",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
+            get_property(model_mat.component,
+                         "WLSCOMPONENT",
+                         {ImportUnits::mev, ImportUnits::unitless});
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
 #if G4VERSION_NUMBER >= 1070
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    imported_.optical_params.wls_time_profile
-        = geant_to_wls_distribution(params->GetWLSTimeProfile());
+    model.time_profile = geant_to_wls_distribution(params->GetWLSTimeProfile());
+#else
+    model.time_profile = optical::WlsDistribution::delta;
 #endif
-
-    auto& model = imported_.optical_physics.bulk.wls;
-    this->load_mfps(model, "WLSABSLENGTH");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
-    {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.time_constant, "WLSTIMECONSTANT", ImportUnits::time);
-        get_property(model_mat.component,
-                     "WLSCOMPONENT",
-                     {ImportUnits::mev, ImportUnits::unitless});
-    }
     return model.materials.size();
 }
 
@@ -427,30 +524,103 @@ size_type GeantPhysicsLoader::op_wls(G4VProcess const&)
 size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
 {
 #if G4VERSION_NUMBER >= 1070
+    auto& model = imported_.optical_physics.bulk.wls2;
+    CELER_ASSERT(!model);
+    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
+    {
+        if (auto mfp = this->load_mfp(opt_id, "WLSABSLENGTH2"))
+        {
+            auto get_property = this->property_getter(opt_id);
+            inp::WavelengthShiftMaterial model_mat;
+            model_mat.mfp = std::move(mfp);
+            get_property(model_mat.mean_num_photons,
+                         "WLSMEANNUMBERPHOTONS2",
+                         ImportUnits::unitless);
+            get_property(
+                model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+            get_property(model_mat.component,
+                         "WLSCOMPONENT2",
+                         {ImportUnits::mev, ImportUnits::unitless});
+            model.materials.emplace(opt_id, std::move(model_mat));
+        }
+    }
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    imported_.optical_params.wls_time_profile
+    model.time_profile
         = geant_to_wls_distribution(params->GetWLS2TimeProfile());
 
-    auto& model = imported_.optical_physics.bulk.wls2;
-    this->load_mfps(model, "WLSABSLENGTH2");
-    for (auto&& [opt_mat_id, model_mat] : model.materials)
-    {
-        auto get_property = this->property_getter(opt_mat_id);
-        get_property(model_mat.mean_num_photons,
-                     "WLSMEANNUMBERPHOTONS2",
-                     ImportUnits::unitless);
-        get_property(
-            model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
-        get_property(model_mat.component,
-                     "WLSCOMPONENT2",
-                     {ImportUnits::mev, ImportUnits::unitless});
-    }
     return model.materials.size();
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Load per-particle muon pair production sampling table.
+ *
+ * This is called once for mu- and once for mu+. On the first call the table
+ * is imported and stored. On the second call the table is validated to be
+ * identical and skipped.
+ */
+size_type GeantPhysicsLoader::mu_pair_production(GeantParticleView const&,
+                                                 G4VProcess const& g4vp)
+{
+    using IU = ImportUnits;
+
+    auto& g4proc = dynamic_cast<G4MuPairProduction const&>(g4vp);
+    auto* model = dynamic_cast<G4MuPairProductionModel*>(g4proc.EmModel());
+    CELER_ASSERT(model);
+
+    G4ElementData* el_data = model->GetElementData();
+    CELER_ASSERT(el_data);
+
+    inp::MuPairProductionEnergyTransferTable table;
+    if constexpr (G4VERSION_NUMBER < 1120)
+    {
+        constexpr int element_data_size = 99;
+        for (int z = 1; z < element_data_size; ++z)
+        {
+            if (G4Physics2DVector const* pv = el_data->GetElement2DData(z))
+            {
+                table.atomic_number.push_back(AtomicNumber{z});
+                table.grids.push_back(detail::import_physics_2dvector(
+                    *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+            }
+        }
+    }
+    else
+    {
+        // The muon pair production model in newer Geant4 versions initializes
+        // and accesses the element data by Z index rather than Z number
+        using Z = AtomicNumber;
+        table.atomic_number = {Z{1}, Z{4}, Z{13}, Z{29}, Z{92}};
+        for (int i : range(table.atomic_number.size()))
+        {
+            G4Physics2DVector const* pv = el_data->GetElement2DData(i);
+            CELER_ASSERT(pv);
+            table.grids.push_back(detail::import_physics_2dvector(
+                *pv, {IU::unitless, IU::mev, IU::mev_len_sq}));
+        }
+    }
+
+    CELER_ASSERT(table);
+
+    auto& mu_production = imported_.mu_production;
+    if (!mu_production)
+    {
+        // First particle (mu- or mu+): store the table
+        mu_production.muppet_table = std::move(table);
+        return mu_production.muppet_table.grids.size();
+    }
+
+    // Second particle: validate tables agree
+    CELER_VALIDATE(
+        mu_production.muppet_table.atomic_number == table.atomic_number
+            && mu_production.muppet_table.grids == table.grids,
+        << "muon pair production sampling tables for mu- and mu+ differ");
+    return 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -482,25 +652,7 @@ inp::Grid GeantPhysicsLoader::load_mfp(OptMatId opt_id,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Loop over optical materials and populate model.materials with MFP grids.
- */
-template<class MM, optical::ImportModelClass IMC>
-void GeantPhysicsLoader::load_mfps(inp::OpticalBulkModel<MM, IMC>& model,
-                                   std::string const& prop_name) const
-{
-    CELER_EXPECT(model.materials.empty());
-    for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))
-    {
-        if (auto mfp = this->load_mfp(opt_id, prop_name))
-        {
-            inp::OpticalModelMaterial<MM> model_mat;
-            model_mat.mfp = std::move(mfp);
-            model.materials.emplace(opt_id, std::move(model_mat));
-        }
-    }
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
+
+#undef GPL_TYPE_FUNC

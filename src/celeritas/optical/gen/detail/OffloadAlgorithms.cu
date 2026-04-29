@@ -20,6 +20,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Thrust.device.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -30,11 +32,11 @@ namespace detail
  *
  * \return Total number of valid distributions in the buffer
  */
-size_type
-remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const& buffer,
-                  size_type offset,
-                  size_type size,
-                  StreamId stream)
+template<class T>
+size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const& buffer,
+                            size_type offset,
+                            size_type size,
+                            StreamId stream)
 {
     ScopedProfiling profile_this{"remove-if-invalid"};
     auto start = thrust::device_pointer_cast(buffer.data().get());
@@ -48,24 +50,39 @@ remove_if_invalid(GeneratorDistributionRef<MemSpace::device> const& buffer,
 /*!
  * Count the number of optical photons in the distributions.
  */
-size_type
-count_num_photons(GeneratorDistributionRef<MemSpace::device> const& buffer,
-                  size_type offset,
-                  size_type size,
-                  StreamId stream)
+size_type count_num_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
+    size_type offset,
+    size_type size,
+    StreamId stream)
 {
     ScopedProfiling profile_this{"count-num-photons"};
     auto start = thrust::device_pointer_cast(buffer.data().get());
-    size_type count
-        = thrust::transform_reduce(thrust_execute_on(stream),
-                                   start + offset,
-                                   start + size,
-                                   celeritas::optical::GetNumPhotons{},
-                                   size_type(0),
-                                   thrust::plus<size_type>());
+    size_type count = thrust::transform_reduce(
+        thrust_execute_on(stream),
+        start + offset,
+        start + size,
+        celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
+        0_sz,
+        thrust::plus<size_type>());
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return count;
 }
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+template size_type
+remove_if_invalid(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
+template size_type
+remove_if_invalid(ItemsRef<WlsDistributionData, MemSpace::device> const&,
+                  size_type,
+                  size_type,
+                  StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -92,8 +92,8 @@ class MuBBEnergyDistribution
     Energy max_energy_;
     // Whether to apply the radiative correction
     bool use_rad_correction_;
-    // Envelope distribution for rejection sampling
-    real_type envelope_;
+    // Rejection sampler for secondary energy
+    RejectionSampler<> reject_;
 
     //// CONSTANTS ////
 
@@ -140,7 +140,7 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle
     , max_energy_(detail::calc_max_secondary_energy(particle, electron_mass))
     , use_rad_correction_(particle.energy() > rad_correction_limit()
                           && max_energy_ > kin_energy_limit())
-    , envelope_(this->calc_envelope_distribution())
+    , reject_(this->calc_envelope_distribution())
 {
 }
 
@@ -151,6 +151,8 @@ MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle
 template<class Engine>
 CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
 {
+    using namespace celeritas::literals;
+
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
     real_type energy;
@@ -159,7 +161,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
     {
         energy = sample_energy(rng);
         target = 1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy
-                 + real_type(0.5) * ipow<2>(energy / total_energy_);
+                 + 0.5_r * ipow<2>(energy / total_energy_);
 
         if (use_rad_correction_
             && energy > value_as<Energy>(kin_energy_limit()))
@@ -169,7 +171,7 @@ CELER_FUNCTION auto MuBBEnergyDistribution::operator()(Engine& rng) -> Energy
                                     / ipow<2>(inc_mass_));
             target *= (1 + alpha_over_twopi() * a1 * (a3 - a1));
         }
-    } while (RejectionSampler<>(target, envelope_)(rng));
+    } while (reject_(target, rng));
 
     CELER_ENSURE(energy > 0);
     return Energy{energy};
