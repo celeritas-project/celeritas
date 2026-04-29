@@ -8,6 +8,14 @@ requirements of the [HL-LHC upgrade][HLLHC].
 
 # Documentation
 
+See [the quick start guide][quickstart] for common use cases:
+- Loading as a LArSoft plugin
+- Integrating as a library into an existing Geant4 application
+- Executing a Celeritas testing app for profiling on HPC
+- Development
+
+[quickstart]: https://celeritas-project.github.io/celeritas/user/index.html#quick-start-guide
+
 Most of the Celeritas documentation is readable through the codebase through a
 combination of [static RST documentation][doc/index.rst] and Doxygen-markup
 comments in the source code itself.
@@ -146,7 +154,7 @@ cards, execute the following steps from within the cloned Celeritas source
 directory:
 ```console
 # Create an environment from celeritas dependencies
-$ spack env create celeritas scripts/spack.yaml
+$ spack env create celeritas scripts/spack/env-devmin.yaml
 $ spack env activate celeritas
 # Set up CUDA/HIP (optional; example here is for Nvidia A100)
 $ spack external find --not-buildable cuda

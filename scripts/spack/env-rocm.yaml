@@ -1,0 +1,13 @@
+spack:
+  include:
+   - ./packages.yaml
+  specs:
+   - cli11
+   - cmake
+   - nlohmann-json
+   - geant4
+   - hepmc3
+   - covfie +rocm
+  view: true
+  concretizer:
+    unify: true
