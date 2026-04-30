@@ -371,9 +371,6 @@ void LocalTransporter::Flush()
 
     // Clear any saved user information but do *not* reset the primary counter
     track_reconstruction_->clear();
-    // Reset the event ID so that the next "push" will get it from the event
-    // manager in case this is the end of the event
-    event_id_ = -1;
 }
 
 void LocalTransporter::flush_impl()
@@ -396,6 +393,7 @@ void LocalTransporter::flush_impl()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
+    ++run_accum_.flushes;
     run_accum_.steps += track_counts.active;
     run_accum_.primaries += buffer_.size();
     run_accum_.lost_primaries += buffer_accum_.lost_primaries;
@@ -460,7 +458,8 @@ void LocalTransporter::Finalize()
             msg << " and " << num_optical_steps << " optical steps (over "
                 << accum.step_iters << " step iterations)";
         }
-        msg << " from " << run_accum_.primaries << " offloaded tracks over "
+        msg << " from " << run_accum_.flushes << " flushes with "
+            << run_accum_.primaries << " offloaded tracks over "
             << run_accum_.events << " events, generating " << run_accum_.hits
             << " hits";
     }

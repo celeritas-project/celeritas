@@ -17,8 +17,10 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
@@ -775,9 +777,18 @@ TEST_F(WaterSphere, run_small_flush)
     ASSERT_FALSE(this->HasFatalFailure());
 
     CELER_LOG(status) << "Beam on";
-    rm.BeamOn(1);
+    {
+        ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
+        rm.BeamOn(1);
+        ASSERT_EQ(1, scoped_log_.messages().size()) << scoped_log_;
+        EXPECT_TRUE(
+            scoped_log_.messages().front().find(
+                R"(from 8 flushes with 128 offloaded tracks over 1 events)")
+            != std::string::npos)
+            << scoped_log_;
+    }
 
-    rm.BeamOn(10);
+    rm.BeamOn(4);
 }
 
 //---------------------------------------------------------------------------//

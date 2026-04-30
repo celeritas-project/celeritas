@@ -114,6 +114,7 @@ class LocalTransporter final : public TrackOffloadInterface
     struct RunAccum
     {
         std::size_t events{0};
+        std::size_t flushes{0};
         std::size_t primaries{0};
         std::size_t steps{0};
         std::size_t lost_primaries{0};
