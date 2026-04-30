@@ -64,9 +64,14 @@ void SimpleCmsTest::SetUp()
     // Create default step selection (see GeantSd)
     selection_.energy_deposition = true;
     selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
     selection_.points[StepPoint::pre].energy = true;
     selection_.points[StepPoint::pre].pos = true;
+    selection_.points[StepPoint::pre].dir = true;
     selection_.points[StepPoint::post].time = true;
+    selection_.points[StepPoint::post].pos = true;
+    selection_.points[StepPoint::post].dir = true;
+    selection_.points[StepPoint::post].energy = true;
     selection_.particle = true;
 }
 
@@ -188,6 +193,16 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             3e-8 * second,
         };
     }
+    if (selection_.points[StepPoint::pre].time)
+    {
+        using celeritas::units::second;
+
+        dso.points[StepPoint::pre].time = {
+            0.5e-9 * second,
+            1.5e-10 * second,
+            2.5e-8 * second,
+        };
+    }
     if (selection_.points[StepPoint::pre].pos)
     {
         // note: points must correspond to detector volumes!
@@ -203,6 +218,31 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             {1, 0, 0},
             {0, 1, 0},
             {0, 0, -1},
+        };
+    }
+    if (selection_.points[StepPoint::post].pos)
+    {
+        // note: points must correspond to detector volumes!
+        dso.points[StepPoint::post].pos = {
+            from_cm(Real3{105, 0, 0}),
+            from_cm(Real3{0, 155, 10}),
+            from_cm(Real3{0, 205, -20}),
+        };
+    }
+    if (selection_.points[StepPoint::post].dir)
+    {
+        dso.points[StepPoint::post].dir = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, -1},
+        };
+    }
+    if (selection_.points[StepPoint::post].energy)
+    {
+        dso.points[StepPoint::post].energy = {
+            MevEnergy{0.9},
+            MevEnergy{1.8},
+            MevEnergy{2.7},
         };
     }
     if (selection_.particle)
@@ -258,12 +298,24 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static real_type const expected_step_length[] = {0.1, 1.0};
         EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);
+        static real_type const expected_weight[] = {1.0, 1.0};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {100, 0, 0, 100, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {1, 0, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {1, 1};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {0.9, 0.9};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {105, 0, 0, 105, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {1, 0, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
     {
         auto& result = this->get_hits("em_calorimeter");
@@ -273,12 +325,24 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
+        static real_type const expected_weight[] = {0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {0.15, 0.15};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {0, 150, 10, 0, 150, 10};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {0, 1, 0, 0, 1, 0};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {0.2, 0.2};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {1.8, 1.8};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {0, 155, 10, 0, 155, 10};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {0, 1, 0, 0, 1, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
     {
         auto& result = this->get_hits("had_calorimeter");
@@ -288,12 +352,24 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
+        static real_type const expected_weight[] = {0.8, 0.8};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {25, 25};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {0, 200, -20, 0, 200, -20};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {0, 0, -1, 0, 0, -1};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {30, 30};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {2.7, 2.7};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {0, 205, -20, 0, 205, -20};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {0, 0, -1, 0, 0, -1};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
 }
 
