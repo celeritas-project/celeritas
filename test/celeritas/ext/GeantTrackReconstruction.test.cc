@@ -102,6 +102,11 @@ class GtrTest : public ::celeritas::test::SimpleCmsTestBase
             = get_test_current_event_id;
     }
 
+    static void TearDownTestCase()
+    {
+        GeantTrackReconstruction::get_current_event_id = nullptr;
+    }
+
     void SetUp() override
     {
         // Load particles from Geant4
@@ -241,6 +246,9 @@ TEST_F(GtrTest, track_restoration)
 
     // Verify particle type
     EXPECT_EQ(particles_[1], restored_track.GetParticleDefinition());
+
+    // Clear after retrieving all tracks
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -409,6 +417,9 @@ TEST_F(GtrTest, reconstruction_data_persistence)
         ASSERT_NE(nullptr, restored_info);
         EXPECT_EQ(777, restored_info->value());
     }
+
+    // Clear after retrieving all tracks
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//

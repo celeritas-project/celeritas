@@ -7,6 +7,7 @@
 #include "GeantTrackReconstruction.hh"
 
 #include <limits>
+#include <mutex>
 #include <G4DynamicParticle.hh>
 #include <G4EventManager.hh>
 #include <G4ParticleDefinition.hh>
@@ -41,11 +42,11 @@ int get_g4_current_event_id()
 /*!
  * Event ID function pointer for unit testing when CELERITAS_DEBUG.
  *
- * This is default-initialized to an anonymous function that accesses the
- * \c G4EventManager .
+ * When constructing a class instance, if the function pointer is null, it will
+ * be set to a function that gets the Geant4 event manager's active event.
  */
 GeantTrackReconstruction::EventIdGetter
-    GeantTrackReconstruction::get_current_event_id{get_g4_current_event_id};
+    GeantTrackReconstruction::get_current_event_id{nullptr};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -106,6 +107,21 @@ GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
     for (auto const& track : tracks_)
     {
         track->SetStep(step_.get());
+    }
+
+    if constexpr (CELERITAS_DEBUG)
+    {
+        // Reset event interface for test mocking
+        if (get_current_event_id == nullptr)
+        {
+            static std::mutex mu;
+            std::scoped_lock lock{mu};
+
+            if (get_current_event_id == nullptr)
+            {
+                get_current_event_id = get_g4_current_event_id;
+            }
+        }
     }
 }
 
@@ -204,6 +220,13 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 {
     CELER_EXPECT(primary_id && primary_id >= start_);
     CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
+    if constexpr (CELERITAS_DEBUG)
+    {
+        int cur_event_id = get_current_event_id();
+        CELER_VALIDATE(g4_event_id_ == cur_event_id,
+                       << "cannot view a track from another event: "
+                       << g4_event_id_ << " != current event " << cur_event_id);
+    }
 
     G4Track& track = this->view(particle_id);
     g4_track_data_[primary_id - start_].restore(track);
@@ -217,14 +240,6 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 {
     CELER_EXPECT(particle_id < tracks_.size());
-    if constexpr (CELERITAS_DEBUG)
-    {
-        int cur_event_id = get_current_event_id();
-        CELER_VALIDATE(g4_event_id_ == cur_event_id,
-                       << "cannot view a track from another event: "
-                       << g4_event_id_ << " != current event " << cur_event_id);
-    }
-
     G4Track& track = *tracks_[particle_id.unchecked_get()];
     step_->SetTrack(&track);
     return track;
