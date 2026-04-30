@@ -21,6 +21,8 @@ struct SimpleHitsResult
     std::vector<double> step_length;  // [cm]
     std::vector<std::string> particle;
     std::vector<double> weight;
+    std::vector<int> track_id;
+    std::vector<int> parent_id;
     std::vector<double> pre_energy;  // [MeV]
     std::vector<double> pre_time;  // [ns]
     std::vector<double> pre_pos;  // [cm]

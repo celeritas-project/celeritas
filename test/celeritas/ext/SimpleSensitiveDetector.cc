@@ -51,6 +51,16 @@ void SimpleHitsResult::print_expected() const
          << ";\n"
             "EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);\n"
 
+            "static int const expected_track_id[] = "
+         << repr(this->track_id)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_track_id, result.track_id);\n"
+
+            "static int const expected_parent_id[] = "
+         << repr(this->parent_id)
+         << ";\n"
+            "EXPECT_VEC_EQ(expected_parent_id, result.parent_id);\n"
+
             "static double const expected_pre_energy[] = "
          << repr(this->pre_energy)
          << ";\n"
@@ -140,6 +150,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         double weight = track->GetWeight();
         CELER_ASSERT(weight > 0);
         hits_.weight.push_back(weight);
+        hits_.track_id.push_back(track->GetTrackID());
+        hits_.parent_id.push_back(track->GetParentID());
         edep *= weight;
     }
     hits_.energy_deposition.push_back(edep);

@@ -6,7 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/HitProcessor.hh"
 
+#include <G4DynamicParticle.hh>
 #include <G4ParticleTable.hh>
+#include <G4ThreeVector.hh>
+#include <G4Track.hh>
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
@@ -53,10 +56,27 @@ class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
 
     SimpleHitsResult const& get_hits(std::string const& name) const;
 
+    // Event ID mock for GeantTrackReconstruction (used in CELERITAS_DEBUG)
+    static int test_cur_event;
+    static int get_test_current_event_id() { return test_cur_event; }
+
+    static void SetUpTestCase()
+    {
+        GeantTrackReconstruction::get_current_event_id
+            = get_test_current_event_id;
+    }
+
+    static void TearDownTestCase()
+    {
+        GeantTrackReconstruction::get_current_event_id = nullptr;
+    }
+
   protected:
     StepSelection selection_;
     HitProcessor::StepPointBool locate_touchable_{{false, false}};
 };
+
+int SimpleCmsTest::test_cur_event{0};
 
 //---------------------------------------------------------------------------//
 void SimpleCmsTest::SetUp()
@@ -503,6 +523,72 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
         static char const* const expected_post_status[] = {"world"};
         EXPECT_VEC_EQ(expected_post_status, result.post_status);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, with_primary_id)
+{
+    selection_.primary_id = true;
+    HitProcessor process_hits = this->make_hit_processor();
+    auto& recon = *process_hits.track_reconstruction();
+
+    // Initialize a mock event so debug builds don't fail the event-ID check
+    SimpleCmsTest::test_cur_event = 1;
+    recon.init_event();
+
+    // Acquire two primaries: PrimaryId{0} -> track 10, PrimaryId{1} -> track
+    // 20
+    auto* gamma_def = G4ParticleTable::GetParticleTable()->FindParticle(
+        pdg::gamma().get());
+    ASSERT_NE(nullptr, gamma_def);
+
+    auto primary0 = std::make_unique<G4Track>(
+        new G4DynamicParticle(gamma_def, G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary0->SetTrackID(10);
+    primary0->SetParentID(0);
+    auto pid0 = recon.acquire(*primary0);
+    EXPECT_EQ(0, pid0.unchecked_get());
+
+    auto primary1 = std::make_unique<G4Track>(
+        new G4DynamicParticle(gamma_def, G4ThreeVector(0, 1, 0)),
+        0.0,
+        G4ThreeVector());
+    primary1->SetTrackID(20);
+    primary1->SetParentID(5);
+    auto pid1 = recon.acquire(*primary1);
+    EXPECT_EQ(1, pid1.unchecked_get());
+
+    // Run a single batch of hits (dso.primary_id = {PrimaryId{0}, {1}, {1}})
+    auto dso = this->make_dso();
+    process_hits(dso);
+    recon.clear();
+
+    {
+        // si_tracker -> PrimaryId{0} -> track_id=10, parent_id=0
+        auto& result = this->get_hits("si_tracker");
+        static int const expected_track_id[] = {10};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {0};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+    }
+    {
+        // em_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        auto& result = this->get_hits("em_calorimeter");
+        static int const expected_track_id[] = {20};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {5};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+    }
+    {
+        // had_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        auto& result = this->get_hits("had_calorimeter");
+        static int const expected_track_id[] = {20};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {5};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
 }
 
