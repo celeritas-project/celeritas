@@ -127,8 +127,9 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     BIHNodeId current_node{0};
 
     // Stack of deferred nodes
-    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];
-    int stack_ptr = 0;
+    constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
+    BIHNodeId stack[stack_size];
+    size_type stack_ptr = 0;
 
     while (current_node)
     {
@@ -136,6 +137,8 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         {
             intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
+
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
             continue;
         }
@@ -143,33 +146,21 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         auto const& node = view_.inner_node(current_node);
         int ax = to_int(node.axis);
 
-        // Determine if either edge can be skipped on the basis of the position
-        // and direction of travel of the particle
-        bool skip_left
-            = (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos)
-              && (ray.dir[ax] >= 0);
-        bool skip_right
-            = (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos)
-              && (ray.dir[ax] <= 0);
+        // Guess the better edge to traverse first
+        auto first_edge = node.edges[Side::left];
+        auto second_edge = node.edges[Side::right];
 
-        // Guess which edge should be traversed first; if the particle is on
-        // the near side of the right partition, go down the left side of the
-        // tree first
-        detail::BIHInnerNode::Edge first_edge, second_edge;
-        bool skip_first, skip_second;
-        if (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos)
+        bool skip_first
+            = (ray.dir[ax] >= 0)
+              && (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos);
+        bool skip_second
+            = (ray.dir[ax] <= 0)
+              && (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos);
+
+        if (ray.pos[ax] > node.edges[Side::right].bounding_plane_pos)
         {
-            first_edge = node.edges[Side::left];
-            second_edge = node.edges[Side::right];
-            skip_first = skip_left;
-            skip_second = skip_right;
-        }
-        else
-        {
-            first_edge = node.edges[Side::right];
-            second_edge = node.edges[Side::left];
-            skip_first = skip_right;
-            skip_second = skip_left;
+            trivial_swap(first_edge, second_edge);
+            trivial_swap(skip_first, skip_second);
         }
 
         // Determine if the first and second edges are hits, short circuiting
@@ -184,6 +175,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         // Choose the next node on the basis of which edges are hits
         if (hit_first && hit_second)
         {
+            CELER_ASSERT(stack_ptr < stack_size);
             stack[stack_ptr++] = second_edge.child;
             current_node = first_edge.child;
         }
@@ -199,6 +191,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         {
             // No hits for this node, jump to the next node in the stack if
             // there is one
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
         }
     }
