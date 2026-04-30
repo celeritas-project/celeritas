@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "GeantTrackReconstruction.hh"
 
+#include <limits>
 #include <G4DynamicParticle.hh>
+#include <G4EventManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Step.hh>
 #include <G4ThreeVector.hh>
@@ -14,16 +16,43 @@
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+int get_g4_current_event_id()
+{
+    auto* evtman = G4EventManager::GetEventManager();
+    CELER_ASSERT(evtman);
+    auto* evt = evtman->GetConstCurrentEvent();
+    CELER_ASSERT(evt);
+    return evt->GetEventID();
+}
+}  // namespace
+
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
+ * Event ID function pointer for unit testing when CELERITAS_DEBUG.
+ *
+ * This is default-initialized to an anonymous function that accesses the
+ * \c G4EventManager .
+ */
+GeantTrackReconstruction::EventIdGetter
+    GeantTrackReconstruction::get_current_event_id{get_g4_current_event_id};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Allocate and initialize a valid Geant4 step object.
+ *
+ * The allocation is done like \c G4SteppingManager constructor but we reset
+ * values to invalid ones.
  */
 auto GeantTrackReconstruction::make_g4step() -> SPStep
 {
@@ -89,6 +118,11 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
     try
     {
         CELER_LOG(debug) << "Deallocating track reconstruction";
+        if (!g4_track_data_.empty())
+        {
+            CELER_LOG_LOCAL(warning)
+                << R"(Geant4 track data was not cleared during the event)";
+        }
         this->clear();
     }
     catch (...)  // NOLINT(bugprone-empty-catch)
@@ -105,7 +139,7 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
  * afterward it will be impossible to reconstruct them.
  *
  * The primary ID offset is saved to ensure consistency when flushing before
- * and event is complete.
+ * an event is complete.
  */
 void GeantTrackReconstruction::clear()
 {
@@ -132,6 +166,10 @@ void GeantTrackReconstruction::init_event()
 {
     CELER_EXPECT(g4_track_data_.empty());
     start_ = PrimaryId(0);
+    if constexpr (CELERITAS_DEBUG)
+    {
+        g4_event_id_ = get_current_event_id();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -141,6 +179,14 @@ void GeantTrackReconstruction::init_event()
  */
 PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 {
+    if constexpr (CELERITAS_DEBUG)
+    {
+        int cur_event_id = get_current_event_id();
+        CELER_VALIDATE(g4_event_id_ == cur_event_id,
+                       << "GeantTrackReconstruction::init_event was not "
+                          "called: last event "
+                       << g4_event_id_ << " != current event " << cur_event_id);
+    }
     auto primary_id = start_ + g4_track_data_.size();
     g4_track_data_.emplace_back(AcquiredData{primary});
     return primary_id;
@@ -171,6 +217,13 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 {
     CELER_EXPECT(particle_id < tracks_.size());
+    if constexpr (CELERITAS_DEBUG)
+    {
+        int cur_event_id = get_current_event_id();
+        CELER_VALIDATE(g4_event_id_ == cur_event_id,
+                       << "cannot view a track from another event: "
+                       << g4_event_id_ << " != current event " << cur_event_id);
+    }
 
     G4Track& track = *tracks_[particle_id.unchecked_get()];
     step_->SetTrack(&track);

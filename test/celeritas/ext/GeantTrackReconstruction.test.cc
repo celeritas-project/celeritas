@@ -16,6 +16,9 @@
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -81,11 +84,23 @@ class MockProcess : public G4VProcess
 
 //---------------------------------------------------------------------------//
 
-class GeantTrackReconstructionTest : public ::celeritas::test::SimpleCmsTestBase
+class GtrTest : public ::celeritas::test::SimpleCmsTestBase
 {
   protected:
     using VecParticle = GeantTrackReconstruction::VecParticle;
     using size_type = ::celeritas::size_type;
+
+    // Mocking setup for replacement G4EventManager
+    static int test_cur_event;
+    static int get_test_current_event_id() { return test_cur_event; }
+
+    static void SetUpTestCase()
+    {
+        // Set up event ID checking (only used in CELERITAS_DEBUG) to point to
+        // our test harness's current event
+        GeantTrackReconstruction::get_current_event_id
+            = get_test_current_event_id;
+    }
 
     void SetUp() override
     {
@@ -98,30 +113,47 @@ class GeantTrackReconstructionTest : public ::celeritas::test::SimpleCmsTestBase
             particles_.push_back(table.FindParticle(p.get()));
         }
 
-        step_ = std::make_shared<G4Step>();
-        step_->NewSecondaryVector();
+        // Create step and check it
+        step_ = GeantTrackReconstruction::make_g4step();
+        ASSERT_TRUE(step_);
+        EXPECT_TRUE(step_->GetSecondary());
+
+        // Reset event ID
+        GtrTest::test_cur_event = 0;
     }
 
     VecParticle particles_;
     std::shared_ptr<G4Step> step_;
 };
 
+int GtrTest::test_cur_event{0};
+
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, construction)
+TEST_F(GtrTest, construction)
 {
     // Create an empty processor first to test basic construction
     GeantTrackReconstruction recon({}, step_);
 
-    // Test that end_event works
+    // One empty event
+    GtrTest::test_cur_event = 1;
+    recon.init_event();
+    recon.clear();
+
+    // Another
+    GtrTest::test_cur_event = 2;
+    recon.init_event();
     recon.clear();
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, primary_registration)
+TEST_F(GtrTest, primary_registration)
 {
     GeantTrackReconstruction recon(particles_, step_);
+
+    GtrTest::test_cur_event = 1;
+    recon.init_event();
 
     // Create a primary track
     auto primary_track = std::make_unique<G4Track>(
@@ -163,13 +195,17 @@ TEST_F(GeantTrackReconstructionTest, primary_registration)
 
     PrimaryId primary_id2 = recon.acquire(*primary_track2);
     EXPECT_EQ(1, primary_id2.unchecked_get());
+
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, track_restoration)
+TEST_F(GtrTest, track_restoration)
 {
     GeantTrackReconstruction recon(particles_, step_);
+
+    recon.init_event();
 
     // Create and register primary track with user information
     auto primary_track = std::make_unique<G4Track>(
@@ -209,9 +245,11 @@ TEST_F(GeantTrackReconstructionTest, track_restoration)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, track_restoration_without_primary)
+TEST_F(GtrTest, track_restoration_without_primary)
 {
     GeantTrackReconstruction recon(particles_, step_);
+
+    recon.init_event();
 
     // Restore track without primary information (invalid PrimaryId)
     G4Track& restored_track = recon.view(ParticleId{0});
@@ -226,7 +264,7 @@ TEST_F(GeantTrackReconstructionTest, track_restoration_without_primary)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
+TEST_F(GtrTest, end_event_cleanup)
 {
     GeantTrackReconstruction recon(particles_, step_);
 
@@ -247,7 +285,7 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
     }
     EXPECT_NE(processes[0].get(), processes[1].get());
 
-    for (auto event : range(2))
+    for (auto event : range(1, 3))
     {
         SCOPED_TRACE("event" + std::to_string(event));
         recon.init_event();
@@ -260,8 +298,8 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
                 // Initialize track
                 auto track = std::make_unique<G4Track>(
                     new G4DynamicParticle(particles_[i], directions[i]),
-                    0.0,
-                    G4ThreeVector(0, 0, 0));
+                    /* time = */ 0.0,
+                    /* position = */ G4ThreeVector(0, 0, 0));
                 track->SetTrackID(flush * 100 + i);
                 auto user_info
                     = std::make_unique<MockUserTrackInformation>(10 * i);
@@ -281,6 +319,25 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
                 EXPECT_EQ(processes[i].get(), track.GetCreatorProcess());
             }
 
+            if constexpr (CELERITAS_DEBUG)
+            {
+                // Check that we can't restore a particle from a previous event
+                GtrTest::test_cur_event++;
+                EXPECT_THROW(static_cast<void>(
+                                 recon.view(ParticleId{0}, primary_ids[0])),
+                             RuntimeError);
+
+                // Check that we can't push a particle from a new event
+                auto track = std::make_unique<G4Track>(
+                    new G4DynamicParticle(particles_[0], directions[0]),
+                    10.0,
+                    G4ThreeVector(1, 0, 0));
+                EXPECT_THROW(static_cast<void>(recon.acquire(*track)),
+                             RuntimeError);
+
+                --GtrTest::test_cur_event;
+            }
+
             // Flush should clear reconstruction data
             recon.clear();
 
@@ -297,9 +354,10 @@ TEST_F(GeantTrackReconstructionTest, end_event_cleanup)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, multiple_particle_types)
+TEST_F(GtrTest, multiple_particle_types)
 {
     GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
 
     // Test all particle types can be restored
     for (auto i : range(particles_.size()))
@@ -315,9 +373,10 @@ TEST_F(GeantTrackReconstructionTest, multiple_particle_types)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GeantTrackReconstructionTest, reconstruction_data_persistence)
+TEST_F(GtrTest, reconstruction_data_persistence)
 {
     GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
 
     // Create primary with complete information
     auto primary_track = std::make_unique<G4Track>(
