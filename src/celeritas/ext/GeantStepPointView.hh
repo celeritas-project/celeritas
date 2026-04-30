@@ -35,7 +35,6 @@ class GeantStepPointView
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;
     using Speed = units::LightSpeed;
-    using Charge = units::ElementaryCharge;
     using real_type = double;
     //!@}
 
@@ -63,9 +62,6 @@ class GeantStepPointView
 
     //! Speed in units of the speed of light
     inline Speed speed() const;
-
-    //! Charge in units of elementary charge
-    inline Charge charge() const;
 
     //!@}
     //!@{
@@ -154,15 +150,6 @@ GeantStepPointView::Time GeantStepPointView::time() const
 GeantStepPointView::Speed GeantStepPointView::speed() const
 {
     return Speed{sp_.GetBeta()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get charge in units of elementary charge.
- */
-GeantStepPointView::Charge GeantStepPointView::charge() const
-{
-    return Charge{static_cast<real_type>(sp_.GetCharge())};
 }
 
 //---------------------------------------------------------------------------//

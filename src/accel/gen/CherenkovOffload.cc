@@ -7,7 +7,7 @@
 #include "CherenkovOffload.hh"
 
 #include "corecel/io/Logger.hh"
-#include "celeritas/g4/detail/GeantOffloadUtils.hh"
+#include "celeritas/g4/GeantOffloadUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"

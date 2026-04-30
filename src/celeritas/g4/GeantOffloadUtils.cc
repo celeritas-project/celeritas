@@ -2,15 +2,17 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/g4/detail/GeantOffloadUtils.cc
+//! \file celeritas/g4/GeantOffloadUtils.cc
 //---------------------------------------------------------------------------//
 #include "GeantOffloadUtils.hh"
 
 #include <G4Step.hh>
+#include <G4Track.hh>
 
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeoOpticalIdMap.hh"
 #include "celeritas/ext/GeantStepView.hh"
+#include "celeritas/ext/GeantTrackView.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 
 namespace celeritas
@@ -27,10 +29,13 @@ namespace celeritas
  */
 optical::GeneratorDistributionData distribution_from_step(G4Step const& g4_step)
 {
+    CELER_EXPECT(g4_step.GetTrack());
+
     GeantStepView step{const_cast<G4Step&>(g4_step)};
 
     optical::GeneratorDistributionData data;
     data.step_length = native_value_from(step.step_length());
+    data.charge = GeantTrackView{*g4_step.GetTrack()}.particle().charge();
 
     for (auto p : range(StepPoint::size_))
     {
@@ -42,7 +47,6 @@ optical::GeneratorDistributionData distribution_from_step(G4Step const& g4_step)
         data_point.time = native_value_from(point.time());
         data_point.pos = native_value_from(point.pos());
     }
-    data.charge = step.post_step().charge();
 
     auto geant_geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geant_geo, << "global Geant4 geometry is not loaded");

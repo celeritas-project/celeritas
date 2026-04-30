@@ -7,7 +7,7 @@
 #include "ScintillationOffload.hh"
 
 #include "corecel/io/Logger.hh"
-#include "celeritas/g4/detail/GeantOffloadUtils.hh"
+#include "celeritas/g4/GeantOffloadUtils.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 #include "accel/LocalOpticalGenOffload.hh"
 #include "accel/detail/IntegrationSingleton.hh"
@@ -75,6 +75,20 @@ ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
     }
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create a generator distribution for the given track and step.
+ *
+ * Since \c G4Scintillation has a qualified call to its own \c PostStepDoIt
+ * method, this override defers to \c ScintillationOffload::PostStepDoIt
+ * instead.
+ */
+G4VParticleChange*
+ScintillationOffload::AtRestDoIt(G4Track const& aTrack, G4Step const& aStep)
+{
+    return this->PostStepDoIt(aTrack, aStep);
 }
 
 //---------------------------------------------------------------------------//
