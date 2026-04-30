@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/MiniStack.hh"
 #include "corecel/math/Algorithms.hh"
+#include "orange/OrangeTypes.hh"
 
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
@@ -124,22 +126,20 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     using Side = BIHInnerNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
-    BIHNodeId current_node{0};
 
     // Stack of deferred nodes
-    constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
-    BIHNodeId stack[stack_size];
-    BIHNodeId::index_type stack_ptr = 0;
+    constexpr auto stack_capacity = inp::BIHBuilder::max_depth_limit - 1;
+    BIHNodeId stack_storage[stack_capacity];
+    MiniStack stack{Span{stack_storage}};
+    stack.push(BIHNodeId{0});
 
-    while (current_node)
+    while (!stack.empty())
     {
+        BIHNodeId current_node = stack.pop();
         if (!view_.is_inner(current_node))
         {
             intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
-
-            CELER_ASSERT(stack_ptr < stack_size);
-            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
             continue;
         }
 
@@ -175,24 +175,16 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         // Choose the next node on the basis of which edges are hits
         if (hit_first && hit_second)
         {
-            CELER_ASSERT(stack_ptr < stack_size);
-            stack[stack_ptr++] = second_edge.child;
-            current_node = first_edge.child;
+            stack.push(second_edge.child);
+            stack.push(first_edge.child);
         }
         else if (hit_first)
         {
-            current_node = first_edge.child;
+            stack.push(first_edge.child);
         }
         else if (hit_second)
         {
-            current_node = second_edge.child;
-        }
-        else
-        {
-            // No hits for this node, jump to the next node in the stack if
-            // there is one
-            CELER_ASSERT(stack_ptr < stack_size);
-            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
+            stack.push(second_edge.child);
         }
     }
 

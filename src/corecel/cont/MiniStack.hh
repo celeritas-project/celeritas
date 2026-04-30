@@ -17,19 +17,18 @@ namespace celeritas
  * Helper class that provides the functionality of a stack on an underlying
  * container.
  */
-template<class T>
+template<class T, std::size_t Extent = dynamic_extent>
 class MiniStack
 {
   public:
     //!@{
-    using size_type = ::celeritas::size_type;
+    using size_type = Span<T, Extent>::size_type;
     using value_type = T;
     //!@}
 
   public:
     //! Construct with underlying storage.
-    CELER_FUNCTION explicit MiniStack(Span<T> storage)
-        : data_(storage.data()), capacity_(storage.size())
+    CELER_FUNCTION explicit MiniStack(Span<T, Extent> storage) : data_(storage)
     {
     }
 
@@ -48,18 +47,17 @@ class MiniStack
     }
 
     //! Whether there are any elements in the container
-    CELER_FORCEINLINE_FUNCTION bool empty() const { return size_ == 0; }
+    CELER_CEF bool empty() const { return size_ == 0; }
 
     //! Get the number of elements
-    CELER_FORCEINLINE_FUNCTION size_type size() const { return size_; }
+    CELER_CEF size_type size() const { return size_; }
 
     //! Get the number of elements that can fit in the allocated storage
-    CELER_FORCEINLINE_FUNCTION size_type capacity() const { return capacity_; }
+    CELER_CEF size_type capacity() const { return data_.size(); }
 
   private:
-    T* data_;
+    Span<T, Extent> data_;
     size_type size_{0};
-    size_type capacity_;
 };
 
 //---------------------------------------------------------------------------//
