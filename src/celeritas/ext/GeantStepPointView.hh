@@ -34,7 +34,7 @@ class GeantStepPointView
     using Energy = units::ClhepEnergy;
     using Length = lengthunits::ClhepLength;
     using Time = units::ClhepTime;
-    using Speed = units::LightSpeed;
+    using Speed = Quantity<units::CLight, double>;
     using real_type = double;
     //!@}
 
