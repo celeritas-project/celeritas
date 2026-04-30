@@ -11,6 +11,7 @@
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -153,6 +154,14 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         0.5_r,  // em_calorimeter
         0.8_r,  // had_calorimeter
     };
+    if (selection_.primary_id)
+    {
+        dso.primary_id = {
+            PrimaryId{0},
+            PrimaryId{1},
+            PrimaryId{1},
+        };
+    }
     if (selection_.energy_deposition)
     {
         dso.energy_deposition = {

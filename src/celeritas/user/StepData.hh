@@ -94,6 +94,7 @@ struct StepSelection
             true,
             true,
             true,
+            true,
             true};
     }
 
