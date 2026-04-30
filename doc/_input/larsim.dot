@@ -1,0 +1,23 @@
+digraph {
+  rankdir=TB;
+
+  evt_gen [label="GENIE\nprodgenie_nu_dune10kt_1x2x6.fcl", shape=box];
+  genie_data [label="art::Event\nEventGen", shape=ellipse];
+  det_edep [label="LArG4 + IonAndScint\nlarg4_dune10kt_1x2x6.fcl", shape=box];
+  edep_data [label="art::Event\nSimEnergyDeposit\n(label: IonAndScint)", shape=ellipse];
+  det_optical_fast [label="Optical fast simulation\nopticalsim_dune10kt_1x2x6.fcl", shape=box];
+  det_optical_full [label="Celeritas optical transport\nopticalsim_celeritas_dune10kt_1x2x6.fcl", shape=box];
+  optical_data [label="art::Event\nOpDetBackTrackerRecord\n(label: OpticalSim)", shape=ellipse];
+  analyzer [label="PDSimAna (analyzer)\npdsimana_job.fcl", shape=box];
+  analyzer_data [label="analysis files", shape=ellipse];
+
+  evt_gen -> genie_data;
+  genie_data -> det_edep;
+  det_edep -> edep_data;
+  edep_data -> det_optical_fast;
+  edep_data -> det_optical_full;
+  det_optical_fast -> optical_data;
+  det_optical_full -> optical_data;
+  optical_data -> analyzer;
+  analyzer -> analyzer_data;
+}

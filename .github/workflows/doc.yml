@@ -87,7 +87,7 @@ jobs:
       - name: Install Python packages
         run: |
             pip install --upgrade pip
-            pip install -r scripts/doc-requirements.txt
+            pip install -r scripts/ci/doc-requirements.txt
       - name: Configure celeritas
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json

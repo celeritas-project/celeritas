@@ -16,11 +16,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 
 #include "Algorithms.hh"
 
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 600)
+#if __CUDA_ARCH__ && (__CUDA_ARCH__ < 600)
 #    error "Celeritas requires CUDA arch 6.0 (P100) or greater"
 #endif
 

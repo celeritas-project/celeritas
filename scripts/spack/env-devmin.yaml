@@ -1,0 +1,16 @@
+spack:
+  include:
+    - ./packages.yaml
+  specs:
+    - cli11
+    - nlohmann-json
+    - geant4
+    - covfie
+    - googletest
+    - cmake
+    - ninja
+    - git
+    - py-pre-commit
+  view: true
+  concretizer:
+    unify: true

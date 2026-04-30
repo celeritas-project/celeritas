@@ -16,3 +16,4 @@ primarily pertaining to GPU abstractions.
    corecel/system.rst
    corecel/stdlib.rst
    corecel/numerics.rst
+   corecel/rng.rst

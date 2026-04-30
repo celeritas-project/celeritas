@@ -12,6 +12,8 @@ external applications as directed by the user.
 
 .. celerstruct:: inp::Problem
 
+.. celerstruct:: inp::OpticalProblem
+
 .. _inp_framework:
 
 User application/framework
