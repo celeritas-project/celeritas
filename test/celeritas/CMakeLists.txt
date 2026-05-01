@@ -26,6 +26,7 @@ else()
     set(_needs_geant4_11 DISABLE)
   endif()
   celeritas_get_g4libs(_g4_geo_lib geometry)
+  celeritas_get_g4libs(_g4_event_lib event)
   celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
@@ -195,6 +196,8 @@ celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(g4/MagneticField.test.cc
     LINK_LIBRARIES ${_g4_geo_lib})
+  celeritas_add_test(g4/StateDependent.test.cc
+    LINK_LIBRARIES ${_g4_event_lib} ${_needs_geant4})
 endif()
 
 #-----------------------------------------------------------------------------#

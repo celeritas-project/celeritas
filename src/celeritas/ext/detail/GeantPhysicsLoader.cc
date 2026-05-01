@@ -24,6 +24,7 @@
 #include <G4VProcess.hh>
 #include <G4Version.hh>
 
+#include "corecel/sys/TypeDemangler.hh"
 #include "celeritas/inp/OpticalPhysics.hh"
 
 #if G4VERSION_NUMBER >= 1070
@@ -59,6 +60,10 @@
 //! Dispatch-table entry macro: maps a G4 class to a member function handler
 #define GPL_TYPE_FUNC(CLASSNAME, METHOD) \
     {std::type_index(typeid(CLASSNAME)), {#CLASSNAME, &GeantPhysicsLoader::METHOD}}
+
+//! Dispatch-table entry macro: maps a G4 process string
+#define GPL_NAME_FUNC(CSTR, METHOD) \
+    {CSTR, {CSTR, &GeantPhysicsLoader::METHOD}}
 // clang-format on
 
 namespace celeritas
@@ -185,6 +190,7 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     using MemberFuncPtr = size_type (GeantPhysicsLoader::*)(G4VProcess const&);
     using PairNameMfptr = std::pair<char const*, MemberFuncPtr>;
     using TypeHandlerMap = std::unordered_map<std::type_index, PairNameMfptr>;
+    using NameHandlerMap = std::unordered_map<std::string, PairNameMfptr>;
 
     // clang-format off
     static TypeHandlerMap const type_to_handler{
@@ -202,13 +208,35 @@ bool GeantPhysicsLoader::operator()(G4VProcess const& p)
     };
     // clang-format on
 
-    auto iter = type_to_handler.find(std::type_index(typeid(p)));
-    if (iter == type_to_handler.end())
+    auto&& [name, mfptr] = PairNameMfptr{nullptr, nullptr};
     {
-        // Unknown process: let someone else handle it
+        auto iter = type_to_handler.find(std::type_index(typeid(p)));
+        if (iter != type_to_handler.end())
+        {
+            std::tie(name, mfptr) = iter->second;
+        }
+    }
+    if (name == nullptr)
+    {
+        // Try name-based lookup as a fallback: member functions should verify
+        // with dynamic_cast
+        static NameHandlerMap name_to_handler{
+            GPL_NAME_FUNC("Cerenkov", cerenkov),
+            GPL_NAME_FUNC("Scintillation", scintillation),
+        };
+
+        auto iter = name_to_handler.find(p.GetProcessName());
+        if (iter != name_to_handler.end())
+        {
+            std::tie(name, mfptr) = iter->second;
+        }
+    }
+    if (name == nullptr)
+    {
+        // Not the correct type *or* name: let other importer code handle it
         return false;
     }
-    auto&& [name, mfptr] = iter->second;
+
     size_type result{0};
     try
     {
@@ -275,11 +303,13 @@ bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
 
 //---------------------------------------------------------------------------//
 //! Load Cherenkov emission (TODO: enable by material?)
-size_type GeantPhysicsLoader::cerenkov(G4VProcess const& g4vp)
+size_type GeantPhysicsLoader::cerenkov(G4VProcess const& p)
 {
-    auto& g4c = dynamic_cast<G4Cerenkov const&>(g4vp);
-    // TODO: import step limits
-    CELER_DISCARD(g4c);
+    CELER_VALIDATE(dynamic_cast<G4Cerenkov const*>(&p),
+                   << "process " << TypeDemangler<G4VProcess>{}(p)
+                   << " is not actually scintillation");
+    // TODO: import and use step limits
+
     imported_.optical_physics.gen.cherenkov.emplace();
     return 1;
 }
@@ -297,8 +327,12 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 
 //---------------------------------------------------------------------------//
 //! Load optical scintillation
-size_type GeantPhysicsLoader::scintillation(G4VProcess const&)
+size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
 {
+    CELER_VALIDATE(dynamic_cast<G4Scintillation const*>(&p),
+                   << "process " << TypeDemangler<G4VProcess>{}(p)
+                   << " is not actually scintillation");
+
     inp::ScintillationProcess s;
     GeantScintillationLoader load_material{s};
 

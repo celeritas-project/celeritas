@@ -6,10 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string_view>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/inp/Events.hh"
 
@@ -79,11 +81,15 @@ class IntegrationTestBase : public ::celeritas::test::Test
     using UPTrackAction = std::unique_ptr<G4UserTrackingAction>;
     using UPStepAction = std::unique_ptr<G4UserSteppingAction>;
     using UPSensDet = std::unique_ptr<G4VSensitiveDetector>;
+    using LocalFunc = std::function<void(StreamId)>;
     //!@}
 
   public:
     // Test offload type as set by environment variable
     static TestOffload test_offload();
+
+    // Run manager type: serial, mt, ...
+    static std::string test_runman_type();
 
     // Disable ROOT signal handlers on startup
     IntegrationTestBase();
@@ -93,6 +99,9 @@ class IntegrationTestBase : public ::celeritas::test::Test
 
     // Make a unique filename that incorporates run env information
     std::string make_unique_filename(std::string_view ext) override;
+
+    //! Set a callback for calls to ActionInitialization::Build(,ForMaster)
+    void set_build_cb(LocalFunc f) { build_cb_ = std::move(f); }
 
     // Lazily create and/or access the run manager
     G4RunManager& run_manager();
@@ -121,17 +130,27 @@ class IntegrationTestBase : public ::celeritas::test::Test
     // Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file
     virtual UPSensDet make_sens_det(std::string const& sd_name);
 
+    //!@{
+    //! \name Callbacks from internal classes
+
     // Fail when GeantExceptionHandler catches a celeritas RuntimeError
     virtual void caught_g4_runtime_error(RuntimeError const& e);
 
+    // ActionInitialization callback to build_cb_
+    void begin_build(StreamId);
+    //!@}
+
     //!@{
     //! \name Dispatch from user setup/run/event actions
-    virtual void ConstructSDandField() {}
+    virtual void ConstructSDandField() {}  // DetectorConstruction
     virtual void BeginOfRunAction(G4Run const* run) = 0;
     virtual void EndOfRunAction(G4Run const* run) = 0;
     virtual void BeginOfEventAction(G4Event const* event) = 0;
     virtual void EndOfEventAction(G4Event const* event) = 0;
     //!@}
+
+  private:
+    LocalFunc build_cb_;
 };
 
 //---------------------------------------------------------------------------//
