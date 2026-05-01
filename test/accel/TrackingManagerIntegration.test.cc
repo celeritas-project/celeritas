@@ -479,6 +479,42 @@ TEST_F(LarSphere, no_set_options)
 }
 
 //---------------------------------------------------------------------------//
+// AUTO HOOKS
+//---------------------------------------------------------------------------//
+/*!
+ * Verify that StateDependent auto hooks drive init/finalize without
+ * explicit BeginOfRunAction/EndOfRunAction calls.
+ */
+class TMIAutoHooks : public LarSphereIntegrationMixin, public TMITestBase
+{
+  protected:
+    void BeginOfRunAction(G4Run const*) override {}
+    void EndOfRunAction(G4Run const*) override {}
+};
+
+TEST_F(TMIAutoHooks, serial_run)
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+
+    EXPECT_TRUE(singleton.auto_hooks_active());
+    EXPECT_FALSE(singleton.shared_params());
+
+    std::atomic<int> verify_count{0};
+    singleton.set_verify_callback([&verify_count]() { ++verify_count; });
+
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    auto& rm = this->run_manager();
+    rm.Initialize();
+
+    EXPECT_TRUE(singleton.shared_params());
+
+    rm.BeamOn(1);
+
+    EXPECT_EQ(1, verify_count.load());
+}
+
+//---------------------------------------------------------------------------//
 // LAR SPHERE WITH OPTICAL
 //---------------------------------------------------------------------------//
 /*!

@@ -158,13 +158,6 @@ void IntegrationSingleton::setup_options(SetupOptions&& opts)
                 << R"(options cannot be set after Celeritas is constructed)");
             offloaded_ = validate_and_return_offloaded(opts.offload_particles);
             options_ = std::move(opts);
-
-            // Register master-thread state monitor; G4StateManager owns the
-            // pointer and deletes it on shutdown.
-            new StateDependent{[this](StreamId, GeantStateChange change) {
-                this->on_state_change(change);
-            }};
-            auto_hooks_active_ = true;
         },
         ExceptionConverter{"celer.setup"});
     if (!options_)

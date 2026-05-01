@@ -89,6 +89,9 @@ class IntegrationSingleton
     //! Whether auto state hooks are active (StateDependent registered)
     bool auto_hooks_active() const { return auto_hooks_active_; }
 
+    //! Mark that auto hooks have been registered externally
+    void mark_auto_hooks_active() { auto_hooks_active_ = true; }
+
     // Set callback for run-time setup verification (invoked on begin_run)
     void set_verify_callback(std::function<void()> cb);
 

@@ -20,6 +20,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/g4/StateDependent.hh"
 
 #include "ExceptionConverter.hh"
 #include "TrackingManagerConstructor.hh"
@@ -180,8 +181,16 @@ void TrackingManagerIntegration::verify_local_setup()
  */
 TrackingManagerIntegration::TrackingManagerIntegration()
 {
-    detail::IntegrationSingleton::instance().set_verify_callback(
-        [this]() { this->verify_local_setup(); });
+    auto& singleton = detail::IntegrationSingleton::instance();
+
+    // Register master-thread state monitor; G4StateManager owns the
+    // pointer and deletes it on shutdown.
+    new StateDependent{[&singleton](StreamId, GeantStateChange change) {
+        singleton.on_state_change(change);
+    }};
+    singleton.mark_auto_hooks_active();
+
+    singleton.set_verify_callback([this]() { this->verify_local_setup(); });
 }
 
 //---------------------------------------------------------------------------//
