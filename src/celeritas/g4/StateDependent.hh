@@ -27,6 +27,9 @@ namespace celeritas
  * |------------------------|------------------------|-----------------|
  * | *none*                 | `G4State_PreInit`      | `begin_program` |
  * | `G4State_PreInit`      | `G4State_Init`         | `initialize`    |
+ * | `G4State_Idle`         | `G4State_Init`         | `begin_init`    |
+ * | `G4State_Init`         | `G4State_Init`         | `internal_init` |
+ * | `G4State_Init`         | `G4State_Idle`         | `end_init`      |
  * | `G4State_Idle`         | `G4State_GeomClosed`   | `begin_run`     |
  * | `G4State_GeomClosed`   | `G4State_EventProc`    | `begin_event`   |
  * | `G4State_EventProc`    | `G4State_GeomClosed`   | `end_event`     |
@@ -37,18 +40,24 @@ namespace celeritas
  *
  * \par Notes:
  *
- * - \c begin_program is called during the \c G4RunManagerKernel constructor
- * - \c RunManager::Initialize actually calls begin/end run in MT mode for each
- *   thread, including master
+ * - \c begin_program is called during the \c G4RunManagerKernel constructor,
+ *   so it will only register if your state dependent is constructed very early
+ *   and on the main thread.
+ * - We ignore all but the first \c Initialize state (from "pre-init")
+ * - In MT mode, \c RunManager::Initialize actually calls begin/end run for
+ *   each thread, including master.
  * - \c end_program is called by the G4RunManager and G4RunManagerKernel
- *   destructor during normal execution (via \c G4State_Quit)
+ *   destructor during normal execution (via \c G4State_Quit).
  * - \c end_program is called by \c G4Exception when a fatal error occurred
- *   (via \c G4State_Abort)
+ *   (via \c G4State_Abort).
  */
 enum class GeantStateChange
 {
     begin_program,
     initialize,
+    begin_init,
+    internal_init,
+    end_init,
     begin_run,
     begin_event,
     end_event,

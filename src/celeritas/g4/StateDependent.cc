@@ -57,15 +57,30 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             change = GeantStateChange::begin_program;
             break;
         case G4State_Init:
-            // First initialization
             if (prev == G4State_PreInit)
             {
-                change = GeantStateChange::initialize;
+                // First initialization: do an extra call
+                this->cb_(local_stream_, GeantStateChange::initialize);
+                change = GeantStateChange::begin_init;
+            }
+            else if (prev == G4State_Idle)
+            {
+                // Reinitialization
+                change = GeantStateChange::begin_init;
+            }
+            else if (prev == G4State_Init)
+            {
+                // During initialization of geometry/physics
+                change = GeantStateChange::internal_init;
             }
             break;
         case G4State_Idle:
-            // Completing a run
-            if (prev == G4State_GeomClosed)
+            // Returning from top-level run manager call (init/beamon)
+            if (prev == G4State_Init)
+            {
+                change = GeantStateChange::end_init;
+            }
+            else if (prev == G4State_GeomClosed)
             {
                 change = GeantStateChange::end_run;
             }
@@ -99,9 +114,9 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     }
     if (change == GeantStateChange::unknown)
     {
-        CELER_LOG_LOCAL(warning)
-            << "Unknown state change: " << sm->GetStateString(prev) << "->"
-            << sm->GetStateString(state);
+        CELER_LOG_LOCAL(debug)
+            << "Unknown Geant4 state change: " << sm->GetStateString(prev)
+            << "->" << sm->GetStateString(state);
     }
     else if (change == GeantStateChange::end_program)
     {
@@ -126,6 +141,9 @@ char const* to_cstring(GeantStateChange value)
     static EnumStringMapper<GeantStateChange> const to_cstring_impl{
         "begin_program",
         "initialize",
+        "begin_init",
+        "internal_init",
+        "end_init",
         "begin_run",
         "begin_event",
         "end_event",

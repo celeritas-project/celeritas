@@ -349,19 +349,14 @@ TEST_F(LarSphere, state_dep)
             }
         }
         static char const* const expected_status[] = {
-            "0:before-init",
-            "0:initialize",
-            "0:before-beamon",
-            "0:begin_run",
-            "0:begin_event",
-            "0:end_event",
-            "0:begin_event",
-            "0:end_event",
-            "0:end_run",
-            "0:before-beamon",
-            "0:begin_run",
-            "0:begin_event",
-            "0:end_event",
+            "0:before-init",   "0:initialize",    "0:begin_init",
+            "0:internal_init", "0:internal_init", "0:internal_init",
+            "0:end_init",      "0:begin_init",    "0:end_init",
+            "0:before-beamon", "0:begin_init",    "0:end_init",
+            "0:begin_run",     "0:begin_event",   "0:end_event",
+            "0:begin_event",   "0:end_event",     "0:end_run",
+            "0:before-beamon", "0:begin_init",    "0:end_init",
+            "0:begin_run",     "0:begin_event",   "0:end_event",
             "0:end_run",
         };
         EXPECT_VEC_EQ(expected_status, merged_status);
@@ -371,34 +366,35 @@ TEST_F(LarSphere, state_dep)
     {
         EXPECT_FALSE(stream_state.empty());
         int total_events{0};
-        // MT/Tasking can be non-deterministic, but check invariants
         for (auto&& [sid, all_state] : stream_state)
         {
             SCOPED_TRACE(sid ? ("worker " + std::to_string(*sid)) : "manager");
+            // Convert ordered vector to counts
             std::map<std::string, int> state_counts;
             for (auto const& s : all_state)
             {
                 ++state_counts[s];
             }
 
-            // 1. Initialization check
-            EXPECT_EQ(state_counts["initialize"], 1)
-                << "Stream " << sid << " should initialize exactly once";
+            // Initialization should happen only once
+            EXPECT_EQ(state_counts["initialize"], 1);
+            // Begin/end init should be the same: num runs plus 2 (phys + geo)
+            EXPECT_EQ(state_counts["begin_run"] + 2,
+                      state_counts["begin_init"]);
+            EXPECT_EQ(2 + (sid == geant_main_stream()),
+                      state_counts["internal_init"])
+                << repr(all_state);
+            EXPECT_EQ(state_counts["begin_init"], state_counts["end_init"]);
 
-            // 2. Balanced Run lifecycle
-            int begin_runs = state_counts["begin_run"];
-            int end_runs = state_counts["end_run"];
-            EXPECT_GT(begin_runs, 0)
-                << "Stream " << sid << " never started a run";
-            EXPECT_EQ(begin_runs, end_runs)
-                << "Stream " << sid << " run imbalance";
+            EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            // Begin/end run should be the same
+            EXPECT_EQ(state_counts["begin_run"], state_counts["end_run"]);
 
-            // 3. Balanced Event lifecycle
-            int begin_events = state_counts["begin_event"];
-            int end_events = state_counts["end_event"];
-            total_events += begin_events;
-            EXPECT_EQ(begin_events, end_events)
-                << "Stream " << sid << " event imbalance";
+            // Begin/end event should be the same
+            total_events += state_counts["begin_event"];
+            EXPECT_EQ(num_local_events_[sid], state_counts["begin_event"])
+                << repr(all_state);
+            EXPECT_EQ(state_counts["begin_event"], state_counts["end_event"]);
         }
         EXPECT_EQ(2 + 1 + 4, total_events);
     }
