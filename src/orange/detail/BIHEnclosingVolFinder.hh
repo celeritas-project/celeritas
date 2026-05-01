@@ -89,8 +89,9 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
     using Side = BIHInnerNode::Side;
 
-    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];
-    int stack_ptr = 0;
+    constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
+    BIHNodeId stack[stack_size];
+    BIHNodeId::index_type stack_ptr = 0;
     BIHNodeId current_node{0};
 
     while (current_node)
@@ -105,6 +106,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
                 return id;
             }
 
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
             continue;
         }
@@ -116,6 +118,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 
         if (in_left && in_right)
         {
+            CELER_ASSERT(stack_ptr < stack_size);
             stack[stack_ptr++] = node.edges[Side::right].child;
             current_node = node.edges[Side::left].child;
         }
@@ -129,6 +132,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         }
         else
         {
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
         }
     }
