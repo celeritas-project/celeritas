@@ -178,7 +178,11 @@ void TrackingManagerIntegration::verify_local_setup()
 /*!
  * Only allow the singleton to construct.
  */
-TrackingManagerIntegration::TrackingManagerIntegration() = default;
+TrackingManagerIntegration::TrackingManagerIntegration()
+{
+    detail::IntegrationSingleton::instance().set_verify_callback(
+        [this]() { this->verify_local_setup(); });
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

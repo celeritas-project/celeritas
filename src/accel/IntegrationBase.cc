@@ -44,6 +44,9 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
+    if (singleton.auto_hooks_active())
+        return;
+
     // Initialize shared params and local transporter
     bool enable_offload = singleton.initialize_offload();
 
@@ -61,6 +64,9 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
+
+    if (singleton.auto_hooks_active())
+        return;
 
     singleton.finalize_offload();
 }

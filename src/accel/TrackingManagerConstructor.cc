@@ -16,6 +16,7 @@
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/g4/StateDependent.hh"
 
 #include "SharedParams.hh"
 #include "TrackingManagerIntegration.hh"
@@ -130,6 +131,12 @@ void TrackingManagerConstructor::ConstructProcess()
         // Failure (G4Exception thrown): do not set any tracking managers
         return;
     }
+
+    // Register thread-local state monitor; G4StateManager owns the pointer
+    // and deletes it on shutdown.
+    new StateDependent{[](StreamId, GeantStateChange change) {
+        detail::IntegrationSingleton::instance().on_state_change(change);
+    }};
 
 #if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*
