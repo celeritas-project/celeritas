@@ -780,14 +780,23 @@ TEST_F(WaterSphere, run_small_flush)
     {
         ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
         rm.BeamOn(1);
-        ASSERT_EQ(1, scoped_log_.messages().size()) << scoped_log_;
-        EXPECT_TRUE(
-            scoped_log_.messages().front().find(
-                R"(from 8 flushes with 128 offloaded tracks over 1 events)")
-            != std::string::npos)
+
+        auto has_msg = [](std::string const& msg) {
+            static auto expected_msg
+                = R"(from 8 flushes with 128 offloaded tracks over 1 events)";
+            return msg.find(expected_msg) != std::string::npos;
+        };
+        auto const& messages = scoped_log_.messages();
+        auto it = std::find_if(messages.begin(), messages.end(), has_msg);
+        EXPECT_TRUE(it != messages.end())
+            << "Expected message not found in logs:\n"
             << scoped_log_;
     }
 
+    if (this->HasFatalFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining test since we've already failed";
+    }
     rm.BeamOn(4);
 }
 

@@ -9,6 +9,7 @@
 #include <limits>
 #include <mutex>
 #include <G4DynamicParticle.hh>
+#include <G4Event.hh>
 #include <G4EventManager.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4Step.hh>
