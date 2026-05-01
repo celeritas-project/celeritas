@@ -289,7 +289,7 @@ TestOffload to_test_offload(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test offload type as set by environment variable.
+ * Get the offload type for the test, as set by environment variable.
  */
 TestOffload IntegrationTestBase::test_offload()
 {
@@ -321,7 +321,7 @@ TestOffload IntegrationTestBase::test_offload()
 
 //---------------------------------------------------------------------------//
 /*!
- * Test offload type as set by environment variable.
+ * Get the run manager type for the test, as set by environment variable.
  */
 std::string IntegrationTestBase::test_runman_type()
 {

@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <regex>
 #include <string_view>
@@ -25,7 +26,6 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/g4/StateDependent.hh"
-#include "celeritas/g4/Threading.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -283,15 +283,18 @@ TEST_F(LarSphere, state_dep)
     this->set_build_cb([](StreamId s) {
         // Create the state dependent on the local threads
         // NOTE that Geant4 state manager base class "registers" this pointer
-        // and deregisters on destruction
-        // ALSO note that this thread_local declaration *must* be seen by each
-        // thread before it is used by that thread.
-        static thread_local StateDependent state_dep{record_state_change};
+        // and will deallocate it if it's not deregistered first (which the SD
+        // does via Notify but which may not always work) To provide safety
+        // against double-deletion due to this weird semantic, we DELIBERATELY
+        // leak the pointer. ALSO note that this thread_local declaration
+        // *must* be seen by each thread before it is used by that thread.
+        static thread_local StateDependent* state_dep{
+            new StateDependent{record_state_change}};
 
-        ASSERT_NE(&state_dep, nullptr);
-        EXPECT_EQ(state_dep.local_stream(), s);
+        ASSERT_NE(state_dep, nullptr);
+        EXPECT_EQ(state_dep->local_stream(), s);
         CELER_LOG_LOCAL(debug)
-            << "State dependent for " << state_dep.local_stream() << ": "
+            << "State dependent for " << state_dep->local_stream() << ": "
             << static_cast<void*>(&state_dep);
     });
 
@@ -318,61 +321,69 @@ TEST_F(LarSphere, state_dep)
     record_test_event("before-beamon");
     rm.BeamOn(1);
 
-    std::vector<std::string> merged_status;
-    for (auto&& [sid, all_state] : stream_state)
+    if (test_runman_type() == "serial")
     {
-        for (auto const& s : all_state)
+        std::vector<std::string> merged_status;
+        for (auto&& [sid, all_state] : stream_state)
         {
-            merged_status.emplace_back(stream_to_string(sid) + ':' + s);
+            for (auto const& s : all_state)
+            {
+                merged_status.emplace_back(std::to_string(sid.get()) + ':' + s);
+            }
         }
+        static char const* const expected_status[] = {
+            "0:before-init",
+            "0:initialize",
+            "0:before-beamon",
+            "0:begin_run",
+            "0:begin_event",
+            "0:end_event",
+            "0:begin_event",
+            "0:end_event",
+            "0:end_run",
+            "0:before-beamon",
+            "0:begin_run",
+            "0:begin_event",
+            "0:end_event",
+            "0:end_run",
+        };
+        EXPECT_VEC_EQ(expected_status, merged_status);
     }
 
-    if (test_runman_type() == "mt")
+    rm.BeamOn(4);
     {
-        static char const* const expected_status[] = {
-            "{0}:before-init",   "{0}:initialize",    "{0}:begin_run",
-            "{0}:end_run",       "{0}:before-beamon", "{0}:begin_run",
-            "{0}:begin_event",   "{0}:end_event",     "{0}:end_run",
-            "{0}:before-beamon", "{0}:begin_run",     "{0}:end_run",
-            "{1}:initialize",    "{1}:begin_run",     "{1}:end_run",
-            "{1}:before-beamon", "{1}:begin_run",     "{1}:begin_event",
-            "{1}:end_event",     "{1}:end_run",       "{1}:before-beamon",
-            "{1}:begin_run",     "{1}:begin_event",   "{1}:end_event",
-            "{1}:end_run",       "{}:initialize",     "{}:begin_run",
-            "{}:end_run",        "{}:before-beamon",  "{}:begin_run",
-            "{}:end_run",        "{}:before-beamon",  "{}:begin_run",
-            "{}:end_run",
-        };
-        EXPECT_VEC_EQ(expected_status, merged_status);
-    }
-    else if (test_runman_type() == "serial")
-    {
-        static char const* const expected_status[] = {
-            "{0}:before-init",
-            "{0}:initialize",
-            "{0}:before-beamon",
-            "{0}:begin_run",
-            "{0}:begin_event",
-            "{0}:end_event",
-            "{0}:begin_event",
-            "{0}:end_event",
-            "{0}:end_run",
-            "{0}:before-beamon",
-            "{0}:begin_run",
-            "{0}:begin_event",
-            "{0}:end_event",
-            "{0}:end_run",
-        };
-        EXPECT_VEC_EQ(expected_status, merged_status);
-    }
-    else if (test_runman_type() == "tasking")
-    {
-        // Task parallel *may* be unreliable: just print
-        PRINT_EXPECTED(merged_status);
-    }
-    else
-    {
-        FAIL() << "Unknown run manager type '" << test_runman_type() << "'";
+        EXPECT_FALSE(stream_state.empty());
+        int total_events{0};
+        // MT/Tasking can be non-deterministic, but check invariants
+        for (auto&& [sid, all_state] : stream_state)
+        {
+            SCOPED_TRACE(sid ? ("worker " + std::to_string(*sid)) : "manager");
+            std::map<std::string, int> state_counts;
+            for (auto const& s : all_state)
+            {
+                ++state_counts[s];
+            }
+
+            // 1. Initialization check
+            EXPECT_EQ(state_counts["initialize"], 1)
+                << "Stream " << sid << " should initialize exactly once";
+
+            // 2. Balanced Run lifecycle
+            int begin_runs = state_counts["begin_run"];
+            int end_runs = state_counts["end_run"];
+            EXPECT_GT(begin_runs, 0)
+                << "Stream " << sid << " never started a run";
+            EXPECT_EQ(begin_runs, end_runs)
+                << "Stream " << sid << " run imbalance";
+
+            // 3. Balanced Event lifecycle
+            int begin_events = state_counts["begin_event"];
+            int end_events = state_counts["end_event"];
+            total_events += begin_events;
+            EXPECT_EQ(begin_events, end_events)
+                << "Stream " << sid << " event imbalance";
+        }
+        EXPECT_EQ(2 + 1 + 4, total_events);
     }
 }
 

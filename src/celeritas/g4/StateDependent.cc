@@ -21,9 +21,13 @@ namespace celeritas
 /*!
  * Construct with a stream ID and state-change callback.
  *
- * Note that the base class performs the actual registration.
+ * \note The base class performs the actual registration.
+ * \note We also store a pointer to the thread-local manager that this
+ * is registered with, in case we want to deregister in a thread other than
+ * the one we were created with. (This might be dangerous... but so is assuming
+ * we're destroyed on the same thread we're constructed in.)
  */
-StateDependent::StateDependent(LocalStateChangeFunc cb)
+StateDependent::StateDependent(LocalGeantStateChangeFunc cb)
     : local_stream_{geant_stream()}
     , cb_{std::move(cb)}
     , manager_{G4StateManager::GetStateManager()}
@@ -46,11 +50,11 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     G4ApplicationState prev = sm->GetPreviousState();
     // Map (previous, requested) Geant4 states to our semantic enum.
     auto change = GeantStateChange::unknown;
-
     switch (state)
     {
         case G4State_PreInit:
             // Constructing run kernel
+            change = GeantStateChange::begin_program;
             break;
         case G4State_Init:
             // First initialization
@@ -92,7 +96,7 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             break;
         default:
             break;
-    };
+    }
     if (change == GeantStateChange::unknown)
     {
         CELER_LOG_LOCAL(warning)

@@ -14,7 +14,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get a stream ID corresponding to the \em main thread (master or worker 0).
+ * Get the worker stream ID for the program's \em main thread (null if MT).
+ *
+ * This can be compared against \c geant_stream . In serial execution, the
+ * main stream is also a "worker" thread (running events). In MT/tasking,
+ * the main stream is a separate \em manager thread, which does \em not
+ * run events.
  */
 StreamId geant_main_stream()
 {
@@ -48,7 +53,7 @@ StreamId geant_stream()
 }
 
 //---------------------------------------------------------------------------//
-/*
+/*!
  * Get the number of threads after initialization.
  */
 StreamId::size_type geant_num_threads()

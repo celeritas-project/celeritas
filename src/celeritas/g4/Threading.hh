@@ -12,7 +12,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-// Get a stream ID corresponding to the *main* thread (master or worker 0)
+// Get the worker stream ID for the program's main thread (null if MT)
 StreamId geant_main_stream();
 
 // Get a stream ID corresponding to the current Geant4 worker thread

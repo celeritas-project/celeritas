@@ -83,27 +83,22 @@ char const* to_cstring(GeantStateChange);
  *   delete on it when it's deleted as the run manager shuts down.
  *   Therefore this class \c must be deleted before \c G4StateManager ends.
  * - The base class destructor calls the thread-local \c G4StateManager without
- *   checking for validity, so the destructor this class \em after deleting the
- *   run manager will also crash the code.
+ *   checking for validity, so the destructor of this class \em after deleting
+ *   the run manager will also crash the code.
  * - The thread-local pointer mapping means that this class \em must be
  *   deallocated on the thread in which it's created.
  *
  * To bypass the first failure path, we use \c Notify to deregister ourselves
  * when we see the run manager is about to exit or abort.
  *
- * The only truly safe way to manage memory for this class is to leak it.
+ * The only truly safe way to manage memory for this class is probably to leak
+ * it.
  */
 class StateDependent final : public G4VStateDependent
 {
   public:
-    //!@{
-    //! \name Type aliases
-    using LocalStateChangeFunc = LocalGeantStateChangeFunc;
-    //!@}
-
-  public:
     // Construct locally with state-change callback
-    explicit StateDependent(LocalStateChangeFunc cb);
+    explicit StateDependent(LocalGeantStateChangeFunc cb);
 
     // Prevent move/copy due to weird base class antics
     CELER_DELETE_COPY_MOVE(StateDependent);
@@ -116,7 +111,7 @@ class StateDependent final : public G4VStateDependent
 
   private:
     StreamId local_stream_;
-    LocalStateChangeFunc cb_;
+    LocalGeantStateChangeFunc cb_;
     G4StateManager* manager_{nullptr};
 };
 
