@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/g4/StateDependent.hh"
 
 #include "../LocalOpticalGenOffload.hh"
 #include "../LocalOpticalTrackOffload.hh"
@@ -84,6 +86,15 @@ class IntegrationSingleton
     // Destroy local transporter and shared params
     void finalize_offload();
 
+    //! Whether auto state hooks are active (StateDependent registered)
+    bool auto_hooks_active() const { return auto_hooks_active_; }
+
+    // Set callback for run-time setup verification (invoked on begin_run)
+    void set_verify_callback(std::function<void()> cb);
+
+    // Drive offload init/finalize from Geant4 state transitions
+    void on_state_change(GeantStateChange change);
+
   private:
     //// TYPES ////
 
@@ -98,6 +109,9 @@ class IntegrationSingleton
     Stopwatch get_time_;
     bool have_created_logger_{false};
     bool failed_setup_{false};
+    bool auto_hooks_active_{false};
+    int master_run_depth_{0};
+    std::function<void()> verify_callback_;
 
     //// PRIVATE MEMBER FUNCTIONS ////
 

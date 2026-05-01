@@ -14,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/g4/StateDependent.hh"
 #include "accel/LocalOpticalTrackOffload.hh"
 
 #include "LoggerImpl.hh"
@@ -319,6 +320,51 @@ void IntegrationSingleton::update_logger()
                     MtSelfWriter{get_geant_num_threads(*run_man)});
             }
         }
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set callback to verify thread-local setup at begin_run.
+ */
+void IntegrationSingleton::set_verify_callback(std::function<void()> cb)
+{
+    verify_callback_ = std::move(cb);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Drive offload init/finalize from Geant4 state transitions.
+ *
+ * In MT mode, the master thread receives a begin_run/end_run pair for each
+ * worker initialization, so master init/finalize is gated by a depth counter
+ * to fire only on the outermost transition. Worker threads receive a single
+ * begin_run/end_run.
+ */
+void IntegrationSingleton::on_state_change(GeantStateChange change)
+{
+    bool const is_master = G4Threading::IsMasterThread();
+    switch (change)
+    {
+        case GeantStateChange::begin_run:
+            if (is_master && master_run_depth_++ != 0)
+                break;
+            CELER_TRY_HANDLE(this->initialize_offload(),
+                             ExceptionConverter{"celer.init.auto"});
+            if (verify_callback_)
+            {
+                CELER_TRY_HANDLE(verify_callback_(),
+                                 ExceptionConverter{"celer.init.verify"});
+            }
+            break;
+        case GeantStateChange::end_run:
+            if (is_master && --master_run_depth_ != 0)
+                break;
+            CELER_TRY_HANDLE(this->finalize_offload(),
+                             ExceptionConverter{"celer.finalize.auto"});
+            break;
+        default:
+            break;
     }
 }
 
