@@ -25,6 +25,7 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/g4/StateDependent.hh"
+#include "celeritas/g4/Threading.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -133,7 +134,11 @@ class TMITestBase : virtual public IntegrationTestBase
     {
         TMI::Instance().EndOfRunAction(run);
     }
-    void BeginOfEventAction(G4Event const*) override {}
+    void BeginOfEventAction(G4Event const*) override
+    {
+        std::scoped_lock lock{mutex_};
+        ++num_local_events_[geant_stream()];
+    }
     void EndOfEventAction(G4Event const*) override
     {
         auto const& local_transport
@@ -142,6 +147,9 @@ class TMITestBase : virtual public IntegrationTestBase
     }
 
     std::function<void()> check_during_run_;
+
+    std::mutex mutex_;
+    std::map<StreamId, int> num_local_events_;
 };
 
 //---------------------------------------------------------------------------//
@@ -153,6 +161,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
   public:
     void BeginOfEventAction(G4Event const* event) override
     {
+        TMITestBase::BeginOfEventAction(event);
         if (event->GetEventID() == 1)
         {
             for (auto i : range(event->GetNumberOfPrimaryVertex()))
@@ -248,6 +257,14 @@ TEST_F(LarSphere, run)
 
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
+
+    // Check number of events
+    int total_events{0};
+    for (auto&& [sid, count] : num_local_events_)
+    {
+        total_events += count;
+    }
+    EXPECT_EQ(4, total_events);
 }
 
 /*!
@@ -308,7 +325,7 @@ TEST_F(LarSphere, state_dep)
     record_test_event("before-beamon");
     rm.BeamOn(2);
 
-    if (this->HasFailure())
+    if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
@@ -819,6 +836,11 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
+            int num_events = [this] {
+                std::scoped_lock lock{mutex_};
+                return num_local_events_[geant_stream()];
+            }();
+
             // Use diagnostic methods to check counters
             auto const& accum_stats
                 = optical_collector->optical_state(local_transporter.GetState())
@@ -826,10 +848,15 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             CELER_LOG_LOCAL(info)
                 << "Ran " << accum_stats.steps << " over "
                 << accum_stats.step_iters << " step iterations from "
-                << accum_stats.flushes << " flushes";
-            EXPECT_GT(accum_stats.steps, 0);
-            EXPECT_GT(accum_stats.step_iters, 0);
-            EXPECT_GT(accum_stats.flushes, 0);
+                << accum_stats.flushes << " flushes in " << num_events
+                << " events";
+
+            if (num_events > 0)
+            {
+                EXPECT_GT(accum_stats.steps, 0);
+                EXPECT_GT(accum_stats.step_iters, 0);
+                EXPECT_GT(accum_stats.flushes, 0);
+            }
 
             auto& aux_state = local_transporter.GetState().aux();
             auto counts = optical_collector->buffer_counts(aux_state);
