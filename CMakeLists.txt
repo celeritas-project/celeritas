@@ -303,7 +303,7 @@ if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
-  if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
+  if(CMAKE_CUDA_HOST_COMPILER AND NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
     # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
@@ -416,7 +416,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES)
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT "$ENV{CUDAARCHS}")
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "

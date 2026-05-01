@@ -4,45 +4,59 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-# Reduce I/O metadata overhead by avoiding language translation lookups
-export LC_ALL=C
-
 # Allow running from user rc setup outside of build.sh environment
 if ! command -v celerlog >/dev/null 2>&1; then
   celerlog() {
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
-if test -z "${SYSTEM_NAME}"; then
+if [ -z "${SYSTEM_NAME}" ]; then
   SYSTEM_NAME=$(hostname -s)
   celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
 fi
 
-export SPACK_ROOT=/auto/projects/celeritas/spack
-if ! test -r $SPACK_ROOT; then
-  celerlog error "spack directory SPACK_ROOT=${SPACK_ROOT} is not readable:
-       contact excl-help@ornl.gov for access"
-  exit 1
-fi
+#-----------------------------------------------------------------------------#
+# Call this helper function on the login node bare metal
+_apptainer_fnal() {
+  if ! [ -d "${SCRATCHDIR}" ]; then
+    celerlog error "Scratch directory does not exist: run
+  . \${CELERITAS_SOURCE}/scripts/env/excl.sh
+"
+    return 1
+  fi
 
-if ! command -v spack >/dev/null 2>&1; then
-  _spack_setup="$SPACK_ROOT/share/spack/setup-env.sh"
-  case "$0" in
-    /bin/*)
-      # Presumably sourcing from user shell to set up environment: load spack
-      celerlog debug "Loading spack setup from ${_spack_setup}"
-      . "${_spack_setup}"
-      ;;
-    *)
-      # Spack isn't available but we're loading from the build script so we don't really need it
-      celerlog warning "spack is not available; source ${_spack_setup} if desired"
-      ;;
-  esac
-  unset _spack_setup
-fi
+  if ! [ -d "/cvmfs" ]; then
+    celerlog error "cannot run ${1}: CVMFS is not available on this host"
+    return 1
+  fi
+
+  if ! [ -d "${CUDA_HOME}" ]; then
+    celerlog error "CUDA_HOME=${CUDA_HOME} does not exist"
+    return 1
+  fi
+
+  # BEGIN_DOC_APPTAINER
+  APPTAINER_DIR=/usr
+  IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
+  IMAGE=fnal-dev-sl7:latest
+  exec $APPTAINER_DIR/bin/apptainer \
+    shell --shell=/bin/bash \
+    -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,$HOME \
+    --nv --ipc --pid  \
+    ${IMAGE_DIR}/${IMAGE}
+  # END_DOC_APPTAINER
+}
+alias apptainer-fnal=_apptainer_fnal
+# END APPTAINER SCRIPT
+
+# Reduce I/O metadata overhead by avoiding language translation lookups
+export LC_ALL=C
 
 # Set default scratchdir; /scratch should exist according to excl docs
 export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
+if [ -n "${APPTAINER_NAME}" ]; then
+  export SCRATCHDIR="${SCRATCHDIR}/${APPTAINER_NAME%%:*}"
+fi
 for _d in build install cache; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="$SCRATCHDIR/$_d"
@@ -54,6 +68,19 @@ for _d in build install cache; do
   unset _scratch
 done
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
+
+if [ -n "${APPTAINER_NAME}" ]; then
+  # Only set up spack and environment on bare metal
+  celerlog debug "Skipping excl spack environment setup and cleaning vars: running inside apptainer"
+  unset CC CXX CMAKE_PREFIX_PATH
+
+  # Override apptainer command
+  _apptainer_fnal() {
+    printf "error: %s\n" "cannot run apptainer inside ${APPTAINER_NAME}"
+    return 1
+  }
+  return 0
+fi
 
 if [ -n "$CELER_SOURCE_DIR" ]; then
   _clangd="$CELER_SOURCE_DIR/.clangd"
@@ -80,8 +107,30 @@ EOF
   unset _clangd
 fi
 
-CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas-${SYSTEM_NAME}/.spack-env/view
+export SPACK_ROOT=/auto/projects/celeritas/spack
+if ! test -r $SPACK_ROOT; then
+  celerlog error "spack directory SPACK_ROOT=${SPACK_ROOT} is not readable:
+       contact excl-help@ornl.gov for access"
+  return 1
+fi
 
+if ! command -v spack >/dev/null 2>&1; then
+  _spack_setup="$SPACK_ROOT/share/spack/setup-env.sh"
+  case "$0" in
+    /bin/*)
+      # Presumably sourcing from user shell to set up environment: load spack
+      celerlog debug "Loading spack setup from ${_spack_setup}"
+      . "${_spack_setup}"
+      ;;
+    *)
+      # Spack isn't available but we're loading from the build script so we don't really need it
+      celerlog warning "spack is not available; source ${_spack_setup} if desired"
+      ;;
+  esac
+  unset _spack_setup
+fi
+
+CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas-${SYSTEM_NAME}/.spack-env/view
 if ! [ -e "${CELERITAS_ENV}" ]; then
   celerlog error "celeritas env does not exist (or is unreadable) at ${CELERITAS_ENV}"
   return 1

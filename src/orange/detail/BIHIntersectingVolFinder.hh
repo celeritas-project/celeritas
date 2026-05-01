@@ -121,13 +121,15 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    // Stack of deferred nodes
-    BIHNodeId stack[inp::BIHBuilder::max_depth_limit - 1];  // max tree depth
-    int stack_ptr = 0;
+    using Side = BIHInnerNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
-
     BIHNodeId current_node{0};
+
+    // Stack of deferred nodes
+    constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
+    BIHNodeId stack[stack_size];
+    size_type stack_ptr = 0;
 
     while (current_node)
     {
@@ -136,42 +138,66 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
             intersection = this->visit_leaf(
                 view_.leaf_node(current_node), ray, intersection, visit_vol);
 
-            // Pop or stop
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
             continue;
         }
 
         auto const& node = view_.inner_node(current_node);
-        auto const& l_edge = node.edges[BIHInnerNode::Side::left];
-        auto const& r_edge = node.edges[BIHInnerNode::Side::right];
+        int ax = to_int(node.axis);
 
-        bool hit_left
-            = this->visit_bbox(l_edge.bbox, ray, intersection.distance);
-        bool hit_right
-            = this->visit_bbox(r_edge.bbox, ray, intersection.distance);
+        // Guess the better edge to traverse first
+        auto first_edge = node.edges[Side::left];
+        auto second_edge = node.edges[Side::right];
 
-        if (hit_left && hit_right)
+        bool skip_first
+            = (ray.dir[ax] >= 0)
+              && (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos);
+        bool skip_second
+            = (ray.dir[ax] <= 0)
+              && (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos);
+
+        if (ray.pos[ax] > node.edges[Side::right].bounding_plane_pos)
         {
-            stack[stack_ptr++] = r_edge.child;
-            current_node = l_edge.child;
+            trivial_swap(first_edge, second_edge);
+            trivial_swap(skip_first, skip_second);
         }
-        else if (hit_left)
+
+        // Determine if the first and second edges are hits, short circuiting
+        // with skip_* before testing bounding boxes
+        bool hit_first
+            = !skip_first
+              && this->visit_bbox(first_edge.bbox, ray, intersection.distance);
+        bool hit_second = !skip_second
+                          && this->visit_bbox(
+                              second_edge.bbox, ray, intersection.distance);
+
+        // Choose the next node on the basis of which edges are hits
+        if (hit_first && hit_second)
         {
-            current_node = l_edge.child;
+            CELER_ASSERT(stack_ptr < stack_size);
+            stack[stack_ptr++] = second_edge.child;
+            current_node = first_edge.child;
         }
-        else if (hit_right)
+        else if (hit_first)
         {
-            current_node = r_edge.child;
+            current_node = first_edge.child;
+        }
+        else if (hit_second)
+        {
+            current_node = second_edge.child;
         }
         else
         {
+            // No hits for this node, jump to the next node in the stack if
+            // there is one
+            CELER_ASSERT(stack_ptr < stack_size);
             current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
         }
     }
 
     return this->visit_inf_vols(intersection, visit_vol);
 }
-
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//

@@ -98,7 +98,6 @@ class BIHBuilder
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
                         BIHNodeId parent,
-                        FastBBox const& bbox,
                         size_type current_depth,
                         size_type& depth);
 

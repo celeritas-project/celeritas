@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "corecel/Types.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "corecel/sys/ActionGroups.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/ActionTimes.hh"
