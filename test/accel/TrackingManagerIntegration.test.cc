@@ -20,7 +20,6 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
@@ -284,10 +283,11 @@ TEST_F(LarSphere, state_dep)
         // Create the state dependent on the local threads
         // NOTE that Geant4 state manager base class "registers" this pointer
         // and will deallocate it if it's not deregistered first (which the SD
-        // does via Notify but which may not always work) To provide safety
-        // against double-deletion due to this weird semantic, we DELIBERATELY
-        // leak the pointer. ALSO note that this thread_local declaration
-        // *must* be seen by each thread before it is used by that thread.
+        // does via Notify but which may not always work).
+        // To provide safety against double-deletion due to this weird
+        // semantic, we DELIBERATELY leak the pointer. ALSO note that this
+        // thread_local declaration *must* be seen by each thread before it is
+        // used by that thread.
         static thread_local StateDependent* state_dep{
             new StateDependent{record_state_change}};
 

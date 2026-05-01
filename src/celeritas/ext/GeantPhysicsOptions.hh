@@ -8,8 +8,6 @@
 
 #include <optional>
 
-#include "corecel/Types.hh"
-#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
 #include "GeantOpticalPhysicsOptions.hh"
