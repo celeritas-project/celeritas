@@ -75,7 +75,7 @@ GeantSd::GeantSd(ParticleParams const& par,
 
     // Convert setup options to step data
     selection_.primary_id = setup.track;
-    selection_.particle = setup.track;
+    selection_.particle_id = setup.track;
     selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
     selection_.step_length = setup.step_length;
@@ -100,7 +100,7 @@ GeantSd::GeantSd(ParticleParams const& par,
     if (setup.track)
     {
         this->setup_particles(par);
-        CELER_ASSERT(selection_.primary_id && selection_.particle
+        CELER_ASSERT(selection_.primary_id && selection_.particle_id
                      && selection_.weight);
     }
 
@@ -233,7 +233,7 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
 //---------------------------------------------------------------------------//
 void GeantSd::setup_particles(ParticleParams const& par)
 {
-    CELER_EXPECT(selection_.particle);
+    CELER_EXPECT(selection_.particle_id);
 
     auto& g4particles = *G4ParticleTable::GetParticleTable();
 

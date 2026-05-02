@@ -92,7 +92,7 @@ void SimpleCmsTest::SetUp()
     selection_.points[StepPoint::post].pos = true;
     selection_.points[StepPoint::post].dir = true;
     selection_.points[StepPoint::post].energy = true;
-    selection_.particle = true;
+    selection_.particle_id = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -124,7 +124,7 @@ auto SimpleCmsTest::make_detector_volumes() -> SPConstVecLV
 auto SimpleCmsTest::make_particles() -> VecParticle
 {
     VecParticle result;
-    if (!selection_.particle)
+    if (!selection_.particle_id)
     {
         return result;
     }
@@ -164,7 +164,7 @@ auto SimpleCmsTest::get_hits(std::string const& name) const
 DetectorStepOutput SimpleCmsTest::make_dso() const
 {
     DetectorStepOutput dso;
-    dso.detector = {
+    dso.detector_id = {
         DetectorId{2},  // si_tracker
         DetectorId{0},  // em_calorimeter
         DetectorId{1},  // had_calorimeter
@@ -265,9 +265,9 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             MevEnergy{2.7},
         };
     }
-    if (selection_.particle)
+    if (selection_.particle_id)
     {
-        dso.particle = {
+        dso.particle_id = {
             ParticleId{2},
             ParticleId{1},
             ParticleId{0},
@@ -396,7 +396,7 @@ TEST_F(SimpleCmsTest, no_touchable)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
-    selection_.particle = false;
+    selection_.particle_id = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -476,11 +476,11 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
 TEST_F(SimpleCmsTest, touchable_exiting)
 {
     locate_touchable_ = {true, true};
-    selection_.particle = false;
+    selection_.particle_id = false;
 
     HitProcessor process_hits = this->make_hit_processor();
     DetectorStepOutput dso;
-    dso.detector = {DetectorId{3}, DetectorId{2}};
+    dso.detector_id = {DetectorId{3}, DetectorId{2}};
     dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
     dso.step_length = {
         from_cm(300),
