@@ -23,6 +23,12 @@ TEST(MiniStackTest, fixed_size)
 {
     Array<int, 3> storage;
     MiniStack stack(Span{storage});
+    struct ExpectedStructSize
+    {
+        int* data;
+        size_type size;
+    };
+    EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
@@ -59,7 +65,7 @@ TEST(MiniStackTest, fixed_size)
 TEST(MiniStackTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     Array<int, 1> storage = {0};
-    MiniStack<int> stack(Span{storage});
+    MiniStack<int, 1> stack(Span{storage});
     EXPECT_EQ(1, stack.capacity());
     // Pop empty should throw
     EXPECT_THROW(stack.pop(), DebugError);
@@ -73,7 +79,32 @@ TEST(MiniStackTest, dynamic_span_construct)
 {
     Array<int, 3> storage = {0, 0, 0};
     Span<int> dynamic_span(storage.data(), storage.size());
-    MiniStack<int> stack(dynamic_span);
+    MiniStack stack(dynamic_span);
+
+    struct ExpectedStructSize
+    {
+        int* data;
+        std::size_t cap;
+        size_type size;
+    };
+    EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
+
+    EXPECT_TRUE(stack.empty());
+    EXPECT_EQ(0, stack.size());
+    EXPECT_EQ(3, stack.capacity());
+}
+
+TEST(MiniStackTest, different_size_construct)
+{
+    Array<int, 3> storage = {0, 0, 0};
+    MiniStack<int, 3, short int> stack(make_span(storage));
+
+    struct ExpectedStructSize
+    {
+        int* data;
+        short int size;
+    };
+    EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());

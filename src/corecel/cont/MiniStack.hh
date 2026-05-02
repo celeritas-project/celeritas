@@ -7,6 +7,7 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
 namespace celeritas
@@ -15,14 +16,31 @@ namespace celeritas
 /*!
  * Helper class that provides the functionality of a stack on an underlying
  * container.
+ *
+ * \par Example:
+ * \code
+    Array<int, 3> storage;
+    MiniStack stack(Span{storage});
+
+    EXPECT_TRUE(stack.empty());
+    EXPECT_EQ(0, stack.size());
+    EXPECT_EQ(3, stack.capacity());
+
+    // Push  and pop
+    stack.push(42);
+    EXPECT_FALSE(stack.empty());
+    EXPECT_EQ(1, stack.size());
+    EXPECT_EQ(42, stack.pop());
+ * \endcode
+ *
  */
-template<class T, std::size_t Extent = dynamic_extent>
+template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
 class MiniStack
 {
   public:
     //!@{
-    using size_type = Span<T, Extent>::size_type;
     using value_type = T;
+    using size_type = S;
     //!@}
 
   public:
