@@ -84,6 +84,7 @@ void SimpleCmsTest::SetUp()
     // Create default step selection (see GeantSd)
     selection_.energy_deposition = true;
     selection_.step_length = true;
+    selection_.weight = true;
     selection_.points[StepPoint::pre].time = true;
     selection_.points[StepPoint::pre].energy = true;
     selection_.points[StepPoint::pre].pos = true;
@@ -93,6 +94,7 @@ void SimpleCmsTest::SetUp()
     selection_.points[StepPoint::post].dir = true;
     selection_.points[StepPoint::post].energy = true;
     selection_.particle_id = true;
+    selection_.primary_id = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -265,6 +267,14 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             MevEnergy{2.7},
         };
     }
+    if (selection_.points[StepPoint::pre].energy)
+    {
+        dso.points[StepPoint::pre].energy = {
+            MevEnergy{0.0},
+            MevEnergy{0.0},
+            MevEnergy{0.0},
+        };
+    }
     if (selection_.particle_id)
     {
         dso.particle_id = {
@@ -293,6 +303,35 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
 TEST_F(SimpleCmsTest, no_touchable)
 {
     HitProcessor process_hits = this->make_hit_processor();
+    auto& recon = *process_hits.track_reconstruction();
+
+    // Initialize a mock event and primaries for reconstruction.
+    SimpleCmsTest::test_cur_event = 1;
+    recon.init_event();
+    auto* gamma_def = G4ParticleTable::GetParticleTable()->FindParticle(
+        pdg::gamma().get());
+    ASSERT_NE(nullptr, gamma_def);
+    {
+        auto primary0 = std::make_unique<G4Track>(
+            new G4DynamicParticle(gamma_def, G4ThreeVector(1, 0, 0)),
+            0.0,
+            G4ThreeVector());
+        primary0->SetTrackID(10);
+        primary0->SetParentID(0);
+        auto const pid0 = recon.acquire(*primary0);
+        EXPECT_EQ(0, pid0.unchecked_get());
+    }
+    {
+        auto primary1 = std::make_unique<G4Track>(
+            new G4DynamicParticle(gamma_def, G4ThreeVector(0, 1, 0)),
+            0.0,
+            G4ThreeVector());
+        primary1->SetTrackID(20);
+        primary1->SetParentID(5);
+        auto const pid1 = recon.acquire(*primary1);
+        EXPECT_EQ(1, pid1.unchecked_get());
+    }
+
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
 
@@ -309,6 +348,7 @@ TEST_F(SimpleCmsTest, no_touchable)
     };
 
     process_hits(dso_hits);
+    recon.clear();
 
     {
         auto& result = this->get_hits("si_tracker");
@@ -397,6 +437,7 @@ TEST_F(SimpleCmsTest, no_touchable)
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.particle_id = false;
+    selection_.primary_id = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -426,8 +467,11 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_edgecase)
 {
+    selection_.particle_id = false;
+    selection_.primary_id = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
+
     auto dso_hits = this->make_dso();
     auto& pos = dso_hits.points[StepPoint::pre].pos;
     auto& dir = dso_hits.points[StepPoint::pre].dir;
@@ -477,10 +521,16 @@ TEST_F(SimpleCmsTest, touchable_exiting)
 {
     locate_touchable_ = {true, true};
     selection_.particle_id = false;
+    selection_.primary_id = false;
+    selection_.points[StepPoint::pre].time = false;
+    selection_.points[StepPoint::post].time = false;
+    selection_.points[StepPoint::pre].energy = false;
+    selection_.points[StepPoint::post].energy = false;
 
     HitProcessor process_hits = this->make_hit_processor();
     DetectorStepOutput dso;
     dso.detector_id = {DetectorId{3}, DetectorId{2}};
+    dso.weight = {1.0, 1.0};
     dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
     dso.step_length = {
         from_cm(300),

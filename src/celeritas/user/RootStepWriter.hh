@@ -56,13 +56,14 @@ class RootStepWriter final : public StepInterface
     struct TStepData
     {
         size_type event_id = unspecified;
-        int particle = 0;  //!< PDG number
         size_type track_id = unspecified;
         size_type parent_id = unspecified;
+        size_type primary_id = unspecified;
         size_type post_step_action_id = unspecified;
         size_type track_step_count = unspecified;
-        real_type energy_deposition = 0;  //!< [MeV]
         real_type step_length = 0;  //!< [len]
+        real_type energy_deposition = 0;  //!< [MeV]
+        int particle = 0;  //!< PDG number
         EnumArray<StepPoint, TStepPoint> points;
     };
 

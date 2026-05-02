@@ -163,18 +163,18 @@ void RootStepWriter::process_steps(HostStepState state)
         tstep_.track_id = state.steps.data.track_id[tid].unchecked_get();
 
         RSW_STORE(event_id, .get());
+        RSW_STORE(parent_id, .unchecked_get());
+        RSW_STORE(primary_id, .unchecked_get());
+        RSW_STORE(post_step_action_id, .get());
+        RSW_STORE(track_step_count, /* no getter */);
+        RSW_STORE(step_length, /* no getter */);
+        RSW_STORE(energy_deposition, .value());
         if (selection_.particle_id)
         {
             copy_if_selected(
                 particles_->id_to_pdg(state.steps.data.particle_id[tid]).get(),
                 tstep_.particle);
         }
-        RSW_STORE(parent_id, .unchecked_get());
-        RSW_STORE(primary_id, .unchecked_get());
-        RSW_STORE(post_step_action_id, .get());
-        RSW_STORE(energy_deposition, .value());
-        RSW_STORE(step_length, /* no getter */);
-        RSW_STORE(track_step_count, /* no getter */);
         for (auto const sp : range(StepPoint::size_))
         {
             RSW_STORE(points[sp].volume_id, .unchecked_get());
@@ -220,11 +220,15 @@ void RootStepWriter::make_tree()
     tstep_tree_->Branch("track_id", &tstep_.track_id);  // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
     RSW_CREATE_BRANCH(parent_id, "parent_id");
+    RSW_CREATE_BRANCH(primary_id, "primary_id");
+    RSW_CREATE_BRANCH(post_step_action_id, "post_step_action_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
-    RSW_CREATE_BRANCH(post_step_id, "post_step_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
-    RSW_CREATE_BRANCH(particle, "particle");
     RSW_CREATE_BRANCH(energy_deposition, "energy_deposition");
+    if (this->selection_.particle_id)
+    {
+        this->tstep_tree_->Branch("particle", &tstep_.particle);
+    }
     // Pre-step
     RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
     RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");

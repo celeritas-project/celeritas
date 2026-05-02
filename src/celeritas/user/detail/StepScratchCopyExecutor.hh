@@ -97,6 +97,8 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
 
     DS_COPY_IF_SELECTED(event_id);
     DS_COPY_IF_SELECTED(parent_id);
+    DS_COPY_IF_SELECTED(primary_id);
+    DS_COPY_IF_SELECTED(post_step_action_id);
     DS_COPY_IF_SELECTED(track_step_count);
     DS_COPY_IF_SELECTED(step_length);
     DS_COPY_IF_SELECTED(weight);

@@ -101,8 +101,9 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || parent_id || track_step_count || post_step_action_id
-               || step_length || weight || particle_id || energy_deposition;
+               || parent_id || primary_id || post_step_action_id
+               || track_step_count || step_length || weight || particle_id
+               || energy_deposition;
     }
 
     //! Combine the selection with another
@@ -115,8 +116,9 @@ struct StepSelection
 
         this->event_id |= other.event_id;
         this->parent_id |= other.parent_id;
-        this->track_step_count |= other.track_step_count;
+        this->primary_id |= other.primary_id;
         this->post_step_action_id |= other.post_step_action_id;
+        this->track_step_count |= other.track_step_count;
         this->step_length |= other.step_length;
         this->weight |= other.weight;
         this->particle_id |= other.particle_id;
@@ -230,7 +232,7 @@ struct StepPointStateData
  * - If the flag is disabled (no step interfaces require the data), then the
  *   corresponding member data will be empty.
  * - The track ID will be set to "false" if the track is inactive.
- * - If sensitive detector are specified, the \c detector field is set based
+ * - If sensitive detector are specified, the \c detector_id field is set based
  *   on the pre-step geometric volume. Data members will have \b unspecified
  *   values if the detector ID is "false" (i.e. no information is being
  *   collected). The detector ID for inactive threads is always "false".
@@ -280,8 +282,8 @@ struct StepStateDataImpl
 
         return !track_id.empty() && right_sized(detector_id)
                && right_sized(event_id) && right_sized(parent_id)
-               && right_sized(primary_id) && right_sized(track_step_count)
-               && right_sized(post_step_action_id) && right_sized(step_length)
+               && right_sized(primary_id) && right_sized(post_step_action_id)
+               && right_sized(track_step_count) && right_sized(step_length)
                && right_sized(weight) && right_sized(particle_id)
                && right_sized(energy_deposition);
     }
@@ -306,12 +308,12 @@ struct StepStateDataImpl
         }
 
         track_id = other.track_id;
-        parent_id = other.parent_id;
-        primary_id = other.primary_id;
         detector_id = other.detector_id;
         event_id = other.event_id;
-        track_step_count = other.track_step_count;
+        parent_id = other.parent_id;
+        primary_id = other.primary_id;
         post_step_action_id = other.post_step_action_id;
+        track_step_count = other.track_step_count;
         step_length = other.step_length;
         weight = other.weight;
         particle_id = other.particle_id;
@@ -462,10 +464,10 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(parent_id);
     SD_RESIZE_IF_SELECTED(primary_id);
+    SD_RESIZE_IF_SELECTED(post_step_action_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
     SD_RESIZE_IF_SELECTED(weight);
-    SD_RESIZE_IF_SELECTED(post_step_action_id);
     SD_RESIZE_IF_SELECTED(particle_id);
     SD_RESIZE_IF_SELECTED(energy_deposition);
 }

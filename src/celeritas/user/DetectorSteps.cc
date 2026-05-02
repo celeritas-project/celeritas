@@ -125,7 +125,8 @@ void copy_steps<MemSpace::host>(
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(&(output->FIELD), state.data.FIELD, state.data.detector, size)
+    assign_field(        \
+        &(output->FIELD), state.data.FIELD, state.data.detector_id, size)
 
     DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
@@ -149,6 +150,7 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
     DS_ASSIGN(primary_id);
+    DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
     DS_ASSIGN(weight);
