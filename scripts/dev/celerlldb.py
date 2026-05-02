@@ -7,6 +7,7 @@ To use from inside ``${SOURCE}/build``::
    (lldb) command script import ../scripts/dev/celerlldb.py --allow-reload
    (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
    (lldb) type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
+   (lldb) type synthetic add -x "^celeritas::OpaqueId<.+>$" --python-class celerlldb.OpaqueIdSynthetic
 
 """
 
@@ -103,3 +104,45 @@ class ItemRangeSynthetic:
         (name, val) = self.values_[index]
         val_int = val.GetValueAsUnsigned()
         return self.valobj.CreateValueFromExpression(name, f"(unsigned){val_int}")
+
+
+class OpaqueIdSynthetic:
+    def __init__(self, valobj, *args):
+        self.valobj = valobj  # type: SBValue
+        self._value = None
+        self._is_null = True
+
+    def update(self):
+        if not self.valobj.IsValid():
+            self._value = None
+            self._is_null = True
+            return False
+
+        value = self.valobj.GetChildMemberWithName("value_")
+        null_value = self.valobj.GetChildMemberWithName("null_")
+        if not value.IsValid() or not null_value.IsValid():
+            self._value = None
+            self._is_null = True
+            return False
+
+        self._value = value.GetValueAsUnsigned(0)
+        self._is_null = self._value == null_value.GetValueAsUnsigned(0)
+        return False
+
+    def has_children(self):
+        return True
+
+    def num_children(self):
+        return 1
+
+    def get_child_index(self, name):
+        if name == "value":
+            return 0
+        return None
+
+    def get_child_at_index(self, index):
+        if index != 0:
+            return None
+        if self._value is None or self._is_null:
+            return self.valobj.CreateValueFromExpression("value", '(const char*)"null"')
+        return self.valobj.CreateValueFromExpression("value", str(self._value))

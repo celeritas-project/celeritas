@@ -32,6 +32,7 @@ LLDB_COMMANDS = """
 command script import ${workspaceFolder}/scripts/dev/celerlldb.py --allow-reload
 type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
 type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
+type synthetic add -x "^celeritas::OpaqueId<.+>$" --python-class celerlldb.OpaqueIdSynthetic
 break set --name celeritas::throw_debug_error
 break set --name celeritas::throw_runtime_error
 """.strip().splitlines()
