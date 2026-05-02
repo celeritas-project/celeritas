@@ -186,7 +186,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         hit_processor_ = hit_manager->make_local_processor(stream_id);
         track_reconstruction_ = hit_processor_->track_reconstruction();
     }
-    else
+    if (!track_reconstruction_)
     {
         using VecConstPD = GeantTrackReconstruction::VecParticle;
         auto const& offload = params.OffloadParticles();
