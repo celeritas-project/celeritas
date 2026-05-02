@@ -129,7 +129,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     // Stack of deferred nodes
     constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
     BIHNodeId stack[stack_size];
-    size_type stack_ptr = 0;
+    BIHNodeId::index_type stack_ptr = 0;
 
     while (current_node)
     {

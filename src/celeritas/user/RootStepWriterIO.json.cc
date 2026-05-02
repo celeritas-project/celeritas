@@ -6,11 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "RootStepWriterIO.json.hh"
 
-#include <string>
-
 #include "corecel/io/JsonUtils.json.hh"
 
-#include "RootStepWriter.hh"
+#include "RootStepWriterInput.hh"
 
 namespace celeritas
 {

@@ -14,7 +14,7 @@
 
 #include "corecel/Assert.hh"
 #include "celeritas/ext/RootFileManager.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

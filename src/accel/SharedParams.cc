@@ -9,7 +9,6 @@
 #include <fstream>
 #include <memory>
 #include <mutex>
-#include <type_traits>
 #include <utility>
 #include <vector>
 #include <CLHEP/Random/Random.h>
@@ -25,38 +24,23 @@
 #include <G4Threading.hh>
 #include <G4VisExtent.hh>
 
-#include "corecel/Config.hh"
-#include "corecel/Version.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
-#include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/random/params/RngParams.hh"
-#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "corecel/sys/ThreadId.hh"
-#include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
 #include "celeritas/ext/GeantSd.hh"
-#include "celeritas/ext/GeantSdOutput.hh"
-#include "celeritas/ext/RootExporter.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
-#include "celeritas/geo/GeoMaterialParams.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/inp/FrameworkInput.hh"
-#include "celeritas/inp/Scoring.hh"
-#include "celeritas/io/ImportData.hh"
-#include "celeritas/mat/MaterialParams.hh"
+#include "celeritas/inp/FrameworkInput.hh"  // IWYU pragma: keep
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/optical/Transporter.hh"
@@ -69,15 +53,11 @@
 #include "celeritas/setup/FrameworkInput.hh"
 #include "celeritas/setup/Problem.hh"
 #include "celeritas/track/SimParams.hh"
-#include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
-#include "celeritas/user/StepCollector.hh"
 
 #include "AlongStepFactory.hh"
 #include "SetupOptions.hh"
 #include "TimeOutput.hh"
-
-#include "detail/IntegrationSingleton.hh"
 
 namespace celeritas
 {

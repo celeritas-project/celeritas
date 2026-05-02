@@ -9,6 +9,7 @@
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"

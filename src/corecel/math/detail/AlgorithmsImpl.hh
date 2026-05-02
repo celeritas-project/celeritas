@@ -39,17 +39,16 @@ using difference_type_t =
  */
 template<typename Integral>
 CELER_CONSTEXPR_FUNCTION
-    typename std::enable_if<std::is_integral<Integral>::value, Integral>::type
+    std::enable_if_t<std::is_integral<Integral>::value, Integral>
     half_positive(Integral value)
 {
     return static_cast<Integral>(
-        static_cast<typename std::make_unsigned<Integral>::type>(value) / 2);
+        static_cast<std::make_unsigned_t<Integral>>(value) / 2);
 }
 
 template<typename T>
-CELER_CONSTEXPR_FUNCTION
-    typename std::enable_if<!std::is_integral<T>::value, T>::type
-    half_positive(T value)
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<!std::is_integral<T>::value, T>
+half_positive(T value)
 {
     return value / 2;
 }
@@ -175,10 +174,10 @@ CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
  * Cast a value to an rvalue reference.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept ->
-    typename std::remove_reference<T>::type&&
+CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept
+    -> std::remove_reference_t<T>&&
 {
-    return static_cast<typename std::remove_reference<T>::type&&>(v);
+    return static_cast<std::remove_reference_t<T>&&>(v);
 }
 
 //---------------------------------------------------------------------------//

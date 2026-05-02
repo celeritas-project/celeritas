@@ -11,6 +11,7 @@
 #include <thrust/execution_policy.h>
 #include <thrust/iterator/counting_iterator.h>
 
+#include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
