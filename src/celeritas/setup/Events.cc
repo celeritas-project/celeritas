@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"

@@ -24,17 +24,16 @@
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSd.hh"  // IWYU pragma: keep
 #include "celeritas/ext/GeantTrackView.hh"
-#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -46,7 +45,6 @@
 #include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
