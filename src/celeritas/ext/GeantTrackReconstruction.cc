@@ -34,7 +34,11 @@ int get_g4_current_event_id()
     auto* evtman = G4EventManager::GetEventManager();
     CELER_ASSERT(evtman);
     auto* evt = evtman->GetConstCurrentEvent();
-    CELER_ASSERT(evt);
+    if (!evt)
+    {
+        // Use a different "invalid" event ID from the default g4_event_id_
+        return -2;
+    }
     return evt->GetEventID();
 }
 }  // namespace
@@ -110,18 +114,15 @@ GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
         track->SetStep(step_.get());
     }
 
-    if constexpr (CELERITAS_DEBUG)
+    // Reset event interface used for test mocking
+    if (get_current_event_id == nullptr)
     {
-        // Reset event interface for test mocking
+        static std::mutex mu;
+        std::scoped_lock lock{mu};
+
         if (get_current_event_id == nullptr)
         {
-            static std::mutex mu;
-            std::scoped_lock lock{mu};
-
-            if (get_current_event_id == nullptr)
-            {
-                get_current_event_id = get_g4_current_event_id;
-            }
+            get_current_event_id = get_g4_current_event_id;
         }
     }
 }
