@@ -7,7 +7,7 @@ To use from inside ``${SOURCE}/build``::
    (lldb) command script import ../scripts/dev/celerlldb.py --allow-reload
    (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
    (lldb) type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
-   (lldb) type synthetic add -x "^celeritas::OpaqueId<.+>$" --python-class celerlldb.OpaqueIdSynthetic
+   (lldb) type summary add -x "^celeritas::OpaqueId<.+>$" --python-function celerlldb.opaqueid_summary
 
 """
 
@@ -106,43 +106,21 @@ class ItemRangeSynthetic:
         return self.valobj.CreateValueFromExpression(name, f"(unsigned){val_int}")
 
 
-class OpaqueIdSynthetic:
-    def __init__(self, valobj, *args):
-        self.valobj = valobj  # type: SBValue
-        self._value = None
-        self._is_null = True
+def opaqueid_summary(valobj, _internal_dict):
+    value = valobj.GetChildMemberWithName("value_")
+    if not valobj.IsValid() or not value.IsValid():
+        return "null"
 
-    def update(self):
-        if not self.valobj.IsValid():
-            self._value = None
-            self._is_null = True
-            return False
+    raw_value = value.GetValueAsUnsigned(0)
 
-        value = self.valobj.GetChildMemberWithName("value_")
-        null_value = self.valobj.GetChildMemberWithName("null_")
-        if not value.IsValid() or not null_value.IsValid():
-            self._value = None
-            self._is_null = True
-            return False
+    # OpaqueId null sentinel is max value for the unsigned index type.
+    byte_size = value.GetType().GetByteSize()
+    if byte_size <= 0:
+        return str(raw_value)
+    bit_size = 8 * byte_size
+    null_value = (1 << min(bit_size, 64)) - 1
 
-        self._value = value.GetValueAsUnsigned(0)
-        self._is_null = self._value == null_value.GetValueAsUnsigned(0)
-        return False
+    if raw_value == null_value:
+        return "null"
 
-    def has_children(self):
-        return True
-
-    def num_children(self):
-        return 1
-
-    def get_child_index(self, name):
-        if name == "value":
-            return 0
-        return None
-
-    def get_child_at_index(self, index):
-        if index != 0:
-            return None
-        if self._value is None or self._is_null:
-            return self.valobj.CreateValueFromExpression("value", '(const char*)"null"')
-        return self.valobj.CreateValueFromExpression("value", str(self._value))
+    return str(raw_value)
