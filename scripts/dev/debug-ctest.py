@@ -31,6 +31,7 @@ from pathlib import Path
 LLDB_COMMANDS = """
 command script import ${workspaceFolder}/scripts/dev/celerlldb.py --allow-reload
 type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
+type synthetic add -x "^celeritas::Array<.+>$" --python-class celerlldb.ArraySynthetic
 type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
 type summary add -x "^celeritas::OpaqueId<.+>$" --python-function celerlldb.opaqueid_summary
 break set --name celeritas::throw_debug_error
