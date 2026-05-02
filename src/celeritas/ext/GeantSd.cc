@@ -100,6 +100,8 @@ GeantSd::GeantSd(ParticleParams const& par,
     if (setup.track)
     {
         this->setup_particles(par);
+        CELER_ASSERT(selection_.primary_id && selection_.particle
+                     && selection_.weight);
     }
 
     CELER_ENSURE(setup.track == !this->particles_.empty());
