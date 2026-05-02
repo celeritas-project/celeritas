@@ -62,7 +62,7 @@ struct EnumWithSize
 };
 
 template<class T>
-struct EnumWithSize<T, std::enable_if_t<T::size_ >= 0>>
+struct EnumWithSize<T, std::enable_if_t<(T::size_ >= 0)>>
 {
     static CELER_CONSTEXPR_FUNCTION bool is_valid(T value)
     {
