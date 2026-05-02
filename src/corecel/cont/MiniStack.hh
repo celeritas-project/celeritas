@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
 namespace celeritas
