@@ -807,6 +807,7 @@ GeantGeoParams::~GeantGeoParams()
         auto* geo_man = G4GeometryManager::GetInstance();
         if (geo_man)
         {
+            CELER_LOG(debug) << "Reopening geometry";
             geo_man->OpenGeometry(this->world());
         }
         else

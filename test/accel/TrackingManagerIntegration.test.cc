@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <functional>
+#include <map>
 #include <mutex>
 #include <regex>
 #include <string_view>
@@ -17,12 +18,14 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
-#include "corecel/StringSimplifier.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
+#include "celeritas/g4/StateDependent.hh"
+#include "celeritas/g4/Threading.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
@@ -131,7 +134,11 @@ class TMITestBase : virtual public IntegrationTestBase
     {
         TMI::Instance().EndOfRunAction(run);
     }
-    void BeginOfEventAction(G4Event const*) override {}
+    void BeginOfEventAction(G4Event const*) override
+    {
+        std::scoped_lock lock{mutex_};
+        ++num_local_events_[geant_stream()];
+    }
     void EndOfEventAction(G4Event const*) override
     {
         auto const& local_transport
@@ -140,16 +147,21 @@ class TMITestBase : virtual public IntegrationTestBase
     }
 
     std::function<void()> check_during_run_;
+
+    std::mutex mutex_;
+    std::map<StreamId, int> num_local_events_;
 };
 
 //---------------------------------------------------------------------------//
 // LAR SPHERE (EM only)
 //---------------------------------------------------------------------------//
+
 class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 {
   public:
     void BeginOfEventAction(G4Event const* event) override
     {
+        TMITestBase::BeginOfEventAction(event);
         if (event->GetEventID() == 1)
         {
             for (auto i : range(event->GetNumberOfPrimaryVertex()))
@@ -245,6 +257,147 @@ TEST_F(LarSphere, run)
 
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
+
+    // Check number of events
+    int total_events{0};
+    for (auto&& [sid, count] : num_local_events_)
+    {
+        total_events += count;
+    }
+    EXPECT_EQ(4, total_events);
+}
+
+/*!
+ * Print out state dependent data using a thread-local state change monitor.
+ */
+TEST_F(LarSphere, state_dep)
+{
+    // Map stream to status changes: initialize with empty vectors for
+    // main thread to record test event
+    static std::map<StreamId, std::vector<std::string>> stream_state
+        = {{StreamId{0}, {}}};
+    // Record a change for the local stream ID
+    static auto record_state_change = [](StreamId sid, GeantStateChange change) {
+        if (change != GeantStateChange::unknown)
+        {
+            static std::mutex mu;
+            std::scoped_lock lock{mu};
+            stream_state[sid].emplace_back(to_cstring(change));
+        }
+        CELER_LOG_LOCAL(debug) << sid << ": " << change;
+    };
+    // Record a testing event for all stream IDs from the test harness
+    static auto record_test_event = [](std::string const& s) {
+        for (auto& kv : stream_state)
+        {
+            kv.second.push_back(s);
+        }
+    };
+
+    // Set a callback that constructs the state dependent on every thread:
+    // we should probably do this as part of the tracking manager.
+    this->set_build_cb([](StreamId s) {
+        // Create the state dependent on the local threads
+        // NOTE that Geant4 state manager base class "registers" this pointer
+        // and will deallocate it if it's not deregistered first (which the SD
+        // does via Notify but which may not always work).
+        // To provide safety against double-deletion due to this weird
+        // semantic, we DELIBERATELY leak the pointer. ALSO note that this
+        // thread_local declaration *must* be seen by each thread before it is
+        // used by that thread.
+        static thread_local StateDependent* state_dep{
+            new StateDependent{record_state_change}};
+
+        ASSERT_NE(state_dep, nullptr);
+        EXPECT_EQ(state_dep->local_stream(), s);
+        CELER_LOG_LOCAL(debug)
+            << "State dependent for " << state_dep->local_stream() << ": "
+            << static_cast<void*>(&state_dep);
+    });
+
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    record_test_event("before-init");
+    rm.Initialize();
+
+    record_test_event("before-beamon");
+    rm.BeamOn(2);
+
+    if (this->HasFatalFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+    if (using_surface_vg)
+    {
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
+    }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    record_test_event("before-beamon");
+    rm.BeamOn(1);
+
+    if (test_runman_type() == "serial")
+    {
+        std::vector<std::string> merged_status;
+        for (auto&& [sid, all_state] : stream_state)
+        {
+            for (auto const& s : all_state)
+            {
+                merged_status.emplace_back(std::to_string(sid.get()) + ':' + s);
+            }
+        }
+        static char const* const expected_status[] = {
+            "0:before-init",   "0:initialize",    "0:begin_init",
+            "0:internal_init", "0:internal_init", "0:internal_init",
+            "0:end_init",      "0:begin_init",    "0:end_init",
+            "0:before-beamon", "0:begin_init",    "0:end_init",
+            "0:begin_run",     "0:begin_event",   "0:end_event",
+            "0:begin_event",   "0:end_event",     "0:end_run",
+            "0:before-beamon", "0:begin_init",    "0:end_init",
+            "0:begin_run",     "0:begin_event",   "0:end_event",
+            "0:end_run",
+        };
+        EXPECT_VEC_EQ(expected_status, merged_status);
+    }
+
+    rm.BeamOn(4);
+    {
+        EXPECT_FALSE(stream_state.empty());
+        int total_events{0};
+        for (auto&& [sid, all_state] : stream_state)
+        {
+            SCOPED_TRACE(sid ? ("worker " + std::to_string(*sid)) : "manager");
+            // Convert ordered vector to counts
+            std::map<std::string, int> state_counts;
+            for (auto const& s : all_state)
+            {
+                ++state_counts[s];
+            }
+
+            // Initialization should happen only once
+            EXPECT_EQ(state_counts["initialize"], 1);
+            // Begin/end init should be the same: num runs plus 2 (phys + geo)
+            EXPECT_EQ(state_counts["begin_run"] + 2,
+                      state_counts["begin_init"]);
+            EXPECT_EQ(2 + (sid == geant_main_stream()),
+                      state_counts["internal_init"])
+                << repr(all_state);
+            EXPECT_EQ(state_counts["begin_init"], state_counts["end_init"]);
+
+            EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            // Begin/end run should be the same
+            EXPECT_EQ(state_counts["begin_run"], state_counts["end_run"]);
+
+            // Begin/end event should be the same
+            total_events += state_counts["begin_event"];
+            EXPECT_EQ(num_local_events_[sid], state_counts["begin_event"])
+                << repr(all_state);
+            EXPECT_EQ(state_counts["begin_event"], state_counts["end_event"]);
+        }
+        EXPECT_EQ(2 + 1 + 4, total_events);
+    }
 }
 
 /*!
@@ -679,6 +832,11 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
         EXPECT_TRUE(optical_collector) << "optical offloading was not enabled";
         if (local_transporter && optical_collector)
         {
+            int num_events = [this] {
+                std::scoped_lock lock{mutex_};
+                return num_local_events_[geant_stream()];
+            }();
+
             // Use diagnostic methods to check counters
             auto const& accum_stats
                 = optical_collector->optical_state(local_transporter.GetState())
@@ -686,10 +844,15 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             CELER_LOG_LOCAL(info)
                 << "Ran " << accum_stats.steps << " over "
                 << accum_stats.step_iters << " step iterations from "
-                << accum_stats.flushes << " flushes";
-            EXPECT_GT(accum_stats.steps, 0);
-            EXPECT_GT(accum_stats.step_iters, 0);
-            EXPECT_GT(accum_stats.flushes, 0);
+                << accum_stats.flushes << " flushes in " << num_events
+                << " events";
+
+            if (num_events > 0)
+            {
+                EXPECT_GT(accum_stats.steps, 0);
+                EXPECT_GT(accum_stats.step_iters, 0);
+                EXPECT_GT(accum_stats.flushes, 0);
+            }
 
             auto& aux_state = local_transporter.GetState().aux();
             auto counts = optical_collector->buffer_counts(aux_state);

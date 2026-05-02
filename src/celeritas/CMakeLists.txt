@@ -233,8 +233,10 @@ if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     g4/DetectorConstruction.cc
     g4/GeantOffloadUtils.cc
+    g4/StateDependent.cc
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
+    g4/Threading.cc
     g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
