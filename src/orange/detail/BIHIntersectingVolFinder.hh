@@ -129,8 +129,9 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     // Stack of deferred nodes
     constexpr auto stack_capacity = inp::BIHBuilder::max_depth_limit - 1;
-    BIHNodeId stack_storage[stack_capacity];
-    MiniStack stack{Span{stack_storage}};
+    using StackT = MiniStack<BIHNodeId, stack_capacity, MakeSize_t<BIHNodeId>>;
+    BIHNodeId stack_storage_[stack_capacity];
+    StackT stack{stack_storage_};
     stack.push(BIHNodeId{0});
 
     while (!stack.empty())
