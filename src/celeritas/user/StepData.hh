@@ -462,6 +462,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
 
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(parent_id);
+    SD_RESIZE_IF_SELECTED(primary_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
     SD_RESIZE_IF_SELECTED(step_length);
     SD_RESIZE_IF_SELECTED(weight);
