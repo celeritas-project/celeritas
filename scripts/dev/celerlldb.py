@@ -43,7 +43,8 @@ class SpanSynthetic:
 
     def get_child_index(self, name):
         try:
-            return int(name.lstrip("[").rstrip("]"))
+            # See CreateChildAtOffset
+            return int(name[1:-1])
         except TypeError as e:
             print(f"Failed to get child index {name}: {e}")
             return None
@@ -88,7 +89,7 @@ class ItemRangeSynthetic:
         return len(self.values_)
 
     def get_child_index(self, name):
-        # Find the index of the child
+        # Find the index of the child in the begin/end list
         for i, (n, _) in enumerate(self.values_):
             if n == name:
                 return i
