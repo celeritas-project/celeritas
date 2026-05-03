@@ -52,6 +52,7 @@ problem = {
     "limits": {
         "steps": 6,
     },
+    "step": {"bins": 10},
 }
 
 inp = {

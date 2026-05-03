@@ -72,6 +72,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/action/StepDiagnostic.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
@@ -882,6 +883,12 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
             },
         },
         p.generator);
+
+    // Add step diagnostic
+    if (p.step)
+    {
+        optical::StepDiagnostic::make_and_insert(*params, p.step->bins);
+    }
 
     // Build the optical transporter \em after all optical actions have been
     // added to the registry
