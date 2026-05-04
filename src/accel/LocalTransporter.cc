@@ -250,6 +250,51 @@ void LocalTransporter::InitializeEvent(int id)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Stage buffered primaries for transport.
+ */
+void LocalTransporter::stage_buffer()
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(!buffer_.empty());
+    CELER_EXPECT(!staged_);
+
+    staged_.buffer = std::move(buffer_);
+    staged_.accum = buffer_accum_;
+    buffer_accum_ = {};
+
+    step_->stage_primaries(make_span(staged_.buffer));
+    if (celeritas::device())
+    {
+        staged_.copy_done = DeviceEvent{celeritas::device()};
+        staged_.copy_done.record(
+            celeritas::device().stream(step_->state().stream_id()));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear staged primaries after transport has started.
+ */
+void LocalTransporter::clear_staged()
+{
+    CELER_EXPECT(*this);
+    if (staged_.copy_done)
+    {
+        staged_.copy_done.sync();
+    }
+
+    staged_.buffer.clear();
+    if (buffer_.empty())
+    {
+        // Preserve allocated pinned storage for the next flush.
+        buffer_ = std::move(staged_.buffer);
+    }
+    staged_.accum = {};
+    staged_.copy_done = DeviceEvent{nullptr};
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a Geant4 track to a Celeritas primary and add to buffer.
  */
 void LocalTransporter::Push(G4Track& g4track)
@@ -354,10 +399,13 @@ void LocalTransporter::Flush()
             << event_id_;
     }
 
+    this->stage_buffer();
+
     if (dump_primaries_)
     {
         // Write offload particles if user requested
-        std::vector<Primary> dump_buffer(buffer_.begin(), buffer_.end());
+        std::vector<Primary> dump_buffer(staged_.buffer.begin(),
+                                         staged_.buffer.end());
         (*dump_primaries_)(dump_buffer);
     }
 
@@ -397,15 +445,14 @@ void LocalTransporter::flush_impl()
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
     // Copy buffered tracks to device and transport the first step
-    auto track_counts = (*step_)(make_span(buffer_));
+    auto track_counts = (*step_)();
     ++run_accum_.flushes;
     run_accum_.steps += track_counts.active;
-    run_accum_.primaries += buffer_.size();
-    run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+    run_accum_.primaries += staged_.buffer.size();
+    run_accum_.lost_primaries += staged_.accum.lost_primaries;
     trace(track_counts);
 
-    buffer_.clear();
-    buffer_accum_ = {};
+    this->clear_staged();
 
     size_type step_iters = 1;
 

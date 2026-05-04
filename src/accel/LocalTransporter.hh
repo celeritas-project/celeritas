@@ -12,6 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/DeviceEvent.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
@@ -123,6 +124,20 @@ class LocalTransporter final : public TrackOffloadInterface
         std::size_t hits{0};
     };
 
+    struct StagedPrimaries
+    {
+        PrimaryBuffer buffer;
+        BufferAccum accum;
+        DeviceEvent copy_done{nullptr};
+
+        explicit operator bool() const { return !buffer.empty(); }
+    };
+
+    //// HELPER FUNCTIONS ////
+
+    void stage_buffer();
+    void clear_staged();
+
     //// DATA ////
 
     std::shared_ptr<ParticleParams const> particles_;
@@ -131,6 +146,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Thread-local data
     std::shared_ptr<StepperInterface> step_;
     PrimaryBuffer buffer_;
+    StagedPrimaries staged_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
