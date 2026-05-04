@@ -6,11 +6,16 @@ Add LLDB wrappers for Celeritas types.
 To use from inside ``${SOURCE}/build``::
    (lldb) command script import ../scripts/dev/celerlldb.py --allow-reload
    (lldb) type synthetic add -x "^celeritas::Span<.+>$" --python-class celerlldb.SpanSynthetic
-    (lldb) type synthetic add -x "^celeritas::Array<.+>$" --python-class celerlldb.ArraySynthetic
+   (lldb) type synthetic add -x "^celeritas::Array<.+>$" --python-class celerlldb.ArraySynthetic
    (lldb) type synthetic add -x "^celeritas::ItemRange<.+>$" --python-class celerlldb.ItemRangeSynthetic
    (lldb) type summary add -x "^celeritas::OpaqueId<.+>$" --python-function celerlldb.opaqueid_summary
 
 """
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from lldb import SBValue
 
 
 class _ContiguousSyntheticBase:
@@ -77,6 +82,7 @@ class SpanSynthetic(_ContiguousSyntheticBase):
             return False
 
         storage = self.valobj.GetChildMemberWithName("s_")
+        assert storage.IsValid()
         size = storage.GetChildMemberWithName("size")
         assert size.IsValid()
         data = storage.GetChildMemberWithName("data")
@@ -98,14 +104,9 @@ class ArraySynthetic(_ContiguousSyntheticBase):
             return False
 
         data = self.valobj.GetChildMemberWithName("d_")
-        if not data.IsValid():
-            self._set_storage(None, 0, self._value_t)
-            return False
-
+        assert data.IsValid()
         data_ptr = data.AddressOf()
-        if not data_ptr.IsValid():
-            self._set_storage(None, 0, self._value_t)
-            return False
+        assert data_ptr.IsValid()
 
         self._set_storage(data_ptr, data.GetNumChildren(), self._value_t)
         return False
@@ -163,11 +164,11 @@ def opaqueid_summary(valobj, _internal_dict):
     raw_value = value.GetValueAsUnsigned(0)
 
     # OpaqueId null sentinel is max value for the unsigned index type.
-    byte_size = value.GetType().GetByteSize()
-    if byte_size <= 0:
+    size_bytes = value.GetType().GetByteSize()
+    if size_bytes <= 0 or size_bytes > 8:
         return str(raw_value)
-    bit_size = 8 * byte_size
-    null_value = (1 << min(bit_size, 64)) - 1
+    num_bits = 8 * size_bytes
+    null_value = (1 << num_bits) - 1
 
     if raw_value == null_value:
         return "null"
