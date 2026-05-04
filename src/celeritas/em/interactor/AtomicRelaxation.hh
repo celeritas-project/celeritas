@@ -9,7 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/IdStack.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/Selector.hh"
@@ -125,7 +125,7 @@ AtomicRelaxation::operator()(Engine& rng)
 
     AtomicRelaxElement const& el = shared_.elements[el_id_];
     auto const& shells = shared_.shells[el.shells];
-    MiniStack<SubshellId> vacancies(vacancies_);
+    IdStack<SubshellId> vacancies(vacancies_);
 
     // Push the vacancy created by the primary process onto a stack.
     vacancies.push(shell_id_);

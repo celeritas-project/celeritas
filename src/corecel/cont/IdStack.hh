@@ -2,14 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/MiniStack.hh
-//! \sa corecel/cont/MiniStack.test.cc
+//! \file corecel/cont/IdStack.hh
+//! \sa corecel/cont/IdStack.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <type_traits>
 
 #include "corecel/Macros.hh"
+#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
@@ -30,7 +31,7 @@ namespace celeritas
  * \par Example:
  * \code
     Array<int, 3> storage;
-    MiniStack stack(Span{storage});
+    IdStack stack(Span{storage});
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
@@ -46,10 +47,10 @@ namespace celeritas
  *
  */
 template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
-class MiniStack
+class IdStack
 {
-    static_assert(std::is_trivially_copyable_v<T>,
-                  "MiniStack should be used only for trivial data");
+    static_assert(is_opaque_id_v<T>,
+                  "IdStack should be used only for trivial data");
 
   public:
     //!@{
@@ -59,8 +60,7 @@ class MiniStack
 
   public:
     //! Construct with underlying storage.
-    CELER_FUNCTION explicit MiniStack(Span<T, Extent> storage)
-        : spill_(storage)
+    CELER_FUNCTION explicit IdStack(Span<T, Extent> storage) : spill_(storage)
     {
     }
 

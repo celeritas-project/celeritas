@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/MiniStack.test.cc
+//! \file corecel/cont/IdStack.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/IdStack.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
@@ -19,10 +19,10 @@ namespace test
 // TESTS
 //---------------------------------------------------------------------------//
 
-TEST(MiniStackTest, fixed_size)
+TEST(IdStackTest, fixed_size)
 {
     Array<int, 3> storage = {0, 0, 0};
-    MiniStack stack(Span{storage});
+    IdStack stack(Span{storage});
     struct ExpectedStructSize
     {
         int* data;
@@ -68,10 +68,10 @@ TEST(MiniStackTest, fixed_size)
     EXPECT_TRUE(stack.empty());
 }
 
-TEST(MiniStackTest, TEST_IF_CELERITAS_DEBUG(errors))
+TEST(IdStackTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     Array<int, 1> storage = {0};
-    MiniStack<int, 1> stack(Span{storage});
+    IdStack<int, 1> stack(Span{storage});
     EXPECT_EQ(2, stack.capacity());
     // Pop empty should throw
     EXPECT_THROW(stack.pop(), DebugError);
@@ -82,11 +82,11 @@ TEST(MiniStackTest, TEST_IF_CELERITAS_DEBUG(errors))
     EXPECT_THROW(stack.push(3), DebugError);
 }
 
-TEST(MiniStackTest, dynamic_span_construct)
+TEST(IdStackTest, dynamic_span_construct)
 {
     Array<int, 3> storage = {0, 0, 0};
     Span<int> dynamic_span(storage.data(), storage.size());
-    MiniStack stack(dynamic_span);
+    IdStack stack(dynamic_span);
 
     struct ExpectedStructSize
     {
@@ -103,10 +103,10 @@ TEST(MiniStackTest, dynamic_span_construct)
     EXPECT_EQ(4, stack.capacity());
 }
 
-TEST(MiniStackTest, different_size_construct)
+TEST(IdStackTest, different_size_construct)
 {
     Array<int, 3> storage = {0, 0, 0};
-    MiniStack<int, 3, short int> stack(make_span(storage));
+    IdStack<int, 3, short int> stack(make_span(storage));
 
     struct ExpectedStructSize
     {

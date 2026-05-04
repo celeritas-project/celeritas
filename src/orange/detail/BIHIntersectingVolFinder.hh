@@ -6,7 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/IdStack.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -127,7 +127,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     // Stack of deferred nodes
-    using StackT = MiniStack<BIHNodeId, max_bih_depth, unsigned char>;
+    using StackT = IdStack<BIHNodeId, max_bih_depth, unsigned char>;
     BIHNodeId stack_storage_[max_bih_depth];
     StackT stack{stack_storage_};
     stack.push(BIHNodeId{0});
