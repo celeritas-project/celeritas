@@ -57,49 +57,23 @@ class IdStack
     //!@}
 
   public:
-    //! Construct with underlying storage.
-    CELER_FUNCTION explicit IdStack(Span<T, Extent> storage) : spill_(storage)
-    {
-        CELER_ENSURE(this->empty());
-    }
+    // Construct with underlying storage
+    inline CELER_FUNCTION explicit IdStack(Span<T, Extent> storage);
 
-    //! Insert a new element at the top of the stack
-    CELER_FUNCTION void push(T element)
-    {
-        CELER_EXPECT(this->size() < this->capacity());
-        if (!this->empty())
-        {
-            spill_[size_++] = top_;
-        }
-        top_ = element;
-    }
+    // Insert a new element at the top of the stack
+    inline CELER_FUNCTION void push(T element);
 
-    //! Remove the top element of the stack
-    CELER_FUNCTION void pop()
-    {
-        CELER_EXPECT(!this->empty());
-        if (size_ > 0)
-        {
-            top_ = spill_[--size_];
-        }
-        else
-        {
-            top_ = {};
-        }
-    }
+    // Remove the top element of the stack
+    inline CELER_FUNCTION void pop();
 
-    //! Get the top element of the stack
-    CELER_CEF T top() const
-    {
-        CELER_EXPECT(!this->empty());
-        return top_;
-    }
+    // Get the top element of the stack
+    inline CELER_FUNCTION T top() const;
 
     //! Whether there are any elements in the container
-    CELER_CEF bool empty() const { return !top_; }
+    CELER_FIF bool empty() const { return !top_; }
 
     //! Get the number of elements
-    CELER_CEF size_type size() const { return size_ + !this->empty(); }
+    CELER_FIF size_type size() const { return size_ + !this->empty(); }
 
     //! Get the number of elements that can fit in the allocated storage
     CELER_CEF size_type capacity() const { return spill_.size() + 1; }
@@ -109,6 +83,63 @@ class IdStack
     T top_{};
     size_type size_{0};
 };
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with underlying spill storage.
+ */
+template<class T, std::size_t Extent, class S>
+CELER_FUNCTION IdStack<T, Extent, S>::IdStack(Span<T, Extent> storage)
+    : spill_(storage)
+{
+    CELER_ENSURE(this->empty());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Push an element onto the top of the stack.
+ */
+template<class T, std::size_t Extent, class S>
+inline CELER_FUNCTION void IdStack<T, Extent, S>::push(T element)
+{
+    CELER_EXPECT(this->size() < this->capacity());
+    if (!this->empty())
+    {
+        spill_[size_++] = top_;
+    }
+    top_ = element;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Remove the top element.
+ */
+template<class T, std::size_t Extent, class S>
+inline CELER_FUNCTION void IdStack<T, Extent, S>::pop()
+{
+    CELER_EXPECT(!this->empty());
+    if (size_ > 0)
+    {
+        top_ = spill_[--size_];
+    }
+    else
+    {
+        top_ = {};
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the top element.
+ */
+template<class T, std::size_t Extent, class S>
+CELER_FIF T IdStack<T, Extent, S>::top() const
+{
+    CELER_EXPECT(!this->empty());
+    return top_;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
