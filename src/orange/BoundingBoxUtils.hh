@@ -253,20 +253,21 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the distance to the inside of the bbox from a pos and dir.
+ * Check if a segment from \c pos in direction \c dir of length \c distance
+ * intersects the bounding box.
  *
- * The supplied position is expected to be outside of the bbox. If there is no
- * intersection, the result will be inf. This function employs the slab method
+ * If the position is already inside the bounding box, the result is always
+ * true. This function employs the slab method
  * \citep{kay-slab-1986, https://doi.org/10.1145/15886.15916}.
  */
-template<class T, class U>
-inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
-                                            Array<U, 3> const& pos,
-                                            Array<U, 3> const& dir)
+template<class T>
+inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
+                                              Array<T, 3> const& pos,
+                                              Array<T, 3> const& dir,
+                                              T distance)
 {
-    CELER_EXPECT(!is_inside(bbox, pos));
     T max_entry = 0;
-    T min_exit = numeric_limits<T>::infinity();
+    T min_exit = distance;
 
     // Loop over all three slab pairs to calculate the maximum distance
     // required to enter the regions between each slab pair and the minimum
@@ -277,11 +278,11 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
         // do not have to check for dir != 0; we can rely on IEEE arithmetic to
         // provide values of +/-inf for inv_dirs, leading to +/-inf slab
         // distances that provide the correct behavior.
-        T inv_dir = 1 / T(dir[to_int(ax)]);
+        T inv_dir = 1 / dir[to_int(ax)];
 
         // Calculate the entry/exit distance for this slab pair
-        T entry = (bbox.point(Bound::lo, ax) - T(pos[to_int(ax)])) * inv_dir;
-        T exit = (bbox.point(Bound::hi, ax) - T(pos[to_int(ax)])) * inv_dir;
+        T entry = (bbox.point(Bound::lo, ax) - pos[to_int(ax)]) * inv_dir;
+        T exit = (bbox.point(Bound::hi, ax) - pos[to_int(ax)]) * inv_dir;
         if (entry > exit)
         {
             // Entry is actually exit; swap values
@@ -292,9 +293,7 @@ inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
         min_exit = celeritas::min(min_exit, exit);
     }
 
-    // The distance to inside is the max entry, provided that it is greater
-    // than the minimum exit distance
-    return max_entry <= min_exit ? max_entry : numeric_limits<T>::infinity();
+    return max_entry <= min_exit;
 }
 
 //---------------------------------------------------------------------------//

@@ -197,8 +197,7 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
                                           Ray ray,
                                           real_type min_dist) const
 {
-    return is_inside(bbox, ray.pos)
-           || calc_dist_to_inside(bbox, ray.pos, ray.dir) < min_dist;
+    return intersects_segment(bbox, ray.pos, ray.dir, min_dist);
 }
 
 //---------------------------------------------------------------------------//
