@@ -112,7 +112,7 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION friend bool
     operator==(BoundingBox const& lhs, BoundingBox const& rhs)
     {
-        return lhs.lower() == rhs.lower() && lhs.upper() == rhs.upper();
+        return lhs.points_ == rhs.points_;
     }
 
     //! Test inequality of two bounding boxes
@@ -150,9 +150,12 @@ template<class T, class U>
 CELER_CONSTEXPR_FUNCTION bool
 is_inside(BoundingBox<T> const& bbox, Array<U, 3> const& point)
 {
-    return bbox.lower()[0] <= point[0] && point[0] <= bbox.upper()[0]
-           && bbox.lower()[1] <= point[1] && point[1] <= bbox.upper()[1]
-           && bbox.lower()[2] <= point[2] && point[2] <= bbox.upper()[2];
+    return bbox.point(Bound::lo, Axis::x) <= point[0]
+           && point[0] <= bbox.point(Bound::hi, Axis::x)
+           && bbox.point(Bound::lo, Axis::y) <= point[1]
+           && point[1] <= bbox.point(Bound::hi, Axis::y)
+           && bbox.point(Bound::lo, Axis::z) <= point[2]
+           && point[2] <= bbox.point(Bound::hi, Axis::z);
 }
 
 //---------------------------------------------------------------------------//
@@ -218,8 +221,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
     {
         for (auto ax : {Axis::x, Axis::y, Axis::z})
         {
-            CELER_EXPECT(this->lower()[to_int(ax)]
-                         <= this->upper()[to_int(ax)]);
+            CELER_EXPECT(this->point(Bound::lo, ax)
+                         <= this->point(Bound::hi, ax));
         }
     }
     CELER_ENSURE(*this);
@@ -247,9 +250,10 @@ BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
 {
-    return this->lower()[0] <= this->upper()[0]
-           && this->lower()[1] <= this->upper()[1]
-           && this->lower()[2] <= this->upper()[2];
+    return this->point(Bound::lo, Axis::x) <= this->point(Bound::hi, Axis::x)
+           && this->point(Bound::lo, Axis::y) <= this->point(Bound::hi, Axis::y)
+           && this->point(Bound::lo, Axis::z)
+                  <= this->point(Bound::hi, Axis::z);
 }
 
 //---------------------------------------------------------------------------//
