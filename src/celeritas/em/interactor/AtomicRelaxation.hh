@@ -139,13 +139,17 @@ AtomicRelaxation::operator()(Engine& rng)
     while (!vacancies.empty())
     {
         // Pop the vacancy off the stack and check if it has transition data
-        SubshellId vacancy_id = vacancies.top();
-        vacancies.pop();
-        if (vacancy_id.get() >= shells.size())
+        if (!(vacancies.top() < shells.size()))
+        {
+            vacancies.pop();
             continue;
+        }
+
+        // Get the subshell at the top of the stack
+        AtomicRelaxSubshell const& shell = shells[vacancies.top().get()];
+        vacancies.pop();
 
         // Sample a transition using shell probabilities
-        AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
         auto transitions = shared_.transitions[shell.transitions];
         TransitionId const trans_id = make_unnormalized_selector(
             [&transitions](TransitionId i) {

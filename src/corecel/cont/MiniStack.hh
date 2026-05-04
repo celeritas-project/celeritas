@@ -17,7 +17,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Stack helper that keeps the top element in a local scalar.
+ * Stack "view" that keeps the top element in a local scalar.
  *
  * The most recently pushed value is always stored in \c top_. Older values are
  * spilled into the underlying storage. This increases the effective stack
@@ -59,7 +59,8 @@ class MiniStack
 
   public:
     //! Construct with underlying storage.
-    CELER_FUNCTION explicit MiniStack(Span<T, Extent> storage) : data_(storage)
+    CELER_FUNCTION explicit MiniStack(Span<T, Extent> storage)
+        : spill_(storage)
     {
     }
 
@@ -69,12 +70,12 @@ class MiniStack
         CELER_EXPECT(this->size() < this->capacity());
         if (empty_)
         {
-            top_ = element;
             empty_ = false;
-            return;
         }
-
-        data_[size_++] = top_;
+        else
+        {
+            spill_[size_++] = top_;
+        }
         top_ = element;
     }
 
@@ -84,7 +85,7 @@ class MiniStack
         CELER_EXPECT(!this->empty());
         if (size_ > 0)
         {
-            top_ = data_[--size_];
+            top_ = spill_[--size_];
         }
         else
         {
@@ -106,10 +107,10 @@ class MiniStack
     CELER_CEF size_type size() const { return size_ + !empty_; }
 
     //! Get the number of elements that can fit in the allocated storage
-    CELER_CEF size_type capacity() const { return data_.size() + 1; }
+    CELER_CEF size_type capacity() const { return spill_.size() + 1; }
 
   private:
-    Span<T, Extent> data_;
+    Span<T, Extent> spill_;
     T top_{};
     size_type size_{0};
     bool empty_{true};
