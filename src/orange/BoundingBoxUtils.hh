@@ -257,8 +257,12 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * intersects the bounding box.
  *
  * If the position is already inside the bounding box, the result is always
- * true. This function employs the slab method
- * \citep{kay-slab-1986, https://doi.org/10.1145/15886.15916}.
+ * true. This uses a separating-axis test (see \citet{ericson-collision-2004,
+ * https://www.taylorfrancis.com/books/9780080474144 }). It translates the
+ * coordinate system to the center of the bbox and tests six axes (see Fig
+ * 5.23, Table 5.1 in reference):
+ * - The AABB face normals
+ * - The cross products between the direction vector and face normals
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -266,34 +270,57 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
                                               Array<T, 3> const& dir,
                                               T distance)
 {
-    T max_entry = 0;
-    T min_exit = distance;
+    CELER_EXPECT(distance > 0);
+    CELER_EXPECT(!std::isinf(distance));
+    Array<T, 3> hw;  // Half-widths of bounding box
+    Array<T, 3> mid;  // Midpoint of the line segment
+    Array<T, 3> hseg;  // Vector from pos to the midpoint of the segment
+    Array<T, 3> abs_hseg;
 
-    // Loop over all three slab pairs to calculate the maximum distance
-    // required to enter the regions between each slab pair and the minimum
-    // distance to leave these regions
+    T const half_distance = distance / 2;
+    constexpr T eps = numeric_limits<T>::epsilon();
+
     for (auto ax : range(Axis::size_))
     {
-        // Calculate the inverse of the direction for this axis. Note that we
-        // do not have to check for dir != 0; we can rely on IEEE arithmetic to
-        // provide values of +/-inf for inv_dirs, leading to +/-inf slab
-        // distances that provide the correct behavior.
-        T inv_dir = 1 / dir[to_int(ax)];
+        auto i = to_int(ax);
+        T const lower = bbox.point(Bound::lo, ax);
+        T const upper = bbox.point(Bound::hi, ax);
+        T const center = (lower + upper) / 2;
 
-        // Calculate the entry/exit distance for this slab pair
-        T entry = (bbox.point(Bound::lo, ax) - pos[to_int(ax)]) * inv_dir;
-        T exit = (bbox.point(Bound::hi, ax) - pos[to_int(ax)]) * inv_dir;
-        if (entry > exit)
+        hw[i] = (upper - lower) / 2;
+        hseg[i] = dir[i] * half_distance;
+        abs_hseg[i] = std::fabs(hseg[i]) + eps;
+        mid[i] = pos[i] + hseg[i] - center;
+
+        if (std::fabs(mid[i]) > hw[i] + abs_hseg[i])
         {
-            // Entry is actually exit; swap values
-            trivial_swap(entry, exit);
+            return false;
         }
-
-        max_entry = celeritas::max(max_entry, entry);
-        min_exit = celeritas::min(min_exit, exit);
     }
 
-    return max_entry <= min_exit;
+    constexpr auto x = to_int(Axis::x);
+    constexpr auto y = to_int(Axis::y);
+    constexpr auto z = to_int(Axis::z);
+
+    if (std::fabs(mid[y] * hseg[z] - mid[z] * hseg[y])
+        > hw[y] * abs_hseg[z] + hw[z] * abs_hseg[y])
+    {
+        return false;
+    }
+
+    if (std::fabs(mid[z] * hseg[x] - mid[x] * hseg[z])
+        > hw[x] * abs_hseg[z] + hw[z] * abs_hseg[x])
+    {
+        return false;
+    }
+
+    if (std::fabs(mid[x] * hseg[y] - mid[y] * hseg[x])
+        > hw[x] * abs_hseg[y] + hw[y] * abs_hseg[x])
+    {
+        return false;
+    }
+
+    return true;
 }
 
 //---------------------------------------------------------------------------//

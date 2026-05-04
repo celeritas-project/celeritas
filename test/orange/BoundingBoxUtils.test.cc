@@ -218,22 +218,21 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
 
     // No intersection
     dir = Real3{0, -1, 0};
-    EXPECT_FALSE(intersects_segment(
-        bbox, pos, dir, numeric_limits<double>::infinity()));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6));
 
     // Already inside: always true
     pos = Real3{0.5, 0.6, 0.7};
     EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1));
 
     // Start exactly on bbox, exiting
-    EXPECT_FALSE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1));
+    EXPECT_TRUE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1));
     // Start exactly on bbox, entering
     EXPECT_TRUE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1));
     // End exactly on bbox, exiting
     EXPECT_TRUE(
         intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5));
     // End exactly on bbox, entering
-    EXPECT_FALSE(
+    EXPECT_TRUE(
         intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5));
 
     // Degenerate near-parallel cases: sweep over inside/outside start,
