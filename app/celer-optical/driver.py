@@ -122,4 +122,8 @@ sizes = j["internal"]["optical-sizes"].copy()
 assert sizes.pop("streams") == 1
 assert sizes == expected_sizes
 
+steps = j["result"]["optical-step-diagnostic"]["steps"][0].copy()
+assert len(steps) == 12
+assert sum(steps) == expected_generators["num_generated"]
+
 print(json.dumps(j["result"]["time"], indent=1))
