@@ -321,6 +321,8 @@ TestOffload IntegrationTestBase::test_offload()
 //---------------------------------------------------------------------------//
 /*!
  * Get the run manager type for the test, as set by environment variable.
+ *
+ * \return one of {"serial", "mt", "tasking"}
  */
 std::string IntegrationTestBase::test_runman_type()
 {

@@ -391,7 +391,12 @@ TEST_F(LarSphere, state_dep)
                 << repr(all_state);
             EXPECT_EQ(state_counts["begin_init"], state_counts["end_init"]);
 
-            EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            if (this->test_runman_type() != "tasking"
+                || num_local_events_[sid] > 0)
+            {
+                // Task manager can skip local begin/end run if no local events
+                EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            }
             // Begin/end run should be the same
             EXPECT_EQ(state_counts["begin_run"], state_counts["end_run"]);
 
