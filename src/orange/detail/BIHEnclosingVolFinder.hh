@@ -99,12 +99,11 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 
     while (!stack.empty())
     {
-        BIHNodeId current_node = stack.top();
-        stack.pop();
-        if (!view_.is_inner(current_node))
+        if (!view_.is_inner(stack.top()))
         {
             auto id = this->visit_leaf(
-                view_.leaf_node(current_node), pos, is_inside_vol);
+                view_.leaf_node(stack.top()), pos, is_inside_vol);
+            stack.pop();
 
             if (id)
             {
@@ -113,7 +112,8 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         }
         else
         {
-            auto const& edges = view_.inner_node(current_node).edges;
+            auto const& edges = view_.inner_node(stack.top()).edges;
+            stack.pop();
             for (auto s : {Side::right, Side::left})
             {
                 if (is_inside(edges[s].bbox, pos))

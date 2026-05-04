@@ -134,16 +134,16 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     while (!stack.empty())
     {
-        BIHNodeId current_node = stack.top();
-        stack.pop();
-        if (!view_.is_inner(current_node))
+        if (!view_.is_inner(stack.top()))
         {
             intersection = this->visit_leaf(
-                view_.leaf_node(current_node), ray, intersection, visit_vol);
+                view_.leaf_node(stack.top()), ray, intersection, visit_vol);
+            stack.pop();
             continue;
         }
 
-        auto const& node = view_.inner_node(current_node);
+        auto const& node = view_.inner_node(stack.top());
+        stack.pop();
         int ax = to_int(node.axis);
 
         // Guess the better edge to traverse first
