@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
@@ -37,6 +39,9 @@ namespace celeritas
 template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
 class MiniStack
 {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "MiniStack should be used only for trivial data");
+
   public:
     //!@{
     using value_type = T;

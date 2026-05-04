@@ -7,13 +7,11 @@
 #include "corecel/OpaqueId.hh"
 
 #include <cstdint>
-#include <numeric>
 #include <type_traits>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 
 #include "celeritas_test.hh"
 
@@ -98,6 +96,8 @@ TYPED_TEST(OpaqueIdTypedTest, traits)
 
     EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t>>));
     EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t const>>));
+    EXPECT_TRUE((std::is_trivially_copyable_v<Id_t>));
+    EXPECT_TRUE((std::is_trivially_destructible_v<Id_t>));
 }
 
 TYPED_TEST(OpaqueIdTypedTest, operators)
