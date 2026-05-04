@@ -173,18 +173,13 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                               second_edge.bbox, ray, intersection.distance);
 
         // Choose the next node on the basis of which edges are hits
-        if (hit_first && hit_second)
+        if (hit_second)
         {
             stack.push(second_edge.child);
-            stack.push(first_edge.child);
         }
-        else if (hit_first)
+        if (hit_first)
         {
             stack.push(first_edge.child);
-        }
-        else if (hit_second)
-        {
-            stack.push(second_edge.child);
         }
     }
 
