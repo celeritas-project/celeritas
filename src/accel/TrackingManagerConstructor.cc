@@ -126,17 +126,29 @@ void TrackingManagerConstructor::ConstructProcess()
         },
         ExceptionConverter{"celer.tracking.construct"});
 
+    auto& is = detail::IntegrationSingleton::instance();
+    if (!is.auto_hooks_active())
+    {
+        CELER_LOG_LOCAL(info) << "StateDependent not registered - "
+                                 "auto_hooks_active_ is false";
+        return;
+    }
+
+    // In MT mode, each worker has its own G4StateManager (thread-local).
+    // Register a per-worker StateDependent so workers receive begin_run
+    // notifications and call initialize_offload on their own thread.
+    if (G4Threading::IsWorkerThread())
+    {
+        new StateDependent{[&is](StreamId, GeantStateChange change) {
+            is.on_state_change(change);
+        }};
+    }
+
     if (!transporter)
     {
         // Failure (G4Exception thrown): do not set any tracking managers
         return;
     }
-
-    // Register thread-local state monitor; G4StateManager owns the pointer
-    // and deletes it on shutdown.
-    new StateDependent{[](StreamId, GeantStateChange change) {
-        detail::IntegrationSingleton::instance().on_state_change(change);
-    }};
 
 #if G4VERSION_NUMBER >= 1100
     // Create *thread-local* tracking manager with pointers to *global*

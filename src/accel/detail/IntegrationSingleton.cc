@@ -336,32 +336,50 @@ void IntegrationSingleton::set_verify_callback(std::function<void()> cb)
 /*!
  * Drive offload init/finalize from Geant4 state transitions.
  *
- * In MT mode, the master thread receives a begin_run/end_run pair for each
- * worker initialization, so master init/finalize is gated by a depth counter
- * to fire only on the outermost transition. Worker threads receive a single
- * begin_run/end_run.
+ * In MT mode, \c G4RunManager::Initialize fires spurious begin_run/end_run
+ * pairs on the master thread (one per worker spin-up). Master initialization
+ * is guarded by \c params_ (idempotent), and master finalization is deferred
+ * to \c end_program so that the spurious end_run cannot tear down shared state
+ * prematurely. Workers and serial mode finalize normally at end_run.
  */
 void IntegrationSingleton::on_state_change(GeantStateChange change)
 {
     bool const is_master = G4Threading::IsMasterThread();
+    bool const is_mt = G4Threading::IsMultithreadedApplication();
+
     switch (change)
     {
-        case GeantStateChange::begin_run:
-            if (is_master && master_run_depth_++ != 0)
+        case GeantStateChange::begin_run: {
+            if (is_master && params_)
                 break;
-            CELER_TRY_HANDLE(this->initialize_offload(),
-                             ExceptionConverter{"celer.init.auto"});
-            if (verify_callback_)
+            bool enable_offload = false;
+            CELER_TRY_HANDLE(
+                { enable_offload = this->initialize_offload(); },
+                ExceptionConverter{"celer.init.auto"});
+            if (enable_offload && verify_callback_)
             {
                 CELER_TRY_HANDLE(verify_callback_(),
                                  ExceptionConverter{"celer.init.verify"});
             }
             break;
+        }
         case GeantStateChange::end_run:
-            if (is_master && --master_run_depth_ != 0)
+            if (is_master && is_mt)
+                break;
+            if (!params_)
                 break;
             CELER_TRY_HANDLE(this->finalize_offload(),
                              ExceptionConverter{"celer.finalize.auto"});
+            break;
+        case GeantStateChange::end_program:
+            // MT workers already finalized at end_run; only master or serial
+            // defers finalization to end_program. (params_ guard handles
+            // serial re-entry since finalize_shared_impl clears params_.)
+            if (params_ && (!is_mt || is_master))
+            {
+                CELER_TRY_HANDLE(this->finalize_offload(),
+                                 ExceptionConverter{"celer.finalize.auto"});
+            }
             break;
         default:
             break;
