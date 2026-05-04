@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
@@ -103,6 +104,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using BBox = BoundingBox<double>;
+    using PrimaryBuffer = std::vector<Primary, PinnedAllocator<Primary>>;
 
     struct BufferAccum
     {
@@ -128,7 +130,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Thread-local data
     std::shared_ptr<StepperInterface> step_;
-    std::vector<Primary> buffer_;
+    PrimaryBuffer buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;

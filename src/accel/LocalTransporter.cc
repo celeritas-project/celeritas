@@ -357,7 +357,8 @@ void LocalTransporter::Flush()
     if (dump_primaries_)
     {
         // Write offload particles if user requested
-        (*dump_primaries_)(buffer_);
+        std::vector<Primary> dump_buffer(buffer_.begin(), buffer_.end());
+        (*dump_primaries_)(dump_buffer);
     }
 
     if (!buffer_.empty())
