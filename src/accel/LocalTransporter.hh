@@ -140,6 +140,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     void stage_buffer();
     void clear_staged();
+    void flush_impl(bool flush_buffer);
 
     //// DATA ////
 

@@ -170,6 +170,8 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
             celeritas::Device::num_devices());
         auto_flush_ = capacity.primaries / params.Params()->max_streams();
     }
+    buffer_.reserve(auto_flush_);
+    staged_.buffer.reserve(auto_flush_);
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
@@ -258,7 +260,7 @@ void LocalTransporter::stage_buffer()
     CELER_EXPECT(!buffer_.empty());
     CELER_EXPECT(!staged_);
 
-    staged_.buffer = std::move(buffer_);
+    staged_.buffer.swap(buffer_);
     staged_.accum = buffer_accum_;
     buffer_accum_ = {};
 
@@ -287,7 +289,7 @@ void LocalTransporter::clear_staged()
     if (buffer_.empty())
     {
         // Preserve allocated pinned storage for the next flush.
-        buffer_ = std::move(staged_.buffer);
+        buffer_.swap(staged_.buffer);
     }
     staged_.accum = {};
     staged_.copy_done = DeviceEvent{nullptr};
@@ -371,22 +373,7 @@ void LocalTransporter::Push(G4Track& g4track)
         {
             if (staged_)
             {
-                PrimaryBuffer filled_buffer;
-                filled_buffer.swap(buffer_);
-                auto filled_accum = buffer_accum_;
-                buffer_accum_ = {};
-                try
-                {
-                    this->Flush();
-                }
-                catch (...)
-                {
-                    buffer_.swap(filled_buffer);
-                    buffer_accum_ = filled_accum;
-                    throw;
-                }
-                buffer_.swap(filled_buffer);
-                buffer_accum_ = filled_accum;
+                this->flush_impl(false);
             }
             this->stage_buffer();
         }
@@ -403,8 +390,17 @@ void LocalTransporter::Push(G4Track& g4track)
  */
 void LocalTransporter::Flush()
 {
+    this->flush_impl(true);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport staged tracks, optionally including buffered tracks.
+ */
+void LocalTransporter::flush_impl(bool flush_buffer)
+{
     CELER_EXPECT(*this);
-    if (!staged_ && buffer_.empty())
+    if (!staged_ && (buffer_.empty() || !flush_buffer))
     {
         return;
     }
@@ -413,8 +409,10 @@ void LocalTransporter::Flush()
 
     if (celeritas::device() && !buffer_.empty())
     {
-        auto const num_primaries = staged_.buffer.size() + buffer_.size();
-        auto const energy = staged_.accum.energy + buffer_accum_.energy;
+        auto const num_primaries = staged_.buffer.size()
+                                   + (flush_buffer ? buffer_.size() : 0);
+        auto const energy = staged_.accum.energy
+                            + (flush_buffer ? buffer_accum_.energy : 0);
         CELER_LOG_LOCAL(debug)
             << "Transporting " << num_primaries << " tracks ("
             << units::ClhepEnergy{energy}
@@ -422,9 +420,10 @@ void LocalTransporter::Flush()
             << event_id_ << " with Celeritas";
     }
     auto const lost_energy = staged_.accum.lost_energy
-                             + buffer_accum_.lost_energy;
-    auto const lost_primaries = staged_.accum.lost_primaries
-                                + buffer_accum_.lost_primaries;
+                             + (flush_buffer ? buffer_accum_.lost_energy : 0);
+    auto const lost_primaries
+        = staged_.accum.lost_primaries
+          + (flush_buffer ? buffer_accum_.lost_primaries : 0);
     if (lost_primaries > 0)
     {
         CELER_LOG_LOCAL(info)
@@ -459,7 +458,7 @@ void LocalTransporter::Flush()
 
     this->clear_staged();
 
-    while (staged_ || !buffer_.empty())
+    while (staged_ || (flush_buffer && !buffer_.empty()))
     {
         if (!staged_)
         {
