@@ -78,6 +78,27 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
 
     size_type max_average_steps() const override { return 100000; }
 
+    template<MemSpace M>
+    void run_staged_first_step()
+    {
+        size_type num_primaries = 32;
+        size_type num_tracks = 64;
+
+        Stepper<M> step(this->make_stepper_input(num_tracks));
+        auto primaries = this->make_primaries(num_primaries);
+        step.stage_primaries(make_span(primaries));
+
+        auto counters = step.state().sync_get_counters();
+        EXPECT_EQ(num_primaries, counters.num_pending);
+
+        auto result = step();
+        EXPECT_EQ(num_primaries, result.active);
+        EXPECT_GE(num_primaries, result.alive);
+
+        counters = step.state().sync_get_counters();
+        EXPECT_EQ(0, counters.num_pending);
+    }
+
     size_type max_steps_{0};
 };
 
@@ -244,6 +265,16 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
         EXPECT_EQ(RunResult::StepCount({1, 6}), result.calc_queue_hwm());
     }
     EXPECT_EQ(3, result.calc_emptying_step());
+}
+
+TEST_F(SimpleComptonTest, stage_primaries_host)
+{
+    this->run_staged_first_step<MemSpace::host>();
+}
+
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(stage_primaries_device))
+{
+    this->run_staged_first_step<MemSpace::device>();
 }
 
 TEST_F(SimpleComptonTest, reseed)

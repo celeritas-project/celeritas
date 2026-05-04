@@ -149,10 +149,10 @@ auto Stepper<M>::operator()() -> result_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize new primaries and transport them for a single step.
+ * Stage primaries for transport.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
+void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
 {
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
@@ -173,6 +173,16 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     counters.num_pending = primaries.size();
     state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize new primaries and transport them for a single step.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
+{
+    this->stage_primaries(primaries);
 
     return (*this)();
 }

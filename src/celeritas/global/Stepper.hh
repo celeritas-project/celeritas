@@ -99,6 +99,9 @@ class StepperInterface
     // Transport existing states
     virtual StepperResult operator()() = 0;
 
+    // Stage primaries for transport
+    virtual void stage_primaries(SpanConstPrimary primaries) = 0;
+
     // Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
@@ -162,6 +165,9 @@ class Stepper final : public StepperInterface
 
     // Transport existing states
     StepperResult operator()() final;
+
+    // Stage primaries for transport
+    void stage_primaries(SpanConstPrimary primaries) final;
 
     // Transport existing states and these new primaries
     StepperResult operator()(SpanConstPrimary primaries) final;
