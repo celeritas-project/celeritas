@@ -966,6 +966,11 @@ TEST_F(WaterSphere, run_small_flush)
     {
         GTEST_SKIP() << "Skipping remaining test since we've already failed";
     }
+    if (using_surface_vg)
+    {
+        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
+    }
+
     rm.BeamOn(4);
 }
 
