@@ -367,7 +367,33 @@ void LocalTransporter::Push(G4Track& g4track)
     buffer_accum_.energy += gtv.energy().value();
     if (buffer_.size() >= auto_flush_)
     {
-        this->Flush();
+        if (celeritas::device())
+        {
+            if (staged_)
+            {
+                PrimaryBuffer filled_buffer;
+                filled_buffer.swap(buffer_);
+                auto filled_accum = buffer_accum_;
+                buffer_accum_ = {};
+                try
+                {
+                    this->Flush();
+                }
+                catch (...)
+                {
+                    buffer_.swap(filled_buffer);
+                    buffer_accum_ = filled_accum;
+                    throw;
+                }
+                buffer_.swap(filled_buffer);
+                buffer_accum_ = filled_accum;
+            }
+            this->stage_buffer();
+        }
+        else
+        {
+            this->Flush();
+        }
     }
 }
 
@@ -378,57 +404,36 @@ void LocalTransporter::Push(G4Track& g4track)
 void LocalTransporter::Flush()
 {
     CELER_EXPECT(*this);
+    if (!staged_ && buffer_.empty())
+    {
+        return;
+    }
 
     ScopedProfiling profile_this("flush");
 
     if (celeritas::device() && !buffer_.empty())
     {
+        auto const num_primaries = staged_.buffer.size() + buffer_.size();
+        auto const energy = staged_.accum.energy + buffer_accum_.energy;
         CELER_LOG_LOCAL(debug)
-            << "Transporting " << buffer_.size() << " tracks ("
-            << units::ClhepEnergy{buffer_accum_.energy}
-            << " cumulative kinetic energy) from event " << event_id_
-            << " with Celeritas";
+            << "Transporting " << num_primaries << " tracks ("
+            << units::ClhepEnergy{energy}
+            << " cumulative kinetic energy) from event "
+            << event_id_ << " with Celeritas";
     }
-    if (buffer_accum_.lost_primaries > 0)
+    auto const lost_energy = staged_.accum.lost_energy
+                             + buffer_accum_.lost_energy;
+    auto const lost_primaries = staged_.accum.lost_primaries
+                                + buffer_accum_.lost_primaries;
+    if (lost_primaries > 0)
     {
         CELER_LOG_LOCAL(info)
-            << "Lost " << units::ClhepEnergy{buffer_accum_.lost_energy}
-            << " cumulative kinetic energy from "
-            << buffer_accum_.lost_primaries
+            << "Lost " << units::ClhepEnergy{lost_energy}
+            << " cumulative kinetic energy from " << lost_primaries
             << " primaries that started outside the geometry in event "
             << event_id_;
     }
 
-    this->stage_buffer();
-
-    if (dump_primaries_)
-    {
-        // Write offload particles if user requested
-        std::vector<Primary> dump_buffer(staged_.buffer.begin(),
-                                         staged_.buffer.end());
-        (*dump_primaries_)(dump_buffer);
-    }
-
-    if (!buffer_.empty())
-    {
-        // Run Celeritas
-        this->flush_impl();
-    }
-    else
-    {
-        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
-        buffer_accum_ = {};
-    }
-
-    // Clear any saved user information but do *not* reset the primary counter
-    track_reconstruction_->clear();
-
-    CELER_ENSURE(buffer_accum_.energy == 0);
-}
-
-void LocalTransporter::flush_impl()
-{
-    CELER_EXPECT(!buffer_.empty());
     if (run_accum_.steps == 0)
     {
         CELER_LOG_LOCAL(status)
@@ -454,22 +459,48 @@ void LocalTransporter::flush_impl()
 
     this->clear_staged();
 
-    size_type step_iters = 1;
-
-    while (track_counts)
+    while (staged_ || !buffer_.empty())
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
-                                      << max_step_iters_ << ")",
-                                      *step_);
+        if (!staged_)
+        {
+            this->stage_buffer();
+        }
 
-        track_counts = (*step_)();
+        if (dump_primaries_)
+        {
+            // Write offload particles if user requested
+            std::vector<Primary> dump_buffer(staged_.buffer.begin(),
+                                             staged_.buffer.end());
+            (*dump_primaries_)(dump_buffer);
+        }
+
+        // Transport the staged primaries for the first step
+        auto track_counts = (*step_)();
         run_accum_.steps += track_counts.active;
-        ++step_iters;
+        run_accum_.primaries += staged_.buffer.size();
+        run_accum_.lost_primaries += staged_.accum.lost_primaries;
         trace(track_counts);
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            !interrupted(), << "caught interrupt signal", *step_);
+
+        this->clear_staged();
+
+        size_type step_iters = 1;
+
+        while (track_counts)
+        {
+            CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
+                                          << "number of step iterations "
+                                             "exceeded "
+                                             "the allowed maximum ("
+                                          << max_step_iters_ << ")",
+                                          *step_);
+
+            track_counts = (*step_)();
+            run_accum_.steps += track_counts.active;
+            ++step_iters;
+            trace(track_counts);
+            CELER_VALIDATE_OR_KILL_ACTIVE(
+                !interrupted(), << "caught interrupt signal", *step_);
+        }
     }
 
     if (hit_processor_)
@@ -494,8 +525,8 @@ void LocalTransporter::flush_impl()
 void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
-    CELER_VALIDATE(buffer_.empty(),
-                   << "offloaded tracks (" << buffer_.size()
+    CELER_VALIDATE(this->GetBufferSize() == 0,
+                   << "offloaded tracks (" << this->GetBufferSize()
                    << " in buffer) were not flushed");
 
     std::size_t num_optical_steps{0};

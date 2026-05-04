@@ -82,7 +82,10 @@ class LocalTransporter final : public TrackOffloadInterface
     bool Initialized() const final { return static_cast<bool>(step_); }
 
     // Number of buffered tracks
-    size_type GetBufferSize() const final { return buffer_.size(); }
+    size_type GetBufferSize() const final
+    {
+        return buffer_.size() + staged_.buffer.size();
+    }
 
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
