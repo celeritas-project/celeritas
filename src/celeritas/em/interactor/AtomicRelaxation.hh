@@ -139,7 +139,8 @@ AtomicRelaxation::operator()(Engine& rng)
     while (!vacancies.empty())
     {
         // Pop the vacancy off the stack and check if it has transition data
-        SubshellId vacancy_id = vacancies.pop();
+        SubshellId vacancy_id = vacancies.top();
+        vacancies.pop();
         if (vacancy_id.get() >= shells.size())
             continue;
 

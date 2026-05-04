@@ -99,7 +99,8 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 
     while (!stack.empty())
     {
-        BIHNodeId current_node = stack.pop();
+        BIHNodeId current_node = stack.top();
+        stack.pop();
         if (!view_.is_inner(current_node))
         {
             auto id = this->visit_leaf(

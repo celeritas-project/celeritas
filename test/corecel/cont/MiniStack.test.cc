@@ -21,24 +21,27 @@ namespace test
 
 TEST(MiniStackTest, fixed_size)
 {
-    Array<int, 3> storage;
+    Array<int, 3> storage = {0, 0, 0};
     MiniStack stack(Span{storage});
     struct ExpectedStructSize
     {
         int* data;
+        int top;
         size_type size;
+        bool empty;
     };
     EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
-    EXPECT_EQ(3, stack.capacity());
+    EXPECT_EQ(4, stack.capacity());
 
     // Push  and pop
     stack.push(42);
     EXPECT_FALSE(stack.empty());
     EXPECT_EQ(1, stack.size());
-    EXPECT_EQ(42, stack.pop());
+    EXPECT_EQ(42, stack.top());
+    stack.pop();
 
     // Push more
     ASSERT_EQ(0, stack.size());
@@ -49,15 +52,18 @@ TEST(MiniStackTest, fixed_size)
     EXPECT_EQ(3, stack.size());
     EXPECT_EQ(10, storage[0]);
     EXPECT_EQ(20, storage[1]);
-    EXPECT_EQ(30, storage[2]);
+    EXPECT_EQ(30, stack.top());
 
-    EXPECT_EQ(30, stack.pop());
+    EXPECT_EQ(30, stack.top());
+    stack.pop();
     EXPECT_EQ(2, stack.size());
 
-    EXPECT_EQ(20, stack.pop());
+    EXPECT_EQ(20, stack.top());
+    stack.pop();
     EXPECT_EQ(1, stack.size());
 
-    EXPECT_EQ(10, stack.pop());
+    EXPECT_EQ(10, stack.top());
+    stack.pop();
     EXPECT_EQ(0, stack.size());
     EXPECT_TRUE(stack.empty());
 }
@@ -66,13 +72,14 @@ TEST(MiniStackTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     Array<int, 1> storage = {0};
     MiniStack<int, 1> stack(Span{storage});
-    EXPECT_EQ(1, stack.capacity());
+    EXPECT_EQ(2, stack.capacity());
     // Pop empty should throw
     EXPECT_THROW(stack.pop(), DebugError);
 
     // Push full should throw
     stack.push(1);
-    EXPECT_THROW(stack.push(2), DebugError);
+    stack.push(2);
+    EXPECT_THROW(stack.push(3), DebugError);
 }
 
 TEST(MiniStackTest, dynamic_span_construct)
@@ -85,13 +92,15 @@ TEST(MiniStackTest, dynamic_span_construct)
     {
         int* data;
         std::size_t cap;
+        int top;
         size_type size;
+        bool empty;
     };
     EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
-    EXPECT_EQ(3, stack.capacity());
+    EXPECT_EQ(4, stack.capacity());
 }
 
 TEST(MiniStackTest, different_size_construct)
@@ -102,13 +111,15 @@ TEST(MiniStackTest, different_size_construct)
     struct ExpectedStructSize
     {
         int* data;
+        int top;
         short int size;
+        bool empty;
     };
     EXPECT_EQ(sizeof(ExpectedStructSize), sizeof(stack));
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
-    EXPECT_EQ(3, stack.capacity());
+    EXPECT_EQ(4, stack.capacity());
 }
 
 //---------------------------------------------------------------------------//
