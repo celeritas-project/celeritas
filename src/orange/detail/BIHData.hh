@@ -7,11 +7,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
-#include "geocel/BoundingBox.hh"
+#include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "../OrangeTypes.hh"
 
@@ -86,13 +85,13 @@ struct BIHTreeRecord
     struct Metadata
     {
         //! The number of finite bounding boxes in the tree
-        size_type num_finite_bboxes;
+        size_type num_finite_bboxes{};
         //! The number of infinite bounding boxes, i.e., those not included in
         //! the tree itself.
-        size_type num_infinite_bboxes;
+        size_type num_infinite_bboxes{};
         //! The depth of the most embedded leaf node. This has a value of 1
         //! when the root node is a leaf.
-        size_type depth;
+        size_type depth{};
     };
 
     //// DATA ////

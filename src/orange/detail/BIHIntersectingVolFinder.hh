@@ -13,7 +13,6 @@
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../OrangeData.hh"
-#include "../inp/Bih.hh"
 #include "../univ/detail/Types.hh"
 
 namespace celeritas
@@ -128,9 +127,8 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     // Stack of deferred nodes
-    constexpr auto stack_capacity = inp::BIHBuilder::max_depth_limit - 1;
-    using StackT = MiniStack<BIHNodeId, stack_capacity, unsigned char>;
-    BIHNodeId stack_storage_[stack_capacity];
+    using StackT = MiniStack<BIHNodeId, max_bih_depth, unsigned char>;
+    BIHNodeId stack_storage_[max_bih_depth];
     StackT stack{stack_storage_};
     stack.push(BIHNodeId{0});
 

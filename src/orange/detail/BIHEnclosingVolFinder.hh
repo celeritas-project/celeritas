@@ -10,7 +10,6 @@
 #include "orange/OrangeTypes.hh"
 
 #include "BIHView.hh"
-#include "../inp/Bih.hh"
 
 namespace celeritas
 {
@@ -93,9 +92,8 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
     using Side = BIHInnerNode::Side;
 
     // Stack of deferred nodes
-    constexpr auto stack_capacity = inp::BIHBuilder::max_depth_limit - 1;
-    using StackT = MiniStack<BIHNodeId, stack_capacity, unsigned char>;
-    BIHNodeId stack_storage_[stack_capacity];
+    using StackT = MiniStack<BIHNodeId, max_bih_depth, unsigned char>;
+    BIHNodeId stack_storage_[max_bih_depth];
     StackT stack{stack_storage_};
     stack.push(BIHNodeId{0});
 
@@ -115,7 +113,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         else
         {
             auto const& edges = view_.inner_node(current_node).edges;
-            for (auto s : {Side::left, Side::right})
+            for (auto s : {Side::right, Side::left})
             {
                 if (is_inside(edges[s].bbox, pos))
                 {
