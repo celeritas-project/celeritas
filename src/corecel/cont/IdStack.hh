@@ -7,8 +7,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Macros.hh"
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
@@ -26,7 +24,7 @@ namespace celeritas
  *
  * The internal \c size_ tracks only the number of spilled elements in
  * underlying storage. The logical size reported by \c size() is therefore
- * <code>size_ + !empty_</code>.
+ * <code>size_ + !this->empty()</code>.
  *
  * \par Example:
  * \code
@@ -62,17 +60,14 @@ class IdStack
     //! Construct with underlying storage.
     CELER_FUNCTION explicit IdStack(Span<T, Extent> storage) : spill_(storage)
     {
+        CELER_ENSURE(this->empty());
     }
 
     //! Insert a new element at the top of the stack
     CELER_FUNCTION void push(T element)
     {
         CELER_EXPECT(this->size() < this->capacity());
-        if (empty_)
-        {
-            empty_ = false;
-        }
-        else
+        if (!this->empty())
         {
             spill_[size_++] = top_;
         }
@@ -89,22 +84,22 @@ class IdStack
         }
         else
         {
-            empty_ = true;
+            top_ = {};
         }
     }
 
     //! Get the top element of the stack
-    CELER_FUNCTION T top() const
+    CELER_CEF T top() const
     {
         CELER_EXPECT(!this->empty());
         return top_;
     }
 
     //! Whether there are any elements in the container
-    CELER_CEF bool empty() const { return empty_; }
+    CELER_CEF bool empty() const { return !top_; }
 
     //! Get the number of elements
-    CELER_CEF size_type size() const { return size_ + !empty_; }
+    CELER_CEF size_type size() const { return size_ + !this->empty(); }
 
     //! Get the number of elements that can fit in the allocated storage
     CELER_CEF size_type capacity() const { return spill_.size() + 1; }
@@ -113,7 +108,6 @@ class IdStack
     Span<T, Extent> spill_;
     T top_{};
     size_type size_{0};
-    bool empty_{true};
 };
 
 //---------------------------------------------------------------------------//
