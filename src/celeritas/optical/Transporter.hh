@@ -12,6 +12,7 @@
 #include "corecel/sys/ActionGroups.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/ActionTimes.hh"
+#include "celeritas/user/StepTimes.hh"
 
 #include "CoreState.hh"
 
@@ -43,13 +44,16 @@ class Transporter
     using CoreStateDevice = CoreState<MemSpace::device>;
     using SPConstParams = std::shared_ptr<CoreParams const>;
     using SPActionTimes = std::shared_ptr<ActionTimes>;
+    using SPStepTimes = std::shared_ptr<StepTimes>;
     using MapStrDbl = ActionTimes::MapStrDbl;
+    using VecDbl = StepTimes::VecDbl;
     //!@}
 
     struct Input
     {
         SPConstParams params;
         SPActionTimes action_times;  //!< Optional
+        SPStepTimes step_times;  //!< Optional
     };
 
   public:
@@ -64,6 +68,9 @@ class Transporter
 
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;
+
+    // Get the recorded step times
+    VecDbl get_step_times(AuxStateVec const&) const;
 
   private:
     //// TYPES ////

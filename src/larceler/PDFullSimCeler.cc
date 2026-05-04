@@ -62,6 +62,7 @@ make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
     result.problem.num_streams = 1;
     result.problem.seed = cfg.Seed();
     result.problem.timers.action = cfg.ActionTimes();
+    result.problem.timers.step = cfg.StepTimes();
     result.problem.output_file = cfg.OutputFile();
 
     return result;

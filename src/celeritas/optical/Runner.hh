@@ -11,6 +11,7 @@
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
+#include "celeritas/user/StepTimes.hh"
 
 #include "Transporter.hh"
 #include "gen/DirectGeneratorAction.hh"
@@ -49,6 +50,7 @@ class Runner
     {
         CounterAccumStats counters;
         ActionTimes::MapStrDbl action_times;
+        StepTimes::VecDbl step_times;
     };
 
   public:
