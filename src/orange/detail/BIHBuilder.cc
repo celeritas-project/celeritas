@@ -6,8 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
+#include <algorithm>
+
 #include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/Collection.hh"
 #include "geocel/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 
