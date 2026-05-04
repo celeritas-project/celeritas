@@ -28,6 +28,7 @@ class StepDiagnosticBase : public OutputInterface
   public:
     //!@{
     //! \name Type aliases
+    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
     using VecVecCount = std::vector<std::vector<size_type>>;
     //!@}
 
@@ -55,12 +56,13 @@ class StepDiagnosticBase : public OutputInterface
     // Size of diagnostic state data (number of bins times number of particles)
     size_type state_size() const;
 
+    // Access the storage
+    StoreT& store() const { return store_; }
+
     // Reset diagnostic results
     void clear();
 
-  protected:
-    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
-
+  private:
     size_type num_streams_;
     mutable StoreT store_;
 };

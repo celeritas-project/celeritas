@@ -66,8 +66,8 @@ void StepDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
     TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
                               state.ptr(),
                               detail::StepDiagnosticExecutor{
-                                  store_.params<MemSpace::native>(),
-                                  store_.state<MemSpace::native>(
+                                  this->store().params<MemSpace::native>(),
+                                  this->store().state<MemSpace::native>(
                                       state.stream_id(), this->state_size())}};
     return launch_action(state, execute);
 }
