@@ -41,9 +41,9 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     // Handle inner nodes
     for (auto i : range(tree.inner_nodes.size()))
     {
-        auto const& inner = view.inner_node(BIHNodeId{i});
-        auto const& left = inner.edges[detail::BIHInnerNode::Side::left];
-        auto const& right = inner.edges[detail::BIHInnerNode::Side::right];
+        auto const& inner = view.inner_node(id_cast<BIHNodeId>(i));
+        auto const& left = inner.edges[Bound::lo];
+        auto const& right = inner.edges[Bound::hi];
 
         out.push_back(json::array({"i",
                                    std::string(1, to_char(inner.axis)),

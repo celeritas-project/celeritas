@@ -153,19 +153,19 @@ BIHPartitioner::make_partition(VecIndices const& indices,
         if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
             < p.position)
         {
-            p.indices[Side::left].push_back(indices[i]);
+            p.indices[Bound::lo].push_back(indices[i]);
         }
         else
         {
-            p.indices[Side::right].push_back(indices[i]);
+            p.indices[Bound::hi].push_back(indices[i]);
         }
     }
 
-    CELER_ASSERT(!p.indices[Side::left].empty());
-    CELER_ASSERT(!p.indices[Side::right].empty());
+    CELER_ASSERT(!p.indices[Bound::lo].empty());
+    CELER_ASSERT(!p.indices[Bound::hi].empty());
 
-    p.bboxes[Side::left] = calc_union(*bboxes_, p.indices[Side::left]);
-    p.bboxes[Side::right] = calc_union(*bboxes_, p.indices[Side::right]);
+    p.bboxes[Bound::lo] = calc_union(*bboxes_, p.indices[Bound::lo]);
+    p.bboxes[Bound::hi] = calc_union(*bboxes_, p.indices[Bound::hi]);
 
     CELER_ENSURE(p);
     return p;
@@ -179,10 +179,9 @@ real_type BIHPartitioner::calc_cost(Partition const& p) const
 {
     CELER_EXPECT(p);
 
-    return calc_surface_area(p.bboxes[Side::left])
-               * p.indices[Side::left].size()
-           + calc_surface_area(p.bboxes[Side::right])
-                 * p.indices[Side::right].size();
+    return calc_surface_area(p.bboxes[Bound::lo]) * p.indices[Bound::lo].size()
+           + calc_surface_area(p.bboxes[Bound::hi])
+                 * p.indices[Bound::hi].size();
 }
 
 //---------------------------------------------------------------------------//

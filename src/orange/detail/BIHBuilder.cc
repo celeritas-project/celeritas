@@ -173,8 +173,6 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 {
     CELER_EXPECT(current_depth < inp_.depth_limit);
 
-    using Side = BIHInnerNode::Side;
-
     ++current_depth;
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
@@ -209,16 +207,16 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.axis = p.axis;
 
         // Populate left/right bounding planes
-        auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
-        node.edges[Side::left].bounding_plane_pos = left_pos;
-        node.edges[Side::left].bbox = p.bboxes[Side::left];
+        auto left_pos = p.bboxes[Bound::lo].upper()[to_int(p.axis)];
+        node.edges[Bound::lo].bounding_plane_pos = left_pos;
+        node.edges[Bound::lo].bbox = p.bboxes[Bound::lo];
 
-        auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
-        node.edges[Side::right].bounding_plane_pos = right_pos;
-        node.edges[Side::right].bbox = p.bboxes[Side::right];
+        auto right_pos = p.bboxes[Bound::hi].lower()[to_int(p.axis)];
+        node.edges[Bound::hi].bounding_plane_pos = right_pos;
+        node.edges[Bound::hi].bbox = p.bboxes[Bound::hi];
 
         // Recursively construct the left and right branches
-        for (auto side : range(Side::size_))
+        for (auto side : range(Bound::size_))
         {
             node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
             this->construct_tree(p.indices[side], nodes, current_depth, depth);

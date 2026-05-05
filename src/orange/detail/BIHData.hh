@@ -10,6 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "../OrangeTypes.hh"
@@ -45,19 +46,12 @@ struct BIHInnerNode
         FastBBox bbox;
     };
 
-    enum class Side
-    {
-        left,
-        right,
-        size_
-    };
-
     Axis axis;  //!< Axis that the partition is performed on
-    EnumArray<Side, Edge> edges;  //!< Left/right edges
+    EnumArray<Bound, Edge> edges;  //!< Low/high edges
 
     explicit CELER_FUNCTION operator bool() const
     {
-        return this->edges[Side::left].child && this->edges[Side::right].child;
+        return this->edges[Bound::lo].child && this->edges[Bound::hi].child;
     }
 };
 

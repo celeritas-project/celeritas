@@ -22,6 +22,12 @@ namespace detail
 {
 namespace test
 {
+struct SideShim
+{
+    static constexpr Bound left{Bound::lo};
+    static constexpr Bound right{Bound::hi};
+};
+
 //---------------------------------------------------------------------------//
 class BIHBuilderTest : public ::celeritas::test::Test
 {
@@ -76,7 +82,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
  */
 TEST_F(BIHBuilderTest, basic)
 {
-    using Side = BIHInnerNode::Side;
+    using Side = SideShim;
     using Real3 = FastBBox::Real3;
 
     VecFastBbox bboxes = {
@@ -232,7 +238,7 @@ class GridTest : public BIHBuilderTest
 {
   protected:
     /// TYPES ///
-    using Side = BIHInnerNode::Side;
+    using Side = SideShim;
 
     /// METHODS ///
     void SetUp() override
