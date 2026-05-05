@@ -83,6 +83,11 @@ TEST(IdStackTest, TEST_IF_CELERITAS_DEBUG(errors))
     // Push full should throw
     stack.push(TestId{1});
     stack.push(TestId{2});
+    if constexpr (!CELERITAS_DEBUG)
+    {
+        // Silence GCC warning
+        CELER_UNREACHABLE;
+    }
     EXPECT_THROW(stack.push(TestId{3}), DebugError);
 }
 
