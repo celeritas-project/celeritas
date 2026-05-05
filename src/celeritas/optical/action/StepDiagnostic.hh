@@ -2,45 +2,35 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/user/StepDiagnostic.hh
+//! \file celeritas/optical/action/StepDiagnostic.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
 
-#include "celeritas/global/ActionInterface.hh"
-#include "celeritas/global/CoreTrackData.hh"
+#include "celeritas/optical/CoreTrackData.hh"
+#include "celeritas/user/StepDiagnosticBase.hh"
 
-#include "StepDiagnosticBase.hh"
+#include "ActionInterface.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-class ParticleParams;
-
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
- * Tally number of steps taken by each particle type in the core stepping loop.
+ * Tally number of steps taken by each photon in the optical stepping loop.
  */
 class StepDiagnostic final : public StepDiagnosticBase,
-                             public CoreStepActionInterface
+                             public OpticalStepActionInterface
 {
-  public:
-    //!@{
-    //! \name Type aliases
-    using SPConstParticle = std::shared_ptr<ParticleParams const>;
-    //!@}
-
   public:
     // Construct and add to core params
     static std::shared_ptr<StepDiagnostic>
     make_and_insert(CoreParams const& core, size_type max_bins);
 
-    //! Construct with particle data
-    StepDiagnostic(ActionId id,
-                   SPConstParticle particle,
-                   size_type max_bins,
-                   size_type num_streams);
+    //! Construct with ID and counts
+    StepDiagnostic(ActionId id, size_type max_bins, size_type num_streams);
 
     //!@{
     //! \name StepAction interface
@@ -52,7 +42,7 @@ class StepDiagnostic final : public StepDiagnosticBase,
     //! ID of the action
     ActionId action_id() const final { return id_; }
     //! Short name for the action
-    std::string_view label() const final { return "step-diagnostic"; }
+    std::string_view label() const final { return "optical-step-diagnostic"; }
     // Description of the action for user interaction
     std::string_view description() const final;
     //! Dependency ordering of the action
@@ -64,4 +54,5 @@ class StepDiagnostic final : public StepDiagnosticBase,
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

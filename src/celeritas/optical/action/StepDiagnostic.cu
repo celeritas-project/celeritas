@@ -1,18 +1,21 @@
 //------------------------------ -*- cuda -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
-//! \file celeritas/user/StepDiagnostic.cu
+//! \file celeritas/optical/action/StepDiagnostic.cu
 //---------------------------------------------------------------------------//
 #include "StepDiagnostic.hh"
 
-#include "celeritas/global/ActionLauncher.device.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+
+#include "ActionLauncher.device.hh"
+#include "TrackSlotExecutor.hh"
 
 #include "detail/StepDiagnosticExecutor.hh"
 
 namespace celeritas
+{
+namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -20,16 +23,16 @@ namespace celeritas
  */
 void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
 {
-    auto execute = make_active_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::StepDiagnosticExecutor{
-            this->store().params<MemSpace::native>(),
-            this->store().state<MemSpace::native>(state.stream_id(),
-                                                  this->state_size())});
+    TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
+                              state.ptr(),
+                              detail::StepDiagnosticExecutor{
+                                  this->store().params<MemSpace::native>(),
+                                  this->store().state<MemSpace::native>(
+                                      state.stream_id(), this->state_size())}};
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas
