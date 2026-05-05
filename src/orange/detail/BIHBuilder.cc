@@ -13,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "geocel/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 
@@ -205,23 +206,18 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         BIHInnerNode node;
         node.axis = p.axis;
 
-        // Populate left/right bounding planes
-        auto left_pos = p.bboxes[Bound::lo].upper()[to_int(p.axis)];
-        node.edges[Bound::lo].bounding_plane_pos = left_pos;
-        node.edges[Bound::lo].bbox = p.bboxes[Bound::lo];
-
-        auto right_pos = p.bboxes[Bound::hi].lower()[to_int(p.axis)];
-        node.edges[Bound::hi].bounding_plane_pos = right_pos;
-        node.edges[Bound::hi].bbox = p.bboxes[Bound::hi];
-
         // Recursively construct the left and right branches
         for (auto side : range(Bound::size_))
         {
+            node.edges[side].bounding_plane_pos
+                = p.bboxes[side].point(flip_bound(side), p.axis);
+            node.edges[side].bbox = p.bboxes[side];
+
             node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
             this->construct_tree(p.indices[side], nodes, current_depth, depth);
         }
 
-        CELER_EXPECT(node);
+        CELER_ASSERT(node);
         (*nodes)[current_index] = node;
     }
     else
