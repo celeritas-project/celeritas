@@ -224,6 +224,61 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
     // Already inside: always true
     pos = Real3{0.5, 0.6, 0.7};
     EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1));
+
+    // Start exactly on bbox, exiting
+    EXPECT_FALSE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1));
+    // Start exactly on bbox, entering
+    EXPECT_TRUE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1));
+    // End exactly on bbox, exiting
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5));
+    // End exactly on bbox, entering
+    EXPECT_FALSE(
+        intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5));
+
+    // Degenerate near-parallel cases: sweep over inside/outside start,
+    // inward/outward direction, and very short/very long segment lengths.
+    double const eps = 1e-12;
+    struct
+    {
+        char const* label;
+        Real3 pos;
+        bool is_inside;
+    } const positions[] = {
+        {"barely inside", {1 - eps, 0.5, 0.5}, true},
+        {"barely outside", {1 + eps, 0.5, 0.5}, false},
+    };
+
+    double const tilt = 1e-9;
+    double const entry_dist = eps / tilt;
+    struct
+    {
+        char const* label;
+        Real3 dir;
+        bool is_inward;
+    } const directions[] = {
+        {"inward", {-tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, true},
+        {"parallel", {0, 1, 0}, false},
+        {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
+    };
+
+    for (double const max_dist : {1e-6, 1e6})
+    {
+        for (auto const& p : positions)
+        {
+            for (auto const& d : directions)
+            {
+                SCOPED_TRACE(::testing::Message{} << p.label << ", " << d.label
+                                                  << ", max_dist=" << max_dist);
+
+                bool const expected
+                    = p.is_inside || (d.is_inward && max_dist >= entry_dist);
+
+                EXPECT_EQ(expected,
+                          intersects_segment(bbox, p.pos, d.dir, max_dist));
+            }
+        }
+    }
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_encloses)
