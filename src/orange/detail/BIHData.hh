@@ -23,22 +23,20 @@ namespace detail
 /*!
  * Data for a single inner node in a Bounding Interval Hierarchy.
  *
- * As a convention, a node's LEFT edge corresponds to the half space that is
- * less than the partition value. In other words, the LEFT bounding plane
- * position is the far right boundary of the left side of the tree, and the
- * RIGHT bounding plane position is the far left boundary of the right side of
- * the tree. Since the halfspaces created by the bounding planes may overlap,
- * the LEFT bounding plane position could be either left or right of the RIGHT
- * bounding plane position.
+ * As a convention, a node's LO edge corresponds to the half space that is
+ * less than the partition value. In other words, the LO bounding plane
+ * position is the far right boundary of the left/low side of the tree, and the
+ * HI bounding plane position is the far left boundary of the right/high side
+ * of the tree. Since the halfspaces created by the bounding planes may
+ * overlap, the LO bounding plane position could be greater than, less than, or
+ * equal to the bounding plane position.
  */
 struct BIHInnerNode
 {
-    using real_type = fast_real_type;
-
     struct Edge
     {
         //! The position of the bounding plane along the partition axis
-        real_type bounding_plane_pos{};
+        fast_real_type bounding_plane_pos{};
         //! The child node connected to this edge
         BIHNodeId child;
         //! Bbox created by clipping an inf bbox with the bounding planes

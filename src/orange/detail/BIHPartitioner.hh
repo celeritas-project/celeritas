@@ -42,7 +42,7 @@ class BIHPartitioner
     struct Partition
     {
         Axis axis = Axis::size_;
-        real_type position = std::numeric_limits<real_type>::infinity();
+        fast_real_type position{};
 
         EnumArray<Bound, VecIndices> indices;
         EnumArray<Bound, FastBBox> bboxes;
@@ -68,7 +68,7 @@ class BIHPartitioner
 
   private:
     /// TYPES ///
-    using AxesCenters = std::vector<std::vector<real_type>>;
+    using AxesCenters = std::vector<std::vector<fast_real_type>>;
 
     //// DATA ////
 
