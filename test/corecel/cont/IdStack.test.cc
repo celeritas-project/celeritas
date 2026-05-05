@@ -75,7 +75,7 @@ TEST(IdStackTest, fixed_size)
 TEST(IdStackTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     Array<TestId, 1> storage = {TestId{0}};
-    IdStack<TestId, 1> stack(Span<TestId, 3>{storage});
+    IdStack<TestId, 1> stack(make_span(storage));
     EXPECT_EQ(2, stack.capacity());
     // Pop empty should throw
     EXPECT_THROW(stack.pop(), DebugError);
