@@ -8,7 +8,10 @@
 
 #include <vector>
 
-#include "BIHData.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/grid/GridTypes.hh"
+#include "geocel/BoundingBox.hh"  // IWYU pragma: keep
+
 #include "../OrangeTypes.hh"
 
 namespace celeritas
@@ -55,19 +58,13 @@ class BIHPartitioner
     //!@}
 
   public:
-    //! Default constructor
-    BIHPartitioner() = default;
-
     // Construct from all bounding bounding boxes in a universe
-    explicit BIHPartitioner(VecBBox const* bboxes,
-                            VecReal3 const* centers,
+    explicit BIHPartitioner(VecBBox const& bboxes,
+                            VecReal3 const& centers,
                             size_type num_part_cands);
 
     // Find a suitable partition for the given subset of bounding boxes
     Partition operator()(VecIndices const& indices) const;
-
-    // True when assigned
-    explicit inline operator bool() const { return bboxes_ != nullptr; }
 
   private:
     /// TYPES ///
@@ -76,9 +73,9 @@ class BIHPartitioner
     //// DATA ////
 
     //! All bounding boxes to be partitioned
-    VecBBox const* bboxes_{nullptr};
+    VecBBox const& bboxes_;
     //! The centers of each bounding box
-    VecReal3 const* centers_{nullptr};
+    VecReal3 const& centers_;
     //! The number of partition candidates to check per axis
     size_type num_part_cands_{0};
 

@@ -45,13 +45,13 @@ namespace detail
  * \param[in] num_part_cands  The number of candidate partitions to check per
  *                            axis
  */
-BIHPartitioner::BIHPartitioner(VecBBox const* bboxes,
-                               VecReal3 const* centers,
+BIHPartitioner::BIHPartitioner(VecBBox const& bboxes,
+                               VecReal3 const& centers,
                                size_type num_part_cands)
     : bboxes_(bboxes), centers_(centers), num_part_cands_(num_part_cands)
 {
-    CELER_EXPECT(!bboxes_->empty());
-    CELER_EXPECT(bboxes_->size() == centers_->size());
+    CELER_EXPECT(!bboxes_.empty());
+    CELER_EXPECT(bboxes_.size() == centers_.size());
     CELER_EXPECT(num_part_cands_ > 0);
 }
 
@@ -64,8 +64,6 @@ BIHPartitioner::BIHPartitioner(VecBBox const* bboxes,
 BIHPartitioner::Partition
 BIHPartitioner::operator()(VecIndices const& indices) const
 {
-    CELER_EXPECT(*this);
-
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
 
@@ -116,8 +114,8 @@ BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
 
     for (auto id : indices)
     {
-        CELER_ASSERT(id < centers_->size());
-        Real3 center = (*centers_)[id.unchecked_get()];
+        CELER_ASSERT(id < centers_.size());
+        Real3 center = centers_[id.unchecked_get()];
         for (auto ax : range(to_int(Axis::size_)))
         {
             axes_centers[ax].push_back(center[ax]);
@@ -149,9 +147,8 @@ BIHPartitioner::make_partition(VecIndices const& indices,
 
     for (auto i : range(indices.size()))
     {
-        CELER_ASSERT(indices[i] < centers_->size());
-        if ((*centers_)[indices[i].unchecked_get()][to_int(p.axis)]
-            < p.position)
+        CELER_ASSERT(indices[i] < centers_.size());
+        if (centers_[indices[i].unchecked_get()][to_int(p.axis)] < p.position)
         {
             p.indices[Bound::lo].push_back(indices[i]);
         }
@@ -164,8 +161,8 @@ BIHPartitioner::make_partition(VecIndices const& indices,
     CELER_ASSERT(!p.indices[Bound::lo].empty());
     CELER_ASSERT(!p.indices[Bound::hi].empty());
 
-    p.bboxes[Bound::lo] = calc_union(*bboxes_, p.indices[Bound::lo]);
-    p.bboxes[Bound::hi] = calc_union(*bboxes_, p.indices[Bound::hi]);
+    p.bboxes[Bound::lo] = calc_union(bboxes_, p.indices[Bound::lo]);
+    p.bboxes[Bound::hi] = calc_union(bboxes_, p.indices[Bound::hi]);
 
     CELER_ENSURE(p);
     return p;
