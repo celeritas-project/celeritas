@@ -8,6 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Span.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,7 +24,10 @@ using TestId = OpaqueId<struct Test_>;
 TEST(IdStackTest, fixed_size)
 {
     Array<TestId, 3> storage = {TestId{}, TestId{}, TestId{}};
-    IdStack stack(Span{storage});
+    // NOTE: GCC 11.5 fails to compile Span{storage}:
+    // > class template placeholder 'celeritas::Span' not permitted in this
+    // context
+    IdStack stack{Span<TestId, 3>{storage}};
     struct ExpectedStructSize
     {
         TestId* data;
@@ -71,7 +75,7 @@ TEST(IdStackTest, fixed_size)
 TEST(IdStackTest, TEST_IF_CELERITAS_DEBUG(errors))
 {
     Array<TestId, 1> storage = {TestId{0}};
-    IdStack<TestId, 1> stack(Span{storage});
+    IdStack<TestId, 1> stack(Span<TestId, 3>{storage});
     EXPECT_EQ(2, stack.capacity());
     // Pop empty should throw
     EXPECT_THROW(stack.pop(), DebugError);
