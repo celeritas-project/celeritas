@@ -12,8 +12,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Ldg.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include <ostream>
+
 #    include "corecel/io/StreamableContainer.hh"
 #endif
 
@@ -164,6 +167,17 @@ class Array
         -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
     {
         return !(lhs == rhs);
+    }
+
+    //! Allow loading via ldg
+    CELER_FUNCTION friend Array ldg(Array const* arr)
+    {
+        Array result;
+        for (size_type i = 0; i != N; ++i)
+        {
+            result[i] = ldg(&arr->d_[i]);
+        }
+        return result;
     }
 
   private:

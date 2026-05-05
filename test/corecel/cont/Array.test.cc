@@ -128,6 +128,15 @@ TEST(ArrayTest, to_array)
     EXPECT_VEC_EQ((Array{1, 2, 3}), arr);
 }
 
+TEST(ArrayTest, ldg)
+{
+    // Pretend this is in global memory: `ldg(&x)` is x in host code
+    Array const arr{1, 2, 3};
+    auto loaded = ldg(&arr);
+    EXPECT_TRUE((std::is_same_v<Array<int, 3>, decltype(loaded)>));
+    EXPECT_VEC_EQ((Array{1, 2, 3}), loaded);
+}
+
 TEST(ArrayTest, casts)
 {
     // Test up- and down-casting
