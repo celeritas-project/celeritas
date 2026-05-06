@@ -92,9 +92,9 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
     using Side = BIHInnerNode::Side;
 
     // Stack of deferred nodes
-    using StackT = IdStack<BIHNodeId, max_bih_depth>;
-    BIHNodeId stack_storage_[max_bih_depth];
-    StackT stack{stack_storage_};
+    using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
+    BIHNodeId stack_spill_[StackT::spill_extent];
+    StackT stack{stack_spill_};
     stack.push(BIHNodeId{0});
 
     while (!stack.empty())

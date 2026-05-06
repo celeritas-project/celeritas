@@ -16,6 +16,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Stack "view" that keeps the top element in a local scalar.
+ * \tparam T value type
+ * \tparam E
  *
  * This particular stack requires \c OpaqueId as its element type, because the
  * default value must evaluate to "false" \em and is never a valid stack value.
@@ -58,6 +60,9 @@ class IdStack
     using value_type = T;
     using size_type = S;
     //!@}
+
+    //! Capacity (may be dynamic)
+    static constexpr std::size_t spill_extent = Extent;
 
   public:
     // Construct with underlying storage
