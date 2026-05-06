@@ -32,8 +32,13 @@ namespace celeritas
 bool ScopedProfiling::enabled()
 {
     static bool const enabled_ = [] {
-        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING",
-                                             CELERITAS_USE_CUDA);
+#if CELERITAS_USE_CUDA
+        constexpr auto get_default_profiling = ScopedProfiling::is_nvtx_enabled;
+#else
+        constexpr auto get_default_profiling = [] { return false; };
+#endif
+        auto result = celeritas::getenv_flag_lazy("CELER_ENABLE_PROFILING",
+                                                  get_default_profiling);
         if (result.value)
         {
             if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)

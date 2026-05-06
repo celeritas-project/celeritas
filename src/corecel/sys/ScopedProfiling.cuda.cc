@@ -100,4 +100,13 @@ void ScopedProfiling::deactivate() noexcept
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Test whether nvtx is enabled by pushing/popping a domain.
+ */
+bool ScopedProfiling::is_nvtx_enabled()
+{
+    return domain_handle() != nullptr;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
