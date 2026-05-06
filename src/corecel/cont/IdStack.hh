@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/IdStack.hh
-//! \sa corecel/cont/IdStack.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,10 +17,14 @@ namespace celeritas
 /*!
  * Stack "view" that keeps the top element in a local scalar.
  *
+ * This particular stack requires \c OpaqueId as its element type, because the
+ * default value must evaluate to "false" \em and is never a valid stack value.
+ * Without this restriction it would need an extra boolean in addition to the
+ * top item.
+ *
  * The most recently pushed value is always stored in \c top_. Older values are
  * spilled into the underlying storage. This increases the effective stack
  * capacity by one: for storage size \c N, the stack capacity is \c N + 1.
- *
  * The internal \c size_ tracks only the number of spilled elements in
  * underlying storage. The logical size reported by \c size() is therefore
  * <code>size_ + !this->empty()</code>.
