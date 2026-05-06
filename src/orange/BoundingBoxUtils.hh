@@ -12,7 +12,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/BoundingBox.hh"
 
@@ -31,12 +30,13 @@ class Transformation;
 template<class T>
 inline bool is_infinite(BoundingBox<T> const& bbox)
 {
-    auto axes = range(Axis::size_);
-    return all_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
-        constexpr T inf = numeric_limits<T>::infinity();
-        return bbox.point(Bound::lo, ax) == -inf
-               && bbox.point(Bound::hi, ax) == inf;
-    });
+    auto all_equal = [](Array<T, 3> const& values, T rhs) {
+        return all_of(
+            values.begin(), values.end(), [rhs](T lhs) { return lhs == rhs; });
+    };
+    constexpr T inf = numeric_limits<T>::infinity();
+
+    return all_equal(bbox.lower(), -inf) && all_equal(bbox.upper(), inf);
 }
 
 //---------------------------------------------------------------------------//
@@ -50,11 +50,9 @@ inline bool is_finite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    auto axes = range(Axis::size_);
-    return all_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
-        return !std::isinf(bbox.point(Bound::lo, ax))
-               && !std::isinf(bbox.point(Bound::hi, ax));
-    });
+    auto isinf = [](T value) { return std::isinf(value); };
+    return !any_of(bbox.lower().begin(), bbox.lower().end(), isinf)
+           && !any_of(bbox.upper().begin(), bbox.upper().end(), isinf);
 }
 
 //---------------------------------------------------------------------------//
@@ -68,9 +66,9 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    auto axes = range(Axis::size_);
-    return any_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
-        return bbox.point(Bound::lo, ax) == bbox.point(Bound::hi, ax);
+    auto axes = range(to_int(Axis::size_));
+    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
+        return bbox.lower()[ax] == bbox.upper()[ax];
     });
 }
 
@@ -81,10 +79,9 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 template<class T>
 inline bool is_half_inf(BoundingBox<T> const& bbox)
 {
-    auto axes = range(Axis::size_);
-    return any_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
-        return std::isinf(bbox.point(Bound::lo, ax))
-               != std::isinf(bbox.point(Bound::hi, ax));
+    auto axes = range(to_int(Axis::size_));
+    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
+        return std::isinf(bbox.lower()[ax]) != std::isinf(bbox.upper()[ax]);
     });
 }
 
@@ -103,14 +100,13 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
     CELER_EXPECT(!is_half_inf(bbox));
 
     Array<T, 3> center;
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        center[to_int(ax)]
-            = (bbox.point(Bound::lo, ax) + bbox.point(Bound::hi, ax)) / 2;
-        if (CELER_UNLIKELY(std::isnan(center[to_int(ax)])))
+        center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
+        if (CELER_UNLIKELY(std::isnan(center[ax])))
         {
             // Infinite or half-infinite
-            center[to_int(ax)] = 0;
+            center[ax] = 0;
         }
     }
 
@@ -129,10 +125,9 @@ inline Array<T, 3> calc_half_widths(BoundingBox<T> const& bbox)
     CELER_EXPECT(bbox);
 
     Array<T, 3> hw;
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        hw[to_int(ax)]
-            = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax)) / 2;
+        hw[ax] = (bbox.upper()[ax] - bbox.lower()[ax]) / 2;
     }
 
     return hw;
@@ -151,10 +146,9 @@ inline T calc_surface_area(BoundingBox<T> const& bbox)
 
     Array<T, 3> lengths;
 
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        lengths[to_int(ax)] = bbox.point(Bound::hi, ax)
-                              - bbox.point(Bound::lo, ax);
+        lengths[ax] = bbox.upper()[ax] - bbox.lower()[ax];
     }
 
     return 2
@@ -176,9 +170,9 @@ inline T calc_volume(BoundingBox<T> const& bbox)
 
     T result{1};
 
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        result *= bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax);
+        result *= bbox.upper()[ax] - bbox.lower()[ax];
     }
 
     return result;
@@ -195,12 +189,10 @@ calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
     Array<T, 3> lower{};
     Array<T, 3> upper{};
 
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        lower[to_int(ax)]
-            = celeritas::min(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        upper[to_int(ax)]
-            = celeritas::max(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        lower[ax] = celeritas::min(a.lower()[ax], b.lower()[ax]);
+        upper[ax] = celeritas::max(a.upper()[ax], b.upper()[ax]);
     }
 
     return BoundingBox<T>::from_unchecked(lower, upper);
@@ -219,12 +211,10 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
     Array<T, 3> lower{};
     Array<T, 3> upper{};
 
-    for (auto ax : range(Axis::size_))
+    for (auto ax : range(to_int(Axis::size_)))
     {
-        lower[to_int(ax)]
-            = celeritas::max(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        upper[to_int(ax)]
-            = celeritas::min(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        lower[ax] = celeritas::max(a.lower()[ax], b.lower()[ax]);
+        upper[ax] = celeritas::min(a.upper()[ax], b.upper()[ax]);
     }
 
     return BoundingBox<T>::from_unchecked(lower, upper);
@@ -244,10 +234,10 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 {
     CELER_EXPECT(big || small);
 
-    auto axes = range(Axis::size_);
-    return all_of(axes.begin(), axes.end(), [&big, &small](Axis ax) {
-        return big.point(Bound::lo, ax) <= small.point(Bound::lo, ax)
-               && big.point(Bound::hi, ax) >= small.point(Bound::hi, ax);
+    auto axes = range(to_int(Axis::size_));
+    return all_of(axes.begin(), axes.end(), [&big, &small](int ax) {
+        return big.lower()[ax] <= small.lower()[ax]
+               && big.upper()[ax] >= small.upper()[ax];
     });
 }
 
@@ -360,10 +350,10 @@ class BoundingBoxBumper
         Array<T, 3> lower;
         Array<T, 3> upper;
 
-        for (auto ax : range(Axis::size_))
+        for (auto ax : range(to_int(Axis::size_)))
         {
-            lower[to_int(ax)] = this->bumped<-1>(bbox.point(Bound::lo, ax));
-            upper[to_int(ax)] = this->bumped<+1>(bbox.point(Bound::hi, ax));
+            lower[ax] = this->bumped<-1>(bbox.lower()[ax]);
+            upper[ax] = this->bumped<+1>(bbox.upper()[ax]);
         }
 
         return result_type::from_unchecked(lower, upper);
