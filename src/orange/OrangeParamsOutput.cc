@@ -41,7 +41,7 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     // Handle inner nodes
     for (auto i : range(tree.inner_nodes.size()))
     {
-        auto const& inner = view.inner_node(id_cast<BIHNodeId>(i));
+        auto const& inner = view.inner_node(BIHNodeId{i});
         auto const& left = inner.edges[detail::BIHInnerNode::Side::left];
         auto const& right = inner.edges[detail::BIHInnerNode::Side::right];
 
@@ -57,7 +57,7 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     size_type offset = tree.inner_nodes.size();
     for (auto i : range(tree.leaf_nodes.size()))
     {
-        auto const& leaf = view.leaf_node(id_cast<BIHNodeId>(offset + i));
+        auto const& leaf = view.leaf_node(BIHNodeId{offset + i});
         auto vols = json::array();
         for (auto id : remove_ldg_wrapper(view.leaf_vol_ids(leaf)))
         {

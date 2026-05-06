@@ -41,7 +41,7 @@ inline constexpr UnivLevelId orange_global_univ_level{0};
 inline constexpr auto orange_tracking_logic{LogicNotation::infix};
 
 //! The maximum depth of the BIH tree (single leaf node is 1)
-inline constexpr size_type max_bih_depth = 16;
+inline constexpr size_type max_bih_depth = 18;
 
 //---------------------------------------------------------------------------//
 // PARAMS

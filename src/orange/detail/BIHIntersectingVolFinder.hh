@@ -127,7 +127,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     // Stack of deferred nodes
-    using StackT = IdStack<BIHNodeId, max_bih_depth, unsigned char>;
+    using StackT = IdStack<BIHNodeId, max_bih_depth>;
     BIHNodeId stack_storage_[max_bih_depth];
     StackT stack{stack_storage_};
     stack.push(BIHNodeId{0});
