@@ -16,7 +16,6 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/HyperslabIndexer.hh"
 #include "corecel/math/PdfUtils.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/executor/MuPairProductionExecutor.hh"
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/global/ActionLauncher.hh"
@@ -47,8 +46,6 @@ MuPairProductionModel::MuPairProductionModel(ActionId id,
                 {pdg::mu_minus(), pdg::mu_plus()})
 {
     CELER_EXPECT(id);
-
-    ScopedMem record_mem("MuPairProductionModel.construct");
 
     HostVal<MuPairProductionData> host_data;
 

@@ -23,7 +23,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
@@ -388,7 +387,6 @@ void activate_device(Device&& device)
     CELER_LOG(debug) << "Initializing '" << device.name() << "', ID "
                      << device.device_id() << " of " << Device::num_devices();
 
-    ScopedTimeLog scoped_time(&self_logger(), 1.0);
     CELER_DEVICE_API_CALL(SetDevice(device.device_id()));
     d = std::move(device);
 

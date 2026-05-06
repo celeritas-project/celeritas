@@ -32,7 +32,6 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -73,8 +72,6 @@ int get_openmp_thread()
  */
 void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 {
-    ScopedMem record_mem("celer-sim.run");
-
     // Read input options
     auto run_input = [&filename] {
         celeritas::FileOrStdin instream{filename};
@@ -155,7 +152,6 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 
     result.action_times = run_stream.get_action_times();
     result.total_time = get_transport_time();
-    record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 
