@@ -52,8 +52,11 @@ class ActionLauncher : public KernelLauncher<F>
         R"(Launched action must be a trivially copyable function object)");
 
   public:
-    // Create a launcher from a string
-    using KernelLauncher<F>::KernelLauncher;
+    // Create a launcher from a string view
+    explicit ActionLauncher(std::string_view name)
+        : KernelLauncher<F>{std::string{name}}
+    {
+    }
 
     // Create a launcher from an action
     template<class StepActionT>
@@ -78,7 +81,7 @@ class ActionLauncher : public KernelLauncher<F>
 template<class F>
 template<class StepActionT>
 ActionLauncher<F>::ActionLauncher(StepActionT const& action)
-    : KernelLauncher<F>{action.label()}
+    : ActionLauncher{action.label()}
 {
 }
 
