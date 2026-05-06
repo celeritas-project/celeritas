@@ -195,8 +195,8 @@ TEST_F(OpticalPhysicsTest, physics_params)
     // Check model names
     static std::string_view expected_names[] = {
         "absorption",
-        "optical-mie",
-        "optical-rayleigh",
+        "mie",
+        "rayleigh",
         "wls",
     };
     EXPECT_VEC_EQ(expected_names, model_names);

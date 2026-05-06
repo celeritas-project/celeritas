@@ -204,7 +204,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     }
 
     auto const& gen_reg = collector_->gen_reg();
-    auto gen_id = gen_reg.find("optical-generate");
+    auto gen_id = gen_reg.find("generate");
     CELER_ASSERT(gen_id);
 
     // Access the auxiliary data for the generator
