@@ -17,7 +17,7 @@ namespace celeritas
 /*!
  * Stack "view" that keeps the top element in a local scalar.
  * \tparam T value type
- * \tparam E
+ * \tparam E extent for spill (dynamic or fixed)
  *
  * This particular stack requires \c OpaqueId as its element type, because the
  * default value must evaluate to "false" \em and is never a valid stack value.
