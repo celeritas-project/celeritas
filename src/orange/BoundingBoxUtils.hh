@@ -263,8 +263,6 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * 5.23, Table 5.1 in reference):
  * - The AABB face normals
  * - The cross products between the direction vector and face normals
- *
- * Unrolling the loops provides an XXX speedup on CUDA V100.
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -282,16 +280,11 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     T const half_distance = distance / 2;
     constexpr T eps = numeric_limits<T>::epsilon();
 
-#if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
-#    pragma unroll
-#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDACC__)
-// This pragma was introduced in GCC version 8.
-#    pragma GCC unroll 3
-#endif
-    for (int i = 0; i < 3; ++i)
+    for (auto ax : range(Axis::size_))
     {
-        T const lower = bbox.point(Bound::lo, to_axis(i));
-        T const upper = bbox.point(Bound::hi, to_axis(i));
+        auto i = to_int(ax);
+        T const lower = bbox.point(Bound::lo, ax);
+        T const upper = bbox.point(Bound::hi, ax);
         T const center = (lower + upper) / 2;
 
         hw[i] = (upper - lower) / 2;
@@ -305,23 +298,22 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
         }
     }
 
-#if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
-#    pragma unroll
-#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDACC__)
-// This pragma was introduced in GCC version 8.
-#    pragma GCC unroll 3
-#endif
-    for (int i = 0; i < 3; ++i)
-    {
-        int const j = (i + 1) % 3;
-        int const k = (i + 2) % 3;
+    auto found_sep_axis = [&](int j, int k) {
+        return std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
+               > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j];
+    };
 
-        if (std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
-            > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j])
-        {
-            return false;
-        }
-    }
+    constexpr auto x = to_int(Axis::x);
+    constexpr auto y = to_int(Axis::y);
+    constexpr auto z = to_int(Axis::z);
+    if (found_sep_axis(y, z))
+        return false;
+
+    if (found_sep_axis(z, x))
+        return false;
+
+    if (found_sep_axis(x, y))
+        return false;
 
     return true;
 }
