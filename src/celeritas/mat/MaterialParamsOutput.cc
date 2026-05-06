@@ -16,6 +16,7 @@
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
 #include "corecel/math/Quantity.hh"
+#include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
 
 #include "MaterialParams.hh"  // IWYU pragma: keep

@@ -244,9 +244,6 @@ list(APPEND SOURCES
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
-  sys/MemRegistry.cc
-  sys/MemRegistryIO.json.cc
-  sys/ScopedMem.cc
   sys/ScopedSignalHandler.cc
   sys/Stream.cc
   sys/TypeDemangler.cc

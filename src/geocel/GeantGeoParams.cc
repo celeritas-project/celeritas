@@ -34,7 +34,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/inp/Model.hh"
 
@@ -680,8 +679,6 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
 {
-    ScopedMem record_mem("GeantGeoParams.construct");
-
     ScopedGeantLogger logger(celeritas::world_logger());
     ScopedGeantExceptionHandler exception_handler;
 
@@ -742,7 +739,6 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
 
-    ScopedMem record_mem("GeantGeoParams.construct");
     ScopedProfiling profile_this{"geant-geo-construct"};
 
     // Verify consistency of the world volume
@@ -958,7 +954,6 @@ BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 void GeantGeoParams::build_metadata()
 {
     CELER_EXPECT(data_.world);
-    ScopedMem record_mem("GeantGeoParams.build_metadata");
 
     // Get offsets used to map material and impl volume IDs
     data_.lv_offset = [] {

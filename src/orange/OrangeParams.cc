@@ -18,10 +18,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -203,7 +201,6 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
-    ScopedTimeLog scoped_time;
     ScopedProfiling profile_this{"orange-load-json"};
 
     OrangeInput result;
@@ -236,10 +233,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
     ScopedProfiling profile_this{"orange-construct"};
-    ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
                      << (celeritas::device() ? " and copying to GPU" : "");
-    ScopedTimeLog scoped_time;
 
     // First, preprocess the input logic expressions to match the tracker
     detail::convert_logic(input, orange_tracking_logic);

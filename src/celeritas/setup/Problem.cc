@@ -23,7 +23,6 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/SurfaceParams.hh"
@@ -498,7 +497,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
@@ -815,7 +813,6 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),

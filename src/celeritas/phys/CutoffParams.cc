@@ -12,7 +12,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportMaterial.hh"
@@ -73,8 +72,6 @@ CutoffParams::CutoffParams(Input const& input)
 {
     CELER_EXPECT(input.materials);
     CELER_EXPECT(input.particles);
-
-    ScopedMem record_mem("CutoffParams.construct");
 
     HostValue host_data;
     host_data.num_materials = input.materials->size();
