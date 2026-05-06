@@ -36,6 +36,9 @@ class TrackingManagerIntegration final : public IntegrationBase
     // Tracking manager can only be created privately
     TrackingManagerIntegration();
 
+    // Whether this integration is driven by Geant4 state hooks
+    bool use_auto_hooks() const final;
+
     // Verify tracking manager setup
     void verify_local_setup() final;
 };

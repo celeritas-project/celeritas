@@ -44,7 +44,7 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
-    if (singleton.auto_hooks_active())
+    if (this->use_auto_hooks() && singleton.auto_hooks_active())
         return;
 
     // Initialize shared params and local transporter
@@ -65,7 +65,7 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
-    if (singleton.auto_hooks_active())
+    if (this->use_auto_hooks() && singleton.auto_hooks_active())
         return;
 
     singleton.finalize_offload();
@@ -144,6 +144,15 @@ CoreStateInterface& IntegrationBase::GetState()
 IntegrationBase::IntegrationBase()
 {
     IntegrationSingleton::instance();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the concrete integration is driven by Geant4 state hooks.
+ */
+bool IntegrationBase::use_auto_hooks() const
+{
+    return false;
 }
 
 //---------------------------------------------------------------------------//

@@ -177,6 +177,15 @@ void TrackingManagerIntegration::verify_local_setup()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Auto hooks drive begin/end run for tracking manager integration.
+ */
+bool TrackingManagerIntegration::use_auto_hooks() const
+{
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Only allow the singleton to construct.
  */
 TrackingManagerIntegration::TrackingManagerIntegration()
