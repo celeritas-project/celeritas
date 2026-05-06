@@ -9,12 +9,10 @@
 #include <utility>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
-#include "corecel/io/LabelIO.json.hh"
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/math/Quantity.hh"
 #include "corecel/sys/Environment.hh"
 #include "celeritas/Types.hh"
@@ -41,11 +39,8 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
 {
     using json = nlohmann::json;
 
-    auto obj = json::object();
-    auto units = json::object();
-
-    // Unfold isotopes
-    {
+    // Helper to unfold isotopes
+    auto get_isotopes = [this](json& units) -> json {
         auto label = json::array();
         auto atomic_number = json::array();
         auto atomic_mass_number = json::array();
@@ -67,15 +62,7 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
                 iso_view.neutron_loss_energy().value());
             nuclear_mass.push_back(iso_view.nuclear_mass().value());
         }
-        obj["isotopes"] = {
-            {"label", std::move(label)},
-            {"atomic_number", std::move(atomic_number)},
-            {"atomic_mass_number", std::move(atomic_mass_number)},
-            {"binding_energy", std::move(binding_energy)},
-            {"proton_loss_energy", std::move(proton_loss_energy)},
-            {"neutron_loss_energy", std::move(neutron_loss_energy)},
-            {"nuclear_mass", std::move(nuclear_mass)},
-        };
+
         units["binding_energy"]
             = accessor_unit_label<decltype(&IsotopeView::binding_energy)>();
         units["proton_loss_energy"]
@@ -84,10 +71,20 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             = accessor_unit_label<decltype(&IsotopeView::neutron_loss_energy)>();
         units["nuclear_mass"]
             = accessor_unit_label<decltype(&IsotopeView::nuclear_mass)>();
-    }
 
-    // Unfold elements
-    {
+        return json{
+            {"label", std::move(label)},
+            {"atomic_number", std::move(atomic_number)},
+            {"atomic_mass_number", std::move(atomic_mass_number)},
+            {"binding_energy", std::move(binding_energy)},
+            {"proton_loss_energy", std::move(proton_loss_energy)},
+            {"neutron_loss_energy", std::move(neutron_loss_energy)},
+            {"nuclear_mass", std::move(nuclear_mass)},
+        };
+    };
+
+    // Helper to unfold elements
+    auto get_elements = [this](json& units) -> json {
         auto label = json::array();
         auto atomic_number = json::array();
         auto atomic_mass = json::array();
@@ -116,7 +113,11 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             isotope_ids.push_back(std::move(el_isot_ids));
             isotope_fracs.push_back(std::move(el_isot_fracs));
         }
-        obj["elements"] = {
+
+        units["atomic_mass"]
+            = accessor_unit_label<decltype(&ElementView::atomic_mass)>();
+
+        return json{
             {"label", std::move(label)},
             {"atomic_number", std::move(atomic_number)},
             {"atomic_mass", std::move(atomic_mass)},
@@ -125,12 +126,10 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             {"coulomb_correction", std::move(coulomb_correction)},
             {"mass_radiation_coeff", std::move(mass_radiation_coeff)},
         };
-        units["atomic_mass"]
-            = accessor_unit_label<decltype(&ElementView::atomic_mass)>();
-    }
+    };
 
-    // Unfold materials
-    {
+    // Helper to unfold materials
+    auto get_materials = [this](json& units) -> json {
         auto label = json::array();
         auto number_density = json::array();
         auto temperature = json::array();
@@ -172,7 +171,11 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             element_id.push_back(std::move(elids));
             element_frac.push_back(std::move(elfrac));
         }
-        obj["materials"] = {
+
+        units["mean_excitation_energy"] = accessor_unit_label<
+            decltype(&MaterialView::mean_excitation_energy)>();
+
+        return json{
             {"label", std::move(label)},
             {"number_density", std::move(number_density)},
             {"temperature", std::move(temperature)},
@@ -185,14 +188,30 @@ void MaterialParamsOutput::output(JsonPimpl* j) const
             {"radiation_length", std::move(radiation_length)},
             {"mean_excitation_energy", std::move(mean_excitation_energy)},
         };
-        {
-            units["mean_excitation_energy"] = accessor_unit_label<
-                decltype(&MaterialView::mean_excitation_energy)>();
-        }
-    }
+    };
 
-    obj["_units"] = std::move(units);
-    j->obj = std::move(obj);
+    auto units = json::object();
+
+    if (getenv_flag("CELER_OUTPUT_MATERIAL", false).value)
+    {
+        // Build and output full results
+        auto obj = json::object();
+        obj["isotopes"] = get_isotopes(units);
+        obj["elements"] = get_elements(units);
+        obj["materials"] = get_materials(units);
+        obj["_units"] = std::move(units);
+        j->obj = std::move(obj);
+    }
+    else
+    {
+        // Output only counts
+        auto obj = json::object();
+        auto units_unused = json::object();
+        obj["num_isotopes"] = material_->num_isotopes();
+        obj["num_elements"] = material_->num_elements();
+        obj["num_materials"] = material_->num_materials();
+        j->obj = std::move(obj);
+    }
 }
 
 //---------------------------------------------------------------------------//
