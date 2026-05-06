@@ -13,7 +13,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/ext/GeantSd.hh"
 #include "celeritas/g4/StateDependent.hh"
 #include "accel/LocalOpticalTrackOffload.hh"
 
@@ -457,6 +459,15 @@ void IntegrationSingleton::finalize_local_impl()
                    << "local thread " << G4Threading::G4GetThreadId() + 1
                    << " cannot be finalized more than once");
     params_.timer()->RecordActionTime(lt.GetActionTime());
+    if (dynamic_cast<LocalTransporter*>(&lt))
+    {
+        auto stream_id = id_cast<StreamId>(get_geant_thread_id());
+        if (auto const& hit_manager = params_.hit_manager())
+        {
+            hit_manager->clear_local_processor(stream_id);
+        }
+        params_.clear_state(stream_id.get());
+    }
     lt.Finalize();
 }
 

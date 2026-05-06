@@ -166,6 +166,9 @@ class SharedParams
     // Let LocalTransporter register the thread's state
     void set_state(unsigned int stream_id, SPState&&);
 
+    // Clear a registered local state
+    void clear_state(unsigned int stream_id);
+
     // Number of streams, lazily obtained from run manager
     unsigned int num_streams() const;
 

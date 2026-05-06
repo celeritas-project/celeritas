@@ -433,6 +433,19 @@ void SharedParams::set_state(unsigned int stream_id, SPState&& state)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Clear a registered local state.
+ */
+void SharedParams::clear_state(unsigned int stream_id)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(!states_.empty());
+    CELER_EXPECT(stream_id < states_.size());
+
+    states_[stream_id].reset();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Lazily obtained number of streams.
  *
  * \todo This is currently needed due to some wackiness with the

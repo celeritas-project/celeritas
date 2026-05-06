@@ -126,6 +126,21 @@ auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clear local hit processor registration.
+ *
+ * This must be called on the same thread as \c make_local_processor, before
+ * the owning local transporter releases the hit processor.
+ */
+void GeantSd::clear_local_processor(StreamId sid)
+{
+    CELER_EXPECT(sid < processors_.size());
+
+    processor_weakptrs_[sid.get()].reset();
+    processors_[sid.get()] = nullptr;
+}
+
+//---------------------------------------------------------------------------//
 //! Default destructor
 GeantSd::~GeantSd() = default;
 

@@ -134,6 +134,17 @@ TEST_F(SimpleCmsTest, no_change)
         this->get_diagnostics(man));
 }
 
+TEST_F(SimpleCmsTest, clear_local_processor)
+{
+    GeantSd man = this->make_hit_manager();
+
+    man.clear_local_processor(StreamId{0});
+    processor_.reset();
+
+    processor_ = man.make_local_processor(StreamId{0});
+    EXPECT_TRUE(processor_);
+}
+
 TEST_F(SimpleCmsTest, delete_one)
 {
     // Create tracks for each particle type
