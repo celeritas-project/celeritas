@@ -298,26 +298,22 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
         }
     }
 
-    constexpr auto x = to_int(Axis::x);
-    constexpr auto y = to_int(Axis::y);
-    constexpr auto z = to_int(Axis::z);
-
-    if (std::fabs(mid[y] * hseg[z] - mid[z] * hseg[y])
-        > hw[y] * abs_hseg[z] + hw[z] * abs_hseg[y])
+#if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
+#    pragma unroll
+#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDACC__)
+// This pragma was introduced in GCC version 8.
+#    pragma GCC unroll 3
+#endif
+    for (int i = 0; i < 3; ++i)
     {
-        return false;
-    }
+        int const j = (i + 1) % 3;
+        int const k = (i + 2) % 3;
 
-    if (std::fabs(mid[z] * hseg[x] - mid[x] * hseg[z])
-        > hw[x] * abs_hseg[z] + hw[z] * abs_hseg[x])
-    {
-        return false;
-    }
-
-    if (std::fabs(mid[x] * hseg[y] - mid[y] * hseg[x])
-        > hw[x] * abs_hseg[y] + hw[y] * abs_hseg[x])
-    {
-        return false;
+        if (std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
+            > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j])
+        {
+            return false;
+        }
     }
 
     return true;
