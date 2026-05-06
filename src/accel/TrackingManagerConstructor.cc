@@ -104,9 +104,33 @@ void TrackingManagerConstructor::ConstructProcess()
         return;
     }
 
+    TrackOffloadInterface* transporter{nullptr};
+    auto& is = detail::IntegrationSingleton::instance();
+
+    if (!is.auto_hooks_active())
+    {
+        CELER_LOG_LOCAL(info) << "StateDependent not registered - "
+                                 "auto_hooks_active_ is false";
+        return;
+    }
+
+    // Register a per-worker StateDependent before any local offload access so
+    // missing setup options are reported by begin_run rather than by worker
+    // construction during run-manager initialization.
+    if (G4Threading::IsWorkerThread())
+    {
+        new StateDependent{[&is](StreamId, GeantStateChange change) {
+            is.on_state_change(change);
+        }};
+    }
+
+    if (!is.setup_options() && G4Threading::IsMultithreadedApplication())
+    {
+        return;
+    }
+
     CELER_LOG_LOCAL(debug) << "Activating tracking manager";
 
-    TrackOffloadInterface* transporter{nullptr};
     CELER_TRY_HANDLE(
         {
             // Note that error checking occurs here to provide better error
@@ -125,24 +149,6 @@ void TrackingManagerConstructor::ConstructProcess()
             }
         },
         ExceptionConverter{"celer.tracking.construct"});
-
-    auto& is = detail::IntegrationSingleton::instance();
-    if (!is.auto_hooks_active())
-    {
-        CELER_LOG_LOCAL(info) << "StateDependent not registered - "
-                                 "auto_hooks_active_ is false";
-        return;
-    }
-
-    // In MT mode, each worker has its own G4StateManager (thread-local).
-    // Register a per-worker StateDependent so workers receive begin_run
-    // notifications and call initialize_offload on their own thread.
-    if (G4Threading::IsWorkerThread())
-    {
-        new StateDependent{[&is](StreamId, GeantStateChange change) {
-            is.on_state_change(change);
-        }};
-    }
 
     if (!transporter)
     {

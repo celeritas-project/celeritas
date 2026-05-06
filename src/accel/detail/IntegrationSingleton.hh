@@ -113,6 +113,7 @@ class IntegrationSingleton
     bool have_created_logger_{false};
     bool failed_setup_{false};
     bool auto_hooks_active_{false};
+    bool skipped_missing_options_init_{false};
     std::function<void()> verify_callback_;
 
     //// PRIVATE MEMBER FUNCTIONS ////

@@ -352,6 +352,21 @@ void IntegrationSingleton::on_state_change(GeantStateChange change)
     switch (change)
     {
         case GeantStateChange::begin_run: {
+            if (!options_ && is_mt)
+            {
+                if (!is_master)
+                {
+                    break;
+                }
+                if (!skipped_missing_options_init_)
+                {
+                    // G4MTRunManager::Initialize emits a run-like state
+                    // transition before BeamOn. Preserve the explicit
+                    // missing-options error for the real run.
+                    skipped_missing_options_init_ = true;
+                    break;
+                }
+            }
             if (is_master && params_)
                 break;
             bool enable_offload = false;
