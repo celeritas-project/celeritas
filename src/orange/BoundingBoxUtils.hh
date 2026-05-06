@@ -263,6 +263,8 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * 5.23, Table 5.1 in reference):
  * - The AABB face normals
  * - The cross products between the direction vector and face normals
+ *
+ * Unrolling the loops provides an XXX speedup on CUDA V100.
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -280,11 +282,16 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     T const half_distance = distance / 2;
     constexpr T eps = numeric_limits<T>::epsilon();
 
-    for (auto ax : range(Axis::size_))
+#if defined(__clang__) || defined(__INTEL_COMPILER) || defined(__CUDA_ARCH__)
+#    pragma unroll
+#elif defined(__GNUC__) && __GNUC__ >= 8 && !defined(__CUDACC__)
+// This pragma was introduced in GCC version 8.
+#    pragma GCC unroll 3
+#endif
+    for (int i = 0; i < 3; ++i)
     {
-        auto i = to_int(ax);
-        T const lower = bbox.point(Bound::lo, ax);
-        T const upper = bbox.point(Bound::hi, ax);
+        T const lower = bbox.point(Bound::lo, to_axis(i));
+        T const upper = bbox.point(Bound::hi, to_axis(i));
         T const center = (lower + upper) / 2;
 
         hw[i] = (upper - lower) / 2;
