@@ -89,7 +89,7 @@ class KernelLauncher
 template<class F>
 KernelLauncher<F>::KernelLauncher(std::string&& name)
     : name_{std::move(name)}
-    , calc_launch_params_{name, &detail::launch_action_impl<F>}
+    , calc_launch_params_{name_, &detail::launch_action_impl<F>}
 {
 }
 
