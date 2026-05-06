@@ -2,8 +2,8 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/cont/IdStack.hh
-//! \sa corecel/cont/IdStack.test.cc
+//! \file corecel/cont/MiniStack.hh
+//! \sa corecel/cont/MiniStack.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -25,12 +25,12 @@ namespace celeritas
  *
  * The internal \c size_ tracks only the number of spilled elements in
  * underlying storage. The logical size reported by \c size() is therefore
- * <code>size_ + !empty_</code>.
+ * <code>size_ + !empty()</code>.
  *
  * \par Example:
  * \code
     Array<int, 3> storage;
-    IdStack stack(Span{storage});
+    MiniStack stack(Span{storage});
 
     EXPECT_TRUE(stack.empty());
     EXPECT_EQ(0, stack.size());
@@ -46,10 +46,10 @@ namespace celeritas
  *
  */
 template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
-class IdStack
+class MiniStack
 {
     static_assert(std::is_trivially_copyable_v<T>,
-                  "IdStack should be used only for trivial data");
+                  "MiniStack should be used only for trivial data");
 
   public:
     //!@{
@@ -59,7 +59,7 @@ class IdStack
 
   public:
     // Construct with underlying storage
-    inline CELER_FUNCTION explicit IdStack(Span<T, Extent> storage);
+    inline CELER_FUNCTION explicit MiniStack(Span<T, Extent> storage);
 
     // Insert a new element at the top of the stack
     inline CELER_FUNCTION void push(T element);
@@ -93,7 +93,7 @@ class IdStack
  * Construct with underlying spill storage.
  */
 template<class T, std::size_t Extent, class S>
-CELER_FUNCTION IdStack<T, Extent, S>::IdStack(Span<T, Extent> storage)
+CELER_FUNCTION MiniStack<T, Extent, S>::MiniStack(Span<T, Extent> storage)
     : spill_(storage)
 {
     CELER_ENSURE(this->empty());
@@ -104,7 +104,7 @@ CELER_FUNCTION IdStack<T, Extent, S>::IdStack(Span<T, Extent> storage)
  * Push an element onto the top of the stack.
  */
 template<class T, std::size_t Extent, class S>
-inline CELER_FUNCTION void IdStack<T, Extent, S>::push(T element)
+inline CELER_FUNCTION void MiniStack<T, Extent, S>::push(T element)
 {
     CELER_EXPECT(this->size() < this->capacity());
     if (empty_)
@@ -123,7 +123,7 @@ inline CELER_FUNCTION void IdStack<T, Extent, S>::push(T element)
  * Remove the top element.
  */
 template<class T, std::size_t Extent, class S>
-inline CELER_FUNCTION void IdStack<T, Extent, S>::pop()
+inline CELER_FUNCTION void MiniStack<T, Extent, S>::pop()
 {
     CELER_EXPECT(!this->empty());
     if (size_ > 0)
@@ -141,7 +141,7 @@ inline CELER_FUNCTION void IdStack<T, Extent, S>::pop()
  * Get the top element.
  */
 template<class T, std::size_t Extent, class S>
-CELER_FIF T IdStack<T, Extent, S>::top() const
+CELER_FIF T MiniStack<T, Extent, S>::top() const
 {
     CELER_EXPECT(!this->empty());
     return top_;
