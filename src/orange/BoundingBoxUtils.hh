@@ -263,6 +263,9 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * 5.23, Table 5.1 in reference):
  * - The AABB face normals
  * - The cross products between the direction vector and face normals
+ *
+ * Note the manual unrolling of the off-axis test leads to a 10% speedup in the
+ * along-step kernel.
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -298,6 +301,7 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
         }
     }
 
+    // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
         return std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
                > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j];
