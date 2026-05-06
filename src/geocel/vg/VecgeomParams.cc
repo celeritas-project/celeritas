@@ -42,12 +42,10 @@
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedLimitSaver.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeVisitor.hh"
@@ -415,8 +413,6 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 #if CELERITAS_USE_GEANT4
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"vecgeom-g4vg-load"};
-    ScopedMem record_mem("Converter.convert");
-    ScopedTimeLog scoped_time;
     g4vg::Options opts;
     opts.compare_volumes = getenv_flag("G4VG_COMPARE_VOLUMES", false).value;
     opts.scale = static_cast<double>(lengthunits::millimeter);
@@ -483,7 +479,6 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
                    << "VecGeom world was not set before initialization");
     CELER_EXPECT(geo.GetRegisteredVolumesCount() > 0);
 
-    ScopedMem record_mem("VecgeomParams.construct");
     ScopedProfiling profile_this{"initialize-vecgeom"};
 
     {

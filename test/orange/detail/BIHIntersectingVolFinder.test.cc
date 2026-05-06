@@ -344,7 +344,7 @@ TEST_F(BasicBihTest, outside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {1, 1, 1};
+        ref.hit_count = {2, 2, 1};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, infr);
         EXPECT_REF_EQ(ref, result) << result;
@@ -362,7 +362,7 @@ TEST_F(BasicBihTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.0;
         ref.intersect_surface = LocalSurfaceId{3};
-        ref.hit_count = {3, 3, 3};
+        ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, infr);
         EXPECT_REF_EQ(ref, result) << result;
@@ -463,7 +463,7 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 0.1;
         ref.intersect_surface = LocalSurfaceId{1};
-        ref.hit_count = {1, 1, 1};
+        ref.hit_count = {2, 2, 1};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, infr);
         EXPECT_REF_EQ(ref, result) << result;
@@ -478,7 +478,7 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {1, 1, 1};
+        ref.hit_count = {2, 2, 1};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, infr);
         EXPECT_REF_EQ(ref, result) << result;
@@ -496,7 +496,7 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 1.0;
         ref.intersect_surface = LocalSurfaceId{3};
-        ref.hit_count = {3, 3, 3};
+        ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, infr);
         EXPECT_REF_EQ(ref, result) << result;
@@ -569,7 +569,7 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = {2, 3, 3};
+        ref.hit_count = {3, 3, 3};
         ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 3);
         EXPECT_REF_EQ(ref, result) << result;
@@ -624,7 +624,7 @@ TEST_F(BasicBihTest, not_first)
         ref.distance = 1.5;
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {1, 1, 1};
-        ref.miss_count = {4, 4, 4};
+        ref.miss_count = {3, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -653,7 +653,7 @@ TEST_F(BasicBihTest, not_first)
         ref.distance = 1.5;
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {1, 1, 1};
-        ref.miss_count = {4, 4, 4};
+        ref.miss_count = {3, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map, 2.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -764,7 +764,7 @@ TEST_F(KebabTest, all)
         EXPECT_REF_EQ(ref, result) << result;
     }
     {
-        // WRONG: should be testing closer leaf first, so we get closer hits
+        // Here we test closer leaves first, so we get closer hits
         // first and can eliminate further nodes
         SCOPED_TRACE("Start halfway, hit less quickly");
         pos = {0, 0, 512};
@@ -781,8 +781,8 @@ TEST_F(KebabTest, all)
         IntersectResult ref;
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
-        ref.hit_count = {5, 5, 5, 5, 5, 5, 5, 5};
-        ref.miss_count = {508, 508, 508, 508, 508, 508, 508, 508};
+        ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
+        ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
         EXPECT_REF_EQ(ref, result) << result;
     }
 }

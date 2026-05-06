@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootImporter.hh"

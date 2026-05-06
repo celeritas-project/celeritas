@@ -21,6 +21,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/g4/Threading.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -203,10 +205,12 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
+        test_->begin_build(StreamId{});
     }
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
+        test_->begin_build(geant_stream());
 
         // Run and event actions
         this->SetUserAction(new RunAction{test_, tracing_});
@@ -242,6 +246,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
+    // Construct on the main thread
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
         : DetectorConstruction(filename,
@@ -252,6 +257,7 @@ class TestDetectorConstruction : public DetectorConstruction
     {
     }
 
+    //! Construct SD and field (called on each thread)
     void ConstructSDandField() override
     {
         DetectorConstruction::ConstructSDandField();
@@ -283,7 +289,7 @@ TestOffload to_test_offload(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test offload type as set by environment variable.
+ * Get the offload type for the test, as set by environment variable.
  */
 TestOffload IntegrationTestBase::test_offload()
 {
@@ -315,6 +321,18 @@ TestOffload IntegrationTestBase::test_offload()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the run manager type for the test, as set by environment variable.
+ */
+std::string IntegrationTestBase::test_runman_type()
+{
+    static std::string const result = [] {
+        return celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Disable ROOT signal handlers on startup.
  */
 IntegrationTestBase::IntegrationTestBase()
@@ -338,7 +356,7 @@ std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
     std::string new_ext = "-";
     new_ext += to_cstring(test_offload());
     new_ext += "-";
-    new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    new_ext += test_runman_type();
     new_ext += ext;
     return ::celeritas::test::Test::make_unique_filename(new_ext);
 }
@@ -497,6 +515,18 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
     FAIL() << ansi_color('R') << "GeantExceptionHandler caught runtime error ("
            << thread_label() << ',' << d.condition << ")" << ansi_color(' ')
            << ": from " << d.file << ": " << d.what;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Send to the build callback when doing ActionInitialization.
+ */
+void IntegrationTestBase::begin_build(StreamId s)
+{
+    if (build_cb_)
+    {
+        build_cb_(s);
+    }
 }
 
 //---------------------------------------------------------------------------//

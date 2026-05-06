@@ -16,7 +16,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "celeritas/Types.hh"
@@ -89,7 +88,6 @@ template<MemSpace M>
 void Transporter<M>::operator()()
 {
     CELER_LOG(status) << "Warming up";
-    ScopedTimeLog scoped_time;
     stepper_->warm_up();
 }
 

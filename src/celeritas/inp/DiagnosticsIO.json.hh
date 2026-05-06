@@ -19,6 +19,9 @@ namespace inp
 void to_json(nlohmann::json& j, Timers const&);
 void from_json(nlohmann::json const& j, Timers&);
 
+void to_json(nlohmann::json& j, StepDiagnostic const&);
+void from_json(nlohmann::json const& j, StepDiagnostic&);
+
 //---------------------------------------------------------------------------//
 }  // namespace inp
 }  // namespace celeritas

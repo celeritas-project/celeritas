@@ -8,9 +8,7 @@
 
 #include <type_traits>
 
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 
 namespace celeritas
 {
