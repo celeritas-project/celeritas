@@ -7,8 +7,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 
@@ -24,7 +25,7 @@ namespace celeritas
  *
  * The internal \c size_ tracks only the number of spilled elements in
  * underlying storage. The logical size reported by \c size() is therefore
- * <code>size_ + !this->empty()</code>.
+ * <code>size_ + !empty_</code>.
  *
  * \par Example:
  * \code
@@ -47,7 +48,7 @@ namespace celeritas
 template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
 class IdStack
 {
-    static_assert(is_opaque_id_v<T>,
+    static_assert(std::is_trivially_copyable_v<T>,
                   "IdStack should be used only for trivial data");
 
   public:
@@ -70,7 +71,7 @@ class IdStack
     inline CELER_FUNCTION T top() const;
 
     //! Whether there are any elements in the container
-    CELER_FIF bool empty() const { return !top_; }
+    CELER_FIF bool empty() const { return empty_; }
 
     //! Get the number of elements
     CELER_FIF size_type size() const { return size_ + !this->empty(); }
@@ -82,6 +83,7 @@ class IdStack
     Span<T, Extent> spill_;
     T top_{};
     size_type size_{0};
+    bool empty_{true};
 };
 
 //---------------------------------------------------------------------------//
@@ -105,7 +107,11 @@ template<class T, std::size_t Extent, class S>
 inline CELER_FUNCTION void IdStack<T, Extent, S>::push(T element)
 {
     CELER_EXPECT(this->size() < this->capacity());
-    if (!this->empty())
+    if (empty_)
+    {
+        empty_ = false;
+    }
+    else
     {
         spill_[size_++] = top_;
     }
@@ -126,7 +132,7 @@ inline CELER_FUNCTION void IdStack<T, Extent, S>::pop()
     }
     else
     {
-        top_ = {};
+        empty_ = true;
     }
 }
 
