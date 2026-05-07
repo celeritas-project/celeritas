@@ -64,7 +64,7 @@ class Transporter
     void operator()(CoreStateBase&) const;
 
     //! Access the shared params
-    SPConstParams const& params() const { return data_.params; }
+    SPConstParams const& params() const { return input_.params; }
 
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;
@@ -80,7 +80,7 @@ class Transporter
 
     //// DATA ////
 
-    Input data_;
+    Input input_;
     SPActionGroups actions_;
 
     //// HELPERS ////

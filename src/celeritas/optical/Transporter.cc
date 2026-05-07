@@ -25,9 +25,9 @@ namespace optical
 /*!
  * Construct with problem parameters.
  */
-Transporter::Transporter(Input&& inp) : data_(std::move(inp))
+Transporter::Transporter(Input&& inp) : input_(std::move(inp))
 {
-    CELER_EXPECT(data_.params);
+    CELER_EXPECT(input_.params);
 
     actions_ = std::make_shared<ActionGroupsT>(*this->params()->action_reg());
 }
@@ -67,9 +67,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
-    if (data_.action_times)
+    if (input_.action_times)
     {
-        accum_time = &data_.action_times->state(*state.aux()).accum_time;
+        accum_time = &input_.action_times->state(*state.aux()).accum_time;
     }
 
     // Loop while photons are yet to be tracked
@@ -100,13 +100,14 @@ void Transporter::transport_impl(CoreState<M>& state) const
         num_steps += counters.num_active;
 
         // Record the step time
-        if (data_.step_times)
+        if (input_.step_times)
         {
             if (M == MemSpace::device)
             {
                 device().stream(state.stream_id()).sync();
             }
-            data_.step_times->state(*state.aux()).time.push_back(get_step_time());
+            auto& step_times = input_.step_times->state(*state.aux()).time;
+            step_times.push_back(get_step_time());
         }
 
         if (CELER_UNLIKELY(++num_step_iters
@@ -157,9 +158,9 @@ void Transporter::transport_impl(CoreState<M>& state) const
  */
 auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
-    if (data_.action_times)
+    if (input_.action_times)
     {
-        return data_.action_times->get_action_times(aux);
+        return input_.action_times->get_action_times(aux);
     }
     return {};
 }
@@ -170,9 +171,9 @@ auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
  */
 auto Transporter::get_step_times(AuxStateVec const& aux) const -> VecDbl
 {
-    if (data_.step_times)
+    if (input_.step_times)
     {
-        return data_.step_times->state(aux).time;
+        return input_.step_times->state(aux).time;
     }
     return {};
 }

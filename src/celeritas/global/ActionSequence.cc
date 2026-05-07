@@ -149,7 +149,8 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
         {
             device().stream(state.stream_id()).sync();
         }
-        options_.step_times->state(state.aux()).time.push_back(get_step_time());
+        auto& step_times = options_.step_times->state(state.aux()).time;
+        step_times.push_back(get_step_time());
     }
 }
 
