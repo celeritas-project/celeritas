@@ -32,6 +32,7 @@ namespace celeritas
  */
 void StateDependent::RegisterWithGeant(LocalGeantStateChangeFunc cb)
 {
+    // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
     std::make_unique<StateDependent>(std::move(cb)).release();
 }
 
