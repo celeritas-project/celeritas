@@ -44,7 +44,6 @@ class GenericGeoTestInterface;
 //! Get detailed results from tracking from one cell to the next
 struct GenericGeoTrackingResult
 {
-    real_type max_distance{0};  //!< [cm]
     std::vector<std::string> volumes;
     std::vector<std::string> volume_instances;
     std::vector<real_type> distances;  //!< [cm]

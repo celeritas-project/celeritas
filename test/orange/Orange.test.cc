@@ -14,7 +14,6 @@
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/NumericLimits.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "orange/Debug.hh"
@@ -106,7 +105,7 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     // Try a boundary
-    auto next = geo.find_next_step(NumericLimits<real_type>::infinity());
+    auto next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
     geo.move_internal(2.5);
@@ -118,7 +117,7 @@ TEST_F(OneVolumeTest, track_view)
 
     // Change direction
     geo.set_dir({0, 1, 0});
-    next = geo.find_next_step(NumericLimits<real_type>::infinity());
+    next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
 
@@ -439,7 +438,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         // Propose a new direction headed outside again
         geo.set_dir({0, 1, 0});
         EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-        next = geo.find_next_step(NumericLimits<real_type>::infinity());
+        next = geo.find_next_step(inf);
         EXPECT_FALSE(next.boundary);
         EXPECT_SOFT_EQ(inf, next.distance);
     }
@@ -551,7 +550,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
         EXPECT_SOFT_EQ(d, next.distance);
         EXPECT_FALSE(next.boundary);
     }
-    next = geo.find_next_step(NumericLimits<real_type>::infinity());
+    next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
     next = geo.find_next_step(12345.0);

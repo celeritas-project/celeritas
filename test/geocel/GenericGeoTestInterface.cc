@@ -55,14 +55,15 @@ struct StreamableActionException
     char const* action;
     CheckedGeoTrackView const& geo;
     std::exception const& e;
-};
 
-std::ostream& operator<<(std::ostream& os, StreamableActionException const& sae)
-{
-    os << "Caught exception during '" << sae.action << "': " << sae.e.what()
-       << ": " << sae.geo;
-    return os;
-}
+    friend std::ostream&
+    operator<<(std::ostream& os, StreamableActionException const& sae)
+    {
+        os << "Caught exception during '" << sae.action
+           << "': " << sae.e.what() << ": " << sae.geo;
+        return os;
+    }
+};
 
 }  // namespace
 
@@ -122,7 +123,6 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         = [scale = unit_length.value](auto&& v) { return v / scale; };
     auto const& bbox = this->geometry_interface()->bbox();
     real_type const max_distance = distance(bbox.lower(), bbox.upper());
-    result.max_distance = from_native_length(max_distance);
 
     while (!geo.is_outside())
     {
