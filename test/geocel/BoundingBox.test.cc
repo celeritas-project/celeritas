@@ -115,6 +115,9 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_VEC_SOFT_EQ((Real3{3, 0, 6}), bb.upper());
     EXPECT_REAL_EQ(-1, bb.point(Bound::lo, Axis::x));
     EXPECT_REAL_EQ(6, bb.point(Bound::hi, Axis::z));
+
+    // Test point-by-value
+    EXPECT_REAL_EQ(-1, BBox{bb}.point(Bound::lo, Axis::x));
 }
 
 TEST_F(BoundingBoxTest, is_inside)
