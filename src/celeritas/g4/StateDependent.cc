@@ -30,11 +30,12 @@ namespace celeritas
  * lifetime and can leave a stale pointer or trigger destructor calls after the
  * thread-local state manager has been destroyed.
  */
+// NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
 void StateDependent::RegisterWithGeant(LocalGeantStateChangeFunc cb)
 {
-    // NOLINTNEXTLINE(clang-analyzer-cplusplus.NewDeleteLeaks)
     new StateDependent{std::move(cb)};
 }
+// NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
 
 //---------------------------------------------------------------------------//
 /*!
