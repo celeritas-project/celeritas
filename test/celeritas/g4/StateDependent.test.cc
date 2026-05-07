@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/g4/StateDependent.hh"
 
+#include <memory>
+
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/ext/GeantSetup.hh"
 
@@ -25,11 +27,17 @@ class StateDependentTest : public Test
 TEST_F(StateDependentTest, all)
 {
     std::vector<std::string> states;
-    StateDependent state_dep{[&states](StreamId sid, GeantStateChange change) {
-        EXPECT_EQ(StreamId{0}, sid);
+    std::unique_ptr<StateDependent> state_dep;
+    state_dep = std::make_unique<StateDependent>(
+        [&states, &state_dep](StreamId sid, GeantStateChange change) {
+            EXPECT_EQ(StreamId{0}, sid);
 
-        states.emplace_back(to_cstring(change));
-    }};
+            states.emplace_back(to_cstring(change));
+            if (change == GeantStateChange::end_program)
+            {
+                state_dep.reset();
+            }
+        });
 
     {
         GeantSetup setup(this->test_data_path("geocel", "lar-sphere.gdml"),
@@ -53,6 +61,7 @@ TEST_F(StateDependentTest, all)
         "end_program",
     };
     EXPECT_VEC_EQ(expected_states, states);
+    EXPECT_EQ(nullptr, state_dep);
 }
 
 //---------------------------------------------------------------------------//

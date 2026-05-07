@@ -100,17 +100,12 @@ char const* to_cstring(GeantStateChange);
  * To bypass the first failure path, we use \c Notify to deregister ourselves
  * when we see the run manager is about to exit or abort.
  *
- * The only truly safe way to manage memory for this class is probably to leak
- * it.
+ * The owner must keep the instance on the creating thread, and cleanup must
+ * happen after \c Notify observes program exit and deregisters from Geant4.
  */
 class StateDependent final : public G4VStateDependent
 {
   public:
-    // Register with the thread-local Geant4 state manager; caller receives no
-    // ownership handle because Geant4 manages the registered dependent
-    // lifetime
-    static void RegisterWithGeant(LocalGeantStateChangeFunc cb);
-
     // Construct locally with state-change callback
     explicit StateDependent(LocalGeantStateChangeFunc cb);
 

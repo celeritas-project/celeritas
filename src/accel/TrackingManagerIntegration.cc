@@ -192,11 +192,15 @@ TrackingManagerIntegration::TrackingManagerIntegration()
 {
     auto& singleton = detail::IntegrationSingleton::instance();
 
-    // Register master-thread state monitor; G4StateManager owns the
-    // pointer and deletes it on shutdown.
-    StateDependent::RegisterWithGeant(
-        [&singleton](StreamId, GeantStateChange change) {
+    // Register master-thread state monitor and reset it from the same thread
+    // after StateDependent deregisters from Geant4 during shutdown.
+    master_state_dependent_ = std::make_unique<StateDependent>(
+        [this, &singleton](StreamId, GeantStateChange change) {
             singleton.on_state_change(change);
+            if (change == GeantStateChange::end_program)
+            {
+                master_state_dependent_.reset();
+            }
         });
     singleton.mark_auto_hooks_active();
 

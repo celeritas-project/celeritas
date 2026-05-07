@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TrackingManagerConstructor.hh"
 
+#include <memory>
 #include <G4BuilderType.hh>
 #include <G4Version.hh>
 
@@ -120,14 +121,17 @@ void TrackingManagerConstructor::ConstructProcess()
         // Register a per-worker StateDependent before any local offload access
         // so missing setup options are reported by begin_run rather than by
         // worker construction during run-manager initialization.
-        static G4ThreadLocal bool registered_worker_hook{false};
-        if (G4Threading::IsWorkerThread() && !registered_worker_hook)
+        static G4ThreadLocal std::unique_ptr<StateDependent> state_dep;
+        if (G4Threading::IsWorkerThread() && !state_dep)
         {
-            StateDependent::RegisterWithGeant(
+            state_dep = std::make_unique<StateDependent>(
                 [&is](StreamId, GeantStateChange change) {
                     is.on_state_change(change);
+                    if (change == GeantStateChange::end_program)
+                    {
+                        state_dep.reset();
+                    }
                 });
-            registered_worker_hook = true;
         }
 
         if (!is.setup_options() && G4Threading::IsMultithreadedApplication())

@@ -21,24 +21,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Register a callback with the thread-local Geant4 state manager.
- *
- * Geant4's \c G4VStateDependent base constructor registers this object with
- * the thread-local \c G4StateManager. Celeritas must not own it with RAII
- * because Geant4 manages registered dependents during its own teardown.
- * Keeping it as Celeritas member data would give the object a competing
- * lifetime and can leave a stale pointer or trigger destructor calls after the
- * thread-local state manager has been destroyed.
- */
-// NOLINTBEGIN(clang-analyzer-cplusplus.NewDeleteLeaks)
-void StateDependent::RegisterWithGeant(LocalGeantStateChangeFunc cb)
-{
-    new StateDependent{std::move(cb)};
-}
-// NOLINTEND(clang-analyzer-cplusplus.NewDeleteLeaks)
-
-//---------------------------------------------------------------------------//
-/*!
  * Construct with a stream ID and state-change callback.
  *
  * \note The base class performs the actual registration.
@@ -147,7 +129,18 @@ G4bool StateDependent::Notify(G4ApplicationState state)
         manager_->DeregisterDependent(this);
     }
 
-    this->cb_(local_stream_, change);
+    if (change == GeantStateChange::end_program)
+    {
+        // Allow the callback to destroy this object by keeping the active
+        // callable alive outside the object it may own.
+        auto local_stream = local_stream_;
+        auto cb = std::move(cb_);
+        cb(local_stream, change);
+    }
+    else
+    {
+        this->cb_(local_stream_, change);
+    }
     constexpr bool success{true};
     return success;
 }
