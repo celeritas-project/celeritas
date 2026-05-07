@@ -115,7 +115,7 @@ GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
     }
 
     // Reset event interface used for test mocking
-    if (get_current_event_id == nullptr)
+    if constexpr (CELERITAS_DEBUG)
     {
         static std::mutex mu;
         std::scoped_lock lock{mu};

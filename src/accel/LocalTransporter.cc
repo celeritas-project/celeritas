@@ -366,9 +366,16 @@ void LocalTransporter::Flush()
         // Run Celeritas
         this->flush_impl();
     }
+    else
+    {
+        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+        buffer_accum_ = {};
+    }
 
     // Clear any saved user information but do *not* reset the primary counter
     track_reconstruction_->clear();
+
+    CELER_ENSURE(buffer_accum_.energy == 0);
 }
 
 void LocalTransporter::flush_impl()
