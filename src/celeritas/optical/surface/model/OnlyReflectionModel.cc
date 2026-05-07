@@ -25,7 +25,7 @@ namespace optical
  */
 OnlyReflectionModel::OnlyReflectionModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "interaction-only_reflection")
+    : SurfaceModel(id, "only-reflection-interaction")
 {
     HostVal<OnlyReflectionData> data;
     auto build_modes = CollectionBuilder{&data.modes};

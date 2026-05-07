@@ -12,9 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
 
 // This "public API" function is defined in CeleritasRootInterface.cxx to
 // initialize ROOT. It's not necessary for shared libraries (due to static
@@ -59,8 +57,6 @@ RootFileManager::RootFileManager(char const* filename)
     CELER_EXPECT(filename);
 
     CELER_LOG(info) << "Opening ROOT file at " << filename;
-    ScopedMem record_mem("RootImporter.open");
-    ScopedTimeLog scoped_time;
 
     tfile_.reset(TFile::Open(filename, "recreate"));
     CELER_VALIDATE(tfile_->IsOpen(),

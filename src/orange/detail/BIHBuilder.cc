@@ -6,8 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
+#include <algorithm>
+
+#include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/Collection.hh"
 #include "geocel/BoundingBox.hh"
+#include "orange/OrangeData.hh"
 
 #include "BIHPartitioner.hh"
 #include "../BoundingBoxUtils.hh"
@@ -34,6 +41,18 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 {
     CELER_EXPECT(storage);
     CELER_EXPECT(inp_);
+    CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bih_depth,
+                   << "invalid BIH input depth limit " << inp_.depth_limit
+                   << ": must be positive and no more than compile-time "
+                      "maximum "
+                   << max_bih_depth);
+    CELER_VALIDATE(inp_.max_leaf_size > 0,
+                   << "invalid BIH max leaf size " << inp_.max_leaf_size << ": "
+                   << "must be positive");
+    CELER_VALIDATE(inp_.num_part_cands > 0,
+                   << "invalid BIH partition candidate count "
+                   << inp_.num_part_cands << ": "
+                   << "must be positive");
 }
 
 //---------------------------------------------------------------------------//
@@ -201,7 +220,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         // Recursively construct the left and right branches
         for (auto side : range(Side::size_))
         {
-            node.edges[side].child = BIHNodeId(nodes->size());
+            node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
             this->construct_tree(p.indices[side], nodes, current_depth, depth);
         }
 

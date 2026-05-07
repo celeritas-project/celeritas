@@ -24,8 +24,6 @@
 #include "corecel/sys/EnvironmentIO.json.hh"
 #include "corecel/sys/KernelRegistry.hh"
 #include "corecel/sys/KernelRegistryIO.json.hh"
-#include "corecel/sys/MemRegistry.hh"
-#include "corecel/sys/MemRegistryIO.json.hh"
 
 #include "JsonPimpl.hh"
 #include "Logger.hh"  // IWYU pragma: keep
@@ -130,8 +128,6 @@ void insert_system_diagnostics(OutputRegistry& output_reg)
         OutputInterface::Category::system,
         "kernels",
         celeritas::kernel_registry()));
-    output_reg.insert(OutputInterfaceAdapter<MemRegistry>::from_const_ref(
-        OutputInterface::Category::system, "memory", celeritas::mem_registry()));
     output_reg.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
     output_reg.insert(std::make_shared<BuildOutput>());

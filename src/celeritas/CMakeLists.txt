@@ -171,6 +171,7 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/StepDiagnosticBase.cc
   user/detail/StepParams.cc
 )
 
@@ -410,6 +411,7 @@ celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
+celeritas_polysource(optical/action/StepDiagnostic)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/gen/GeneratorAction)

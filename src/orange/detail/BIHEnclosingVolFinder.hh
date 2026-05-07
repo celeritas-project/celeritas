@@ -6,8 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/cont/IdStack.hh"
+#include "orange/OrangeTypes.hh"
+
 #include "BIHView.hh"
-#include "../inp/Bih.hh"
 
 namespace celeritas
 {
@@ -89,51 +91,36 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
     using Side = BIHInnerNode::Side;
 
-    constexpr auto stack_size = inp::BIHBuilder::max_depth_limit - 1;
-    BIHNodeId stack[stack_size];
-    BIHNodeId::index_type stack_ptr = 0;
-    BIHNodeId current_node{0};
+    // Stack of deferred nodes
+    using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
+    BIHNodeId stack_spill_[StackT::spill_extent];
+    StackT stack{stack_spill_};
+    stack.push(BIHNodeId{0});
 
-    while (current_node)
+    while (!stack.empty())
     {
-        if (!view_.is_inner(current_node))
+        if (!view_.is_inner(stack.top()))
         {
             auto id = this->visit_leaf(
-                view_.leaf_node(current_node), pos, is_inside_vol);
+                view_.leaf_node(stack.top()), pos, is_inside_vol);
+            stack.pop();
 
             if (id)
             {
                 return id;
             }
-
-            CELER_ASSERT(stack_ptr < stack_size);
-            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
-            continue;
-        }
-
-        auto const& node = view_.inner_node(current_node);
-
-        bool in_left = is_inside(node.edges[Side::left].bbox, pos);
-        bool in_right = is_inside(node.edges[Side::right].bbox, pos);
-
-        if (in_left && in_right)
-        {
-            CELER_ASSERT(stack_ptr < stack_size);
-            stack[stack_ptr++] = node.edges[Side::right].child;
-            current_node = node.edges[Side::left].child;
-        }
-        else if (in_left)
-        {
-            current_node = node.edges[Side::left].child;
-        }
-        else if (in_right)
-        {
-            current_node = node.edges[Side::right].child;
         }
         else
         {
-            CELER_ASSERT(stack_ptr < stack_size);
-            current_node = stack_ptr > 0 ? stack[--stack_ptr] : BIHNodeId{};
+            auto const& edges = view_.inner_node(stack.top()).edges;
+            stack.pop();
+            for (auto s : {Side::right, Side::left})
+            {
+                if (is_inside(edges[s].bbox, pos))
+                {
+                    stack.push(edges[s].child);
+                }
+            }
         }
     }
 

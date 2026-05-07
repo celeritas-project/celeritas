@@ -9,7 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/IdStack.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/Selector.hh"
@@ -125,7 +125,7 @@ AtomicRelaxation::operator()(Engine& rng)
 
     AtomicRelaxElement const& el = shared_.elements[el_id_];
     auto const& shells = shared_.shells[el.shells];
-    MiniStack<SubshellId> vacancies(vacancies_);
+    IdStack<SubshellId> vacancies(vacancies_);
 
     // Push the vacancy created by the primary process onto a stack.
     vacancies.push(shell_id_);
@@ -139,12 +139,17 @@ AtomicRelaxation::operator()(Engine& rng)
     while (!vacancies.empty())
     {
         // Pop the vacancy off the stack and check if it has transition data
-        SubshellId vacancy_id = vacancies.pop();
-        if (vacancy_id.get() >= shells.size())
+        if (!(vacancies.top() < shells.size()))
+        {
+            vacancies.pop();
             continue;
+        }
+
+        // Get the subshell at the top of the stack
+        AtomicRelaxSubshell const& shell = shells[vacancies.top().get()];
+        vacancies.pop();
 
         // Sample a transition using shell probabilities
-        AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
         auto transitions = shared_.transitions[shell.transitions];
         TransitionId const trans_id = make_unnormalized_selector(
             [&transitions](TransitionId i) {

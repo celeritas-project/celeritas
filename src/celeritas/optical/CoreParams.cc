@@ -13,7 +13,6 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -158,8 +157,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
             OutputInterface::Category::internal,
             "optical-sizes",
             std::move(sizes)));
-
-    ScopedMem record_mem("optical::CoreParams.construct");
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());

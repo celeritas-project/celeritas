@@ -27,7 +27,6 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -55,8 +54,6 @@ void run(std::shared_ptr<OutputRegistry>& output,
          std::string const& input_filename)
 {
     using Runner = celeritas::optical::Runner;
-
-    ScopedMem record_mem("celer-optical.run");
 
     // Read input options
     auto input = [&input_filename] {
@@ -122,8 +119,6 @@ void run(std::shared_ptr<OutputRegistry>& output,
     result.time.total = get_transport_time();
     result.time.actions = std::move(run_result.action_times);
     result.counters = std::move(run_result.counters);
-
-    record_mem = {};
 
     // Add simulation result to output
     output->insert(
