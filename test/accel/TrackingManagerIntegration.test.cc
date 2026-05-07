@@ -386,6 +386,13 @@ TEST_F(LarSphere, state_dep)
                 << repr(all_state);
             EXPECT_EQ(state_counts["begin_init"], state_counts["end_init"]);
 
+            if (num_local_events_[sid] == 0 && state_counts["begin_run"] == 0)
+            {
+                // The task run manager can initialize a worker thread that
+                // does not process any events in this test.
+                continue;
+            }
+
             EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
             // Begin/end run should be the same
             EXPECT_EQ(state_counts["begin_run"], state_counts["end_run"]);
