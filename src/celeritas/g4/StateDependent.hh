@@ -106,6 +106,11 @@ char const* to_cstring(GeantStateChange);
 class StateDependent final : public G4VStateDependent
 {
   public:
+    // Register with the thread-local Geant4 state manager; caller receives no
+    // ownership handle because Geant4 manages the registered dependent
+    // lifetime
+    static void RegisterWithGeant(LocalGeantStateChangeFunc cb);
+
     // Construct locally with state-change callback
     explicit StateDependent(LocalGeantStateChangeFunc cb);
 

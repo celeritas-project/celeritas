@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "StateDependent.hh"
 
+#include <memory>
+#include <utility>
 #include <G4StateManager.hh>
 #include <G4VStateDependent.hh>
 
@@ -17,6 +19,22 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Register a callback with the thread-local Geant4 state manager.
+ *
+ * Geant4's \c G4VStateDependent base constructor registers this object with
+ * the thread-local \c G4StateManager. Celeritas must not own it with RAII
+ * because Geant4 manages registered dependents during its own teardown.
+ * Keeping it as Celeritas member data would give the object a competing
+ * lifetime and can leave a stale pointer or trigger destructor calls after the
+ * thread-local state manager has been destroyed.
+ */
+void StateDependent::RegisterWithGeant(LocalGeantStateChangeFunc cb)
+{
+    std::make_unique<StateDependent>(std::move(cb)).release();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct with a stream ID and state-change callback.

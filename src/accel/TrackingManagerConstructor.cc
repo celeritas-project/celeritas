@@ -123,9 +123,10 @@ void TrackingManagerConstructor::ConstructProcess()
         static G4ThreadLocal bool registered_worker_hook{false};
         if (G4Threading::IsWorkerThread() && !registered_worker_hook)
         {
-            new StateDependent{[&is](StreamId, GeantStateChange change) {
-                is.on_state_change(change);
-            }};
+            StateDependent::RegisterWithGeant(
+                [&is](StreamId, GeantStateChange change) {
+                    is.on_state_change(change);
+                });
             registered_worker_hook = true;
         }
 
