@@ -16,6 +16,7 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"

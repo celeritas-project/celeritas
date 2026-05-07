@@ -79,6 +79,8 @@ struct Problem
 //---------------------------------------------------------------------------//
 /*!
  * Celeritas optical-only problem input definition.
+ *
+ * \todo Add OpticalDiagnostics
  */
 struct OpticalProblem
 {
@@ -98,14 +100,21 @@ struct OpticalProblem
     size_type num_streams{};
     //! Random number generator seed
     unsigned int seed{};
+
+    //!@{
+    //! \name Diagnostics
+
     //! Set up step or action timers
     Timers timers;
+    //! Bin number of steps per track
+    std::optional<StepDiagnostic> step;
     //! Write Perfetto tracing data to this filename
     std::string perfetto_file;
     //! Write primary generation data to this file
     std::string offload_file;
     //! Write Celeritas diagnostics to this file ("-" is stdout)
     std::string output_file{"-"};
+    //!@}
 };
 
 //---------------------------------------------------------------------------//

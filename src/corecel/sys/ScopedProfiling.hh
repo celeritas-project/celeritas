@@ -7,14 +7,11 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <string_view>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
-#include "corecel/io/Logger.hh"
-
-#include "Environment.hh"
 
 namespace celeritas
 {

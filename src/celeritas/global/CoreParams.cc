@@ -22,7 +22,6 @@
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/MpiCommunicator.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/DetectorParams.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/SurfaceParams.hh"
@@ -271,8 +270,6 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
         input_.mpi_comm.reset(&celeritas::comm_world(),
                               [](MpiCommunicator const*) {});
     }
-
-    ScopedMem record_mem("CoreParams.construct");
 
     // Add track initializer generators (TODO: user does this externally)
     auto primaries = ExtendFromPrimariesAction::make_and_insert(*this);

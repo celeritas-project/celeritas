@@ -248,13 +248,12 @@ struct TCT
     template<class C>
     using value_type_ = typename ContTraits<C>::value_type;
     template<class C>
-    using nc_value_type_ = typename std::remove_const<value_type_<C>>::type;
+    using nc_value_type_ = std::remove_const_t<value_type_<C>>;
 
     using first_type = nc_value_type_<C1>;
     using second_type = nc_value_type_<C2>;
 
-    using common_type =
-        typename std::common_type<first_type, second_type>::type;
+    using common_type = std::common_type_t<first_type, second_type>;
 
     using VecFailedValue = std::vector<FailedValue<first_type, second_type>>;
 };
@@ -266,7 +265,7 @@ struct FVIT
     template<class I>
     using value_type_ = typename std::iterator_traits<I>::value_type;
     template<class I>
-    using nc_value_type_ = typename std::remove_const<value_type_<I>>::type;
+    using nc_value_type_ = std::remove_const_t<value_type_<I>>;
 
     using first_type = nc_value_type_<Iter1>;
     using second_type = nc_value_type_<Iter2>;

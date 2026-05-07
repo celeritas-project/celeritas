@@ -111,7 +111,6 @@ TEST_F(BIHBuilderTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[0]];
         auto& edges = node.edges;
 
-        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(2.8f, edges[Side::left].bounding_plane_pos);
@@ -119,13 +118,13 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{2}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -1.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 1.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -134,7 +133,6 @@ TEST_F(BIHBuilderTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[1]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(1.6f, edges[Side::left].bounding_plane_pos);
@@ -142,13 +140,13 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(BIHNodeId{3}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.6f, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.6f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.2f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.2f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 1.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -157,7 +155,6 @@ TEST_F(BIHBuilderTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[2]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(5.f, edges[Side::left].bounding_plane_pos);
@@ -165,20 +162,19 @@ TEST_F(BIHBuilderTest, basic)
         EXPECT_EQ(BIHNodeId{5}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -1.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 0.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 1.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
     // N3, L0
     {
         auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -186,7 +182,6 @@ TEST_F(BIHBuilderTest, basic)
     // N3, L1
     {
         auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -194,7 +189,6 @@ TEST_F(BIHBuilderTest, basic)
     // N5, L2
     {
         auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{4}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -203,7 +197,6 @@ TEST_F(BIHBuilderTest, basic)
     // N6, L3
     {
         auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{3}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -311,7 +304,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[0]];
         auto& edges = node.edges;
 
-        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
@@ -319,13 +311,13 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 2.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -334,7 +326,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[1]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -342,13 +333,13 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{2}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{3}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -357,7 +348,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[2]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -365,13 +355,13 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{11}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{12}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 1.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 1.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -380,7 +370,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[3]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
@@ -388,13 +377,13 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{4}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{5}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -403,7 +392,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[4]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -411,13 +399,13 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{13}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{14}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -426,7 +414,6 @@ TEST_F(GridTest, basic)
         auto node = storage_.inner_nodes[inner_nodes[5]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -434,20 +421,19 @@ TEST_F(GridTest, basic)
         EXPECT_EQ(BIHNodeId{15}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{16}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 1.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
     // N11, L0
     {
         auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -455,7 +441,6 @@ TEST_F(GridTest, basic)
     // N12, L1
     {
         auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -463,7 +448,6 @@ TEST_F(GridTest, basic)
     // N13, L2
     {
         auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -471,7 +455,6 @@ TEST_F(GridTest, basic)
     // N14, L3
     {
         auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        ASSERT_EQ(BIHNodeId{4}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -479,7 +462,6 @@ TEST_F(GridTest, basic)
     // N15, L4
     {
         auto node = storage_.leaf_nodes[leaf_nodes[4]];
-        ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -487,7 +469,6 @@ TEST_F(GridTest, basic)
     // N16, L5
     {
         auto node = storage_.leaf_nodes[leaf_nodes[5]];
-        ASSERT_EQ(BIHNodeId{5}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{10},
                   storage_.local_volume_ids[node.vol_ids[0]]);
@@ -544,7 +525,6 @@ TEST_F(GridTest, max_leaf_size)
         auto node = storage_.inner_nodes[inner_nodes[0]];
         auto& edges = node.edges;
 
-        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
@@ -552,13 +532,13 @@ TEST_F(GridTest, max_leaf_size)
         EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{2}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 2.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -567,7 +547,6 @@ TEST_F(GridTest, max_leaf_size)
         auto node = storage_.inner_nodes[inner_nodes[1]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -575,13 +554,13 @@ TEST_F(GridTest, max_leaf_size)
         EXPECT_EQ(BIHNodeId{3}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -590,7 +569,6 @@ TEST_F(GridTest, max_leaf_size)
         auto node = storage_.inner_nodes[inner_nodes[2]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -598,20 +576,19 @@ TEST_F(GridTest, max_leaf_size)
         EXPECT_EQ(BIHNodeId{5}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 2.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 4.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
     // N3, L0
     {
         auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -620,7 +597,6 @@ TEST_F(GridTest, max_leaf_size)
     // N4, L1
     {
         auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(4, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -632,7 +608,6 @@ TEST_F(GridTest, max_leaf_size)
     // N5, L2
     {
         auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{3}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{4}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -641,7 +616,6 @@ TEST_F(GridTest, max_leaf_size)
     // N6, L3
     {
         auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(4, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{7}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{8}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -707,7 +681,6 @@ TEST_F(GridTest, depth_limit)
         auto node = storage_.inner_nodes[inner_nodes[0]];
         auto& edges = node.edges;
 
-        ASSERT_FALSE(node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
@@ -715,13 +688,13 @@ TEST_F(GridTest, depth_limit)
         EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 2.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, inff, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -730,7 +703,6 @@ TEST_F(GridTest, depth_limit)
         auto node = storage_.inner_nodes[inner_nodes[1]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{0}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -738,13 +710,13 @@ TEST_F(GridTest, depth_limit)
         EXPECT_EQ(BIHNodeId{2}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{3}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -753,7 +725,6 @@ TEST_F(GridTest, depth_limit)
         auto node = storage_.inner_nodes[inner_nodes[2]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_EQ(Axis{1}, node.axis);
         EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
@@ -761,13 +732,13 @@ TEST_F(GridTest, depth_limit)
         EXPECT_EQ(BIHNodeId{7}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{8}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({-inff, 1.f, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 1.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
@@ -776,7 +747,6 @@ TEST_F(GridTest, depth_limit)
         auto node = storage_.inner_nodes[inner_nodes[3]];
         auto& edges = node.edges;
 
-        ASSERT_EQ(BIHNodeId{1}, node.parent);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_EQ(Axis{0}, node.axis);
         EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
@@ -784,20 +754,19 @@ TEST_F(GridTest, depth_limit)
         EXPECT_EQ(BIHNodeId{9}, edges[Side::left].child);
         EXPECT_EQ(BIHNodeId{10}, edges[Side::right].child);
 
-        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            edges[Side::left].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
                            edges[Side::left].bbox.upper());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, -inff, -inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
                            edges[Side::right].bbox.lower());
-        EXPECT_VEC_SOFT_EQ(VecFastReal({inff, 2.f, inff}),
+        EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
                            edges[Side::right].bbox.upper());
     }
 
     // N7, L0
     {
         auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -805,7 +774,6 @@ TEST_F(GridTest, depth_limit)
     // N8, L1
     {
         auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        ASSERT_EQ(BIHNodeId{2}, node.parent);
         EXPECT_EQ(1, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
     }
@@ -813,7 +781,6 @@ TEST_F(GridTest, depth_limit)
     // N9, L2
     {
         auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[1]]);
@@ -822,7 +789,6 @@ TEST_F(GridTest, depth_limit)
     // N10, L3
     {
         auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        ASSERT_EQ(BIHNodeId{3}, node.parent);
         EXPECT_EQ(2, node.vol_ids.size());
         EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[0]]);
         EXPECT_EQ(LocalVolumeId{10},
@@ -854,7 +820,6 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
     auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
-    ASSERT_EQ(BIHNodeId{}, node.parent);
     EXPECT_EQ(1, node.vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
 
@@ -879,7 +844,6 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
     auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
-    ASSERT_EQ(BIHNodeId{}, node.parent);
     EXPECT_EQ(2, node.vol_ids.size());
     EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
     EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[1]]);

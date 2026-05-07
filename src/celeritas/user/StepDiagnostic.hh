@@ -7,14 +7,11 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
-#include "corecel/data/StreamStore.hh"
-#include "corecel/io/OutputInterface.hh"
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/global/CoreTrackData.hh"
 
-#include "ParticleTallyData.hh"
+#include "StepDiagnosticBase.hh"
 
 namespace celeritas
 {
@@ -23,20 +20,15 @@ class ParticleParams;
 
 //---------------------------------------------------------------------------//
 /*!
- * Tally number of steps taken by each particle type.
- *
- * This adds an \c step-diagnostic entry to the \c result category of the
- * main Celeritas output that bins the total number of steps taken by a track,
- * grouped by particle type. The result is an integral over all events.
+ * Tally number of steps taken by each particle type in the core stepping loop.
  */
-class StepDiagnostic final : public CoreStepActionInterface,
-                             public OutputInterface
+class StepDiagnostic final : public StepDiagnosticBase,
+                             public CoreStepActionInterface
 {
   public:
     //!@{
     //! \name Type aliases
     using SPConstParticle = std::shared_ptr<ParticleParams const>;
-    using VecVecCount = std::vector<std::vector<size_type>>;
     //!@}
 
   public:
@@ -49,9 +41,6 @@ class StepDiagnostic final : public CoreStepActionInterface,
                    SPConstParticle particle,
                    size_type max_bins,
                    size_type num_streams);
-
-    //! Default destructor
-    ~StepDiagnostic() final;
 
     //!@{
     //! \name StepAction interface
@@ -70,30 +59,8 @@ class StepDiagnostic final : public CoreStepActionInterface,
     StepActionOrder order() const final { return StepActionOrder::user_post; }
     //!@}
 
-    //!@{
-    //! \name Output interface
-
-    //! Category of data to write
-    Category category() const final { return Category::result; }
-    // Write output to the given JSON object
-    void output(JsonPimpl*) const final;
-    //!@}
-
-    // Get the diagnostic results accumulated over all streams
-    VecVecCount calc_steps() const;
-
-    // Size of diagnostic state data (number of bins times number of particles)
-    size_type state_size() const;
-
-    // Reset diagnostic results
-    void clear();
-
   private:
-    using StoreT = StreamStore<ParticleTallyParamsData, ParticleTallyStateData>;
-
     ActionId id_;
-    size_type num_streams_;
-    mutable StoreT store_;
 };
 
 //---------------------------------------------------------------------------//

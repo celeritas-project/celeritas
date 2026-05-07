@@ -27,8 +27,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Implement perfect forwarding with device-friendly functions.
 template<class T>
-CELER_CONSTEXPR_FUNCTION T&&
-forward(typename std::remove_reference<T>::type& v) noexcept
+CELER_CONSTEXPR_FUNCTION T&& forward(std::remove_reference_t<T>& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -37,7 +36,7 @@ forward(typename std::remove_reference<T>::type& v) noexcept
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-forward(typename std::remove_reference<T>::type&& v) noexcept
+forward(std::remove_reference_t<T>&& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -48,10 +47,10 @@ forward(typename std::remove_reference<T>::type&& v) noexcept
  * Cast a value as an rvalue reference to allow move construction.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
-    typename std::remove_reference<T>::type&&
+CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept
+    -> std::remove_reference_t<T>&&
 {
-    return static_cast<typename std::remove_reference<T>::type&&>(v);
+    return static_cast<std::remove_reference_t<T>&&>(v);
 }
 
 //---------------------------------------------------------------------------//

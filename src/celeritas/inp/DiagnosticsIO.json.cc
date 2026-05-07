@@ -28,6 +28,16 @@ void from_json(nlohmann::json const& j, Timers& v)
     CELER_JSON_LOAD_OPTION(j, v, step);
 }
 
+void to_json(nlohmann::json& j, StepDiagnostic const& v)
+{
+    j = nlohmann::json{CELER_JSON_PAIR(v, bins)};
+}
+
+void from_json(nlohmann::json const& j, StepDiagnostic& v)
+{
+    CELER_JSON_LOAD_OPTION(j, v, bins);
+}
+
 //!@}
 
 //---------------------------------------------------------------------------//

@@ -17,9 +17,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StreamableVariant.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -131,10 +129,8 @@ PhysicalVolumeConverter::~PhysicalVolumeConverter() = default;
 auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
 {
     ScopedProfiling profile_this{"g4org-convert"};
-    ScopedMem record_mem("orange.convert-geant");
 
     CELER_LOG(status) << "Converting Geant4 geometry elements to ORANGE input";
-    ScopedTimeLog scoped_time;
 
     if (auto tf = data_->make_transform.variant(g4world.GetTranslation(),
                                                 g4world.GetRotation());
