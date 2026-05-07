@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/Primary.hh"
