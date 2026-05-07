@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "BIHPartitioner.hh"
 
+#include <algorithm>
+
 #include "corecel/math/SoftEqual.hh"
 
 #include "BIHUtils.hh"

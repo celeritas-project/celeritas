@@ -163,7 +163,7 @@ TEST_F(RayleighInteractorTest, stress_test)
 TEST_F(RayleighModelTest, description)
 {
     EXPECT_EQ(ActionId{0}, model->action_id());
-    EXPECT_EQ("optical-rayleigh", model->label());
+    EXPECT_EQ("rayleigh", model->label());
     EXPECT_EQ("interact by optical Rayleigh", model->description());
 }
 

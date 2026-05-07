@@ -10,7 +10,6 @@
 #include <utility>
 
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/xs/NuclearFormFactors.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/IsotopeView.hh"
@@ -73,8 +72,6 @@ WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
                                      Options options)
 {
     CELER_EXPECT(materials);
-
-    ScopedMem record_mem("WentzelOKVIParams.construct");
 
     HostVal<WentzelOKVIData> host_data;
 

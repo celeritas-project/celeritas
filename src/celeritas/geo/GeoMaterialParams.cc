@@ -20,7 +20,6 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/io/ImportData.hh"
@@ -378,8 +377,6 @@ GeoMaterialParams::GeoMaterialParams(Input const& input)
 {
     CELER_EXPECT(input.geometry);
     CELER_EXPECT(input.materials);
-
-    ScopedMem record_mem("GeoMaterialParams.construct");
 
     auto const& impl_volumes = input.geometry->impl_volumes();
     VecMat volume_to_mat = std::visit(

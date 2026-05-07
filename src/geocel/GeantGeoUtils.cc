@@ -35,6 +35,7 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedStreamRedirect.hh"
+#include "corecel/io/ScopedTimeAndRedirect.hh"
 
 // Check Geant4-reported and CMake-configured versions, mapping from
 // Geant4's base-10 XXYZ -> to Celeritas base-16 0xXXYYZZ
@@ -129,31 +130,22 @@ std::ostream& operator<<(std::ostream& os, StreamableLV const& plv)
 void reset_geant_geometry()
 {
     CELER_LOG(debug) << "Resetting Geant4 geometry stores";
+    ScopedTimeAndRedirect scoped_redirect_{"Geant4"};
 
-    std::string msg;
-    {
-        ScopedStreamRedirect scoped_log(&std::cout);
-
-        G4PhysicalVolumeStore::Clean();
-        G4LogicalVolumeStore::Clean();
-        G4RegionStore::Clean();
-        G4SolidStore::Clean();
+    G4PhysicalVolumeStore::Clean();
+    G4LogicalVolumeStore::Clean();
+    G4RegionStore::Clean();
+    G4SolidStore::Clean();
 #if G4VERSION_NUMBER >= 1100
-        G4ReflectionFactory::Instance()->Clean();
+    G4ReflectionFactory::Instance()->Clean();
 #endif
-        G4LogicalSkinSurface::CleanSurfaceTable();
-        G4LogicalBorderSurface::CleanSurfaceTable();
-        free_and_clear(G4Material::GetMaterialTable());
-        free_and_clear(const_cast<std::vector<G4Element*>*>(
-            G4Element::GetElementTable()));
-        free_and_clear(const_cast<std::vector<G4Isotope*>*>(
-            G4Isotope::GetIsotopeTable()));
-        msg = scoped_log.str();
-    }
-    if (!msg.empty())
-    {
-        CELER_LOG(diagnostic) << "While closing Geant4 geometry: " << msg;
-    }
+    G4LogicalSkinSurface::CleanSurfaceTable();
+    G4LogicalBorderSurface::CleanSurfaceTable();
+    free_and_clear(G4Material::GetMaterialTable());
+    free_and_clear(
+        const_cast<std::vector<G4Element*>*>(G4Element::GetElementTable()));
+    free_and_clear(
+        const_cast<std::vector<G4Isotope*>*>(G4Isotope::GetIsotopeTable()));
 }
 
 //---------------------------------------------------------------------------//

@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <utility>
 
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -41,8 +40,6 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
                                        VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
-
-    ScopedMem record_mem("WentzelVIMscParams.construct");
 
     HostVal<WentzelVIMscData> host_data;
 

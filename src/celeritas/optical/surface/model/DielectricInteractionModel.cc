@@ -26,7 +26,7 @@ namespace optical
  */
 DielectricInteractionModel::DielectricInteractionModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "interaction-dielectric")
+    : SurfaceModel(id, "dielectric-interaction")
 {
     HostVal<DielectricData> dielectric_data;
     HostVal<UnifiedReflectionData> reflection_data;

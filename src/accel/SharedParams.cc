@@ -29,10 +29,8 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
@@ -246,8 +244,6 @@ SharedParams::SharedParams(SetupOptions const& options)
     CELER_EXPECT(!*this);
 
     ScopedProfiling profile_this{"construct-params"};
-    ScopedMem record_mem("SharedParams.construct");
-    ScopedTimeLog scoped_time;
 
     mode_ = GetMode();
 
