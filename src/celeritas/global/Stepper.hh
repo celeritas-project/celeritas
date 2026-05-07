@@ -148,6 +148,8 @@ class Stepper final : public StepperInterface
     //!@{
     //! \name Type aliases
     using StateRef = CoreStateData<Ownership::reference, M>;
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
     //!@}
 
   public:
@@ -184,6 +186,9 @@ class Stepper final : public StepperInterface
     //! Reset the core state counters and data so it can be reused
     void reset_state() { state_->reset(); }
 
+    //! Set the num_pending counter to the number of generated primaries
+    void set_generated();
+
     //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
     SPState sp_state() final { return state_; }
 
@@ -199,11 +204,9 @@ class Stepper final : public StepperInterface
 };
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION
+// EXPLICIT INSTANTIATION removed but retained in Stepper.cc so that the
+// set_generated() member function can be specialized based on MemSpace
 //---------------------------------------------------------------------------//
-
-extern template class Stepper<MemSpace::host>;
-extern template class Stepper<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

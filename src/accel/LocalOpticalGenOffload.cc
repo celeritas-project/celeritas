@@ -191,12 +191,12 @@ void LocalOpticalGenOffload::Flush()
     if (celeritas::device())
     {
         auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
-        update_primaries(*s);
+        this->update_primaries(*s);
     }
     else
     {
         auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
-        update_primaries(*s);
+        this->update_primaries(*s);
     }
 
     num_photons_ = 0;

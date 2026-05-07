@@ -14,10 +14,12 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionLauncher.hh"
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
@@ -129,7 +131,7 @@ auto Stepper<M>::operator()() -> result_type
 {
     ScopedProfiling profile_this{"step"};
     // Initialize the num_generated counter to zero
-    detail::set_generated(*params_, *state_);
+    this->set_generated();
     actions_->step(*params_, *state_);
     auto counters = state_->sync_get_counters();
 
@@ -207,6 +209,42 @@ void Stepper<M>::reseed(UniqueEventId event_id)
                event_id);
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the num_pending counter to the number of generated primaries.
+ * This template should always be specialized.
+ */
+// template<MemSpace M>
+// void Stepper<M>::set_generated()
+// {
+// CELER_NOT_CONFIGURED("CUDA OR HIP");
+// }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the num_pending counter to the number of generated primaries.
+ */
+template<>
+void Stepper<MemSpace::host>::set_generated()
+{
+    auto execute_thread
+        = make_single_track_executor(params_->ptr<MemSpace::native>(),
+                                     state_->ptr(),
+                                     detail::SetGeneratedExecutor{});
+    launch_core(1, "set-generated", *params_, *state_, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+// DEVICE-DISABLED IMPLEMENTATION
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<>
+void Stepper<MemSpace::device>::set_generated()
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
