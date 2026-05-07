@@ -350,16 +350,16 @@ TEST_F(SurfacePhysicsTest, init_params)
 
     SurfaceOrderArray<std::vector<std::string_view>> expected_model_names;
     expected_model_names[SurfacePhysicsOrder::roughness] = {
-        "roughness-polished",
-        "roughness-smear",
-        "roughness-gaussian",
+        "polished-roughness",
+        "smear-roughness",
+        "gaussian-roughness",
     };
     expected_model_names[SurfacePhysicsOrder::reflectivity] = {
-        "reflectivity-grid",
-        "reflectivity-fresnel",
+        "grid-reflectivity",
+        "fresnel-reflectivity",
     };
     expected_model_names[SurfacePhysicsOrder::interaction] = {
-        "interaction-dielectric",
+        "dielectric-interaction",
     };
 
     for (auto step : range(SurfacePhysicsOrder::size_))

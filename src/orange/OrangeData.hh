@@ -14,6 +14,7 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/sys/ThreadId.hh"
+#include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "OrangeTypes.hh"
 
@@ -24,7 +25,7 @@ namespace celeritas
 class OrangeParams;
 class VolumeParams;
 //---------------------------------------------------------------------------//
-// PARAMS
+// CONSTANTS
 //---------------------------------------------------------------------------//
 
 //! Local ID of exterior volume for unit-type universes
@@ -39,6 +40,11 @@ inline constexpr UnivLevelId orange_global_univ_level{0};
 //! Logic notation used for boolean expressions
 inline constexpr auto orange_tracking_logic{LogicNotation::infix};
 
+//! The maximum depth of the BIH tree (single leaf node is 1)
+inline constexpr size_type max_bih_depth = 18;
+
+//---------------------------------------------------------------------------//
+// PARAMS
 //---------------------------------------------------------------------------//
 /*!
  * Scalar values particular to an ORANGE geometry instance.

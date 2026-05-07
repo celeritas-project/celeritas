@@ -125,8 +125,8 @@ class Quantity
     template<class ValueT2,
              std::enable_if_t<!std::is_same_v<ValueT, ValueT2>
                                   && std::is_convertible_v<ValueT2, ValueT>,
-                              int>
-             = 0>
+                              bool>
+             = true>
     CELER_CONSTEXPR_FUNCTION Quantity(Quantity<UnitT, ValueT2> other) noexcept
         : value_(static_cast<ValueT>(other.value()))
     {

@@ -7,10 +7,16 @@
 #pragma once
 
 #include <set>
+#include <utility>
 #include <variant>
 #include <vector>
 
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionBuilder.hh"
+#include "geocel/BoundingBox.hh"  // IWYU pragma: keep
+#include "orange/OrangeTypes.hh"
+#include "orange/detail/BIHData.hh"
 
 #include "../OrangeData.hh"
 #include "../inp/Bih.hh"
@@ -97,7 +103,6 @@ class BIHBuilder
     // Recursively construct BIH nodes for a vector of bbox indices
     void construct_tree(VecIndices const& indices,
                         VecNodes* nodes,
-                        BIHNodeId parent,
                         size_type current_depth,
                         size_type& depth);
 

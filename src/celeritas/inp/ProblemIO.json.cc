@@ -33,6 +33,7 @@ void to_json(nlohmann::json& j, OpticalProblem const& v)
         CELER_JSON_PAIR(v, capacity),
         CELER_JSON_PAIR(v, seed),
         CELER_JSON_PAIR(v, timers),
+        CELER_JSON_PAIR_OPTIONAL(v, step),
         CELER_JSON_PAIR_WHEN(v, perfetto_file, !v.perfetto_file.empty()),
         CELER_JSON_PAIR(v, output_file),
     };
@@ -46,6 +47,7 @@ void from_json(nlohmann::json const& j, OpticalProblem& v)
     CELER_JSON_LOAD_REQUIRED(j, v, capacity);
     CELER_JSON_LOAD_OPTION(j, v, seed);
     CELER_JSON_LOAD_OPTION(j, v, timers);
+    CELER_JSON_LOAD_OPTIONAL(j, v, step);
     CELER_JSON_LOAD_OPTION(j, v, perfetto_file);
     CELER_JSON_LOAD_OPTION(j, v, output_file);
 }

@@ -13,7 +13,6 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "geocel/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
 
 class G4LogicalVolume;

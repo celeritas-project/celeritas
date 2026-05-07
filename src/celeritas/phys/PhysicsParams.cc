@@ -23,7 +23,6 @@
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/ElectroNuclearModel.hh"
@@ -89,8 +88,6 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
-
-    ScopedMem record_mem("PhysicsParams.construct");
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {

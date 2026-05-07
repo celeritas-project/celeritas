@@ -7,14 +7,11 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
+#include <string_view>
 
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
-#include "corecel/io/Logger.hh"
-
-#include "Environment.hh"
 
 namespace celeritas
 {
@@ -107,6 +104,8 @@ class ScopedProfiling
 
     void activate(Input const& input) noexcept;
     void deactivate() noexcept;
+
+    static bool is_nvtx_enabled();
 };
 
 //---------------------------------------------------------------------------//
@@ -153,6 +152,12 @@ inline void ScopedProfiling::activate(Input const&) noexcept
 inline void ScopedProfiling::deactivate() noexcept
 {
     CELER_UNREACHABLE;
+}
+#endif
+#if !CELERITAS_USE_CUDA
+inline bool ScopedProfiling::is_nvtx_enabled()
+{
+    return false;
 }
 #endif
 //---------------------------------------------------------------------------//

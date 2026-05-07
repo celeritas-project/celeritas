@@ -23,7 +23,6 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/SurfaceParams.hh"
@@ -72,6 +71,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/action/StepDiagnostic.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
@@ -497,7 +497,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
@@ -814,7 +813,6 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),
@@ -882,6 +880,12 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
             },
         },
         p.generator);
+
+    // Add step diagnostic
+    if (p.step)
+    {
+        optical::StepDiagnostic::make_and_insert(*params, p.step->bins);
+    }
 
     // Build the optical transporter \em after all optical actions have been
     // added to the registry
