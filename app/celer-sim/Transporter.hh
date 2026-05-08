@@ -44,7 +44,6 @@ struct TransporterInput
     // Loop control
     size_type max_steps{};
     bool store_track_counts{};  //!< Store track counts at each step
-    bool store_step_times{};  //!< Store time elapsed for each step
     size_type log_progress{};  //!< CELER_LOG progress every N events
 
     StreamId stream_id{0};
@@ -71,7 +70,6 @@ struct TransporterResult
     VecCount initializers;  //!< Num starting track initializers
     VecCount active;  //!< Num tracks active at beginning of step
     VecCount alive;  //!< Num living tracks at end of step
-    std::vector<double> step_times;  //!< Real time per step
 
     // Always-on basic diagnostics
     size_type num_track_slots{};  //!< Number of total track slots
@@ -107,6 +105,7 @@ class TransporterBase
     //! \name Type aliases
     using SpanConstPrimary = Span<Primary const>;
     using MapStrDouble = std::unordered_map<std::string, double>;
+    using VecDouble = std::vector<double>;
     //!@}
 
   public:
@@ -120,6 +119,9 @@ class TransporterBase
 
     //! Accumulate action times into the map
     virtual void accum_action_times(MapStrDouble*) const = 0;
+
+    // Return the step times for this stream
+    virtual VecDouble get_step_times() const = 0;
 };
 
 //---------------------------------------------------------------------------//
@@ -142,6 +144,9 @@ class Transporter final : public TransporterBase
     // Accumulate action times into the map
     void accum_action_times(MapStrDouble*) const final;
 
+    // Return the step times for this stream
+    VecDouble get_step_times() const final;
+
   private:
     std::shared_ptr<Stepper<M>> stepper_;
     std::shared_ptr<OpticalCollector const> optical_;
@@ -150,7 +155,6 @@ class Transporter final : public TransporterBase
     size_type num_streams_;
     size_type log_progress_;
     bool store_track_counts_;
-    bool store_step_times_;
 };
 
 //---------------------------------------------------------------------------//

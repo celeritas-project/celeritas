@@ -25,9 +25,9 @@ namespace optical
 /*!
  * Construct with problem parameters.
  */
-Transporter::Transporter(Input&& inp) : data_(std::move(inp))
+Transporter::Transporter(Input&& inp) : input_(std::move(inp))
 {
-    CELER_EXPECT(data_.params);
+    CELER_EXPECT(input_.params);
 
     actions_ = std::make_shared<ActionGroupsT>(*this->params()->action_reg());
 }
@@ -67,20 +67,22 @@ void Transporter::transport_impl(CoreState<M>& state) const
 
     // Store a pointer to aux data for timing results
     std::vector<double>* accum_time = nullptr;
-    if (data_.action_times)
+    if (input_.action_times)
     {
-        accum_time = &data_.action_times->state(*state.aux()).accum_time;
+        accum_time = &input_.action_times->state(*state.aux()).accum_time;
     }
 
     // Loop while photons are yet to be tracked
     while (counters.num_pending > 0 || counters.num_alive > 0)
     {
         ScopedProfiling profile_this{"step"};
+        Stopwatch get_step_time;
+
         // Loop through actions
         for (auto const& action : actions_->step())
         {
             ScopedProfiling profile_this{action->label()};
-            Stopwatch get_time;
+            Stopwatch get_action_time;
             action->step(*this->params(), state);
             if (accum_time)
             {
@@ -88,7 +90,7 @@ void Transporter::transport_impl(CoreState<M>& state) const
                 {
                     device().stream(state.stream_id()).sync();
                 }
-                (*accum_time)[action->action_id().get()] += get_time();
+                (*accum_time)[action->action_id().get()] += get_action_time();
             }
         }
 
@@ -96,6 +98,18 @@ void Transporter::transport_impl(CoreState<M>& state) const
         // updated values
         counters = state.sync_get_counters();
         num_steps += counters.num_active;
+
+        // Record the step time
+        if (input_.step_times)
+        {
+            if (M == MemSpace::device)
+            {
+                device().stream(state.stream_id()).sync();
+            }
+            auto& step_times = input_.step_times->state(*state.aux()).time;
+            step_times.push_back(get_step_time());
+        }
+
         if (CELER_UNLIKELY(++num_step_iters
                            == this->params()->sim()->max_step_iters()))
         {
@@ -144,9 +158,22 @@ void Transporter::transport_impl(CoreState<M>& state) const
  */
 auto Transporter::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
-    if (data_.action_times)
+    if (input_.action_times)
     {
-        return data_.action_times->get_action_times(aux);
+        return input_.action_times->get_action_times(aux);
+    }
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the recorded step times.
+ */
+auto Transporter::get_step_times(AuxStateVec const& aux) const -> VecDbl
+{
+    if (input_.step_times)
+    {
+        return input_.step_times->state(aux).time;
     }
     return {};
 }
