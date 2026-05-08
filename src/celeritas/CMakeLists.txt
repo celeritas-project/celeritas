@@ -172,6 +172,7 @@ list(APPEND SOURCES
   user/SimpleCaloData.cc
   user/StepCollector.cc
   user/StepDiagnosticBase.cc
+  user/StepTimes.cc
   user/detail/StepParams.cc
 )
 

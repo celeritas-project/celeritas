@@ -156,6 +156,8 @@ auto Runner::run() const -> Result
     }
     result.action_times
         = loaded_.problem.transporter->get_action_times(*state_->aux());
+    result.step_times
+        = loaded_.problem.transporter->get_step_times(*state_->aux());
 
     return result;
 }

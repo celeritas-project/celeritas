@@ -118,6 +118,7 @@ void run(std::shared_ptr<OutputRegistry>& output,
         generator);
     result.time.total = get_transport_time();
     result.time.actions = std::move(run_result.action_times);
+    result.time.steps = std::move(run_result.step_times);
     result.counters = std::move(run_result.counters);
 
     // Add simulation result to output

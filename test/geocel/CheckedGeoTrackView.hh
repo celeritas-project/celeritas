@@ -155,7 +155,6 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     void set_dir(Real3 const&) final;
 
     // Find the distance to the next boundary
-    using GeoTrackInterface<real_type>::find_next_step;
     Propagation find_next_step(real_type max_distance) final;
 
     // Move a linear step fraction

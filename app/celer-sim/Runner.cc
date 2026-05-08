@@ -73,7 +73,6 @@ Runner::Runner(RunnerInput const& old_inp)
 
     transporter_input_->max_steps = old_inp.max_steps;
     transporter_input_->store_track_counts = old_inp.write_track_counts;
-    transporter_input_->store_step_times = old_inp.write_step_times;
     transporter_input_->actions = std::move(loaded.problem.actions);
     transporter_input_->log_progress = old_inp.log_progress;
 
@@ -169,6 +168,23 @@ auto Runner::get_action_times() const -> MapStrDouble
         time *= norm;
     }
 
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the step times for each stream.
+ */
+auto Runner::get_step_times() const -> VecVecDouble
+{
+    VecVecDouble result(this->num_streams());
+    for (auto sid : range(StreamId{this->num_streams()}))
+    {
+        if (auto* transport = this->get_transporter_ptr(sid))
+        {
+            result[sid.get()] = transport->get_step_times();
+        }
+    }
     return result;
 }
 

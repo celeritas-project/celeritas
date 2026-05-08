@@ -78,19 +78,15 @@ void ActionSequence::begin_run(CoreParams const& params, CoreState<M>& state)
 template<MemSpace M>
 void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
 {
-    // Save a pointer to aux data and the stream for synchronizing after each
-    // step for timing
+    Stopwatch get_step_time;
+
+    // Save a pointer to aux data for timing actions
     // NOTE: instead of synchronizing the stream we could add device timers to
     // reduce the performance impact
-    Stream* stream = nullptr;
     std::vector<double>* accum_time = nullptr;
     if (options_.action_times)
     {
         accum_time = &options_.action_times->state(state.aux()).accum_time;
-        if (M == MemSpace::device)
-        {
-            stream = &device().stream(state.stream_id());
-        }
     }
 
     // When running a single track slot on host, we can preemptively skip
@@ -115,13 +111,13 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
                 !skip_post_action(action))
             {
                 ScopedProfiling profile_this{action.label()};
-                Stopwatch get_time;
+                Stopwatch get_action_time;
                 action.step(params, state);
-                if (stream)
+                if (M == MemSpace::device)
                 {
-                    stream->sync();
+                    device().stream(state.stream_id()).sync();
                 }
-                (*accum_time)[action.action_id().get()] += get_time();
+                (*accum_time)[action.action_id().get()] += get_action_time();
                 if (CELER_UNLIKELY(status_checker_))
                 {
                     status_checker_->step(action.action_id(), params, state);
@@ -145,6 +141,17 @@ void ActionSequence::step(CoreParams const& params, CoreState<M>& state)
             }
         }
     }
+
+    // Record the step time
+    if (options_.step_times && !state.warming_up())
+    {
+        if (M == MemSpace::device)
+        {
+            device().stream(state.stream_id()).sync();
+        }
+        auto& step_times = options_.step_times->state(state.aux()).time;
+        step_times.push_back(get_step_time());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -156,6 +163,19 @@ auto ActionSequence::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
     if (options_.action_times)
     {
         return options_.action_times->get_action_times(aux);
+    }
+    return {};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the step times.
+ */
+auto ActionSequence::get_step_times(AuxStateVec const& aux) const -> VecDbl
+{
+    if (options_.step_times)
+    {
+        return options_.step_times->state(aux).time;
     }
     return {};
 }
