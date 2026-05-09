@@ -106,8 +106,7 @@ void GenericGeoTrackingResult::print_expected() const
     auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
             "GenericGeoTrackingResult ref;\n"
-         << CELER_REF_ATTR(volumes) << CELER_REF_ATTR(volume_instances)
-         << CELER_REF_ATTR(distances);
+         << CELER_REF_ATTR(volume_instances) << CELER_REF_ATTR(distances);
     if (this->dot_normal.empty())
     {
         // See clear_boring_normals
