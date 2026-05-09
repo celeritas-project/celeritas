@@ -92,11 +92,13 @@ class IntegrationSingleton
     //! Mark that auto hooks have been registered externally
     void mark_auto_hooks_active() { auto_hooks_active_ = true; }
 
+    using VerifyCallback = std::function<void(StreamId)>;
+
     // Set callback for run-time setup verification (invoked on begin_run)
-    void set_verify_callback(std::function<void()> cb);
+    void set_verify_callback(VerifyCallback cb);
 
     // Drive offload init/finalize from Geant4 state transitions
-    void on_state_change(GeantStateChange change);
+    void on_state_change(StreamId stream_id, GeantStateChange change);
 
   private:
     //// TYPES ////
@@ -113,8 +115,7 @@ class IntegrationSingleton
     bool have_created_logger_{false};
     bool failed_setup_{false};
     bool auto_hooks_active_{false};
-    bool skipped_missing_options_init_{false};
-    std::function<void()> verify_callback_;
+    VerifyCallback verify_callback_;
 
     //// PRIVATE MEMBER FUNCTIONS ////
 

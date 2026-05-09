@@ -470,13 +470,22 @@ TEST_F(LarSphere, no_set_options)
 
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
-    EXPECT_EQ(0, exceptions_.size());
-    CELER_LOG(status) << "Run two events";
-    rm.BeamOn(2);
 
     std::vector<std::string> expected_exceptions = {
         "SetOptions or UI entries were not completely set before BeginRun",
     };
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    }
+    else
+    {
+        EXPECT_EQ(0, exceptions_.size());
+    }
+
+    CELER_LOG(status) << "Run two events";
+    rm.BeamOn(2);
+
     if (!G4Threading::IsMultithreadedApplication())
     {
         // Geant4 still starts the first local event if an error happens during
@@ -509,8 +518,10 @@ TEST_F(TMIAutoHooks, serial_run)
     EXPECT_TRUE(singleton.auto_hooks_active());
     EXPECT_FALSE(singleton.shared_params());
 
-    std::atomic<int> verify_count{0};
-    singleton.set_verify_callback([&verify_count]() { ++verify_count; });
+    std::vector<StreamId> verified_streams;
+    singleton.set_verify_callback([&verified_streams](StreamId sid) {
+        verified_streams.push_back(sid);
+    });
 
     TMI::Instance().SetOptions(this->make_setup_options());
 
@@ -521,7 +532,8 @@ TEST_F(TMIAutoHooks, serial_run)
 
     rm.BeamOn(1);
 
-    EXPECT_EQ(1, verify_count.load());
+    static StreamId const expected_streams[] = {StreamId{0}};
+    EXPECT_VEC_EQ(expected_streams, verified_streams);
 }
 
 //---------------------------------------------------------------------------//

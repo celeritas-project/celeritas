@@ -119,14 +119,13 @@ void TrackingManagerConstructor::ConstructProcess()
     if (from_tracking_manager_integration_)
     {
         // Register a per-worker StateDependent before any local offload access
-        // so missing setup options are reported by begin_run rather than by
-        // worker construction during run-manager initialization.
+        // so begin/end run transitions drive thread-local offload setup.
         static G4ThreadLocal std::unique_ptr<StateDependent> state_dep;
         if (G4Threading::IsWorkerThread() && !state_dep)
         {
             state_dep = std::make_unique<StateDependent>(
-                [&is](StreamId, GeantStateChange change) {
-                    is.on_state_change(change);
+                [&is](StreamId sid, GeantStateChange change) {
+                    is.on_state_change(sid, change);
                     if (change == GeantStateChange::end_program)
                     {
                         state_dep.reset();

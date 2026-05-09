@@ -195,8 +195,8 @@ TrackingManagerIntegration::TrackingManagerIntegration()
     // Register master-thread state monitor and reset it from the same thread
     // after StateDependent deregisters from Geant4 during shutdown.
     master_state_dependent_ = std::make_unique<StateDependent>(
-        [this, &singleton](StreamId, GeantStateChange change) {
-            singleton.on_state_change(change);
+        [this, &singleton](StreamId sid, GeantStateChange change) {
+            singleton.on_state_change(sid, change);
             if (change == GeantStateChange::end_program)
             {
                 master_state_dependent_.reset();
@@ -204,7 +204,8 @@ TrackingManagerIntegration::TrackingManagerIntegration()
         });
     singleton.mark_auto_hooks_active();
 
-    singleton.set_verify_callback([this]() { this->verify_local_setup(); });
+    singleton.set_verify_callback(
+        [this](StreamId) { this->verify_local_setup(); });
 }
 
 //---------------------------------------------------------------------------//
