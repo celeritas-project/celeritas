@@ -91,7 +91,6 @@ GeantSd::GeantSd(ParticleParams const& par,
     // thread they're created due to Geant4 thread-local allocators.
     // There must be one hit processor per thread.
     processor_weakptrs_.resize(num_streams);
-    processors_.resize(num_streams);
 
     // Map detector volumes
     this->setup_volumes(setup);
@@ -116,28 +115,12 @@ GeantSd::GeantSd(ParticleParams const& par,
 auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
     CELER_EXPECT(sid < processor_weakptrs_.size());
-    CELER_EXPECT(!processors_[sid.get()]);
+    CELER_EXPECT(processor_weakptrs_[sid.get()].expired());
 
     auto result = std::make_shared<HitProcessor>(
         geant_vols_, particles_, selection_, locate_touchable_);
     processor_weakptrs_[sid.get()] = result;
-    processors_[sid.get()] = result.get();
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear local hit processor registration.
- *
- * This must be called on the same thread as \c make_local_processor, before
- * the owning local transporter releases the hit processor.
- */
-void GeantSd::clear_local_processor(StreamId sid)
-{
-    CELER_EXPECT(sid < processors_.size());
-
-    processor_weakptrs_[sid.get()].reset();
-    processors_[sid.get()] = nullptr;
 }
 
 //---------------------------------------------------------------------------//
@@ -284,14 +267,11 @@ void GeantSd::setup_particles(ParticleParams const& par)
  */
 auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
-    CELER_EXPECT(sid < processors_.size());
-    CELER_EXPECT(([&] {
-        // Check that shared pointer is still alive
-        auto sp = processor_weakptrs_[sid.get()].lock();
-        return sp && sp.get() == processors_[sid.get()];
-    }()));
+    CELER_EXPECT(sid < processor_weakptrs_.size());
+    auto sp = processor_weakptrs_[sid.get()].lock();
+    CELER_EXPECT(sp);
 
-    return *processors_[sid.unchecked_get()];
+    return *sp;
 }
 
 //---------------------------------------------------------------------------//

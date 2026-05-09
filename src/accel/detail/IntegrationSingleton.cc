@@ -476,16 +476,6 @@ void IntegrationSingleton::finalize_local_impl()
                    << "local thread " << G4Threading::G4GetThreadId() + 1
                    << " cannot be finalized more than once");
     params_.timer()->RecordActionTime(lt.GetActionTime());
-    if (dynamic_cast<LocalTransporter*>(&lt))
-    {
-        // Geant4 hit processing owns thread-local data, so release its
-        // processor before the local transporter drops the last reference.
-        auto stream_id = id_cast<StreamId>(get_geant_thread_id());
-        if (auto const& hit_manager = params_.hit_manager())
-        {
-            hit_manager->clear_local_processor(stream_id);
-        }
-    }
     lt.Finalize();
 }
 

@@ -78,9 +78,6 @@ class GeantSd final : public StepInterface
     // Create local hit processor
     SPProcessor make_local_processor(StreamId sid);
 
-    // Clear local hit processor registration
-    void clear_local_processor(StreamId sid);
-
     // Selection of data required for this interface
     Filters filters() const final;
 
@@ -120,7 +117,6 @@ class GeantSd final : public StepInterface
     StepPointBool locate_touchable_{};
 
     std::vector<std::weak_ptr<HitProcessor>> processor_weakptrs_;
-    std::vector<HitProcessor*> processors_;
 
     // Construct vecgeom/geant volumes
     void setup_volumes(Input const& setup);
@@ -141,11 +137,6 @@ inline GeantSd::GeantSd(ParticleParams const&, Input const&, StreamId::size_type
 inline GeantSd::~GeantSd() = default;
 
 inline GeantSd::SPProcessor GeantSd::make_local_processor(StreamId)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-inline void GeantSd::clear_local_processor(StreamId)
 {
     CELER_ASSERT_UNREACHABLE();
 }
