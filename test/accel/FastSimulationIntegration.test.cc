@@ -196,6 +196,36 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
 };
 
 /*!
+ * Test the FastSimulationIntegration (FSI) failure cases.
+ *
+ * An exception should be raised when:
+ *
+ * - A particle that Celeritas has been asked to handle does not have a
+ *   G4FastSimulationManagerProcess attached.
+ *
+ * TODO: add check (or separate test) that the offload regions have
+ * the Celeritas model attached.
+ */
+class LarSphereSetupFailure : public LarSphere
+{
+    using Base = IntegrationTestBase;
+
+  protected:
+    // Physics
+    UPPhysicsList make_physics_list() const override
+    {
+        auto physics = Base::make_physics_list();
+        CELER_ASSERT(physics);
+        // Leave out positrons
+        auto fast_physics = new G4FastSimulationPhysics();
+        fast_physics->ActivateFastSimulation("e-");
+        fast_physics->ActivateFastSimulation("gamma");
+        physics->RegisterPhysics(fast_physics);
+        return physics;
+    }
+};
+
+/*!
  * Check that multiple sequential runs complete successfully.
  */
 TEST_F(LarSphere, run)
@@ -269,6 +299,32 @@ TEST_F(LarSphere, run_ui)
     ui.ApplyCommand("/run/beamOn 2");
 
     EXPECT_EQ(get_geant_num_threads(rm), check_count.load());
+}
+
+/*!
+ * Check that mismatch between offload/G4FastSimulationProcess fails.
+ */
+TEST_F(LarSphereSetupFailure, run)
+{
+    check_runtime_errors_ = true;
+
+    CELER_LOG(status) << "LarSphereSetupFailure SETUP";
+
+    auto& rm = this->run_manager();
+    FSI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    CELER_LOG(status) << "Beam on (first run)";
+    rm.BeamOn(2);
+
+    std::vector<std::string> expected_exceptions = {
+        "fast simulation process(es) are not attached correctly (maybe add "
+        "G4FastSimulationPhysics to your physics list?)",
+    };
+    EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    exceptions_.clear();
 }
 
 //---------------------------------------------------------------------------//

@@ -165,4 +165,11 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
+# Test that Fast Simulation setup fails if particles/regions are not correct
+celeritas_add_integration_tests(
+  FastSimulationIntegration LarSphereSetupFailure run
+  OFFLOAD cpu
+  RMTYPE serial
+)
+
 #-----------------------------------------------------------------------------#
