@@ -190,7 +190,9 @@ TEST_F(DetectorTest, simple)
     osi_.problem.generator = celeritas::inp::OpticalDirectGenerator{};
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))(make_span(std::as_const(inits)));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(std::as_const(inits)));
+    run();
 
     // Check results
 
@@ -299,7 +301,9 @@ TEST_F(DetectorTest, stress)
     }();
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
 
@@ -336,7 +340,9 @@ TEST_F(DetectorTest, efficiency)
     }();
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
     if constexpr (reference_configuration)
