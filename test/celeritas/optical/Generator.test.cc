@@ -152,7 +152,9 @@ TEST_F(LArSphereGeneratorTest, primary)
     osi_.problem.capacity.tracks = 16384;
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    auto result = run();
 
     if (reference_configuration)
     {
@@ -185,7 +187,9 @@ TEST_F(LArSphereGeneratorTest, direct)
                                   ImplVolumeId{0}});
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))(make_span(inits));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(inits));
+    auto result = run();
 
     if (reference_configuration
         && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
@@ -221,7 +225,9 @@ TEST_F(LArSphereGeneratorTest, offload)
         = this->make_distributions(osi_.problem.capacity.generators);
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))(make_span(host_data));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(host_data));
+    auto result = run();
 
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
@@ -286,7 +292,9 @@ TEST_F(DuneGeneratorTest, offload)
     CELER_ASSERT(gdd);
 
     // Construct the runner and transport the single distribution
-    auto result = optical::Runner(std::move(osi_))({&gdd, 1});
+    optical::Runner run(std::move(osi_));
+    run.insert({&gdd, 1});
+    auto result = run();
 
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
@@ -317,6 +325,7 @@ TEST_F(WlsGeneratorTest, primary)
 
     // Construct the runner and transport optical primaries
     optical::Runner run(std::move(osi_));
+    run.insert();
     auto result = run();
 
     if (reference_configuration)
