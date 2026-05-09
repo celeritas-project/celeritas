@@ -934,9 +934,11 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    VolumeParams volume_params{geo->make_model_input().volumes};
+    auto volume_params = geo->volume_params();
+    CELER_VALIDATE(volume_params,
+                   << "canonical volume metadata is unavailable");
 
-    auto const& volumes = volume_params.volume_labels();
+    auto const& volumes = volume_params->volume_labels();
     std::vector<ImportVolume> result(volumes.size());
     size_type count{0};
 
@@ -959,7 +961,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        volume.name = to_string(volume_params.volume_labels().at(vol_id));
+        volume.name = to_string(volume_params->volume_labels().at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;

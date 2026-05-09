@@ -527,6 +527,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Construct Impl vol/inst maps
         if (geant_geo_)
         {
+            volume_params_ = geant_geo_->volume_params();
+
             // Built with Geant4: use G4VG-provided mapping
             for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
             {
@@ -653,7 +655,13 @@ inp::Model VecgeomParams::make_model_input() const
         << R"(VecGeom standalone model input is not fully implemented)";
 
     inp::Model result;
-    inp::Volumes& v = result.volumes;
+    if (volume_params_)
+    {
+        result.volumes = volume_params_;
+        return result;
+    }
+
+    inp::Volumes& v = std::get<inp::Volumes>(result.volumes);
     v.volumes.resize(impl_volumes_.size());
     v.volume_instances.resize(impl_vol_instances_.size());
 
@@ -688,8 +696,7 @@ inp::Model VecgeomParams::make_model_input() const
             = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
     }
 
-    result.volumes.world
-        = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
+    v.world = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
     return result;
 }
 

@@ -36,7 +36,8 @@ void CaloTestBase::SetUp()
     this->geometry();
 
     size_type const num_streams = 1;
-    calo_ = std::make_shared<SimpleCalo>(std::move(labels), num_streams);
+    calo_ = std::make_shared<SimpleCalo>(
+        std::move(labels), num_streams, *this->volume());
 
     StepCollector::VecInterface interfaces = {calo_};
 

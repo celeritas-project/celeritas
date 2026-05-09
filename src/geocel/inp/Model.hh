@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <set>
 #include <string>
 #include <utility>
@@ -19,6 +20,8 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class VolumeParams;
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -182,7 +185,7 @@ struct Model
     std::variant<std::string, G4VPhysicalVolume const*> geometry;
 
     // TODO: Materials
-    Volumes volumes;
+    std::variant<Volumes, std::shared_ptr<VolumeParams const>> volumes;
     Surfaces surfaces;
     Detectors detectors;
     Regions regions;

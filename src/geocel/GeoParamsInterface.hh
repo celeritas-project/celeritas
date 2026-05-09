@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+
 #include "corecel/Macros.hh"
 #include "corecel/cont/LabelIdMultiMap.hh"  // IWYU pragma: export
 #include "corecel/cont/Span.hh"  // IWYU pragma: export
@@ -19,6 +21,8 @@ class G4VPhysicalVolume;
 
 namespace celeritas
 {
+class VolumeParams;
+
 namespace inp
 {
 struct Model;
@@ -38,6 +42,7 @@ class GeoParamsInterface
     //! \name Type aliases
     using SpanConstVolumeId = Span<ImplVolumeId const>;
     using ImplVolumeMap = LabelIdMultiMap<ImplVolumeId>;
+    using SPConstVolumeParams = std::shared_ptr<VolumeParams const>;
     //!@}
 
   public:
@@ -56,6 +61,9 @@ class GeoParamsInterface
 
     //! Get volume metadata
     virtual ImplVolumeMap const& impl_volumes() const = 0;
+
+    //! Get canonical volume metadata if available
+    virtual SPConstVolumeParams const& volume_params() const = 0;
 
     //! Get the canonical volume IDs corresponding to an implementation volume
     virtual VolumeId volume_id(ImplVolumeId) const = 0;
