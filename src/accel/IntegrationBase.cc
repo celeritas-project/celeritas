@@ -44,6 +44,8 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
+    // TrackingManagerIntegration can be driven by Geant4 StateDependent
+    // callbacks; avoid duplicating initialization from user run actions.
     if (this->use_auto_hooks() && singleton.auto_hooks_active())
         return;
 
@@ -65,6 +67,8 @@ void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
+    // TrackingManagerIntegration can be driven by Geant4 StateDependent
+    // callbacks; avoid duplicating finalization from user run actions.
     if (this->use_auto_hooks() && singleton.auto_hooks_active())
         return;
 

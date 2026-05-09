@@ -6,10 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
-
-#include "celeritas/g4/StateDependent.hh"
-
 #include "IntegrationBase.hh"
 
 namespace celeritas
@@ -45,8 +41,6 @@ class TrackingManagerIntegration final : public IntegrationBase
 
     // Verify tracking manager setup
     void verify_local_setup() final;
-
-    std::unique_ptr<StateDependent> master_state_dependent_;
 };
 
 //---------------------------------------------------------------------------//

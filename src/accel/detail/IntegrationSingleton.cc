@@ -335,6 +335,33 @@ void IntegrationSingleton::set_verify_callback(VerifyCallback cb)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Register master-thread Geant4 state hook.
+ *
+ * Worker hooks are thread-local and registered from
+ * TrackingManagerConstructor on each worker thread.
+ */
+void IntegrationSingleton::register_auto_hooks()
+{
+    if (auto_hooks_active_)
+    {
+        return;
+    }
+
+    // Register master-thread state monitor and reset it from the same thread
+    // after StateDependent deregisters from Geant4 during shutdown.
+    master_state_dependent_ = std::make_unique<StateDependent>(
+        [this](StreamId sid, GeantStateChange change) {
+            this->on_state_change(sid, change);
+            if (change == GeantStateChange::end_program)
+            {
+                master_state_dependent_.reset();
+            }
+        });
+    auto_hooks_active_ = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Drive offload init/finalize from Geant4 state transitions.
  *
  * The state callback supplies a null stream ID for the MT master thread and a

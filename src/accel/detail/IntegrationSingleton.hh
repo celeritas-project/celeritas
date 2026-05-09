@@ -86,11 +86,11 @@ class IntegrationSingleton
     // Destroy local transporter and shared params
     void finalize_offload();
 
-    //! Whether auto state hooks are active (StateDependent registered)
+    //! Whether Geant4 state hooks own begin/end run lifecycle management
     bool auto_hooks_active() const { return auto_hooks_active_; }
 
-    //! Mark that auto hooks have been registered externally
-    void mark_auto_hooks_active() { auto_hooks_active_ = true; }
+    // Register master-thread Geant4 state hook for automatic lifecycle updates
+    void register_auto_hooks();
 
     using VerifyCallback = std::function<void(StreamId)>;
 
@@ -111,6 +111,7 @@ class IntegrationSingleton
     SharedParams params_;
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;
+    std::unique_ptr<StateDependent> master_state_dependent_;
     Stopwatch get_time_;
     bool have_created_logger_{false};
     bool failed_setup_{false};

@@ -20,7 +20,6 @@
 #include "corecel/io/Join.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/g4/StateDependent.hh"
 
 #include "ExceptionConverter.hh"
 #include "TrackingManagerConstructor.hh"
@@ -192,18 +191,7 @@ TrackingManagerIntegration::TrackingManagerIntegration()
 {
     auto& singleton = detail::IntegrationSingleton::instance();
 
-    // Register master-thread state monitor and reset it from the same thread
-    // after StateDependent deregisters from Geant4 during shutdown.
-    master_state_dependent_ = std::make_unique<StateDependent>(
-        [this, &singleton](StreamId sid, GeantStateChange change) {
-            singleton.on_state_change(sid, change);
-            if (change == GeantStateChange::end_program)
-            {
-                master_state_dependent_.reset();
-            }
-        });
-    singleton.mark_auto_hooks_active();
-
+    singleton.register_auto_hooks();
     singleton.set_verify_callback(
         [this](StreamId) { this->verify_local_setup(); });
 }
