@@ -255,21 +255,22 @@ get_placed_volume(vecgeom::GeoManager const& geo, VgVolumeInstanceId ivi_id)
 struct StreamablePointer
 {
     void const* ptr{nullptr};
+
+    [[maybe_unused]]
+    friend std::ostream& operator<<(std::ostream& os, StreamablePointer sp)
+    {
+        if (sp.ptr)
+        {
+            os << sp.ptr;
+        }
+        else
+        {
+            os << "nullptr";
+        }
+
+        return os;
+    }
 };
-
-std::ostream& operator<<(std::ostream& os, StreamablePointer sp)
-{
-    if (sp.ptr)
-    {
-        os << sp.ptr;
-    }
-    else
-    {
-        os << "nullptr";
-    }
-
-    return os;
-}
 
 //---------------------------------------------------------------------------//
 /*!

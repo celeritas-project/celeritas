@@ -57,7 +57,7 @@ struct StreamableActionException
     CheckedGeoTrackView const& geo;
     std::exception const& e;
 
-    friend std::ostream&
+    [[maybe_unused]] friend std::ostream&
     operator<<(std::ostream& os, StreamableActionException const& sae)
     {
         os << "Caught exception during '" << sae.action

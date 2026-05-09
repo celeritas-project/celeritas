@@ -8,8 +8,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
