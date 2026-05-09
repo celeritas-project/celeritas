@@ -23,7 +23,7 @@ namespace
 /*!
  * Sort and uniquify a vector.
  */
-void sort_and_uniquify(std::vector<real_type>& vec)
+void sort_and_uniquify(std::vector<fast_real_type>& vec)
 {
     std::sort(vec.begin(), vec.end());
 
@@ -33,6 +33,7 @@ void sort_and_uniquify(std::vector<real_type>& vec)
     vec.erase(last, vec.end());
 }
 }  // namespace
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
