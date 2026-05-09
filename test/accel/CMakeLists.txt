@@ -165,4 +165,11 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
+# Test that we can safely flush and restore primaries multiple times per event
+celeritas_add_integration_tests(
+  TrackingManagerIntegration WaterSphere run_small_flush
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
+
 #-----------------------------------------------------------------------------#
