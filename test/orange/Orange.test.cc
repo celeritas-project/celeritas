@@ -13,6 +13,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "orange/Debug.hh"
@@ -44,6 +45,12 @@ class OrangeTest : public OrangeGeoTestBase
     ImplSurfaceId impl_surface_id(WrappedGeoTrack const& geo) const
     {
         return geo.track_view().impl_surface_id();
+    }
+
+    real_type max_step() const
+    {
+        auto const& bbox = this->params().bbox();
+        return distance(bbox.lower(), bbox.upper());
     }
 };
 
@@ -98,7 +105,7 @@ TEST_F(OneVolumeTest, track_view)
     EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     // Try a boundary
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
     geo.move_internal(2.5);
@@ -110,7 +117,7 @@ TEST_F(OneVolumeTest, track_view)
 
     // Change direction
     geo.set_dir({0, 1, 0});
-    next = geo.find_next_step();
+    next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
 
@@ -206,10 +213,10 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(GeoStatus::interior, geo.geo_status());
 
     // Try a boundary; second call should be cached
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(sqrt_two, next.distance);
     EXPECT_TRUE(next.boundary);
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(sqrt_two, next.distance);
     EXPECT_TRUE(next.boundary);
 
@@ -218,7 +225,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_VEC_SOFT_EQ(Real3({0.5, 0, 1}), geo.pos());
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
     // Next step should still be cached
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(sqrt_two - 1, next.distance);
     EXPECT_TRUE(next.boundary);
 
@@ -244,7 +251,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
 
     // Move internally to an arbitrary position
-    geo.find_next_step();
+    geo.find_next_step(this->max_step());
     EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
     geo.move_internal({2, 2, 0});
     EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
@@ -253,7 +260,7 @@ TEST_F(TwoVolumeTest, simple_track)
     EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, geo.find_safety());
     geo.set_dir({-sqrt_two / 2, -sqrt_two / 2, 0});
 
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2 * sqrt_two - 1.5, next.distance);
     EXPECT_TRUE(next.boundary);
     geo.move_to_boundary();
@@ -273,7 +280,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
 
     {
         // Find distance
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
@@ -298,7 +305,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir)
     }
     {
         // Find next distance
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(2.98, next.distance);
     }
@@ -313,7 +320,7 @@ TEST_F(TwoVolumeTest, nonreentrant_boundary_setdir)
 
     {
         // Find distance
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
@@ -350,7 +357,7 @@ TEST_F(TwoVolumeTest, doubly_reentrant_boundary_setdir)
 
     {
         // Find distance
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
@@ -392,7 +399,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
 
     {
         // Find distance
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0.17291616465790594, next.distance);
     }
@@ -416,7 +423,7 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
 
         // Find distance (TODO: this will become an error)
-        Propagation next = geo.find_next_step();
+        Propagation next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0, next.distance);
 
@@ -424,14 +431,14 @@ TEST_F(TwoVolumeTest, reentrant_boundary_setdir_post)
         geo.set_dir({-sqrt_two / 2, sqrt_two / 2, 0});
         EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
         // TODO: this will become an error
-        next = geo.find_next_step();
+        next = geo.find_next_step(this->max_step());
         EXPECT_TRUE(next.boundary);
         EXPECT_SOFT_EQ(0, next.distance);
 
         // Propose a new direction headed outside again
         geo.set_dir({0, 1, 0});
         EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
-        next = geo.find_next_step();
+        next = geo.find_next_step(inf);
         EXPECT_FALSE(next.boundary);
         EXPECT_SOFT_EQ(inf, next.distance);
     }
@@ -442,7 +449,7 @@ TEST_F(TwoVolumeTest, persistence)
     {
         auto geo = this->make_geo_track_view();
         geo = Initializer_t{{2.5, 0, 0}, {-1, 0, 0}};
-        geo.find_next_step();
+        geo.find_next_step(this->max_step());
         geo.move_to_boundary();
     }
     {
@@ -459,7 +466,7 @@ TEST_F(TwoVolumeTest, persistence)
         EXPECT_EQ(ImplSurfaceId{0}, this->impl_surface_id(geo));
         EXPECT_VEC_SOFT_EQ(Real3({1.5, 0, 0}), geo.pos());
         EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.dir());
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(this->max_step());
         EXPECT_SOFT_EQ(3.0, next.distance);
         EXPECT_TRUE(next.boundary);
         geo.move_to_boundary();
@@ -484,7 +491,7 @@ TEST_F(TwoVolumeTest, persistence)
     {
         auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(this->max_step());
         EXPECT_SOFT_EQ(0.17712434446770464, next.distance);
         EXPECT_TRUE(next.boundary);
         geo.move_internal(0.1);
@@ -494,7 +501,7 @@ TEST_F(TwoVolumeTest, persistence)
         auto geo = this->make_geo_track_view();
         EXPECT_VEC_SOFT_EQ(Real3({-1.4, .5, .5}), geo.pos());
         EXPECT_EQ(ImplSurfaceId{}, this->impl_surface_id(geo));
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(this->max_step());
         EXPECT_SOFT_EQ(0.07712434446770464, next.distance);
         EXPECT_TRUE(next.boundary);
     }
@@ -543,7 +550,7 @@ TEST_F(TwoVolumeTest, intersect_limited)
         EXPECT_SOFT_EQ(d, next.distance);
         EXPECT_FALSE(next.boundary);
     }
-    next = geo.find_next_step();
+    next = geo.find_next_step(inf);
     EXPECT_SOFT_EQ(inf, next.distance);
     EXPECT_FALSE(next.boundary);
     next = geo.find_next_step(12345.0);

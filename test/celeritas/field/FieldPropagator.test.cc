@@ -370,10 +370,12 @@ TEST_F(TwoBoxesTest, gamma_exit)
     {
         SCOPED_TRACE("Exact boundary");
         auto geo = this->make_geo_track_view({2, 4.75, 0}, {0, 1, 0});
-        real_type const exact_distance = [&geo] {
+        auto const& bbox = this->geometry()->bbox();
+        real_type const max_distance = distance(bbox.lower(), bbox.upper());
+        real_type const exact_distance = [&geo, max_distance] {
             // Note: exact distance may be slightly off for VecGeom surface,
             // which applies rotation matrices to planar surfaces
-            auto result = geo.find_next_step();
+            auto result = geo.find_next_step(max_distance);
             EXPECT_TRUE(result.boundary);
             EXPECT_SOFT_EQ(result.distance, 0.25);
             return result.distance;

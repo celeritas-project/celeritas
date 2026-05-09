@@ -26,8 +26,6 @@
 #include "celeritas/phys/GeneratorCounters.hh"
 #include "celeritas/phys/Model.hh"
 
-#include "StepTimer.hh"
-
 namespace celeritas
 {
 namespace app
@@ -63,7 +61,6 @@ Transporter<M>::Transporter(TransporterInput inp)
     , num_streams_(inp.params->max_streams())
     , log_progress_(inp.log_progress)
     , store_track_counts_(inp.store_track_counts)
-    , store_step_times_(inp.store_step_times)
 {
     CELER_EXPECT(inp);
     CELER_VALIDATE(log_progress_ > 0, << "log_progress must be positive");
@@ -139,10 +136,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         result.active.reserve(std::min(min_alloc, max_steps_));
         result.alive.reserve(std::min(min_alloc, max_steps_));
     }
-    if (store_step_times_)
-    {
-        result.step_times.reserve(std::min(min_alloc, max_steps_));
-    }
 
     CELER_LOG(status) << "Running";
 
@@ -159,15 +152,12 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         log_progress(evt_id, primaries.size());
     }
 
-    StepTimer record_step_time{store_step_times_ ? &result.step_times
-                                                 : nullptr};
     size_type remaining_steps = max_steps_;
 
     auto& step = *stepper_;
     // Copy primaries to device and transport the first step
     auto track_counts = step(primaries);
     append_track_counts(track_counts);
-    record_step_time();
 
     GeneratorCounters optical_counts;
     while (track_counts || !optical_counts.empty())
@@ -188,7 +178,6 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 
         track_counts = step();
         append_track_counts(track_counts);
-        record_step_time();
 
         if (optical_)
         {
@@ -248,8 +237,7 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
 template<MemSpace M>
 void Transporter<M>::accum_action_times(MapStrDouble* result) const
 {
-    // Get kernel timing if running with a single stream and if
-    // synchronization is enabled
+    // Get kernel timing if synchronization is enabled
     auto const& step = *stepper_;
     auto const& action_seq = step.actions();
 
@@ -269,6 +257,16 @@ void Transporter<M>::accum_action_times(MapStrDouble* result) const
             (*result)["optical::" + label] += time;
         }
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get step times for this thread.
+ */
+template<MemSpace M>
+auto Transporter<M>::get_step_times() const -> VecDouble
+{
+    return stepper_->actions().get_step_times(stepper_->state().aux());
 }
 
 //---------------------------------------------------------------------------//

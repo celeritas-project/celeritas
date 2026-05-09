@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 #include "orange/Debug.hh"
@@ -56,6 +57,12 @@ class JsonOrangeTest : public OrangeGeoTestBase
         // Access OrangeTrackView through WrappedTrackView
         auto impl_surface = geo.track_view().impl_surface_id();
         return this->geometry()->surfaces().at(impl_surface).name;
+    }
+
+    real_type max_step() const
+    {
+        auto const& bbox = this->params().bbox();
+        return distance(bbox.lower(), bbox.upper());
     }
 };
 
@@ -253,12 +260,12 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
 
     // Move internally, then check that the distance to boundary is correct
     geo.move_internal({0.625, -1, 1});
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     // Move again, using other move_internal method
     geo.move_internal(0.1);
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.9, next.distance);
 }
 
@@ -285,7 +292,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -304,7 +311,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -318,7 +325,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.75, next.distance);
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
@@ -336,7 +343,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -350,7 +357,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, 1, 1}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -369,7 +376,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -383,7 +390,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -402,7 +409,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -415,7 +422,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -434,7 +441,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -447,7 +454,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.25, next.distance);
 
     geo.move_to_boundary();
@@ -466,7 +473,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -481,7 +488,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     // Initialize in outermost universe
     geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     geo.move_to_boundary();
@@ -500,7 +507,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -514,7 +521,7 @@ TEST_F(UniversesTest, reentrant)
 
     // Initialize in innermost universe
     geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     // Move to universe boundary
@@ -538,7 +545,7 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after calling cross_boundary
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
@@ -595,7 +602,7 @@ TEST_F(NestedRectArraysTest, tracking)
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Afill", this->volume_name(geo));
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -613,7 +620,7 @@ TEST_F(NestedRectArraysTest, tracking)
     EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 }
 
@@ -630,7 +637,7 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Bfill", this->volume_name(geo));
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -648,7 +655,7 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(16, next.distance);
 }
 
@@ -684,11 +691,11 @@ TEST_F(Geant4Testem15Test, safety)
 
     // Check safety near edge
     geo.set_dir({0, 1, 0});
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     geo.move_internal(4990.0);
     EXPECT_SOFT_EQ(5.0, geo.find_safety());
     geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
