@@ -131,6 +131,7 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       from_cm(Real3{2, 4, 5}),
                       Real3{1, 0, 0},
                       5.67e-9 * units::second,
+                      /* weight = */ 1.0,
                       EventId{0},
                       PrimaryId{0}};
         Primary proton{proton_id,
@@ -138,6 +139,7 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                        from_cm(Real3{3, 5, 8}),
                        Real3{0, 1, 0},
                        5.78e-9 * units::second,
+                       /* weight = */ 1.0,
                        EventId{0},
                        PrimaryId{0}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};

@@ -35,7 +35,6 @@
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -322,6 +321,8 @@ TestOffload IntegrationTestBase::test_offload()
 //---------------------------------------------------------------------------//
 /*!
  * Get the run manager type for the test, as set by environment variable.
+ *
+ * \return one of {"serial", "mt", "tasking"}
  */
 std::string IntegrationTestBase::test_runman_type()
 {
@@ -710,6 +711,71 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
         return opt;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+// WaterSphere
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list with
+ */
+auto WaterSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PhysicsInput result = Base::make_physics_input();
+    result.em_bins_per_decade = 10;
+    result.min_energy = MevEnergy{0.01};
+    result.default_cutoff = 0.1 * units::centimeter;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create many 2 MeV gamma primaries isotropically from the origin.
+ */
+auto WaterSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::gamma()};
+    result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({0, 0, 0}))};
+    result.angle = inp::IsotropicDistribution{};
+    result.num_events = 64;
+    result.primaries_per_event = 128;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create Celeritas setup options.
+ */
+SetupOptions WaterSphereIntegrationMixin::make_setup_options()
+{
+    auto opts = Base::make_setup_options();
+    opts.max_num_tracks = 8;
+    opts.initializer_capacity = 1024 * 128;
+
+    // Use a uniform (zero) magnetic field
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // Save diagnostic file to a unique name
+    opts.output_file = this->make_unique_filename(".out.json");
+    return opts;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
+ */
+auto WaterSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
+    -> UPSensDet
+{
+    EXPECT_EQ("detshell", sd_name);
+    return std::make_unique<ShimSensitiveDetector>(
+        sd_name,
+        [this](G4Step const* step) { return this->process_hit(step); });
 }
 
 //---------------------------------------------------------------------------//
