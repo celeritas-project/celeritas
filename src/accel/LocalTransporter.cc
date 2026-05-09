@@ -210,9 +210,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         step_ = std::make_shared<Stepper<MemSpace::host>>(std::move(inp));
     }
 
-    // Save state for reductions at the end
-    params.set_state(stream_id.get(), step_->sp_state());
-
     // Save optical pointers if available, for diagnostics
     optical_ = params.problem_loaded().optical_collector;
 

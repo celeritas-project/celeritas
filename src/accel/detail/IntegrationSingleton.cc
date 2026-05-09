@@ -478,12 +478,13 @@ void IntegrationSingleton::finalize_local_impl()
     params_.timer()->RecordActionTime(lt.GetActionTime());
     if (dynamic_cast<LocalTransporter*>(&lt))
     {
+        // Geant4 hit processing owns thread-local data, so release its
+        // processor before the local transporter drops the last reference.
         auto stream_id = id_cast<StreamId>(get_geant_thread_id());
         if (auto const& hit_manager = params_.hit_manager())
         {
             hit_manager->clear_local_processor(stream_id);
         }
-        params_.clear_state(stream_id.get());
     }
     lt.Finalize();
 }
