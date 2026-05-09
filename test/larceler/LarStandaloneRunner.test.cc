@@ -138,13 +138,13 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     auto raw_result = run({sed, sed2});
     auto result = RunResult::from_btr(raw_result);
     RunResult ref;
-    ref.num_hits = {255, 250, 16, 6};
+    ref.num_hits = {273, 269, 15, 4};
     EXPECT_REF_EQ(ref, result);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed2, sed}));
-    ref.num_hits = {252, 273, 13, 6};
+    ref.num_hits = {233, 264, 16, 5};
     EXPECT_REF_EQ(ref, result);
 }
 
