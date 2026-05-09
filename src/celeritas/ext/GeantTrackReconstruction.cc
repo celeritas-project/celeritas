@@ -29,7 +29,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-int get_g4_current_event_id()
+[[maybe_unused]] int get_g4_current_event_id()
 {
     auto* evtman = G4EventManager::GetEventManager();
     CELER_ASSERT(evtman);
