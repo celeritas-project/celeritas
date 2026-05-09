@@ -17,7 +17,6 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 
 #include "GenericGeoTestInterface.hh"
@@ -257,103 +256,49 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 {
     GenericGeoModelInp result;
 
-    std::visit(
-        Overload{
-            [&result](inp::Volumes const& volumes) {
-                // Extract volume data
-                result.volume.labels.reserve(volumes.volumes.size());
-                result.volume.materials.reserve(volumes.volumes.size());
-                result.volume.daughters.reserve(volumes.volumes.size());
+    // Extract volume data
+    if (auto* vols = std::get_if<inp::Volumes>(&in.volumes))
+    {
+        result.volume.labels.reserve(vols->volumes.size());
+        result.volume.materials.reserve(vols->volumes.size());
+        result.volume.daughters.reserve(vols->volumes.size());
 
-                for (auto i : range(volumes.volumes.size()))
-                {
-                    auto const& vol = volumes.volumes[i];
-                    result.volume.labels.push_back(to_string(vol.label));
-                    result.volume.materials.push_back(id_to_int(vol.material));
+        for (auto i : range(vols->volumes.size()))
+        {
+            auto const& vol = vols->volumes[i];
+            result.volume.labels.push_back(to_string(vol.label));
+            result.volume.materials.push_back(id_to_int(vol.material));
 
-                    std::vector<int> daughters;
-                    daughters.reserve(vol.children.size());
-                    for (auto child_id : vol.children)
-                    {
-                        daughters.push_back(id_to_int(child_id));
-                    }
-                    result.volume.daughters.push_back(std::move(daughters));
-                }
+            std::vector<int> daughters;
+            daughters.reserve(vol.children.size());
+            for (auto child_id : vol.children)
+            {
+                daughters.push_back(id_to_int(child_id));
+            }
+            result.volume.daughters.push_back(std::move(daughters));
+        }
 
-                // Extract volume instance data
-                result.volume_instance.labels.reserve(
-                    volumes.volume_instances.size());
-                result.volume_instance.volumes.reserve(
-                    volumes.volume_instances.size());
+        // Extract volume instance data
+        result.volume_instance.labels.reserve(vols->volume_instances.size());
+        result.volume_instance.volumes.reserve(vols->volume_instances.size());
 
-                for (auto i : range(volumes.volume_instances.size()))
-                {
-                    auto const& vol_inst = volumes.volume_instances[i];
-                    result.volume_instance.labels.push_back(
-                        to_string(vol_inst.label));
-                    result.volume_instance.volumes.push_back(
-                        id_to_int(vol_inst.volume));
-                }
+        for (auto i : range(vols->volume_instances.size()))
+        {
+            auto const& vol_inst = vols->volume_instances[i];
+            result.volume_instance.labels.push_back(to_string(vol_inst.label));
+            result.volume_instance.volumes.push_back(
+                id_to_int(vol_inst.volume));
+        }
 
-                if (volumes.world < result.volume.labels.size())
-                {
-                    result.world = result.volume.labels[volumes.world.get()];
-                }
-                else
-                {
-                    result.world = "<invalid>";
-                }
-            },
-            [&result](std::shared_ptr<VolumeParams const> const& volumes) {
-                CELER_ASSERT(volumes);
-
-                auto const num_volumes = volumes->num_volumes();
-                result.volume.labels.reserve(num_volumes);
-                result.volume.materials.reserve(num_volumes);
-                result.volume.daughters.reserve(num_volumes);
-
-                auto const& vol_labels = volumes->volume_labels();
-                for (auto i : range(num_volumes))
-                {
-                    VolumeId vid{i};
-                    result.volume.labels.push_back(
-                        to_string(vol_labels.at(vid)));
-                    result.volume.materials.push_back(
-                        id_to_int(volumes->material(vid)));
-
-                    std::vector<int> daughters;
-                    for (auto child_id : volumes->children(vid))
-                    {
-                        daughters.push_back(id_to_int(child_id));
-                    }
-                    result.volume.daughters.push_back(std::move(daughters));
-                }
-
-                auto const num_instances = volumes->num_volume_instances();
-                result.volume_instance.labels.reserve(num_instances);
-                result.volume_instance.volumes.reserve(num_instances);
-
-                auto const& vi_labels = volumes->volume_instance_labels();
-                for (auto i : range(num_instances))
-                {
-                    VolumeInstanceId vid{i};
-                    result.volume_instance.labels.push_back(
-                        to_string(vi_labels.at(vid)));
-                    result.volume_instance.volumes.push_back(
-                        id_to_int(volumes->volume(vid)));
-                }
-
-                if (auto world = volumes->world();
-                    world < result.volume.labels.size())
-                {
-                    result.world = result.volume.labels[world.get()];
-                }
-                else
-                {
-                    result.world = "<invalid>";
-                }
-            }},
-        in.volumes);
+        if (vols->world < result.volume.labels.size())
+        {
+            result.world = result.volume.labels[vols->world.get()];
+        }
+        else
+        {
+            result.world = "<invalid>";
+        }
+    }
 
     // Extract surface data
     result.surface.labels.reserve(in.surfaces.surfaces.size());
