@@ -217,7 +217,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     }
 
     // Execute
-    runner->insert(make_span(std::as_const(gdd)));
+    runner_->insert(make_span(std::as_const(gdd)));
     auto result = (*runner_)();
 
     CELER_ASSERT(result.counters.generators.size() == 1);
