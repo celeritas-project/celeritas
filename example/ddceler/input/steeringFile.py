@@ -7,8 +7,6 @@ from DDSim.DD4hepSimulation import DD4hepSimulation
 runner = DD4hepSimulation()
 
 # Action configuration
-# NOTE: CelerRun is no longer needed with auto-hook registration
-# runner.action.run = "CelerRun"
 runner.action.tracker = "Geant4TrackerAction"
 runner.action.trackerSDTypes = ["tracker"]
 runner.action.calo = "Geant4CalorimeterAction"
