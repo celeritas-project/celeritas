@@ -947,17 +947,22 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
 
         atomic_max(max_track_id_, track_id);
         atomic_max(max_parent_id_, parent_id);
+        ++num_hits_;
     }
 
     //! Get and reset track, parent IDs
     std::pair<int, int> exchange_max_ids()
     {
-        return {max_track_id_.exchange(0), max_parent_id_.exchange(0)};
+        return {max_track_id_.exchange(-1), max_parent_id_.exchange(-1)};
     }
 
+    //! Exchange hit counter
+    int exchange_hit_count() { return num_hits_.exchange(0); }
+
   protected:
-    std::atomic<int> max_track_id_{0};
-    std::atomic<int> max_parent_id_{0};
+    std::atomic<int> max_track_id_{-1};
+    std::atomic<int> max_parent_id_{-1};
+    std::atomic<int> num_hits_{0};
 };
 
 /*!
@@ -994,6 +999,8 @@ TEST_F(WaterSphere, run_small_flush)
             << "Expected message not found in logs:\n"
             << scoped_log_;
 
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
         auto&& [max_track, max_parent] = this->exchange_max_ids();
         EXPECT_GE(max_parent, 0);
         EXPECT_GT(max_track, max_parent);
@@ -1009,9 +1016,13 @@ TEST_F(WaterSphere, run_small_flush)
     }
 
     rm.BeamOn(4);
-    auto&& [max_track, max_parent] = this->exchange_max_ids();
-    EXPECT_GE(max_parent, 0);
-    EXPECT_GT(max_track, max_parent);
+    {
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto&& [max_track, max_parent] = this->exchange_max_ids();
+        EXPECT_GE(max_parent, 0);
+        EXPECT_GT(max_track, max_parent);
+    }
 }
 
 //---------------------------------------------------------------------------//
