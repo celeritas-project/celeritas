@@ -248,9 +248,9 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  *
  * If the position is already inside the bounding box, the result is always
  * true. This uses a separating-axis test (see \citet{ericson-collision-2004,
- * https://www.taylorfrancis.com/books/9780080474144 }). It translates the
- * coordinate system to the center of the bbox and tests six axes (see Fig
- * 5.23, Table 5.1 in reference):
+ * https://www.taylorfrancis.com/books/9780080474144} ). It translates the
+ * coordinate system to the center of the bbox and tests six axes
+ * (see Fig. 5.23, Table 5.1 in reference):
  * - The AABB face normals
  * - The cross products between the direction vector and face normals
  *
