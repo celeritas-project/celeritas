@@ -117,7 +117,7 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get (logical) volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
-    // Get canonical volume metadata
+    //! Get canonical volume metadata
     SPConstVolumeParams const& volumes() const final { return volume_params_; }
 
     // Get the Geant4 physical volume corresponding to a volume instance ID

@@ -32,8 +32,8 @@ struct Model;
  * Interface class for accessing host geometry metadata.
  *
  * This class is implemented by \c OrangeParams to allow navigation with the
- * ORANGE geometry implementation, \c VecgeomParams for using VecGeom, and \c
- * GeantGeoParams for testing with the Geant4-provided navigator.
+ * ORANGE geometry implementation, \c VecgeomParams for using VecGeom, and
+ * \c GeantGeoParams for testing with the Geant4-provided navigator.
  */
 class GeoParamsInterface
 {
@@ -62,7 +62,7 @@ class GeoParamsInterface
     //! Get volume metadata
     virtual ImplVolumeMap const& impl_volumes() const = 0;
 
-    //! Get canonical volume metadata if available
+    //! Get structural volume metadata if available
     virtual SPConstVolumeParams const& volumes() const = 0;
 
     //! Get the canonical volume IDs corresponding to an implementation volume
