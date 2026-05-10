@@ -174,6 +174,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 {
     CELER_EXPECT(current_depth < inp_.depth_limit);
 
+    using Side = BIHInnerNode::Side;
+
     ++current_depth;
     auto current_index = nodes->size();
     nodes->resize(nodes->size() + 1);
@@ -199,6 +201,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     }
 
     BIHPartitioner partition(temp_.bboxes, temp_.centers, inp_.num_part_cands);
+    // Left BIH extents are the "high" side of the bbox, and vice versa
+    constexpr EnumArray<Side, Bound> bbox_plane_bound{Bound::hi, Bound::lo};
 
     if (auto p = partition(indices))
     {
@@ -207,10 +211,10 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         node.axis = p.axis;
 
         // Recursively construct the left and right branches
-        for (auto side : range(Bound::size_))
+        for (auto side : range(Side::size_))
         {
             node.edges[side].bounding_plane_pos
-                = p.bboxes[side].point(flip_bound(side), p.axis);
+                = p.bboxes[side].point(bbox_plane_bound[side], p.axis);
             node.edges[side].bbox = p.bboxes[side];
 
             node.edges[side].child = id_cast<BIHNodeId>(nodes->size());

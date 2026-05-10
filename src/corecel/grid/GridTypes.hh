@@ -63,12 +63,6 @@ CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
     return static_cast<int>(b);
 }
 
-//! Change from one side to the other
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION Bound flip_bound(Bound orig)
-{
-    return static_cast<Bound>(!static_cast<bool>(orig));
-}
-
 // Get a string corresponding to the interpolation method
 char const* to_cstring(InterpolationType value);
 

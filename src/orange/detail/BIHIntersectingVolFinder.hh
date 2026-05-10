@@ -122,6 +122,8 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
+    using Side = BIHInnerNode::Side;
+
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     // Stack of deferred nodes
@@ -146,17 +148,17 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         int ax = to_int(node.axis);
 
         // Guess the better edge to traverse first
-        auto first_edge = node.edges[Bound::lo];
-        auto second_edge = node.edges[Bound::hi];
+        auto first_edge = node.edges[Side::left];
+        auto second_edge = node.edges[Side::right];
 
         bool skip_first
             = (ray.dir[ax] >= 0)
-              && (ray.pos[ax] > node.edges[Bound::lo].bounding_plane_pos);
+              && (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos);
         bool skip_second
             = (ray.dir[ax] <= 0)
-              && (ray.pos[ax] < node.edges[Bound::hi].bounding_plane_pos);
+              && (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos);
 
-        if (ray.pos[ax] > node.edges[Bound::hi].bounding_plane_pos)
+        if (ray.pos[ax] > node.edges[Side::right].bounding_plane_pos)
         {
             trivial_swap(first_edge, second_edge);
             trivial_swap(skip_first, skip_second);

@@ -89,6 +89,8 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
+    using Side = BIHInnerNode::Side;
+
     // Stack of deferred nodes
     using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
     BIHNodeId stack_spill_[StackT::spill_extent];
@@ -112,7 +114,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         {
             auto const& edges = view_.inner_node(stack.top()).edges;
             stack.pop();
-            for (auto s : {Bound::hi, Bound::lo})
+            for (auto s : {Side::right, Side::left})
             {
                 if (is_inside(edges[s].bbox, pos))
                 {
