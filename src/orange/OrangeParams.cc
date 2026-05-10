@@ -182,7 +182,7 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    SPConstVolumes volumes = geo->volume_params();
+    SPConstVolumes volumes = geo->volumes();
     if (!volumes)
     {
         CELER_LOG(debug) << "Constructing canonical volumes from "

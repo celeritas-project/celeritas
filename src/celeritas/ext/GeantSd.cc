@@ -179,7 +179,7 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
 
     // Helper for inserting volumes
     auto geant_geo = celeritas::global_geant_geo().lock();
-    auto const* volume_params = geant_geo ? geant_geo->volume_params().get()
+    auto const* volume_params = geant_geo ? geant_geo->volumes().get()
                                           : nullptr;
     SensDetInserter::MapIdLv found_id_lv;
     SensDetInserter::VecLV missing_lv;

@@ -234,7 +234,7 @@ void cmd_volumes(Runner* runner, nlohmann::json const&)
     CELER_EXPECT(runner);
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "no geant4 geometry is loaded");
-    put_json_line(*geo->volume_params());
+    put_json_line(*geo->volumes());
 }
 
 CmdFuncPtr

@@ -196,7 +196,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
             ggp = GeantGeoParams::from_tracking_manager();
         }
         CELER_ASSERT(ggp);
-        vols = ggp->volume_params();
+        vols = ggp->volumes();
 
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());

@@ -84,7 +84,7 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
             // secondary geometry and reloads from the same Geant4 geo
             pgeant_geo.lazy_update(basename, [&]() {
                 auto result = this->build_geant_geo(filename);
-                persistent_volumes().set(basename, result->volume_params());
+                persistent_volumes().set(basename, result->volumes());
                 return result;
             });
 

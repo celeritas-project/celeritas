@@ -934,7 +934,7 @@ std::vector<ImportVolume> import_volumes()
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
-    auto volume_params = geo->volume_params();
+    auto volume_params = geo->volumes();
     CELER_VALIDATE(volume_params,
                    << "canonical volume metadata is unavailable");
 

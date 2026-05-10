@@ -63,7 +63,7 @@ class GeoParamsInterface
     virtual ImplVolumeMap const& impl_volumes() const = 0;
 
     //! Get canonical volume metadata if available
-    virtual SPConstVolumeParams const& volume_params() const = 0;
+    virtual SPConstVolumeParams const& volumes() const = 0;
 
     //! Get the canonical volume IDs corresponding to an implementation volume
     virtual VolumeId volume_id(ImplVolumeId) const = 0;

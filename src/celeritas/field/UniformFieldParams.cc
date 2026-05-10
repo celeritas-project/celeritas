@@ -40,7 +40,7 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
     using SetVolume = std::unordered_set<VolumeId>;
 
     auto geant_geo = celeritas::global_geant_geo().lock();
-    auto const* volumes = geo.volume_params().get();
+    auto const* volumes = geo.volumes().get();
 
     VolumeIdBuilder to_vol_id(volumes, geant_geo.get());
     SetVolume result;

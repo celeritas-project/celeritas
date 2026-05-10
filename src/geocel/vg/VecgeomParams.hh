@@ -123,10 +123,7 @@ class VecgeomParams final : public GeoParamsInterface,
     inline ImplVolumeMap const& impl_volumes() const final;
 
     // Get canonical volume metadata
-    SPConstVolumeParams const& volume_params() const final
-    {
-        return volume_params_;
-    }
+    SPConstVolumeParams const& volumes() const final { return volume_params_; }
 
     // Get volume metadata for VG placed volumes
     inline ImplVolInstanceMap const& impl_volume_instances() const;

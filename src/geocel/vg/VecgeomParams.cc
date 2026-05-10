@@ -528,7 +528,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         // Construct Impl vol/inst maps
         if (geant_geo_)
         {
-            volume_params_ = geant_geo_->volume_params();
+            volume_params_ = geant_geo_->volumes();
 
             // Built with Geant4: use G4VG-provided mapping
             for (auto iv_id : range(ImplVolumeId{host_data.volumes.size()}))
