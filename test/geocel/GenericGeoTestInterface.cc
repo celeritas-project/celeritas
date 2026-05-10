@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <memory>
+#include <variant>
 #include <gtest/gtest.h>
 
 #include "corecel/Types.hh"
@@ -346,6 +348,7 @@ auto GenericGeoTestInterface::get_test_volumes() const -> SPConstVolumes const&
         // Built without using Geant4 model
         static PersistentSP<VolumeParams const> pv{
             "GenericGeoTestBase volumes"};
+
         pv.lazy_update(
             std::string{this->gdml_basename()},
             [g = this->geometry_interface()]() {

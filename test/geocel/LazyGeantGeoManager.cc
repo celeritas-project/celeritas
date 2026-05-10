@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "LazyGeantGeoManager.hh"
 
-#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -85,16 +84,7 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
             // secondary geometry and reloads from the same Geant4 geo
             pgeant_geo.lazy_update(basename, [&]() {
                 auto result = this->build_geant_geo(filename);
-                auto model_input = result->make_model_input();
-                auto volumes = std::visit(
-                    Overload{[](inp::Volumes const& v) {
-                                 return std::make_shared<VolumeParams const>(v);
-                             },
-                             [](std::shared_ptr<VolumeParams const> const& v) {
-                                 return v;
-                             }},
-                    model_input.volumes);
-                persistent_volumes().set(basename, std::move(volumes));
+                persistent_volumes().set(basename, result->volume_params());
                 return result;
             });
 
@@ -105,15 +95,8 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         {
             // Fallback: geometry may be able to build without Geant4
             new_geo = this->build_geo_from_gdml(filename);
-            auto model_input = new_geo->make_model_input();
-            auto volumes = std::visit(
-                Overload{[](inp::Volumes const& v) {
-                             return std::make_shared<VolumeParams const>(v);
-                         },
-                         [](std::shared_ptr<VolumeParams const> const& v) {
-                             return v;
-                         }},
-                model_input.volumes);
+            auto volumes = std::make_shared<VolumeParams const>(
+                new_geo->make_model_input().volumes);
             persistent_volumes().set(basename, std::move(volumes));
         }
 
