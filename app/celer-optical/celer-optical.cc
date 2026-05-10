@@ -79,43 +79,42 @@ void run(std::shared_ptr<OutputRegistry>& output,
     // Set up optical problem
     Stopwatch get_setup_time;
     auto run = Runner(std::move(input));
-    result.time.setup = get_setup_time();
-
-    //! \todo Optical loop warmup
 
     // Get output registry
     output = run.params()->output_reg();
 
     // Transport all tracks to completion
+    std::visit(Overload{
+                   [&run](celeritas::inp::OpticalPrimaryGenerator const&) {
+                       run.insert();
+                   },
+                   [&run](celeritas::inp::OpticalOffloadGenerator const& g) {
+                       CELER_VALIDATE(g.distribution_file,
+                                      << "missing file for loading optical "
+                                         "distribution data");
+                       auto const distributions
+                           = OpticalDistributionReader(*g.distribution_file)();
+                       run.insert(make_span(distributions));
+                   },
+                   [](celeritas::inp::OpticalDirectGenerator const&) {
+                       //! \todo Add support for direct generation from file
+                       CELER_VALIDATE(false,
+                                      << "direct optical photon generation is "
+                                         "not yet supported");
+                   },
+                   [](celeritas::inp::OpticalEmGenerator const&) {
+                       CELER_VALIDATE(false,
+                                      << "optical photon generation from EM "
+                                         "particles is not supported");
+                   },
+               },
+               generator);
+    result.time.setup = get_setup_time();
+
+    //! \todo Optical loop warmup
+
     Stopwatch get_transport_time;
-    Runner::Result run_result = std::visit(
-        Overload{
-            [&run](celeritas::inp::OpticalPrimaryGenerator const&) {
-                return run();
-            },
-            [&run](celeritas::inp::OpticalOffloadGenerator const& g) {
-                CELER_VALIDATE(g.distribution_file,
-                               << "missing file for loading optical "
-                                  "distribution data");
-                auto const distributions
-                    = OpticalDistributionReader(*g.distribution_file)();
-                return run(make_span(distributions));
-            },
-            [](celeritas::inp::OpticalDirectGenerator const&) {
-                //! \todo Add support for direct generation from file
-                CELER_VALIDATE(false,
-                               << "direct optical photon generation is not "
-                                  "yet supported");
-                return Runner::Result{};
-            },
-            [](celeritas::inp::OpticalEmGenerator const&) {
-                CELER_VALIDATE(false,
-                               << "optical photon generation from EM "
-                                  "particles is not supported");
-                return Runner::Result{};
-            },
-        },
-        generator);
+    auto run_result = run();
     result.time.total = get_transport_time();
     result.time.actions = std::move(run_result.action_times);
     result.time.steps = std::move(run_result.step_times);

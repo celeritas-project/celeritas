@@ -74,9 +74,9 @@ Runner::Runner(Input&& osi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated with a primary generator.
+ * Set the number of pending tracks for a primary generator.
  */
-auto Runner::operator()() -> Result
+void Runner::insert()
 {
     auto generate
         = std::dynamic_pointer_cast<optical::PrimaryGeneratorAction const>(
@@ -86,15 +86,13 @@ auto Runner::operator()() -> Result
 
     // Set the number of pending tracks
     generate->insert(*state_);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated directly from track initializers.
+ * Insert track initializers.
  */
-auto Runner::operator()(SpanConstTrackInit data) -> Result
+void Runner::insert(SpanConstTrackInit data)
 {
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
@@ -104,15 +102,13 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
 
     // Insert track initializers
     generate->insert(*state_, data);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated through scintillation or Cherenkov.
+ * Insert distributions for generating through scintillation or Cherenkov.
  */
-auto Runner::operator()(SpanConstGenDist data) -> Result
+void Runner::insert(SpanConstGenDist data)
 {
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         loaded_.problem.generator);
@@ -132,15 +128,13 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
         counters.num_pending += d.num_photons;
     }
     state_->sync_put_counters(counters);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical photons and transport to completion.
  */
-auto Runner::run() const -> Result
+auto Runner::operator()() const -> Result
 {
     ScopedProfiling profile_this{"run"};
     (*loaded_.problem.transporter)(*state_);

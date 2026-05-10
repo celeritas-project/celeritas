@@ -29,6 +29,7 @@
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
 
@@ -93,8 +94,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , step_{std::make_shared<G4Step>()}
-    , track_reconstruction_{particles, step_}
     , step_post_status_{
           selection.points[StepPoint::pre].volume_instance_ids
           && selection.points[StepPoint::post].volume_instance_ids}
@@ -106,8 +105,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     CELER_LOG(debug) << "Setting up thread-local hit processor for "
                      << detector_volumes_->size() << " sensitive detectors";
 
-    // Allocate secondary vector, needed to keep some SDs from crashing
-    step_->NewSecondaryVector();
+    step_ = GeantTrackReconstruction::make_g4step();
+    CELER_ASSERT(step_);
+    track_reconstruction_
+        = std::make_shared<GeantTrackReconstruction>(particles, step_);
 
     GeantStepView step_view{*step_};
 
@@ -295,9 +296,12 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 
     if (!out.particle.empty())
     {
-        G4Track& g4track = track_reconstruction_.view(
-            out.particle[i],
-            !out.primary_id.empty() ? out.primary_id[i] : PrimaryId{});
+        // Get track corresponding to the particle type, and reload primary
+        // data if possible
+        G4Track& g4track = out.primary_id.empty()
+                               ? track_reconstruction_->view(out.particle[i])
+                               : track_reconstruction_->view(
+                                     out.particle[i], out.primary_id[i]);
         CELER_ASSERT(&g4track == step_->GetTrack());
         // Copy step information to the corresponding track
         GeantStepView{*step_}.update_track();

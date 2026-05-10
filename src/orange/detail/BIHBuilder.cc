@@ -13,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "geocel/BoundingBox.hh"
 #include "orange/OrangeData.hh"
 
@@ -199,8 +200,9 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         return;
     }
 
-    BIHPartitioner partition(
-        &temp_.bboxes, &temp_.centers, inp_.num_part_cands);
+    BIHPartitioner partition(temp_.bboxes, temp_.centers, inp_.num_part_cands);
+    // Left BIH extents are the "high" side of the bbox, and vice versa
+    constexpr EnumArray<Side, Bound> bbox_plane_bound{Bound::hi, Bound::lo};
 
     if (auto p = partition(indices))
     {
@@ -208,23 +210,18 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         BIHInnerNode node;
         node.axis = p.axis;
 
-        // Populate left/right bounding planes
-        auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
-        node.edges[Side::left].bounding_plane_pos = left_pos;
-        node.edges[Side::left].bbox = p.bboxes[Side::left];
-
-        auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
-        node.edges[Side::right].bounding_plane_pos = right_pos;
-        node.edges[Side::right].bbox = p.bboxes[Side::right];
-
         // Recursively construct the left and right branches
         for (auto side : range(Side::size_))
         {
+            node.edges[side].bounding_plane_pos
+                = p.bboxes[side].point(bbox_plane_bound[side], p.axis);
+            node.edges[side].bbox = p.bboxes[side];
+
             node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
             this->construct_tree(p.indices[side], nodes, current_depth, depth);
         }
 
-        CELER_EXPECT(node);
+        CELER_ASSERT(node);
         (*nodes)[current_index] = node;
     }
     else
