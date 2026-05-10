@@ -55,7 +55,11 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 
-    // Decays
+    // Decay physics: check environment variables before loading since
+    // Geant4 11.2-11.4 crashes if null
+    CELER_VALIDATE(std::getenv("G4LEVELGAMMADATA") != nullptr,
+                   << "environment variable 'G4LEVELGAMMADATA' is undefined: "
+                      "load G4 photon evaporation environment");
     detail::emplace_physics<G4DecayPhysics>(*this, verbosity);
 
     // Hadron elastic scattering
