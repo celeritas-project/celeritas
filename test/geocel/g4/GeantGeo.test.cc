@@ -892,7 +892,7 @@ TEST_F(SolidsTest, output)
         std::regex pattern(R"("",)");
         actual = std::regex_replace(actual, pattern, "");
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"supports_safety":true})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-600.0,-300.0,-75.0],[600.0,300.0,75.0]],"num_impl_volumes":26,"supports_safety":true})json",
             actual);
     }
 }

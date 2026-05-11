@@ -517,7 +517,7 @@ TEST_F(SolidsTest, output)
         auto out_str = StringSimplifier{1}(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"supports_safety":true})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"num_impl_volumes":30,"supports_safety":true})json",
             out_str);
     }
 }
