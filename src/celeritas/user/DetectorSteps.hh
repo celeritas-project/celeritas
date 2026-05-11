@@ -50,6 +50,27 @@ struct DetectorStepPointOutput
 
 //---------------------------------------------------------------------------//
 /*!
+ * CPU results for a single track that reached a terminal state.
+ */
+struct TrackDeathRecord
+{
+    //// TYPES ////
+
+    using Energy = units::MevEnergy;
+
+    //// DATA ////
+
+    TrackId track_id;
+    PrimaryId primary_id;
+    ParticleId particle;
+    Real3 final_pos;
+    Real3 final_dir;
+    Energy final_energy;
+    real_type final_time;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * CPU results for many in-detector tracks at a single step iteration.
  *
  * This convenience class can be used to postprocess the results from sensitive
@@ -90,6 +111,9 @@ struct DetectorStepOutput
     // 2D size for volume instances
     size_type num_volume_levels{0};
 
+    // Track death records
+    std::vector<TrackDeathRecord> deaths;
+
     //// METHODS ////
 
     //! Number of elements in the detector output.
@@ -114,9 +138,32 @@ void copy_steps<MemSpace::device>(
     StepStateData<Ownership::reference, MemSpace::device> const&);
 
 //---------------------------------------------------------------------------//
+// Copy death records for all terminal tracks to the output.
+template<MemSpace M>
+void copy_deaths(DetectorStepOutput* output,
+                 StepStateData<Ownership::reference, M> const& state);
+
+template<>
+void copy_deaths<MemSpace::host>(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::host> const&);
+template<>
+void copy_deaths<MemSpace::device>(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&);
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
 inline void copy_steps<MemSpace::device>(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+template<>
+inline void copy_deaths<MemSpace::device>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&)
 {
