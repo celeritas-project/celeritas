@@ -168,6 +168,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 void HitProcessor::operator()(StepStateHostRef const& states)
 {
     copy_steps(&steps_, states);
+    copy_deaths(&steps_, states);
+    accumulated_deaths_.insert(
+        accumulated_deaths_.end(), steps_.deaths.begin(), steps_.deaths.end());
     if (steps_)
     {
         num_hits_ += steps_.size();
@@ -182,6 +185,9 @@ void HitProcessor::operator()(StepStateHostRef const& states)
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     copy_steps(&steps_, states);
+    copy_deaths(&steps_, states);
+    accumulated_deaths_.insert(
+        accumulated_deaths_.end(), steps_.deaths.begin(), steps_.deaths.end());
     if (steps_)
     {
         num_hits_ += steps_.size();

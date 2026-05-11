@@ -11,6 +11,8 @@
 #    error "Tracking manager offload requires Geant4 11.0 or higher"
 #endif
 
+#include <G4ParticleDefinition.hh>
+#include <G4Track.hh>
 #include <G4VTrackingManager.hh>
 
 namespace celeritas
@@ -19,6 +21,13 @@ namespace celeritas
 
 class SharedParams;
 class TrackOffloadInterface;
+
+//---------------------------------------------------------------------------//
+//! Whether a track's particle type is offloaded to Celeritas.
+inline bool IsTrackOffloadedToCeleritas(G4Track const* track)
+{
+    return track->GetParticleDefinition()->GetTrackingManager() != nullptr;
+}
 
 //---------------------------------------------------------------------------//
 /*!

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -15,6 +16,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/DetectorSteps.hh"
 
 #include "TrackOffloadInterface.hh"
 
@@ -145,6 +147,12 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
+
+    // Event-scoped primary ID to terminal state for current flush
+    std::unordered_map<size_type, TrackDeathRecord const*> death_map_;
+
+    // True while replaying tracking callbacks from Flush
+    bool flushing_tracking_actions_{false};
 
     //// HELPER FUNCTIONS ////
     void flush_impl();
