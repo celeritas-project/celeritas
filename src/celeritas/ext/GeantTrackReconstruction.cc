@@ -11,11 +11,13 @@
 #include <G4DynamicParticle.hh>
 #include <G4Event.hh>
 #include <G4EventManager.hh>
+#include <G4Navigator.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4PrimaryParticle.hh>
 #include <G4Step.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4TransportationManager.hh>
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
@@ -41,6 +43,24 @@ namespace
         return -2;
     }
     return evt->GetEventID();
+}
+
+//---------------------------------------------------------------------------//
+void update_touchable(G4Track& track)
+{
+    auto* navigator = G4TransportationManager::GetTransportationManager()
+                          ->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+
+    auto const& pos = track.GetPosition();
+    auto const& dir = track.GetMomentumDirection();
+    auto* volume = navigator->LocateGlobalPointAndSetup(
+        pos, &dir, /*pRelativeSearch=*/false, /*ignoreDirection=*/false);
+    CELER_VALIDATE(volume,
+                   << "failed to locate reconstructed Geant4 track "
+                      "at position "
+                   << pos << " in the tracking geometry");
+    track.SetTouchableHandle(navigator->CreateTouchableHistoryHandle());
 }
 }  // namespace
 
@@ -360,6 +380,7 @@ void GeantTrackReconstruction::AcquiredData::restore_initial(G4Track& track) con
     auto* dp = const_cast<G4DynamicParticle*>(track.GetDynamicParticle());
     dp->SetKineticEnergy(kinetic_energy_);
     dp->SetPrimaryParticle(const_cast<G4PrimaryParticle*>(primary_particle_));
+    update_touchable(track);
 }
 
 //---------------------------------------------------------------------------//

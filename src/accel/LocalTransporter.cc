@@ -14,9 +14,11 @@
 #include <G4DynamicParticle.hh>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
+#include <G4Navigator.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4TransportationManager.hh>
 #include <G4UserTrackingAction.hh>
 
 #include "corecel/Config.hh"
@@ -155,6 +157,24 @@ void apply_death_state(G4Track& track, TrackDeathRecord const& d)
     const_cast<G4DynamicParticle*>(track.GetDynamicParticle())
         ->SetKineticEnergy(d.final_energy.value());
     track.SetGlobalTime(native_to_geant<units::ClhepTime>(d.final_time));
+
+    auto* navigator = G4TransportationManager::GetTransportationManager()
+                          ->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+    if (auto* volume
+        = navigator->LocateGlobalPointAndSetup(track.GetPosition(),
+                                               &track.GetMomentumDirection(),
+                                               /*pRelativeSearch=*/false,
+                                               /*ignoreDirection=*/false))
+    {
+        track.SetTouchableHandle(navigator->CreateTouchableHistoryHandle());
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Failed to locate reconstructed terminal Geant4 track at "
+            << track.GetPosition() << "; preserving initial touchable";
+    }
 }
 }  // namespace
 
