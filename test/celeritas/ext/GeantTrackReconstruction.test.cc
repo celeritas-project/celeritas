@@ -177,7 +177,7 @@ TEST_F(GtrTest, primary_registration)
     primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{0});
 
     // Verify primary ID
     EXPECT_EQ(0, primary_id.unchecked_get());
@@ -198,7 +198,7 @@ TEST_F(GtrTest, primary_registration)
     primary_track2->SetTrackID(456);
     primary_track2->SetParentID(0);
 
-    PrimaryId primary_id2 = recon.acquire(*primary_track2);
+    PrimaryId primary_id2 = recon.acquire(*primary_track2, ParticleId{1});
     EXPECT_EQ(1, primary_id2.unchecked_get());
 
     recon.clear();
@@ -227,7 +227,7 @@ TEST_F(GtrTest, track_restoration)
     auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{1});
 
     // Restore track for electron (particle ID 1) with primary information
     G4Track& restored_track = recon.view(ParticleId{1}, primary_id);
@@ -314,7 +314,7 @@ TEST_F(GtrTest, end_event_cleanup)
                 track->SetUserInformation(user_info.release());
                 track->SetCreatorProcess(processes[i].get());
 
-                primary_ids[i] = recon.acquire(*track);
+                primary_ids[i] = recon.acquire(*track, ParticleId{i});
                 EXPECT_EQ(i + flush * num_primaries,
                           primary_ids[i].unchecked_get());
             }
@@ -340,8 +340,9 @@ TEST_F(GtrTest, end_event_cleanup)
                     new G4DynamicParticle(particles_[0], directions[0]),
                     10.0,
                     G4ThreeVector(1, 0, 0));
-                EXPECT_THROW(static_cast<void>(recon.acquire(*track)),
-                             RuntimeError);
+                EXPECT_THROW(
+                    static_cast<void>(recon.acquire(*track, ParticleId{0})),
+                    RuntimeError);
 
                 --GtrTest::test_cur_event;
             }
@@ -401,7 +402,7 @@ TEST_F(GtrTest, reconstruction_data_persistence)
     auto mock_process = std::make_unique<MockProcess>("TestIonization");
     primary_track->SetCreatorProcess(mock_process.get());
 
-    PrimaryId primary_id = recon.acquire(*primary_track);
+    PrimaryId primary_id = recon.acquire(*primary_track, ParticleId{2});
 
     // Test reconstruction data persists across multiple restore calls
     for (int i = 0; i < 3; ++i)
