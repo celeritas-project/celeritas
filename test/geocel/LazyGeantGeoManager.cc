@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "LazyGeantGeoManager.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -95,7 +96,12 @@ auto LazyGeantGeoManager::lazy_geo() const -> SPConstGeoI
         {
             // Fallback: geometry may be able to build without Geant4
             new_geo = this->build_geo_from_gdml(filename);
-            auto volumes = std::make_shared<VolumeParams const>(
+            auto volumes = std::visit(
+                Overload{
+                    [](inp::Volumes&& v) {
+                        return std::make_shared<VolumeParams const>(v);
+                    },
+                    [](std::shared_ptr<VolumeParams const>&& v) { return v; }},
                 new_geo->make_model_input().volumes);
             persistent_volumes().set(basename, std::move(volumes));
         }
