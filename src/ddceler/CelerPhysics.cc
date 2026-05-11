@@ -11,9 +11,12 @@
 #include <DDG4/Factories.h>
 #include <DDG4/Geant4ActionPhase.h>
 #include <DDG4/Geant4Kernel.h>
+#include <DDG4/Geant4UserInitialization.h>
+#include <G4Threading.hh>
 
 #include "corecel/io/Logger.hh"
 #include "celeritas/field/FieldDriverOptions.hh"
+#include "celeritas/g4/StateDependent.hh"
 #include "celeritas/inp/Field.hh"
 #include "accel/TrackingManagerIntegration.hh"
 
@@ -31,6 +34,22 @@ namespace dd
 {
 namespace
 {
+//---------------------------------------------------------------------------//
+void handle_state_change(StreamId, GeantStateChange change)
+{
+    switch (change)
+    {
+        case GeantStateChange::begin_run:
+            TMI::Instance().BeginOfRunAction(nullptr);
+            break;
+        case GeantStateChange::end_run:
+            TMI::Instance().EndOfRunAction(nullptr);
+            break;
+        default:
+            break;
+    }
+}
+
 //---------------------------------------------------------------------------//
 
 FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
@@ -52,6 +71,25 @@ FieldDriverOptions load_driver_options(dd4hep::sim::Geant4Action* field_action)
 }
 
 }  // namespace
+
+//---------------------------------------------------------------------------//
+class CelerWorkerInit final : public dd4hep::sim::Geant4UserInitialization
+{
+  public:
+    CelerWorkerInit(Geant4Context* ctxt, std::string const& name)
+        : Geant4UserInitialization(ctxt, name)
+    {
+    }
+
+    DDG4_DEFINE_ACTION_CONSTRUCTORS(CelerWorkerInit);
+
+    void build() const final
+    {
+        static thread_local StateDependent* state_dep{
+            new StateDependent{handle_state_change}};
+        CELER_ASSERT(state_dep);
+    }
+};
 
 //---------------------------------------------------------------------------//
 /*!
@@ -197,6 +235,15 @@ void CelerPhysics::constructPhysics(G4VModularPhysicsList* physics)
 
     // Configure Celeritas options
     tmi.SetOptions(this->make_options());
+
+    if (G4Threading::IsMasterThread())
+    {
+        master_state_dep_
+            = std::make_unique<StateDependent>(handle_state_change);
+    }
+
+    context()->kernel().userInitialization(true)->adopt(
+        new CelerWorkerInit(context(), "CelerWorkerInit"));
 }
 
 //---------------------------------------------------------------------------//
@@ -204,3 +251,4 @@ void CelerPhysics::constructPhysics(G4VModularPhysicsList* physics)
 }  // namespace celeritas
 
 DECLARE_GEANT4ACTION_NS(celeritas::dd, CelerPhysics)
+DECLARE_GEANT4ACTION_NS(celeritas::dd, CelerWorkerInit)
