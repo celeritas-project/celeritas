@@ -10,6 +10,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathFinder.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -98,6 +99,7 @@ struct SimpleScores
     std::vector<real_type> y_positions;
     std::vector<real_type> z_positions;
     std::vector<size_type> volume_instance_ids;
+    std::vector<size_type> volume_unique_instance_ids;
 };
 
 struct SimpleScorer
@@ -116,6 +118,8 @@ struct SimpleScorer
             scores.z_positions.push_back(hit.position[2]);
             scores.volume_instance_ids.push_back(
                 hit.volume_instance.unchecked_get());
+            scores.volume_unique_instance_ids.push_back(
+                hit.volume_unique_instance.unchecked_get());
         }
     }
 };
@@ -194,6 +198,40 @@ TEST_F(DetectorTest, simple)
     run.insert(make_span(std::as_const(inits)));
     run();
 
+    {
+        auto vol_params = run.params()->volume();
+        auto det_params = run.params()->detectors();
+        AllVolumesView all_vol{vol_params->host_ref()};
+        std::vector<VolumeInstanceId> vi_path(all_vol.num_volume_levels(),
+                                              VolumeInstanceId{});
+        VolumePathFinder find_path{vol_params->host_ref(), make_span(vi_path)};
+
+        std::cout << "Num volume unique instances: "
+                  << all_vol.num_unique_instances() << "\n";
+        for (auto vuid :
+             range(VolumeUniqueInstanceId{all_vol.num_unique_instances()}))
+        {
+            std::cout << "  " << vuid.get() << ":\n";
+            auto path = find_path(vuid);
+            for (auto i : range(path.size()))
+            {
+                std::cout << "    Level " << i << ":\n"
+                          << "      pv: "
+                          << vol_params->volume_instance_labels().at(path[i])
+                          << "[" << path[i].get() << "]\n"
+                          << "      lv: "
+                          << vol_params->volume_labels().at(
+                                 all_vol.volume_id(path[i]))
+                          << "[" << all_vol.volume_id(path[i]).get() << "]\n";
+                if (auto d = det_params->detector_id(all_vol.volume_id(path[i])))
+                {
+                    std::cout << "      attached detector: "
+                              << det_params->detector_labels().at(d) << "\n";
+                }
+            }
+        }
+    }
+
     // Check results
 
     real_type const box_size = from_cm(50);
@@ -242,6 +280,8 @@ TEST_F(DetectorTest, simple)
 
     static size_type const expected_volume_instance_ids[]
         = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_unique_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
     {
@@ -252,6 +292,8 @@ TEST_F(DetectorTest, simple)
         EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
         EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
         EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+        EXPECT_VEC_EQ(expected_volume_unique_instance_ids,
+                      scores.volume_unique_instance_ids);
     }
 }
 

@@ -91,6 +91,7 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.time = sim.time();
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
+    hit.volume_unique_instance = {};
 
     // Kill the track
     sim.status(TrackStatus::killed);
