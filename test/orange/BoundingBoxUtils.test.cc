@@ -195,49 +195,51 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
 
 TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
 {
-    using Real3 = Array<double, 3>;
+    using Real3 = Array<real_type, 3>;
 
     auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
 
     // Basic case: pos outside by 0.1 along x
     Real3 pos{1.1, 0.5, 0.5};
     Real3 dir{-1, 0, 0};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.05));
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.05_r));
 
-    // Coming in from an angle (entry dist = 0.1 * sqrt(2))
-    dir = Real3{-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.1));
+    // Coming in from an angle (entry dist = 0.1 * sqrt(2_r))
+    dir = Real3(-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0);
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.1_r));
 
     // First intersection point occurs outside box, but second intersection
-    // point is valid (entry dist = 2 * sqrt(2))
+    // point is valid (entry dist = 2 * sqrt(2_r))
     pos = Real3{3, 2.5, 0.5};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 3.0));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 2.0));
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 3.0_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 2.0_r));
 
     // No intersection
     dir = Real3{0, -1, 0};
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6_r));
 
     // Already inside: always true
     pos = Real3{0.5, 0.6, 0.7};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1));
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1_r));
 
     // Start exactly on bbox, exiting
-    EXPECT_TRUE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1));
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1_r));
     // Start exactly on bbox, entering
-    EXPECT_TRUE(intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1));
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1_r));
     // End exactly on bbox, exiting
     EXPECT_TRUE(
-        intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5));
+        intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5_r));
     // End exactly on bbox, entering
     EXPECT_TRUE(
-        intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5));
+        intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
 
     // Degenerate near-parallel cases: sweep over inside/outside start,
     // inward/outward direction, and very short/very long segment lengths.
-    double const eps = 1e-12;
+    real_type const eps = 1e-12;
     struct
     {
         char const* label;
@@ -248,8 +250,8 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
         {"barely outside", {1 + eps, 0.5, 0.5}, false},
     };
 
-    double const tilt = 1e-9;
-    double const entry_dist = eps / tilt;
+    real_type const tilt = 1e-9;
+    real_type const entry_dist = eps / tilt;
     struct
     {
         char const* label;
@@ -261,7 +263,7 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
         {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
     };
 
-    for (double const max_dist : {1e-6, 1e6})
+    for (auto const max_dist : {1e-6_r, 1e6_r})
     {
         for (auto const& p : positions)
         {
