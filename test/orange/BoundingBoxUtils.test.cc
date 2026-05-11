@@ -16,9 +16,8 @@ namespace celeritas
 {
 namespace test
 {
-class BoundingBoxUtilsTest : public Test
-{
-};
+//---------------------------------------------------------------------------//
+using BoundingBoxUtilsTest = Test;
 
 TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
@@ -193,7 +192,9 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
-TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
+using IntersectsSegmentTest = Test;
+
+TEST_F(IntersectsSegmentTest, basic)
 {
     using Real3 = Array<real_type, 3>;
 
@@ -236,10 +237,19 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
     // End exactly on bbox, entering
     EXPECT_TRUE(
         intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
+}
+
+using IntersectsSegmentTest = Test;
+
+TEST_F(IntersectsSegmentTest, near_degenerate)
+{
+    auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
 
     // Degenerate near-parallel cases: sweep over inside/outside start,
     // inward/outward direction, and very short/very long segment lengths.
-    real_type const eps = 1e-12;
+    real_type eps = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+                         ? 1e-12_r
+                         : 1e-6_r);
     struct
     {
         char const* label;
@@ -250,7 +260,8 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
         {"barely outside", {1 + eps, 0.5, 0.5}, false},
     };
 
-    real_type const tilt = 1e-9;
+    real_type tilt
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9_r : 5e-4_r);
     real_type const entry_dist = eps / tilt;
     struct
     {
@@ -263,7 +274,9 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersects_segment)
         {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
     };
 
-    for (auto const max_dist : {1e-6_r, 1e6_r})
+    real_type large_dist
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e5_r);
+    for (auto const max_dist : {1 / large_dist, large_dist})
     {
         for (auto const& p : positions)
         {
