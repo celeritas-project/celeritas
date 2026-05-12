@@ -10,7 +10,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "../OrangeTypes.hh"

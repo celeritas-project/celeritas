@@ -121,7 +121,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     obj["sizes"] = {
         OPO_SIZE_PAIR(data, connectivity_records),
         OPO_SIZE_PAIR(data, daughters),
-        OPO_SIZE_PAIR(data, fast_real3s),
         OPO_SIZE_PAIR(data, local_surface_ids),
         OPO_SIZE_PAIR(data, local_volume_ids),
         OPO_SIZE_PAIR(data, logic_ints),

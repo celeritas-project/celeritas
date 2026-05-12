@@ -390,7 +390,6 @@ struct OrangeParamsData
     Items<vol_level_uint> vl_uints;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
-    Items<FastReal3> fast_real3s;
     Items<SurfaceType> surface_types;
     Items<ConnectivityRecord> connectivity_records;
     Items<LocalVolumeRecord> volume_records;
