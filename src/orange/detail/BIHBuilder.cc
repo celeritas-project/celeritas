@@ -6,8 +6,16 @@
 //---------------------------------------------------------------------------//
 #include "BIHBuilder.hh"
 
+#include <algorithm>
+
+#include "corecel/Assert.hh"
+#include "corecel/cont/EnumArray.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
+#include "corecel/data/Collection.hh"
+#include "corecel/math/Algorithms.hh"
 #include "geocel/BoundingBox.hh"
+#include "orange/OrangeData.hh"
 
 #include "BIHPartitioner.hh"
 #include "../BoundingBoxUtils.hh"
@@ -34,6 +42,18 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 {
     CELER_EXPECT(storage);
     CELER_EXPECT(inp_);
+    CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bih_depth,
+                   << "invalid BIH input depth limit " << inp_.depth_limit
+                   << ": must be positive and no more than compile-time "
+                      "maximum "
+                   << max_bih_depth);
+    CELER_VALIDATE(inp_.max_leaf_size > 0,
+                   << "invalid BIH max leaf size " << inp_.max_leaf_size << ": "
+                   << "must be positive");
+    CELER_VALIDATE(inp_.num_part_cands > 0,
+                   << "invalid BIH partition candidate count "
+                   << inp_.num_part_cands << ": "
+                   << "must be positive");
 }
 
 //---------------------------------------------------------------------------//
@@ -105,8 +125,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
     {
         // Construct the tree recursively
         VecNodes nodes;
-        auto inf_bbox = FastBBox::from_infinite();
-        this->construct_tree(indices, &nodes, BIHNodeId{}, inf_bbox, 0, depth);
+        this->construct_tree(indices, &nodes, 0, depth);
         auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.inner_nodes
@@ -144,16 +163,12 @@ BIHBuilder::operator()(VecBBox&& bboxes,
  * \param[in] indices        The indices of the bboxes that will be partitioned
  *                           or placed on a leaf node in this function call
  * \param[in, out] nodes     All nodes constructed so far, to be added to
- * \param[in] parent         The parent node
- * \param[in] bbox           The bounding box of the parent node
  * \param[in] current_depth  The recursion depth of this function call
  * \param[in] depth          The maximum recursion depth encountered during the
  *                           full construction process
  */
 void BIHBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
-                                BIHNodeId parent,
-                                FastBBox const& bbox,
                                 size_type current_depth,
                                 size_type& depth)
 {
@@ -169,7 +184,6 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     // once per call to construct_tree.
     auto make_leaf = [&]() {
         BIHLeafNode node;
-        node.parent = parent;
         node.vol_ids
             = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
@@ -186,46 +200,28 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         return;
     }
 
-    BIHPartitioner partition(
-        &temp_.bboxes, &temp_.centers, inp_.num_part_cands);
+    BIHPartitioner partition(temp_.bboxes, temp_.centers, inp_.num_part_cands);
+    // Left BIH extents are the "high" side of the bbox, and vice versa
+    constexpr EnumArray<Side, Bound> bbox_plane_bound{Bound::hi, Bound::lo};
 
     if (auto p = partition(indices))
     {
         // Create inner node
         BIHInnerNode node;
-        node.parent = parent;
         node.axis = p.axis;
-
-        // Return the current bounding box, clipped by the supplied halfspace
-        auto get_shrunk_bbox
-            = [&bbox, axis = p.axis](Bound bound, FastBBox::real_type pos) {
-                  auto out_box = bbox;
-                  out_box.shrink(bound, axis, pos);
-                  return out_box;
-              };
-
-        // Populate left/right bounding planes
-        auto left_pos = p.bboxes[Side::left].upper()[to_int(p.axis)];
-        node.edges[Side::left].bounding_plane_pos = left_pos;
-        node.edges[Side::left].bbox = get_shrunk_bbox(Bound::hi, left_pos);
-
-        auto right_pos = p.bboxes[Side::right].lower()[to_int(p.axis)];
-        node.edges[Side::right].bounding_plane_pos = right_pos;
-        node.edges[Side::right].bbox = get_shrunk_bbox(Bound::lo, right_pos);
 
         // Recursively construct the left and right branches
         for (auto side : range(Side::size_))
         {
-            node.edges[side].child = BIHNodeId(nodes->size());
-            this->construct_tree(p.indices[side],
-                                 nodes,
-                                 BIHNodeId(current_index),
-                                 node.edges[side].bbox,
-                                 current_depth,
-                                 depth);
+            node.edges[side].bounding_plane_pos
+                = p.bboxes[side].point(bbox_plane_bound[side], p.axis);
+            node.edges[side].bbox = p.bboxes[side];
+
+            node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
+            this->construct_tree(p.indices[side], nodes, current_depth, depth);
         }
 
-        CELER_EXPECT(node);
+        CELER_ASSERT(node);
         (*nodes)[current_index] = node;
     }
     else
@@ -279,7 +275,7 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
         }
     }
 
-    // Remap IDs. "parent" will only be undefined for the root node.
+    // Remap IDs
     auto remapped_id = [&new_indices](BIHNodeId old) {
         CELER_EXPECT(old < new_indices.size());
         return id_cast<BIHNodeId>(new_indices[old.unchecked_get()]);
@@ -290,18 +286,6 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
         for (auto& edge : inner_node.edges)
         {
             edge.child = remapped_id(edge.child);
-        }
-        if (inner_node.parent)
-        {
-            inner_node.parent = remapped_id(inner_node.parent);
-        }
-    }
-
-    for (auto& leaf_node : leaf_nodes)
-    {
-        if (leaf_node.parent)
-        {
-            leaf_node.parent = remapped_id(leaf_node.parent);
         }
     }
 

@@ -61,7 +61,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -1008,7 +1007,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedGeantExceptionHandler scoped_exceptions;
-        ScopedTimeLog scoped_time;
 
         auto geo_to_opt = std::make_shared<GeoOpticalIdMap>();
 

@@ -23,7 +23,6 @@
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/SurfaceParams.hh"
@@ -72,6 +71,7 @@
 #include "celeritas/optical/PhysicsParams.hh"
 #include "celeritas/optical/SimParams.hh"
 #include "celeritas/optical/Transporter.hh"
+#include "celeritas/optical/action/StepDiagnostic.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
@@ -94,6 +94,7 @@
 #include "celeritas/user/StepCollector.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/StepDiagnostic.hh"
+#include "celeritas/user/StepTimes.hh"
 
 #include "Model.hh"
 
@@ -497,7 +498,6 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
@@ -609,7 +609,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     //// DIAGNOSTICS ////
 
-    // TODO: timers, counters, perfetto_file
+    // TODO: counters, perfetto_file
 
     if (p.diagnostics.action)
     {
@@ -784,12 +784,18 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     result.actions = [&] {
         ActionSequence::Options opt;
         auto const& action_reg = core_params->action_reg();
-        if (!celeritas::device()
+        if (!celeritas::device() || p.diagnostics.timers.action
             || (p.control.device_debug && p.control.device_debug->sync_stream))
         {
             // Create aux data to accumulate action times
             opt.action_times = ActionTimes::make_and_insert(
                 action_reg, core_params->aux_reg(), "action-times");
+        }
+        if (p.diagnostics.timers.step)
+        {
+            // Create aux data to record step times
+            opt.step_times = StepTimes::make_and_insert(core_params->aux_reg(),
+                                                        "step-times");
         }
         return std::make_shared<ActionSequence>(*action_reg, std::move(opt));
     }();
@@ -814,7 +820,6 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
-    ScopedMem record_mem("setup::problem");
     ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),
@@ -883,6 +888,12 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
         },
         p.generator);
 
+    // Add step diagnostic
+    if (p.step)
+    {
+        optical::StepDiagnostic::make_and_insert(*params, p.step->bins);
+    }
+
     // Build the optical transporter \em after all optical actions have been
     // added to the registry
     optical::Transporter::Input ti;
@@ -891,6 +902,12 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
         // Create aux data to accumulate optical action times
         ti.action_times = ActionTimes::make_and_insert(
             params->action_reg(), params->aux_reg(), "optical-action-times");
+    }
+    if (p.timers.step)
+    {
+        // Create aux data to record optical step times
+        ti.step_times = StepTimes::make_and_insert(params->aux_reg(),
+                                                   "optical-step-times");
     }
     ti.params = std::move(params);
     result.transporter = std::make_shared<optical::Transporter>(std::move(ti));

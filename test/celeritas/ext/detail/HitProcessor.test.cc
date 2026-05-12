@@ -11,6 +11,7 @@
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/user/DetectorSteps.hh"

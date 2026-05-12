@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <string>
+#include <string_view>
 #include <type_traits>
 
 #include "corecel/DeviceRuntimeApi.hh"
@@ -52,8 +54,11 @@ class ActionLauncher : public KernelLauncher<F>
     using StepActionT = CoreStepActionInterface;
 
   public:
-    // Create a launcher from a string
-    using KernelLauncher<F>::KernelLauncher;
+    // Create a launcher from a string view
+    explicit ActionLauncher(std::string_view name)
+        : KernelLauncher<F>{std::string{name}}
+    {
+    }
 
     // Create a launcher from an action
     explicit ActionLauncher(StepActionT const& action);
@@ -92,7 +97,7 @@ ActionLauncher<F>::ActionLauncher(StepActionT const& action)
 template<class F>
 ActionLauncher<F>::ActionLauncher(StepActionT const& action,
                                   std::string_view ext)
-    : ActionLauncher{std::string(action.label()) + "-" + std::string(ext)}
+    : KernelLauncher<F>{std::string(action.label()) + "-" + std::string(ext)}
 {
 }
 

@@ -117,6 +117,12 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration Fast
   )
 endforeach()
 
+# Test state dependent output
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LarSphere state_dep
+  OFFLOAD g4
+)
+
 # Test that the UI integration works (and ignores if Celeritas is disabled)
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphere run_ui
@@ -157,6 +163,13 @@ celeritas_add_integration_tests(
   UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
+)
+
+# Test that we can safely flush and restore primaries multiple times per event
+celeritas_add_integration_tests(
+  TrackingManagerIntegration WaterSphere run_small_flush
+  OFFLOAD cpu
+  RMTYPE serial mt
 )
 
 #-----------------------------------------------------------------------------#

@@ -60,7 +60,8 @@ has a default value but can be overridden with any boolean value.
  ORANGE_BIH_STRUCTURE      orange    Include "structure" info in BIH JSON output
  ========================= ========= ==========================================
 
-.. [#pr] See :ref:`profiling`
+.. [#pr] See :ref:`profiling`. This should default to 1 when running through
+   an NVTX-enabled driver such as ``nsys``.
 .. [#lg] See :ref:`logging`
 .. [#mp] CELER_MEMPOOL_RELEASE_THRESHOLD changes the amount of memory used for
    the device asynchronous memory pool.

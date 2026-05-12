@@ -26,7 +26,7 @@ namespace optical
  */
 GaussianRoughnessModel::GaussianRoughnessModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "roughness-gaussian")
+    : SurfaceModel(id, "gaussian-roughness")
 {
     surfaces_.reserve(layer_map.size());
     std::transform(layer_map.begin(),

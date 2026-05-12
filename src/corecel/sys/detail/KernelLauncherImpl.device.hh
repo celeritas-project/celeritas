@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"

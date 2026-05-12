@@ -14,6 +14,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
@@ -84,7 +85,7 @@ GeneratorAction::GeneratorAction(ActionId id,
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
-                    "optical-generate",
+                    "generate",
                     "generate Cherenkov or scintillation photons from optical "
                     "distribution data")
     , initial_capacity_(capacity)
@@ -229,6 +230,8 @@ void GeneratorAction::generate(CoreParams const& params,
 {
     CELER_EXPECT(params.cherenkov() || params.scintillation());
     CELER_EXPECT(state.aux());
+
+    ScopedProfiling profile_this_{"generate"};
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());

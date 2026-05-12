@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<gdml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://service-spi.web.cern.ch/service-spi/app/releases/GDML/schema/gdml.xsd">
+
+  <define>
+    <matrix coldim="2" name="RINDEX" values="2.034e-06 1.3435 2.068e-06 1.344 2.103e-06 1.3445 2.139e-06 1.345 2.177e-06 1.3455 2.216e-06 1.346 2.256e-06 1.3465 2.298e-06 1.347 2.341e-06 1.3475 2.386e-06 1.348 2.433e-06 1.3485 2.481e-06 1.3492 2.532e-06 1.35 2.585e-06 1.3505 2.64e-06 1.351 2.697e-06 1.3518 2.757e-06 1.3522 2.82e-06 1.353 2.885e-06 1.3535 2.954e-06 1.354 3.026e-06 1.3545 3.102e-06 1.355 3.181e-06 1.3555 3.265e-06 1.356 3.353e-06 1.3568 3.446e-06 1.3572 3.545e-06 1.358 3.649e-06 1.3585 3.76e-06 1.359 3.877e-06 1.3595 4.002e-06 1.36 4.136e-06 1.3608"/>
+    <matrix coldim="2" name="GROUPVEL" values="2.034e-06 218.243 2.051e-06 218.204 2.0855e-06 218.183 2.121e-06 218.157 2.158e-06 218.246 2.1965e-06 218.204 2.236e-06 218.158 2.277e-06 218.212 2.3195e-06 218.155 2.3635e-06 218.188 2.4095e-06 218.208 2.457e-06 216.507 2.5065e-06 215.846 2.5585e-06 218.128 2.6125e-06 218.11 2.6685e-06 215.856 2.727e-06 218.798 2.7885e-06 215.988 2.8525e-06 218.001 2.9195e-06 218.046 2.99e-06 218.029 3.064e-06 218.046 3.1415e-06 218.01 3.223e-06 218.041 3.309e-06 216.226 3.3995e-06 218.568 3.4955e-06 216.325 3.597e-06 217.945 3.7045e-06 217.962 3.8185e-06 217.941 3.9395e-06 217.951 4.136e-06 216.443"/>
+    <matrix coldim="2" name="ABSLENGTH" values="2.034e-06 3448 2.068e-06 4082 2.103e-06 6329 2.139e-06 9174 2.177e-06 12346 2.216e-06 13889 2.256e-06 15152 2.298e-06 17241 2.341e-06 18868 2.386e-06 20000 2.433e-06 26316 2.481e-06 35714 2.532e-06 45455 2.585e-06 47619 2.64e-06 52632 2.697e-06 52632 2.757e-06 55556 2.82e-06 52632 2.885e-06 52632 2.954e-06 47619 3.026e-06 45455 3.102e-06 41667 3.181e-06 37037 3.265e-06 33333 3.353e-06 30000 3.446e-06 28500 3.545e-06 27000 3.649e-06 24500 3.76e-06 22000 3.877e-06 19500 4.002e-06 17500 4.136e-06 14500"/>
+  </define>
+
+  <materials>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="H">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <material name="vacuum" state="gas">
+      <T unit="K" value="2.73"/>
+      <P unit="pascal" value="3e-18"/>
+      <MEE unit="eV" value="21.8"/>
+      <D unit="g/cm3" value="1e-25"/>
+      <fraction n="1" ref="H"/>
+    </material>
+    <isotope N="1" Z="1" name="H1">
+      <atom unit="g/mole" value="1.00782503081372"/>
+    </isotope>
+    <isotope N="2" Z="1" name="H2">
+      <atom unit="g/mole" value="2.01410199966617"/>
+    </isotope>
+    <element name="Hydrogen">
+      <fraction n="0.999885" ref="H1"/>
+      <fraction n="0.000115" ref="H2"/>
+    </element>
+    <isotope N="16" Z="8" name="O16">
+      <atom unit="g/mole" value="15.9949"/>
+    </isotope>
+    <isotope N="17" Z="8" name="O17">
+      <atom unit="g/mole" value="16.9991"/>
+    </isotope>
+    <isotope N="18" Z="8" name="O18">
+      <atom unit="g/mole" value="17.9992"/>
+    </isotope>
+    <element name="Oxygen">
+      <fraction n="0.99757" ref="O16"/>
+      <fraction n="0.00038" ref="O17"/>
+      <fraction n="0.00205" ref="O18"/>
+    </element>
+    <material name="Water" formula="H20" state="liquid">
+     <D value="1.0"/>
+     <composite n="2" ref="Hydrogen"/>
+     <composite n="1" ref="Oxygen"/>
+      <property name="RINDEX" ref="RINDEX"/>
+      <property name="GROUPVEL" ref="GROUPVEL"/>
+      <property name="ABSLENGTH" ref="ABSLENGTH"/>
+    </material>
+    <material name="FakePlastic" state="solid">
+     <D value="4.0"/>
+     <composite n="1" ref="Hydrogen"/>
+    </material>
+  </materials>
+
+  <solids>
+    <orb lunit="cm" name="sphere" r="100"/>
+    <sphere lunit="cm" name="shell" rmin="100.0" rmax="110.0" startphi="0" deltaphi="360" deltatheta="180" aunit="deg"/>
+    <box lunit="cm" name="world" x="500" y="500" z="500"/>
+  </solids>
+
+  <structure>
+    <volume name="sphere">
+      <solidref ref="sphere"/>
+      <materialref ref="Water"/>
+    </volume>
+    <volume name="detshell">
+      <solidref ref="shell"/>
+      <materialref ref="FakePlastic"/>
+      <auxiliary auxtype="SensDet" auxvalue="detshell"/>
+    </volume>
+    <volume name="world">
+      <solidref ref="world"/>
+      <materialref ref="vacuum"/>
+      <physvol>
+        <volumeref ref="detshell"/>
+      </physvol>
+      <physvol>
+        <volumeref ref="sphere"/>
+      </physvol>
+    </volume>
+  </structure>
+
+  <setup name="Default" version="1.0">
+    <world ref="world"/>
+  </setup>
+
+</gdml>

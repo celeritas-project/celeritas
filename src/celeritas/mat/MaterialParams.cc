@@ -17,7 +17,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
@@ -165,8 +164,6 @@ MaterialParams::MaterialParams(Input const& inp)
     CELER_EXPECT(!inp.materials.empty());
     CELER_EXPECT(inp.mat_to_optical.empty()
                  || inp.mat_to_optical.size() == inp.materials.size());
-
-    ScopedMem record_mem("MaterialParams.construct");
 
     // Build input data on host
     HostValue host_data;

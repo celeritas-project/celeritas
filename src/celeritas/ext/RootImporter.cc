@@ -13,8 +13,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "RootFileManager.hh"
@@ -32,8 +30,6 @@ RootImporter::RootImporter(char const* filename)
                    << "cannot interface with ROOT (disabled by user "
                       "environment)");
 
-    ScopedMem record_mem("RootImporter.open");
-    ScopedTimeLog scoped_time;
     root_input_.reset(TFile::Open(filename, "read"));
     CELER_VALIDATE(root_input_ && !root_input_->IsZombie(),
                    << "failed to open ROOT file");
@@ -47,8 +43,6 @@ RootImporter::RootImporter(char const* filename)
 ImportData RootImporter::operator()()
 {
     CELER_LOG(debug) << "Reading data from ROOT";
-    ScopedMem record_mem("RootImporter.read");
-    ScopedTimeLog scoped_time;
 
     std::unique_ptr<TTree> tree_data(
         root_input_->Get<TTree>(this->tree_name()));

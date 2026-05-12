@@ -35,9 +35,13 @@ class GeantTrackReconstruction
     //! \name Type aliases
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using SPStep = std::shared_ptr<G4Step>;
+    using EventIdGetter = int (*)();
     //!@}
 
   public:
+    // Create a G4Step object with cleared data
+    static SPStep make_g4step();
+
     // Construct with particle definitions for track reconstruction
     GeantTrackReconstruction(VecParticle const&, SPStep);
 
@@ -55,6 +59,13 @@ class GeantTrackReconstruction
 
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
+
+    // View a track with the given particle ID
+    [[nodiscard]] G4Track& view(ParticleId) const;
+
+    // Event ID function pointer for unit testing (only used in
+    // CELERITAS_DEBUG)
+    static EventIdGetter get_current_event_id;
 
   private:
     //! Data needed to reconstruct a G4Track from Celeritas transport
@@ -86,7 +97,9 @@ class GeantTrackReconstruction
     //! Shared step object
     SPStep step_;
     //! Starting primary id
-    PrimaryId start_;
+    PrimaryId start_{0};
+    //! Last G4 event ID for error checking
+    int g4_event_id_{-1};
 };
 
 //---------------------------------------------------------------------------//

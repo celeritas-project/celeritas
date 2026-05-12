@@ -23,8 +23,7 @@ namespace optical
  * Construct with action ID.
  */
 DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
-    : StaticConcreteAction(
-          aid, "optical-detector", "Score optical detector hits")
+    : StaticConcreteAction(aid, "detector", "Score optical detector hits")
     , callback_(callback)
 {
     CELER_EXPECT(callback);

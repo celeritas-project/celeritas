@@ -69,7 +69,7 @@ class Selector
     //!@{
     //! \name Type aliases
     using arg_type = T;
-    using real_type = typename std::invoke_result<F, arg_type>::type;
+    using real_type = std::invoke_result_t<F, arg_type>;
     //!@}
 
     static_assert(std::is_floating_point_v<real_type>);
