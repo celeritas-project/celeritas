@@ -29,8 +29,9 @@ namespace
 /*!
  * Create JSON representation of the structure of a BIH tree.
  */
-nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
-                                       NativeCRef<BIHTreeData> const& storage)
+nlohmann::json
+make_bih_structure_json(detail::BIHTreeRecord const& tree,
+                        NativeCRef<detail::BIHTreeData> const& storage)
 {
     using json = nlohmann::json;
 
@@ -200,7 +201,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
  * Print a BIH structure to a JSON string for debugging.
  */
 std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
-                               NativeCRef<BIHTreeData> const& data)
+                               NativeCRef<detail::BIHTreeData> const& data)
 {
     return make_bih_structure_json(tree, data).dump();
 }

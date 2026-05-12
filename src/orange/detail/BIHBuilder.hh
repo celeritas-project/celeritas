@@ -18,7 +18,6 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHData.hh"
 
-#include "../OrangeData.hh"
 #include "../inp/Bih.hh"
 
 namespace celeritas

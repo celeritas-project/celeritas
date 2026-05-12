@@ -8,7 +8,7 @@
 
 #include "orange/OrangeTypes.hh"
 
-#include "../OrangeData.hh"
+#include "BIHData.hh"
 
 namespace celeritas
 {

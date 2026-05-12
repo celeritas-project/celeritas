@@ -12,7 +12,6 @@
 
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
-#include "../OrangeData.hh"
 #include "../univ/detail/Types.hh"
 
 namespace celeritas
