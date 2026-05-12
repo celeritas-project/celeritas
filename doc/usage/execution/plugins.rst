@@ -25,7 +25,7 @@ generating the scintillation-to-detector response with full Monte Carlo optical
 tracking.
 
 Once Celeritas has been installed (see :ref:`build_ups`), load the
-module/library/FHICL paths provided by Celeritas in its install directory (or
+module/library/FHiCL paths provided by Celeritas in its install directory (or
 build directory if doing development):
 
 .. code::

@@ -30,7 +30,7 @@ LArSim optical map using a single GENIE-generated event.
 Overview
 --------
 
-The set of ``fcl`` job files in this example can
+The set of FHiCL job files in this example can
 
 - produce neutrino events with GENIE,
 - simulate the energy deposition in LAr with Geant4,
@@ -46,6 +46,8 @@ their ``ModuleLabel``.
 .. figure:: /_static/dot/larsim.*
    :align: center
    :width: 80%
+
+   LArSoft workflow and FHiCL file descriptions.
 
 The next sections describe each component and their invocation, as well
 as a description of setting up a ``dunesw`` environment with native
@@ -69,8 +71,6 @@ Generating GENIE samples
   `genie_dune.fcl <https://internal.dunescience.org/doxygen/genie__dune_8fcl_source.html>`__
   (see ``Configurations for 1x2x6 geometry``).
 
-.. _running-larg4--ionandscint:
-
 Running LArG4 + IonAndScint
 ===========================
 
@@ -83,6 +83,8 @@ Running LArG4 + IonAndScint
 .. code:: sh
 
    $ lar -c larg4_dune10kt_1x2x6.fcl -s genie-output.root -o larg4-output.root
+
+.. _run_lar_optical:
 
 Running optical simulations
 ---------------------------
@@ -149,8 +151,7 @@ Note on ``ModuleLabel``
   view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
   ``IonAndScint`` label is shown as part of the branch name:
 
-.. code::
-   :language: none
+.. code:: none
 
    $ root art-file.root
    root[1] Events->Print()
