@@ -57,9 +57,9 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     size_type offset = tree.inner_nodes.size();
     for (auto i : range(tree.leaf_nodes.size()))
     {
-        auto const& leaf = view.leaf_node(BIHNodeId{offset + i});
         auto vols = json::array();
-        for (auto id : remove_ldg_wrapper(view.leaf_vol_ids(leaf)))
+        for (auto id :
+             remove_ldg_wrapper(view.leaf_vol_ids(BIHNodeId{offset + i})))
         {
             vols.push_back(id.unchecked_get());
         }

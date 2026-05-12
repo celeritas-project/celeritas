@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "orange/OrangeTypes.hh"
+
 #include "../OrangeData.hh"
 
 namespace celeritas
@@ -37,15 +39,11 @@ class BIHView
     // Get an inner node for a given BIHNodeId
     inline CELER_FUNCTION BIHInnerNode const& inner_node(BIHNodeId id) const;
 
-    // Get a leaf node for a given BIHNodeId
-    inline CELER_FUNCTION BIHLeafNode const& leaf_node(BIHNodeId id) const;
-
     // Get the bbox for a given vol_id.
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
 
     // Get the vol_ids on a given leaf node
-    inline CELER_FUNCTION SpanLocalVol
-    leaf_vol_ids(BIHLeafNode const& leaf) const;
+    inline CELER_FUNCTION SpanLocalVol leaf_vol_ids(BIHNodeId) const;
 
     // Get the inf_vol_ids
     inline CELER_FUNCTION SpanLocalVol inf_vol_ids() const;
@@ -92,18 +90,6 @@ BIHInnerNode const& BIHView::inner_node(BIHNodeId id) const
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get a leaf node for a given BIHNodeId.
- */
-CELER_FUNCTION
-BIHLeafNode const& BIHView::leaf_node(BIHNodeId id) const
-{
-    CELER_EXPECT(!this->is_inner(id));
-    return storage_.leaf_nodes[tree_.leaf_nodes[id.unchecked_get()
-                                                - tree_.inner_nodes.size()]];
-}
-
-//---------------------------------------------------------------------------//
-/*!
  *  Get the bbox for a given vol_id.
  */
 CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
@@ -116,10 +102,13 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
 /*!
  *  Get the vol_ids on a given leaf node.
  */
-CELER_FUNCTION auto BIHView::leaf_vol_ids(BIHLeafNode const& leaf) const
-    -> SpanLocalVol
+CELER_FUNCTION auto BIHView::leaf_vol_ids(BIHNodeId id) const -> SpanLocalVol
 {
-    return storage_.local_volume_ids[leaf.vol_ids];
+    CELER_EXPECT(!this->is_inner(id));
+    ItemId<BIHLeafNode> leaf_id
+        = tree_.leaf_nodes[id.unchecked_get() - tree_.inner_nodes.size()];
+    auto const& leaf_node = storage_.leaf_nodes[leaf_id];
+    return storage_.local_volume_ids[leaf_node.vol_ids];
 }
 
 //---------------------------------------------------------------------------//
