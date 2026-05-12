@@ -9,8 +9,7 @@
 #include <limits>
 #include <vector>
 
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/ParamsDataStore.hh"
+#include "corecel/OpaqueIdUtils.hh"
 #include "corecel/data/Ref.hh"
 #include "geocel/Types.hh"
 #include "orange/detail/BIHData.hh"
@@ -24,6 +23,9 @@ namespace detail
 {
 namespace test
 {
+using celeritas::test::id_to_int;
+using VecInt = std::vector<int>;
+
 //---------------------------------------------------------------------------//
 class BIHBuilderTest : public ::celeritas::test::Test
 {
@@ -103,11 +105,9 @@ TEST_F(BIHBuilderTest, basic)
     EXPECT_VEC_SOFT_EQ(Real3({2.8f, 1, 100}), bbox1.upper());
 
     // Test nodes
-    auto internal_nodes = bih_tree.internal_nodes;
-    auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(3, internal_nodes.size());
-    ASSERT_EQ(4, leaf_nodes.size());
+    ASSERT_EQ(3, view.num_internal_nodes());
+    ASSERT_EQ(4, view.num_leaf_nodes());
 
     // N0, I0
     {
@@ -172,34 +172,10 @@ TEST_F(BIHBuilderTest, basic)
                            node.bbox(Side::right).upper());
     }
 
-    // N3, L0
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N3, L1
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N5, L2
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{4}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[1]]);
-    }
-
-    // N6, L3
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{3}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{3})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{4})));
+    EXPECT_VEC_EQ(VecInt({4, 5}), id_to_int(view.leaf_vol_ids(BIHNodeId{5})));
+    EXPECT_VEC_EQ(VecInt({3}), id_to_int(view.leaf_vol_ids(BIHNodeId{6})));
 
     // Metadata
     {
@@ -294,11 +270,9 @@ TEST_F(GridTest, basic)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto internal_nodes = bih_tree.internal_nodes;
-    auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(11, internal_nodes.size());
-    ASSERT_EQ(12, leaf_nodes.size());
+    ASSERT_EQ(11, view.num_internal_nodes());
+    ASSERT_EQ(12, view.num_leaf_nodes());
 
     // N0, I0
     {
@@ -426,48 +400,12 @@ TEST_F(GridTest, basic)
                            node.bbox(Side::right).upper());
     }
 
-    // N11, L0
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N12, L1
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N13, L2
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N14, L3
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N15, L4
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[4]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N16, L5
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[5]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{10},
-                  storage_.local_volume_ids[node.vol_ids[0]]);
-    }
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{11})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{12})));
+    EXPECT_VEC_EQ(VecInt({5}), id_to_int(view.leaf_vol_ids(BIHNodeId{13})));
+    EXPECT_VEC_EQ(VecInt({6}), id_to_int(view.leaf_vol_ids(BIHNodeId{14})));
+    EXPECT_VEC_EQ(VecInt({9}), id_to_int(view.leaf_vol_ids(BIHNodeId{15})));
+    EXPECT_VEC_EQ(VecInt({10}), id_to_int(view.leaf_vol_ids(BIHNodeId{16})));
 
     // Metadata
     {
@@ -510,11 +448,9 @@ TEST_F(GridTest, max_leaf_size)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto internal_nodes = bih_tree.internal_nodes;
-    auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(3, internal_nodes.size());
-    ASSERT_EQ(4, leaf_nodes.size());
+    ASSERT_EQ(3, view.num_internal_nodes());
+    ASSERT_EQ(4, view.num_leaf_nodes());
 
     // N0, I0
     {
@@ -579,44 +515,12 @@ TEST_F(GridTest, max_leaf_size)
                            node.bbox(Side::right).upper());
     }
 
-    // N3, L0
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[1]]);
-    }
-
-    // N4, L1
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        EXPECT_EQ(4, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[1]]);
-        EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[2]]);
-        EXPECT_EQ(LocalVolumeId{10},
-                  storage_.local_volume_ids[node.vol_ids[3]]);
-    }
-
-    // N5, L2
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{3}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{4}, storage_.local_volume_ids[node.vol_ids[1]]);
-    }
-
-    // N6, L3
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        EXPECT_EQ(4, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{7}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{8}, storage_.local_volume_ids[node.vol_ids[1]]);
-        EXPECT_EQ(LocalVolumeId{11},
-                  storage_.local_volume_ids[node.vol_ids[2]]);
-        EXPECT_EQ(LocalVolumeId{12},
-                  storage_.local_volume_ids[node.vol_ids[3]]);
-    }
+    EXPECT_VEC_EQ(VecInt({1, 2}), id_to_int(view.leaf_vol_ids(BIHNodeId{3})));
+    EXPECT_VEC_EQ(VecInt({5, 6, 9, 10}),
+                  id_to_int(view.leaf_vol_ids(BIHNodeId{4})));
+    EXPECT_VEC_EQ(VecInt({3, 4}), id_to_int(view.leaf_vol_ids(BIHNodeId{5})));
+    EXPECT_VEC_EQ(VecInt({7, 8, 11, 12}),
+                  id_to_int(view.leaf_vol_ids(BIHNodeId{6})));
 
     // Metadata
     {
@@ -664,11 +568,9 @@ TEST_F(GridTest, depth_limit)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto internal_nodes = bih_tree.internal_nodes;
-    auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(7, internal_nodes.size());
-    ASSERT_EQ(8, leaf_nodes.size());
+    ASSERT_EQ(7, view.num_internal_nodes());
+    ASSERT_EQ(8, view.num_leaf_nodes());
 
     // N0, I0
     {
@@ -754,36 +656,10 @@ TEST_F(GridTest, depth_limit)
                            node.bbox(Side::right).upper());
     }
 
-    // N7, L0
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[0]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N8, L1
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[1]];
-        EXPECT_EQ(1, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{2}, storage_.local_volume_ids[node.vol_ids[0]]);
-    }
-
-    // N9, L2
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[2]];
-        EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{5}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{6}, storage_.local_volume_ids[node.vol_ids[1]]);
-    }
-
-    // N10, L3
-    {
-        auto node = storage_.leaf_nodes[leaf_nodes[3]];
-        EXPECT_EQ(2, node.vol_ids.size());
-        EXPECT_EQ(LocalVolumeId{9}, storage_.local_volume_ids[node.vol_ids[0]]);
-        EXPECT_EQ(LocalVolumeId{10},
-                  storage_.local_volume_ids[node.vol_ids[1]]);
-    }
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{7})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{8})));
+    EXPECT_VEC_EQ(VecInt({5, 6}), id_to_int(view.leaf_vol_ids(BIHNodeId{9})));
+    EXPECT_VEC_EQ(VecInt({9, 10}), id_to_int(view.leaf_vol_ids(BIHNodeId{10})));
 
     // Metadata
     {
@@ -806,12 +682,11 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    ASSERT_EQ(0, bih_tree.internal_nodes.size());
-    ASSERT_EQ(1, bih_tree.leaf_nodes.size());
+    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, view.num_internal_nodes());
+    ASSERT_EQ(1, view.num_leaf_nodes());
 
-    auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
-    EXPECT_EQ(1, node.vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
 
     auto const& md = bih_tree.metadata;
     EXPECT_EQ(1, md.num_finite_bboxes);
@@ -830,13 +705,11 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    ASSERT_EQ(0, bih_tree.internal_nodes.size());
-    ASSERT_EQ(1, bih_tree.leaf_nodes.size());
+    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, view.num_internal_nodes());
+    ASSERT_EQ(1, view.num_leaf_nodes());
 
-    auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
-    EXPECT_EQ(2, node.vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0}, storage_.local_volume_ids[node.vol_ids[0]]);
-    EXPECT_EQ(LocalVolumeId{1}, storage_.local_volume_ids[node.vol_ids[1]]);
+    EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
 
     auto const& md = bih_tree.metadata;
     EXPECT_EQ(2, md.num_finite_bboxes);
@@ -851,8 +724,9 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.internal_nodes.size());
-    ASSERT_EQ(1, bih_tree.leaf_nodes.size());
+    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, view.num_internal_nodes());
+    ASSERT_EQ(1, view.num_leaf_nodes());
     ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},
@@ -874,8 +748,9 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.internal_nodes.size());
-    ASSERT_EQ(1, bih_tree.leaf_nodes.size());
+    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, view.num_internal_nodes());
+    ASSERT_EQ(1, view.num_leaf_nodes());
     ASSERT_EQ(2, bih_tree.inf_vol_ids.size());
 
     EXPECT_EQ(LocalVolumeId{0},

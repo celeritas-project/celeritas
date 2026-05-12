@@ -39,9 +39,9 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     detail::BIHView view{tree, storage};
 
     // Handle internal nodes
-    for (auto i : range(tree.internal_nodes.size()))
+    for (auto i : range(BIHNodeId{view.num_internal_nodes()}))
     {
-        auto const& inner = view.inner_node(BIHNodeId{i});
+        auto const& inner = view.inner_node(i);
         using Side = detail::BIHInternalNode::Side;
 
         out.push_back(json::array(
@@ -54,14 +54,13 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     }
 
     // Handle leaf nodes
-    size_type offset = tree.internal_nodes.size();
-    for (auto i : range(tree.leaf_nodes.size()))
+    for (auto i : range(BIHNodeId{view.num_internal_nodes()},
+                        BIHNodeId{view.num_nodes()}))
     {
         auto vols = json::array();
-        for (auto id :
-             remove_ldg_wrapper(view.leaf_vol_ids(BIHNodeId{offset + i})))
+        for (LocalVolumeId id : remove_ldg_wrapper(view.leaf_vol_ids(i)))
         {
-            vols.push_back(id.unchecked_get());
+            vols.push_back(*id);
         }
         out.push_back(json::array({"l", std::move(vols)}));
     }

@@ -71,6 +71,15 @@ class BIHView
     // Get an internal node for a given BIHNodeId
     inline CELER_FUNCTION BIHInternalNodeView inner_node(BIHNodeId id) const;
 
+    // Get number of internal nodes
+    inline CELER_FUNCTION size_type num_internal_nodes() const;
+
+    // Get number of leaf nodes
+    inline CELER_FUNCTION size_type num_leaf_nodes() const;
+
+    // Get total number of nodes
+    inline CELER_FUNCTION size_type num_nodes() const;
+
     // Get the bbox for a given vol_id.
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
 
@@ -169,6 +178,33 @@ BIHInternalNodeView BIHView::inner_node(BIHNodeId id) const
     CELER_EXPECT(this->is_internal(id));
     return BIHInternalNodeView{
         storage_.internal_nodes[tree_.internal_nodes[id.unchecked_get()]]};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get number of internal nodes.
+ */
+CELER_FUNCTION auto BIHView::num_internal_nodes() const -> size_type
+{
+    return tree_.internal_nodes.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get number of leaf nodes.
+ */
+CELER_FUNCTION auto BIHView::num_leaf_nodes() const -> size_type
+{
+    return tree_.leaf_nodes.size();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ *  Get total number of nodes.
+ */
+CELER_FUNCTION auto BIHView::num_nodes() const -> size_type
+{
+    return tree_.internal_nodes.size() + tree_.leaf_nodes.size();
 }
 
 //---------------------------------------------------------------------------//
