@@ -57,7 +57,7 @@ in a module after LArG4 runs.
 
 Its configuration options are input via the FHiCL interface:
 
-.. literalinclude:: ../../../src/larceler/PDFullSimCeler.fcl
+.. literalinclude:: ../../../src/larceler/pdfullsimceler.fcl
    :language: none
    :start-after: BEGIN_PROLOG
    :end-before: END_PROLOG
