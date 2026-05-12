@@ -147,41 +147,42 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         stack.pop();
         int ax = to_int(node.axis());
 
-        // Guess the better edge to traverse first
-        Side first_side = Side::left;
-        Side second_side = Side::right;
+        // Guess the better edge to traverse first: unrolled with loads for
+        // GPU performance
+        fast_real_type left_pos = node.bounding_plane_pos(Side::left);
+        FastBBox first_bbox = node.bbox(Side::left);
+        BIHNodeId first_child = node.child(Side::left);
+        fast_real_type right_pos = node.bounding_plane_pos(Side::right);
+        FastBBox second_bbox = node.bbox(Side::right);
+        BIHNodeId second_child = node.child(Side::right);
 
-        bool skip_first
-            = (ray.dir[ax] >= 0)
-              && (ray.pos[ax] > node.bounding_plane_pos(Side::left));
-        bool skip_second
-            = (ray.dir[ax] <= 0)
-              && (ray.pos[ax] < node.bounding_plane_pos(Side::right));
+        bool skip_first = (ray.dir[ax] >= 0) && (ray.pos[ax] > left_pos);
+        bool skip_second = (ray.dir[ax] <= 0) && (ray.pos[ax] < right_pos);
 
-        if (ray.pos[ax] > node.bounding_plane_pos(Side::right))
+        if (ray.pos[ax] > right_pos)
         {
-            trivial_swap(first_side, second_side);
+            trivial_swap(first_bbox, second_bbox);
+            trivial_swap(first_child, second_child);
             trivial_swap(skip_first, skip_second);
         }
 
         // Determine if the first and second edges are hits, short circuiting
         // with skip_* before testing bounding boxes
-        bool hit_first = !skip_first
-                         && this->visit_bbox(
-                             node.bbox(first_side), ray, intersection.distance);
-        bool hit_second = !skip_second
-                          && this->visit_bbox(node.bbox(second_side),
-                                              ray,
-                                              intersection.distance);
+        bool hit_first
+            = !skip_first
+              && this->visit_bbox(first_bbox, ray, intersection.distance);
+        bool hit_second
+            = !skip_second
+              && this->visit_bbox(second_bbox, ray, intersection.distance);
 
         // Choose the next node on the basis of which edges are hits
         if (hit_second)
         {
-            stack.push(node.child(second_side));
+            stack.push(second_child);
         }
         if (hit_first)
         {
-            stack.push(node.child(first_side));
+            stack.push(first_child);
         }
     }
 
