@@ -43,7 +43,7 @@ class BIHInternalNodeView
     inline CELER_FUNCTION fast_real_type bounding_plane_pos(Side side) const;
 
   private:
-    BIHInternalNode node_;
+    BIHInternalNode const& node_;
 };
 
 //---------------------------------------------------------------------------//
