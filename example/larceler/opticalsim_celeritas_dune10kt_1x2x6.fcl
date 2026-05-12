@@ -4,8 +4,9 @@
 #include "pdfullsimceler.fcl"
 #include "opticalsim_dune10kt_1x2x6.fcl"
 
-# Replace fast simulation module by Celeritas
+# Replace fast simulation module with Celeritas
 pdfullsim: {
+  # Use PDFullSimCelerGPU for device execution
   @table::PDFullSimCeler
 }
 

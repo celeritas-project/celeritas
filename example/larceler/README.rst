@@ -11,11 +11,13 @@ This example assumes that:
 Summary
 -------
 
-This sequence of commands will generate analysis files for Celeritas and the
-LArSim optical map using a single GENIE-generated event.
+This sequence of commands generate analysis files for Celeritas and the
+LArSim fast simulation using a single GENIE-generated event.
 
 .. code:: sh
-
+   # Download and patch the geometry file for Celeritas execution
+   curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
+   patch -p0 -o dune10kt-1x2x6-celeritas-nouvwires.gdml < dune10kt_v6_refactored_1x2x6_celeritas.patch
    # Run GENIE
    lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
    # Run LArG4 + IonAndScint
@@ -30,7 +32,7 @@ LArSim optical map using a single GENIE-generated event.
 Overview
 --------
 
-The set of FHiCL job files in this example can
+The set of ``fcl`` job files in this example can
 
 - produce neutrino events with GENIE,
 - simulate the energy deposition in LAr with Geant4,
@@ -46,8 +48,6 @@ their ``ModuleLabel``.
 .. figure:: /_static/dot/larsim.*
    :align: center
    :width: 80%
-
-   LArSoft workflow and FHiCL file descriptions.
 
 The next sections describe each component and their invocation, as well
 as a description of setting up a ``dunesw`` environment with native
@@ -71,6 +71,8 @@ Generating GENIE samples
   `genie_dune.fcl <https://internal.dunescience.org/doxygen/genie__dune_8fcl_source.html>`__
   (see ``Configurations for 1x2x6 geometry``).
 
+.. _running-larg4--ionandscint:
+
 Running LArG4 + IonAndScint
 ===========================
 
@@ -83,8 +85,6 @@ Running LArG4 + IonAndScint
 .. code:: sh
 
    $ lar -c larg4_dune10kt_1x2x6.fcl -s genie-output.root -o larg4-output.root
-
-.. _run_lar_optical:
 
 Running optical simulations
 ---------------------------
@@ -108,17 +108,18 @@ Celeritas
    $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 
 Celeritas geometry requires correct optical material information and correct
-``SensDet`` data assigned to the Arapucas, e.g.:
+``SensDet`` data assigned to the Arapucas. The geometry has also been modified to
+remove the U and V wires, which cause significant slowdowns in the BIH geometry
+navigation. To patch the geometry with the changes needed by Celeritas, apply
+the local patch file to the ``dune10kt_v6_refactored_1x2x6.gdml``, available at
+https://github.com/nuRiceLab/laropticks/blob/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml.
 
-.. code:: diff
+To patch the file:
 
-   <volume name="volOpDetSensitive_0-0-0">
-     <materialref ref="LAr"/>
-   -  <auxiliary auxtype="PD" auxvalue="PhotonDetector"/>
-   +  <auxiliary auxtype="SensDet" auxvalue="PhotonDetector"/>
-      <auxiliary auxtype="Surface" auxvalue="volCryostat"/>
-    <solidref ref="ArapucaAcceptanceWindow"/>
-   </volume>
+.. code:: sh
+
+   $ patch -p0 < dune10kt_v6_refactored_1x2x6_celeritas.patch
+
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------
@@ -139,8 +140,8 @@ Generating analysis files from the optical simulation
 
 .. code:: sh
 
-   $ lar -c pdsimana_job.fcl -s fastsim-output.root [optional: -T fastsim-ana-output.root]
-   $ lar -c pdsimana_job.fcl -s celeritas-output.root [optional: -T celeritas-ana-output.root]
+   $ lar -c pdsimana_job.fcl -s fastsim-output.root [optional: -T filename.root]
+   $ lar -c pdsimana_job.fcl -s celeritas-output.root [optional: -T filename.root]
 
 Note on ``ModuleLabel``
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -151,7 +152,8 @@ Note on ``ModuleLabel``
   view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
   ``IonAndScint`` label is shown as part of the branch name:
 
-.. code:: none
+.. code::
+   :language: none
 
    $ root art-file.root
    root[1] Events->Print()
