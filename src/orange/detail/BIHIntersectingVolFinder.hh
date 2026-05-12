@@ -143,7 +143,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
             continue;
         }
 
-        auto const& node = view_.inner_node(stack.top());
+        auto node = view_.inner_node(stack.top());
         stack.pop();
         int ax = to_int(node.axis());
 
