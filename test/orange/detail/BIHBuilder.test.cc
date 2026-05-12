@@ -78,7 +78,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
  */
 TEST_F(BIHBuilderTest, basic)
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
     using Real3 = FastBBox::Real3;
 
     VecFastBbox bboxes = {
@@ -103,10 +103,10 @@ TEST_F(BIHBuilderTest, basic)
     EXPECT_VEC_SOFT_EQ(Real3({2.8f, 1, 100}), bbox1.upper());
 
     // Test nodes
-    auto inner_nodes = bih_tree.inner_nodes;
+    auto internal_nodes = bih_tree.internal_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(3, inner_nodes.size());
+    ASSERT_EQ(3, internal_nodes.size());
     ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
@@ -232,7 +232,7 @@ class GridTest : public BIHBuilderTest
 {
   protected:
     /// TYPES ///
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     /// METHODS ///
     void SetUp() override
@@ -294,10 +294,10 @@ TEST_F(GridTest, basic)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto inner_nodes = bih_tree.inner_nodes;
+    auto internal_nodes = bih_tree.internal_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(11, inner_nodes.size());
+    ASSERT_EQ(11, internal_nodes.size());
     ASSERT_EQ(12, leaf_nodes.size());
 
     // N0, I0
@@ -510,10 +510,10 @@ TEST_F(GridTest, max_leaf_size)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto inner_nodes = bih_tree.inner_nodes;
+    auto internal_nodes = bih_tree.internal_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(3, inner_nodes.size());
+    ASSERT_EQ(3, internal_nodes.size());
     ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
@@ -664,10 +664,10 @@ TEST_F(GridTest, depth_limit)
               storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
 
     // Test nodes
-    auto inner_nodes = bih_tree.inner_nodes;
+    auto internal_nodes = bih_tree.internal_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
     BIHView view{bih_tree, make_const_ref(storage_)};
-    ASSERT_EQ(7, inner_nodes.size());
+    ASSERT_EQ(7, internal_nodes.size());
     ASSERT_EQ(8, leaf_nodes.size());
 
     // N0, I0
@@ -806,7 +806,7 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    ASSERT_EQ(0, bih_tree.inner_nodes.size());
+    ASSERT_EQ(0, bih_tree.internal_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
     auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
@@ -830,7 +830,7 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    ASSERT_EQ(0, bih_tree.inner_nodes.size());
+    ASSERT_EQ(0, bih_tree.internal_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
 
     auto node = storage_.leaf_nodes[bih_tree.leaf_nodes[0]];
@@ -851,7 +851,7 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.inner_nodes.size());
+    ASSERT_EQ(0, bih_tree.internal_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
     ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
 
@@ -874,7 +874,7 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
     auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
 
-    ASSERT_EQ(0, bih_tree.inner_nodes.size());
+    ASSERT_EQ(0, bih_tree.internal_nodes.size());
     ASSERT_EQ(1, bih_tree.leaf_nodes.size());
     ASSERT_EQ(2, bih_tree.inf_vol_ids.size());
 

@@ -21,7 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single inner node in a Bounding Interval Hierarchy.
+ * Data for a single internal node in a Bounding Interval Hierarchy.
  *
  * As a convention, a node's LEFT edge corresponds to the half space that is
  * less than the partition value. In other words, the LEFT bounding plane
@@ -31,7 +31,7 @@ namespace detail
  * the LEFT bounding plane position could be either left or right of the RIGHT
  * bounding plane position.
  */
-struct BIHInnerNode
+struct BIHInternalNode
 {
     struct Edge
     {
@@ -98,8 +98,8 @@ struct BIHTreeRecord
     //! All bounding boxes managed by the BIH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
-    //! Inner nodes, the first being the root
-    ItemRange<BIHInnerNode> inner_nodes;
+    //! Internal (branch) nodes, the first being the root
+    ItemRange<BIHInternalNode> internal_nodes;
 
     //! Leaf nodes
     ItemRange<BIHLeafNode> leaf_nodes;
@@ -114,7 +114,7 @@ struct BIHTreeRecord
 
     explicit CELER_FUNCTION operator bool() const
     {
-        if (!inner_nodes.empty())
+        if (!internal_nodes.empty())
         {
             return !bboxes.empty() && !leaf_nodes.empty();
         }

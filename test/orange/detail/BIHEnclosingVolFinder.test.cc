@@ -15,7 +15,7 @@
 #include "celeritas_test.hh"
 
 using BIHBuilder = celeritas::detail::BIHBuilder;
-using BIHInnerNode = celeritas::detail::BIHInnerNode;
+using BIHInnerNode = celeritas::detail::BIHInternalNode;
 using BIHLeafNode = celeritas::detail::BIHLeafNode;
 using BIHEnclosingVolFinder = celeritas::detail::BIHEnclosingVolFinder;
 

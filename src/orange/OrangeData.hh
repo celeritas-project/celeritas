@@ -358,13 +358,13 @@ struct BIHTreeData
     // Low-level storage
     Items<FastBBox> bboxes;
     Items<LocalVolumeId> local_volume_ids;
-    Items<detail::BIHInnerNode> inner_nodes;
+    Items<detail::BIHInternalNode> internal_nodes;
     Items<detail::BIHLeafNode> leaf_nodes;
 
     //! True if assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        // Note that inner_nodes may be empty for single-node trees
+        // Note that internal_nodes may be empty for single-node trees
         return !bboxes.empty() && !local_volume_ids.empty()
                && !leaf_nodes.empty();
     }
@@ -375,7 +375,7 @@ struct BIHTreeData
     {
         bboxes = other.bboxes;
         local_volume_ids = other.local_volume_ids;
-        inner_nodes = other.inner_nodes;
+        internal_nodes = other.internal_nodes;
         leaf_nodes = other.leaf_nodes;
 
         CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));

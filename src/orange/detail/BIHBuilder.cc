@@ -36,7 +36,7 @@ namespace detail
 BIHBuilder::BIHBuilder(Storage* storage, Input inp)
     : bboxes_{&storage->bboxes}
     , local_volume_ids_{&storage->local_volume_ids}
-    , inner_nodes_{&storage->inner_nodes}
+    , internal_nodes_{&storage->internal_nodes}
     , leaf_nodes_{&storage->leaf_nodes}
     , inp_{inp}
 {
@@ -126,10 +126,11 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         // Construct the tree recursively
         VecNodes nodes;
         this->construct_tree(indices, &nodes, 0, depth);
-        auto [inner_nodes, leaf_nodes] = this->arrange_nodes(std::move(nodes));
+        auto [internal_nodes, leaf_nodes]
+            = this->arrange_nodes(std::move(nodes));
 
-        tree.inner_nodes
-            = inner_nodes_.insert_back(inner_nodes.begin(), inner_nodes.end());
+        tree.internal_nodes = internal_nodes_.insert_back(
+            internal_nodes.begin(), internal_nodes.end());
 
         tree.leaf_nodes
             = leaf_nodes_.insert_back(leaf_nodes.begin(), leaf_nodes.end());
@@ -174,7 +175,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 {
     CELER_EXPECT(current_depth < inp_.depth_limit);
 
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     ++current_depth;
     auto current_index = nodes->size();
@@ -206,8 +207,8 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
     if (auto p = partition(indices))
     {
-        // Create inner node
-        BIHInnerNode node;
+        // Create internal node
+        BIHInternalNode node;
         node.axis = p.axis;
 
         // Recursively construct the left and right branches
@@ -233,7 +234,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
 
 //---------------------------------------------------------------------------//
 /*!
- * Separate inner nodes from leaf nodes and renumber accordingly.
+ * Separate internal nodes from leaf nodes and renumber accordingly.
  *
  * \param[in] nodes  The interspersed inner and leaf nodes
  *
@@ -241,7 +242,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
  */
 BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
 {
-    VecInnerNodes inner_nodes;
+    VecInnerNodes internal_nodes;
     VecLeafNodes leaf_nodes;
 
     std::vector<bool> is_leaf;
@@ -250,23 +251,24 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
     is_leaf.reserve(nodes.size());
     new_indices.reserve(nodes.size());
 
-    auto insert_node = Overload{[&](BIHInnerNode const& node) {
-                                    new_indices.push_back(inner_nodes.size());
-                                    inner_nodes.push_back(node);
-                                    is_leaf.push_back(false);
-                                },
-                                [&](BIHLeafNode const& node) {
-                                    new_indices.push_back(leaf_nodes.size());
-                                    leaf_nodes.push_back(node);
-                                    is_leaf.push_back(true);
-                                }};
+    auto insert_node
+        = Overload{[&](BIHInternalNode const& node) {
+                       new_indices.push_back(internal_nodes.size());
+                       internal_nodes.push_back(node);
+                       is_leaf.push_back(false);
+                   },
+                   [&](BIHLeafNode const& node) {
+                       new_indices.push_back(leaf_nodes.size());
+                       leaf_nodes.push_back(node);
+                       is_leaf.push_back(true);
+                   }};
     for (auto const& node : nodes)
     {
         std::visit(insert_node, node);
     }
 
     // Transform "leaf ID" to "node ID"
-    auto offset = inner_nodes.size();
+    auto offset = internal_nodes.size();
     for (auto i : range(nodes.size()))
     {
         if (is_leaf[i])
@@ -281,7 +283,7 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
         return id_cast<BIHNodeId>(new_indices[old.unchecked_get()]);
     };
 
-    for (auto& inner_node : inner_nodes)
+    for (auto& inner_node : internal_nodes)
     {
         for (auto& edge : inner_node.edges)
         {
@@ -289,7 +291,7 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
         }
     }
 
-    return {std::move(inner_nodes), std::move(leaf_nodes)};
+    return {std::move(internal_nodes), std::move(leaf_nodes)};
 }
 //---------------------------------------------------------------------------//
 }  // namespace detail

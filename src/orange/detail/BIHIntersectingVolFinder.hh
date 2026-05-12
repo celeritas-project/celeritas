@@ -122,7 +122,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
@@ -135,7 +135,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     while (!stack.empty())
     {
-        if (!view_.is_inner(stack.top()))
+        if (!view_.is_internal(stack.top()))
         {
             intersection
                 = this->visit_leaf(stack.top(), ray, intersection, visit_vol);

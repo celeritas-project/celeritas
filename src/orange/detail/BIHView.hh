@@ -16,18 +16,19 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Access data for a BIH inner node.
+ * Access data for a BIH internal node.
  */
 class BIHInternalNodeView
 {
   public:
     //!@{
     //! \name Type aliases
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
     //!@}
 
-    // Construct from inner node data
-    inline CELER_FUNCTION explicit BIHInternalNodeView(BIHInnerNode const& node);
+    // Construct from internal node data
+    inline CELER_FUNCTION explicit BIHInternalNodeView(
+        BIHInternalNode const& node);
 
     // Get partition axis
     inline CELER_FUNCTION Axis axis() const;
@@ -42,7 +43,7 @@ class BIHInternalNodeView
     inline CELER_FUNCTION fast_real_type bounding_plane_pos(Side side) const;
 
   private:
-    BIHInnerNode const& node_;
+    BIHInternalNode const& node_;
 };
 
 //---------------------------------------------------------------------------//
@@ -65,9 +66,9 @@ class BIHView
     BIHView(BIHTreeRecord const& tree, Storage const& storage);
 
     // Determine if a node is inner, i.e., not a leaf
-    inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
+    inline CELER_FUNCTION bool is_internal(BIHNodeId id) const;
 
-    // Get an inner node for a given BIHNodeId
+    // Get an internal node for a given BIHNodeId
     inline CELER_FUNCTION BIHInternalNodeView inner_node(BIHNodeId id) const;
 
     // Get the bbox for a given vol_id.
@@ -89,10 +90,10 @@ class BIHView
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from an inner node.
+ * Construct from an internal node.
  */
 CELER_FUNCTION
-BIHInternalNodeView::BIHInternalNodeView(BIHInnerNode const& node)
+BIHInternalNodeView::BIHInternalNodeView(BIHInternalNode const& node)
     : node_(node)
 {
     CELER_EXPECT(node_);
@@ -153,21 +154,21 @@ BIHView::BIHView(BIHTreeRecord const& tree, BIHView::Storage const& storage)
  *  Determine if a node is inner, i.e., not a leaf.
  */
 CELER_FUNCTION
-bool BIHView::is_inner(BIHNodeId id) const
+bool BIHView::is_internal(BIHNodeId id) const
 {
-    return id.unchecked_get() < tree_.inner_nodes.size();
+    return id.unchecked_get() < tree_.internal_nodes.size();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- *  Get an inner node for a given BIHNodeId.
+ *  Get an internal node for a given BIHNodeId.
  */
 CELER_FUNCTION
 BIHInternalNodeView BIHView::inner_node(BIHNodeId id) const
 {
-    CELER_EXPECT(this->is_inner(id));
+    CELER_EXPECT(this->is_internal(id));
     return BIHInternalNodeView{
-        storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]]};
+        storage_.internal_nodes[tree_.internal_nodes[id.unchecked_get()]]};
 }
 
 //---------------------------------------------------------------------------//
@@ -186,9 +187,9 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
  */
 CELER_FUNCTION auto BIHView::leaf_vol_ids(BIHNodeId id) const -> SpanLocalVol
 {
-    CELER_EXPECT(!this->is_inner(id));
+    CELER_EXPECT(!this->is_internal(id));
     ItemId<BIHLeafNode> leaf_id
-        = tree_.leaf_nodes[id.unchecked_get() - tree_.inner_nodes.size()];
+        = tree_.leaf_nodes[id.unchecked_get() - tree_.internal_nodes.size()];
     auto const& leaf_node = storage_.leaf_nodes[leaf_id];
     return storage_.local_volume_ids[leaf_node.vol_ids];
 }

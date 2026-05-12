@@ -89,7 +89,7 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     // Stack of deferred nodes
     using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
@@ -99,7 +99,7 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 
     while (!stack.empty())
     {
-        if (!view_.is_inner(stack.top()))
+        if (!view_.is_internal(stack.top()))
         {
             auto id = this->visit_leaf(stack.top(), pos, is_inside_vol);
             stack.pop();

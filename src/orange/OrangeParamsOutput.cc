@@ -38,11 +38,11 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
 
     detail::BIHView view{tree, storage};
 
-    // Handle inner nodes
-    for (auto i : range(tree.inner_nodes.size()))
+    // Handle internal nodes
+    for (auto i : range(tree.internal_nodes.size()))
     {
         auto const& inner = view.inner_node(BIHNodeId{i});
-        using Side = detail::BIHInnerNode::Side;
+        using Side = detail::BIHInternalNode::Side;
 
         out.push_back(json::array(
             {"i",
@@ -54,7 +54,7 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     }
 
     // Handle leaf nodes
-    size_type offset = tree.inner_nodes.size();
+    size_type offset = tree.internal_nodes.size();
     for (auto i : range(tree.leaf_nodes.size()))
     {
         auto vols = json::array();
@@ -141,7 +141,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     obj["sizes"]["bih"] = [&bihdata = data.bih_tree_data] {
         return json::object({
             OPO_SIZE_PAIR(bihdata, bboxes),
-            OPO_SIZE_PAIR(bihdata, inner_nodes),
+            OPO_SIZE_PAIR(bihdata, internal_nodes),
             OPO_SIZE_PAIR(bihdata, leaf_nodes),
             OPO_SIZE_PAIR(bihdata, local_volume_ids),
         });
