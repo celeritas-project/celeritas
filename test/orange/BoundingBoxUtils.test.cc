@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/BoundingBoxUtils.hh"
 
+#include <limits>
+
+#include "corecel/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
@@ -196,9 +200,7 @@ using IntersectsSegmentTest = Test;
 
 TEST_F(IntersectsSegmentTest, basic)
 {
-    using Real3 = Array<real_type, 3>;
-
-    auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
+    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
 
     // Basic case: pos outside by 0.1 along x
     Real3 pos{1.1, 0.5, 0.5};
@@ -239,8 +241,6 @@ TEST_F(IntersectsSegmentTest, basic)
         intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
 }
 
-using IntersectsSegmentTest = Test;
-
 TEST_F(IntersectsSegmentTest, near_degenerate)
 {
     auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
@@ -274,7 +274,7 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
         {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
     };
 
-    real_type large_dist
+    constexpr real_type large_dist
         = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e5_r);
     for (auto const max_dist : {1 / large_dist, large_dist})
     {
@@ -293,6 +293,27 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
             }
         }
     }
+}
+
+TEST_F(IntersectsSegmentTest, infinite)
+{
+    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
+
+    constexpr real_type infr = std::numeric_limits<real_type>::infinity();
+
+    // Actually intersecting
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{0.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(intersects_segment(
+        bbox, Real3{0.5, 1.25, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
+
+    // False positives
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{-0.5, 1.1, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(intersects_segment(
+        bbox, Real3{1.5, 0.75, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_encloses)

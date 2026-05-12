@@ -256,6 +256,10 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  *
  * Note the manual unrolling of the off-axis test leads to a 10% speedup in the
  * along-step kernel.
+ * \warning Infinite segment lengths are allowed to support degenerate cases,
+ * but they will result in false positives and a slowdown.
+ * \note Infinite bounding boxes are \em not supported, but they should never
+ * be generated due to the construction implementation.
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -264,7 +268,6 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
                                               T distance)
 {
     CELER_EXPECT(distance > 0);
-    CELER_EXPECT(!std::isinf(distance));
     Array<T, 3> hw;  // Half-widths of bounding box
     Array<T, 3> mid;  // Midpoint of the line segment
     Array<T, 3> hseg;  // Vector from pos to the midpoint of the segment
