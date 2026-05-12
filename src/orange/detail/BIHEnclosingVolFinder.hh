@@ -111,13 +111,13 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         }
         else
         {
-            auto const& edges = view_.inner_node(stack.top()).edges;
+            auto const& node = view_.inner_node(stack.top());
             stack.pop();
             for (auto s : {Side::right, Side::left})
             {
-                if (is_inside(edges[s].bbox, pos))
+                if (is_inside(node.bbox(s), pos))
                 {
-                    stack.push(edges[s].child);
+                    stack.push(node.child(s));
                 }
             }
         }

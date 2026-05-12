@@ -145,42 +145,43 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
         auto const& node = view_.inner_node(stack.top());
         stack.pop();
-        int ax = to_int(node.axis);
+        int ax = to_int(node.axis());
 
         // Guess the better edge to traverse first
-        auto first_edge = node.edges[Side::left];
-        auto second_edge = node.edges[Side::right];
+        Side first_side = Side::left;
+        Side second_side = Side::right;
 
         bool skip_first
             = (ray.dir[ax] >= 0)
-              && (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos);
+              && (ray.pos[ax] > node.bounding_plane_pos(Side::left));
         bool skip_second
             = (ray.dir[ax] <= 0)
-              && (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos);
+              && (ray.pos[ax] < node.bounding_plane_pos(Side::right));
 
-        if (ray.pos[ax] > node.edges[Side::right].bounding_plane_pos)
+        if (ray.pos[ax] > node.bounding_plane_pos(Side::right))
         {
-            trivial_swap(first_edge, second_edge);
+            trivial_swap(first_side, second_side);
             trivial_swap(skip_first, skip_second);
         }
 
         // Determine if the first and second edges are hits, short circuiting
         // with skip_* before testing bounding boxes
-        bool hit_first
-            = !skip_first
-              && this->visit_bbox(first_edge.bbox, ray, intersection.distance);
+        bool hit_first = !skip_first
+                         && this->visit_bbox(
+                             node.bbox(first_side), ray, intersection.distance);
         bool hit_second = !skip_second
-                          && this->visit_bbox(
-                              second_edge.bbox, ray, intersection.distance);
+                          && this->visit_bbox(node.bbox(second_side),
+                                              ray,
+                                              intersection.distance);
 
         // Choose the next node on the basis of which edges are hits
         if (hit_second)
         {
-            stack.push(second_edge.child);
+            stack.push(node.child(second_side));
         }
         if (hit_first)
         {
-            stack.push(first_edge.child);
+            stack.push(node.child(first_side));
         }
     }
 

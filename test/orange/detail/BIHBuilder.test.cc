@@ -11,8 +11,10 @@
 
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/ParamsDataStore.hh"
+#include "corecel/data/Ref.hh"
 #include "geocel/Types.hh"
 #include "orange/detail/BIHData.hh"
+#include "orange/detail/BIHView.hh"
 
 #include "celeritas_test.hh"
 
@@ -103,73 +105,71 @@ TEST_F(BIHBuilderTest, basic)
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
+    BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(3, inner_nodes.size());
     ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = storage_.inner_nodes[inner_nodes[0]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{0});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(2.8f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(0.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{2}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(2.8f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(0.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -1.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 1.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N1, I1
     {
-        auto node = storage_.inner_nodes[inner_nodes[1]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{1});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.6f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.2f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{3}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(1.6f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.2f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.6f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.2f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 1.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N2, I2
     {
-        auto node = storage_.inner_nodes[inner_nodes[2]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{2});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(5.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.8f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{5}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(5.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.8f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -1.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 0.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.8f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({5.f, 1.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N3, L0
@@ -296,139 +296,134 @@ TEST_F(GridTest, basic)
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
+    BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(11, inner_nodes.size());
     ASSERT_EQ(12, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = storage_.inner_nodes[inner_nodes[0]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{0});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N1, I1
     {
-        auto node = storage_.inner_nodes[inner_nodes[1]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{1});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{2}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{3}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N2, I2
     {
-        auto node = storage_.inner_nodes[inner_nodes[2]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{2});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{11}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{12}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{11}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{12}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 1.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N3, I3
     {
-        auto node = storage_.inner_nodes[inner_nodes[3]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{3});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{4}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{5}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{4}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{5}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N4, I4
     {
-        auto node = storage_.inner_nodes[inner_nodes[4]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{4});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{13}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{14}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{13}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{14}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N5, I5
     {
-        auto node = storage_.inner_nodes[inner_nodes[5]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{5});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{15}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{16}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{15}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{16}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 1.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N11, L0
@@ -517,73 +512,71 @@ TEST_F(GridTest, max_leaf_size)
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
+    BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(3, inner_nodes.size());
     ASSERT_EQ(4, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = storage_.inner_nodes[inner_nodes[0]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{0});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{2}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N1, I1
     {
-        auto node = storage_.inner_nodes[inner_nodes[1]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{1});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{3}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N2, I2
     {
-        auto node = storage_.inner_nodes[inner_nodes[2]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{2});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{5}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{6}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 4.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N3, L0
@@ -673,95 +666,92 @@ TEST_F(GridTest, depth_limit)
     // Test nodes
     auto inner_nodes = bih_tree.inner_nodes;
     auto leaf_nodes = bih_tree.leaf_nodes;
+    BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(7, inner_nodes.size());
     ASSERT_EQ(8, leaf_nodes.size());
 
     // N0, I0
     {
-        auto node = storage_.inner_nodes[inner_nodes[0]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{0});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{1}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{4}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 4.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N1, I1
     {
-        auto node = storage_.inner_nodes[inner_nodes[1]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{1});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{2}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{3}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N2, I2
     {
-        auto node = storage_.inner_nodes[inner_nodes[2]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{2});
 
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_EQ(Axis{1}, node.axis);
-        EXPECT_SOFT_EQ(1.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(1.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{7}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{8}, edges[Side::right].child);
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_EQ(Axis{1}, node.axis());
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{7}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{8}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 1.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 1.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N3, I3
     {
-        auto node = storage_.inner_nodes[inner_nodes[3]];
-        auto& edges = node.edges;
+        auto const& node = view.inner_node(BIHNodeId{3});
 
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_EQ(Axis{0}, node.axis);
-        EXPECT_SOFT_EQ(2.f, edges[Side::left].bounding_plane_pos);
-        EXPECT_SOFT_EQ(2.f, edges[Side::right].bounding_plane_pos);
-        EXPECT_EQ(BIHNodeId{9}, edges[Side::left].child);
-        EXPECT_EQ(BIHNodeId{10}, edges[Side::right].child);
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_EQ(Axis{0}, node.axis());
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
+        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
+        EXPECT_EQ(BIHNodeId{9}, node.child(Side::left));
+        EXPECT_EQ(BIHNodeId{10}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
-                           edges[Side::left].bbox.lower());
+                           node.bbox(Side::left).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 2.f, 100.f}),
-                           edges[Side::left].bbox.upper());
+                           node.bbox(Side::left).upper());
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
-                           edges[Side::right].bbox.lower());
+                           node.bbox(Side::right).lower());
         EXPECT_VEC_SOFT_EQ(VecFastReal({3.f, 2.f, 100.f}),
-                           edges[Side::right].bbox.upper());
+                           node.bbox(Side::right).upper());
     }
 
     // N7, L0

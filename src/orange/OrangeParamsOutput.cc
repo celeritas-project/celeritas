@@ -42,15 +42,15 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
     for (auto i : range(tree.inner_nodes.size()))
     {
         auto const& inner = view.inner_node(BIHNodeId{i});
-        auto const& left = inner.edges[detail::BIHInnerNode::Side::left];
-        auto const& right = inner.edges[detail::BIHInnerNode::Side::right];
+        using Side = detail::BIHInnerNode::Side;
 
-        out.push_back(json::array({"i",
-                                   std::string(1, to_char(inner.axis)),
-                                   json::array({left.child.unchecked_get(),
-                                                right.child.unchecked_get()}),
-                                   json::array({left.bounding_plane_pos,
-                                                right.bounding_plane_pos})}));
+        out.push_back(json::array(
+            {"i",
+             std::string(1, to_char(inner.axis())),
+             json::array({inner.child(Side::left).unchecked_get(),
+                          inner.child(Side::right).unchecked_get()}),
+             json::array({inner.bounding_plane_pos(Side::left),
+                          inner.bounding_plane_pos(Side::right)})}));
     }
 
     // Handle leaf nodes

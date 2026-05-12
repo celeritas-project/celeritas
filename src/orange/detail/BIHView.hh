@@ -16,6 +16,37 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Access data for a BIH inner node.
+ */
+class BIHInternalNodeView
+{
+  public:
+    //!@{
+    //! \name Type aliases
+    using Side = BIHInnerNode::Side;
+    //!@}
+
+    // Construct from inner node data
+    inline CELER_FUNCTION explicit BIHInternalNodeView(BIHInnerNode const& node);
+
+    // Get partition axis
+    inline CELER_FUNCTION Axis axis() const;
+
+    // Get child node for a side
+    inline CELER_FUNCTION BIHNodeId child(Side side) const;
+
+    // Get edge bounding box for a side
+    inline CELER_FUNCTION FastBBox const& bbox(Side side) const;
+
+    // Get edge bounding plane position for a side
+    inline CELER_FUNCTION fast_real_type bounding_plane_pos(Side side) const;
+
+  private:
+    BIHInnerNode const& node_;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Traverse BIH tree using a depth-first search.
  *
  * \todo move to top-level orange directory out of detail namespace
@@ -37,7 +68,7 @@ class BIHView
     inline CELER_FUNCTION bool is_inner(BIHNodeId id) const;
 
     // Get an inner node for a given BIHNodeId
-    inline CELER_FUNCTION BIHInnerNode const& inner_node(BIHNodeId id) const;
+    inline CELER_FUNCTION BIHInternalNodeView inner_node(BIHNodeId id) const;
 
     // Get the bbox for a given vol_id.
     inline CELER_FUNCTION FastBBox const& bbox(LocalVolumeId vol_id) const;
@@ -56,6 +87,56 @@ class BIHView
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from an inner node.
+ */
+CELER_FUNCTION
+BIHInternalNodeView::BIHInternalNodeView(BIHInnerNode const& node)
+    : node_(node)
+{
+    CELER_EXPECT(node_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get partition axis.
+ */
+CELER_FUNCTION Axis BIHInternalNodeView::axis() const
+{
+    return node_.axis;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get child node for a side.
+ */
+CELER_FUNCTION BIHNodeId
+BIHInternalNodeView::child(BIHInternalNodeView::Side side) const
+{
+    return node_.edges[side].child;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get edge bounding box for a side.
+ */
+CELER_FUNCTION FastBBox const&
+BIHInternalNodeView::bbox(BIHInternalNodeView::Side side) const
+{
+    return node_.edges[side].bbox;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get edge bounding plane position for a side.
+ */
+CELER_FUNCTION fast_real_type
+BIHInternalNodeView::bounding_plane_pos(BIHInternalNodeView::Side side) const
+{
+    return node_.edges[side].bounding_plane_pos;
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Construct from vector of bounding boxes and storage.
@@ -82,10 +163,11 @@ bool BIHView::is_inner(BIHNodeId id) const
  *  Get an inner node for a given BIHNodeId.
  */
 CELER_FUNCTION
-BIHInnerNode const& BIHView::inner_node(BIHNodeId id) const
+BIHInternalNodeView BIHView::inner_node(BIHNodeId id) const
 {
     CELER_EXPECT(this->is_inner(id));
-    return storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]];
+    return BIHInternalNodeView{
+        storage_.inner_nodes[tree_.inner_nodes[id.unchecked_get()]]};
 }
 
 //---------------------------------------------------------------------------//
