@@ -202,7 +202,7 @@ TEST_F(DetectorTest, simple)
         auto vol_params = run.params()->volume();
         auto det_params = run.params()->detectors();
         AllVolumesView all_vol{vol_params->host_ref()};
-        std::vector<VolumeInstanceId> vi_path(all_vol.num_volume_levels(),
+        std::vector<VolumeInstanceId> vi_path(all_vol.num_volume_levels() - 1,
                                               VolumeInstanceId{});
         VolumePathFinder find_path{vol_params->host_ref(), make_span(vi_path)};
 

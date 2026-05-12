@@ -39,7 +39,7 @@ void resize(CoreStateData<Ownership::value, M>* state,
     resize(&state->surface_physics, size);
     resize(&state->rng, params.rng, stream_id, size);
     resize(&state->sim, size);
-    resize(&state->detectors, size);
+    resize(&state->detectors, params.volumes, size);
     resize(&state->init, stream_id, size);
     state->stream_id = stream_id;
 
