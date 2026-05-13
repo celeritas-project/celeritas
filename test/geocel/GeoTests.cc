@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeoTests.hh"
 
+#include <algorithm>
 #include <string_view>
 
 #include "corecel/Config.hh"
@@ -102,7 +103,11 @@ void fixup_orange(GenericGeoTestInterface const& interface,
         return;
 
     // Delete within-world safeties
-    for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
+    Array const sizes{ref.volumes.size(),
+                      result.volumes.size(),
+                      result.halfway_safeties.size(),
+                      ref.halfway_safeties.size()};
+    for (auto i : range(*std::min_element(sizes.begin(), sizes.end())))
     {
         if (ref.volumes[i] == world_name)
         {
@@ -622,6 +627,8 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 void FourLevelsGeoTest::test_detailed_tracking() const
 {
     auto geo = test_->make_checked_track_view();
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     Propagation next;
     {
@@ -668,7 +675,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         // Find the next boundary and make sure that nearer distances aren't
         // accepted
-        ASSERT_NO_THROW(next = geo.find_next_step());
+        ASSERT_NO_THROW(next = geo.find_next_step(max_distance));
         EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
@@ -701,22 +708,22 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo = test_->make_initializer({10.0, 10.0, 10.0}, {1, 0, 0});
         EXPECT_EQ("World_PV/env1/Shape1/Shape2",
                   test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1/Shape1", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
@@ -2858,6 +2865,8 @@ void TwoBoxesGeoTest::test_reentrant() const
 {
     auto geo = test_->make_checked_track_view();
     constexpr auto dx = 1_r / constants::sqrt_two;
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
@@ -2918,7 +2927,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 
     // Find the next boundary and make sure that nearer distances aren't
     // accepted
-    next = geo.find_next_step();
+    next = geo.find_next_step(max_distance);
     EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     EXPECT_TRUE(geo.is_on_boundary());
@@ -2990,6 +2999,8 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
 void TwoBoxesGeoTest::test_tangent() const
 {
     constexpr auto dx = 1_r / constants::sqrt_two;
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     // Starting left of edge (-), headed down right (+,-)
     auto geo = test_->make_checked_track_view();
@@ -3046,7 +3057,7 @@ void TwoBoxesGeoTest::test_tangent() const
     // accepted
     {
         SCOPED_TRACE("checking internal distance");
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(max_distance);
         EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());

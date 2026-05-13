@@ -151,6 +151,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     profile_this.reset();
 
     result.action_times = run_stream.get_action_times();
+    result.step_times = run_stream.get_step_times();
     result.total_time = get_transport_time();
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }

@@ -29,33 +29,70 @@ import json
 import sys
 from pathlib import Path
 
+# Fill colors by internal-node plane relationship and leaf type
+_FILL_COLORS = {
+    "gap": "lightgreen",
+    "overlap": "#ffaaaa",
+    "exact": "white",
+    "slight": "#dbc6a7",
+    "leaf": "lightgray",
+}
 
-def make_dot(universe_id, tree):
-    lines = []
-    lines.append('digraph "bih_{}" {{'.format(universe_id))
-    lines.append("  rankdir=LR")
-    lines.append("  node [shape=box]")
+_SLIGHT_REL = 1e-4
+
+# Outline colors by partition axis (x/y/z)
+_AXIS_COLORS = {
+    "x": "red",
+    "y": "green",
+    "z": "blue",
+}
+
+
+def dump_dot(universe_id, tree, out):
+    out.write(f"""\
+strict digraph "bih_{universe_id}" {{
+  rankdir=LR
+  node [shape=box style=filled]
+""")
 
     for i, node in enumerate(tree):
+        nodetype = node[0]
         if node[0] == "i":
-            axis = node[1]
-            left_plane = float(node[3][0])
-            right_plane = float(node[3][1])
-            label = "{}=({:.2f}, {:.2f})".format(axis, left_plane, right_plane)
-            lines.append('  n{} [label="{}"]'.format(i, label))
+            (axis, children, planes) = node[1:]
+
+            (left, right) = planes
+            delta = abs(right - left)
+            if delta == 0.0:
+                plane_label = left
+                fill = _FILL_COLORS["exact"]
+            else:
+                # + indicates gap, - indicates overlap
+                if left < right:
+                    sign = "+"
+                    fill = _FILL_COLORS["gap"]
+                else:
+                    sign = "-"
+                    if delta / max(abs(left), abs(right)) < _SLIGHT_REL:
+                        fill = _FILL_COLORS["slight"]
+                    else:
+                        fill = _FILL_COLORS["overlap"]
+                plane_label = f"({left:.2g} {sign} {delta:.2g})"
+            axis_color = _AXIS_COLORS.get(axis, "black")
+            out.write(
+                f'  n{i} [label="{axis}: {plane_label}"'
+                f' fillcolor="{fill}" color="{axis_color}" penwidth=3]\n'
+            )
+
+            for sign, c in zip(["-", "+"], children):
+                out.write(f'    n{i} -> n{c} [label="{sign}{axis}"]\n')
         else:
+            assert nodetype == "l"
             vols = ", ".join("{}".format(v) for v in node[1])
-            lines.append('  n{} [label="vols=[{}]"]'.format(i, vols))
+            out.write(
+                f'  n{i} [label="vols=[{vols}]" fillcolor="{_FILL_COLORS["leaf"]}"]\n'
+            )
 
-    for i, node in enumerate(tree):
-        if node[0] == "i":
-            left_child = node[2][0]
-            right_child = node[2][1]
-            lines.append('  n{} -> n{} [label="L"]'.format(i, left_child))
-            lines.append('  n{} -> n{} [label="R"]'.format(i, right_child))
-
-    lines.append("}")
-    return "\n".join(lines)
+    out.write("}\n")
 
 
 def write_diagnostic(outfile, bih_data):
@@ -73,8 +110,16 @@ def write_diagnostic(outfile, bih_data):
 
 
 def run(args):
-    data = json.load(open(args.input))
-    bih_data = data["internal"]["orange"]["bih_metadata"]
+    with open(args.input) as f:
+        data = json.load(f)
+
+    if "internal" in data:
+        print("Assuming app output was given rather than ORANGE output")
+        orange = data["internal"]["orange"]
+    else:
+        orange = data
+
+    bih_data = orange["bih_metadata"]
 
     if args.universe:
         uids = args.universe
@@ -85,9 +130,8 @@ def run(args):
         return
 
     for uid in uids:
-        dot = make_dot(uid, bih_data["structure"][uid]["tree"])
         with open(Path(args.output) / "bih_{}.dot".format(uid), "w") as out:
-            out.write(dot)
+            dump_dot(uid, bih_data["structure"][uid]["tree"], out)
 
 
 def main():

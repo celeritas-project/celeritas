@@ -12,7 +12,6 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
 
@@ -197,20 +196,6 @@ class GeoTrackInterface
     //!@}
     //!@{
     //! \name Straight-line movement and boundary crossing
-
-    /*!
-     * Find the distance to the next boundary (infinite max).
-     *
-     * Determines the distance to the next boundary (i.e., a different
-     * implementation volume) along the track's current direction.
-     *
-     * \deprecated Provide a physically reasonable upper bound to the distance
-     * to reduce search cost and avoid a redundant method.
-     */
-    Propagation find_next_step()
-    {
-        return this->find_next_step(NumericLimits<real_type>::infinity());
-    }
 
     /*!
      * Find the distance to the next boundary, up to and including a step.

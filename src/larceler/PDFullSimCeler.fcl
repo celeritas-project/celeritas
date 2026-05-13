@@ -36,6 +36,8 @@ PDFullSimCeler:
 
     // Accumulate elapsed time in actions
     ActionTimes: true
+    // Record elapsed time per step
+    StepTimes: false
 
     // RNG seed
     Seed: 0

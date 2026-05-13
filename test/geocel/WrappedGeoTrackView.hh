@@ -96,7 +96,6 @@ class WrappedGeoTrackView final
     }
 
     // Straight-line movement and boundary crossing
-    using GeoTrackInterface<real_type>::find_next_step;
     Propagation find_next_step(real_type max_step) final
     {
         return t_.find_next_step(max_step);

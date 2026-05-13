@@ -40,9 +40,6 @@ inline constexpr UnivLevelId orange_global_univ_level{0};
 //! Logic notation used for boolean expressions
 inline constexpr auto orange_tracking_logic{LogicNotation::infix};
 
-//! The maximum depth of the BIH tree (single leaf node is 1)
-inline constexpr size_type max_bih_depth = 18;
-
 //---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
@@ -345,46 +342,6 @@ struct UniverseIndexerData
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent data used by all BIH trees.
- *
- * \todo move to detail/BihTreeData
- */
-template<Ownership W, MemSpace M>
-struct BIHTreeData
-{
-    template<class T>
-    using Items = Collection<T, W, M>;
-
-    // Low-level storage
-    Items<FastBBox> bboxes;
-    Items<LocalVolumeId> local_volume_ids;
-    Items<detail::BIHInnerNode> inner_nodes;
-    Items<detail::BIHLeafNode> leaf_nodes;
-
-    //! True if assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        // Note that inner_nodes may be empty for single-node trees
-        return !bboxes.empty() && !local_volume_ids.empty()
-               && !leaf_nodes.empty();
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    BIHTreeData& operator=(BIHTreeData<W2, M2> const& other)
-    {
-        bboxes = other.bboxes;
-        local_volume_ids = other.local_volume_ids;
-        inner_nodes = other.inner_nodes;
-        leaf_nodes = other.leaf_nodes;
-
-        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Persistent data used by ORANGE implementation.
  *
  * Most data will be accessed through the individual units, which reference
@@ -424,7 +381,7 @@ struct OrangeParamsData
     ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
 
     // BIH tree storage
-    BIHTreeData<W, M> bih_tree_data;
+    detail::BIHTreeData<W, M> bih_tree_data;
 
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
@@ -433,7 +390,6 @@ struct OrangeParamsData
     Items<vol_level_uint> vl_uints;
     Items<logic_int> logic_ints;
     Items<real_type> reals;
-    Items<FastReal3> fast_real3s;
     Items<SurfaceType> surface_types;
     Items<ConnectivityRecord> connectivity_records;
     Items<LocalVolumeRecord> volume_records;

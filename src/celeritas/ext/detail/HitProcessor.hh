@@ -106,8 +106,9 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
-    //! Access Geant4 track metadata reconstruction
-    GeantTrackReconstruction& track_reconstruction()
+    //! Access local Geant4 track metadata reconstruction
+    std::shared_ptr<GeantTrackReconstruction> const&
+    track_reconstruction() const
     {
         return track_reconstruction_;
     }
@@ -124,7 +125,7 @@ class HitProcessor
     std::shared_ptr<G4Step> step_;
 
     //! Track reconstruction for hit processing
-    GeantTrackReconstruction track_reconstruction_;
+    std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 

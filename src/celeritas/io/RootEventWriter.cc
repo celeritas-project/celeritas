@@ -7,14 +7,11 @@
 #include "RootEventWriter.hh"
 
 #include <algorithm>
-#include <set>
 #include <TFile.h>
 #include <TTree.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
-#include "geocel/Types.hh"
 #include "celeritas/ext/ScopedRootErrorHandler.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
@@ -71,7 +68,6 @@ RootEventWriter::RootEventWriter(SPRootFileManager root_file_manager,
  */
 void RootEventWriter::operator()(VecPrimary const& primaries)
 {
-    CELER_EXPECT(!primaries.empty());
     ScopedRootErrorHandler scoped_root_error;
 
     // Increment contiguous event id

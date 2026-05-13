@@ -47,6 +47,7 @@ class Runner
     //! \name Type aliases
     using Input = RunnerInput;
     using MapStrDouble = std::unordered_map<std::string, double>;
+    using VecVecDouble = std::vector<std::vector<double>>;
     using RunnerResult = TransporterResult;
     //!@}
 
@@ -71,6 +72,9 @@ class Runner
 
     // Get the accumulated action times
     MapStrDouble get_action_times() const;
+
+    // Get the recorded step times
+    VecVecDouble get_step_times() const;
 
     // Access core params
     CoreParams const& core_params() const { return *core_params_; }
