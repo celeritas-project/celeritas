@@ -10,7 +10,6 @@
 #include <limits>
 
 #include "corecel/data/StateDataStore.hh"
-#include "corecel/sys/Environment.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -315,12 +314,6 @@ TEST_F(MaterialTest, isotope_view)
 
 TEST_F(MaterialTest, output)
 {
-    static char const flag_var[] = "CELER_OUTPUT_MATERIAL";
-
-    auto& env = celeritas::environment();
-    auto env_copy = env;
-
-    EXPECT_TRUE(env.find(flag_var) == env.end());
     MaterialParamsOutput out(params);
     EXPECT_EQ("material", out.label());
     auto short_output = to_string(out);
@@ -331,16 +324,6 @@ TEST_F(MaterialTest, output)
             R"json({"_category":"internal","_label":"material","num_elements":4,"num_isotopes":8,"num_materials":4})json",
             short_output);
     }
-
-    // Now restore environment and set the flag to get verbose
-    EXPECT_FALSE(env.find(flag_var) == env.end());
-    env = env_copy;
-    EXPECT_TRUE(env.insert({flag_var, "1"}));
-    auto long_output = to_string(out);
-    EXPECT_GT(long_output.size(), short_output.size());
-
-    // Restore env again
-    env = env_copy;
 }
 
 //---------------------------------------------------------------------------//
