@@ -137,8 +137,6 @@ struct BIHTreeRecord
 //---------------------------------------------------------------------------//
 /*!
  * Persistent data used by all BIH trees.
- *
- * \todo move to detail/BihTreeData
  */
 template<Ownership W, MemSpace M>
 struct BIHTreeData
