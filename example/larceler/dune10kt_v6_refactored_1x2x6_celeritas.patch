@@ -1,5 +1,5 @@
 --- dune10kt_v6_refactored_1x2x6-rice.gdml	2026-05-12 15:30:33
-+++ dune-nouvwires.gdml	2026-05-12 15:30:27
++++ dune-zwires.gdml	2026-05-12 15:30:27
 @@ -1,16 +1,16 @@
 -<?xml version="1.0" encoding="UTF-8" ?>
 -<gdml_simple_extension xmlns:gdml_simple_extension="http://www.example.org"

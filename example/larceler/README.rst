@@ -18,7 +18,7 @@ LArSim fast simulation using a single GENIE-generated event.
 
    # Download and patch the geometry file for Celeritas execution
    curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
-   patch -p0 -o dune10kt-1x2x6-celeritas-nouvwires.gdml < dune10kt_v6_refactored_1x2x6_celeritas.patch
+   patch -p0 -o dune10kt-1x2x6-celeritas-zwires.gdml < dune10kt_v6_refactored_1x2x6_celeritas.patch
    # Run GENIE
    lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
    # Run LArG4 + IonAndScint

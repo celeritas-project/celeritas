@@ -41,6 +41,7 @@ repos:
     rev: 63c8f8312b7559622c0d82815639671ae42132ac # v2.4.1, 28 Jan 2025
     hooks:
     - id: codespell
+      exclude: '\.(diff|patch)$'
 
   # TODO: licensing
   # see https://github.com/celeritas-project/celeritas/issues/1763
