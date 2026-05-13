@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "BIHData.hh"

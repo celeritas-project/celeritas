@@ -17,27 +17,26 @@
 
 #include "celeritas_test.hh"
 
+using celeritas::test::id_to_int;
+
 namespace celeritas
 {
 namespace detail
 {
 namespace test
 {
-using celeritas::test::id_to_int;
-using VecInt = std::vector<int>;
-
 //---------------------------------------------------------------------------//
 class BIHBuilderTest : public ::celeritas::test::Test
 {
   public:
     using VecFastReal = std::vector<fast_real_type>;
     using VecFastBbox = BIHBuilder::VecBBox;
+    using VecInt = std::vector<int>;
 
   protected:
     static constexpr auto inff
         = std::numeric_limits<fast_real_type>::infinity();
 
-    BIHBuilder::SetLocalVolId implicit_vol_ids_;
     BIHTreeData<Ownership::value, MemSpace::host> storage_;
 };
 
@@ -93,21 +92,13 @@ TEST_F(BIHBuilderTest, basic)
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
-
-    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
-
-    // Test bounding box storage
-    auto bbox1 = storage_.bboxes[bih_tree.bboxes[LocalVolumeId{2}]];
-    EXPECT_VEC_SOFT_EQ(Real3({1.2f, 0, 0}), bbox1.lower());
-    EXPECT_VEC_SOFT_EQ(Real3({2.8f, 1, 100}), bbox1.upper());
+    auto bih_tree = build(std::move(bboxes), {});
 
     // Test nodes
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
@@ -264,15 +255,13 @@ class GridTest : public BIHBuilderTest
 TEST_F(GridTest, basic)
 {
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
-    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+    auto bih_tree = build(std::move(bboxes), {});
 
     // Test nodes
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(11, view.num_internal_nodes());
     ASSERT_EQ(12, view.num_leaf_nodes());
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
@@ -442,15 +431,13 @@ TEST_F(GridTest, basic)
 TEST_F(GridTest, max_leaf_size)
 {
     BIHBuilder build(&storage_, BIHBuilder::Input{4});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
-    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+    auto bih_tree = build(std::move(bboxes), {});
 
     // Test nodes
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
@@ -562,15 +549,13 @@ TEST_F(GridTest, max_leaf_size)
 TEST_F(GridTest, depth_limit)
 {
     BIHBuilder build(&storage_, BIHBuilder::Input{1, 4});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
-    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+    auto bih_tree = build(std::move(bboxes), {});
 
     // Test nodes
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(7, view.num_internal_nodes());
     ASSERT_EQ(8, view.num_leaf_nodes());
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
@@ -679,7 +664,7 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     VecFastBbox bboxes = {{{0, 0, 0}, {1, 1, 1}}};
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(std::move(bboxes), {});
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     BIHView view{bih_tree, make_const_ref(storage_)};
@@ -702,7 +687,7 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(std::move(bboxes), {});
 
     ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
     BIHView view{bih_tree, make_const_ref(storage_)};
@@ -722,15 +707,12 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     VecFastBbox bboxes = {FastBBox::from_infinite()};
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(std::move(bboxes), {});
 
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
-    ASSERT_EQ(1, bih_tree.inf_vol_ids.size());
-
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     auto const& md = bih_tree.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
@@ -746,17 +728,12 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(std::move(bboxes), {});
 
     BIHView view{bih_tree, make_const_ref(storage_)};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
-    ASSERT_EQ(2, bih_tree.inf_vol_ids.size());
-
-    EXPECT_EQ(LocalVolumeId{0},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[0]]);
-    EXPECT_EQ(LocalVolumeId{1},
-              storage_.local_volume_ids[bih_tree.inf_vol_ids[1]]);
+    EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.inf_vol_ids()));
 
     auto const& md = bih_tree.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
@@ -776,7 +753,7 @@ TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    EXPECT_THROW(build(std::move(bboxes), implicit_vol_ids_), DebugError);
+    EXPECT_THROW(build(std::move(bboxes), {}), DebugError);
 }
 
 //---------------------------------------------------------------------------//

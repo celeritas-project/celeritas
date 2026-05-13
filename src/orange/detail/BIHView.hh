@@ -223,10 +223,12 @@ CELER_FUNCTION FastBBox const& BIHView::bbox(LocalVolumeId vol_id) const
  */
 CELER_FUNCTION auto BIHView::leaf_vol_ids(BIHNodeId id) const -> SpanLocalVol
 {
-    CELER_EXPECT(!this->is_internal(id));
+    CELER_EXPECT(id >= BIHNodeId{this->num_internal_nodes()}
+                 && id < this->num_nodes());
     ItemId<BIHLeafNode> leaf_id
-        = tree_.leaf_nodes[id.unchecked_get() - tree_.internal_nodes.size()];
-    auto const& leaf_node = storage_.leaf_nodes[leaf_id];
+        = tree_.leaf_nodes[*id - this->num_internal_nodes()];
+    CELER_ASSERT(leaf_id < storage_.leaf_nodes.size());
+    auto&& leaf_node = storage_.leaf_nodes[leaf_id];
     return storage_.local_volume_ids[leaf_node.vol_ids];
 }
 
