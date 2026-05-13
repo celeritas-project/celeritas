@@ -10,7 +10,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "../OrangeTypes.hh"
@@ -19,9 +18,13 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//!
+// The maximum depth of the BIH tree (single leaf node is 1)
+inline constexpr size_type max_bih_depth = 18;
+
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single inner node in a Bounding Interval Hierarchy.
+ * Data for a single internal node in a Bounding Interval Hierarchy.
  *
  * As a convention, a node's LEFT edge corresponds to the half space that is
  * less than the partition value. In other words, the LEFT bounding plane
@@ -31,7 +34,7 @@ namespace detail
  * the LEFT bounding plane position could be either left or right of the RIGHT
  * bounding plane position.
  */
-struct BIHInnerNode
+struct BIHInternalNode
 {
     struct Edge
     {
@@ -98,8 +101,8 @@ struct BIHTreeRecord
     //! All bounding boxes managed by the BIH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
-    //! Inner nodes, the first being the root
-    ItemRange<BIHInnerNode> inner_nodes;
+    //! Internal (branch) nodes, the first being the root
+    ItemRange<BIHInternalNode> internal_nodes;
 
     //! Leaf nodes
     ItemRange<BIHLeafNode> leaf_nodes;
@@ -114,7 +117,7 @@ struct BIHTreeRecord
 
     explicit CELER_FUNCTION operator bool() const
     {
-        if (!inner_nodes.empty())
+        if (!internal_nodes.empty())
         {
             return !bboxes.empty() && !leaf_nodes.empty();
         }
@@ -127,6 +130,44 @@ struct BIHTreeRecord
             // b) only infinite volumes.
             return !bboxes.empty() && leaf_nodes.size() == 1;
         }
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent data used by all BIH trees.
+ */
+template<Ownership W, MemSpace M>
+struct BIHTreeData
+{
+    template<class T>
+    using Items = Collection<T, W, M>;
+
+    // Low-level storage
+    Items<FastBBox> bboxes;
+    Items<LocalVolumeId> local_volume_ids;
+    Items<detail::BIHInternalNode> internal_nodes;
+    Items<detail::BIHLeafNode> leaf_nodes;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        // Note that internal_nodes may be empty for single-node trees
+        return !bboxes.empty() && !local_volume_ids.empty()
+               && !leaf_nodes.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    BIHTreeData& operator=(BIHTreeData<W2, M2> const& other)
+    {
+        bboxes = other.bboxes;
+        local_volume_ids = other.local_volume_ids;
+        internal_nodes = other.internal_nodes;
+        leaf_nodes = other.leaf_nodes;
+
+        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
+        return *this;
     }
 };
 

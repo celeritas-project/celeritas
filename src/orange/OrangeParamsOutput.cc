@@ -29,8 +29,9 @@ namespace
 /*!
  * Create JSON representation of the structure of a BIH tree.
  */
-nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
-                                       NativeCRef<BIHTreeData> const& storage)
+nlohmann::json
+make_bih_structure_json(detail::BIHTreeRecord const& tree,
+                        NativeCRef<detail::BIHTreeData> const& storage)
 {
     using json = nlohmann::json;
 
@@ -38,30 +39,29 @@ nlohmann::json make_bih_structure_json(detail::BIHTreeRecord const& tree,
 
     detail::BIHView view{tree, storage};
 
-    // Handle inner nodes
-    for (auto i : range(tree.inner_nodes.size()))
+    // Handle internal nodes
+    for (auto i : range(BIHNodeId{view.num_internal_nodes()}))
     {
-        auto const& inner = view.inner_node(BIHNodeId{i});
-        auto const& left = inner.edges[detail::BIHInnerNode::Side::left];
-        auto const& right = inner.edges[detail::BIHInnerNode::Side::right];
+        auto const& inner = view.inner_node(i);
+        using Side = detail::BIHInternalNode::Side;
 
-        out.push_back(json::array({"i",
-                                   std::string(1, to_char(inner.axis)),
-                                   json::array({left.child.unchecked_get(),
-                                                right.child.unchecked_get()}),
-                                   json::array({left.bounding_plane_pos,
-                                                right.bounding_plane_pos})}));
+        out.push_back(json::array(
+            {"i",
+             std::string(1, to_char(inner.axis())),
+             json::array({inner.child(Side::left).unchecked_get(),
+                          inner.child(Side::right).unchecked_get()}),
+             json::array({inner.bounding_plane_pos(Side::left),
+                          inner.bounding_plane_pos(Side::right)})}));
     }
 
     // Handle leaf nodes
-    size_type offset = tree.inner_nodes.size();
-    for (auto i : range(tree.leaf_nodes.size()))
+    for (auto i : range(BIHNodeId{view.num_internal_nodes()},
+                        BIHNodeId{view.num_nodes()}))
     {
-        auto const& leaf = view.leaf_node(BIHNodeId{offset + i});
         auto vols = json::array();
-        for (auto id : remove_ldg_wrapper(view.leaf_vol_ids(leaf)))
+        for (LocalVolumeId id : remove_ldg_wrapper(view.leaf_vol_ids(i)))
         {
-            vols.push_back(id.unchecked_get());
+            vols.push_back(*id);
         }
         out.push_back(json::array({"l", std::move(vols)}));
     }
@@ -121,7 +121,6 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     obj["sizes"] = {
         OPO_SIZE_PAIR(data, connectivity_records),
         OPO_SIZE_PAIR(data, daughters),
-        OPO_SIZE_PAIR(data, fast_real3s),
         OPO_SIZE_PAIR(data, local_surface_ids),
         OPO_SIZE_PAIR(data, local_volume_ids),
         OPO_SIZE_PAIR(data, logic_ints),
@@ -141,7 +140,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
     obj["sizes"]["bih"] = [&bihdata = data.bih_tree_data] {
         return json::object({
             OPO_SIZE_PAIR(bihdata, bboxes),
-            OPO_SIZE_PAIR(bihdata, inner_nodes),
+            OPO_SIZE_PAIR(bihdata, internal_nodes),
             OPO_SIZE_PAIR(bihdata, leaf_nodes),
             OPO_SIZE_PAIR(bihdata, local_volume_ids),
         });
@@ -201,7 +200,7 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
  * Print a BIH structure to a JSON string for debugging.
  */
 std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
-                               NativeCRef<BIHTreeData> const& data)
+                               NativeCRef<detail::BIHTreeData> const& data)
 {
     return make_bih_structure_json(tree, data).dump();
 }

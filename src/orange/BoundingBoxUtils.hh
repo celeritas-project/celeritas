@@ -243,49 +243,76 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the distance to the inside of the bbox from a pos and dir.
+ * Check if a segment from \c pos in direction \c dir of length \c distance
+ * intersects the bounding box.
  *
- * The supplied position is expected to be outside of the bbox. If there is no
- * intersection, the result will be inf. This function employs the slab method
- * \citep{kay-slab-1986, https://doi.org/10.1145/15886.15916}.
+ * If the position is already inside the bounding box, the result is always
+ * true. This uses a separating-axis test (see \citet{ericson-collision-2004,
+ * https://www.taylorfrancis.com/books/9780080474144} ). It translates the
+ * coordinate system to the center of the bbox and tests six axes
+ * (see Fig. 5.23, Table 5.1 in reference):
+ * - The AABB face normals
+ * - The cross products between the direction vector and face normals
+ *
+ * Note the manual unrolling of the off-axis test leads to a 10% speedup in the
+ * along-step kernel.
+ * \warning Infinite segment lengths are allowed to support degenerate cases,
+ * but they will result in false positives and a slowdown.
+ * \note Infinite bounding boxes are \em not supported, but they should never
+ * be generated due to the construction implementation.
  */
-template<class T, class U>
-inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
-                                            Array<U, 3> const& pos,
-                                            Array<U, 3> const& dir)
+template<class T>
+inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
+                                              Array<T, 3> const& pos,
+                                              Array<T, 3> const& dir,
+                                              T distance)
 {
-    CELER_EXPECT(!is_inside(bbox, pos));
+    CELER_EXPECT(distance > 0);
+    Array<T, 3> hw;  // Half-widths of bounding box
+    Array<T, 3> mid;  // Midpoint of the line segment
+    Array<T, 3> hseg;  // Vector from pos to the midpoint of the segment
+    Array<T, 3> abs_hseg;
 
-    T max_entry = 0;
-    T min_exit = numeric_limits<T>::infinity();
+    T const half_distance = distance / 2;
+    constexpr T eps = numeric_limits<T>::epsilon();
 
-    // Loop over all three slab pairs to calculate the maximum distance
-    // required to enter the regions between each slab pair and the minimum
-    // distance to leave these regions
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        // Calculate the inverse of the direction for this axis. Note that we
-        // do not have to check for dir != 0; we can rely on IEEE arithmetic to
-        // provide values of +/-inf for inv_dirs, leading to +/-inf slab
-        // distances that provide the correct behavior.
-        T inv_dir = 1 / T(dir[ax]);
+        auto i = to_int(ax);
+        T const lower = bbox.point(Bound::lo, ax);
+        T const upper = bbox.point(Bound::hi, ax);
+        T const center = (lower + upper) / 2;
 
-        // Calculate the entry/exit distance for this slab pair
-        T entry = (bbox.lower()[ax] - T(pos[ax])) * inv_dir;
-        T exit = (bbox.upper()[ax] - T(pos[ax])) * inv_dir;
-        if (entry > exit)
+        hw[i] = (upper - lower) / 2;
+        hseg[i] = dir[i] * half_distance;
+        abs_hseg[i] = std::fabs(hseg[i]) + eps;
+        mid[i] = pos[i] + hseg[i] - center;
+
+        if (std::fabs(mid[i]) > hw[i] + abs_hseg[i])
         {
-            // Entry is actually exit; swap values
-            trivial_swap(entry, exit);
+            return false;
         }
-
-        max_entry = celeritas::max(max_entry, entry);
-        min_exit = celeritas::min(min_exit, exit);
     }
 
-    // The distance to inside is the max entry, provided that it is greater
-    // than the minimum exit distance
-    return max_entry <= min_exit ? max_entry : numeric_limits<T>::infinity();
+    // Find a separating axis normal to the j,k faces and dir
+    auto found_sep_axis = [&](int j, int k) {
+        return std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
+               > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j];
+    };
+
+    constexpr auto x = to_int(Axis::x);
+    constexpr auto y = to_int(Axis::y);
+    constexpr auto z = to_int(Axis::z);
+    if (found_sep_axis(y, z))
+        return false;
+
+    if (found_sep_axis(z, x))
+        return false;
+
+    if (found_sep_axis(x, y))
+        return false;
+
+    return true;
 }
 
 //---------------------------------------------------------------------------//
