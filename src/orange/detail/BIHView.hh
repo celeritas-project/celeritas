@@ -155,7 +155,7 @@ CELER_FUNCTION
 BIHView::BIHView(BIHTreeRecord const& tree, BIHView::Storage const& storage)
     : tree_(tree), storage_(storage)
 {
-    CELER_EXPECT(tree);
+    CELER_EXPECT(tree_);
 }
 
 //---------------------------------------------------------------------------//

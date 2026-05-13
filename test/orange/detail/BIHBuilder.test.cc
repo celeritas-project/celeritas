@@ -10,7 +10,8 @@
 #include <vector>
 
 #include "corecel/OpaqueIdUtils.hh"
-#include "corecel/data/Ref.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/ParamsDataStore.hh"
 #include "geocel/Types.hh"
 #include "orange/detail/BIHData.hh"
 #include "orange/detail/BIHView.hh"
@@ -31,13 +32,36 @@ class BIHBuilderTest : public ::celeritas::test::Test
   public:
     using VecFastReal = std::vector<fast_real_type>;
     using VecFastBbox = BIHBuilder::VecBBox;
+    using Input = BIHBuilder::Input;
     using VecInt = std::vector<int>;
+    using Side = BIHInternalNode::Side;
+    using Real3 = FastBBox::Real3;
 
   protected:
     static constexpr auto inff
         = std::numeric_limits<fast_real_type>::infinity();
 
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
+    //! Build BIH tree data with a single tree in it and one volume per leaf
+    void build(VecFastBbox bboxes)
+    {
+        Input input;
+        input.max_leaf_size = 1;
+        return this->build(std::move(bboxes), std::move(input));
+    }
+
+    //! Build BIH tree data with a single tree in it and one volume per leaf
+    void build(VecFastBbox&& bboxes, Input&& input)
+    {
+        HostVal<BIHTreeData> data;
+        BIHBuilder build(&data, std::move(input));
+        tree_ = build(std::move(bboxes), {});
+        store_ = ParamsDataStore<BIHTreeData>{std::move(data)};
+        ASSERT_TRUE(tree_);
+        ASSERT_TRUE(store_);
+    }
+
+    ParamsDataStore<BIHTreeData> store_;
+    BIHTreeRecord tree_;
 };
 
 //---------------------------------------------------------------------------//
@@ -79,23 +103,17 @@ class BIHBuilderTest : public ::celeritas::test::Test
  */
 TEST_F(BIHBuilderTest, basic)
 {
-    using Side = BIHInternalNode::Side;
-    using Real3 = FastBBox::Real3;
-
-    VecFastBbox bboxes = {
+    this->build({
         FastBBox::from_infinite(),
         {{0, 0, 0}, {1.6f, 1, 100}},
         {{1.2f, 0, 0}, {2.8f, 1, 100}},
         {{2.8f, 0, 0}, {5, 1, 100}},
         {{0, -1, 0}, {5, 0, 100}},
         {{0, -1, 0}, {5, 0, 100}},
-    };
-
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
+    });
 
     // Test nodes
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
@@ -170,7 +188,7 @@ TEST_F(BIHBuilderTest, basic)
 
     // Metadata
     {
-        auto const& md = bih_tree.metadata;
+        auto const& md = tree_.metadata;
         EXPECT_EQ(5, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_infinite_bboxes);
         EXPECT_EQ(3, md.depth);
@@ -198,13 +216,9 @@ TEST_F(BIHBuilderTest, basic)
 class GridTest : public BIHBuilderTest
 {
   protected:
-    /// TYPES ///
-    using Side = BIHInternalNode::Side;
-
-    /// METHODS ///
-    void SetUp() override
+    void build_grid(Input&& input)
     {
-        bboxes = {FastBBox::from_infinite()};
+        VecFastBbox bboxes = {FastBBox::from_infinite()};
         for (auto i : range(3))
         {
             for (auto j : range(4))
@@ -214,10 +228,8 @@ class GridTest : public BIHBuilderTest
                 bboxes.push_back({{x, y, 0}, {x + 1, y + 1, 100}});
             }
         }
+        this->build(std::move(bboxes), std::move(input));
     }
-
-    /// DATA ///
-    VecFastBbox bboxes;
 };
 
 //---------------------------------------------------------------------------//
@@ -254,11 +266,14 @@ class GridTest : public BIHBuilderTest
  */
 TEST_F(GridTest, basic)
 {
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
+    this->build_grid([] {
+        Input i;
+        i.max_leaf_size = 1;
+        return i;
+    }());
 
     // Test nodes
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(11, view.num_internal_nodes());
     ASSERT_EQ(12, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
@@ -398,7 +413,7 @@ TEST_F(GridTest, basic)
 
     // Metadata
     {
-        auto const& md = bih_tree.metadata;
+        auto const& md = tree_.metadata;
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_infinite_bboxes);
         EXPECT_EQ(5, md.depth);
@@ -430,11 +445,14 @@ TEST_F(GridTest, basic)
  */
 TEST_F(GridTest, max_leaf_size)
 {
-    BIHBuilder build(&storage_, BIHBuilder::Input{4});
-    auto bih_tree = build(std::move(bboxes), {});
+    this->build_grid([] {
+        Input i;
+        i.max_leaf_size = 4;
+        return i;
+    }());
 
     // Test nodes
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
@@ -511,7 +529,7 @@ TEST_F(GridTest, max_leaf_size)
 
     // Metadata
     {
-        auto const& md = bih_tree.metadata;
+        auto const& md = tree_.metadata;
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_infinite_bboxes);
         EXPECT_EQ(3, md.depth);
@@ -548,11 +566,15 @@ TEST_F(GridTest, max_leaf_size)
  */
 TEST_F(GridTest, depth_limit)
 {
-    BIHBuilder build(&storage_, BIHBuilder::Input{1, 4});
-    auto bih_tree = build(std::move(bboxes), {});
+    this->build_grid([] {
+        Input i;
+        i.max_leaf_size = 1;
+        i.depth_limit = 4;
+        return i;
+    }());
 
     // Test nodes
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(7, view.num_internal_nodes());
     ASSERT_EQ(8, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
@@ -648,7 +670,7 @@ TEST_F(GridTest, depth_limit)
 
     // Metadata
     {
-        auto const& md = bih_tree.metadata;
+        auto const& md = tree_.metadata;
         EXPECT_EQ(12, md.num_finite_bboxes);
         EXPECT_EQ(1, md.num_infinite_bboxes);
         EXPECT_EQ(4, md.depth);
@@ -661,19 +683,16 @@ TEST_F(GridTest, depth_limit)
 //
 TEST_F(BIHBuilderTest, single_finite_volume)
 {
-    VecFastBbox bboxes = {{{0, 0, 0}, {1, 1, 1}}};
+    this->build({{{0, 0, 0}, {1, 1, 1}}});
 
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
-
-    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, tree_.inf_vol_ids.size());
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
 
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
 
-    auto const& md = bih_tree.metadata;
+    auto const& md = tree_.metadata;
     EXPECT_EQ(1, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_infinite_bboxes);
     EXPECT_EQ(1, md.depth);
@@ -681,22 +700,16 @@ TEST_F(BIHBuilderTest, single_finite_volume)
 
 TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
 {
-    VecFastBbox bboxes = {
-        {{0, 0, 0}, {1, 1, 1}},
-        {{0, 0, 0}, {1, 1, 1}},
-    };
+    this->build({{{0, 0, 0}, {1, 1, 1}}, {{0, 0, 0}, {1, 1, 1}}});
 
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
-
-    ASSERT_EQ(0, bih_tree.inf_vol_ids.size());
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    ASSERT_EQ(0, tree_.inf_vol_ids.size());
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
 
     EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
 
-    auto const& md = bih_tree.metadata;
+    auto const& md = tree_.metadata;
     EXPECT_EQ(2, md.num_finite_bboxes);
     EXPECT_EQ(0, md.num_infinite_bboxes);
     EXPECT_EQ(1, md.depth);
@@ -704,17 +717,14 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
 
 TEST_F(BIHBuilderTest, single_infinite_volume)
 {
-    VecFastBbox bboxes = {FastBBox::from_infinite()};
+    this->build({FastBBox::from_infinite()});
 
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
-
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
-    auto const& md = bih_tree.metadata;
+    auto const& md = tree_.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(1, md.num_infinite_bboxes);
     EXPECT_EQ(0, md.depth);
@@ -722,20 +732,14 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
 
 TEST_F(BIHBuilderTest, multiple_infinite_volumes)
 {
-    VecFastBbox bboxes = {
-        FastBBox::from_infinite(),
-        FastBBox::from_infinite(),
-    };
+    this->build({FastBBox::from_infinite(), FastBBox::from_infinite()});
 
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    auto bih_tree = build(std::move(bboxes), {});
-
-    BIHView view{bih_tree, make_const_ref(storage_)};
+    BIHView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.inf_vol_ids()));
 
-    auto const& md = bih_tree.metadata;
+    auto const& md = tree_.metadata;
     EXPECT_EQ(0, md.num_finite_bboxes);
     EXPECT_EQ(2, md.num_infinite_bboxes);
     EXPECT_EQ(0, md.depth);
@@ -743,17 +747,15 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
 
 TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
 {
-    VecFastBbox bboxes = {
-        {{0, 0, -inff}, {1, 1, inff}},
-        {{1, 0, -inff}, {2, 1, inff}},
-        {{2, 0, -inff}, {4, 1, inff}},
-        {{4, 0, -inff}, {8, 1, inff}},
-        {{0, -inff, -inff}, {1, inff, inff}},
-        {{-inff, 0, 0}, {inff, 1, 1}},
-    };
-
-    BIHBuilder build(&storage_, BIHBuilder::Input{1});
-    EXPECT_THROW(build(std::move(bboxes), {}), DebugError);
+    EXPECT_THROW(this->build({
+                     {{0, 0, -inff}, {1, 1, inff}},
+                     {{1, 0, -inff}, {2, 1, inff}},
+                     {{2, 0, -inff}, {4, 1, inff}},
+                     {{4, 0, -inff}, {8, 1, inff}},
+                     {{0, -inff, -inff}, {1, inff, inff}},
+                     {{-inff, 0, 0}, {inff, 1, 1}},
+                 }),
+                 DebugError);
 }
 
 //---------------------------------------------------------------------------//
