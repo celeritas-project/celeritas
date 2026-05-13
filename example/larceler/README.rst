@@ -15,6 +15,7 @@ This sequence of commands generate analysis files for Celeritas and the
 LArSim fast simulation using a single GENIE-generated event.
 
 .. code:: sh
+
    # Download and patch the geometry file for Celeritas execution
    curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
    patch -p0 -o dune10kt-1x2x6-celeritas-nouvwires.gdml < dune10kt_v6_refactored_1x2x6_celeritas.patch
@@ -152,8 +153,7 @@ Note on ``ModuleLabel``
   view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
   ``IonAndScint`` label is shown as part of the branch name:
 
-.. code::
-   :language: none
+.. code:: none
 
    $ root art-file.root
    root[1] Events->Print()
