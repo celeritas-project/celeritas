@@ -37,12 +37,6 @@ struct SetGeneratedExecutor
 };
 
 //---------------------------------------------------------------------------//
-
-void set_generated(CoreParams const& params, CoreState<MemSpace::host>& state);
-void set_generated(CoreParams const& params,
-                   CoreState<MemSpace::device>& state);
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!

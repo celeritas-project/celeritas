@@ -186,7 +186,7 @@ class Stepper final : public StepperInterface
     //! Reset the core state counters and data so it can be reused
     void reset_state() { state_->reset(); }
 
-    //! Set the num_pending counter to the number of generated primaries
+    //! Reset the num_generated state counter to zero
     void set_generated();
 
     //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
