@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/UpdateNewTracksExecutor.hh
+//! \file celeritas/track/detail/UpdateNumActiveExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,9 +18,9 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Update state counters based on the number of new tracks.
+ * Update num_active state counter based on the number of vacancies.
  */
-struct UpdateNewTracksExecutor
+struct UpdateNumActiveExecutor
 {
     //// TYPES ////
 
@@ -40,9 +40,9 @@ struct UpdateNewTracksExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Update state counters based on the number of new tracks.
+ * Update number of active trackes based on the number of vacancies.
  */
-CELER_FUNCTION void UpdateNewTracksExecutor::operator()(ThreadId tid) const
+CELER_FUNCTION void UpdateNumActiveExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);

@@ -27,7 +27,7 @@ struct AppliesValid
     }
 };
 
-//! Only launch on a single thread
+//! Launch on only a single thread
 struct IsThreadZero
 {
     template<class T>

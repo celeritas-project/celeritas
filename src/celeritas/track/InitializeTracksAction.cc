@@ -19,7 +19,7 @@
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"
-#include "detail/UpdateNewTracksExecutor.hh"  // IWYU pragma: associated
+#include "detail/UpdateNumActiveExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -89,13 +89,16 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreStateHost& core_state,
                                        size_type max_new_tracks) const
 {
-    detail::InitTracksExecutor execute{core_params.ptr<MemSpace::native>(),
-                                       core_state.ptr()};
-    launch_action(*this, max_new_tracks, core_params, core_state, execute);
-
-    detail::UpdateNewTracksExecutor execute_thread{
-        core_params.ptr<MemSpace::native>(), core_state.ptr()};
-    return launch_action(*this, 1, core_params, core_state, execute_thread);
+    {
+        detail::InitTracksExecutor execute{core_params.ptr<MemSpace::native>(),
+                                           core_state.ptr()};
+        launch_action(*this, max_new_tracks, core_params, core_state, execute);
+    }
+    {
+        detail::UpdateNumActiveExecutor execute_thread{
+            core_params.ptr<MemSpace::native>(), core_state.ptr()};
+        launch_action(*this, 1, core_params, core_state, execute_thread);
+    }
 }
 
 //---------------------------------------------------------------------------//

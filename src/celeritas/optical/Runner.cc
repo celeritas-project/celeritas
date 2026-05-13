@@ -135,12 +135,12 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
     if (celeritas::device())
     {
         auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
-        update_pending(*s, total_pending);
+        this->update_pending(*s, total_pending);
     }
     else
     {
         auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
-        update_pending(*s, total_pending);
+        this->update_pending(*s, total_pending);
     }
 
     return this->run();

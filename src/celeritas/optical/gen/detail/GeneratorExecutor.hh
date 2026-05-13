@@ -44,11 +44,7 @@ struct GeneratorExecutor
     //// FUNCTIONS ////
 
     // Generate optical photons
-    inline CELER_FUNCTION void operator()(TrackSlotId tid) const;
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
-    {
-        return (*this)(TrackSlotId{tid.unchecked_get()});
-    }
+    inline CELER_FUNCTION void operator()(ThreadId tid) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -57,7 +53,7 @@ struct GeneratorExecutor
 /*!
  * Generate photons from optical distribution data.
  */
-CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
 {
     using namespace celeritas::literals;
     CELER_EXPECT(state);
@@ -71,63 +67,62 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
     // of vacancies and the number of pending in the auxiliary state. To avoid
     // accessing the state counters to compute this min, we skip the extra
     // threads if state.counters.num_vacancies < aux_state.counters.num_pending
-    if (tid < counters->num_vacancies)
+    if (!(tid < counters->num_vacancies))
     {
-        // Find the index of the first distribution that has a nonzero number
-        // of primaries left to generate
-        auto all_offsets = offload.offsets[ItemRange<size_type>(
-            ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
-        auto buffer_start = celeritas::upper_bound(
-            all_offsets.begin(), all_offsets.end(), 0_sz);
-        CELER_ASSERT(buffer_start != all_offsets.end());
+        return;
+    }
+    // Find the index of the first distribution that has a nonzero number
+    // of primaries left to generate
+    auto all_offsets = offload.offsets[ItemRange<size_type>(
+        ItemId<size_type>(0), ItemId<size_type>(buffer_size))];
+    auto buffer_start
+        = celeritas::upper_bound(all_offsets.begin(), all_offsets.end(), 0_sz);
+    CELER_ASSERT(buffer_start != all_offsets.end());
 
-        // Get the cumulative sum of the number of photons in the
-        // distributions. The values are used to determine which threads will
-        // generate from the corresponding distribution
-        Span<size_type> offsets{buffer_start, all_offsets.end()};
+    // Get the cumulative sum of the number of photons in the distributions.
+    // The values are used to determine which threads will generate from the
+    // corresponding distribution
+    Span<size_type> offsets{buffer_start, all_offsets.end()};
 
-        // Find the distribution this thread will generate from
-        size_type dist_idx = buffer_start - all_offsets.begin()
-                             + find_distribution_index(offsets, tid.get());
-        CELER_ASSERT(dist_idx < offload.distributions.size());
-        auto& dist = offload.distributions[DistId(dist_idx)];
-        CELER_ASSERT(dist);
+    // Find the distribution this thread will generate from
+    size_type dist_idx = buffer_start - all_offsets.begin()
+                         + find_distribution_index(offsets, tid.get());
+    CELER_ASSERT(dist_idx < offload.distributions.size());
+    auto& dist = offload.distributions[DistId(dist_idx)];
+    CELER_ASSERT(dist);
 
-        // Create the view to the new track to be initialized
-        CoreTrackView vacancy{
-            *params, *state, [&] {
-                // Get the vacancy from the back in case there
-                // are more vacancies than photons to generate
-                TrackSlotId idx{index_before(counters->num_vacancies,
-                                             ThreadId(tid.get()))};
-                return state->init.vacancies[idx];
-            }()};
+    // Create the view to the new track to be initialized
+    CoreTrackView vacancy{
+        *params, *state, [&] {
+            // Get the vacancy from the back in case there
+            // are more vacancies than photons to generate
+            TrackSlotId idx{index_before(counters->num_vacancies, tid)};
+            return state->init.vacancies[idx];
+        }()};
 
-        if (!dist.material)
-        {
-            // If the optical material hasn't been set, initialize a temporary
-            // geometry state at the pre-step point and use it to find the
-            // optical material ID
-            auto geo = vacancy.geometry();
-            geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos,
-                                      {1, 0, 0}};
-            dist.material = vacancy.material_record(geo).material_id();
-        }
-        CELER_ASSERT(dist.material);
+    if (!dist.material)
+    {
+        // If the optical material hasn't been set, initialize a temporary
+        // geometry state at the pre-step point and use it to find the
+        // optical material ID
+        auto geo = vacancy.geometry();
+        geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos, {1, 0, 0}};
+        dist.material = vacancy.material_record(geo).material_id();
+    }
+    CELER_ASSERT(dist.material);
 
-        // Generate one track from the distribution
-        auto rng = vacancy.rng();
-        if (dist.type == GeneratorType::cherenkov)
-        {
-            CELER_ASSERT(cherenkov);
-            auto opt_mat = vacancy.material_record(dist.material);
-            vacancy = CherenkovGenerator(opt_mat, cherenkov, dist)(rng);
-        }
-        else
-        {
-            CELER_ASSERT(scintillation);
-            vacancy = ScintillationGenerator(scintillation, dist)(rng);
-        }
+    // Generate one track from the distribution
+    auto rng = vacancy.rng();
+    if (dist.type == GeneratorType::cherenkov)
+    {
+        CELER_ASSERT(cherenkov);
+        auto opt_mat = vacancy.material_record(dist.material);
+        vacancy = CherenkovGenerator(opt_mat, cherenkov, dist)(rng);
+    }
+    else
+    {
+        CELER_ASSERT(scintillation);
+        vacancy = ScintillationGenerator(scintillation, dist)(rng);
     }
 }
 
