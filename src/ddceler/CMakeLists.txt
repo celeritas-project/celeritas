@@ -118,11 +118,3 @@ celer_dd4hep_plugin(CelerPhysics
   SOURCES CelerPhysics.cc
   USES DD4hep::DDG4 Celeritas::accel Celeritas::celeritas Celeritas::corecel
 )
-
-celer_dd4hep_plugin(CelerRun
-  SOURCES CelerRun.cc
-  USES DD4hep::DDG4 DD4hep::DDCore
-    Celeritas::accel Celeritas::celeritas Celeritas::corecel
-)
-
-#----------------------------------------------------------------------------#

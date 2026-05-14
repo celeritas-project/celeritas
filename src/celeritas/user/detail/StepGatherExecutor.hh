@@ -45,6 +45,8 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT(params && state);
 
+    auto const slot = track.track_slot_id();
+
     {
         auto const sim = track.sim();
         bool inactive = (sim.status() == TrackStatus::inactive
@@ -53,8 +55,14 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
         if (P == StepPoint::post)
         {
             // Always save track ID to clear output from inactive slots
-            this->state.data.track_id[track.track_slot_id()]
-                = inactive ? TrackId{} : sim.track_id();
+            this->state.data.track_id[slot] = inactive ? TrackId{}
+                                                       : sim.track_id();
+        }
+
+        if (P == StepPoint::pre && !this->state.data.death_track_id.empty())
+        {
+            // Clear death record every step so stale slots are not emitted.
+            this->state.data.death_track_id[slot] = {};
         }
 
         if (inactive)
@@ -62,11 +70,32 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             if (P == StepPoint::pre && !this->params.detector.empty())
             {
                 // Clear detector ID for inactive threads
-                this->state.data.detector[track.track_slot_id()] = {};
+                this->state.data.detector[slot] = {};
             }
 
             // No more data to be written
             return;
+        }
+    }
+
+    // Gather terminal state independently of detector filtering.
+    if constexpr (P == StepPoint::post)
+    {
+        if (!this->state.data.death_track_id.empty())
+        {
+            auto const sim = track.sim();
+            if (sim.status() == TrackStatus::killed)
+            {
+                auto const geo = track.geometry();
+                auto const par = track.particle();
+                this->state.data.death_track_id[slot] = sim.track_id();
+                this->state.data.death_primary_id[slot] = sim.primary_id();
+                this->state.data.death_particle[slot] = par.particle_id();
+                this->state.data.death_pos[slot] = geo.pos();
+                this->state.data.death_dir[slot] = geo.dir();
+                this->state.data.death_energy[slot] = par.energy();
+                this->state.data.death_time[slot] = sim.time();
+            }
         }
     }
 
@@ -82,11 +111,10 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             CELER_ASSERT(vol);
 
             // Map volume ID to detector ID
-            this->state.data.detector[track.track_slot_id()]
-                = this->params.detector[vol];
+            this->state.data.detector[slot] = this->params.detector[vol];
         }
 
-        if (!this->state.data.detector[track.track_slot_id()])
+        if (!this->state.data.detector[slot])
         {
             // We're not in a sensitive detector: don't save any further data
             return;
@@ -99,7 +127,7 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
             if (pstep.energy_deposition() == zero_quantity())
             {
                 // Clear detector ID and stop recording
-                this->state.data.detector[track.track_slot_id()] = {};
+                this->state.data.detector[slot] = {};
                 return;
             }
         }

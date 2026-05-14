@@ -6,12 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <CeleritasG4.hh>
 #include <DDG4/Geant4Action.h>
 #include <DDG4/Geant4PhysicsList.h>
 #include <G4VModularPhysicsList.hh>
+
+#include "celeritas/g4/StateDependent.hh"
 
 namespace celeritas
 {
@@ -37,6 +40,7 @@ class CelerPhysics final : public dd4hep::sim::Geant4PhysicsList
     int max_num_tracks_{0};
     int init_capacity_{0};
     std::vector<std::string> ignore_processes_;
+    std::unique_ptr<StateDependent> master_state_dep_;
 
     // Make options for Celeritas tracking manager
     SetupOptions make_options();

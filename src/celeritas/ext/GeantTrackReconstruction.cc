@@ -11,10 +11,13 @@
 #include <G4DynamicParticle.hh>
 #include <G4Event.hh>
 #include <G4EventManager.hh>
+#include <G4Navigator.hh>
 #include <G4ParticleDefinition.hh>
+#include <G4PrimaryParticle.hh>
 #include <G4Step.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4TransportationManager.hh>
 #include <G4VProcess.hh>
 #include <G4VUserTrackInformation.hh>
 
@@ -40,6 +43,24 @@ namespace
         return -2;
     }
     return evt->GetEventID();
+}
+
+//---------------------------------------------------------------------------//
+void update_touchable(G4Track& track)
+{
+    auto* navigator = G4TransportationManager::GetTransportationManager()
+                          ->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+
+    auto const& pos = track.GetPosition();
+    auto const& dir = track.GetMomentumDirection();
+    auto* volume = navigator->LocateGlobalPointAndSetup(
+        pos, &dir, /*pRelativeSearch=*/false, /*ignoreDirection=*/false);
+    CELER_VALIDATE(volume,
+                   << "failed to locate reconstructed Geant4 track "
+                      "at position "
+                   << pos << " in the tracking geometry");
+    track.SetTouchableHandle(navigator->CreateTouchableHistoryHandle());
 }
 }  // namespace
 
@@ -195,7 +216,8 @@ void GeantTrackReconstruction::init_event()
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
  * ownership of the G4VUserTrackInformation and unset it in the primary track.
  */
-PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
+PrimaryId
+GeantTrackReconstruction::acquire(G4Track& primary, ParticleId particle_id)
 {
     if constexpr (CELERITAS_DEBUG)
     {
@@ -206,7 +228,7 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
                        << g4_event_id_ << " != current event " << cur_event_id);
     }
     auto primary_id = start_ + g4_track_data_.size();
-    g4_track_data_.emplace_back(AcquiredData{primary});
+    g4_track_data_.emplace_back(AcquiredData{primary, particle_id});
     return primary_id;
 }
 
@@ -231,8 +253,60 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
     }
 
     G4Track& track = this->view(particle_id);
-    g4_track_data_[primary_id - start_].restore(track);
+    g4_track_data_[this->local_index(primary_id)].restore(track);
     return track;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the track with its initial handover state.
+ */
+G4Track& GeantTrackReconstruction::view_initial(ParticleId particle_id,
+                                                PrimaryId primary_id) const
+{
+    CELER_EXPECT(particle_id < tracks_.size());
+    CELER_EXPECT(primary_id && primary_id >= start_);
+    CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
+    if constexpr (CELERITAS_DEBUG)
+    {
+        int cur_event_id = get_current_event_id();
+        CELER_VALIDATE(g4_event_id_ == cur_event_id,
+                       << "cannot view a track from another event: "
+                       << g4_event_id_ << " != current event " << cur_event_id);
+    }
+
+    G4Track& track = this->view(particle_id);
+    g4_track_data_[this->local_index(primary_id)].restore_initial(track);
+    return track;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return true if the given primary was created by the event generator.
+ */
+bool GeantTrackReconstruction::is_generator_primary(PrimaryId primary_id) const
+{
+    return g4_track_data_[this->local_index(primary_id)].is_generator_primary();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the Celeritas particle type for a given primary.
+ */
+ParticleId GeantTrackReconstruction::particle_id(PrimaryId primary_id) const
+{
+    return g4_track_data_[this->local_index(primary_id)].particle_id();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert an event-scoped primary ID to the current reconstruction index.
+ */
+size_type GeantTrackReconstruction::local_index(PrimaryId primary_id) const
+{
+    CELER_EXPECT(primary_id && primary_id >= start_);
+    CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
+    return primary_id.unchecked_get() - start_.unchecked_get();
 }
 
 //---------------------------------------------------------------------------//
@@ -251,16 +325,28 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 // GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
 //---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
+ * Save G4Track reconstruction data along with the Celeritas particle type.
  */
-GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
+GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track,
+                                                     ParticleId particle_id)
     : track_id_{track.GetTrackID()}
     , parent_id_{track.GetParentID()}
+    , particle_id_{particle_id}
+    , kinetic_energy_{track.GetKineticEnergy()}
+    , time_{track.GetGlobalTime()}
+    , primary_particle_{track.GetDynamicParticle()->GetPrimaryParticle()}
     , user_info_{track.GetUserInformation()}
     , creator_process_{track.GetCreatorProcess()}
 {
     CELER_EXPECT(*this);
+    auto const& pos = track.GetPosition();
+    pos_[0] = pos.x();
+    pos_[1] = pos.y();
+    pos_[2] = pos.z();
+    auto const& dir = track.GetMomentumDirection();
+    dir_[0] = dir.x();
+    dir_[1] = dir.y();
+    dir_[2] = dir.z();
     // Clear user information so that it doesn't get deleted with the G4Track
     track.SetUserInformation(nullptr);
 }
@@ -278,6 +364,23 @@ void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
     track.SetParentID(parent_id_);
     track.SetUserInformation(user_info_.get());
     track.SetCreatorProcess(creator_process_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the initial kinematic state for tracking-action dispatch.
+ */
+void GeantTrackReconstruction::AcquiredData::restore_initial(G4Track& track) const
+{
+    CELER_EXPECT(*this);
+    this->restore(track);
+    track.SetPosition(G4ThreeVector(pos_[0], pos_[1], pos_[2]));
+    track.SetMomentumDirection(G4ThreeVector(dir_[0], dir_[1], dir_[2]));
+    track.SetGlobalTime(time_);
+    auto* dp = const_cast<G4DynamicParticle*>(track.GetDynamicParticle());
+    dp->SetKineticEnergy(kinetic_energy_);
+    dp->SetPrimaryParticle(const_cast<G4PrimaryParticle*>(primary_particle_));
+    update_touchable(track);
 }
 
 //---------------------------------------------------------------------------//

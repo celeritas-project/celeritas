@@ -31,6 +31,8 @@
     <constant name="world_x" value="world_size"/>
     <constant name="world_y" value="world_size"/>
     <constant name="world_z" value="world_size"/>
+    <constant name="tracker_region_rmax" value="world_size"/>
+    <constant name="tracker_region_zmax" value="world_size"/>
   </define>
 
   <display>

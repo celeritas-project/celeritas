@@ -58,6 +58,8 @@ class StepInterface
         MapVolumeDetector detectors;
         //! Only select data with nonzero energy deposition (if detectors)
         bool nonzero_energy_deposition{false};
+        //! Gather terminal track states for PostUserTrackingAction replay
+        bool track_death{false};
     };
 
   public:

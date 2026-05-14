@@ -11,11 +11,15 @@
 #include <mutex>
 #include <string>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4DynamicParticle.hh>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
+#include <G4Navigator.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4TransportationManager.hh>
+#include <G4UserTrackingAction.hh>
 
 #include "corecel/Config.hh"
 
@@ -46,6 +50,7 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/user/DetectorSteps.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -139,6 +144,38 @@ void trace(StepperResult const& track_counts)
             }                                                       \
         }                                                           \
     } while (0)
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply GPU terminal state from a death record to a Geant4 track.
+ */
+void apply_death_state(G4Track& track, TrackDeathRecord const& d)
+{
+    track.SetPosition(native_to_geant<lengthunits::ClhepLength>(d.final_pos));
+    track.SetMomentumDirection(
+        to_g4vector(static_array_cast<double>(d.final_dir)));
+    const_cast<G4DynamicParticle*>(track.GetDynamicParticle())
+        ->SetKineticEnergy(d.final_energy.value());
+    track.SetGlobalTime(native_to_geant<units::ClhepTime>(d.final_time));
+
+    auto* navigator = G4TransportationManager::GetTransportationManager()
+                          ->GetNavigatorForTracking();
+    CELER_ASSERT(navigator);
+    if (auto* volume
+        = navigator->LocateGlobalPointAndSetup(track.GetPosition(),
+                                               &track.GetMomentumDirection(),
+                                               /*pRelativeSearch=*/false,
+                                               /*ignoreDirection=*/false))
+    {
+        track.SetTouchableHandle(navigator->CreateTouchableHistoryHandle());
+    }
+    else
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Failed to locate reconstructed terminal Geant4 track at "
+            << track.GetPosition() << "; preserving initial touchable";
+    }
+}
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -256,6 +293,11 @@ void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
+    if (flushing_tracking_actions_)
+    {
+        return;
+    }
+
     ScopedProfiling profile_this{"push"};
 
     GeantTrackView gtv{g4track};
@@ -307,12 +349,14 @@ void LocalTransporter::Push(G4Track& g4track)
     track.direction = static_array_cast<real_type>(gtv.dir());
     track.time = static_cast<real_type>(native_value_from(gtv.time()));
     track.weight = gtv.weight();
-    // Generate Celeritas-specific PrimaryID and capture user info
-    track.primary_id = track_reconstruction_->acquire(g4track);
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '" << gtv.particle().name()
                    << "' particles");
+
+    // Generate Celeritas-specific PrimaryID and capture user info
+    track.primary_id
+        = track_reconstruction_->acquire(g4track, track.particle_id);
 
     /*!
      * \todo Eliminate event ID from primary.
@@ -434,6 +478,37 @@ void LocalTransporter::flush_impl()
                                    << " hits for event " << event_id_;
             run_accum_.hits += num_hits;
         }
+
+        if (auto* ta = event_manager_->GetUserTrackingAction())
+        {
+            death_map_.clear();
+            for (auto const& d : hit_processor_->last_deaths())
+            {
+                if (d.primary_id)
+                {
+                    death_map_[d.primary_id.unchecked_get()] = &d;
+                }
+            }
+
+            flushing_tracking_actions_ = true;
+            track_reconstruction_->for_each_primary(
+                [this, ta](PrimaryId primary_id, ParticleId particle_id) {
+                    G4Track& g4track = track_reconstruction_->view_initial(
+                        particle_id, primary_id);
+                    ta->PreUserTrackingAction(&g4track);
+
+                    if (auto iter = death_map_.find(primary_id.unchecked_get());
+                        iter != death_map_.end())
+                    {
+                        apply_death_state(g4track, *iter->second);
+                    }
+
+                    ta->PostUserTrackingAction(&g4track);
+                });
+            flushing_tracking_actions_ = false;
+            death_map_.clear();
+        }
+        hit_processor_->clear_deaths();
     }
 }
 

@@ -164,4 +164,40 @@ void copy_steps<MemSpace::host>(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Consolidate results from tracks that died this step.
+ */
+template<>
+void copy_deaths<MemSpace::host>(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::host> const& state)
+{
+    CELER_EXPECT(output);
+
+    if (state.data.death_track_id.empty())
+    {
+        output->deaths.clear();
+        return;
+    }
+
+    ScopedProfiling profile_this{"copy-deaths"};
+
+    output->deaths.clear();
+    for (TrackSlotId tid : range(TrackSlotId{state.data.death_track_id.size()}))
+    {
+        if (!state.data.death_track_id[tid])
+        {
+            continue;
+        }
+        output->deaths.push_back({state.data.death_track_id[tid],
+                                  state.data.death_primary_id[tid],
+                                  state.data.death_particle[tid],
+                                  state.data.death_pos[tid],
+                                  state.data.death_dir[tid],
+                                  state.data.death_energy[tid],
+                                  state.data.death_time[tid]});
+    }
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

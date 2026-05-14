@@ -113,6 +113,15 @@ class HitProcessor
         return track_reconstruction_;
     }
 
+    //! Death records accumulated since the last clear
+    std::vector<TrackDeathRecord> const& last_deaths() const
+    {
+        return accumulated_deaths_;
+    }
+
+    //! Clear accumulated death records
+    void clear_deaths() { accumulated_deaths_.clear(); }
+
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
@@ -120,6 +129,8 @@ class HitProcessor
     std::vector<G4VSensitiveDetector*> detectors_;
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
+    //! Death records accumulated across step iterations
+    std::vector<TrackDeathRecord> accumulated_deaths_;
 
     //! Shared step object
     std::shared_ptr<G4Step> step_;

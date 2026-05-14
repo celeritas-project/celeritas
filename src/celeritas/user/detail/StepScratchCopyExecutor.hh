@@ -97,12 +97,58 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
 
     DS_COPY_IF_SELECTED(event_id);
     DS_COPY_IF_SELECTED(parent_id);
+    DS_COPY_IF_SELECTED(primary_id);
     DS_COPY_IF_SELECTED(track_step_count);
     DS_COPY_IF_SELECTED(step_length);
     DS_COPY_IF_SELECTED(weight);
     DS_COPY_IF_SELECTED(particle);
     DS_COPY_IF_SELECTED(energy_deposition);
 #undef DS_COPY_IF_SELECTED
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compact death records, copying from a full state vector to one with #
+ * deaths.
+ */
+struct DeathScratchCopyExecutor
+{
+    NativeRef<StepStateData> state;
+    size_type num_valid{};
+
+    // Gather death data from dying tracks into scratch
+    inline CELER_FUNCTION void operator()(ThreadId id);
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Gather death state from dying tracks indexed by death_valid_id.
+ */
+CELER_FUNCTION void DeathScratchCopyExecutor::operator()(ThreadId dst_id)
+{
+    CELER_EXPECT(state.size() == state.scratch.size()
+                 && num_valid <= state.size()
+                 && dst_id < state.death_valid_id.size());
+
+    TrackSlotId src_id{fast_get(state.death_valid_id, dst_id)};
+    CELER_ASSERT(src_id < state.size());
+
+#define DS_DEATH_COPY(FIELD)                      \
+    do                                            \
+    {                                             \
+        fast_get(state.scratch.FIELD, dst_id)     \
+            = fast_get(state.data.FIELD, src_id); \
+    } while (0)
+
+    DS_DEATH_COPY(death_track_id);
+    DS_DEATH_COPY(death_primary_id);
+    DS_DEATH_COPY(death_particle);
+    DS_DEATH_COPY(death_pos);
+    DS_DEATH_COPY(death_dir);
+    DS_DEATH_COPY(death_energy);
+    DS_DEATH_COPY(death_time);
+
+#undef DS_DEATH_COPY
 }
 
 //---------------------------------------------------------------------------//

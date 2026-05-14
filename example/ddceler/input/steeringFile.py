@@ -7,20 +7,24 @@ from DDSim.DD4hepSimulation import DD4hepSimulation
 runner = DD4hepSimulation()
 
 # Action configuration
-runner.action.run = "CelerRun"
 runner.action.tracker = "Geant4TrackerAction"
 runner.action.trackerSDTypes = ["tracker"]
 runner.action.calo = "Geant4CalorimeterAction"
 runner.action.calorimeterSDTypes = ["calorimeter"]
 
 # Output configuration
-runner.outputConfig.forceDD4HEP = True
+runner.outputConfig.forceEDM4HEP = True
 
 # Number of events
 runner.numberOfEvents = 100
 
+# Input event configuration
+runner.enableGun = False
+runner.inputFiles = [
+    "root://dtn-eic.jlab.org//volatile/eic/EPIC/EVGEN/DIS/pythia6.428-1.0/NC/noRad/ep/10x250/q2_1to10/pythia6.428-1.0_NC_noRad_ep_10x250_q2_1to10_ab_run000.hepmc3.tree.root"
+]
+
 # Particle gun configuration
-runner.enableGun = True
 runner.gun.particle = "e-"
 runner.gun.energy = "5*GeV"
 runner.gun.distribution = "uniform"
@@ -57,5 +61,3 @@ def setup_physics(kernel):
 
 
 runner.physics.setupUserPhysics(setup_physics)
-
-runner.part.userParticleHandler = ""
