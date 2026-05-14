@@ -65,8 +65,6 @@ class Runner
     template<Geometry G>
     std::shared_ptr<GeoParams_t<G> const> load_geometry();
 
-    //! Access loaded volume params
-
   private:
     //// TYPES ////
 
