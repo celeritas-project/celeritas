@@ -55,7 +55,7 @@ class BIHEnclosingVolFinder
 
     // Determine if any leaf node volumes contain the point
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId visit_leaf(BIHLeafNode const& leaf_node,
+    inline CELER_FUNCTION LocalVolumeId visit_leaf(BIHNodeId leaf_id,
                                                    Real3 const& pos,
                                                    F&& is_inside) const;
 
@@ -89,7 +89,7 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     // Stack of deferred nodes
     using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
@@ -99,10 +99,9 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 
     while (!stack.empty())
     {
-        if (!view_.is_inner(stack.top()))
+        if (!view_.is_internal(stack.top()))
         {
-            auto id = this->visit_leaf(
-                view_.leaf_node(stack.top()), pos, is_inside_vol);
+            auto id = this->visit_leaf(stack.top(), pos, is_inside_vol);
             stack.pop();
 
             if (id)
@@ -112,13 +111,13 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         }
         else
         {
-            auto const& edges = view_.inner_node(stack.top()).edges;
+            auto const& node = view_.inner_node(stack.top());
             stack.pop();
             for (auto s : {Side::right, Side::left})
             {
-                if (is_inside(edges[s].bbox, pos))
+                if (is_inside(node.bbox(s), pos))
                 {
-                    stack.push(edges[s].child);
+                    stack.push(node.child(s));
                 }
             }
         }
@@ -135,9 +134,9 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
-    BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
+    BIHNodeId leaf_id, Real3 const& pos, F&& is_inside) const
 {
-    for (auto id : view_.leaf_vol_ids(leaf_node))
+    for (auto id : view_.leaf_vol_ids(leaf_id))
     {
         if (this->visit_bbox(id, pos) && is_inside(id))
         {

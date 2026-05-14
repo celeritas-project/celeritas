@@ -12,7 +12,6 @@
 
 #include "BIHView.hh"
 #include "../BoundingBoxUtils.hh"
-#include "../OrangeData.hh"
 #include "../univ/detail/Types.hh"
 
 namespace celeritas
@@ -78,7 +77,7 @@ class BIHIntersectingVolFinder
     // Calculate the current min intersection, which may/may not be on this
     // leaf
     template<class F>
-    inline CELER_FUNCTION Intersection visit_leaf(BIHLeafNode const& leaf_node,
+    inline CELER_FUNCTION Intersection visit_leaf(BIHNodeId leaf_node_id,
                                                   Ray ray,
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
@@ -122,7 +121,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
@@ -135,32 +134,34 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
     while (!stack.empty())
     {
-        if (!view_.is_inner(stack.top()))
+        if (!view_.is_internal(stack.top()))
         {
-            intersection = this->visit_leaf(
-                view_.leaf_node(stack.top()), ray, intersection, visit_vol);
+            intersection
+                = this->visit_leaf(stack.top(), ray, intersection, visit_vol);
             stack.pop();
             continue;
         }
 
         auto const& node = view_.inner_node(stack.top());
         stack.pop();
-        int ax = to_int(node.axis);
+        int ax = to_int(node.axis());
 
-        // Guess the better edge to traverse first
-        auto first_edge = node.edges[Side::left];
-        auto second_edge = node.edges[Side::right];
+        // Guess the better edge to traverse first: unrolled with loads for
+        // GPU performance
+        fast_real_type left_pos = node.bounding_plane_pos(Side::left);
+        FastBBox first_bbox = node.bbox(Side::left);
+        BIHNodeId first_child = node.child(Side::left);
+        fast_real_type right_pos = node.bounding_plane_pos(Side::right);
+        FastBBox second_bbox = node.bbox(Side::right);
+        BIHNodeId second_child = node.child(Side::right);
 
-        bool skip_first
-            = (ray.dir[ax] >= 0)
-              && (ray.pos[ax] > node.edges[Side::left].bounding_plane_pos);
-        bool skip_second
-            = (ray.dir[ax] <= 0)
-              && (ray.pos[ax] < node.edges[Side::right].bounding_plane_pos);
+        bool skip_first = (ray.dir[ax] >= 0) && (ray.pos[ax] > left_pos);
+        bool skip_second = (ray.dir[ax] <= 0) && (ray.pos[ax] < right_pos);
 
-        if (ray.pos[ax] > node.edges[Side::right].bounding_plane_pos)
+        if (ray.pos[ax] > right_pos)
         {
-            trivial_swap(first_edge, second_edge);
+            trivial_swap(first_bbox, second_bbox);
+            trivial_swap(first_child, second_child);
             trivial_swap(skip_first, skip_second);
         }
 
@@ -168,19 +169,19 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         // with skip_* before testing bounding boxes
         bool hit_first
             = !skip_first
-              && this->visit_bbox(first_edge.bbox, ray, intersection.distance);
-        bool hit_second = !skip_second
-                          && this->visit_bbox(
-                              second_edge.bbox, ray, intersection.distance);
+              && this->visit_bbox(first_bbox, ray, intersection.distance);
+        bool hit_second
+            = !skip_second
+              && this->visit_bbox(second_bbox, ray, intersection.distance);
 
         // Choose the next node on the basis of which edges are hits
         if (hit_second)
         {
-            stack.push(second_edge.child);
+            stack.push(second_child);
         }
         if (hit_first)
         {
-            stack.push(first_edge.child);
+            stack.push(first_child);
         }
     }
 
@@ -197,8 +198,7 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
                                           Ray ray,
                                           real_type min_dist) const
 {
-    return is_inside(bbox, ray.pos)
-           || calc_dist_to_inside(bbox, ray.pos, ray.dir) < min_dist;
+    return intersects_segment(bbox, ray.pos, ray.dir, min_dist);
 }
 
 //---------------------------------------------------------------------------//
@@ -207,12 +207,12 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::visit_leaf(BIHLeafNode const& leaf_node,
+BIHIntersectingVolFinder::visit_leaf(BIHNodeId leaf_node_id,
                                      BIHIntersectingVolFinder::Ray ray,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
-    for (auto id : view_.leaf_vol_ids(leaf_node))
+    for (auto id : view_.leaf_vol_ids(leaf_node_id))
     {
         auto const& bbox = view_.bbox(id);
 

@@ -198,7 +198,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     using VecBBox = BIHBuilder::VecBBox;
     using VecSetup = std::vector<inp::BIHBuilder>;
 
-    static constexpr auto infr = std::numeric_limits<real_type>::infinity();
+    static constexpr auto large = 10000_r;
 
   protected:
     void SetUp() override
@@ -216,7 +216,8 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     //! Specify the bounding box construction
     virtual VecBBox make_bboxes() const = 0;
 
-    // Get results for a ray across all leaf-size intersectors
+    // Get results for a ray across all leaf-size intersectors, with a max
+    // search distance
     IntersectResult
     get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
@@ -240,13 +241,6 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
                 static_cast<int>(visit_vol.miss_count()));
         }
         return result;
-    }
-
-    // Get results for a ray across all leaf-size intersectors, with a max
-    // search distance
-    IntersectResult get_result(Ray ray, DistMap const& dist_map)
-    {
-        return get_result(ray, dist_map, infr);
     }
 
     auto get_bih_json_strings() const
@@ -328,7 +322,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{1};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -344,9 +338,9 @@ TEST_F(BasicBihTest, outside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {2, 2, 1};
+        ref.hit_count = {3, 3, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -364,7 +358,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{3};
         ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -378,7 +372,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{4};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {2, 2, 2};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -392,7 +386,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{5};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -446,7 +440,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{0};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {0, 0, 0};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -465,7 +459,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{1};
         ref.hit_count = {2, 2, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -478,9 +472,9 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {2, 2, 1};
+        ref.hit_count = {3, 3, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -498,7 +492,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{3};
         ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -512,7 +506,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{4};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {2, 2, 2};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -526,7 +520,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{5};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -597,7 +591,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -611,7 +605,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{0};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {3, 3, 3};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -625,7 +619,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {3, 4, 4};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -726,10 +720,10 @@ TEST_F(KebabTest, all)
     DistMap dist_map;
     {
         SCOPED_TRACE("Test everything, no hits");
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
-        ref.distance = inf;
+        ref.distance = large;
         ref.intersect_surface = {};
         ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
         ref.miss_count = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
@@ -738,10 +732,10 @@ TEST_F(KebabTest, all)
     {
         SCOPED_TRACE("Start halfway");
         pos = {0, 0, 512};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
-        ref.distance = inf;
+        ref.distance = large;
         ref.intersect_surface = {};
         ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
         ref.miss_count = {513, 513, 513, 513, 513, 513, 513, 513};
@@ -754,7 +748,7 @@ TEST_F(KebabTest, all)
             {LocalVolumeId{514}, 2.9},
             {LocalVolumeId{1000}, 488.9},
         };
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
         ref.distance = 2.9;
@@ -776,13 +770,18 @@ TEST_F(KebabTest, all)
             {LocalVolumeId{200}, 312.1},
             {LocalVolumeId{0}, 512.1},
         };
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
         ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
-        ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
+        ref.miss_count = {2, 2, 3, 7, 7, 14, 14, 14};
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // Overconservative hits
+            ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
+        }
         EXPECT_REF_EQ(ref, result) << result;
     }
 }
