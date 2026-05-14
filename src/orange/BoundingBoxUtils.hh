@@ -383,8 +383,4 @@ BBox calc_transform(Translation const& tr, BBox const& a);
 BBox calc_transform(Transformation const& tr, BBox const& a);
 
 //---------------------------------------------------------------------------//
-template<class T>
-std::ostream& operator<<(std::ostream&, BoundingBox<T> const& bbox);
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

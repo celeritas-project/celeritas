@@ -18,6 +18,10 @@
 
 #include "Types.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <ostream>
+#endif
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -321,6 +325,24 @@ BoundingBox<T>::grow(Axis axis, real_type position)
     this->grow(Bound::lo, axis, position);
     this->grow(Bound::hi, axis, position);
 }
+
+#if !CELER_DEVICE_COMPILE
+//---------------------------------------------------------------------------//
+/*!
+ * Write a bounding box to a stream.
+ */
+template<class T>
+inline std::ostream& operator<<(std::ostream& os, BoundingBox<T> const& bbox)
+{
+    os << '{';
+    if (bbox)
+    {
+        os << bbox.lower() << ", " << bbox.upper();
+    }
+    os << '}';
+    return os;
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

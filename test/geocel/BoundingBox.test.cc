@@ -166,6 +166,9 @@ TEST_F(BoundingBoxTest, io)
     EXPECT_EQ("[[-1.0,-2.0,-3.0],[3.0,2.0,1.0]]", to_json_string(bboxes[0]));
     EXPECT_EQ("null", to_json_string(BoundingBoxT{}));
 
+    EXPECT_EQ("{{-1,-2,-3}, {3,2,1}}", stream_to_string(bboxes[0]));
+    EXPECT_EQ("{}", stream_to_string(BoundingBoxT{}));
+
     // Test round tripping
     for (BoundingBoxT const& bb : bboxes)
     {
