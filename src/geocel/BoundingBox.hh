@@ -54,7 +54,7 @@ class BoundingBox
 
     // Construct from unchecked lower/upper bounds
     static CELER_CONSTEXPR_FUNCTION BoundingBox
-    from_unchecked(Real3 const& lower, Real3 const& upper);
+    from_unchecked(Real3 const& lower, Real3 const& upper) noexcept;
 
     // Construct in unassigned state
     CELER_CONSTEXPR_FUNCTION BoundingBox();
@@ -122,12 +122,21 @@ class BoundingBox
         return !(lhs == rhs);
     }
 
+    //! Allow loading via ldg
+    CELER_CONSTEXPR_FUNCTION friend BoundingBox
+    ldg(BoundingBox const* bb) noexcept
+    {
+        return BoundingBox{std::true_type{}, ldg(&bb->points_)};
+    }
+
   private:
-    Array<Real3, 2> points_;  //!< lo/hi points
+    using Points = Array<Real3, 2>;
+
+    Points points_;  //!< lo/hi points
 
     // Implementation of 'from_unchecked' (true type 'tag')
     CELER_CONSTEXPR_FUNCTION
-    BoundingBox(std::true_type, Real3 const& lower, Real3 const& upper);
+    BoundingBox(std::true_type, Points const& points) noexcept;
 };
 
 //---------------------------------------------------------------------------//
@@ -177,9 +186,9 @@ CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>
-BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi)
+BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi) noexcept
 {
-    return BoundingBox<T>{std::true_type{}, lo, hi};
+    return BoundingBox<T>{std::true_type{}, Points{lo, hi}};
 }
 
 //---------------------------------------------------------------------------//
@@ -231,8 +240,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION
-BoundingBox<T>::BoundingBox(std::true_type, Real3 const& lo, Real3 const& hi)
-    : points_{{lo, hi}}
+BoundingBox<T>::BoundingBox(std::true_type, Points const& points) noexcept
+    : points_{points}
 {
 }
 
