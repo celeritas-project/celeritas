@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <memory>
+#include <variant>
 #include <gtest/gtest.h>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -56,7 +59,7 @@ struct StreamableActionException
     CheckedGeoTrackView const& geo;
     std::exception const& e;
 
-    friend std::ostream&
+    [[maybe_unused]] friend std::ostream&
     operator<<(std::ostream& os, StreamableActionException const& sae)
     {
         os << "Caught exception during '" << sae.action
@@ -345,11 +348,20 @@ auto GenericGeoTestInterface::get_test_volumes() const -> SPConstVolumes const&
         // Built without using Geant4 model
         static PersistentSP<VolumeParams const> pv{
             "GenericGeoTestBase volumes"};
-        pv.lazy_update(std::string{this->gdml_basename()},
-                       [g = this->geometry_interface()]() {
-                           return std::make_shared<VolumeParams const>(
-                               g->make_model_input().volumes);
-                       });
+
+        pv.lazy_update(
+            std::string{this->gdml_basename()},
+            [g = this->geometry_interface()]() {
+                auto model_input = g->make_model_input();
+                return std::visit(
+                    Overload{[](inp::Volumes const& v) {
+                                 return std::make_shared<VolumeParams const>(v);
+                             },
+                             [](std::shared_ptr<VolumeParams const> const& v) {
+                                 return v;
+                             }},
+                    model_input.volumes);
+            });
         volumes_ = pv.value();
     }
     CELER_ENSURE(volumes_);

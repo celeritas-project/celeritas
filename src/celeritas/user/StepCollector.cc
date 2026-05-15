@@ -31,6 +31,7 @@ std::shared_ptr<StepCollector>
 StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
 {
     return std::make_shared<StepCollector>(core.geometry(),
+                                           core.volume(),
                                            std::move(callbacks),
                                            core.aux_reg().get(),
                                            core.action_reg().get());
@@ -41,6 +42,7 @@ StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
  * Construct with options and register pre and/or post-step actions.
  */
 StepCollector::StepCollector(SPConstCoreGeo geo,
+                             SPConstVolume volume,
                              VecInterface&& callbacks,
                              AuxParamsRegistry* aux_registry,
                              ActionRegistry* action_registry)
@@ -48,11 +50,12 @@ StepCollector::StepCollector(SPConstCoreGeo geo,
     CELER_EXPECT(!callbacks.empty());
     CELER_EXPECT(std::all_of(callbacks.begin(), callbacks.end(), Identity{}));
     CELER_EXPECT(geo);
+    CELER_EXPECT(volume);
     CELER_EXPECT(aux_registry);
     CELER_EXPECT(action_registry);
 
     params_ = std::make_shared<detail::StepParams>(
-        aux_registry->next_id(), *geo, callbacks);
+        aux_registry->next_id(), *geo, *volume, callbacks);
     aux_registry->insert(params_);
 
     if (this->selection().points[StepPoint::pre] || params_->has_detectors())

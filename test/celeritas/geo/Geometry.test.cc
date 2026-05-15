@@ -371,7 +371,7 @@ TEST_F(SimpleCmsTest, output)
     if (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_ORANGE && CELERITAS_USE_GEANT4)
     {
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"supports_safety":true,"volumes":{"label":["vacuum_tube","si_tracker","em_calorimeter","had_calorimeter","sc_solenoid","fe_muon_chambers","world"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-1e3,-1e3,-2e3],[1e3,1e3,2e3]],"num_impl_volumes":7,"supports_safety":true})json",
             s);
     }
 }

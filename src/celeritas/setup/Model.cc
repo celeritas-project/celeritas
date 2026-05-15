@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Model.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
@@ -88,6 +89,32 @@ auto build_geometry(inp::Model const& m)
 {
     return std::visit(GeoBuilder{}, m.geometry);
 }
+
+std::shared_ptr<VolumeParams> build_volumes(inp::Model const& m)
+{
+    return std::visit(
+        Overload{[](inp::Volumes const& v) {
+                     return std::make_shared<VolumeParams>(v);
+                 },
+                 [](std::shared_ptr<VolumeParams const> const& v) {
+                     if (v)
+                     {
+                         return std::const_pointer_cast<VolumeParams>(v);
+                     }
+                     return std::make_shared<VolumeParams>();
+                 }},
+        m.volumes);
+}
+
+bool has_volume_data(inp::Model const& m)
+{
+    return std::visit(
+        Overload{[](inp::Volumes const& v) { return static_cast<bool>(v); },
+                 [](std::shared_ptr<VolumeParams const> const& v) {
+                     return static_cast<bool>(v);
+                 }},
+        m.volumes);
+}
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -104,12 +131,11 @@ ModelLoaded model(inp::Model const& m)
     result.geometry = build_geometry(m);
 
     // Construct volume params if it was added to the input
-    if (!m.volumes)
+    if (!has_volume_data(m))
     {
         CELER_LOG(debug) << "Volume structure data is unavailable";
     }
-    result.volume = std::make_shared<VolumeParams>(m.volumes);
-    celeritas::global_volumes(result.volume);
+    result.volume = build_volumes(m);
 
     // Construct surfaces
     if (!m.surfaces)
@@ -119,7 +145,7 @@ ModelLoaded model(inp::Model const& m)
     result.surface
         = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
 
-    if (m.volumes)
+    if (has_volume_data(m))
     {
         result.detector
             = std::make_shared<DetectorParams>(m.detectors, *result.volume);

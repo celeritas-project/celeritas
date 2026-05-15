@@ -6,16 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "orange/detail/BIHEnclosingVolFinder.hh"
 
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/ParamsDataStore.hh"
-#include "geocel/Types.hh"
 #include "orange/detail/BIHBuilder.hh"
 #include "orange/detail/BIHData.hh"
 
 #include "celeritas_test.hh"
 
 using BIHBuilder = celeritas::detail::BIHBuilder;
-using BIHInnerNode = celeritas::detail::BIHInnerNode;
+using BIHInnerNode = celeritas::detail::BIHInternalNode;
 using BIHLeafNode = celeritas::detail::BIHLeafNode;
 using BIHEnclosingVolFinder = celeritas::detail::BIHEnclosingVolFinder;
 
@@ -29,18 +26,18 @@ class BIHEnclosingVolFinderTest : public Test
     using VecFastBbox = BIHBuilder::VecBBox;
 
   protected:
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
-    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+    HostVal<detail::BIHTreeData> storage_;
+    HostCRef<detail::BIHTreeData> ref_storage_;
     BIHBuilder::SetLocalVolId implicit_vol_ids_;
 
     static constexpr bool valid_vol_id_(LocalVolumeId vol_id)
     {
         return static_cast<bool>(vol_id);
-    };
+    }
     static constexpr bool odd_vol_id_(LocalVolumeId vol_id)
     {
         return vol_id.unchecked_get() % 2 != 0;
-    };
+    }
 };
 
 //---------------------------------------------------------------------------//

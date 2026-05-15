@@ -104,6 +104,9 @@ class OrangeParams final : public GeoParamsInterface,
     // Get volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
+    // Get structural volume metadata
+    SPConstVolumeParams const& volumes() const final { return volumes_; }
+
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;
 

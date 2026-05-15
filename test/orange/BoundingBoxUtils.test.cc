@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "orange/BoundingBoxUtils.hh"
 
+#include <limits>
+
+#include "corecel/Types.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
@@ -16,9 +20,8 @@ namespace celeritas
 {
 namespace test
 {
-class BoundingBoxUtilsTest : public Test
-{
-};
+//---------------------------------------------------------------------------//
+using BoundingBoxUtilsTest = Test;
 
 TEST_F(BoundingBoxUtilsTest, is_infinite)
 {
@@ -193,37 +196,124 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
-TEST_F(BoundingBoxUtilsTest, bbox_dist_to_inside)
+using IntersectsSegmentTest = Test;
+
+TEST_F(IntersectsSegmentTest, basic)
 {
-    using Real3 = Array<double, 3>;
+    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
 
-    auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
-
-    // Basic case
+    // Basic case: pos outside by 0.1 along x
     Real3 pos{1.1, 0.5, 0.5};
     Real3 dir{-1, 0, 0};
-    EXPECT_SOFT_EQ(0.1, calc_dist_to_inside(bbox, pos, dir));
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.05_r));
 
-    // Coming in from an angle
-    dir = Real3{-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0};
-    EXPECT_SOFT_EQ(0.1 * std::sqrt(2), calc_dist_to_inside(bbox, pos, dir));
+    // Coming in from an angle (entry dist = 0.1 * sqrt(2_r))
+    dir = Real3(-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0);
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.1_r));
 
     // First intersection point occurs outside box, but second intersection
-    // point is valid
+    // point is valid (entry dist = 2 * sqrt(2_r))
     pos = Real3{3, 2.5, 0.5};
-    EXPECT_SOFT_EQ(2 * std::sqrt(2), calc_dist_to_inside(bbox, pos, dir));
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 3.0_r));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 2.0_r));
 
     // No intersection
     dir = Real3{0, -1, 0};
-    EXPECT_EQ(numeric_limits<double>::infinity(),
-              calc_dist_to_inside(bbox, pos, dir));
+    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6_r));
 
-    // Already inside
-    if (CELERITAS_DEBUG)
+    // Already inside: always true
+    pos = Real3{0.5, 0.6, 0.7};
+    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1_r));
+
+    // Start exactly on bbox, exiting
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1_r));
+    // Start exactly on bbox, entering
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1_r));
+    // End exactly on bbox, exiting
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5_r));
+    // End exactly on bbox, entering
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
+}
+
+TEST_F(IntersectsSegmentTest, near_degenerate)
+{
+    auto bbox = BBox{{0., 0., 0.}, {1, 1, 1}};
+
+    // Degenerate near-parallel cases: sweep over inside/outside start,
+    // inward/outward direction, and very short/very long segment lengths.
+    real_type eps = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+                         ? 1e-12_r
+                         : 1e-6_r);
+    struct
     {
-        pos = Real3{0.5, 0.6, 0.7};
-        EXPECT_THROW(calc_dist_to_inside(bbox, pos, dir), DebugError);
+        char const* label;
+        Real3 pos;
+        bool is_inside;
+    } const positions[] = {
+        {"barely inside", {1 - eps, 0.5, 0.5}, true},
+        {"barely outside", {1 + eps, 0.5, 0.5}, false},
+    };
+
+    real_type tilt
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9_r : 5e-4_r);
+    real_type const entry_dist = eps / tilt;
+    struct
+    {
+        char const* label;
+        Real3 dir;
+        bool is_inward;
+    } const directions[] = {
+        {"inward", {-tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, true},
+        {"parallel", {0, 1, 0}, false},
+        {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
+    };
+
+    constexpr real_type large_dist
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e5_r);
+    for (auto const max_dist : {1 / large_dist, large_dist})
+    {
+        for (auto const& p : positions)
+        {
+            for (auto const& d : directions)
+            {
+                SCOPED_TRACE(::testing::Message{} << p.label << ", " << d.label
+                                                  << ", max_dist=" << max_dist);
+
+                bool const expected
+                    = p.is_inside || (d.is_inward && max_dist >= entry_dist);
+
+                EXPECT_EQ(expected,
+                          intersects_segment(bbox, p.pos, d.dir, max_dist));
+            }
+        }
     }
+}
+
+TEST_F(IntersectsSegmentTest, infinite)
+{
+    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
+
+    constexpr real_type infr = std::numeric_limits<real_type>::infinity();
+
+    // Actually intersecting
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{0.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(intersects_segment(
+        bbox, Real3{0.5, 1.25, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
+
+    // False positives
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{1.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(
+        intersects_segment(bbox, Real3{-0.5, 1.1, 0.5}, Real3{1, 0, 0}, infr));
+    EXPECT_TRUE(intersects_segment(
+        bbox, Real3{1.5, 0.75, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_encloses)

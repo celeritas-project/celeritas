@@ -8,6 +8,9 @@
 
 #include <vector>
 
+#include "corecel/cont/EnumArray.hh"
+#include "geocel/BoundingBox.hh"  // IWYU pragma: keep
+
 #include "BIHData.hh"
 #include "../OrangeTypes.hh"
 
@@ -34,14 +37,14 @@ class BIHPartitioner
     using VecBBox = std::vector<FastBBox>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
-    using Side = BIHInnerNode::Side;
+    using Side = BIHInternalNode::Side;
 
     //! Output struct specifying the indices and bboxes of the left and right
     //! sides of the partition
     struct Partition
     {
         Axis axis = Axis::size_;
-        real_type position = std::numeric_limits<real_type>::infinity();
+        fast_real_type position{};
 
         EnumArray<Side, VecIndices> indices;
         EnumArray<Side, FastBBox> bboxes;
@@ -57,30 +60,24 @@ class BIHPartitioner
     //!@}
 
   public:
-    //! Default constructor
-    BIHPartitioner() = default;
-
     // Construct from all bounding bounding boxes in a universe
-    explicit BIHPartitioner(VecBBox const* bboxes,
-                            VecReal3 const* centers,
+    explicit BIHPartitioner(VecBBox const& bboxes,
+                            VecReal3 const& centers,
                             size_type num_part_cands);
 
     // Find a suitable partition for the given subset of bounding boxes
     Partition operator()(VecIndices const& indices) const;
 
-    // True when assigned
-    explicit inline operator bool() const { return bboxes_ != nullptr; }
-
   private:
     /// TYPES ///
-    using AxesCenters = std::vector<std::vector<real_type>>;
+    using AxesCenters = std::vector<std::vector<fast_real_type>>;
 
     //// DATA ////
 
     //! All bounding boxes to be partitioned
-    VecBBox const* bboxes_{nullptr};
+    VecBBox const& bboxes_;
     //! The centers of each bounding box
-    VecReal3 const* centers_{nullptr};
+    VecReal3 const& centers_;
     //! The number of partition candidates to check per axis
     size_type num_part_cands_{0};
 

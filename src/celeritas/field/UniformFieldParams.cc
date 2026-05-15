@@ -18,8 +18,10 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayQuantity.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeCollectionBuilder.hh"
 #include "geocel/VolumeIdBuilder.hh"
+#include "geocel/VolumeParams.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
@@ -32,11 +34,15 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<VolumeId> make_volume_ids(inp::UniformField const& inp)
+std::unordered_set<VolumeId>
+make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
 {
     using SetVolume = std::unordered_set<VolumeId>;
 
-    VolumeIdBuilder to_vol_id;
+    auto geant_geo = celeritas::global_geant_geo().lock();
+    auto const* volumes = geo.volumes().get();
+
+    VolumeIdBuilder to_vol_id(volumes, geant_geo.get());
     SetVolume result;
 
     std::visit(Overload{
@@ -90,7 +96,7 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
 
     // If logical volumes are specified, flag whether or not the field should
     // be present in each volume
-    auto volumes = make_volume_ids(inp);
+    auto volumes = make_volume_ids(geo, inp);
     if (!volumes.empty())
     {
         // Convert from canonical to implementation volumes

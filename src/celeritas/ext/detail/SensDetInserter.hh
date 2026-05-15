@@ -20,6 +20,7 @@ class G4VSensitiveDetector;
 namespace celeritas
 {
 class GeantGeoParams;
+class VolumeParams;
 
 namespace detail
 {
@@ -41,7 +42,11 @@ class SensDetInserter
 
   public:
     // Construct from interfaces, loading geant geo
-    SensDetInserter(SetLV const& skip_volumes, MapIdLv* found, VecLV* missing);
+    SensDetInserter(SetLV const& skip_volumes,
+                    VolumeParams const* volumes,
+                    GeantGeoParams const* geant_geo,
+                    MapIdLv* found,
+                    VecLV* missing);
 
     // Save a sensitive detector
     void operator()(G4LogicalVolume const* lv, G4VSensitiveDetector const* sd);

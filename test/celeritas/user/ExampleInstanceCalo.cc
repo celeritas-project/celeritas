@@ -48,16 +48,17 @@ void ExampleInstanceCalo::Result::print_expected() const
 /*!
  * Construct with detector labels.
  */
-ExampleInstanceCalo::ExampleInstanceCalo(VecLabel vol_labels)
-    : det_labels_{std::move(vol_labels)}
+ExampleInstanceCalo::ExampleInstanceCalo(
+    VecLabel vol_labels, std::shared_ptr<VolumeParams const> volumes)
+    : det_labels_{std::move(vol_labels)}, volumes_{std::move(volumes)}
 {
-    CELER_VALIDATE(!celeritas::global_volumes().expired(),
+    CELER_VALIDATE(volumes_,
                    << "geometry volumes were not constructed before "
                       "instantiating ExampleInstanceCalo");
 
     // Map labels to volume IDs
     volume_ids_.resize(det_labels_.size());
-    VolumeIdBuilder label_to_vol_id;
+    VolumeIdBuilder label_to_vol_id(volumes_.get(), nullptr);
     for (auto i : range(det_labels_.size()))
     {
         volume_ids_[i] = label_to_vol_id(det_labels_[i]);
@@ -138,9 +139,7 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
 
     CELER_LOG_LOCAL(debug) << "Processing " << out.size() << " hits";
 
-    auto volumes = celeritas::global_volumes().lock();
-    CELER_ASSERT(volumes);
-    auto const& vi_labels = volumes->volume_instance_labels();
+    auto const& vi_labels = volumes_->volume_instance_labels();
 
     for (auto hit : range(out.size()))
     {
