@@ -302,6 +302,14 @@ TEST(QuantityTest, io)
     }
 }
 
+TEST(QuantityTest, ldg)
+{
+    // Pretend this is in global memory: `ldg(&x)` is x in host code
+    Dozen const q{10};
+    EXPECT_TRUE((std::is_same_v<Dozen, decltype(ldg(&q))>));
+    EXPECT_EQ((Dozen{10}), ldg(&q));
+}
+
 TEST(QuantityTest, stream)
 {
     EXPECT_EQ("5 [dozen]", stream_to_string(Dozen{5}));

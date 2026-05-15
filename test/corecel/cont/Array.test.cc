@@ -132,9 +132,8 @@ TEST(ArrayTest, ldg)
 {
     // Pretend this is in global memory: `ldg(&x)` is x in host code
     Array const arr{1, 2, 3};
-    auto loaded = ldg(&arr);
-    EXPECT_TRUE((std::is_same_v<Array<int, 3>, decltype(loaded)>));
-    EXPECT_VEC_EQ((Array{1, 2, 3}), loaded);
+    EXPECT_TRUE((std::is_same_v<Array<int, 3>, decltype(ldg(&arr))>));
+    EXPECT_VEC_EQ((Array{1, 2, 3}), ldg(&arr));
 }
 
 TEST(ArrayTest, casts)

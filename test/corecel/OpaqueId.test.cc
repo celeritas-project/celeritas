@@ -12,6 +12,7 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 
 #include "celeritas_test.hh"
 
@@ -98,6 +99,7 @@ TYPED_TEST(OpaqueIdTypedTest, traits)
     EXPECT_TRUE((std::is_same_v<Int_t, MakeSize_t<Id_t const>>));
     EXPECT_TRUE((std::is_trivially_copyable_v<Id_t>));
     EXPECT_TRUE((std::is_trivially_destructible_v<Id_t>));
+    EXPECT_TRUE((is_auto_ldg_v<Id_t>));
 }
 
 TYPED_TEST(OpaqueIdTypedTest, operators)
@@ -152,6 +154,16 @@ TYPED_TEST(OpaqueIdTypedTest, operators)
     Id_t old{id++};
     EXPECT_EQ(Id_t{1}, id);
     EXPECT_EQ(Id_t{0}, old);
+}
+
+TYPED_TEST(OpaqueIdTypedTest, ldg)
+{
+    using Id_t = OpaqueId<TestInstantiator, TypeParam>;
+
+    Id_t const id{12};
+
+    EXPECT_EQ(Id_t{12}, ldg(&id));
+    EXPECT_TRUE((std::is_same_v<Id_t, decltype(ldg(&id))>));
 }
 
 TEST(OpaqueIdTest, multi_int)
