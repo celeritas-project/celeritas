@@ -50,14 +50,14 @@ class BoundingBox
 
   public:
     // Construct from infinite extents
-    static inline CELER_FUNCTION BoundingBox from_infinite();
+    static inline CELER_FUNCTION BoundingBox from_infinite() noexcept;
 
     // Construct from unchecked lower/upper bounds
     static CELER_CONSTEXPR_FUNCTION BoundingBox
     from_unchecked(Real3 const& lower, Real3 const& upper) noexcept;
 
     // Construct in unassigned state
-    CELER_CONSTEXPR_FUNCTION BoundingBox();
+    CELER_CONSTEXPR_FUNCTION BoundingBox() noexcept;
 
     // Construct from upper and lower points
     inline CELER_FUNCTION BoundingBox(Real3 const& lower, Real3 const& upper);
@@ -171,7 +171,7 @@ is_inside(BoundingBox<T> const& bbox, Array<U, 3> const& point)
  * Create a bounding box with infinite extents.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite()
+CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite() noexcept
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
     return {{-inf, -inf, -inf}, {inf, inf, inf}};
@@ -205,7 +205,7 @@ BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi) noexcept
    \endcode
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox()
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
     points_[to_int(Bound::lo)] = {inf, inf, inf};
