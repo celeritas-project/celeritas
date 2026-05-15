@@ -47,9 +47,9 @@
      <D value="1.0"/>
      <composite n="2" ref="Hydrogen"/>
      <composite n="1" ref="Oxygen"/>
-      <property name="RINDEX" ref="RINDEX"/>
-      <property name="GROUPVEL" ref="GROUPVEL"/>
-      <property name="ABSLENGTH" ref="ABSLENGTH"/>
+     <property name="RINDEX" ref="RINDEX"/>
+     <property name="GROUPVEL" ref="GROUPVEL"/>
+     <property name="ABSLENGTH" ref="ABSLENGTH"/>
     </material>
     <material name="FakePlastic" state="solid">
      <D value="4.0"/>

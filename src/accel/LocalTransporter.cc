@@ -258,23 +258,6 @@ void LocalTransporter::Push(G4Track& g4track)
 
     ScopedProfiling profile_this{"push"};
 
-    GeantTrackView gtv{g4track};
-
-    if (!is_inside(bbox_,
-                   static_array_cast<real_type>(native_value_from(gtv.pos()))))
-    {
-        // Primary may have been created by a particle generator outside the
-        // geometry
-        CELER_LOG_LOCAL(error)
-            << "Discarding track outside world bounds: " << gtv.energy()
-            << " from " << gtv.particle().name() << " at " << gtv.pos()
-            << " along " << gtv.dir();
-
-        buffer_accum_.lost_energy += gtv.energy().value();
-        ++buffer_accum_.lost_primaries;
-        return;
-    }
-
     // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the
     // track
@@ -298,6 +281,22 @@ void LocalTransporter::Push(G4Track& g4track)
         }
     }
     CELER_ASSERT(event_id_ >= 0);
+
+    GeantTrackView gtv{g4track};
+    if (!is_inside(bbox_,
+                   static_array_cast<real_type>(native_value_from(gtv.pos()))))
+    {
+        // Primary may have been created outside the GPU geometry extent (which
+        // may not match the generator's extent *or* the CPU geant4 extent)
+        CELER_LOG_LOCAL(error)
+            << "Discarding track outside world bounds: " << gtv.energy()
+            << " from " << gtv.particle().name() << " at " << gtv.pos()
+            << " along " << gtv.dir();
+
+        buffer_accum_.lost_energy += gtv.energy().value();
+        ++buffer_accum_.lost_primaries;
+        return;
+    }
 
     Primary track;
 
