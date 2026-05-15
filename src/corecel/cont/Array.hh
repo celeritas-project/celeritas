@@ -146,7 +146,7 @@ class Array
     }
     //!@}
 
-    //// FRIENDLY OPERATORS ////
+    //// FRIENDS ////
 
     //! Test equality of two arrays
     template<class U>
