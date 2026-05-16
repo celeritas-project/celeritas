@@ -79,34 +79,29 @@ class BoundingBox
     //// ACCESSORS ////
 
     //! Lower bbox coordinate
-    CELER_CONSTEXPR_FUNCTION Real3 lower() const
+    CELER_CONSTEXPR_FUNCTION Real3 const& lower() const
     {
         return this->point(Bound::lo);
     }
 
     //! Upper bbox coordinate
-    CELER_CONSTEXPR_FUNCTION Real3 upper() const
+    CELER_CONSTEXPR_FUNCTION Real3 const& upper() const
     {
         return this->point(Bound::hi);
     }
 
     //! Access a bounding point
-    CELER_CONSTEXPR_FUNCTION Real3 point(Bound b) const
+    CELER_CONSTEXPR_FUNCTION Real3 const& point(Bound b) const
     {
         CELER_EXPECT(b != Bound::size_);
-        Real3 result;
-        for (auto ax : {Axis::x, Axis::y, Axis::z})
-        {
-            result[to_int(ax)] = extents_[to_int(ax)][to_int(b)];
-        }
-        return result;
+        return points_[to_int(b)];
     }
 
     //! Access a bounding point coordinate (const ref to support LDG)
     CELER_CONSTEXPR_FUNCTION real_type const& point(Bound b, Axis ax) const&
     {
         CELER_EXPECT(ax != Axis::size_);
-        return extents_[to_int(ax)][to_int(b)];
+        return points_[to_int(b)][to_int(ax)];
     }
 
     //! Access a bounding point coordinate
@@ -136,7 +131,7 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION friend bool
     operator==(BoundingBox const& lhs, BoundingBox const& rhs)
     {
-        return lhs.extents_ == rhs.extents_;
+        return lhs.points_ == rhs.points_;
     }
 
     //! Test inequality of two bounding boxes
@@ -150,13 +145,13 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION friend BoundingBox
     ldg(BoundingBox const* bb) noexcept
     {
-        return BoundingBox{std::true_type{}, ldg(&bb->extents_)};
+        return BoundingBox{std::true_type{}, ldg(&bb->points_)};
     }
 
   private:
     using Points = Array<Real3, 2>;
 
-    Extents3 extents_;  //!< Extents for x, y, z axes
+    Points points_;  //!< lo/hi points
 
     // Construct internally without validation (using tag type)
     CELER_CONSTEXPR_FUNCTION
@@ -245,11 +240,8 @@ template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
-    for (auto ax : {Axis::x, Axis::y, Axis::z})
-    {
-        extents_[to_int(ax)][to_int(Bound::lo)] = inf;
-        extents_[to_int(ax)][to_int(Bound::hi)] = -inf;
-    }
+    points_[to_int(Bound::lo)] = {inf, inf, inf};
+    points_[to_int(Bound::hi)] = {-inf, -inf, -inf};
     CELER_ENSURE(!*this);
 }
 
@@ -285,14 +277,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Extents3 const& extents)
 template<class T>
 CELER_CONSTEXPR_FUNCTION
 BoundingBox<T>::BoundingBox(std::true_type, Points const& points) noexcept
+    : points_{points}
 {
-    for (auto b : {Bound::lo, Bound::hi})
-    {
-        for (auto ax : {Axis::x, Axis::y, Axis::z})
-        {
-            extents_[to_int(ax)][to_int(b)] = points[to_int(b)][to_int(ax)];
-        }
-    }
 }
 
 //---------------------------------------------------------------------------//
@@ -302,8 +288,14 @@ BoundingBox<T>::BoundingBox(std::true_type, Points const& points) noexcept
 template<class T>
 CELER_CONSTEXPR_FUNCTION
 BoundingBox<T>::BoundingBox(std::true_type, Extents3 const& extents) noexcept
-    : extents_{extents}
 {
+    for (auto ax : {Axis::x, Axis::y, Axis::z})
+    {
+        for (auto b : {Bound::lo, Bound::hi})
+        {
+            points_[to_int(b)][to_int(ax)] = extents[to_int(ax)][to_int(b)];
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -343,7 +335,7 @@ BoundingBox<T>::shrink(Bound bnd, Axis ax, real_type position)
     {
         p = std::fmin(p, position);
     }
-    extents_[to_int(ax)][to_int(bnd)] = p;
+    points_[to_int(bnd)][to_int(ax)] = p;
 }
 
 //---------------------------------------------------------------------------//
@@ -366,7 +358,7 @@ BoundingBox<T>::grow(Bound bnd, Axis ax, real_type position)
     {
         p = std::fmax(p, position);
     }
-    extents_[to_int(ax)][to_int(bnd)] = p;
+    points_[to_int(bnd)][to_int(ax)] = p;
 }
 
 //---------------------------------------------------------------------------//
