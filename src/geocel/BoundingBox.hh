@@ -116,11 +116,10 @@ class BoundingBox
     //// MUTATORS ////
 
     // Reduce the bounding box's extent along an axis
-    CELER_CONSTEXPR_FUNCTION void
-    shrink(Bound bnd, Axis ax, real_type position);
+    CELER_CONSTEXPR_FUNCTION void shrink(Bound b, Axis ax, real_type position);
 
     // Increase the bounding box's extent along an axis
-    CELER_CONSTEXPR_FUNCTION void grow(Bound bnd, Axis ax, real_type position);
+    CELER_CONSTEXPR_FUNCTION void grow(Bound b, Axis ax, real_type position);
 
     // Increase the bounding box's extent on both bounds
     CELER_CONSTEXPR_FUNCTION void grow(Axis ax, real_type position);
@@ -167,11 +166,19 @@ class BoundingBox
 
     Points points_;  //!< lo/hi points
 
+    //// PRIVATE HELPERS ////
+
     // Construct internally without validation (using tag type)
     CELER_CONSTEXPR_FUNCTION
     BoundingBox(std::true_type, Points const& points) noexcept;
     CELER_CONSTEXPR_FUNCTION
     BoundingBox(std::true_type, Extents3 const& extents) noexcept;
+
+    //! Set a bounding point coordinate (different signature to allow private)
+    CELER_CONSTEXPR_FUNCTION void point(Bound b, Axis ax, real_type p) &
+    {
+        points_[to_int(b)][to_int(ax)] = p;
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -254,8 +261,11 @@ template<class T>
 CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
 {
     constexpr real_type inf = numeric_limits<real_type>::infinity();
-    points_[to_int(Bound::lo)] = {inf, inf, inf};
-    points_[to_int(Bound::hi)] = {-inf, -inf, -inf};
+    for (auto ax : {Axis::x, Axis::y, Axis::z})
+    {
+        this->point(Bound::lo, ax, inf);
+        this->point(Bound::hi, ax, -inf);
+    }
     CELER_ENSURE(!*this);
 }
 
@@ -307,7 +317,7 @@ BoundingBox<T>::BoundingBox(std::true_type, Extents3 const& extents) noexcept
     {
         for (auto b : {Bound::lo, Bound::hi})
         {
-            points_[to_int(b)][to_int(ax)] = extents[to_int(ax)][to_int(b)];
+            this->point(b, ax, extents[to_int(ax)][to_int(b)]);
         }
     }
 }
@@ -338,10 +348,10 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::shrink(Bound bnd, Axis ax, real_type position)
+BoundingBox<T>::shrink(Bound b, Axis ax, real_type position)
 {
-    real_type p = this->point(bnd, ax);
-    if (bnd == Bound::lo)
+    real_type p = this->point(b, ax);
+    if (b == Bound::lo)
     {
         p = std::fmax(p, position);
     }
@@ -349,7 +359,7 @@ BoundingBox<T>::shrink(Bound bnd, Axis ax, real_type position)
     {
         p = std::fmin(p, position);
     }
-    points_[to_int(bnd)][to_int(ax)] = p;
+    this->point(b, ax, p);
 }
 
 //---------------------------------------------------------------------------//
@@ -361,10 +371,10 @@ BoundingBox<T>::shrink(Bound bnd, Axis ax, real_type position)
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::grow(Bound bnd, Axis ax, real_type position)
+BoundingBox<T>::grow(Bound b, Axis ax, real_type position)
 {
-    real_type p = this->point(bnd, ax);
-    if (bnd == Bound::lo)
+    real_type p = this->point(b, ax);
+    if (b == Bound::lo)
     {
         p = std::fmin(p, position);
     }
@@ -372,7 +382,7 @@ BoundingBox<T>::grow(Bound bnd, Axis ax, real_type position)
     {
         p = std::fmax(p, position);
     }
-    points_[to_int(bnd)][to_int(ax)] = p;
+    this->point(b, ax, p);
 }
 
 //---------------------------------------------------------------------------//
