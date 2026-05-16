@@ -7,12 +7,12 @@
 #pragma once
 
 #include <type_traits>
+
+#include "corecel/Macros.hh"
 #if CELER_DEVICE_COMPILE
 // Make sure __ldg is available for HIP
 #    include "corecel/DeviceRuntimeApi.hh"
 #endif
-
-#include "corecel/Macros.hh"
 
 namespace celeritas
 {
