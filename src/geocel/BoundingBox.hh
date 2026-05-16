@@ -148,6 +148,20 @@ class BoundingBox
         return BoundingBox{std::true_type{}, ldg(&bb->points_)};
     }
 
+#if !CELER_DEVICE_COMPILE
+    //! Write box to a stream
+    friend std::ostream& operator<<(std::ostream& os, BoundingBox const& bbox)
+    {
+        os << '{';
+        if (bbox)
+        {
+            os << bbox.lower() << ", " << bbox.upper();
+        }
+        os << '}';
+        return os;
+    }
+#endif
+
   private:
     using Points = Array<Real3, 2>;
 
@@ -374,24 +388,6 @@ CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::grow(Axis ax, real_type position)
     this->grow(Bound::lo, ax, position);
     this->grow(Bound::hi, ax, position);
 }
-
-#if !CELER_DEVICE_COMPILE
-//---------------------------------------------------------------------------//
-/*!
- * Write a bounding box to a stream.
- */
-template<class T>
-inline std::ostream& operator<<(std::ostream& os, BoundingBox<T> const& bbox)
-{
-    os << '{';
-    if (bbox)
-    {
-        os << bbox.lower() << ", " << bbox.upper();
-    }
-    os << '}';
-    return os;
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
