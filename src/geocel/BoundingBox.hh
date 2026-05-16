@@ -116,13 +116,13 @@ class BoundingBox
     //// MUTATORS ////
 
     // Reduce the bounding box's extent along an axis
-    CELER_CONSTEXPR_FUNCTION void shrink(Bound b, Axis ax, real_type position);
+    CELER_CONSTEXPR_FUNCTION void shrink(Bound b, Axis ax, real_type p);
 
     // Increase the bounding box's extent along an axis
-    CELER_CONSTEXPR_FUNCTION void grow(Bound b, Axis ax, real_type position);
+    CELER_CONSTEXPR_FUNCTION void grow(Bound b, Axis ax, real_type p);
 
     // Increase the bounding box's extent on both bounds
-    CELER_CONSTEXPR_FUNCTION void grow(Axis ax, real_type position);
+    CELER_CONSTEXPR_FUNCTION void grow(Axis ax, real_type p);
 
     //// FRIENDS ////
 
@@ -348,16 +348,16 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::shrink(Bound b, Axis ax, real_type position)
+BoundingBox<T>::shrink(Bound b, Axis ax, real_type v)
 {
     real_type p = this->point(b, ax);
     if (b == Bound::lo)
     {
-        p = std::fmax(p, position);
+        p = std::fmax(p, v);
     }
     else
     {
-        p = std::fmin(p, position);
+        p = std::fmin(p, v);
     }
     this->point(b, ax, p);
 }
@@ -371,18 +371,18 @@ BoundingBox<T>::shrink(Bound b, Axis ax, real_type position)
  */
 template<class T>
 CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::grow(Bound b, Axis ax, real_type position)
+BoundingBox<T>::grow(Bound b, Axis ax, real_type v)
 {
     real_type p = this->point(b, ax);
     if (b == Bound::lo)
     {
-        p = std::fmin(p, position);
+        p = std::fmin(p, v);
     }
     else
     {
-        p = std::fmax(p, position);
+        p = std::fmax(p, v);
     }
-    this->point(b, ax, p);
+    this->point(b, ax, v);
 }
 
 //---------------------------------------------------------------------------//
@@ -391,12 +391,15 @@ BoundingBox<T>::grow(Bound b, Axis ax, real_type position)
  *
  * If the point is outside the box, the box is expanded so the given boundary
  * is on that point. Otherwise no change is made.
+ *
+ * \post If the box is non-null, some point on the axis \c is_inside the
+ * bounding box.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::grow(Axis ax, real_type position)
+CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::grow(Axis ax, real_type p)
 {
-    this->grow(Bound::lo, ax, position);
-    this->grow(Bound::hi, ax, position);
+    this->grow(Bound::lo, ax, p);
+    this->grow(Bound::hi, ax, p);
 }
 
 //---------------------------------------------------------------------------//
