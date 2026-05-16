@@ -135,20 +135,10 @@ int GtrTest::test_cur_event{0};
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GtrTest, construction)
+TEST_F(GtrTest, TEST_IF_CELERITAS_DEBUG(empty_construction))
 {
     // Create an empty processor first to test basic construction
-    GeantTrackReconstruction recon({}, step_);
-
-    // One empty event
-    GtrTest::test_cur_event = 1;
-    recon.init_event();
-    recon.clear();
-
-    // Another
-    GtrTest::test_cur_event = 2;
-    recon.init_event();
-    recon.clear();
+    EXPECT_THROW(GeantTrackReconstruction({}, step_), DebugError);
 }
 
 //---------------------------------------------------------------------------//

@@ -16,6 +16,7 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Secondary.hh"
+#include "celeritas/track/Utils.hh"
 
 #include "../CoreStateCounters.hh"
 

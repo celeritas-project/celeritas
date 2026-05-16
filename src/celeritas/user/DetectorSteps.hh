@@ -73,18 +73,21 @@ struct DetectorStepOutput
     // Pre- and post-step data
     EnumArray<StepPoint, DetectorStepPointOutput> points;
 
-    // Detector ID and track ID are always set
-    PinnedVec<DetectorId> detector;
+    // Track and detector IDs are always set
     PinnedVec<TrackId> track_id;
+    PinnedVec<DetectorId> detector_id;
 
-    // Additional optional data
+    // Additional optional data (sim)
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
     PinnedVec<PrimaryId> primary_id;
+    PinnedVec<ActionId> post_step_action_id;
     PinnedVec<size_type> track_step_count;
     PinnedVec<real_type> step_length;
     PinnedVec<real_type> weight;
-    PinnedVec<ParticleId> particle;
+
+    // Additional optional data (physics)
+    PinnedVec<ParticleId> particle_id;
     PinnedVec<Energy> energy_deposition;
 
     // 2D size for volume instances
@@ -93,9 +96,9 @@ struct DetectorStepOutput
     //// METHODS ////
 
     //! Number of elements in the detector output.
-    size_type size() const { return detector.size(); }
+    size_type size() const { return detector_id.size(); }
     //! Whether the size is nonzero
-    explicit operator bool() const { return !detector.empty(); }
+    explicit operator bool() const { return !detector_id.empty(); }
 };
 
 //---------------------------------------------------------------------------//

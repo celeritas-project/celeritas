@@ -121,13 +121,14 @@ void copy_steps<MemSpace::host>(
     ScopedProfiling profile_this{"copy-steps"};
 
     // Get the number of threads that are active and in a detector
-    size_type size = count_num_valid(state.data.detector);
+    size_type size = count_num_valid(state.data.detector_id);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(&(output->FIELD), state.data.FIELD, state.data.detector, size)
+    assign_field(        \
+        &(output->FIELD), state.data.FIELD, state.data.detector_id, size)
 
-    DS_ASSIGN(detector);
+    DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
 
     for (auto sp : range(StepPoint::size_))
@@ -140,7 +141,7 @@ void copy_steps<MemSpace::host>(
         {
             assign_field(&(output->points[sp].volume_instance_ids),
                          state.data.points[sp].volume_instance_ids,
-                         state.data.detector,
+                         state.data.detector_id,
                          size,
                          state.num_volume_levels);
         }
@@ -149,17 +150,18 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
     DS_ASSIGN(primary_id);
+    DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
     DS_ASSIGN(weight);
-    DS_ASSIGN(particle);
+    DS_ASSIGN(particle_id);
     DS_ASSIGN(energy_deposition);
 
     output->num_volume_levels = state.num_volume_levels;
 
 #undef DS_ASSIGN
 
-    CELER_ENSURE(output->detector.size() == size);
+    CELER_ENSURE(output->detector_id.size() == size);
     CELER_ENSURE(output->track_id.size() == size);
 }
 
