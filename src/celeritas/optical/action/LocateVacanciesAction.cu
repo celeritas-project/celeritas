@@ -10,9 +10,9 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
-
-#include "../CoreParams.hh"
-#include "../CoreState.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/TrackExecutor.hh"
 
 #include "detail/UpdateAliveExecutor.hh"
 
@@ -28,8 +28,10 @@ void LocateVacanciesAction::update_alive(CoreParams const& params,
                                          CoreStateDevice& state,
                                          size_type state_size) const
 {
-    detail::UpdateAliveExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), state_size};
+    auto execute_thread
+        = make_single_track_executor(params.ptr<MemSpace::native>(),
+                                     state.ptr(),
+                                     detail::UpdateAliveExecutor{state_size});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-alive");
     launch_kernel(1, state.stream_id(), execute_thread);

@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/TrackExecutor.hh"
 
 #include "ActionLauncher.hh"
 
@@ -73,8 +74,10 @@ void LocateVacanciesAction::update_alive(CoreParams const& params,
                                          CoreStateHost& state,
                                          size_type state_size) const
 {
-    detail::UpdateAliveExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), state_size};
+    auto execute_thread
+        = make_single_track_executor(params.ptr<MemSpace::native>(),
+                                     state.ptr(),
+                                     detail::UpdateAliveExecutor{state_size});
     launch_action(1, execute_thread);
 }
 

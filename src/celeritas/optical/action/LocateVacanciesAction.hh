@@ -8,8 +8,6 @@
 
 #include "ActionInterface.hh"
 
-#include "detail/UpdateAliveExecutor.hh"
-
 namespace celeritas
 {
 namespace optical

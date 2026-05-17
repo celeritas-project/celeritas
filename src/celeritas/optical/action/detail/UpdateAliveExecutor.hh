@@ -8,7 +8,9 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 namespace celeritas
 {
@@ -27,14 +29,12 @@ struct UpdateAliveExecutor
 {
     //// DATA ////
 
-    CRefPtr<CoreParamsData, MemSpace::native> params;
-    RefPtr<CoreStateData, MemSpace::native> state;
     size_type state_size;
 
     //// FUNCTIONS ////
 
     // Update number of photons that are still alive
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid);
+    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
@@ -43,15 +43,13 @@ struct UpdateAliveExecutor
 /*!
  * Update number of photons that are still alive after compacting vacancies.
  */
-CELER_FORCEINLINE_FUNCTION void UpdateAliveExecutor::operator()(ThreadId tid)
+CELER_FORCEINLINE_FUNCTION void
+UpdateAliveExecutor::operator()(CoreTrackView& track)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-    CELER_EXPECT(tid.get() == 0);  // Should be called with only one thread
+    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 
-    auto counters = state->init.counters.data().get();
-    counters->num_alive = state_size - counters->num_vacancies;
-    CELER_ASSERT(state_size >= counters->num_vacancies);
+    track.counters().num_alive = state_size - track.counters().num_vacancies;
+    CELER_ASSERT(state_size >= track.counters().num_vacancies);
 }
 
 //---------------------------------------------------------------------------//
