@@ -382,7 +382,7 @@ BoundingBox<T>::grow(Bound b, Axis ax, real_type v)
     {
         p = std::fmax(p, v);
     }
-    this->point(b, ax, v);
+    this->point(b, ax, p);
 }
 
 //---------------------------------------------------------------------------//
