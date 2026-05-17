@@ -220,9 +220,6 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
         state.ptr(),
         detail::UpdateCountersExecutor{num_primaries});
     launch_core(1, "update-counters", params, state, execute_thread);
-    // detail::UpdateCountersExecutor execute{
-    // params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
-    // return launch_action(*this, 1, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

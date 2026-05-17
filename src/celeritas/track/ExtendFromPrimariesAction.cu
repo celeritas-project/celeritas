@@ -50,11 +50,6 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-counters");
     launch_kernel(1, state.stream_id(), execute_thread);
-    // detail::UpdateCountersExecutor execute_thread{
-    // params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
-    // static ActionLauncher<decltype(execute_thread)> const
-    // launch_kernel(*this); launch_kernel(1, state.stream_id(),
-    // execute_thread);
 }
 
 //---------------------------------------------------------------------------//
