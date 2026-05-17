@@ -9,6 +9,7 @@
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"
 #include "detail/UpdateCountersExecutor.hh"
@@ -42,10 +43,18 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateDevice& state,
                                                 size_type num_primaries) const
 {
-    detail::UpdateCountersExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
-    static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
+    auto execute_thread = make_single_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdateCountersExecutor{num_primaries});
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "update-counters");
     launch_kernel(1, state.stream_id(), execute_thread);
+    // detail::UpdateCountersExecutor execute_thread{
+    // params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
+    // static ActionLauncher<decltype(execute_thread)> const
+    // launch_kernel(*this); launch_kernel(1, state.stream_id(),
+    // execute_thread);
 }
 
 //---------------------------------------------------------------------------//

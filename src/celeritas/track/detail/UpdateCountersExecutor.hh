@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 #include "../TrackInitData.hh"
 
@@ -22,41 +23,30 @@ namespace detail
  */
 struct UpdateCountersExecutor
 {
-    //// TYPES ////
-
-    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
-    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-
     //// DATA ////
-
-    ParamsPtr params;
-    StatePtr state;
 
     size_type num_primaries;
 
     //// FUNCTIONS ////
 
     // Update state counters based on the number of primaries
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Update state counters based on the number of primaries.
  */
-CELER_FUNCTION void UpdateCountersExecutor::operator()(ThreadId tid) const
+CELER_FORCEINLINE_FUNCTION void
+UpdateCountersExecutor::operator()(CoreTrackView& track)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-    CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
+    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 
-    auto* counters = state->init.counters.data().get();
     // Update track initializers from primaries
-    counters->num_initializers += num_primaries;
+    track.counters().num_initializers += num_primaries;
     // Mark that the primaries have been processed
-    counters->num_generated += num_primaries;
-    counters->num_pending = 0;
-    return;
+    track.counters().num_generated += num_primaries;
+    track.counters().num_pending = 0;
 }
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,7 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "TrackInitParams.hh"
 
@@ -214,9 +215,14 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateHost& state,
                                                 size_type num_primaries) const
 {
-    detail::UpdateCountersExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
-    return launch_action(*this, 1, params, state, execute);
+    auto execute_thread = make_single_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdateCountersExecutor{num_primaries});
+    launch_core(1, "update-counters", params, state, execute_thread);
+    // detail::UpdateCountersExecutor execute{
+    // params.ptr<MemSpace::native>(), state.ptr(), num_primaries};
+    // return launch_action(*this, 1, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
