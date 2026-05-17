@@ -22,45 +22,35 @@ namespace detail
  */
 struct UpdateNumActiveExecutor
 {
-    //// TYPES ////
-
-    using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
-    using StatePtr = RefPtr<CoreStateData, MemSpace::native>;
-
     //// DATA ////
 
-    ParamsPtr params;
-    StatePtr state;
+    size_type state_size;
 
     //// FUNCTIONS ////
 
     // Update state counters based on the number of primaries
-    inline CELER_FUNCTION void operator()(ThreadId tid) const;
+    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Update number of active trackes based on the number of vacancies.
  */
-CELER_FUNCTION void UpdateNumActiveExecutor::operator()(ThreadId tid) const
+CELER_FORCEINLINE_FUNCTION void
+UpdateNumActiveExecutor::operator()(CoreTrackView& track)
 {
-    CELER_EXPECT(params);
-    CELER_EXPECT(state);
-    CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
+    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 
-    auto* counters = state->init.counters.data().get();
-
-    size_type num_new_tracks
-        = min(counters->num_vacancies, counters->num_initializers);
+    size_type num_new_tracks = min(track.counters().num_vacancies,
+                                   track.counters().num_initializers);
     if (num_new_tracks > 0)
     {
         // Update initializers/vacancies
-        counters->num_initializers -= num_new_tracks;
-        counters->num_vacancies -= num_new_tracks;
+        track.counters().num_initializers -= num_new_tracks;
+        track.counters().num_vacancies -= num_new_tracks;
     }
     // Store number of active tracks at the start of the loop
-    counters->num_active = state->size() - counters->num_vacancies;
-    return;
+    track.counters().num_active = state_size - track.counters().num_vacancies;
 }
 
 //---------------------------------------------------------------------------//

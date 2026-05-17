@@ -14,6 +14,7 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "TrackInitParams.hh"
 
@@ -95,9 +96,12 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
         launch_action(*this, max_new_tracks, core_params, core_state, execute);
     }
     {
-        detail::UpdateNumActiveExecutor execute_thread{
-            core_params.ptr<MemSpace::native>(), core_state.ptr()};
-        launch_action(*this, 1, core_params, core_state, execute_thread);
+        auto execute_thread = make_single_track_executor(
+            core_params.ptr<MemSpace::native>(),
+            core_state.ptr(),
+            detail::UpdateNumActiveExecutor{core_state.size()});
+        launch_core(
+            1, "update-active", core_params, core_state, execute_thread);
     }
 }
 

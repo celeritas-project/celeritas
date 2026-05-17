@@ -9,6 +9,7 @@
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/InitTracksExecutor.hh"
 #include "detail/UpdateNumActiveExecutor.hh"
@@ -31,10 +32,12 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
         launch_kernel(num_new_tracks, state.stream_id(), execute);
     }
     {
-        detail::UpdateNumActiveExecutor execute_thread{
-            params.ptr<MemSpace::native>(), state.ptr()};
-        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this);
+        auto execute_thread = make_single_track_executor(
+            params.ptr<MemSpace::native>(),
+            state.ptr(),
+            detail::UpdateNumActiveExecutor{state.size()});
+        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+            "update-active");
         launch_kernel(1, state.stream_id(), execute_thread);
     }
 }
