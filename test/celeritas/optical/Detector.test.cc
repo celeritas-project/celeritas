@@ -198,40 +198,6 @@ TEST_F(DetectorTest, simple)
     run.insert(make_span(std::as_const(inits)));
     run();
 
-    {
-        auto vol_params = run.params()->volume();
-        auto det_params = run.params()->detectors();
-        AllVolumesView all_vol{vol_params->host_ref()};
-        std::vector<VolumeInstanceId> vi_path(all_vol.num_volume_levels() - 1,
-                                              VolumeInstanceId{});
-        VolumePathFinder find_path{vol_params->host_ref(), make_span(vi_path)};
-
-        std::cout << "Num volume unique instances: "
-                  << all_vol.num_unique_instances() << "\n";
-        for (auto vuid :
-             range(VolumeUniqueInstanceId{all_vol.num_unique_instances()}))
-        {
-            std::cout << "  " << vuid.get() << ":\n";
-            auto path = find_path(vuid);
-            for (auto i : range(path.size()))
-            {
-                std::cout << "    Level " << i << ":\n"
-                          << "      pv: "
-                          << vol_params->volume_instance_labels().at(path[i])
-                          << "[" << path[i].get() << "]\n"
-                          << "      lv: "
-                          << vol_params->volume_labels().at(
-                                 all_vol.volume_id(path[i]))
-                          << "[" << all_vol.volume_id(path[i]).get() << "]\n";
-                if (auto d = det_params->detector_id(all_vol.volume_id(path[i])))
-                {
-                    std::cout << "      attached detector: "
-                              << det_params->detector_labels().at(d) << "\n";
-                }
-            }
-        }
-    }
-
     // Check results
 
     real_type const box_size = from_cm(50);

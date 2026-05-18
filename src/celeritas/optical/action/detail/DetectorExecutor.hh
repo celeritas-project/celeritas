@@ -94,28 +94,24 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
 
+    // Load track's volume instance path into scratch space
+
     OpaqueId<VolumeInstanceId> scratch_idx{
-        track.track_slot_id().get() * detector_state_.num_volume_levels};
-    Span<VolumeInstanceId> volume_path = detector_state_.volume_path[range(
-        scratch_idx, scratch_idx + geometry.volume_level().get() + 1)];
+        track.track_slot_id().get() * detector_state_.scratch_path_size};
+
+    // volume_instance_id requires volume_level + 1 span size
+    Span<VolumeInstanceId> volume_path
+        = detector_state_.scratch_volume_path[range(
+            scratch_idx, scratch_idx + geometry.volume_level().get() + 1)];
     geometry.volume_instance_id(volume_path);
 
     auto accum = track.volumes().path_accumulator();
-    VolumeUniqueInstanceId vui = world_unique_instance;
+    hit.volume_unique_instance = world_unique_instance;
+    // First index is world; don't accumulate it
     for (auto vi : volume_path.subspan(1))
     {
-        vui = accum(vui, vi);
+        hit.volume_unique_instance = accum(hit.volume_unique_instance, vi);
     }
-    hit.volume_unique_instance = vui;
-
-#ifndef CELER_DEVICE_COMPILE
-    std::cout << "Track ID: " << track.track_slot_id().get() << "\n";
-    std::cout << "    Detector ID: " << detector_id.get() << "\n";
-    std::cout << "    Volume Instance ID: " << hit.volume_instance.get()
-              << "\n";
-    std::cout << "    Volume path: " << volume_path << "\n";
-    std::cout << "    Volume Unique Instance ID: " << vui.get() << "\n";
-#endif
 
     // Kill the track
     sim.status(TrackStatus::killed);

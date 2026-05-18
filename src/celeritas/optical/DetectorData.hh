@@ -56,16 +56,17 @@ struct DetectorStateData
     using Items = Collection<T, W, M>;
     //!@}
 
-    StateItems<DetectorHit> detector_hits;
-    Items<VolumeInstanceId> volume_path;
+    //! Per track size of temporary storage for volume instance paths
+    size_type scratch_path_size{0};
 
-    size_type num_volume_levels{0};
+    StateItems<DetectorHit> detector_hits;
+    Items<VolumeInstanceId> scratch_volume_path;
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !detector_hits.empty() && !volume_path.empty()
-               && num_volume_levels > 0;
+        return !detector_hits.empty() && !scratch_volume_path.empty()
+               && scratch_path_size > 0;
     }
 
     //! State size
@@ -77,8 +78,8 @@ struct DetectorStateData
     {
         CELER_EXPECT(other);
         detector_hits = other.detector_hits;
-        volume_path = other.volume_path;
-        num_volume_levels = other.num_volume_levels;
+        scratch_volume_path = other.scratch_volume_path;
+        scratch_path_size = other.scratch_path_size;
         return *this;
     }
 };
@@ -97,10 +98,12 @@ inline void resize(DetectorStateData<Ownership::value, M>* state,
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
-    state->num_volume_levels = volumes.scalars.num_volume_levels + 1;
+    // For GeoTrackInterface::volume_instance_id, the scratch span needs to be
+    // at least one larger than the maximum geometry depth.
+    state->scratch_path_size = volumes.scalars.num_volume_levels + 1;
 
     resize(&state->detector_hits, size);
-    resize(&state->volume_path, size * state->num_volume_levels);
+    resize(&state->scratch_volume_path, size * state->scratch_path_size);
 
     CELER_ENSURE(*state);
 }
