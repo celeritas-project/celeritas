@@ -40,13 +40,13 @@ jobs:
       matrix:
         build_type: ["reldeb"]
         geometry: ["vecgeom"]
-        special: [false]
+        special: [""]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
           - build_type: "reldeb"
             geometry: "orange"
             special: "minimal"
-            geant: false
+            geant: ""
           - build_type: "reldeb"
             geometry: "orange"
             special: "float"
@@ -58,18 +58,18 @@ jobs:
           - build_type: "reldeb"
             geometry: "orange"
             special: "asanlite"
-            geant: false
+            geant: ""
           - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom2"
-            special: false
+            special: ""
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "geant4"
-            special: false
+            special: ""
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
