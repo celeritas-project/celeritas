@@ -22,10 +22,7 @@ namespace test
 {
 constexpr bool using_orange_geo
     = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
-constexpr bool using_surface_vg
-    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
-constexpr bool using_solids_vg
-    = true && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class GeometryTest : public HeuristicGeoTestBase
@@ -193,7 +190,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
     {
         static real_type paths[]
             = {56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
-        if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+        if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
         {
             // TODO: try to fix any discrepancies from vg2.x-solids
             paths[4] = 454.195842538179;
@@ -251,7 +248,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
         6.54698622785098,
         376.100451629357,
     };
-    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
         // TODO: try to fix any discrepancies from vg2.x-solids
         paths[0] = 0.193968509125204;
@@ -331,7 +328,7 @@ TEST_F(TestEm3Test, run)
     // VecGeom solid and ORANGE diverge fairly quickly: this is in part due to
     // bumps.
 
-    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.35 : 1000;
+    real_type tol = using_orange_geo ? 1e-3 : 0.35;
     this->run(512, /* num_steps = */ 1024, tol);
 }
 
@@ -370,7 +367,7 @@ TEST_F(ThreeSpheresTest, avg_path)
 {
     // Results were generated with ORANGE
     // TODO: investigate differences w.r.t. surface model
-    real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.05 : 0.80;
+    real_type tol = using_orange_geo ? 1e-3 : 0.05;
     EXPECT_TRUE(this->geometry()->supports_safety());
     this->run(512, /* num_steps = */ 1024, tol);
 }

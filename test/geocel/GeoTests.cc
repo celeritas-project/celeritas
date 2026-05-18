@@ -1058,11 +1058,6 @@ void FourLevelsGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void LarSphereGeoTest::test_trace() const
 {
-    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-    {
-        GTEST_SKIP() << "Fails to cross +y";
-    }
-
     {
         SCOPED_TRACE("+y");
         auto result = test_->track({0, -120, 0}, {0, 1, 0});
@@ -1431,14 +1426,6 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[0] = 0.210641235113144;
-            ref.halfway_safeties[6] = 0.56419426202774;
-        }
-
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1502,15 +1489,6 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
-
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[2] = 0.679982662200928;
-            ref.halfway_safeties[8] = 4.35703563690186;
-        }
-
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1574,15 +1552,6 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[0] = 0.368524014949799;
-            ref.halfway_safeties[2] = 0.897850394248962;
-            ref.halfway_safeties[4] = 0.966398000717163;
-            ref.halfway_safeties[6] = 0.801536321640015;
-        }
 
         auto tol = test_->tracking_tol();
         // Bump the tolerance by 25% for safety comparisons only: this became
@@ -3139,7 +3108,8 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (using_solids_vg && vecgeom_version >= Version{2, 0})
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version >= Version{2, 0})
         {
             GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
         }

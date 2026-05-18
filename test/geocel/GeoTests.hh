@@ -20,9 +20,6 @@ namespace test
 {
 class GenericGeoTestInterface;
 
-constexpr bool using_surface_vg = false;
-constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION;
-
 //---------------------------------------------------------------------------//
 /*!
  * Test the ATLAS HGTD (translated distant pancakes).

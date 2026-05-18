@@ -55,9 +55,6 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
-constexpr bool using_surface_vg
-    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
-
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -212,11 +209,6 @@ TEST_F(LarSphere, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
-
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
 }
