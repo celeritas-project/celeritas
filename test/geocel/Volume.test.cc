@@ -6,17 +6,18 @@
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
 #include <fstream>
+#include <memory>
 #include <unordered_map>
 
 #include "celeritas_test_config.h"
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
+#include "geocel/UniqueVolumeToString.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumePathAccumulator.hh"
 #include "geocel/VolumePathFinder.hh"
@@ -538,31 +539,21 @@ TEST_F(MultiLevelTest, path_round_trip)
 //---------------------------------------------------------------------------//
 TEST_F(MultiLevelTest, path_finder)
 {
-    auto const& vols = this->volumes();
-    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
-    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
-
-    auto path_str = [&vols](Span<VolumeInstanceId const> path) {
-        return to_string(
-            join(path.begin(), path.end(), '/', [&vols](VolumeInstanceId vi) {
-                return to_string(vols.volume_instance_labels().at(vi));
-            }));
-    };
+    auto vols = std::shared_ptr<VolumeParams const>{
+        &this->volumes(), [](VolumeParams const*) {}};
+    UniqueVolumeToString to_string_path{std::move(vols)};
 
     if (CELERITAS_DEBUG)
     {
-        EXPECT_THROW(find_path(VolumeUniqueInstanceId{}), DebugError);
+        EXPECT_THROW(to_string_path(VolumeUniqueInstanceId{}), DebugError);
     }
-    EXPECT_EQ("", path_str(find_path(VolumeUniqueInstanceId{0})));
-    EXPECT_EQ("topbox1", path_str(find_path(VolumeUniqueInstanceId{1})));
-    EXPECT_EQ("topbox1/boxsph1@0",
-              path_str(find_path(VolumeUniqueInstanceId{2})));
-    EXPECT_EQ("topsph1", path_str(find_path(VolumeUniqueInstanceId{5})));
-    EXPECT_EQ("topbox4", path_str(find_path(VolumeUniqueInstanceId{14})));
-    EXPECT_EQ("topbox4/boxsph1@1",
-              path_str(find_path(VolumeUniqueInstanceId{15})));
-    EXPECT_EQ("topbox4/boxtri@1",
-              path_str(find_path(VolumeUniqueInstanceId{17})));
+    EXPECT_EQ("", to_string_path(VolumeUniqueInstanceId{0}));
+    EXPECT_EQ("topbox1", to_string_path(VolumeUniqueInstanceId{1}));
+    EXPECT_EQ("topbox1/boxsph1@0", to_string_path(VolumeUniqueInstanceId{2}));
+    EXPECT_EQ("topsph1", to_string_path(VolumeUniqueInstanceId{5}));
+    EXPECT_EQ("topbox4", to_string_path(VolumeUniqueInstanceId{14}));
+    EXPECT_EQ("topbox4/boxsph1@1", to_string_path(VolumeUniqueInstanceId{15}));
+    EXPECT_EQ("topbox4/boxtri@1", to_string_path(VolumeUniqueInstanceId{17}));
 }
 
 //---------------------------------------------------------------------------//
