@@ -171,9 +171,9 @@ TEST_F(CmseTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (VecgeomParams::use_surface_tracking())
+    if (vecgeom_version >= Version{2})
     {
-        prefix += "surf";
+        prefix += "2";
     }
 
     write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
@@ -347,10 +347,6 @@ class ReplicaTest
         // ~1e-12 discrepancy for some traces (when avx2 is enabled?)
         result.distance *= 10;
 
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            result.safety = 5e-5;
-        }
         return result;
     }
 };
@@ -558,11 +554,7 @@ TEST_F(SolidsTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (VecgeomParams::use_surface_tracking())
-    {
-        prefix += "surf";
-    }
-    else if (vecgeom_version >= Version{2})
+    if (vecgeom_version >= Version{2})
     {
         prefix += "2";
     }

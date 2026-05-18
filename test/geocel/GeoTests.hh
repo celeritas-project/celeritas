@@ -20,9 +20,8 @@ namespace test
 {
 class GenericGeoTestInterface;
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE;
-constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION
-                                 && !CELERITAS_VECGEOM_SURFACE;
+constexpr bool using_surface_vg = false;
+constexpr bool using_solids_vg = CELERITAS_VECGEOM_VERSION;
 
 //---------------------------------------------------------------------------//
 /*!

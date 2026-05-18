@@ -55,9 +55,8 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg
+    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 }  // namespace
 

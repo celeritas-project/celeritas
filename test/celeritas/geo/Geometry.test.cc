@@ -22,12 +22,10 @@ namespace test
 {
 constexpr bool using_orange_geo
     = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
-constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
-                                 && CELERITAS_CORE_GEO
-                                        == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg
+    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_solids_vg
+    = true && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class GeometryTest : public HeuristicGeoTestBase
@@ -330,20 +328,8 @@ TEST_F(TestEm3Test, run)
     // geometry implementations which is instructive but not useful necessarily
     // for this test.
 
-    // With the default geom_limit, slight numerical differences in the
-    // direction due to `rotate` leave the CPU vgsurf at 2.6299999999999999 but
-    // the GPU at 2.6300000000000003, heading in the negative direction after
-    // scattering. The former sees the correct distance to boundary, but the
-    // latter intersects immediately.
-
-    // VecGeom solid and ORANGE also diverge fairly quickly: this is in part
-    // due to bumps
-
-    if (using_surface_vg && celeritas::device())
-    {
-        GTEST_SKIP() << "GPU and CPU diverge for vgsurf due to sensitivity to "
-                        "boundaries";
-    }
+    // VecGeom solid and ORANGE diverge fairly quickly: this is in part due to
+    // bumps.
 
     real_type tol = using_orange_geo ? 1e-3 : !using_surface_vg ? 0.35 : 1000;
     this->run(512, /* num_steps = */ 1024, tol);

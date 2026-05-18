@@ -186,7 +186,7 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
             // World safety differs
             ref.halfway_safeties[0] = 725.849243164062;
@@ -253,7 +253,7 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
             // World safety differs
             ref.halfway_safeties[10] = 723.549255371094;
@@ -274,7 +274,7 @@ void AtlasHgtdGeoTest::test_trace() const
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
         axpy(-1_r, dir, &pos);
 
-        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
             GTEST_SKIP() << "VecGeom fails the tangent trace";
         }
@@ -355,10 +355,7 @@ void AtlasHgtdGeoTest::test_volume_stack() const
         // VecGeom surface overpredicts even more
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            expected_all_stacks[5] = expected_all_stacks.front();
-        }
+        expected_all_stacks[5] = expected_all_stacks.front();
     }
 
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
@@ -489,10 +486,8 @@ void CmseGeoTest::test_trace() const
         ref.halfway_safeties = {100, 2.15, 10.302730220674, 13.023518051921,
             6.95, 6.95, 13.023518051922, 10.302730220675, 2.15, 100, 5, 8, 100,
             100, 100,};
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
-            // Surface vecgeom underestimates some safety near internal
-            // boundaries
             ref.halfway_safeties = {100, 2.15,
                 9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
                 9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
@@ -1743,7 +1738,7 @@ void ReplicaGeoTest::test_trace() const
 
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+            || vecgeom_version < Version{2, 0})
         {
             // TODO: VecGemo 2.x-solids returns wrong distance values
             EXPECT_REF_NEAR(ref, result, tol);
@@ -1773,7 +1768,7 @@ void ReplicaGeoTest::test_volume_stack() const
         GenericGeoVolumeStackResult ref;
         ref.volume_instances
             = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
-        if ((test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom"
             || (test_->geometry_type() == "ORANGE"
                 && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)))
         {
@@ -1782,7 +1777,7 @@ void ReplicaGeoTest::test_volume_stack() const
             ref.volume_instances.pop_back();
         }
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+            || vecgeom_version < Version{2, 0})
         {
             // TODO: VecGeom 2.x-solids returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
@@ -2913,14 +2908,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     }
     if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
     {
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            EXPECT_TRUE(geo.is_outside());
-        }
-        else
-        {
-            EXPECT_EQ("world", test_->volume_name(geo));
-        }
+        EXPECT_EQ("world", test_->volume_name(geo));
         GTEST_SKIP() << "Unexpected vg2 behavior";
     }
     EXPECT_EQ("inner", test_->volume_name(geo));

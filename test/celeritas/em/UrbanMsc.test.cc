@@ -99,9 +99,8 @@ using celeritas::test::Histogram;
 using celeritas::test::to_cm;
 using units::MevEnergy;
 
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_vecgeom_surface
+    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 TEST(Details, UrbanPositronCorrector)

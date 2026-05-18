@@ -23,9 +23,8 @@ namespace celeritas
 namespace test
 {
 
-constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
-                                     && CELERITAS_CORE_GEO
-                                            == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_vecgeom_solid
+    = true && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 // FORWARD DECLARATIONS

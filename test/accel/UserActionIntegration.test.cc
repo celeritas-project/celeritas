@@ -30,9 +30,8 @@ namespace celeritas
 namespace test
 {
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg
+    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 class UAITrackingAction : public G4UserTrackingAction

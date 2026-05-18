@@ -47,13 +47,11 @@ constexpr real_type sqrt_three{constants::sqrt_three};
 template<class E>
 using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_surface_vg
+    = false && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
-constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
-                                 && CELERITAS_CORE_GEO
-                                        == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_solids_vg
+    = true && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -1540,16 +1538,14 @@ TEST_F(CmseTest, coarse)
             {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
              R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-             && !CELERITAS_VECGEOM_SURFACE)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         geometry = "VecGeom solid";
         ref.messages[1] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
-        || CELERITAS_VECGEOM_SURFACE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
         GTEST_SKIP() << "Ignore checks due to reduced-precision numerical "
                         "sensitivity";
