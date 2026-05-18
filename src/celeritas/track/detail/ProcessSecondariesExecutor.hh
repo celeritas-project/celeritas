@@ -156,8 +156,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
                 // Store the track initializer
                 data.initializers[ItemId<TrackInitializer>{
-                    counters.num_initializers - offset}]
-                    = ti;
+                    counters.num_initializers - offset}] = ti;
 
                 --offset;
             }
