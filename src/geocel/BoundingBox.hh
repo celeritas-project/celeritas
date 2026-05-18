@@ -71,10 +71,13 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION BoundingBox() noexcept;
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION BoundingBox(Real3 const& lower, Real3 const& upper);
+    inline CELER_FUNCTION
+    BoundingBox(Real3 const& lower,
+                Real3 const& upper) noexcept(!CELERITAS_DEBUG);
 
     // Construct from lo/hi extents (transposed layout)
-    inline CELER_FUNCTION BoundingBox(Extents3 const& extents);
+    inline CELER_FUNCTION
+    BoundingBox(Extents3 const& extents) noexcept(!CELERITAS_DEBUG);
 
     //// ACCESSORS ////
 
@@ -92,26 +95,29 @@ class BoundingBox
 
     //! Access a bounding point
     CELER_CONSTEXPR_FUNCTION Real3 const& point(Bound b) const
+        noexcept(!CELERITAS_DEBUG)
     {
         CELER_EXPECT(b != Bound::size_);
         return points_[to_int(b)];
     }
 
     //! Access a bounding point coordinate (const ref to support LDG)
-    CELER_CONSTEXPR_FUNCTION real_type const& point(Bound b, Axis ax) const&
+    CELER_CONSTEXPR_FUNCTION real_type const&
+    point(Bound b, Axis ax) const& noexcept(!CELERITAS_DEBUG)
     {
         CELER_EXPECT(ax != Axis::size_);
         return points_[to_int(b)][to_int(ax)];
     }
 
     //! Access a bounding point coordinate
-    CELER_CONSTEXPR_FUNCTION real_type point(Bound b, Axis ax) const&&
+    CELER_CONSTEXPR_FUNCTION real_type
+    point(Bound b, Axis ax) const&& noexcept(!CELERITAS_DEBUG)
     {
         return this->point(b, ax);
     }
 
     // Whether the bbox is non-null
-    CELER_CONSTEXPR_FUNCTION explicit operator bool() const;
+    CELER_CONSTEXPR_FUNCTION explicit operator bool() const noexcept;
 
     //// MUTATORS ////
 
@@ -175,7 +181,8 @@ class BoundingBox
     BoundingBox(std::true_type, Extents3 const& extents) noexcept;
 
     //! Set a bounding point coordinate (different signature to allow private)
-    CELER_CONSTEXPR_FUNCTION void point(Bound b, Axis ax, real_type p) &
+    CELER_CONSTEXPR_FUNCTION void
+    point(Bound b, Axis ax, real_type p) & noexcept
     {
         points_[to_int(b)][to_int(ax)] = p;
     }
@@ -199,7 +206,7 @@ using BBox = BoundingBox<>;
  */
 template<class T, class U>
 CELER_CONSTEXPR_FUNCTION bool
-is_inside(BoundingBox<T> const& bb, Array<U, 3> const& p)
+is_inside(BoundingBox<T> const& bb, Array<U, 3> const& p) noexcept
 {
     // clang-format off
     using B = Bound; using A = Axis;
@@ -277,7 +284,9 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
  * at a single point) but upper must not be less than lower.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
+CELER_FUNCTION
+BoundingBox<T>::BoundingBox(Real3 const& lo,
+                            Real3 const& hi) noexcept(!CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, Points{lo, hi}}
 {
     CELER_EXPECT(*this);
@@ -288,7 +297,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(Real3 const& lo, Real3 const& hi)
  * Create a non-null bounding box from lo/hi extents.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>::BoundingBox(Extents3 const& extents)
+CELER_FUNCTION
+BoundingBox<T>::BoundingBox(Extents3 const& extents) noexcept(!CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, extents}
 {
     CELER_EXPECT(*this);
@@ -330,7 +340,7 @@ BoundingBox<T>::BoundingBox(std::true_type, Extents3 const& extents) noexcept
  * that point.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const noexcept
 {
     // clang-format off
     return this->point(Bound::lo, Axis::x) <= this->point(Bound::hi, Axis::x)
