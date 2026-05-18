@@ -6,11 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/HitProcessor.hh"
 
+#include <G4DynamicParticle.hh>
 #include <G4ParticleTable.hh>
+#include <G4ThreeVector.hh>
+#include <G4Track.hh>
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/phys/PDGNumber.hh"
@@ -52,10 +56,27 @@ class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
 
     SimpleHitsResult const& get_hits(std::string const& name) const;
 
+    // Event ID mock for GeantTrackReconstruction (used in CELERITAS_DEBUG)
+    static int test_cur_event;
+    static int get_test_current_event_id() { return test_cur_event; }
+
+    static void SetUpTestCase()
+    {
+        GeantTrackReconstruction::get_current_event_id
+            = get_test_current_event_id;
+    }
+
+    static void TearDownTestCase()
+    {
+        GeantTrackReconstruction::get_current_event_id = nullptr;
+    }
+
   protected:
     StepSelection selection_;
     HitProcessor::StepPointBool locate_touchable_{{false, false}};
 };
+
+int SimpleCmsTest::test_cur_event{0};
 
 //---------------------------------------------------------------------------//
 void SimpleCmsTest::SetUp()
@@ -63,10 +84,17 @@ void SimpleCmsTest::SetUp()
     // Create default step selection (see GeantSd)
     selection_.energy_deposition = true;
     selection_.step_length = true;
+    selection_.weight = true;
+    selection_.points[StepPoint::pre].time = true;
     selection_.points[StepPoint::pre].energy = true;
     selection_.points[StepPoint::pre].pos = true;
+    selection_.points[StepPoint::pre].dir = true;
     selection_.points[StepPoint::post].time = true;
-    selection_.particle = true;
+    selection_.points[StepPoint::post].pos = true;
+    selection_.points[StepPoint::post].dir = true;
+    selection_.points[StepPoint::post].energy = true;
+    selection_.particle_id = true;
+    selection_.primary_id = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -98,7 +126,7 @@ auto SimpleCmsTest::make_detector_volumes() -> SPConstVecLV
 auto SimpleCmsTest::make_particles() -> VecParticle
 {
     VecParticle result;
-    if (!selection_.particle)
+    if (!selection_.particle_id)
     {
         return result;
     }
@@ -138,7 +166,7 @@ auto SimpleCmsTest::get_hits(std::string const& name) const
 DetectorStepOutput SimpleCmsTest::make_dso() const
 {
     DetectorStepOutput dso;
-    dso.detector = {
+    dso.detector_id = {
         DetectorId{2},  // si_tracker
         DetectorId{0},  // em_calorimeter
         DetectorId{1},  // had_calorimeter
@@ -153,6 +181,14 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         0.5_r,  // em_calorimeter
         0.8_r,  // had_calorimeter
     };
+    if (selection_.primary_id)
+    {
+        dso.primary_id = {
+            PrimaryId{0},
+            PrimaryId{1},
+            PrimaryId{1},
+        };
+    }
     if (selection_.energy_deposition)
     {
         dso.energy_deposition = {
@@ -179,6 +215,16 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             3e-8 * second,
         };
     }
+    if (selection_.points[StepPoint::pre].time)
+    {
+        using celeritas::units::second;
+
+        dso.points[StepPoint::pre].time = {
+            0.5e-9 * second,
+            1.5e-10 * second,
+            2.5e-8 * second,
+        };
+    }
     if (selection_.points[StepPoint::pre].pos)
     {
         // note: points must correspond to detector volumes!
@@ -196,9 +242,42 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             {0, 0, -1},
         };
     }
-    if (selection_.particle)
+    if (selection_.points[StepPoint::post].pos)
     {
-        dso.particle = {
+        // note: points must correspond to detector volumes!
+        dso.points[StepPoint::post].pos = {
+            from_cm(Real3{105, 0, 0}),
+            from_cm(Real3{0, 155, 10}),
+            from_cm(Real3{0, 205, -20}),
+        };
+    }
+    if (selection_.points[StepPoint::post].dir)
+    {
+        dso.points[StepPoint::post].dir = {
+            {1, 0, 0},
+            {0, 1, 0},
+            {0, 0, -1},
+        };
+    }
+    if (selection_.points[StepPoint::post].energy)
+    {
+        dso.points[StepPoint::post].energy = {
+            MevEnergy{0.9},
+            MevEnergy{1.8},
+            MevEnergy{2.7},
+        };
+    }
+    if (selection_.points[StepPoint::pre].energy)
+    {
+        dso.points[StepPoint::pre].energy = {
+            MevEnergy{0.0},
+            MevEnergy{0.0},
+            MevEnergy{0.0},
+        };
+    }
+    if (selection_.particle_id)
+    {
+        dso.particle_id = {
             ParticleId{2},
             ParticleId{1},
             ParticleId{0},
@@ -224,6 +303,35 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
 TEST_F(SimpleCmsTest, no_touchable)
 {
     HitProcessor process_hits = this->make_hit_processor();
+    auto& recon = *process_hits.track_reconstruction();
+
+    // Initialize a mock event and primaries for reconstruction.
+    SimpleCmsTest::test_cur_event = 1;
+    recon.init_event();
+    auto* gamma_def = G4ParticleTable::GetParticleTable()->FindParticle(
+        pdg::gamma().get());
+    ASSERT_NE(nullptr, gamma_def);
+    {
+        auto primary0 = std::make_unique<G4Track>(
+            new G4DynamicParticle(gamma_def, G4ThreeVector(1, 0, 0)),
+            0.0,
+            G4ThreeVector());
+        primary0->SetTrackID(10);
+        primary0->SetParentID(0);
+        auto const pid0 = recon.acquire(*primary0);
+        EXPECT_EQ(0, pid0.unchecked_get());
+    }
+    {
+        auto primary1 = std::make_unique<G4Track>(
+            new G4DynamicParticle(gamma_def, G4ThreeVector(0, 1, 0)),
+            0.0,
+            G4ThreeVector());
+        primary1->SetTrackID(20);
+        primary1->SetParentID(5);
+        auto const pid1 = recon.acquire(*primary1);
+        EXPECT_EQ(1, pid1.unchecked_get());
+    }
+
     auto dso_hits = this->make_dso();
     process_hits(dso_hits);
 
@@ -240,6 +348,7 @@ TEST_F(SimpleCmsTest, no_touchable)
     };
 
     process_hits(dso_hits);
+    recon.clear();
 
     {
         auto& result = this->get_hits("si_tracker");
@@ -249,12 +358,24 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static real_type const expected_step_length[] = {0.1, 1.0};
         EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);
+        static real_type const expected_weight[] = {1.0, 1.0};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {100, 0, 0, 100, 0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {1, 0, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {1, 1};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {0.9, 0.9};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {105, 0, 0, 105, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {1, 0, 0, 1, 0, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
     {
         auto& result = this->get_hits("em_calorimeter");
@@ -264,12 +385,24 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
+        static real_type const expected_weight[] = {0.5, 0.5};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {0.15, 0.15};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {0, 150, 10, 0, 150, 10};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {0, 1, 0, 0, 1, 0};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {0.2, 0.2};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {1.8, 1.8};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {0, 155, 10, 0, 155, 10};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {0, 1, 0, 0, 1, 0};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
     {
         auto& result = this->get_hits("had_calorimeter");
@@ -279,19 +412,32 @@ TEST_F(SimpleCmsTest, no_touchable)
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};
         EXPECT_VEC_EQ(expected_particle, result.particle);
+        static real_type const expected_weight[] = {0.8, 0.8};
+        EXPECT_VEC_SOFT_EQ(expected_weight, result.weight);
         static real_type const expected_pre_energy[] = {0, 0};
         EXPECT_VEC_SOFT_EQ(expected_pre_energy, result.pre_energy);
+        static real_type const expected_pre_time[] = {25, 25};
+        EXPECT_VEC_SOFT_EQ(expected_pre_time, result.pre_time);
         static real_type const expected_pre_pos[] = {0, 200, -20, 0, 200, -20};
         EXPECT_VEC_SOFT_EQ(expected_pre_pos, result.pre_pos);
+        static real_type const expected_pre_dir[] = {0, 0, -1, 0, 0, -1};
+        EXPECT_VEC_SOFT_EQ(expected_pre_dir, result.pre_dir);
         static real_type const expected_post_time[] = {30, 30};
         EXPECT_VEC_SOFT_EQ(expected_post_time, result.post_time);
+        static real_type const expected_post_energy[] = {2.7, 2.7};
+        EXPECT_VEC_SOFT_EQ(expected_post_energy, result.post_energy);
+        static real_type const expected_post_pos[] = {0, 205, -20, 0, 205, -20};
+        EXPECT_VEC_SOFT_EQ(expected_post_pos, result.post_pos);
+        static real_type const expected_post_dir[] = {0, 0, -1, 0, 0, -1};
+        EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
 }
 
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_midvol)
 {
-    selection_.particle = false;
+    selection_.particle_id = false;
+    selection_.primary_id = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -321,8 +467,11 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 //---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, touchable_edgecase)
 {
+    selection_.particle_id = false;
+    selection_.primary_id = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
+
     auto dso_hits = this->make_dso();
     auto& pos = dso_hits.points[StepPoint::pre].pos;
     auto& dir = dso_hits.points[StepPoint::pre].dir;
@@ -371,11 +520,17 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
 TEST_F(SimpleCmsTest, touchable_exiting)
 {
     locate_touchable_ = {true, true};
-    selection_.particle = false;
+    selection_.particle_id = false;
+    selection_.primary_id = false;
+    selection_.points[StepPoint::pre].time = false;
+    selection_.points[StepPoint::post].time = false;
+    selection_.points[StepPoint::pre].energy = false;
+    selection_.points[StepPoint::post].energy = false;
 
     HitProcessor process_hits = this->make_hit_processor();
     DetectorStepOutput dso;
-    dso.detector = {DetectorId{3}, DetectorId{2}};
+    dso.detector_id = {DetectorId{3}, DetectorId{2}};
+    dso.weight = {1.0, 1.0};
     dso.energy_deposition = {MevEnergy{1.0}, MevEnergy{10.0}};
     dso.step_length = {
         from_cm(300),
@@ -418,6 +573,72 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         EXPECT_VEC_EQ(expected_post_physvol, result.post_physvol);
         static char const* const expected_post_status[] = {"world"};
         EXPECT_VEC_EQ(expected_post_status, result.post_status);
+    }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, with_primary_id)
+{
+    selection_.primary_id = true;
+    HitProcessor process_hits = this->make_hit_processor();
+    auto& recon = *process_hits.track_reconstruction();
+
+    // Initialize a mock event so debug builds don't fail the event-ID check
+    SimpleCmsTest::test_cur_event = 1;
+    recon.init_event();
+
+    // Acquire two primaries: PrimaryId{0} -> track 10, PrimaryId{1} -> track
+    // 20
+    auto* gamma_def = G4ParticleTable::GetParticleTable()->FindParticle(
+        pdg::gamma().get());
+    ASSERT_NE(nullptr, gamma_def);
+
+    auto primary0 = std::make_unique<G4Track>(
+        new G4DynamicParticle(gamma_def, G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary0->SetTrackID(10);
+    primary0->SetParentID(0);
+    auto pid0 = recon.acquire(*primary0);
+    EXPECT_EQ(0, pid0.unchecked_get());
+
+    auto primary1 = std::make_unique<G4Track>(
+        new G4DynamicParticle(gamma_def, G4ThreeVector(0, 1, 0)),
+        0.0,
+        G4ThreeVector());
+    primary1->SetTrackID(20);
+    primary1->SetParentID(5);
+    auto pid1 = recon.acquire(*primary1);
+    EXPECT_EQ(1, pid1.unchecked_get());
+
+    // Run a single batch of hits (dso.primary_id = {PrimaryId{0}, {1}, {1}})
+    auto dso = this->make_dso();
+    process_hits(dso);
+    recon.clear();
+
+    {
+        // si_tracker -> PrimaryId{0} -> track_id=10, parent_id=0
+        auto& result = this->get_hits("si_tracker");
+        static int const expected_track_id[] = {10};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {0};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+    }
+    {
+        // em_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        auto& result = this->get_hits("em_calorimeter");
+        static int const expected_track_id[] = {20};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {5};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
+    }
+    {
+        // had_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        auto& result = this->get_hits("had_calorimeter");
+        static int const expected_track_id[] = {20};
+        EXPECT_VEC_EQ(expected_track_id, result.track_id);
+        static int const expected_parent_id[] = {5};
+        EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
 }
 

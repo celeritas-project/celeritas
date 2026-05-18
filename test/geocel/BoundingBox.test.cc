@@ -135,6 +135,16 @@ TEST_F(BoundingBoxTest, is_inside)
     EXPECT_TRUE(is_inside(degenerate, Real3{1, 1, 1}));
 }
 
+TEST_F(BoundingBoxTest, ldg)
+{
+    // Pretend this is in global memory: `ldg(&x)` is x in host code
+    BBox const bbox = {{-5, -2, -100}, {6, 1, 1}};
+    auto loaded = ldg(&bbox);
+    EXPECT_TRUE((std::is_same_v<BBox, decltype(loaded)>));
+    EXPECT_VEC_EQ((Array{-5, -2, -100}), loaded.lower());
+    EXPECT_VEC_EQ((Array{6, 1, 1}), loaded.upper());
+}
+
 TEST_F(BoundingBoxTest, io)
 {
     using BoundingBoxT = BoundingBox<double>;

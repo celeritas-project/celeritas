@@ -116,6 +116,7 @@ class HitProcessor
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
+    StepSelection ss_;
     //! Map detector IDs to sensitive detectors
     std::vector<G4VSensitiveDetector*> detectors_;
     //! Temporary CPU hit information

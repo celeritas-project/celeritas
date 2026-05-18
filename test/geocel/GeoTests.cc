@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeoTests.hh"
 
+#include <algorithm>
 #include <string_view>
 
 #include "corecel/Config.hh"
@@ -102,7 +103,11 @@ void fixup_orange(GenericGeoTestInterface const& interface,
         return;
 
     // Delete within-world safeties
-    for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
+    Array const sizes{ref.volumes.size(),
+                      result.volumes.size(),
+                      result.halfway_safeties.size(),
+                      ref.halfway_safeties.size()};
+    for (auto i : range(*std::min_element(sizes.begin(), sizes.end())))
     {
         if (ref.volumes[i] == world_name)
         {

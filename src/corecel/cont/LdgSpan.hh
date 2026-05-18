@@ -36,9 +36,11 @@ using LdgSpan = Span<detail::LdgWrapper<T>, Extent>;
  * Note that T must be const.
  */
 template<class T, std::size_t Extent = dynamic_extent>
-using AutoLdgSpan = Span<
-    std::conditional_t<detail::is_ldg_supported_v<T>, detail::LdgWrapper<T>, T>,
-    Extent>;
+using AutoLdgSpan
+    = Span<std::conditional_t<is_auto_ldg_v<std::remove_const_t<T>>,
+                              detail::LdgWrapper<T>,
+                              T>,
+           Extent>;
 
 //---------------------------------------------------------------------------//
 /*!

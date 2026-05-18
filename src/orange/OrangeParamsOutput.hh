@@ -14,12 +14,12 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class OrangeParams;
-template<Ownership W, MemSpace M>
-struct BIHTreeData;
 namespace detail
 {
+template<Ownership W, MemSpace M>
+struct BIHTreeData;
 struct BIHTreeRecord;
-}
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -58,7 +58,7 @@ class OrangeParamsOutput final : public OutputInterface
 //---------------------------------------------------------------------------//
 // Print a BIH structure to a JSON string for debugging
 std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
-                               NativeCRef<BIHTreeData> const& data);
+                               NativeCRef<detail::BIHTreeData> const& data);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

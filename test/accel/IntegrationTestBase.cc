@@ -717,7 +717,7 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
 // WaterSphere
 //---------------------------------------------------------------------------//
 /*!
- * Create physics list with
+ * Create physics list with loose EM physics.
  */
 auto WaterSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
 {

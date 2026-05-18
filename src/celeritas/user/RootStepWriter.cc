@@ -164,17 +164,17 @@ void RootStepWriter::process_steps(HostStepState state)
 
         RSW_STORE(event_id, .get());
         RSW_STORE(parent_id, .unchecked_get());
-        RSW_STORE(action_id, .get());
-        RSW_STORE(energy_deposition, .value());
-        RSW_STORE(step_length, /* no getter */);
+        RSW_STORE(primary_id, .unchecked_get());
+        RSW_STORE(post_step_action_id, .get());
         RSW_STORE(track_step_count, /* no getter */);
-        if (selection_.particle)
+        RSW_STORE(step_length, /* no getter */);
+        RSW_STORE(energy_deposition, .value());
+        if (selection_.particle_id)
         {
             copy_if_selected(
-                particles_->id_to_pdg(state.steps.data.particle[tid]).get(),
+                particles_->id_to_pdg(state.steps.data.particle_id[tid]).get(),
                 tstep_.particle);
         }
-
         for (auto const sp : range(StepPoint::size_))
         {
             RSW_STORE(points[sp].volume_id, .unchecked_get());
@@ -220,11 +220,15 @@ void RootStepWriter::make_tree()
     tstep_tree_->Branch("track_id", &tstep_.track_id);  // Always on
     RSW_CREATE_BRANCH(event_id, "event_id");
     RSW_CREATE_BRANCH(parent_id, "parent_id");
+    RSW_CREATE_BRANCH(primary_id, "primary_id");
+    RSW_CREATE_BRANCH(post_step_action_id, "post_step_action_id");
     RSW_CREATE_BRANCH(track_step_count, "track_step_count");
-    RSW_CREATE_BRANCH(action_id, "action_id");
     RSW_CREATE_BRANCH(step_length, "step_length");
-    RSW_CREATE_BRANCH(particle, "particle");
     RSW_CREATE_BRANCH(energy_deposition, "energy_deposition");
+    if (this->selection_.particle_id)
+    {
+        this->tstep_tree_->Branch("particle", &tstep_.particle);
+    }
     // Pre-step
     RSW_CREATE_BRANCH(points[StepPoint::pre].volume_id, "pre_volume_id");
     RSW_CREATE_BRANCH(points[StepPoint::pre].dir, "pre_dir");
@@ -251,9 +255,9 @@ RootStepWriter::WriteFilter make_write_filter(SimpleRootFilterInput const& inp)
     }
 
     return [inp](RootStepWriter::TStepData const& step) {
-        if (inp.action_id != SimpleRootFilterInput::unspecified)
+        if (inp.post_step_action_id != SimpleRootFilterInput::unspecified)
         {
-            return step.action_id == inp.action_id;
+            return step.post_step_action_id == inp.post_step_action_id;
         }
         return (srf_match(step.event_id, inp.event_id)
                 && srf_match(step.track_id, inp.track_id)

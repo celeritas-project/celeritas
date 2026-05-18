@@ -95,6 +95,7 @@ GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
                                                    SPStep step)
     : step_(std::move(step))
 {
+    CELER_EXPECT(!particles.empty());
     CELER_EXPECT(step_);
 
     // Create track for each particle type

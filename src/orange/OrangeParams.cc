@@ -182,13 +182,22 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    SPConstVolumes volumes = celeritas::global_volumes().lock();
+    SPConstVolumes volumes = geo->volumes();
     if (!volumes)
     {
-        CELER_LOG(debug) << "Constructing global volumes from GeantGeoParams";
-        volumes
-            = std::make_shared<VolumeParams>(geo->make_model_input().volumes);
-        celeritas::global_volumes(volumes);
+        CELER_LOG(debug) << "Constructing canonical volumes from "
+                            "GeantGeoParams";
+        auto model_input = geo->make_model_input();
+        auto const& model_volumes = model_input.volumes;
+        if (auto const* sp = std::get_if<SPConstVolumes>(&model_volumes))
+        {
+            volumes = *sp;
+        }
+        else
+        {
+            volumes = std::make_shared<VolumeParams>(
+                std::get<inp::Volumes>(model_volumes));
+        }
     }
     return OrangeParams::from_geant(geo, std::move(volumes));
 }
@@ -348,7 +357,7 @@ inp::Model OrangeParams::make_model_input() const
     CELER_LOG(info) << R"(Generating fake model input for unit tests)";
 
     inp::Model result;
-    inp::Volumes& v = result.volumes;
+    inp::Volumes& v = std::get<inp::Volumes>(result.volumes);
     v.volumes.resize(impl_vol_labels_.size());
     v.volume_instances.resize(v.volumes.size());
 

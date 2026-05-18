@@ -20,6 +20,7 @@ namespace celeritas
 class ActionRegistry;
 class AuxParamsRegistry;
 class CoreParams;
+class VolumeParams;
 
 namespace detail
 {
@@ -52,6 +53,7 @@ class StepCollector
     //! \name Type aliases
     using SPStepInterface = std::shared_ptr<StepInterface>;
     using SPConstCoreGeo = std::shared_ptr<CoreGeoParams const>;
+    using SPConstVolume = std::shared_ptr<VolumeParams const>;
     using VecInterface = std::vector<SPStepInterface>;
     //!@}
 
@@ -62,6 +64,7 @@ class StepCollector
 
     // Construct with options and register pre/post-step actions
     StepCollector(SPConstCoreGeo geo,
+                  SPConstVolume volume,
                   VecInterface&& callbacks,
                   AuxParamsRegistry* aux_registry,
                   ActionRegistry* action_registry);

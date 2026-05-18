@@ -18,7 +18,6 @@
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHData.hh"
 
-#include "../OrangeData.hh"
 #include "../inp/Bih.hh"
 
 namespace celeritas
@@ -77,8 +76,8 @@ class BIHBuilder
 
     using Real3 = Array<fast_real_type, 3>;
     using VecIndices = std::vector<LocalVolumeId>;
-    using VecNodes = std::vector<std::variant<BIHInnerNode, BIHLeafNode>>;
-    using VecInnerNodes = std::vector<BIHInnerNode>;
+    using VecNodes = std::vector<std::variant<BIHInternalNode, BIHLeafNode>>;
+    using VecInnerNodes = std::vector<BIHInternalNode>;
     using VecLeafNodes = std::vector<BIHLeafNode>;
     using ArrangedNodes = std::pair<VecInnerNodes, VecLeafNodes>;
 
@@ -93,7 +92,7 @@ class BIHBuilder
 
     CollectionBuilder<FastBBox> bboxes_;
     CollectionBuilder<LocalVolumeId> local_volume_ids_;
-    CollectionBuilder<BIHInnerNode> inner_nodes_;
+    CollectionBuilder<BIHInternalNode> internal_nodes_;
     CollectionBuilder<BIHLeafNode> leaf_nodes_;
 
     Input inp_;

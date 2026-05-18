@@ -104,7 +104,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
 template<MemSpace M>
 struct PrimaryStateData : public AuxStateInterface
 {
-    // "Resizable" storage
+    // "Resizable" storage (TODO: pinned-memory buffer when using device)
     Collection<Primary, Ownership::value, M> storage;
     size_type count{0};
 

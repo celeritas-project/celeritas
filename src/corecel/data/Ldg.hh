@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cstddef>
 #include <type_traits>
 
 #include "corecel/Macros.hh"
+#if CELER_DEVICE_COMPILE
+// Make sure __ldg is available for HIP
+#    include "corecel/DeviceRuntimeApi.hh"
+#endif
 
 namespace celeritas
 {
@@ -18,15 +21,16 @@ namespace celeritas
  * \page ldg Cached device loading
  *
  * On GPUs, reading from global memory through the L1/texture cache can improve
- * throughput when many threads access the same address. The \c __ldg
- * intrinsic (CUDA/HIP) performs such a cached load, using L1/texture memory
- * rather than the ordinary data cache. The hardware contract is that the
- * pointed-to memory must be \em read-only for the lifetime of the kernel;
- * this is generally true for \em Params data (physics tables, geometry) but
- * not for \em State data. On the host the \c ldg family of functions falls
- * back to a plain dereference, so no special-casing is needed in caller code.
- * Because \c ldg is only for read-only addresses, all arguments \em must
- * match only \c const types.
+ * throughput when many threads access the same address.
+ * The \c __ldg intrinsic (CUDA/HIP) performs such a cached load, using
+ * L1/texture memory rather than the ordinary data cache.
+ * The hardware contract is that the pointed-to memory must be \em read-only
+ * for the lifetime of the kernel; this is generally true for \em Params data
+ * (physics tables, geometry) but not for \em State data.
+ * On the host the \c ldg family of functions falls back to a plain
+ * dereference, so no special-casing is needed in caller code.
+ * Because \c ldg is only for \em read-only addresses in \em global memory, all
+ * arguments \em must match only \c const_pointer types.
  *
  * \par Scalar values
  *
@@ -36,24 +40,19 @@ namespace celeritas
  *   MaterialId mat   = ldg(&record.material);  // OpaqueId supported
  * \endcode
  *
- * \par Struct members
+ * Built-in implementations cover:
  *
- * Load a single member without reading the whole struct using the
- * two-argument overload or the storable \c LdgMember projector:
- * \code
- *   // Immediate two-argument form
- *   BIHNodeId parent = ldg(node, &BIHLeafNode::parent);
- *
- *   // Storable callable -- useful with algorithms
- *   auto load_parent = LdgMember{&BIHLeafNode::parent};
- *   BIHNodeId parent = load_parent(node);
- * \endcode
+ * - arithmetic types (identity, the default),
+ * - enum types (reinterpret-cast to the underlying integer),
+ * - \c OpaqueId (pointer to the underlying index \c T),
+ * - \c Quantity (pointer to the underlying value \c T),
+ * - \c Array (successive loads to each element).
  *
  * \par Spans and collections
  *
  * \c LdgSpan<T const> (from \c corecel/cont/LdgSpan.hh) is an alias for
- * \c Span whose iterator triggers \c __ldg on every element access. Use it
- * as you would any ordinary span:
+ * \c Span whose iterator triggers \c __ldg on every element access.
+ * Use it as you would any ordinary span:
  * \code
  *   LdgSpan<real_type const> energies = params.get_energies();
  *   for (real_type e : energies)   // each read uses __ldg
@@ -67,27 +66,24 @@ namespace celeritas
  *
  * \par Extending ldg to a new type
  *
- * \c ldg dispatches through the customization point \c ldg_data, found by
- * argument-dependent lookup (ADL). To support a new type, define a free
- * function in its namespace that returns a \c const pointer to an arithmetic
- * type. For a wrapper struct holding a single \c int member:
+ * The \c ldg function is found by argument-dependent lookup (ADL).
+ * Implement a \c friend function \c ldg that takes a const pointer and returns
+ * a value:
  * \code
- *   namespace myns
+ *   template<class T>
+ *   class MyClass
  *   {
- *   struct MyCount { int value; };
+ *     public:
+ *       CELER_CONSTEXPR_FUNCTION friend MyClass ldg(MyClass const* m)
+ *       {
+ *         return MyClass{ldg(&m->value_)};
+ *       }
  *
- *   CELER_CONSTEXPR_FUNCTION int const* ldg_data(MyCount const* p) noexcept
- *   {
- *       return &p->value;
- *   }
- *   }  // namespace myns
+ *     private:
+ *       T value_;
+ *   };
  * \endcode
- *
- * Built-in overloads cover:
- * - arithmetic types (identity, the default),
- * - enum types (reinterpret-cast to the underlying integer),
- * - \c OpaqueId<I,T> (pointer to the underlying index \c T), and
- * - \c Quantity<U,T> (pointer to the underlying value \c T).
+ * See \c OpaqueId, \c Quantity and \c Array for examples.
  *
  * \internal
  *
@@ -99,69 +95,50 @@ namespace celeritas
  * \em value, not a reference, and the load goes through \c __ldg on device.
  *
  * \c detail::LdgIterator<T const> is a random-access iterator whose
- * \c operator* returns an \c LdgWrapper. Wrapping it in \c Span yields
- * \c LdgSpan: range-for loops and standard algorithms transparently trigger
- * \c __ldg on every element access without requiring any change at the
- * call site.
+ * \c operator* returns an \c LdgWrapper.
+ * Wrapping it in \c Span yields \c LdgSpan: range-for loops and standard
+ * algorithms transparently trigger \c __ldg on every element access without
+ * requiring any change at the call site.
  */
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a pointer to the arithmetic data for use with \c __ldg .
- *
- * Default overload for arithmetic types: returns the pointer unchanged.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T const*>
-ldg_data(T const* ptr) noexcept
-{
-    return ptr;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get a pointer to the underlying integer for an enum type.
- */
-template<class T>
-CELER_CONSTEXPR_FUNCTION
-    std::enable_if_t<std::is_enum_v<T>, std::underlying_type_t<T> const*>
-    ldg_data(T const* ptr) noexcept
-{
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-    return reinterpret_cast<std::underlying_type_t<T> const*>(ptr);
-}
 
 //---------------------------------------------------------------------------//
 /*!
  * Wrap the low-level CUDA/HIP "load read-only global memory" function.
  *
- * This relies on \c ldg_data found by ADL to obtain a pointer to the
- * underlying arithmetic type; see \ref ldg for usage and extension examples.
- *
  * On CUDA the load is cached in L1/texture memory, improving performance when
  * data is repeatedly read by many threads in a kernel.
  *
- * \warning The target address must be read-only for the lifetime of the
- * kernel. This is generally true for Params data but not State data.
+ * \warning The target must be \c global memory (or else the kernel may crash)
+ * and \c read-only (or else the result may be wrong) for the lifetime of the
+ * kernel.
+ * This is generally true for Params data but not State data.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T>
+ldg(T const* ptr) noexcept
 {
-    auto const* data_ptr = ldg_data(ptr);
-    using data_type
-        = std::remove_cv_t<std::remove_pointer_t<decltype(data_ptr)>>;
-    static_assert(std::is_arithmetic_v<data_type>,
-                  R"(Only arithmetic-underlying types are supported by __ldg)");
-
 #if CELER_DEVICE_COMPILE
-    return T{__ldg(data_ptr)};
+    return __ldg(ptr);
 #else
-    return T{*data_ptr};
+    return *ptr;
 #endif
 }
 
 //---------------------------------------------------------------------------//
 //! \cond (CELERITAS_DOC_DEV)
+/*!
+ * Get a pointer to the underlying integer for an enum type.
+ */
+template<class T>
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_enum_v<T>, T>
+ldg(T const* ptr) noexcept
+{
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    auto const* data = reinterpret_cast<std::underlying_type_t<T> const*>(ptr);
+    return static_cast<T>(ldg(data));
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Load a struct member via \c ldg using a pointer-to-member.
  *
@@ -171,7 +148,7 @@ CELER_CONSTEXPR_FUNCTION T ldg(T const* ptr)
  * \endcode
  */
 template<class Class, class T>
-CELER_FUNCTION T ldg(Class const& obj, T Class::* mp)
+CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
 {
     return ldg(&(obj.*mp));
 }
@@ -195,7 +172,7 @@ struct LdgMember
 {
     T Class::* mp;
 
-    CELER_FUNCTION T operator()(Class const& obj) const
+    CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
         return ldg(&(obj.*mp));
     }

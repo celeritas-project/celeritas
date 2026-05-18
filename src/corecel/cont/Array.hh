@@ -12,8 +12,11 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Ldg.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include <ostream>
+
 #    include "corecel/io/StreamableContainer.hh"
 #endif
 
@@ -33,6 +36,7 @@ class Span;
  * This is not fully compatible with std::array:
  * - no support for N=0
  * - zero-initialized by default
+ * - assume noexcept construction/copying of data
  *
  * \note For supplementary functionality, include:
  * - \c corecel/math/ArrayUtils.hh for real-number vector/matrix applications
@@ -61,10 +65,10 @@ class Array
 
   public:
     //! Default construction initializes to zero
-    CELER_CEF Array() : d_{T{}} {}
+    CELER_CEF Array() noexcept : d_{T{}} {}
 
     //! Construct from an array for aggregate initialization of daughters
-    CELER_CEF Array(CArrayConstRef values)
+    CELER_CEF Array(CArrayConstRef values) noexcept
     {
         for (size_type i = 0; i < N; ++i)
         {
@@ -73,11 +77,12 @@ class Array
     }
 
     //! Construct with C-style aggregate initialization
-    CELER_CEF Array(T first) : d_{first} {}
+    CELER_CEF Array(T first) noexcept : d_{first} {}
 
     //! Construct with the array's data
     template<class... Us>
-    CELER_CEF Array(T first, Us... rest) : d_{first, static_cast<T>(rest)...}
+    CELER_CEF Array(T first, Us... rest) noexcept
+        : d_{first, static_cast<T>(rest)...}
     {
         // Protect against leaving off an entry, e.g. Array<int, 2>(1)
         static_assert(sizeof...(rest) + 1 == N,
@@ -88,7 +93,10 @@ class Array
 
     //!@{
     //! \name Element access
-    CELER_CEF const_reference operator[](size_type i) const { return d_[i]; }
+    CELER_CEF const_reference operator[](size_type i) const noexcept
+    {
+        return d_[i];
+    }
     CELER_CEF reference operator[](size_type i) { return d_[i]; }
     CELER_CEF const_reference front() const { return d_[0]; }
     CELER_CEF reference front() { return d_[0]; }
@@ -101,13 +109,13 @@ class Array
     //!@{
     //! Access for structured unpacking
     template<std::size_t I>
-    CELER_CEF T& get()
+    CELER_CEF T& get() noexcept
     {
         static_assert(I < static_cast<std::size_t>(N));
         return d_[I];
     }
     template<std::size_t I>
-    CELER_CEF T const& get() const
+    CELER_CEF T const& get() const noexcept
     {
         static_assert(I < static_cast<std::size_t>(N));
         return d_[I];
@@ -116,25 +124,25 @@ class Array
 
     //!@{
     //! \name Iterators
-    CELER_CEF iterator begin() { return d_; }
-    CELER_CEF iterator end() { return d_ + N; }
-    CELER_CEF const_iterator begin() const { return d_; }
-    CELER_CEF const_iterator end() const { return d_ + N; }
-    CELER_CEF const_iterator cbegin() const { return d_; }
-    CELER_CEF const_iterator cend() const { return d_ + N; }
+    CELER_CEF iterator begin() noexcept { return d_; }
+    CELER_CEF iterator end() noexcept { return d_ + N; }
+    CELER_CEF const_iterator begin() const noexcept { return d_; }
+    CELER_CEF const_iterator end() const noexcept { return d_ + N; }
+    CELER_CEF const_iterator cbegin() const noexcept { return d_; }
+    CELER_CEF const_iterator cend() const noexcept { return d_ + N; }
     //!@}
 
     //!@{
     //! \name Capacity
-    CELER_CEF bool empty() const { return N == 0; }
-    static CELER_CEF size_type size() { return N; }
+    CELER_CEF bool empty() const noexcept { return N == 0; }
+    static CELER_CEF size_type size() noexcept { return N; }
     //!@}
 
     //!@{
     //! \name  Operations
 
     //! Fill the array with a constant value
-    CELER_CEF void fill(const_reference value)
+    CELER_CEF void fill(const_reference value) noexcept
     {
         for (size_type i = 0; i != N; ++i)
         {
@@ -143,11 +151,12 @@ class Array
     }
     //!@}
 
-    //// FRIENDLY OPERATORS ////
+    //// FRIENDS ////
 
     //! Test equality of two arrays
     template<class U>
-    CELER_CEF friend auto operator==(Array const& lhs, Array<U, N> const& rhs)
+    CELER_CEF friend auto
+    operator==(Array const& lhs, Array<U, N> const& rhs) noexcept
         -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
     {
         for (size_type i = 0; i != N; ++i)
@@ -160,10 +169,22 @@ class Array
 
     //! Test inequality of two arrays
     template<class U>
-    CELER_CEF friend auto operator!=(Array const& lhs, Array<U, N> const& rhs)
+    CELER_CEF friend auto
+    operator!=(Array const& lhs, Array<U, N> const& rhs) noexcept
         -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
     {
         return !(lhs == rhs);
+    }
+
+    //! Allow loading via ldg
+    CELER_CEF friend Array ldg(Array const* arr) noexcept
+    {
+        Array result;
+        for (size_type i = 0; i != N; ++i)
+        {
+            result[i] = ldg(&arr->d_[i]);
+        }
+        return result;
     }
 
   private:

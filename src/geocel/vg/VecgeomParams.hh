@@ -122,6 +122,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get volume metadata for VG logical volumes
     inline ImplVolumeMap const& impl_volumes() const final;
 
+    // Get structural volume metadata
+    SPConstVolumeParams const& volumes() const final { return volumes_; }
+
     // Get volume metadata for VG placed volumes
     inline ImplVolInstanceMap const& impl_volume_instances() const;
 
@@ -148,6 +151,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     // Geant4 model used to construct
     std::shared_ptr<GeantGeoParams const> geant_geo_;
+    SPConstVolumeParams volumes_;
 
     // Host metadata/access
     LabelIdMultiMap<ImplVolumeId> impl_volumes_;
