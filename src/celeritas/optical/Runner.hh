@@ -16,7 +16,6 @@
 #include "gen/DirectGeneratorAction.hh"
 #include "gen/GeneratorAction.hh"
 #include "gen/PrimaryGeneratorAction.hh"
-#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {

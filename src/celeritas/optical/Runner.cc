@@ -19,6 +19,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "Transporter.hh"
+#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {

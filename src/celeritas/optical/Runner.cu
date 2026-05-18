@@ -10,6 +10,8 @@
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.device.hh"
 
+#include "gen/detail/UpdatePendingExecutor.hh"
+
 namespace celeritas
 {
 namespace optical
