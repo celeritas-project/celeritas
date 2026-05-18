@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <iostream>
-
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
