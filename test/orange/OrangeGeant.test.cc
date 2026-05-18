@@ -18,6 +18,8 @@
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathAccumulator.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
@@ -238,6 +240,20 @@ TEST_F(MultiLevelTest, manual_volumes)
     EXPECT_VEC_EQ(expected_local_level, local_level);
     EXPECT_VEC_EQ(expected_local_parent, local_parent);
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
+}
+
+// Test using VolumePathAccumulator with foreach_volume_instance_level
+TEST_F(MultiLevelTest, unique_instance)
+{
+    auto gtv = this->make_geo_track_view().track_view();
+    VolumePathAccumulator accum{this->volumes()->host_ref()};
+    VolumeUniqueInstanceId uid = world_unique_instance;
+    for (auto xy : this->impl().get_test_points())
+    {
+        gtv = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+        gtv.foreach_volume_instance_level(
+            [&uid, accum](VolumeInstanceId vi_id) { uid = accum(uid, vi_id); });
+    }
 }
 
 // Test that the reconstructed total levels are correct
