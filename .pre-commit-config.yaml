@@ -16,14 +16,11 @@ repos:
     - id: check-yaml
 
   # Type-specific character fixes and formatting
-  - repo: local
+  - repo: https://github.com/sethrj/fix-non-ascii
+    rev: v1.0.0 # 18 May 2026 (immutable)
     hooks:
     - id: fix-non-ascii
-      name: fix non-ASCII characters in source files
-      language: system
-      entry: python3 scripts/dev/fix-non-ascii.py
-      types_or: [file]
-      files: \.(cc|hh|cu|cmake)$|CMakeLists\.txt$
+      files: '\.(cc|hh|cu|cmake)$|CMakeLists\.txt$'
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: 182152eb8c5ce1cf5299b956b04392c86bd8a126 # v20.1.8, 11 Jul 2025
