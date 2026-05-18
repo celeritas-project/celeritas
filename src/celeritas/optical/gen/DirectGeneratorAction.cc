@@ -20,7 +20,6 @@
 
 #include "detail/DirectGeneratorExecutor.hh"
 #include "detail/GeneratorAlgorithms.hh"
-#include "detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {

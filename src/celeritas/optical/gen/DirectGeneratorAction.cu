@@ -13,7 +13,6 @@
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
 #include "detail/DirectGeneratorExecutor.hh"
-#include "detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
