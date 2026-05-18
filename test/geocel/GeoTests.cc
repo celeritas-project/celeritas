@@ -1709,7 +1709,7 @@ void ReplicaGeoTest::test_trace() const
         if (test_->geometry_type() != "VecGeom"
             || vecgeom_version < Version{2, 0})
         {
-            // TODO: VecGemo 2.x-solids returns wrong distance values
+            // TODO: VecGemo 2.x returns wrong distance values
             EXPECT_REF_NEAR(ref, result, tol);
         }
     }
@@ -1748,7 +1748,7 @@ void ReplicaGeoTest::test_volume_stack() const
         if (test_->geometry_type() != "VecGeom"
             || vecgeom_version < Version{2, 0})
         {
-            // TODO: VecGeom 2.x-solids returns wrong volume instances
+            // TODO: VecGeom 2.x returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
         }
     }
@@ -1952,7 +1952,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2039,7 +2039,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2159,7 +2159,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2233,7 +2233,7 @@ void SolidsGeoTest::test_trace() const
         {
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }

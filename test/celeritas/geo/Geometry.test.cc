@@ -192,7 +192,7 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
             = {56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
         if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
         {
-            // TODO: try to fix any discrepancies from vg2.x-solids
+            // TODO: try to fix any discrepancies from vg2.x
             paths[4] = 454.195842538179;
             paths[5] = 1148.46821493334;
             paths[6] = 1871.43143781146;
@@ -250,7 +250,7 @@ auto ThreeSpheresTest::reference_avg_path() const -> SpanConstReal
     };
     if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // TODO: try to fix any discrepancies from vg2.x-solids
+        // TODO: try to fix any discrepancies from vg2.x
         paths[0] = 0.193968509125204;
         paths[2] = 6.63492117919102;
     }
