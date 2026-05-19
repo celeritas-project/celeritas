@@ -95,7 +95,7 @@ class GeantGeoTrackView
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
     // Visit every volume instance in the track's path, including world
     template<class F>
-    inline CELER_FUNCTION void foreach_volume_path(F&& visit) const;
+    inline void foreach_volume_path(F&& visit) const;
 
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
@@ -354,7 +354,7 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
  * with volume levels. It is performed in local-to-global order.
  */
 template<class F>
-CELER_FUNCTION void GeantGeoTrackView::foreach_volume_path(F&& visit) const
+void GeantGeoTrackView::foreach_volume_path(F&& visit) const
 {
     auto* touch = touch_handle_();
     auto const num_vol_levels
