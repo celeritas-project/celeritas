@@ -526,6 +526,30 @@ TEST_F(MultiLevelTest, offset)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, path_round_trip)
+{
+    auto const& vols = this->volumes();
+    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
+    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
+    VolumePathAccumulator acc{vols.host_ref()};
+
+    for (auto uid : range(VolumeUniqueInstanceId{vols.num_unique_instances()}))
+    {
+        auto path = find_path(uid);
+        VolumeUniqueInstanceId result{0};
+        for (VolumeInstanceId vi : path)
+        {
+            result = acc(result, vi);
+        }
+        EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
+    }
+
+    // Special case with overflow: starting with nullid and adding world
+    // instance should result in world instance
+    EXPECT_EQ(world_unique_instance, acc(nullid, vols.world_instance()));
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(MultiLevelTest, path_finder)
 {
     auto const& vols = this->volumes();
@@ -553,30 +577,6 @@ TEST_F(MultiLevelTest, path_finder)
               path_str(find_path(VolumeUniqueInstanceId{15})));
     EXPECT_EQ("topbox4/boxtri@1",
               path_str(find_path(VolumeUniqueInstanceId{17})));
-}
-
-//---------------------------------------------------------------------------//
-TEST_F(MultiLevelTest, path_round_trip)
-{
-    auto const& vols = this->volumes();
-    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
-    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
-    VolumePathAccumulator acc{vols.host_ref()};
-
-    for (auto uid : range(VolumeUniqueInstanceId{vols.num_unique_instances()}))
-    {
-        auto path = find_path(uid);
-        VolumeUniqueInstanceId result{0};
-        for (VolumeInstanceId vi : path)
-        {
-            result = acc(result, vi);
-        }
-        EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
-    }
-
-    // Special case with overflow: starting with nullid and adding world
-    // instance should result in world instance
-    EXPECT_EQ(world_unique_instance, acc(nullid, vols.world_instance()));
 }
 
 //---------------------------------------------------------------------------//
