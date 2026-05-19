@@ -18,6 +18,7 @@
 #include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
 #include "geocel/UniqueVolumeToString.hh"
+#include "geocel/VolumeData.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumePathAccumulator.hh"
 #include "geocel/VolumePathFinder.hh"
@@ -517,6 +518,36 @@ TEST_F(MultiLevelTest, offset)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, path_finder)
+{
+    auto const& vols = this->volumes();
+    std::vector<VolumeInstanceId> buf(vols.num_volume_levels());
+    VolumePathFinder find_path{vols.host_ref(), make_span(buf)};
+
+    auto path_str = [&vols](Span<VolumeInstanceId const> path) {
+        return to_string(
+            join(path.begin(), path.end(), '/', [&vols](VolumeInstanceId vi) {
+                return to_string(vols.volume_instance_labels().at(vi));
+            }));
+    };
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(find_path(VolumeUniqueInstanceId{}), DebugError);
+    }
+    EXPECT_EQ("", path_str(find_path(VolumeUniqueInstanceId{0})));
+    EXPECT_EQ("topbox1", path_str(find_path(VolumeUniqueInstanceId{1})));
+    EXPECT_EQ("topbox1/boxsph1@0",
+              path_str(find_path(VolumeUniqueInstanceId{2})));
+    EXPECT_EQ("topsph1", path_str(find_path(VolumeUniqueInstanceId{5})));
+    EXPECT_EQ("topbox4", path_str(find_path(VolumeUniqueInstanceId{14})));
+    EXPECT_EQ("topbox4/boxsph1@1",
+              path_str(find_path(VolumeUniqueInstanceId{15})));
+    EXPECT_EQ("topbox4/boxtri@1",
+              path_str(find_path(VolumeUniqueInstanceId{17})));
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(MultiLevelTest, path_round_trip)
 {
     auto const& vols = this->volumes();
@@ -537,22 +568,19 @@ TEST_F(MultiLevelTest, path_round_trip)
 }
 
 //---------------------------------------------------------------------------//
-TEST_F(MultiLevelTest, path_finder)
+TEST_F(MultiLevelTest, unique_volume_to_string)
 {
-    auto vols = std::shared_ptr<VolumeParams const>{
-        &this->volumes(), [](VolumeParams const*) {}};
-    UniqueVolumeToString to_string_path{std::move(vols)};
+    // Make non-owning local shared pointer
+    UniqueVolumeToString to_string_path{std::shared_ptr<VolumeParams const>{
+        &this->volumes(), [](VolumeParams const*) {}}};
 
     if (CELERITAS_DEBUG)
     {
         EXPECT_THROW(to_string_path(VolumeUniqueInstanceId{}), DebugError);
     }
-    EXPECT_EQ("", to_string_path(VolumeUniqueInstanceId{0}));
+    EXPECT_EQ("", to_string_path(world_unique_instance));
     EXPECT_EQ("topbox1", to_string_path(VolumeUniqueInstanceId{1}));
-    EXPECT_EQ("topbox1/boxsph1@0", to_string_path(VolumeUniqueInstanceId{2}));
     EXPECT_EQ("topsph1", to_string_path(VolumeUniqueInstanceId{5}));
-    EXPECT_EQ("topbox4", to_string_path(VolumeUniqueInstanceId{14}));
-    EXPECT_EQ("topbox4/boxsph1@1", to_string_path(VolumeUniqueInstanceId{15}));
     EXPECT_EQ("topbox4/boxtri@1", to_string_path(VolumeUniqueInstanceId{17}));
 }
 
@@ -595,11 +623,13 @@ TEST_F(StressTest, DISABLED_io)
 {
     auto filename = this->make_unique_filename(".json");
     std::string script{celeritas_source_dir};
-    script += "/scripts/user/volumes-to-dot.py";
 
     std::ofstream{filename} << this->volumes();
-    cout << script << " --ids " << filename << " | dot -Tpdf -o "
-         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf";
+    cout << "Run the following to construct a graph: \""
+         << celeritas_source_dir << "/scripts/user/volumes-to-dot.py"
+         << "\" --ids \"" << filename << "\" | dot -Tpdf -o \""
+         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf\""
+         << endl;
 }
 
 TEST_F(StressTest, path_round_trip)

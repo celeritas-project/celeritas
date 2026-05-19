@@ -9,17 +9,13 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include "corecel/Assert.hh"
-#include "corecel/io/Join.hh"
-
-#include "VolumeParams.hh"
-#include "VolumePathFinder.hh"
+#include "Types.hh"
 
 namespace celeritas
 {
+class VolumeParams;
 //---------------------------------------------------------------------------//
 /*!
  * Convert a unique volume instance ID to a slash-separated instance path.
@@ -34,23 +30,10 @@ class UniqueVolumeToString
 
   public:
     // Construct with shared volume metadata
-    explicit UniqueVolumeToString(SPVolumeParams vols)
-        : vols_(std::move(vols))
-        , path_buffer_(vols_ ? vols_->num_volume_levels() : 0)
-    {
-        CELER_EXPECT(vols_);
-    }
+    explicit UniqueVolumeToString(SPVolumeParams vols);
 
-    // Convert a unique instance ID to slash-joined volume instance labels
-    std::string operator()(VolumeUniqueInstanceId uid)
-    {
-        VolumePathFinder find_path{vols_->host_ref(), make_span(path_buffer_)};
-        auto path = find_path(uid);
-        return to_string(
-            join(path.begin(), path.end(), '/', [this](VolumeInstanceId vi) {
-                return to_string(vols_->volume_instance_labels().at(vi));
-            }));
-    }
+    // Apply conversion
+    std::string operator()(VolumeUniqueInstanceId uid);
 
   private:
     SPVolumeParams vols_;
