@@ -9,10 +9,8 @@
 #include <cmath>
 
 #include "corecel/Assert.hh"
-#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 
 #include "NormalDistribution.hh"
 
@@ -20,7 +18,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from a Poisson distribution.
+ * Sample from a generalized Poisson distribution.
  *
  * The Poisson distribution describes the probability of \f$ k \f$ events
  * occurring in a fixed interval given a mean rate of occurrence \f$ \lambda
@@ -45,9 +43,13 @@ namespace celeritas
  * approximation for \f$ \lambda > 16 \f$ (see \c G4Poisson), which is faster
  * but less accurate than other methods. The same approach is used here.
  *
- * \todo Break this into two distributions: one actual poisson distribution,
- * one "integer normal" distribution, and a variant type that selects between
- * them. In most cases we care about, lambda is small.
+ * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero.
+ *
+ * \todo Rename to GeneralPoissonDistribution (or something similar) since
+ * it's effectively an inefficient variant combining:
+ * - an actual poisson distribution,
+ * - an "integer normal" distribution, and
+ * - a "zero" distribution.
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistribution
@@ -60,8 +62,11 @@ class PoissonDistribution
     //!@}
 
   public:
-    // Construct with defaults
-    explicit inline CELER_FUNCTION PoissonDistribution(real_type lambda = 1);
+    // Construct with distribution parameter
+    explicit inline CELER_FUNCTION PoissonDistribution(real_type lambda);
+
+    //! Construct with default lambda of 1
+    CELER_FUNCTION PoissonDistribution() : PoissonDistribution{1} {}
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -71,8 +76,15 @@ class PoissonDistribution
     static CELER_CONSTEXPR_FUNCTION int lambda_threshold() { return 16; }
 
   private:
-    real_type const lambda_;
-    NormalDistribution<real_type> sample_normal_;
+    enum class Method
+    {
+        zero,
+        poisson,
+        gaussian
+    };
+    Method method_;
+    real_type exp_lambda_{};
+    NormalDistribution<real_type> sample_normal_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -84,9 +96,24 @@ class PoissonDistribution
 template<class RealType>
 CELER_FUNCTION
 PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
-    : lambda_(lambda), sample_normal_(lambda_, std::sqrt(lambda_))
 {
-    CELER_EXPECT(lambda_ > 0);
+    CELER_EXPECT(lambda >= 0);
+
+    if (lambda <= 0)
+    {
+        method_ = Method::zero;
+    }
+    else if (lambda <= PoissonDistribution::lambda_threshold())
+    {
+        method_ = Method::poisson;
+        exp_lambda_ = std::exp(lambda);
+    }
+    else
+    {
+        method_ = Method::gaussian;
+        // Add 0.5 to mean for correct rounding
+        sample_normal_ = NormalDistribution{lambda + 0.5, std::sqrt(lambda)};
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -98,20 +125,26 @@ template<class Generator>
 CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
     -> result_type
 {
-    if (lambda_ <= PoissonDistribution::lambda_threshold())
+    switch (method_)
     {
-        // Use direct method
-        int k = 0;
-        real_type p = std::exp(lambda_);
-        do
-        {
-            ++k;
-            p *= generate_canonical<real_type>(rng);
-        } while (p > 1);
-        return static_cast<result_type>(k - 1);
-    }
-    // Use Gaussian approximation rounded to nearest integer
-    return result_type(sample_normal_(rng) + real_type(0.5));
+        case Method::zero:
+            return 0;
+        case Method::poisson: {
+            int k = 0;
+            real_type p = exp_lambda_;
+            do
+            {
+                ++k;
+                p *= generate_canonical<real_type>(rng);
+            } while (p > 1);
+            return static_cast<result_type>(k - 1);
+        }
+        case Method::gaussian:
+            // Use Gaussian approximation rounded to nearest integer
+            return static_cast<result_type>(
+                clamp_to_nonneg(sample_normal_(rng)));
+    };
 }
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

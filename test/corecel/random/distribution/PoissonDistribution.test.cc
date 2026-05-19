@@ -18,6 +18,25 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
+TEST(PoissonDistributionTest, bin_zero)
+{
+    int num_samples = 100;
+
+    // Small lambda will use the direct method, which requires on average
+    // lambda + 1 RNG samples
+    PoissonDistribution<double> sample_poisson{0};
+    DiagnosticRngEngine<std::mt19937> rng;
+
+    Histogram histogram(4, {0, 1e-3});
+    for ([[maybe_unused]] int i : range(num_samples))
+    {
+        histogram(sample_poisson(rng));
+    }
+    static unsigned int const expected_counts[] = {100, 0, 0, 0};
+    EXPECT_VEC_EQ(expected_counts, histogram.counts());
+    EXPECT_EQ(0, rng.count());
+}
+
 TEST(PoissonDistributionTest, bin_small)
 {
     int num_samples = 10000;
