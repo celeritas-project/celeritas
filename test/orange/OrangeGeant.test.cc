@@ -20,12 +20,11 @@
 #include "geocel/Types.hh"
 #include "geocel/UniqueVolumeToString.hh"
 #include "geocel/UnitUtils.hh"
-#include "geocel/VolumeParams.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/VolumePathAccumulator.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
-#include "celeritas/random/ElementSelector.hh"
 
 #include "OrangeTestBase.hh"
 #include "TestMacros.hh"
@@ -246,7 +245,7 @@ TEST_F(MultiLevelTest, manual_volumes)
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
 }
 
-// Test using VolumePathAccumulator with foreach_volume_instance_level
+// Test using VolumePathAccumulator with foreach_volume_path
 TEST_F(MultiLevelTest, unique_instance)
 {
     auto gtv = this->make_geo_track_view().track_view();
@@ -263,8 +262,10 @@ TEST_F(MultiLevelTest, unique_instance)
 
         // Accumulate all levels, *including* world
         VolumeUniqueInstanceId uid;
-        gtv.foreach_volume_instance_level(
-            [&uid, accum](VolumeInstanceId vi_id) { uid = accum(uid, vi_id); });
+        gtv.foreach_volume_path(
+            [&uid, accum](VolumeLevelId, VolumeInstanceId vi_id) {
+                uid = accum(uid, vi_id);
+            });
 
         if (uid < max_uid)
         {

@@ -168,6 +168,14 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
             CELER_ASSERT(depth <= dst.size());
             if (depth != 0)
             {
+                if constexpr (CELERITAS_DEBUG)
+                {
+                    for (auto level : range(depth))
+                    {
+                        dst[level] = {};
+                    }
+                }
+
                 geo.volume_instance_id(dst.first(depth));
             }
             if constexpr (CELERITAS_DEBUG)

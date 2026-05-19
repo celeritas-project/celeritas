@@ -83,7 +83,7 @@ class OrangeTrackView
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
     // Visit every volume instance in the track's path, including world
     template<class F>
-    inline CELER_FUNCTION void foreach_volume_instance_level(F&& visit) const;
+    inline CELER_FUNCTION void foreach_volume_path(F&& visit) const;
 
     // Geometry status
     inline CELER_FUNCTION GeoStatus geo_status() const;
@@ -464,16 +464,18 @@ CELER_FUNCTION VolumeInstanceId OrangeTrackView::volume_instance_id() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Apply the function with the volume instance ID at each level.
+ * Apply the function with the volume instance ID and level.
  *
  * This can be used to construct a unique volume instance ID or fill a vector
- * with volume levels.
+ * with volume levels. The function for ORANGE is performed in local-to-global
+ * order.
  */
 template<class F>
-CELER_FUNCTION void
-OrangeTrackView::foreach_volume_instance_level(F&& visit) const
+CELER_FUNCTION void OrangeTrackView::foreach_volume_path(F&& visit) const
 {
     CELER_EXPECT(!this->is_outside());
+
+    VolumeLevelId next_vlev = this->volume_level() + 1;
 
     // Loop over universes, local to global
     auto ui = this->make_univ_indexer();
@@ -494,7 +496,8 @@ OrangeTrackView::foreach_volume_instance_level(F&& visit) const
             ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
             if (auto vol_inst = params_.volume_instance_ids[impl_id].get())
             {
-                visit(vol_inst);
+                CELER_ASSERT(next_vlev > VolumeLevelId{0});
+                visit(--next_vlev, vol_inst);
                 // Update to parent level
                 lv_id = visit_tracker(
                     [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
@@ -506,6 +509,7 @@ OrangeTrackView::foreach_volume_instance_level(F&& visit) const
             }
         } while (lv_id);
     }
+    CELER_ENSURE(next_vlev == VolumeLevelId{0});
 }
 
 //---------------------------------------------------------------------------//
@@ -546,24 +550,12 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
 CELER_FUNCTION void
 OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(this->univ_level() < levels.size());
-
-    VolumeLevelId::size_type level_idx = levels.size();
-
-    this->foreach_volume_instance_level([&](VolumeInstanceId vol_inst) {
-        // Start writing backward from end of levels array
-        CELER_ASSERT(levels.size() > 0
-                     && levels.size()
-                            <= NumericLimits<VolumeLevelId::size_type>::max());
-
-        // Save volume instance ID at this canonical level
-        CELER_ASSERT(level_idx != 0);
-
-        levels[--level_idx] = vol_inst;
-    });
-
-    // Input should have been resized to exactly match number of nested levels
-    CELER_ENSURE(level_idx == 0);
+    this->foreach_volume_path(
+        [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
+            CELER_EXPECT(lev < levels.size());
+            CELER_EXPECT(vol_inst);
+            levels[*lev] = vol_inst;
+        });
 }
 
 //---------------------------------------------------------------------------//
