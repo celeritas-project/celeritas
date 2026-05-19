@@ -514,7 +514,10 @@ void LocalTransporter::flush_impl(bool flush_buffer)
             run_accum_.hits += num_hits;
         }
     }
-    track_reconstruction_->clear();
+    if (buffer_.empty())
+    {
+        track_reconstruction_->clear();
+    }
 }
 
 //---------------------------------------------------------------------------//
