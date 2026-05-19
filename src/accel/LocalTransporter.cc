@@ -513,8 +513,9 @@ void LocalTransporter::flush_impl(FlushMode mode)
                 !interrupted(), << "caught interrupt signal", *step_);
         }
     }
-    if (flush_buffer && buffer_.empty() && buffer_accum_.lost_primaries > 0)
+    if (flush_buffer && buffer_accum_.lost_primaries > 0)
     {
+        CELER_ASSERT(buffer_.empty());
         run_accum_.lost_primaries += buffer_accum_.lost_primaries;
         buffer_accum_ = {};
     }
