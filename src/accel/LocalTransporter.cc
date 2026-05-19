@@ -385,7 +385,7 @@ void LocalTransporter::Push(G4Track& g4track)
                  * non-blocking Stepper progress once async step execution can
                  * be queried.
                  */
-                this->flush_impl(false);
+                this->flush_impl(FlushMode::staged_only);
             }
             this->stage_buffer();
         }
@@ -402,16 +402,17 @@ void LocalTransporter::Push(G4Track& g4track)
  */
 void LocalTransporter::Flush()
 {
-    this->flush_impl(true);
+    this->flush_impl(FlushMode::staged_and_buffered);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport staged tracks, optionally including buffered tracks.
  */
-void LocalTransporter::flush_impl(bool flush_buffer)
+void LocalTransporter::flush_impl(FlushMode mode)
 {
     CELER_EXPECT(*this);
+    bool const flush_buffer = (mode == FlushMode::staged_and_buffered);
     if (!staged_ && (buffer_.empty() || !flush_buffer))
     {
         return;
