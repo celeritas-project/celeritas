@@ -185,6 +185,14 @@ TEST_F(SingleVolumeTest, volume_to_string)
     }
 }
 
+TEST_F(SingleVolumeTest, unique_volume_to_string)
+{
+    auto to_string_path = UniqueVolumeToString::from_ref(this->volumes());
+
+    EXPECT_EQ("", to_string_path(nullid));
+    EXPECT_EQ("[WORLD]", to_string_path(world_unique_instance));
+}
+
 TEST_F(SingleVolumeTest, visit)
 {
     VolumeVisitor visit(this->volumes());
@@ -570,18 +578,14 @@ TEST_F(MultiLevelTest, path_round_trip)
 //---------------------------------------------------------------------------//
 TEST_F(MultiLevelTest, unique_volume_to_string)
 {
-    // Make non-owning local shared pointer
-    UniqueVolumeToString to_string_path{std::shared_ptr<VolumeParams const>{
-        &this->volumes(), [](VolumeParams const*) {}}};
+    auto to_string_path = UniqueVolumeToString::from_ref(this->volumes());
 
-    if (CELERITAS_DEBUG)
-    {
-        EXPECT_THROW(to_string_path(VolumeUniqueInstanceId{}), DebugError);
-    }
-    EXPECT_EQ("", to_string_path(world_unique_instance));
-    EXPECT_EQ("topbox1", to_string_path(VolumeUniqueInstanceId{1}));
-    EXPECT_EQ("topsph1", to_string_path(VolumeUniqueInstanceId{5}));
-    EXPECT_EQ("topbox4/boxtri@1", to_string_path(VolumeUniqueInstanceId{17}));
+    using UniqueId = VolumeUniqueInstanceId;
+    EXPECT_EQ("", to_string_path(nullid));
+    EXPECT_EQ("world_PV", to_string_path(world_unique_instance));
+    EXPECT_EQ("world_PV/topbox1", to_string_path(UniqueId{1}));
+    EXPECT_EQ("world_PV/topsph1", to_string_path(UniqueId{5}));
+    EXPECT_EQ("world_PV/topbox4/boxtri@1", to_string_path(UniqueId{17}));
 }
 
 //---------------------------------------------------------------------------//

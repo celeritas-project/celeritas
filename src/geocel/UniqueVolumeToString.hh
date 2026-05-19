@@ -19,6 +19,10 @@ class VolumeParams;
 //---------------------------------------------------------------------------//
 /*!
  * Convert a unique volume instance ID to a slash-separated instance path.
+ *
+ * The value \c nullid, which corresponds to "outside", returns an empty
+ * string. All other strings are slash-separated labels starting with the world
+ * instance.
  */
 class UniqueVolumeToString
 {
@@ -29,6 +33,9 @@ class UniqueVolumeToString
     //!@}
 
   public:
+    // Construct with non-owning shared pointer (limited lifetime)
+    static UniqueVolumeToString from_ref(VolumeParams const&);
+
     // Construct with shared volume metadata
     explicit UniqueVolumeToString(SPVolumeParams vols);
 
@@ -37,6 +44,7 @@ class UniqueVolumeToString
 
   private:
     SPVolumeParams vols_;
+    VolumeInstanceId world_instance_;
     std::vector<VolumeInstanceId> path_buffer_;
 };
 
