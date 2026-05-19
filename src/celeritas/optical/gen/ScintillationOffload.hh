@@ -131,9 +131,9 @@ ScintillationOffload::operator()(Generator& rng)
 
         real_type sigma = shared_.resolution_scale[pre_step_.material]
                           * std::sqrt(mean_num_photons_);
-        result.num_photons = static_cast<size_type>(clamp_to_nonneg(
-            NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
-            + 0.5_r));
+        result.num_photons = static_cast<size_type>(
+            clamp_to_nonneg(NormalDistribution<real_type>(
+                mean_num_photons_ + 0.5_r, sigma)(rng)));
     }
     else if (mean_num_photons_ > 0)
     {
