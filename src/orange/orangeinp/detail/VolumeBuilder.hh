@@ -124,8 +124,8 @@ class PopVBTransformOnDestruct
     }
 
     PopVBTransformOnDestruct(PopVBTransformOnDestruct const&) = default;
-    PopVBTransformOnDestruct& operator=(PopVBTransformOnDestruct const&)
-        = default;
+    PopVBTransformOnDestruct&
+    operator=(PopVBTransformOnDestruct const&) = default;
 
     //! Call pop when we own the pointer and go out of scope
     ~PopVBTransformOnDestruct() noexcept(!CELERITAS_DEBUG)
