@@ -413,7 +413,9 @@ void LocalTransporter::flush_impl(FlushMode mode)
 {
     CELER_EXPECT(*this);
     bool const flush_buffer = (mode == FlushMode::staged_and_buffered);
-    if (!staged_ && (buffer_.empty() || !flush_buffer))
+    bool const has_buffered_losses = flush_buffer
+                                     && buffer_accum_.lost_primaries > 0;
+    if (!staged_ && (buffer_.empty() || !flush_buffer) && !has_buffered_losses)
     {
         return;
     }
@@ -443,6 +445,13 @@ void LocalTransporter::flush_impl(FlushMode mode)
             << " cumulative kinetic energy from " << lost_primaries
             << " primaries that started outside the geometry in event "
             << event_id_;
+    }
+    if (!staged_ && buffer_.empty())
+    {
+        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+        buffer_accum_ = {};
+        track_reconstruction_->clear();
+        return;
     }
 
     if (run_accum_.steps == 0)
@@ -503,6 +512,11 @@ void LocalTransporter::flush_impl(FlushMode mode)
             CELER_VALIDATE_OR_KILL_ACTIVE(
                 !interrupted(), << "caught interrupt signal", *step_);
         }
+    }
+    if (flush_buffer && buffer_.empty() && buffer_accum_.lost_primaries > 0)
+    {
+        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+        buffer_accum_ = {};
     }
 
     if (hit_processor_)

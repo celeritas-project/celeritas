@@ -272,6 +272,18 @@ TEST_F(SimpleComptonTest, stage_primaries_host)
     this->run_staged_first_step<MemSpace::host>();
 }
 
+TEST_F(SimpleComptonTest, fail_stage_primaries_twice)
+{
+    size_type num_primaries = 32;
+    size_type num_tracks = 64;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto primaries = this->make_primaries(num_primaries);
+    step.stage_primaries(make_span(primaries));
+
+    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+}
+
 TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(stage_primaries_device))
 {
     this->run_staged_first_step<MemSpace::device>();

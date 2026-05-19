@@ -156,6 +156,8 @@ auto Stepper<M>::operator()() -> result_type
  * still synchronize internally while updating counters; a future non-blocking
  * stepper interface should build on this staging split without assuming this
  * function is fully asynchronous.
+ *
+ * \pre No primaries are currently staged.
  */
 template<MemSpace M>
 void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
@@ -176,6 +178,10 @@ void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
                    << " exceeds max_events=" << params_->init()->max_events());
 
     auto counters = state_->sync_get_counters();
+    CELER_VALIDATE(counters.num_pending == 0,
+                   << "cannot stage " << primaries.size()
+                   << " primaries while " << counters.num_pending
+                   << " primaries are already pending");
     counters.num_pending = primaries.size();
     state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
