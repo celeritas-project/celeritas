@@ -573,6 +573,10 @@ TEST_F(MultiLevelTest, path_round_trip)
         }
         EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
     }
+
+    // Special case with overflow: starting with nullid and adding world
+    // instance should result in world instance
+    EXPECT_EQ(world_unique_instance, acc(nullid, vols.world_instance()));
 }
 
 //---------------------------------------------------------------------------//

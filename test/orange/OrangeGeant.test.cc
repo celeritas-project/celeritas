@@ -260,7 +260,9 @@ TEST_F(MultiLevelTest, unique_instance)
     {
         SCOPED_TRACE(::testing::Message{} << "(x,y) = " << xy);
         gtv = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
-        VolumeUniqueInstanceId uid = world_unique_instance;
+
+        // Accumulate all levels, *including* world
+        VolumeUniqueInstanceId uid;
         gtv.foreach_volume_instance_level(
             [&uid, accum](VolumeInstanceId vi_id) { uid = accum(uid, vi_id); });
 

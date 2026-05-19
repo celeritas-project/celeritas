@@ -81,7 +81,7 @@ class OrangeTrackView
     inline CELER_FUNCTION VolumeLevelId volume_level() const;
     // Get the volume instance ID for all universe levels
     inline CELER_FUNCTION void volume_instance_id(Span<VolumeInstanceId>) const;
-    // Visit every volume instance in the track's path
+    // Visit every volume instance in the track's path, including world
     template<class F>
     inline CELER_FUNCTION void foreach_volume_instance_level(F&& visit) const;
 
