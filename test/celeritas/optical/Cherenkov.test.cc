@@ -9,18 +9,16 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/StateDataStore.hh"
-#include "corecel/grid/VectorUtils.hh"
-#include "corecel/math/Algorithms.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
-#include "corecel/random/distribution/PoissonDistribution.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/MaterialParams.hh"
@@ -30,7 +28,7 @@
 #include "celeritas/optical/gen/CherenkovOffload.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  //IWYU pragma: keep
 
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
@@ -366,7 +364,11 @@ TEST_F(CherenkovWaterTest, generator)
         for (size_type i = 0; i < num_samples; ++i)
         {
             auto const dist = pre_generate(rng);
-            CELER_ASSERT(dist);
+            if (!dist)
+            {
+                // No photons sampled
+                continue;
+            }
 
             // Sample the optical photons
             optical::CherenkovGenerator generate_photon(
@@ -503,7 +505,49 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
         }
     }
+
+    // 100 MeV e-, nearly along +z
+    {
+        // Pre-step values
+        OffloadPreStepData pre_step;
+        pre_step.pos = {0, 0, 0};
+        pre_step.time = 0;
+        pre_step.material = material_id;
+
+        // Post-step values: 1e-2cm step
+        auto particle
+            = this->make_particle_track_view(Energy(100), pdg::electron());
+        pre_step.speed = units::LightSpeed{
+            0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
+        auto sim = this->make_sim_track_view(1e-2);
+        Real3 end_pos = pre_step.pos;
+        axpy(sim.step_length(), make_unit_vector(Real3{1e-6, 0, 1}), &end_pos);
+
+        // clang-format off
+        static double const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8460, 1580, 0};
+        static double const expected_energy_dist[]
+            = {598, 547, 543, 591, 631, 588, 628, 623, 611, 610, 642, 669, 659, 715, 678, 707};
+        static double const expected_displacement_dist[]
+            = {638, 591, 606, 592, 645, 627, 668, 625, 615, 617, 599, 639, 641, 683, 641, 613};
+        // clang-format on
+
+        sample(pre_step, particle, sim, end_pos, 1024);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.73040912893585, avg_costheta);
+            EXPECT_SOFT_EQ(4.0689501840068e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.0050358710662084, avg_displacement);
+            EXPECT_SOFT_EQ(156.875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(12.835458167331, avg_engine_samples);
+        }
+    }
 }
+
 class CherenkovAirTest : public CherenkovTest
 {
   public:
