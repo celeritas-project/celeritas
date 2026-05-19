@@ -112,6 +112,9 @@ class VecgeomTrackView
     // Get the volume instance ID for all levels
     inline CELER_FUNCTION void
     volume_instance_id(Span<VolumeInstanceId> levels) const;
+    // Visit every volume instance in the track's path, including world
+    template<class F>
+    inline CELER_FUNCTION void foreach_volume_path(F&& visit) const;
 
     // Get the current volume's ID
     inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
@@ -354,14 +357,30 @@ CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 CELER_FUNCTION void
 VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
-                 == this->volume_level() + 1);
-    for (auto lev : range(levels.size()))
+    this->foreach_volume_path(
+        [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
+            CELER_EXPECT(lev < levels.size());
+            CELER_EXPECT(vol_inst);
+            levels[*lev] = vol_inst;
+        });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Apply the function with the volume instance ID and level.
+ *
+ * This can be used to construct a unique volume instance ID or fill a vector
+ * with volume levels. It is performed in global-to-local order.
+ */
+template<class F>
+CELER_FUNCTION void VecgeomTrackView::foreach_volume_path(F&& visit) const
+{
+    for (auto lev : range(this->volume_level() + 1))
     {
-        VgPlacedVol const* pv = vgstate_.At(lev);
+        VgPlacedVol const* pv = vgstate_.At(*lev);
         CELER_ASSERT(pv);
         auto ipv_id = id_cast<ImplVolInstanceId>(pv->id());
-        levels[lev] = params_.volume_instances[ipv_id];
+        visit(lev, params_.volume_instances[ipv_id]);
     }
 }
 
