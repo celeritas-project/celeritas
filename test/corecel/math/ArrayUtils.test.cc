@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "corecel/math/ArrayUtils.hh"
 
+#include "corecel/Constants.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/Constants.hh"
+#include "corecel/math/ArrayOperators.hh"
 
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -18,8 +19,6 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-inline constexpr auto m_pi = constants::pi;
-
 using Real3 = Array<real_type, 3>;
 using Dbl3 = Array<double, 3>;
 
@@ -152,14 +151,14 @@ TEST(ArrayUtilsTest, is_soft_unit_vector)
     EXPECT_FALSE(is_soft_unit_vector(Real3{nan, 1, 0}));
 }
 
-TEST(ArrayUtilsTest, rotate)
+TEST(RotateTest, basic)
 {
     Dbl3 vec = make_unit_vector(Dbl3{-1.1, 2.3, 0.9});
 
-    // transform through some directions
+    // Transform through some directions
     double costheta = std::cos(2.0 / 3.0);
     double sintheta = std::sqrt(1.0 - ipow<2>(costheta));
-    double phi = 2 * m_pi / 3.0;
+    double phi = 2 * constants::pi / 3.0;
 
     double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
     Dbl3 expected
@@ -179,27 +178,13 @@ TEST(ArrayUtilsTest, rotate)
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
     EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, {0.0, 0.0, 1.0}));
 
-    // Transform almost degenerate vector
-    vec = make_unit_vector(Dbl3{3e-8, 4e-8, 1});
-    EXPECT_VEC_SOFT_EQ(
-        (Dbl3{-0.613930085414816, 0.0739664834328671, 0.785887275346237}),
-        rotate(scatter, vec));
-
-    // Transform a range of more almost-degenerate vectors
-    for (auto eps : {1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8})
     {
-        vec = make_unit_vector(Dbl3{-eps, 2 * eps, 1 - eps * eps});
-        Dbl3 result = rotate(scatter, vec);
-        EXPECT_SOFT_EQ(1.0, dot_product(result, result))
-            << "for eps=" << eps << " => vec=" << vec;
-    }
+        // Test non-unit result failure from KN demo kernel
+        scatter = {-0.49359585864063, 0.814702199615169, -0.304341016419122};
+        EXPECT_SOFT_EQ(0.0, dot_product(scatter, scatter) - 1);
+        vec = {0.00208591611691868, 0.00328080730344347, 0.999992442600138};
+        EXPECT_SOFT_EQ(0.0, dot_product(vec, vec) - 1);
 
-    // Test non-unit result failure from KN demo kernel
-    scatter = {-0.49359585864063, 0.814702199615169, -0.304341016419122};
-    EXPECT_SOFT_EQ(0.0, dot_product(scatter, scatter) - 1);
-    vec = {0.00208591611691868, 0.00328080730344347, 0.999992442600138};
-    EXPECT_SOFT_EQ(0.0, dot_product(vec, vec) - 1);
-    {
         auto result = rotate(scatter, vec);
         EXPECT_SOFT_EQ(0.0, dot_product(result, result) - 1);
         // The expected value below is from using the regular/non-fallback
@@ -209,17 +194,47 @@ TEST(ArrayUtilsTest, rotate)
             result,
             20 * SoftEqual<double>{}.rel());
     }
+}
 
-    // Switch scattered z direction
-    costheta *= -1;
-    scatter = from_spherical(costheta, phi);
+TEST(RotateTest, degenerate)
+{
+    // Transform a range of more almost-degenerate vectors
+    auto scatter = from_spherical(std::cos(2.0 / 3.0), 2.0 * constants::pi / 3);
+    for (auto eps : {1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8})
+    {
+        Dbl3 vec = make_unit_vector(Dbl3{-eps, 2 * eps, 1 - eps * eps});
+        Dbl3 result = rotate(scatter, vec);
+        EXPECT_SOFT_EQ(1.0, dot_product(result, result))
+            << "for eps=" << eps << " => vec=" << vec;
+    }
 
-    expected = {-sintheta * cos(phi), sintheta * sin(phi), -costheta};
+    // Transform a different almost degenerate vector
+    EXPECT_VEC_SOFT_EQ(
+        (Dbl3{-0.613930085414816, 0.0739664834328671, 0.785887275346237}),
+        rotate(scatter, make_unit_vector(Dbl3{3e-8, 4e-8, 1})));
+
+    // Transform fully degenerate vector
+    Dbl3 const dir{-0.613930085414816, 0.0739664834328671, 0.785887275346237};
+    EXPECT_VEC_SOFT_EQ(dir, rotate(dir, Dbl3{0, 0, 1}));
+    EXPECT_VEC_SOFT_EQ(-dir, rotate(-dir, Dbl3{0, 0, 1}));
+    EXPECT_VEC_SOFT_EQ((Dbl3{-dir[0], dir[1], -dir[2]}),
+                       rotate(dir, Dbl3{0, 0, -1}));
+}
+
+TEST(RotateTest, neg_z)
+{
+    // Transform from negative Z direction
+    double costheta = -std::cos(2.0 / 3.0);
+    double sintheta = std::sqrt(1.0 - ipow<2>(costheta));
+    double phi = 2 * constants::pi / 3.0;
+
+    Dbl3 scatter = from_spherical(costheta, phi);
+
+    Dbl3 expected = {-sintheta * cos(phi), sintheta * sin(phi), -costheta};
     EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, {0.0, 0.0, -1.0}));
 
     expected = {sintheta * cos(phi), sintheta * sin(phi), costheta};
-    vec = rotate(scatter, {0.0, 0.0, 1.0});
-    EXPECT_VEC_SOFT_EQ(expected, vec);
+    EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, {0.0, 0.0, 1.0}));
 }
 
 //---------------------------------------------------------------------------//
