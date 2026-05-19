@@ -13,20 +13,24 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
+#include "geocel/UniqueVolumeToString.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumePathAccumulator.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
+#include "celeritas/random/ElementSelector.hh"
 
 #include "OrangeTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
+#include "gtest/gtest.h"
 
 namespace celeritas
 {
@@ -247,13 +251,52 @@ TEST_F(MultiLevelTest, unique_instance)
 {
     auto gtv = this->make_geo_track_view().track_view();
     VolumePathAccumulator accum{this->volumes()->host_ref()};
-    VolumeUniqueInstanceId uid = world_unique_instance;
+    UniqueVolumeToString to_string_path{this->volumes()};
+    auto max_uid = this->volumes()->num_unique_instances();
+
+    std::vector<std::string> paths;
+
     for (auto xy : this->impl().get_test_points())
     {
+        SCOPED_TRACE(::testing::Message{} << "(x,y) = " << xy);
         gtv = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+        VolumeUniqueInstanceId uid = world_unique_instance;
         gtv.foreach_volume_instance_level(
             [&uid, accum](VolumeInstanceId vi_id) { uid = accum(uid, vi_id); });
+
+        if (uid < max_uid)
+        {
+            paths.emplace_back(to_string_path(uid));
+        }
+        else
+        {
+            paths.emplace_back("ERROR@" + stream_to_string(xy));
+        }
     }
+
+    // See MultiLevelGeoTest::test_volume_stack
+    static char const* const expected_paths[] = {
+        "world_PV",
+        "world_PV/topsph1",
+        "world_PV/topbox1/boxsph1@0",
+        "world_PV/topbox1",
+        "world_PV/topbox1/boxtri@0",
+        "world_PV/topbox1/boxsph2@0",
+        "world_PV/topbox2/boxsph1@0",
+        "world_PV/topbox2",
+        "world_PV/topbox2/boxtri@0",
+        "world_PV/topbox2/boxsph2@0",
+        "world_PV/topbox4/boxtri@1",
+        "world_PV/topbox4/boxsph2@1",
+        "world_PV/topbox4/boxsph1@1",
+        "world_PV/topbox4",
+        "world_PV/topbox3",
+        "world_PV/topbox3/boxsph2@0",
+        "world_PV/topbox3/boxsph1@0",
+        "world_PV/topbox3/boxtri@0",
+    };
+
+    EXPECT_VEC_EQ(expected_paths, paths);
 }
 
 // Test that the reconstructed total levels are correct
