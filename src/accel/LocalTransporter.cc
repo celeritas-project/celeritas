@@ -407,17 +407,16 @@ void LocalTransporter::flush_impl(bool flush_buffer)
 
     ScopedProfiling profile_this("flush");
 
-    if (celeritas::device() && !buffer_.empty())
+    if (celeritas::device() && (staged_ || (flush_buffer && !buffer_.empty())))
     {
         auto const num_primaries = staged_.buffer.size()
                                    + (flush_buffer ? buffer_.size() : 0);
         auto const energy = staged_.accum.energy
                             + (flush_buffer ? buffer_accum_.energy : 0);
-        CELER_LOG_LOCAL(debug)
-            << "Transporting " << num_primaries << " tracks ("
-            << units::ClhepEnergy{energy}
-            << " cumulative kinetic energy) from event "
-            << event_id_ << " with Celeritas";
+        CELER_LOG_LOCAL(debug) << "Transporting " << num_primaries
+                               << " tracks (" << units::ClhepEnergy{energy}
+                               << " cumulative kinetic energy) from event "
+                               << event_id_ << " with Celeritas";
     }
     auto const lost_energy = staged_.accum.lost_energy
                              + (flush_buffer ? buffer_accum_.lost_energy : 0);
@@ -448,16 +447,6 @@ void LocalTransporter::flush_impl(bool flush_buffer)
      */
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
-    // Copy buffered tracks to device and transport the first step
-    auto track_counts = (*step_)();
-    ++run_accum_.flushes;
-    run_accum_.steps += track_counts.active;
-    run_accum_.primaries += staged_.buffer.size();
-    run_accum_.lost_primaries += staged_.accum.lost_primaries;
-    trace(track_counts);
-
-    this->clear_staged();
-
     while (staged_ || (flush_buffer && !buffer_.empty()))
     {
         if (!staged_)
@@ -475,6 +464,7 @@ void LocalTransporter::flush_impl(bool flush_buffer)
 
         // Transport the staged primaries for the first step
         auto track_counts = (*step_)();
+        ++run_accum_.flushes;
         run_accum_.steps += track_counts.active;
         run_accum_.primaries += staged_.buffer.size();
         run_accum_.lost_primaries += staged_.accum.lost_primaries;
@@ -512,6 +502,7 @@ void LocalTransporter::flush_impl(bool flush_buffer)
             run_accum_.hits += num_hits;
         }
     }
+    track_reconstruction_->clear();
 }
 
 //---------------------------------------------------------------------------//
