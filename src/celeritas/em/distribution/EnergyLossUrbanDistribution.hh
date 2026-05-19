@@ -270,7 +270,7 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             mean += xs_exc_[i] * binding_energy_[i];
             variance += xs_exc_[i] * ipow<2>(binding_energy_[i]);
         }
-        else if (xs_exc_[i] > 0)
+        else
         {
             // The loss due to excitation is \f$ \Delta E_{exc} = n_1 E_1 + n_2
             // E_2 \f$, where the number of collisions \f$ n_i \f$ is sampled
