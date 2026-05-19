@@ -150,6 +150,12 @@ auto Stepper<M>::operator()() -> result_type
 //---------------------------------------------------------------------------//
 /*!
  * Stage primaries for transport.
+ *
+ * This validates and inserts primaries into the stepper state but does not
+ * execute transport actions. In device mode the current implementation may
+ * still synchronize internally while updating counters; a future non-blocking
+ * stepper interface should build on this staging split without assuming this
+ * function is fully asynchronous.
  */
 template<MemSpace M>
 void Stepper<M>::stage_primaries(SpanConstPrimary primaries)

@@ -253,6 +253,11 @@ void LocalTransporter::InitializeEvent(int id)
 //---------------------------------------------------------------------------//
 /*!
  * Stage buffered primaries for transport.
+ *
+ * This overlaps primary staging, including the device H2D copy, with later
+ * Geant4 \c Push calls. It does not start GPU transport: same-stream ordering
+ * guarantees that when stepping begins later, kernels observe the copied
+ * primaries. Only one staged batch is currently supported.
  */
 void LocalTransporter::stage_buffer()
 {
@@ -267,6 +272,8 @@ void LocalTransporter::stage_buffer()
     step_->stage_primaries(make_span(staged_.buffer));
     if (celeritas::device())
     {
+        // Protect pinned host buffer lifetime/reuse until the H2D copy has
+        // completed. This event is not needed for copy-before-kernel ordering.
         staged_.copy_done = DeviceEvent{celeritas::device()};
         staged_.copy_done.record(
             celeritas::device().stream(step_->state().stream_id()));
@@ -373,6 +380,11 @@ void LocalTransporter::Push(G4Track& g4track)
         {
             if (staged_)
             {
+                /*!
+                 * \todo Replace this blocking backpressure point with
+                 * non-blocking Stepper progress once async step execution can
+                 * be queried.
+                 */
                 this->flush_impl(false);
             }
             this->stage_buffer();
