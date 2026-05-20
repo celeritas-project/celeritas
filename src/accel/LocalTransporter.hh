@@ -50,6 +50,14 @@ class StepperInterface;
  *   of the event)
  * - a tracking action (to try offloading every track)
  *
+ * LocalTransporter keeps two host primary buffers. Geant4 tracks are
+ * validated, converted to Celeritas primaries, and accumulated in the primary
+ * buffer. In device mode, a full primary buffer is swapped into the staging
+ * buffer so Stepper can queue the H2D copy while Geant4 continues filling the
+ * primary buffer. Transport later consumes the staging buffer and, at event
+ * end, any remaining primary buffer contents. Host mode transports the primary
+ * buffer synchronously.
+ *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
  */
@@ -72,7 +80,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int) final;
 
-    // Transport all buffered tracks to completion
+    // Transport all local primary/staging buffer tracks to completion
     void Flush() final;
 
     // Clear local data and return to an invalid state
@@ -81,10 +89,10 @@ class LocalTransporter final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
 
-    // Number of buffered tracks
+    // Number of local primary/staging buffer tracks
     size_type GetBufferSize() const final
     {
-        return buffer_.size() + staged_.buffer.size();
+        return primary_buffer_.size() + staging_buffer_.size();
     }
 
     // Get accumulated action times
@@ -113,7 +121,7 @@ class LocalTransporter final : public TrackOffloadInterface
     enum class FlushMode
     {
         staged_only,
-        staged_and_buffered,
+        staged_and_primary,
     };
 
     struct BufferAccum
@@ -133,30 +141,44 @@ class LocalTransporter final : public TrackOffloadInterface
         std::size_t hits{0};
     };
 
-    struct StagedPrimaries
+    struct PrimaryBuffer
     {
-        PinnedVecPrimary buffer;
+        PinnedVecPrimary primaries;
         BufferAccum accum;
-        DeviceEvent copy_done{nullptr};
 
-        explicit operator bool() const { return !buffer.empty(); }
+        bool empty() const { return primaries.empty(); }
+        size_type size() const { return primaries.size(); }
+        void clear()
+        {
+            primaries.clear();
+            accum = {};
+        }
+        explicit operator bool() const { return !this->empty(); }
     };
 
     //// HELPER FUNCTIONS ////
 
-    void stage_buffer();
-    void clear_staged();
+    void stage_primary_buffer();
+    void clear_staging_buffer();
     void flush_impl(FlushMode);
+    static bool flushes_primary(FlushMode);
 
     //// DATA ////
 
+    // Shared problem data and local configuration
     std::shared_ptr<ParticleParams const> particles_;
     BBox bbox_;
+    SPOffloadWriter dump_primaries_;
+    size_type auto_flush_{};
+    size_type max_step_iters_{};
 
-    // Thread-local data
+    // Thread-local stepper data
     std::shared_ptr<StepperInterface> step_;
-    PinnedVecPrimary buffer_;
-    StagedPrimaries staged_;
+    PrimaryBuffer primary_buffer_;
+    PrimaryBuffer staging_buffer_;
+    DeviceEvent staging_copy_done_{nullptr};
+
+    // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
@@ -165,14 +187,8 @@ class LocalTransporter final : public TrackOffloadInterface
     int event_id_{-1};
     G4EventManager* event_manager_{nullptr};
 
-    size_type auto_flush_{};
-    size_type max_step_iters_{};
-
-    BufferAccum buffer_accum_;
+    // Run summary diagnostics
     RunAccum run_accum_;
-
-    // Shared across threads to write flushed particles
-    SPOffloadWriter dump_primaries_;
 };
 
 //---------------------------------------------------------------------------//

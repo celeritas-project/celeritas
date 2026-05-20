@@ -147,8 +147,8 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : max_step_iters_(options.max_step_iters)
-    , dump_primaries_{params.offload_writer()}
+    : dump_primaries_{params.offload_writer()}
+    , max_step_iters_(options.max_step_iters)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local transporter when Celeritas "
@@ -170,8 +170,8 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
             celeritas::Device::num_devices());
         auto_flush_ = capacity.primaries / params.Params()->max_streams();
     }
-    buffer_.reserve(auto_flush_);
-    staged_.buffer.reserve(auto_flush_);
+    primary_buffer_.primaries.reserve(auto_flush_);
+    staging_buffer_.primaries.reserve(auto_flush_);
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
@@ -206,7 +206,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
-        staged_.copy_done = DeviceEvent{celeritas::device()};
+        staging_copy_done_ = DeviceEvent{celeritas::device()};
     }
     else
     {
@@ -253,54 +253,53 @@ void LocalTransporter::InitializeEvent(int id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Stage buffered primaries for transport.
+ * Stage primary-buffer primaries for transport.
  *
  * This overlaps primary staging, including the device H2D copy, with later
  * Geant4 \c Push calls. It does not start GPU transport: same-stream ordering
  * guarantees that when stepping begins later, kernels observe the copied
- * primaries. Only one staged batch is currently supported.
+ * primaries. Only one staging-buffer batch is currently supported.
  */
-void LocalTransporter::stage_buffer()
+void LocalTransporter::stage_primary_buffer()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(!buffer_.empty());
-    CELER_EXPECT(!staged_);
+    CELER_EXPECT(!primary_buffer_.empty());
+    CELER_EXPECT(!staging_buffer_);
 
-    staged_.buffer.swap(buffer_);
-    staged_.accum = buffer_accum_;
-    buffer_accum_ = {};
+    staging_buffer_.primaries.swap(primary_buffer_.primaries);
+    staging_buffer_.accum = primary_buffer_.accum;
+    primary_buffer_.accum = {};
 
-    step_->stage_primaries(make_span(staged_.buffer));
+    step_->stage_primaries(make_span(staging_buffer_.primaries));
     if (celeritas::device())
     {
         // Protect pinned host buffer lifetime/reuse until the H2D copy has
         // completed. This event is not needed for copy-before-kernel ordering.
-        staged_.copy_done.record(
+        staging_copy_done_.record(
             celeritas::device().stream(step_->state().stream_id()));
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear staged primaries after transport has started.
+ * Clear the staging buffer after transport has started.
  */
-void LocalTransporter::clear_staged()
+void LocalTransporter::clear_staging_buffer()
 {
     CELER_EXPECT(*this);
-    staged_.copy_done.sync();
+    staging_copy_done_.sync();
 
-    staged_.buffer.clear();
-    if (buffer_.empty())
+    staging_buffer_.clear();
+    if (primary_buffer_.empty())
     {
         // Preserve allocated pinned storage for the next flush.
-        buffer_.swap(staged_.buffer);
+        primary_buffer_.primaries.swap(staging_buffer_.primaries);
     }
-    staged_.accum = {};
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 track to a Celeritas primary and add to buffer.
+ * Convert a Geant4 track to a Celeritas primary and add to the primary buffer.
  */
 void LocalTransporter::Push(G4Track& g4track)
 {
@@ -311,7 +310,7 @@ void LocalTransporter::Push(G4Track& g4track)
     // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the
     // track
-    if (CELER_UNLIKELY(buffer_.empty()))
+    if (CELER_UNLIKELY(primary_buffer_.empty()))
     {
         if (CELER_UNLIKELY(!event_manager_))
         {
@@ -343,8 +342,8 @@ void LocalTransporter::Push(G4Track& g4track)
             << " from " << gtv.particle().name() << " at " << gtv.pos()
             << " along " << gtv.dir();
 
-        buffer_accum_.lost_energy += gtv.energy().value();
-        ++buffer_accum_.lost_primaries;
+        primary_buffer_.accum.lost_energy += gtv.energy().value();
+        ++primary_buffer_.accum.lost_primaries;
         return;
     }
 
@@ -368,13 +367,13 @@ void LocalTransporter::Push(G4Track& g4track)
      */
     track.event_id = EventId{0};
 
-    buffer_.push_back(track);
-    buffer_accum_.energy += gtv.energy().value();
-    if (buffer_.size() >= auto_flush_)
+    primary_buffer_.primaries.push_back(track);
+    primary_buffer_.accum.energy += gtv.energy().value();
+    if (primary_buffer_.size() >= auto_flush_)
     {
         if (celeritas::device())
         {
-            if (staged_)
+            if (staging_buffer_)
             {
                 /*!
                  * \todo Replace this blocking backpressure point with
@@ -383,7 +382,7 @@ void LocalTransporter::Push(G4Track& g4track)
                  */
                 this->flush_impl(FlushMode::staged_only);
             }
-            this->stage_buffer();
+            this->stage_primary_buffer();
         }
         else
         {
@@ -394,46 +393,60 @@ void LocalTransporter::Push(G4Track& g4track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the buffered tracks and all secondaries produced.
+ * Transport the primary-buffer tracks and all secondaries produced.
  */
 void LocalTransporter::Flush()
 {
-    this->flush_impl(FlushMode::staged_and_buffered);
+    this->flush_impl(FlushMode::staged_and_primary);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport staged tracks, optionally including buffered tracks.
+ * Whether this flush includes the primary buffer.
+ */
+bool LocalTransporter::flushes_primary(FlushMode mode)
+{
+    return mode == FlushMode::staged_and_primary;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport staged tracks, optionally including primary-buffer tracks.
  */
 void LocalTransporter::flush_impl(FlushMode mode)
 {
     CELER_EXPECT(*this);
-    bool const flush_buffer = (mode == FlushMode::staged_and_buffered);
-    bool const has_buffered_losses = flush_buffer
-                                     && buffer_accum_.lost_primaries > 0;
-    if (!staged_ && (buffer_.empty() || !flush_buffer) && !has_buffered_losses)
+    bool const flush_primary = LocalTransporter::flushes_primary(mode);
+    bool const has_primary_losses
+        = flush_primary && primary_buffer_.accum.lost_primaries > 0;
+    if (!staging_buffer_ && (primary_buffer_.empty() || !flush_primary)
+        && !has_primary_losses)
     {
         return;
     }
 
     ScopedProfiling profile_this("flush");
 
-    if (celeritas::device() && (staged_ || (flush_buffer && !buffer_.empty())))
+    if (celeritas::device()
+        && (staging_buffer_ || (flush_primary && !primary_buffer_.empty())))
     {
-        auto const num_primaries = staged_.buffer.size()
-                                   + (flush_buffer ? buffer_.size() : 0);
-        auto const energy = staged_.accum.energy
-                            + (flush_buffer ? buffer_accum_.energy : 0);
+        auto const num_primaries
+            = staging_buffer_.size()
+              + (flush_primary ? primary_buffer_.size() : 0);
+        auto const energy
+            = staging_buffer_.accum.energy
+              + (flush_primary ? primary_buffer_.accum.energy : 0);
         CELER_LOG_LOCAL(debug) << "Transporting " << num_primaries
                                << " tracks (" << units::ClhepEnergy{energy}
                                << " cumulative kinetic energy) from event "
                                << event_id_ << " with Celeritas";
     }
-    auto const lost_energy = staged_.accum.lost_energy
-                             + (flush_buffer ? buffer_accum_.lost_energy : 0);
+    auto const lost_energy
+        = staging_buffer_.accum.lost_energy
+          + (flush_primary ? primary_buffer_.accum.lost_energy : 0);
     auto const lost_primaries
-        = staged_.accum.lost_primaries
-          + (flush_buffer ? buffer_accum_.lost_primaries : 0);
+        = staging_buffer_.accum.lost_primaries
+          + (flush_primary ? primary_buffer_.accum.lost_primaries : 0);
     if (lost_primaries > 0)
     {
         CELER_LOG_LOCAL(info)
@@ -442,10 +455,10 @@ void LocalTransporter::flush_impl(FlushMode mode)
             << " primaries that started outside the geometry in event "
             << event_id_;
     }
-    if (!staged_ && buffer_.empty())
+    if (!staging_buffer_ && primary_buffer_.empty())
     {
-        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
-        buffer_accum_ = {};
+        run_accum_.lost_primaries += primary_buffer_.accum.lost_primaries;
+        primary_buffer_.clear();
         track_reconstruction_->clear();
         return;
     }
@@ -465,18 +478,18 @@ void LocalTransporter::flush_impl(FlushMode mode)
      */
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
-    while (staged_ || (flush_buffer && !buffer_.empty()))
+    while (staging_buffer_ || (flush_primary && !primary_buffer_.empty()))
     {
-        if (!staged_)
+        if (!staging_buffer_)
         {
-            this->stage_buffer();
+            this->stage_primary_buffer();
         }
 
         if (dump_primaries_)
         {
             // Write offload particles if user requested
-            std::vector<Primary> dump_buffer(staged_.buffer.begin(),
-                                             staged_.buffer.end());
+            std::vector<Primary> dump_buffer(staging_buffer_.primaries.begin(),
+                                             staging_buffer_.primaries.end());
             (*dump_primaries_)(dump_buffer);
         }
 
@@ -484,11 +497,11 @@ void LocalTransporter::flush_impl(FlushMode mode)
         auto track_counts = (*step_)();
         ++run_accum_.flushes;
         run_accum_.steps += track_counts.active;
-        run_accum_.primaries += staged_.buffer.size();
-        run_accum_.lost_primaries += staged_.accum.lost_primaries;
+        run_accum_.primaries += staging_buffer_.size();
+        run_accum_.lost_primaries += staging_buffer_.accum.lost_primaries;
         trace(track_counts);
 
-        this->clear_staged();
+        this->clear_staging_buffer();
 
         size_type step_iters = 1;
 
@@ -509,11 +522,11 @@ void LocalTransporter::flush_impl(FlushMode mode)
                 !interrupted(), << "caught interrupt signal", *step_);
         }
     }
-    if (flush_buffer && buffer_accum_.lost_primaries > 0)
+    if (flush_primary && primary_buffer_.accum.lost_primaries > 0)
     {
-        CELER_ASSERT(buffer_.empty());
-        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
-        buffer_accum_ = {};
+        CELER_ASSERT(primary_buffer_.empty());
+        run_accum_.lost_primaries += primary_buffer_.accum.lost_primaries;
+        primary_buffer_.clear();
     }
 
     if (hit_processor_)
@@ -526,7 +539,7 @@ void LocalTransporter::flush_impl(FlushMode mode)
             run_accum_.hits += num_hits;
         }
     }
-    if (buffer_.empty())
+    if (primary_buffer_.empty())
     {
         track_reconstruction_->clear();
     }
