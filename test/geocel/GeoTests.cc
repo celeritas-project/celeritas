@@ -341,10 +341,8 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     }
     if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
     {
-        // VecGeom surface overpredicts even more
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
-        expected_all_stacks[5] = expected_all_stacks.front();
     }
 
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
@@ -422,7 +420,6 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
