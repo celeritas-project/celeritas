@@ -9,13 +9,13 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
-#include "corecel/data/AuxInterface.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/data/StateDataStore.hh"
+#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
-#include "OffloadData.hh"
 #include "../Types.hh"
 
 namespace celeritas
