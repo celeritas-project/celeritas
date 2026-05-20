@@ -128,6 +128,12 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     delta_num_photons_ = dndx_post - dndx_pre_;
     delta_speed_ = post_step.speed - pre_step.speed;
 
+    if (CELER_UNLIKELY(delta_pos_[0] == 0 && delta_pos_[1] == 0
+                       && delta_pos_[2] == 0))
+    {
+        delta_pos_ = {1, 0, 0};
+    }
+
     // Incident particle direction
     dir_ = make_unit_vector(delta_pos_);
 }

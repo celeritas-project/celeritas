@@ -563,7 +563,6 @@ TEST_F(CherenkovWaterTest, generator)
         auto sim = this->make_sim_track_view(1e-4);
         Real3 end_pos = pre_step.pos;
         axpy(sim.step_length(), make_unit_vector(Real3{0, 0, 1}), &end_pos);
-        cout << "from " << repr(pre_step.pos) << " -> " << repr(end_pos);
 
         sample(pre_step, particle, sim, end_pos, 128);
 
