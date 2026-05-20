@@ -161,7 +161,6 @@ class LocalTransporter final : public TrackOffloadInterface
     void stage_primary_buffer();
     void clear_staging_buffer();
     void flush_impl(FlushMode);
-    static bool flushes_primary(FlushMode);
 
     //// DATA ////
 

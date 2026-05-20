@@ -263,7 +263,7 @@ void LocalTransporter::InitializeEvent(int id)
 void LocalTransporter::stage_primary_buffer()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(!primary_buffer_.empty());
+    CELER_EXPECT(primary_buffer_);
     CELER_EXPECT(!staging_buffer_);
 
     staging_buffer_.primaries.swap(primary_buffer_.primaries);
@@ -402,21 +402,12 @@ void LocalTransporter::Flush()
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether this flush includes the primary buffer.
- */
-bool LocalTransporter::flushes_primary(FlushMode mode)
-{
-    return mode == FlushMode::staged_and_primary;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Transport staged tracks, optionally including primary-buffer tracks.
  */
 void LocalTransporter::flush_impl(FlushMode mode)
 {
     CELER_EXPECT(*this);
-    bool const flush_primary = LocalTransporter::flushes_primary(mode);
+    bool const flush_primary = mode == FlushMode::staged_and_primary;
     bool const has_primary_losses
         = flush_primary && primary_buffer_.accum.lost_primaries > 0;
     if (!staging_buffer_ && (primary_buffer_.empty() || !flush_primary)
