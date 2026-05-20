@@ -367,8 +367,6 @@ TEST_F(TwoBoxesTest, gamma_exit)
         auto const& bbox = this->geometry()->bbox();
         real_type const max_distance = distance(bbox.lower(), bbox.upper());
         real_type const exact_distance = [&geo, max_distance] {
-            // Note: exact distance may be slightly off for VecGeom surface,
-            // which applies rotation matrices to planar surfaces
             auto result = geo.find_next_step(max_distance);
             EXPECT_TRUE(result.boundary);
             EXPECT_SOFT_EQ(result.distance, 0.25);
