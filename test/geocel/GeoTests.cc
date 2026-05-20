@@ -186,12 +186,6 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom")
-        {
-            // World safety differs
-            ref.halfway_safeties[0] = 725.849243164062;
-            ref.halfway_safeties[20] = 723.549255371094;
-        }
 
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -253,11 +247,6 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom")
-        {
-            // World safety differs
-            ref.halfway_safeties[10] = 723.549255371094;
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 
@@ -486,12 +475,6 @@ void CmseGeoTest::test_trace() const
         ref.halfway_safeties = {100, 2.15, 10.302730220674, 13.023518051921,
             6.95, 6.95, 13.023518051922, 10.302730220675, 2.15, 100, 5, 8, 100,
             100, 100,};
-        if (test_->geometry_type() == "VecGeom")
-        {
-            ref.halfway_safeties = {100, 2.15,
-                9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
-                9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
-        }
         // clang-format on
 
         auto tol = test_->tracking_tol();
