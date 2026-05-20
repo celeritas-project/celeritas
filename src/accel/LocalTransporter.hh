@@ -108,7 +108,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using BBox = BoundingBox<double>;
-    using PrimaryBuffer = std::vector<Primary, PinnedAllocator<Primary>>;
+    using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
 
     enum class FlushMode
     {
@@ -135,7 +135,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     struct StagedPrimaries
     {
-        PrimaryBuffer buffer;
+        PinnedVecPrimary buffer;
         BufferAccum accum;
         DeviceEvent copy_done{nullptr};
 
@@ -155,7 +155,7 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Thread-local data
     std::shared_ptr<StepperInterface> step_;
-    PrimaryBuffer buffer_;
+    PinnedVecPrimary buffer_;
     StagedPrimaries staged_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;

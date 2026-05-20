@@ -287,10 +287,7 @@ void LocalTransporter::stage_buffer()
 void LocalTransporter::clear_staged()
 {
     CELER_EXPECT(*this);
-    if (staged_.copy_done)
-    {
-        staged_.copy_done.sync();
-    }
+    staged_.copy_done.sync();
 
     staged_.buffer.clear();
     if (buffer_.empty())
