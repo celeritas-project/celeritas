@@ -247,6 +247,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
 
     if (init.parent)
     {
+        // Copy the navigation state and position from the parent state
         if (tid_ != init.parent)
         {
             VecgeomTrackView other(params_, state_, init.parent);
