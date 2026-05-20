@@ -169,10 +169,10 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         // with skip_* before testing bounding boxes
         bool hit_first
             = !skip_first
-              && this->visit_bbox(first_bbox, ray, intersection.distance);
+              & this->visit_bbox(first_bbox, ray, intersection.distance);
         bool hit_second
             = !skip_second
-              && this->visit_bbox(second_bbox, ray, intersection.distance);
+              & this->visit_bbox(second_bbox, ray, intersection.distance);
 
         // Choose the next node on the basis of which edges are hits
         if (hit_second)
