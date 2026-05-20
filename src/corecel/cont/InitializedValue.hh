@@ -56,8 +56,7 @@ class InitializedValue
 
     //! Default copy constructor
     InitializedValue(InitializedValue const&) noexcept(
-        std::is_nothrow_copy_constructible_v<T>)
-        = default;
+        std::is_nothrow_copy_constructible_v<T>) = default;
 
     // Move constructor
     InitializedValue(InitializedValue&& other) noexcept(
