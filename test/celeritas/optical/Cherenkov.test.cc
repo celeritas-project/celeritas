@@ -546,6 +546,30 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_SOFT_EQ(12.835458167331, avg_engine_samples);
         }
     }
+
+    // 10 MeV (post-step) e-: tiny dx relative to position
+    {
+        // Pre-step values
+        OffloadPreStepData pre_step;
+        pre_step.pos = from_cm({0, 0, 1e13});
+        pre_step.time = 0;
+        pre_step.material = material_id;
+
+        // Post-step values: 1e-3cm step
+        auto particle
+            = this->make_particle_track_view(Energy(10), pdg::electron());
+        pre_step.speed = units::LightSpeed{
+            0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
+        auto sim = this->make_sim_track_view(1e-4);
+        Real3 end_pos = pre_step.pos;
+        axpy(sim.step_length(), make_unit_vector(Real3{0, 0, 1}), &end_pos);
+        cout << "from " << repr(pre_step.pos) << " -> " << repr(end_pos);
+
+        sample(pre_step, particle, sim, end_pos, 128);
+
+        EXPECT_SOFT_EQ(0.203125, total_num_photons / num_samples);
+        EXPECT_SOFT_EQ(31.692307692308, avg_engine_samples);
+    }
 }
 
 class CherenkovAirTest : public CherenkovTest
