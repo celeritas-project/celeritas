@@ -131,6 +131,7 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     if (CELER_UNLIKELY(delta_pos_[0] == 0 && delta_pos_[1] == 0
                        && delta_pos_[2] == 0))
     {
+        // See GeneratorAction::insert, which detects and warns about this
         delta_pos_ = {1, 0, 0};
     }
 

@@ -108,6 +108,21 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
  */
 void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
 {
+    for (auto const& d : data)
+    {
+        CELER_VALIDATE(d, << "invalid optical step distribution " << d);
+        if (d.points[StepPoint::pre].pos == d.points[StepPoint::pre].pos)
+        {
+            // TODO: if we buffer this on the host, it might be better to fix
+            // here rather than for every track in CherenkovOffload (see
+            // CherenkovOffload constructor)
+            CELER_LOG_LOCAL(warning)
+                << "Optical generator distribution data has undefined "
+                   "direction due to coincident start/stop points: "
+                << d;
+        }
+    }
+
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
         return this->insert_impl(*s, data);

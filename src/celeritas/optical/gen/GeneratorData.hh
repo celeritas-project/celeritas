@@ -18,6 +18,10 @@
 
 #include "../Types.hh"
 
+#if !CELER_DEVICE_COMPILE
+#    include <iosfwd>
+#endif
+
 namespace celeritas
 {
 namespace optical
@@ -66,13 +70,22 @@ struct GeneratorDistributionData
     explicit CELER_FUNCTION operator bool() const
     {
         return type != GeneratorType::size_ && num_photons > 0
-               && step_length > 0 && continuous_edep_fraction >= 0
-               && continuous_edep_fraction <= 1
-               && (points[StepPoint::pre].speed > points[StepPoint::post].speed
+               && step_length > 0
+               && (continuous_edep_fraction >= 0
+                   && continuous_edep_fraction <= 1)
+               && ((points[StepPoint::pre].speed > zero_quantity()
+                    && (points[StepPoint::pre].speed
+                        > points[StepPoint::post].speed))
                    || (type == GeneratorType::scintillation
                        && points[StepPoint::post].time
                               > points[StepPoint::pre].time));
     }
+
+#if !CELER_DEVICE_COMPILE
+    // Defined in GeneratorDataIO.json.cc
+    friend std::ostream&
+    operator<<(std::ostream& os, GeneratorDistributionData const&);
+#endif
 };
 
 //---------------------------------------------------------------------------//
