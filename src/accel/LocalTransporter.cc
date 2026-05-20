@@ -206,6 +206,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
+        staged_.copy_done = DeviceEvent{celeritas::device()};
     }
     else
     {
@@ -274,7 +275,6 @@ void LocalTransporter::stage_buffer()
     {
         // Protect pinned host buffer lifetime/reuse until the H2D copy has
         // completed. This event is not needed for copy-before-kernel ordering.
-        staged_.copy_done = DeviceEvent{celeritas::device()};
         staged_.copy_done.record(
             celeritas::device().stream(step_->state().stream_id()));
     }
@@ -296,7 +296,6 @@ void LocalTransporter::clear_staged()
         buffer_.swap(staged_.buffer);
     }
     staged_.accum = {};
-    staged_.copy_done = DeviceEvent{nullptr};
 }
 
 //---------------------------------------------------------------------------//
