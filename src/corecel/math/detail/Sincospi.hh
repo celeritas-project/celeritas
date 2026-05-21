@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <cstdint>
+
 #include "corecel/Macros.hh"
 
 namespace celeritas
