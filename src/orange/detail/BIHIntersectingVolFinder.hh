@@ -78,7 +78,6 @@ class BIHIntersectingVolFinder
     // leaf
     template<class F>
     inline CELER_FUNCTION Intersection visit_leaf(BIHNodeId leaf_node_id,
-                                                  Ray ray,
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
 
@@ -137,7 +136,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         if (!view_.is_internal(stack.top()))
         {
             intersection
-                = this->visit_leaf(stack.top(), ray, intersection, visit_vol);
+                = this->visit_leaf(stack.top(), intersection, visit_vol);
             stack.pop();
             continue;
         }
@@ -208,23 +207,16 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
 template<class F>
 CELER_FUNCTION auto
 BIHIntersectingVolFinder::visit_leaf(BIHNodeId leaf_node_id,
-                                     BIHIntersectingVolFinder::Ray ray,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.leaf_vol_ids(leaf_node_id))
     {
-        auto const& bbox = view_.bbox(id);
-
-        if (this->visit_bbox(bbox, ray, min_intersection.distance))
+        auto intersection = visit_vol(id, min_intersection.distance);
+        if (intersection)
         {
-            auto intersection = visit_vol(id, min_intersection.distance);
-            if (intersection)
-            {
-                CELER_ASSERT(intersection.distance
-                             <= min_intersection.distance);
-                min_intersection = intersection;
-            }
+            CELER_ASSERT(intersection.distance <= min_intersection.distance);
+            min_intersection = intersection;
         }
     }
     return min_intersection;
