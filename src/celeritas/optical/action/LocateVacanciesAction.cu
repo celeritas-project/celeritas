@@ -10,9 +10,11 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/TrackExecutor.hh"
+
+#include "ActionLauncher.device.hh"
+#include "../CoreParams.hh"
+#include "../CoreState.hh"
+#include "../TrackExecutor.hh"
 
 #include "detail/UpdateAliveExecutor.hh"
 

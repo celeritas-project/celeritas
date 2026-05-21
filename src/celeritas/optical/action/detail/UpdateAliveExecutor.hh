@@ -9,7 +9,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 
 namespace celeritas
