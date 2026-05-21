@@ -213,17 +213,6 @@ void Stepper<M>::reseed(UniqueEventId event_id)
 //---------------------------------------------------------------------------//
 /*!
  * Set the num_pending counter to the number of generated primaries.
- * This template should always be specialized.
- */
-// template<MemSpace M>
-// void Stepper<M>::set_generated()
-// {
-// CELER_NOT_CONFIGURED("CUDA OR HIP");
-// }
-
-//---------------------------------------------------------------------------//
-/*!
- * Set the num_pending counter to the number of generated primaries.
  */
 template<>
 void Stepper<MemSpace::host>::set_generated()
