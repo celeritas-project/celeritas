@@ -29,12 +29,13 @@ namespace celeritas
 {
 namespace optical
 {
+CoreParams* PrimaryGeneratorAction::core_params_ = nullptr;
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
  */
 std::shared_ptr<PrimaryGeneratorAction>
-PrimaryGeneratorAction::make_and_insert(CoreParams const& params, Input&& input)
+PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
@@ -46,6 +47,7 @@ PrimaryGeneratorAction::make_and_insert(CoreParams const& params, Input&& input)
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
+    core_params_ = &params;
     return result;
 }
 
@@ -72,7 +74,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
     data_.shape = std::visit(insert, inp.shape);
 
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
-
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
 }
@@ -135,7 +136,7 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
 
     auto& aux_state = this->counters(*state.aux());
     aux_state.counters.num_pending = data_.num_photons;
-    this->update_pending(state, data_.num_photons);
+    this->update_pending(*core_params_, state, data_.num_photons);
 }
 
 //---------------------------------------------------------------------------//

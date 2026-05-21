@@ -8,7 +8,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "celeritas/optical/CoreState.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 namespace celeritas
 {
@@ -27,13 +28,12 @@ struct UpdatePendingExecutor
 {
     //// DATA ////
 
-    RefPtr<CoreStateData, MemSpace::native> state;
     size_type num_photons;
 
     //// FUNCTIONS ////
 
     // Update number of of primaries waiting to be generated
-    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid);
+    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
@@ -43,13 +43,12 @@ struct UpdatePendingExecutor
  * Update number of primaries to be generated to include the buffered optical
  * photons.
  */
-CELER_FORCEINLINE_FUNCTION void UpdatePendingExecutor::operator()(ThreadId tid)
+CELER_FORCEINLINE_FUNCTION void
+UpdatePendingExecutor::operator()(CoreTrackView& track)
 {
-    CELER_EXPECT(state);
-    CELER_EXPECT(tid.get() == 0);  // Should call with only one thread
+    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 
-    auto counters = state->init.counters.data().get();
-    counters->num_pending += num_photons;
+    track.counters().num_pending += num_photons;
 }
 
 //---------------------------------------------------------------------------//

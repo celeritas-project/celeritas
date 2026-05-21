@@ -10,9 +10,10 @@
 
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
-#include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/optical/TrackExecutor.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
 
@@ -179,8 +180,11 @@ void Runner::update_pending(CoreState<MemSpace::host>& state,
                             size_type num_pending) const
 {
     // Update the number of pending optical photons
-    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
-    launch_kernel(1, execute);
+    auto execute_thread = make_single_track_executor(
+        this->params()->ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdatePendingExecutor{num_pending});
+    launch_action(1, execute_thread);
 }
 
 //---------------------------------------------------------------------------//

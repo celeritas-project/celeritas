@@ -7,9 +7,11 @@
 #include "Runner.hh"
 
 #include "corecel/Assert.hh"
-#include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/action/ActionLauncher.device.hh"
 
+#include "CoreParams.hh"
+#include "CoreState.hh"
+#include "TrackExecutor.hh"
+#include "action/ActionLauncher.device.hh"
 #include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
@@ -24,10 +26,13 @@ void Runner::update_pending(CoreState<MemSpace::device>& state,
                             size_type num_pending) const
 {
     // Update the number of pending optical photons
-    detail::UpdatePendingExecutor execute{state.ptr(), num_pending};
-    static KernelLauncher<decltype(execute)> const launch_kernel(
+    auto execute_thread = make_single_track_executor(
+        this->params()->ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdatePendingExecutor{num_pending});
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
-    launch_kernel(1, state.stream_id(), execute);
+    launch_kernel(1, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//

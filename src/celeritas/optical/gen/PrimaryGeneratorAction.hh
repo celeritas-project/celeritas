@@ -47,7 +47,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
   public:
     // Construct and add to core params
     static std::shared_ptr<PrimaryGeneratorAction>
-    make_and_insert(CoreParams const&, Input&&);
+    make_and_insert(CoreParams&, Input&&);
 
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
@@ -76,6 +76,9 @@ class PrimaryGeneratorAction final : public GeneratorBase
 
     PrimaryDistributionData data_;
     ParamsDataStore<DistributionParamsData> params_;
+    // Core params isn't passed to insert(), so save a pointer so
+    // update_pending() can be called later
+    static CoreParams* core_params_;
 
     //// HELPER FUNCTIONS ////
 

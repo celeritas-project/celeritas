@@ -25,6 +25,8 @@ namespace celeritas
 {
 namespace optical
 {
+CoreParams* DirectGeneratorAction::params_ = nullptr;  // Set in
+                                                       // make_and_insert()
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -49,7 +51,7 @@ auto make_state(StreamId stream, size_type size)
  * Construct and add to core params.
  */
 std::shared_ptr<DirectGeneratorAction>
-DirectGeneratorAction::make_and_insert(CoreParams const& params)
+DirectGeneratorAction::make_and_insert(CoreParams& params)
 {
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
@@ -59,6 +61,7 @@ DirectGeneratorAction::make_and_insert(CoreParams const& params)
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
+    params_ = &params;
     return result;
 }
 
@@ -144,7 +147,7 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     // Update counters and copy distributions to aux state storage
     aux_state.counters.buffer_size = data.size();
     aux_state.counters.num_pending = data.size();
-    this->update_pending(state, data.size());
+    this->update_pending(*params_, state, data.size());
     Copier<TrackInitializer, M> copy_to_aux{aux_state.initializers(),
                                             state.stream_id()};
 
