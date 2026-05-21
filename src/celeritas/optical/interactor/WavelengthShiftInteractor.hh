@@ -90,7 +90,7 @@ WavelengthShiftInteractor::WavelengthShiftInteractor(
     CELER_EXPECT(distribution_id_ < data_.distributions.size());
     CELER_EXPECT(!data_.distributions[distribution_id_]);
 
-    if (distribution_.energy <= emission_threshold_)
+    if (particle.energy() <= emission_threshold_)
     {
         // If the incident particle energy is below the lower bound of the
         // emitted energy sampling grid, don't emit any photons
