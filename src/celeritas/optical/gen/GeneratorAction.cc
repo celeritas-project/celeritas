@@ -9,6 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -111,7 +112,7 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
     for (auto const& d : data)
     {
         CELER_VALIDATE(d, << "invalid optical step distribution " << d);
-        if (d.points[StepPoint::pre].pos == d.points[StepPoint::pre].pos)
+        if (d.points[StepPoint::pre].pos == d.points[StepPoint::post].pos)
         {
             // TODO: if we buffer this on the host, it might be better to fix
             // here rather than for every track in CherenkovOffload (see
