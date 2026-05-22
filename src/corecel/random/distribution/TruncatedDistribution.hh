@@ -28,7 +28,7 @@ namespace celeritas
  * prevents more than 32 failed samples. Since GPU performance is so sensitive
  * to rejection failures, consider transforming the underlying distribution if
  * this limit is hit. When using this distribution for physics distributions,
- * it is is \em strongly recommended to use \c test::HistogramSampler to verify
+ * it is \em strongly recommended to use \c test::HistogramSampler to verify
  * the number of samples being taken.
  */
 template<class Distribution>
@@ -94,22 +94,22 @@ template<class Generator>
 CELER_FUNCTION auto
 TruncatedDistribution<Distribution>::operator()(Generator& rng) -> result_type
 {
-    int num_remaining_samples = max_debug_samples;
+    int num_remaining_samples = max_debug_samples + 1;
     result_type result;
     do
     {
-        // Reject samples outside the truncation bounds
-        result = sample_(rng);
-        // Prevent infinite loops (debug assertions only)
         if constexpr (CELERITAS_DEBUG)
         {
-            if (--num_remaining_samples < 0)
+            // Prevent infinite loops (debug assertions only)
+            if (--num_remaining_samples == 0)
             {
                 CELER_DEBUG_FAIL(
                     "too many samples taken in TruncatedDistribution",
                     internal);
             }
         }
+
+        result = sample_(rng);
     } while (result < lower_ || result > upper_);
     return result;
 }

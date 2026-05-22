@@ -9,9 +9,11 @@
 #include <cmath>
 
 #include "corecel/Assert.hh"
+#include "corecel/Constants.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
+#include "GenerateCanonical.hh"
 #include "NormalDistribution.hh"
 #include "RoundedNonnegDistribution.hh"
 
@@ -84,7 +86,6 @@ PoissonDistributionKnuth<RealType>::operator()(Generator& rng) -> result_type
         p *= generate_canonical<real_type>(rng);
     } while (p > 1);
     return static_cast<result_type>(k - 1);
-    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
@@ -116,7 +117,7 @@ PoissonDistributionKnuth<RealType>::operator()(Generator& rng) -> result_type
  *
  * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero.
  *
- * \note This is effectivelty an inefficient variant combining:
+ * \note This is effectively a rough-and-ready variant selecting between:
  * - an actual poisson distribution (using Knuth's method),
  * - a rounded nonnegative normal distribution (for \f$ \lambda \gg 1 \f$), and
  * - a delta distribution returning zero (for \f$ \lambda == 0 \f$ ).
@@ -156,7 +157,7 @@ class PoissonDistribution
     {
         zero,
         knuth,
-        gaussian
+        normal
     };
     Method method_;
     PoissonKnuth_t sample_knuth_{};
@@ -186,7 +187,7 @@ PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
     }
     else
     {
-        method_ = Method::gaussian;
+        method_ = Method::normal;
         sample_normal_ = RoundedNormal_t{lambda, std::sqrt(lambda)};
     }
 }
@@ -206,7 +207,7 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
             return 0;
         case Method::knuth:
             return sample_knuth_(rng);
-        case Method::gaussian:
+        case Method::normal:
             // Use Gaussian approximation rounded to nearest nonneg integer
             return sample_normal_(rng);
     };

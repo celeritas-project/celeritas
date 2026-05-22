@@ -75,7 +75,7 @@ TEST(TruncatedDistributionTest, TEST_IF_CELERITAS_DEBUG(rejection))
 
     DiagnosticRngEngine<std::mt19937> rng;
     EXPECT_THROW(sample_forever(rng), DebugError);
-    EXPECT_EQ(66, rng.exchange_count());
+    EXPECT_EQ(64, rng.exchange_count());
 }
 
 //---------------------------------------------------------------------------//

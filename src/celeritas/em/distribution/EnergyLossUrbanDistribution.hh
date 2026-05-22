@@ -278,8 +278,7 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             // The loss due to excitation is \f$ \Delta E_{exc} = n_1 E_1 + n_2
             // E_2 \f$, where the number of collisions \f$ n_i \f$ is sampled
             // from a Poisson distribution with mean \f$ \Sigma_i \f$
-            unsigned int n
-                = PoissonDistributionKnuth<real_type>(xs_exc_[i])(rng);
+            auto n = PoissonDistributionKnuth<real_type>(xs_exc_[i])(rng);
             if (n > 0)
             {
                 UniformRealDistribution<real_type> sample_fraction(n - 1,
