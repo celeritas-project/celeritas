@@ -44,9 +44,9 @@ class TruncatedDistribution
 
   public:
     // Construct with distribution and truncation bounds
-    template<class... Args>
+    template<class T, class U, class... Args>
     inline CELER_FUNCTION
-    TruncatedDistribution(real_type lower, real_type upper, Args&&... args);
+    TruncatedDistribution(T lower, U upper, Args&&... args);
 
     // Construct from record
     explicit CELER_FUNCTION TruncatedDistribution(RecordT const& record)
@@ -75,10 +75,10 @@ class TruncatedDistribution
  * Construct with distribution and truncation bounds.
  */
 template<class Distribution>
-template<class... Args>
+template<class T, class U, class... Args>
 CELER_FUNCTION
-TruncatedDistribution<Distribution>::TruncatedDistribution(real_type lower,
-                                                           real_type upper,
+TruncatedDistribution<Distribution>::TruncatedDistribution(T lower,
+                                                           U upper,
                                                            Args&&... args)
     : sample_(celeritas::forward<Args>(args)...), lower_(lower), upper_(upper)
 {
