@@ -21,13 +21,18 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from a Poisson distribution using Knuth's algorithm.
+ * Sample from a Poisson distribution *for small N* using Knuth's algorithm.
  *
  * This algorithm should \em only be used for small, positive mean occurrences
  * since the expected number of samples is proportional to the input value.
  *
- * See the \c PoissonDistribution below for documentation, as it should be used
- * in the "general" case.
+ * A hard-coded maximum limit prevents developers from unwittingly use this for
+ * large values. If you hit the related assertion, use \c PoissonDistribution
+ * below or a different algorithm with a more accurate approximation (e.g.,
+ * Wilson-Hilferty).
+ *
+ * See the \c PoissonDistribution below for documentation of the Poisson
+ * distribution, as it should be used in the "general" case.
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistributionKnuth
@@ -51,6 +56,9 @@ class PoissonDistributionKnuth
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
+    //! Maximum limit to prevent developers from getting into trouble
+    static constexpr real_type too_expensive_lambda{32};
+
   private:
     real_type exp_lambda_{};
 };
@@ -67,6 +75,7 @@ PoissonDistributionKnuth<RealType>::PoissonDistributionKnuth(real_type lambda)
     : exp_lambda_{std::exp(lambda)}
 {
     CELER_EXPECT(lambda >= 0);
+    CELER_EXPECT(lambda < too_expensive_lambda);  // See class docs
 }
 
 //---------------------------------------------------------------------------//
@@ -112,10 +121,11 @@ PoissonDistributionKnuth<RealType>::operator()(Generator& rng) -> result_type
  * used for large \f$ \lambda \f$.
  *
  * Geant4 uses Knuth's algorithm for \f$ \lambda \le 16 \f$ and a Gaussian
- * approximation for \f$ \lambda > 16 \f$ (see \c G4Poisson), which is faster
+ * approximation for \f$ \lambda > 16 \f$ (see \c G4Poisson ), which is faster
  * but less accurate than other methods. The same approach is used here.
  *
- * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero.
+ * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero and
+ * requires no random numbers to be drawn.
  *
  * \note This is effectively a rough-and-ready variant selecting between:
  * - an actual poisson distribution (using Knuth's method),

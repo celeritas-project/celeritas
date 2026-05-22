@@ -49,12 +49,6 @@ namespace optical
 
  * \note This performs the same sampling routine as in G4Scintillation class
  * of the Geant4 release 11.2 with some modifications.
- *
- * \note This could be made efficient by using separate generators
- * for each scintillation component, and either using stratified sampling or
- * poisson sampling to determine the number of photons for each component. It
- * would also be a bit cleaner: separate generators would handle the energy
- * distribution sampling.
  */
 class ScintillationGenerator
 {
