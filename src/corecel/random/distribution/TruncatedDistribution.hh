@@ -22,8 +22,14 @@ namespace celeritas
  * are drawn from the underlying distribution using rejection sampling until
  * they fall within the truncation bounds.
  *
- * \warning Because of the rejection sampling it is possible to create a
- * distribution
+ * \warning Because of the rejection sampling, it is possible to create a
+ * distribution that never (or almost never) accepts a value from the
+ * underlying distribution. A loop checker is active in debug mode that
+ * prevents more than 32 failed samples. Since GPU performance is so sensitive
+ * to rejection failures, consider transforming the underlying distribution if
+ * this limit is hit. When using this distribution for physics distributions,
+ * it is is \em strongly recommended to use \c test::HistogramSampler to verify
+ * the number of samples being taken.
  */
 template<class Distribution>
 class TruncatedDistribution
@@ -53,7 +59,7 @@ class TruncatedDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    // Assert fewer than this number of samples is tried (CELERITAS_DEBUG only)
+    //! Assert fewer than this number of samples is tried when CELERITAS_DEBUG
     static constexpr inline int max_debug_samples = 32;
 
   private:

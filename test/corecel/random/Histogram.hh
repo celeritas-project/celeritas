@@ -28,6 +28,7 @@ namespace test
  * overflow bins. All bins are half-open except for the rightmost bin, which
  * will include values equal to the upper domain boundary.
  *
+ * \par Example:
  * To test that all samples are within the domain:
  * \code
      EXPECT_EQ(0, hist.underflow())
