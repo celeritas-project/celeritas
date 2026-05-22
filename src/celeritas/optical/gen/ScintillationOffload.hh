@@ -109,6 +109,7 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     //! \todo Use visible energy deposition when Birks law is implemented
     if (spectrum)
     {
+        // This material is a scintillator
         mean_num_photons_ = spectrum.yield_per_energy
                             * energy_deposition.value();
     }
