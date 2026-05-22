@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/random/data/DistributionData.hh"
 
 namespace celeritas
@@ -20,6 +21,9 @@ namespace celeritas
  * Sample from an arbitrary distribution truncated to a finite interval. Values
  * are drawn from the underlying distribution using rejection sampling until
  * they fall within the truncation bounds.
+ *
+ * \warning Because of the rejection sampling it is possible to create a
+ * distribution
  */
 template<class Distribution>
 class TruncatedDistribution
@@ -48,6 +52,9 @@ class TruncatedDistribution
     // Sample a random number according to the truncated distribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
+
+    // Assert fewer than this number of samples is tried (CELERITAS_DEBUG only)
+    static constexpr inline int max_debug_samples = 32;
 
   private:
     Distribution sample_;
@@ -81,11 +88,22 @@ template<class Generator>
 CELER_FUNCTION auto
 TruncatedDistribution<Distribution>::operator()(Generator& rng) -> result_type
 {
+    int num_remaining_samples = max_debug_samples;
     result_type result;
     do
     {
         // Reject samples outside the truncation bounds
         result = sample_(rng);
+        // Prevent infinite loops (debug assertions only)
+        if constexpr (CELERITAS_DEBUG)
+        {
+            if (--num_remaining_samples < 0)
+            {
+                CELER_DEBUG_FAIL(
+                    "too many samples taken in TruncatedDistribution",
+                    internal);
+            }
+        }
     } while (result < lower_ || result > upper_);
     return result;
 }
