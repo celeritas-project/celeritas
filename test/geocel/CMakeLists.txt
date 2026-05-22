@@ -117,10 +117,6 @@ if(CELERITAS_USE_VecGeom)
 
   if(NOT CELERITAS_USE_Geant4)
     list(APPEND _vecgeom_disable ${_g4vg_tests})
-  elseif(CELERITAS_VecGeom_SURFACE)
-    list(APPEND _vecgeom_disable
-      Solids # Missing shapes
-    )
   endif()
 
   if(_vecgeom_disable)

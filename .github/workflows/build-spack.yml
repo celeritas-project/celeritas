@@ -40,13 +40,13 @@ jobs:
       matrix:
         build_type: ["reldeb"]
         geometry: ["vecgeom"]
-        special: [null]
+        special: [""]
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
           - build_type: "reldeb"
             geometry: "orange"
             special: "minimal"
-            geant: null
+            geant: ""
           - build_type: "reldeb"
             geometry: "orange"
             special: "float"
@@ -58,22 +58,18 @@ jobs:
           - build_type: "reldeb"
             geometry: "orange"
             special: "asanlite"
-            geant: null
+            geant: ""
           - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
           - build_type: "reldeb"
-            geometry: "vgsurf"
-            special: null
-            geant: "11.3"
-          - build_type: "reldeb"
             geometry: "vecgeom2"
-            special: null
+            special: ""
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "geant4"
-            special: null
+            special: ""
             geant: "11.3"
           - build_type: "reldeb"
             geometry: "vecgeom"
@@ -129,8 +125,6 @@ jobs:
             spack -e . add vecgeom@1.2.11:1+gdml
           elif ${{matrix.geometry == 'vecgeom2'}}; then
             spack -e . add vecgeom@2.0.0-rc.7+gdml
-          elif ${{matrix.geometry == 'vgsurf'}}; then
-            spack -e . add vecgeom@2.0.0-rc.7+surface+gdml
           fi
           if ${{(matrix.special != 'minimal')
                 && (matrix.special != 'asanlite')
@@ -142,8 +136,7 @@ jobs:
             spack -e . add geant4@${{matrix.geant}}
           fi
           if ${{(matrix.geometry == 'vecgeom'
-                 || matrix.geometry == 'vecgeom2'
-                 || matrix.geometry == 'vgsurf')
+               || matrix.geometry == 'vecgeom2')
                 && matrix.geant != ''}}; then
             spack -e . add g4vg@1.0.5
           fi
