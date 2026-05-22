@@ -49,8 +49,8 @@ class MockIntersector
 
         // Check bbox intersection before testing the volume
         auto const& bbox = bboxes_[vol_id.unchecked_get()];
-        if (!(is_inside(bbox, ray_.pos)
-              && intersects_segment(bbox, ray_.pos, ray_.dir, max_distance)))
+        if (!is_inside(bbox, ray_.pos)
+            && !intersects_segment(bbox, ray_.pos, ray_.dir, max_distance))
         {
             return {};
         }
