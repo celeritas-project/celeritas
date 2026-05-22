@@ -435,12 +435,12 @@ TEST_F(CherenkovWaterTest, generator)
         Real3 pos = {sim.step_length(), 0, 0};
 
         // clang-format off
-        static double const expected_costheta_dist[]
+        static size_type const expected_costheta_dist[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52451, 10508, 0};
-        static double const expected_energy_dist[]
+        static size_type const expected_energy_dist[]
             = {3690, 3774, 3698, 3752, 3684, 3658, 3768, 3831,
                3921, 4029, 4025, 3941, 4134, 4286, 4307, 4461};
-        static double const expected_displacement_dist[]
+        static size_type const expected_displacement_dist[]
             = {3909, 4064, 3802, 3920, 4001, 3904, 3891, 3955,
                3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
         // clang-format on
@@ -479,11 +479,11 @@ TEST_F(CherenkovWaterTest, generator)
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        static double const expected_costheta_dist[]
+        static size_type const expected_costheta_dist[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
-        static double const expected_energy_dist[]
+        static size_type const expected_energy_dist[]
             = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
-        static double const expected_displacement_dist[] = {
+        static size_type const expected_displacement_dist[] = {
             123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
 
         sample(pre_step, particle, sim, pos, num_samples);
@@ -519,11 +519,11 @@ TEST_F(CherenkovWaterTest, generator)
         axpy(sim.step_length(), make_unit_vector(Real3{1e-6, 0, 1}), &end_pos);
 
         // clang-format off
-        static double const expected_costheta_dist[]
+        static size_type const expected_costheta_dist[]
             = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8460, 1580, 0};
-        static double const expected_energy_dist[]
+        static size_type const expected_energy_dist[]
             = {598, 547, 543, 591, 631, 588, 628, 623, 611, 610, 642, 669, 659, 715, 678, 707};
-        static double const expected_displacement_dist[]
+        static size_type const expected_displacement_dist[]
             = {638, 591, 606, 592, 645, 627, 668, 625, 615, 617, 599, 639, 641, 683, 641, 613};
         // clang-format on
 
