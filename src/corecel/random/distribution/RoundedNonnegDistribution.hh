@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/random/distribution/RoundedNonnegDistribution.hh
-//! \sa RoundedNonnegDistribution.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -22,8 +21,9 @@ namespace celeritas
  *
  * This distribution wraps an arbitrary underlying sampler and rounds each
  * value to the nearest integer by adding 0.5 and truncating. Negative values
- * are clamped to zero, and values above the integer type range are clamped to
- * the maximum representable value.
+ * are clamped to zero. The underlying distribution MUST NOT return a value
+ * greater than the maximum representable value of the integer type (i.e.,
+ * don't use this to sample the number of atoms in a gram of substance).
  */
 template<class Distribution, class IntType = celeritas::size_type>
 class RoundedNonnegDistribution
@@ -76,11 +76,7 @@ CELER_FUNCTION auto
 RoundedNonnegDistribution<Distribution, IntType>::operator()(Generator& rng)
     -> result_type
 {
-    real_type value = sample_(rng) + real_type{0.5};
-    value = clamp(
-        value,
-        real_type{0},
-        static_cast<real_type>(std::numeric_limits<result_type>::max()));
+    real_type value = clamp_to_nonneg(sample_(rng) + real_type{0.5});
     return static_cast<result_type>(value);
 }
 

@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/RoundedNonnegDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -131,9 +132,9 @@ ScintillationOffload::operator()(Generator& rng)
 
         real_type sigma = shared_.resolution_scale[pre_step_.material]
                           * std::sqrt(mean_num_photons_);
-        result.num_photons = static_cast<size_type>(
-            clamp_to_nonneg(NormalDistribution<real_type>(
-                mean_num_photons_ + 0.5_r, sigma)(rng)));
+        result.num_photons
+            = RoundedNonnegDistribution<NormalDistribution<real_type>>(
+                mean_num_photons_, sigma)(rng);
     }
     else if (mean_num_photons_ > 0)
     {

@@ -14,6 +14,7 @@
 #include "corecel/math/Algorithms.hh"
 
 #include "NormalDistribution.hh"
+#include "RoundedNonnegDistribution.hh"
 
 namespace celeritas
 {
@@ -46,11 +47,11 @@ namespace celeritas
  *
  * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero.
  *
- * \todo Rename to GeneralPoissonDistribution (or something similar) since
+ * \todo Rename to VariantPoissonDistribution (or something similar) since
  * it's effectively an inefficient variant combining:
- * - an actual poisson distribution,
- * - an "integer normal" distribution, and
- * - a "zero" distribution.
+ * - an actual poisson distribution (using Knuth's method),
+ * - a rounded nonnegative distribution (for  \f$ \lambda \gg 1 \f$), and
+ * - a delta distribution (for  \f$ \lambda == 0 \f$ ).
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistribution
@@ -73,10 +74,13 @@ class PoissonDistribution
     template<class Generator>
     inline CELER_FUNCTION result_type operator()(Generator& rng);
 
-    //! Maximum value of lambda for using the direct method
-    static CELER_CONSTEXPR_FUNCTION int lambda_threshold() { return 16; }
+    //! Minimum value of lambda to approximate as a Gaussian
+    static CELER_CONSTEXPR_FUNCTION int large_lambda() { return 16; }
 
   private:
+    using RoundedNormal_t
+        = RoundedNonnegDistribution<NormalDistribution<real_type>>;
+
     enum class Method
     {
         zero,
@@ -85,7 +89,7 @@ class PoissonDistribution
     };
     Method method_;
     real_type exp_lambda_{};
-    NormalDistribution<real_type> sample_normal_{};
+    RoundedNormal_t sample_normal_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -104,7 +108,7 @@ PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
     {
         method_ = Method::zero;
     }
-    else if (lambda <= PoissonDistribution::lambda_threshold())
+    else if (lambda <= PoissonDistribution::large_lambda())
     {
         method_ = Method::poisson;
         exp_lambda_ = std::exp(lambda);
@@ -112,8 +116,7 @@ PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
     else
     {
         method_ = Method::gaussian;
-        // Add 0.5 to mean for correct rounding
-        sample_normal_ = NormalDistribution{lambda + 0.5, std::sqrt(lambda)};
+        sample_normal_ = RoundedNormal_t{lambda, std::sqrt(lambda)};
     }
 }
 
@@ -141,10 +144,10 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
             return static_cast<result_type>(k - 1);
         }
         case Method::gaussian:
-            // Use Gaussian approximation rounded to nearest integer
-            return static_cast<result_type>(
-                clamp_to_nonneg(sample_normal_(rng)));
+            // Use Gaussian approximation rounded to nearest nonneg integer
+            return sample_normal_(rng);
     };
+    CELER_ASSERT_UNREACHABLE();
 }
 
 //---------------------------------------------------------------------------//
