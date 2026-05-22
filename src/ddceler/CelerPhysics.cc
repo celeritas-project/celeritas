@@ -242,8 +242,11 @@ void CelerPhysics::constructPhysics(G4VModularPhysicsList* physics)
             = std::make_unique<StateDependent>(handle_state_change);
     }
 
-    context()->kernel().userInitialization(true)->adopt(
-        new CelerWorkerInit(context(), "CelerWorkerInit"));
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        context()->kernel().userInitialization(true)->adopt(
+            new CelerWorkerInit(context(), "CelerWorkerInit"));
+    }
 }
 
 //---------------------------------------------------------------------------//
