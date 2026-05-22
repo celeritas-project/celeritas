@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 
 #include "NormalDistribution.hh"
 #include "RoundedNonnegDistribution.hh"
@@ -20,7 +19,77 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Sample from a generalized Poisson distribution.
+ * Sample from a Poisson distribution using Knuth's algorithm.
+ *
+ * This algorithm should \em only be used for small, positive mean occurrences
+ * since the expected number of samples is proportional to the input value.
+ *
+ * See the \c PoissonDistribution below for documentation, as it should be used
+ * in the "general" case.
+ */
+template<class RealType = ::celeritas::real_type>
+class PoissonDistributionKnuth
+{
+    static_assert(std::is_floating_point_v<RealType>);
+
+  public:
+    //!@{
+    //! \name Type aliases
+    using real_type = RealType;
+    using result_type = ::celeritas::size_type;
+    //!@}
+  public:
+    // Construct with distribution parameter
+    explicit inline CELER_FUNCTION PoissonDistributionKnuth(real_type lambda);
+
+    //! Construct with default lambda of 1
+    CELER_CEF PoissonDistributionKnuth() : exp_lambda_{constants::euler} {}
+
+    // Sample a random number according to the distribution
+    template<class Generator>
+    inline CELER_FUNCTION result_type operator()(Generator& rng);
+
+  private:
+    real_type exp_lambda_{};
+};
+
+//---------------------------------------------------------------------------//
+// INLINE DEFINITIONS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from the mean of the Poisson distribution.
+ */
+template<class RealType>
+CELER_FUNCTION
+PoissonDistributionKnuth<RealType>::PoissonDistributionKnuth(real_type lambda)
+    : exp_lambda_{std::exp(lambda)}
+{
+    CELER_EXPECT(lambda >= 0);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample a random number according to the distribution.
+ */
+template<class RealType>
+template<class Generator>
+CELER_FUNCTION auto
+PoissonDistributionKnuth<RealType>::operator()(Generator& rng) -> result_type
+{
+    std::make_signed_t<result_type> k{0};
+    real_type p = exp_lambda_;
+    do
+    {
+        ++k;
+        p *= generate_canonical<real_type>(rng);
+    } while (p > 1);
+    return static_cast<result_type>(k - 1);
+    CELER_ASSERT_UNREACHABLE();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Sample from a Poisson distribution.
  *
  * The Poisson distribution describes the probability of \f$ k \f$ events
  * occurring in a fixed interval given a mean rate of occurrence \f$ \lambda
@@ -47,20 +116,21 @@ namespace celeritas
  *
  * In the degenerate case of \f$ \lambda = 0 \f$, the result is always zero.
  *
- * \todo Rename to VariantPoissonDistribution (or something similar) since
- * it's effectively an inefficient variant combining:
+ * \note This is effectivelty an inefficient variant combining:
  * - an actual poisson distribution (using Knuth's method),
- * - a rounded nonnegative distribution (for  \f$ \lambda \gg 1 \f$), and
- * - a delta distribution (for  \f$ \lambda == 0 \f$ ).
+ * - a rounded nonnegative normal distribution (for \f$ \lambda \gg 1 \f$), and
+ * - a delta distribution returning zero (for \f$ \lambda == 0 \f$ ).
  */
 template<class RealType = ::celeritas::real_type>
 class PoissonDistribution
 {
+    static_assert(std::is_floating_point_v<RealType>);
+
   public:
     //!@{
     //! \name Type aliases
     using real_type = RealType;
-    using result_type = unsigned int;
+    using result_type = ::celeritas::size_type;
     //!@}
 
   public:
@@ -78,17 +148,18 @@ class PoissonDistribution
     static CELER_CONSTEXPR_FUNCTION int large_lambda() { return 16; }
 
   private:
+    using PoissonKnuth_t = PoissonDistributionKnuth<real_type>;
     using RoundedNormal_t
-        = RoundedNonnegDistribution<NormalDistribution<real_type>>;
+        = RoundedNonnegDistribution<NormalDistribution<real_type>, result_type>;
 
     enum class Method
     {
         zero,
-        poisson,
+        knuth,
         gaussian
     };
     Method method_;
-    real_type exp_lambda_{};
+    PoissonKnuth_t sample_knuth_{};
     RoundedNormal_t sample_normal_{};
 };
 
@@ -110,8 +181,8 @@ PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
     }
     else if (lambda <= PoissonDistribution::large_lambda())
     {
-        method_ = Method::poisson;
-        exp_lambda_ = std::exp(lambda);
+        method_ = Method::knuth;
+        sample_knuth_ = PoissonDistributionKnuth{lambda};
     }
     else
     {
@@ -133,16 +204,8 @@ CELER_FUNCTION auto PoissonDistribution<RealType>::operator()(Generator& rng)
     {
         case Method::zero:
             return 0;
-        case Method::poisson: {
-            int k = 0;
-            real_type p = exp_lambda_;
-            do
-            {
-                ++k;
-                p *= generate_canonical<real_type>(rng);
-            } while (p > 1);
-            return static_cast<result_type>(k - 1);
-        }
+        case Method::knuth:
+            return sample_knuth_(rng);
         case Method::gaussian:
             // Use Gaussian approximation rounded to nearest nonneg integer
             return sample_normal_(rng);

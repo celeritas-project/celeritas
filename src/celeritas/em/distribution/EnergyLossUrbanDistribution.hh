@@ -90,7 +90,10 @@ class EnergyLossUrbanDistribution
     static CELER_CONSTEXPR_FUNCTION real_type rate() { return 0.56; }
 
     //! Number of collisions above which to use faster sampling from Gaussian
-    static CELER_CONSTEXPR_FUNCTION size_type max_collisions() { return 8; }
+    static CELER_CONSTEXPR_FUNCTION size_type collision_poisson_threshold()
+    {
+        return 8;
+    }
 
     //! Threshold number of excitations used in width correction
     static CELER_CONSTEXPR_FUNCTION real_type exc_thresh() { return 42; }
@@ -263,19 +266,20 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
 
     for (int i : range(2))
     {
-        if (xs_exc_[i] > this->max_collisions())
+        if (xs_exc_[i] > this->collision_poisson_threshold())
         {
             // When the number of collisions is large, use faster approach
             // of sampling from a Gaussian
             mean += xs_exc_[i] * binding_energy_[i];
             variance += xs_exc_[i] * ipow<2>(binding_energy_[i]);
         }
-        else
+        else if (xs_exc_[i] > 0)
         {
             // The loss due to excitation is \f$ \Delta E_{exc} = n_1 E_1 + n_2
             // E_2 \f$, where the number of collisions \f$ n_i \f$ is sampled
             // from a Poisson distribution with mean \f$ \Sigma_i \f$
-            unsigned int n = PoissonDistribution<real_type>(xs_exc_[i])(rng);
+            unsigned int n
+                = PoissonDistributionKnuth<real_type>(xs_exc_[i])(rng);
             if (n > 0)
             {
                 UniformRealDistribution<real_type> sample_fraction(n - 1,
@@ -312,15 +316,16 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
     // Mean number of collisions in the fast simulation interval
     real_type mean_num_coll = 0;
 
-    if (xs_ion_ > this->max_collisions())
+    if (xs_ion_ > this->collision_poisson_threshold())
     {
         // When the number of collisions is large, fast sampling from a
         // Gaussian is used in the lower portion of the energy loss interval.
         // See PHYS332 section 2.4: Fast simulation for \f$ n_3 \ge 16 \f$
 
         // Calculate the maximum value of \f$ \alpha \f$ (Eq. 25)
-        alpha = (xs_ion_ + this->max_collisions()) * energy_ratio
-                / (this->max_collisions() * energy_ratio + xs_ion_);
+        alpha
+            = (xs_ion_ + this->collision_poisson_threshold()) * energy_ratio
+              / (this->collision_poisson_threshold() * energy_ratio + xs_ion_);
 
         // Mean energy loss for a single collision of this type (Eq. 14)
         real_type const mean_loss_coll = alpha * std::log(alpha) / (alpha - 1);

@@ -61,17 +61,15 @@ class ScintillationOffload
 
   private:
     units::ElementaryCharge charge_;
-    real_type step_length_;
+    real_type step_length_{};
     OffloadPreStepData const& pre_step_;
     optical::GeneratorStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
-    real_type continuous_edep_fraction_;
+    real_type continuous_edep_fraction_{};
     real_type mean_num_photons_{0};
 
-    static CELER_CONSTEXPR_FUNCTION real_type poisson_threshold()
-    {
-        return 10;
-    }
+    // Use scaled gaussian above this average lambda
+    static constexpr real_type poisson_threshold = 10;
 };
 
 //---------------------------------------------------------------------------//
@@ -127,7 +125,7 @@ ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
     optical::GeneratorDistributionData result;
-    if (mean_num_photons_ > poisson_threshold())
+    if (mean_num_photons_ > poisson_threshold)
     {
         using namespace celeritas::literals;
 
@@ -139,8 +137,12 @@ ScintillationOffload::operator()(Generator& rng)
     }
     else if (mean_num_photons_ > 0)
     {
-        result.num_photons = static_cast<size_type>(
-            PoissonDistribution<real_type>(mean_num_photons_)(rng));
+        result.num_photons
+            = PoissonDistributionKnuth<real_type>(mean_num_photons_)(rng);
+    }
+    else
+    {
+        result.num_photons = 0;
     }
 
     if (result.num_photons > 0)
