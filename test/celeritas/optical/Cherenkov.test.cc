@@ -561,8 +561,11 @@ TEST_F(CherenkovWaterTest, generator)
 
         sample(pre_step, particle, sim, end_pos, 128);
 
-        EXPECT_SOFT_EQ(0.203125, total_num_photons / num_samples);
-        EXPECT_SOFT_EQ(31.692307692308, avg_engine_samples);
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.203125, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(31.692307692308, avg_engine_samples);
+        }
     }
 }
 
