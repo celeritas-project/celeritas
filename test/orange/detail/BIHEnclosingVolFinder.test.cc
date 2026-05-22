@@ -26,24 +26,32 @@ class BIHEnclosingVolFinderTest : public Test
     using VecFastBbox = BIHBuilder::VecBBox;
 
   protected:
-    // Create an "is_inside" functor that accepts a volume if the point is
-    // inside its bbox
-    auto make_is_inside(VecFastBbox const& bboxes, Real3 const& pos)
+    //! Accept a volume if the point is inside its bbox
+    struct IsPointInsideBboxVolume
     {
-        return [&bboxes, pos](LocalVolumeId vol_id) {
-            return is_inside(bboxes[vol_id.unchecked_get()], pos);
-        };
-    }
+        VecFastBbox const& bboxes;
+        Real3 pos;
 
-    // Create an "is_inside" functor, same as above but the volume id must also
-    // be odd
-    auto make_is_inside_odd(VecFastBbox const& bboxes, Real3 const& pos)
+        bool operator()(LocalVolumeId vol_id) const
+        {
+            CELER_EXPECT(vol_id < bboxes.size());
+            return is_inside(bboxes[*vol_id], pos);
+        }
+    };
+
+    //! Accept a volume if the point is inside its bbox, and vol_id is odd
+    struct IsPointInsideOddBboxVolume
     {
-        return [&bboxes, pos](LocalVolumeId vol_id) {
+        VecFastBbox const& bboxes;
+        Real3 pos;
+
+        bool operator()(LocalVolumeId vol_id) const
+        {
+            CELER_EXPECT(vol_id < bboxes.size());
             return vol_id.unchecked_get() % 2 != 0
-                   && is_inside(bboxes[vol_id.unchecked_get()], pos);
-        };
-    }
+                   && is_inside(bboxes[*vol_id], pos);
+        }
+    };
 
   protected:
     HostVal<detail::BIHTreeData> storage_;
@@ -91,27 +99,27 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
 
         Real3 pos = {0.8, 0.5, 110};
         EXPECT_EQ(LocalVolumeId{0},
-                  find_volume(pos, make_is_inside(bboxes, pos)));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 
         pos = {0.8, 0.5, 30};
         EXPECT_EQ(LocalVolumeId{1},
-                  find_volume(pos, make_is_inside(bboxes, {pos})));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 
         pos = {2.0, 0.6, 40};
         EXPECT_EQ(LocalVolumeId{2},
-                  find_volume(pos, make_is_inside(bboxes, pos)));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 
         pos = {2.9, 0.7, 50};
         EXPECT_EQ(LocalVolumeId{3},
-                  find_volume(pos, make_is_inside(bboxes, pos)));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 
         pos = {2.9, -0.7, 50};
         EXPECT_EQ(LocalVolumeId{4},
-                  find_volume(pos, make_is_inside(bboxes, pos)));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 
         pos = {2.9, -0.7, 50};
         EXPECT_EQ(LocalVolumeId{5},
-                  find_volume(pos, make_is_inside_odd(bboxes, pos)));
+                  find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
     };
 
     for (auto max_leaf_size : range(1, 4))
@@ -158,9 +166,9 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
         BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
         Real3 outside_pos{0.8, 0.5, 110};
-        EXPECT_EQ(
-            LocalVolumeId{0},
-            find_volume(outside_pos, make_is_inside(bboxes, outside_pos)));
+        EXPECT_EQ(LocalVolumeId{0},
+                  find_volume(outside_pos,
+                              IsPointInsideBboxVolume{bboxes, outside_pos}));
 
         size_type index{1};
         for (auto i : range(3))
@@ -169,8 +177,9 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
             {
                 constexpr real_type half{0.5};
                 Real3 pos{half + i, half + j, 30};
-                EXPECT_EQ(LocalVolumeId{index++},
-                          find_volume(pos, make_is_inside(bboxes, pos)));
+                EXPECT_EQ(
+                    LocalVolumeId{index++},
+                    find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
             }
         }
     };
@@ -196,7 +205,8 @@ TEST_F(BIHEnclosingVolFinderTest, single_finite_volume)
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
     Real3 pos{0.5, 0.5, 0.5};
-    EXPECT_EQ(LocalVolumeId{0}, find_volume(pos, make_is_inside(bboxes, pos)));
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
@@ -213,9 +223,10 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
     Real3 pos{0.5, 0.5, 0.5};
-    EXPECT_EQ(LocalVolumeId{0}, find_volume(pos, make_is_inside(bboxes, pos)));
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
     EXPECT_EQ(LocalVolumeId{1},
-              find_volume(pos, make_is_inside_odd(bboxes, pos)));
+              find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
@@ -229,7 +240,8 @@ TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
     Real3 pos{0.5, 0.5, 0.5};
-    EXPECT_EQ(LocalVolumeId{0}, find_volume(pos, make_is_inside(bboxes, pos)));
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
@@ -246,9 +258,10 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
     Real3 pos{0.5, 0.5, 0.5};
-    EXPECT_EQ(LocalVolumeId{0}, find_volume(pos, make_is_inside(bboxes, pos)));
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
     EXPECT_EQ(LocalVolumeId{1},
-              find_volume(pos, make_is_inside_odd(bboxes, pos)));
+              find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
 }
 
 //---------------------------------------------------------------------------//
