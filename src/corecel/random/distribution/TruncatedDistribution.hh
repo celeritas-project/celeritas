@@ -37,7 +37,6 @@ class TruncatedDistribution
   public:
     //!@{
     //! \name Type aliases
-    using real_type = typename Distribution::real_type;
     using result_type = typename Distribution::result_type;
     using RecordT = TruncatedDistributionRecord<typename Distribution::RecordT>;
     //!@}
@@ -48,7 +47,7 @@ class TruncatedDistribution
     inline CELER_FUNCTION
     TruncatedDistribution(T lower, U upper, Args&&... args);
 
-    // Construct from record
+    //! Construct from a device-friendly variant record
     explicit CELER_FUNCTION TruncatedDistribution(RecordT const& record)
         : TruncatedDistribution(
               record.lower, record.upper, Distribution(record.distribution))
@@ -64,8 +63,8 @@ class TruncatedDistribution
 
   private:
     Distribution sample_;
-    real_type lower_;
-    real_type upper_;
+    result_type lower_;
+    result_type upper_;
 };
 
 //---------------------------------------------------------------------------//
@@ -101,7 +100,7 @@ TruncatedDistribution<Distribution>::operator()(Generator& rng) -> result_type
         if constexpr (CELERITAS_DEBUG)
         {
             // Prevent infinite loops (debug assertions only)
-            if (--num_remaining_samples == 0)
+            if (CELER_UNLIKELY(--num_remaining_samples == 0))
             {
                 CELER_DEBUG_FAIL(
                     "too many samples taken in TruncatedDistribution",
