@@ -6,12 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <limits>
 #include <type_traits>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/math/NumericLimits.hh"
 
 namespace celeritas
 {
@@ -77,6 +77,7 @@ RoundedNonnegDistribution<Distribution, IntType>::operator()(Generator& rng)
     -> result_type
 {
     real_type value = clamp_to_nonneg(sample_(rng) + real_type{0.5});
+    CELER_ENSURE(value < static_cast<real_type>(NumericLimits<IntType>::max()));
     return static_cast<result_type>(value);
 }
 

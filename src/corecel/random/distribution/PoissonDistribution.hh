@@ -45,6 +45,7 @@ class PoissonDistributionKnuth
     using real_type = RealType;
     using result_type = ::celeritas::size_type;
     //!@}
+
   public:
     // Construct with distribution parameter
     explicit inline CELER_FUNCTION PoissonDistributionKnuth(real_type lambda);

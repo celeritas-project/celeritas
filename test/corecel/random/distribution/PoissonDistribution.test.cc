@@ -19,13 +19,21 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
+// SampleHistogram bins doubles, but Knuth poisson returns integers
+CELER_FORCEINLINE double static_cast_double(size_type v)
+{
+    return static_cast<double>(v);
+};
+
+//---------------------------------------------------------------------------//
 
 TEST(PoissonDistributionKnuthTest, zero)
 {
     HistogramSampler calc_histogram(8, {0, 8}, 100000);
 
     EXPECT_REF_EQ((SampledHistogram{{1, 0, 0, 0, 0, 0, 0, 0}, 2}),
-                  calc_histogram(PoissonDistributionKnuth<double>{0}));
+                  calc_histogram(static_cast_double,
+                                 PoissonDistributionKnuth<double>{0}));
 }
 
 TEST(PoissonDistributionKnuthTest, small)
@@ -36,7 +44,7 @@ TEST(PoissonDistributionKnuthTest, small)
     for (double lambda : {0.05, 0.1, 0.2, 0.5})
     {
         PoissonDistributionKnuth<double> sample_poisson{lambda};
-        actual.push_back(calc_histogram(sample_poisson));
+        actual.push_back(calc_histogram(static_cast_double, sample_poisson));
     }
 
     static SampledHistogram const expected[] = {
@@ -51,7 +59,7 @@ TEST(PoissonDistributionKnuthTest, small)
 
 TEST(PoissonDistributionKnuthTest, large)
 {
-    HistogramSampler calc_histogram(8, {0, 50}, 1000);
+    HistogramSampler calc_histogram(8, {0, 50}, 10000);
     std::vector<SampledHistogram> actual;
     // Test default lambda=1
     actual.push_back(calc_histogram(PoissonDistributionKnuth<double>{}));
@@ -59,7 +67,7 @@ TEST(PoissonDistributionKnuthTest, large)
     for (auto i : range(1, 18))
     {
         PoissonDistributionKnuth<double> sample_poisson{static_cast<double>(i)};
-        actual.push_back(calc_histogram(sample_poisson));
+        actual.push_back(calc_histogram(static_cast_double, sample_poisson));
     }
     static SampledHistogram const expected[] = {
         {{0.15984, 0.00016, 0, 0, 0, 0, 0, 0}, 4.048},
