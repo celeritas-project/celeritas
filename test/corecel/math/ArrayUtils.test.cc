@@ -11,9 +11,7 @@
 #include "corecel/Constants.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/math/detail/SoftEqualTraits.hh"
 
 #include "TestMacros.hh"
 #include "celeritas_test.hh"

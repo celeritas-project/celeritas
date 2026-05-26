@@ -272,14 +272,6 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  * are the spherical coordinate transform of the given \c rot cartesian
  * direction vector.
  *
- * There is some extra code in here to deal with loss of precision when the
- * incident direction is along the \em z axis. As \c rot approaches \em z, the
- * azimuthal angle \f$ \phi \f$ must be calculated carefully from both the
- * \em x and \em y components of the vector, not independently.
- * If \c rot actually equals \em z
- * then the azimuthal angle is completely indeterminate so we arbitrarily
- * choose \f$ \phi = 0 \f$.
- *
  * This function is often used for calculating exiting scattering angles. In
  * that case, \c dir is the exiting angle from the scattering calculation, and
  * \c rot is the original direction of the particle. The direction vectors are
@@ -290,6 +282,14 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
      + \sin\theta\sin\phi\vec{j}
      + \cos\theta\vec{k} \,.
  * \f]
+ *
+ * There is some extra code in here to deal with loss of precision when the
+ * incident direction is along the \em z axis. As \c rot approaches \em z, the
+ * azimuthal angle \f$ \phi \f$ must be calculated carefully from both the
+ * \em x and \em y components of the vector, not independently.
+ * If \c rot actually equals \em z
+ * then the azimuthal angle is completely indeterminate so we arbitrarily
+ * choose \f$ \phi = 0 \f$.
  */
 template<class T>
 inline CELER_FUNCTION Array<T, 3>
