@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
@@ -82,6 +84,7 @@ class GeoTrackInterface
     using Initializer_t = GeoTrackInitializer;
     using real_type = RealType;
     using Real3 = Array<real_type, 3>;
+    using VolPathVisitor = std::function<void(VolumeLevelId, VolumeInstanceId)>;
     //!@}
 
   public:
@@ -122,6 +125,8 @@ class GeoTrackInterface
     virtual VolumeLevelId volume_level() const = 0;
     //! Get the volume instance ID for all levels
     virtual void volume_instance_id(Span<VolumeInstanceId> levels) const = 0;
+    //! Visit each volume level in the path
+    virtual void foreach_volume_path(VolPathVisitor visit) const = 0;
 
     /*!
      * Whether the track is outside the valid geometry region.
