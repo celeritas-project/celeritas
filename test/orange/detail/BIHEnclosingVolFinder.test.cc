@@ -26,18 +26,37 @@ class BIHEnclosingVolFinderTest : public Test
     using VecFastBbox = BIHBuilder::VecBBox;
 
   protected:
+    //! Accept a volume if the point is inside its bbox
+    struct IsPointInsideBboxVolume
+    {
+        VecFastBbox const& bboxes;
+        Real3 pos;
+
+        bool operator()(LocalVolumeId vol_id) const
+        {
+            CELER_EXPECT(vol_id < bboxes.size());
+            return is_inside(bboxes[*vol_id], pos);
+        }
+    };
+
+    //! Accept a volume if the point is inside its bbox, and vol_id is odd
+    struct IsPointInsideOddBboxVolume
+    {
+        VecFastBbox const& bboxes;
+        Real3 pos;
+
+        bool operator()(LocalVolumeId vol_id) const
+        {
+            CELER_EXPECT(vol_id < bboxes.size());
+            return vol_id.unchecked_get() % 2 != 0
+                   && is_inside(bboxes[*vol_id], pos);
+        }
+    };
+
+  protected:
     HostVal<detail::BIHTreeData> storage_;
     HostCRef<detail::BIHTreeData> ref_storage_;
     BIHBuilder::SetLocalVolId implicit_vol_ids_;
-
-    static constexpr bool valid_vol_id_(LocalVolumeId vol_id)
-    {
-        return static_cast<bool>(vol_id);
-    }
-    static constexpr bool odd_vol_id_(LocalVolumeId vol_id)
-    {
-        return vol_id.unchecked_get() % 2 != 0;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -73,19 +92,34 @@ TEST_F(BIHEnclosingVolFinderTest, basic)
         };
 
         BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
-        auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+        auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
         ref_storage_ = storage_;
         BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
+        Real3 pos = {0.8, 0.5, 110};
         EXPECT_EQ(LocalVolumeId{0},
-                  find_volume({0.8, 0.5, 110}, valid_vol_id_));
-        EXPECT_EQ(LocalVolumeId{1}, find_volume({0.8, 0.5, 30}, valid_vol_id_));
-        EXPECT_EQ(LocalVolumeId{2}, find_volume({2.0, 0.6, 40}, valid_vol_id_));
-        EXPECT_EQ(LocalVolumeId{3}, find_volume({2.9, 0.7, 50}, valid_vol_id_));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+
+        pos = {0.8, 0.5, 30};
+        EXPECT_EQ(LocalVolumeId{1},
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+
+        pos = {2.0, 0.6, 40};
+        EXPECT_EQ(LocalVolumeId{2},
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+
+        pos = {2.9, 0.7, 50};
+        EXPECT_EQ(LocalVolumeId{3},
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+
+        pos = {2.9, -0.7, 50};
         EXPECT_EQ(LocalVolumeId{4},
-                  find_volume({2.9, -0.7, 50}, valid_vol_id_));
-        EXPECT_EQ(LocalVolumeId{5}, find_volume({2.9, -0.7, 50}, odd_vol_id_));
+                  find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+
+        pos = {2.9, -0.7, 50};
+        EXPECT_EQ(LocalVolumeId{5},
+                  find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
     };
 
     for (auto max_leaf_size : range(1, 4))
@@ -126,13 +160,15 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
         }
 
         BIHBuilder build(&storage_, BIHBuilder::Input{max_leaf_size});
-        auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+        auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
         ref_storage_ = storage_;
         BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
+        Real3 outside_pos{0.8, 0.5, 110};
         EXPECT_EQ(LocalVolumeId{0},
-                  find_volume({0.8, 0.5, 110}, valid_vol_id_));
+                  find_volume(outside_pos,
+                              IsPointInsideBboxVolume{bboxes, outside_pos}));
 
         size_type index{1};
         for (auto i : range(3))
@@ -140,8 +176,10 @@ TEST_F(BIHEnclosingVolFinderTest, grid)
             for (auto j : range(4))
             {
                 constexpr real_type half{0.5};
-                EXPECT_EQ(LocalVolumeId{index++},
-                          find_volume({half + i, half + j, 30}, valid_vol_id_));
+                Real3 pos{half + i, half + j, 30};
+                EXPECT_EQ(
+                    LocalVolumeId{index++},
+                    find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
             }
         }
     };
@@ -161,12 +199,14 @@ TEST_F(BIHEnclosingVolFinderTest, single_finite_volume)
     VecFastBbox bboxes = {{{0, 0, 0}, {1, 1, 1}}};
 
     BIHBuilder build(&storage_, BIHBuilder::Input{});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
+    Real3 pos{0.5, 0.5, 0.5};
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
@@ -177,13 +217,16 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_nonpartitionable_volumes)
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
-    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_vol_id_));
+    Real3 pos{0.5, 0.5, 0.5};
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+    EXPECT_EQ(LocalVolumeId{1},
+              find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
@@ -191,12 +234,14 @@ TEST_F(BIHEnclosingVolFinderTest, single_infinite_volume)
     VecFastBbox bboxes = {FastBBox::from_infinite()};
 
     BIHBuilder build(&storage_, BIHBuilder::Input{});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
+    Real3 pos{0.5, 0.5, 0.5};
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
 }
 
 TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
@@ -207,13 +252,16 @@ TEST_F(BIHEnclosingVolFinderTest, multiple_infinite_volumes)
     };
 
     BIHBuilder build(&storage_, BIHBuilder::Input{});
-    auto bih_tree = build(std::move(bboxes), implicit_vol_ids_);
+    auto bih_tree = build(VecFastBbox{bboxes}, implicit_vol_ids_);
 
     ref_storage_ = storage_;
     BIHEnclosingVolFinder find_volume(bih_tree, ref_storage_);
 
-    EXPECT_EQ(LocalVolumeId{0}, find_volume({0.5, 0.5, 0.5}, valid_vol_id_));
-    EXPECT_EQ(LocalVolumeId{1}, find_volume({0.5, 0.5, 0.5}, odd_vol_id_));
+    Real3 pos{0.5, 0.5, 0.5};
+    EXPECT_EQ(LocalVolumeId{0},
+              find_volume(pos, IsPointInsideBboxVolume{bboxes, pos}));
+    EXPECT_EQ(LocalVolumeId{1},
+              find_volume(pos, IsPointInsideOddBboxVolume{bboxes, pos}));
 }
 
 //---------------------------------------------------------------------------//
