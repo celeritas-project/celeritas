@@ -144,7 +144,7 @@ ldg(T const* ptr) noexcept
  *
  * Convenience overload for when the member is known at the call site.
  * \code
- * BIHNodeId parent = ldg(node, &BIHLeafNode::parent);
+ * BvhNodeId parent = ldg(node, &BvhLeafNode::parent);
  * \endcode
  */
 template<class Class, class T>
@@ -163,8 +163,8 @@ CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
  * as a callable; for immediate use prefer the two-argument \c ldg overload.
  *
  * \code
- * auto load_parent = LdgMember{&BIHLeafNode::parent};
- * BIHNodeId parent = load_parent(node);
+ * auto load_parent = LdgMember{&BvhLeafNode::parent};
+ * BvhNodeId parent = load_parent(node);
  * \endcode
  */
 template<class Class, class T>

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHIntersectingVolFinder.test.cc
+//! \file orange/detail/BvhIntersectingVolFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHIntersectingVolFinder.hh"
+#include "orange/detail/BvhIntersectingVolFinder.hh"
 
 #include <limits>
 #include <unordered_map>
@@ -14,7 +14,7 @@
 #include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/BIHBuilder.hh"
+#include "orange/detail/BvhBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
 #include "TestMacros.hh"
@@ -34,8 +34,8 @@ class MockIntersector
 {
   public:
     using DistMap = std::unordered_map<LocalVolumeId, real_type>;
-    using VecBBox = BIHBuilder::VecBBox;
-    using Ray = BIHIntersectingVolFinder::Ray;
+    using VecBBox = BvhBuilder::VecBBox;
+    using Ray = BvhIntersectingVolFinder::Ray;
 
   public:
     MockIntersector(DistMap const& dist_map, VecBBox const& bboxes, Ray ray)
@@ -91,7 +91,7 @@ struct IntersectResult
     LocalSurfaceId intersect_surface;
 
     /*
-     * These vectors, with each element corresponding to the BIH tree
+     * These vectors, with each element corresponding to the BVH tree
      * tested (configured with different leaf size counts), are diagnostics
      * collected by the MockIntersector class: the number of *volume*
      * intersection tests (after the bbox was used to exclude intersections)
@@ -149,45 +149,45 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a BIH tree and test ray intersections with volumes.
+ * Build a BVH tree and test ray intersections with volumes.
  *
- * This class owns the BIH tree storage and provides intersection testing via
- * a locally-constructed \c BIHIntersectingVolFinder.
+ * This class owns the BVH tree storage and provides intersection testing via
+ * a locally-constructed \c BvhIntersectingVolFinder.
  */
-class LocalBihTreeTester
+class LocalBvhTreeTester
 {
   public:
-    using VecBBox = BIHBuilder::VecBBox;
-    using Ray = BIHIntersectingVolFinder::Ray;
+    using VecBBox = BvhBuilder::VecBBox;
+    using Ray = BvhIntersectingVolFinder::Ray;
 
-    LocalBihTreeTester(VecBBox bboxes, BIHBuilder::Input input)
+    LocalBvhTreeTester(VecBBox bboxes, BvhBuilder::Input input)
     {
-        BIHBuilder build(&storage_, input);
-        BIHBuilder::SetLocalVolId implicit_vol_ids;
-        bih_tree_ = build(std::move(bboxes), implicit_vol_ids);
+        BvhBuilder build(&storage_, input);
+        BvhBuilder::SetLocalVolId implicit_vol_ids;
+        bvh_tree_ = build(std::move(bboxes), implicit_vol_ids);
         ref_storage_ = storage_;
     }
 
     template<class F>
     Intersection operator()(Ray ray, F&& visit_vol, real_type max_dist) const
     {
-        BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
+        BvhIntersectingVolFinder find_volume{bvh_tree_, ref_storage_};
         return find_volume(ray, std::forward<F>(visit_vol), max_dist);
     }
 
-    friend std::string to_string(LocalBihTreeTester const& btt)
+    friend std::string to_string(LocalBvhTreeTester const& btt)
     {
-        return dump_bih_structure(btt.bih_tree_, btt.ref_storage_);
+        return dump_bvh_structure(btt.bvh_tree_, btt.ref_storage_);
     }
 
   private:
-    BIHTreeRecord bih_tree_;
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
-    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+    BvhTreeRecord bvh_tree_;
+    BvhTreeData<Ownership::value, MemSpace::host> storage_;
+    BvhTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };
 
 //---------------------------------------------------------------------------//
-/* The BIHIntersectingVolFinder class is tested with the following geometry,
+/* The BvhIntersectingVolFinder class is tested with the following geometry,
  * consisting of partial and fully overlapping bounding boxes.
  * \verbatim
 
@@ -207,13 +207,13 @@ class LocalBihTreeTester
           x=0                                                x=5
    \endverbatim
  */
-class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
+class BvhIntersectingVolFinderTest : public ::celeritas::test::Test
 {
   public:
-    using Ray = LocalBihTreeTester::Ray;
+    using Ray = LocalBvhTreeTester::Ray;
     using DistMap = MockIntersector::DistMap;
-    using VecBBox = BIHBuilder::VecBBox;
-    using VecSetup = std::vector<inp::BIHBuilder>;
+    using VecBBox = BvhBuilder::VecBBox;
+    using VecSetup = std::vector<inp::BvhBuilder>;
 
     static constexpr auto large = 10000_r;
 
@@ -221,14 +221,14 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     void SetUp() override
     {
         bboxes_ = this->make_bboxes();
-        for (auto&& setup : this->make_bih_setups())
+        for (auto&& setup : this->make_bvh_setups())
         {
             testers_.emplace_back(bboxes_, std::move(setup));
         }
     }
 
-    //! Specify the BIH construction parameters for each tester
-    virtual VecSetup make_bih_setups() const = 0;
+    //! Specify the BVH construction parameters for each tester
+    virtual VecSetup make_bvh_setups() const = 0;
 
     //! Specify the bounding box construction
     virtual VecBBox make_bboxes() const = 0;
@@ -260,7 +260,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
         return result;
     }
 
-    auto get_bih_json_strings() const
+    auto get_bvh_json_strings() const
     {
         std::vector<std::string> result;
         celeritas::test::StringSimplifier simplify{5};
@@ -273,18 +273,18 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
 
   private:
     VecBBox bboxes_;
-    std::vector<LocalBihTreeTester> testers_;
+    std::vector<LocalBvhTreeTester> testers_;
 };
 
-class BasicBihTest : public BIHIntersectingVolFinderTest
+class BasicBvhTest : public BvhIntersectingVolFinderTest
 {
   public:
-    VecSetup make_bih_setups() const override
+    VecSetup make_bvh_setups() const override
     {
         VecSetup result;
         for (auto leaf_size : {1, 4, 8})
         {
-            inp::BIHBuilder setup;
+            inp::BvhBuilder setup;
             setup.max_leaf_size = leaf_size;
             result.push_back(setup);
         }
@@ -304,9 +304,9 @@ class BasicBihTest : public BIHIntersectingVolFinderTest
     }
 };
 
-TEST_F(BasicBihTest, tree_output)
+TEST_F(BasicBvhTest, tree_output)
 {
-    auto trees = this->get_bih_json_strings();
+    auto trees = this->get_bvh_json_strings();
     ASSERT_EQ(3, trees.size());
     EXPECT_JSON_EQ(
         R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[[[0.0,0.0,0.0],[2.80,1.0,100.0]],[[0.0,-1.0,0.0],[5.0,1.0,100.0]]]],["i","x",[3,4],[[[0.0,0.0,0.0],[1.60,1.0,100.0]],[[1.20,0.0,0.0],[2.80,1.0,100.0]]]],["i","x",[5,6],[[[0.0,-1.0,0.0],[5.0,0.0,100.0]],[[2.80,0.0,0.0],[5.0,1.0,100.0]]]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
@@ -320,7 +320,7 @@ TEST_F(BasicBihTest, tree_output)
 
 // Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
-TEST_F(BasicBihTest, outside_first)
+TEST_F(BasicBvhTest, outside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -438,7 +438,7 @@ TEST_F(BasicBihTest, outside_first)
 
 // Test the case where the ray starts somewhere inside a bbox and this bbox
 // contains first intersecting volume.
-TEST_F(BasicBihTest, inside_first)
+TEST_F(BasicBvhTest, inside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -590,7 +590,7 @@ TEST_F(BasicBihTest, inside_first)
 
 // Test the case where the first intersection does not yields the first volume
 // collision
-TEST_F(BasicBihTest, not_first)
+TEST_F(BasicBvhTest, not_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -678,10 +678,10 @@ TEST_F(BasicBihTest, not_first)
  * boxes less with even indices (`i % 2 == 0`) have pretend volumes in the
  * range z=[0.5, 1] offset by the box.
  */
-class KebabTest : public BIHIntersectingVolFinderTest
+class KebabTest : public BvhIntersectingVolFinderTest
 {
   public:
-    VecSetup make_bih_setups() const override
+    VecSetup make_bvh_setups() const override
     {
         VecSetup result;
         if (false)
@@ -689,7 +689,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
             // FIXME: depth limit is forced cutoff: tree is unbalanced
             for (auto depth_limit : range(8))
             {
-                inp::BIHBuilder setup;
+                inp::BvhBuilder setup;
                 setup.depth_limit = 1 + 4 * depth_limit;
                 result.push_back(setup);
             }
@@ -698,7 +698,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
         {
             for (auto leaf_size : {1, 2, 4, 8, 12, 16, 20, 24})
             {
-                inp::BIHBuilder setup;
+                inp::BvhBuilder setup;
                 setup.max_leaf_size = leaf_size;
                 result.push_back(setup);
             }
@@ -724,7 +724,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
 
 TEST_F(KebabTest, DISABLED_tree_output)
 {
-    for (auto&& s : this->get_bih_json_strings())
+    for (auto&& s : this->get_bvh_json_strings())
     {
         cout << "R\"json(" << s << ")json\"\n\n\n";
     }

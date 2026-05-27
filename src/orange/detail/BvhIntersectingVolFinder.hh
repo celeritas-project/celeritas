@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHIntersectingVolFinder.hh
+//! \file orange/detail/BvhIntersectingVolFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -10,7 +10,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
-#include "BIHView.hh"
+#include "BvhView.hh"
 #include "../BoundingBoxUtils.hh"
 #include "../univ/detail/Types.hh"
 
@@ -20,7 +20,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Traverse the BIH to the find the volume that the ray intersects with first.
+ * Traverse the BVH to the find the volume that the ray intersects with first.
  *
  * Traversal is carried out using a depth first search. During traversal, the
  * minimum intersection is stored. The decision to traverse an edge is done by
@@ -35,12 +35,12 @@ namespace detail
  *
  * \todo move to top-level orange directory out of detail namespace
  */
-class BIHIntersectingVolFinder
+class BvhIntersectingVolFinder
 {
   public:
     //!@{
     //! \name Type aliases
-    using Storage = NativeCRef<BIHTreeData>;
+    using Storage = NativeCRef<BvhTreeData>;
 
     struct Ray
     {
@@ -50,7 +50,7 @@ class BIHIntersectingVolFinder
     //!@}
 
     // Construct from a vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION BIHIntersectingVolFinder(BIHTreeRecord const& tree,
+    inline CELER_FUNCTION BvhIntersectingVolFinder(BvhTreeRecord const& tree,
                                                    Storage const& storage);
 
     // Calculate the minimum intersection, with supplied maximum search
@@ -61,7 +61,7 @@ class BIHIntersectingVolFinder
 
   private:
     //// DATA ////
-    BIHView view_;
+    BvhView view_;
 
     //// HELPER FUNCTIONS ////
 
@@ -73,7 +73,7 @@ class BIHIntersectingVolFinder
     // Calculate the current min intersection, which may/may not be on this
     // leaf
     template<class F>
-    inline CELER_FUNCTION Intersection visit_leaf(BIHNodeId leaf_node_id,
+    inline CELER_FUNCTION Intersection visit_leaf(BvhNodeId leaf_node_id,
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
 
@@ -90,8 +90,8 @@ class BIHIntersectingVolFinder
  * Construct from vector a of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHIntersectingVolFinder::BIHIntersectingVolFinder(
-    BIHTreeRecord const& tree, BIHIntersectingVolFinder::Storage const& storage)
+BvhIntersectingVolFinder::BvhIntersectingVolFinder(
+    BvhTreeRecord const& tree, BvhIntersectingVolFinder::Storage const& storage)
     : view_(tree, storage)
 {
     CELER_EXPECT(tree);
@@ -111,21 +111,21 @@ BIHIntersectingVolFinder::BIHIntersectingVolFinder(
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
+BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
                                      F&& visit_vol,
                                      real_type max_search_dist) const
     -> Intersection
 {
-    using Side = BIHInternalNode::Side;
+    using Side = BvhInternalNode::Side;
 
     Intersection intersection{OnLocalSurface{}, max_search_dist};
 
     // Stack of deferred nodes
-    using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
-    BIHNodeId stack_spill_[StackT::spill_extent];
+    using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
+    BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
-    static_assert(stack.capacity() == max_bih_depth);
-    stack.push(BIHNodeId{0});
+    static_assert(stack.capacity() == max_bvh_depth);
+    stack.push(BvhNodeId{0});
 
     while (!stack.empty())
     {
@@ -144,9 +144,9 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         // Guess the better edge to traverse first: unrolled with loads for
         // GPU performance
         FastBBox first_bbox = node.bbox(Side::left);
-        BIHNodeId first_child = node.child(Side::left);
+        BvhNodeId first_child = node.child(Side::left);
         FastBBox second_bbox = node.bbox(Side::right);
-        BIHNodeId second_child = node.child(Side::right);
+        BvhNodeId second_child = node.child(Side::right);
 
         if (ray.pos[ax] > node.bbox(Side::right).lower()[ax])
         {
@@ -174,7 +174,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
  * Determine if the intersection with an edge/vol bbox is less than min_dist.
  */
 CELER_FUNCTION
-bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
+bool BvhIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
                                           Ray ray,
                                           real_type min_dist) const
 {
@@ -187,7 +187,7 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::visit_leaf(BIHNodeId leaf_node_id,
+BvhIntersectingVolFinder::visit_leaf(BvhNodeId leaf_node_id,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
@@ -209,7 +209,7 @@ BIHIntersectingVolFinder::visit_leaf(BIHNodeId leaf_node_id,
  */
 template<class F>
 CELER_FUNCTION auto
-BIHIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
+BvhIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
                                          F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.inf_vol_ids())
