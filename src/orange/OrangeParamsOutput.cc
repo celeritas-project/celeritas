@@ -49,9 +49,7 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
             {"i",
              std::string(1, to_char(inner.axis())),
              json::array({inner.child(Side::left).unchecked_get(),
-                          inner.child(Side::right).unchecked_get()}),
-             json::array({inner.bounding_plane_pos(Side::left),
-                          inner.bounding_plane_pos(Side::right)})}));
+                          inner.child(Side::right).unchecked_get()})}));
     }
 
     // Handle leaf nodes

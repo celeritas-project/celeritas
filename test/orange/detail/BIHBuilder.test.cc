@@ -124,8 +124,6 @@ TEST_F(BIHBuilderTest, basic)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(2.8f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(0.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
 
@@ -145,8 +143,6 @@ TEST_F(BIHBuilderTest, basic)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(1.6f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.2f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
@@ -166,8 +162,6 @@ TEST_F(BIHBuilderTest, basic)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(5.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.8f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
@@ -284,8 +278,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
@@ -305,8 +297,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
 
@@ -326,8 +316,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{11}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{12}, node.child(Side::right));
 
@@ -347,8 +335,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{4}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{5}, node.child(Side::right));
 
@@ -368,8 +354,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{13}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{14}, node.child(Side::right));
 
@@ -389,8 +373,6 @@ TEST_F(GridTest, basic)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{15}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{16}, node.child(Side::right));
 
@@ -463,8 +445,6 @@ TEST_F(GridTest, max_leaf_size)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
 
@@ -484,8 +464,6 @@ TEST_F(GridTest, max_leaf_size)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
@@ -505,8 +483,6 @@ TEST_F(GridTest, max_leaf_size)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
 
@@ -585,8 +561,6 @@ TEST_F(GridTest, depth_limit)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
 
@@ -606,8 +580,6 @@ TEST_F(GridTest, depth_limit)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
 
@@ -627,8 +599,6 @@ TEST_F(GridTest, depth_limit)
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(1.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{7}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{8}, node.child(Side::right));
 
@@ -648,8 +618,6 @@ TEST_F(GridTest, depth_limit)
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::left));
-        EXPECT_SOFT_EQ(2.f, node.bounding_plane_pos(Side::right));
         EXPECT_EQ(BIHNodeId{9}, node.child(Side::left));
         EXPECT_EQ(BIHNodeId{10}, node.child(Side::right));
 

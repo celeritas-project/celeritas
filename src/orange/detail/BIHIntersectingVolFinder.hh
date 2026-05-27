@@ -148,7 +148,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         FastBBox second_bbox = node.bbox(Side::right);
         BIHNodeId second_child = node.child(Side::right);
 
-        if (ray.pos[ax] > node.bounding_plane_pos(Side::right))
+        if (ray.pos[ax] > node.bbox(Side::right).lower()[ax])
         {
             trivial_swap(first_bbox, second_bbox);
             trivial_swap(first_child, second_child);
