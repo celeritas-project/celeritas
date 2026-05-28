@@ -216,7 +216,7 @@ TEST(RotateTest, degenerate)
 
     // Normalization not quite right
     // constexpr auto eps = std::numeric_limits<double>::epsilon();
-    constexpr auto eps = SoftEqual{}.rel();
+    constexpr auto eps = SoftEqual<double>{}.rel();
     scatter = {-0.25938973121662295, 0.67784930294796419, 0.68792244463480556};
     EXPECT_VEC_SOFT_EQ(
         (Dbl3{-0.25938973121662295, 0.67784930294796419, 0.68792244463480556}),
