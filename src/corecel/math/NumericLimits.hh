@@ -26,6 +26,8 @@ namespace celeritas
  * \deprecated The name of this class will change to NumericLimits to conform
  * to the Celeritas naming system, since it is not a complete replacement for
  * the \c std implementation.
+ *
+ * \todo Replace with the cuda/hip standard libraries or a modified llvm port
  */
 template<class Numeric>
 struct numeric_limits;
@@ -59,22 +61,6 @@ struct numeric_limits<double>
 };
 
 template<>
-struct numeric_limits<signed char>
-{
-    SCCEF_ signed char lowest() { return CHAR_MIN; }
-    SCCEF_ signed char min() { return CHAR_MIN; }
-    SCCEF_ signed char max() { return CHAR_MAX; }
-};
-
-template<>
-struct numeric_limits<short>
-{
-    SCCEF_ short lowest() { return SHRT_MIN; }
-    SCCEF_ short min() { return SHRT_MIN; }
-    SCCEF_ short max() { return SHRT_MAX; }
-};
-
-template<>
 struct numeric_limits<int>
 {
     SCCEF_ int lowest() { return INT_MIN; }
@@ -103,7 +89,7 @@ struct numeric_limits<unsigned char>
 {
     SCCEF_ unsigned char lowest() { return 0; }
     SCCEF_ unsigned char min() { return 0; }
-    SCCEF_ unsigned char max() { return UCHAR_MAX; }
+    SCCEF_ unsigned char max() { return (unsigned char)(UCHAR_MAX); }
 };
 
 template<>
@@ -111,7 +97,7 @@ struct numeric_limits<unsigned short>
 {
     SCCEF_ unsigned short lowest() { return 0; }
     SCCEF_ unsigned short min() { return 0; }
-    SCCEF_ unsigned short max() { return USHRT_MAX; }
+    SCCEF_ unsigned short max() { return (unsigned short)(USHRT_MAX); }
 };
 
 template<>
