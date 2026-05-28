@@ -59,6 +59,22 @@ struct numeric_limits<double>
 };
 
 template<>
+struct numeric_limits<signed char>
+{
+    SCCEF_ signed char lowest() { return CHAR_MIN; }
+    SCCEF_ signed char min() { return CHAR_MIN; }
+    SCCEF_ signed char max() { return CHAR_MAX; }
+};
+
+template<>
+struct numeric_limits<short>
+{
+    SCCEF_ short lowest() { return SHRT_MIN; }
+    SCCEF_ short min() { return SHRT_MIN; }
+    SCCEF_ short max() { return SHRT_MAX; }
+};
+
+template<>
 struct numeric_limits<int>
 {
     SCCEF_ int lowest() { return INT_MIN; }
@@ -80,6 +96,22 @@ struct numeric_limits<long long>
     SCCEF_ long long lowest() { return LLONG_MIN; }
     SCCEF_ long long min() { return LLONG_MIN; }
     SCCEF_ long long max() { return LLONG_MAX; }
+};
+
+template<>
+struct numeric_limits<unsigned char>
+{
+    SCCEF_ unsigned char lowest() { return 0; }
+    SCCEF_ unsigned char min() { return 0; }
+    SCCEF_ unsigned char max() { return UCHAR_MAX; }
+};
+
+template<>
+struct numeric_limits<unsigned short>
+{
+    SCCEF_ unsigned short lowest() { return 0; }
+    SCCEF_ unsigned short min() { return 0; }
+    SCCEF_ unsigned short max() { return USHRT_MAX; }
 };
 
 template<>
