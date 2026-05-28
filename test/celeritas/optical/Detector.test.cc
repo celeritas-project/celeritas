@@ -118,7 +118,7 @@ struct SimpleScorer
             scores.volume_instance_ids.push_back(
                 hit.volume_instance.unchecked_get());
             scores.volume_unique_instance_ids.push_back(
-                hit.volume_unique_instance.unchecked_get());
+                hit.unique_instance.unchecked_get());
         }
     }
 };

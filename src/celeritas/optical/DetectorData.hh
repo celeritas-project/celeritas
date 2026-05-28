@@ -28,7 +28,7 @@ struct DetectorHit
     real_type time{};
     Real3 position{};
     VolumeInstanceId volume_instance;
-    VolumeUniqueInstanceId volume_unique_instance;
+    VolumeUniqueInstanceId unique_instance;
 
     //! An actual hit has a valid detector
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const
@@ -51,22 +51,14 @@ struct DetectorStateData
     //! \name Type aliases
     template<class T>
     using StateItems = StateCollection<T, W, M>;
-
-    template<class T>
-    using Items = Collection<T, W, M>;
     //!@}
 
-    //! Per track size of temporary storage for volume instance paths
-    size_type scratch_path_size{0};
-
     StateItems<DetectorHit> detector_hits;
-    Items<VolumeInstanceId> scratch_volume_path;
 
     //! Whether data is assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !detector_hits.empty() && !scratch_volume_path.empty()
-               && scratch_path_size > 0;
+        return !detector_hits.empty();
     }
 
     //! State size
@@ -78,8 +70,6 @@ struct DetectorStateData
     {
         CELER_EXPECT(other);
         detector_hits = other.detector_hits;
-        scratch_volume_path = other.scratch_volume_path;
-        scratch_path_size = other.scratch_path_size;
         return *this;
     }
 };
@@ -91,19 +81,13 @@ struct DetectorStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void resize(DetectorStateData<Ownership::value, M>* state,
-                   HostCRef<VolumeParamsData> const& volumes,
-                   size_type size)
+inline void
+resize(DetectorStateData<Ownership::value, M>* state, size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);
 
-    // For GeoTrackInterface::volume_instance_id, the scratch span needs to be
-    // at least one larger than the maximum geometry depth.
-    state->scratch_path_size = volumes.scalars.num_volume_levels + 1;
-
     resize(&state->detector_hits, size);
-    resize(&state->scratch_volume_path, size * state->scratch_path_size);
 
     CELER_ENSURE(*state);
 }

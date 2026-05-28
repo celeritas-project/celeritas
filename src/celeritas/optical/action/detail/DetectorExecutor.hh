@@ -92,24 +92,12 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
 
-    // Load track's volume instance path into scratch space
-
-    OpaqueId<VolumeInstanceId> scratch_idx{
-        track.track_slot_id().get() * detector_state_.scratch_path_size};
-
-    // volume_instance_id requires volume_level + 1 span size
-    Span<VolumeInstanceId> volume_path
-        = detector_state_.scratch_volume_path[range(
-            scratch_idx, scratch_idx + geometry.volume_level().get() + 1)];
-    geometry.volume_instance_id(volume_path);
-
+    // Construct unique instance ID from geometry volume path
     auto accum = track.volumes().path_accumulator();
-    hit.volume_unique_instance = world_unique_instance;
-    // First index is world; don't accumulate it
-    for (auto vi : volume_path.subspan(1))
-    {
-        hit.volume_unique_instance = accum(hit.volume_unique_instance, vi);
-    }
+    hit.unique_instance = {};
+    geometry.foreach_volume_path([&](VolumeLevelId, VolumeInstanceId vi) {
+        hit.unique_instance = accum(hit.unique_instance, vi);
+    });
 
     // Kill the track
     sim.status(TrackStatus::killed);
