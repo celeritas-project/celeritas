@@ -133,11 +133,7 @@ endforeach()
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
-if(DEFINED CELERITAS_VecGeom_SURFACE)
-  # Override/pretend VecGeom has this option
-  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
-endif()
-foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+foreach(_opt BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
     set(_val "0 /* not defined */")
   elseif(VecGeom_${_opt})

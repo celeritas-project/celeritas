@@ -172,20 +172,9 @@
       }
     },
     {
-      "name": "reldeb-vgsurf",
-      "description": "FINAL: release, assertions, VecGeom 2+surf",
-      "inherits": [".vecgeom", "type-reldeb", "tool-spack"],
-      "cacheVariables": {
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL", "value": "ON"}
-      }
-    },
-    {
       "name": "reldeb-vecgeom2",
-      "description": "FINAL: release, assertions, VecGeom 2~surf",
-      "inherits": [".vecgeom", "type-reldeb", "tool-spack"],
-      "cacheVariables": {
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL", "value": "OFF"}
-      }
+      "description": "FINAL: release, assertions, VecGeom 2",
+      "inherits": [".vecgeom", "type-reldeb", "tool-spack"]
     },
     {
       "name": "ndebug-vecgeom",

@@ -39,7 +39,7 @@ char const* to_cstring(G4OpticalSurfaceModel value)
         G4OSM::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OSM, const char*> const names = {
+    static std::unordered_map<G4OSM, char const*> const names = {
         GSPL_OSM_PAIR(glisur),
         GSPL_OSM_PAIR(unified),
         GSPL_OSM_PAIR(LUT),
@@ -67,7 +67,7 @@ char const* to_cstring(G4SurfaceType value)
         G4ST::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4ST, const char*> const names = {
+    static std::unordered_map<G4ST, char const*> const names = {
         GSPL_ST_PAIR(dielectric_metal),
         GSPL_ST_PAIR(dielectric_dielectric),
         GSPL_ST_PAIR(dielectric_LUT),
@@ -99,7 +99,7 @@ char const* to_cstring(G4OpticalSurfaceFinish value)
         G4OSF::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OSF, const char*> const names = {
+    static std::unordered_map<G4OSF, char const*> const names = {
         GSPL_OSF_PAIR(polished),
         GSPL_OSF_PAIR(polishedfrontpainted),
         GSPL_OSF_PAIR(polishedbackpainted),

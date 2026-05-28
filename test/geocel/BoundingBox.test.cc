@@ -115,6 +115,9 @@ TEST_F(BoundingBoxTest, standard)
     EXPECT_VEC_SOFT_EQ((Real3{3, 0, 6}), bb.upper());
     EXPECT_REAL_EQ(-1, bb.point(Bound::lo, Axis::x));
     EXPECT_REAL_EQ(6, bb.point(Bound::hi, Axis::z));
+
+    // Test point-by-value
+    EXPECT_REAL_EQ(-1, BBox{bb}.point(Bound::lo, Axis::x));
 }
 
 TEST_F(BoundingBoxTest, is_inside)
@@ -165,6 +168,9 @@ TEST_F(BoundingBoxTest, io)
 
     EXPECT_EQ("[[-1.0,-2.0,-3.0],[3.0,2.0,1.0]]", to_json_string(bboxes[0]));
     EXPECT_EQ("null", to_json_string(BoundingBoxT{}));
+
+    EXPECT_EQ("{{-1,-2,-3}, {3,2,1}}", stream_to_string(bboxes[0]));
+    EXPECT_EQ("{}", stream_to_string(BoundingBoxT{}));
 
     // Test round tripping
     for (BoundingBoxT const& bb : bboxes)
