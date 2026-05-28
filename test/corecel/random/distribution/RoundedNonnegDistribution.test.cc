@@ -80,9 +80,12 @@ TEST(RoundedNonnegDistributionTest, rounding)
     EXPECT_EQ(2, RoundedConstant{1.5}(rng));
     EXPECT_EQ(3, RoundedConstant{2.5}(rng));
 
-    using RoundedU8
-        = RoundedNonnegDistribution<ConstantDistribution, std::uint8_t>;
-    EXPECT_EQ(std::numeric_limits<std::uint8_t>::max(), RoundedU8{1e6}(rng));
+    if (CELERITAS_DEBUG)
+    {
+        using RoundedU8
+            = RoundedNonnegDistribution<ConstantDistribution, std::uint8_t>;
+        EXPECT_THROW(RoundedU8{1e6}(rng), DebugError);
+    }
 }
 
 TEST(RoundedNonnegDistributionTest, one_sample_per_call)

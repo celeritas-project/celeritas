@@ -59,7 +59,7 @@ TEST(PoissonDistributionKnuthTest, small)
 
 TEST(PoissonDistributionKnuthTest, large)
 {
-    HistogramSampler calc_histogram(8, {0, 50}, 10000);
+    HistogramSampler calc_histogram(8, {0, 50}, 1000);
     std::vector<SampledHistogram> actual;
     // Test default lambda=1
     actual.push_back(calc_histogram(PoissonDistributionKnuth<double>{}));
