@@ -23,19 +23,15 @@ namespace detail
  * Traverse the BIH to the find the volume that the ray intersects with first.
  *
  * Traversal is carried out using a depth first search. During traversal, the
- * minimum intersection is stored.  The decision to traverse an edge is done by
+ * minimum intersection is stored. The decision to traverse an edge is done by
  * calculating the distance to intersection with the precomputed edge bounding
  * box. The edge bounding box is the bounding box created by clipping an
  * infinite bounding box with all bounding planes between the root node and the
  * current edge (inclusive). If a ray's intersection with the edge bbox is
  * found to be nearer than the current minimum intersection, traversal proceeds
- * down that edge. Likewise, when a root node is reacted, intersections with
- * volume bboxes are first tested against the minimum intersection prior to
- * testing the the volume itself. The minimum intersection is only modified
- * when a nearer minimumium intersection with a actual volume if found, NOT a
- * nearer intersection with an edge bbox or volume bbox. This is because is is
- * possible to have a ray that intersects with a volume's bbox, but not the
- * volume itself.
+ * down that edge. The minimum intersection is modified when a nearer
+ * minimumium intersection with a actual volume if found (NOT a nearer
+ * intersection with an edge bbox).
  *
  * \todo move to top-level orange directory out of detail namespace
  */
@@ -78,7 +74,6 @@ class BIHIntersectingVolFinder
     // leaf
     template<class F>
     inline CELER_FUNCTION Intersection visit_leaf(BIHNodeId leaf_node_id,
-                                                  Ray ray,
                                                   Intersection intersection,
                                                   F&& visit_vol) const;
 
@@ -137,7 +132,7 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
         if (!view_.is_internal(stack.top()))
         {
             intersection
-                = this->visit_leaf(stack.top(), ray, intersection, visit_vol);
+                = this->visit_leaf(stack.top(), intersection, visit_vol);
             stack.pop();
             continue;
         }
@@ -148,38 +143,23 @@ BIHIntersectingVolFinder::operator()(BIHIntersectingVolFinder::Ray ray,
 
         // Guess the better edge to traverse first: unrolled with loads for
         // GPU performance
-        fast_real_type left_pos = node.bounding_plane_pos(Side::left);
         FastBBox first_bbox = node.bbox(Side::left);
         BIHNodeId first_child = node.child(Side::left);
-        fast_real_type right_pos = node.bounding_plane_pos(Side::right);
         FastBBox second_bbox = node.bbox(Side::right);
         BIHNodeId second_child = node.child(Side::right);
 
-        bool skip_first = (ray.dir[ax] >= 0) && (ray.pos[ax] > left_pos);
-        bool skip_second = (ray.dir[ax] <= 0) && (ray.pos[ax] < right_pos);
-
-        if (ray.pos[ax] > right_pos)
+        if (ray.pos[ax] > node.bounding_plane_pos(Side::right))
         {
             trivial_swap(first_bbox, second_bbox);
             trivial_swap(first_child, second_child);
-            trivial_swap(skip_first, skip_second);
         }
 
-        // Determine if the first and second edges are hits, short circuiting
-        // with skip_* before testing bounding boxes
-        bool hit_first
-            = !skip_first
-              && this->visit_bbox(first_bbox, ray, intersection.distance);
-        bool hit_second
-            = !skip_second
-              && this->visit_bbox(second_bbox, ray, intersection.distance);
-
         // Choose the next node on the basis of which edges are hits
-        if (hit_second)
+        if (this->visit_bbox(second_bbox, ray, intersection.distance))
         {
             stack.push(second_child);
         }
-        if (hit_first)
+        if (this->visit_bbox(first_bbox, ray, intersection.distance))
         {
             stack.push(first_child);
         }
@@ -208,23 +188,16 @@ bool BIHIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
 template<class F>
 CELER_FUNCTION auto
 BIHIntersectingVolFinder::visit_leaf(BIHNodeId leaf_node_id,
-                                     BIHIntersectingVolFinder::Ray ray,
                                      Intersection min_intersection,
                                      F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.leaf_vol_ids(leaf_node_id))
     {
-        auto const& bbox = view_.bbox(id);
-
-        if (this->visit_bbox(bbox, ray, min_intersection.distance))
+        auto intersection = visit_vol(id, min_intersection.distance);
+        if (intersection)
         {
-            auto intersection = visit_vol(id, min_intersection.distance);
-            if (intersection)
-            {
-                CELER_ASSERT(intersection.distance
-                             <= min_intersection.distance);
-                min_intersection = intersection;
-            }
+            CELER_ASSERT(intersection.distance <= min_intersection.distance);
+            min_intersection = intersection;
         }
     }
     return min_intersection;

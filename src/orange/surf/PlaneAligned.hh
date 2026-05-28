@@ -9,6 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
@@ -153,16 +154,12 @@ PlaneAligned<T>::calc_intersections(Real3 const& pos,
     -> Intersections
 {
     real_type const n_dir = dir[to_int(T)];
-    if (on_surface == SurfaceState::off && n_dir != 0)
-    {
-        real_type const n_pos = pos[to_int(T)];
-        real_type dist = (position_ - n_pos) / n_dir;
-        if (dist > 0)
-        {
-            return {dist};
-        }
-    }
-    return {no_intersection()};
+    real_type const dist = (position_ - pos[to_int(T)]) / n_dir;
+
+    bool valid = celeritas::logical_all(
+        (on_surface == SurfaceState::off), (n_dir != 0), (dist > 0));
+
+    return {valid ? dist : no_intersection()};
 }
 
 //---------------------------------------------------------------------------//

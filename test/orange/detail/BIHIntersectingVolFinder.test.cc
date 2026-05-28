@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "corecel/StringSimplifier.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/detail/BIHBuilder.hh"
@@ -33,13 +34,27 @@ class MockIntersector
 {
   public:
     using DistMap = std::unordered_map<LocalVolumeId, real_type>;
+    using VecBBox = BIHBuilder::VecBBox;
+    using Ray = BIHIntersectingVolFinder::Ray;
 
   public:
-    explicit MockIntersector(DistMap const& dist_map) : dist_map_(dist_map) {}
+    MockIntersector(DistMap const& dist_map, VecBBox const& bboxes, Ray ray)
+        : dist_map_(dist_map), bboxes_(bboxes), ray_(ray)
+    {
+    }
 
     Intersection operator()(LocalVolumeId vol_id, real_type max_distance)
     {
         CELER_EXPECT(vol_id);
+
+        // Check bbox intersection before testing the volume
+        auto const& bbox = bboxes_[vol_id.unchecked_get()];
+        if (!is_inside(bbox, ray_.pos)
+            && !intersects_segment(bbox, ray_.pos, ray_.dir, max_distance))
+        {
+            return {};
+        }
+
         auto iter = dist_map_.find(vol_id);
         if (iter == dist_map_.end())
         {
@@ -64,6 +79,8 @@ class MockIntersector
 
   private:
     DistMap const& dist_map_;
+    VecBBox const& bboxes_;
+    Ray ray_;
     size_type hits_{0};
     size_type misses_{0};
 };
@@ -203,10 +220,10 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
   protected:
     void SetUp() override
     {
-        auto bboxes = this->make_bboxes();
+        bboxes_ = this->make_bboxes();
         for (auto&& setup : this->make_bih_setups())
         {
-            testers_.emplace_back(bboxes, std::move(setup));
+            testers_.emplace_back(bboxes_, std::move(setup));
         }
     }
 
@@ -224,7 +241,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
         IntersectResult result;
         for (auto& tester : testers_)
         {
-            MockIntersector visit_vol{dist_map};
+            MockIntersector visit_vol{dist_map, bboxes_, ray};
             auto intersection = tester(ray, visit_vol, max_search_dist);
             if (result.hit_count.empty())
             {
@@ -255,6 +272,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     }
 
   private:
+    VecBBox bboxes_;
     std::vector<LocalBihTreeTester> testers_;
 };
 
