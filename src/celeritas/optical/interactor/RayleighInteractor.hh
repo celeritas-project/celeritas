@@ -69,9 +69,7 @@ RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
-    Interaction result;
-    Real3& new_dir = result.direction;
-    Real3& new_pol = result.polarization;
+    Real3 new_dir, new_pol;
     do
     {
         do
@@ -97,6 +95,9 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 
     CELER_ENSURE(is_soft_unit_vector(new_dir));
     CELER_ENSURE(is_soft_unit_vector(new_pol));
+    Interaction result;
+    result.direction = new_dir;
+    result.polarization = new_pol;
     return result;
 }
 
