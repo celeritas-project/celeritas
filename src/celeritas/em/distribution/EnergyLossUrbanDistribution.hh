@@ -281,9 +281,8 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             auto n = PoissonDistributionKnuth<real_type>(xs_exc_[i])(rng);
             if (n > 0)
             {
-                UniformRealDistribution<real_type> sample_fraction(n - 1,
-                                                                   n + 1);
-                result += sample_fraction(rng) * binding_energy_[i];
+                UniformRealDistribution<real_type> sample_smooth(-1, 1);
+                result += (n + sample_smooth(rng)) * binding_energy_[i];
             }
         }
     }
