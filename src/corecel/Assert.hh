@@ -144,7 +144,7 @@
         assert(false && sizeof(#WHICH ": " MSG))
 #else
 // Use a special device function to emulate assertion failure if HIP
-// (assertion from multiple threads simultaeously can cause unexpected device
+// (assertion from multiple threads simultaneously can cause unexpected device
 // failures on AMD hardware) or if NDEBUG is in use with CUDA
 #    define CELER_DEBUG_THROW_(MSG, WHICH)       \
         ::celeritas::detail::device_debug_error( \
@@ -176,7 +176,7 @@
             }                     \
         } while (0)
 #else
-// Delete the code completely to avoid false posistives for coverage
+// Delete the code completely to avoid false positives for coverage
 #    define CELER_NOASSERT_(COND)
 #endif
 //! \endcond
@@ -310,6 +310,8 @@
  * assertion.
  *
  * \note A file that uses this macro must include \c mpi.h.
+ *
+ * \todo Move to sys/MpiOperations.hh
  */
 #if CELERITAS_USE_MPI
 #    define CELER_MPI_CALL(STATEMENT)                                     \
