@@ -146,8 +146,8 @@
 // Use a special device function to emulate assertion failure if HIP
 // (assertion from multiple threads simultaeously can cause unexpected device
 // failures on AMD hardware) or if NDEBUG is in use with CUDA
-#    define CELER_DEBUG_THROW_(MSG, WHICH) \
-        ::celeritas::device_debug_error(   \
+#    define CELER_DEBUG_THROW_(MSG, WHICH)       \
+        ::celeritas::detail::device_debug_error( \
             ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
 #endif
 
@@ -237,11 +237,12 @@
             }                                                    \
         } while (0)
 #else
-#    define CELER_VALIDATE(COND, MSG)                \
-        do                                           \
-        {                                            \
-            CELER_DISCARD(COND);                     \
-            CELER_RUNTIME_THROW(nullptr, "", #COND); \
+#    define CELER_VALIDATE(COND, MSG)                                 \
+        do                                                            \
+        {                                                             \
+            CELER_DISCARD(COND);                                      \
+            CELER_DISCARD(::celeritas::detail::DiscardStream {} MSG); \
+            CELER_RUNTIME_THROW(nullptr, "", #COND);                  \
         } while (0)
 #endif
 
@@ -476,6 +477,24 @@ class RichContextException : public std::exception
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
 //---------------------------------------------------------------------------//
+namespace detail
+{
+#if CELER_DEVICE_COMPILE
+/*!
+ * Ignore anything that streams.
+ *
+ * This prevents "unused variable" errors due to CELER_VALIDATE statements
+ * reachable from HIP code.
+ */
+struct DiscardStream
+{
+    template<class T>
+    CELER_CONSTEXPR_FUNCTION DiscardStream& operator<<(T&&)
+    {
+        return *this;
+    }
+};
+#endif
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Host+device definition for CUDA when \c assert is unavailable
@@ -510,6 +529,8 @@ inline __attribute__((noinline)) __device__ void device_debug_error(
     abort();
 }
 #endif
+
+}  // namespace detail
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
