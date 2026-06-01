@@ -6,12 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "geocel/Types.hh"
-#include "celeritas/Constants.hh"
 
 namespace celeritas
 {
@@ -50,40 +49,57 @@ inline CELER_FUNCTION Real3 calc_exiting_direction(Momentum inc_momentum,
  * and exiting) with a sampled uniform azimuthal direction, and apply that
  * rotation to the original track's incident direction.
  */
-struct ExitingDirectionSampler
+class ExitingDirectionSampler
 {
-    real_type costheta;
-    Real3 const& direction;
+  public:
+    CELER_FUNCTION
+    ExitingDirectionSampler(real_type costheta, Real3 const& direction)
+        : cos_theta_(costheta)
+        , dir_(direction)
+        , sample_phi_(0, real_type(2 * constants::pi))
+    {
+    }
 
     template<class Engine>
-    inline CELER_FUNCTION Real3 operator()(Engine& rng)
+    CELER_FUNCTION Real3 operator()(Engine& rng)
     {
-        UniformRealDistribution<real_type> sample_phi(
-            0, real_type(2 * constants::pi));
-        return rotate(from_spherical(costheta, sample_phi(rng)), direction);
+        return rotate(from_spherical(cos_theta_, sample_phi_(rng)), dir_);
     }
+
+  private:
+    real_type cos_theta_;
+    Real3 const& dir_;
+    UniformRealDistribution<real_type> sample_phi_;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample a polarization uniformly in the plane orthogonal to the direction.
  */
-struct TransversePolarizationSampler
+class TransversePolarizationSampler
 {
-    Real3 const& direction;
+  public:
+    explicit CELER_FUNCTION
+    TransversePolarizationSampler(Real3 const& direction)
+        : dir_(direction)
+    {
+    }
 
     template<class Engine>
-    inline CELER_FUNCTION Real3 operator()(Engine& rng)
+    CELER_FUNCTION Real3 operator()(Engine& rng)
     {
-        IsotropicDistribution<real_type> sample_polarization;
         Real3 polarization;
         do
         {
             polarization = make_unit_vector(
-                make_orthogonal(sample_polarization(rng), direction));
-        } while (CELER_UNLIKELY(!is_soft_orthogonal(polarization, direction)));
+                make_orthogonal(sample_isotropic_(rng), dir_));
+        } while (CELER_UNLIKELY(!is_soft_orthogonal(polarization, dir_)));
         return polarization;
     }
+
+  private:
+    IsotropicDistribution<real_type> sample_isotropic_;
+    Real3 dir_;
 };
 
 //---------------------------------------------------------------------------//

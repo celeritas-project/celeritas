@@ -14,17 +14,16 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/MaterialParams.hh"  // IWYU pragma: keep
 
-#include "CherenkovParams.hh"
-#include "ScintillationParams.hh"
+#include "CherenkovParams.hh"  // IWYU pragma: keep
+#include "ScintillationParams.hh"  // IWYU pragma: keep
 
-#include "detail/CherenkovOffloadExecutor.hh"
+#include "detail/CherenkovOffloadExecutor.hh"  // IWYU pragma: keep
 #include "detail/OffloadAlgorithms.hh"
-#include "detail/ScintOffloadExecutor.hh"
+#include "detail/ScintOffloadExecutor.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
