@@ -222,7 +222,7 @@ std::string StringSimplifier::simplify_float(std::string s) const
         {
             // Don't make it an integer except if we parsed it as a float
             CELER_ASSERT(s.find('.') == std::string::npos);
-            s.push_back('.');
+            s += ".0";
         }
     }
 

@@ -4,8 +4,10 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeParamsOutput.cc
 //---------------------------------------------------------------------------//
+
 #include "OrangeParamsOutput.hh"
 
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 #include "corecel/cont/LdgSpan.hh"
@@ -35,6 +37,16 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
 {
     using json = nlohmann::json;
 
+    // Convert a single point to JSON
+    auto point_to_json
+        = [](auto const& p) { return json::array({p[0], p[1], p[2]}); };
+
+    // Convert a bbox to JSON
+    auto bbox_to_json = [&](auto const& bbox) {
+        return json::array(
+            {point_to_json(bbox.lower()), point_to_json(bbox.upper())});
+    };
+
     auto out = json::array();
 
     detail::BIHView view{tree, storage};
@@ -45,11 +57,14 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         auto const& inner = view.inner_node(i);
         using Side = detail::BIHInternalNode::Side;
 
-        out.push_back(json::array(
-            {"i",
-             std::string(1, to_char(inner.axis())),
-             json::array({inner.child(Side::left).unchecked_get(),
-                          inner.child(Side::right).unchecked_get()})}));
+        out.push_back(json::array({
+            "i",
+            std::string(1, to_char(inner.axis())),
+            json::array({inner.child(Side::left).unchecked_get(),
+                         inner.child(Side::right).unchecked_get()}),
+            json::array({bbox_to_json(inner.bbox(Side::left)),
+                         bbox_to_json(inner.bbox(Side::right))}),
+        }));
     }
 
     // Handle leaf nodes
