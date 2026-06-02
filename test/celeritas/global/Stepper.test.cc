@@ -193,8 +193,7 @@ TEST_F(SimpleComptonTest, fail_initialize)
         {
             std::vector<std::string> expected_log_messages = {
                 "Track 31 started outside the geometry",
-                R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)",
-            };
+                R"(Killing track {"geo":{"dir":[1.0,0.0,0.0],"is_on_boundary":false,"is_outside":true,"pos":[[1001.0,0.0,0.0],"cm"]},"mat":null,"particle":{"energy":[100.0,"MeV"],"particle_id":"gamma"},"sim":{"event_id":0,"num_steps":0,"parent_id":null,"post_step_action":"tracking-cut","primary_id":null,"status":"errored","step_length":[0.0,"cm"],"time":[0.0,"s"],"track_id":15},"thread_id":31,"track_slot_id":31}: depositing 100 MeV)"};
             if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
             {
                 expected_log_messages[0]
