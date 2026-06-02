@@ -263,7 +263,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     auto get_bih_json_strings() const
     {
         std::vector<std::string> result;
-        celeritas::test::StringSimplifier simplify{3};
+        celeritas::test::StringSimplifier simplify{5};
         for (auto& t : testers_)
         {
             result.push_back(simplify(to_string(t)));
