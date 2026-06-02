@@ -16,6 +16,10 @@
 
 #include "corecel/Config.hh"
 
+#ifdef _OPENMP
+#    include <omp.h>
+#endif
+
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
@@ -27,7 +31,6 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/Openmp.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -117,7 +120,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         {
             activate_device_local();
 #if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
-            StreamId stream = openmp_local_thread();
+            auto stream = id_cast<StreamId>(omp_get_thread_num());
 #else
             constexpr StreamId stream{0};
 #endif

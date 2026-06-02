@@ -25,7 +25,7 @@ namespace celeritas
  *
  * See https://www.openmp.org/spec-html/5.0/openmpsu123.html .
  */
-OpenmpSize_t openmp_thread_limit()
+size_type openmp_thread_limit()
 {
 #ifdef _OPENMP
     return omp_get_thread_limit();
@@ -39,24 +39,10 @@ OpenmpSize_t openmp_thread_limit()
  *
  * See https://www.openmp.org/spec-html/5.0/openmpsu112.html .
  */
-OpenmpSize_t openmp_max_threads()
+size_type openmp_max_threads()
 {
 #ifdef _OPENMP
     return omp_get_max_threads();
-#else
-    return 1;
-#endif
-}
-
-/*!
- * Get the number of CPU threads in the \em current parallel region.
- *
- * See https://www.openmp.org/spec-html/5.0/openmpsu111.html .
- */
-OpenmpSize_t openmp_num_threads()
-{
-#ifdef _OPENMP
-    return omp_get_num_threads();
 #else
     return 1;
 #endif
@@ -70,7 +56,7 @@ OpenmpSize_t openmp_num_threads()
  * \note This is named in sync with the OpenMP spec, but it acts more like "max
  * threads" (which is used outside a parallel region).
  */
-void openmp_num_threads(OpenmpSize_t num_threads)
+void openmp_num_threads(size_type num_threads)
 {
     CELER_EXPECT(num_threads > 0);
 #ifdef _OPENMP
@@ -79,21 +65,6 @@ void openmp_num_threads(OpenmpSize_t num_threads)
     CELER_VALIDATE(
         num_threads == 1,
         << R"(cannot set CPU thread limit above 1 when OpenMP is disabled)");
-#endif
-}
-
-/*!
- * Get the OpenMP thread ID inside a parallel region.
- *
- * If running in a serial application or region, this returns zero.
- * See https://www.openmp.org/spec-html/5.0/openmpsu113.html .
- */
-OpenmpThreadId openmp_local_thread()
-{
-#ifdef _OPENMP
-    return id_cast<OpenmpThreadId>(omp_get_thread_num());
-#else
-    return StreamId{0};
 #endif
 }
 
