@@ -47,13 +47,13 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         auto const& inner = view.inner_node(i);
         using Side = detail::BIHInternalNode::Side;
 
-        out.push_back(json::array({
+        out.push_back({
             "i",
             std::string(1, to_char(inner.axis())),
-            json::array({inner.child(Side::left).unchecked_get(),
-                         inner.child(Side::right).unchecked_get()}),
-            json::array({inner.bbox(Side::left), inner.bbox(Side::right)}),
-        }));
+            {inner.child(Side::left).unchecked_get(),
+             inner.child(Side::right).unchecked_get()},
+            {inner.bbox(Side::left), inner.bbox(Side::right)},
+        });
     }
 
     // Handle leaf nodes
@@ -65,7 +65,7 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         {
             vols.push_back(*id);
         }
-        out.push_back(json::array({"l", std::move(vols)}));
+        out.push_back({"l", std::move(vols)});
     }
 
     // Handle inf vols
