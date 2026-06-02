@@ -252,6 +252,7 @@ list(APPEND SOURCES
 
 # All these classes depend on OpenMP if available
 celeritas_add_object_library(corecel_openmp_obj
+  sys/Openmp.cc
   sys/MultiExceptionHandler.cc
 )
 celeritas_target_link_libraries(corecel_openmp_obj
