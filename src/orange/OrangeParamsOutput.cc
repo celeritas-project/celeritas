@@ -50,8 +50,7 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         out.push_back({
             "i",
             std::string(1, to_char(inner.axis())),
-            {*inner.child(Side::left),
-             (inner.child(Side::right)},
+            {*inner.child(Side::left), *inner.child(Side::right)},
             {inner.bbox(Side::left), inner.bbox(Side::right)},
         });
     }
