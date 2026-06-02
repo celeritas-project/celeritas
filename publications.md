@@ -17,6 +17,9 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India Scientific Workshop*, 06 May 2026. [presentation](https://indico.cern.ch/event/1649033/timetable/#20260504)
+- R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India*, 28 Apr 2026. [presentation](https://indico.cern.ch/event/1649043/)
+- R. Gupta. "GPU-Accelerated Optical Physics in Celeritas". *APS Global Summit*, 18 Mar 2026.
 - J. Esseiva. "Energy eﬃciency of Full Simulation on GPUs". *WLCG Sustainability Forum Meeting #4: Detector Simulation*, 18 Feb 2026. [presentation](https://indico.cern.ch/event/1526077/contributions/6773808/attachments/3185466/5667936/celeritas-wlcg.pdf)
 - S. R. Johnson. "Celeritas for WLCG". *Heterogeneous Architectures in WLCG*, 03 Dec 2025. [presentation](https://indico.cern.ch/event/1526077/contributions/6773808/attachments/3185466/5667936/celeritas-wlcg.pdf)
 - S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
