@@ -116,6 +116,11 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
     };
+    if (orange_tracking_logic == LogicNotation::infix)
+    {
+        // csg levels is only relevant for pre/postfix
+        obj["scalars"]["max_csg_levels"] = nullptr;
+    }
 
     // Save sizes
     obj["sizes"] = {
