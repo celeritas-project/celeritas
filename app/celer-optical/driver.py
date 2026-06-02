@@ -137,3 +137,12 @@ else:
     assert time["actions"]
 
 print(json.dumps(j["result"]["time"], indent=1))
+
+config = j["system"]["build"]["config"]
+assert config["core_geo"].lower() == core_geo
+assert config["core_geo"].lower() == core_geo
+use_deps = set(config["use"])
+if "openmp" in use_deps:
+    print(json.dumps(j["system"]["openmp"], indent=1))
+    assert j["system"]["openmp"]["thread_limit"] == 8
+    assert j["system"]["openmp"]["max_threads"] == 4

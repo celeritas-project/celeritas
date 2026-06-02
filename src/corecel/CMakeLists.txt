@@ -216,6 +216,7 @@ list(APPEND SOURCES
   io/LogContextException.cc
   io/LogHandlers.cc
   io/LoggerTypes.cc
+  io/OpenmpOutput.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
