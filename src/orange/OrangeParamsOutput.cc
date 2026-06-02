@@ -7,7 +7,6 @@
 
 #include "OrangeParamsOutput.hh"
 
-#include <iostream>
 #include <nlohmann/json.hpp>
 
 #include "corecel/cont/LdgSpan.hh"
