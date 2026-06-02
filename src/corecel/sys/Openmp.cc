@@ -20,8 +20,8 @@ namespace celeritas
  * Get the maximum number of OpenMP threads that could ever execute in
  * parallel.
  *
- * This may be limited by \c OMP_THREAD_LIMIT but also may be uselessly large
- * (i.e., \c INT_MAX).
+ * This value generally mirrors the \c OMP_THREAD_LIMIT environment variable.
+ * but also may be uselessly large (i.e., \c INT_MAX).
  *
  * See https://www.openmp.org/spec-html/5.0/openmpsu123.html .
  */
@@ -36,6 +36,8 @@ size_type openmp_thread_limit()
 
 /*!
  * Get the maximum number of OpenMP threads that can execute in parallel.
+ *
+ * This value generally mirrors the \c OMP_NUM_THREADS environment variable.
  *
  * See https://www.openmp.org/spec-html/5.0/openmpsu112.html .
  */
