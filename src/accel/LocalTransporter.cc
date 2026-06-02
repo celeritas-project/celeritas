@@ -132,7 +132,7 @@ void trace(StepperResult const& track_counts)
             }                                                       \
             else                                                    \
             {                                                       \
-                CELER_RUNTIME_THROW(                                \
+                CELER_RUNTIME_FAIL(                                 \
                     ::celeritas::RuntimeError::validate_err_str,    \
                     celer_runtime_msg_.str(),                       \
                     #COND);                                         \
