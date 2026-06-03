@@ -216,6 +216,7 @@ list(APPEND SOURCES
   io/LogContextException.cc
   io/LogHandlers.cc
   io/LoggerTypes.cc
+  io/OpenmpOutput.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
@@ -252,6 +253,7 @@ list(APPEND SOURCES
 
 # All these classes depend on OpenMP if available
 celeritas_add_object_library(corecel_openmp_obj
+  sys/Openmp.cc
   sys/MultiExceptionHandler.cc
 )
 celeritas_target_link_libraries(corecel_openmp_obj

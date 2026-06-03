@@ -10,6 +10,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathFinder.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -97,6 +98,7 @@ struct SimpleScores
     std::vector<real_type> y_positions;
     std::vector<real_type> z_positions;
     std::vector<size_type> volume_instance_ids;
+    std::vector<size_type> volume_unique_instance_ids;
 };
 
 struct SimpleScorer
@@ -115,6 +117,8 @@ struct SimpleScorer
             scores.z_positions.push_back(hit.position[2]);
             scores.volume_instance_ids.push_back(
                 hit.volume_instance.unchecked_get());
+            scores.volume_unique_instance_ids.push_back(
+                hit.unique_instance.unchecked_get());
         }
     }
 };
@@ -241,6 +245,8 @@ TEST_F(DetectorTest, simple)
 
     static size_type const expected_volume_instance_ids[]
         = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_unique_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
     {
@@ -251,6 +257,8 @@ TEST_F(DetectorTest, simple)
         EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
         EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
         EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+        EXPECT_VEC_EQ(expected_volume_unique_instance_ids,
+                      scores.volume_unique_instance_ids);
     }
 }
 

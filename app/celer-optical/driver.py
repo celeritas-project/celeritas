@@ -137,3 +137,14 @@ else:
     assert time["actions"]
 
 print(json.dumps(j["result"]["time"], indent=1))
+
+# Check configuration
+config = j["system"]["build"]["config"]
+assert config["core_geo"].lower() == core_geo
+
+# Check OpenMP threads: see app/CMakeLists.txt which sets CELER_OMP_ENV
+use_deps = set(config["use"])
+if "openmp" in use_deps:
+    print(json.dumps(j["system"]["openmp"], indent=1))
+    assert j["system"]["openmp"]["thread_limit"] == 8
+    assert j["system"]["openmp"]["max_threads"] == 4

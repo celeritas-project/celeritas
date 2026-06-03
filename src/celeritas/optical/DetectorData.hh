@@ -28,6 +28,7 @@ struct DetectorHit
     real_type time{};
     Real3 position{};
     VolumeInstanceId volume_instance;
+    VolumeUniqueInstanceId unique_instance;
 
     //! An actual hit has a valid detector
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const

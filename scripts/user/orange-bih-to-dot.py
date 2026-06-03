@@ -28,70 +28,119 @@ In cases 1 and 2 the output directory can be specified with ``-o/--output``.
 import json
 import sys
 from pathlib import Path
+from textwrap import dedent
 
 # Fill colors by internal-node plane relationship and leaf type
 _FILL_COLORS = {
-    "gap": "lightgreen",
-    "overlap": "#ffaaaa",
-    "exact": "white",
-    "slight": "#dbc6a7",
+    "disparate": "#90fc94",
+    "slight": "#fcf290",
+    "medium": "#fcd690",
+    "large": "#fcb090",
+    "complete": "#fc9090",
     "leaf": "lightgray",
 }
 
-_SLIGHT_REL = 1e-4
+_SLIGHT_REL = 1e-2
+_MEDIUM_REL = 1e-1
+_COMPLETE_REL = 1 - 1e-2
 
 # Outline colors by partition axis (x/y/z)
 _AXIS_COLORS = {
-    "x": "red",
-    "y": "green",
+    "x": "darkred",
+    "y": "darkgreen",
     "z": "blue",
 }
 
 
+def fill_node(overlap):
+    """
+    Determine what fill color to use based on overlap fraction.
+    """
+    if overlap == 0.0:
+        return _FILL_COLORS["disparate"]
+    elif overlap < _SLIGHT_REL:
+        return _FILL_COLORS["slight"]
+    elif overlap < _MEDIUM_REL:
+        return _FILL_COLORS["medium"]
+    elif overlap < _COMPLETE_REL:
+        return _FILL_COLORS["large"]
+    else:
+        return _FILL_COLORS["complete"]
+
+
+def calc_overlap(bbox_a, bbox_b):
+    """Calculate the fraction of the smaller bbox's volume that overlaps with
+    the larger bbox.
+    """
+    (a_lo, a_hi) = bbox_a
+    (b_lo, b_hi) = bbox_b
+
+    overlap_vol = 1.0
+    for i in range(3):
+        lo = max(a_lo[i], b_lo[i])
+        hi = min(a_hi[i], b_hi[i])
+        if hi <= lo:
+            # Bounding boxes do not overlap
+            return 0.0
+        overlap_vol *= hi - lo
+
+    def calc_volume(lo, hi):
+        return (hi[0] - lo[0]) * (hi[1] - lo[1]) * (hi[2] - lo[2])
+
+    vol_a = calc_volume(a_lo, a_hi)
+    vol_b = calc_volume(b_lo, b_hi)
+
+    return overlap_vol / min(vol_a, vol_b)
+
+
 def dump_dot(universe_id, tree, out):
-    out.write(f"""\
-strict digraph "bih_{universe_id}" {{
-  rankdir=LR
-  node [shape=box style=filled]
-""")
+
+    def format_bbox(bbox):
+        result = ""
+        for ax, lo, hi in zip("xyz", bbox[0], bbox[1]):
+            result += f"{ax}: [{lo:.3g}, {hi:.3g}]\\l"
+        return result
+
+    out.write(
+        dedent(f"""\
+        strict digraph "bih_{universe_id}" {{
+          rankdir=LR
+          node [shape=box style=filled]
+        """)
+    )
 
     for i, node in enumerate(tree):
         nodetype = node[0]
-        if node[0] == "i":
-            (axis, children, planes) = node[1:]
+        if nodetype == "i":
+            (axis, children, bboxes) = node[1:]
+            (lo_bbox, hi_bbox) = bboxes
 
-            (left, right) = planes
-            delta = abs(right - left)
-            if delta == 0.0:
-                plane_label = left
-                fill = _FILL_COLORS["exact"]
-            else:
-                # + indicates gap, - indicates overlap
-                if left < right:
-                    sign = "+"
-                    fill = _FILL_COLORS["gap"]
-                else:
-                    sign = "-"
-                    if delta / max(abs(left), abs(right)) < _SLIGHT_REL:
-                        fill = _FILL_COLORS["slight"]
-                    else:
-                        fill = _FILL_COLORS["overlap"]
-                plane_label = f"({left:.2g} {sign} {delta:.2g})"
+            overlap = calc_overlap(lo_bbox, hi_bbox)
+
+            fill = fill_node(overlap)
+
             axis_color = _AXIS_COLORS.get(axis, "black")
+
+            label = (
+                f"axis: {axis}\\l"
+                f"lo:\\l{format_bbox(lo_bbox)}"
+                f"hi:\\l{format_bbox(hi_bbox)}"
+                f"overlap: {100 * overlap:.1f}%\\l"
+            )
+
             out.write(
-                f'  n{i} [label="{axis}: {plane_label}"'
+                f'  n{i} [label="{label}"'
                 f' fillcolor="{fill}" color="{axis_color}" penwidth=3]\n'
             )
 
-            for sign, c in zip(["-", "+"], children):
-                out.write(f'    n{i} -> n{c} [label="{sign}{axis}"]\n')
+            for edge_label, c in zip(["lo", "hi"], children):
+                out.write(f'    n{i} -> n{c} [label="{edge_label}"]\n')
         else:
             assert nodetype == "l"
             vols = ", ".join("{}".format(v) for v in node[1])
             out.write(
                 f'  n{i} [label="vols=[{vols}]" fillcolor="{_FILL_COLORS["leaf"]}"]\n'
             )
-
     out.write("}\n")
 
 
@@ -117,7 +166,7 @@ def run(args):
         print("Assuming app output was given rather than ORANGE output")
         orange = data["internal"]["orange"]
     else:
-        orange = data
+        orange = data["orange_stats"]
 
     bih_data = orange["bih_metadata"]
 

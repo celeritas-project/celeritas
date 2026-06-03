@@ -4,6 +4,7 @@
 //---------------------------------------------------------------------------//
 //! \file orange/OrangeParamsOutput.cc
 //---------------------------------------------------------------------------//
+
 #include "OrangeParamsOutput.hh"
 
 #include <nlohmann/json.hpp>
@@ -12,6 +13,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/sys/Environment.hh"
+#include "geocel/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
@@ -45,13 +47,12 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         auto const& inner = view.inner_node(i);
         using Side = detail::BIHInternalNode::Side;
 
-        out.push_back(json::array(
-            {"i",
-             std::string(1, to_char(inner.axis())),
-             json::array({inner.child(Side::left).unchecked_get(),
-                          inner.child(Side::right).unchecked_get()}),
-             json::array({inner.bounding_plane_pos(Side::left),
-                          inner.bounding_plane_pos(Side::right)})}));
+        out.push_back({
+            "i",
+            std::string(1, to_char(inner.axis())),
+            {*inner.child(Side::left), *inner.child(Side::right)},
+            {inner.bbox(Side::left), inner.bbox(Side::right)},
+        });
     }
 
     // Handle leaf nodes
@@ -63,7 +64,7 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
         {
             vols.push_back(*id);
         }
-        out.push_back(json::array({"l", std::move(vols)}));
+        out.push_back({"l", std::move(vols)});
     }
 
     // Handle inf vols
@@ -113,9 +114,14 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, num_univ_levels),
         OPO_PAIR(data.scalars, max_faces),
         OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
     };
+    if (orange_tracking_logic != LogicNotation::infix)
+    {
+        // The max_csg_levels field is only set when pre/postfix, even though
+        // it always exists as member data in the scalars
+        obj["scalars"]["max_csg_levels"] = data.scalars.max_csg_levels;
+    }
 
     // Save sizes
     obj["sizes"] = {

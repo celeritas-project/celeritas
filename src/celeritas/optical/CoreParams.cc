@@ -35,6 +35,14 @@
 #include "gen/ScintillationParams.hh"
 #include "surface/SurfacePhysicsParams.hh"
 
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    include "orange/OrangeParams.hh"  // IWYU pragma: keep
+#    include "orange/OrangeParamsOutput.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+#    include "geocel/vg/VecgeomParams.hh"  // IWYU pragma: keep
+#    include "geocel/vg/VecgeomParamsOutput.hh"
+#endif
+
 namespace celeritas
 {
 namespace optical
@@ -141,6 +149,14 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     {
         input_.output_reg = std::make_shared<OutputRegistry>();
         insert_system_diagnostics(*input_.output_reg);
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        input_.output_reg->insert(
+            std::make_shared<OrangeParamsOutput>(input_.geometry));
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        input_.output_reg->insert(
+            std::make_shared<VecgeomParamsOutput>(input_.geometry));
+#endif
     }
 
     // Save optical action diagnostic information
