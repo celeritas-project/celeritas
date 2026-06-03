@@ -23,7 +23,7 @@ namespace test
 CELER_FORCEINLINE double static_cast_double(size_type v)
 {
     return static_cast<double>(v);
-};
+}
 
 //---------------------------------------------------------------------------//
 
@@ -104,7 +104,7 @@ TEST(PoissonDistributionTest, bin_zero)
     Histogram histogram(4, {0, 1e-3});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        histogram(sample_poisson(rng));
+        histogram(static_cast_double(sample_poisson(rng)));
     }
     static unsigned int const expected_counts[] = {100, 0, 0, 0};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
@@ -124,7 +124,7 @@ TEST(PoissonDistributionTest, bin_small)
     Histogram histogram(16, {0, 16});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        histogram(sample_poisson(rng));
+        histogram(static_cast_double(sample_poisson(rng)));
     }
     static unsigned int const expected_counts[] = {
         177, 762, 1444, 1971, 1950, 1586, 1054, 562, 286, 125, 55, 18, 5, 1, 3, 1};
@@ -145,7 +145,7 @@ TEST(PoissonDistributionTest, bin_large)
     Histogram histogram(60, {34.5, 94.5});
     for ([[maybe_unused]] int i : range(num_samples))
     {
-        histogram(static_cast<double>(sample_poisson(rng)));
+        histogram(static_cast_double(sample_poisson(rng)));
     }
     static unsigned int const expected_counts[]
         = {1,   1,   5,   2,   5,   6,   6,   11,  11,  11,  28,  45,
