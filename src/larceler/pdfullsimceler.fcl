@@ -29,7 +29,7 @@ PDFullSimCeler:
     // Steps per track before killing (0 for unlimited)
     OpticalLimitSteps: 4096
     // Iterations before aborting stepping loop (0 for unlimited)
-    OpticalLimitStepIters: 131072
+    OpticalLimitStepIters: 524288
 
     // Celeritas output filename
     OutputFile: "celeritas-output.json"
