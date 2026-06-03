@@ -55,7 +55,7 @@ size_type openmp_max_threads()
  *
  * See https://www.openmp.org/spec-html/5.0/openmpsu110.html .
  *
- * \note This is named in sync with the OpenMP spec, but it acts more like "max
+ * \note This is named in sync with the OpenMP spec, but it sets "max
  * threads" (which is used outside a parallel region).
  */
 void openmp_num_threads(size_type num_threads)
