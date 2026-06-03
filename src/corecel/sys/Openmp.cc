@@ -78,7 +78,7 @@ void openmp_num_threads(size_type num_threads)
 char const* openmp_proc_bind()
 {
 #ifdef _OPENMP
-    switch (omp_get_proc_bind())
+    switch (omp_get_proc_bind()) /* GCOVR_EXCL_BR_WITHOUT_HIT: 4/5 */
     {
         case omp_proc_bind_false:
             return "false";
