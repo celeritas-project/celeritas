@@ -22,9 +22,9 @@ services:
 # This GDML still has "PD" as the type in all arapuca volumes:
 # <auxiliary auxtype="PD" auxvalue="PhotonDetector"/>
 # This avoids setting the arapucas as SDs during the IonAndScint module call
-services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6-optical-nosd.gdml"
-services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6-optical-nosd.gdml"
-services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6-optical-nosd.gdml"
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6.gdml"
+services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6.gdml"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6.gdml"
 
 source:
 {

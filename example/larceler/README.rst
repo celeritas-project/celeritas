@@ -11,8 +11,9 @@ This example assumes that:
 Summary
 -------
 
-This sequence of commands generate analysis files for Celeritas and the
-LArSim fast simulation using a single GENIE-generated event.
+This sequence of commands generate analysis files for Celeritas and the LArSim
+fast simulation using a single GENIE-generated event. The ``run.sh`` script runs
+all of these steps automatically.
 
 .. code:: sh
 
@@ -21,9 +22,9 @@ LArSim fast simulation using a single GENIE-generated event.
    patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
    # Run GENIE
    lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
-   # Run LArG4 + IonAndScint
+   # Run LArG4 + IonAndScint with original dune10kt_v6_refactored_1x2x6.gdml
    lar -c larg4_dune10kt_1x2x6.fcl -s genie-output.root -o larg4-output.root
-   # Run FastSim and Celeritas optical simulations
+   # Run FastSim and Celeritas CPU optical simulations with patched geometry
    lar -c opticalsim_dune10kt_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
    lar -c opticalsim_celeritas_dune10kt_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
    # Generate analysis files
@@ -65,7 +66,7 @@ Generating GENIE samples
 
 .. code:: console
 
-   $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 10 -o genie-output.root
+   $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
 
 - If ``-n`` is not used, the default number of events is set to 10
   (defined upstream in
@@ -109,6 +110,9 @@ Celeritas
 .. code:: console
 
    $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
+
+By default, Celeritas will run on CPU. See documentation in the
+``dune10k_optical_celeritas_1x2x6.fcl`` file to toggle GPU execution.
 
 Celeritas geometry requires correct optical material information and correct
 ``SensDet`` data assigned to the Arapucas. The geometry has also been modified to
