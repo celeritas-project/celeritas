@@ -114,9 +114,14 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_PAIR(data.scalars, num_univ_levels),
         OPO_PAIR(data.scalars, max_faces),
         OPO_PAIR(data.scalars, max_intersections),
-        OPO_PAIR(data.scalars, max_csg_levels),
         OPO_PAIR(data.scalars, tol),
     };
+    if (orange_tracking_logic != LogicNotation::infix)
+    {
+        // The max_csg_levels field is only set when pre/postfix, even though
+        // it always exists as member data in the scalars
+        obj["scalars"]["max_csg_levels"] = data.scalars.max_csg_levels;
+    }
 
     // Save sizes
     obj["sizes"] = {

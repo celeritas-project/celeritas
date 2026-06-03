@@ -9,17 +9,16 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <string_view>
 #include <utility>
 #include <vector>
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Config.hh"
+
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -53,19 +52,6 @@ namespace app
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Get the OpenMP thread number.
- */
-int get_openmp_thread()
-{
-#ifdef _OPENMP
-    return omp_get_thread_num();
-#else
-    return 0;
-#endif
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Run, launch, and get output.
@@ -133,13 +119,17 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         for (size_type event = 0; event < num_events; ++event)
         {
             activate_device_local();
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+            auto stream = id_cast<StreamId>(omp_get_thread_num());
+#else
+            constexpr StreamId stream{0};
+#endif
 
             // Run a single event on a single thread
             TransporterResult event_result;
-            CELER_TRY_HANDLE(event_result = run_stream(
-                                 id_cast<StreamId>(get_openmp_thread()),
-                                 id_cast<EventId>(event)),
-                             capture_exception);
+            CELER_TRY_HANDLE(
+                event_result = run_stream(stream, id_cast<EventId>(event)),
+                capture_exception);
             tracing_session.flush();
             if (run_input->transporter_result)
             {

@@ -50,7 +50,7 @@ TEST_F(MultiExceptionHandlerTest, single)
 {
     MultiExceptionHandler capture_exception;
     EXPECT_TRUE(capture_exception.empty());
-    CELER_TRY_HANDLE(CELER_RUNTIME_THROW("runtime", "first exception", ""),
+    CELER_TRY_HANDLE(CELER_RUNTIME_FAIL("runtime", "first exception", ""),
                      capture_exception);
     EXPECT_FALSE(capture_exception.empty());
 

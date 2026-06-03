@@ -16,26 +16,23 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Openmp.hh"
+#include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Diagnostics.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/inp/Field.hh"
+#include "celeritas/inp/Import.hh"
 #include "celeritas/inp/Physics.hh"
 #include "celeritas/inp/PhysicsProcess.hh"
+#include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/Scoring.hh"
+#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/inp/System.hh"
 #include "celeritas/inp/Tracking.hh"
 #include "celeritas/io/EventReader.hh"
 #include "celeritas/io/JsonEventReader.hh"
 #include "celeritas/io/RootEventReader.hh"
-#ifdef _OPENMP
-#    include <omp.h>
-#endif
-
-#include "celeritas/field/FieldDriverOptions.hh"
-#include "celeritas/inp/Import.hh"
-#include "celeritas/inp/Problem.hh"
-#include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
@@ -62,40 +59,6 @@ inp::System load_system(RunnerInput const& ri)
     }
     return s;
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the number of streams from the number of OpenMP threads.
- *
- * The OMP_NUM_THREADS environment variable can be used to control the number
- * of threads/streams. The value of OMP_NUM_THREADS should be a list of
- * positive integers, each of which sets the number of threads for the parallel
- * region at the corresponding nested level. The number of streams is set to
- * the first value in the list. If OMP_NUM_THREADS is not set, the value will
- * be implementation defined.
- */
-size_type get_num_streams(bool merge_events)
-{
-    size_type result = 1;
-#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
-    if (!merge_events)
-    {
-#    pragma omp parallel
-        {
-            if (omp_get_thread_num() == 0)
-            {
-                result = omp_get_num_threads();
-            }
-        }
-    }
-#else
-    CELER_DISCARD(merge_events);
-#endif
-
-    // TODO: Don't create more streams than events
-    return result;
-}
-
 //---------------------------------------------------------------------------//
 inp::Problem load_problem(RunnerInput const& ri)
 {
@@ -171,7 +134,11 @@ inp::Problem load_problem(RunnerInput const& ri)
 
         p.control.warm_up = ri.warm_up;
         p.control.seed = ri.seed;
-        p.control.num_streams = get_num_streams(ri.merge_events);
+        p.control.num_streams = 1;
+        if (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT && !ri.merge_events)
+        {
+            p.control.num_streams = openmp_max_threads();
+        }
 
         if (ri.use_device)
         {
