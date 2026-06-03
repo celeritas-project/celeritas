@@ -263,7 +263,7 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     auto get_bih_json_strings() const
     {
         std::vector<std::string> result;
-        celeritas::test::StringSimplifier simplify{3};
+        celeritas::test::StringSimplifier simplify{5};
         for (auto& t : testers_)
         {
             result.push_back(simplify(to_string(t)));
@@ -309,10 +309,10 @@ TEST_F(BasicBihTest, tree_output)
     auto trees = this->get_bih_json_strings();
     ASSERT_EQ(3, trees.size());
     EXPECT_JSON_EQ(
-        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["i","x",[3,4],[1.60,1.20]],["i","x",[5,6],[5.0,2.80]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[[[0.0,0.0,0.0],[2.80,1.0,100.0]],[[0.0,-1.0,0.0],[5.0,1.0,100.0]]]],["i","x",[3,4],[[[0.0,0.0,0.0],[1.60,1.0,100.0]],[[1.20,0.0,0.0],[2.80,1.0,100.0]]]],["i","x",[5,6],[[[0.0,-1.0,0.0],[5.0,0.0,100.0]],[[2.80,0.0,0.0],[5.0,1.0,100.0]]]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
         trees[0]);
     EXPECT_JSON_EQ(
-        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["l",[1,2]],["l",[3,4,5]]]})json",
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[[[0.0,0.0,0.0],[2.80,1.0,100.0]],[[0.0,-1.0,0.0],[5.0,1.0,100.0]]]],["l",[1,2]],["l",[3,4,5]]]})json",
         trees[1]);
     EXPECT_JSON_EQ(R"json({"inf_vol_ids":[0],"tree":[["l",[1,2,3,4,5]]]})json",
                    trees[2]);

@@ -73,6 +73,7 @@ celeritas_add_test(io/Join.test.cc)
 celeritas_add_test(io/Logger.test.cc
   LINK_LIBRARIES Celeritas::ExtMPI)
 celeritas_add_test(io/OutputRegistry.test.cc
+  ENVIRONMENT "OMP_NUM_THREADS=4;OMP_THREAD_LIMIT=2"
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
 celeritas_add_test(io/ScopedStreamRedirect.test.cc)

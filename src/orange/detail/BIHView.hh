@@ -39,9 +39,6 @@ class BIHInternalNodeView
     // Get edge bounding box for a side
     inline CELER_FUNCTION FastBBox const& bbox(Side side) const;
 
-    // Get edge bounding plane position for a side
-    inline CELER_FUNCTION fast_real_type bounding_plane_pos(Side side) const;
-
   private:
     BIHInternalNode const& node_;
 };
@@ -135,16 +132,6 @@ CELER_FUNCTION FastBBox const&
 BIHInternalNodeView::bbox(BIHInternalNodeView::Side side) const
 {
     return node_.edges[side].bbox;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get edge bounding plane position for a side.
- */
-CELER_FUNCTION fast_real_type
-BIHInternalNodeView::bounding_plane_pos(BIHInternalNodeView::Side side) const
-{
-    return node_.edges[side].bounding_plane_pos;
 }
 
 //---------------------------------------------------------------------------//
