@@ -15,21 +15,7 @@ This sequence of commands generate analysis files for Celeritas and the LArSim
 fast simulation using a single GENIE-generated event. The ``run.sh`` script runs
 all of these steps automatically.
 
-.. code:: sh
-
-   # Download and patch the geometry file for Celeritas execution
-   curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
-   patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
-   # Run GENIE
-   lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
-   # Run LArG4 + IonAndScint with original dune10kt_v6_refactored_1x2x6.gdml
-   lar -c larg4_dune10kt_1x2x6.fcl -s genie-output.root -o larg4-output.root
-   # Run FastSim and Celeritas CPU optical simulations with patched geometry
-   lar -c opticalsim_dune10kt_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
-   lar -c opticalsim_celeritas_dune10kt_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
-   # Generate analysis files
-   lar -c pdsimana_job.fcl -s fastsim-output.root
-   lar -c pdsimana_job.fcl -s celeritas-output.root
+.. literalinclude:: ../../example/larceler/run.sh
 
 Overview
 --------
