@@ -51,9 +51,6 @@ class PDSimAna : public art::EDAnalyzer
     // Initialize output file(s) and data objects
     void beginJob() override;
 
-    // Write data to disk if needed
-    void endJob() override;
-
     // Read art::Event and generate output data
     void analyze(art::Event const& event) override;
 

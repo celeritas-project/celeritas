@@ -22,6 +22,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/VectorUtils.hh"
 
 namespace celeritas
 {
@@ -46,20 +47,10 @@ void PDSimAna::beginJob()
     art::ServiceHandle<art::TFileService const> tfs;
 
     // Create log bins
-    auto make_log_bins
-        = [](int nbins, double bin_xmin, double bin_xmax) -> double* {
-        double* log_xbins = new double[nbins + 1];
-
-        double const logxmin = std::log10(bin_xmin);
-        double const logxmax = std::log10(bin_xmax);
-        double const binwidth = (logxmax - logxmin) / nbins;
-
-        for (int i = 0; i <= nbins; i++)
-        {
-            log_xbins[i] = std::pow(10, logxmin + i * binwidth);
-        }
-        return log_xbins;
-    };
+    size_t nbins_time = 100;
+    double min_time = 10;  // [ns]
+    double max_time = 20e3;  // [ns]
+    auto vec_log_bins = geomspace(min_time, max_time, nbins_time + 1);
 
     // Initialize histograms
     histograms_.btr_time
@@ -67,16 +58,16 @@ void PDSimAna::beginJob()
     histograms_.btr_detid_logtime_energy
         = tfs->make<TH2D>("btr_logtime_opdetid_energy",
                           "btr_logtime_opdetid_energy",
-                          100,
-                          make_log_bins(100, 10, 20e3),
+                          nbins_time,
+                          vec_log_bins.data(),
                           480,
                           0,
                           480);
     histograms_.btr_detid_logtime_numphotons
         = tfs->make<TH2D>("btr_logtime_opdetid_numphotons",
                           "btr_logtime_opdetid_numphotons",
-                          100,
-                          make_log_bins(100, 10, 20e3),
+                          nbins_time,
+                          vec_log_bins.data(),
                           480,
                           0,
                           480);
@@ -138,12 +129,6 @@ void PDSimAna::analyze(art::Event const& event)
         }
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Write data to disk if needed.
- */
-void PDSimAna::endJob() {}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
