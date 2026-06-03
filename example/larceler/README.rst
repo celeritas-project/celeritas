@@ -18,7 +18,7 @@ LArSim fast simulation using a single GENIE-generated event.
 
    # Download and patch the geometry file for Celeritas execution
    curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
-   patch -p0 -o dune10kt-1x2x6-celeritas-zwires.gdml < dune10kt_v6_refactored_1x2x6_celeritas.patch
+   patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
    # Run GENIE
    lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
    # Run LArG4 + IonAndScint
@@ -63,9 +63,9 @@ Generating GENIE samples
   `prodgenie_nu_dune10kt.fcl <https://internal.dunescience.org/doxygen/prodgenie__nu__dune10kt__1x2x6_8fcl_source.html>`__,
   which is in your ``PATH`` through ``dunesw``.
 
-.. code:: sh
+.. code:: console
 
-   $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl [optional: -n num_events] -o genie-output.root
+   $ lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 10 -o genie-output.root
 
 - If ``-n`` is not used, the default number of events is set to 10
   (defined upstream in
@@ -99,14 +99,14 @@ Running optical simulations
 Fast simulation
 ^^^^^^^^^^^^^^^
 
-.. code:: sh
+.. code:: console
 
    $ lar -c dune10k_optical_1x2x6.fcl -s larg4-output.root -o fastsim-output.root
 
 Celeritas
 ^^^^^^^^^
 
-.. code:: sh
+.. code:: console
 
    $ lar -c dune10k_optical_celeritas_1x2x6.fcl -s larg4-output.root -o celeritas-output.root
 
@@ -115,36 +115,35 @@ Celeritas geometry requires correct optical material information and correct
 remove the U and V wires, which cause significant slowdowns in the BIH geometry
 navigation. To patch the geometry with the changes needed by Celeritas, apply
 the local patch file to the ``dune10kt_v6_refactored_1x2x6.gdml``, available at
-https://github.com/nuRiceLab/laropticks/blob/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml.
+`nuRiceLab <https://github.com/nuRiceLab/laropticks/blob/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml>`__.
 
 To patch the file:
 
-.. code:: sh
+.. code:: console
 
-   $ patch -p0 < dune10kt_v6_refactored_1x2x6_celeritas.patch
+   $ patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
 
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------
 
+.. code:: cnosole
+
+   $ lar -c pdsimana_job.fcl -s fastsim-output.root
+   $ lar -c pdsimana_job.fcl -s celeritas-output.root
+
 - Use local ``pdsimana_job.fcl`` file (in ``src/larceler``).
 - To loop over a subset of events, replace ``-s`` by
   ``-n [num_events]``.
-- Optional ``-T``: Overrides the default analyzer output file naming
-  scheme, updating the ``services.TFileServices.fileName`` field. This
-  is equivalent to passing the full
-  ``--services.TFileService.fileName=my-output.root`` path directly to
-  ``lar``.
+- Optional ``-T filename.root``: Overrides the default analyzer output file
+  naming scheme, updating the ``services.TFileServices.fileName`` field. This is
+  equivalent to passing the full
+  ``--services.TFileService.fileName=my-output.root`` path directly to ``lar``.
 - As noted in the ``pdsimana.fcl`` documentation, the
   ``ModuleLabel: "OpticalSim"`` in ``pdsimana.fcl`` is correct if
   optical simulation is generated with the local ``*optical*.fcl``
   files. If fast simulation is generated from a default LArSoft ``fcl``
   job, that will likely be ``PDFastSim``.
-
-.. code:: sh
-
-   $ lar -c pdsimana_job.fcl -s fastsim-output.root [optional: -T filename.root]
-   $ lar -c pdsimana_job.fcl -s celeritas-output.root [optional: -T filename.root]
 
 Note on ``ModuleLabel``
 ^^^^^^^^^^^^^^^^^^^^^^^
