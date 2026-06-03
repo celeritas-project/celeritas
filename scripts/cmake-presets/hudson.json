@@ -1,35 +1,67 @@
 {
   "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
   "configurePresets": [
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["full", ".cuda", ".spack-base"],
+      "inherits": [
+        "full",
+        ".cuda",
+        ".spack-base"
+      ],
       "binaryDir": "/scratch/$env{USER}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
+        "BUILD_SHARED_LIBS": {
+          "type": "BOOL",
+          "value": "ON"
+        },
+        "CELERITAS_BUILD_DOCS": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_DD4hep": {
+          "type": "BOOL",
+          "value": "ON"
+        },
+        "CELERITAS_USE_OpenMP": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
+        "CELERITAS_USE_MPI": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-stringop-overread",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_COMPILER": "/usr/bin/c++",
-        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CXX_EXTENSIONS": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings",
         "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/c++",
         "CMAKE_CUDA_ARCHITECTURES": "90",
         "CMAKE_INSTALL_PREFIX": "/scratch/$env{USER}/install/celeritas-${presetName}",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "ON"
+        }
       }
     },
     {
       "name": ".orange",
       "hidden": true,
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_VecGeom": {
+          "type": "BOOL",
+          "value": "OFF"
+        },
         "CMAKE_EXE_LINKER_FLAGS": "-Wl,-z,defs",
         "CMAKE_SHARED_LINKER_FLAGS": "-Wl,-z,defs"
       }
@@ -37,38 +69,110 @@
     {
       "name": "release",
       "displayName": "Build with full optimizations (VecGeom)",
-      "inherits": [".base", ".ndebug"]
+      "inherits": [
+        ".base",
+        ".ndebug"
+      ]
     },
     {
       "name": "reldeb",
       "displayName": "Build with optimizations, but enable host debugging (VecGeom)",
-      "inherits": [".base", ".reldeb"],
+      "inherits": [
+        ".base",
+        ".reldeb"
+      ],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
+        "CELERITAS_DEVICE_DEBUG": {
+          "type": "BOOL",
+          "value": "OFF"
+        }
+      }
+    },
+    {
+      "name": "release-orange-trackslot-xorwow",
+      "displayName": "Build with full optimizations (ORANGE, trackslot reseeding, XorWow RNG)",
+      "inherits": [
+        ".orange",
+        "release"
+      ],
+      "cacheVariables": {
+        "CELERITAS_CORE_RNG": "xorwow",
+        "CELERITAS_RESEED": "trackslot"
+      }
+    },
+    {
+      "name": "release-orange-track-xorwow",
+      "displayName": "Build with full optimizations (ORANGE, track reseeding, XorWow RNG)",
+      "inherits": [
+        ".orange",
+        "release"
+      ],
+      "cacheVariables": {
+        "CELERITAS_CORE_RNG": "xorwow",
+        "CELERITAS_RESEED": "track"
+      }
+    },
+    {
+      "name": "release-orange-trackslot-ranlux",
+      "displayName": "Build with full optimizations (ORANGE, trackslot reseeding, Ranlux++ RNG)",
+      "inherits": [
+        ".orange",
+        "release"
+      ],
+      "cacheVariables": {
+        "CELERITAS_CORE_RNG": "ranluxpp",
+        "CELERITAS_RESEED": "trackslot"
+      }
+    },
+    {
+      "name": "release-orange-track-ranlux",
+      "displayName": "Build with full optimizations (ORANGE, track reseeding, Ranlux++ RNG)",
+      "inherits": [
+        ".orange",
+        "release"
+      ],
+      "cacheVariables": {
+        "CELERITAS_CORE_RNG": "ranluxpp",
+        "CELERITAS_RESEED": "track"
       }
     },
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": [".orange", "release"]
+      "inherits": [
+        ".orange",
+        "release"
+      ]
     },
     {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
-      "inherits": [".orange", "reldeb"]
+      "inherits": [
+        ".orange",
+        "reldeb"
+      ]
     },
     {
       "name": "debug-orange",
       "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
-      "inherits": [".orange", ".base", ".debug"],
+      "inherits": [
+        ".orange",
+        ".base",
+        ".debug"
+      ],
       "cacheVariables": {
-        "CELERITAS_DEVICE_DEBUG":{"type": "BOOL", "value": "OFF"}
+        "CELERITAS_DEVICE_DEBUG": {
+          "type": "BOOL",
+          "value": "OFF"
+        }
       }
     },
     {
       "name": "release-vecgeom2",
       "displayName": "Build with full optimizations (VecGeom 2)",
-      "inherits": ["release"],
+      "inherits": [
+        "release"
+      ],
       "environment": {
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vg2/.spack-env/view"
       }
@@ -79,27 +183,83 @@
       "name": ".base",
       "configurePreset": ".base",
       "jobs": 48,
-      "nativeToolOptions": ["-k0"]
+      "nativeToolOptions": [
+        "-k0"
+      ]
     },
-    {"name": "release", "configurePreset": "release", "inherits": ".base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
-    {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
-    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
-    {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"},
-    {"name": "release-vecgeom2", "configurePreset": "release-vecgeom2", "inherits": ".base"}
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "inherits": ".base"
+    },
+    {
+      "name": "reldeb",
+      "configurePreset": "reldeb",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange",
+      "configurePreset": "release-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "reldeb-orange",
+      "configurePreset": "reldeb-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "debug-orange",
+      "configurePreset": "debug-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-vecgeom2",
+      "configurePreset": "release-vecgeom2",
+      "inherits": ".base"
+    }
   ],
   "testPresets": [
     {
       "name": ".base",
       "configurePreset": ".base",
-      "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 48}
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 48
+      }
     },
-    {"name": "release", "configurePreset": "release", "inherits": ".base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": ".base"},
-    {"name": "release-orange", "configurePreset": "release-orange", "inherits": ".base"},
-    {"name": "reldeb-orange", "configurePreset": "reldeb-orange", "inherits": ".base"},
-    {"name": "debug-orange", "configurePreset": "debug-orange", "inherits": ".base"},
-    {"name": "release-vecgeom2", "configurePreset": "release-vecgeom2", "inherits": ".base"}
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "inherits": ".base"
+    },
+    {
+      "name": "reldeb",
+      "configurePreset": "reldeb",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-orange",
+      "configurePreset": "release-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "reldeb-orange",
+      "configurePreset": "reldeb-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "debug-orange",
+      "configurePreset": "debug-orange",
+      "inherits": ".base"
+    },
+    {
+      "name": "release-vecgeom2",
+      "configurePreset": "release-vecgeom2",
+      "inherits": ".base"
+    }
   ]
 }
