@@ -44,8 +44,7 @@ class LazyGeantGeoManager
 
     // Implementation builds from Geant4 on request
     [[nodiscard]] virtual SPConstGeoI
-    build_geo_from_geant(SPConstGeantGeo const&) const
-        = 0;
+    build_geo_from_geant(SPConstGeantGeo const&) const = 0;
 
     // Backup method when Geant4 is disabled
     [[nodiscard]] virtual SPConstGeoI

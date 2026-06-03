@@ -2,14 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHEnclosingVolFinder.hh
+//! \file orange/detail/BvhEnclosingVolFinder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/cont/IdStack.hh"
 #include "orange/OrangeTypes.hh"
 
-#include "BIHView.hh"
+#include "BvhView.hh"
 
 namespace celeritas
 {
@@ -17,7 +17,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Traverse the BIH tree to find a volume that contains a point.
+ * Traverse the BVH tree to find a volume that contains a point.
  *
  * Traversal is carried out using a depth-first search and terminated as soon
  * as a suitable volume is found. When visiting a leaf node, the bounding boxes
@@ -30,17 +30,17 @@ namespace detail
  *
  * \todo move to top-level orange directory out of detail namespace
  */
-class BIHEnclosingVolFinder
+class BvhEnclosingVolFinder
 {
   public:
     //!@{
     //! \name Type aliases
-    using Storage = NativeCRef<BIHTreeData>;
+    using Storage = NativeCRef<BvhTreeData>;
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
     inline CELER_FUNCTION
-    BIHEnclosingVolFinder(BIHTreeRecord const& tree, Storage const& storage);
+    BvhEnclosingVolFinder(BvhTreeRecord const& tree, Storage const& storage);
 
     // Find a volume that satisfies is_inside
     template<class F>
@@ -49,14 +49,13 @@ class BIHEnclosingVolFinder
 
   private:
     //// DATA ////
-    BIHView view_;
+    BvhView view_;
 
     //// HELPER FUNCTIONS ////
 
     // Determine if any leaf node volumes contain the point
     template<class F>
-    inline CELER_FUNCTION LocalVolumeId visit_leaf(BIHLeafNode const& leaf_node,
-                                                   Real3 const& pos,
+    inline CELER_FUNCTION LocalVolumeId visit_leaf(BvhNodeId leaf_id,
                                                    F&& is_inside) const;
 
     // Determine if any inf_vols contain the point
@@ -75,7 +74,7 @@ class BIHEnclosingVolFinder
  * Construct from vector of bounding boxes and storage.
  */
 CELER_FUNCTION
-BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTreeRecord const& tree,
+BvhEnclosingVolFinder::BvhEnclosingVolFinder(BvhTreeRecord const& tree,
                                              Storage const& storage)
     : view_(tree, storage)
 {
@@ -87,22 +86,21 @@ BIHEnclosingVolFinder::BIHEnclosingVolFinder(BIHTreeRecord const& tree,
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
+BvhEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
 {
-    using Side = BIHInnerNode::Side;
+    using Side = BvhInternalNode::Side;
 
     // Stack of deferred nodes
-    using StackT = IdStack<BIHNodeId, max_bih_depth - 1>;
-    BIHNodeId stack_spill_[StackT::spill_extent];
+    using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
+    BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
-    stack.push(BIHNodeId{0});
+    stack.push(BvhNodeId{0});
 
     while (!stack.empty())
     {
-        if (!view_.is_inner(stack.top()))
+        if (!view_.is_internal(stack.top()))
         {
-            auto id = this->visit_leaf(
-                view_.leaf_node(stack.top()), pos, is_inside_vol);
+            auto id = this->visit_leaf(stack.top(), is_inside_vol);
             stack.pop();
 
             if (id)
@@ -112,13 +110,13 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
         }
         else
         {
-            auto const& edges = view_.inner_node(stack.top()).edges;
+            auto const& node = view_.inner_node(stack.top());
             stack.pop();
             for (auto s : {Side::right, Side::left})
             {
-                if (is_inside(edges[s].bbox, pos))
+                if (is_inside(node.bbox(s), pos))
                 {
-                    stack.push(edges[s].child);
+                    stack.push(node.child(s));
                 }
             }
         }
@@ -134,12 +132,12 @@ BIHEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
  * Determine if any leaf node volumes contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
-    BIHLeafNode const& leaf_node, Real3 const& pos, F&& is_inside) const
+CELER_FUNCTION LocalVolumeId
+BvhEnclosingVolFinder::visit_leaf(BvhNodeId leaf_id, F&& is_inside) const
 {
-    for (auto id : view_.leaf_vol_ids(leaf_node))
+    for (auto id : view_.leaf_vol_ids(leaf_id))
     {
-        if (this->visit_bbox(id, pos) && is_inside(id))
+        if (is_inside(id))
         {
             return id;
         }
@@ -153,7 +151,7 @@ CELER_FUNCTION LocalVolumeId BIHEnclosingVolFinder::visit_leaf(
  */
 template<class F>
 CELER_FUNCTION LocalVolumeId
-BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
+BvhEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
 {
     for (auto id : view_.inf_vol_ids())
     {
@@ -170,7 +168,7 @@ BIHEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
  * Determinate if a single bbox contains the point.
  */
 CELER_FUNCTION
-bool BIHEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
+bool BvhEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
                                        Real3 const& point) const
 {
     return is_inside(view_.bbox(id), point);

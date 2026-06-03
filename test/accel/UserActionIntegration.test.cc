@@ -29,11 +29,6 @@ namespace celeritas
 {
 namespace test
 {
-
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
-
 //---------------------------------------------------------------------------//
 class UAITrackingAction : public G4UserTrackingAction
 {
@@ -96,11 +91,6 @@ TEST_F(LarSphere, run)
 
     rm.BeamOn(3);
     cout << "initial run done" << endl;
-
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
 
     rm.BeamOn(1);
     cout << "second run done" << endl;

@@ -2,18 +2,19 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHIntersectingVolFinder.test.cc
+//! \file orange/detail/BvhIntersectingVolFinder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHIntersectingVolFinder.hh"
+#include "orange/detail/BvhIntersectingVolFinder.hh"
 
 #include <limits>
 #include <unordered_map>
 #include <vector>
 
 #include "corecel/StringSimplifier.hh"
+#include "orange/BoundingBoxUtils.hh"
 #include "orange/OrangeParamsOutput.hh"
 #include "orange/OrangeTypes.hh"
-#include "orange/detail/BIHBuilder.hh"
+#include "orange/detail/BvhBuilder.hh"
 #include "orange/univ/detail/Types.hh"
 
 #include "TestMacros.hh"
@@ -33,13 +34,27 @@ class MockIntersector
 {
   public:
     using DistMap = std::unordered_map<LocalVolumeId, real_type>;
+    using VecBBox = BvhBuilder::VecBBox;
+    using Ray = BvhIntersectingVolFinder::Ray;
 
   public:
-    explicit MockIntersector(DistMap const& dist_map) : dist_map_(dist_map) {}
+    MockIntersector(DistMap const& dist_map, VecBBox const& bboxes, Ray ray)
+        : dist_map_(dist_map), bboxes_(bboxes), ray_(ray)
+    {
+    }
 
     Intersection operator()(LocalVolumeId vol_id, real_type max_distance)
     {
         CELER_EXPECT(vol_id);
+
+        // Check bbox intersection before testing the volume
+        auto const& bbox = bboxes_[vol_id.unchecked_get()];
+        if (!is_inside(bbox, ray_.pos)
+            && !intersects_segment(bbox, ray_.pos, ray_.dir, max_distance))
+        {
+            return {};
+        }
+
         auto iter = dist_map_.find(vol_id);
         if (iter == dist_map_.end())
         {
@@ -64,6 +79,8 @@ class MockIntersector
 
   private:
     DistMap const& dist_map_;
+    VecBBox const& bboxes_;
+    Ray ray_;
     size_type hits_{0};
     size_type misses_{0};
 };
@@ -74,7 +91,7 @@ struct IntersectResult
     LocalSurfaceId intersect_surface;
 
     /*
-     * These vectors, with each element corresponding to the BIH tree
+     * These vectors, with each element corresponding to the BVH tree
      * tested (configured with different leaf size counts), are diagnostics
      * collected by the MockIntersector class: the number of *volume*
      * intersection tests (after the bbox was used to exclude intersections)
@@ -132,45 +149,45 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 
 //---------------------------------------------------------------------------//
 /*!
- * Build a BIH tree and test ray intersections with volumes.
+ * Build a BVH tree and test ray intersections with volumes.
  *
- * This class owns the BIH tree storage and provides intersection testing via
- * a locally-constructed \c BIHIntersectingVolFinder.
+ * This class owns the BVH tree storage and provides intersection testing via
+ * a locally-constructed \c BvhIntersectingVolFinder.
  */
-class LocalBihTreeTester
+class LocalBvhTreeTester
 {
   public:
-    using VecBBox = BIHBuilder::VecBBox;
-    using Ray = BIHIntersectingVolFinder::Ray;
+    using VecBBox = BvhBuilder::VecBBox;
+    using Ray = BvhIntersectingVolFinder::Ray;
 
-    LocalBihTreeTester(VecBBox bboxes, BIHBuilder::Input input)
+    LocalBvhTreeTester(VecBBox bboxes, BvhBuilder::Input input)
     {
-        BIHBuilder build(&storage_, input);
-        BIHBuilder::SetLocalVolId implicit_vol_ids;
-        bih_tree_ = build(std::move(bboxes), implicit_vol_ids);
+        BvhBuilder build(&storage_, input);
+        BvhBuilder::SetLocalVolId implicit_vol_ids;
+        bvh_tree_ = build(std::move(bboxes), implicit_vol_ids);
         ref_storage_ = storage_;
     }
 
     template<class F>
     Intersection operator()(Ray ray, F&& visit_vol, real_type max_dist) const
     {
-        BIHIntersectingVolFinder find_volume{bih_tree_, ref_storage_};
+        BvhIntersectingVolFinder find_volume{bvh_tree_, ref_storage_};
         return find_volume(ray, std::forward<F>(visit_vol), max_dist);
     }
 
-    friend std::string to_string(LocalBihTreeTester const& btt)
+    friend std::string to_string(LocalBvhTreeTester const& btt)
     {
-        return dump_bih_structure(btt.bih_tree_, btt.ref_storage_);
+        return dump_bvh_structure(btt.bvh_tree_, btt.ref_storage_);
     }
 
   private:
-    BIHTreeRecord bih_tree_;
-    BIHTreeData<Ownership::value, MemSpace::host> storage_;
-    BIHTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
+    BvhTreeRecord bvh_tree_;
+    BvhTreeData<Ownership::value, MemSpace::host> storage_;
+    BvhTreeData<Ownership::const_reference, MemSpace::host> ref_storage_;
 };
 
 //---------------------------------------------------------------------------//
-/* The BIHIntersectingVolFinder class is tested with the following geometry,
+/* The BvhIntersectingVolFinder class is tested with the following geometry,
  * consisting of partial and fully overlapping bounding boxes.
  * \verbatim
 
@@ -190,40 +207,41 @@ class LocalBihTreeTester
           x=0                                                x=5
    \endverbatim
  */
-class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
+class BvhIntersectingVolFinderTest : public ::celeritas::test::Test
 {
   public:
-    using Ray = LocalBihTreeTester::Ray;
+    using Ray = LocalBvhTreeTester::Ray;
     using DistMap = MockIntersector::DistMap;
-    using VecBBox = BIHBuilder::VecBBox;
-    using VecSetup = std::vector<inp::BIHBuilder>;
+    using VecBBox = BvhBuilder::VecBBox;
+    using VecSetup = std::vector<inp::BvhBuilder>;
 
-    static constexpr auto infr = std::numeric_limits<real_type>::infinity();
+    static constexpr auto large = 10000_r;
 
   protected:
     void SetUp() override
     {
-        auto bboxes = this->make_bboxes();
-        for (auto&& setup : this->make_bih_setups())
+        bboxes_ = this->make_bboxes();
+        for (auto&& setup : this->make_bvh_setups())
         {
-            testers_.emplace_back(bboxes, std::move(setup));
+            testers_.emplace_back(bboxes_, std::move(setup));
         }
     }
 
-    //! Specify the BIH construction parameters for each tester
-    virtual VecSetup make_bih_setups() const = 0;
+    //! Specify the BVH construction parameters for each tester
+    virtual VecSetup make_bvh_setups() const = 0;
 
     //! Specify the bounding box construction
     virtual VecBBox make_bboxes() const = 0;
 
-    // Get results for a ray across all leaf-size intersectors
+    // Get results for a ray across all leaf-size intersectors, with a max
+    // search distance
     IntersectResult
     get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
         IntersectResult result;
         for (auto& tester : testers_)
         {
-            MockIntersector visit_vol{dist_map};
+            MockIntersector visit_vol{dist_map, bboxes_, ray};
             auto intersection = tester(ray, visit_vol, max_search_dist);
             if (result.hit_count.empty())
             {
@@ -242,17 +260,10 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
         return result;
     }
 
-    // Get results for a ray across all leaf-size intersectors, with a max
-    // search distance
-    IntersectResult get_result(Ray ray, DistMap const& dist_map)
-    {
-        return get_result(ray, dist_map, infr);
-    }
-
-    auto get_bih_json_strings() const
+    auto get_bvh_json_strings() const
     {
         std::vector<std::string> result;
-        celeritas::test::StringSimplifier simplify{3};
+        celeritas::test::StringSimplifier simplify{5};
         for (auto& t : testers_)
         {
             result.push_back(simplify(to_string(t)));
@@ -261,18 +272,19 @@ class BIHIntersectingVolFinderTest : public ::celeritas::test::Test
     }
 
   private:
-    std::vector<LocalBihTreeTester> testers_;
+    VecBBox bboxes_;
+    std::vector<LocalBvhTreeTester> testers_;
 };
 
-class BasicBihTest : public BIHIntersectingVolFinderTest
+class BasicBvhTest : public BvhIntersectingVolFinderTest
 {
   public:
-    VecSetup make_bih_setups() const override
+    VecSetup make_bvh_setups() const override
     {
         VecSetup result;
         for (auto leaf_size : {1, 4, 8})
         {
-            inp::BIHBuilder setup;
+            inp::BvhBuilder setup;
             setup.max_leaf_size = leaf_size;
             result.push_back(setup);
         }
@@ -292,15 +304,15 @@ class BasicBihTest : public BIHIntersectingVolFinderTest
     }
 };
 
-TEST_F(BasicBihTest, tree_output)
+TEST_F(BasicBvhTest, tree_output)
 {
-    auto trees = this->get_bih_json_strings();
+    auto trees = this->get_bvh_json_strings();
     ASSERT_EQ(3, trees.size());
     EXPECT_JSON_EQ(
-        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["i","x",[3,4],[1.60,1.20]],["i","x",[5,6],[5.0,2.80]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[[[0.0,0.0,0.0],[2.80,1.0,100.0]],[[0.0,-1.0,0.0],[5.0,1.0,100.0]]]],["i","x",[3,4],[[[0.0,0.0,0.0],[1.60,1.0,100.0]],[[1.20,0.0,0.0],[2.80,1.0,100.0]]]],["i","x",[5,6],[[[0.0,-1.0,0.0],[5.0,0.0,100.0]],[[2.80,0.0,0.0],[5.0,1.0,100.0]]]],["l",[1]],["l",[2]],["l",[4,5]],["l",[3]]]})json",
         trees[0]);
     EXPECT_JSON_EQ(
-        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[2.80,0.0]],["l",[1,2]],["l",[3,4,5]]]})json",
+        R"json({"inf_vol_ids":[0],"tree":[["i","x",[1,2],[[[0.0,0.0,0.0],[2.80,1.0,100.0]],[[0.0,-1.0,0.0],[5.0,1.0,100.0]]]],["l",[1,2]],["l",[3,4,5]]]})json",
         trees[1]);
     EXPECT_JSON_EQ(R"json({"inf_vol_ids":[0],"tree":[["l",[1,2,3,4,5]]]})json",
                    trees[2]);
@@ -308,7 +320,7 @@ TEST_F(BasicBihTest, tree_output)
 
 // Test the case where the ray starts outside the bbox and the first bbox
 // intersection yields the first volume intersection.
-TEST_F(BasicBihTest, outside_first)
+TEST_F(BasicBvhTest, outside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -328,7 +340,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{1};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -344,9 +356,9 @@ TEST_F(BasicBihTest, outside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {2, 2, 1};
+        ref.hit_count = {3, 3, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -364,7 +376,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{3};
         ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -378,7 +390,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{4};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {2, 2, 2};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -392,7 +404,7 @@ TEST_F(BasicBihTest, outside_first)
         ref.intersect_surface = LocalSurfaceId{5};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -426,7 +438,7 @@ TEST_F(BasicBihTest, outside_first)
 
 // Test the case where the ray starts somewhere inside a bbox and this bbox
 // contains first intersecting volume.
-TEST_F(BasicBihTest, inside_first)
+TEST_F(BasicBvhTest, inside_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -446,7 +458,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{0};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {0, 0, 0};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -465,7 +477,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{1};
         ref.hit_count = {2, 2, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -478,9 +490,9 @@ TEST_F(BasicBihTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = {2, 2, 1};
+        ref.hit_count = {3, 3, 1};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -498,7 +510,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{3};
         ref.hit_count = {1, 1, 3};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -512,7 +524,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{4};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {2, 2, 2};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -526,7 +538,7 @@ TEST_F(BasicBihTest, inside_first)
         ref.intersect_surface = LocalSurfaceId{5};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -578,7 +590,7 @@ TEST_F(BasicBihTest, inside_first)
 
 // Test the case where the first intersection does not yields the first volume
 // collision
-TEST_F(BasicBihTest, not_first)
+TEST_F(BasicBvhTest, not_first)
 {
     Real3 pos, dir;
     DistMap dist_map;
@@ -597,7 +609,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {2, 2, 2};
         ref.miss_count = {1, 1, 1};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -611,7 +623,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{0};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {3, 3, 3};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -625,7 +637,7 @@ TEST_F(BasicBihTest, not_first)
         ref.intersect_surface = LocalSurfaceId{2};
         ref.hit_count = {1, 1, 1};
         ref.miss_count = {3, 4, 4};
-        auto result = this->get_result({pos, dir}, dist_map);
+        auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
 
@@ -666,10 +678,10 @@ TEST_F(BasicBihTest, not_first)
  * boxes less with even indices (`i % 2 == 0`) have pretend volumes in the
  * range z=[0.5, 1] offset by the box.
  */
-class KebabTest : public BIHIntersectingVolFinderTest
+class KebabTest : public BvhIntersectingVolFinderTest
 {
   public:
-    VecSetup make_bih_setups() const override
+    VecSetup make_bvh_setups() const override
     {
         VecSetup result;
         if (false)
@@ -677,7 +689,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
             // FIXME: depth limit is forced cutoff: tree is unbalanced
             for (auto depth_limit : range(8))
             {
-                inp::BIHBuilder setup;
+                inp::BvhBuilder setup;
                 setup.depth_limit = 1 + 4 * depth_limit;
                 result.push_back(setup);
             }
@@ -686,7 +698,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
         {
             for (auto leaf_size : {1, 2, 4, 8, 12, 16, 20, 24})
             {
-                inp::BIHBuilder setup;
+                inp::BvhBuilder setup;
                 setup.max_leaf_size = leaf_size;
                 result.push_back(setup);
             }
@@ -712,7 +724,7 @@ class KebabTest : public BIHIntersectingVolFinderTest
 
 TEST_F(KebabTest, DISABLED_tree_output)
 {
-    for (auto&& s : this->get_bih_json_strings())
+    for (auto&& s : this->get_bvh_json_strings())
     {
         cout << "R\"json(" << s << ")json\"\n\n\n";
     }
@@ -726,10 +738,10 @@ TEST_F(KebabTest, all)
     DistMap dist_map;
     {
         SCOPED_TRACE("Test everything, no hits");
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
-        ref.distance = inf;
+        ref.distance = large;
         ref.intersect_surface = {};
         ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
         ref.miss_count = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
@@ -738,10 +750,10 @@ TEST_F(KebabTest, all)
     {
         SCOPED_TRACE("Start halfway");
         pos = {0, 0, 512};
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
-        ref.distance = inf;
+        ref.distance = large;
         ref.intersect_surface = {};
         ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
         ref.miss_count = {513, 513, 513, 513, 513, 513, 513, 513};
@@ -754,7 +766,7 @@ TEST_F(KebabTest, all)
             {LocalVolumeId{514}, 2.9},
             {LocalVolumeId{1000}, 488.9},
         };
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
         ref.distance = 2.9;
@@ -776,13 +788,18 @@ TEST_F(KebabTest, all)
             {LocalVolumeId{200}, 312.1},
             {LocalVolumeId{0}, 512.1},
         };
-        auto result = this->get_result({pos, dir}, dist_map, infr);
+        auto result = this->get_result({pos, dir}, dist_map, large);
 
         IntersectResult ref;
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
         ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
-        ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
+        ref.miss_count = {2, 2, 3, 7, 7, 14, 14, 14};
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+        {
+            // Overconservative hits
+            ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
+        }
         EXPECT_REF_EQ(ref, result) << result;
     }
 }

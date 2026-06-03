@@ -2,15 +2,14 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHData.hh
-//! \todo move to orange/BihTreeData
+//! \file orange/detail/BvhData.hh
+//! \todo move to orange/BvhTreeData
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
 #include "../OrangeTypes.hh"
@@ -19,9 +18,13 @@ namespace celeritas
 {
 namespace detail
 {
+//---------------------------------------------------------------------------//!
+// The maximum depth of the BVH tree (single leaf node is 1)
+inline constexpr size_type max_bvh_depth = 18;
+
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single inner node in a Bounding Interval Hierarchy.
+ * Data for a single internal node in a Bounding Volume Hierarchy.
  *
  * As a convention, a node's LEFT edge corresponds to the half space that is
  * less than the partition value. In other words, the LEFT bounding plane
@@ -31,14 +34,12 @@ namespace detail
  * the LEFT bounding plane position could be either left or right of the RIGHT
  * bounding plane position.
  */
-struct BIHInnerNode
+struct BvhInternalNode
 {
     struct Edge
     {
-        //! The position of the bounding plane along the partition axis
-        fast_real_type bounding_plane_pos{};
         //! The child node connected to this edge
-        BIHNodeId child;
+        BvhNodeId child;
         //! Bbox created by clipping an inf bbox with the bounding planes
         //! between this edge (inclusive) and the root.
         FastBBox bbox;
@@ -62,9 +63,9 @@ struct BIHInnerNode
 
 //---------------------------------------------------------------------------//
 /*!
- * Data for a single leaf node in a Bounding Interval Hierarchy.
+ * Data for a single leaf node in a Bounding Volume Hierarchy.
  */
-struct BIHLeafNode
+struct BvhLeafNode
 {
     ItemRange<LocalVolumeId> vol_ids;
 
@@ -73,12 +74,12 @@ struct BIHLeafNode
 
 //---------------------------------------------------------------------------//
 /*!
- * Bounding Interval Hierarchy tree.
+ * Bounding Volume Hierarchy tree.
  *
  * Infinite bounding boxes are not included in the tree itself. They are stored
  * separately and checked after traversing the tree.
  */
-struct BIHTreeRecord
+struct BvhTreeRecord
 {
     //// TYPES ////
     struct Metadata
@@ -95,14 +96,14 @@ struct BIHTreeRecord
 
     //// DATA ////
 
-    //! All bounding boxes managed by the BIH
+    //! All bounding boxes managed by the BVH
     ItemMap<LocalVolumeId, FastBBoxId> bboxes;
 
-    //! Inner nodes, the first being the root
-    ItemRange<BIHInnerNode> inner_nodes;
+    //! Internal (branch) nodes, the first being the root
+    ItemRange<BvhInternalNode> internal_nodes;
 
     //! Leaf nodes
-    ItemRange<BIHLeafNode> leaf_nodes;
+    ItemRange<BvhLeafNode> leaf_nodes;
 
     //! Local volumes that have infinite bounding boxes
     ItemRange<LocalVolumeId> inf_vol_ids;
@@ -114,7 +115,7 @@ struct BIHTreeRecord
 
     explicit CELER_FUNCTION operator bool() const
     {
-        if (!inner_nodes.empty())
+        if (!internal_nodes.empty())
         {
             return !bboxes.empty() && !leaf_nodes.empty();
         }
@@ -127,6 +128,44 @@ struct BIHTreeRecord
             // b) only infinite volumes.
             return !bboxes.empty() && leaf_nodes.size() == 1;
         }
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Persistent data used by all BVH trees.
+ */
+template<Ownership W, MemSpace M>
+struct BvhTreeData
+{
+    template<class T>
+    using Items = Collection<T, W, M>;
+
+    // Low-level storage
+    Items<FastBBox> bboxes;
+    Items<LocalVolumeId> local_volume_ids;
+    Items<detail::BvhInternalNode> internal_nodes;
+    Items<detail::BvhLeafNode> leaf_nodes;
+
+    //! True if assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        // Note that internal_nodes may be empty for single-node trees
+        return !bboxes.empty() && !local_volume_ids.empty()
+               && !leaf_nodes.empty();
+    }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    BvhTreeData& operator=(BvhTreeData<W2, M2> const& other)
+    {
+        bboxes = other.bboxes;
+        local_volume_ids = other.local_volume_ids;
+        internal_nodes = other.internal_nodes;
+        leaf_nodes = other.leaf_nodes;
+
+        CELER_ENSURE(static_cast<bool>(*this) == static_cast<bool>(other));
+        return *this;
     }
 };
 

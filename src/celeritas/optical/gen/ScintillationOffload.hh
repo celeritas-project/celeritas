@@ -39,6 +39,9 @@ namespace celeritas
  * - for large (n > 10) mean yield, from a Gaussian distribution with a
  *   material-dependent spread, or
  * - for small yields, from a Poisson distribution.
+ *
+ * \todo rename \c ScintillationOffloadSampler; it conflicts with
+ * accel/ScintillationOffload
  */
 class ScintillationOffload
 {

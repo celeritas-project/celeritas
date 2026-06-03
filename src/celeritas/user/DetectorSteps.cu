@@ -55,12 +55,13 @@ size_type count_num_valid(
 {
     // Store the thread IDs of active tracks that are in a detector
     auto start = device_pointer_cast(state.valid_id.data());
-    auto end = thrust::copy_if(thrust_execute_on(state.stream_id),
-                               thrust::make_counting_iterator(0_sz),
-                               thrust::make_counting_iterator(state.size()),
-                               device_pointer_cast(state.data.detector.data()),
-                               start,
-                               HasDetector{});
+    auto end
+        = thrust::copy_if(thrust_execute_on(state.stream_id),
+                          thrust::make_counting_iterator(0_sz),
+                          thrust::make_counting_iterator(state.size()),
+                          device_pointer_cast(state.data.detector_id.data()),
+                          start,
+                          HasDetector{});
     return end - start;
 }
 
@@ -137,7 +138,7 @@ void copy_steps<MemSpace::device>(
     copy_field(          \
         &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id)
 
-    DS_ASSIGN(detector);
+    DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
 
     for (auto sp : range(StepPoint::size_))
@@ -157,10 +158,11 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
     DS_ASSIGN(primary_id);
+    DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);
     DS_ASSIGN(step_length);
     DS_ASSIGN(weight);
-    DS_ASSIGN(particle);
+    DS_ASSIGN(particle_id);
     DS_ASSIGN(energy_deposition);
 
     output->num_volume_levels = state.num_volume_levels;
@@ -171,7 +173,7 @@ void copy_steps<MemSpace::device>(
     CELER_DEVICE_API_CALL(
         StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
-    CELER_ENSURE(output->detector.size() == num_valid);
+    CELER_ENSURE(output->detector_id.size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
 }
 

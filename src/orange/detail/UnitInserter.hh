@@ -10,7 +10,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
 
-#include "BIHBuilder.hh"
+#include "BvhBuilder.hh"
 #include "SurfacesRecordBuilder.hh"
 #include "TransformRecordInserter.hh"
 #include "../BoundingBoxUtils.hh"
@@ -54,7 +54,7 @@ class UnitInserter
 
   private:
     Data* orange_data_{nullptr};
-    BIHBuilder build_bih_tree_;
+    BvhBuilder build_bvh_tree_;
     TransformRecordInserter insert_transform_;
     SurfacesRecordBuilder build_surfaces_;
     UniverseInserter* insert_universe_;

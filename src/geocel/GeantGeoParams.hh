@@ -117,6 +117,9 @@ class GeantGeoParams final : public GeoParamsInterface,
     // Get (logical) volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
 
+    //! Get canonical volume metadata
+    SPConstVolumeParams const& volumes() const final { return volume_params_; }
+
     // Get the Geant4 physical volume corresponding to a volume instance ID
     inline G4VPhysicalVolume const* id_to_geant(VolumeInstanceId vol_id) const;
 
@@ -191,6 +194,7 @@ class GeantGeoParams final : public GeoParamsInterface,
 
     // Host metadata/access
     ImplVolumeMap impl_volumes_;
+    SPConstVolumeParams volume_params_;
     detail::GeantVolumeInstanceMapper vi_mapper_;
     std::shared_ptr<GeoOpticalIdMap> geo_to_opt_;
     std::vector<G4LogicalSurface const*> surfaces_;

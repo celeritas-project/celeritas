@@ -211,8 +211,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
     [[nodiscard]] virtual SPConstOpticalSim build_optical_sim() = 0;
     [[nodiscard]] virtual SPConstOpticalSurfacePhysics
-    build_optical_surface_physics()
-        = 0;
+    build_optical_surface_physics() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
     [[nodiscard]] virtual inp::OpticalDetector build_optical_detector_input();
 

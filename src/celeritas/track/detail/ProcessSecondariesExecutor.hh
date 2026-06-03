@@ -16,6 +16,7 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Secondary.hh"
+#include "celeritas/track/Utils.hh"
 
 #include "../CoreStateCounters.hh"
 
@@ -155,8 +156,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
                 // Store the track initializer
                 data.initializers[ItemId<TrackInitializer>{
-                    counters.num_initializers - offset}]
-                    = ti;
+                    counters.num_initializers - offset}] = ti;
 
                 --offset;
             }

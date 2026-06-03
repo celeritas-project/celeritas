@@ -1,14 +1,10 @@
 //------------------------------- -*- C++ -*- -------------------------------//
-// See https://llvm.org/LICENSE.txt for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+// SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-/*!
- * \file ArrayUtilsImpl.hh
- */
+//! \file corecel/math/detail/ArrayUtilsImpl.hh
 //---------------------------------------------------------------------------//
 #pragma once
-
-#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -23,20 +19,18 @@ template<>
 struct RealVecTraits<float>
 {
     //! Threshold for rotation
-    static CELER_CONSTEXPR_FUNCTION float min_accurate_sintheta()
-    {
-        return 0.07f;
-    }
+    static constexpr float min_accurate_sintheta = 0.07f;
+    //! Threshold for Z axis coincidence: ~sqrt(eps_mach)
+    static constexpr float min_coincident_sintheta = 4e-04f;
 };
 
 template<>
 struct RealVecTraits<double>
 {
     //! Threshold for rotation
-    static CELER_CONSTEXPR_FUNCTION double min_accurate_sintheta()
-    {
-        return 0.005;
-    }
+    static constexpr double min_accurate_sintheta = 0.005;
+    //! Threshold for Z axis coincidence: ~sqrt(eps_mach)
+    static constexpr double min_coincident_sintheta = 2e-08;
 };
 
 //---------------------------------------------------------------------------//
