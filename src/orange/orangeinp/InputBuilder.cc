@@ -147,25 +147,25 @@ auto InputBuilder::operator()(ProtoInterface const& global) const -> result_type
         csg_outp.write(opts_.csg_output_file);
     }
 
-    if (std::string var = celeritas::getenv("ORANGE_BIH_MAX_LEAF_SIZE");
+    if (std::string var = celeritas::getenv("ORANGE_BVH_MAX_LEAF_SIZE");
         !var.empty())
     {
         size_type mls = std::stoul(var);
-        result.construction_opts.bih_options.max_leaf_size = mls;
+        result.construction_opts.bvh_options.max_leaf_size = mls;
     }
 
-    if (std::string var = celeritas::getenv("ORANGE_BIH_DEPTH_LIMIT");
+    if (std::string var = celeritas::getenv("ORANGE_BVH_DEPTH_LIMIT");
         !var.empty())
     {
         size_type dl = std::stoul(var);
-        result.construction_opts.bih_options.depth_limit = dl;
+        result.construction_opts.bvh_options.depth_limit = dl;
     }
 
-    if (std::string var = celeritas::getenv("ORANGE_BIH_PART_CANDS");
+    if (std::string var = celeritas::getenv("ORANGE_BVH_PART_CANDS");
         !var.empty())
     {
         size_type dl = std::stoul(var);
-        result.construction_opts.bih_options.num_part_cands = dl;
+        result.construction_opts.bvh_options.num_part_cands = dl;
     }
 
     CELER_ENSURE(result);

@@ -371,7 +371,7 @@ make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
 /*!
  * Adjust the last volume (background) if necessary.
  *
- * "Background" should be spatially unreachable by logic or BIH: ('nowhere'
+ * "Background" should be spatially unreachable by logic or BVH: ('nowhere'
  * logic, null bbox), but it has to have all the surfaces that connect to an
  * interior volume.
  */
@@ -405,7 +405,7 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
                            Data* orange_data,
                            ConstructionOptions const* opts)
     : orange_data_(orange_data)
-    , build_bih_tree_{&orange_data_->bih_tree_data, opts->bih_options}
+    , build_bvh_tree_{&orange_data_->bvh_tree_data, opts->bvh_options}
     , insert_transform_{&orange_data_->transforms, &orange_data_->reals}
     , build_surfaces_{&orange_data_->surface_types,
                       &orange_data_->real_ids,
@@ -455,7 +455,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     std::vector<LocalVolumeRecord> vol_records(inp.volumes.size());
     std::vector<std::set<LocalVolumeId>> connectivity(inp.surfaces.size());
     std::vector<FastBBox> bboxes;
-    BIHBuilder::SetLocalVolId implicit_vol_ids;
+    BvhBuilder::SetLocalVolId implicit_vol_ids;
     for (auto i : range<LocalVolumeId::size_type>(inp.volumes.size()))
     {
         // Only the last volume can be background
@@ -475,7 +475,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
             bboxes.push_back(BoundingBox<fast_real_type>::from_infinite());
         }
 
-        // Create a set of background volume ids for BIH construction
+        // Create a set of background volume ids for BVH construction
         if (inp.volumes[i].flags & LocalVolumeRecord::Flags::implicit_vol)
         {
             implicit_vol_ids.insert(id_cast<LocalVolumeId>(i));
@@ -527,7 +527,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     unit.volumes = ItemMap<LocalVolumeId, SimpleUnitRecord::LocalVolumeRecordId>(
         volume_records_.insert_back(vol_records.begin(), vol_records.end()));
 
-    // Create BIH tree
+    // Create BVH tree
     {
         std::vector<size_type> invalid;
         for (auto i : range(bboxes.size()))
@@ -550,7 +550,7 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
                                   << "': " << bboxes[i];
                            }));
     }
-    unit.bih_tree = build_bih_tree_(std::move(bboxes), implicit_vol_ids);
+    unit.bvh_tree = build_bvh_tree_(std::move(bboxes), implicit_vol_ids);
 
     // Save connectivity
     {

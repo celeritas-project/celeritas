@@ -12,8 +12,8 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
-#include "orange/detail/BIHEnclosingVolFinder.hh"
-#include "orange/detail/BIHIntersectingVolFinder.hh"
+#include "orange/detail/BvhEnclosingVolFinder.hh"
+#include "orange/detail/BvhIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -187,7 +187,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
 
-    // Use the BIH to locate a position that's inside, and save whether it's on
+    // Use the BVH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
     detail::OnFace on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
@@ -249,7 +249,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     auto neighbors = this->get_neighbors(state.surface.id());
 
     // If this surface has 2 neighbors or fewer (excluding the current cell),
-    // use linear search to check neighbors. Otherwise, traverse the BIH tree.
+    // use linear search to check neighbors. Otherwise, traverse the BVH tree.
     if (neighbors.size() < 3)
     {
         for (LocalVolumeId id : neighbors)
@@ -446,7 +446,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Search the BIH to find where the predicate is true for the point.
+ * Search the BVH to find where the predicate is true for the point.
  *
  * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
  */
@@ -454,8 +454,8 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 {
-    detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
-                                              params_.bih_tree_data};
+    detail::BvhEnclosingVolFinder find_volume{unit_record_.bvh_tree,
+                                              params_.bvh_tree_data};
     return find_volume(pos, predicate);
 }
 
@@ -619,7 +619,7 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 /*!
  * Calculate distance from the background volume to enter any other volume.
  *
- * This function is accelerated with the BIH.
+ * This function is accelerated with the BVH.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
@@ -666,8 +666,8 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
             state, vol, num_isect, Sense::inside, cur_max_dist);
     };
 
-    detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,
-                                                       params_.bih_tree_data};
+    detail::BvhIntersectingVolFinder find_intersection{unit_record_.bvh_tree,
+                                                       params_.bvh_tree_data};
 
     return find_intersection(
         {state.pos, state.dir}, is_intersecting, max_distance);

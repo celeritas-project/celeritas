@@ -18,7 +18,7 @@
 
 #include "OrangeTypes.hh"
 
-#include "detail/BIHData.hh"
+#include "detail/BvhData.hh"
 
 namespace celeritas
 {
@@ -264,8 +264,8 @@ struct SimpleUnitRecord
     ItemMap<LocalVolumeId, LocalVolumeIdId> local_parent;
     ItemMap<LocalVolumeId, VolDepthUint> local_vol_level;
 
-    // Bounding Interval Hierarchy tree parameters
-    detail::BIHTreeRecord bih_tree;
+    // Bounding Volume Hierarchy tree parameters
+    detail::BvhTreeRecord bvh_tree;
 
     LocalVolumeId background{};  //!< Default if not in any other volume
     bool simple_safety{};
@@ -380,8 +380,8 @@ struct OrangeParamsData
     ImplVolumeItems<VolumeId> volume_ids;
     ImplVolumeItems<VolumeInstanceId> volume_instance_ids;
 
-    // BIH tree storage
-    detail::BIHTreeData<W, M> bih_tree_data;
+    // BVH tree storage
+    detail::BvhTreeData<W, M> bvh_tree_data;
 
     // Low-level storage
     Items<LocalSurfaceId> local_surface_ids;
@@ -407,7 +407,7 @@ struct OrangeParamsData
                && univ_indices.size() == univ_types.size()
                && !volume_ids.empty()
                && volume_ids.size() == volume_instance_ids.size()
-               && (bih_tree_data || !simple_units.empty())
+               && (bvh_tree_data || !simple_units.empty())
                && ((!local_volume_ids.empty() && !logic_ints.empty()
                     && !reals.empty())
                    || surface_types.empty())
@@ -429,7 +429,7 @@ struct OrangeParamsData
         volume_ids = other.volume_ids;
         volume_instance_ids = other.volume_instance_ids;
 
-        bih_tree_data = other.bih_tree_data;
+        bvh_tree_data = other.bvh_tree_data;
 
         local_surface_ids = other.local_surface_ids;
         local_volume_ids = other.local_volume_ids;

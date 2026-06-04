@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHBuilder.cc
+//! \file orange/detail/BvhBuilder.cc
 //---------------------------------------------------------------------------//
-#include "BIHBuilder.hh"
+#include "BvhBuilder.hh"
 
 #include <algorithm>
 
@@ -13,9 +13,9 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/Collection.hh"
-#include "orange/detail/BIHData.hh"
+#include "orange/detail/BvhData.hh"
 
-#include "BIHPartitioner.hh"
+#include "BvhPartitioner.hh"
 #include "../BoundingBoxUtils.hh"
 
 namespace celeritas
@@ -27,11 +27,11 @@ namespace detail
  * \brief Constructor.
  *
  * \param[in] storage  Struct containing collections of persistent data for
- *                     all BIH trees
- * \param[in] inp      Input options that govern BIH construction, i.e.,
+ *                     all BVH trees
+ * \param[in] inp      Input options that govern BVH construction, i.e.,
  *                     the maximum leaf size and the recursion depth limit
  */
-BIHBuilder::BIHBuilder(Storage* storage, Input inp)
+BvhBuilder::BvhBuilder(Storage* storage, Input inp)
     : bboxes_{&storage->bboxes}
     , local_volume_ids_{&storage->local_volume_ids}
     , internal_nodes_{&storage->internal_nodes}
@@ -40,33 +40,33 @@ BIHBuilder::BIHBuilder(Storage* storage, Input inp)
 {
     CELER_EXPECT(storage);
     CELER_EXPECT(inp_);
-    CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bih_depth,
-                   << "invalid BIH input depth limit " << inp_.depth_limit
+    CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bvh_depth,
+                   << "invalid BVH input depth limit " << inp_.depth_limit
                    << ": must be positive and no more than compile-time "
                       "maximum "
-                   << max_bih_depth);
+                   << max_bvh_depth);
     CELER_VALIDATE(inp_.max_leaf_size > 0,
-                   << "invalid BIH max leaf size " << inp_.max_leaf_size << ": "
+                   << "invalid BVH max leaf size " << inp_.max_leaf_size << ": "
                    << "must be positive");
     CELER_VALIDATE(inp_.num_part_cands > 0,
-                   << "invalid BIH partition candidate count "
+                   << "invalid BVH partition candidate count "
                    << inp_.num_part_cands << ": "
                    << "must be positive");
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * \brief Build a BIH tree for the supplied bounding boxes.
+ * \brief Build a BVH tree for the supplied bounding boxes.
  *
  * \param[in] bboxes            All bounding boxes to be included in the tree
  * \param[in] implicit_vol_ids  The ids of the "background" volumes, to be
  *                              excluded from the tree
  *
- * \return The record of the resultant BIH tree
+ * \return The record of the resultant BVH tree
  */
-BIHTreeRecord
-BIHBuilder::operator()(VecBBox&& bboxes,
-                       BIHBuilder::SetLocalVolId const& implicit_vol_ids)
+BvhTreeRecord
+BvhBuilder::operator()(VecBBox&& bboxes,
+                       BvhBuilder::SetLocalVolId const& implicit_vol_ids)
 {
     CELER_EXPECT(!bboxes.empty());
 
@@ -107,7 +107,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         }
     }
 
-    BIHTreeRecord tree;
+    BvhTreeRecord tree;
 
     tree.bboxes = ItemMap<LocalVolumeId, FastBBoxId>(
         bboxes_.insert_back(temp_.bboxes.begin(), temp_.bboxes.end()));
@@ -138,13 +138,13 @@ BIHBuilder::operator()(VecBBox&& bboxes,
         // Degenerate case where all bounding boxes are infinite. Create a
         // single empty leaf node, so that the existence of leaf nodes does not
         // need to be checked at runtime.
-        BIHLeafNode const empty_nodes[] = {{}};
+        BvhLeafNode const empty_nodes[] = {{}};
         tree.leaf_nodes = leaf_nodes_.insert_back(std::begin(empty_nodes),
                                                   std::end(empty_nodes));
     }
 
     // Assign metadata for diagnostic purposes
-    BIHTreeRecord::Metadata md;
+    BvhTreeRecord::Metadata md;
     md.num_finite_bboxes = indices.size();
     md.num_infinite_bboxes = inf_vol_ids.size();
     md.depth = depth;
@@ -157,7 +157,7 @@ BIHBuilder::operator()(VecBBox&& bboxes,
 // HELPER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Recursively construct BIH nodes for a vector of bbox indices.
+ * Recursively construct BVH nodes for a vector of bbox indices.
  *
  * \param[in] indices        The indices of the bboxes that will be partitioned
  *                           or placed on a leaf node in this function call
@@ -166,14 +166,14 @@ BIHBuilder::operator()(VecBBox&& bboxes,
  * \param[in] depth          The maximum recursion depth encountered during the
  *                           full construction process
  */
-void BIHBuilder::construct_tree(VecIndices const& indices,
+void BvhBuilder::construct_tree(VecIndices const& indices,
                                 VecNodes* nodes,
                                 size_type current_depth,
                                 size_type& depth)
 {
     CELER_EXPECT(current_depth < inp_.depth_limit);
 
-    using Side = BIHInternalNode::Side;
+    using Side = BvhInternalNode::Side;
 
     ++current_depth;
     auto current_index = nodes->size();
@@ -182,7 +182,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
     // Create a single leaf containing all bboxes. This lambda is used only
     // once per call to construct_tree.
     auto make_leaf = [&]() {
-        BIHLeafNode node;
+        BvhLeafNode node;
         node.vol_ids
             = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
@@ -199,11 +199,11 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         return;
     }
 
-    BIHPartitioner partition(temp_.bboxes, temp_.centers, inp_.num_part_cands);
+    BvhPartitioner partition(temp_.bboxes, temp_.centers, inp_.num_part_cands);
     if (auto p = partition(indices))
     {
         // Create internal node
-        BIHInternalNode node;
+        BvhInternalNode node;
         node.axis = p.axis;
 
         // Recursively construct the left and right branches
@@ -211,7 +211,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
         {
             node.edges[side].bbox = p.bboxes[side];
 
-            node.edges[side].child = id_cast<BIHNodeId>(nodes->size());
+            node.edges[side].child = id_cast<BvhNodeId>(nodes->size());
             this->construct_tree(p.indices[side], nodes, current_depth, depth);
         }
 
@@ -233,7 +233,7 @@ void BIHBuilder::construct_tree(VecIndices const& indices,
  *
  * \returns  The separated inner and leaf nodes
  */
-BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
+BvhBuilder::ArrangedNodes BvhBuilder::arrange_nodes(VecNodes const& nodes) const
 {
     VecInnerNodes internal_nodes;
     VecLeafNodes leaf_nodes;
@@ -245,12 +245,12 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
     new_indices.reserve(nodes.size());
 
     auto insert_node
-        = Overload{[&](BIHInternalNode const& node) {
+        = Overload{[&](BvhInternalNode const& node) {
                        new_indices.push_back(internal_nodes.size());
                        internal_nodes.push_back(node);
                        is_leaf.push_back(false);
                    },
-                   [&](BIHLeafNode const& node) {
+                   [&](BvhLeafNode const& node) {
                        new_indices.push_back(leaf_nodes.size());
                        leaf_nodes.push_back(node);
                        is_leaf.push_back(true);
@@ -271,9 +271,9 @@ BIHBuilder::ArrangedNodes BIHBuilder::arrange_nodes(VecNodes const& nodes) const
     }
 
     // Remap IDs
-    auto remapped_id = [&new_indices](BIHNodeId old) {
+    auto remapped_id = [&new_indices](BvhNodeId old) {
         CELER_EXPECT(old < new_indices.size());
-        return id_cast<BIHNodeId>(new_indices[old.unchecked_get()]);
+        return id_cast<BvhNodeId>(new_indices[old.unchecked_get()]);
     };
 
     for (auto& inner_node : internal_nodes)

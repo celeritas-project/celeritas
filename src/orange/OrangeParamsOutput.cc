@@ -20,8 +20,8 @@
 #include "OrangeParams.hh"  // IWYU pragma: keep
 #include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
 
-#include "detail/BIHData.hh"
-#include "detail/BIHView.hh"
+#include "detail/BvhData.hh"
+#include "detail/BvhView.hh"
 
 namespace celeritas
 {
@@ -29,23 +29,23 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create JSON representation of the structure of a BIH tree.
+ * Create JSON representation of the structure of a BVH tree.
  */
 nlohmann::json
-make_bih_structure_json(detail::BIHTreeRecord const& tree,
-                        NativeCRef<detail::BIHTreeData> const& storage)
+make_bvh_structure_json(detail::BvhTreeRecord const& tree,
+                        NativeCRef<detail::BvhTreeData> const& storage)
 {
     using json = nlohmann::json;
 
     auto out = json::array();
 
-    detail::BIHView view{tree, storage};
+    detail::BvhView view{tree, storage};
 
     // Handle internal nodes
-    for (auto i : range(BIHNodeId{view.num_internal_nodes()}))
+    for (auto i : range(BvhNodeId{view.num_internal_nodes()}))
     {
         auto const& inner = view.inner_node(i);
-        using Side = detail::BIHInternalNode::Side;
+        using Side = detail::BvhInternalNode::Side;
 
         out.push_back({
             "i",
@@ -56,8 +56,8 @@ make_bih_structure_json(detail::BIHTreeRecord const& tree,
     }
 
     // Handle leaf nodes
-    for (auto i : range(BIHNodeId{view.num_internal_nodes()},
-                        BIHNodeId{view.num_nodes()}))
+    for (auto i : range(BvhNodeId{view.num_internal_nodes()},
+                        BvhNodeId{view.num_nodes()}))
     {
         auto vols = json::array();
         for (LocalVolumeId id : remove_ldg_wrapper(view.leaf_vol_ids(i)))
@@ -143,12 +143,12 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         OPO_SIZE_PAIR(data, volume_instance_ids),
         OPO_SIZE_PAIR(data, volume_records),
     };
-    obj["sizes"]["bih"] = [&bihdata = data.bih_tree_data] {
+    obj["sizes"]["bvh"] = [&bvhdata = data.bvh_tree_data] {
         return json::object({
-            OPO_SIZE_PAIR(bihdata, bboxes),
-            OPO_SIZE_PAIR(bihdata, internal_nodes),
-            OPO_SIZE_PAIR(bihdata, leaf_nodes),
-            OPO_SIZE_PAIR(bihdata, local_volume_ids),
+            OPO_SIZE_PAIR(bvhdata, bboxes),
+            OPO_SIZE_PAIR(bvhdata, internal_nodes),
+            OPO_SIZE_PAIR(bvhdata, leaf_nodes),
+            OPO_SIZE_PAIR(bvhdata, local_volume_ids),
         });
     }();
     obj["sizes"]["universe_indexer"] = [&uidata = data.univ_indexer_data] {
@@ -162,14 +162,14 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 #undef OPO_SIZE_PAIR
 #undef OPO_PAIR
 
-    // Write BIH metadata as a struct of arrays
+    // Write BVH metadata as a struct of arrays
     {
-        obj["bih_metadata"] = json::object();
-        auto& bih_metadata = obj["bih_metadata"];
+        obj["bvh_metadata"] = json::object();
+        auto& bvh_metadata = obj["bvh_metadata"];
 
-        auto insert_array = [&bih_metadata](std::string key) -> json& {
-            bih_metadata[key] = json::array();
-            return bih_metadata[key];
+        auto insert_array = [&bvh_metadata](std::string key) -> json& {
+            bvh_metadata[key] = json::array();
+            return bvh_metadata[key];
         };
 
         auto& finite = insert_array("num_finite_bboxes");
@@ -179,21 +179,21 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         for (auto i : range(data.simple_units.size()))
         {
             auto const& unit = data.simple_units[SimpleUnitId{i}];
-            auto const& mdi = unit.bih_tree.metadata;
+            auto const& mdi = unit.bvh_tree.metadata;
             finite.push_back(mdi.num_finite_bboxes);
             infinite.push_back(mdi.num_infinite_bboxes);
             depth.push_back(mdi.depth);
         }
 
         // Include structure information if requested by the user
-        if (celeritas::getenv_flag("ORANGE_BIH_STRUCTURE", false).value)
+        if (celeritas::getenv_flag("ORANGE_BVH_STRUCTURE", false).value)
         {
             auto& structure = insert_array("structure");
             for (auto i : range(data.simple_units.size()))
             {
                 auto const& unit = data.simple_units[SimpleUnitId{i}];
-                structure.push_back(make_bih_structure_json(
-                    unit.bih_tree, data.bih_tree_data));
+                structure.push_back(make_bvh_structure_json(
+                    unit.bvh_tree, data.bvh_tree_data));
             }
         }
     }
@@ -203,12 +203,12 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Print a BIH structure to a JSON string for debugging.
+ * Print a BVH structure to a JSON string for debugging.
  */
-std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
-                               NativeCRef<detail::BIHTreeData> const& data)
+std::string dump_bvh_structure(detail::BvhTreeRecord const& tree,
+                               NativeCRef<detail::BvhTreeData> const& data)
 {
-    return make_bih_structure_json(tree, data).dump();
+    return make_bvh_structure_json(tree, data).dump();
 }
 
 //---------------------------------------------------------------------------//

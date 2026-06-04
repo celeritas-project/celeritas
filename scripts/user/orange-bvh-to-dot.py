@@ -2,12 +2,12 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """
-Convert BIH structure metadata within a JSON file to GraphViz .dot files.
+Convert BVH structure metadata within a JSON file to GraphViz .dot files.
 
 Behavior:
 
-1. ``-u/--universe``: write ``bih_<uid>.dot`` for selected universe IDs,
-2. ``-a/--all``: write ``bih_<uid>.dot`` for all universes,
+1. ``-u/--universe``: write ``bvh_<uid>.dot`` for selected universe IDs,
+2. ``-a/--all``: write ``bvh_<uid>.dot`` for all universes,
 3. Neither ``-u/--universe`` nor ``-a/--all``: print univers-wise diagnostics
    only.
 
@@ -16,13 +16,13 @@ In cases 1 and 2 the output directory can be specified with ``-o/--output``.
 .. example::
 
     # Write selected universes
-    ./orange-bih-to-dot.py out.json -u 0 3
+    ./orange-bvh-to-dot.py out.json -u 0 3
 
     # Write all universes
-    ./orange-bih-to-dot.py out.json --all
+    ./orange-bvh-to-dot.py out.json --all
 
     # Print diagnostics only
-    ./orange-bih-to-dot.py out.json
+    ./orange-bvh-to-dot.py out.json
 """
 
 import json
@@ -103,7 +103,7 @@ def dump_dot(universe_id, tree, out):
 
     out.write(
         dedent(f"""\
-        strict digraph "bih_{universe_id}" {{
+        strict digraph "bvh_{universe_id}" {{
           rankdir=LR
           node [shape=box style=filled]
         """)
@@ -144,10 +144,10 @@ def dump_dot(universe_id, tree, out):
     out.write("}\n")
 
 
-def write_diagnostic(outfile, bih_data):
-    depth = bih_data["depth"]
-    nvol = bih_data["num_finite_bboxes"]
-    ninf = bih_data["num_infinite_bboxes"]
+def write_diagnostic(outfile, bvh_data):
+    depth = bvh_data["depth"]
+    nvol = bvh_data["num_finite_bboxes"]
+    ninf = bvh_data["num_infinite_bboxes"]
 
     template = "{:>8} {:>8} {:>8} {:>8}\n"
     out = template.format("uid", "depth", "num_vols", "num_inf")
@@ -168,19 +168,19 @@ def run(args):
     else:
         orange = data["orange_stats"]
 
-    bih_data = orange["bih_metadata"]
+    bvh_data = orange["bvh_metadata"]
 
     if args.universe:
         uids = args.universe
     elif args.all:
-        uids = list(range(len(bih_data["structure"])))
+        uids = list(range(len(bvh_data["structure"])))
     else:
-        write_diagnostic(sys.stdout, bih_data)
+        write_diagnostic(sys.stdout, bvh_data)
         return
 
     for uid in uids:
-        with open(Path(args.output) / "bih_{}.dot".format(uid), "w") as out:
-            dump_dot(uid, bih_data["structure"][uid]["tree"], out)
+        with open(Path(args.output) / "bvh_{}.dot".format(uid), "w") as out:
+            dump_dot(uid, bvh_data["structure"][uid]["tree"], out)
 
 
 def main():

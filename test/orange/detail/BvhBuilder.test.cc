@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHBuilder.test.cc
+//! \file orange/detail/BvhBuilder.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHBuilder.hh"
+#include "orange/detail/BvhBuilder.hh"
 
 #include <limits>
 #include <vector>
@@ -13,8 +13,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "geocel/Types.hh"
-#include "orange/detail/BIHData.hh"
-#include "orange/detail/BIHView.hh"
+#include "orange/detail/BvhData.hh"
+#include "orange/detail/BvhView.hh"
 
 #include "celeritas_test.hh"
 
@@ -27,21 +27,21 @@ namespace detail
 namespace test
 {
 //---------------------------------------------------------------------------//
-class BIHBuilderTest : public ::celeritas::test::Test
+class BvhBuilderTest : public ::celeritas::test::Test
 {
   public:
     using VecFastReal = std::vector<fast_real_type>;
-    using VecFastBbox = BIHBuilder::VecBBox;
-    using Input = BIHBuilder::Input;
+    using VecFastBbox = BvhBuilder::VecBBox;
+    using Input = BvhBuilder::Input;
     using VecInt = std::vector<int>;
-    using Side = BIHInternalNode::Side;
+    using Side = BvhInternalNode::Side;
     using Real3 = FastBBox::Real3;
 
   protected:
     static constexpr auto inff
         = std::numeric_limits<fast_real_type>::infinity();
 
-    //! Build BIH tree data with a single tree in it and one volume per leaf
+    //! Build BVH tree data with a single tree in it and one volume per leaf
     void build(VecFastBbox bboxes)
     {
         Input input;
@@ -49,19 +49,19 @@ class BIHBuilderTest : public ::celeritas::test::Test
         return this->build(std::move(bboxes), std::move(input));
     }
 
-    //! Build BIH tree data with a single tree in it and one volume per leaf
+    //! Build BVH tree data with a single tree in it and one volume per leaf
     void build(VecFastBbox&& bboxes, Input&& input)
     {
-        HostVal<BIHTreeData> data;
-        BIHBuilder build(&data, std::move(input));
+        HostVal<BvhTreeData> data;
+        BvhBuilder build(&data, std::move(input));
         tree_ = build(std::move(bboxes), {});
-        store_ = ParamsDataStore<BIHTreeData>{std::move(data)};
+        store_ = ParamsDataStore<BvhTreeData>{std::move(data)};
         ASSERT_TRUE(tree_);
         ASSERT_TRUE(store_);
     }
 
-    ParamsDataStore<BIHTreeData> store_;
-    BIHTreeRecord tree_;
+    ParamsDataStore<BvhTreeData> store_;
+    BvhTreeRecord tree_;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,7 +82,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
 
           x=0                                                x=5
    \endverbatim
- * Resultant tree structure in terms of BIHNodeIds (N) and volumes (V):
+ * Resultant tree structure in terms of BvhNodeIds (N) and volumes (V):
  * \verbatim
                         ___ N0 ___
                       /            \
@@ -91,7 +91,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
                   N3   N4        N5     N6
                   V1   V2       V4,V5   V3
    \endverbatim
- * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
+ * In terms of BvhInternalNodeIds (I) and BvhLeafNodeIds (L):
  * \verbatim
                         ___ I0 ___
                       /            \
@@ -101,7 +101,7 @@ class BIHBuilderTest : public ::celeritas::test::Test
                   V1   V2       V4,V5   V3
    \endverbatim
  */
-TEST_F(BIHBuilderTest, basic)
+TEST_F(BvhBuilderTest, basic)
 {
     this->build({
         FastBBox::from_infinite(),
@@ -113,19 +113,19 @@ TEST_F(BIHBuilderTest, basic)
     });
 
     // Test nodes
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
-        auto const& node = view.inner_node(BIHNodeId{0});
+        auto const& node = view.inner_node(BvhNodeId{0});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{2}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -139,12 +139,12 @@ TEST_F(BIHBuilderTest, basic)
 
     // N1, I1
     {
-        auto const& node = view.inner_node(BIHNodeId{1});
+        auto const& node = view.inner_node(BvhNodeId{1});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{3}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -158,12 +158,12 @@ TEST_F(BIHBuilderTest, basic)
 
     // N2, I2
     {
-        auto const& node = view.inner_node(BIHNodeId{2});
+        auto const& node = view.inner_node(BvhNodeId{2});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{5}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, -1.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -175,10 +175,10 @@ TEST_F(BIHBuilderTest, basic)
                            node.bbox(Side::right).upper());
     }
 
-    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{3})));
-    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{4})));
-    EXPECT_VEC_EQ(VecInt({4, 5}), id_to_int(view.leaf_vol_ids(BIHNodeId{5})));
-    EXPECT_VEC_EQ(VecInt({3}), id_to_int(view.leaf_vol_ids(BIHNodeId{6})));
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BvhNodeId{3})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BvhNodeId{4})));
+    EXPECT_VEC_EQ(VecInt({4, 5}), id_to_int(view.leaf_vol_ids(BvhNodeId{5})));
+    EXPECT_VEC_EQ(VecInt({3}), id_to_int(view.leaf_vol_ids(BvhNodeId{6})));
 
     // Metadata
     {
@@ -207,7 +207,7 @@ TEST_F(BIHBuilderTest, basic)
                             x
    \endverbatim
  */
-class GridTest : public BIHBuilderTest
+class GridTest : public BvhBuilderTest
 {
   protected:
     void build_grid(Input&& input)
@@ -228,8 +228,8 @@ class GridTest : public BIHBuilderTest
 
 //---------------------------------------------------------------------------//
 /* Test with max_leaf_size = 1 and the default depth limit (large enough to not
- * affect BIH construction here). The resultant tree structure in terms of
- * BIHNodeId (N) and volumes (V) is:
+ * affect BVH construction here). The resultant tree structure in terms of
+ * BvhNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -242,7 +242,7 @@ class GridTest : public BIHBuilderTest
                   N13  N14   N15   N16                   N19  N20    N21   N22
                   V5   V6    V9    V10                   V7   V8     V11   V12
    \endverbatim
- * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
+ * In terms of BvhInternalNodeIds (I) and BvhLeafNodeIds (L):
  * \verbatim
                      _______________ I0 ______________
                    /                                   \
@@ -267,19 +267,19 @@ TEST_F(GridTest, basic)
     }());
 
     // Test nodes
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(11, view.num_internal_nodes());
     ASSERT_EQ(12, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
-        auto const& node = view.inner_node(BIHNodeId{0});
+        auto const& node = view.inner_node(BvhNodeId{0});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -293,12 +293,12 @@ TEST_F(GridTest, basic)
 
     // N1, I1
     {
-        auto const& node = view.inner_node(BIHNodeId{1});
+        auto const& node = view.inner_node(BvhNodeId{1});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{2}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{3}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -312,12 +312,12 @@ TEST_F(GridTest, basic)
 
     // N2, I2
     {
-        auto const& node = view.inner_node(BIHNodeId{2});
+        auto const& node = view.inner_node(BvhNodeId{2});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{11}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{12}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{11}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{12}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -331,12 +331,12 @@ TEST_F(GridTest, basic)
 
     // N3, I3
     {
-        auto const& node = view.inner_node(BIHNodeId{3});
+        auto const& node = view.inner_node(BvhNodeId{3});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{4}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{5}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{4}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{5}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -350,12 +350,12 @@ TEST_F(GridTest, basic)
 
     // N4, I4
     {
-        auto const& node = view.inner_node(BIHNodeId{4});
+        auto const& node = view.inner_node(BvhNodeId{4});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{13}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{14}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{13}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{14}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -369,12 +369,12 @@ TEST_F(GridTest, basic)
 
     // N5, I5
     {
-        auto const& node = view.inner_node(BIHNodeId{5});
+        auto const& node = view.inner_node(BvhNodeId{5});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{15}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{16}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{15}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{16}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({2.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -386,12 +386,12 @@ TEST_F(GridTest, basic)
                            node.bbox(Side::right).upper());
     }
 
-    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{11})));
-    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{12})));
-    EXPECT_VEC_EQ(VecInt({5}), id_to_int(view.leaf_vol_ids(BIHNodeId{13})));
-    EXPECT_VEC_EQ(VecInt({6}), id_to_int(view.leaf_vol_ids(BIHNodeId{14})));
-    EXPECT_VEC_EQ(VecInt({9}), id_to_int(view.leaf_vol_ids(BIHNodeId{15})));
-    EXPECT_VEC_EQ(VecInt({10}), id_to_int(view.leaf_vol_ids(BIHNodeId{16})));
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BvhNodeId{11})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BvhNodeId{12})));
+    EXPECT_VEC_EQ(VecInt({5}), id_to_int(view.leaf_vol_ids(BvhNodeId{13})));
+    EXPECT_VEC_EQ(VecInt({6}), id_to_int(view.leaf_vol_ids(BvhNodeId{14})));
+    EXPECT_VEC_EQ(VecInt({9}), id_to_int(view.leaf_vol_ids(BvhNodeId{15})));
+    EXPECT_VEC_EQ(VecInt({10}), id_to_int(view.leaf_vol_ids(BvhNodeId{16})));
 
     // Metadata
     {
@@ -404,8 +404,8 @@ TEST_F(GridTest, basic)
 
 //---------------------------------------------------------------------------//
 /* Test with max_leaf_size = 4 and the default depth limit (large enough to not
- * affect BIH construction here). The resultant tree structure in terms of
- * BIHNodeId (N) and volumes (V) is:
+ * affect BVH construction here). The resultant tree structure in terms of
+ * BvhNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -414,7 +414,7 @@ TEST_F(GridTest, basic)
         N3                N4                 N5                  N6
       V1, V2        V5, V6, V9, V10        V3, V4          V7, V8, V11, V12
    \endverbatim
- * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
+ * In terms of BvhInternalNodeIds (I) and BvhLeafNodeIds (L):
  * \verbatim
 
                      _______________ I0 ______________
@@ -434,19 +434,19 @@ TEST_F(GridTest, max_leaf_size)
     }());
 
     // Test nodes
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(3, view.num_internal_nodes());
     ASSERT_EQ(4, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
-        auto const& node = view.inner_node(BIHNodeId{0});
+        auto const& node = view.inner_node(BvhNodeId{0});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{2}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{2}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -460,12 +460,12 @@ TEST_F(GridTest, max_leaf_size)
 
     // N1, I1
     {
-        auto const& node = view.inner_node(BIHNodeId{1});
+        auto const& node = view.inner_node(BvhNodeId{1});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{3}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{3}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -479,12 +479,12 @@ TEST_F(GridTest, max_leaf_size)
 
     // N2, I2
     {
-        auto const& node = view.inner_node(BIHNodeId{2});
+        auto const& node = view.inner_node(BvhNodeId{2});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{5}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{6}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{5}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{6}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 2.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -496,12 +496,12 @@ TEST_F(GridTest, max_leaf_size)
                            node.bbox(Side::right).upper());
     }
 
-    EXPECT_VEC_EQ(VecInt({1, 2}), id_to_int(view.leaf_vol_ids(BIHNodeId{3})));
+    EXPECT_VEC_EQ(VecInt({1, 2}), id_to_int(view.leaf_vol_ids(BvhNodeId{3})));
     EXPECT_VEC_EQ(VecInt({5, 6, 9, 10}),
-                  id_to_int(view.leaf_vol_ids(BIHNodeId{4})));
-    EXPECT_VEC_EQ(VecInt({3, 4}), id_to_int(view.leaf_vol_ids(BIHNodeId{5})));
+                  id_to_int(view.leaf_vol_ids(BvhNodeId{4})));
+    EXPECT_VEC_EQ(VecInt({3, 4}), id_to_int(view.leaf_vol_ids(BvhNodeId{5})));
     EXPECT_VEC_EQ(VecInt({7, 8, 11, 12}),
-                  id_to_int(view.leaf_vol_ids(BIHNodeId{6})));
+                  id_to_int(view.leaf_vol_ids(BvhNodeId{6})));
 
     // Metadata
     {
@@ -515,7 +515,7 @@ TEST_F(GridTest, max_leaf_size)
 //---------------------------------------------------------------------------//
 /* Test with max_leaf_size = 1 and depth_limit = 4, the later of which causes
  * the tree to be less deep than it otherwise would. The resultant tree
- * structure in terms of BIHNodeId (N) and volumes (V) is:
+ * structure in terms of BvhNodeId (N) and volumes (V) is:
  * \verbatim
                      _______________ N0 ______________
                    /                                   \
@@ -526,7 +526,7 @@ TEST_F(GridTest, max_leaf_size)
     N7     N8         N9      N10       N11      N12       N13     N14
     V1     V2      V5, V6   V9, V10     V3       V4      V7, V8   V11, V12
    \endverbatim
- * In terms of BIHInnerNodeIds (I) and BIHLeafNodeIds (L):
+ * In terms of BvhInternalNodeIds (I) and BvhLeafNodeIds (L):
  * \verbatim
                      _______________ I0 ______________
                    /                                   \
@@ -550,19 +550,19 @@ TEST_F(GridTest, depth_limit)
     }());
 
     // Test nodes
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(7, view.num_internal_nodes());
     ASSERT_EQ(8, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
 
     // N0, I0
     {
-        auto const& node = view.inner_node(BIHNodeId{0});
+        auto const& node = view.inner_node(BvhNodeId{0});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{1}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{4}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{1}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{4}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -576,12 +576,12 @@ TEST_F(GridTest, depth_limit)
 
     // N1, I1
     {
-        auto const& node = view.inner_node(BIHNodeId{1});
+        auto const& node = view.inner_node(BvhNodeId{1});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{2}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{3}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{2}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{3}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -595,12 +595,12 @@ TEST_F(GridTest, depth_limit)
 
     // N2, I2
     {
-        auto const& node = view.inner_node(BIHNodeId{2});
+        auto const& node = view.inner_node(BvhNodeId{2});
 
         EXPECT_EQ(Axis{1}, node.axis());
         EXPECT_EQ(Axis{1}, node.axis());
-        EXPECT_EQ(BIHNodeId{7}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{8}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{7}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{8}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({0.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -614,12 +614,12 @@ TEST_F(GridTest, depth_limit)
 
     // N3, I3
     {
-        auto const& node = view.inner_node(BIHNodeId{3});
+        auto const& node = view.inner_node(BvhNodeId{3});
 
         EXPECT_EQ(Axis{0}, node.axis());
         EXPECT_EQ(Axis{0}, node.axis());
-        EXPECT_EQ(BIHNodeId{9}, node.child(Side::left));
-        EXPECT_EQ(BIHNodeId{10}, node.child(Side::right));
+        EXPECT_EQ(BvhNodeId{9}, node.child(Side::left));
+        EXPECT_EQ(BvhNodeId{10}, node.child(Side::right));
 
         EXPECT_VEC_SOFT_EQ(VecFastReal({1.f, 0.f, 0.f}),
                            node.bbox(Side::left).lower());
@@ -631,10 +631,10 @@ TEST_F(GridTest, depth_limit)
                            node.bbox(Side::right).upper());
     }
 
-    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BIHNodeId{7})));
-    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BIHNodeId{8})));
-    EXPECT_VEC_EQ(VecInt({5, 6}), id_to_int(view.leaf_vol_ids(BIHNodeId{9})));
-    EXPECT_VEC_EQ(VecInt({9, 10}), id_to_int(view.leaf_vol_ids(BIHNodeId{10})));
+    EXPECT_VEC_EQ(VecInt({1}), id_to_int(view.leaf_vol_ids(BvhNodeId{7})));
+    EXPECT_VEC_EQ(VecInt({2}), id_to_int(view.leaf_vol_ids(BvhNodeId{8})));
+    EXPECT_VEC_EQ(VecInt({5, 6}), id_to_int(view.leaf_vol_ids(BvhNodeId{9})));
+    EXPECT_VEC_EQ(VecInt({9, 10}), id_to_int(view.leaf_vol_ids(BvhNodeId{10})));
 
     // Metadata
     {
@@ -649,16 +649,16 @@ TEST_F(GridTest, depth_limit)
 // Degenerate, single leaf cases
 //---------------------------------------------------------------------------//
 //
-TEST_F(BIHBuilderTest, single_finite_volume)
+TEST_F(BvhBuilderTest, single_finite_volume)
 {
     this->build({{{0, 0, 0}, {1, 1, 1}}});
 
     ASSERT_EQ(0, tree_.inf_vol_ids.size());
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
 
-    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
+    EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.leaf_vol_ids(BvhNodeId{0})));
 
     auto const& md = tree_.metadata;
     EXPECT_EQ(1, md.num_finite_bboxes);
@@ -666,16 +666,16 @@ TEST_F(BIHBuilderTest, single_finite_volume)
     EXPECT_EQ(1, md.depth);
 }
 
-TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
+TEST_F(BvhBuilderTest, multiple_nonpartitionable_volumes)
 {
     this->build({{{0, 0, 0}, {1, 1, 1}}, {{0, 0, 0}, {1, 1, 1}}});
 
     ASSERT_EQ(0, tree_.inf_vol_ids.size());
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
 
-    EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.leaf_vol_ids(BIHNodeId{0})));
+    EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.leaf_vol_ids(BvhNodeId{0})));
 
     auto const& md = tree_.metadata;
     EXPECT_EQ(2, md.num_finite_bboxes);
@@ -683,11 +683,11 @@ TEST_F(BIHBuilderTest, multiple_nonpartitionable_volumes)
     EXPECT_EQ(1, md.depth);
 }
 
-TEST_F(BIHBuilderTest, single_infinite_volume)
+TEST_F(BvhBuilderTest, single_infinite_volume)
 {
     this->build({FastBBox::from_infinite()});
 
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0}), id_to_int(view.inf_vol_ids()));
@@ -698,11 +698,11 @@ TEST_F(BIHBuilderTest, single_infinite_volume)
     EXPECT_EQ(0, md.depth);
 }
 
-TEST_F(BIHBuilderTest, multiple_infinite_volumes)
+TEST_F(BvhBuilderTest, multiple_infinite_volumes)
 {
     this->build({FastBBox::from_infinite(), FastBBox::from_infinite()});
 
-    BIHView view{tree_, store_.host_ref()};
+    BvhView view{tree_, store_.host_ref()};
     ASSERT_EQ(0, view.num_internal_nodes());
     ASSERT_EQ(1, view.num_leaf_nodes());
     EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.inf_vol_ids()));
@@ -713,7 +713,7 @@ TEST_F(BIHBuilderTest, multiple_infinite_volumes)
     EXPECT_EQ(0, md.depth);
 }
 
-TEST_F(BIHBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
+TEST_F(BvhBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
 {
     EXPECT_THROW(this->build({
                      {{0, 0, -inff}, {1, 1, inff}},

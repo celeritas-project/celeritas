@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHUtils.test.cc
+//! \file orange/detail/BvhUtils.test.cc
 //---------------------------------------------------------------------------//
-#include "orange/detail/BIHUtils.hh"
+#include "orange/detail/BvhUtils.hh"
 
 #include "celeritas_test.hh"
 
@@ -16,7 +16,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-TEST(BIHUtilsTest, bbox_vector_union)
+TEST(BvhUtilsTest, bbox_vector_union)
 {
     using Real3 = Array<fast_real_type, 3>;
 

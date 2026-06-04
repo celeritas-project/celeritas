@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHPartitioner.hh
+//! \file orange/detail/BvhPartitioner.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,7 +11,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "geocel/BoundingBox.hh"  // IWYU pragma: keep
 
-#include "BIHData.hh"
+#include "BvhData.hh"
 #include "../OrangeTypes.hh"
 
 namespace celeritas
@@ -24,11 +24,12 @@ namespace detail
  *
  * This class takes a vector of bounding boxes as an input, and outputs a
  * Partition object describing the optional partition (among those tested). To
- * find the optimal partition, candidate partitions along the x, y, nd z axis
+ * find the optimal partition, candidate partitions along the x, y, and z axes
  * are evaluated using a cost function. The cost function is based on a
- * standard surface area heuristic.
+ * surface area heuristic \citep{wald-fastconstruction-2007,
+ * https://10.1109/RT.2007.4342588}.
  */
-class BIHPartitioner
+class BvhPartitioner
 {
   public:
     //!@{
@@ -37,7 +38,7 @@ class BIHPartitioner
     using VecBBox = std::vector<FastBBox>;
     using VecReal3 = std::vector<Real3>;
     using VecIndices = std::vector<LocalVolumeId>;
-    using Side = BIHInternalNode::Side;
+    using Side = BvhInternalNode::Side;
 
     //! Output struct specifying the indices and bboxes of the left and right
     //! sides of the partition
@@ -61,7 +62,7 @@ class BIHPartitioner
 
   public:
     // Construct from all bounding bounding boxes in a universe
-    explicit BIHPartitioner(VecBBox const& bboxes,
+    explicit BvhPartitioner(VecBBox const& bboxes,
                             VecReal3 const& centers,
                             size_type num_part_cands);
 
