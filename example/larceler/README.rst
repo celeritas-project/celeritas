@@ -12,10 +12,12 @@ Summary
 -------
 
 This sequence of commands generate analysis files for Celeritas and the LArSim
-fast simulation using a single GENIE-generated event. The ``run.sh`` script runs
-all of these steps automatically.
+fast simulation using a single GENIE-generated event.
+The included ``run.sh`` script executes all the following steps.
 
 .. literalinclude:: ../../example/larceler/run.sh
+   :language: sh
+   :start-at: # Download and patch
 
 Overview
 --------
@@ -62,13 +64,14 @@ Generating GENIE samples
   (see ``Configurations for 1x2x6 geometry``).
 
 Running LArG4 + IonAndScint
-===========================
+---------------------------
 
 - Use local ``larg4_dune10k_1x2x6.fcl`` file.
 - To loop over a subset of events, replace ``-s`` by
   ``-n [num_events]``.
 - The GDML input geometry in ``LArG4`` should **not** tag Arapucas as
-  ``SensDet``.
+  ``SensDet``, because this Geant4 run is only gathering step data inside the
+  TPC, and not tracking photons to the PD.
 
 .. code:: sh
 
@@ -80,8 +83,7 @@ Running optical simulations
 ---------------------------
 
 - Use local ``opticalsim*.fcl`` files.
-- To loop over a subset of events, replace ``-s`` by
-  ``-n [num_events]``.
+- To loop over a subset of events, replace ``-s`` with ``-n [num_events]``.
 
 Fast simulation
 ^^^^^^^^^^^^^^^
@@ -101,23 +103,21 @@ By default, Celeritas will run on CPU. See documentation in the
 ``dune10k_optical_celeritas_1x2x6.fcl`` file to toggle GPU execution.
 
 Celeritas geometry requires correct optical material information and correct
-``SensDet`` data assigned to the Arapucas. The geometry has also been modified to
-remove the U and V wires, which cause significant slowdowns in the BIH geometry
-navigation. To patch the geometry with the changes needed by Celeritas, apply
-the local patch file to the ``dune10kt_v6_refactored_1x2x6.gdml``, available at
-`nuRiceLab <https://github.com/nuRiceLab/laropticks/blob/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml>`__.
-
-To patch the file:
+``SensDet`` data assigned to the Arapucas.
+The geometry has also been modified to remove the U and V wires as an expedient
+to improve runtime performance for smoke testing.
+To patch the geometry with the changes needed by Celeritas, apply the local
+patch file to the official ``dune10kt_v6_refactored_1x2x6.gdml`` geometry:
 
 .. code:: console
 
-   $ patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
+   $ patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires.gdml < dune10kt_v6_refactored_1x2x6_zwires.patch
 
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------
 
-.. code:: cnosole
+.. code:: console
 
    $ lar -c pdsimana_job.fcl -s fastsim-output.root
    $ lar -c pdsimana_job.fcl -s celeritas-output.root

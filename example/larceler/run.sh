@@ -7,8 +7,8 @@
 #-----------------------------------------------------------------------------#
 
 # Download and patch the geometry file for Celeritas execution
-curl https://raw.githubusercontent.com/nuRiceLab/laropticks/refs/heads/main/laropticks/GDML/dune10kt_v6_refactored_1x2x6.gdml > dune10kt_v6_refactored_1x2x6.gdml
-patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires_celeritas.gdml < dune10kt_v6_refactored_1x2x6_zwires_celeritas.patch
+curl -O https://raw.githubusercontent.com/DUNE/dunecore/b8fb0006da5ca878732740c2030cdac66699c3fc/dunecore/Geometry/gdml/dune10kt_v6_refactored_1x2x6.gdml
+patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires.gdml < dune10kt_v6_refactored_1x2x6_zwires.patch
 
 # Run a single GENIE event
 lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
