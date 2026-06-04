@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TestMacros.hh"
 
+#include <cmath>
 #include <limits>
 
 #include "corecel/cont/Array.hh"
@@ -445,7 +446,7 @@ inline ::testing::AssertionResult IsRefEq(char const* expr1,
 {
     ::celeritas::test::AssertionHelper result(expr1, expr2);
 
-    if (std::abs(val1.val - val2.val) >= tol.val)
+    if (std::fabs(val1.val - val2.val) >= tol.val)
     {
         result.fail() << "  foo: " << val1.val << " != " << val2.val
                       << " within " << tolexpr << " (" << tol.val << ")";

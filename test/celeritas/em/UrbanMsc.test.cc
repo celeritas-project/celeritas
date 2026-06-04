@@ -297,8 +297,7 @@ TEST_F(UrbanMscTest, step_conversion)
                 ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
                 /*
                  * TODO: large relative error -0.00081720192362734587 when
-                 pstep
-                 * is near or equal to range:
+                 * pstep is near or equal to range:
                  *
                  z -> g: Low energy or range-limited step:
                     slope = 1.6653345369377e-15

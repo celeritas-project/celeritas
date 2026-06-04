@@ -526,7 +526,7 @@ UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
     constexpr units::MevEnergy c_highland{13.6};
     real_type theta0
         = c_highland.value()
-          * std::abs(value_as<units::ElementaryCharge>(particle.charge()))
+          * std::fabs(value_as<units::ElementaryCharge>(particle.charge()))
           * std::sqrt(y) * invbetacp;
 
     // Correction factor from e- scattering data

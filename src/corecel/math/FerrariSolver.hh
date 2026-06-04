@@ -338,7 +338,7 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
     else  // One real and two complex roots, solve for real root with Cardano
     {
         real_type nr_a = -signum(r)
-                         * std::cbrt(std::abs(r) + std::sqrt(discrim));
+                         * std::cbrt(std::fabs(r) + std::sqrt(discrim));
         real_type nr_b = nr_a == 0 ? 0 : q / nr_a;
         real_type z0 = nr_a + nr_b - third_b;
         return Real3(z0, no_solution_, no_solution_);
