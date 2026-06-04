@@ -103,7 +103,8 @@ void Histogram::operator()(double value)
     }
     else if (frac < 1.0)
     {
-        auto index = static_cast<size_type>(frac * counts_.size());
+        auto index = static_cast<size_type>(
+            frac * static_cast<double>(counts_.size()));
         CELER_ASSERT(index < counts_.size());
         ++counts_[index];
     }

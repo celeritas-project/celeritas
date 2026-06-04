@@ -188,8 +188,7 @@ class Span
              std::enable_if_t<detail::is_array_convertible_v<U, T>
                                   && (E2 == Extent || Extent == dynamic_extent),
                               bool> = true>
-    CELER_CONSTEXPR_FUNCTION
-    Span(Span<U, E2> const& other) noexcept(ndebug_or_dyn)
+    CELER_CONSTEXPR_FUNCTION Span(Span<U, E2> other) noexcept(ndebug_or_dyn)
         : s_(other.data(), other.size())
     {
     }
@@ -204,7 +203,7 @@ class Span
              std::enable_if_t<detail::is_array_convertible_v<U, T>
                                   && Extent != dynamic_extent && E2 == dynamic_extent,
                               bool> = true>
-    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> const& other) noexcept(
+    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> other) noexcept(
         ndebug_or_dyn)
         : s_(other.data(), other.size())
     {

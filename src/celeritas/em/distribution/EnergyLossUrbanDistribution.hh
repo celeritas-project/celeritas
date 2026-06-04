@@ -282,7 +282,8 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             if (n > 0)
             {
                 UniformRealDistribution<real_type> sample_smooth(-1, 1);
-                result += (n + sample_smooth(rng)) * binding_energy_[i];
+                result += (static_cast<real_type>(n) + sample_smooth(rng))
+                          * binding_energy_[i];
             }
         }
     }

@@ -35,7 +35,9 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/cont/Span.hh"
 #include "corecel/data/HyperslabIndexer.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
@@ -387,19 +389,18 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
     auto size = pv.GetVectorLength();
+    double const bounds[] = {pv.Energy(0), pv.Energy(size - 1)};
 
     inp::UniformGrid grid;
-    grid.x = {std::log(pv.Energy(0) * x_scaling),
-              std::log(pv.Energy(size - 1) * x_scaling)};
+    grid.x = {std::log(bounds[0] * x_scaling), std::log(bounds[1] * x_scaling)};
     grid.y.resize(size);
 
-    double delta
-        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
+    double delta_e = calc_log_delta(Span<double const>{bounds});
     for (auto i : range(size))
     {
         // Check that the grid has log spacing
         CELER_ASSERT(i == 0
-                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+                     || soft_equal(delta_e, pv.Energy(i) / pv.Energy(i - 1)));
         grid.y[i] = pv[i] * y_scaling;
     }
     CELER_ENSURE(grid);

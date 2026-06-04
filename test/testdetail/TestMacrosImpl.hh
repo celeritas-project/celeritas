@@ -31,8 +31,7 @@ namespace testdetail
 int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc);
+char const* trunc_string(int digits, char const* str, char const* trunc);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -367,8 +366,8 @@ IsRangeEqImpl(Iter1 e_iter,
               BinaryOp comp)
 {
     using size_type = std::size_t;
-    size_type expected_size = std::distance(e_iter, e_end);
-    size_type actual_size = std::distance(a_iter, a_end);
+    auto expected_size = std::distance(e_iter, e_end);
+    auto actual_size = std::distance(a_iter, a_end);
 
     // First, check that the sizes are equal
     if (expected_size != actual_size)
