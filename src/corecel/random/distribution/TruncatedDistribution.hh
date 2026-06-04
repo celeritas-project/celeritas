@@ -107,6 +107,11 @@ TruncatedDistribution<Distribution>::operator()(Generator& rng) -> result_type
                     internal);
             }
         }
+        else
+        {
+            // CUDA 12.6 causes warning about unused variable
+            CELER_DISCARD(num_remaining_samples);
+        }
 
         result = sample_(rng);
     } while (result < lower_ || result > upper_);
