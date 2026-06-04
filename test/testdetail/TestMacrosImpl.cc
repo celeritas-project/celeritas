@@ -56,7 +56,7 @@ char const* trunc_string(int digits, char const* str, char const* trunc)
     CELER_EXPECT(digits > 0);
     CELER_EXPECT(std::strlen(trunc) <= static_cast<std::size_t>(digits));
 
-    if (std::strlen(str) > digits)
+    if (std::strlen(str) > static_cast<std::size_t>(digits))
     {
         return trunc;
     }
