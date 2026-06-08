@@ -9,6 +9,8 @@
 #include <cstddef>
 #include <type_traits>
 
+#include "corecel/data/Ldg.hh"
+
 #include "Assert.hh"
 #include "Macros.hh"
 #include "Types.hh"
@@ -292,6 +294,12 @@ class OpaqueId
     }
     //!@}
 
+    //! Allow loading via \c ldg
+    CELER_CONSTEXPR_FUNCTION friend OpaqueId ldg(OpaqueId const* id)
+    {
+        return OpaqueId{ldg(&id->value_)};
+    }
+
 #undef CELER_DEFINE_OPAQUEID_CMP
 #define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
     template<class J>                                                  \
@@ -354,6 +362,12 @@ template<class I, class V>
 struct MakeSize<OpaqueId<I, V>>
 {
     using type = V;
+};
+
+//! Automatically load read-only OpaqueIDs with LDG
+template<class I, class V>
+struct IsAutoLdg<OpaqueId<I, V>> : std::true_type
+{
 };
 
 //---------------------------------------------------------------------------//
@@ -456,16 +470,6 @@ inline CELER_FUNCTION auto id_cast(J value) noexcept(!CELERITAS_DEBUG)
     -> std::enable_if_t<is_opaque_id_v<IdT> && std::is_integral_v<J>, IdT>
 {
     return IdT{detail::id_cast_impl<typename IdT::value_type, J>(value)};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Support loading OpaqueId via GPU cache.
- */
-template<class I, class T>
-CELER_CEF T const* ldg_data(OpaqueId<I, T> const* ptr) noexcept
-{
-    return ptr->data();
 }
 
 //---------------------------------------------------------------------------//

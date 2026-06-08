@@ -63,8 +63,8 @@ class CoreStateInterface : public AuxStateInterface
     virtual size_type size() const = 0;
 
     // Inject optical primaries
-    virtual void insert_primaries(Span<TrackInitializer const> host_primaries)
-        = 0;
+    virtual void
+    insert_primaries(Span<TrackInitializer const> host_primaries) = 0;
 
   protected:
     CoreStateInterface() = default;

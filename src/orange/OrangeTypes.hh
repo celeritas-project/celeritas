@@ -43,8 +43,8 @@ using AxisTag = std::integral_constant<Axis, T>;
 
 //// ID TYPES ////
 
-//! Identifier for a BIHNode objects
-using BIHNodeId = OpaqueId<struct BIHNode_>;
+//! Identifier for a BvhNode objects
+using BvhNodeId = OpaqueId<struct BvhNode_>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;

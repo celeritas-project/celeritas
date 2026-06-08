@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeData.hh"
 
@@ -57,6 +58,7 @@ class LocalSurfaceVisitor
 
     template<class T>
     using Items = Collection<T, Ownership::const_reference, MemSpace::native>;
+    using Reals = Items<real_type>;
 
     //// DATA ////
 
@@ -127,9 +129,8 @@ LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
 template<class T>
 CELER_FUNCTION T LocalSurfaceVisitor::make_surface(LocalSurfaceId id) const
 {
-    using Reals = decltype(params_.reals);
-    using RealIdT = typename Reals::ItemIdT;
-    using RealRangeT = typename Reals::ItemRangeT;
+    using RealIdT = Reals::ItemIdT;
+    using RealRangeT = Reals::ItemRangeT;
     RealIdT offset = params_.real_ids[surfaces_.data_offsets[id]];
     constexpr size_type size{T::StorageSpan::extent};
     CELER_ASSERT(offset + size <= params_.reals.size());

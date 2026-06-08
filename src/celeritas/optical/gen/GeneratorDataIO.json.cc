@@ -9,6 +9,7 @@
 #include "corecel/cont/ArrayIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/math/QuantityIO.json.hh"
+#include "celeritas/optical/gen/GeneratorData.hh"
 
 namespace celeritas
 {
@@ -64,6 +65,12 @@ void from_json(nlohmann::json const& j, GeneratorDistributionData& v)
     auto const& points = j.at("points");
     points.at("pre").get_to(v.points[StepPoint::pre]);
     points.at("post").get_to(v.points[StepPoint::post]);
+}
+
+std::ostream& operator<<(std::ostream& os, GeneratorDistributionData const& v)
+{
+    os << nlohmann::json(v).dump(-1);
+    return os;
 }
 
 //!@}

@@ -20,6 +20,8 @@
 
 namespace celeritas
 {
+class VolumeParams;
+
 //---------------------------------------------------------------------------//
 /*!
  * Accumulate energy deposition in volumes.
@@ -42,11 +44,16 @@ class SimpleCalo final : public StepInterface, public OutputInterface
 
   public:
     // Construct with all requirements
-    SimpleCalo(std::string output_label, VecLabel labels, size_type max_streams);
+    SimpleCalo(std::string output_label,
+               VecLabel labels,
+               size_type max_streams,
+               VolumeParams const& volumes);
 
     //! Construct with default label
-    SimpleCalo(VecLabel labels, size_type max_streams)
-        : SimpleCalo{"simple_calo", std::move(labels), max_streams}
+    SimpleCalo(VecLabel labels,
+               size_type max_streams,
+               VolumeParams const& volumes)
+        : SimpleCalo{"simple_calo", std::move(labels), max_streams, volumes}
     {
     }
 

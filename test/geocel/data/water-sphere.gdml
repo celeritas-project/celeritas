@@ -25,12 +25,6 @@
       <D unit="g/cm3" value="1e-25"/>
       <fraction n="1" ref="H"/>
     </material>
-    <isotope N="1" Z="1" name="H1">
-      <atom unit="g/mole" value="1.00782503081372"/>
-    </isotope>
-    <isotope N="2" Z="1" name="H2">
-      <atom unit="g/mole" value="2.01410199966617"/>
-    </isotope>
     <element name="Hydrogen">
       <fraction n="0.999885" ref="H1"/>
       <fraction n="0.000115" ref="H2"/>
@@ -53,9 +47,9 @@
      <D value="1.0"/>
      <composite n="2" ref="Hydrogen"/>
      <composite n="1" ref="Oxygen"/>
-      <property name="RINDEX" ref="RINDEX"/>
-      <property name="GROUPVEL" ref="GROUPVEL"/>
-      <property name="ABSLENGTH" ref="ABSLENGTH"/>
+     <property name="RINDEX" ref="RINDEX"/>
+     <property name="GROUPVEL" ref="GROUPVEL"/>
+     <property name="ABSLENGTH" ref="ABSLENGTH"/>
     </material>
     <material name="FakePlastic" state="solid">
      <D value="4.0"/>
@@ -64,14 +58,14 @@
   </materials>
 
   <solids>
-    <orb lunit="cm" name="sphere" r="100"/>
+    <sphere lunit="cm" name="interiorsph" rmax="100" startphi="0" deltaphi="360" deltatheta="180" aunit="deg"/>
     <sphere lunit="cm" name="shell" rmin="100.0" rmax="110.0" startphi="0" deltaphi="360" deltatheta="180" aunit="deg"/>
-    <box lunit="cm" name="world" x="500" y="500" z="500"/>
+    <box lunit="cm" name="worldbox" x="500" y="500" z="500"/>
   </solids>
 
   <structure>
-    <volume name="sphere">
-      <solidref ref="sphere"/>
+    <volume name="interior">
+      <solidref ref="interiorsph"/>
       <materialref ref="Water"/>
     </volume>
     <volume name="detshell">
@@ -80,13 +74,13 @@
       <auxiliary auxtype="SensDet" auxvalue="detshell"/>
     </volume>
     <volume name="world">
-      <solidref ref="world"/>
+      <solidref ref="worldbox"/>
       <materialref ref="vacuum"/>
       <physvol>
         <volumeref ref="detshell"/>
       </physvol>
       <physvol>
-        <volumeref ref="sphere"/>
+        <volumeref ref="interior"/>
       </physvol>
     </volume>
   </structure>

@@ -27,6 +27,14 @@ namespace celeritas
  * This class handles the bookkeeping of Geant4 track information needed
  * to reconstruct tracks during hit processing. It maintains mappings between
  * Celeritas PrimaryID and Geant4 track data.
+ *
+ * \par Usage
+ * - \c init_event
+ * - \c acquire (multiple times)
+ * - \c view (may be interleaved with acquire)
+ * - \c clear (once all active tracks are used up)
+ * - then it can be initialized with a new event, or new primaries can be
+ *   added to the current event.
  */
 class GeantTrackReconstruction
 {

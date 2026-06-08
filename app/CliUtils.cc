@@ -41,7 +41,7 @@ bool print_usage(CLI::App const& cli, std::ostream& os)
 
 //---------------------------------------------------------------------------//
 //! Construct a failure message for celeritas apps
-std::string failure_message(CLI::App const* cli, const CLI::Error& e)
+std::string failure_message(CLI::App const* cli, CLI::Error const& e)
 {
     std::ostringstream os;
     os << cli->get_name() << ": ";

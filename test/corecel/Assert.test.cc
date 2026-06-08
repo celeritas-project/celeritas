@@ -7,6 +7,7 @@
 #include "corecel/Assert.hh"
 
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "corecel/cont/Range.hh"
@@ -141,6 +142,16 @@ TEST_F(AssertTest, runtime_error_variations)
     // clang-format on
 
     EXPECT_VEC_EQ(expected_messages, messages);
+}
+
+TEST_F(AssertTest, discard_stream)
+{
+    detail::DiscardStream s;
+    s << "This message is being ignored";
+    s << 123;
+    // NOTE: calling s.str() will abort the program because it's unreachable,
+    // but the method should still exist
+    EXPECT_TRUE(std::is_void_v<decltype(s.str())>);
 }
 
 //---------------------------------------------------------------------------//

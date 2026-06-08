@@ -12,6 +12,7 @@
 #include "geocel/Types.hh"
 
 #include "VolumeData.hh"
+#include "VolumePathAccumulator.hh"
 #include "VolumeView.hh"
 
 namespace celeritas
@@ -66,6 +67,9 @@ class AllVolumesView
 
     // Construct a view for the given volume
     inline CELER_FUNCTION VolumeView volume(VolumeId vol_id) const;
+
+    // Construct a volume path accumulator from this volume view
+    inline CELER_FUNCTION VolumePathAccumulator path_accumulator() const;
 
   private:
     ParamsRef const& params_;
@@ -166,6 +170,15 @@ AllVolumesView::offset(VolumeInstanceId vi_id) const
 CELER_FUNCTION VolumeView AllVolumesView::volume(VolumeId vol_id) const
 {
     return VolumeView{params_, vol_id};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a \c VolumePathAccumulator.
+ */
+CELER_FUNCTION VolumePathAccumulator AllVolumesView::path_accumulator() const
+{
+    return VolumePathAccumulator{params_};
 }
 
 //---------------------------------------------------------------------------//

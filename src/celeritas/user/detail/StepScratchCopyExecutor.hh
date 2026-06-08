@@ -67,7 +67,7 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
         }                                             \
     } while (0)
 
-    DS_COPY_IF_SELECTED(detector);
+    DS_COPY_IF_SELECTED(detector_id);
     DS_COPY_IF_SELECTED(track_id);
 
     for (auto sp : range(StepPoint::size_))
@@ -97,10 +97,12 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
 
     DS_COPY_IF_SELECTED(event_id);
     DS_COPY_IF_SELECTED(parent_id);
+    DS_COPY_IF_SELECTED(primary_id);
+    DS_COPY_IF_SELECTED(post_step_action_id);
     DS_COPY_IF_SELECTED(track_step_count);
     DS_COPY_IF_SELECTED(step_length);
     DS_COPY_IF_SELECTED(weight);
-    DS_COPY_IF_SELECTED(particle);
+    DS_COPY_IF_SELECTED(particle_id);
     DS_COPY_IF_SELECTED(energy_deposition);
 #undef DS_COPY_IF_SELECTED
 }

@@ -2,32 +2,28 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHUtils.hh
+//! \file corecel/sys/Openmp.hh
+//! \brief Thin wrappers around OpenMP function calls.
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <vector>
-
-#include "../BoundingBoxUtils.hh"
-#include "../OrangeTypes.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * Calculate bounding box enclosing bounding boxes for specified indices.
- */
-inline FastBBox calc_union(std::vector<FastBBox> const& bboxes,
-                           std::vector<LocalVolumeId> const& indices)
-{
-    FastBBox result;
-    for (auto const& id : indices)
-    {
-        CELER_ASSERT(id < bboxes.size());
-        result = calc_union(result, bboxes[id.unchecked_get()]);
-    }
 
-    return result;
-}
+// Get the maximum number of threads that can execute in parallel
+size_type openmp_thread_limit();
+
+// Get the maximum number of threads in a new parallel region
+size_type openmp_max_threads();
+
+// Set the maximum number of threads for default future parallel regions
+void openmp_num_threads(size_type);
+
+// Get the openmp process bind affinity
+char const* openmp_proc_bind();
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

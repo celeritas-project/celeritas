@@ -47,13 +47,7 @@ constexpr real_type sqrt_three{constants::sqrt_three};
 template<class E>
 using DiagnosticDPIntegrator = DiagnosticIntegrator<DormandPrinceIntegrator<E>>;
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
-
-constexpr bool using_solids_vg = !CELERITAS_VECGEOM_SURFACE
-                                 && CELERITAS_CORE_GEO
-                                        == CELERITAS_CORE_GEO_VECGEOM;
+constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -373,8 +367,6 @@ TEST_F(TwoBoxesTest, gamma_exit)
         auto const& bbox = this->geometry()->bbox();
         real_type const max_distance = distance(bbox.lower(), bbox.upper());
         real_type const exact_distance = [&geo, max_distance] {
-            // Note: exact distance may be slightly off for VecGeom surface,
-            // which applies rotation matrices to planar surfaces
             auto result = geo.find_next_step(max_distance);
             EXPECT_TRUE(result.boundary);
             EXPECT_SOFT_EQ(result.distance, 0.25);
@@ -1232,13 +1224,13 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
 
-    // NOTE: vecgeom 2.x-solids puts this position slightly *outside* the beam
+    // NOTE: vecgeom 2.x puts this position slightly *outside* the beam
     // tube rather than *inside*
-    if (using_solids_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
+    if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
     {
-        // TODO: VecGeom 2.x-solids starts to diverge here
+        // TODO: VecGeom 2.x starts to diverge here
         EXPECT_EQ("vacuum_tube", this->volume_name(geo));
-        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid construction failure.";
+        GTEST_SKIP() << "FIXME: VecGeom 2.x construction failure.";
     }
     EXPECT_EQ("si_tracker", this->volume_name(geo));
     {
@@ -1253,15 +1245,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_FALSE(result.looping);
 
-        if (using_surface_vg)
-        {
-            // Surface geometry does not intersect the cylinder boundary, so
-            // the track keeps going until the "looping" counter is hit
-            EXPECT_SOFT_EQ(1.0314309658010318e-13, result.distance);
-            EXPECT_LT(result.distance, 2e-13);
-            EXPECT_FALSE(result.looping);
-        }
-        else
         {
             EXPECT_SOFT_EQ(29.999999999999996, calc_radius());
             EXPECT_EQ("si_tracker", this->volume_name(geo));
@@ -1295,11 +1278,6 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         EXPECT_SOFT_NEAR(
             double{30}, static_cast<double>(integrate.exchange_count()), 0.2);
 
-        if (using_surface_vg)
-        {
-            EXPECT_FALSE(geo.is_on_boundary());
-            GTEST_SKIP() << "FIXME: VecGeom surface model fails";
-        }
         ASSERT_TRUE(geo.is_on_boundary());
 
         if (geo.check_normal())
@@ -1310,8 +1288,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         }
         EXPECT_SOFT_EQ(30, calc_radius());
         geo.cross_boundary();
-        EXPECT_EQ(using_surface_vg ? "vacuum_tube" : "si_tracker",
-                  this->volume_name(geo))
+        EXPECT_EQ("si_tracker", this->volume_name(geo))
             << " vecgeom_version=" << std::hex << CELERITAS_VECGEOM_VERSION
             << std::dec;
     }
@@ -1540,16 +1517,14 @@ TEST_F(CmseTest, coarse)
             {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
              R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
-    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-             && !CELERITAS_VECGEOM_SURFACE)
+    else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        geometry = "VecGeom solid";
+        geometry = "VecGeom";
         ref.messages[1] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
 
-    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT
-        || CELERITAS_VECGEOM_SURFACE)
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
         GTEST_SKIP() << "Ignore checks due to reduced-precision numerical "
                         "sensitivity";
