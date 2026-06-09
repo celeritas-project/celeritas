@@ -228,12 +228,16 @@ TEST_F(BoundingBoxUtilsTest, bbox_overlap_fraction)
                                     BBox{{-1, -1, -0.25}, {1, 1, 0.75}});
         EXPECT_SOFT_EQ(0.25, overlap);
     }
+
+    if (CELERITAS_DEBUG)
     {
         SCOPED_TRACE("both infinite");
         BBox a{{-1, -1, -inf}, {1, 1, 1}};
         BBox b{{1.1, 0, 0}, {2, 1, inf}};
         EXPECT_THROW(calc_overlap_fraction(a, b), DebugError);
     }
+
+    if (CELERITAS_DEBUG)
     {
         SCOPED_TRACE("degenerate");
         BBox a{{1, 1, 1}, {2, 2, 1}};
