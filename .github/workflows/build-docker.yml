@@ -74,7 +74,7 @@ jobs:
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10  # v6.0.3 (9 Jun 2026)
         with:
           fetch-depth: 383
           fetch-tags: true
