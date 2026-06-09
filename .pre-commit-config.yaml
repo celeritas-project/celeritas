@@ -4,7 +4,7 @@ repos:
     hooks:
     - id: check-added-large-files
       args: ['--maxkb=100']
-      exclude: "example/larceler/dune10kt_v6_refactored_1x2x6_zwires.patch"
+      exclude: "example/larceler/dune10kt-addopdet.patch"
     - id: check-case-conflict
     - id: check-merge-conflict
     - id: check-shebang-scripts-are-executable

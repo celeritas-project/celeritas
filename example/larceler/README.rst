@@ -19,6 +19,24 @@ The included ``run.sh`` script executes all the following steps.
    :language: sh
    :start-at: # Download and patch
 
+Optical simulation setup
+------------------------
+
+This example uses a script to download and patch an official DUNE gdml file:
+
+.. literalinclude:: ../../example/larceler/setup-dune-gdml.sh
+   :language: sh
+   :start-at: # Download and patch
+
+the patches add optical properties:
+
+.. literalinclude:: ../../example/larceler/dune10kt-optical.patch
+   :language: diff
+
+and as a performance expedient delete the non-axis-aligned U,V wires in the TPC plane.
+
+The third patch tags the ``volOpDetSensitive`` volumes as Geant4 sensitive detectors.
+
 Overview
 --------
 
@@ -106,13 +124,6 @@ Celeritas geometry requires correct optical material information and correct
 ``SensDet`` data assigned to the Arapucas.
 The geometry has also been modified to remove the U and V wires as an expedient
 to improve runtime performance for smoke testing.
-To patch the geometry with the changes needed by Celeritas, apply the local
-patch file to the official ``dune10kt_v6_refactored_1x2x6.gdml`` geometry:
-
-.. code:: console
-
-   $ patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires.gdml < dune10kt_v6_refactored_1x2x6_zwires.patch
-
 
 Generating analysis files from the optical simulation
 -----------------------------------------------------

@@ -5,10 +5,10 @@
 #-----------------------------------------------------------------------------#
 # This script runs the same steps as described in example/larceler/README.rst.
 #-----------------------------------------------------------------------------#
+EXAMPLE_DIR="$(cd "$(dirname $0)" && pwd)"
 
 # Download and patch the geometry file for Celeritas execution
-curl -O https://raw.githubusercontent.com/DUNE/dunecore/b8fb0006da5ca878732740c2030cdac66699c3fc/dunecore/Geometry/gdml/dune10kt_v6_refactored_1x2x6.gdml
-patch -p0 -o dune10kt_v6_refactored_1x2x6_zwires.gdml < dune10kt_v6_refactored_1x2x6_zwires.patch
+sh "${EXAMPLE_DIR}/setup-dune-gdml.sh"
 
 # Run a single GENIE event
 lar -c prodgenie_nu_dune10kt_1x2x6.fcl -n 1 -o genie-output.root
