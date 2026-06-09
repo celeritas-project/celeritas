@@ -60,7 +60,8 @@ BvhPartitioner::BvhPartitioner(VecBBox const& bboxes,
 /*!
  * Find a suitable partition for the given subset of bounding boxes.
  *
- * If no partition is found, an empty partition is returned
+ * If no partition is found, an empty partition is returned. A partition is
+ * also rejected when the subset is small and the child bboxes overlap heavily.
  */
 BvhPartitioner::Partition
 BvhPartitioner::operator()(VecIndices const& indices) const
@@ -95,6 +96,17 @@ BvhPartitioner::operator()(VecIndices const& indices) const
                 best_cost = cost;
             }
         }
+    }
+
+    // If there are fewer than volume_threshold_ volumes and the partition
+    // yields bboxes with an overlap fraction hire than overlap_threshold_,
+    // return an empty partition instead.
+    if (best_partition && indices.size() <= volume_threshold_
+        && calc_overlap_fraction(best_partition.bboxes[Side::left],
+                                 best_partition.bboxes[Side::right])
+               >= overlap_threshold_)
+    {
+        return {};
     }
 
     return best_partition;
