@@ -30,7 +30,7 @@ jobs:
     needs: build-docs
     steps:
       - name: Check out Celeritas doc base
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
         with:
           ref: doc/gh-pages-base
       - uses: actions/setup-python@v5
@@ -71,7 +71,7 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
   deploy:
     runs-on: ubuntu-24.04
     needs: build-site
@@ -86,6 +86,6 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
 # vim: set nowrap tw=100:
