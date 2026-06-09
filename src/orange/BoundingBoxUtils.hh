@@ -228,6 +228,27 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the overlap fraction.
+ *
+ * The overlap fraction is the ratio of the volume of the intersection bbox to
+ * the volume of the smaller bbox. The overlap fraction is not defined if both
+ * bboxes are infinite or either/both are degenerate.
+ */
+template<class T>
+inline T calc_overlap_fraction(BoundingBox<T> const& a, BoundingBox<T> const& b)
+{
+    CELER_EXPECT(is_finite(a) || is_finite(b));
+    CELER_EXPECT(!is_degenerate(a) && !is_degenerate(b));
+
+    auto intersection = calc_intersection(a, b);
+    T overlap_vol = intersection ? calc_volume(intersection) : 0;
+    T small_vol = std::min(calc_volume(a), calc_volume(b));
+
+    return overlap_vol / small_vol;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Check if all points inside the small bbox are in the big bbox.
  *
  * All bounding boxes should enclose a "null" bounding box (there are no points

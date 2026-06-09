@@ -648,7 +648,7 @@ TEST_F(GridTest, depth_limit)
 //---------------------------------------------------------------------------//
 // Degenerate, single leaf cases
 //---------------------------------------------------------------------------//
-//
+
 TEST_F(BvhBuilderTest, single_finite_volume)
 {
     this->build({{{0, 0, 0}, {1, 1, 1}}});
@@ -724,6 +724,30 @@ TEST_F(BvhBuilderTest, TEST_IF_CELERITAS_DEBUG(semi_finite_volumes))
                      {{-inff, 0, 0}, {inff, 1, 1}},
                  }),
                  DebugError);
+}
+
+//---------------------------------------------------------------------------//
+// Other tests
+//---------------------------------------------------------------------------//
+
+TEST_F(BvhBuilderTest, overlap_fraction)
+{
+    // Make two bounding boxes that overlap by 60%
+    this->build({{{0, 0, 0}, {1, 1, 1}}, {{0.4, 0, 0}, {1.4, 1, 1}}});
+
+    // The overlap fraction dictates only a single leaf node should be created,
+    // even though the bboxes are partitionable
+    ASSERT_EQ(0, tree_.inf_vol_ids.size());
+    BvhView view{tree_, store_.host_ref()};
+    ASSERT_EQ(0, view.num_internal_nodes());
+    ASSERT_EQ(1, view.num_leaf_nodes());
+
+    EXPECT_VEC_EQ(VecInt({0, 1}), id_to_int(view.leaf_vol_ids(BvhNodeId{0})));
+
+    auto const& md = tree_.metadata;
+    EXPECT_EQ(2, md.num_finite_bboxes);
+    EXPECT_EQ(0, md.num_infinite_bboxes);
+    EXPECT_EQ(1, md.depth);
 }
 
 //---------------------------------------------------------------------------//
