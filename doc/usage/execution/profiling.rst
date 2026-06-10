@@ -204,3 +204,20 @@ Here, :samp:`celeritas@{RANGE}` is the name of the NVTX domain and
 slash-separated range, (e.g. ``run/step/*/propagate``).
 Note that the domain and range are flipped compared to ``nsys`` since the
 kernel profiling allows detailed top-down stack specification.
+
+Using Instruments on macOS
+--------------------------
+
+Celeritas developers on macOS can use Apple's Instruments_ code to analyze CPU
+performance.
+Running against a locally-built app for the first time will usually fail with
+an error "Failed to attach to target process."
+This is because the app built with standard CMake tools does not have a code
+signature with the necessary entitlements.
+When building Celeritas apps on an Apple machine, the CMake option
+``CELERITAS_CODESIGN_APPS`` becomes available.
+Enabling this option will automatically call ``codesign`` after building each
+app executable, which will allow its selection in Instruments.
+
+
+.. _Instruments: https://developer.apple.com/tutorials/instruments
