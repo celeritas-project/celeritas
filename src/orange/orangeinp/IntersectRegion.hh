@@ -1054,6 +1054,44 @@ class Tet final : public IntersectRegionInterface
     ArrReal3 v_;  //!< Four vertices defining the tetrahedron
 };
 
+/*!
+ * An elliptical toroid centered around the origin and defined by three radii.
+ *
+ * The major radius extends from the origin to the center of the revolved
+ * ellipse, and the xy and z radii describe the radii of the revolved ellipse
+ * along those directions, respectively.
+ */
+class Toroid final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radii
+    explicit Toroid(real_type const& major_radius,
+                    real_type const& ellipse_xy_radius,
+                    real_type const& ellipse_z_radius);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    //// ACCESSORS ////
+
+    //! Major Radius
+    real_type const& major_radius() const { return r_; }
+
+    //! XY Radius
+    real_type const& ellipse_xy_radius() const { return a_; }
+
+    //! Z Radius
+    real_type const& ellipse_z_radius() const { return b_; }
+
+  private:
+    real_type r_;
+    real_type a_;
+    real_type b_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
