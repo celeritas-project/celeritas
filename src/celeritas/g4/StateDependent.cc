@@ -9,6 +9,7 @@
 #include <memory>
 #include <utility>
 #include <G4StateManager.hh>
+#include <G4Threading.hh>
 #include <G4VStateDependent.hh>
 
 #include "corecel/Assert.hh"
@@ -29,10 +30,11 @@ namespace celeritas
  * the one we were created with. (This might be dangerous... but so is assuming
  * we're destroyed on the same thread we're constructed in.)
  */
-StateDependent::StateDependent(LocalGeantStateChangeFunc cb)
+StateDependent::StateDependent(LocalGeantStateChangeFunc cb, Mode mode)
     : local_stream_{geant_stream()}
     , cb_{std::move(cb)}
     , manager_{G4StateManager::GetStateManager()}
+    , mode_{mode}
 {
     CELER_EXPECT(cb_);
     CELER_EXPECT(manager_);
@@ -129,10 +131,14 @@ G4bool StateDependent::Notify(G4ApplicationState state)
         manager_->DeregisterDependent(this);
     }
 
-    if (change == GeantStateChange::end_program)
+    if (mode_ == Mode::lifecycle)
     {
-        // Allow the callback to destroy this object by keeping the active
-        // callable alive outside the object it may own.
+        this->notify_lifecycle(change);
+    }
+    else if (change == GeantStateChange::end_program)
+    {
+        // Preserve the legacy raw-callback behavior: existing diagnostic users
+        // may destroy this object from the end-program callback.
         auto local_stream = local_stream_;
         auto cb = std::move(cb_);
         cb(local_stream, change);
@@ -143,6 +149,56 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     }
     constexpr bool success{true};
     return success;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dispatch filtered Celeritas lifecycle notifications.
+ *
+ * This suppresses Geant4 run-manager ordering details from automatic offload
+ * lifecycle callbacks: the MT manager thread never emits end-run, workers do
+ * not emit end-program, and duplicate begin/end run transitions on a local
+ * state monitor are collapsed.
+ */
+void StateDependent::notify_lifecycle(GeantStateChange change)
+{
+    bool const is_mt = G4Threading::IsMultithreadedApplication();
+    // A null stream is the MT manager thread; serial and worker callbacks have
+    // a concrete local stream ID.
+    bool const is_manager = !local_stream_;
+
+    switch (change)
+    {
+        case GeantStateChange::begin_run:
+            if (!active_run_)
+            {
+                cb_(local_stream_, change);
+                active_run_ = true;
+            }
+            break;
+        case GeantStateChange::end_run:
+            // The MT manager owns shared state that must live until
+            // end_program. Only serial/worker monitors emit end_run lifecycle
+            // events, and only after they emitted begin_run.
+            if (active_run_ && !is_manager)
+            {
+                cb_(local_stream_, change);
+                active_run_ = false;
+            }
+            break;
+        case GeantStateChange::end_program:
+            // Serial uses one monitor for the whole lifecycle. In MT, worker
+            // monitors finalize local state at end_run, so only the manager
+            // emits end_program for shared cleanup.
+            if (!is_mt || is_manager)
+            {
+                cb_(local_stream_, change);
+            }
+            active_run_ = false;
+            break;
+        default:
+            break;
+    }
 }
 
 //---------------------------------------------------------------------------//
