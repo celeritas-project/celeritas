@@ -1055,9 +1055,10 @@ class Tet final : public IntersectRegionInterface
 };
 
 /*!
- * An elliptical toroid centered around the origin and defined by three radii.
+ * An elliptical toroid centered around an origin point and defined by three
+ * radii.
  *
- * The major radius extends from the origin to the center of the revolved
+ * The major radius extends from the point to the center of the revolved
  * ellipse, and the xy and z radii describe the radii of the revolved ellipse
  * along those directions, respectively.
  */
@@ -1065,7 +1066,8 @@ class Toroid final : public IntersectRegionInterface
 {
   public:
     // Construct with radii
-    explicit Toroid(real_type const& major_radius,
+    explicit Toroid(Real3 const& origin,
+                    real_type const& major_radius,
                     real_type const& ellipse_xy_radius,
                     real_type const& ellipse_z_radius);
 
@@ -1077,6 +1079,9 @@ class Toroid final : public IntersectRegionInterface
 
     //// ACCESSORS ////
 
+    //! Origin
+    Real3 const& origin() const { return origin_; }
+
     //! Major Radius
     real_type const& major_radius() const { return r_; }
 
@@ -1087,6 +1092,7 @@ class Toroid final : public IntersectRegionInterface
     real_type const& ellipse_z_radius() const { return b_; }
 
   private:
+    Real3 origin_;
     real_type r_;
     real_type a_;
     real_type b_;

@@ -26,6 +26,7 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/surf/Toroid.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -1802,6 +1803,47 @@ Real3 const& Tet::vertex(size_type i) const
 {
     CELER_EXPECT(i < 4);
     return v_[i];
+}
+
+//---------------------------------------------------------------------------//
+// TOROID
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with origin and radii. TODO: Should this be centered at (0,0,0)?
+ */
+Toroid::Toroid(Real3 const& origin,
+               real_type const& major_radius,
+               real_type const& ellipse_xy_radius,
+               real_type const& ellipse_z_radius)
+    : origin_{origin}
+    , r_{major_radius}
+    , a_{ellipse_xy_radius}
+    , b_{ellipse_z_radius}
+{
+    CELER_VALIDATE(r_ > 0, << "nonpositive major radius: " << r_);
+    CELER_VALIDATE(a_ > 0, << "nonpositive ellipse xy radius: " << a_);
+    CELER_VALIDATE(b_ > 0, << "nonpositive ellipse z radius: " << b_);
+    CELER_VALIDATE(r_ > a_,
+                   << "toroid major radius (" << r_ << ") must be greater than"
+                   << "ellipse xy radius (" << a_ << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Toroid::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside, Toroid{origin_, r_, a_, b_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Toroid::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
