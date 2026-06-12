@@ -73,13 +73,16 @@ class Range
     //// CONSTRUCTORS ////
 
     //! Empty constructor for empty range
-    CELER_CONSTEXPR_FUNCTION Range() : begin_{}, end_{} {}
+    constexpr Range() = default;
 
     //! Construct from stop
-    CELER_CONSTEXPR_FUNCTION Range(T end) : begin_{}, end_(end) {}
+    explicit CELER_CONSTEXPR_FUNCTION Range(T end) : end_(const_iterator{end})
+    {
+    }
 
     //! Construct from start/stop
-    CELER_CONSTEXPR_FUNCTION Range(T begin, T end) : begin_(begin), end_(end)
+    CELER_CONSTEXPR_FUNCTION Range(T begin, T end)
+        : begin_(const_iterator{begin}), end_(const_iterator{end})
     {
     }
 
@@ -140,7 +143,19 @@ class Range
     }
     //! \endcond
 
+    //! Allow loading via ldg
+    CELER_CONSTEXPR_FUNCTION friend Range ldg(Range const* r) noexcept
+    {
+        return Range{ldg(&r->begin_), ldg(&r->end_)};
+    }
+
   private:
+    //! Construct from iterators
+    CELER_CONSTEXPR_FUNCTION Range(const_iterator begin, const_iterator end)
+        : begin_(begin), end_(end)
+    {
+    }
+
     const_iterator begin_;
     const_iterator end_;
 };
@@ -162,8 +177,11 @@ class Count
     using value_type = T;
     //@}
 
-    CELER_CONSTEXPR_FUNCTION Count() : begin_{} {}
-    CELER_CONSTEXPR_FUNCTION Count(T begin) : begin_(begin) {}
+    constexpr Count() = default;
+    explicit CELER_CONSTEXPR_FUNCTION Count(T begin)
+        : begin_(const_iterator{begin})
+    {
+    }
 
     CELER_CONSTEXPR_FUNCTION detail::InfStepRange<T> step(T step)
     {
@@ -188,7 +206,7 @@ class Count
 template<class T>
 CELER_CONSTEXPR_FUNCTION Range<T> range(T begin, T end)
 {
-    return {begin, end};
+    return Range{begin, end};
 }
 
 //---------------------------------------------------------------------------//
@@ -198,7 +216,7 @@ CELER_CONSTEXPR_FUNCTION Range<T> range(T begin, T end)
 template<class T>
 CELER_CONSTEXPR_FUNCTION Range<T> range(T end)
 {
-    return {end};
+    return Range{end};
 }
 
 //---------------------------------------------------------------------------//
@@ -208,7 +226,7 @@ CELER_CONSTEXPR_FUNCTION Range<T> range(T end)
 template<class T>
 CELER_CONSTEXPR_FUNCTION Count<T> count()
 {
-    return {};
+    return Count<T>{};
 }
 
 //---------------------------------------------------------------------------//
@@ -218,7 +236,7 @@ CELER_CONSTEXPR_FUNCTION Count<T> count()
 template<class T>
 CELER_CONSTEXPR_FUNCTION Count<T> count(T begin)
 {
-    return {begin};
+    return Count{begin};
 }
 
 //---------------------------------------------------------------------------//
