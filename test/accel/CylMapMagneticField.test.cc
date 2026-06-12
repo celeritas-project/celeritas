@@ -14,7 +14,6 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 
 #include "LinearMagFieldTestBase.hh"

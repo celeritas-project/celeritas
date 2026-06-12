@@ -19,7 +19,6 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/Field.hh"
@@ -201,7 +200,7 @@ auto CylMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
+inp::CylMapField CylMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }
@@ -241,7 +240,7 @@ auto CartMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-CartMapFieldInput CartMapFieldAlongStepFactory::get_field() const
+inp::CartMapField CartMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }

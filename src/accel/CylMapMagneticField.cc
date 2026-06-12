@@ -23,7 +23,6 @@
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 
 #include "detail/MagneticFieldUtils.hh"
@@ -53,11 +52,10 @@ inline void cartesian_to_cylindrical(Array<G4double, 3> const& cart,
  * dimensions in native Geant4 units, and \f$\phi\f$ should be in the range
  * [0;\f$2\times\pi\f$] using an explicit field.
  */
-CylMapFieldParams::Input
-MakeCylMapFieldInput(G4Field const& field,
-                     std::vector<G4double> const& r_grid,
-                     std::vector<G4double> const& phi_values,
-                     std::vector<G4double> const& z_grid)
+inp::CylMapField MakeCylMapFieldInput(G4Field const& field,
+                                      std::vector<G4double> const& r_grid,
+                                      std::vector<G4double> const& phi_values,
+                                      std::vector<G4double> const& z_grid)
 {
     CylMapFieldParams::Input field_input;
     field_input.grid_r.reserve(r_grid.size());
@@ -131,10 +129,9 @@ MakeCylMapFieldInput(G4Field const& field,
  * [0;\f$2\times\pi\f$]. This must be called after G4RunManager::Initialize as
  * it will retrieve the G4FieldManager's field to sample it.
  */
-CylMapFieldParams::Input
-MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
-                     std::vector<G4double> const& phi_values,
-                     std::vector<G4double> const& z_grid)
+inp::CylMapField MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+                                      std::vector<G4double> const& phi_values,
+                                      std::vector<G4double> const& z_grid)
 {
     G4Field const* g4field = celeritas::geant_field();
     CELER_VALIDATE(g4field,

@@ -12,19 +12,20 @@
 #include "celeritas/field/CylMapField.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/g4/MagneticField.hh"
+#include "celeritas/inp/Field.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid and explicit field
-CylMapFieldInput
+inp::CylMapField
 MakeCylMapFieldInput(G4Field const& field,
                      std::vector<G4double> const& r_grid,
                      std::vector<G4double> const& phi_values,  // Radians
                      std::vector<G4double> const& z_grid);
 
 // Generate field input with user-defined grid from global field
-CylMapFieldInput MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
+inp::CylMapField MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
                                       std::vector<G4double> const& phi_values,
                                       std::vector<G4double> const& z_grid);
 

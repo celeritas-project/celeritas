@@ -15,7 +15,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/CartMapField.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -39,9 +38,9 @@ using RZDeviceCRef = RZMapFieldParams::DeviceRef;
 
 __global__ void field_test_kernel(unsigned int const size,
                                   CartDeviceCRef field_map_data,
-                                  AxisGrid<real_type> x_grid,
-                                  AxisGrid<real_type> y_grid,
-                                  AxisGrid<real_type> z_grid,
+                                  inp::AxisGrid<real_type> x_grid,
+                                  inp::AxisGrid<real_type> y_grid,
+                                  inp::AxisGrid<real_type> z_grid,
                                   Array<size_type, 3> n_samples,
                                   real_type* field_values)
 {
@@ -107,7 +106,7 @@ __global__ void rzfield_test_kernel(unsigned int const num_points,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run CartMapField on device and return results
-void field_test(CartMapFieldInput& inp,
+void field_test(inp::CartMapField& inp,
                 Span<real_type>& field_values,
                 Array<size_type, 3>& n_samples)
 {

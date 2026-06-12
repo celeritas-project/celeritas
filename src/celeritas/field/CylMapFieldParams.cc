@@ -18,9 +18,9 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/inp/Field.hh"
 
 #include "CylMapFieldData.hh"
-#include "CylMapFieldInput.hh"
 
 using namespace celeritas::literals;
 
@@ -30,7 +30,7 @@ namespace celeritas
 /*!
  * Construct from a user-defined field map.
  */
-CylMapFieldParams::CylMapFieldParams(CylMapFieldInput const& inp)
+CylMapFieldParams::CylMapFieldParams(Input const& inp)
 {
     CELER_VALIDATE(
         inp.grid_r.size() >= 2,

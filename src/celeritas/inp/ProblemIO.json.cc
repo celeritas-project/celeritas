@@ -12,6 +12,8 @@
 #include "ControlIO.json.hh"
 #include "DiagnosticsIO.json.hh"
 #include "EventsIO.json.hh"
+#include "FieldIO.json.hh"
+#include "ScoringIO.json.hh"
 #include "TrackingIO.json.hh"
 
 namespace celeritas
@@ -22,7 +24,30 @@ namespace inp
 //!@{
 //! I/O routines for JSON
 //! \todo Add JSON support for \c Problem
+//! \todo Add JSON support for \c Physics when it's used as input
 //! \todo Add JSON support for \c OpticalPhysics when it's used as input
+
+void to_json(nlohmann::json& j, Problem const& v)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(v, model),
+        CELER_JSON_PAIR(v, field),
+        CELER_JSON_PAIR(v, scoring),
+        CELER_JSON_PAIR(v, tracking),
+        CELER_JSON_PAIR(v, control),
+        CELER_JSON_PAIR(v, diagnostics),
+    };
+}
+
+void from_json(nlohmann::json const& j, Problem& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, model);
+    CELER_JSON_LOAD_OPTION(j, v, field);
+    CELER_JSON_LOAD_OPTION(j, v, scoring);
+    CELER_JSON_LOAD_OPTION(j, v, tracking);
+    CELER_JSON_LOAD_OPTION(j, v, control);
+    CELER_JSON_LOAD_OPTION(j, v, diagnostics);
+}
 
 void to_json(nlohmann::json& j, OpticalProblem const& v)
 {
