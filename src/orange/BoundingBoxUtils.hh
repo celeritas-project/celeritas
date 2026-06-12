@@ -303,6 +303,8 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     T const half_distance = distance / 2;
     constexpr T eps = numeric_limits<T>::epsilon();
 
+    bool result = true;
+
     for (auto ax : range(Axis::size_))
     {
         auto i = to_int(ax);
@@ -317,9 +319,12 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
 
         if (std::fabs(mid[i]) > hw[i] + abs_hseg[i])
         {
-            return false;
+            result = false;
         }
     }
+
+    if (!result)
+        return result;
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
@@ -331,15 +336,15 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     constexpr auto y = to_int(Axis::y);
     constexpr auto z = to_int(Axis::z);
     if (found_sep_axis(y, z))
-        return false;
+        result = false;
 
     if (found_sep_axis(z, x))
-        return false;
+        result = false;
 
     if (found_sep_axis(x, y))
-        return false;
+        result = false;
 
-    return true;
+    return result;
 }
 
 //---------------------------------------------------------------------------//
