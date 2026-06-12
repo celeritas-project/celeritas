@@ -234,5 +234,14 @@ Involute SurfaceTransformer::operator()(Involute const&) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Transform a toroid.
+ */
+Toroid SurfaceTransformer::operator()(Toroid const&) const
+{
+    CELER_NOT_IMPLEMENTED("transformed toroids");
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas
