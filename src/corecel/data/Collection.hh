@@ -239,6 +239,12 @@ class ItemMap
     //! Size of the underlying Range<T2>
     CELER_FIF size_type size() const { return range_.size(); }
 
+    //! Allow loading via ldg
+    CELER_CEF friend ItemMap ldg(ItemMap const* m) noexcept
+    {
+        return ItemMap{ldg(&m->range_)};
+    }
+
   private:
     //// DATA ////
     Range<T2> range_;
