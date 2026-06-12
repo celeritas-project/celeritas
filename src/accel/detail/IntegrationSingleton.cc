@@ -347,16 +347,14 @@ void IntegrationSingleton::register_auto_hooks()
         return;
     }
 
-    // Register master-thread state monitor and reset it from the same thread
-    // after StateDependent deregisters from Geant4 during shutdown.
+    // Register master-thread state monitor. This object is owned like
+    // SetupOptionsMessenger: Geant4 state notifications are callback-only and
+    // do not control ownership.
     master_state_dependent_ = std::make_unique<StateDependent>(
         [this](StreamId sid, GeantStateChange change) {
             this->on_state_change(sid, change);
-            if (change == GeantStateChange::end_program)
-            {
-                master_state_dependent_.reset();
-            }
-        });
+        },
+        StateDependent::Mode::lifecycle);
     auto_hooks_active_ = true;
 }
 
@@ -364,44 +362,15 @@ void IntegrationSingleton::register_auto_hooks()
 /*!
  * Drive offload init/finalize from Geant4 state transitions.
  *
- * The state callback supplies a null stream ID for the MT master thread and a
- * concrete stream ID for serial or worker-local callbacks. The MT master owns
- * shared initialization/finalization. In MT mode master finalization is
- * deferred to \c end_program because Geant4 can emit begin/end run transitions
- * while setting up workers and because shared params live across multiple
- * BeamOn calls. Workers and serial mode finalize local state at end_run.
+ * \c StateDependent filters Geant4 run-manager ordering details before
+ * invoking this function.
  */
 void IntegrationSingleton::on_state_change(StreamId stream_id,
                                            GeantStateChange change)
 {
-    bool const is_mt = G4Threading::IsMultithreadedApplication();
-    bool const is_master = !stream_id;
-
     switch (change)
     {
         case GeantStateChange::begin_run: {
-            // Skip duplicate master setup. The MT master constructs shared
-            // params once and keeps them until end_program: Geant4 emits
-            // begin_run repeatedly during worker setup and users may call
-            // BeamOn more than once.
-            if (is_master && params_)
-                break;
-            // If setup-time master initialization already reported missing
-            // options, later begin_run callbacks should not repeat the same
-            // error.
-            if (is_master && failed_setup_ && !options_)
-                break;
-            // Worker callbacks can occur during MT initialization before the
-            // user has called SetOptions. The master will validate options for
-            // the real run; workers cannot initialize until shared params
-            // exist.
-            if (!options_ && is_mt && !is_master)
-                break;
-            // Tasking run managers may reuse worker objects and emit multiple
-            // begin_run callbacks for the same stream. Keep the existing local
-            // transporter until the matching end_run finalizes it.
-            if (is_mt && !is_master && this->local_offload().Initialized())
-                break;
             bool enable_offload = false;
             CELER_TRY_HANDLE(
                 { enable_offload = this->initialize_offload(); },
@@ -414,34 +383,12 @@ void IntegrationSingleton::on_state_change(StreamId stream_id,
             break;
         }
         case GeantStateChange::end_run:
-            if (is_mt && is_master)
-            {
-                // The MT master owns shared params. Keep them past end_run so
-                // setup-time begin/end transitions and repeated BeamOn calls
-                // do not tear down data still needed by later worker
-                // callbacks.
-                break;
-            }
-            if (is_mt && !this->local_offload().Initialized())
-            {
-                // Some MT workers receive setup-time or empty-run end_run
-                // callbacks without having received local tracks. There is no
-                // local transporter to finalize on those streams.
-                break;
-            }
             CELER_TRY_HANDLE(this->finalize_offload(),
                              ExceptionConverter{"celer.finalize.auto"});
             break;
         case GeantStateChange::end_program:
-            // Finalize serial as a no-op-safe fallback if end_run did not
-            // already do it. In MT mode, only the master has shared params
-            // left at program shutdown; workers finalize local state at
-            // end_run.
-            if (!is_mt || is_master)
-            {
-                CELER_TRY_HANDLE(this->finalize_offload(),
-                                 ExceptionConverter{"celer.finalize.auto"});
-            }
+            CELER_TRY_HANDLE(this->finalize_offload(),
+                             ExceptionConverter{"celer.finalize.auto"});
             break;
         default:
             break;
