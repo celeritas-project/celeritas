@@ -65,6 +65,8 @@ class SoftSurfaceEqual
 
     bool operator()(Involute const&, Involute const&) const;
 
+    bool operator()(Toroid const&, Toroid const&) const;
+
   private:
     SoftEqual<> soft_eq_;
 
