@@ -51,6 +51,7 @@ ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 ORANGE_SURFACE_TRAITS(inv, Involute);
+ORANGE_SURFACE_TRAITS(tor, Toroid);
 // clang-format on
 
 #undef ORANGE_SURFACE_TRAITS
@@ -94,6 +95,7 @@ visit_surface_type(F&& func, SurfaceType st)
             // Prevented by input reader: see
             // orange/detail/SurfacesRecordBuilder.cc
             CELER_ASSERT_UNREACHABLE();
+            ORANGE_ST_VISIT_CASE(tor);
         default:
             CELER_ASSERT_UNREACHABLE();
     }

@@ -142,6 +142,7 @@ enum class SurfaceType : unsigned char
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
+    tor,  //!< Toroid
     sq,  //!< Simple quadric
     gq,  //!< General quadric
     inv,  //!< Involute
