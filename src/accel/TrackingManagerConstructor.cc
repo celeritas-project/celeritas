@@ -122,6 +122,14 @@ void TrackingManagerConstructor::ConstructProcess()
 
     if (from_tracking_manager_integration_)
     {
+        if (!is.setup_options() && G4Threading::IsMultithreadedApplication())
+        {
+            // Worker construction can run during MT setup before user options
+            // are installed. Wait until options exist before registering a
+            // worker lifecycle hook that could initialize local offload.
+            return;
+        }
+
         // Register a per-worker StateDependent before any local offload access
         // so begin/end run transitions drive thread-local offload setup.
         static G4ThreadLocal std::unique_ptr<StateDependent> state_dep;
@@ -130,16 +138,8 @@ void TrackingManagerConstructor::ConstructProcess()
             state_dep = std::make_unique<StateDependent>(
                 [&is](StreamId sid, GeantStateChange change) {
                     is.on_state_change(sid, change);
-                    if (change == GeantStateChange::end_program)
-                    {
-                        state_dep.reset();
-                    }
-                });
-        }
-
-        if (!is.setup_options() && G4Threading::IsMultithreadedApplication())
-        {
-            return;
+                },
+                StateDependent::Mode::lifecycle);
         }
     }
 
