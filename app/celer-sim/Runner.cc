@@ -43,26 +43,6 @@ Runner::Runner(RunnerInput const& old_inp)
     core_params_ = std::move(loaded.problem.core_params);
     CELER_ASSERT(core_params_);
     events_ = std::move(loaded.events);
-
-    if (old_inp.merge_events)
-    {
-        // Merge all events into a single one
-        VecPrimary merged;
-
-        // Reserve space in the merged vector
-        merged.reserve(std::accumulate(
-            events_.begin(),
-            events_.end(),
-            std::size_t{0},
-            [](std::size_t sum, auto const& v) { return sum + v.size(); }));
-
-        for (auto const& v : events_)
-        {
-            merged.insert(merged.end(), v.begin(), v.end());
-        }
-        events_ = {std::move(merged)};
-    }
-
     use_device_ = old_inp.use_device;
 
     CELER_VALIDATE(old_inp.max_steps > 0,

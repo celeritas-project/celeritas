@@ -143,8 +143,7 @@ using OpticalGenerator = std::variant<OpticalEmGenerator,
 //---------------------------------------------------------------------------//
 /*!
  * Sample random events from an input file.
- *
- * \todo move num_events to StandaloneInput
+ * * \todo move num_events to StandaloneInput
  */
 struct SampleFileEvents
 {
@@ -169,8 +168,20 @@ struct ReadFileEvents
 
 //---------------------------------------------------------------------------//
 //! Mechanism for generating events for tracking
-using Events
+using Generator
     = std::variant<CorePrimaryGenerator, SampleFileEvents, ReadFileEvents>;
+
+//---------------------------------------------------------------------------//
+/*!
+ * Events for tracking.
+ */
+struct Events
+{
+    //! Event generation mechanism
+    Generator generator;
+    //! Whether to run all events at once on a single stream
+    bool merge{false};
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

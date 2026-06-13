@@ -13,6 +13,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Openmp.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -21,7 +23,10 @@
 #include "celeritas/inp/Import.hh"
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/io/EventReader.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/JsonEventReader.hh"
+#include "celeritas/io/RootEventReader.hh"
 
 #include "Events.hh"
 #include "Import.hh"
@@ -95,6 +100,36 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     // (TODO: will be replaced)
     problem.physics.optical = imported.optical_physics;
 
+    auto& ctl = problem.control;
+
+    // Load number of events, needed to construct core params before loading
+    // events
+    ctl.capacity.events = std::visit(
+        Overload{
+            [](inp::CorePrimaryGenerator const& pg) { return pg.num_events; },
+            [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
+            [](inp::ReadFileEvents const& rfe) {
+                if (ends_with(rfe.event_file, ".jsonl"))
+                {
+                    return JsonEventReader{rfe.event_file, nullptr}.num_events();
+                }
+                else if (ends_with(rfe.event_file, ".root"))
+                {
+                    return RootEventReader{rfe.event_file, nullptr}.num_events();
+                }
+                return EventReader{rfe.event_file, nullptr}.num_events();
+            },
+        },
+        si.events.generator);
+    CELER_ASSERT(ctl.capacity.events > 0);
+
+    // Set the number of streams
+    ctl.num_streams
+        = (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT && !si.events.merge)
+              ? openmp_max_threads()
+              : 1;
+    ctl.num_streams = std::min(ctl.num_streams, *ctl.capacity.events);
+
     StandaloneLoaded result;
 
     // Set up core params
@@ -105,15 +140,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Load events
     result.events = events(si.events, result.problem.core_params->particle());
-
-    auto const& ctl = problem.control;
-    if (ctl.capacity.events && ctl.num_streams > result.events.size())
-    {
-        CELER_LOG(warning)
-            << "Configured number of streams (" << ctl.num_streams
-            << ") exceeds number of loaded events (" << result.events.size()
-            << ")";
-    }
+    CELER_ENSURE(ctl.num_streams <= result.events.size());
 
     return result;
 }

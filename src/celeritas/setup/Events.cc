@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Events.hh"
 
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -30,13 +31,25 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-auto read_events(EventReaderInterface&& generate)
+auto read_events(EventReaderInterface&& generate, bool merge)
 {
     std::vector<std::vector<Primary>> result;
+    if (merge)
+    {
+        result.emplace_back();
+    }
     auto event = generate();
     while (!event.empty())
     {
-        result.push_back(event);
+        if (merge)
+        {
+            result.front().insert(
+                result.front().end(), event.begin(), event.end());
+        }
+        else
+        {
+            result.push_back(std::move(event));
+        }
         event = generate();
     }
     return result;
@@ -60,36 +73,38 @@ events(inp::Events const& e,
 
     return std::visit(
         Overload{
-            [&particles](inp::CorePrimaryGenerator const& pg) {
-                return read_events(PrimaryGenerator{pg, *particles});
+            [&](inp::CorePrimaryGenerator const& pg) {
+                return read_events(PrimaryGenerator{pg, *particles}, e.merge);
             },
-            [&particles](inp::SampleFileEvents const& sfe) {
+            [&](inp::SampleFileEvents const& sfe) {
                 return read_events(RootEventSampler{sfe.event_file,
                                                     particles,
                                                     sfe.num_events,
                                                     sfe.num_merged,
-                                                    sfe.seed});
+                                                    sfe.seed},
+                                   e.merge);
             },
-            [&particles](inp::ReadFileEvents const& rfe) {
+            [&](inp::ReadFileEvents const& rfe) {
                 if (ends_with(rfe.event_file, ".jsonl"))
                 {
                     return read_events(
-                        JsonEventReader{rfe.event_file, particles});
+                        JsonEventReader{rfe.event_file, particles}, e.merge);
                 }
                 else if (ends_with(rfe.event_file, ".root"))
                 {
                     return read_events(
-                        RootEventReader{rfe.event_file, particles});
+                        RootEventReader{rfe.event_file, particles}, e.merge);
                 }
                 else
                 {
                     // Assume filename is one of the HepMC3-supported
                     // extensions
-                    return read_events(EventReader{rfe.event_file, particles});
+                    return read_events(EventReader{rfe.event_file, particles},
+                                       e.merge);
                 }
             },
         },
-        e);
+        e.generator);
 }
 
 //---------------------------------------------------------------------------//
