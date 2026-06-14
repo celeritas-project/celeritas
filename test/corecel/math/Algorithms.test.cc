@@ -727,12 +727,32 @@ auto CheckedArray::operator[](size_type i) const -> IndexRef
     return IndexRef{*this, i};
 }
 
+TEST(LogicalTest, all)
+{
+    using Bool3 = CheckedArray::Bool3;
+
+    CheckedArray arr{};
+
+    // None are true
+    EXPECT_FALSE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // One is false, but all are checked anyway (no short circuiting)
+    arr = {{false, true, false}};
+    EXPECT_FALSE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // All are true; all are checked
+    arr = {{true, true, true}};
+    EXPECT_TRUE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+}
+
 TEST(LogicalTest, any)
 {
     using Bool3 = CheckedArray::Bool3;
 
     CheckedArray arr{};
-    EXPECT_EQ(Bool3(false, false, false), arr.checked());
 
     // None are true
     EXPECT_FALSE(logical_any(arr[0], arr[1], arr[2]));
