@@ -852,7 +852,7 @@ CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
 template<typename... Args>
 CELER_FORCEINLINE_FUNCTION bool logical_all(Args const&... args)
 {
-    return (true && ... && static_cast<bool>(args));
+    return (true & ... & static_cast<bool>(args));
 }
 
 //! Return true if any argument is true, *without* short circuiting
