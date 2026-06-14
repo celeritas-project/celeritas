@@ -855,5 +855,12 @@ CELER_FORCEINLINE_FUNCTION bool logical_all(Args const&... args)
     return (true && ... && static_cast<bool>(args));
 }
 
+//! Return true if any argument is true, *without* short circuiting
+template<typename... Args>
+CELER_FORCEINLINE_FUNCTION bool logical_any(Args const&... args)
+{
+    return (false | ... | static_cast<bool>(args));
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
