@@ -303,28 +303,22 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     T const half_distance = distance / 2;
     constexpr T eps = numeric_limits<T>::epsilon();
 
-    bool result = true;
-
     for (auto ax : range(Axis::size_))
     {
-        auto i = to_int(ax);
         T const lower = bbox.point(Bound::lo, ax);
         T const upper = bbox.point(Bound::hi, ax);
         T const center = (lower + upper) / 2;
 
+        auto i = to_int(ax);
         hw[i] = (upper - lower) / 2;
         hseg[i] = dir[i] * half_distance;
         abs_hseg[i] = std::fabs(hseg[i]) + eps;
         mid[i] = pos[i] + hseg[i] - center;
-
-        if (std::fabs(mid[i]) > hw[i] + abs_hseg[i])
-        {
-            result = false;
-        }
     }
 
-    if (!result)
-        return result;
+    // Whether a separable axis was found orthogonal to the faces
+    auto found_sep_ortho_axis
+        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
@@ -335,16 +329,14 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     constexpr auto x = to_int(Axis::x);
     constexpr auto y = to_int(Axis::y);
     constexpr auto z = to_int(Axis::z);
-    if (found_sep_axis(y, z))
-        result = false;
 
-    if (found_sep_axis(z, x))
-        result = false;
-
-    if (found_sep_axis(x, y))
-        result = false;
-
-    return result;
+    // Any separating axis means no intersection
+    return !logical_any(found_sep_ortho_axis(x),
+                        found_sep_ortho_axis(y),
+                        found_sep_ortho_axis(z),
+                        found_sep_axis(y, z),
+                        found_sep_axis(z, x),
+                        found_sep_axis(x, y));
 }
 
 //---------------------------------------------------------------------------//
