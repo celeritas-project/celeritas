@@ -108,6 +108,7 @@ inp::Problem load_problem(RunnerInput const& ri)
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
         d.status_checker = ri.status_checker;
+        d.log_frequency = ri.log_progress;
     }
 
     // Control

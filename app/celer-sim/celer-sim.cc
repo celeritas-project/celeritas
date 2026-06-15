@@ -37,6 +37,8 @@
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/inp/StandaloneInputIO.json.hh"
 
 #include "CliUtils.hh"
 #include "Runner.hh"
@@ -59,36 +61,46 @@ namespace
 void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 {
     // Read input options
-    auto run_input = [&filename] {
+    inp::StandaloneInput si = [&filename] {
         celeritas::FileOrStdin instream{filename};
-        auto result = std::make_shared<RunnerInput>();
-        nlohmann::json::parse(instream).get_to(*result);
-        return result;
+        auto j = nlohmann::json::parse(instream);
+        if (j.contains("problem"))
+        {
+            inp::StandaloneInput result;
+            j.get_to(result);
+            return result;
+        }
+        CELER_LOG(warning) << "Using deprecated celer-sim JSON input format";
+        RunnerInput old_inp;
+        j.get_to(old_inp);
+        return to_input(old_inp);
     }();
 
     // Start profiling
-    TracingSession tracing_session{run_input->tracing_file};
+    TracingSession tracing_session{si.problem.diagnostics.perfetto_file};
     std::optional<ScopedProfiling> profile_this{std::in_place, "setup"};
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
-    Runner run_stream(*run_input);
+    Runner run_stream(si);
     SimulationResult result;
     result.setup_time = get_setup_time();
-    result.events.resize(
-        run_input->transporter_result ? run_stream.num_events() : 1);
+    result.events.resize(run_stream.num_events());
 
     // Add processed input to resulting output
     output = run_stream.core_params().output_reg();
     CELER_ASSERT(output);
-    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
-        OutputInterface::Category::input, "*", run_input));
+    output->insert(
+        std::make_shared<OutputInterfaceAdapter<inp::StandaloneInput>>(
+            OutputInterface::Category::input,
+            "*",
+            std::make_shared<inp::StandaloneInput>(si)));
 
     // Allocate device streams
     size_type num_streams = run_stream.num_streams();
     result.num_streams = num_streams;
 
-    if (run_input->warm_up)
+    if (si.problem.control.warm_up)
     {
         get_setup_time = {};
         run_stream.warm_up();
@@ -98,14 +110,10 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     // Start profiling *after* initialization and warmup are complete
     profile_this.emplace("run");
     Stopwatch get_transport_time;
-    if (run_input->merge_events)
+    if (si.events.merge)
     {
         // Run all events simultaneously on a single stream
-        auto event_result = run_stream();
-        if (run_input->transporter_result)
-        {
-            result.events.front() = std::move(event_result);
-        }
+        result.events.front() = run_stream();
     }
     else
     {
@@ -131,10 +139,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
                 event_result = run_stream(stream, id_cast<EventId>(event)),
                 capture_exception);
             tracing_session.flush();
-            if (run_input->transporter_result)
-            {
-                result.events[event] = std::move(event_result);
-            }
+            result.events[event] = std::move(event_result);
         }
         log_and_rethrow(std::move(capture_exception));
     }

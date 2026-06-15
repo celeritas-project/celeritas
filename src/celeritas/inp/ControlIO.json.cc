@@ -15,7 +15,7 @@ namespace inp
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-//! \todo How should we set host/device specific default capacities?
+//! \todo Don't require capacities: set defaults if not specified
 //! \todo Revisit which capacity values are required/optional/defaulted
 
 void to_json(nlohmann::json& j, CoreStateCapacity const& v)
