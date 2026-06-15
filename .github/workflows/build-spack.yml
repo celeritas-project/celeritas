@@ -101,7 +101,7 @@ jobs:
     continue-on-error: false
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
         with:
           fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
           fetch-tags: true # to get version information
@@ -146,7 +146,7 @@ jobs:
           # Add the spack ref so that updating spack will reconcretize
           echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
       - name: Cache concretization
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: spack.lock
           key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
@@ -196,7 +196,7 @@ jobs:
       ### BUILD ###
 
       - name: Restore ccache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
@@ -249,7 +249,7 @@ jobs:
           ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
@@ -301,7 +301,7 @@ jobs:
         run: |
           ctest --preset=spack-app
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: >- # not skipped, new geant4, not experimental vecgeom
           ${{
             always()

@@ -140,22 +140,6 @@ struct SimpleCalo
 
 //---------------------------------------------------------------------------//
 /*!
- * Enable scoring of hits or other quantities.
- *
- * If the problem to be executed has no sensitive detectors, \c sd must be
- * \c std::nullopt (unset).
- */
-struct Scoring
-{
-    //! Enable Geant4 sensitive detector integration
-    std::optional<GeantSd> sd;
-
-    //! Add simple on-device calorimeters integrated over events
-    std::optional<SimpleCalo> simple_calo;
-};
-
-//---------------------------------------------------------------------------//
-/*!
  * Enable detector callback for hits in optical physics simulations.
  */
 struct OpticalDetector
@@ -171,6 +155,25 @@ struct OpticalDetector
 
     //! Whether detector input is valid and should be built
     explicit operator bool() const { return static_cast<bool>(callback); }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Enable scoring of hits or other quantities.
+ *
+ * If the problem to be executed has no sensitive detectors, \c sd must be
+ * \c std::nullopt (unset).
+ */
+struct Scoring
+{
+    //! Enable Geant4 sensitive detector integration
+    std::optional<GeantSd> sd;
+
+    //! Add simple on-device calorimeters integrated over events
+    std::optional<SimpleCalo> simple_calo;
+
+    //! Add callback for optical detector hits
+    OpticalDetector optical_detector;
 };
 
 //---------------------------------------------------------------------------//

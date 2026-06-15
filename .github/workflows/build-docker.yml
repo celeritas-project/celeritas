@@ -74,7 +74,7 @@ jobs:
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -110,7 +110,7 @@ jobs:
             && (steps.test.outcome == 'success'
                 || steps.test.outcome == 'failure')
           }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
           path: "test-output/**/*.xml"

@@ -81,6 +81,10 @@ class BvhPartitioner
     VecReal3 const& centers_;
     //! The number of partition candidates to check per axis
     size_type num_part_cands_{0};
+    //! Min #vols to consider discarding partition based on overlap fraction
+    static constexpr size_type volume_threshold_ = 2;
+    //! Threshold for discarding partitions that yield overlapping children
+    static constexpr real_type overlap_threshold_ = real_type{0.5};
 
     //// HELPER FUNCTIONS ////
 

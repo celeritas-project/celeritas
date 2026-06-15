@@ -61,6 +61,11 @@ option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)"
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
+cmake_dependent_option(CELERITAS_CODESIGN_APPS
+  "Use Apple codesign to allow debugging with Instruments" "OFF"
+  "CELERITAS_BUILD_APPS;APPLE" OFF
+)
+
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
@@ -625,6 +630,10 @@ if(CELERITAS_USE_VecGeom)
   endif()
 endif()
 
+if(CELERITAS_USE_GTest)
+  celeritas_find_or_builtin_package(GTest 1.10)
+endif()
+
 if(CELERITAS_BUILD_DOCS)
   set(_prev_dot "${DOXYGEN_DOT_EXECUTABLE}")
   if(NOT Doxygen_FOUND)
@@ -666,8 +675,22 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_USE_GTest)
-  celeritas_find_or_builtin_package(GTest 1.10)
+if(CELERITAS_CODESIGN_APPS)
+  find_program(CODESIGN_EXECUTABLE codesign)
+  if(NOT CODESIGN_EXECUTABLE)
+    celeritas_error_incompatible_option(
+      "codesign is required for codesigning but was not found: maybe xcode not installed"
+      CELERITAS_CODESIGN_APPS
+      OFF
+    )
+  endif()
+  set(CELERITAS_CODESIGN_ENTITLEMENTS "${PROJECT_SOURCE_DIR}/cmake/entitlements.plist" CACHE PATH
+    "Entitlements file to use for Celeritas executables"
+  )
+  # NOTE: '-' is "ad hoc" signature
+  set(CELERITAS_CODESIGN_IDENTITY "-" CACHE STRING
+    "Code signing identity used for app building"
+  )
 endif()
 
 #----------------------------------------------------------------------------#

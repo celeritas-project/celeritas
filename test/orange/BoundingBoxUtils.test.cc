@@ -196,6 +196,56 @@ TEST_F(BoundingBoxUtilsTest, bbox_intersection)
     }
 }
 
+TEST_F(BoundingBoxUtilsTest, bbox_overlap_fraction)
+{
+    auto inf = std::numeric_limits<real_type>::infinity();
+
+    {
+        SCOPED_TRACE("nonintersecting");
+        real_type overlap = calc_overlap_fraction(
+            BBox{{-1, -1, -1}, {1, 1, 1}}, BBox{{1.1, 0, 0}, {2, 1, 1}});
+        EXPECT_SOFT_EQ(0, overlap);
+    }
+
+    {
+        SCOPED_TRACE("partial overlap");
+        real_type overlap = calc_overlap_fraction(
+            BBox{{-1, -1, -1}, {1, 1, 1}}, BBox{{0, -1, -1}, {2, 1, 1}});
+        EXPECT_SOFT_EQ(0.5, overlap);
+    }
+
+    {
+        SCOPED_TRACE("full overlap");
+        real_type overlap = calc_overlap_fraction(
+            BBox{{-1, -1, -1}, {1, 1, 1}}, BBox{{-2, -2, -2}, {2, 2, 2}});
+        EXPECT_SOFT_EQ(1, overlap);
+    }
+
+    {
+        SCOPED_TRACE("overlap with semiinfinite");
+        real_type overlap
+            = calc_overlap_fraction(BBox{{-inf, -inf, -inf}, {inf, inf, 0}},
+                                    BBox{{-1, -1, -0.25}, {1, 1, 0.75}});
+        EXPECT_SOFT_EQ(0.25, overlap);
+    }
+
+    if (CELERITAS_DEBUG)
+    {
+        SCOPED_TRACE("both infinite");
+        BBox a{{-1, -1, -inf}, {1, 1, 1}};
+        BBox b{{1.1, 0, 0}, {2, 1, inf}};
+        EXPECT_THROW(calc_overlap_fraction(a, b), DebugError);
+    }
+
+    if (CELERITAS_DEBUG)
+    {
+        SCOPED_TRACE("degenerate");
+        BBox a{{1, 1, 1}, {2, 2, 1}};
+        BBox b{{1.1, 0, 0}, {2, 1, 10}};
+        EXPECT_THROW(calc_overlap_fraction(a, b), DebugError);
+    }
+}
+
 using IntersectsSegmentTest = Test;
 
 TEST_F(IntersectsSegmentTest, basic)
