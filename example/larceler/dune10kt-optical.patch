@@ -90,7 +90,7 @@
 +   <property name="SCINTILLATIONCOMPONENT1" ref="SCINTLAR"/>
 +   <property name="SCINTILLATIONCOMPONENT2" ref="SCINTLAR"/>
 +   <property name="SCINTILLATIONTIMECONSTANT" ref="FTC"/>
-+   <property name="SCINTILLATIONTIMECONSTANT1" ref="STC"/>
++   <property name="SCINTILLATIONTIMECONSTANT1" ref="FTC"/>
 +   <property name="SCINTILLATIONTIMECONSTANT2" ref="STC"/>
 +
 +   <property name="YIELDRATIO" ref="YR" />
