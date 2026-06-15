@@ -12,12 +12,10 @@
 #include <G4Threading.hh>
 #include <G4Version.hh>
 
+#include "corecel/sys/Openmp.hh"
+
 #if G4VERSION_NUMBER < 1070
 #    include <G4MTRunManager.hh>
-#endif
-
-#ifdef _OPENMP
-#    include <omp.h>
 #endif
 
 #include "corecel/Assert.hh"
@@ -101,23 +99,26 @@ void validate_geant_threading(size_type num_streams)
     if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
         && G4Threading::IsMultithreadedApplication())
     {
+        auto limit = openmp_max_threads();
+
         auto msg = CELER_LOG(warning);
         msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
-               "parallelism";
-        if (std::string const& nt_str = celeritas::getenv("OMP_NUM_THREADS");
-            !nt_str.empty())
+               "parallelism (thread limit = "
+            << limit << ")";
+        if (limit > 1)
         {
-            msg << "(OMP_NUM_THREADS=" << nt_str
-                << "): CPU threads may be oversubscribed";
-        }
-        else
-        {
-            msg << ": forcing 1 Celeritas thread to Geant4 thread";
-#ifdef _OPENMP
-            omp_set_num_threads(1);
-#else
-            CELER_ASSERT_UNREACHABLE();
-#endif
+            if (std::string const& nt_str
+                = celeritas::getenv(R"(OMP_NUM_THREADS)");
+                !nt_str.empty())
+            {
+                msg << ": CPU threads may be oversubscribed (OMP_NUM_THREADS="
+                    << nt_str << ")";
+            }
+            else
+            {
+                msg << ": setting 1 OpenMP thread per Geant4 thread";
+                openmp_num_threads(1);
+            }
         }
     }
 }

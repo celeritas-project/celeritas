@@ -256,46 +256,6 @@ GenericGeoModelInp GenericGeoModelInp::from_model_input(inp::Model const& in)
 {
     GenericGeoModelInp result;
 
-    // Extract volume data
-    result.volume.labels.reserve(in.volumes.volumes.size());
-    result.volume.materials.reserve(in.volumes.volumes.size());
-    result.volume.daughters.reserve(in.volumes.volumes.size());
-
-    for (auto i : range(in.volumes.volumes.size()))
-    {
-        auto const& vol = in.volumes.volumes[i];
-        result.volume.labels.push_back(to_string(vol.label));
-        result.volume.materials.push_back(id_to_int(vol.material));
-
-        std::vector<int> daughters;
-        daughters.reserve(vol.children.size());
-        for (auto child_id : vol.children)
-        {
-            daughters.push_back(id_to_int(child_id));
-        }
-        result.volume.daughters.push_back(std::move(daughters));
-    }
-
-    // Extract volume instance data
-    result.volume_instance.labels.reserve(in.volumes.volume_instances.size());
-    result.volume_instance.volumes.reserve(in.volumes.volume_instances.size());
-
-    for (auto i : range(in.volumes.volume_instances.size()))
-    {
-        auto const& vol_inst = in.volumes.volume_instances[i];
-        result.volume_instance.labels.push_back(to_string(vol_inst.label));
-        result.volume_instance.volumes.push_back(id_to_int(vol_inst.volume));
-    }
-
-    if (in.volumes.world < result.volume.labels.size())
-    {
-        result.world = result.volume.labels[in.volumes.world.get()];
-    }
-    else
-    {
-        result.world = "<invalid>";
-    }
-
     // Extract surface data
     result.surface.labels.reserve(in.surfaces.surfaces.size());
     result.surface.volumes.reserve(in.surfaces.surfaces.size());
@@ -353,11 +313,7 @@ void GenericGeoModelInp::print_expected() const
     using std::cout;
     auto const& ref = *this;
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n"
-            "GenericGeoModelInp ref;\n"
-         << CELER_REF_ATTR(volume.labels) << CELER_REF_ATTR(volume.materials)
-         << CELER_REF_ATTR(volume.daughters)
-         << CELER_REF_ATTR(volume_instance.labels)
-         << CELER_REF_ATTR(volume_instance.volumes) << CELER_REF_ATTR(world);
+            "GenericGeoModelInp ref;\n";
 
     if (!surface.labels.empty())
     {
@@ -393,12 +349,6 @@ void GenericGeoModelInp::print_expected() const
     else                                                           \
         CELER_DISCARD(int)
 
-    IRE_COMPARE(volume.labels);
-    IRE_COMPARE(volume.materials);
-    IRE_COMPARE(volume.daughters);
-    IRE_COMPARE(volume_instance.labels);
-    IRE_COMPARE(volume_instance.volumes);
-    IRE_COMPARE(world);
     IRE_COMPARE(surface.labels);
     IRE_COMPARE(surface.volumes);
     IRE_COMPARE(region.labels);

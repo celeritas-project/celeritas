@@ -16,6 +16,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Join.hh"
+#include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/Scoring.hh"
@@ -89,7 +90,8 @@ GeantSd::GeantSd(ParticleParams const& par,
     CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
-    selection_.particle = setup.track;
+    selection_.primary_id = setup.track;
+    selection_.particle_id = setup.track;
     selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
     selection_.step_length = setup.step_length;
@@ -117,6 +119,8 @@ GeantSd::GeantSd(ParticleParams const& par,
     if (setup.track)
     {
         this->setup_particles(par);
+        CELER_ASSERT(selection_.primary_id && selection_.particle_id
+                     && selection_.weight);
     }
 
     CELER_ENSURE(setup.track == !this->particles_.empty());
@@ -216,10 +220,13 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
     auto force_volumes = make_set_lv(setup.force_volumes);
 
     // Helper for inserting volumes
-    // FIXME: geant geo and volume params are implicitly used by this
+    auto geant_geo = celeritas::global_geant_geo().lock();
+    auto const* volume_params = geant_geo ? geant_geo->volumes().get()
+                                          : nullptr;
     SensDetInserter::MapIdLv found_id_lv;
     SensDetInserter::VecLV missing_lv;
-    SensDetInserter insert_volume(skip_volumes, &found_id_lv, &missing_lv);
+    SensDetInserter insert_volume(
+        skip_volumes, volume_params, geant_geo.get(), &found_id_lv, &missing_lv);
 
     // Loop over all logical volumes and map detectors to Volume IDs
     for (G4LogicalVolume const* lv : *G4LogicalVolumeStore::GetInstance())
@@ -269,7 +276,7 @@ void GeantSd::setup_volumes(inp::GeantSd const& setup)
 //---------------------------------------------------------------------------//
 void GeantSd::setup_particles(ParticleParams const& par)
 {
-    CELER_EXPECT(selection_.particle);
+    CELER_EXPECT(selection_.particle_id);
 
     auto& g4particles = *G4ParticleTable::GetParticleTable();
 

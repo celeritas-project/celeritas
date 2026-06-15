@@ -16,29 +16,26 @@ repos:
     - id: check-yaml
 
   # Type-specific character fixes and formatting
-  - repo: local
+  - repo: https://github.com/sethrj/fix-non-ascii
+    rev: v1.0.0 # 18 May 2026 (immutable)
     hooks:
     - id: fix-non-ascii
-      name: fix non-ASCII characters in source files
-      language: system
-      entry: python3 scripts/dev/fix-non-ascii.py
-      types_or: [file]
-      files: \.(cc|hh|cu|cmake)$|CMakeLists\.txt$
+      files: '\.(cc|hh|cu|cmake)$|CMakeLists\.txt$'
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 182152eb8c5ce1cf5299b956b04392c86bd8a126 # v20.1.8, 11 Jul 2025
+    rev: dd18dad857d6133e90bbe478f4f2f22ec0030269 # v22.1.5, 18 May 2026
     hooks:
     - id: clang-format
       types_or: [file]
       files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 3b4bc031619cde2e0a9f3c4441ac7cc8227245a4 # v0.14.1, 16 Oct 2025
+    rev: v0.15.13 # 14 May 2026 (immutable)
     hooks:
     - id: ruff-format
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell
-    rev: 63c8f8312b7559622c0d82815639671ae42132ac # v2.4.1, 28 Jan 2025
+    rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a # v2.4.2, 5 Mar 2026
     hooks:
     - id: codespell
 
@@ -47,7 +44,7 @@ repos:
 
 ci:
   autofix_commit_msg: |
-    Apply fixes from pre-commit hooks: see detailed commit message →
+    Apply fixes from pre-commit hooks: see detailed commit message ↴
 
     This commit means that you must (please!) install pre-commit
     on your development machine and run `pre-commit install --install-hooks`.

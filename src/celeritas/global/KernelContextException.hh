@@ -100,6 +100,7 @@ class KernelContextException : public RichContextException
     EventId event_;
     TrackId track_;
     TrackId parent_;
+    PrimaryId primary_;
     size_type num_steps_;
     ParticleId particle_;
     Energy energy_;

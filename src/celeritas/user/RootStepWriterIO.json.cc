@@ -22,7 +22,7 @@ void from_json(nlohmann::json const& j, SimpleRootFilterInput& options)
     SRFI_LOAD_OPTION(track_id);
     SRFI_LOAD_OPTION(event_id);
     SRFI_LOAD_OPTION(parent_id);
-    SRFI_LOAD_OPTION(action_id);
+    SRFI_LOAD_OPTION(post_step_action_id);
 #undef SRFI_LOAD_OPTION
 }
 
@@ -38,7 +38,7 @@ void to_json(nlohmann::json& j, SimpleRootFilterInput const& options)
     CELER_JSON_SAVE(j, options, track_id);
     SRFI_SAVE_OPTION(event_id);
     SRFI_SAVE_OPTION(parent_id);
-    SRFI_SAVE_OPTION(action_id);
+    SRFI_SAVE_OPTION(post_step_action_id);
 #undef SRFI_SAVE_OPTION
 }
 

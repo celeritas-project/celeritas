@@ -38,7 +38,6 @@ void VecgeomParamsOutput::output(JsonPimpl* j) const
     auto scalars = json::object({
         {"num_volume_levels", vecgeom_->num_volume_levels()},
         {"use_vgdml", vecgeom_->use_vgdml()},
-        {"use_surface_tracking", vecgeom_->use_surface_tracking()},
     });
     j->obj = json::object({{"scalars", std::move(scalars)}});
 }

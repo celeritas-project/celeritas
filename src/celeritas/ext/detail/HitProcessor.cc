@@ -37,6 +37,13 @@
 #include "../GeantStepPointView.hh"
 #include "../GeantStepView.hh"
 
+#define HP_ASSIGN_TRANSFORMED(SELECTION, VIEW, VAR, DATA, TRANSFORM, IDX) \
+    if (SELECTION.VAR)                                                    \
+    {                                                                     \
+        CELER_ASSERT(IDX < DATA.VAR.size());                              \
+        VIEW.VAR(TRANSFORM(DATA.VAR[IDX]));                               \
+    }
+
 namespace celeritas
 {
 namespace detail
@@ -94,9 +101,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            StepSelection const& selection,
                            StepPointBool const& locate_touchable)
     : detector_volumes_(std::move(detector_volumes))
-    , step_post_status_{
-          selection.points[StepPoint::pre].volume_instance_ids
-          && selection.points[StepPoint::post].volume_instance_ids}
+    , ss_{selection}
+    , step_post_status_{ss_.points[StepPoint::pre].volume_instance_ids
+                        && ss_.points[StepPoint::post].volume_instance_ids}
 {
     CELER_EXPECT(detector_volumes_ && !detector_volumes_->empty());
 
@@ -107,14 +114,20 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
     step_ = GeantTrackReconstruction::make_g4step();
     CELER_ASSERT(step_);
-    track_reconstruction_
-        = std::make_shared<GeantTrackReconstruction>(particles, step_);
+    if (!particles.empty())
+    {
+        // Reconstruct track
+        track_reconstruction_
+            = std::make_shared<GeantTrackReconstruction>(particles, step_);
+    }
+    CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
+                 && ss_.primary_id == ss_.particle_id);
 
     GeantStepView step_view{*step_};
 
     for (auto sp : range(StepPoint::size_))
     {
-        if (!selection.points[sp])
+        if (!ss_.points[sp])
         {
             step_view.delete_step_point(sp);
             CELER_ASSERT(!locate_touchable[sp]);
@@ -131,7 +144,7 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                 step_points_[sp]->SetTouchableHandle(touch_handle_[sp]);
                 if (!update_touchable_)
                 {
-                    CELER_EXPECT(selection.points[sp].volume_instance_ids);
+                    CELER_EXPECT(ss_.points[sp].volume_instance_ids);
                     // FIXME: pass geant geo into this constructor
                     auto ggeo = ::celeritas::global_geant_geo().lock();
                     CELER_ASSERT(ggeo);
@@ -141,10 +154,6 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             }
         }
     }
-
-    // Set invalid values for unsupported SD attributes
-    step_->SetNonIonizingEnergyDeposit(
-        -std::numeric_limits<double>::infinity());
 
     // Convert logical volumes (global) to sensitive detectors (thread local)
     detectors_.resize(detector_volumes_->size());
@@ -213,20 +222,18 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
  */
 void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
 {
-    CELER_EXPECT(!out.detector.empty());
+    CELER_EXPECT(!out.detector_id.empty());
     CELER_EXPECT(i < out.size());
 
     GeantStepView step_view{*step_};
-    if (!out.energy_deposition.empty())
-    {
-        step_view.energy_deposition(
-            GeantStepView::Energy{out.energy_deposition[i].value()});
-    }
-    if (!out.step_length.empty())
-    {
-        step_view.step_length(
-            native_value_to<GeantStepView::Length>(out.step_length[i]));
-    }
+
+#define HP_ASSIGN_STEP(VAR, TRANSFORM) \
+    HP_ASSIGN_TRANSFORMED(ss_, step_view, VAR, out, TRANSFORM, i)
+
+    HP_ASSIGN_STEP(energy_deposition, GeantStepView::Energy);
+    HP_ASSIGN_STEP(step_length, native_value_to<GeantStepView::Length>);
+
+#undef HP_ASSIGN_STEP
 
     for (auto sp : range(StepPoint::size_))
     {
@@ -251,38 +258,27 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
             }
         }
 
-        auto const& celer_sp = out.points[sp];
         GeantStepPointView sp_view{*g4sp};
 
-        if (!celer_sp.time.empty())
-        {
-            sp_view.time(
-                native_value_to<GeantStepPointView::Time>(celer_sp.time[i]));
-        }
-        if (!celer_sp.pos.empty())
-        {
-            sp_view.pos(
-                native_value_to<GeantStepPointView::Length>(celer_sp.pos[i]));
-        }
-        if (!celer_sp.energy.empty())
-        {
-            sp_view.energy(
-                GeantStepPointView::Energy{celer_sp.energy[i].value()});
-        }
-        if (!celer_sp.dir.empty())
-        {
-            sp_view.dir(static_array_cast<double>(celer_sp.dir[i]));
-        }
-        if (!out.weight.empty())
-        {
-            // Celeritas weight does not currently change across a step
-            sp_view.weight(out.weight[i]);
-        }
+#define HP_ASSIGN_SP(VAR, TRANSFORM) \
+    HP_ASSIGN_TRANSFORMED(           \
+        ss_.points[sp], sp_view, VAR, out.points[sp], TRANSFORM, i)
+
+        HP_ASSIGN_SP(time, native_value_to<GeantStepPointView::Time>);
+        HP_ASSIGN_SP(pos, native_value_to<GeantStepPointView::Length>);
+        HP_ASSIGN_SP(energy, GeantStepPointView::Energy);
+        HP_ASSIGN_SP(dir, static_array_cast<double>);
+#undef HP_ASSIGN_SP
+
+        // Celeritas weight does not currently change across a step
+        HP_ASSIGN_TRANSFORMED(
+            ss_, sp_view, weight, out, static_cast<G4double>, i);
 
         // Copy attributes from logical volume
         if (sp == StepPoint::pre)
         {
-            G4LogicalVolume const* lv = this->detector_volume(out.detector[i]);
+            G4LogicalVolume const* lv
+                = this->detector_volume(out.detector_id[i]);
             CELER_ASSERT(lv);
             // Use lv already known from the in-volume detector
             sp_view.update_from_volume(*lv);
@@ -294,14 +290,17 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         }
     }
 
-    if (!out.particle.empty())
+    // Reconstruct tracks and IDs if particles were provided
+    CELER_ASSERT(static_cast<bool>(track_reconstruction_)
+                 == !out.particle_id.empty());
+    if (track_reconstruction_)
     {
+        CELER_ASSERT(i < out.particle_id.size());
+        CELER_ASSERT(i < out.primary_id.size());
         // Get track corresponding to the particle type, and reload primary
         // data if possible
-        G4Track& g4track = out.primary_id.empty()
-                               ? track_reconstruction_->view(out.particle[i])
-                               : track_reconstruction_->view(
-                                     out.particle[i], out.primary_id[i]);
+        G4Track& g4track = track_reconstruction_->view(out.particle_id[i],
+                                                       out.primary_id[i]);
         CELER_ASSERT(&g4track == step_->GetTrack());
         // Copy step information to the corresponding track
         GeantStepView{*step_}.update_track();
@@ -316,7 +315,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Hit sensitive detector
-    this->detector(out.detector[i])->Hit(step_.get());
+    this->detector(out.detector_id[i])->Hit(step_.get());
 }
 
 //---------------------------------------------------------------------------//

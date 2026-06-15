@@ -59,10 +59,6 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
-
 /*!
  * Count particle types.
  */
@@ -255,10 +251,6 @@ TEST_F(LarSphere, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
 
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
@@ -333,10 +325,6 @@ TEST_F(LarSphere, state_dep)
     if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
 
     CELER_LOG(status) << "Beam on (second run)";
@@ -972,7 +960,45 @@ TEST_F(TestEm3, run)
 class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
 {
   public:
-    void process_hit(G4Step const*) override { /* null-op */ }
+    void process_hit(G4Step const* s) override
+    {
+        auto* t = s->GetTrack();
+        CELER_ASSERT(t);
+        int const track_id = t->GetTrackID();
+        int const parent_id = t->GetParentID();
+
+        EXPECT_GE(track_id, 0);
+        EXPECT_GE(parent_id, 0);
+
+        auto atomic_max = [](std::atomic<int>& dst, int value) {
+            int current = dst.load(std::memory_order_relaxed);
+            while (current < value
+                   && !dst.compare_exchange_weak(current,
+                                                 value,
+                                                 std::memory_order_relaxed,
+                                                 std::memory_order_relaxed))
+            {
+            }
+        };
+
+        atomic_max(max_track_id_, track_id);
+        atomic_max(max_parent_id_, parent_id);
+        ++num_hits_;
+    }
+
+    //! Get and reset track, parent IDs
+    std::pair<int, int> exchange_max_ids()
+    {
+        return {max_track_id_.exchange(-1), max_parent_id_.exchange(-1)};
+    }
+
+    //! Exchange hit counter
+    int exchange_hit_count() { return num_hits_.exchange(0); }
+
+  protected:
+    std::atomic<int> max_track_id_{-1};
+    std::atomic<int> max_parent_id_{-1};
+    std::atomic<int> num_hits_{0};
 };
 
 /*!
@@ -1008,18 +1034,27 @@ TEST_F(WaterSphere, run_small_flush)
         EXPECT_TRUE(it != messages.end())
             << "Expected message not found in logs:\n"
             << scoped_log_;
+
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto&& [max_track, max_parent] = this->exchange_max_ids();
+        EXPECT_GE(max_parent, 0);
+        EXPECT_GT(max_track, max_parent);
     }
 
     if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining test since we've already failed";
     }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
 
     rm.BeamOn(4);
+    {
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto&& [max_track, max_parent] = this->exchange_max_ids();
+        EXPECT_GE(max_parent, 0);
+        EXPECT_GT(max_track, max_parent);
+    }
 }
 
 //---------------------------------------------------------------------------//

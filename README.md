@@ -58,7 +58,7 @@ To do so, set Spack up its CUDA usage:
 $ spack external find cuda
 # Optionally set the default configuration. Replace "cuda_arch=80"
 # with your target architecture
-$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
+$ spack config add 'packages:all:variants:["cxxstd=17 +cuda cuda_arch=80"]'
 ```
 and install Celeritas with this configuration:
 ```console

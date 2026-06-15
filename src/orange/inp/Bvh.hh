@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/inp/Bih.hh
+//! \file orange/inp/Bvh.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,20 +14,20 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construction options for BIH tree.
+ * Construction options for BVH tree.
  */
-struct BIHBuilder
+struct BvhBuilder
 {
     //! Maximum number of bboxes that can reside on a leaf node without
     //! triggering a partitioning attempt
     size_type max_leaf_size = 1;
 
     //! Hard limit on the depth of most the embedded node (where 1 is the root
-    //! node): see max_bih_depth
+    //! node): see max_bvh_depth
     size_type depth_limit = 16;
 
     //! The number of partition candidates to check per axis when partitioning
-    //! a node during BIH construction
+    //! a node during BVH construction
     size_type num_part_cands = 3;
 
     //! Whether the options are valid

@@ -2,15 +2,15 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file orange/detail/BIHPartitioner.cc
+//! \file orange/detail/BvhPartitioner.cc
 //---------------------------------------------------------------------------//
-#include "BIHPartitioner.hh"
+#include "BvhPartitioner.hh"
 
 #include <algorithm>
 
 #include "corecel/math/SoftEqual.hh"
 
-#include "BIHUtils.hh"
+#include "BvhUtils.hh"
 #include "../BoundingBoxUtils.hh"
 
 using namespace celeritas::literals;
@@ -46,7 +46,7 @@ namespace detail
  * \param[in] num_part_cands  The number of candidate partitions to check per
  *                            axis
  */
-BIHPartitioner::BIHPartitioner(VecBBox const& bboxes,
+BvhPartitioner::BvhPartitioner(VecBBox const& bboxes,
                                VecReal3 const& centers,
                                size_type num_part_cands)
     : bboxes_(bboxes), centers_(centers), num_part_cands_(num_part_cands)
@@ -62,8 +62,8 @@ BIHPartitioner::BIHPartitioner(VecBBox const& bboxes,
  *
  * If no partition is found, an empty partition is returned
  */
-BIHPartitioner::Partition
-BIHPartitioner::operator()(VecIndices const& indices) const
+BvhPartitioner::Partition
+BvhPartitioner::operator()(VecIndices const& indices) const
 {
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
@@ -106,8 +106,8 @@ BIHPartitioner::operator()(VecIndices const& indices) const
 /*!
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
-BIHPartitioner::AxesCenters
-BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
+BvhPartitioner::AxesCenters
+BvhPartitioner::calc_axes_centers(VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
@@ -135,8 +135,8 @@ BIHPartitioner::calc_axes_centers(VecIndices const& indices) const
 /*!
  * Divide bboxes into left and right branches based on a partition.
  */
-BIHPartitioner::Partition
-BIHPartitioner::make_partition(VecIndices const& indices,
+BvhPartitioner::Partition
+BvhPartitioner::make_partition(VecIndices const& indices,
                                Axis axis,
                                real_type position) const
 {
@@ -173,7 +173,7 @@ BIHPartitioner::make_partition(VecIndices const& indices,
 /*!
  * Calculate the cost of partition using a surface area heuristic.
  */
-real_type BIHPartitioner::calc_cost(Partition const& p) const
+real_type BvhPartitioner::calc_cost(Partition const& p) const
 {
     CELER_EXPECT(p);
 

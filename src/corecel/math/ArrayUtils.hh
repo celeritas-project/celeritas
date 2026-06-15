@@ -272,14 +272,6 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  * are the spherical coordinate transform of the given \c rot cartesian
  * direction vector.
  *
- * There is some extra code in here to deal with loss of precision when the
- * incident direction is along the \em z axis. As \c rot approaches \em z, the
- * azimuthal angle \f$ \phi \f$ must be calculated carefully from both the
- * \em x and \em y components of the vector, not independently.
- * If \c rot actually equals \em z
- * then the azimuthal angle is completely indeterminate so we arbitrarily
- * choose \f$ \phi = 0 \f$.
- *
  * This function is often used for calculating exiting scattering angles. In
  * that case, \c dir is the exiting angle from the scattering calculation, and
  * \c rot is the original direction of the particle. The direction vectors are
@@ -290,6 +282,14 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
      + \sin\theta\sin\phi\vec{j}
      + \cos\theta\vec{k} \,.
  * \f]
+ *
+ * There is some extra code in here to deal with loss of precision when the
+ * incident direction is along the \em z axis. As \c rot approaches \em z, the
+ * azimuthal angle \f$ \phi \f$ must be calculated carefully from both the
+ * \em x and \em y components of the vector, not independently.
+ * If \c rot actually equals \em z
+ * then the azimuthal angle is completely indeterminate so we arbitrarily
+ * choose \f$ \phi = 0 \f$.
  */
 template<class T>
 inline CELER_FUNCTION Array<T, 3>
@@ -299,12 +299,9 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
     CELER_EXPECT(is_soft_unit_vector(rot));
 
     // Direction enumeration
-    enum
-    {
-        X = 0,
-        Y = 1,
-        Z = 2
-    };
+    using TraitsT = detail::RealVecTraits<T>;
+
+    constexpr int X = 0, Y = 1, Z = 2;
 
     // Transform direction vector into theta, phi so we can use it as a
     // rotation matrix
@@ -312,15 +309,15 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
     T cosphi;
     T sinphi;
 
-    if (sintheta >= detail::RealVecTraits<T>::min_accurate_sintheta())
+    if (sintheta >= TraitsT::min_accurate_sintheta)
     {
         // Typical case: far enough from z axis to assume the X and Y
         // components have a hypotenuse of 1 within epsilon tolerance
-        T const inv_sintheta = 1 / (sintheta);
+        T const inv_sintheta = 1 / sintheta;
         cosphi = rot[X] * inv_sintheta;
         sinphi = rot[Y] * inv_sintheta;
     }
-    else if (sintheta > 0)
+    else if (rot[X] != 0 || rot[Y] != 0)
     {
         // Avoid catastrophic roundoff error by normalizing x/y components
         cosphi = rot[X] / hypot(rot[X], rot[Y]);
@@ -328,7 +325,9 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
     }
     else
     {
-        // NaN or 0: choose an arbitrary azimuthal angle for the incident dir
+        // NaNs or coincident Z: force sin theta to zero and choose an
+        // arbitrary azimuthal angle for the incident dir
+        sintheta = 0;
         cosphi = 1;
         sinphi = 0;
     }

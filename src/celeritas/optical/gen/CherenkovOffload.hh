@@ -33,6 +33,8 @@ namespace celeritas
    \langle n \rangle = \ell_\text{step} \difd{N}{x}
  * \f]
  * where \f$ \ell_\text{step} \f$ is the step length.
+ *
+ * \todo rename \c CherenkovOffloadSampler
  */
 class CherenkovOffload
 {

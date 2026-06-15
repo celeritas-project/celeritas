@@ -25,13 +25,16 @@ template<class GTV>
 class WrappedGeoTrackView final
     : public GeoTrackInterface<typename GTV::real_type>
 {
+    using Base = GeoTrackInterface<typename GTV::real_type>;
+
   public:
     //!@{
     //! \name Type aliases
     using GeoTrackViewT = GTV;
     using Initializer_t = GeoTrackInitializer;
     using real_type = typename GTV::real_type;
-    using Real3 = typename GeoTrackInterface<typename GTV::real_type>::Real3;
+    using Real3 = typename Base::Real3;
+    using VolPathVisitor = typename Base::VolPathVisitor;
     //!@}
 
   public:
@@ -72,6 +75,10 @@ class WrappedGeoTrackView final
     {
         t_.volume_instance_id(levels);
     }
+    void foreach_volume_path(VolPathVisitor visit) const final
+    {
+        t_.foreach_volume_path(std::move(visit));
+    }
 
     // Implementation volume ID
     ImplVolumeId impl_volume_id() const final { return t_.impl_volume_id(); }
@@ -91,7 +98,7 @@ class WrappedGeoTrackView final
         }
         else
         {
-            return GeoTrackInterface<real_type>::geo_status();
+            return Base::geo_status();
         }
     }
 

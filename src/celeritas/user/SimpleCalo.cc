@@ -20,6 +20,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/VolumeIdBuilder.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "detail/SimpleCaloImpl.hh"
 
@@ -33,7 +34,8 @@ namespace celeritas
  */
 SimpleCalo::SimpleCalo(std::string output_label,
                        VecLabel labels,
-                       size_type num_streams)
+                       size_type num_streams,
+                       VolumeParams const& volumes)
     : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
 {
     CELER_EXPECT(!output_label_.empty());
@@ -41,9 +43,8 @@ SimpleCalo::SimpleCalo(std::string output_label,
     CELER_EXPECT(num_streams > 0);
 
     // Map labels to volume IDs
-    // FIXME: pass volumes and/or geant geo into the constructor
     volume_ids_.resize(volume_labels_.size());
-    VolumeIdBuilder label_to_vol_id;
+    VolumeIdBuilder label_to_vol_id(&volumes, nullptr);
     for (auto i : range(volume_labels_.size()))
     {
         volume_ids_[i] = label_to_vol_id(volume_labels_[i]);

@@ -12,7 +12,7 @@
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
+#include "corecel/Config.hh"  // IWYU pragma: keep
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
@@ -25,13 +25,15 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
+#include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParamsIO.json.hh"  // IWYU pragma: keep
 #include "geocel/rasterize/Image.hh"
 #include "geocel/rasterize/ImageIO.json.hh"
 #include "orange/OrangeParamsOutput.hh"
@@ -178,7 +180,7 @@ void run_trace(Runner& runner,
     if (trace_setup.volumes)
     {
         // Get geometry names
-        out["volumes"] = runner.get_volumes(trace_setup.geometry);
+        out["volumes"] = runner.get_impl_volumes(trace_setup.geometry);
     }
 
     put_json_line(out);
@@ -227,6 +229,14 @@ void cmd_orange_stats(Runner* runner, nlohmann::json const&)
         OrangeParamsOutput{runner->load_geometry<Geometry::orange>()});
 }
 
+void cmd_volumes(Runner* runner, nlohmann::json const&)
+{
+    CELER_EXPECT(runner);
+    auto geo = celeritas::global_geant_geo().lock();
+    CELER_VALIDATE(geo, << "no geant4 geometry is loaded");
+    put_json_line(*geo->volumes());
+}
+
 CmdFuncPtr
 get_cmd_funcptr(nlohmann::json const& input, std::string_view cmd_str)
 {
@@ -247,6 +257,7 @@ get_cmd_funcptr(nlohmann::json const& input, std::string_view cmd_str)
         {"config", &cmd_config},
         {"trace", &cmd_trace},
         {"orange_stats", &cmd_orange_stats},
+        {"volumes", &cmd_volumes},
     };
 
     auto func_iter = cmd_to_func.find(cmd_str);

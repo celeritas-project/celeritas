@@ -134,7 +134,7 @@ using RefPtr = ObserverPtr<S<Ownership::reference, M>, M>;
 
 //---------------------------------------------------------------------------//
 //!@{
-//! \name Type trait utilities, used for VecGeom or elsewhere.
+//! \name Type trait utilities overridable by downstream/user code
 
 //! Switch between host or device type based on memspace
 template<MemSpace M, class HT, class DT>
@@ -155,9 +155,40 @@ struct IsTriviallyCopyable : std::is_trivially_copyable<T>
 {
 };
 
+/*!
+ * Traits class to automatically fetch device data through read-only cache.
+ *
+ * Specialize this on the cv-removed class type.
+ *
+ * \sa AutoLdgSpan
+ */
+template<class T>
+struct IsAutoLdg
+    : std::bool_constant<std::is_arithmetic_v<T> || std::is_enum_v<T>>
+{
+    static_assert(!std::is_const_v<T> && !std::is_reference_v<T>
+                  && !std::is_pointer_v<T>);
+};
+
+//! Get the appropriate size_type for an integer or OpaqueId
+template<class T>
+struct MakeSize : std::make_unsigned_t<T>
+{
+};
+
+//!@}
+
+//---------------------------------------------------------------------------//
+//!@{
+//! \name Type trait values for use by downstream code
+
 //! True if a type can be copied from host/device without UB
 template<class T>
 constexpr inline bool is_trivially_copyable_v = IsTriviallyCopyable<T>::value;
+
+//! Whether a base type should automatically \c ldg: default to false
+template<class T>
+constexpr inline bool is_auto_ldg_v = IsAutoLdg<T>::value;
 
 //! True if an object (functor) is compatible with kernel launchers
 template<class F>
@@ -165,12 +196,6 @@ constexpr inline bool is_launchable_v
     = (is_trivially_copyable_v<F> || CELERITAS_USE_HIP
        || CELER_COMPILER == CELER_COMPILER_CLANG)
       && !std::is_pointer_v<F> && !std::is_reference_v<F>;
-
-//! Get the appropriate size_type for an integer or OpaqueId
-template<class T>
-struct MakeSize : std::make_unsigned_t<T>
-{
-};
 
 //! Get the unsigned integer corresponding to an ID's capacity
 template<class T>
@@ -191,12 +216,14 @@ char const* to_cstring(UnitSystem);
 UnitSystem to_unit_system(std::string const& s);
 
 //---------------------------------------------------------------------------//
+// LITERALS
+//---------------------------------------------------------------------------//
 /*!
  * \name User-defined literals for Celeritas scalar types
  */
 namespace literals
 {
-//---------------------------------------------------------------------------//
+
 //! Convert a literal to the configured \c real_type
 CELER_CONSTEXPR_FUNCTION real_type operator""_r(long double value)
 {
