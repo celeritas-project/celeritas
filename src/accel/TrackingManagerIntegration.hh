@@ -22,7 +22,8 @@ namespace celeritas
  *   manager to your physics list.
  * - Use \c SetOptions to set up options before \c G4RunManager::Initialize:
  *   usually in \c main for simple applications.
- * - Call \c BeginOfRunAction and \c EndOfRunAction from \c UserRunAction
+ * - Automatic Geant4 state hooks initialize and finalize Celeritas during
+ *   the run lifecycle.
  *
  * See further documentation in \c celeritas::IntegrationBase.
  */
