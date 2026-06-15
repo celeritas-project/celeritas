@@ -87,11 +87,29 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
 
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;
-    std::visit(
-        [&imported](auto const& physics_source_opts) {
-            setup::physics_from(physics_source_opts, imported);
-        },
-        si.physics_import);
+    std::visit(Overload{
+                   [&imported](inp::PhysicsFromFile const& pff) {
+                       setup::physics_from(pff, imported);
+                   },
+                   [&imported, &si](inp::PhysicsFromGeant& pfg) {
+                       // Adjust Geant4 data selection based on physics options
+                       CELER_ASSERT(si.geant_setup);
+                       GeantImportDataSelection::Flags selection
+                           = GeantImportDataSelection::em_basic;
+                       if (si.geant_setup->muon || si.geant_setup->mucf_physics)
+                       {
+                           selection |= GeantImportDataSelection::em_ex;
+                       }
+                       if (si.geant_setup->optical)
+                       {
+                           selection |= GeantImportDataSelection::optical;
+                       }
+                       pfg.data_selection.particles = selection;
+                       pfg.data_selection.processes = selection;
+                       setup::physics_from(pfg, imported);
+                   },
+               },
+               si.physics_import);
 
     // Load from external Geant4 data files
     setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);

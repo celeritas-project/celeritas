@@ -227,25 +227,13 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         CELER_VALIDATE(
             !si.geant_setup->optical == !ri.optical,
             << R"(optical setup options require optical physics to be enabled and vice versa)");
-
-        inp::PhysicsFromGeant geant_import;
-        GeantImportDataSelection::Flags selection
-            = GeantImportDataSelection::em_basic;
-        if (si.geant_setup->muon || si.geant_setup->mucf_physics)
-        {
-            selection |= GeantImportDataSelection::em_ex;
-        }
-        if (si.geant_setup->optical)
-        {
-            selection |= GeantImportDataSelection::optical;
-        }
-        geant_import.data_selection.particles = selection;
-        geant_import.data_selection.processes = selection;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
             << "piecewise polynomial spline order cannot be set if "
                "linear or cubic spline interpolation is enabled");
+
+        inp::PhysicsFromGeant geant_import;
         geant_import.data_selection.interpolation.type = ri.interpolation;
         geant_import.data_selection.interpolation.order = ri.poly_spline_order;
         si.physics_import = std::move(geant_import);
