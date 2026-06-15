@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantSd.hh"
 
+#include <memory>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4NistManager.hh>
@@ -137,11 +138,19 @@ TEST_F(SimpleCmsTest, no_change)
 TEST_F(SimpleCmsTest, recreate_local_processor)
 {
     GeantSd man = this->make_hit_manager();
+    std::weak_ptr<GeantSd::HitProcessor> previous = processor_;
+
+    auto duplicate = man.make_local_processor(StreamId{0});
+    EXPECT_EQ(processor_, duplicate);
 
     processor_.reset();
+    EXPECT_FALSE(previous.expired());
+    duplicate.reset();
+    EXPECT_TRUE(previous.expired());
 
     processor_ = man.make_local_processor(StreamId{0});
     EXPECT_TRUE(processor_);
+    EXPECT_EQ(processor_, man.make_local_processor(StreamId{0}));
 }
 
 TEST_F(SimpleCmsTest, delete_one)

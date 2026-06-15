@@ -28,6 +28,21 @@ using celeritas::detail::SensDetInserter;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Per-stream hit processor cache.
+ *
+ * The weak pointer is used only when creating or recreating a local processor.
+ * Step processing uses \c processor directly to avoid locking a weak pointer
+ * on every step iteration.
+ */
+struct GeantSd::ProcessorSlot
+{
+    std::weak_ptr<HitProcessor> weak_processor;
+    HitProcessor* processor{nullptr};
+};
+
+//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -90,7 +105,11 @@ GeantSd::GeantSd(ParticleParams const& par,
     // geant4 thread-local SDs. They MUST also be DEallocated on the same
     // thread they're created due to Geant4 thread-local allocators.
     // There must be one hit processor per thread.
-    processor_weakptrs_.resize(num_streams);
+    processor_slots_.reserve(num_streams);
+    for ([[maybe_unused]] auto i : range(num_streams))
+    {
+        processor_slots_.push_back(std::make_shared<ProcessorSlot>());
+    }
 
     // Map detector volumes
     this->setup_volumes(setup);
@@ -114,12 +133,34 @@ GeantSd::GeantSd(ParticleParams const& par,
  */
 auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
-    CELER_EXPECT(sid < processor_weakptrs_.size());
-    CELER_EXPECT(processor_weakptrs_[sid.get()].expired());
+    CELER_EXPECT(sid < processor_slots_.size());
 
-    auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_);
-    processor_weakptrs_[sid.get()] = result;
+    auto const& slot = processor_slots_[sid.get()];
+    CELER_EXPECT(slot);
+    if (auto result = slot->weak_processor.lock())
+    {
+        CELER_EXPECT(result.get() == slot->processor);
+        return result;
+    }
+
+    slot->processor = nullptr;
+
+    auto weak_slot = std::weak_ptr<ProcessorSlot>{slot};
+    SPProcessor result{
+        new HitProcessor(geant_vols_, particles_, selection_, locate_touchable_),
+        [weak_slot](HitProcessor* processor) {
+            if (auto slot = weak_slot.lock())
+            {
+                if (slot->processor == processor)
+                {
+                    slot->processor = nullptr;
+                    slot->weak_processor.reset();
+                }
+            }
+            delete processor;
+        }};
+    slot->weak_processor = result;
+    slot->processor = result.get();
     return result;
 }
 
@@ -267,11 +308,10 @@ void GeantSd::setup_particles(ParticleParams const& par)
  */
 auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
-    CELER_EXPECT(sid < processor_weakptrs_.size());
-    auto sp = processor_weakptrs_[sid.get()].lock();
-    CELER_EXPECT(sp);
-
-    return *sp;
+    CELER_EXPECT(sid < processor_slots_.size());
+    auto* result = processor_slots_[sid.get()]->processor;
+    CELER_EXPECT(result);
+    return *result;
 }
 
 //---------------------------------------------------------------------------//
