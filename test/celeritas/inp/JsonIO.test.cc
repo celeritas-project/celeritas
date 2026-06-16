@@ -173,9 +173,12 @@ TEST(JsonIO, field)
             return field;
         }();
 
-        static char const expected[]
-            = R"json({"_type":"uniform","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"strength":[0.0,0.0,1.0],"units":2})json";
-        EXPECT_JSON_ROUND_TRIP(input, expected);
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            static char const expected[]
+                = R"json({"_type":"uniform","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"strength":[0.0,0.0,1.0],"units":2})json";
+            EXPECT_JSON_ROUND_TRIP(input, expected);
+        }
     }
     {
         Field input = [] {
@@ -187,9 +190,12 @@ TEST(JsonIO, field)
             return field;
         }();
 
-        static char const expected[]
-            = R"json({"_type":"cylmap","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"field":[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0],"grid_phi":[[0.0,"tr"],[1.0,"tr"]],"grid_r":[0.0,1.0],"grid_z":[-100.0,100.0]})json";
-        EXPECT_JSON_ROUND_TRIP(input, expected);
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            static char const expected[]
+                = R"json({"_type":"cylmap","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"field":[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0],"grid_phi":[[0.0,"tr"],[1.0,"tr"]],"grid_r":[0.0,1.0],"grid_z":[-100.0,100.0]})json";
+            EXPECT_JSON_ROUND_TRIP(input, expected);
+        }
     }
     {
         Field input = [] {
@@ -206,9 +212,12 @@ TEST(JsonIO, field)
             return field;
         }();
 
-        static char const expected[]
-            = R"json({"_type":"cartmap","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"field":[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0],"x":{"max":10.0,"min":-10.0,"num":2},"y":{"max":10.0,"min":-10.0,"num":2},"z":{"max":10.0,"min":-10.0,"num":2}})json";
-        EXPECT_JSON_ROUND_TRIP(input, expected);
+        if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
+        {
+            static char const expected[]
+                = R"json({"_type":"cartmap","driver_options":{"_format":"field-driver","_units":"cgs","_version":"0.7.0","delta_chord":0.025,"delta_intersection":1e-05,"epsilon_rel_max":0.001,"epsilon_step":1e-05,"errcon":0.0001,"max_nsteps":100,"max_stepping_decrease":0.1,"max_stepping_increase":5.0,"max_substeps":10,"minimum_step":1.0000000000000002e-06,"pgrow":-0.2,"pshrink":-0.25,"safety":0.9},"field":[0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0],"x":{"max":10.0,"min":-10.0,"num":2},"y":{"max":10.0,"min":-10.0,"num":2},"z":{"max":10.0,"min":-10.0,"num":2}})json";
+            EXPECT_JSON_ROUND_TRIP(input, expected);
+        }
     }
 }
 
