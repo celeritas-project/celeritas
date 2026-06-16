@@ -12,6 +12,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/em/data/SeltzerBergerData.hh"
 #include "celeritas/mat/ElementView.hh"
 
 namespace celeritas
@@ -44,12 +45,8 @@ namespace detail
  * \f$ k / E = 0 \f$) and is 0 at the tip of the spectrum where \f$ k / E \to 1
  * \f$.
  *
- * The correction factor is described in:
- *
- *   Kim, Longhuan, R. H. Pratt, S. M. Seltzer, and M. J. Berger. "Ratio of
- *   Positron to Electron Bremsstrahlung Energy Loss: An Approximate Scaling
- *   Law." Physical Review A 33, no. 5 (May 1, 1986): 3002-9.
- *   https://doi.org/10.1103/PhysRevA.33.3002.
+ * The correction factor is described in \citet{kim-ratiopositron-1986,
+ https://doi.org/10.1103/PhysRevA.33.3002 } .
  */
 class SBPositronXsCorrector
 {
