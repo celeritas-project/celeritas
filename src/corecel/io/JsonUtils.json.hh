@@ -90,9 +90,9 @@
 #define CELER_JSON_LOAD_VARIANT(OBJ, VALUE, TAG, TYPE) \
     do                                                 \
     {                                                  \
-        if (OBJ.at("_type") == #TAG)                   \
+        if ((OBJ).at("_type") == #TAG)                 \
         {                                              \
-            VALUE = OBJ.get<TYPE>();                   \
+            VALUE = (OBJ).get<TYPE>();                 \
             return;                                    \
         }                                              \
     } while (0)
