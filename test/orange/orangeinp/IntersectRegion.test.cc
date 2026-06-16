@@ -2654,6 +2654,37 @@ TEST_F(TetTest, soft_degenerate)
 }
 
 //---------------------------------------------------------------------------//
+// TOROID
+//---------------------------------------------------------------------------//
+using ToroidTest = IntersectRegionTest;
+
+TEST_F(ToroidTest, errors)
+{
+    Real3 o = {0, 0, 0};
+    // Nonpositive radii
+    EXPECT_THROW(Toroid(o, -1, 2, 3), RuntimeError);
+    EXPECT_THROW(Toroid(o, 2, -1, 3), RuntimeError);
+    EXPECT_THROW(Toroid(o, 2, 1, -1), RuntimeError);
+    // Degenerate toroid (xy radius > toroid major radius)
+    EXPECT_THROW(Toriod(o, 1, 2, 3), RuntimeError);
+}
+
+TEST_F(ToroidTest, standard)
+{
+    Real3 o = {1, 2, 3};
+    auto result = this->test(Toroid(o, 2, 1, 1));
+
+    static char const expected_node[] = "-0";
+    static char const* expected_surfaces[]
+        = {"Toroid: r=2, a=1, b=1, at o={1,2,3}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-2, -1, 2}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{4, 5, 4}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
 }  // namespace celeritas
