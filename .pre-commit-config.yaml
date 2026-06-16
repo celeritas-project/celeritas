@@ -4,6 +4,7 @@ repos:
     hooks:
     - id: check-added-large-files
       args: ['--maxkb=100']
+      exclude: "example/larceler/dune10kt-addopdet.patch"
     - id: check-case-conflict
     - id: check-merge-conflict
     - id: check-shebang-scripts-are-executable
@@ -38,6 +39,7 @@ repos:
     rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a # v2.4.2, 5 Mar 2026
     hooks:
     - id: codespell
+      exclude: '\.(diff|patch)$'
 
   # TODO: licensing
   # see https://github.com/celeritas-project/celeritas/issues/1763

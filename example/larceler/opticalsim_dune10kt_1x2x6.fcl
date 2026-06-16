@@ -1,0 +1,52 @@
+//---------------------------------------------------------------------------//
+// Job execution for optical fast simulation on DUNE 1x2x6 geometry
+//---------------------------------------------------------------------------//
+#include "services_dune.fcl"
+#include "PDFastSim_dune.fcl"
+
+process_name: opticalsimulation
+
+services:
+{
+    TFileService: { fileName: "optsim-hist.root" }
+    TimeTracker: {}
+    MemoryTracker:{}
+    RandomNumberGenerator: {}
+    FileCatalogMetadata: @local::art_file_catalog_mc
+
+    @table::dunefd_1x2x6_simulation_services
+}
+
+# Override detector geometry for consistency
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6_optical.gdml"
+services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6_optical.gdml"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6_optical.gdml"
+
+source:
+{
+    module_type: RootInput
+}
+
+outputs:
+{
+  out:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb-opticalsim.root"
+    dataTier:    "simulated"
+    compressionLevel: 1
+  }
+}
+
+physics:
+{
+    producers:
+    {
+        OpticalSim: @local::dunefd_pdfastsim
+        rns: { module_type: "RandomNumberSaver" }
+    }
+    simulate: [ rns, OpticalSim ]
+    stream:  [ out ]
+    trigger_paths: [ simulate ]
+    end_paths: [ stream ]
+}

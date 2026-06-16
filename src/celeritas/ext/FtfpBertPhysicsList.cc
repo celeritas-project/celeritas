@@ -6,14 +6,17 @@
 //---------------------------------------------------------------------------//
 #include "FtfpBertPhysicsList.hh"
 
+#include <filesystem>
 #include <memory>
 #include <G4DecayPhysics.hh>
 #include <G4EmStandardPhysics.hh>
+#include <G4EnvironmentUtils.hh>
 #include <G4HadronElasticPhysics.hh>
 #include <G4HadronPhysicsFTFP_BERT.hh>
 #include <G4IonPhysics.hh>
 #include <G4NeutronTrackingCut.hh>
 #include <G4StoppingPhysics.hh>
+#include <G4Version.hh>
 #include <G4ios.hh>
 
 #include "corecel/io/ScopedStreamRedirect.hh"
@@ -55,7 +58,31 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 
     // TODO: Add a physics constructor equivalent to G4EmExtraPhysics
 
-    // Decays
+    // Decay physics: check environment variables before loading since
+    // Geant4 11.2-11.4 crashes if null
+    static char const datavar[] = "G4LEVELGAMMADATA";
+    char const* datadir_env{nullptr};
+#if G4VERSION_NUMBER >= 1110
+    datadir_env = G4FindDataDir(datavar);
+#else
+    datadir_env = std::getenv(datavar);
+#endif
+    CELER_VALIDATE(datadir_env != nullptr,
+                   << "environment variable '" << datavar
+                   << "' is undefined: "
+                      "load 'g4photonevaporation' data");
+
+    // And 11.3 will silently produce garbage if it's null but not valid
+    {
+        namespace fs = std::filesystem;
+        fs::path datadir{datadir_env};
+        // Note: `status` follows symlink; `symlink_status` does not
+        auto stat = fs::status(datadir);
+        CELER_VALIDATE(fs::is_directory(stat),
+                       << "data environment " << datavar << '=' << datadir
+                       << " is not a directory");
+    }
+
     detail::emplace_physics<G4DecayPhysics>(*this, verbosity);
 
     // Hadron elastic scattering

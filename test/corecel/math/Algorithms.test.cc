@@ -12,6 +12,7 @@
 #include <utility>
 
 #include "corecel/Constants.hh"
+#include "corecel/cont/Array.hh"
 #include "corecel/data/ParamsDataStore.hh"
 
 #include "Algorithms.test.hh"
@@ -682,6 +683,90 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
             1, 5.55042, 1234, 123.46004995949, 1000.0000555556, 5.3851648071345};
         EXPECT_VEC_SOFT_EQ(expected_hypot, host_output.hypot[threads]);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+//! The accessor returns a wrapper for checking short circuiting
+class CheckedArray
+{
+  public:
+    using Bool3 = Array<bool, 3>;
+    struct IndexRef;
+
+    CheckedArray(Bool3 vals) : vals_{vals} { checked_.fill(false); }
+
+    CheckedArray() : CheckedArray(Bool3{}) {}
+
+    inline IndexRef operator[](size_type i) const;
+
+    Bool3 const& checked() const { return checked_; }
+
+  private:
+    Bool3 vals_;
+    mutable Bool3 checked_;
+};
+
+//! Lazily evaluate, marking when we're accessed
+struct CheckedArray::IndexRef
+{
+    CheckedArray const& arr;
+    size_type idx{};
+
+    // Implicit operator bool
+    operator bool() const
+    {
+        CELER_EXPECT(idx < arr.vals_.size());
+        arr.checked_[idx] = true;
+        return arr.vals_[idx];
+    }
+};
+
+auto CheckedArray::operator[](size_type i) const -> IndexRef
+{
+    return IndexRef{*this, i};
+}
+
+TEST(LogicalTest, all)
+{
+    using Bool3 = CheckedArray::Bool3;
+
+    CheckedArray arr{};
+
+    // None are true
+    EXPECT_FALSE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // One is false, but all are checked anyway (no short circuiting)
+    arr = {{false, true, false}};
+    EXPECT_FALSE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // All are true; all are checked
+    arr = {{true, true, true}};
+    EXPECT_TRUE(logical_all(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+}
+
+TEST(LogicalTest, any)
+{
+    using Bool3 = CheckedArray::Bool3;
+
+    CheckedArray arr{};
+
+    // None are true
+    EXPECT_FALSE(logical_any(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // One is true, but all are checked anyway (no short circuiting)
+    arr = {{false, true, false}};
+    EXPECT_TRUE(logical_any(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
+
+    // All are true; all are checked
+    arr = {{true, true, true}};
+    EXPECT_TRUE(logical_any(arr[0], arr[1], arr[2]));
+    EXPECT_EQ(Bool3(true, true, true), arr.checked());
 }
 
 //---------------------------------------------------------------------------//

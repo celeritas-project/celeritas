@@ -1,0 +1,19 @@
+//---------------------------------------------------------------------------//
+// Configuration file for the PDSimAna module
+//---------------------------------------------------------------------------//
+
+BEGIN_PROLOG
+
+# Module labels:
+# - "PDFastSim" : default LArSoft jobs that include PDFastSimPAR
+# - "OpticalSim": example/larceler/*optical*.fcl jobs
+PDSimAna:
+{
+    module_type: PDSimAna
+    SimulationLabel: "IonAndScint" # SimEnergyDeposit
+    ModuleLabel: "OpticalSim" # OpdetBacktrackerRecord
+
+    # TODO: Possibly add runtime histogram definitions
+}
+
+END_PROLOG

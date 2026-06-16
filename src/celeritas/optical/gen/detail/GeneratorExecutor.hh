@@ -107,11 +107,17 @@ CELER_FUNCTION void GeneratorExecutor::operator()(TrackSlotId tid) const
         }
         else
         {
-            // Initialize a temporary geometry state at the pre-step point and
+            // Initialize a temporary geometry state at the step midpoint and
             // use it to find the optical material ID
             auto geo = vacancy.geometry();
-            geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos,
-                                      {1, 0, 0}};
+            Real3 avg_pos;
+            for (auto i : range(3))
+            {
+                avg_pos[i] = (dist.points[StepPoint::pre].pos[i]
+                              + dist.points[StepPoint::post].pos[i])
+                             * 0.5_r;
+            }
+            geo = GeoTrackInitializer{avg_pos, {1, 0, 0}};
             dist.material = vacancy.material_record(geo).material_id();
         }
     }
