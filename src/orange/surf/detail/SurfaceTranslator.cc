@@ -210,6 +210,8 @@ Toroid SurfaceTranslator::operator(Toroid const& other) const
         origin, other.major_radius(), other.ellipse_xy_radius(),
             other.ellipse_z_radius()
     }
+
+    return tor;
 }
 
 //---------------------------------------------------------------------------//

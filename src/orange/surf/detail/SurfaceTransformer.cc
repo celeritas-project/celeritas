@@ -21,6 +21,7 @@
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
+#include "../Toroid.hh"
 
 namespace celeritas
 {
