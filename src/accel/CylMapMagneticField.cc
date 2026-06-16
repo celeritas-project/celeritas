@@ -102,7 +102,7 @@ inp::CylMapField MakeCylMapFieldInput(G4Field const& field,
     // transformation)
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const& pos,
-                              real_type cur_bfield[3]) {
+                              double cur_bfield[3]) {
         auto bfield_native = native_value_from(
             make_quantity_array<units::ClhepField>(bfield));
         double const phi = std::atan2(pos[1], pos[0]);

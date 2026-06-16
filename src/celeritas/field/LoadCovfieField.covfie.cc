@@ -55,8 +55,7 @@ using file_rz_t
  *   grid_index = scale * world_pos + translation
  * so world_pos_min = -t/s and world_pos_max = (n - 1 - t) / s.
  */
-inp::AxisGrid<real_type>
-from_affine(float scale, float translation, std::size_t n)
+inp::AxisGrid<double> from_affine(float scale, float translation, std::size_t n)
 {
     CELER_VALIDATE(scale > 0,
                    << "covfie affine transform has non-positive scale factor "
@@ -65,7 +64,7 @@ from_affine(float scale, float translation, std::size_t n)
                    << "covfie field grid axis is degenerate with " << n
                    << " points");
 
-    inp::AxisGrid<real_type> result;
+    inp::AxisGrid<double> result;
     result.min = -translation / scale;
     result.max = (static_cast<float>(n) - 1.f - translation) / scale;
     result.num = static_cast<size_type>(n);

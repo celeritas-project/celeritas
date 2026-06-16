@@ -47,7 +47,7 @@ namespace detail
  */
 template<typename PositionCalc, typename FieldConverter>
 inline void setup_and_sample_field(G4Field const& g4field,
-                                   real_type* field_data,
+                                   double* field_data,
                                    Array<size_type, 4> const& dims,
                                    PositionCalc const& calc_position,
                                    FieldConverter const& convert_field)
