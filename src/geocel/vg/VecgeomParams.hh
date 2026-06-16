@@ -68,9 +68,6 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
   public:
-    // Whether surface tracking is being used
-    static bool use_surface_tracking();
-
     // Whether VecGeom GDML is being used to load the geometry
     static bool use_vgdml();
 
@@ -122,6 +119,9 @@ class VecgeomParams final : public GeoParamsInterface,
     // Get volume metadata for VG logical volumes
     inline ImplVolumeMap const& impl_volumes() const final;
 
+    // Get structural volume metadata
+    SPConstVolumeParams const& volumes() const final { return volumes_; }
+
     // Get volume metadata for VG placed volumes
     inline ImplVolInstanceMap const& impl_volume_instances() const;
 
@@ -148,6 +148,7 @@ class VecgeomParams final : public GeoParamsInterface,
 
     // Geant4 model used to construct
     std::shared_ptr<GeantGeoParams const> geant_geo_;
+    SPConstVolumeParams volumes_;
 
     // Host metadata/access
     LabelIdMultiMap<ImplVolumeId> impl_volumes_;
@@ -160,8 +161,6 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //// HELPER FUNCTIONS ////
 
-    // Construct VecGeom tracking data and copy to GPU
-    void build_surface_tracking();
     void build_volume_tracking();
 };
 

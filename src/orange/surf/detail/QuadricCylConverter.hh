@@ -107,9 +107,10 @@ QuadricCylConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
     auto const inv_norm = 2 / (second[to_int(U)] + second[to_int(V)]);
 
     // Calculate origin from first-order coefficients
+    using namespace celeritas::literals;
     Real3 origin{0, 0, 0};
-    origin[to_int(U)] = real_type{-0.5} * inv_norm * sq.first()[to_int(U)];
-    origin[to_int(V)] = real_type{-0.5} * inv_norm * sq.first()[to_int(V)];
+    origin[to_int(U)] = -0.5_r * inv_norm * sq.first()[to_int(U)];
+    origin[to_int(V)] = -0.5_r * inv_norm * sq.first()[to_int(V)];
 
     real_type radius_sq = ipow<2>(origin[to_int(U)])
                           + ipow<2>(origin[to_int(V)]) - sq.zeroth() * inv_norm;
@@ -121,7 +122,7 @@ QuadricCylConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
     }
 
     // Clear potential signed zeros before returning
-    origin += real_type{0};
+    origin += 0_r;
     return CylAligned<T>::from_radius_sq(origin, radius_sq);
 }
 

@@ -19,34 +19,32 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "geocel/GeantUtils.hh"
-#include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/ext/GeantSd.hh"
+#include "celeritas/ext/GeantSd.hh"  // IWYU pragma: keep
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/ext/GeantTrackView.hh"
-#include "celeritas/ext/GeantUnits.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
-#include "celeritas/global/CoreParams.hh"
+#include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/inp/Control.hh"
-#include "celeritas/io/EventWriter.hh"
-#include "celeritas/io/JsonEventWriter.hh"
 #include "celeritas/io/OffloadWriter.hh"
-#include "celeritas/io/RootEventWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
-#include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 
 #include "SetupOptions.hh"
@@ -134,7 +132,7 @@ void trace(StepperResult const& track_counts)
             }                                                       \
             else                                                    \
             {                                                       \
-                CELER_RUNTIME_THROW(                                \
+                CELER_RUNTIME_FAIL(                                 \
                     ::celeritas::RuntimeError::validate_err_str,    \
                     celer_runtime_msg_.str(),                       \
                     #COND);                                         \
@@ -186,6 +184,15 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (auto const& hit_manager = params.hit_manager())
     {
         hit_processor_ = hit_manager->make_local_processor(stream_id);
+        track_reconstruction_ = hit_processor_->track_reconstruction();
+    }
+    if (!track_reconstruction_)
+    {
+        using VecConstPD = GeantTrackReconstruction::VecParticle;
+        auto const& offload = params.OffloadParticles();
+        track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
+            VecConstPD(offload.begin(), offload.end()),
+            GeantTrackReconstruction::make_g4step());
     }
 
     // Create stepper
@@ -220,8 +227,9 @@ void LocalTransporter::InitializeEvent(int id)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
+    CELER_EXPECT(id != event_id_);
 
-    event_id_ = id_cast<UniqueEventId>(id);
+    event_id_ = id;
     ++run_accum_.events;
 
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
@@ -229,18 +237,15 @@ void LocalTransporter::InitializeEvent(int id)
         if (!(G4Threading::IsMultithreadedApplication()
               && G4MTRunManager::SeedOncePerCommunication()))
         {
-            // Initialize the Geant event reconstruction.
-
             // Since Geant4 schedules events dynamically, reseed the Celeritas
             // RNGs using the Geant4 event ID for reproducibility. This
             // guarantees that an event can be reproduced given the event ID.
-            step_->reseed(event_id_);
+            step_->reseed(id_cast<UniqueEventId>(event_id_));
         }
     }
-    if (hit_processor_)
-    {
-        hit_processor_->track_reconstruction().init_event();
-    }
+
+    // Initialize Geant4 event reconstruction and primary ID mapping
+    track_reconstruction_->init_event();
 }
 
 //---------------------------------------------------------------------------//
@@ -253,13 +258,36 @@ void LocalTransporter::Push(G4Track& g4track)
 
     ScopedProfiling profile_this{"push"};
 
-    GeantTrackView gtv{g4track};
+    // Always check the event ID when pushing the first EM track, since the
+    // GeantTrackReconstruction needs to be initialized before we "acquire" the
+    // track
+    if (CELER_UNLIKELY(buffer_.empty()))
+    {
+        if (CELER_UNLIKELY(!event_manager_))
+        {
+            // Cache the event manager
+            event_manager_ = G4EventManager::GetEventManager();
+            CELER_ASSERT(event_manager_);
+        }
 
+        G4Event const* event = event_manager_->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        auto event_id = event->GetEventID();
+        CELER_ASSERT(event_id >= 0);
+        if (event_id_ != event_id)
+        {
+            // Reseed (if applicable) and reset the track reconstruction
+            this->InitializeEvent(event_id);
+        }
+    }
+    CELER_ASSERT(event_id_ >= 0);
+
+    GeantTrackView gtv{g4track};
     if (!is_inside(bbox_,
                    static_array_cast<real_type>(native_value_from(gtv.pos()))))
     {
-        // Primary may have been created by a particle generator outside the
-        // geometry
+        // Primary may have been created outside the GPU geometry extent (which
+        // may not match the generator's extent *or* the CPU geant4 extent)
         CELER_LOG_LOCAL(error)
             << "Discarding track outside world bounds: " << gtv.energy()
             << " from " << gtv.particle().name() << " at " << gtv.pos()
@@ -272,21 +300,14 @@ void LocalTransporter::Push(G4Track& g4track)
 
     Primary track;
 
-    // Generate Celeritas-specific PrimaryID and capture user info
-    if (hit_processor_)
-    {
-        track.primary_id
-            = hit_processor_->track_reconstruction().acquire(g4track);
-    }
-
     track.energy = gtv.energy();
     track.particle_id = particles_->find(gtv.particle().pdg());
     track.position = static_array_cast<real_type>(native_value_from(gtv.pos()));
     track.direction = static_array_cast<real_type>(gtv.dir());
     track.time = static_cast<real_type>(native_value_from(gtv.time()));
     track.weight = gtv.weight();
-    track.primary_id = celeritas::id_cast<PrimaryId>(
-        track.primary_id.unchecked_get() + g4track.GetTrackID());
+    // Generate Celeritas-specific PrimaryID and capture user info
+    track.primary_id = track_reconstruction_->acquire(g4track);
 
     CELER_VALIDATE(track.particle_id,
                    << "cannot offload '" << gtv.particle().name()
@@ -312,40 +333,16 @@ void LocalTransporter::Push(G4Track& g4track)
 void LocalTransporter::Flush()
 {
     CELER_EXPECT(*this);
-    if (buffer_.empty())
-    {
-        return;
-    }
 
     ScopedProfiling profile_this("flush");
 
-    if (event_manager_ || !event_id_)
-    {
-        if (CELER_UNLIKELY(!event_manager_))
-        {
-            // Save the event manager pointer, thereby marking that
-            // *subsequent* events need to have their IDs checked as well
-            event_manager_ = G4EventManager::GetEventManager();
-            CELER_ASSERT(event_manager_);
-        }
-
-        G4Event const* event = event_manager_->GetConstCurrentEvent();
-        CELER_ASSERT(event);
-        if (event_id_ != id_cast<UniqueEventId>(event->GetEventID()))
-        {
-            // The event ID has changed: reseed it
-            this->InitializeEvent(event->GetEventID());
-        }
-    }
-    CELER_ASSERT(event_id_);
-
-    if (celeritas::device())
+    if (celeritas::device() && !buffer_.empty())
     {
         CELER_LOG_LOCAL(debug)
             << "Transporting " << buffer_.size() << " tracks ("
             << units::ClhepEnergy{buffer_accum_.energy}
-            << " cumulative kinetic energy) from event "
-            << event_id_.unchecked_get() << " with Celeritas";
+            << " cumulative kinetic energy) from event " << event_id_
+            << " with Celeritas";
     }
     if (buffer_accum_.lost_primaries > 0)
     {
@@ -354,7 +351,7 @@ void LocalTransporter::Flush()
             << " cumulative kinetic energy from "
             << buffer_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
-            << event_id_.unchecked_get();
+            << event_id_;
     }
 
     if (dump_primaries_)
@@ -363,6 +360,26 @@ void LocalTransporter::Flush()
         (*dump_primaries_)(buffer_);
     }
 
+    if (!buffer_.empty())
+    {
+        // Run Celeritas
+        this->flush_impl();
+    }
+    else
+    {
+        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
+        buffer_accum_ = {};
+    }
+
+    // Clear any saved user information but do *not* reset the primary counter
+    track_reconstruction_->clear();
+
+    CELER_ENSURE(buffer_accum_.energy == 0);
+}
+
+void LocalTransporter::flush_impl()
+{
+    CELER_EXPECT(!buffer_.empty());
     if (run_accum_.steps == 0)
     {
         CELER_LOG_LOCAL(status)
@@ -380,6 +397,7 @@ void LocalTransporter::Flush()
 
     // Copy buffered tracks to device and transport the first step
     auto track_counts = (*step_)(make_span(buffer_));
+    ++run_accum_.flushes;
     run_accum_.steps += track_counts.active;
     run_accum_.primaries += buffer_.size();
     run_accum_.lost_primaries += buffer_accum_.lost_primaries;
@@ -412,10 +430,9 @@ void LocalTransporter::Flush()
         if (num_hits > 0)
         {
             CELER_LOG_LOCAL(debug) << "Reconstituted " << num_hits
-                                   << " hits for event " << event_id_.get();
+                                   << " hits for event " << event_id_;
             run_accum_.hits += num_hits;
         }
-        hit_processor_->track_reconstruction().clear();
     }
 }
 
@@ -445,7 +462,8 @@ void LocalTransporter::Finalize()
             msg << " and " << num_optical_steps << " optical steps (over "
                 << accum.step_iters << " step iterations)";
         }
-        msg << " from " << run_accum_.primaries << " offloaded tracks over "
+        msg << " from " << run_accum_.flushes << " flushes with "
+            << run_accum_.primaries << " offloaded tracks over "
             << run_accum_.events << " events, generating " << run_accum_.hits
             << " hits";
     }

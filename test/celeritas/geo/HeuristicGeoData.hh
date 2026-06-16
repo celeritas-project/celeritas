@@ -23,10 +23,6 @@ namespace celeritas
 namespace test
 {
 
-constexpr bool using_vecgeom_solid = !CELERITAS_VECGEOM_SURFACE
-                                     && CELERITAS_CORE_GEO
-                                            == CELERITAS_CORE_GEO_VECGEOM;
-
 //---------------------------------------------------------------------------//
 // FORWARD DECLARATIONS
 //---------------------------------------------------------------------------//
@@ -59,7 +55,8 @@ struct HeuristicGeoScalars
     real_type log_min_step{-16.11809565095832};  // 1 nm (1e-7)
     real_type log_max_step{2.302585092994046};  // 10 cm (1e2)
 
-    static constexpr real_type safety_tol = using_vecgeom_solid ? 1e-6 : 1.e-9;
+    static constexpr real_type safety_tol
+        = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM) ? 1e-6 : 1.e-9;
 
     // High limit prevents truncation to safety distance
     real_type geom_limit = 5e-8 * units::millimeter;
@@ -155,13 +152,14 @@ inline void resize(HeuristicGeoStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(params);
     CELER_EXPECT(size > 0);
+    using namespace celeritas::literals;
     resize(&state->geometry, params.geometry, size);
     resize(&state->rng, params.rng, StreamId{0}, size);
     resize(&state->status, size);
     fill(LifeStatus::unborn, &state->status);
 
     resize(&state->accum_path, params.s.num_volumes);
-    fill(real_type{0}, &state->accum_path);
+    fill(0.0_r, &state->accum_path);
 }
 
 //---------------------------------------------------------------------------//

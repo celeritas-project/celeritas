@@ -61,7 +61,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -934,14 +933,13 @@ std::vector<ImportVolume> import_volumes()
 {
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+    CELER_ASSERT(geo->volumes());
 
-    VolumeParams volume_params{geo->make_model_input().volumes};
-
-    auto const& volumes = volume_params.volume_labels();
-    std::vector<ImportVolume> result(volumes.size());
+    auto const& volume_labels = geo->volumes()->volume_labels();
+    std::vector<ImportVolume> result(volume_labels.size());
     size_type count{0};
 
-    for (auto vol_id : range(VolumeId{volumes.size()}))
+    for (auto vol_id : range(VolumeId{volume_labels.size()}))
     {
         auto* g4lv = geo->id_to_geant(vol_id);
         if (!g4lv)
@@ -960,7 +958,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        volume.name = to_string(volume_params.volume_labels().at(vol_id));
+        volume.name = to_string(volume_labels.at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;
@@ -1008,7 +1006,6 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
     {
         CELER_LOG(status) << "Transferring data from Geant4";
         ScopedGeantExceptionHandler scoped_exceptions;
-        ScopedTimeLog scoped_time;
 
         auto geo_to_opt = std::make_shared<GeoOpticalIdMap>();
 

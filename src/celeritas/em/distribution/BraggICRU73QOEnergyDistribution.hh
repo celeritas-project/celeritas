@@ -118,12 +118,13 @@ CELER_FUNCTION auto BraggICRU73QOEnergyDistribution::operator()(Engine& rng)
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
     real_type energy;
+    RejectionSampler<> reject{};
     do
     {
         // Sample 1/E^2 from Emin to Emax
         energy = sample_energy(rng);
-    } while (RejectionSampler<>(
-        1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy)(rng));
+    } while (
+        reject(1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy, rng));
 
     CELER_ENSURE(energy > 0);
     return Energy{energy};

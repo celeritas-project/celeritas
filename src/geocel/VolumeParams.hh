@@ -150,16 +150,6 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     ParamsDataStore<VolumeParamsData> data_;
 };
 
-//---------------------------------------------------------------------------//
-// HACKY GLOBAL VARIABLES DURING REFACTORING
-//---------------------------------------------------------------------------//
-// Set non-owning reference to global canonical volumes
-void global_volumes(std::shared_ptr<VolumeParams const> const&);
-
-// Global canonical volumes: may be nullptr
-std::weak_ptr<VolumeParams const> const& global_volumes();
-
-//---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Write volume hierarchy to a stream (defined in IO.json.cc)
@@ -238,7 +228,7 @@ CELER_FORCEINLINE VolumeView VolumeParams::get(VolumeId v_id) const
  */
 auto VolumeParams::children(VolumeId v_id) const -> SpanVolInst
 {
-    return this->get(v_id).children();
+    return remove_ldg_wrapper(this->get(v_id).children());
 }
 
 //---------------------------------------------------------------------------//
@@ -268,7 +258,7 @@ auto VolumeParams::offset(VolumeInstanceId vi_id) const
 //---------------------------------------------------------------------------//
 auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
 {
-    return this->get(v_id).parents();
+    return remove_ldg_wrapper(this->get(v_id).parents());
 }
 GeoMatId VolumeParams::material(VolumeId v_id) const
 {

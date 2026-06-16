@@ -28,6 +28,7 @@ fi
 prefix="@CELER_INSTALL_PREFIX@"
 
 print_var "CMAKE_PREFIX_PATH" "${prefix}"
+print_var "CELERITAS_DIR" "${prefix}"
 print_var "@CELER_LDVAR@" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
 print_var "CET_PLUGIN_PATH" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
 print_var "FHICL_FILE_PATH" "${prefix}/@CELERITAS_INSTALL_FHICLDIR@"

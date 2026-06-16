@@ -18,9 +18,8 @@
 #include "corecel/data/Collection.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/BoundingBox.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -183,13 +182,22 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    SPConstVolumes volumes = celeritas::global_volumes().lock();
+    SPConstVolumes volumes = geo->volumes();
     if (!volumes)
     {
-        CELER_LOG(debug) << "Constructing global volumes from GeantGeoParams";
-        volumes
-            = std::make_shared<VolumeParams>(geo->make_model_input().volumes);
-        celeritas::global_volumes(volumes);
+        CELER_LOG(debug) << "Constructing canonical volumes from "
+                            "GeantGeoParams";
+        auto model_input = geo->make_model_input();
+        auto const& model_volumes = model_input.volumes;
+        if (auto const* sp = std::get_if<SPConstVolumes>(&model_volumes))
+        {
+            volumes = *sp;
+        }
+        else
+        {
+            volumes = std::make_shared<VolumeParams>(
+                std::get<inp::Volumes>(model_volumes));
+        }
     }
     return OrangeParams::from_geant(geo, std::move(volumes));
 }
@@ -202,7 +210,6 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_json(std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
-    ScopedTimeLog scoped_time;
     ScopedProfiling profile_this{"orange-load-json"};
 
     OrangeInput result;
@@ -235,10 +242,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     CELER_VALIDATE(input, << "input geometry is incomplete");
 
     ScopedProfiling profile_this{"orange-construct"};
-    ScopedMem record_mem("orange.finalize_runtime");
     CELER_LOG(debug) << "Merging runtime data"
                      << (celeritas::device() ? " and copying to GPU" : "");
-    ScopedTimeLog scoped_time;
 
     // First, preprocess the input logic expressions to match the tracker
     detail::convert_logic(input, orange_tracking_logic);
@@ -352,7 +357,7 @@ inp::Model OrangeParams::make_model_input() const
     CELER_LOG(info) << R"(Generating fake model input for unit tests)";
 
     inp::Model result;
-    inp::Volumes& v = result.volumes;
+    inp::Volumes& v = std::get<inp::Volumes>(result.volumes);
     v.volumes.resize(impl_vol_labels_.size());
     v.volume_instances.resize(v.volumes.size());
 

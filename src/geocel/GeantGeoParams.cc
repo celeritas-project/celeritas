@@ -33,7 +33,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/sys/ScopedMem.hh"
+#include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/inp/Model.hh"
 
@@ -42,6 +42,7 @@
 #include "GeoOpticalIdMap.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
+#include "VolumeParams.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
 #include "g4/detail/GeantGeoNavCollection.hh"
@@ -679,8 +680,6 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 std::shared_ptr<GeantGeoParams>
 GeantGeoParams::from_gdml(std::string const& filename)
 {
-    ScopedMem record_mem("GeantGeoParams.construct");
-
     ScopedGeantLogger logger(celeritas::world_logger());
     ScopedGeantExceptionHandler exception_handler;
 
@@ -741,7 +740,6 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     CELER_EXPECT(world);
     data_.world = const_cast<G4VPhysicalVolume*>(world);
 
-    ScopedMem record_mem("GeantGeoParams.construct");
     ScopedProfiling profile_this{"geant-geo-construct"};
 
     // Verify consistency of the world volume
@@ -792,7 +790,18 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
 
     this->build_metadata();
 
+    // Construct canonical volume metadata once and reuse it downstream.
+    {
+        inp::Volumes volumes;
+        volumes.volumes = make_inp_volumes(*this);
+        volumes.volume_instances = make_inp_volume_instances(*this);
+        volumes.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
+        volume_params_
+            = std::make_shared<VolumeParams const>(std::move(volumes));
+    }
+
     CELER_ENSURE(impl_volumes_);
+    CELER_ENSURE(volume_params_);
     CELER_ENSURE(data_);
 }
 
@@ -807,6 +816,7 @@ GeantGeoParams::~GeantGeoParams()
         auto* geo_man = G4GeometryManager::GetInstance();
         if (geo_man)
         {
+            CELER_LOG(debug) << "Reopening geometry";
             geo_man->OpenGeometry(this->world());
         }
         else
@@ -830,16 +840,7 @@ inp::Model GeantGeoParams::make_model_input() const
     inp::Model result;
 
     result.geometry = this->world();
-    result.volumes = [this] {
-        inp::Volumes result;
-
-        // Get volumes from Geant4 geometry
-        result.volumes = make_inp_volumes(*this);
-        result.volume_instances = make_inp_volume_instances(*this);
-        result.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
-
-        return result;
-    }();
+    result.volumes = volume_params_;
     result.surfaces = [this] {
         inp::Surfaces result;
         result.surfaces = make_inp_surfaces(*this);
@@ -956,7 +957,6 @@ BoundingBox<double> GeantGeoParams::get_clhep_bbox() const
 void GeantGeoParams::build_metadata()
 {
     CELER_EXPECT(data_.world);
-    ScopedMem record_mem("GeantGeoParams.build_metadata");
 
     // Get offsets used to map material and impl volume IDs
     data_.lv_offset = [] {

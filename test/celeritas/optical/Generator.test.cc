@@ -29,10 +29,9 @@ namespace test
 
 // Reference results:
 // - Double precision
-// - Not vecgeom surface
+// - XORWOW
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && !CELERITAS_VECGEOM_SURFACE
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -152,7 +151,9 @@ TEST_F(LArSphereGeneratorTest, primary)
     osi_.problem.capacity.tracks = 16384;
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    auto result = run();
 
     if (reference_configuration)
     {
@@ -185,7 +186,9 @@ TEST_F(LArSphereGeneratorTest, direct)
                                   ImplVolumeId{0}});
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))(make_span(inits));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(inits));
+    auto result = run();
 
     if (reference_configuration
         && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
@@ -221,7 +224,9 @@ TEST_F(LArSphereGeneratorTest, offload)
         = this->make_distributions(osi_.problem.capacity.generators);
 
     // Construct the runner and transport optical primaries
-    auto result = optical::Runner(std::move(osi_))(make_span(host_data));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(host_data));
+    auto result = run();
 
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
@@ -233,8 +238,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     if (reference_configuration)
     {
         EXPECT_EQ(51226, gen.num_generated);
-        EXPECT_EQ(53459, result.counters.steps);
-        EXPECT_EQ(15, result.counters.step_iters);
+        EXPECT_EQ(53439, result.counters.steps);
+        EXPECT_EQ(14, result.counters.step_iters);
     }
 
     // Check accumulated action times
@@ -247,13 +252,13 @@ TEST_F(LArSphereGeneratorTest, offload)
     static std::string const expected_labels[] = {
         "absorption",
         "along-step",
+        "boundary-init",
+        "boundary-post",
+        "discrete-select",
+        "generate",
         "locate-vacancies",
-        "optical-boundary-init",
-        "optical-boundary-post",
-        "optical-discrete-select",
-        "optical-generate",
-        "optical-surface-stepping",
         "pre-step",
+        "surface-physics",
         "tracking-cut",
     };
     EXPECT_VEC_EQ(expected_labels, labels);
@@ -286,7 +291,9 @@ TEST_F(DuneGeneratorTest, offload)
     CELER_ASSERT(gdd);
 
     // Construct the runner and transport the single distribution
-    auto result = optical::Runner(std::move(osi_))({&gdd, 1});
+    optical::Runner run(std::move(osi_));
+    run.insert({&gdd, 1});
+    auto result = run();
 
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(1, result.counters.generators.size());
@@ -317,6 +324,7 @@ TEST_F(WlsGeneratorTest, primary)
 
     // Construct the runner and transport optical primaries
     optical::Runner run(std::move(osi_));
+    run.insert();
     auto result = run();
 
     if (reference_configuration)
@@ -330,8 +338,7 @@ TEST_F(WlsGeneratorTest, primary)
     {
         GeneratorId gen_id(0);
         auto const& gen = result.counters.generators[gen_id.get()];
-        EXPECT_EQ("optical-wls-generate",
-                  run.params()->gen_reg()->at(gen_id)->label());
+        EXPECT_EQ("wls-generate", run.params()->gen_reg()->at(gen_id)->label());
         EXPECT_EQ(0, gen.buffer_size);
         EXPECT_EQ(0, gen.num_pending);
         if (reference_configuration)
@@ -359,17 +366,17 @@ TEST_F(WlsGeneratorTest, primary)
     static std::string const expected_labels[] = {
         "absorption",
         "along-step",
+        "boundary-init",
+        "boundary-post",
+        "discrete-select",
         "locate-vacancies",
-        "optical-boundary-init",
-        "optical-boundary-post",
-        "optical-discrete-select",
-        "optical-rayleigh",
-        "optical-surface-stepping",
-        "optical-wls-generate",
         "pre-step",
         "primary-generate",
+        "rayleigh",
+        "surface-physics",
         "tracking-cut",
         "wls",
+        "wls-generate",
         "wls2",
     };
     EXPECT_VEC_EQ(expected_labels, labels);

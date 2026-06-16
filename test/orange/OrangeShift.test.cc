@@ -12,6 +12,7 @@
 
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
 #include "orange/OrangeTrackView.hh"
 
@@ -47,10 +48,16 @@ class ShiftTrackerTest : public OrangeGeoTestBase
         track = GeoTrackInitializer{pos, dir};
     }
 
+    real_type max_step() const
+    {
+        auto const& bbox = this->params().bbox();
+        return distance(bbox.lower(), bbox.upper());
+    }
+
     void distance_to_boundary(real_type& distance)
     {
         auto track = this->make_geo_track_view();
-        distance = track.find_next_step().distance;
+        distance = track.find_next_step(this->max_step()).distance;
     }
 
     void move_to_point(real_type distance)

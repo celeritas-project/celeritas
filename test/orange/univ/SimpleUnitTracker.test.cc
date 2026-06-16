@@ -34,7 +34,7 @@ namespace test
 {
 constexpr real_type sqrt_three{constants::sqrt_three};
 constexpr real_type sqrt_two{constants::sqrt_two};
-constexpr real_type sqrt_half = sqrt_two / real_type{2};
+constexpr real_type sqrt_half = sqrt_two / 2_r;
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -623,7 +623,7 @@ TEST_F(TwoVolumeTest, normal)
         for (auto i : range(3))
         {
             expected_normal[i] = pos[i] * invnorm;
-            pos[i] = expected_normal[i] * real_type(1.5);  // radius
+            pos[i] = expected_normal[i] * 1.5_r;  // radius
         }
 
         auto actual_normal = tracker.normal(pos, LocalSurfaceId{0});
@@ -691,7 +691,7 @@ TEST_F(FieldLayersTest, cross_boundary)
         {
             // From background to volume
             auto init = tracker.cross_boundary(
-                this->make_state_crossing({0, real_type{-1.5} + eps, 0},
+                this->make_state_crossing({0, -1.5_r + eps, 0},
                                           {0, -1, 0},
                                           "world.bg",
                                           "layerbox1.py",
@@ -702,12 +702,8 @@ TEST_F(FieldLayersTest, cross_boundary)
         }
         {
             // From volume to background
-            auto init = tracker.cross_boundary(
-                this->make_state_crossing({0, real_type{-2.5} - eps, 0},
-                                          {0, -1, 0},
-                                          "layer1",
-                                          "layerbox1.my",
-                                          '+'));
+            auto init = tracker.cross_boundary(this->make_state_crossing(
+                {0, -2.5_r - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
             EXPECT_EQ("world.bg", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());

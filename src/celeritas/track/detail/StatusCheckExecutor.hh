@@ -40,14 +40,14 @@ namespace detail
  * \note This macro is defined so that the condition is still checked in
  * "release" mode, and so that checking will work on GPU.
  */
-#define CELER_FAIL_IF(COND, MSG)                               \
-    do                                                         \
-    {                                                          \
-        if (CELER_UNLIKELY((COND)))                            \
-        {                                                      \
-            CELER_PRINT_TRACK(MSG, track)                      \
-            CELER_DEBUG_THROW_(MSG ": '" #COND "'", internal); \
-        }                                                      \
+#define CELER_FAIL_IF(COND, MSG)                             \
+    do                                                       \
+    {                                                        \
+        if (CELER_UNLIKELY((COND)))                          \
+        {                                                    \
+            CELER_PRINT_TRACK(MSG, track)                    \
+            CELER_DEBUG_FAIL(MSG ": '" #COND "'", internal); \
+        }                                                    \
     } while (0)
 
 //---------------------------------------------------------------------------//

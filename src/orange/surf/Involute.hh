@@ -243,8 +243,8 @@ CELER_FUNCTION SignedSense Involute::calc_sense(Real3 const& pos) const
         theta = 2 * pi - theta;
     }
     // Count number of positive rotations around involute
-    theta += max<real_type>(real_type{0},
-                            std::floor((tmax_ + a_ - theta) / (2 * pi)))
+    using namespace celeritas::literals;
+    theta += max<real_type>(0_r, std::floor((tmax_ + a_ - theta) / (2 * pi)))
              * 2 * pi;
 
     // Calculate the displacement angle of the point

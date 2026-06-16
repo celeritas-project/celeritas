@@ -17,6 +17,8 @@
 
 namespace celeritas
 {
+using namespace celeritas::literals;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -363,9 +365,8 @@ void InteractorHostBase::check_momentum_conservation(
             parent_momentum_mag, exit_momentum_mag, default_tol * 10000);
 
         exit_momentum = make_unit_vector(exit_momentum);
-        EXPECT_SOFT_NEAR(real_type(1),
-                         dot_product(inc_direction_, exit_momentum),
-                         3 * default_tol)
+        EXPECT_SOFT_NEAR(
+            1.0_r, dot_product(inc_direction_, exit_momentum), 3 * default_tol)
             << "Incident direction: " << inc_direction_
             << "; exiting momentum direction: " << exit_momentum;
     }

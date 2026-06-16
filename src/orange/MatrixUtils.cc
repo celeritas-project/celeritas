@@ -15,6 +15,7 @@
 #include "corecel/math/SoftEqual.hh"
 
 using Mat3 = celeritas::SquareMatrixReal3;
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -172,7 +173,7 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 Mat3 make_rotation(Real3 const& ax, Turn theta)
 {
     CELER_EXPECT(is_soft_unit_vector(ax));
-    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{real_type(0.5)});
+    CELER_EXPECT(theta >= Turn{0} && theta <= Turn{0.5_r});
 
     // Axis/direction enumeration
     enum
@@ -196,7 +197,7 @@ Mat3 make_rotation(Real3 const& ax, Turn theta)
            Real3{ax[X] * ax[Z] * (1 - cost) - ax[Y] * sint,
                  ax[Y] * ax[Z] * (1 - cost) + ax[X] * sint,
                  cost + ipow<2>(ax[Z]) * (1 - cost)}};
-    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), real_type{1}));
+    CELER_ENSURE(soft_equal(std::fabs(determinant(r)), 1_r));
     return r;
 }
 

@@ -92,6 +92,13 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
 
+    // Construct unique instance ID from geometry volume path
+    auto accum = track.volumes().path_accumulator();
+    hit.unique_instance = {};
+    geometry.foreach_volume_path([&](VolumeLevelId, VolumeInstanceId vi) {
+        hit.unique_instance = accum(hit.unique_instance, vi);
+    });
+
     // Kill the track
     sim.status(TrackStatus::killed);
 }

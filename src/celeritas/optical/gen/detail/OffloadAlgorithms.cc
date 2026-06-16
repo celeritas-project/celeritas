@@ -12,6 +12,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -62,7 +64,7 @@ size_type count_num_photons(
 {
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
-        start + offset, start + size, size_type(0), AccumNumPhotons{});
+        start + offset, start + size, 0_sz, AccumNumPhotons{});
     return count;
 }
 

@@ -128,6 +128,15 @@ TEST(QuantityTest, ref)
 
     auto td_ref = std::ref(two_dozen);
     EXPECT_EQ(two_dozen * 2, td_ref * 2);
+
+    Dozen four_dozen{4};
+    auto fd_ref = std::ref(four_dozen);
+
+#ifdef CELER_SHOULD_COMPILE
+    // TODO: doesn't compile due to template operators
+    EXPECT_TRUE(td_ref < fd_ref);
+#endif
+    EXPECT_TRUE(td_ref.get() < fd_ref.get());
 }
 
 TEST(QuantityTest, comparators)
@@ -291,6 +300,14 @@ TEST(QuantityTest, io)
         static char const expected[] = R"json([2,"dozen"])json";
         EXPECT_EQ(std::string(expected), std::string(out.dump()));
     }
+}
+
+TEST(QuantityTest, ldg)
+{
+    // Pretend this is in global memory: `ldg(&x)` is x in host code
+    Dozen const q{10};
+    EXPECT_TRUE((std::is_same_v<Dozen, decltype(ldg(&q))>));
+    EXPECT_EQ((Dozen{10}), ldg(&q));
 }
 
 TEST(QuantityTest, stream)

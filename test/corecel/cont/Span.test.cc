@@ -10,8 +10,8 @@
 #include <sstream>
 #include <type_traits>
 
-#include "corecel/OpaqueId.hh"
-#include "corecel/data/LdgIterator.hh"
+#include "corecel/cont/Array.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/TypeDemangler.hh"
 
 #include "celeritas_test.hh"
@@ -20,20 +20,7 @@ namespace celeritas
 {
 namespace test
 {
-namespace
-{
 //---------------------------------------------------------------------------//
-
-template<class T, std::size_t E>
-std::string span_to_string(Span<T, E> const& s)
-{
-    std::ostringstream os;
-    os << s;
-    return os.str();
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
 
 TEST(SpanTest, fixed_size_zero)
 {
@@ -42,7 +29,7 @@ TEST(SpanTest, fixed_size_zero)
     EXPECT_EQ(0, empty_span.size());
     EXPECT_TRUE(empty_span.empty());
     EXPECT_EQ(sizeof(int*), sizeof(empty_span));
-    EXPECT_EQ("{}", span_to_string(empty_span));
+    EXPECT_EQ("{}", stream_to_string(empty_span));
 
     {
         auto templ_subspan = empty_span.subspan<0, 0>();
@@ -78,10 +65,22 @@ TEST(SpanTest, fixed_size_zero)
     // Test type conversion
     Span<int const> const_dynamic{empty_span};
     EXPECT_EQ(0, const_dynamic.size());
+    Span<int const, 0> also_fixed{const_dynamic};
+    EXPECT_EQ(0, also_fixed.size());
 
-    // Test pointer constructor
-    Span<int, 0> ptr_span(empty_span.begin(), empty_span.end());
-    EXPECT_EQ(0, ptr_span.size());
+    // Removing const must not be allowed
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 0>, Span<int const, 0>>))
+        << "const->mutable span is prohibited";
+    EXPECT_FALSE((std::is_constructible_v<Span<int>, Span<int const>>))
+        << "const->mutable dynamic span is prohibited";
+    // Incompatible fixed extents must not be allowed
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 2>, Span<int, 3>>))
+        << "fixed span with different extent is prohibited";
+
+    // Test empty iterator construction
+    int const* null_int{nullptr};
+    Span<int const, 0> null_span(null_int, null_int);
+    EXPECT_EQ(0, null_span.size());
 }
 
 TEST(SpanTest, fixed_size)
@@ -89,7 +88,7 @@ TEST(SpanTest, fixed_size)
     int local_data[] = {123, 456};
     Span<int, 2> local_span(local_data);
     EXPECT_EQ(sizeof(int*), sizeof(local_span));
-    EXPECT_EQ("{123,456}", span_to_string(local_span));
+    EXPECT_EQ("{123,456}", stream_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 2, local_span.end());
@@ -135,12 +134,36 @@ TEST(SpanTest, fixed_size)
     EXPECT_EQ(local_data, ptr_span.data());
 }
 
+TEST(SpanTest, implicit_const_conversion)
+{
+    // Test that Span<int, 3> implicitly converts to Span<int const>
+    // (i.e., the converting constructor is not explicit)
+    int local_data[] = {1, 2, 3};
+    Span<int, 3> span(local_data);
+
+    Span<int const> const_span = span;
+    EXPECT_EQ(local_data, const_span.data());
+    EXPECT_EQ(3, const_span.size());
+
+    // Should be able to convert back *explicitly* to fixed-size
+    Span<int const, 3> const_fixed_span{const_span};
+    EXPECT_EQ(local_data, const_fixed_span.data());
+    EXPECT_EQ(3, const_fixed_span.size());
+
+    // Converting dynamic to wrong size should result in assertion failure
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW((Span<int const, 2>{const_span}), DebugError);
+        EXPECT_THROW((Span<int const, 4>{const_span}), DebugError);
+    }
+}
+
 TEST(SpanTest, dynamic_size)
 {
     int local_data[] = {123, 456, 789};
     Span<int> local_span(local_data);
     EXPECT_EQ(sizeof(int*) + sizeof(std::size_t), sizeof(local_span));
-    EXPECT_EQ("{123,456,789}", span_to_string(local_span));
+    EXPECT_EQ("{123,456,789}", stream_to_string(local_span));
 
     EXPECT_EQ(local_data, local_span.begin());
     EXPECT_EQ(local_data + 3, local_span.end());
@@ -294,69 +317,64 @@ TEST(SpanTest, make_span)
     }
 }
 
-TEST(LdgSpanTest, pod)
+TEST(SpanTest, array_conversion)
 {
-    using LdgInt = LdgValue<int const>;
-    int local_data[] = {123, 456, 789};
-    Span<int> mutable_span(local_data);
-    EXPECT_TRUE((std::is_same_v<decltype(mutable_span[0]), int&>));
-    Span<LdgInt> ldg_span(mutable_span);
-    Span<LdgInt> local_span(local_data);
-    EXPECT_TRUE(
-        (std::is_same_v<typename Span<LdgInt>::element_type, int const>));
-    EXPECT_TRUE((std::is_same_v<decltype(local_span.data()), int const*>));
-    EXPECT_TRUE((std::is_same_v<decltype(local_span.front()), int>));
-    EXPECT_TRUE((std::is_same_v<decltype(local_span.back()), int>));
-    EXPECT_TRUE((std::is_same_v<decltype(local_span[0]), int>));
-    EXPECT_TRUE((
-        std::is_same_v<decltype(local_span.begin()), LdgIterator<int const>>));
-    EXPECT_TRUE(
-        (std::is_same_v<decltype(local_span.end()), LdgIterator<int const>>));
+    using ArrInt3 = Array<int, 3>;
+    ArrInt3 arr = {1, 2, 3};
+    ArrInt3 const carr = {4, 5, 6};
 
-    EXPECT_EQ(local_span.first(2).back(), 456);
-    EXPECT_TRUE(
-        (std::is_same_v<decltype(local_span), decltype(local_span.first(2))>));
-    EXPECT_EQ(local_span.subspan(1, 1)[1], 789);
+    // Implicit copy-initialization for both fixed and dynamic extents
+    Span<int, 3> fixed = arr;
+    EXPECT_EQ(arr.data(), fixed.data());
+    EXPECT_EQ(3, fixed.size());
 
-    auto begin = local_span.begin();
-    EXPECT_EQ(*begin++, 123);
-    EXPECT_EQ(*begin++, 456);
-    EXPECT_EQ(*begin++, 789);
-    EXPECT_EQ(begin, local_span.end());
-    EXPECT_EQ(local_span[2], 789);
-    EXPECT_EQ(local_span.end()[-3], 123);
+    Span<int const, 3> cfixed = arr;
+    EXPECT_EQ(arr.data(), cfixed.data());
+
+    Span<int const, 3> cfixed2 = carr;
+    EXPECT_EQ(carr.data(), cfixed2.data());
+
+    Span<int> dyn = arr;
+    EXPECT_EQ(arr.data(), dyn.data());
+    EXPECT_EQ(3, dyn.size());
+
+    Span<int const> cdyn = carr;
+    EXPECT_EQ(carr.data(), cdyn.data());
+    EXPECT_EQ(3, cdyn.size());
+
+    // All size-compatible conversions are implicit in all standards
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3&, Span<int, 3>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3&, Span<int>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3 const&, Span<int const, 3>>));
+    EXPECT_TRUE((std::is_convertible_v<ArrInt3 const&, Span<int const>>));
+
+    // Wrong fixed extent: not constructible
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 2>, ArrInt3&>))
+        << "Array to fixed Span with different extent is prohibited";
+
+    // Removing const must not be allowed
+    EXPECT_FALSE((std::is_constructible_v<Span<int>, ArrInt3 const&>))
+        << "const Array to mutable Span is prohibited";
+    EXPECT_FALSE((std::is_constructible_v<Span<int, 3>, ArrInt3 const&>))
+        << "const Array to mutable fixed Span is prohibited";
 }
 
-TEST(LdgSpanTest, opaque_id)
+TEST(SpanTest, array_deduction)
 {
-    using TestId = OpaqueId<struct SpanTestLdgOpaqueId_>;
-    using LdgId = LdgValue<TestId const>;
-    TestId local_data[] = {TestId{123}, TestId{456}, TestId{789}};
-    Span<TestId> mutable_span(local_data);
-    EXPECT_TRUE((std::is_same_v<decltype(mutable_span[0]), TestId&>));
-    Span<LdgId> ldg_span(mutable_span);
-    Span<LdgId> s(local_data);
-    EXPECT_TRUE(
-        (std::is_same_v<typename Span<LdgId>::element_type, TestId const>));
-    EXPECT_TRUE((std::is_same_v<decltype(s.data()), TestId const*>));
-    EXPECT_TRUE((std::is_same_v<decltype(s.front()), TestId>));
-    EXPECT_TRUE((std::is_same_v<decltype(s.back()), TestId>));
-    EXPECT_TRUE((std::is_same_v<decltype(s[0]), TestId>));
-    EXPECT_TRUE(
-        (std::is_same_v<decltype(s.begin()), LdgIterator<TestId const>>));
-    EXPECT_TRUE((std::is_same_v<decltype(s.end()), LdgIterator<TestId const>>));
+    Array<int, 3> arr = {1, 2, 3};
+    Array<int, 3> const carr = {4, 5, 6};
 
-    EXPECT_EQ(s.first(2).back(), TestId{456});
-    EXPECT_TRUE((std::is_same_v<decltype(s), decltype(s.first(2))>));
-    EXPECT_EQ(s.subspan(1, 1)[1], TestId{789});
+    // Mutable Array -> Span<T, N>
+    Span mspan{arr};
+    EXPECT_TRUE((std::is_same_v<Span<int, 3>, decltype(mspan)>));
+    EXPECT_EQ(arr.data(), mspan.data());
+    EXPECT_EQ(3, mspan.size());
 
-    auto begin = s.begin();
-    EXPECT_EQ(*begin++, TestId{123});
-    EXPECT_EQ(*begin++, TestId{456});
-    EXPECT_EQ(*begin++, TestId{789});
-    EXPECT_EQ(begin, s.end());
-    EXPECT_EQ(s[2], TestId{789});
-    EXPECT_EQ(s.end()[-3], TestId{123});
+    // Const Array -> Span<T const, N>
+    Span cspan{carr};
+    EXPECT_TRUE((std::is_same_v<Span<int const, 3>, decltype(cspan)>));
+    EXPECT_EQ(carr.data(), cspan.data());
+    EXPECT_EQ(3, cspan.size());
 }
 
 //---------------------------------------------------------------------------//

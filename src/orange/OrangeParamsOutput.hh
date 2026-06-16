@@ -7,11 +7,20 @@
 #pragma once
 #include <memory>
 
+#include "corecel/Types.hh"
 #include "corecel/io/OutputInterface.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
 class OrangeParams;
+namespace detail
+{
+template<Ownership W, MemSpace M>
+struct BvhTreeData;
+struct BvhTreeRecord;
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 /*!
  * Save detailed debugging information about the ORANGE geometry.
@@ -45,6 +54,11 @@ class OrangeParamsOutput final : public OutputInterface
   private:
     SPConstOrangeParams orange_;
 };
+
+//---------------------------------------------------------------------------//
+// Print a BVH structure to a JSON string for debugging
+std::string dump_bvh_structure(detail::BvhTreeRecord const& tree,
+                               NativeCRef<detail::BvhTreeData> const& data);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

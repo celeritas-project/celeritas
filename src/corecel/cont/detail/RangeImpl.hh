@@ -8,14 +8,14 @@
 
 #include <iterator>
 #include <type_traits>
-#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 
 namespace celeritas
 {
+template<class TagT, class IndexT>
+class OpaqueId;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -29,7 +29,7 @@ struct RangeTypeTraits
     using difference_type = std::make_signed_t<counter_type>;
 
     template<class U>
-    using common_type = typename std::common_type<T, U>::type;
+    using common_type = std::common_type_t<T, U>;
 
     static CELER_CONSTEXPR_FUNCTION value_type zero() { return {}; }
     static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type) { return true; }
@@ -62,7 +62,7 @@ struct EnumWithSize
 };
 
 template<class T>
-struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
+struct EnumWithSize<T, std::enable_if_t<(T::size_ >= 0)>>
 {
     static CELER_CONSTEXPR_FUNCTION bool is_valid(T value)
     {
@@ -72,10 +72,10 @@ struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
 
 //! Specialization for enums with a "size_" member
 template<class T>
-struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
+struct RangeTypeTraits<T, std::enable_if_t<std::is_enum<T>::value>>
 {
     using value_type = T;
-    using counter_type = typename std::underlying_type<T>::type;
+    using counter_type = std::underlying_type_t<T>;
     using difference_type = std::make_signed_t<counter_type>;
     template<class U>
     using common_type = value_type;
@@ -235,6 +235,15 @@ class range_iter
         return !(*this == other);
     }
 
+    // Subtract two range iterators
+    CELER_CONSTEXPR_FUNCTION friend auto operator-(range_iter a, range_iter b)
+    {
+        using TraitsT = RangeTypeTraits<T>;
+        using DT = typename TraitsT::difference_type;
+        return static_cast<DT>(TraitsT::to_counter(a.value()))
+               - static_cast<DT>(TraitsT::to_counter(b.value()));
+    }
+
     // Access the underlying value
     CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
 
@@ -242,16 +251,6 @@ class range_iter
     // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
     value_type value_;
 };
-
-// Subtract two range iterators
-template<class T>
-CELER_CONSTEXPR_FUNCTION auto operator-(range_iter<T> a, range_iter<T> b)
-{
-    using TraitsT = RangeTypeTraits<T>;
-    using DT = typename TraitsT::difference_type;
-    return static_cast<DT>(TraitsT::to_counter(a.value()))
-           - static_cast<DT>(TraitsT::to_counter(b.value()));
-}
 
 //---------------------------------------------------------------------------//
 template<class T>

@@ -40,6 +40,8 @@ class UrbanPositronCorrector
  */
 CELER_FUNCTION UrbanPositronCorrector::UrbanPositronCorrector(real_type zeff)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(zeff >= 1);
     using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
@@ -47,7 +49,7 @@ CELER_FUNCTION UrbanPositronCorrector::UrbanPositronCorrector(real_type zeff)
     a_ = PolyLin(0.994, -4.08e-3)(zeff);
     b_ = PolyQuad(7.16, 52.6, 365)(1 / zeff);
     c_ = PolyLin(1, -4.47e-3)(zeff);
-    d_ = real_type(1.21e-3) * zeff;
+    d_ = 1.21e-3_r * zeff;
     mult_ = PolyQuad(1.41125, -1.86427e-2, 1.84035e-4)(zeff);
 }
 

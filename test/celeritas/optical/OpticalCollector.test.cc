@@ -39,8 +39,7 @@ namespace test
 {
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
-           || !CELERITAS_VECGEOM_SURFACE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -204,7 +203,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     }
 
     auto const& gen_reg = collector_->gen_reg();
-    auto gen_id = gen_reg.find("optical-generate");
+    auto gen_id = gen_reg.find("generate");
     CELER_ASSERT(gen_id);
 
     // Access the auxiliary data for the generator
@@ -474,8 +473,8 @@ TEST_F(LArSphereOffloadTest, host_generate_small)
 
     if (reference_configuration)
     {
-        constexpr unsigned int expected_steps = 117;
-        constexpr unsigned int expected_step_iters = 5;
+        constexpr unsigned int expected_steps = 114;
+        constexpr unsigned int expected_step_iters = 4;
         EXPECT_EQ(expected_steps, result.accum.steps);
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -502,8 +501,8 @@ TEST_F(LArSphereOffloadTest, host_generate)
 
     if (reference_configuration)
     {
-        unsigned int expected_steps = 19283;
-        unsigned int expected_step_iters = 3;
+        unsigned int expected_steps = 19311;
+        unsigned int expected_step_iters = 2;
         EXPECT_EQ(expected_steps, static_cast<double>(result.accum.steps));
         EXPECT_EQ(expected_step_iters, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
@@ -541,7 +540,7 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
 
     if (reference_configuration)
     {
-        constexpr int ref_steps = 59;
+        constexpr int ref_steps = 60;
         EXPECT_EQ(ref_steps, result.accum.step_iters);
         EXPECT_EQ(1, result.accum.flushes);
         ASSERT_EQ(1, result.accum.generators.size());

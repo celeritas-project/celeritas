@@ -11,6 +11,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "detail/CuHipRngStateInit.hh"
 
@@ -29,6 +30,7 @@ void resize(CuHipRngStateData<Ownership::value, M>* state,
     CELER_EXPECT(stream);
     CELER_EXPECT(size > 0);
     CELER_EXPECT(M == MemSpace::host || celeritas::device());
+    ScopedProfiling profile_this_{"rng-resize"};
 
     // Host-side RNG for creating seeds
     std::mt19937 host_rng(params.seed + stream.get());

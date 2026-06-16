@@ -13,6 +13,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
@@ -65,8 +66,6 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
-    // Reset global volumes that we set
-    celeritas::global_volumes(nullptr);
 }
 
 //---------------------------------------------------------------------------//
@@ -147,8 +146,14 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     }
 
     auto mi = model_geo->make_model_input();
-    volume_ = make_shared<VolumeParams>(std::move(mi.volumes));
-    celeritas::global_volumes(volume_);
+    volume_ = std::visit(
+        Overload{[](inp::Volumes const& v) {
+                     return make_shared<VolumeParams const>(v);
+                 },
+                 [](std::shared_ptr<VolumeParams const> const& v) {
+                     return v ? v : make_shared<VolumeParams const>();
+                 }},
+        mi.volumes);
     surface_ = make_shared<SurfaceParams>(std::move(mi.surfaces), *volume_);
     detector_ = make_shared<DetectorParams>(std::move(mi.detectors), *volume_);
     return core_geo;

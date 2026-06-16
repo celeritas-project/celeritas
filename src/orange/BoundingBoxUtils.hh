@@ -12,6 +12,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/BoundingBox.hh"
 
@@ -30,13 +31,12 @@ class Transformation;
 template<class T>
 inline bool is_infinite(BoundingBox<T> const& bbox)
 {
-    auto all_equal = [](Array<T, 3> const& values, T rhs) {
-        return all_of(
-            values.begin(), values.end(), [rhs](T lhs) { return lhs == rhs; });
-    };
-    constexpr T inf = numeric_limits<T>::infinity();
-
-    return all_equal(bbox.lower(), -inf) && all_equal(bbox.upper(), inf);
+    auto axes = range(Axis::size_);
+    return all_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
+        constexpr T inf = numeric_limits<T>::infinity();
+        return bbox.point(Bound::lo, ax) == -inf
+               && bbox.point(Bound::hi, ax) == inf;
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -50,9 +50,11 @@ inline bool is_finite(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    auto isinf = [](T value) { return std::isinf(value); };
-    return !any_of(bbox.lower().begin(), bbox.lower().end(), isinf)
-           && !any_of(bbox.upper().begin(), bbox.upper().end(), isinf);
+    auto axes = range(Axis::size_);
+    return all_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
+        return !std::isinf(bbox.point(Bound::lo, ax))
+               && !std::isinf(bbox.point(Bound::hi, ax));
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -66,9 +68,9 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 {
     CELER_EXPECT(bbox);
 
-    auto axes = range(to_int(Axis::size_));
-    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
-        return bbox.lower()[ax] == bbox.upper()[ax];
+    auto axes = range(Axis::size_);
+    return any_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
+        return bbox.point(Bound::lo, ax) == bbox.point(Bound::hi, ax);
     });
 }
 
@@ -79,9 +81,10 @@ inline bool is_degenerate(BoundingBox<T> const& bbox)
 template<class T>
 inline bool is_half_inf(BoundingBox<T> const& bbox)
 {
-    auto axes = range(to_int(Axis::size_));
-    return any_of(axes.begin(), axes.end(), [&bbox](int ax) {
-        return std::isinf(bbox.lower()[ax]) != std::isinf(bbox.upper()[ax]);
+    auto axes = range(Axis::size_);
+    return any_of(axes.begin(), axes.end(), [&bbox](Axis ax) {
+        return std::isinf(bbox.point(Bound::lo, ax))
+               != std::isinf(bbox.point(Bound::hi, ax));
     });
 }
 
@@ -100,13 +103,14 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
     CELER_EXPECT(!is_half_inf(bbox));
 
     Array<T, 3> center;
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        center[ax] = (bbox.lower()[ax] + bbox.upper()[ax]) / 2;
-        if (CELER_UNLIKELY(std::isnan(center[ax])))
+        center[to_int(ax)]
+            = (bbox.point(Bound::lo, ax) + bbox.point(Bound::hi, ax)) / 2;
+        if (CELER_UNLIKELY(std::isnan(center[to_int(ax)])))
         {
             // Infinite or half-infinite
-            center[ax] = 0;
+            center[to_int(ax)] = 0;
         }
     }
 
@@ -125,9 +129,10 @@ inline Array<T, 3> calc_half_widths(BoundingBox<T> const& bbox)
     CELER_EXPECT(bbox);
 
     Array<T, 3> hw;
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        hw[ax] = (bbox.upper()[ax] - bbox.lower()[ax]) / 2;
+        hw[to_int(ax)]
+            = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax)) / 2;
     }
 
     return hw;
@@ -146,9 +151,10 @@ inline T calc_surface_area(BoundingBox<T> const& bbox)
 
     Array<T, 3> lengths;
 
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        lengths[ax] = bbox.upper()[ax] - bbox.lower()[ax];
+        lengths[to_int(ax)] = bbox.point(Bound::hi, ax)
+                              - bbox.point(Bound::lo, ax);
     }
 
     return 2
@@ -170,9 +176,9 @@ inline T calc_volume(BoundingBox<T> const& bbox)
 
     T result{1};
 
-    for (auto ax : range(to_int(Axis::size_)))
+    for (auto ax : range(Axis::size_))
     {
-        result *= bbox.upper()[ax] - bbox.lower()[ax];
+        result *= bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax);
     }
 
     return result;
@@ -186,16 +192,16 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower{};
-    Array<T, 3> upper{};
-
-    for (auto ax : range(to_int(Axis::size_)))
+    typename BoundingBox<T>::Extents3 extents;
+    for (auto ax : range(Axis::size_))
     {
-        lower[ax] = celeritas::min(a.lower()[ax], b.lower()[ax]);
-        upper[ax] = celeritas::max(a.upper()[ax], b.upper()[ax]);
+        extents[to_int(ax)][to_int(Bound::lo)]
+            = celeritas::min(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)]
+            = celeritas::max(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
-    return BoundingBox<T>::from_unchecked(lower, upper);
+    return BoundingBox<T>::from_unchecked(extents);
 }
 
 //---------------------------------------------------------------------------//
@@ -208,16 +214,37 @@ template<class T>
 inline constexpr BoundingBox<T>
 calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
 {
-    Array<T, 3> lower{};
-    Array<T, 3> upper{};
-
-    for (auto ax : range(to_int(Axis::size_)))
+    typename BoundingBox<T>::Extents3 extents;
+    for (auto ax : range(Axis::size_))
     {
-        lower[ax] = celeritas::max(a.lower()[ax], b.lower()[ax]);
-        upper[ax] = celeritas::min(a.upper()[ax], b.upper()[ax]);
+        extents[to_int(ax)][to_int(Bound::lo)]
+            = celeritas::max(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)]
+            = celeritas::min(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
-    return BoundingBox<T>::from_unchecked(lower, upper);
+    return BoundingBox<T>::from_unchecked(extents);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the overlap fraction.
+ *
+ * The overlap fraction is the ratio of the volume of the intersection bbox to
+ * the volume of the smaller bbox. The overlap fraction is not defined if both
+ * bboxes are infinite or either/both are degenerate.
+ */
+template<class T>
+inline T calc_overlap_fraction(BoundingBox<T> const& a, BoundingBox<T> const& b)
+{
+    CELER_EXPECT(is_finite(a) || is_finite(b));
+    CELER_EXPECT(!is_degenerate(a) && !is_degenerate(b));
+
+    auto intersection = calc_intersection(a, b);
+    T overlap_vol = intersection ? calc_volume(intersection) : 0;
+    T small_vol = std::min(calc_volume(a), calc_volume(b));
+
+    return overlap_vol / small_vol;
 }
 
 //---------------------------------------------------------------------------//
@@ -234,77 +261,82 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 {
     CELER_EXPECT(big || small);
 
-    auto axes = range(to_int(Axis::size_));
-    return all_of(axes.begin(), axes.end(), [&big, &small](int ax) {
-        return big.lower()[ax] <= small.lower()[ax]
-               && big.upper()[ax] >= small.upper()[ax];
+    auto axes = range(Axis::size_);
+    return all_of(axes.begin(), axes.end(), [&big, &small](Axis ax) {
+        return big.point(Bound::lo, ax) <= small.point(Bound::lo, ax)
+               && big.point(Bound::hi, ax) >= small.point(Bound::hi, ax);
     });
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the distance to the inside of the bbox from a pos and dir.
+ * Check if a segment from \c pos in direction \c dir of length \c distance
+ * intersects the bounding box.
  *
- * The supplied position is expected to be outside of the bbox. If there is no
- * intersection, the result will be inf.
+ * If the position is already inside the bounding box, the result is always
+ * true. This uses a separating-axis test (see \citet{ericson-collision-2004,
+ * https://www.taylorfrancis.com/books/9780080474144} ). It translates the
+ * coordinate system to the center of the bbox and tests six axes
+ * (see Fig. 5.23, Table 5.1 in reference):
+ * - The AABB face normals
+ * - The cross products between the direction vector and face normals
+ *
+ * Note the manual unrolling of the off-axis test leads to a 10% speedup in the
+ * along-step kernel.
+ * \warning Infinite segment lengths are allowed to support degenerate cases,
+ * but they will result in false positives and a slowdown.
+ * \note Infinite bounding boxes are \em not supported, but they should never
+ * be generated due to the construction implementation.
  */
-template<class T, class U>
-inline CELER_FUNCTION T calc_dist_to_inside(BoundingBox<T> const& bbox,
-                                            Array<U, 3> const& pos,
-                                            Array<U, 3> const& dir)
+template<class T>
+inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
+                                              Array<T, 3> const& pos,
+                                              Array<T, 3> const& dir,
+                                              T distance)
 {
-    CELER_EXPECT(!is_inside(bbox, pos));
+    CELER_EXPECT(distance > 0);
+    Array<T, 3> hw;  // Half-widths of bounding box
+    Array<T, 3> mid;  // Midpoint of the line segment
+    Array<T, 3> hseg;  // Vector from pos to the midpoint of the segment
+    Array<T, 3> abs_hseg;
 
-    // Test if an intersection is outside the bbox for a given axis
-    auto out_of_bounds = [&bbox](T intersect, int ax) {
-        return !(intersect >= bbox.lower()[ax]
-                 && intersect <= bbox.upper()[ax]);
-    };
+    T const half_distance = distance / 2;
+    constexpr T eps = numeric_limits<T>::epsilon();
 
-    // Check that the intersection point occurs within the region
-    // bounded by the planes of the other two axes
-    auto in_bounds = [&](int ax, T dist) {
-        for (auto other_ax : range(to_int(Axis::size_)))
-        {
-            if (other_ax == ax)
-                continue;
-
-            auto intersect
-                = celeritas::fma<T>(dist, dir[other_ax], pos[other_ax]);
-            if (out_of_bounds(intersect, other_ax))
-                return false;
-        }
-        return true;
-    };
-
-    // Loop over all 6 planes to find the minimum intersection
-    T min_dist = numeric_limits<T>::infinity();
-    for (auto bound : range(Bound::size_))
+    for (auto ax : range(Axis::size_))
     {
-        for (auto ax : range(to_int(Axis::size_)))
-        {
-            if (dir[ax] == 0)
-            {
-                // Short circuit if there is not movement in this dir
-                continue;
-            }
+        T const lower = bbox.point(Bound::lo, ax);
+        T const upper = bbox.point(Bound::hi, ax);
+        T const center = (lower + upper) / 2;
 
-            T dist = (bbox.point(static_cast<Bound>(bound))[ax] - pos[ax])
-                     / dir[ax];
-            if (dist <= 0)
-            {
-                // Short circuit if the plane is behind us
-                continue;
-            }
-
-            if (in_bounds(ax, dist))
-            {
-                min_dist = celeritas::min(min_dist, dist);
-            }
-        }
+        auto i = to_int(ax);
+        hw[i] = (upper - lower) / 2;
+        hseg[i] = dir[i] * half_distance;
+        abs_hseg[i] = std::fabs(hseg[i]) + eps;
+        mid[i] = pos[i] + hseg[i] - center;
     }
 
-    return min_dist;
+    // Whether a separable axis was found orthogonal to the faces
+    auto found_sep_ortho_axis
+        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
+
+    // Find a separating axis normal to the j,k faces and dir
+    auto found_sep_axis = [&](int j, int k) {
+        return std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
+               > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j];
+    };
+
+    constexpr auto x = to_int(Axis::x);
+    constexpr auto y = to_int(Axis::y);
+    constexpr auto z = to_int(Axis::z);
+
+    // Any separating axis means no intersection
+    return !logical_any(found_sep_ortho_axis(x),
+                        found_sep_ortho_axis(y),
+                        found_sep_ortho_axis(z),
+                        found_sep_axis(y, z),
+                        found_sep_axis(z, x),
+                        found_sep_axis(x, y));
 }
 
 //---------------------------------------------------------------------------//
@@ -342,16 +374,17 @@ class BoundingBoxBumper
     //! Return the expanded and converted bounding box
     result_type operator()(argument_type const& bbox)
     {
-        Array<T, 3> lower;
-        Array<T, 3> upper;
+        typename result_type::Extents3 extents;
 
-        for (auto ax : range(to_int(Axis::size_)))
+        for (auto ax : range(Axis::size_))
         {
-            lower[ax] = this->bumped<-1>(bbox.lower()[ax]);
-            upper[ax] = this->bumped<+1>(bbox.upper()[ax]);
+            extents[to_int(ax)][to_int(Bound::lo)]
+                = this->bumped<-1>(bbox.point(Bound::lo, ax));
+            extents[to_int(ax)][to_int(Bound::hi)]
+                = this->bumped<+1>(bbox.point(Bound::hi, ax));
         }
 
-        return result_type::from_unchecked(lower, upper);
+        return result_type::from_unchecked(extents);
     }
 
   private:
@@ -373,10 +406,6 @@ class BoundingBoxBumper
 BBox calc_transform(Translation const& tr, BBox const& a);
 
 BBox calc_transform(Transformation const& tr, BBox const& a);
-
-//---------------------------------------------------------------------------//
-template<class T>
-std::ostream& operator<<(std::ostream&, BoundingBox<T> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

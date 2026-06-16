@@ -32,8 +32,8 @@ celeritas_target_include_directories(testcel_harness
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
-  # GCC 13 and 14 have false positives with array bounds checking, string bounds
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 12)
+  # GCC 12+ have false positives with array bounds checking, string bounds
   # checking, initialization checking, ...
   celeritas_target_compile_options(testcel_harness
     PUBLIC

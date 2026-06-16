@@ -56,6 +56,18 @@ View
    mass of a particle (constant, set by the model) and the speed (variable,
    depends on particle track state).
 
+.. _opaqueid:
+
+OpaqueId
+--------
+
+The OpaqueId class is fundamental to Celeritas' platform portability and
+software infrastructure.
+
+.. doxygenclass:: celeritas::OpaqueId
+.. doxygenfunction:: celeritas::id_cast
+.. doxygentypedef:: celeritas::MakeSize_t
+
 Storage
 -------
 
@@ -66,18 +78,24 @@ Storage
 .. doxygenenum:: celeritas::Ownership
    :no-link:
 
-.. doxygenclass:: celeritas::OpaqueId
-.. doxygenfunction:: celeritas::id_cast
-
 .. doxygentypedef:: celeritas::ItemId
 .. doxygentypedef:: celeritas::ItemRange
 .. doxygenclass:: celeritas::ItemMap
+
+.. doxygenvariable:: celeritas::all_items
 
 .. doxygenclass:: celeritas::Collection
 .. doxygenclass:: celeritas::ParamsDataStore
 .. doxygenclass:: celeritas::StateDataStore
 
+Optimized device data access
+----------------------------
+
+.. doxygenpage:: ldg
+
 .. doxygenfunction:: celeritas::ldg
+
+.. doxygentypedef:: celeritas::LdgSpan
 
 .. _api_containers:
 

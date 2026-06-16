@@ -14,6 +14,8 @@
 
 #include "Translation.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -26,7 +28,7 @@ Transformation Transformation::from_inverse(Mat3 const& rot, Real3 const& trans)
     Mat3 const rinv = make_transpose(rot);
 
     // Calculate the updated position
-    Real3 tinv = gemv(real_type{-1}, rinv, trans, real_type{0}, {});
+    Real3 tinv = gemv(-1_r, rinv, trans, 0_r, {});
     return Transformation{rinv, tinv};
 }
 
@@ -84,7 +86,7 @@ Transformation::Properties Transformation::calc_properties() const
     result.scales = !std::all_of(rot_.begin(), rot_.end(), [](Real3 const& row) {
         return is_soft_unit_vector(row);
     });
-    CELER_ENSURE(soft_equal(std::fabs(det), real_type{1}) || result.scales);
+    CELER_ENSURE(soft_equal(std::fabs(det), 1_r) || result.scales);
     return result;
 }
 

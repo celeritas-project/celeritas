@@ -78,9 +78,11 @@ MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
                                              Energy energy)
     : gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(inc_mass))
 {
+    using namespace celeritas::literals;
+
     real_type r_max_sq = ipow<2>(
-        real_type(0.5) * constants::pi * gamma_
-        * min(real_type(1),
+        0.5_r * constants::pi * gamma_
+        * min(1.0_r,
               gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
     sample_a_ = {0, r_max_sq / (1 + r_max_sq)};
 }

@@ -95,8 +95,8 @@ TEST_F(NonuniformGridInserterTest, many_no_repeats)
     for (size_t i = 0; i < num_grids; i++)
     {
         inp::Grid grid;
-        grid.x = build_random_array(count, real_type{-100} * i);
-        grid.y = build_random_array(count, real_type{300} * i);
+        grid.x = build_random_array(count, -100_r * i);
+        grid.y = build_random_array(count, 300_r * i);
         grids.push_back(grid);
 
         grid_ids.push_back(insert(grid));
@@ -126,7 +126,7 @@ TEST_F(NonuniformGridInserterTest, many_with_repeats)
     size_t const num_grids = 20;
     for (size_t i = 0; i < num_grids; i++)
     {
-        grid.y = build_random_array(count, real_type{300} * i);
+        grid.y = build_random_array(count, 300_r * i);
         grids.push_back(grid);
 
         grid_ids.push_back(insert(grid));

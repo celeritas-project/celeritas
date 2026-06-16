@@ -10,6 +10,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/data/Ldg.hh"
 
 #include "detail/QuantityImpl.hh"
 
@@ -125,8 +126,7 @@ class Quantity
     template<class ValueT2,
              std::enable_if_t<!std::is_same_v<ValueT, ValueT2>
                                   && std::is_convertible_v<ValueT2, ValueT>,
-                              int>
-             = 0>
+                              bool> = true>
     CELER_CONSTEXPR_FUNCTION Quantity(Quantity<UnitT, ValueT2> other) noexcept
         : value_(static_cast<ValueT>(other.value()))
     {
@@ -183,7 +183,7 @@ class Quantity
     using OtherQuantity = Quantity<UnitT, std::common_type_t<ValueT, T2>>;
 
   public:
-    //// INLINE OPERATOR FRIENDS ////
+    //// INLINE TEMPLATE FRIENDS ////
 
     //!@{
     //! Arithmetic with unitless scalars
@@ -241,6 +241,12 @@ class Quantity
         return Quantity{-q.value()};
     }
 
+    //! Allow loading via \c ldg
+    CELER_CONSTEXPR_FUNCTION friend Quantity ldg(Quantity const* q) noexcept
+    {
+        return Quantity{ldg(&q->value_)};
+    }
+
   private:
     value_type value_{};
 };
@@ -249,6 +255,12 @@ class Quantity
 //! Type alias for a quantity that uses compile-time precision
 template<class UnitT>
 using RealQuantity = Quantity<UnitT, real_type>;
+
+//! Automatically load read-only quantities with LDG
+template<class U, class V>
+struct IsAutoLdg<Quantity<U, V>> : std::true_type
+{
+};
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -387,23 +399,6 @@ std::ostream& operator<<(std::ostream& os, Quantity<UnitT, ValueT> const& q)
 //! True if T is a Quantity
 template<class T>
 inline constexpr bool is_quantity_v = detail::IsQuantity<T>::value;
-
-//---------------------------------------------------------------------------//
-template<class T, class>
-struct LdgTraits;
-
-// Set up cached const global loading for Quantity
-template<class U, class T>
-struct LdgTraits<Quantity<U, T>, void>
-{
-    using underlying_type = typename Quantity<U, T>::value_type;
-
-    static CELER_CONSTEXPR_FUNCTION underlying_type const*
-    data(Quantity<U, T> const* ptr)
-    {
-        return ptr->data();
-    }
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

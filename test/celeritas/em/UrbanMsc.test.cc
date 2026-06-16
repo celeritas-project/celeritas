@@ -50,10 +50,10 @@ TEST(Distributions, UrbanLargeAngleDistribution)
     {
         accumulate_n(
             [](real_type mu) {
-                EXPECT_LT(real_type(0.9999), mu);
-                EXPECT_LE(mu, real_type(1));
+                EXPECT_LT(0.9999_r, mu);
+                EXPECT_LE(mu, 1_r);
             },
-            UrbanLargeAngleDistribution{real_type(1e-14)},
+            UrbanLargeAngleDistribution{1e-14_r},
             rng,
             num_samples);
         EXPECT_EQ(2 * samples_per_real * num_samples, rng.exchange_count());
@@ -98,10 +98,6 @@ using celeritas::test::from_cm;
 using celeritas::test::Histogram;
 using celeritas::test::to_cm;
 using units::MevEnergy;
-
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 TEST(Details, UrbanPositronCorrector)
@@ -256,7 +252,7 @@ TEST_F(UrbanMscTest, step_conversion)
         MscStepToGeo calc_geom_path(
             msc_params_->host_ref(), helper, energy, lambda, range);
 
-        LogInterp calc_pstep({0, real_type{0.9} * params.min_step},
+        LogInterp calc_pstep({0, 0.9_r * params.min_step},
                              {static_cast<real_type>(pstep_points), range});
         for (auto ppt : celeritas::range(pstep_points + 1))
         {
@@ -280,7 +276,7 @@ TEST_F(UrbanMscTest, step_conversion)
             MscStepFromGeo geo_to_true(
                 msc_params_->host_ref().params, msc_step, range, lambda);
             LogInterp calc_gstep(
-                {0, real_type{0.9} * params.min_step},
+                {0, 0.9_r * params.min_step},
                 {static_cast<real_type>(gstep_points), gp.step});
             for (auto gpt : celeritas::range(gstep_points + 1))
             {
@@ -598,7 +594,7 @@ TEST_F(UrbanMscTest, msc_scattering)
         auto par = this->make_par_view(ptype, MevEnergy{energy[i]});
         auto phys = this->make_phys_view(
             par, "G4_STAINLESS-STEEL", this->physics()->host_ref());
-        auto geo = this->make_geo_view(from_cm(i * 2 - real_type(1e-4)));
+        auto geo = this->make_geo_view(from_cm(i * 2 - 1e-4_r));
         MaterialView mat = this->material()->get(phys.material_id());
         real_type this_pstep = get_pstep(i, phys);
 
@@ -1190,12 +1186,9 @@ TEST_F(UrbanMscTest, msc_scattering)
     EXPECT_VEC_SOFT_EQ(expected_alpha_over_mfp, alpha_over_mfp);
 
     EXPECT_VEC_NEAR(expected_angle, angle, 2e-12);
-    EXPECT_VEC_NEAR(expected_displace_frac,
-                    displace_frac,
-                    using_vecgeom_surface ? 1e-2 : 1e-12);
+    EXPECT_VEC_NEAR(expected_displace_frac, displace_frac, 1e-12);
     EXPECT_VEC_EQ(expected_action, action);
     EXPECT_VEC_EQ(expected_avg_engine_samples, avg_engine_samples);
-    CELER_DISCARD(using_vecgeom_surface);
 }
 
 //---------------------------------------------------------------------------//

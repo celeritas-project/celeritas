@@ -120,7 +120,8 @@ QuadricConeConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
     }
 
     // Clear potential signed zeros before returning
-    origin += real_type{0};
+    using namespace celeritas::literals;
+    origin += 0_r;
     return ConeAligned<T>::from_tangent_sq(origin, tsq);
 }
 

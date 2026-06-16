@@ -17,10 +17,8 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/detail/Utils.hh"
 #include "celeritas/mat/ElementView.hh"
@@ -30,6 +28,8 @@
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -43,8 +43,6 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     CELER_EXPECT(inp.cutoffs);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.particles);
-
-    ScopedMem record_mem("AtomicRelaxationParams.construct");
 
     HostData host_data;
 
@@ -79,7 +77,6 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
 
     // Build elements
     CELER_LOG(status) << "Reading and building atomic relaxation data";
-    ScopedTimeLog scoped_time;
     make_builder(&host_data.elements).reserve(num_elements);
     for (auto el_idx : range(num_elements))
     {
@@ -130,7 +127,7 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
             designators.insert(transition.initial_shell);
             designators.insert(transition.auger_shell);
         }
-        CELER_ASSERT(soft_equal(real_type(1), norm));
+        CELER_ASSERT(soft_equal(1.0_r, norm));
     }
 
     // Create a mapping of subshell designator to index in the shells array (it

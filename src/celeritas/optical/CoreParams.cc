@@ -13,7 +13,6 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
@@ -35,6 +34,14 @@
 #include "gen/CherenkovParams.hh"
 #include "gen/ScintillationParams.hh"
 #include "surface/SurfacePhysicsParams.hh"
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    include "orange/OrangeParams.hh"  // IWYU pragma: keep
+#    include "orange/OrangeParamsOutput.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+#    include "geocel/vg/VecgeomParams.hh"  // IWYU pragma: keep
+#    include "geocel/vg/VecgeomParamsOutput.hh"
+#endif
 
 namespace celeritas
 {
@@ -142,6 +149,14 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     {
         input_.output_reg = std::make_shared<OutputRegistry>();
         insert_system_diagnostics(*input_.output_reg);
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        input_.output_reg->insert(
+            std::make_shared<OrangeParamsOutput>(input_.geometry));
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        input_.output_reg->insert(
+            std::make_shared<VecgeomParamsOutput>(input_.geometry));
+#endif
     }
 
     // Save optical action diagnostic information
@@ -158,8 +173,6 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
             OutputInterface::Category::internal,
             "optical-sizes",
             std::move(sizes)));
-
-    ScopedMem record_mem("optical::CoreParams.construct");
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());

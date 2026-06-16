@@ -21,6 +21,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/EnumStringMapper.hh"
 #include "corecel/io/StringEnumMapper.hh"
+#include "corecel/sys/ThreadId.hh"
+#include "celeritas/g4/Threading.hh"
 
 #if G4VERSION_NUMBER >= 1100
 #    include <G4RunManagerFactory.hh>
@@ -33,7 +35,6 @@
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
-#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -203,10 +204,12 @@ class ActionInitialization final : public G4VUserActionInitialization
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::BuildForMaster";
         this->SetUserAction(new RunAction{test_, tracing_});
+        test_->begin_build(StreamId{});
     }
     void Build() const final
     {
         CELER_LOG_LOCAL(debug) << "ActionInitialization::Build";
+        test_->begin_build(geant_stream());
 
         // Run and event actions
         this->SetUserAction(new RunAction{test_, tracing_});
@@ -242,6 +245,7 @@ class ActionInitialization final : public G4VUserActionInitialization
 class TestDetectorConstruction : public DetectorConstruction
 {
   public:
+    // Construct on the main thread
     TestDetectorConstruction(std::string const& filename,
                              IntegrationTestBase* test)
         : DetectorConstruction(filename,
@@ -252,6 +256,7 @@ class TestDetectorConstruction : public DetectorConstruction
     {
     }
 
+    //! Construct SD and field (called on each thread)
     void ConstructSDandField() override
     {
         DetectorConstruction::ConstructSDandField();
@@ -283,7 +288,7 @@ TestOffload to_test_offload(std::string const& s)
 
 //---------------------------------------------------------------------------//
 /*!
- * Test offload type as set by environment variable.
+ * Get the offload type for the test, as set by environment variable.
  */
 TestOffload IntegrationTestBase::test_offload()
 {
@@ -315,6 +320,20 @@ TestOffload IntegrationTestBase::test_offload()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the run manager type for the test, as set by environment variable.
+ *
+ * \return one of {"serial", "mt", "tasking"}
+ */
+std::string IntegrationTestBase::test_runman_type()
+{
+    static std::string const result = [] {
+        return celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    }();
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Disable ROOT signal handlers on startup.
  */
 IntegrationTestBase::IntegrationTestBase()
@@ -338,7 +357,7 @@ std::string IntegrationTestBase::make_unique_filename(std::string_view ext)
     std::string new_ext = "-";
     new_ext += to_cstring(test_offload());
     new_ext += "-";
-    new_ext += celeritas::tolower(celeritas::getenv("G4RUN_MANAGER_TYPE"));
+    new_ext += test_runman_type();
     new_ext += ext;
     return ::celeritas::test::Test::make_unique_filename(new_ext);
 }
@@ -497,6 +516,18 @@ void IntegrationTestBase::caught_g4_runtime_error(RuntimeError const& e)
     FAIL() << ansi_color('R') << "GeantExceptionHandler caught runtime error ("
            << thread_label() << ',' << d.condition << ")" << ansi_color(' ')
            << ": from " << d.file << ": " << d.what;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Send to the build callback when doing ActionInitialization.
+ */
+void IntegrationTestBase::begin_build(StreamId s)
+{
+    if (build_cb_)
+    {
+        build_cb_(s);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -680,6 +711,71 @@ SetupOptions OpNoviceIntegrationMixin::make_setup_options()
         return opt;
     }();
     return result;
+}
+
+//---------------------------------------------------------------------------//
+// WaterSphere
+//---------------------------------------------------------------------------//
+/*!
+ * Create physics list with loose EM physics.
+ */
+auto WaterSphereIntegrationMixin::make_physics_input() const -> PhysicsInput
+{
+    using MevEnergy = Quantity<units::Mev, double>;
+
+    PhysicsInput result = Base::make_physics_input();
+    result.em_bins_per_decade = 10;
+    result.min_energy = MevEnergy{0.01};
+    result.default_cutoff = 0.1 * units::centimeter;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create many 2 MeV gamma primaries isotropically from the origin.
+ */
+auto WaterSphereIntegrationMixin::make_primary_input() const -> PrimaryInput
+{
+    PrimaryInput result;
+    result.pdg = {pdg::gamma()};
+    result.energy = inp::MonoenergeticDistribution{2};  // [MeV]
+    result.shape = inp::PointDistribution{
+        static_array_cast<double>(from_cm({0, 0, 0}))};
+    result.angle = inp::IsotropicDistribution{};
+    result.num_events = 64;
+    result.primaries_per_event = 128;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create Celeritas setup options.
+ */
+SetupOptions WaterSphereIntegrationMixin::make_setup_options()
+{
+    auto opts = Base::make_setup_options();
+    opts.max_num_tracks = 8;
+    opts.initializer_capacity = 1024 * 128;
+
+    // Use a uniform (zero) magnetic field
+    opts.make_along_step = celeritas::UniformAlongStepFactory();
+
+    // Save diagnostic file to a unique name
+    opts.output_file = this->make_unique_filename(".out.json");
+    return opts;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create THREAD-LOCAL sensitive detectors for an SD name in the GDML file.
+ */
+auto WaterSphereIntegrationMixin::make_sens_det(std::string const& sd_name)
+    -> UPSensDet
+{
+    EXPECT_EQ("detshell", sd_name);
+    return std::make_unique<ShimSensitiveDetector>(
+        sd_name,
+        [this](G4Step const* step) { return this->process_hit(step); });
 }
 
 //---------------------------------------------------------------------------//

@@ -156,7 +156,8 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     CELER_ASSERT(!zone_dens.empty());
 
     // Fill the differential nuclear volume by each zone
-    constexpr real_type four_thirds_pi = 4 * constants::pi / real_type{3};
+    using namespace celeritas::literals;
+    constexpr real_type four_thirds_pi = 4.0_r * constants::pi / 3.0_r;
 
     ComponentVec components(zone_dens.size());
     real_type prev_volume{0};
@@ -182,7 +183,7 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     real_type const total_integral
         = std::accumulate(zone_dens.begin(),
                           zone_dens.end(),
-                          real_type{0},
+                          0_r,
                           [](real_type sum, ZoneDensity const& zone) {
                               return sum + zone.integral;
                           });
@@ -228,10 +229,12 @@ auto NuclearZoneBuilder::calc_zones_light(AtomicMassNumber a) const
 auto NuclearZoneBuilder::calc_zones_small(AtomicMassNumber a) const
     -> VecZoneDensity
 {
+    using namespace celeritas::literals;
+
     real_type const nuclear_radius = this->calc_nuclear_radius(a);
     real_type gauss_radius = std::sqrt(
         ipow<2>(nuclear_radius) * (1 - 1 / static_cast<real_type>(a.get()))
-        + real_type{6.4});
+        + 6.4_r);
 
     Integrator integrate_gauss{
         [](real_type r) { return ipow<2>(r) * std::exp(-ipow<2>(r)); }};
@@ -280,12 +283,12 @@ auto NuclearZoneBuilder::calc_zones_heavy(AtomicMassNumber a) const
     if (a < AtomicMassNumber{100})
     {
         static real_type const alpha_i[] = {0.7, 0.3, 0.01};
-        alpha = make_span(alpha_i);
+        alpha = alpha_i;
     }
     else
     {
         static real_type const alpha_h[] = {0.9, 0.6, 0.4, 0.2, 0.1, 0.05};
-        alpha = make_span(alpha_h);
+        alpha = alpha_h;
     }
 
     VecZoneDensity result(alpha.size());

@@ -76,6 +76,7 @@ class CherenkovGenerator
     real_type dndx_pre_;
     real_type sin_max_sq_;
     real_type inv_beta_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -120,11 +121,19 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     CELER_ASSERT(inv_beta_ >= 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = 1 - ipow<2>(cos_max);
+    reject_ = RejectionSampler<real_type>{sin_max_sq_};
 
     // Calculate changes over the step
     delta_pos_ = post_step.pos - pre_step.pos;
     delta_num_photons_ = dndx_post - dndx_pre_;
     delta_speed_ = post_step.speed - pre_step.speed;
+
+    if (CELER_UNLIKELY(delta_pos_[0] == 0 && delta_pos_[1] == 0
+                       && delta_pos_[2] == 0))
+    {
+        // See GeneratorAction::insert, which detects and warns about this
+        delta_pos_ = {dist_.step_length, 0, 0};
+    }
 
     // Incident particle direction
     dir_ = make_unit_vector(delta_pos_);
@@ -159,7 +168,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
             cos_theta = inv_beta_ / calc_refractive_index_(energy);
         } while (cos_theta > 1);
         sin_theta_sq = 1 - ipow<2>(cos_theta);
-    } while (RejectionSampler{sin_theta_sq, sin_max_sq_}(rng));
+    } while (reject_(sin_theta_sq, rng));
 
     // Sample azimuthal photon direction
     real_type phi = sample_phi_(rng);
@@ -174,6 +183,8 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     CELER_ASSERT(is_soft_orthogonal(photon.polarization, photon.direction));
 
     // Sample fraction along the step
+    using namespace celeritas::literals;
+
     UniformRealDistribution<> sample_step_fraction;
     real_type u;
     do
@@ -184,7 +195,7 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
     real_type delta_time
         = u * dist_.step_length
           / (native_value_from(dist_.points[StepPoint::pre].speed)
-             + u * real_type(0.5) * native_value_from(delta_speed_));
+             + u * 0.5_r * native_value_from(delta_speed_));
     photon.time = dist_.points[StepPoint::pre].time + delta_time;
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);

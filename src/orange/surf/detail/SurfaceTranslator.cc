@@ -152,13 +152,15 @@ SimpleQuadric SurfaceTranslator::operator()(SimpleQuadric const& other) const
  */
 GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
 {
+    using namespace celeritas::literals;
+
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
 
     Real3 const second = to_array(other.second());
-    Real3 const cross = to_array(other.cross()) / real_type(2);
-    Real3 const first = to_array(other.first()) / real_type(2);
+    Real3 const cross = to_array(other.cross()) / 2.0_r;
+    Real3 const first = to_array(other.first()) / 2.0_r;
 
     // Nonlinear components of the quadric matrix
     SquareMatrix<real_type, 3> nonl{Real3{second[X], cross[X], cross[Z]},
@@ -166,8 +168,7 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
                                     Real3{cross[Z], cross[Y], second[Z]}};
 
     // Calculate q' = - Q t + q
-    Real3 newfirst
-        = gemv(real_type(-1), nonl, tr_.translation(), real_type(1), first);
+    Real3 newfirst = gemv(-1.0_r, nonl, tr_.translation(), 1.0_r, first);
 
     // Update constant:
     // j' = j - t*(q' + q)
@@ -175,7 +176,7 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
                           - dot_product(tr_.translation(), newfirst + first);
 
     return GeneralQuadric{
-        second, to_array(other.cross()), real_type(2) * newfirst, newzeroth};
+        second, to_array(other.cross()), 2.0_r * newfirst, newzeroth};
 }
 
 //---------------------------------------------------------------------------//

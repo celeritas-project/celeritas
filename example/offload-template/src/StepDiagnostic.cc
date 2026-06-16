@@ -34,8 +34,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class A, class B>
-using DerivedPtr =
-    typename std::conditional<std::is_const<A>::value, B const*, B*>::type;
+using DerivedPtr = std::conditional_t<std::is_const<A>::value, B const*, B*>;
 
 // TODO: this helper function should be moved to corecel
 template<template<MemSpace> class Derived, typename Base, typename Func>

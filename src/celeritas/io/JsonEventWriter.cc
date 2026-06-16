@@ -10,12 +10,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/ArrayIO.json.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/JsonUtils.json.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/math/QuantityIO.json.hh"
 #include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/Primary.hh"
 
 namespace celeritas
 {
@@ -44,8 +44,6 @@ JsonEventWriter::JsonEventWriter(std::string const& filename,
  */
 void JsonEventWriter::operator()(VecPrimary const& primaries)
 {
-    CELER_EXPECT(!primaries.empty());
-
     // Increment contiguous event id
     EventId const event_id{event_count_++};
 

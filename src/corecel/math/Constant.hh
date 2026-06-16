@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 
 namespace celeritas
 {
@@ -150,11 +151,11 @@ class Constant
 
 //!@{
 //! In-place arithmetic
-#define CELER_DEFINE_CONSTANT_OP(TOKEN)                                \
-    template<class T, EnableIfFloating<T> = true>                      \
-    CELER_CEF friend T& operator TOKEN(T & lhs, Constant rhs) noexcept \
-    {                                                                  \
-        return lhs TOKEN static_cast<T>(rhs.value());                  \
+#define CELER_DEFINE_CONSTANT_OP(TOKEN)                               \
+    template<class T, EnableIfFloating<T> = true>                     \
+    CELER_CEF friend T& operator TOKEN(T& lhs, Constant rhs) noexcept \
+    {                                                                 \
+        return lhs TOKEN static_cast<T>(rhs.value());                 \
     }
 
     CELER_DEFINE_CONSTANT_OP(*=)
@@ -170,5 +171,19 @@ class Constant
     real_type value_;
 };
 
+namespace literals
+{
 //---------------------------------------------------------------------------//
+CELER_CONSTEXPR_FUNCTION Constant operator""_C(long double value)
+{
+    return Constant{static_cast<Constant::real_type>(value)};
+}
+
+CELER_CONSTEXPR_FUNCTION Constant operator""_C(unsigned long long int value)
+{
+    return Constant{static_cast<Constant::real_type>(value)};
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace literals
 }  // namespace celeritas

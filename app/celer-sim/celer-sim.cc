@@ -6,24 +6,19 @@
 //---------------------------------------------------------------------------//
 #include <cstdlib>
 #include <exception>
-#include <fstream>
-#include <initializer_list>
 #include <iostream>
 #include <memory>
-#include <string_view>
-#include <type_traits>
+#include <optional>
 #include <utility>
 #include <vector>
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Config.hh"
+
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
-
-#include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"
-#include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -34,9 +29,8 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/MultiExceptionHandler.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
@@ -60,25 +54,10 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the OpenMP thread number.
- */
-int get_openmp_thread()
-{
-#ifdef _OPENMP
-    return omp_get_thread_num();
-#else
-    return 0;
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Run, launch, and get output.
  */
 void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 {
-    ScopedMem record_mem("celer-sim.run");
-
     // Read input options
     auto run_input = [&filename] {
         celeritas::FileOrStdin instream{filename};
@@ -89,7 +68,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
 
     // Start profiling
     TracingSession tracing_session{run_input->tracing_file};
-    ScopedProfiling profile_this{"celer-sim"};
+    std::optional<ScopedProfiling> profile_this{std::in_place, "setup"};
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
@@ -117,6 +96,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     }
 
     // Start profiling *after* initialization and warmup are complete
+    profile_this.emplace("run");
     Stopwatch get_transport_time;
     if (run_input->merge_events)
     {
@@ -139,13 +119,17 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         for (size_type event = 0; event < num_events; ++event)
         {
             activate_device_local();
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+            auto stream = id_cast<StreamId>(omp_get_thread_num());
+#else
+            constexpr StreamId stream{0};
+#endif
 
             // Run a single event on a single thread
             TransporterResult event_result;
-            CELER_TRY_HANDLE(event_result = run_stream(
-                                 id_cast<StreamId>(get_openmp_thread()),
-                                 id_cast<EventId>(event)),
-                             capture_exception);
+            CELER_TRY_HANDLE(
+                event_result = run_stream(stream, id_cast<EventId>(event)),
+                capture_exception);
             tracing_session.flush();
             if (run_input->transporter_result)
             {
@@ -154,10 +138,11 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         }
         log_and_rethrow(std::move(capture_exception));
     }
+    profile_this.reset();
 
     result.action_times = run_stream.get_action_times();
+    result.step_times = run_stream.get_step_times();
     result.total_time = get_transport_time();
-    record_mem = {};
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 

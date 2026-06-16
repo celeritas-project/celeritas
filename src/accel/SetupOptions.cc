@@ -127,6 +127,7 @@ void ProblemSetup::operator()(inp::Problem& p) const
     {
         p.control.optical_capacity = so.optical->capacity;
         p.tracking.optical_limits = so.optical->limits;
+        p.scoring.optical_detector = so.optical->detectors;
     }
 
     if (so.track_order != TrackOrder::size_)
@@ -249,6 +250,7 @@ void OpticalProblemSetup::operator()(inp::OpticalProblem& p) const
     CELER_ASSERT(so.optical);
     p.generator = so.optical->generator;
     p.capacity = so.optical->capacity;
+    p.detectors = so.optical->detectors;
     p.limits = so.optical->limits;
     p.seed = CLHEP::HepRandom::getTheSeed();
     p.timers.action = so.action_times;

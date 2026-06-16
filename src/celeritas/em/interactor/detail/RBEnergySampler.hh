@@ -15,7 +15,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/xs/RBDiffXsCalculator.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -99,12 +98,13 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     // Sampled energy and corresponding cross section for rejection
     real_type gamma_energy{0};
     real_type dsigma{0};
+    RejectionSampler<real_type> reject{calc_dxsec_.maximum_value()};
 
     do
     {
         gamma_energy = std::sqrt(sample_exit_esq(rng) - density_corr);
         dsigma = calc_dxsec_(Energy{gamma_energy});
-    } while (RejectionSampler(dsigma, calc_dxsec_.maximum_value())(rng));
+    } while (reject(dsigma, rng));
 
     return Energy{gamma_energy};
 }

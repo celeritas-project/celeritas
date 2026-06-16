@@ -93,8 +93,9 @@ QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
     real_type const inv_norm = 3 / (second[0] + second[1] + second[2]);
     CELER_ASSERT(inv_norm > 0);
 
+    using namespace celeritas::literals;
     Real3 origin = to_array(sq.first());
-    origin *= real_type{-0.5} * inv_norm;
+    origin *= -0.5_r * inv_norm;
 
     real_type radius_sq = dot_product(origin, origin) - sq.zeroth() * inv_norm;
     if (radius_sq <= 0)
@@ -104,7 +105,7 @@ QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
     }
 
     // Clear potential signed zeros before returning
-    origin += real_type{0};
+    origin += 0_r;
     return Sphere::from_radius_sq(origin, radius_sq);
 }
 

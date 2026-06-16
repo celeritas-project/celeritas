@@ -37,7 +37,11 @@ challenging simulation problems in HEP.
 .. only:: html
 
    :Release: |release|
-   :Date: |today|
+   :Date: |build_date|
+
+   .. _quickstart:
+
+   .. include:: ../QUICKSTART.rst
 
 .. ***************************************************************************
 
@@ -339,6 +343,7 @@ library, in independent and Geant4-integrated contexts.
    example/celer-sim.rst
    example/celer-g4.rst
    example/celer-geo.rst
+   example/larceler.rst
 
 .. ***************************************************************************
 .. ACKNOWLEDGMENTS

@@ -274,7 +274,7 @@ TEST_F(MatrixUtilsTest, make_arb_rotation)
     }
     {
         auto r = make_rotation(make_unit_vector(Real3{-3, -4, -5}),
-                               Turn{1 / real_type{6}});
+                               Turn{1 / 6_r});
         static double const expected_r[] = {
             0.59,
             0.73237243569579,
@@ -295,13 +295,13 @@ TEST_F(MatrixUtilsTest, make_arb_rotation)
 TEST_F(MatrixUtilsTest, make_scaling)
 {
     {
-        auto r = make_scaling(real_type{2.0});
+        auto r = make_scaling(2.0_r);
 
         static double const expected_r[] = {2, 0, 0, 0, 2, 0, 0, 0, 2};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
     }
     {
-        auto r = make_scaling(Axis::z, real_type{2.0});
+        auto r = make_scaling(Axis::z, 2.0_r);
 
         static double const expected_r[] = {1, 0, 0, 0, 1, 0, 0, 0, 2};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));

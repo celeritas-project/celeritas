@@ -7,26 +7,22 @@
 #include "PhysicsParams.hh"
 
 #include <algorithm>
-#include <cmath>
 #include <map>
-#include <set>
 #include <string_view>
 #include <tuple>
-#include <type_traits>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/grid/UniformGrid.hh"
-#include "corecel/io/Label.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/model/EPlusGGModel.hh"
 #include "celeritas/em/model/ElectroNuclearModel.hh"
@@ -92,8 +88,6 @@ PhysicsParams::PhysicsParams(Input inp)
     CELER_EXPECT(inp.particles);
     CELER_EXPECT(inp.materials);
     CELER_EXPECT(inp.action_registry);
-
-    ScopedMem record_mem("PhysicsParams.construct");
 
     // Create actions (order matters due to accessors in PhysicsParamsScalars)
     {
@@ -197,7 +191,8 @@ auto PhysicsParams::processes(ParticleId id) const -> SpanConstProcessId
 {
     CELER_EXPECT(id < this->host_ref().process_groups.size());
     auto const& data = this->host_ref();
-    return data.process_ids[data.process_groups[id].processes];
+    return remove_ldg_wrapper(
+        data.process_ids[data.process_groups[id].processes]);
 }
 
 //---------------------------------------------------------------------------//

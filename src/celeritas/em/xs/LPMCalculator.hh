@@ -122,11 +122,13 @@ LPMCalculator::LPMCalculator(MaterialView const& material,
  */
 CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
 {
+    using namespace celeritas::literals;
+
     real_type const s_prime = std::sqrt(
         lpm_energy_ / (8 * epsilon * gamma_energy_ * std::fabs(epsilon - 1)));
 
     // Stanev Eq 17, constant revised down from 191
-    real_type const s1 = ipow<2>(element_.cbrt_z() / real_type(184.15));
+    real_type const s1 = ipow<2>(element_.cbrt_z() / 184.15_r);
 
     // Stanev Eq 21
     real_type xi = 2;
@@ -138,7 +140,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     {
         real_type const log_s1 = std::log(constants::sqrt_two * s1);
         real_type const h = std::log(s_prime) / log_s1;
-        xi = 1 + h - real_type(0.08) * (1 - h) * h * (2 - h) / log_s1;
+        xi = 1 + h - 0.08_r * (1 - h) * h * (2 - h) / log_s1;
     }
     real_type s = s_prime / std::sqrt(xi);
 
@@ -172,7 +174,7 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
     // Make sure suppression is less than 1 (due to Migdal's approximation on
     // \f$ xi \f$)
     real_type phi = this->calc_phi(s);
-    if (xi * phi > 1 || s > real_type(0.57))
+    if (xi * phi > 1 || s > 0.57_r)
     {
         xi = 1 / phi;
     }
@@ -199,14 +201,16 @@ CELER_FUNCTION auto LPMCalculator::operator()(real_type epsilon) -> LPMFunctions
  */
 CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
 {
+    using namespace celeritas::literals;
+
     using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    if (s < real_type(0.01))
+    if (s < 0.01_r)
     {
         return s * PolyLin(6, -6 * constants::pi)(s);
     }
-    else if (s < real_type(1.55))
+    else if (s < 1.55_r)
     {
         real_type a = PolyQuad{0.623, 0.796, 0.658}(s);
         real_type b = PolyQuad{-6, -6 * (3 - constants::pi), 1 / a}(s);
@@ -214,7 +218,7 @@ CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
     }
     else
     {
-        return 1 - real_type(0.01190476) / ipow<4>(s);
+        return 1 - 0.01190476_r / ipow<4>(s);
     }
 }
 
@@ -224,28 +228,30 @@ CELER_FUNCTION real_type LPMCalculator::calc_phi(real_type s) const
  */
 CELER_FUNCTION real_type LPMCalculator::calc_g(real_type s, real_type phi) const
 {
+    using namespace celeritas::literals;
+
     using PolyLin = PolyEvaluator<real_type, 1>;
     using PolyQuart = PolyEvaluator<real_type, 4>;
 
-    if (s < real_type(0.01))
+    if (s < 0.01_r)
     {
         return PolyLin(-2 * phi, 12)(s);
     }
-    else if (s < real_type(0.415827))
+    else if (s < 0.415827_r)
     {
         real_type a = PolyQuart{1, 3.936, 4.97, -0.05, 7.5}(s);
         real_type b = PolyLin{-4, -8 / a}(s);
         real_type psi = 1 - std::exp(s * b);
         return 3 * psi - 2 * phi;
     }
-    else if (s < real_type(1.9156))
+    else if (s < 1.9156_r)
     {
         return std::tanh(
             PolyQuart{-0.160723, 3.755030, -1.798138, 0.672827, -0.120772}(s));
     }
     else
     {
-        return 1 - real_type(0.0230655) / ipow<4>(s);
+        return 1 - 0.0230655_r / ipow<4>(s);
     }
 }
 

@@ -65,6 +65,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_ADD_CFG(core_geo);
         CO_ADD_CFG(core_rng);
         CO_ADD_CFG(gpu_architectures);
+        CO_ADD_CFG(reseed);
 #undef CO_ADD_CFG
         if constexpr (CELER_USE_DEVICE)
         {

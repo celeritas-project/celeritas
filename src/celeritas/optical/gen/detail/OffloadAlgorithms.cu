@@ -20,6 +20,8 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Thrust.device.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -61,7 +63,7 @@ size_type count_num_photons(
         start + offset,
         start + size,
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        size_type(0),
+        0_sz,
         thrust::plus<size_type>());
     CELER_DEVICE_API_CALL(PeekAtLastError());
     return count;

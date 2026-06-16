@@ -61,6 +61,11 @@ option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)"
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
+cmake_dependent_option(CELERITAS_CODESIGN_APPS
+  "Use Apple codesign to allow debugging with Instruments" "OFF"
+  "CELERITAS_BUILD_APPS;APPLE" OFF
+)
+
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
@@ -303,7 +308,7 @@ if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
-  if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
+  if(CMAKE_CUDA_HOST_COMPILER AND NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
     # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
@@ -416,7 +421,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES)
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT "$ENV{CUDAARCHS}")
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "
@@ -623,12 +628,10 @@ if(CELERITAS_USE_VecGeom)
     # Enforce minimum version
     celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
+endif()
 
-  # Default to using surface navigation if it's available
-  cmake_dependent_option(CELERITAS_VecGeom_SURFACE
-    "Use VecGeom surface navigation" "ON"
-    "VecGeom_USE_SURF" OFF
-  )
+if(CELERITAS_USE_GTest)
+  celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -672,8 +675,22 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_USE_GTest)
-  celeritas_find_or_builtin_package(GTest 1.10)
+if(CELERITAS_CODESIGN_APPS)
+  find_program(CODESIGN_EXECUTABLE codesign)
+  if(NOT CODESIGN_EXECUTABLE)
+    celeritas_error_incompatible_option(
+      "codesign is required for codesigning but was not found: maybe xcode not installed"
+      CELERITAS_CODESIGN_APPS
+      OFF
+    )
+  endif()
+  set(CELERITAS_CODESIGN_ENTITLEMENTS "${PROJECT_SOURCE_DIR}/cmake/entitlements.plist" CACHE PATH
+    "Entitlements file to use for Celeritas executables"
+  )
+  # NOTE: '-' is "ad hoc" signature
+  set(CELERITAS_CODESIGN_IDENTITY "-" CACHE STRING
+    "Code signing identity used for app building"
+  )
 endif()
 
 #----------------------------------------------------------------------------#

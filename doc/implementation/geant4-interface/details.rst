@@ -26,6 +26,22 @@ Classes usable by Geant4
 These utilities are based on Celeritas data structures and capabilities but are
 written to be usable both by the ``celer-g4`` app and potential other users.
 
+Management
+""""""""""
+
+State dependent:
+
+.. doxygenenum:: celeritas::GeantStateChange
+.. doxygentypedef:: celeritas::LocalGeantStateChangeFunc
+.. doxygenclass:: celeritas::StateDependent
+
+Threading:
+
+.. doxygenfunction:: celeritas::geant_main_stream
+.. doxygenfunction:: celeritas::geant_stream
+.. doxygenfunction:: celeritas::geant_num_threads
+
+
 Fields
 """"""
 

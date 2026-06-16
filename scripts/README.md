@@ -39,8 +39,7 @@ generate files, set up development machines, and analyze the codebase.
 The `docker` subdirectory contains scripts for setting up and maintaining
 reproducible environments for building Celeritas and running it under CI.
 
-# Spack environment
+# Spack environments
 
-Once Spack is installed, run `spack env create celeritas spack.yaml` and `spack
--e celeritas install` to install a complete environment needed to build
-Celeritas with all supported options.
+The `spack` directory has a list of dependency requirements (`packages.yaml`)
+and several environments for different use cases.

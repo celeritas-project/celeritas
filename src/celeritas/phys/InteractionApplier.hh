@@ -169,9 +169,10 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 secondary = {};
 
                 // Mark as a cut track
+                using namespace celeritas::literals;
                 atomic_add(
                     &const_cast<CoreTrackView&>(track).counters().num_cut,
-                    size_type{1});
+                    1_sz);
             }
         }
     }

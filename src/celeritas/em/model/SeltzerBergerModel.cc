@@ -15,7 +15,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/em/data/ElectronBremsData.hh"
 #include "celeritas/em/executor/SeltzerBergerExecutor.hh"  // IWYU pragma: associated
 #include "celeritas/em/interactor/detail/PhysicsConstants.hh"
@@ -52,8 +51,6 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                 {pdg::electron(), pdg::positron()})
 {
     CELER_EXPECT(id);
-
-    ScopedMem record_mem("SeltzerBergerModel.construct");
 
     HostVal<SeltzerBergerData> host_data;
 

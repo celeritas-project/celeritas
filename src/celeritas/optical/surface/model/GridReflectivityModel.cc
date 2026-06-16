@@ -29,7 +29,7 @@ namespace optical
  */
 GridReflectivityModel::GridReflectivityModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "reflectivity-grid")
+    : SurfaceModel(id, "grid-reflectivity")
 {
     using GridId = OpaqueId<NonuniformGridRecord>;
 

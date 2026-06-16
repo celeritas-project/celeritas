@@ -33,6 +33,8 @@ namespace celeritas
    \langle n \rangle = \ell_\text{step} \difd{N}{x}
  * \f]
  * where \f$ \ell_\text{step} \f$ is the step length.
+ *
+ * \todo rename \c CherenkovOffloadSampler
  */
 class CherenkovOffload
 {
@@ -94,8 +96,10 @@ CherenkovOffload::CherenkovOffload(units::ElementaryCharge charge,
     CELER_EXPECT(step_length_ > 0);
     CELER_EXPECT(pre_step_);
 
+    using namespace celeritas::literals;
+
     units::LightSpeed beta(
-        real_type{0.5} * (pre_step_.speed.value() + post_step_.speed.value()));
+        0.5_r * (pre_step_.speed.value() + post_step_.speed.value()));
 
     CherenkovDndxCalculator calculate_dndx(pre_mat, shared, charge_);
     num_photons_per_len_ = calculate_dndx(beta);

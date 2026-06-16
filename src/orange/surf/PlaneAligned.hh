@@ -7,8 +7,10 @@
 #pragma once
 
 #include "corecel/Macros.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
 
@@ -39,7 +41,7 @@ class PlaneAligned
   public:
     //// CONSTRUCTORS ////
 
-    // Construct with radius
+    // Construct from axis intercept
     explicit inline CELER_FUNCTION PlaneAligned(real_type position);
 
     // Construct from raw data
@@ -48,16 +50,25 @@ class PlaneAligned
 
     //// ACCESSORS ////
 
-    //! Get the square of the radius
-    CELER_FUNCTION real_type position() const { return position_; }
+    //! Distance from the origin along the normal to the plane (deprecated)
+    CELER_CONSTEXPR_FUNCTION real_type position() const
+    {
+        return this->displacement();
+    }
+
+    //! Distance from the origin along the normal to the plane
+    CELER_CONSTEXPR_FUNCTION real_type displacement() const { return d_; }
 
     //! Get a view to the data for type-deleted storage
-    CELER_FUNCTION StorageSpan data() const { return {&position_, 1}; }
+    CELER_FUNCTION StorageSpan data() const { return {&d_, 1}; }
 
     // Construct outward normal vector
     inline CELER_FUNCTION Real3 calc_normal() const;
 
     //// CALCULATION ////
+
+    // Get the dot product with the normal
+    inline CELER_FUNCTION real_type dot_normal(Real3 const& pos) const;
 
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
@@ -71,7 +82,7 @@ class PlaneAligned
 
   private:
     //! Intersection with the axis
-    real_type position_;
+    real_type d_;
 };
 
 //---------------------------------------------------------------------------//
@@ -102,8 +113,7 @@ CELER_CONSTEXPR_FUNCTION SurfaceType PlaneAligned<T>::surface_type()
  * Construct from axis intercept.
  */
 template<Axis T>
-CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
-    : position_(position)
+CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position) : d_(position)
 {
 }
 
@@ -114,7 +124,7 @@ CELER_FUNCTION PlaneAligned<T>::PlaneAligned(real_type position)
 template<Axis T>
 template<class R>
 CELER_FUNCTION PlaneAligned<T>::PlaneAligned(Span<R, StorageSpan::extent> data)
-    : position_(data[0])
+    : d_(data[0])
 {
 }
 
@@ -133,12 +143,25 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the dot product with the normal.
+ *
+ * This is used for intersection, sense, and combined-plane methods.
+ */
+template<Axis T>
+CELER_FORCEINLINE_FUNCTION real_type
+PlaneAligned<T>::dot_normal(Real3 const& x) const
+{
+    return x[to_int(T)];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Determine the sense of the position relative to this surface.
  */
 template<Axis T>
 CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(pos[to_int(T)] - position_);
+    return real_to_sense(this->dot_normal(pos) - this->displacement());
 }
 
 //---------------------------------------------------------------------------//
@@ -152,17 +175,14 @@ PlaneAligned<T>::calc_intersections(Real3 const& pos,
                                     SurfaceState on_surface) const
     -> Intersections
 {
-    real_type const n_dir = dir[to_int(T)];
-    if (on_surface == SurfaceState::off && n_dir != 0)
-    {
-        real_type const n_pos = pos[to_int(T)];
-        real_type dist = (position_ - n_pos) / n_dir;
-        if (dist > 0)
-        {
-            return {dist};
-        }
-    }
-    return {no_intersection()};
+    real_type const n_pos = this->dot_normal(pos);
+    real_type const n_dir = this->dot_normal(dir);
+    real_type const dist = (this->displacement() - n_pos) / n_dir;
+
+    bool valid = celeritas::logical_all(
+        (on_surface == SurfaceState::off), (n_dir != 0), (dist > 0));
+
+    return {valid ? dist : no_intersection()};
 }
 
 //---------------------------------------------------------------------------//

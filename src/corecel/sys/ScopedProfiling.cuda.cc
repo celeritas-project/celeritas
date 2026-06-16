@@ -23,8 +23,8 @@ namespace
  */
 nvtxEventAttributes_t make_attributes(ScopedProfiling::Input const& input)
 {
-    nvtxEventAttributes_t attributes = {};  // Initialize all attributes to
-                                            // zero
+    // Initialize all attributes to zero
+    nvtxEventAttributes_t attributes = {};
     attributes.version = NVTX_VERSION;
     attributes.size = NVTX_EVENT_ATTRIB_STRUCT_SIZE;
     if (input.color)
@@ -97,6 +97,15 @@ void ScopedProfiling::deactivate() noexcept
             << "Failed to deactivate profiling domain (error code " << result
             << ")";
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Test whether nvtx is enabled by pushing/popping a domain.
+ */
+bool ScopedProfiling::is_nvtx_enabled()
+{
+    return domain_handle() != nullptr;
 }
 
 //---------------------------------------------------------------------------//

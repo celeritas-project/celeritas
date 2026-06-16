@@ -7,10 +7,18 @@ import datetime
 import os
 import json
 import sys
+import time
 from pathlib import Path
 from sphinx import __version__ as sphinx_version
 
 # -- Project information -----------------------------------------------------
+
+# See https://reproducible-builds.org/docs/source-date-epoch/
+build_date = datetime.datetime.fromtimestamp(
+    int(os.environ.get("SOURCE_DATE_EPOCH", time.time())),
+    tz=datetime.timezone.utc,
+)
+
 
 project = "Celeritas"
 all_authors = [
@@ -18,9 +26,7 @@ all_authors = [
     "The Celeritas Team",
 ]
 author = " and ".join(all_authors)
-copyright = "{:%Y}, UT–Battelle/ORNL and Celeritas team".format(
-    datetime.datetime.today()
-)
+copyright = "{:%Y}, UT–Battelle/ORNL and Celeritas team".format(build_date)
 
 try:
     build_dir = Path(os.environ["CMAKE_CURRENT_BINARY_DIR"])
@@ -121,6 +127,11 @@ highlight_language = "cpp"
 
 # Enable numbered figures/tables
 numfig = True
+
+# Variable substitutions
+rst_prolog = f"""
+.. |build_date| replace:: {build_date:%Y-%m-%d}
+"""
 
 sys.path.insert(0, os.path.join(os.path.abspath("."), "_python"))
 import monkeysphinx

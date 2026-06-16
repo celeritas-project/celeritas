@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeoTests.hh"
 
+#include <algorithm>
 #include <string_view>
 
 #include "corecel/Config.hh"
@@ -29,6 +30,8 @@
 #include "GenericGeoTestInterface.hh"
 #include "TestMacros.hh"
 #include "UnitUtils.hh"
+
+using namespace celeritas::literals;
 
 /*!
  * Allow a statement to skip the test when using a certain geometry.
@@ -100,7 +103,11 @@ void fixup_orange(GenericGeoTestInterface const& interface,
         return;
 
     // Delete within-world safeties
-    for (auto i : range(std::max(ref.volumes.size(), result.volumes.size())))
+    Array const sizes{ref.volumes.size(),
+                      result.volumes.size(),
+                      result.halfway_safeties.size(),
+                      ref.halfway_safeties.size()};
+    for (auto i : range(*std::min_element(sizes.begin(), sizes.end())))
     {
         if (ref.volumes[i] == world_name)
         {
@@ -179,12 +186,6 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-        {
-            // World safety differs
-            ref.halfway_safeties[0] = 725.849243164062;
-            ref.halfway_safeties[20] = 723.549255371094;
-        }
 
         EXPECT_REF_NEAR(ref, result, tol);
     }
@@ -246,11 +247,6 @@ void AtlasHgtdGeoTest::test_trace() const
         };
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-        {
-            // World safety differs
-            ref.halfway_safeties[10] = 723.549255371094;
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 
@@ -265,9 +261,9 @@ void AtlasHgtdGeoTest::test_trace() const
         Real3 pos{24.097769534015998, 17.956803215217408, 344.45};
         Real3 dir{
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
-        axpy(real_type{-1}, dir, &pos);
+        axpy(-1_r, dir, &pos);
 
-        if (test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom")
         {
             GTEST_SKIP() << "VecGeom fails the tangent trace";
         }
@@ -345,13 +341,8 @@ void AtlasHgtdGeoTest::test_volume_stack() const
     }
     if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
     {
-        // VecGeom surface overpredicts even more
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            expected_all_stacks[5] = expected_all_stacks.front();
-        }
     }
 
     EXPECT_VEC_EQ(expected_all_stacks, all_stacks);
@@ -433,7 +424,6 @@ void CmsEeBackDeeGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void CmsEeBackDeeGeoTest::test_trace() const
 {
-    // Surface VecGeom needs lower safety tolerance
     {
         SCOPED_TRACE("+z top");
         auto result = test_->track({50, 0.1, 360.1}, {0, 0, 1});
@@ -486,14 +476,6 @@ void CmseGeoTest::test_trace() const
         ref.halfway_safeties = {100, 2.15, 10.302730220674, 13.023518051921,
             6.95, 6.95, 13.023518051922, 10.302730220675, 2.15, 100, 5, 8, 100,
             100, 100,};
-        if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-        {
-            // Surface vecgeom underestimates some safety near internal
-            // boundaries
-            ref.halfway_safeties = {100, 2.15,
-                9.62498950958252, 13.023518051922, 6.95, 6.95, 13.023518051922,
-                9.62498950958252, 2.15, 100, 5, 8, 100, 100, 100};
-        }
         // clang-format on
 
         auto tol = test_->tracking_tol();
@@ -624,6 +606,8 @@ void FourLevelsGeoTest::test_consecutive_compute() const
 void FourLevelsGeoTest::test_detailed_tracking() const
 {
     auto geo = test_->make_checked_track_view();
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     Propagation next;
     {
@@ -672,7 +656,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
 
         // Find the next boundary and make sure that nearer distances aren't
         // accepted
-        ASSERT_NO_THROW(next = geo.find_next_step());
+        ASSERT_NO_THROW(next = geo.find_next_step(max_distance));
         EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
@@ -705,22 +689,22 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo = test_->make_initializer({10.0, 10.0, 10.0}, {1, 0, 0});
         EXPECT_EQ("World_PV/env1/Shape1/Shape2",
                   test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1/Shape1", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV", test_->unique_volume_name(geo));
-        geo.find_next_step();
+        geo.find_next_step(max_distance);
         geo.move_to_boundary();
         geo.cross_boundary();
 
@@ -812,7 +796,7 @@ void FourLevelsGeoTest::test_reentrant() const
     EXPECT_EQ("Shape1", test_->volume_name(geo));
 
     // Test relocation without direction change on surface
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Check non-reentrant direction
     geo.set_dir(Real3{dx, dx, 0});
@@ -1056,11 +1040,6 @@ void FourLevelsGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void LarSphereGeoTest::test_trace() const
 {
-    if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-    {
-        GTEST_SKIP() << "Fails to cross +y";
-    }
-
     {
         SCOPED_TRACE("+y");
         auto result = test_->track({0, -120, 0}, {0, 1, 0});
@@ -1429,14 +1408,6 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[0] = 0.210641235113144;
-            ref.halfway_safeties[6] = 0.56419426202774;
-        }
-
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1500,15 +1471,6 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
-
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[2] = 0.679982662200928;
-            ref.halfway_safeties[8] = 4.35703563690186;
-        }
-
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1572,15 +1534,6 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
-        if (test_->geometry_type() == "VecGeom" && using_surface_vg)
-        {
-            // TODO: check if polyhedra safety can be improved in vg2.x-surface
-            // Geant4 has a different safety for the halfway point
-            ref.halfway_safeties[0] = 0.368524014949799;
-            ref.halfway_safeties[2] = 0.897850394248962;
-            ref.halfway_safeties[4] = 0.966398000717163;
-            ref.halfway_safeties[6] = 0.801536321640015;
-        }
 
         auto tol = test_->tracking_tol();
         // Bump the tolerance by 25% for safety comparisons only: this became
@@ -1736,9 +1689,9 @@ void ReplicaGeoTest::test_trace() const
 
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+            || vecgeom_version < Version{2, 0})
         {
-            // TODO: VecGemo 2.x-solids returns wrong distance values
+            // TODO: VecGemo 2.x returns wrong distance values
             EXPECT_REF_NEAR(ref, result, tol);
         }
     }
@@ -1766,7 +1719,7 @@ void ReplicaGeoTest::test_volume_stack() const
         GenericGeoVolumeStackResult ref;
         ref.volume_instances
             = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
-        if ((test_->geometry_type() == "VecGeom" && !CELERITAS_VECGEOM_SURFACE)
+        if (test_->geometry_type() == "VecGeom"
             || (test_->geometry_type() == "ORANGE"
                 && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)))
         {
@@ -1775,9 +1728,9 @@ void ReplicaGeoTest::test_volume_stack() const
             ref.volume_instances.pop_back();
         }
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0} || CELERITAS_VECGEOM_SURFACE)
+            || vecgeom_version < Version{2, 0})
         {
-            // TODO: VecGeom 2.x-solids returns wrong volume instances
+            // TODO: VecGeom 2.x returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
         }
     }
@@ -1981,7 +1934,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2068,7 +2021,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2188,7 +2141,7 @@ void SolidsGeoTest::test_trace() const
 
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2262,7 +2215,7 @@ void SolidsGeoTest::test_trace() const
         {
             if (vecgeom_version >= Version{2, 0})
             {
-                // TODO: VecGeom 2.x-solids still missing some shapes
+                // TODO: VecGeom 2.x still missing some shapes
                 ref.fail_at(0);
                 result.fail_at(0);
             }
@@ -2843,7 +2796,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
 
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    if (vecgeom_version >= Version{2, 0})
     {
         // Zero-distance movement means it's not quite on the boundary
         EXPECT_VEC_SOFT_EQ(Real3({5 + 2 * dx, 2, 1.25}), to_cm(geo.pos()));
@@ -2864,7 +2817,9 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
 void TwoBoxesGeoTest::test_reentrant() const
 {
     auto geo = test_->make_checked_track_view();
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
@@ -2909,16 +2864,11 @@ void TwoBoxesGeoTest::test_reentrant() const
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
     }
-    if (test_->geometry_type() == "VecGeom" && CELERITAS_VECGEOM_SURFACE)
-    {
-        EXPECT_TRUE(geo.is_outside());
-        GTEST_SKIP() << "Unexpected vg2 surface behavior";
-    }
     EXPECT_EQ("inner", test_->volume_name(geo));
 
     // Find the next boundary and make sure that nearer distances aren't
     // accepted
-    next = geo.find_next_step();
+    next = geo.find_next_step(max_distance);
     EXPECT_SOFT_EQ(10 * dx, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
@@ -2934,7 +2884,7 @@ void TwoBoxesGeoTest::test_reentrant() const
 void TwoBoxesGeoTest::test_reentrant_undo() const
 {
     auto geo = test_->make_checked_track_view();
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
 
     // Starting left of edge (-), headed down right (+,-)
     geo = test_->make_initializer({5 - dx, dx, 0}, {dx, -dx, 0});
@@ -2989,7 +2939,9 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
  */
 void TwoBoxesGeoTest::test_tangent() const
 {
-    constexpr auto dx = real_type{1} / constants::sqrt_two;
+    constexpr auto dx = 1_r / constants::sqrt_two;
+    auto const& bbox = test_->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     // Starting left of edge (-), headed down right (+,-)
     auto geo = test_->make_checked_track_view();
@@ -3046,7 +2998,7 @@ void TwoBoxesGeoTest::test_tangent() const
     // accepted
     {
         SCOPED_TRACE("checking internal distance");
-        auto next = geo.find_next_step();
+        auto next = geo.find_next_step(max_distance);
         EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
@@ -3140,7 +3092,8 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (using_solids_vg && vecgeom_version >= Version{2, 0})
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version >= Version{2, 0})
         {
             GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
         }

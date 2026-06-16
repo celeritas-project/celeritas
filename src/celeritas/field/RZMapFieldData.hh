@@ -6,86 +6,54 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/Macros.hh"
+#include "corecel/Config.hh"
+
 #include "corecel/Types.hh"
-#include "corecel/data/Collection.hh"
-#include "corecel/grid/UniformGridData.hh"
 
 #include "FieldDriverOptions.hh"
+
+#if CELERITAS_USE_COVFIE || __DOXYGEN__
+#    include "corecel/Macros.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-/*!
- * MapField (2-dimensional RZ map) grid data
- */
-struct MapFieldGridData
-{
-    UniformGridData data_z;
-    UniformGridData data_r;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * MapField element
- */
-struct MapFieldElement
-{
-    real_type value_z;
-    real_type value_r;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Device data for interpolating field values.
- */
 template<Ownership W, MemSpace M>
-struct RZMapFieldParamsData
+struct RZMapFieldParamsData;
+
+// Specialized and type-erased covfie field_view to hide c++20 dependency
+template<>
+struct RZMapFieldParamsData<Ownership::const_reference, MemSpace::device>
 {
-    //! Grids of MapField
-    MapFieldGridData grids;
+    CELER_FUNCTION explicit operator bool() const { return field_view; }
 
-    //! Field propagation and substepping tolerances
+    RZMapFieldParamsData& operator=(
+        RZMapFieldParamsData<Ownership::value, MemSpace::device> const& other);
+
     FieldDriverOptions options;
-
-    //! Index of MapField Collection
-    using ElementId = ItemId<size_type>;
-
-    template<class T>
-    using ElementItems = Collection<T, W, M, ElementId>;
-    ElementItems<MapFieldElement> fieldmap;
-
-    //! Check whether the data is assigned
-    explicit inline CELER_FUNCTION operator bool() const
-    {
-        return !fieldmap.empty();
-    }
-
-    inline CELER_FUNCTION bool valid(real_type z, real_type r) const
-    {
-        CELER_EXPECT(grids.data_z);
-        CELER_EXPECT(grids.data_r);
-        return (z >= grids.data_z.front && z <= grids.data_z.back
-                && r >= grids.data_r.front && r <= grids.data_r.back);
-    }
-
-    inline CELER_FUNCTION ElementId id(size_type idx_z, size_type idx_r) const
-    {
-        CELER_EXPECT(grids.data_r);
-        return ElementId(idx_z * grids.data_r.size + idx_r);
-    }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    RZMapFieldParamsData& operator=(RZMapFieldParamsData<W2, M2> const& other)
-    {
-        CELER_EXPECT(other);
-        grids = other.grids;
-        options = other.options;
-        fieldmap = other.fieldmap;
-        return *this;
-    }
+    real_type min_r{};
+    real_type max_r{};
+    real_type min_z{};
+    real_type max_z{};
+    // underlying type: CovfieRZFieldTraits<MemSpace::device>::field_t:view_t
+    void const* field_view{};
 };
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
+#else
+
+namespace celeritas
+{
+//---------------------------------------------------------------------------//
+//! Minimal stub so that RZMapFieldParamsData is always a complete type.
+template<Ownership W, MemSpace M>
+struct RZMapFieldParamsData
+{
+    FieldDriverOptions options;
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace celeritas
+
+#endif  // CELERITAS_USE_COVFIE

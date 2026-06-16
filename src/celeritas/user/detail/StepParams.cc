@@ -23,6 +23,7 @@ namespace detail
  */
 StepParams::StepParams(AuxId aux_id,
                        CoreGeoParams const& geo,
+                       VolumeParams const& volume_params,
                        VecInterface const& callbacks)
     : aux_id_{aux_id}
 {
@@ -35,11 +36,7 @@ StepParams::StepParams(AuxId aux_id,
         all
     };
 
-    // FIXME: pass these into the constructor rather than using globals
-    auto const& volume_params = celeritas::global_volumes().lock();
-    CELER_ASSERT(volume_params);
-
-    auto const& volumes = volume_params->volume_labels();
+    auto const& volumes = volume_params.volume_labels();
     StepSelection selection;
     CELER_ASSERT(!selection);
     StepInterface::MapVolumeDetector detector_map;
@@ -115,7 +112,7 @@ StepParams::StepParams(AuxId aux_id,
         {
             // TODO: replace with volume params, so we can use touchable
             // representation
-            host_data.num_volume_levels = volume_params->num_volume_levels();
+            host_data.num_volume_levels = volume_params.num_volume_levels();
             CELER_VALIDATE(host_data.num_volume_levels > 0,
                            << "geometry type does not support volume "
                               "instance IDs: max depth is "

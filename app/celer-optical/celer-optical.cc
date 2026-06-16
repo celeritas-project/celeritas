@@ -17,6 +17,7 @@
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/FileOrConsole.hh"
@@ -26,13 +27,12 @@
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
-#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/io/OpticalDistributionReader.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
 
@@ -53,7 +53,7 @@ void run(std::shared_ptr<OutputRegistry>& output,
          std::string& output_filename,
          std::string const& input_filename)
 {
-    ScopedMem record_mem("celer-optical.run");
+    using Runner = celeritas::optical::Runner;
 
     // Read input options
     auto input = [&input_filename] {
@@ -66,42 +66,59 @@ void run(std::shared_ptr<OutputRegistry>& output,
     // Standalone optical is run on a single GPU stream
     input.problem.num_streams = 1;
 
-    /*! \todo Add readers/writers for distributions or initializers similar to
-     * the EM "primary offload" to support other generator types.
-     */
-    CELER_VALIDATE(
-        std::holds_alternative<celeritas::inp::OpticalPrimaryGenerator>(
-            input.problem.generator),
-        << "primary generator is the only optical photon generation mechanism "
-           "currently supported");
-
     // Get the output filename
     output_filename = input.problem.output_file;
 
+    // Save the generator input
+    auto generator = input.problem.generator;
+
     // Start profiling
     TracingSession tracing_session{input.problem.perfetto_file};
-    ScopedProfiling profile_this{"celer-optical"};
-
     SimulationResult result;
 
     // Set up optical problem
     Stopwatch get_setup_time;
-    auto run = celeritas::optical::Runner(std::move(input));
-    result.time.setup = get_setup_time();
-
-    //! \todo Optical loop warmup
+    auto run = Runner(std::move(input));
 
     // Get output registry
     output = run.params()->output_reg();
 
     // Transport all tracks to completion
+    std::visit(Overload{
+                   [&run](celeritas::inp::OpticalPrimaryGenerator const&) {
+                       run.insert();
+                   },
+                   [&run](celeritas::inp::OpticalOffloadGenerator const& g) {
+                       CELER_VALIDATE(g.distribution_file,
+                                      << "missing file for loading optical "
+                                         "distribution data");
+                       auto const distributions
+                           = OpticalDistributionReader(*g.distribution_file)();
+                       run.insert(make_span(distributions));
+                   },
+                   [](celeritas::inp::OpticalDirectGenerator const&) {
+                       //! \todo Add support for direct generation from file
+                       CELER_VALIDATE(false,
+                                      << "direct optical photon generation is "
+                                         "not yet supported");
+                   },
+                   [](celeritas::inp::OpticalEmGenerator const&) {
+                       CELER_VALIDATE(false,
+                                      << "optical photon generation from EM "
+                                         "particles is not supported");
+                   },
+               },
+               generator);
+    result.time.setup = get_setup_time();
+
+    //! \todo Optical loop warmup
+
     Stopwatch get_transport_time;
     auto run_result = run();
     result.time.total = get_transport_time();
     result.time.actions = std::move(run_result.action_times);
+    result.time.steps = std::move(run_result.step_times);
     result.counters = std::move(run_result.counters);
-
-    record_mem = {};
 
     // Add simulation result to output
     output->insert(

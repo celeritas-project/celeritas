@@ -48,10 +48,11 @@ problem = {
     "generator": generator,
     "capacity": capacity,
     "seed": 12345,
-    "timers": {"action": False},
+    "timers": {"action": True, "step": True},
     "limits": {
         "steps": 6,
     },
+    "step": {"bins": 10},
 }
 
 inp = {
@@ -61,6 +62,7 @@ inp = {
 
 if use_device:
     inp["system"] = {"device": {}}
+    inp["problem"]["timers"] = {"action": False, "step": False}
 
 inp_file = f"{run_name}.inp.json"
 with open(inp_file, "w") as f:
@@ -121,4 +123,28 @@ sizes = j["internal"]["optical-sizes"].copy()
 assert sizes.pop("streams") == 1
 assert sizes == expected_sizes
 
+steps = j["result"]["optical-step-diagnostic"]["steps"][0].copy()
+assert len(steps) == 12
+assert sum(steps) == expected_generators["num_generated"]
+
+time = j["result"]["time"].copy()
+if use_device:
+    # Step and action times disabled on GPU
+    assert len(time["steps"]) == 0
+    assert not time["actions"]
+else:
+    assert len(time["steps"]) == counters["step_iters"]
+    assert time["actions"]
+
 print(json.dumps(j["result"]["time"], indent=1))
+
+# Check configuration
+config = j["system"]["build"]["config"]
+assert config["core_geo"].lower() == core_geo
+
+# Check OpenMP threads: see app/CMakeLists.txt which sets CELER_OMP_ENV
+use_deps = set(config["use"])
+if "openmp" in use_deps:
+    print(json.dumps(j["system"]["openmp"], indent=1))
+    assert j["system"]["openmp"]["thread_limit"] == 8
+    assert j["system"]["openmp"]["max_threads"] == 4

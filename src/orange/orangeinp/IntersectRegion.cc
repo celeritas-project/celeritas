@@ -32,6 +32,8 @@
 
 #include "detail/PolygonUtils.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace orangeinp
@@ -206,7 +208,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
     if (CELER_UNLIKELY(make_soft_equal(insert_surface)(radii_[0], radii_[1])))
     {
         // Degenerate cone: build a cylinder instead
-        Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
+        Cylinder cyl{0.5_r * (radii_[0] + radii_[1]), hh_};
         return cyl.build(insert_surface);
     }
 
@@ -1631,8 +1633,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     // the +x axis. An offset of 1 would produce a shape congruent with an
     // offset of zero, except that every face has an index that's decremented
     // by 1. We prevent this by using fmod.
-    real_type const offset
-        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
+    real_type const offset = std::fmod(orientation_ + 0.5_r, 1_r);
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
@@ -1729,7 +1730,7 @@ Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
 {
     // Check that vertices are not coplanar by computing volume
     SquareMatrixReal3 delta;
-    for (auto i : range(size_type(3)))
+    for (auto i : range(3_sz))
     {
         delta[i] = v_[i + 1] - v_[0];
     }
@@ -1761,7 +1762,7 @@ void Tet::build(IntersectSurfaceBuilder& insert_surface) const
         {2, 0, 3}  // left
     };
 
-    for (auto i : range(size_type(4)))
+    for (auto i : range(4_sz))
     {
         auto const& indices = face_vertices[i];
         insert_surface(

@@ -10,6 +10,7 @@
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 #include "GridReflectivityData.hh"
 
@@ -110,6 +111,8 @@ GridReflectivityCalculator::operator()(ReflectivityAction action) const
 CELER_FUNCTION ReflectivityAction
 GridReflectivityExecutor::operator()(CoreTrackView const& track) const
 {
+    using namespace celeritas::literals;
+
     auto s_phys = track.surface_physics();
     auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::reflectivity)
                             .internal_surface_id();
@@ -121,11 +124,11 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
         GridReflectivityCalculator{
             data, sub_model_id, track.particle().energy()},
         ReflectivityAction::size_,
-        real_type{1})(rng);
+        1.0_r)(rng);
 
     if (action == ReflectivityAction::absorb)
     {
-        if (auto e_grid_id = data.efficiency_ids[sub_model_id])
+        if (auto e_grid_id = data.efficiency_ids[sub_model_id].get())
         {
             // If absorbed and has efficiency grid, sample efficiency
             auto const& e_grid = data.efficiency[e_grid_id];

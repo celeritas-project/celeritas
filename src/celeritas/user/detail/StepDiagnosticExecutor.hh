@@ -57,7 +57,8 @@ StepDiagnosticExecutor::operator()(CoreTrackView const& track)
 
         // Increment the bin corresponding to the given particle and step count
         auto& bin = get(particle.get(), num_steps);
-        atomic_add(&bin, size_type{1});
+        using namespace celeritas::literals;
+        atomic_add(&bin, 1_sz);
     }
 }
 

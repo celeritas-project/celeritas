@@ -6,26 +6,19 @@
 //---------------------------------------------------------------------------//
 #include "GeneratorAction.hh"
 
-#include <algorithm>
-
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/KernelLauncher.hh"
+#include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/CoreTrackData.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
-
-#include "CherenkovGenerator.hh"
-#include "CherenkovParams.hh"
-#include "ScintillationGenerator.hh"
-#include "ScintillationParams.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
 #include "detail/GeneratorExecutor.hh"
@@ -84,7 +77,7 @@ GeneratorAction::GeneratorAction(ActionId id,
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
-                    "optical-generate",
+                    "generate",
                     "generate Cherenkov or scintillation photons from optical "
                     "distribution data")
     , initial_capacity_(capacity)
@@ -116,6 +109,21 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
  */
 void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
 {
+    for (auto const& d : data)
+    {
+        CELER_VALIDATE(d, << "invalid optical step distribution " << d);
+        if (d.points[StepPoint::pre].pos == d.points[StepPoint::post].pos)
+        {
+            // TODO: if we buffer this on the host, it might be better to fix
+            // here rather than for every track in CherenkovOffload (see
+            // CherenkovOffload constructor)
+            CELER_LOG_LOCAL(warning)
+                << "Optical generator distribution data has undefined "
+                   "direction due to coincident start/stop points: "
+                << d;
+        }
+    }
+
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
         return this->insert_impl(*s, data);
@@ -229,6 +237,8 @@ void GeneratorAction::generate(CoreParams const& params,
 {
     CELER_EXPECT(params.cherenkov() || params.scintillation());
     CELER_EXPECT(state.aux());
+
+    ScopedProfiling profile_this_{"generate"};
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());

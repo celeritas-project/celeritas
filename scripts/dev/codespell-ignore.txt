@@ -2,6 +2,7 @@ AssertIO
 nax
 nd
 VarT
+IndexT
 therefrom
 TE
 TM

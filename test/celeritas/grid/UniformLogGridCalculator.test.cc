@@ -124,7 +124,7 @@ TEST_F(UniformLogGridCalculatorTest, spline_deriv)
             EXPECT_SOFT_EQ(x[i], std::exp(loge_grid[i]));
             EXPECT_SOFT_EQ(y[i], calc[i]);
         }
-        auto deriv = calc_deriv(make_span(x), make_span(y));
+        auto deriv = calc_deriv(make_ldg_span(x), make_ldg_span(y));
         EXPECT_VEC_SOFT_EQ(expected_deriv, deriv);
     }
 }

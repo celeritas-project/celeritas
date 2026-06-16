@@ -170,10 +170,12 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
     }
     else
     {
+        using namespace celeritas::literals;
+
         // Sample \f$ Q^{2} \f$ for \f$ n + A \rightarrow n + A \f$
-        constexpr real_type one_third = 1 / real_type(3);
+        constexpr real_type one_third = 1.0_r / 3.0_r;
         constexpr real_type one_fifth{0.2};
-        constexpr real_type one_seventh = 1 / real_type(7);
+        constexpr real_type one_seventh = 1.0_r / 7.0_r;
 
         real_type const r[4]
             = {-std::expm1(-max_q_sq_
@@ -231,7 +233,8 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
             }
         }
     }
-    return clamp(q_sq, real_type{0}, max_q_sq_) / ipow<2>(this->to_gev());
+    using namespace celeritas::literals;
+    return clamp(q_sq, 0_r, max_q_sq_) / ipow<2>(this->to_gev());
 }
 
 //---------------------------------------------------------------------------//
@@ -317,17 +320,19 @@ auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
     }
     else
     {
+        using namespace celeritas::literals;
+
         real_type p5 = p4 * p;
         real_type p6 = p5 * p;
         real_type p8 = p6 * p2;
         real_type p10 = p8 * p2;
         real_type p12 = p10 * p2;
         real_type p16 = ipow<2>(p8);
-        real_type dl = lp - real_type(5);
+        real_type dl = lp - 5.0_r;
 
         if (!heavy_target_)
         {
-            real_type pah = std::pow(p, real_type(0.5) * amass_.get());
+            real_type pah = std::pow(p, 0.5_r * amass_.get());
             real_type pa = ipow<2>(pah);
             real_type pa2 = ipow<2>(pa);
             result.expnt[0] = par_[0] / (1 + par_[1] * p4 * pa)

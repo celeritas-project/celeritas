@@ -105,8 +105,7 @@ class UrbanMscScatter
     //! The minimum step length for geometry 0.05 nm
     static CELER_CONSTEXPR_FUNCTION real_type geom_min()
     {
-        using namespace celeritas::units::literals;
-        return 5e-9_cm;
+        return 5e-9 * units::centimeter;
     }
 
     //// HELPER FUNCTIONS ////
@@ -176,6 +175,8 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
     , true_path_(input.true_path)
     , limit_min_(physics.msc_range().limit_min)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(safety_ >= 0);
     CELER_EXPECT(geom_path_ > 0);
     CELER_EXPECT(true_path_ >= geom_path_);
@@ -228,7 +229,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // linearly over the step
             real_type lambda = helper_.msc_mfp();
             real_type lambda_end = helper.calc_msc_mfp(Energy{end_energy_});
-            if (std::fabs(lambda - lambda_end) < lambda * real_type(0.01))
+            if (std::fabs(lambda - lambda_end) < lambda * 0.01_r)
             {
                 // Cross section is almost constant over the step: avoid
                 // numerical explosion
@@ -254,7 +255,7 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
             // many of the class member data
             theta0_ = this->compute_theta0(particle);
 
-            if (theta0_ < real_type(1e-8))
+            if (theta0_ < 1e-8_r)
             {
                 // Arbitrarily (?) small angle change (theta_0^2 < 1e-16):
                 // skip sampling angular distribution if width of direction
@@ -281,6 +282,8 @@ UrbanMscScatter::UrbanMscScatter(UrbanMscRef const& shared,
 template<class Engine>
 CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 {
+    using namespace celeritas::literals;
+
     if (skip_sampling_)
     {
         // Do not sample scattering at the last or at a small step
@@ -292,7 +295,7 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
         if (theta0_ <= 0)
         {
             // Very small outgoing angular distribution
-            return real_type{1};
+            return 1_r;
         }
         if (tau_ >= shared_.params.tau_big)
         {
@@ -312,8 +315,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Sample azimuthal angle, used for displacement and exiting angle
-    real_type phi = UniformRealDistribution<real_type>(
-        0, real_type{2 * constants::pi})(rng);
+    real_type phi
+        = UniformRealDistribution<real_type>(0, 2_r * constants::pi)(rng);
 
     MscInteraction result;
     result.action = MscInteraction::Action::scattered;
@@ -372,6 +375,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
 {
+    using namespace celeritas::literals;
+
     // Evaluate parameters for the tail distribution
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
@@ -379,7 +384,7 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         real_type maxtau
             = true_path_ < limit_min_ ? limit_min_ / helper_.msc_mfp() : tau_;
         // note: 0 < u <= sqrt(2) when shared_.params.tau_big == 8
-        real_type u = fastpow(maxtau, 1 / real_type(6));
+        real_type u = fastpow(maxtau, 1.0_r / 6.0_r);
         // Number of radiation lengths traveled by the average MFP over this
         // step
         real_type radlen_mfp = true_path_
@@ -387,14 +392,14 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
         real_type result = PolyQuad(msc_.tail_coeff)(u)
                            + msc_.tail_corr * std::log(radlen_mfp);
         // The tail should not be too big
-        return max(result, real_type(1.9));
+        return max(result, 1.9_r);
     }();
 
     // Mean of cos\theta computed from the distribution g_1(cos\theta)
     // small theta => x = theta0^2
     // large xsi => xmean_1 = 1 - x
     // small tau => xmean = 1
-    real_type x = ipow<2>(2 * std::sin(real_type(0.5) * theta0_));
+    real_type x = ipow<2>(2 * std::sin(0.5_r * theta0_));
 
     // Calculate intermediate values for the mean of cos(theta)
     // Since xsi is not near zero (thanks to max), no need to use expm1
@@ -406,20 +411,20 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     real_type xmean = std::exp(-tau_);
 
     // 0.0003 (max tau before assuming isotropic scattering) < xmean < 1
-    if (xmean_1 <= real_type(0.999) * xmean)
+    if (xmean_1 <= 0.999_r * xmean)
     {
         return this->simple_scattering(rng);
     }
 
     // From continuity of derivatives
     real_type c = [xsi] {
-        if (std::fabs(xsi - 3) < real_type(0.001))
+        if (std::fabs(xsi - 3) < 0.001_r)
         {
-            return real_type(3.001);
+            return 3.001_r;
         }
-        else if (std::fabs(xsi - 2) < real_type(0.001))
+        else if (std::fabs(xsi - 2) < 0.001_r)
         {
-            return real_type(2.001);
+            return 2.001_r;
         }
         return xsi;
     }();
@@ -458,11 +463,10 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     {
         // Sample \f$ \cos\theta \f$ from \f$ g_2(\cos\theta) \f$
         real_type var = (1 - d) * generate_canonical(rng);
-        if (var < real_type(0.01) * d)
+        if (var < 0.01_r * d)
         {
             var /= (d * (c - 1));
-            return -1
-                   + var * (1 - real_type(0.5) * var * c) * (2 + (c - xsi) * x);
+            return -1 + var * (1 - 0.5_r * var * c) * (2 + (c - xsi) * x);
         }
         else
         {

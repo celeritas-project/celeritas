@@ -1,0 +1,25 @@
+//---------------------------------------------------------------------------//
+// Job execution file for the PDSimAna module
+//---------------------------------------------------------------------------//
+#include "pdsimana.fcl"
+
+process_name: pdsimana
+
+# Set up message logger threshold to info
+services.message.destinations.console.type: "cout"
+services.message.destinations.console.threshold: "INFO"
+
+services:
+{
+    TFileService: { fileName: "%ifb-ana.root" }
+}
+
+# Set up analyzer execution
+physics:
+{
+    analyzers:
+    {
+        ana: @local::PDSimAna
+    }
+    end_path: [ ana ]
+}

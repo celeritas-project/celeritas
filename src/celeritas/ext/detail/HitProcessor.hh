@@ -106,8 +106,9 @@ class HitProcessor
     // Get and reset the hits counted (generally once per event)
     inline size_type exchange_hits();
 
-    //! Access Geant4 track metadata reconstruction
-    GeantTrackReconstruction& track_reconstruction()
+    //! Access local Geant4 track metadata reconstruction
+    std::shared_ptr<GeantTrackReconstruction> const&
+    track_reconstruction() const
     {
         return track_reconstruction_;
     }
@@ -115,6 +116,7 @@ class HitProcessor
   private:
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
+    StepSelection ss_;
     //! Map detector IDs to sensitive detectors
     std::vector<G4VSensitiveDetector*> detectors_;
     //! Temporary CPU hit information
@@ -124,7 +126,7 @@ class HitProcessor
     std::shared_ptr<G4Step> step_;
 
     //! Track reconstruction for hit processing
-    GeantTrackReconstruction track_reconstruction_;
+    std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     //! Step points
     EnumArray<StepPoint, G4StepPoint*> step_points_{{nullptr, nullptr}};
 
@@ -167,7 +169,8 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
  */
 size_type HitProcessor::exchange_hits()
 {
-    return std::exchange(num_hits_, size_type{0});
+    using namespace celeritas::literals;
+    return std::exchange(num_hits_, 0_sz);
 }
 
 //---------------------------------------------------------------------------//

@@ -155,7 +155,8 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
         // Construct geometry before instantiating calo
         this->geometry();
         ExampleInstanceCalo::VecLabel labels = {"lar", "calorimeter", "world"};
-        calo_ = std::make_shared<ExampleInstanceCalo>(std::move(labels));
+        calo_ = std::make_shared<ExampleInstanceCalo>(std::move(labels),
+                                                      this->volume());
         collector_ = StepCollector::make_and_insert(*this->core(), {calo_});
     }
 
@@ -180,12 +181,14 @@ class TestMultiEm3InstanceCaloTest : public TestEm3CollectorTestBase
 TEST_F(KnSimpleLoopTestBase, mixing_types)
 {
     this->geometry();
-    auto calo = std::make_shared<SimpleCalo>(std::vector<Label>{"inner"}, 1);
+    auto calo = std::make_shared<SimpleCalo>(
+        std::vector<Label>{"inner"}, 1, *this->volume());
     auto mctruth = std::make_shared<ExampleMctruth>();
 
     StepCollector::VecInterface interfaces = {calo, mctruth};
 
     EXPECT_THROW((StepCollector{this->geometry(),
+                                this->volume(),
                                 std::move(interfaces),
                                 this->aux_reg().get(),
                                 this->action_reg().get()}),
