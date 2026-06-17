@@ -123,6 +123,9 @@ void PDFullSimCeler::produce(art::Event& e)
     auto edep_handle
         = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_);
 
+    mf::LogInfo("PDFullSimCeler") << "Transferring " << edep_handle->size()
+                                  << " SimEnergyDeposits to Celeritas";
+
     // Calculate detector response for the input steps
     using VecBTR = LarStandaloneRunner::VecBTR;
     VecBTR result = (*runner_)(*edep_handle);

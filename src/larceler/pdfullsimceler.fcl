@@ -27,9 +27,9 @@ PDFullSimCeler:
 
     // Optical tracking limits (0 = unlimited)
     // Steps per track before killing (0 for unlimited)
-    OpticalLimitSteps: 1024
+    OpticalLimitSteps: 4096
     // Iterations before aborting stepping loop (0 for unlimited)
-    OpticalLimitStepIters: 4096
+    OpticalLimitStepIters: 524288
 
     // Celeritas output filename
     OutputFile: "celeritas-output.json"

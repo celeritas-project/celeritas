@@ -8,7 +8,7 @@ GeoSimExporter:
 {
     module_type: GeoSimExporter
     SimulationLabel: "IonAndScint"
-    MaxEdepsPerEvent: 10 // Use <= 0 to store all energy deposits
+    MaxEdepsPerEvent: 10 # Use <= 0 to store all energy deposits
 }
 
 END_PROLOG
