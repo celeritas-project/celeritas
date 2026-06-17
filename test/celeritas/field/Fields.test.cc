@@ -536,14 +536,17 @@ TEST_F(CartMapFieldTest, host)
     Interp interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
-        real_type x = std::min(interp_x(ix), inp.x.max - 1);
+        real_type x
+            = std::min(interp_x(static_cast<double>(ix)), inp.x.max - 1);
 
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y = std::min(interp_y(iy), inp.y.max - 1);
+            real_type y
+                = std::min(interp_y(static_cast<double>(iy)), inp.y.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
-                real_type z = std::min(interp_z(iz), inp.z.max - 1);
+                real_type z = std::min(interp_z(static_cast<double>(iz)),
+                                       inp.z.max - 1);
 
                 Real3 field = calc_field({x, y, z});
                 for (real_type f : field)
