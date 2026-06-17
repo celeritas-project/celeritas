@@ -36,7 +36,7 @@ jobs:
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -59,7 +59,7 @@ jobs:
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-dev
@@ -79,13 +79,13 @@ jobs:
             sudo apt-get -y install \
                 cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
         with:
           fetch-depth: 383
           fetch-tags: true
       - name: Set source date
         run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version-file: .python-version
       - name: Install Python packages
@@ -107,7 +107,7 @@ jobs:
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{env.CELER_UPLOAD_DIR}}
           name: doc-user

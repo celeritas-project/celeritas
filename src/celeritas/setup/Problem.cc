@@ -338,6 +338,7 @@ auto build_optical_params(inp::Problem const& p,
     pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
         pi.action_reg.get(), p.physics.optical.surfaces);
     pi.detectors = core.detectors();
+    pi.optical_detector = p.scoring.optical_detector;
     pi.volume = core.volume();
 
     // Photon generating processes
