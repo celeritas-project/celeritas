@@ -65,10 +65,7 @@ class Toroid
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
-    static SurfaceType surface_type()
-    {
-        CELER_NOT_IMPLEMENTED("runtime toroid");
-    }
+    static SurfaceType surface_type() { return SurfaceType::tor; }
 
     //! Safety distance is calculable w/xy of normal and ellipse safety
     //! distance, but this is out of scope at first and might not be trivially
