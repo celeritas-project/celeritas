@@ -85,7 +85,8 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     Runner run_stream(si);
     SimulationResult result;
     result.setup_time = get_setup_time();
-    result.events.resize(run_stream.num_events());
+    result.events.resize(
+        si.problem.diagnostics.counters.event ? run_stream.num_events() : 1);
 
     // Add processed input to resulting output
     output = run_stream.core_params().output_reg();
@@ -113,7 +114,11 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     if (si.events.merge)
     {
         // Run all events simultaneously on a single stream
-        result.events.front() = run_stream();
+        auto event_result = run_stream();
+        if (si.problem.diagnostics.counters.event)
+        {
+            result.events.front() = std::move(event_result);
+        }
     }
     else
     {
@@ -139,7 +144,10 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
                 event_result = run_stream(stream, id_cast<EventId>(event)),
                 capture_exception);
             tracing_session.flush();
-            result.events[event] = std::move(event_result);
+            if (si.problem.diagnostics.counters.event)
+            {
+                result.events[event] = std::move(event_result);
+            }
         }
         log_and_rethrow(std::move(capture_exception));
     }
