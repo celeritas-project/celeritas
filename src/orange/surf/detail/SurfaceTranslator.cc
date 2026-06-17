@@ -201,7 +201,7 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
 /*!
  * Construct a translated Toroid.
  */
-Toroid SurfaceTranslator::operator(Toroid const& other) const
+Toroid SurfaceTranslator::operator()(Toroid const& other) const
 {
     Real3 origin = tr_.transform_up(other.origin());
 

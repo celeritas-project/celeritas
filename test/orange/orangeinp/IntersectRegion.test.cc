@@ -2666,7 +2666,7 @@ TEST_F(ToroidTest, errors)
     EXPECT_THROW(Toroid(o, 2, -1, 3), RuntimeError);
     EXPECT_THROW(Toroid(o, 2, 1, -1), RuntimeError);
     // Degenerate toroid (xy radius > toroid major radius)
-    EXPECT_THROW(Toriod(o, 1, 2, 3), RuntimeError);
+    EXPECT_THROW(Toroid(o, 1, 2, 3), RuntimeError);
 }
 
 TEST_F(ToroidTest, standard)

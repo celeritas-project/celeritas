@@ -216,11 +216,11 @@ void SurfaceClipper::operator()(Toroid const& surf) const
     auto [ox, oy, oz] = surf.origin();
     real_type hw = surf.major_radius() + surf.ellipse_xy_radius();
     real_type hh = surf.ellipse_z_radius();
-    shrink_if_nonnull(ext_, Bound::low, Axis::x, ox - hw);
+    shrink_if_nonnull(ext_, Bound::lo, Axis::x, ox - hw);
     shrink_if_nonnull(ext_, Bound::hi, Axis::x, ox + hw);
-    shrink_if_nonnull(ext_, Bound::low, Axis::y, oy - hw);
+    shrink_if_nonnull(ext_, Bound::lo, Axis::y, oy - hw);
     shrink_if_nonnull(ext_, Bound::hi, Axis::y, oy + hw);
-    shrink_if_nonnull(ext_, Bound::low, Axis::z, oz - hh);
+    shrink_if_nonnull(ext_, Bound::lo, Axis::z, oz - hh);
     shrink_if_nonnull(ext_, Bound::hi, Axis::z, oz + hh);
     // There are regions we can guarantee internally, but no central one
     clear_if_nonnull(int_);
