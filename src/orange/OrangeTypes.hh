@@ -120,6 +120,7 @@ enum class Sense : bool
  * - 1 for `p.|sc|c.c`,
  * - 3 for `c.`,
  * - 4 for `[ps]|k.`,
+ * - 6 for `tor`,
  * - 7 for `sq`, and
  * - 10 for `gq`.
  *
