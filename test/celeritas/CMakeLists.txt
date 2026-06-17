@@ -198,6 +198,10 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES ${_g4_geo_lib})
   celeritas_add_test(g4/StateDependent.test.cc
     LINK_LIBRARIES ${_g4_event_lib} ${_needs_geant4})
+  celeritas_add_test(g4/StateDependentLifecycleGlobal.test.cc
+    LINK_LIBRARIES ${_g4_event_lib} ${_needs_geant4})
+  celeritas_add_test(g4/StateDependentLifecycleLocal.test.cc
+    LINK_LIBRARIES ${_g4_event_lib} ${_needs_geant4})
 endif()
 
 #-----------------------------------------------------------------------------#
