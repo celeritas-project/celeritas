@@ -6,10 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "StateDependent.hh"
 
-#include <memory>
 #include <utility>
 #include <G4StateManager.hh>
-#include <G4Threading.hh>
 #include <G4VStateDependent.hh>
 
 #include "corecel/Assert.hh"
@@ -30,11 +28,14 @@ namespace celeritas
  * the one we were created with. (This might be dangerous... but so is assuming
  * we're destroyed on the same thread we're constructed in.)
  */
-StateDependent::StateDependent(LocalGeantStateChangeFunc cb, Mode mode)
+StateDependent::StateDependent(LocalGeantStateChangeFunc cb,
+                               Mode mode,
+                               LifecycleRole lifecycle_role)
     : local_stream_{geant_stream()}
     , cb_{std::move(cb)}
     , manager_{G4StateManager::GetStateManager()}
     , mode_{mode}
+    , lifecycle_role_{lifecycle_role}
 {
     CELER_EXPECT(cb_);
     CELER_EXPECT(manager_);
@@ -64,7 +65,10 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             if (prev == G4State_PreInit)
             {
                 // First initialization: do an extra call
-                this->cb_(local_stream_, GeantStateChange::initialize);
+                if (mode_ == Mode::raw)
+                {
+                    this->cb_(local_stream_, GeantStateChange::initialize);
+                }
                 change = GeantStateChange::begin_init;
             }
             else if (prev == G4State_Idle)
@@ -135,14 +139,6 @@ G4bool StateDependent::Notify(G4ApplicationState state)
     {
         this->notify_lifecycle(change);
     }
-    else if (change == GeantStateChange::end_program)
-    {
-        // Preserve the legacy raw-callback behavior: existing diagnostic users
-        // may destroy this object from the end-program callback.
-        auto local_stream = local_stream_;
-        auto cb = std::move(cb_);
-        cb(local_stream, change);
-    }
     else
     {
         this->cb_(local_stream_, change);
@@ -162,10 +158,10 @@ G4bool StateDependent::Notify(G4ApplicationState state)
  */
 void StateDependent::notify_lifecycle(GeantStateChange change)
 {
-    bool const is_mt = G4Threading::IsMultithreadedApplication();
     // A null stream is the MT manager thread; serial and worker callbacks have
     // a concrete local stream ID.
     bool const is_manager = !local_stream_;
+    bool const owns_end_program = lifecycle_role_ == LifecycleRole::global;
 
     switch (change)
     {
@@ -187,10 +183,9 @@ void StateDependent::notify_lifecycle(GeantStateChange change)
             }
             break;
         case GeantStateChange::end_program:
-            // Serial uses one monitor for the whole lifecycle. In MT, worker
-            // monitors finalize local state at end_run, so only the manager
-            // emits end_program for shared cleanup.
-            if (!is_mt || is_manager)
+            // Global monitors own terminal shared cleanup. Local monitors
+            // finalize at end_run and must not emit a second cleanup event.
+            if (owns_end_program)
             {
                 cb_(local_stream_, change);
             }

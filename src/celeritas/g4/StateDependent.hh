@@ -100,9 +100,9 @@ char const* to_cstring(GeantStateChange);
  * To bypass the first failure path, we use \c Notify to deregister ourselves
  * when we see the run manager is about to exit or abort.
  *
- * The owner must keep the instance on the creating thread. In lifecycle mode
- * this object should be owned explicitly, similarly to Geant4 UI messenger
- * objects, and callbacks should not delete the active state-dependent object.
+ * The owner must keep the instance on the creating thread and callbacks must
+ * not delete the active state-dependent object. In lifecycle mode this object
+ * should be owned explicitly, similarly to Geant4 UI messenger objects.
  *
  * In \c Mode::lifecycle this class filters raw Geant4 state changes into the
  * lifecycle transitions needed by Celeritas automatic setup: \c begin_run,
@@ -118,9 +118,18 @@ class StateDependent final : public G4VStateDependent
         lifecycle,
     };
 
+    //! Lifecycle cleanup scope owned by this monitor
+    enum class LifecycleRole
+    {
+        global,
+        local,
+    };
+
     // Construct locally with state-change callback
     explicit StateDependent(LocalGeantStateChangeFunc cb,
-                            Mode mode = Mode::raw);
+                            Mode mode = Mode::raw,
+                            LifecycleRole lifecycle_role
+                            = LifecycleRole::global);
 
     // Prevent move/copy due to weird base class antics
     CELER_DELETE_COPY_MOVE(StateDependent);
@@ -136,6 +145,7 @@ class StateDependent final : public G4VStateDependent
     LocalGeantStateChangeFunc cb_;
     G4StateManager* manager_{nullptr};
     Mode mode_{Mode::raw};
+    LifecycleRole lifecycle_role_{LifecycleRole::global};
 
     // Whether this local monitor has emitted a lifecycle begin_run that still
     // needs a matching end_run.

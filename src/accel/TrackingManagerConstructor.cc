@@ -139,7 +139,8 @@ void TrackingManagerConstructor::ConstructProcess()
                 [&is](StreamId sid, GeantStateChange change) {
                     is.on_state_change(sid, change);
                 },
-                StateDependent::Mode::lifecycle);
+                StateDependent::Mode::lifecycle,
+                StateDependent::LifecycleRole::local);
         }
     }
 
