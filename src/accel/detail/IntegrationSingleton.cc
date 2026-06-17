@@ -383,9 +383,6 @@ void IntegrationSingleton::on_state_change(StreamId stream_id,
             break;
         }
         case GeantStateChange::end_run:
-            CELER_TRY_HANDLE(this->finalize_offload(),
-                             ExceptionConverter{"celer.finalize.auto"});
-            break;
         case GeantStateChange::end_program:
             CELER_TRY_HANDLE(this->finalize_offload(),
                              ExceptionConverter{"celer.finalize.auto"});
