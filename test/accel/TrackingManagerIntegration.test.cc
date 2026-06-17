@@ -500,29 +500,53 @@ class TMIAutoHooks : public LarSphereIntegrationMixin, public TMITestBase
     void EndOfRunAction(G4Run const*) override {}
 };
 
-TEST_F(TMIAutoHooks, serial_run)
+TEST_F(TMIAutoHooks, run)
 {
     auto& singleton = detail::IntegrationSingleton::instance();
+    auto& rm = this->run_manager();
 
     EXPECT_TRUE(singleton.auto_hooks_active());
     EXPECT_FALSE(singleton.shared_params());
 
+    std::mutex verified_streams_mutex;
     std::vector<StreamId> verified_streams;
-    singleton.set_verify_callback([&verified_streams](StreamId sid) {
-        verified_streams.push_back(sid);
-    });
+    singleton.set_verify_callback(
+        [&verified_streams_mutex, &verified_streams](StreamId sid) {
+            std::lock_guard<std::mutex> scoped_lock{verified_streams_mutex};
+            verified_streams.push_back(sid);
+        });
 
     TMI::Instance().SetOptions(this->make_setup_options());
 
-    auto& rm = this->run_manager();
     rm.Initialize();
-
-    EXPECT_TRUE(singleton.shared_params());
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        // The MT manager/global lifecycle hook initializes shared params
+        // during run-manager initialization.
+        EXPECT_TRUE(singleton.shared_params());
+    }
+    else
+    {
+        // Serial state hooks initialize at BeamOn.
+        EXPECT_FALSE(singleton.shared_params());
+    }
 
     rm.BeamOn(1);
 
-    static StreamId const expected_streams[] = {StreamId{0}};
-    EXPECT_VEC_EQ(expected_streams, verified_streams);
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        bool found_local = false;
+        for (StreamId sid : verified_streams)
+        {
+            found_local = found_local || static_cast<bool>(sid);
+        }
+        EXPECT_TRUE(found_local);
+    }
+    else
+    {
+        static StreamId const expected_streams[] = {StreamId{0}};
+        EXPECT_VEC_EQ(expected_streams, verified_streams);
+    }
 }
 
 //---------------------------------------------------------------------------//
