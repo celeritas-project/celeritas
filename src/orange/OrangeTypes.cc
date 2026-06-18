@@ -167,6 +167,7 @@ char const* to_cstring(SurfaceType value)
         "kx",
         "ky",
         "kz",
+        "tor",
         "sq",
         "gq",
         "inv",
