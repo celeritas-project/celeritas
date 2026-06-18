@@ -1061,6 +1061,9 @@ class Tet final : public IntersectRegionInterface
  * The major radius extends from the point to the center of the revolved
  * ellipse, and the xy and z radii describe the radii of the revolved ellipse
  * along those directions, respectively.
+ *
+ * \note Be aware of the toroid *surface* at orange/surf/Toroid.hh in a
+ * different namespace.
  */
 class Toroid final : public IntersectRegionInterface
 {

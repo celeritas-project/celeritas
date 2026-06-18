@@ -1811,6 +1811,8 @@ Real3 const& Tet::vertex(size_type i) const
 /*!
  * Construct with origin and radii. TODO: Should this be centered at (0,0,0)?
  */
+using ToroidSurf = ::celeritas::Toroid;
+
 Toroid::Toroid(Real3 const& origin,
                real_type const& major_radius,
                real_type const& ellipse_xy_radius,
@@ -1834,7 +1836,7 @@ Toroid::Toroid(Real3 const& origin,
  */
 void Toroid::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::inside, Toroid{origin_, r_, a_, b_});
+    insert_surface(Sense::inside, ToroidSurf{origin_, r_, a_, b_});
 }
 
 //---------------------------------------------------------------------------//
