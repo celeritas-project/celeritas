@@ -1813,14 +1813,10 @@ Real3 const& Tet::vertex(size_type i) const
  */
 using ToroidSurf = ::celeritas::Toroid;
 
-Toroid::Toroid(Real3 const& origin,
-               real_type const& major_radius,
+Toroid::Toroid(real_type const& major_radius,
                real_type const& ellipse_xy_radius,
                real_type const& ellipse_z_radius)
-    : origin_{origin}
-    , r_{major_radius}
-    , a_{ellipse_xy_radius}
-    , b_{ellipse_z_radius}
+    : r_{major_radius}, a_{ellipse_xy_radius}, b_{ellipse_z_radius}
 {
     CELER_VALIDATE(r_ > 0, << "nonpositive major radius: " << r_);
     CELER_VALIDATE(a_ > 0, << "nonpositive ellipse xy radius: " << a_);
@@ -1836,7 +1832,7 @@ Toroid::Toroid(Real3 const& origin,
  */
 void Toroid::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::inside, ToroidSurf{origin_, r_, a_, b_});
+    insert_surface(Sense::inside, ToroidSurf{{0, 0, 0}, r_, a_, b_});
 }
 
 //---------------------------------------------------------------------------//
@@ -1846,6 +1842,15 @@ void Toroid::build(IntersectSurfaceBuilder& insert_surface) const
 void Toroid::output(JsonPimpl* j) const
 {
     save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Returns whether this toroid encloses another toroid.
+ */
+bool Toroid::encloses(Toroid const& other) const
+{
+    return false;  // TODO: implement
 }
 
 //---------------------------------------------------------------------------//

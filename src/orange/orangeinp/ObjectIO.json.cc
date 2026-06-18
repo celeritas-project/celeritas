@@ -326,7 +326,6 @@ void to_json(nlohmann::json& j, Tet const& cr)
 void to_json(nlohmann::json& j, Toroid const& cr)
 {
     j = {{"_type", "toroid"},
-         SIO_ATTR_PAIR(cr, origin),
          SIO_ATTR_PAIR(cr, major_radius),
          SIO_ATTR_PAIR(cr, ellipse_xy_radius),
          SIO_ATTR_PAIR(cr, ellipse_z_radius)};
