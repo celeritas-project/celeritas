@@ -139,12 +139,16 @@ struct VecgeomStateData
     // Physical state
     StateItems<Real3> pos;
     StateItems<Real3> dir;
+    StateItems<Real3> normal;
 
     // Logical volumetric state
     VgStateItems state;
     StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
     VgStateItems next_state;  // TODO: prev_state
     StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
+
+    // Geometry tracking status
+    StateItems<GeoStatus> status;
 
     //// METHODS ////
 
@@ -154,10 +158,12 @@ struct VecgeomStateData
         // clang-format off
         return pos.size() > 0
             && dir.size() == pos.size()
+            && normal.size() == pos.size()
             && state.size() == pos.size()
             && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
             && next_state.size() == pos.size()
-            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0);
+            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
+            && status.size() == pos.size();
         // clang-format on
     }
 
@@ -171,10 +177,12 @@ struct VecgeomStateData
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;
+        normal = other.normal;
         state = other.state;
         boundary = other.boundary;
         next_state = other.next_state;
         next_boundary = other.next_boundary;
+        status = other.status;
         return *this;
     }
 };

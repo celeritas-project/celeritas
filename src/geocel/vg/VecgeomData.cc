@@ -39,6 +39,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
 
     resize(&data->pos, size);
     resize(&data->dir, size);
+    resize(&data->normal, size);
     resize(&data->state, size);
     resize(&data->next_state, size);
     if constexpr (M == MemSpace::device)
@@ -58,9 +59,10 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
     }
     if constexpr (CELER_VGNAV != CELER_VGNAV_PATH)
     {
-        // Path navigator stores the boundary, and surface model uses next_surf
+        // Path navigator stores the boundary
         resize(&data->next_boundary, size);
     }
+    resize(&data->status, size);
 
     CELER_ENSURE(data);
 }

@@ -11,13 +11,8 @@ Celeritas.
 
 #]=======================================================================]
 
-# TODO: remove once we require a veccore version including https://github.com/root-project/veccore/commit/743566fac1e9b2eaeb0f0b63242442ba430e0cc0
-cmake_policy(PUSH)
-if(POLICY CMP0146)
-  cmake_policy(SET CMP0146 OLD)
-endif()
+# NOTE: vecgeom < 0.8.2 may break newer cmake
 find_package(VecGeom QUIET CONFIG)
-cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 

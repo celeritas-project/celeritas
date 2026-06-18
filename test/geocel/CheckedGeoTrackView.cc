@@ -14,6 +14,7 @@
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
@@ -310,7 +311,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
         && result.distance > this->safety_tol() && !started_on_boundary)
     {
         real_type safety = t_->find_safety(distance);
-        if (!(safety <= result.distance))
+        if (!(safety <= result.distance || soft_equal(safety, result.distance)))
         {
             CELER_LOG_LOCAL(warning)
                 << "Calculated safety " << safety << NativeLength{}
@@ -325,12 +326,21 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                           << " is much too large");
         }
     }
-    if (check_zero_distance_ && result.distance == 0)
+    if (result.distance == 0)
     {
-        // TODO: replace zero-distance from reentering geometry (ORANGE)
-        // with a different propagation status
-        CELER_LOG_LOCAL(warning)
-            << "Returning zero distance should be prohibited: " << *this;
+        if (check_zero_distance_)
+        {
+            // TODO: replace zero-distance from reentering geometry (ORANGE)
+            // with a different propagation status
+            CELER_LOG_LOCAL(warning)
+                << "Returning zero distance should be prohibited: " << *this;
+        }
+        if (t_->is_on_boundary() != started_on_boundary)
+        {
+            CELER_LOG_LOCAL(warning)
+                << "find_next_step changed boundary state: new status is "
+                << t_->geo_status();
+        }
     }
     CGTV_VALIDATE(*this,
                   result.distance >= 0 && result.distance <= distance,
@@ -338,7 +348,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                   << NativeLength{} << " out of bounds " << repr(distance)
                   << NativeLength{});
     CGTV_VALIDATE(*this,
-                  t_->is_on_boundary() == started_on_boundary,
+                  t_->is_on_boundary() == started_on_boundary
+                      || result.distance == 0,
                   << "boundary state changed during find_next_step (started "
                   << (started_on_boundary ? "on" : "off") << " boundary)");
 

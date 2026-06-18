@@ -8,12 +8,14 @@
 
 #include <VecGeom/base/Version.h>
 // NOTE: must include Global before most other vecgeom/veccore includes
+#include <type_traits>
 #include <VecGeom/base/Global.h>
 #include <VecGeom/volumes/LogicalVolume.h>
 #include <VecGeom/volumes/PlacedVolume.h>
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
@@ -86,11 +88,6 @@ class VecgeomTrackView
     inline CELER_FUNCTION VecgeomTrackView&
     operator=(Initializer_t const& init);
 
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
-
     //// ACCESSORS ////
 
     //!@{
@@ -123,10 +120,12 @@ class VecgeomTrackView
     CELER_FORCEINLINE_FUNCTION bool is_outside() const;
     // Whether the track is exactly on a surface
     CELER_FORCEINLINE_FUNCTION bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE_FUNCTION bool failed() const { return failed_; }
+    // Geometry tracking status
+    inline CELER_FUNCTION GeoStatus geo_status() const;
+    // Whether the last operation resulted in an error
+    inline CELER_FUNCTION bool failed() const;
     // Get the normal vector of the current surface
-    inline CELER_FUNCTION Real3 normal() const;
+    inline CELER_FUNCTION Real3 const& normal() const;
 
     //// OPERATIONS ////
 
@@ -165,6 +164,7 @@ class VecgeomTrackView
 #else
     using NavStateWrapper = detail::VgNavStateWrapper;
 #endif
+    using NavStateRef = std::add_lvalue_reference_t<NavStateWrapper>;
 
     //// DATA ////
 
@@ -179,12 +179,16 @@ class VecgeomTrackView
     NavStateWrapper vgnext_;
     Real3& pos_;
     Real3& dir_;
-
+    Real3& normal_;
     //!@}
 
     // Temporary data
     real_type next_step_{0};
-    bool failed_{false};
+    //! Tolerance used for solid model relocation bump
+    static constexpr vg_real_type relocate_bump_
+        = std::is_same_v<vg_real_type, float>      ? 1e-4f
+          : std::is_same_v<vgbvh_real_type, float> ? 1e-5f
+                                                   : 1e-8;
 
     //// HELPER FUNCTIONS ////
 
@@ -194,11 +198,20 @@ class VecgeomTrackView
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
 
+    // Set the geometry tracking status
+    inline CELER_FUNCTION void geo_status(GeoStatus);
+
     // Get a reference to the current volume instance
     inline CELER_FUNCTION VgPlacedVol const& physical_volume() const;
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
+
+    // Construct a bumped real3
+    inline CELER_FUNCTION VgReal3 make_bumped_pos(vg_real_type bump) const;
+
+    // Update the cached normal from the given state, if possible
+    [[nodiscard]] inline CELER_FUNCTION bool update_normal(NavStateRef);
 };
 
 //---------------------------------------------------------------------------//
@@ -224,6 +237,7 @@ VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
 #endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
 {
 }
 
@@ -243,7 +257,7 @@ CELER_FUNCTION VecgeomTrackView&
 VecgeomTrackView::operator=(Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
-    failed_ = false;
+    this->geo_status(GeoStatus::interior);
 
     // Initialize direction
     dir_ = init.dir;
@@ -283,7 +297,7 @@ VecgeomTrackView::operator=(Initializer_t const& init)
         msg << "Failed to initialize geometry state at " << repr(pos_) << ' '
             << lengthunits::native_label;
 #endif
-        failed_ = true;
+        this->geo_status(GeoStatus::error);
     }
 
     return *this;
@@ -411,10 +425,10 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 VecgeomTrackView::normal() const
+CELER_FUNCTION Real3 const& VecgeomTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    CELER_EXPECT(this->is_on_boundary());
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//
@@ -426,18 +440,52 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
 
-    // TODO: vgnext is simply copied and the boundary flag optionally set
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // Already sitting on the boundary ready to cross: next step is zero
+        return {0, true};
+    }
+
     next_step_ = Navigator::ComputeStepAndNextVolume(
         to_vgvector(pos_), to_vgvector(dir_), max_step, vgstate_, vgnext_);
 
-    next_step_ = max(next_step_, this->extra_push());
+    if (next_step_ == 0)
+    {
+        // Possibly reentrant boundary?
+#if !CELER_DEVICE_COMPILE
+        auto msg = CELER_LOG_LOCAL(debug);
+        msg << "Possibly reentrant boundary at " << repr(pos_) << ' '
+            << lengthunits::native_label << " along " << repr(dir_);
+#endif
+        this->geo_status(GeoStatus::boundary_inc);
+        vgstate_.SetBoundaryState(true);
+
+        Propagation result;
+        result.distance = 0;
+        result.boundary = true;
+        return result;
+    }
+
+    if (next_step_ == 0 && this->geo_status() == GeoStatus::boundary_out)
+    {
+        // Distance was zero after the extra push: boundary direction is
+        // inconsistent (e.g. on the inside of a concave object)
+
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(warning)
+            << "Boundary direction was inconsistent at " << repr(pos_);
+#endif
+        this->geo_status(GeoStatus::boundary_inc);
+        next_step_ = 0;
+        return {0, true};
+    }
 
     if (!this->is_next_boundary())
     {
         // Soft equivalence between distance and max step is because the
         // BVH navigator subtracts and then re-adds a bump distance to the
         // step
-        CELER_ASSERT(soft_equal(next_step_, max(max_step, this->extra_push())));
+        CELER_ASSERT(soft_equal(next_step_, max_step));
         next_step_ = max_step;
     }
 
@@ -447,9 +495,8 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(this->has_next_step());
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+    CELER_ENSURE(result.distance <= max_step);
+    CELER_ENSURE(result.boundary || result.distance == max_step);
     return result;
 }
 
@@ -490,6 +537,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
 {
+    CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->is_next_boundary());
 
@@ -497,6 +545,28 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
     axpy(next_step_, dir_, &pos_);
     next_step_ = 0;
     vgstate_.SetBoundaryState(true);
+
+    // Save the normal
+    // Try exiting volume: on boundary of current volume
+    bool success = this->update_normal(vgstate_);
+    if (!success && !vgnext_.IsOutside())
+    {
+        // Try next/blocking volume, possibly a daughter volume
+        success = this->update_normal(vgnext_);
+    }
+    if (CELER_UNLIKELY(!success))
+    {
+#if !CELER_DEVICE_COMPILE
+        CELER_LOG_LOCAL(error)
+            << "Failed to calculate normal on surface between "
+            << vgstate_.Top()->GetLabel() << " and "
+            << (vgnext_.IsOutside() ? "[OUTSIDE]" : vgnext_.Top()->GetLabel())
+            << " at " << pos_;
+#endif
+        // Fall back to the travel direction as an approximation
+        normal_ = dir_;
+    }
+    this->geo_status(GeoStatus::boundary_inc);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -511,16 +581,32 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
+
+    if (this->geo_status() == GeoStatus::boundary_out)
+    {
+        // Direction was changed while on the boundary so we are no longer
+        // crossing: logically equivalent to a reflection, nothing to update.
+        return;
+    }
     CELER_EXPECT(this->is_next_boundary());
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(
-            to_vgvector(this->pos_), to_vgvector(this->dir_), vgnext_);
+        Navigator::RelocateToNextVolume(this->make_bumped_pos(relocate_bump_),
+                                        to_vgvector(this->dir_),
+                                        vgnext_);
+    }
+
+    // Relocation should have changed volume
+    if (CELER_UNLIKELY(vgstate_.HasSamePathAsOther(vgnext_)))
+    {
+        this->geo_status(GeoStatus::error);
+        return;
     }
 
     vgstate_ = vgnext_;
+    this->geo_status(GeoStatus::boundary_out);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -534,7 +620,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
  */
 CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
 
@@ -542,6 +627,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
     axpy(dist, dir_, &pos_);
     next_step_ -= dist;
     vgstate_.SetBoundaryState(false);
+    this->geo_status(GeoStatus::interior);
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -558,6 +644,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
     pos_ = pos;
     next_step_ = 0;
     vgstate_.SetBoundaryState(false);
+    this->geo_status(GeoStatus::interior);
 
     CELER_ENSURE(!this->is_on_boundary());
 }
@@ -568,12 +655,55 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
  *
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
+ *
+ * \todo If on a boundary, determine as with ORANGE whether we should cancel
+ * the surface crossing.
  */
 CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    GeoStatus status{this->geo_status()};
+    if (::celeritas::is_on_boundary(status))
+    {
+        // Changing direction on a boundary may reverse whether the track
+        // will cross the surface; update stored status to match.
+        auto new_dot = dot_product(normal_, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((new_dot > 0) != (dot_product(normal_, dir_) > 0))
+        {
+            // The boundary crossing direction has changed; flip our plans.
+            this->geo_status(flip_boundary(status));
+        }
+    }
+
     dir_ = newdir;
     next_step_ = 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Geometry tracking status.
+ */
+CELER_FUNCTION GeoStatus VecgeomTrackView::geo_status() const
+{
+    return state_.status[tid_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FUNCTION bool VecgeomTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
 }
 
 //---------------------------------------------------------------------------//
@@ -599,6 +729,15 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Set the geometry tracking status.
+ */
+CELER_FUNCTION void VecgeomTrackView::geo_status(GeoStatus gs)
+{
+    state_.status[tid_] = gs;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a reference to the current volume.
  */
 CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
@@ -616,6 +755,53 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * If not using the surface model, return a bumped position.
+ */
+CELER_FUNCTION VgReal3 VecgeomTrackView::make_bumped_pos(vg_real_type bump) const
+{
+    CELER_EXPECT(bump >= 0);
+    VgReal3 bumped_pos;
+    for (auto i : range(3))
+    {
+        bumped_pos[i] = fma(bump, dir_[i], pos_[i]);
+    }
+    return bumped_pos;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the cached normal from the given state, if possible.
+ *
+ * \return Whether the current position is on a volume boundary for the given
+ * state "top".
+ */
+[[nodiscard]] CELER_FUNCTION bool
+VecgeomTrackView::update_normal(NavStateRef state)
+{
+    CELER_EXPECT(state.IsOnBoundary());
+    CELER_EXPECT(!state.IsOutside());
+
+    VgPlacedVol const* pv = state.Top();
+    CELER_ASSERT(pv);
+    vecgeom::Transformation3D tr;
+    vgstate_.TopMatrix(tr);
+
+    // Transform position to local coordinates and compute local normal
+    auto local_pos = tr.Transform(to_vgvector(pos_));
+    VgReal3 local_normal;
+    CELER_ASSERT(pv->GetUnplacedVolume());
+    bool success = pv->GetUnplacedVolume()->Normal(local_pos, local_normal);
+    if (success)
+    {
+        VgReal3 global_normal;
+        tr.InverseTransformDirection(local_normal, global_normal);
+        normal_ = to_array(global_normal);
+    }
+    return success;
 }
 
 //---------------------------------------------------------------------------//
