@@ -7,6 +7,7 @@
 #include "EventsIO.json.hh"
 
 #include <variant>
+#include <vector>
 
 #include "corecel/inp/DistributionsIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
@@ -19,16 +20,6 @@ namespace inp
 //!@{
 //! I/O routines for JSON
 
-#define EIO_LOAD_VARIANT(NAME, TYPE) \
-    do                               \
-    {                                \
-        if (j.at("_type") == #NAME)  \
-        {                            \
-            v = j.get<TYPE>();       \
-            return;                  \
-        }                            \
-    } while (0)
-
 void to_json(nlohmann::json& j, EnergyDistribution const& v)
 {
     j = std::visit([](auto const& d) { return nlohmann::json(d); }, v);
@@ -36,9 +27,10 @@ void to_json(nlohmann::json& j, EnergyDistribution const& v)
 
 void from_json(nlohmann::json const& j, EnergyDistribution& v)
 {
-    EIO_LOAD_VARIANT(delta, MonoenergeticDistribution);
-    EIO_LOAD_VARIANT(normal, NormalDistribution);
-    EIO_LOAD_VARIANT(truncated, TruncatedDistribution<NormalDistribution>);
+    CELER_JSON_LOAD_VARIANT(j, v, delta, MonoenergeticDistribution);
+    CELER_JSON_LOAD_VARIANT(j, v, normal, NormalDistribution);
+    CELER_JSON_LOAD_VARIANT(
+        j, v, truncated, TruncatedDistribution<NormalDistribution>);
     CELER_VALIDATE(false, << "invalid EnergyDistribution input");
 }
 
@@ -49,8 +41,8 @@ void to_json(nlohmann::json& j, ShapeDistribution const& v)
 
 void from_json(nlohmann::json const& j, ShapeDistribution& v)
 {
-    EIO_LOAD_VARIANT(delta, PointDistribution);
-    EIO_LOAD_VARIANT(uniform_box, UniformBoxDistribution);
+    CELER_JSON_LOAD_VARIANT(j, v, delta, PointDistribution);
+    CELER_JSON_LOAD_VARIANT(j, v, uniform_box, UniformBoxDistribution);
     CELER_VALIDATE(false, << "invalid ShapeDistribution input");
 }
 
@@ -61,8 +53,8 @@ void to_json(nlohmann::json& j, AngleDistribution const& v)
 
 void from_json(nlohmann::json const& j, AngleDistribution& v)
 {
-    EIO_LOAD_VARIANT(delta, MonodirectionalDistribution);
-    EIO_LOAD_VARIANT(isotropic, IsotropicDistribution);
+    CELER_JSON_LOAD_VARIANT(j, v, delta, MonodirectionalDistribution);
+    CELER_JSON_LOAD_VARIANT(j, v, isotropic, IsotropicDistribution);
     CELER_VALIDATE(false, << "invalid AngleDistribution input");
 }
 
@@ -119,14 +111,96 @@ void to_json(nlohmann::json& j, OpticalGenerator const& v)
 
 void from_json(nlohmann::json const& j, OpticalGenerator& v)
 {
-    EIO_LOAD_VARIANT(primary, OpticalPrimaryGenerator);
-    EIO_LOAD_VARIANT(em, OpticalEmGenerator);
-    EIO_LOAD_VARIANT(offload, OpticalOffloadGenerator);
-    EIO_LOAD_VARIANT(direct, OpticalDirectGenerator);
+    CELER_JSON_LOAD_VARIANT(j, v, primary, OpticalPrimaryGenerator);
+    CELER_JSON_LOAD_VARIANT(j, v, em, OpticalEmGenerator);
+    CELER_JSON_LOAD_VARIANT(j, v, offload, OpticalOffloadGenerator);
+    CELER_JSON_LOAD_VARIANT(j, v, direct, OpticalDirectGenerator);
     CELER_VALIDATE(false, << "invalid OpticalGenerator input");
 }
 
-#undef EIO_LOAD_VARIANT
+void to_json(nlohmann::json& j, CorePrimaryGenerator const& v)
+{
+    std::vector<int> pdg(v.pdg.size());
+    std::transform(v.pdg.begin(), v.pdg.end(), pdg.begin(), [](PDGNumber p) {
+        return p.unchecked_get();
+    });
+
+    j = nlohmann::json{
+        json_type_pair("primary"),
+        CELER_JSON_PAIR(v, shape),
+        CELER_JSON_PAIR(v, angle),
+        CELER_JSON_PAIR(v, energy),
+        CELER_JSON_PAIR(v, num_events),
+        CELER_JSON_PAIR(v, primaries_per_event),
+        CELER_JSON_PAIR(v, seed),
+        {"pdg", pdg},
+    };
+}
+
+void from_json(nlohmann::json const& j, CorePrimaryGenerator& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, shape);
+    CELER_JSON_LOAD_REQUIRED(j, v, angle);
+    CELER_JSON_LOAD_REQUIRED(j, v, energy);
+    CELER_JSON_LOAD_REQUIRED(j, v, num_events);
+    CELER_JSON_LOAD_REQUIRED(j, v, primaries_per_event);
+    CELER_JSON_LOAD_OPTION(j, v, seed);
+
+    std::vector<int> pdg;
+    j.at("pdg").get_to(pdg);
+    v.pdg.reserve(pdg.size());
+    for (int i : pdg)
+    {
+        PDGNumber p{i};
+        v.pdg.push_back(p);
+        CELER_VALIDATE(p, << "invalid PDG number " << i);
+    }
+}
+
+void to_json(nlohmann::json& j, SampleFileEvents const& v)
+{
+    j = nlohmann::json{
+        json_type_pair("sample"),
+        CELER_JSON_PAIR(v, num_events),
+        CELER_JSON_PAIR(v, num_merged),
+        CELER_JSON_PAIR(v, event_file),
+        CELER_JSON_PAIR(v, seed),
+    };
+}
+
+void from_json(nlohmann::json const& j, SampleFileEvents& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, num_events);
+    CELER_JSON_LOAD_REQUIRED(j, v, num_merged);
+    CELER_JSON_LOAD_REQUIRED(j, v, event_file);
+    CELER_JSON_LOAD_REQUIRED(j, v, seed);
+}
+
+void to_json(nlohmann::json& j, ReadFileEvents const& v)
+{
+    j = nlohmann::json{
+        json_type_pair("read"),
+        CELER_JSON_PAIR(v, event_file),
+    };
+}
+
+void from_json(nlohmann::json const& j, ReadFileEvents& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, event_file);
+}
+
+void to_json(nlohmann::json& j, Events const& v)
+{
+    j = std::visit([](auto const& e) { return nlohmann::json(e); }, v);
+}
+
+void from_json(nlohmann::json const& j, Events& v)
+{
+    CELER_JSON_LOAD_VARIANT(j, v, primary, CorePrimaryGenerator);
+    CELER_JSON_LOAD_VARIANT(j, v, sample, SampleFileEvents);
+    CELER_JSON_LOAD_VARIANT(j, v, read, ReadFileEvents);
+    CELER_VALIDATE(false, << "invalid Events input");
+}
 
 //!@}
 

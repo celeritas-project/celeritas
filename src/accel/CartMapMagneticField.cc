@@ -17,7 +17,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/UnitTypes.hh"
 #include "celeritas/field/CartMapField.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 
 #include "detail/MagneticFieldUtils.hh"
@@ -29,9 +28,8 @@ namespace celeritas
  * Generates input for CartMapField params with configurable uniform grid
  * dimensions in native Geant4 units using an explicit field.
  */
-CartMapFieldParams::Input
-MakeCartMapFieldInput(G4Field const& field,
-                      CartMapFieldGridParams const& params)
+inp::CartMapField MakeCartMapFieldInput(G4Field const& field,
+                                        CartMapFieldGridParams const& params)
 {
     // Validate input parameters
     CELER_VALIDATE(params, << "invalid CartMapFieldGridParams provided");
@@ -79,7 +77,7 @@ MakeCartMapFieldInput(G4Field const& field,
     // Field converter for Cartesian coordinates (no transformation needed)
     auto field_converter = [](Array<G4double, 3> const& bfield,
                               Array<G4double, 4> const&,
-                              real_type cur_bfield[3]) {
+                              double cur_bfield[3]) {
         auto bfield_native = native_value_from(
             make_quantity_array<units::ClhepField>(bfield));
         std::copy(bfield_native.cbegin(), bfield_native.cend(), cur_bfield);
@@ -103,8 +101,7 @@ MakeCartMapFieldInput(G4Field const& field,
  * G4RunManager::Initialize as it will retrieve the G4FieldManager's field
  * to sample it.
  */
-CartMapFieldParams::Input
-MakeCartMapFieldInput(CartMapFieldGridParams const& params)
+inp::CartMapField MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
     G4Field const* g4field = celeritas::geant_field();
     CELER_VALIDATE(g4field,

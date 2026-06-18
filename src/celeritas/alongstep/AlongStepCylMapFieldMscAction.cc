@@ -13,12 +13,12 @@
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/inp/Field.hh"
 
 #include "detail/ElossApplier.hh"
 #include "detail/FieldTrackPropagator.hh"
@@ -43,7 +43,7 @@ std::shared_ptr<AlongStepCylMapFieldMscAction>
 AlongStepCylMapFieldMscAction::from_params(ActionId id,
                                            MaterialParams const& materials,
                                            ParticleParams const& particles,
-                                           CylMapFieldInput const& field_input,
+                                           Input const& field_input,
                                            SPConstMsc const& msc,
                                            bool eloss_fluctuation)
 {
@@ -64,10 +64,7 @@ AlongStepCylMapFieldMscAction::from_params(ActionId id,
  * Construct with next action ID, energy loss parameters, and MSC.
  */
 AlongStepCylMapFieldMscAction::AlongStepCylMapFieldMscAction(
-    ActionId id,
-    CylMapFieldInput const& input,
-    SPConstFluctuations fluct,
-    SPConstMsc msc)
+    ActionId id, Input const& input, SPConstFluctuations fluct, SPConstMsc msc)
     : id_(id)
     , field_{std::make_shared<CylMapFieldParams>(input)}
     , fluct_(std::move(fluct))

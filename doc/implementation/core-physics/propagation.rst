@@ -59,8 +59,8 @@ JSON input for the field setup corresponds to the uniform field input
 
 as well as fully Cartesian or cylindrical input:
 
-.. celerstruct:: CartMapFieldInput
-.. celerstruct:: CylMapFieldInput
+.. celerstruct:: inp::CartMapField
+.. celerstruct:: inp::CylMapField
 
 The field driver options are not yet a stable part of the API:
 
