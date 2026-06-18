@@ -221,7 +221,7 @@ bool SoftSurfaceEqual::operator()(Toroid const& a, Toroid const& b) const
     return this->soft_eq_distance(a.origin(), b.origin())
            && this->soft_eq_(a.major_radius(), b.major_radius())
            && this->soft_eq_(a.ellipse_xy_radius(), b.ellipse_xy_radius())
-           && this->soft_eq_(a.ellipse_z_radius(), a.ellipse_z_radius());
+           && this->soft_eq_(a.ellipse_z_radius(), b.ellipse_z_radius());
 }
 
 //---------------------------------------------------------------------------//
