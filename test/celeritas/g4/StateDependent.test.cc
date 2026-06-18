@@ -109,6 +109,31 @@ TEST_F(StateDependentTest, lifecycle_local)
     EXPECT_VEC_EQ(expected_lifecycles, lifecycles);
 }
 
+TEST_F(StateDependentTest, lifecycle_local_terminal_cleanup)
+{
+    set_geant_state(G4State_Idle);
+    std::vector<std::string> lifecycles;
+    // Deliberately leak: StateDependent deregisters itself on end_program, but
+    // destroying it from inside its callback is unsafe.
+    new StateDependent(
+        [&lifecycles](StreamId sid, GeantStateChange change) {
+            EXPECT_EQ(StreamId{0}, sid);
+
+            lifecycles.emplace_back(to_cstring(change));
+        },
+        StateDependent::Mode::lifecycle,
+        StateDependent::LifecycleRole::local);
+
+    set_geant_state(G4State_GeomClosed);
+    set_geant_state(G4State_Quit);
+
+    static std::string const expected_lifecycles[] = {
+        "begin_run",
+        "end_run",
+    };
+    EXPECT_VEC_EQ(expected_lifecycles, lifecycles);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

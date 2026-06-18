@@ -131,10 +131,13 @@ class IntegrationSingleton
     // Initialize worker thread implementation
     void initialize_worker_impl();
     // Initialize local transporter implementation
-    void initialize_local_impl();
-
+    bool initialize_local_impl();
     // Finalize local transporter implementation
-    void finalize_local_impl();
+    bool finalize_local_impl();
+    // Finalize local transporter if this thread owns it
+    void finalize_local_offload();
+    // Finalize shared params if this thread owns them
+    void finalize_shared_offload();
     // Finalize shared params implementation
     void finalize_shared_impl();
 };

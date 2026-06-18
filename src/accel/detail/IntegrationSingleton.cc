@@ -198,14 +198,22 @@ bool IntegrationSingleton::initialize_offload()
 {
     if (G4Threading::IsMasterThread())
     {
-        failed_setup_ = false;
+        if (!params_)
+        {
+            failed_setup_ = false;
 
-        ExceptionConverter call_g4exception{"celer.init.global"};
-        CELER_TRY_HANDLE(this->initialize_master_impl(), call_g4exception);
-        failed_setup_ = call_g4exception.forwarded();
+            ExceptionConverter call_g4exception{"celer.init.global"};
+            CELER_TRY_HANDLE(this->initialize_master_impl(), call_g4exception);
+            failed_setup_ = call_g4exception.forwarded();
 
-        // Start the run timer
-        get_time_ = {};
+            // Start the run timer
+            get_time_ = {};
+        }
+        else
+        {
+            CELER_LOG_LOCAL(debug) << "Shared Celeritas state already "
+                                      "initialized";
+        }
     }
     else if (!failed_setup_)
     {
@@ -244,9 +252,10 @@ bool IntegrationSingleton::initialize_offload()
         return true;
     }
 
-    CELER_TRY_HANDLE(this->initialize_local_impl(),
+    bool initialized = false;
+    CELER_TRY_HANDLE(initialized = this->initialize_local_impl(),
                      ExceptionConverter("celer.init.local"));
-    return true;
+    return initialized;
 }
 
 //---------------------------------------------------------------------------//
@@ -260,23 +269,8 @@ void IntegrationSingleton::finalize_offload()
         return;
     }
 
-    // Finalize local transporter
-    if (params_.mode() == OffloadMode::enabled)
-    {
-        if (!G4Threading::IsMultithreadedApplication()
-            || !G4Threading::IsMasterThread())
-        {
-            CELER_TRY_HANDLE(this->finalize_local_impl(),
-                             ExceptionConverter("celer.finalize.local"));
-        }
-    }
-
-    // Finalize shared params on main thread
-    if (G4Threading::IsMasterThread())
-    {
-        CELER_TRY_HANDLE(this->finalize_shared_impl(),
-                         ExceptionConverter("celer.finalize.global"));
-    }
+    this->finalize_local_offload();
+    this->finalize_shared_offload();
 }
 
 //---------------------------------------------------------------------------//
@@ -347,14 +341,16 @@ void IntegrationSingleton::register_auto_hooks()
         return;
     }
 
-    // Register master-thread state monitor. This object is owned like
-    // SetupOptionsMessenger: Geant4 state notifications are callback-only and
-    // do not control ownership.
+    // Register master-thread state monitor. StateDependent deregisters itself
+    // at terminal teardown, but destroying it after G4StateManager teardown is
+    // unsafe, so deliberately abandon ownership.
     master_state_dependent_ = std::make_unique<StateDependent>(
         [this](StreamId sid, GeantStateChange change) {
             this->on_state_change(sid, change);
         },
-        StateDependent::Mode::lifecycle);
+        StateDependent::Mode::lifecycle,
+        StateDependent::LifecycleRole::global);
+    static_cast<void>(master_state_dependent_.release());
     auto_hooks_active_ = true;
 }
 
@@ -383,6 +379,9 @@ void IntegrationSingleton::on_state_change(StreamId stream_id,
             break;
         }
         case GeantStateChange::end_run:
+            CELER_TRY_HANDLE(this->finalize_local_offload(),
+                             ExceptionConverter{"celer.finalize.local.auto"});
+            break;
         case GeantStateChange::end_program:
             CELER_TRY_HANDLE(this->finalize_offload(),
                              ExceptionConverter{"celer.finalize.auto"});
@@ -438,32 +437,81 @@ void IntegrationSingleton::initialize_worker_impl()
 /*!
  * Initialize local transporter implementation.
  */
-void IntegrationSingleton::initialize_local_impl()
+bool IntegrationSingleton::initialize_local_impl()
 {
     CELER_EXPECT(!G4Threading::IsMultithreadedApplication()
                  || G4Threading::IsWorkerThread());
 
-    CELER_LOG(debug) << "Constructing local state";
     auto& lt = this->local_offload();
-    CELER_VALIDATE(!lt,
-                   << "local thread " << G4Threading::G4GetThreadId() + 1
-                   << " cannot be initialized more than once");
+    if (lt)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Local Celeritas state already initialized on thread "
+            << G4Threading::G4GetThreadId() + 1;
+        return false;
+    }
+    CELER_LOG(debug) << "Constructing local state";
     lt.Initialize(options_, params_);
+    return true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Finalize local transporter implementation.
  */
-void IntegrationSingleton::finalize_local_impl()
+bool IntegrationSingleton::finalize_local_impl()
 {
-    CELER_LOG(debug) << "Destroying local state";
     auto& lt = this->local_offload();
-    CELER_VALIDATE(lt,
-                   << "local thread " << G4Threading::G4GetThreadId() + 1
-                   << " cannot be finalized more than once");
+    if (!lt)
+    {
+        CELER_LOG_LOCAL(debug)
+            << "Local Celeritas state already finalized on thread "
+            << G4Threading::G4GetThreadId() + 1;
+        return false;
+    }
+    CELER_LOG(debug) << "Destroying local state";
     params_.timer()->RecordActionTime(lt.GetActionTime());
     lt.Finalize();
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Finalize thread-local offload state owned by this thread.
+ */
+void IntegrationSingleton::finalize_local_offload()
+{
+    if (CELER_UNLIKELY(failed_setup_ || !params_))
+    {
+        return;
+    }
+
+    if (params_.mode() == OffloadMode::enabled
+        && (!G4Threading::IsMultithreadedApplication()
+            || !G4Threading::IsMasterThread()))
+    {
+        CELER_TRY_HANDLE(
+            { static_cast<void>(this->finalize_local_impl()); },
+            ExceptionConverter("celer.finalize.local"));
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Finalize shared offload state owned by the master thread.
+ */
+void IntegrationSingleton::finalize_shared_offload()
+{
+    if (CELER_UNLIKELY(failed_setup_ || !params_))
+    {
+        return;
+    }
+
+    if (G4Threading::IsMasterThread())
+    {
+        CELER_TRY_HANDLE(this->finalize_shared_impl(),
+                         ExceptionConverter("celer.finalize.global"));
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -184,10 +184,15 @@ void StateDependent::notify_lifecycle(GeantStateChange change)
             break;
         case GeantStateChange::end_program:
             // Global monitors own terminal shared cleanup. Local monitors
-            // finalize at end_run and must not emit a second cleanup event.
+            // finalize at end_run and must not emit a shared cleanup event,
+            // but terminal teardown must still close any active local run.
             if (owns_end_program)
             {
                 cb_(local_stream_, change);
+            }
+            else if (active_run_ && !is_manager)
+            {
+                cb_(local_stream_, GeantStateChange::end_run);
             }
             active_run_ = false;
             break;

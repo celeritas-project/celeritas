@@ -531,20 +531,40 @@ TEST_F(TMIAutoHooks, run)
         EXPECT_FALSE(singleton.shared_params());
     }
 
-    rm.BeamOn(1);
+    std::map<StreamId, int> init_stream_counts;
+    for (StreamId sid : verified_streams)
+    {
+        ++init_stream_counts[sid];
+    }
+
+    constexpr int num_runs{2};
+    for (int i = 0; i != num_runs; ++i)
+    {
+        rm.BeamOn(1);
+    }
 
     if (G4Threading::IsMultithreadedApplication())
     {
-        bool found_local = false;
+        std::map<StreamId, int> stream_counts;
         for (StreamId sid : verified_streams)
         {
+            ++stream_counts[sid];
+        }
+
+        bool found_local = false;
+        for (auto&& [sid, count] : stream_counts)
+        {
             found_local = found_local || static_cast<bool>(sid);
+            auto init_count = init_stream_counts[sid];
+            EXPECT_LE(init_count, 1);
+            EXPECT_EQ(num_runs + init_count, count) << "unexpected local "
+                                                       "setup count";
         }
         EXPECT_TRUE(found_local);
     }
     else
     {
-        static StreamId const expected_streams[] = {StreamId{0}};
+        static StreamId const expected_streams[] = {StreamId{0}, StreamId{0}};
         EXPECT_VEC_EQ(expected_streams, verified_streams);
     }
 }
