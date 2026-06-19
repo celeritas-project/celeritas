@@ -1055,22 +1055,19 @@ class Tet final : public IntersectRegionInterface
 };
 
 /*!
- * An elliptical toroid centered around the origin and defined by three radii.
+ * An torus centered around the origin, defined by two radii.
  *
  * The major radius extends from the origin to the center of the revolved
- * ellipse, and the xy and z radii describe the radii of the revolved ellipse
- * along those directions, respectively.
+ * circle, and the minor radius describes the radius of the revolved circle.
  *
- * \note Be aware of the toroid *surface* at orange/surf/Toroid.hh in a
- * different namespace.
+ * Uses a special case of the Toroid surface with equal ellipse radii.
  */
-class Toroid final : public IntersectRegionInterface
+class Torus final : public IntersectRegionInterface
 {
   public:
     // Construct with radii
-    explicit Toroid(real_type const& major_radius,
-                    real_type const& ellipse_xy_radius,
-                    real_type const& ellipse_z_radius);
+    explicit Torus(real_type const& major_radius,
+                   real_type const& minor_radius);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -1078,8 +1075,8 @@ class Toroid final : public IntersectRegionInterface
     // Output to JSON
     void output(JsonPimpl*) const final;
 
-    // Whether this encloses another toroid
-    bool encloses(Toroid const& other) const;
+    // Whether this encloses another torus
+    bool encloses(Torus const& other) const;
 
     //// ACCESSORS ////
 
@@ -1087,15 +1084,11 @@ class Toroid final : public IntersectRegionInterface
     real_type const& major_radius() const { return r_; }
 
     //! XY Radius
-    real_type const& ellipse_xy_radius() const { return a_; }
-
-    //! Z Radius
-    real_type const& ellipse_z_radius() const { return b_; }
+    real_type const& minor_radius() const { return a_; }
 
   private:
     real_type r_;
     real_type a_;
-    real_type b_;
 };
 
 //---------------------------------------------------------------------------//

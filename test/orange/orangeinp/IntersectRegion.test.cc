@@ -2654,23 +2654,22 @@ TEST_F(TetTest, soft_degenerate)
 }
 
 //---------------------------------------------------------------------------//
-// TOROID
+// TORUS
 //---------------------------------------------------------------------------//
-using ToroidTest = IntersectRegionTest;
+using TorusTest = IntersectRegionTest;
 
-TEST_F(ToroidTest, errors)
+TEST_F(TorusTest, errors)
 {
     // Nonpositive radii
-    EXPECT_THROW(Toroid(-1, 2, 3), RuntimeError);
-    EXPECT_THROW(Toroid(2, -1, 3), RuntimeError);
-    EXPECT_THROW(Toroid(2, 1, -1), RuntimeError);
+    EXPECT_THROW(Torus(-1, 2), RuntimeError);
+    EXPECT_THROW(Torus(2, -1), RuntimeError);
     // Degenerate toroid (xy radius > toroid major radius)
-    EXPECT_THROW(Toroid(1, 2, 3), RuntimeError);
+    EXPECT_THROW(Torus(1, 2), RuntimeError);
 }
 
-TEST_F(ToroidTest, standard)
+TEST_F(TorusTest, standard)
 {
-    auto result = this->test(Toroid(2, 1, 1));
+    auto result = this->test(Torus(2, 1));
 
     static char const expected_node[] = "-0";
     static char const* expected_surfaces[]

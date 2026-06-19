@@ -942,16 +942,14 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
                    << "invalid rmin=" << rmin << " >= rmax=" << rmax);
     CELER_VALIDATE(rmax >= 0, << "invalid rmin=" << rmin << " < 0");
 
-    std::optional<Toroid> inner;
+    std::optional<Torus> inner;
     if (!soft_zero(rmin))
     {
-        inner.emplace(rtor, rmin, rmin);
+        inner.emplace(rtor, rmin);
     }
 
-    return make_solid(solid,
-                      Toroid{rtor, rmax, rmax},
-                      std::move(inner),
-                      enclosed_azi_from(solid));
+    return make_solid(
+        solid, Torus{rtor, rmax}, std::move(inner), enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//

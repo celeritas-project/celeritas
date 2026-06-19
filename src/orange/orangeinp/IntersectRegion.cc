@@ -1813,44 +1813,41 @@ Real3 const& Tet::vertex(size_type i) const
  */
 using ToroidSurf = ::celeritas::Toroid;
 
-Toroid::Toroid(real_type const& major_radius,
-               real_type const& ellipse_xy_radius,
-               real_type const& ellipse_z_radius)
-    : r_{major_radius}, a_{ellipse_xy_radius}, b_{ellipse_z_radius}
+Torus::Torus(real_type const& major_radius, real_type const& minor_radius)
+    : r_{major_radius}, a_{minor_radius}
 {
     CELER_VALIDATE(r_ > 0, << "nonpositive major radius: " << r_);
-    CELER_VALIDATE(a_ > 0, << "nonpositive ellipse xy radius: " << a_);
-    CELER_VALIDATE(b_ > 0, << "nonpositive ellipse z radius: " << b_);
+    CELER_VALIDATE(a_ > 0, << "nonpositive minor radius: " << a_);
     CELER_VALIDATE(r_ > a_,
                    << "toroid major radius (" << r_ << ") must be greater than"
-                   << "ellipse xy radius (" << a_ << ")");
+                   << "minor radius (" << a_ << ")");
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Build surfaces.
  */
-void Toroid::build(IntersectSurfaceBuilder& insert_surface) const
+void Torus::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::inside, ToroidSurf{{0, 0, 0}, r_, a_, b_});
+    insert_surface(Sense::inside, ToroidSurf{{0, 0, 0}, r_, a_, a_});
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Write output to the given JSON object.
  */
-void Toroid::output(JsonPimpl* j) const
+void Torus::output(JsonPimpl* j) const
 {
     save_region_json(j, *this);
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Returns whether this toroid encloses another toroid.
+ * Returns whether this centered torus encloses another such torus.
  */
-bool Toroid::encloses(Toroid const& other) const
+bool Torus::encloses(Torus const& other) const
 {
-    return true;  // TODO: implement
+    return abs(r_ - other.major_radius()) + other.minor_radius() < a_;
 }
 
 //---------------------------------------------------------------------------//

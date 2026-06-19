@@ -100,7 +100,7 @@ void to_json(nlohmann::json& j, Parallelepiped const&);
 void to_json(nlohmann::json& j, Prism const&);
 void to_json(nlohmann::json& j, Sphere const&);
 void to_json(nlohmann::json& j, Tet const&);
-void to_json(nlohmann::json& j, Toroid const&);
+void to_json(nlohmann::json& j, Torus const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

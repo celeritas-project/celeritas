@@ -323,12 +323,11 @@ void to_json(nlohmann::json& j, Tet const& cr)
     j = {{"_type", "tet"}, SIO_ATTR_PAIR(cr, vertices)};
 }
 
-void to_json(nlohmann::json& j, Toroid const& cr)
+void to_json(nlohmann::json& j, Torus const& cr)
 {
-    j = {{"_type", "toroid"},
+    j = {{"_type", "torus"},
          SIO_ATTR_PAIR(cr, major_radius),
-         SIO_ATTR_PAIR(cr, ellipse_xy_radius),
-         SIO_ATTR_PAIR(cr, ellipse_z_radius)};
+         SIO_ATTR_PAIR(cr, minor_radius)};
 }
 //!@}
 
