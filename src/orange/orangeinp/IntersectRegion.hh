@@ -1081,10 +1081,10 @@ class Torus final : public IntersectRegionInterface
     //// ACCESSORS ////
 
     //! Major Radius
-    real_type const& major_radius() const { return r_; }
+    real_type major_radius() const { return r_; }
 
     //! XY Radius
-    real_type const& minor_radius() const { return a_; }
+    real_type minor_radius() const { return a_; }
 
   private:
     real_type r_;
