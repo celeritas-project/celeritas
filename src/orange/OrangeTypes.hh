@@ -120,7 +120,6 @@ enum class Sense : bool
  * - 1 for `p.|sc|c.c`,
  * - 3 for `c.`,
  * - 4 for `[ps]|k.`,
- * - 6 for `tor`,
  * - 7 for `sq`, and
  * - 10 for `gq`.
  *
@@ -143,9 +142,9 @@ enum class SurfaceType : unsigned char
     kx,  //!< Cone parallel to X axis
     ky,  //!< Cone parallel to Y axis
     kz,  //!< Cone parallel to Z axis
-    tor,  //!< Toroid
     sq,  //!< Simple quadric
     gq,  //!< General quadric
+    tor,  //!< Toroid
     inv,  //!< Involute
     size_  //!< Sentinel value for number of surface types
 };

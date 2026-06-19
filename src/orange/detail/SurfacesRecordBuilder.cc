@@ -46,6 +46,12 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
             // https://github.com/celeritas-project/celeritas/pull/1342
             CELER_NOT_IMPLEMENTED("runtime involute support");
         }
+        else if constexpr (std::remove_reference_t<decltype(s)>::surface_type()
+                           == SurfaceType::tor)
+        {
+            // GPU performance not yet analyzed
+            CELER_NOT_IMPLEMENTED("runtime toroid support");
+        }
         types_.push_back(s.surface_type());
         auto data = s.data();
         auto real_range = reals_.insert_back(data.begin(), data.end());

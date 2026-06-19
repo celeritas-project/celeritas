@@ -89,12 +89,14 @@ visit_surface_type(F&& func, SurfaceType st)
         ORANGE_ST_VISIT_CASE(kx);
         ORANGE_ST_VISIT_CASE(ky);
         ORANGE_ST_VISIT_CASE(kz);
-        ORANGE_ST_VISIT_CASE(tor);
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
         case SurfaceType::inv:
             // Prevented by input reader: see
             // orange/detail/SurfacesRecordBuilder.cc
+            CELER_ASSERT_UNREACHABLE();
+        case SurfaceType::tor:
+            // Prevented by input reader; performance not analyzed yet
             CELER_ASSERT_UNREACHABLE();
         default:
             CELER_ASSERT_UNREACHABLE();
