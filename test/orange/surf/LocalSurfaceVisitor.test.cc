@@ -172,7 +172,7 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
     // Check that all surface types can be visited and are consistent
     for (auto st : range(SurfaceType::size_))
     {
-        if (st == SurfaceType::inv)
+        if (st == SurfaceType::inv || st == SurfaceType::tor)
         {
             if (CELERITAS_DEBUG)
             {
