@@ -55,7 +55,7 @@ class Parallelepiped;
 class Prism;
 class Sphere;
 class Tet;
-class Toroid;
+class Torus;
 
 //---------------------------------------------------------------------------//
 
