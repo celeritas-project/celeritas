@@ -2674,12 +2674,12 @@ TEST_F(ToroidTest, standard)
 
     static char const expected_node[] = "-0";
     static char const* expected_surfaces[]
-        = {"Toroid: r=2, a=1, b=1, at o={1,2,3}"};
+        = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
-    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, 3}), result.exterior.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 3}), result.exterior.upper());
+    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 1}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

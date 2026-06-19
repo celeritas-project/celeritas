@@ -1850,7 +1850,7 @@ void Toroid::output(JsonPimpl* j) const
  */
 bool Toroid::encloses(Toroid const& other) const
 {
-    return false;  // TODO: implement
+    return true;  // TODO: implement
 }
 
 //---------------------------------------------------------------------------//

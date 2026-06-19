@@ -1143,8 +1143,7 @@ TEST_F(SolidConverterTest, torus)
 {
     G4Torus torus("testTorus", 10 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
     auto json_str
-        = R"json({"_type":"solid","enclosed_azi":{"stop":0.75,"start":0.0},"excluded":{"_type":"toroid","ellipse_xy_radius":10.0,"ellipse_z_radius":10.0,"major_radius":50.0},"interior":{"_type":"toroid","ellipse_xy_radius":20.0,"ellipse_z_radius":20.0,"major_radius":50.0})json";
-
+        = R"json({"_type":"solid","enclosed_azi":{"stop":0.75,"start":0.0},"excluded":{"_type":"toroid","ellipse_xy_radius":10.0,"ellipse_z_radius":10.0,"major_radius":50.0},"interior":{"_type":"toroid","ellipse_xy_radius":20.0,"ellipse_z_radius":20.0,"major_radius":50.0},"label":"testTorus"})json";
     SolidConverter convert{scale_, transform_};
     auto obj = convert(torus);
     CELER_ASSERT(obj);
