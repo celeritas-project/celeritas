@@ -1847,7 +1847,7 @@ void Torus::output(JsonPimpl* j) const
  */
 bool Torus::encloses(Torus const& other) const
 {
-    return abs(r_ - other.major_radius()) + other.minor_radius() < a_;
+    return std::abs(r_ - other.major_radius()) + other.minor_radius() < a_;
 }
 
 //---------------------------------------------------------------------------//
