@@ -341,16 +341,15 @@ void IntegrationSingleton::register_auto_hooks()
         return;
     }
 
-    // Register master-thread state monitor. StateDependent deregisters itself
-    // at terminal teardown, but destroying it after G4StateManager teardown is
-    // unsafe, so deliberately abandon ownership.
+    // Register master-thread state monitor. This object is owned like the
+    // SetupOptionsMessenger: Geant4 state notifications are callback-only and
+    // do not control ownership.
     master_state_dependent_ = std::make_unique<StateDependent>(
         [this](StreamId sid, GeantStateChange change) {
             this->on_state_change(sid, change);
         },
         StateDependent::Mode::lifecycle,
         StateDependent::LifecycleRole::global);
-    static_cast<void>(master_state_dependent_.release());
     auto_hooks_active_ = true;
 }
 

@@ -141,7 +141,6 @@ void TrackingManagerConstructor::ConstructProcess()
                 },
                 StateDependent::Mode::lifecycle,
                 StateDependent::LifecycleRole::local);
-            static_cast<void>(state_dep.release());
         }
     }
 
