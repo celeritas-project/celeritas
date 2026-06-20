@@ -26,7 +26,7 @@ namespace celeritas
  * | Previous State         | Requested State        | Change          |
  * |------------------------|------------------------|-----------------|
  * | *none*                 | `G4State_PreInit`      | `begin_program` |
- * | `G4State_PreInit`      | `G4State_Init`         | `initialize`    |
+ * | `G4State_PreInit`      | `G4State_Init`         | `begin_init`    |
  * | `G4State_Idle`         | `G4State_Init`         | `begin_init`    |
  * | `G4State_Init`         | `G4State_Init`         | `internal_init` |
  * | `G4State_Init`         | `G4State_Idle`         | `end_init`      |
@@ -43,7 +43,8 @@ namespace celeritas
  * - \c begin_program is called during the \c G4RunManagerKernel constructor,
  *   so it will only register if your state dependent is constructed very early
  *   and on the main thread.
- * - We ignore all but the first \c Initialize state (from "pre-init")
+ * - In raw mode, the first \c G4State_Init transition from \c G4State_PreInit
+ *   emits an extra \c initialize callback before \c begin_init.
  * - In MT mode, \c RunManager::Initialize actually calls begin/end run for
  *   each thread, including master.
  * - \c end_program is called by the G4RunManager and G4RunManagerKernel
@@ -82,11 +83,12 @@ char const* to_cstring(GeantStateChange);
 /*!
  * Receive notifications when the Geant4 application state changes.
  *
- * This thread-local wrapper calls a shared user-provided function for the
- * given worker stream whenever the simulation transitions between Geant4
- * application states.
+ * This thread-local wrapper observes Geant4 application state transitions and
+ * calls a shared user-provided function for the creating stream. Raw mode
+ * dispatches every encoded state transition; lifecycle mode dispatches the
+ * filtered run lifecycle used by automatic Celeritas setup.
  *
- * \warning  The Geant4 memory semantics for this class are bonkers.
+ * \warning  The Geant4 memory semantics for this class are unusual.
  * - The thread-local \c G4StateManager singleton keeps a pointer (via the \c
  *   G4VStateDependent base constructor) to this local instance and calls \c
  *   delete on it when it's deleted as the run manager shuts down.
@@ -131,10 +133,11 @@ class StateDependent final : public G4VStateDependent
                             LifecycleRole lifecycle_role
                             = LifecycleRole::global);
 
-    // Prevent move/copy due to weird base class antics
+    // Prevent move/copy because the base class registers this object by
+    // pointer
     CELER_DELETE_COPY_MOVE(StateDependent);
 
-    // Invoke the callback when the Geant4 state changes
+    // Handle notification when the Geant4 state changes
     G4bool Notify(G4ApplicationState state) final;
 
     //! Stream that created this state dependent
@@ -151,8 +154,8 @@ class StateDependent final : public G4VStateDependent
     // needs a matching end_run.
     bool active_run_{false};
 
-    // Dispatch filtered lifecycle notifications
-    void notify_lifecycle(GeantStateChange);
+    // Dispatch a filtered lifecycle change
+    void dispatch_lifecycle_change(GeantStateChange);
 };
 
 //---------------------------------------------------------------------------//

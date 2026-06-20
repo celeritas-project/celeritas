@@ -23,10 +23,8 @@ namespace celeritas
  * Construct with a stream ID and state-change callback.
  *
  * \note The base class performs the actual registration.
- * \note We also store a pointer to the thread-local manager that this
- * is registered with, in case we want to deregister in a thread other than
- * the one we were created with. (This might be dangerous... but so is assuming
- * we're destroyed on the same thread we're constructed in.)
+ * \note We also store a pointer to the thread-local manager that registered
+ * this object so terminal notifications can deregister from the same manager.
  */
 StateDependent::StateDependent(LocalGeantStateChangeFunc cb,
                                Mode mode,
@@ -46,7 +44,7 @@ StateDependent::StateDependent(LocalGeantStateChangeFunc cb,
 
 //---------------------------------------------------------------------------//
 /*!
- * Dispatch a state transition notification to the user callback.
+ * Handle a Geant4 state transition notification.
  */
 G4bool StateDependent::Notify(G4ApplicationState state)
 {
@@ -137,7 +135,7 @@ G4bool StateDependent::Notify(G4ApplicationState state)
 
     if (mode_ == Mode::lifecycle)
     {
-        this->notify_lifecycle(change);
+        this->dispatch_lifecycle_change(change);
     }
     else
     {
@@ -149,14 +147,14 @@ G4bool StateDependent::Notify(G4ApplicationState state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Dispatch filtered Celeritas lifecycle notifications.
+ * Dispatch a filtered Celeritas lifecycle change.
  *
  * This suppresses Geant4 run-manager ordering details from automatic offload
  * lifecycle callbacks: the MT manager thread never emits end-run, workers do
  * not emit end-program, and duplicate begin/end run transitions on a local
  * state monitor are collapsed.
  */
-void StateDependent::notify_lifecycle(GeantStateChange change)
+void StateDependent::dispatch_lifecycle_change(GeantStateChange change)
 {
     // A null stream is the MT manager thread; serial and worker callbacks have
     // a concrete local stream ID.

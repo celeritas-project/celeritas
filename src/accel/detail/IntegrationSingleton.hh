@@ -80,10 +80,10 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
-    // Initialize shared params and thread-local transporter
+    // Initialize shared params if needed and this thread's local transporter
     bool initialize_offload();
 
-    // Destroy local transporter and shared params
+    // Finalize active local transporter and master-owned shared params
     void finalize_offload();
 
     //! Whether Geant4 state hooks own begin/end run lifecycle management

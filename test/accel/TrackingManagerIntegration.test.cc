@@ -292,17 +292,16 @@ TEST_F(LarSphere, state_dep)
         }
     };
 
-    // Set a callback that constructs the state dependent on every thread:
-    // we should probably do this as part of the tracking manager.
+    // Set a callback that constructs a raw state-dependent observer on every
+    // thread, mirroring the legacy tracking-manager construction path.
     this->set_build_cb([](StreamId s) {
         // Create the state dependent on the local threads
         // NOTE that Geant4 state manager base class "registers" this pointer
-        // and will deallocate it if it's not deregistered first (which the SD
-        // does via Notify but which may not always work).
-        // To provide safety against double-deletion due to this weird
-        // semantic, we DELIBERATELY leak the pointer. ALSO note that this
-        // thread_local declaration *must* be seen by each thread before it is
-        // used by that thread.
+        // and will deallocate it if it's not deregistered first.
+        // StateDependent deregisters itself on terminal Notify, but this raw
+        // observer is deliberately leaked because deleting it from inside its
+        // callback is unsafe. Also note that this thread_local declaration
+        // *must* be seen by each thread before it is used by that thread.
         static thread_local StateDependent* state_dep{
             new StateDependent{record_state_change}};
 

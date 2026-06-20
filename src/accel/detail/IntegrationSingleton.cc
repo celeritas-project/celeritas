@@ -186,13 +186,13 @@ OffloadMode IntegrationSingleton::mode() const
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize shared params and thread-local transporter.
+ * Initialize shared params if needed and this thread's local transporter.
  *
  * This handles both global (master thread) and local (worker thread)
- * initialization. In MT mode, the master thread initializes shared params,
- * and worker threads initialize their local state.
+ * initialization. Shared params persist across repeated BeamOn calls until
+ * terminal teardown, while local state is recreated for each run as needed.
  *
- * \return Whether Celeritas offloading is enabled
+ * \return Whether local offload state was initialized and should be verified
  */
 bool IntegrationSingleton::initialize_offload()
 {
@@ -260,7 +260,8 @@ bool IntegrationSingleton::initialize_offload()
 
 //---------------------------------------------------------------------------//
 /*!
- * Finalize thread-local transporter and (if main thread) shared params.
+ * Finalize any active local transporter and, on the master thread, shared
+ * params.
  */
 void IntegrationSingleton::finalize_offload()
 {
