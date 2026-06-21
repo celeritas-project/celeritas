@@ -55,7 +55,7 @@ using file_rz_t
  *   grid_index = scale * world_pos + translation
  * so world_pos_min = -t/s and world_pos_max = (n - 1 - t) / s.
  */
-AxisGrid<real_type> from_affine(float scale, float translation, std::size_t n)
+inp::AxisGrid<double> from_affine(float scale, float translation, std::size_t n)
 {
     CELER_VALIDATE(scale > 0,
                    << "covfie affine transform has non-positive scale factor "
@@ -64,7 +64,7 @@ AxisGrid<real_type> from_affine(float scale, float translation, std::size_t n)
                    << "covfie field grid axis is degenerate with " << n
                    << " points");
 
-    AxisGrid<real_type> result;
+    inp::AxisGrid<double> result;
     result.min = -translation / scale;
     result.max = (static_cast<float>(n) - 1.f - translation) / scale;
     result.num = static_cast<size_type>(n);
@@ -78,7 +78,7 @@ AxisGrid<real_type> from_affine(float scale, float translation, std::size_t n)
 /*!
  * Load a Cartesian magnetic field map from a binary covfie file.
  */
-CartMapFieldInput load_covfie_cart_field(std::string const& filename)
+inp::CartMapField load_covfie_cart_field(std::string const& filename)
 {
     std::ifstream ifs(filename, std::ifstream::binary);
     CELER_VALIDATE(ifs.good(),
@@ -96,7 +96,7 @@ CartMapFieldInput load_covfie_cart_field(std::string const& filename)
     auto const sizes = strided_data.get_configuration();
 
     // Recover world-coordinate grid from affine transform
-    CartMapFieldInput inp;
+    inp::CartMapField inp;
     inp.x = from_affine(mat(0, 0), mat(0, 3), sizes[0]);
     inp.y = from_affine(mat(1, 1), mat(1, 3), sizes[1]);
     inp.z = from_affine(mat(2, 2), mat(2, 3), sizes[2]);

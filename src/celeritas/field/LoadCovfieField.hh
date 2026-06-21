@@ -11,8 +11,8 @@
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
+#include "celeritas/inp/Field.hh"
 
-#include "CartMapFieldInput.hh"
 #include "RZMapFieldInput.hh"
 
 namespace celeritas
@@ -34,11 +34,11 @@ namespace celeritas
  * covfie file was written in the correct unit system or for converting the
  * returned data afterward.
  *
- * The returned \c CartMapFieldInput has the field driver options left at their
+ * The returned \c inp::CartMapField has the field driver options left at their
  * defaults. The caller is responsible for setting them before passing the
  * input to a factory.
  */
-CartMapFieldInput load_covfie_cart_field(std::string const& filename);
+inp::CartMapField load_covfie_cart_field(std::string const& filename);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -65,7 +65,7 @@ RZMapFieldInput load_covfie_rz_field(std::string const& filename);
 
 #else
 
-inline CartMapFieldInput load_covfie_cart_field(std::string const&)
+inline inp::CartMapField load_covfie_cart_field(std::string const&)
 {
     CELER_NOT_CONFIGURED("covfie");
 }

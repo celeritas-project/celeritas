@@ -34,7 +34,7 @@ struct ExportFiles
 {
     //! Filename for ROOT dump of physics data
     std::string physics;
-    //! Filename to dump a ROOT/HepMC3 copy of primaries
+    //! Filename to dump a ROOT/HepMC3/JSON copy of primaries
     std::string offload;
     //! Filename to dump a GDML file of the active Geant4 geometry
     std::string geometry;

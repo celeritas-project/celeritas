@@ -13,8 +13,6 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/FrameworkInput.hh"

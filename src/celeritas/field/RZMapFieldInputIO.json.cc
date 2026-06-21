@@ -148,8 +148,8 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
 {
     j = {
-        {"_format", "RZMapField"},
         {"_version", 0},
+        json_type_pair("rzmap"),
         CELER_JSON_PAIR(inp, num_grid_z),
         CELER_JSON_PAIR(inp, num_grid_r),
         CELER_JSON_PAIR(inp, min_z),
