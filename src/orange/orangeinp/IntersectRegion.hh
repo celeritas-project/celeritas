@@ -1055,12 +1055,12 @@ class Tet final : public IntersectRegionInterface
 };
 
 /*!
- * An torus centered around the origin, defined by two radii.
+ * A torus centered around the origin, defined by two radii.
  *
  * The major radius extends from the origin to the center of the revolved
- * circle, and the minor radius describes the radius of the revolved circle.
+ * circle, and the minor radius is that of the revolved circle.
  *
- * Uses a special case of the Toroid surface with equal ellipse radii.
+ * Uses a special case of the Toroid surface, with equal ellipse radii.
  */
 class Torus final : public IntersectRegionInterface
 {
@@ -1080,15 +1080,15 @@ class Torus final : public IntersectRegionInterface
 
     //// ACCESSORS ////
 
-    //! Major Radius
-    real_type major_radius() const { return r_; }
+    //! Major radius (from the origin to the revolved circle)
+    real_type major_radius() const { return r_maj_; }
 
-    //! XY Radius
-    real_type minor_radius() const { return a_; }
+    //! Minor radius (of the revolved circle)
+    real_type minor_radius() const { return r_min_; }
 
   private:
-    real_type r_;
-    real_type a_;
+    real_type r_maj_;
+    real_type r_min_;
 };
 
 //---------------------------------------------------------------------------//

@@ -1806,21 +1806,22 @@ Real3 const& Tet::vertex(size_type i) const
 }
 
 //---------------------------------------------------------------------------//
-// TOROID
+// TORUS
 //---------------------------------------------------------------------------//
 /*!
- * Construct with origin and radii. TODO: Should this be centered at (0,0,0)?
+ * Construct with radii.
  */
 using ToroidSurf = ::celeritas::Toroid;
 
 Torus::Torus(real_type const& major_radius, real_type const& minor_radius)
-    : r_{major_radius}, a_{minor_radius}
+    : r_maj_{major_radius}, r_min_{minor_radius}
 {
-    CELER_VALIDATE(r_ > 0, << "nonpositive major radius: " << r_);
-    CELER_VALIDATE(a_ > 0, << "nonpositive minor radius: " << a_);
-    CELER_VALIDATE(r_ > a_,
-                   << "toroid major radius (" << r_ << ") must be greater than"
-                   << "minor radius (" << a_ << ")");
+    CELER_VALIDATE(r_maj_ > 0, << "nonpositive major radius: " << r_maj_);
+    CELER_VALIDATE(r_min_ > 0, << "nonpositive minor radius: " << r_min_);
+    CELER_VALIDATE(r_maj_ > r_min_,
+                   << "toroid major radius (" << r_maj_
+                   << ") must be greater than"
+                   << "minor radius (" << r_min_ << ")");
 }
 
 //---------------------------------------------------------------------------//
@@ -1829,7 +1830,8 @@ Torus::Torus(real_type const& major_radius, real_type const& minor_radius)
  */
 void Torus::build(IntersectSurfaceBuilder& insert_surface) const
 {
-    insert_surface(Sense::inside, ToroidSurf{{0, 0, 0}, r_, a_, a_});
+    insert_surface(Sense::inside,
+                   ToroidSurf{{0, 0, 0}, r_maj_, r_min_, r_min_});
 }
 
 //---------------------------------------------------------------------------//
