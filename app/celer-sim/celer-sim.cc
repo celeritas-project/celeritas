@@ -70,7 +70,7 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
             j.get_to(result);
             return result;
         }
-        CELER_LOG(warning) << "Using deprecated celer-sim JSON input format";
+        CELER_LOG(warning) << "Deprecated celer-sim input format";
         RunnerInput old_inp;
         j.get_to(old_inp);
         return to_input(old_inp);

@@ -59,7 +59,7 @@ TEST(JsonIO, diagnostics)
     input.step.emplace();
 
     static char const expected[]
-        = R"json({"action":false,"counters":{"event":false,"step":false},"export_files":{"geometry":"geometry.gdml","offload":"offload.jsonl","physics":"physics.root"},"log_frequency":1,"mctruth":{"filter":{"event_id":null,"parent_id":null,"post_step_action_id":null,"track_id":[]},"output_file":"mctruth.root"},"output_file":"-","perfetto_file":"","slot":{"basename":"slot"},"status_checker":false,"step":{"bins":1000},"timers":{"action":false,"step":false}})json";
+        = R"json({"action":false,"counters":{"event":true,"step":true},"export_files":{"geometry":"geometry.gdml","offload":"offload.jsonl","physics":"physics.root"},"log_frequency":1,"mctruth":{"filter":{"event_id":null,"parent_id":null,"post_step_action_id":null,"track_id":[]},"output_file":"mctruth.root"},"output_file":"-","perfetto_file":"","slot":{"basename":"slot"},"status_checker":false,"step":{"bins":1000},"timers":{"action":false,"step":false}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
@@ -369,7 +369,7 @@ TEST(JsonIO, standalone_input)
     input.events.generator = inp::ReadFileEvents{"events.json"};
 
     static char const expected[]
-        = R"json({"_format":"standalone-input","_version":"0.7.0","events":{"generator":{"_type":"read","event_file":"events.json"},"merge":false},"geant_setup":null,"physics_import":{"_type":"geant","data_selection":{"interpolation":{"bc":2,"order":1,"type":"linear"}},"ignore_processes":[]},"problem":{"control":{"capacity":{"events":null,"initializers":32768,"primaries":4096,"secondaries":8192,"tracks":4096},"device_debug":null,"optical_capacity":null,"seed":0,"track_order":null,"warm_up":false},"diagnostics":{"action":false,"counters":{"event":false,"step":false},"export_files":{"geometry":"","offload":"","physics":""},"log_frequency":1,"mctruth":null,"output_file":"-","perfetto_file":"","slot":null,"status_checker":false,"step":null,"timers":{"action":false,"step":false}},"field":{"_type":"none"},"model":{"geometry":"geometry.gdml"},"scoring":{"simple_calo":null},"tracking":{"force_step_limit":0.0,"limits":{"field_substeps":10,"step_iters":1000,"steps":100},"optical_limits":{"step_iters":0,"steps":0}}},"system":{"device":null,"environment":{}}})json";
+        = R"json({"_format":"standalone-input","_version":"0.7.0","events":{"generator":{"_type":"read","event_file":"events.json"},"merge":false},"geant_setup":null,"physics_import":{"_type":"geant","data_selection":{"interpolation":{"bc":2,"order":1,"type":"linear"}},"ignore_processes":[]},"problem":{"control":{"capacity":{"events":null,"initializers":32768,"primaries":4096,"secondaries":8192,"tracks":4096},"device_debug":null,"optical_capacity":null,"seed":0,"track_order":null,"warm_up":false},"diagnostics":{"action":false,"counters":{"event":true,"step":true},"export_files":{"geometry":"","offload":"","physics":""},"log_frequency":1,"mctruth":null,"output_file":"-","perfetto_file":"","slot":null,"status_checker":false,"step":null,"timers":{"action":false,"step":false}},"field":{"_type":"none"},"model":{"geometry":"geometry.gdml"},"scoring":{"simple_calo":null},"tracking":{"force_step_limit":0.0,"limits":{"field_substeps":10,"step_iters":1000,"steps":100},"optical_limits":{"step_iters":0,"steps":0}}},"system":{"device":null,"environment":{}}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
