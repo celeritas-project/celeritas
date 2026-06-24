@@ -661,7 +661,7 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
         VolumeView vol = this->make_local_volume(vol_id);
 
         // No volume is "simple" because we are starting from the outside
-        bool is_simple = false;
+        constexpr bool is_simple = false;
         detail::CalcIntersections calc_intersections{
             cur_max_dist,
             state.pos,
