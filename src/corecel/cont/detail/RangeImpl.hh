@@ -253,6 +253,7 @@ class range_iter
     CELER_CONSTEXPR_FUNCTION friend range_iter
     ldg(range_iter const* ri) noexcept
     {
+        using ::celeritas::ldg;
         return range_iter{ldg(&ri->value_)};
     }
 
