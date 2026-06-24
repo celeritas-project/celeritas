@@ -109,7 +109,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Journal articles
 
-- E. Biondo, T. Evans, S. Johnson, S. Hamilton. "Comparison of nested geometry treatments within GPU-based Monte Carlo neutron transport simulations of fission reactors". *The International Journal of High Performance Computing Applications*, Sep 2025. [10.1177/10943420251377295](https://doi.org/10.1177/10943420251377295)
+- E. Biondo, T. Evans, S. Johnson, S. Hamilton. "Comparison of nested geometry treatments within GPU-based Monte Carlo neutron transport simulations of fission reactors". *The International Journal of High Performance Computing Applications*, 2026. [10.1177/10943420251377295](https://doi.org/10.1177/10943420251377295)
 - P. K. Romano, P. A. Myers, S. R. Johnson, A. Kols̆ek, P. C. Shriwise, *et al*. "Point containment algorithms for constructive solid geometry with unbounded primitives". *Computer-Aided Design*, Jan 2025. [10.1016/j.cad.2024.103803](https://doi.org/10.1016/j.cad.2024.103803)
 - J. Apostolakis, M. Bandieramonte, S. Banerjee, N. Bartosik, G. Corti, *et al*. "Detector simulation challenges for future accelerator experiments". *Frontiers in Physics*, Jun 2022. [10.3389/fphy.2022.913510](https://doi.org/10.3389/fphy.2022.913510)
 
