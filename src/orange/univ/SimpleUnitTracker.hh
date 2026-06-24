@@ -617,22 +617,20 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance from the background volume to enter any other volume.
+ * Calculate the distance from the background volume to enter any other volume.
  *
- * This function is accelerated with the BVH, by passing the BVH a functor for
- * calculating the distance to intersection from *outside* a given volume. This
- * operation always requires complex_intersect. A volume is "simple" when it
- has
- * no internal surfaces, from which it follows that for a ray originating
- inside
- * the volume, crossing the nearest surface is guaranteed to change the sense
- * to "outside." When the ray originates outside the volume, the concept of
- * "simple" does not apply. Even when a volume has no internal surfaces,
- * crossing the nearest surface does not guarantee that the sense will change
- to
- * "inside". A simple example of this is shown below, where a ray originating
- * at point P does not undergo a sense change when crossing the nearest surface
- * of volume V.
+ * This function is accelerated by the BVH, which is given a functor for
+ * calculating the distance to intersection from *outside* a given volume. That
+ * operation is implemented by calling complex_intersect, which checks that the
+ * sense changes after crossing a candidate surface. A volume is "simple" when
+ * it has no internal surfaces, from which it follows that for a ray
+ * originating inside a simple volume, crossing the nearest surface is
+ * guaranteed to change the sense to "outside." When the ray originates outside
+ * the volume, however, the absence of internal surfaces is not sufficient to
+ * guarantee a sense change will occur, so the candidate surfaces must still be
+ * checked. The example below illustrates this: a ray originating at point P
+ * does not undergo a sense change when it crosses the nearest surface of
+ * volume V.
  * \verbatim
               ^          ^
        P ->   |          |
@@ -647,6 +645,10 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
               |          |
               v          v
    \endverbatim
+ * For rays originating outside a volume, the sense-change check can be skipped
+ * only if the volume is defined by a single closed surface, e.g., a sphere, an
+ * ellipsoid, or a toroid. Because this function does not make this
+ * distinction, it uses complex_intersect for all volumes.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
