@@ -324,7 +324,7 @@ if cmake --build --preset="${CMAKE_PRESET}"; then
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
-    cmake --build-target get-config --preset=${CMAKE_PRESET}
+    cmake --build --preset=${CMAKE_PRESET} --target get-config
   fi
 
   install_precommit_if_git
