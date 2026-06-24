@@ -45,7 +45,11 @@ class LdgWrapper
     CELER_CEF LdgWrapper(T& ref) noexcept : ptr_{&ref} {}
 
     //! Load the referenced value using __ldg
-    CELER_CEF type get() const noexcept { return ldg(ptr_); }
+    CELER_CEF type get() const noexcept
+    {
+        using ::celeritas::ldg;
+        return ldg(ptr_);
+    }
 
     //! Implicit conversion: load via __ldg
     CELER_CEF operator type() const noexcept { return this->get(); }
