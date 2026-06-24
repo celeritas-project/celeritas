@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/data/Ldg.hh"
+
 #include "detail/RangeImpl.hh"
 
 namespace celeritas

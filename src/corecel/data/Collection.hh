@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Ldg.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "detail/CollectionImpl.hh"
