@@ -619,24 +619,55 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 /*!
  * Calculate distance from the background volume to enter any other volume.
  *
- * This function is accelerated with the BVH.
+ * This function is accelerated with the BVH, by passing the BVH a functor for
+ * calculating the distance to intersection from *outside* a given volume. This
+ * operation always requires complex_intersect. A volume is "simple" when it
+ has
+ * no internal surfaces, from which it follows that for a ray originating
+ inside
+ * the volume, crossing the nearest surface is guaranteed to change the sense
+ * to "outside." When the ray originates outside the volume, the concept of
+ * "simple" does not apply. Even when a volume has no internal surfaces,
+ * crossing the nearest surface does not guarantee that the sense will change
+ to
+ * "inside". A simple example of this is shown below, where a ray originating
+ * at point P does not undergo a sense change when crossing the nearest surface
+ * of volume V.
+ * \verbatim
+              ^          ^
+       P ->   |          |
+              |          |
+       <------|----------|------>
+              |          |
+              | interior |
+              | of V     |
+              |          |
+       <------|----------|------>
+              |          |
+              |          |
+              v          v
+   \endverbatim
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
                                         real_type max_distance) const
     -> Intersection
 {
+    // Functor for calculating the distance to intersection, starting outside
+    // the given volume.
     auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
+        // No volume is "simple" because we are starting from the outside
+        bool is_simple = false;
         detail::CalcIntersections calc_intersections{
             cur_max_dist,
             state.pos,
             state.dir,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            false,
+            is_simple,
             state.temp_next};
 
         LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
@@ -660,8 +691,9 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                    < state.temp_next.distance[b];
                         });
 
-        // Call with a target sense of "inside," because we are seeking a
-        // surface for which crossing will result in entering the volume
+        // Call complex_intersect with a target sense of "inside," because we
+        // are seeking a surface for which crossing will result in entering the
+        // volume
         return this->complex_intersect(
             state, vol, num_isect, Sense::inside, cur_max_dist);
     };
