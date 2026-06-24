@@ -83,8 +83,11 @@ list(APPEND SOURCES
   inp/ControlIO.json.cc
   inp/DiagnosticsIO.json.cc
   inp/EventsIO.json.cc
+  inp/FieldIO.json.cc
+  inp/ImportIO.json.cc
   inp/MucfPhysics.cc
   inp/ProblemIO.json.cc
+  inp/ScoringIO.json.cc
   inp/StandaloneInputIO.json.cc
   inp/SystemIO.json.cc
   inp/TrackingIO.json.cc

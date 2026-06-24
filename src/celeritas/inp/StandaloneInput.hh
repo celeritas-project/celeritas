@@ -70,7 +70,7 @@ struct StandaloneInput
     std::optional<GeantSetup> geant_setup;
 
     //! Whether using Geant4 or loading from ROOT
-    std::variant<PhysicsFromGeant, PhysicsFromFile> physics_import;
+    PhysicsImport physics_import;
 
     //! Primary particles
     Events events;

@@ -85,6 +85,19 @@
     } while (0)
 
 /*!
+ * Load a variant alternative encoded with a string "_type" tag.
+ */
+#define CELER_JSON_LOAD_VARIANT(OBJ, VALUE, TAG, TYPE) \
+    do                                                 \
+    {                                                  \
+        if ((OBJ).at("_type") == #TAG)                 \
+        {                                              \
+            VALUE = (OBJ).get<TYPE>();                 \
+            return;                                    \
+        }                                              \
+    } while (0)
+
+/*!
  * Save a field to a JSON object.
  */
 #define CELER_JSON_SAVE(OBJ, STRUCT, NAME) OBJ[#NAME] = STRUCT.NAME

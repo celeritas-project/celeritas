@@ -56,6 +56,8 @@ struct PhysicsFromGeant
     GeantImportDataSelection data_selection;
 };
 
+using PhysicsImport = std::variant<PhysicsFromGeant, PhysicsFromFile>;
+
 //---------------------------------------------------------------------------//
 /*!
  * Options for loading cross section data from Geant4 data files.

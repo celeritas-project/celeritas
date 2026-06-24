@@ -2,16 +2,13 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/StandaloneInputIO.json.hh
+//! \file celeritas/inp/ScoringIO.json.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <nlohmann/json.hpp>
 
-#include "celeritas/ext/GeantOpticalPhysicsOptionsIO.json.hh"
-#include "celeritas/ext/GeantPhysicsOptionsIO.json.hh"
-
-#include "StandaloneInput.hh"
+#include "Scoring.hh"
 
 namespace celeritas
 {
@@ -19,11 +16,11 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 
-void to_json(nlohmann::json& j, StandaloneInput const&);
-void from_json(nlohmann::json const& j, StandaloneInput&);
+void to_json(nlohmann::json& j, SimpleCalo const&);
+void from_json(nlohmann::json const& j, SimpleCalo&);
 
-void to_json(nlohmann::json& j, OpticalStandaloneInput const&);
-void from_json(nlohmann::json const& j, OpticalStandaloneInput&);
+void to_json(nlohmann::json& j, Scoring const&);
+void from_json(nlohmann::json const& j, Scoring&);
 
 //---------------------------------------------------------------------------//
 }  // namespace inp
