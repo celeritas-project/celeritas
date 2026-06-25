@@ -143,7 +143,8 @@ using OpticalGenerator = std::variant<OpticalEmGenerator,
 //---------------------------------------------------------------------------//
 /*!
  * Sample random events from an input file.
- * * \todo move num_events to StandaloneInput
+ *
+ * \todo move num_events to StandaloneInput
  */
 struct SampleFileEvents
 {

@@ -161,7 +161,7 @@ def build_input(cfg: RunConfig) -> dict:
 
     if "simple-cms" in cfg.geometry_file:
         events["merge"] = True
-        optical_capacity = None
+        control["optical_capacity"] = None
 
     if cfg.physics_filename:
         inp["physics_import"] = {"_type": "file", "input": cfg.physics_filename}

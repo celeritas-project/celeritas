@@ -45,8 +45,12 @@ run.
 .. celerstruct:: inp::StandaloneInput
 
 Standalone inputs must also specify the mechanism for loading primary
-particles. The ``generator`` field is a variant that can be one of these
-structures:
+particles.
+
+.. celerstruct:: inp::Events
+
+The ``generator`` field in :cpp:struct:`Events` is a variant that can be one of
+these structures:
 
 .. celerstruct:: inp::PrimaryGenerator
 .. celerstruct:: inp::SampleFileEvents

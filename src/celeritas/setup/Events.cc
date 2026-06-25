@@ -34,17 +34,18 @@ namespace
 auto read_events(EventReaderInterface&& generate, bool merge)
 {
     std::vector<std::vector<Primary>> result;
-    if (merge)
-    {
-        result.emplace_back();
-    }
     auto event = generate();
     while (!event.empty())
     {
         if (merge)
         {
-            result.front().insert(
-                result.front().end(), event.begin(), event.end());
+            if (result.empty())
+            {
+                result.emplace_back();
+            }
+            result.front().insert(result.front().end(),
+                                  std::make_move_iterator(event.begin()),
+                                  std::make_move_iterator(event.end()));
         }
         else
         {

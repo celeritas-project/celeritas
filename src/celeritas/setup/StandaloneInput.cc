@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "StandaloneInput.hh"
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <variant>
