@@ -182,6 +182,18 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
             }
             continue;
         }
+#ifndef CELERITAS_ENABLE_TOROIDS
+        else if (st == SurfaceType::tor)
+        {
+            if (CELERITAS_DEBUG)
+            {
+                // TODO: see celeritas-project/celeritas#2427
+                EXPECT_THROW(visit_surface_type(get_surface_type, st),
+                             DebugError);
+            }
+            continue;
+        }
+#endif
 
         SurfaceType actual_st = visit_surface_type(get_surface_type, st);
         EXPECT_EQ(st, actual_st);
