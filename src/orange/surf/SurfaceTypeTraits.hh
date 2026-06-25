@@ -91,7 +91,12 @@ visit_surface_type(F&& func, SurfaceType st)
         ORANGE_ST_VISIT_CASE(kz);
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
+#ifdef CELERITAS_ENABLE_TOROIDS
         ORANGE_ST_VISIT_CASE(tor);
+#else
+        case SurfaceType::tor:
+            CELER_ASSERT_UNREACHABLE();
+#endif
         case SurfaceType::inv:
             // Prevented by input reader: see
             // orange/detail/SurfacesRecordBuilder.cc
