@@ -20,7 +20,9 @@ namespace celeritas
  * Test for being approximately a unit vector.
  *
  * Consider a unit vector \em v with a small perturbation along a unit vector
- * \em e : \f[ \vec v + \epsilon \vec e \f]
+ * \em e : \f[
+   \vec v + \epsilon \vec e
+  \f]
  * The magnitude of this "nearly unit" is
  * \f[
   m^2 = (v + \epsilon e) \cdot (v + \epsilon e)
