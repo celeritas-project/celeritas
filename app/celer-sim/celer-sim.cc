@@ -70,7 +70,8 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
             j.get_to(result);
             return result;
         }
-        CELER_LOG(warning) << "Deprecated celer-sim input format";
+        CELER_LOG(warning) << "Deprecated celer-sim input format. Update the "
+                              "input using the 'update' subcommand.";
         RunnerInput old_inp;
         j.get_to(old_inp);
         return to_input(old_inp);
@@ -159,18 +160,38 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 
-std::string get_device_string()
+void print_config()
+{
+    std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
+}
+
+void print_default()
+{
+    std::cout << nlohmann::json(celeritas::inp::StandaloneInput{}).dump(1)
+              << std::endl;
+}
+
+void print_device()
 {
     celeritas::activate_device();
 
     CELER_VALIDATE(celeritas::Device::num_devices() != 0,
                    << "no GPUs were detected");
-    return nlohmann::json(celeritas::device()).dump(1);
+    std::cout << nlohmann::json(celeritas::device()).dump(1) << std::endl;
 }
 
-std::string get_default_string()
+void update_input(std::string const& filename)
 {
-    return nlohmann::json(celeritas::app::RunnerInput{}).dump(1);
+    celeritas::FileOrStdin instream{filename};
+    auto j = nlohmann::json::parse(instream);
+    if (j.contains("problem"))
+    {
+        std::cout << j.dump(1) << std::endl;
+        return;
+    }
+    RunnerInput old_inp;
+    j.get_to(old_inp);
+    std::cout << nlohmann::json(to_input(old_inp)).dump(1) << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -188,7 +209,7 @@ int main(int argc, char* argv[])
     celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
-        CELER_LOG(critical) << "TODO: this app cannot run in parallel";
+        CELER_LOG(critical) << "Parallel MPI execution is not yet supported";
         return EXIT_FAILURE;
     }
 
@@ -196,12 +217,36 @@ int main(int argc, char* argv[])
     auto& cli = cli_app();
     cli.description("Run standalone Celeritas");
 
-    // TODO for 1.0: instead of separate flags, make these subcommands
+    // Set up app
     std::string filename;
     cli.add_option("filename", filename, "Input JSON")
         ->check(CLI::ExistingFile | dash_validator());
 
-    std::function<std::string()> diagnostic;
+    // Add "config" subcommand to print configuration
+    auto* config_cmd = cli.add_subcommand("config", "Show configuration");
+    config_cmd->callback([] { std::exit(run_safely(print_config)); });
+
+    // Add "dump-default" subcommand to print default input
+    auto* default_cmd = cli.add_subcommand("default", "Show default input");
+    default_cmd->callback([] { std::exit(run_safely(print_default)); });
+
+    // Add "device" subcommand to print device information
+    auto* device_cmd = cli.add_subcommand("device", "Show device information");
+    device_cmd->callback([] { std::exit(run_safely(print_device)); });
+
+    // Add "update" subcommand to convert a deprecated input JSON file
+    std::string old_filename;
+    auto* update_cmd
+        = cli.add_subcommand("update", "Convert a deprecated input JSON file");
+    update_cmd->add_option("filename", old_filename, "Deprecated input JSON")
+        ->required()
+        ->check(CLI::ExistingFile | dash_validator());
+    update_cmd->callback([&old_filename] {
+        std::exit(run_safely([&old_filename] { update_input(old_filename); }));
+    });
+
+    // TODO DEPRECATED: remove flags in favor of subcommands in v1.0
+    std::function<void()> diagnostic;
     auto set_diagnostic = [&diagnostic](auto func) {
         return [&diagnostic, func = std::move(func)](auto count) {
             CELER_DISCARD(count);
@@ -213,29 +258,31 @@ int main(int argc, char* argv[])
             diagnostic = std::move(func);
         };
     };
-    cli.add_flag(
-        "--config",
-        set_diagnostic([] { return to_string(celeritas::BuildOutput{}); }),
-        "Show configuration");
+    cli.add_flag("--config",
+                 set_diagnostic(print_config),
+                 "DEPRECATED: use 'config' subcommand instead");
     cli.add_flag("--dump-default",
-                 set_diagnostic(get_default_string),
-                 "Dump default input");
+                 set_diagnostic(print_default),
+                 "DEPRECATED: use 'default' subcommand instead");
     cli.add_flag("--device",
-                 set_diagnostic(get_device_string),
-                 "Show device information");
-
-    // Require exactly one option
-    cli.require_option(1);
+                 set_diagnostic(print_device),
+                 "DEPRECATED: use 'device' subcommand instead");
 
     // Parse and run
     CELER_CLI11_PARSE(argc, argv);
 
+    if (!diagnostic && cli.get_subcommands().empty() && filename.empty())
+    {
+        CELER_LOG(critical)
+            << "Either an input filename or a subcommand must be provided.\n\n"
+            << cli.help();
+        return EXIT_FAILURE;
+    }
+
     if (diagnostic)
     {
         // Print diagnostic and immediately exit
-        auto print_diagnostic
-            = [&diagnostic] { std::cout << diagnostic() << std::endl; };
-        return run_safely(print_diagnostic);
+        return run_safely(diagnostic);
     }
 
     // Run and save output
