@@ -297,6 +297,7 @@ class OpaqueId
     //! Allow loading via \c ldg
     CELER_CONSTEXPR_FUNCTION friend OpaqueId ldg(OpaqueId const* id)
     {
+        using ::celeritas::ldg;
         return OpaqueId{ldg(&id->value_)};
     }
 

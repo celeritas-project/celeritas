@@ -150,6 +150,7 @@ ldg(T const* ptr) noexcept
 template<class Class, class T>
 CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
 {
+    using ::celeritas::ldg;
     return ldg(&(obj.*mp));
 }
 
@@ -174,6 +175,7 @@ struct LdgMember
 
     CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
+        using ::celeritas::ldg;
         return ldg(&(obj.*mp));
     }
 };
