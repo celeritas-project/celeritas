@@ -151,6 +151,8 @@ html_static_path = ["_static"]
 
 html_logo = "_static/celeritas-square.svg"
 
+html_css_files = ["custom.css"]
+
 if html_theme == "alabaster":
     html_theme_options = {
         "github_button": True,
