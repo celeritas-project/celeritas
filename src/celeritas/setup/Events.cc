@@ -31,7 +31,7 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-auto read_events(EventReaderInterface&& generate, bool merge)
+auto read_events(EventReaderInterface& generate, bool merge)
 {
     std::vector<std::vector<Primary>> result;
     auto event = generate();
@@ -72,40 +72,45 @@ events(inp::Events const& e,
     CELER_LOG(status) << "Loading events";
     ScopedProfiling profile_this{"setup::events"};
 
-    return std::visit(
+    auto generator = std::visit(
         Overload{
-            [&](inp::CorePrimaryGenerator const& pg) {
-                return read_events(PrimaryGenerator{pg, *particles}, e.merge);
+            [&particles](inp::CorePrimaryGenerator const& pg)
+                -> std::unique_ptr<EventReaderInterface> {
+                return std::make_unique<PrimaryGenerator>(pg, *particles);
             },
-            [&](inp::SampleFileEvents const& sfe) {
-                return read_events(RootEventSampler{sfe.event_file,
-                                                    particles,
-                                                    sfe.num_events,
-                                                    sfe.num_merged,
-                                                    sfe.seed},
-                                   e.merge);
+
+            [&particles](inp::SampleFileEvents const& sfe)
+                -> std::unique_ptr<EventReaderInterface> {
+                return std::make_unique<RootEventSampler>(sfe.event_file,
+                                                          particles,
+                                                          sfe.num_events,
+                                                          sfe.num_merged,
+                                                          sfe.seed);
             },
-            [&](inp::ReadFileEvents const& rfe) {
+
+            [&particles](inp::ReadFileEvents const& rfe)
+                -> std::unique_ptr<EventReaderInterface> {
                 if (ends_with(rfe.event_file, ".jsonl"))
                 {
-                    return read_events(
-                        JsonEventReader{rfe.event_file, particles}, e.merge);
+                    return std::make_unique<JsonEventReader>(rfe.event_file,
+                                                             particles);
                 }
                 else if (ends_with(rfe.event_file, ".root"))
                 {
-                    return read_events(
-                        RootEventReader{rfe.event_file, particles}, e.merge);
+                    return std::make_unique<RootEventReader>(rfe.event_file,
+                                                             particles);
                 }
                 else
                 {
-                    // Assume filename is one of the HepMC3-supported
-                    // extensions
-                    return read_events(EventReader{rfe.event_file, particles},
-                                       e.merge);
+                    // Assume filename has a HepMC3-supported extension
+                    return std::make_unique<EventReader>(rfe.event_file,
+                                                         particles);
                 }
             },
         },
         e.generator);
+
+    return read_events(*generator, e.merge);
 }
 
 //---------------------------------------------------------------------------//

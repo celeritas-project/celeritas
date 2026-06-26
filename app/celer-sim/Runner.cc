@@ -41,7 +41,7 @@ Runner::Runner(Input si)
     core_params_ = std::move(loaded.problem.core_params);
     CELER_ASSERT(core_params_);
     events_ = std::move(loaded.events);
-    use_device_ = si.system.device ? true : false;
+    use_device_ = static_cast<bool>(si.system.device);
 
     CELER_VALIDATE(si.problem.tracking.limits.step_iters > 0,
                    << "nonpositive max step_iters="
