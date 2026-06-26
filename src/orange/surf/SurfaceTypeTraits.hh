@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/EnumClassUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
