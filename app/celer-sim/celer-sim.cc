@@ -58,11 +58,13 @@ namespace
 /*!
  * Run, launch, and get output.
  */
-void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
+void run(std::shared_ptr<OutputRegistry>& output,
+         std::string& output_filename,
+         std::string const& input_filename)
 {
     // Read input options
-    inp::StandaloneInput si = [&filename] {
-        celeritas::FileOrStdin instream{filename};
+    inp::StandaloneInput si = [&input_filename] {
+        celeritas::FileOrStdin instream{input_filename};
         auto j = nlohmann::json::parse(instream);
         if (j.contains("problem"))
         {
@@ -76,6 +78,9 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         j.get_to(old_inp);
         return to_input(old_inp);
     }();
+
+    // Get the output filename
+    output_filename = si.problem.diagnostics.output_file;
 
     // Start profiling
     TracingSession tracing_session{si.problem.diagnostics.perfetto_file};
@@ -218,8 +223,8 @@ int main(int argc, char* argv[])
     cli.description("Run standalone Celeritas");
 
     // Set up app
-    std::string filename;
-    cli.add_option("filename", filename, "Input JSON")
+    std::string input_filename;
+    cli.add_option("filename", input_filename, "Input JSON")
         ->check(CLI::ExistingFile | dash_validator());
 
     // Add "config" subcommand to print configuration
@@ -271,7 +276,7 @@ int main(int argc, char* argv[])
     // Parse and run
     CELER_CLI11_PARSE(argc, argv);
 
-    if (!diagnostic && cli.get_subcommands().empty() && filename.empty())
+    if (!diagnostic && cli.get_subcommands().empty() && input_filename.empty())
     {
         CELER_LOG(critical)
             << "Either an input filename or a subcommand must be provided.\n\n"
@@ -287,10 +292,11 @@ int main(int argc, char* argv[])
 
     // Run and save output
     std::shared_ptr<celeritas::OutputRegistry> output;
+    std::string output_filename = "-";
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(output, filename);
+        run(output, output_filename, input_filename);
     }
     catch (std::exception const& e)
     {
@@ -304,17 +310,18 @@ int main(int argc, char* argv[])
             std::current_exception()));
     }
 
+    // Save output
+    celeritas::FileOrStdout ostream{output_filename};
+    CELER_LOG(status) << "Saving output to " << ostream.filename();
     if (!output)
     {
         CELER_LOG(warning) << "No output available";
-        std::cout << "null\n";
+        ostream << "null\n";
         return_code = EXIT_FAILURE;
     }
     else
     {
-        CELER_LOG(status) << "Saving output";
-        output->output(&std::cout);
-        std::cout << std::endl;
+        output->output(&static_cast<std::ostream&>(ostream));
     }
 
     // Delete streams before end of program (TODO: this is because of a static
