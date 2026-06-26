@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Ldg.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "detail/CollectionImpl.hh"
@@ -238,6 +239,12 @@ class ItemMap
 
     //! Size of the underlying Range<T2>
     CELER_FIF size_type size() const { return range_.size(); }
+
+    //! Allow loading via ldg
+    CELER_CEF friend ItemMap ldg(ItemMap const* m) noexcept
+    {
+        return ItemMap{ldg(&m->range_)};
+    }
 
   private:
     //// DATA ////
