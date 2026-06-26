@@ -115,6 +115,11 @@ void BuildOutput::output(JsonPimpl* j) const
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
         }
 
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            cfg["orange_torus"] = static_cast<bool>(CELERITAS_ORANGE_TORUS);
+        }
+
         return cfg;
     }();
 

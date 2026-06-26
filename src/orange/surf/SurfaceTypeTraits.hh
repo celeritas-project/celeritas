@@ -91,7 +91,7 @@ visit_surface_type(F&& func, SurfaceType st)
         ORANGE_ST_VISIT_CASE(kz);
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
-#ifdef CELERITAS_ENABLE_TOROIDS
+#if CELERITAS_ORANGE_TORUS
         ORANGE_ST_VISIT_CASE(tor);
 #else
         case SurfaceType::tor:

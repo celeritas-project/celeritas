@@ -933,7 +933,6 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
 
-#ifdef CELERITAS_ENABLE_TOROIDS
     auto rmax = scale_(solid.GetRmax());
     auto rmin = scale_(solid.GetRmin());
     auto rtor = scale_(solid.GetRtor());
@@ -951,27 +950,6 @@ auto SolidConverter::torus(arg_type solid_base) -> result_type
 
     return make_solid(
         solid, Torus{rtor, rmax}, std::move(inner), enclosed_azi_from(solid));
-
-#else
-    CELER_LOG(error) << "G4Torus is not fully supported: replacing '"
-                     << solid.GetName() << "' with bounding cylinders";
-
-    auto rmax = scale_(solid.GetRmax());
-    auto rtor = scale_(solid.GetRtor());
-    CELER_VALIDATE(rtor >= rmax,
-                   << "invalid rtor=" << rtor << " < rmax=" << rmax);
-
-    std::optional<Cylinder> inner;
-    if (!soft_equal(rtor, rmax))
-    {
-        inner.emplace(rtor - rmax, rmax);
-    }
-
-    return make_solid(solid,
-                      Cylinder{rtor + rmax, rmax},
-                      std::move(inner),
-                      enclosed_azi_from(solid));
-#endif
 }
 
 //---------------------------------------------------------------------------//
