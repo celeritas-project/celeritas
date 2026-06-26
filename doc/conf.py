@@ -173,7 +173,7 @@ mathjax3_config = {
             "sgn": r"\mathop{\mathrm{sgn}}\nolimits",
         },
     },
-    "loader": {"load": ["ui/lazy", "output/svg"]},
+    "loader": {"load": ["ui/lazy"]},
 }
 
 if int(sphinx_version.partition(".")[0]) < 4:
