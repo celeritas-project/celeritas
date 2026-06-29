@@ -72,8 +72,9 @@ events(inp::Events const& e,
     CELER_LOG(status) << "Loading events";
     ScopedProfiling profile_this{"setup::events"};
 
+    using UP_ERI = std::unique_ptr<EventReaderInterface>;
     auto generator = std::visit(
-        return_as<std::unique_ptr<EventReaderInterface>>(Overload{
+        return_as<UP_ERI>(Overload{
             [&particles](inp::CorePrimaryGenerator const& pg) {
                 return std::make_unique<PrimaryGenerator>(pg, *particles);
             },
@@ -84,7 +85,7 @@ events(inp::Events const& e,
                                                           sfe.num_merged,
                                                           sfe.seed);
             },
-            [&particles](inp::ReadFileEvents const& rfe) {
+            [&particles](inp::ReadFileEvents const& rfe) -> UP_ERI {
                 if (ends_with(rfe.event_file, ".jsonl"))
                 {
                     return std::make_unique<JsonEventReader>(rfe.event_file,
