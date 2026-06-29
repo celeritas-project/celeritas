@@ -1,7 +1,7 @@
-Run standalone Celeritas
+Run a standalone Celeritas optical simulation
 
 
-./celer-sim [OPTIONS] [filename] [SUBCOMMANDS]
+./celer-optical [OPTIONS] [filename] [SUBCOMMANDS]
 
 
 POSITIONALS:
@@ -11,12 +11,8 @@ POSITIONALS:
 OPTIONS:
   -h,     --help              Print this help message and exit
   -v,     --version           Display program version information and exit
-          --config            DEPRECATED: use 'config' subcommand instead
-          --dump-default      DEPRECATED: use 'default' subcommand instead
-          --device            DEPRECATED: use 'device' subcommand instead
 
 SUBCOMMANDS:
   config                      Show configuration
   default                     Show default input
   device                      Show device information
-  update                      Convert a deprecated input JSON file
