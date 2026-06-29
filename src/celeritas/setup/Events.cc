@@ -73,23 +73,18 @@ events(inp::Events const& e,
     ScopedProfiling profile_this{"setup::events"};
 
     auto generator = std::visit(
-        Overload{
-            [&particles](inp::CorePrimaryGenerator const& pg)
-                -> std::unique_ptr<EventReaderInterface> {
+        return_as<std::unique_ptr<EventReaderInterface>>(Overload{
+            [&particles](inp::CorePrimaryGenerator const& pg) {
                 return std::make_unique<PrimaryGenerator>(pg, *particles);
             },
-
-            [&particles](inp::SampleFileEvents const& sfe)
-                -> std::unique_ptr<EventReaderInterface> {
+            [&particles](inp::SampleFileEvents const& sfe) {
                 return std::make_unique<RootEventSampler>(sfe.event_file,
                                                           particles,
                                                           sfe.num_events,
                                                           sfe.num_merged,
                                                           sfe.seed);
             },
-
-            [&particles](inp::ReadFileEvents const& rfe)
-                -> std::unique_ptr<EventReaderInterface> {
+            [&particles](inp::ReadFileEvents const& rfe) {
                 if (ends_with(rfe.event_file, ".jsonl"))
                 {
                     return std::make_unique<JsonEventReader>(rfe.event_file,
@@ -107,7 +102,7 @@ events(inp::Events const& e,
                                                          particles);
                 }
             },
-        },
+        }),
         e.generator);
 
     return read_events(*generator, e.merge);
