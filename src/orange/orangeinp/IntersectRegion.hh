@@ -1066,8 +1066,7 @@ class Torus final : public IntersectRegionInterface
 {
   public:
     // Construct with radii
-    explicit Torus(real_type const& major_radius,
-                   real_type const& minor_radius);
+    Torus(real_type major_radius, real_type minor_radius);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;

@@ -1813,7 +1813,7 @@ Real3 const& Tet::vertex(size_type i) const
  */
 using ToroidSurf = ::celeritas::Toroid;
 
-Torus::Torus(real_type const& major_radius, real_type const& minor_radius)
+Torus::Torus(real_type major_radius, real_type minor_radius)
     : r_maj_{major_radius}, r_min_{minor_radius}
 {
     CELER_VALIDATE(r_maj_ > 0, << "nonpositive major radius: " << r_maj_);
