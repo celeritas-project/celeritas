@@ -49,6 +49,9 @@ void from_json(nlohmann::json const& j, SampleFileEvents&);
 void to_json(nlohmann::json& j, ReadFileEvents const&);
 void from_json(nlohmann::json const& j, ReadFileEvents&);
 
+void to_json(nlohmann::json& j, Generator const&);
+void from_json(nlohmann::json const& j, Generator&);
+
 void to_json(nlohmann::json& j, Events const&);
 void from_json(nlohmann::json const& j, Events&);
 

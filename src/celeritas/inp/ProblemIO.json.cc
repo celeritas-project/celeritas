@@ -23,7 +23,6 @@ namespace inp
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-//! \todo Add JSON support for \c Problem
 //! \todo Add JSON support for \c Physics when it's used as input
 //! \todo Add JSON support for \c OpticalPhysics when it's used as input
 

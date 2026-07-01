@@ -85,34 +85,57 @@ def build_input(cfg: RunConfig) -> dict:
         # shorten to an unreasonably small number to reduce test time.
         max_steps = 256
 
-    simple_calo: list[str] = []
+    simple_calo = None
     if not cfg.rootout_file and "cms" in cfg.geometry_file:
-        simple_calo = ["si_tracker", "em_calorimeter"]
+        simple_calo = {"volumes": ["si_tracker", "em_calorimeter"]}
         # Volumes (needed for the simple calo) are currently only loaded if Geant4
         # import is enabled
         cfg.physics_filename = None
 
-    inp = {
-        "use_device": cfg.use_device,
-        "geometry_file": cfg.geometry_file,
-        "event_file": cfg.event_file,
-        "mctruth_file": cfg.rootout_file,
+    mctruth = None
+    if cfg.rootout_file:
+        mctruth = {"output_file": cfg.rootout_file}
+
+    system = {}
+    if cfg.use_device:
+        system["device"] = {}
+
+    capacity = {
+        "tracks": num_tracks,
+        "initializers": 100 * num_tracks,
+        "secondaries": 3 * num_tracks,
+        "primaries": 1,
+    }
+    control = {
+        "capacity": capacity,
         "seed": 12345,
-        "num_track_slots": num_tracks,
-        "max_steps": max_steps,
-        "interpolation": "linear",
-        "initializer_capacity": 100 * num_tracks,
-        "secondary_stack_factor": 3,
-        "action_diagnostic": True,
-        "step_diagnostic": True,
-        "step_diagnostic_bins": 200,
-        "write_step_times": cfg.use_device,
-        "simple_calo": simple_calo,
-        "action_times": True,
-        "merge_events": False,
-        "physics_options": cfg.physics_options,
-        "field": None,
-        "slot_diagnostic_prefix": f"slot-diag-{cfg.run_name}-",
+    }
+    tracking = {
+        "limits": {"step_iters": max_steps},
+    }
+    diagnostics = {
+        "action": True,
+        "mctruth": mctruth,
+        "timers": {"action": True, "step": cfg.use_device},
+        "slot": {"basename": f"slot-diag-{cfg.run_name}-"},
+        "step": {"bins": 200},
+    }
+    problem = {
+        "model": {"geometry": cfg.geometry_file},
+        "scoring": {"simple_calo": simple_calo},
+        "tracking": tracking,
+        "control": control,
+        "diagnostics": diagnostics,
+    }
+    events = {
+        "generator": {"_type": "read", "event_file": cfg.event_file},
+        "merge": False,
+    }
+    inp = {
+        "system": system,
+        "problem": problem,
+        "geant_setup": cfg.physics_options,
+        "events": events,
     }
 
     if "lar" in cfg.geometry_file:
@@ -132,18 +155,16 @@ def build_input(cfg: RunConfig) -> dict:
             "generators": 4 * max_steps * num_optical_tracks,
             "primaries": num_optical_tracks,
         }
-        inp["optical"] = {
-            "capacity": optical_capacity,
-            "limits": {"steps": 7, "step_iters": 10},
-        }
-        inp["max_steps"] = 4
+        control["optical_capacity"] = optical_capacity
+        tracking["optical_limits"] = {"steps": 7, "step_iters": 10}
+        tracking["limits"]["step_iters"] = 4
 
     if "simple-cms" in cfg.geometry_file:
-        inp["merge_events"] = True
-        inp["optical"] = None
+        events["merge"] = True
+        control["optical_capacity"] = None
 
     if cfg.physics_filename:
-        inp["physics_file"] = cfg.physics_filename
+        inp["physics_import"] = {"_type": "file", "input": cfg.physics_filename}
 
     return inp
 
@@ -202,7 +223,7 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
     num_streams = core_sizes.pop("streams")
     if "openmp" not in j["system"]["build"]["config"]["use"]:
         assert num_streams == 1
-    if inp["merge_events"]:
+    if inp["events"]["merge"]:
         assert num_streams == 1
 
     expected_core_sizes = None
@@ -215,7 +236,7 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
             "secondaries": 96,
             "tracks": 32,
         }
-    if not use_device and "lar" in inp["geometry_file"]:
+    if not use_device and "lar" in inp["problem"]["model"]["geometry"]:
         expected_opt_sizes = {"generators": 8388608, "tracks": 8192}
         assert "optical" in run_output
         cuts = sum(em_step["num_cut"] for em_step in run_output["optical"])

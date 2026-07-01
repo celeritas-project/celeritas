@@ -151,6 +151,8 @@ html_static_path = ["_static"]
 
 html_logo = "_static/celeritas-square.svg"
 
+html_css_files = ["custom.css"]
+
 if html_theme == "alabaster":
     html_theme_options = {
         "github_button": True,
@@ -173,7 +175,7 @@ mathjax3_config = {
             "sgn": r"\mathop{\mathrm{sgn}}\nolimits",
         },
     },
-    "loader": {"load": ["ui/lazy", "output/svg"]},
+    "loader": {"load": ["ui/lazy"]},
 }
 
 if int(sphinx_version.partition(".")[0]) < 4:

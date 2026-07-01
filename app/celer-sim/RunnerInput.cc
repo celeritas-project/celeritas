@@ -30,9 +30,6 @@
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/inp/System.hh"
 #include "celeritas/inp/Tracking.hh"
-#include "celeritas/io/EventReader.hh"
-#include "celeritas/io/JsonEventReader.hh"
-#include "celeritas/io/RootEventReader.hh"
 #include "celeritas/phys/PrimaryGeneratorOptions.hh"
 
 namespace celeritas
@@ -111,6 +108,7 @@ inp::Problem load_problem(RunnerInput const& ri)
         d.counters.step = ri.write_track_counts;
         d.counters.event = ri.transporter_result;
         d.status_checker = ri.status_checker;
+        d.log_frequency = ri.log_progress;
     }
 
     // Control
@@ -122,23 +120,10 @@ inp::Problem load_problem(RunnerInput const& ri)
         capacity.tracks = ri.num_track_slots;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
                                                       * ri.num_track_slots);
-
-        // TODO: replace "max" with # events during construction
-        if (ri.merge_events)
-        {
-            using LimitsT = std::numeric_limits<decltype(capacity.events)>;
-            capacity.events = LimitsT::max();
-        }
-
         p.control.capacity = capacity;
 
         p.control.warm_up = ri.warm_up;
         p.control.seed = ri.seed;
-        p.control.num_streams = 1;
-        if (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT && !ri.merge_events)
-        {
-            p.control.num_streams = openmp_max_threads();
-        }
 
         if (ri.use_device)
         {
@@ -186,6 +171,9 @@ inp::Events load_events(RunnerInput const& ri)
                    << "either a event filename or options to generate "
                       "primaries must be provided (but not both)");
 
+    inp::Events result;
+    result.merge = ri.merge_events;
+
     if (!ri.event_file.empty())
     {
         if (ri.file_sampling_options)
@@ -195,16 +183,19 @@ inp::Events load_events(RunnerInput const& ri)
             sfe.num_merged = ri.file_sampling_options.num_merged;
             sfe.event_file = ri.event_file;
             sfe.seed = ri.seed;
-            return sfe;
+            result.generator = sfe;
+            return result;
         }
 
         inp::ReadFileEvents rfe;
         rfe.event_file = ri.event_file;
-        return rfe;
+        result.generator = rfe;
+        return result;
     }
 
     CELER_ASSERT(ri.primary_options);
-    return to_input(ri.primary_options);
+    result.generator = to_input(ri.primary_options);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -236,57 +227,18 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         CELER_VALIDATE(
             !si.geant_setup->optical == !ri.optical,
             << R"(optical setup options require optical physics to be enabled and vice versa)");
-
-        inp::PhysicsFromGeant geant_import;
-        GeantImportDataSelection::Flags selection
-            = GeantImportDataSelection::em_basic;
-        if (si.geant_setup->muon || si.geant_setup->mucf_physics)
-        {
-            selection |= GeantImportDataSelection::em_ex;
-        }
-        if (si.geant_setup->optical)
-        {
-            selection |= GeantImportDataSelection::optical;
-        }
-        geant_import.data_selection.particles = selection;
-        geant_import.data_selection.processes = selection;
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
             << "piecewise polynomial spline order cannot be set if "
                "linear or cubic spline interpolation is enabled");
+
+        inp::PhysicsFromGeant geant_import;
         geant_import.data_selection.interpolation.type = ri.interpolation;
         geant_import.data_selection.interpolation.order = ri.poly_spline_order;
         si.physics_import = std::move(geant_import);
     }
     si.events = load_events(ri);
-
-    // Load actual number of events, needed to construct core state before
-    // loading events
-    auto num_events = std::visit(
-        Overload{
-            [](inp::CorePrimaryGenerator const& pg) { return pg.num_events; },
-            [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
-            [](inp::ReadFileEvents const& rfe) {
-                if (ends_with(rfe.event_file, ".jsonl"))
-                {
-                    return JsonEventReader{rfe.event_file, nullptr}.num_events();
-                }
-                else if (ends_with(rfe.event_file, ".root"))
-                {
-                    return RootEventReader{rfe.event_file, nullptr}.num_events();
-                }
-                return EventReader{rfe.event_file, nullptr}.num_events();
-            },
-        },
-        si.events);
-    CELER_ASSERT(num_events > 0);
-
-    // Save number of events
-    auto& ctl = si.problem.control;
-    ctl.capacity.events = num_events;
-    // Limit number of streams
-    ctl.num_streams = std::min(ctl.num_streams, num_events);
 
     return si;
 }

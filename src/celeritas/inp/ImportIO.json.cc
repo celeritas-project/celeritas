@@ -8,10 +8,22 @@
 
 #include <variant>
 
+#include "corecel/inp/GridIO.json.hh"
 #include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+//! \todo Deprecated: interpolation will be set in physics grid inp
+void to_json(nlohmann::json& j, GeantImportDataSelection const& v)
+{
+    j = {CELER_JSON_PAIR(v, interpolation)};
+}
+void from_json(nlohmann::json const& j, GeantImportDataSelection& v)
+{
+    CELER_JSON_LOAD_OPTION(j, v, interpolation);
+}
+
 namespace inp
 {
 //---------------------------------------------------------------------------//
@@ -33,17 +45,17 @@ void from_json(nlohmann::json const& j, PhysicsFromFile& v)
 
 void to_json(nlohmann::json& j, PhysicsFromGeant const& v)
 {
-    //! \todo ignoring data_selection
     j = {
         json_type_pair("geant"),
         CELER_JSON_PAIR(v, ignore_processes),
+        CELER_JSON_PAIR(v, data_selection),
     };
 }
 
 void from_json(nlohmann::json const& j, PhysicsFromGeant& v)
 {
-    //! \todo ignoring data_selection
     CELER_JSON_LOAD_OPTION(j, v, ignore_processes);
+    CELER_JSON_LOAD_OPTION(j, v, data_selection);
 }
 
 void to_json(nlohmann::json& j, PhysicsImport const& v)

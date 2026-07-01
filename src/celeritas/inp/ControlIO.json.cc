@@ -15,7 +15,6 @@ namespace inp
 //---------------------------------------------------------------------------//
 //!@{
 //! I/O routines for JSON
-//! \todo How should we set host/device specific default capacities?
 //! \todo Revisit which capacity values are required/optional/defaulted
 
 void to_json(nlohmann::json& j, CoreStateCapacity const& v)
@@ -31,9 +30,9 @@ void to_json(nlohmann::json& j, CoreStateCapacity const& v)
 
 void from_json(nlohmann::json const& j, CoreStateCapacity& v)
 {
-    CELER_JSON_LOAD_REQUIRED(j, v, primaries);
-    CELER_JSON_LOAD_REQUIRED(j, v, tracks);
-    CELER_JSON_LOAD_REQUIRED(j, v, initializers);
+    CELER_JSON_LOAD_OPTION(j, v, primaries);
+    CELER_JSON_LOAD_OPTION(j, v, tracks);
+    CELER_JSON_LOAD_OPTION(j, v, initializers);
     CELER_JSON_LOAD_OPTIONAL(j, v, secondaries);
     CELER_JSON_LOAD_OPTIONAL(j, v, events);
 }
@@ -78,7 +77,7 @@ void to_json(nlohmann::json& j, Control const& v)
 
 void from_json(nlohmann::json const& j, Control& v)
 {
-    CELER_JSON_LOAD_REQUIRED(j, v, capacity);
+    CELER_JSON_LOAD_OPTION(j, v, capacity);
     CELER_JSON_LOAD_OPTIONAL(j, v, optical_capacity);
     CELER_JSON_LOAD_OPTIONAL(j, v, track_order);
     CELER_JSON_LOAD_OPTIONAL(j, v, device_debug);
