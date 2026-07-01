@@ -225,7 +225,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         si.geant_setup = ri.physics_options;
 
         CELER_VALIDATE(
-            !si.geant_setup->optical == !ri.optical,
+            !si.geant_setup.optical == !ri.optical,
             << R"(optical setup options require optical physics to be enabled and vice versa)");
         CELER_VALIDATE(
             ri.poly_spline_order == 1
