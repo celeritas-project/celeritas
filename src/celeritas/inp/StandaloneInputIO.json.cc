@@ -46,13 +46,7 @@ void from_json(nlohmann::json const& j, StandaloneInput& v)
     CELER_JSON_LOAD_OPTION(j, v, system);
 
     // Set default values that depend on whether the device is enabled
-    bool const use_device = v.system.device.has_value();
-    v.problem.control.capacity = CoreStateCapacity::from_default(use_device);
-    if (use_device)
-    {
-        v.problem.control.warm_up = true;
-        v.problem.control.track_order = TrackOrder::init_charge;
-    }
+    v.problem.control = Control::from_default(v.system.device.has_value());
 
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
     CELER_JSON_LOAD_OPTION(j, v, geant_setup);

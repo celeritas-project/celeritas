@@ -158,6 +158,19 @@ struct Control
 
     //! Random number generator seed
     unsigned int seed{};
+
+    //! Return default values
+    static Control from_default(bool use_device)
+    {
+        Control result;
+        result.capacity = CoreStateCapacity::from_default(use_device);
+        if (use_device)
+        {
+            result.warm_up = true;
+            result.track_order = TrackOrder::init_charge;
+        }
+        return result;
+    }
 };
 
 //---------------------------------------------------------------------------//
