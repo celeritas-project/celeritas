@@ -135,9 +135,10 @@ void print_config()
 
 void print_default()
 {
-    std::cout
-        << nlohmann::json(celeritas::inp::OpticalStandaloneInput{}).dump(1)
-        << std::endl;
+    inp::OpticalStandaloneInput si{};
+    si.problem.capacity = inp::OpticalStateCapacity::from_default(
+        si.system.device.has_value());
+    std::cout << nlohmann::json(si).dump(1) << std::endl;
 }
 
 void print_device()

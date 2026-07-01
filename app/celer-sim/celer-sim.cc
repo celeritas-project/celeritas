@@ -172,7 +172,7 @@ void print_config()
 
 void print_default()
 {
-    inp::StandaloneInput si;
+    inp::StandaloneInput si{};
     si.problem.control
         = inp::Control::from_default(si.system.device.has_value());
     std::cout << nlohmann::json(si).dump(1) << std::endl;
