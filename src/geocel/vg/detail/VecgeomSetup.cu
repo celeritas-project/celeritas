@@ -201,7 +201,7 @@ void check_other_device_pointers()
  */
 void init_navstate_device(Span<VgNavStateImpl> states, StreamId stream)
 {
-    InplaceNew execute_thread{states.data()};
+    InplaceNew<VgNavStateImpl> execute_thread{states.data()};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "vecgeom-init-navtuple");
     launch_kernel(states.size(), stream, execute_thread);
