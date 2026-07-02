@@ -74,22 +74,20 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
     CartMapFieldParamsData& operator=(
         CartMapFieldParamsData<Ownership::value, MemSpace::host> const& other)
     {
-        if constexpr (!std::is_same_v<
-                          field_t,
-                          detail::CovfieFieldTraits<MemSpace::host>::field_t>)
+        using host_field_t = detail::CovfieFieldTraits<MemSpace::host>::field_t;
+        if constexpr (!std::is_same_v<field_t, host_field_t>)
         {
-            if constexpr (CELERITAS_USE_HIP)
-            {
-                // No texture memory support: simply copy from the host field
-                field = std::make_unique<field_t>(*other.field);
-            }
-            else
+            if constexpr (CELERITAS_USE_CUDA)
             {
                 auto const& host_backend = other.field->backend();
                 auto const& strided_backend
                     = host_backend.get_backend().get_backend().get_backend();
                 field = std::make_unique<field_t>(covfie::make_parameter_pack(
                     host_backend.get_configuration(), strided_backend));
+            }
+            else
+            {
+                field = std::make_unique<field_t>(*other.field);
             }
             field_view = DeviceVector<view_t>{1};
             field_view.copy_to_device(make_span<view_t const>({{*field}}));
