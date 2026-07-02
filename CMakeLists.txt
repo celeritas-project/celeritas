@@ -121,6 +121,10 @@ celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
 celeritas_force_package(Python ${_needs_python})
 
+# Optional capabilities
+# Enable torus by default for debugging but not optimized until performance consequences are known
+option(CELERITAS_ORANGE_TORUS "Enable runtime ORANGE torus" ${CELERITAS_DEBUG})
+
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS
 #----------------------------------------------------------------------------#

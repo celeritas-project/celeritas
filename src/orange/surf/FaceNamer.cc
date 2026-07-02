@@ -160,4 +160,13 @@ std::string FaceNamer::Impl::operator()(GeneralQuadric const&) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a name for a toroid.
+ */
+std::string FaceNamer::Impl::operator()(Toroid const&) const
+{
+    return "tor";
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

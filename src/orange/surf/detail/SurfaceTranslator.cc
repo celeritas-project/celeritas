@@ -198,5 +198,21 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Construct a translated Toroid.
+ */
+Toroid SurfaceTranslator::operator()(Toroid const& other) const
+{
+    Real3 origin = tr_.transform_up(other.origin());
+
+    Toroid tor{origin,
+               other.major_radius(),
+               other.ellipse_xy_radius(),
+               other.ellipse_z_radius()};
+
+    return tor;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace detail
 }  // namespace celeritas

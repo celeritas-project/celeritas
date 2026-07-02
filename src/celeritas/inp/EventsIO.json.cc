@@ -189,17 +189,31 @@ void from_json(nlohmann::json const& j, ReadFileEvents& v)
     CELER_JSON_LOAD_REQUIRED(j, v, event_file);
 }
 
-void to_json(nlohmann::json& j, Events const& v)
+void to_json(nlohmann::json& j, Generator const& v)
 {
-    j = std::visit([](auto const& e) { return nlohmann::json(e); }, v);
+    j = std::visit([](auto const& g) { return nlohmann::json(g); }, v);
 }
 
-void from_json(nlohmann::json const& j, Events& v)
+void from_json(nlohmann::json const& j, Generator& v)
 {
     CELER_JSON_LOAD_VARIANT(j, v, primary, CorePrimaryGenerator);
     CELER_JSON_LOAD_VARIANT(j, v, sample, SampleFileEvents);
     CELER_JSON_LOAD_VARIANT(j, v, read, ReadFileEvents);
-    CELER_VALIDATE(false, << "invalid Events input");
+    CELER_VALIDATE(false, << "invalid Generator input");
+}
+
+void to_json(nlohmann::json& j, Events const& v)
+{
+    j = nlohmann::json{
+        CELER_JSON_PAIR(v, generator),
+        CELER_JSON_PAIR(v, merge),
+    };
+}
+
+void from_json(nlohmann::json const& j, Events& v)
+{
+    CELER_JSON_LOAD_REQUIRED(j, v, generator);
+    CELER_JSON_LOAD_OPTION(j, v, merge);
 }
 
 //!@}

@@ -250,6 +250,7 @@ template class Solid<Ellipsoid>;
 template class Solid<Hyperboloid>;
 template class Solid<Prism>;
 template class Solid<Sphere>;
+template class Solid<Torus>;
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

@@ -59,7 +59,7 @@ TEST(JsonIO, diagnostics)
     input.step.emplace();
 
     static char const expected[]
-        = R"json({"action":false,"counters":{"event":false,"step":false},"export_files":{"geometry":"geometry.gdml","offload":"offload.jsonl","physics":"physics.root"},"log_frequency":1,"mctruth":{"filter":{"event_id":null,"parent_id":null,"post_step_action_id":null,"track_id":[]},"output_file":"mctruth.root"},"output_file":"-","perfetto_file":"","slot":{"basename":"slot"},"status_checker":false,"step":{"bins":1000},"timers":{"action":false,"step":false}})json";
+        = R"json({"action":false,"counters":{"event":true,"step":true},"export_files":{"geometry":"geometry.gdml","offload":"offload.jsonl","physics":"physics.root"},"log_frequency":1,"mctruth":{"filter":{"event_id":null,"parent_id":null,"post_step_action_id":null,"track_id":[]},"output_file":"mctruth.root"},"output_file":"-","perfetto_file":"","slot":{"basename":"slot"},"status_checker":false,"step":{"bins":1000},"timers":{"action":false,"step":false}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
@@ -115,7 +115,8 @@ TEST(JsonIO, events)
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
     {
-        Events input = [] {
+        Events input;
+        input.generator = [] {
             SampleFileEvents sfe;
             sfe.num_events = 8;
             sfe.num_merged = 2;
@@ -125,22 +126,25 @@ TEST(JsonIO, events)
         }();
 
         static char const expected[]
-            = R"json({"_type":"sample","event_file":"events.root","num_events":8,"num_merged":2,"seed":12345})json";
+            = R"json({"generator":{"_type":"sample","event_file":"events.root","num_events":8,"num_merged":2,"seed":12345},"merge":false})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
     {
-        Events input = [] {
+        Events input;
+        input.merge = true;
+        input.generator = [] {
             ReadFileEvents rfe;
             rfe.event_file = "events.root";
             return rfe;
         }();
 
         static char const expected[]
-            = R"json({"_type":"read","event_file":"events.root"})json";
+            = R"json({"generator":{"_type":"read","event_file":"events.root"},"merge":true})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
     {
-        Events input = [] {
+        Events input;
+        input.generator = [] {
             CorePrimaryGenerator cpg;
             cpg.energy = NormalDistribution{1, 0};
             cpg.angle = MonodirectionalDistribution{{0, 0, 1}};
@@ -153,7 +157,7 @@ TEST(JsonIO, events)
         }();
 
         static char const expected[]
-            = R"json({"_type":"primary","angle":{"_type":"delta","value":[0.0,0.0,1.0]},"energy":{"_type":"normal","mean":1.0,"stddev":0.0},"num_events":4,"pdg":[11],"primaries_per_event":1023,"seed":12345,"shape":{"_type":"uniform_box","lower":[0.0,0.0,0.0],"upper":[1.0,1.0,1.0]}})json";
+            = R"json({"generator":{"_type":"primary","angle":{"_type":"delta","value":[0.0,0.0,1.0]},"energy":{"_type":"normal","mean":1.0,"stddev":0.0},"num_events":4,"pdg":[11],"primaries_per_event":1023,"seed":12345,"shape":{"_type":"uniform_box","lower":[0.0,0.0,0.0],"upper":[1.0,1.0,1.0]}},"merge":false})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
 }
@@ -242,7 +246,7 @@ TEST(JsonIO, physics_import)
         }();
 
         static char const expected[]
-            = R"json({"_type":"geant","ignore_processes":["CoulombScat"]})json";
+            = R"json({"_type":"geant","data_selection":{"interpolation":{"bc":2,"order":1,"type":"linear"}},"ignore_processes":["CoulombScat"]})json";
         EXPECT_JSON_ROUND_TRIP(input, expected);
     }
 }
@@ -362,10 +366,10 @@ TEST(JsonIO, standalone_input)
     input.problem.tracking.limits.step_iters = 1000;
     input.problem.tracking.optical_limits.steps = 0;
     input.problem.tracking.optical_limits.step_iters = 0;
-    input.events = inp::ReadFileEvents{"events.json"};
+    input.events.generator = inp::ReadFileEvents{"events.json"};
 
     static char const expected[]
-        = R"json({"_format":"standalone-input","_version":"0.7.0","events":{"_type":"read","event_file":"events.json"},"geant_setup":null,"physics_import":{"_type":"geant","ignore_processes":[]},"problem":{"control":{"capacity":{"events":null,"initializers":32768,"primaries":4096,"secondaries":8192,"tracks":4096},"device_debug":null,"optical_capacity":null,"seed":0,"track_order":null,"warm_up":false},"diagnostics":{"action":false,"counters":{"event":false,"step":false},"export_files":{"geometry":"","offload":"","physics":""},"log_frequency":1,"mctruth":null,"output_file":"-","perfetto_file":"","slot":null,"status_checker":false,"step":null,"timers":{"action":false,"step":false}},"field":{"_type":"none"},"model":{"geometry":"geometry.gdml"},"scoring":{"simple_calo":null},"tracking":{"force_step_limit":0.0,"limits":{"field_substeps":10,"step_iters":1000,"steps":100},"optical_limits":{"step_iters":0,"steps":0}}},"system":{"device":null,"environment":{}}})json";
+        = R"json({"_format":"standalone-input","_version":"0.7.0","events":{"generator":{"_type":"read","event_file":"events.json"},"merge":false},"geant_setup":null,"physics_import":{"_type":"geant","data_selection":{"interpolation":{"bc":2,"order":1,"type":"linear"}},"ignore_processes":[]},"problem":{"control":{"capacity":{"events":null,"initializers":32768,"primaries":4096,"secondaries":8192,"tracks":4096},"device_debug":null,"optical_capacity":null,"seed":0,"track_order":null,"warm_up":false},"diagnostics":{"action":false,"counters":{"event":true,"step":true},"export_files":{"geometry":"","offload":"","physics":""},"log_frequency":1,"mctruth":null,"output_file":"-","perfetto_file":"","slot":null,"status_checker":false,"step":null,"timers":{"action":false,"step":false}},"field":{"_type":"none"},"model":{"geometry":"geometry.gdml"},"scoring":{"simple_calo":null},"tracking":{"force_step_limit":0.0,"limits":{"field_substeps":10,"step_iters":1000,"steps":100},"optical_limits":{"step_iters":0,"steps":0}}},"system":{"device":null,"environment":{}}})json";
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 

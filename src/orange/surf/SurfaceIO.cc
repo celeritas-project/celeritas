@@ -130,7 +130,7 @@ std::ostream& operator<<(std::ostream& os, Toroid const& tor)
 {
     os << "Toroid: r=" << tor.major_radius()
        << ", a=" << tor.ellipse_xy_radius() << ", b=" << tor.ellipse_z_radius()
-       << " at " << tor.origin();
+       << ", at o=" << tor.origin();
     return os;
 }
 

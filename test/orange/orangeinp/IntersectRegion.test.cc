@@ -2654,6 +2654,34 @@ TEST_F(TetTest, soft_degenerate)
 }
 
 //---------------------------------------------------------------------------//
+// TORUS
+//---------------------------------------------------------------------------//
+using TorusTest = IntersectRegionTest;
+
+TEST_F(TorusTest, errors)
+{
+    // Nonpositive radii
+    EXPECT_THROW(Torus(-1, 2), RuntimeError);
+    EXPECT_THROW(Torus(2, -1), RuntimeError);
+    // Degenerate toroid (xy radius > toroid major radius)
+    EXPECT_THROW(Torus(1, 2), RuntimeError);
+}
+
+TEST_F(TorusTest, standard)
+{
+    auto result = this->test(Torus(2, 1));
+
+    static char const expected_node[] = "-0";
+    static char const* expected_surfaces[]
+        = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 1}), result.exterior.upper());
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace orangeinp
 }  // namespace celeritas

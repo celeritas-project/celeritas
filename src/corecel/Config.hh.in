@@ -45,6 +45,9 @@
 #cmakedefine01 CELERITAS_HAVE_ROCTX
 #cmakedefine CELERITAS_MAX_BLOCK_SIZE @CELERITAS_MAX_BLOCK_SIZE@
 
+// Experimental capabilities
+#cmakedefine01 CELERITAS_ORANGE_TORUS
+
 //---------------------------------------------------------------------------//
 // Core configuration
 //---------------------------------------------------------------------------//

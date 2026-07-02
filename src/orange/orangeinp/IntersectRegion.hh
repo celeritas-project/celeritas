@@ -1054,6 +1054,42 @@ class Tet final : public IntersectRegionInterface
     ArrReal3 v_;  //!< Four vertices defining the tetrahedron
 };
 
+/*!
+ * A torus centered around the origin, defined by two radii.
+ *
+ * The major radius extends from the origin to the center of the revolved
+ * circle, and the minor radius is that of the revolved circle.
+ *
+ * Uses a special case of the Toroid surface, with equal ellipse radii.
+ */
+class Torus final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radii
+    Torus(real_type major_radius, real_type minor_radius);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    // Whether this encloses another torus
+    bool encloses(Torus const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Major radius (from the origin to the revolved circle)
+    real_type major_radius() const { return r_maj_; }
+
+    //! Minor radius (of the revolved circle)
+    real_type minor_radius() const { return r_min_; }
+
+  private:
+    real_type r_maj_;
+    real_type r_min_;
+};
+
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp
 }  // namespace celeritas
