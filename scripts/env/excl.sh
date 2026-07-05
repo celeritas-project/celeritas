@@ -130,11 +130,13 @@ if ! command -v spack >/dev/null 2>&1; then
   unset _spack_setup
 fi
 
-CELERITAS_ENV=${SPACK_ROOT}/var/spack/environments/celeritas-${SYSTEM_NAME}/.spack-env/view
-if ! [ -e "${CELERITAS_ENV}" ]; then
+CELERITAS_ENV=/scratch/celeritas/view
+if ! [ -d "${CELERITAS_ENV}" ]; then
   celerlog error "celeritas env does not exist (or is unreadable) at ${CELERITAS_ENV}"
   return 1
 fi
+
+CELERITAS_OPT=/scratch/celeritas/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
 
 export PATH=${CELERITAS_ENV}/bin:${PATH}
 export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}

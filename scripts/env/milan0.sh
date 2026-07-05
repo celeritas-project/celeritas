@@ -9,11 +9,10 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
-# Redundant with cmake prefix but useful if this is being used for other env
-export CUDAARCHS=90
-# Set C++ compiler
-export CXX=/usr/bin/c++
-export CC=/usr/bin/cc
+export CXX=/usr/bin/g++-12
+export CC=/usr/bin/gcc-12
+
+export CUDAARCHS=80
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
