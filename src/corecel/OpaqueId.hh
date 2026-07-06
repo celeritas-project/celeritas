@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <type_traits>
 
 #include "corecel/data/Ldg.hh"
@@ -16,7 +17,6 @@
 #include "Types.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include <functional>
 #    include <ostream>
 #endif
 
@@ -476,7 +476,6 @@ inline CELER_FUNCTION auto id_cast(J value) noexcept(!CELERITAS_DEBUG)
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-#if !CELER_DEVICE_COMPILE
 //! \cond
 namespace std
 {
@@ -491,4 +490,3 @@ struct hash<celeritas::OpaqueId<I, T>>
 };
 }  // namespace std
 //! \endcond
-#endif
