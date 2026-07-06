@@ -44,6 +44,18 @@ jobs:
             compiler: clang
             version: 18
             cxxstd: 20
+          - runner: resolute
+            compiler: gcc
+            version: 15
+          - runner: resolute
+            compiler: clang
+            version: 22
+          - runner: resolute-arm
+            compiler: gcc
+            version: 15
+          - runner: resolute-arm
+            compiler: clang
+            version: 22
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -55,6 +67,8 @@ jobs:
       ${{  matrix.runner == 'jammy' && 'ubuntu-22.04'
         || matrix.runner == 'noble' && 'ubuntu-24.04'
         || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
+        || matrix.runner == 'resolute' && 'ubuntu-26.04'
+        || matrix.runner == 'resolute-arm' && 'ubuntu-26.04-arm'
       }}
     steps:
       - name: Check out Celeritas
