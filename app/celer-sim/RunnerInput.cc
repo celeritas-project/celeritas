@@ -113,7 +113,6 @@ inp::Problem load_problem(RunnerInput const& ri)
 
     // Control
     {
-        // NOTE: old celer-sim input is *integrated* over streams
         inp::CoreStateCapacity capacity;
         capacity.primaries = 0;  // Immediately generate initializers
         capacity.initializers = ri.initializer_capacity;

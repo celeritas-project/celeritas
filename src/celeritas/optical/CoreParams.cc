@@ -166,8 +166,8 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // Add optical sizes
     OpticalSizes sizes;
     sizes.streams = this->max_streams();
-    sizes.generators = input_.capacity.generators;
-    sizes.tracks = input_.capacity.tracks;
+    sizes.generators = *input_.capacity.generators;
+    sizes.tracks = *input_.capacity.tracks;
     input_.output_reg->insert(
         OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,

@@ -55,7 +55,8 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
 
     CELER_EXPECT(options.optical);
     auto const& capacity = options.optical->capacity;
-    auto_flush_ = capacity.primaries;
+    CELER_ASSERT(capacity.primaries > 0 && capacity.tracks > 0);
+    auto_flush_ = *capacity.primaries;
 
     auto stream_id = id_cast<StreamId>(get_geant_thread_id());
 
@@ -64,19 +65,19 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, *capacity.tracks);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, *capacity.tracks);
     }
 
     // Allocate auxiliary data
     if (optical_params.aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
+            *optical_params.aux_reg(), memspace, stream_id, *capacity.tracks);
     }
 
     CELER_ENSURE(*this);

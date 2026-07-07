@@ -14,6 +14,7 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
+#include "celeritas/inp/Control.hh"
 
 #include "ActionInterface.hh"
 #include "CoreTrackData.hh"
@@ -101,15 +102,18 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         //! Maximum number of simultaneous threads/tasks per process
         StreamId::size_type max_streams{1};
 
-        //! Number of track slots per stream
-        StreamId::size_type tracks_per_stream{0};
+        //! Per-process state and buffer capacities
+        inp::CoreStateCapacity capacity;
 
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
                    && physics && rng && sim && volume && surface && init
-                   && action_reg && output_reg && max_streams;
+                   && action_reg && output_reg && max_streams
+                   && capacity.tracks > 0 && capacity.primaries > 0
+                   && capacity.initializers > 0 && capacity.secondaries > 0
+                   && capacity.events > 0;
         }
     };
 
@@ -154,11 +158,17 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     template<MemSpace M>
     inline ConstPtr<M> ptr() const;
 
+    //! Per-process state and buffer capacities
+    inp::CoreStateCapacity const& capacity() const { return input_.capacity; }
+
     //! Maximum number of streams
     size_type max_streams() const { return input_.max_streams; }
 
     //! Number of track slots per stream
-    size_type tracks_per_stream() const { return input_.tracks_per_stream; }
+    size_type tracks_per_stream() const
+    {
+        return ceil_div(*this->capacity().tracks, this->max_streams());
+    }
 
   private:
     Input input_;

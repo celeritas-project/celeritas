@@ -44,10 +44,6 @@ void from_json(nlohmann::json const& j, StandaloneInput& v)
     check_format(j, format_str);
 
     CELER_JSON_LOAD_OPTION(j, v, system);
-
-    // Set default values that depend on whether the device is enabled
-    v.problem.control = Control::from_default(v.system.device.has_value());
-
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
     CELER_JSON_LOAD_OPTION(j, v, geant_setup);
     CELER_JSON_LOAD_OPTION(j, v, physics_import);
@@ -70,11 +66,6 @@ void from_json(nlohmann::json const& j, OpticalStandaloneInput& v)
     check_format(j, optical_format_str);
 
     CELER_JSON_LOAD_OPTION(j, v, system);
-
-    // Set default values that depend on whether the device is enabled
-    v.problem.capacity
-        = OpticalStateCapacity::from_default(v.system.device.has_value());
-
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
     CELER_JSON_LOAD_OPTION(j, v, geant_setup);
 }

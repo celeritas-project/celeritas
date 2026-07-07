@@ -80,10 +80,10 @@ struct OpticalProblemLoaded
 
 //---------------------------------------------------------------------------//
 // Set up the problem
-ProblemLoaded problem(inp::Problem const& p, ImportData const& imported);
+ProblemLoaded problem(inp::Problem& p, ImportData const& imported);
 // Set up the optical-only problem
 OpticalProblemLoaded
-problem(inp::OpticalProblem const& p, ImportData const& imported);
+problem(inp::OpticalProblem& p, ImportData const& imported);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

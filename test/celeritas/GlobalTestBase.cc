@@ -215,8 +215,15 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
-    inp.capacity = inp::OpticalStateCapacity::from_default(
-        celeritas::Device::num_devices());
+    inp.capacity = [] {
+        using Defaults = inp::OpticalStateCapacity;
+        inp::OpticalStateCapacity cap;
+        cap.tracks = celeritas::Device::num_devices() ? Defaults::gpu_tracks
+                                                      : Defaults::cpu_tracks;
+        cap.primaries = Defaults::primaries_factor * *cap.tracks;
+        cap.generators = Defaults::generators_factor * *cap.tracks;
+        return cap;
+    }();
 
     CELER_ENSURE(inp);
     return inp;
@@ -261,6 +268,17 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
+    inp.capacity = [] {
+        using Defaults = inp::CoreStateCapacity;
+        inp::CoreStateCapacity cap;
+        cap.tracks = celeritas::Device::num_devices() ? Defaults::gpu_tracks
+                                                      : Defaults::cpu_tracks;
+        cap.primaries = Defaults::primaries_factor * *cap.tracks;
+        cap.initializers = Defaults::initializers_factor * *cap.tracks;
+        cap.secondaries = Defaults::secondaries_factor * *cap.tracks;
+        cap.events = 1;
+        return cap;
+    }();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop

@@ -11,6 +11,8 @@ additional field types and may allow completely custom field implementations.
 
 .. celerstruct:: inp::NoField
 .. celerstruct:: inp::UniformField
+.. celerstruct:: inp::CylMapField
+.. celerstruct:: inp::CartMapField
 .. doxygentypedef:: celeritas::inp::RZMapField
 
 The field type is selected with a variant:

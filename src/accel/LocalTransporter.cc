@@ -147,7 +147,9 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : max_step_iters_(options.max_step_iters)
+    : auto_flush_(*params.Params()->capacity().primaries
+                  / params.Params()->max_streams())
+    , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
@@ -158,18 +160,6 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                            options.optical->generator),
                    << "invalid optical photon generation mechanism for local "
                       "transporter");
-
-    if (options.auto_flush)
-    {
-        auto_flush_ = options.auto_flush;
-    }
-    else
-    {
-        // Get default *per-process* auto flush and divide by number of streams
-        auto capacity = inp::CoreStateCapacity::from_default(
-            celeritas::Device::num_devices());
-        auto_flush_ = capacity.primaries / params.Params()->max_streams();
-    }
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);

@@ -89,10 +89,10 @@ void ProblemSetup::operator()(inp::Problem& p) const
     // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
     // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        auto c = inp::CoreStateCapacity::from_default(
-            celeritas::Device::num_devices());
-
-        // Override default values if capacities were specified
+        size_type default_tracks = celeritas::Device::num_devices()
+                                       ? inp::CoreStateCapacity::gpu_tracks
+                                       : inp::CoreStateCapacity::cpu_tracks;
+        inp::CoreStateCapacity c;
         if (so.max_num_tracks)
         {
             c.tracks = so.max_num_tracks * num_streams;
@@ -107,8 +107,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         }
         if (so.secondary_stack_factor)
         {
-            c.secondaries
-                = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
+            c.secondaries = static_cast<size_type>(
+                so.secondary_stack_factor * c.tracks.value_or(default_tracks));
         }
         return c;
     }();

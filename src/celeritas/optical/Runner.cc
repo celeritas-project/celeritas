@@ -36,7 +36,7 @@ Runner::Runner(Input&& osi)
 
     ScopedProfiling profile_this{"setup"};
     StreamId stream_id{0};
-    auto num_tracks = osi.problem.capacity.tracks;
+    auto num_tracks = *osi.problem.capacity.tracks;
 
     // Prepare problem input for json output before it's modified during setup
     auto osi_output = std::make_shared<OutputInterfaceAdapter<Input>>(

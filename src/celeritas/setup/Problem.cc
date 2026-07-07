@@ -106,6 +106,81 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Set default values which may depend on whether the device is enabled.
+ */
+void set_control_defaults(inp::OpticalStateCapacity& c)
+{
+    using Defaults = inp::OpticalStateCapacity;
+
+    CELER_VALIDATE(!c.tracks || *c.tracks > 0,
+                   << "nonpositive capacity.tracks=" << *c.tracks);
+    CELER_VALIDATE(!c.primaries || *c.primaries > 0,
+                   << "nonpositive capacity.primaries=" << *c.primaries);
+    CELER_VALIDATE(!c.generators || *c.generators > 0,
+                   << "nonpositive capacity.generators=" << *c.generators);
+
+    if (celeritas::device())
+    {
+        c.tracks = c.tracks.value_or(Defaults::gpu_tracks);
+    }
+    else
+    {
+        c.tracks = c.tracks.value_or(Defaults::cpu_tracks);
+    }
+
+    c.primaries = c.primaries.value_or(Defaults::primaries_factor * *c.tracks);
+    c.generators
+        = c.generators.value_or(Defaults::generators_factor * *c.tracks);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set default values which may depend on whether the device is enabled.
+ */
+void set_control_defaults(inp::Control& ctl)
+{
+    using Defaults = inp::CoreStateCapacity;
+
+    auto& c = ctl.capacity;
+
+    CELER_VALIDATE(!c.tracks || *c.tracks > 0,
+                   << "nonpositive capacity.tracks=" << *c.tracks);
+    CELER_VALIDATE(!c.primaries || *c.primaries > 0,
+                   << "nonpositive capacity.primaries=" << *c.primaries);
+    CELER_VALIDATE(!c.initializers || *c.initializers > 0,
+                   << "nonpositive capacity.initializers=" << *c.initializers);
+    CELER_VALIDATE(!c.secondaries || *c.secondaries > 0,
+                   << "nonpositive capacity.secondaries=" << *c.secondaries);
+    CELER_VALIDATE(!c.events || *c.events > 0,
+                   << "nonpositive capacity.events=" << *c.events);
+
+    if (celeritas::device())
+    {
+        c.tracks = c.tracks.value_or(Defaults::gpu_tracks);
+        ctl.track_order = ctl.track_order.value_or(TrackOrder::init_charge);
+        ctl.warm_up = true;
+    }
+    else
+    {
+        c.tracks = c.tracks.value_or(Defaults::cpu_tracks);
+        ctl.track_order = ctl.track_order.value_or(TrackOrder::none);
+    }
+
+    c.primaries = c.primaries.value_or(Defaults::primaries_factor * *c.tracks);
+    c.initializers
+        = c.initializers.value_or(Defaults::initializers_factor * *c.tracks);
+    c.secondaries
+        = c.secondaries.value_or(Defaults::secondaries_factor * *c.tracks);
+    c.events = c.events.value_or(1);
+
+    if (ctl.optical_capacity)
+    {
+        set_control_defaults(*ctl.optical_capacity);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct physics processes.
  */
 auto build_physics_processes(inp::EmPhysics const& em,
@@ -152,7 +227,7 @@ auto build_physics(inp::Problem const& p,
     {
         input.options.secondary_stack_factor
             = static_cast<real_type>(*p.control.capacity.secondaries)
-              / static_cast<real_type>(p.control.capacity.tracks);
+              / static_cast<real_type>(*p.control.capacity.tracks);
     }
     else
     {
@@ -189,47 +264,12 @@ auto build_physics(inp::Problem const& p,
 /*!
  * Construct track initialization params.
  */
-auto build_track_init(inp::Control const& c, size_type num_streams)
+auto build_track_init(inp::Control const& c)
 {
-    CELER_VALIDATE(c.capacity.initializers > 0,
-                   << "nonpositive capacity.initializers="
-                   << c.capacity.initializers);
-    CELER_VALIDATE(!c.capacity.events || c.capacity.events > 0,
-                   << "nonpositive capacity.events=" << *c.capacity.events);
-    // NOTE: if the following assertion fails, a placeholder "event
-    // count" should have been changed elsewhere
-    CELER_EXPECT(
-        !c.capacity.events
-        || c.capacity.events
-               != std::numeric_limits<decltype(c.capacity.events)>::max());
     TrackInitParams::Input input;
-    input.capacity = ceil_div(c.capacity.initializers, num_streams);
-    if (c.capacity.events)
-    {
-        input.max_events = *c.capacity.events;
-    }
-    else
-    {
-        // Geant4 integration (TODO: make this a special case)
-        input.max_events = 1;
-    }
-    if (c.track_order)
-    {
-        input.track_order = *c.track_order;
-    }
-    else
-    {
-        if (celeritas::device())
-        {
-            input.track_order = TrackOrder::init_charge;
-        }
-        else
-        {
-            input.track_order = TrackOrder::none;
-        }
-        CELER_LOG(debug) << "Set default track order "
-                         << to_cstring(input.track_order);
-    }
+    input.capacity = ceil_div(*c.capacity.initializers, c.num_streams);
+    input.max_events = *c.capacity.events;
+    input.track_order = *c.track_order;
 
     return std::make_shared<TrackInitParams>(std::move(input));
 }
@@ -331,7 +371,7 @@ auto build_optical_params(inp::Problem const& p,
         pi.action_reg,
         pi.aux_reg,
         pi.gen_reg,
-        p.control.optical_capacity->generators);
+        *p.control.optical_capacity->generators);
     pi.rng = core.rng();
     pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
     pi.surface = core.surface();
@@ -397,7 +437,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
         pi.action_reg,
         pi.aux_reg,
         pi.gen_reg,
-        p.capacity.generators);
+        *p.capacity.generators);
     pi.rng = std::make_shared<RngParams>(p.seed);
     pi.sim = std::make_shared<optical::SimParams>(p.limits);
     pi.surface = std::move(loaded_model.surface);
@@ -462,9 +502,9 @@ auto build_optical_offload(
     CELER_ASSERT(p.control.optical_capacity);
     inp::OpticalStateCapacity const& cap = *p.control.optical_capacity;
     auto num_streams = oc_inp.optical_params->max_streams();
-    oc_inp.num_track_slots = ceil_div(cap.tracks, num_streams);
-    oc_inp.buffer_capacity = ceil_div(cap.generators, num_streams);
-    oc_inp.auto_flush = ceil_div(cap.primaries, num_streams);
+    oc_inp.num_track_slots = ceil_div(*cap.tracks, num_streams);
+    oc_inp.buffer_capacity = ceil_div(*cap.generators, num_streams);
+    oc_inp.auto_flush = ceil_div(*cap.primaries, num_streams);
     oc_inp.action_times = [&p] {
         if (!celeritas::device())
         {
@@ -495,13 +535,16 @@ auto build_optical_offload(
  * \todo Migrate the class "Input"/"Option" code into the class itself, using
  * the \c inp namespace definition.
  */
-ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
+ProblemLoaded problem(inp::Problem& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
     ScopedProfiling profile_this{"problem"};
 
     CoreParams::Input params;
+
+    // Set default values that depend on whether device is enabled
+    set_control_defaults(p.control);
 
     // Create action manager
     params.action_reg = std::make_shared<ActionRegistry>();
@@ -580,27 +623,23 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         return input;
     }());
 
+    // Construct track initialization params
+    params.init = build_track_init(p.control);
+
     // Number of streams
-    size_type const num_streams = p.control.num_streams;
-    CELER_VALIDATE(num_streams > 0,
+    CELER_VALIDATE(p.control.num_streams > 0,
                    << "currently p.control.num_streams must be manually set "
                       "before setup");
-    params.max_streams = num_streams;
-
-    // Construct track initialization params
-    params.init = build_track_init(p.control, num_streams);
+    params.max_streams = p.control.num_streams;
 
     // Set up streams
     if (auto& device = celeritas::device())
     {
-        device.create_streams(num_streams);
+        device.create_streams(p.control.num_streams);
     }
 
-    // Number of tracks per stream
-    auto tracks = p.control.capacity.tracks;
-    CELER_VALIDATE(tracks > 0,
-                   << "nonpositive control.capacity.tracks=" << tracks);
-    params.tracks_per_stream = ceil_div(tracks, params.max_streams);
+    // Per-process state and buffer capacities
+    params.capacity = p.control.capacity;
 
     // Construct core
     auto core_params = std::make_shared<CoreParams>(std::move(params));
@@ -715,9 +754,9 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     StepCollector::VecInterface step_interfaces;
     if (p.diagnostics.mctruth)
     {
-        CELER_VALIDATE(num_streams == 1,
+        CELER_VALIDATE(p.control.num_streams == 1,
                        << "cannot output MC truth with multiple streams ("
-                       << num_streams << " requested)");
+                       << p.control.num_streams << " requested)");
 
         // Initialize ROOT file
         result.root_manager = std::make_shared<RootFileManager>(
@@ -733,16 +772,17 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.sd)
     {
-        result.geant_sd = std::make_shared<GeantSd>(*core_params->particle(),
-                                                    *p.scoring.sd,
-                                                    core_params->max_streams());
+        result.geant_sd = std::make_shared<GeantSd>(
+            *core_params->particle(), *p.scoring.sd, p.control.num_streams);
         step_interfaces.push_back(result.geant_sd);
     }
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo = std::make_shared<SimpleCalo>(
-            p.scoring.simple_calo->volumes, num_streams, *core_params->volume());
+        auto simple_calo
+            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
+                                           p.control.num_streams,
+                                           *core_params->volume());
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);
@@ -816,8 +856,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
  * This constructs the optical params \em without additionally constructing the
  * core params.
  */
-OpticalProblemLoaded
-problem(inp::OpticalProblem const& p, ImportData const& imported)
+OpticalProblemLoaded problem(inp::OpticalProblem& p, ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 
@@ -826,6 +865,9 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
                       "materials are present");
+
+    // Set default values that depend on whether device is enabled
+    set_control_defaults(p.capacity);
 
     // Load geometry and model
     if (auto* filename = std::get_if<std::string>(&p.model.geometry))
@@ -846,6 +888,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     // Set up streams
     CELER_VALIDATE(p.num_streams > 0,
                    << "p.num_streams must be manually set before setup");
+
     if (auto& device = celeritas::device())
     {
         device.create_streams(p.num_streams);
@@ -877,7 +920,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                             p.offload_file);
                 }
                 return optical::GeneratorAction::make_and_insert(
-                    *params, p.capacity.generators);
+                    *params, *p.capacity.generators);
             },
             [&](inp::OpticalPrimaryGenerator opg) -> SPGeneratorBase {
                 return optical::PrimaryGeneratorAction::make_and_insert(
