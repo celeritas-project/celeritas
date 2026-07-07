@@ -43,7 +43,11 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
     auto derivative = [&](size_type i) -> double {
         if (i == 0 || i >= grid.x.size())
         {
-            return 0;
+            if (i == 0)
+                return (grid.y[1] - grid.y[0]) / (grid.x[1] - grid.x[0]);
+            size_type N = grid.x.size();
+            return (grid.y[N - 1] - grid.y[N - 2])
+                   / (grid.x[N - 1] - grid.x[N - 2]);
         }
         return (grid.y[i] - grid.y[i - 1]) / (grid.x[i] - grid.x[i - 1]);
     };

@@ -41,14 +41,14 @@ TEST_F(DerivativeGridCalculatorTest, build)
     };
 
     static real_type const expected_grid_y[] = {
-        0,
+        107.75,
         107.75,
         107.75,
         6.8,
         6.8,
         191.25,
         191.25,
-        0,
+        191.25,
     };
 
     EXPECT_VEC_SOFT_EQ(expected_grid_x, deriv_grid.x);
@@ -75,8 +75,8 @@ TEST_F(DerivativeGridCalculatorTest, coincident)
     };
 
     static real_type const expected_grid_y[] = {
-        0,   11.0, 11.0, inf, inf, inf,  inf,  inf, inf, inf,
-        inf, 3.0,  3.0,  inf, inf, 80.0, 80.0, inf, inf, 0,
+        11,  11.0, 11.0, inf, inf, inf,  inf,  inf, inf, inf,
+        inf, 3.0,  3.0,  inf, inf, 80.0, 80.0, inf, inf, inf,
     };
 
     EXPECT_VEC_SOFT_EQ(expected_grid_x, deriv_grid.x);
