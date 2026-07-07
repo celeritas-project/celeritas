@@ -184,8 +184,8 @@ Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
 See the configure output from the [GitHub runners][runners] for the full list of combinations.
 - Compilers
-    - GCC 11, 12, 14
-    - Clang 10, 15, 18
+    - GCC 12, 14, 15
+    - Clang 15, 18, 22
     - MSVC 19
     - GCC 11.5 + NVCC 12.6
     - ROCm Clang 18

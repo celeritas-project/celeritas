@@ -26,21 +26,11 @@ jobs:
           - runner: jammy
             compiler: clang
             version: 15
+            cxxstd: 20
           - runner: noble
             compiler: gcc
             version: 14
           - runner: noble
-            compiler: clang
-            version: 18
-          - runner: noble
-            compiler: gcc
-            version: 14
-            cxxstd: 20
-          - runner: noble
-            compiler: clang
-            version: 18
-            cxxstd: 20
-          - runner: noble-arm
             compiler: clang
             version: 18
             cxxstd: 20
@@ -50,12 +40,14 @@ jobs:
           - runner: resolute
             compiler: clang
             version: 22
+            cxxstd: 20
           - runner: resolute-arm
             compiler: gcc
             version: 15
           - runner: resolute-arm
             compiler: clang
             version: 22
+            cxxstd: 20
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
