@@ -338,8 +338,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.0;
         ref.intersect_surface = LocalSurfaceId{1};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -356,8 +356,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = std::vector<int>{3, 3, 1};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {3, 3, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -374,8 +374,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.0;
         ref.intersect_surface = LocalSurfaceId{3};
-        ref.hit_count = std::vector<int>{1, 1, 3};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {1, 1, 3};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -388,8 +388,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{4};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{2, 2, 2};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {2, 2, 2};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -402,8 +402,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -415,8 +415,8 @@ TEST_F(BasicBvhTest, outside_first)
     {
         IntersectResult ref;
         ref.distance = 1.1;
-        ref.hit_count = std::vector<int>{0, 0, 0};
-        ref.miss_count = std::vector<int>{3, 3, 3};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map, 1.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -429,8 +429,8 @@ TEST_F(BasicBvhTest, outside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 1.3);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -456,8 +456,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 0.5;
         ref.intersect_surface = LocalSurfaceId{0};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{0, 0, 0};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {0, 0, 0};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -475,8 +475,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 0.1;
         ref.intersect_surface = LocalSurfaceId{1};
-        ref.hit_count = std::vector<int>{2, 2, 1};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -490,8 +490,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = std::vector<int>{3, 3, 1};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {3, 3, 1};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -508,8 +508,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1.0;
         ref.intersect_surface = LocalSurfaceId{3};
-        ref.hit_count = std::vector<int>{1, 1, 3};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {1, 1, 3};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -522,8 +522,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{4};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{2, 2, 2};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {2, 2, 2};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -536,8 +536,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -549,8 +549,8 @@ TEST_F(BasicBvhTest, inside_first)
     {
         IntersectResult ref;
         ref.distance = 0.1;
-        ref.hit_count = std::vector<int>{0, 0, 0};
-        ref.miss_count = std::vector<int>{3, 3, 3};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map, 0.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -563,8 +563,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1.2;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 1.6);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -581,8 +581,8 @@ TEST_F(BasicBvhTest, inside_first)
         IntersectResult ref;
         ref.distance = 1;
         ref.intersect_surface = LocalSurfaceId{5};
-        ref.hit_count = std::vector<int>{3, 3, 3};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {3, 3, 3};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 3);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -607,8 +607,8 @@ TEST_F(BasicBvhTest, not_first)
         IntersectResult ref;
         ref.distance = 1.7;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = std::vector<int>{2, 2, 2};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {2, 2, 2};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -621,8 +621,8 @@ TEST_F(BasicBvhTest, not_first)
         IntersectResult ref;
         ref.distance = 11.;
         ref.intersect_surface = LocalSurfaceId{0};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{3, 3, 3};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {3, 3, 3};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -635,8 +635,8 @@ TEST_F(BasicBvhTest, not_first)
         IntersectResult ref;
         ref.distance = 1.5;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{3, 4, 4};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {3, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map, large);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -649,8 +649,8 @@ TEST_F(BasicBvhTest, not_first)
     {
         IntersectResult ref;
         ref.distance = 0.8;
-        ref.hit_count = std::vector<int>{0, 0, 0};
-        ref.miss_count = std::vector<int>{1, 1, 1};
+        ref.hit_count = {0, 0, 0};
+        ref.miss_count = {1, 1, 1};
         auto result = this->get_result({pos, dir}, dist_map, 0.8);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -664,8 +664,8 @@ TEST_F(BasicBvhTest, not_first)
         IntersectResult ref;
         ref.distance = 1.5;
         ref.intersect_surface = LocalSurfaceId{2};
-        ref.hit_count = std::vector<int>{1, 1, 1};
-        ref.miss_count = std::vector<int>{3, 4, 4};
+        ref.hit_count = {1, 1, 1};
+        ref.miss_count = {3, 4, 4};
         auto result = this->get_result({pos, dir}, dist_map, 2.1);
         EXPECT_REF_EQ(ref, result) << result;
     }
@@ -743,9 +743,8 @@ TEST_F(KebabTest, all)
         IntersectResult ref;
         ref.distance = large;
         ref.intersect_surface = {};
-        ref.hit_count = std::vector<int>{0, 0, 0, 0, 0, 0, 0, 0};
-        ref.miss_count
-            = std::vector<int>{1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
+        ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
+        ref.miss_count = {1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024};
         EXPECT_REF_EQ(ref, result) << result;
     }
     {
@@ -756,9 +755,8 @@ TEST_F(KebabTest, all)
         IntersectResult ref;
         ref.distance = large;
         ref.intersect_surface = {};
-        ref.hit_count = std::vector<int>{0, 0, 0, 0, 0, 0, 0, 0};
-        ref.miss_count
-            = std::vector<int>{513, 513, 513, 513, 513, 513, 513, 513};
+        ref.hit_count = {0, 0, 0, 0, 0, 0, 0, 0};
+        ref.miss_count = {513, 513, 513, 513, 513, 513, 513, 513};
         EXPECT_REF_EQ(ref, result) << result;
     }
     {
@@ -773,8 +771,8 @@ TEST_F(KebabTest, all)
         IntersectResult ref;
         ref.distance = 2.9;
         ref.intersect_surface = LocalSurfaceId{514};
-        ref.hit_count = std::vector<int>{1, 1, 1, 1, 1, 1, 1, 1};
-        ref.miss_count = std::vector<int>{3, 3, 3, 3, 3, 3, 3, 3};
+        ref.hit_count = {1, 1, 1, 1, 1, 1, 1, 1};
+        ref.miss_count = {3, 3, 3, 3, 3, 3, 3, 3};
         EXPECT_REF_EQ(ref, result) << result;
     }
     {
@@ -795,12 +793,12 @@ TEST_F(KebabTest, all)
         IntersectResult ref;
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
-        ref.hit_count = std::vector<int>{1, 1, 1, 1, 1, 2, 2, 2};
-        ref.miss_count = std::vector<int>{2, 2, 3, 7, 7, 14, 14, 14};
+        ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
+        ref.miss_count = {2, 2, 3, 7, 7, 14, 14, 14};
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
         {
             // Overconservative hits
-            ref.miss_count = std::vector<int>{3, 3, 4, 8, 8, 15, 15, 15};
+            ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
         }
         EXPECT_REF_EQ(ref, result) << result;
     }
