@@ -40,14 +40,12 @@ jobs:
           - runner: resolute
             compiler: clang
             version: 22
-            cxxstd: 20
           - runner: resolute-arm
             compiler: gcc
             version: 15
           - runner: resolute-arm
             compiler: clang
             version: 22
-            cxxstd: 20
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
