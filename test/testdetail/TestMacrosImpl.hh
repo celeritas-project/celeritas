@@ -405,7 +405,15 @@ IsRangeEqImpl(Iter1 e_iter,
     if (failures.size() > 40)
     {
         result << " (truncating by removing all but the first and last 20)";
-        failures.erase(failures.begin() + 20, failures.end() - 20);
+        // NOTE: to avoid recurring GCC warning false positives from deep in
+        // algorithm implementations, copy to a new vector instead of erasing,
+        // and avoid subtracting from end
+        typename FVIT<Iter1, Iter2>::Vec_t new_failures(failures.begin(),
+                                                        failures.begin() + 20);
+        new_failures.insert(new_failures.end(),
+                            failures.begin() + (failures.size() - 20),
+                            failures.end());
+        failures = std::move(new_failures);
     }
     result << '\n';
     return result;
