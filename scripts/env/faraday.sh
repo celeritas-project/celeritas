@@ -9,5 +9,8 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
+export CXX=/usr/bin/g++-13
+export CC=/usr/bin/gcc-13
+
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
