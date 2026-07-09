@@ -18,7 +18,8 @@ namespace test
 using Real5 = Array<real_type, 5>;
 using Real4 = Array<real_type, 4>;
 using Roots = Array<real_type, 4>;
-static constexpr real_type practical_tolerance = 1e-10;
+static constexpr real_type practical_tolerance
+    = std::is_same_v<real_type, double> ? 1e-10 : 1e-6;
 
 //---------------------------------------------------------------------------//
 /*!
