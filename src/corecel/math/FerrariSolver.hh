@@ -158,7 +158,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     // One real root of subsidiary cubic
     Real3 z = FerrariSolver::real_roots_normalized_cubic(
         p, r, p * r - half * ipow<2>(q));
-    real_type z0 = z[0];
+    real_type z0 = (z[1] == no_solution_) ? z[0] : max(z[0], max(z[1], z[2]));
 
     real_type s2 = 2 * p + 2 * z0;
     if (s2 >= 0)
@@ -326,14 +326,15 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
         real_type z1 = n2_root_q * std::cos(third_theta + twth_pi) - third_b;
         real_type z2 = n2_root_q * std::cos(third_theta - twth_pi) - third_b;
 
-        if (2_r * theta < constants::pi)
-        {
-            return Real3(z0, z1, z2);
-        }
-        else
-        {
-            return Real3(z1, z0, z2);
-        }
+        return Real3(z0, z1, z2);
+        // if (2_r * theta < constants::pi)
+        // {
+        //     return Real3(z0, z1, z2);
+        // }
+        // else
+        // {
+        //     return Real3(z1, z0, z2);
+        // }
     }
     else  // One real and two complex roots, solve for real root with Cardano
     {
