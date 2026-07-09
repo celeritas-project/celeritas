@@ -327,14 +327,6 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
         real_type z2 = n2_root_q * std::cos(third_theta - twth_pi) - third_b;
 
         return Real3(z0, z1, z2);
-        // if (2_r * theta < constants::pi)
-        // {
-        //     return Real3(z0, z1, z2);
-        // }
-        // else
-        // {
-        //     return Real3(z1, z0, z2);
-        // }
     }
     else  // One real and two complex roots, solve for real root with Cardano
     {
