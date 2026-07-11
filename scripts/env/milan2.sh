@@ -17,5 +17,13 @@ load_system_env excl || return $?
 
 export CUDAARCHS=70
 export CUDAFLAGS="-Werror all-warnings -Wno-deprecated-gpu-targets"
-export CUDA_HOME=${CELERITAS_OPT}/cuda/12.9.1/pmicvvf
+export CUDA_HOME=${CELER_OPT}/cuda/12.9.1/pmicvvf
 export CUDACXX=${CUDA_HOME}/bin/nvcc
+
+if ! [ -d "${CUDA_HOME}" ]; then
+  celerlog warning "CUDA_HOME=${CUDA_HOME} is not a directory"
+fi
+if ! [ -x "${CUDACXX}" ]; then
+  celerlog error "CUDACXX=${CUDACXX} is not an executable"
+  return 1
+fi

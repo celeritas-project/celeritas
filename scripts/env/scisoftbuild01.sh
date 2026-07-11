@@ -24,7 +24,7 @@ fi
 _apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
-  . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
+  . \${CELER_SOURCE}/scripts/env/scisoftbuild01.sh
 "
     return 1
   fi

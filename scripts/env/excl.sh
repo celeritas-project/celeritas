@@ -20,7 +20,7 @@ fi
 _apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     celerlog error "Scratch directory does not exist: run
-  . \${CELERITAS_SOURCE}/scripts/env/excl.sh
+  . \${CELER_SOURCE}/scripts/env/excl.sh
 "
     return 1
   fi
@@ -107,36 +107,17 @@ EOF
   unset _clangd
 fi
 
-export SPACK_ROOT=/auto/projects/celeritas/spack
-if ! test -r $SPACK_ROOT; then
-  celerlog error "spack directory SPACK_ROOT=${SPACK_ROOT} is not readable:
-       contact excl-help@ornl.gov for access"
+CELER_ENV=/scratch/celeritas/view
+if ! [ -d "${CELER_ENV}" ]; then
+  celerlog error "Celeritas spack environment does not exist (or is unreadable) at CELER_ENV=${CELER_ENV}"
   return 1
 fi
 
-if ! command -v spack >/dev/null 2>&1; then
-  _spack_setup="$SPACK_ROOT/share/spack/setup-env.sh"
-  case "$0" in
-    /bin/*)
-      # Presumably sourcing from user shell to set up environment: load spack
-      celerlog debug "Loading spack setup from ${_spack_setup}"
-      . "${_spack_setup}"
-      ;;
-    *)
-      # Spack isn't available but we're loading from the build script so we don't really need it
-      celerlog warning "spack is not available; source ${_spack_setup} if desired"
-      ;;
-  esac
-  unset _spack_setup
+# CELER_OPT can be used by downstream env for exact paths, e.g. CUDA
+CELER_OPT=/scratch/celeritas/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
+if ! [ -d "${CELER_OPT}" ]; then
+  celerlog warning "Celeritas toolchain does not exist (or is unreadable) at CELER_OPT=${CELER_OPT}"
 fi
 
-CELERITAS_ENV=/scratch/celeritas/view
-if ! [ -d "${CELERITAS_ENV}" ]; then
-  celerlog error "celeritas env does not exist (or is unreadable) at ${CELERITAS_ENV}"
-  return 1
-fi
-
-CELERITAS_OPT=/scratch/celeritas/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
-
-export PATH=${CELERITAS_ENV}/bin:${PATH}
-export CMAKE_PREFIX_PATH=${CELERITAS_ENV}:${CMAKE_PREFIX_PATH}
+export PATH=${CELER_ENV}/bin:${PATH}
+export CMAKE_PREFIX_PATH=${CELER_ENV}:${CMAKE_PREFIX_PATH}
