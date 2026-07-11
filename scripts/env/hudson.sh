@@ -17,6 +17,5 @@ load_system_env excl || return $?
 
 export CUDAARCHS=90
 export CUDAFLAGS="-Werror all-warnings"
-export CUDA_HOME=/scratch/celeritas/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder/cuda/12.9.1/pmicvvf
-export CUDACXX=${CUDA_HOME}/bin/nvcc
-export CUDAHOSTCXX=$CXX
+export CUDACXX=${CELER_ENV}/bin/nvcc
+#export CUDAHOSTCXX=$CXX
