@@ -402,18 +402,17 @@ IsRangeEqImpl(Iter1 e_iter,
     result << "Values in: " << actual_expr << "\n Expected: " << expected_expr
            << '\n'
            << failures.size() << " of " << expected_size << " elements differ";
-    if (failures.size() > 40)
+    // Chop out the middle failures so we can see the beginning/end but not be
+    // overwhelmed for large outputs. When truncation happens, trunc_size is
+    // always 20, but it's written with `min` to avoid a dozen different false
+    // positives from GCC range checking when the expression is consteval.
+    auto const trunc_size = std::min<std::size_t>(failures.size(), 20);
+    if (failures.size() > 2 * trunc_size)
     {
-        result << " (truncating by removing all but the first and last 20)";
-        // NOTE: to avoid recurring GCC warning false positives from deep in
-        // algorithm implementations, copy to a new vector instead of erasing,
-        // and avoid subtracting from end
-        typename FVIT<Iter1, Iter2>::Vec_t new_failures(failures.begin(),
-                                                        failures.begin() + 20);
-        new_failures.insert(new_failures.end(),
-                            failures.begin() + (failures.size() - 20),
-                            failures.end());
-        failures = std::move(new_failures);
+        failures.erase(failures.begin() + trunc_size,
+                       failures.end() - trunc_size);
+        result << " (truncating by removing all but the first and last "
+               << trunc_size << ")";
     }
     result << '\n';
     return result;

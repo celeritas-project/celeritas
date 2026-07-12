@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TestMacros.hh"
 
+#include <algorithm>
 #include <limits>
 
 #include "corecel/cont/Array.hh"
@@ -388,7 +389,14 @@ TEST(IsVecEq, failures)
     // 100 wrong values (should truncate)
     expected.assign(100, 5);
     actual.assign(100, 6);
-    EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
+    {
+        auto result = IsVecEq("expected", "actual", expected, actual);
+        EXPECT_FALSE(result);
+        auto const message = std::string(result.message());
+        EXPECT_EQ(44, std::count(message.begin(), message.end(), '\n'))
+            << message;
+        EXPECT_NE(message.find("truncating by removing"), std::string::npos);
+    }
 
     // A couple of wrong values in a large array
     expected.assign(200, 10);
@@ -397,7 +405,14 @@ TEST(IsVecEq, failures)
     actual[5] = 1;
     actual[100] = 3;
     actual[150] = 2;
-    EXPECT_FALSE(IsVecEq("expected", "actual", expected, actual));
+    {
+        auto result = IsVecEq("expected", "actual", expected, actual);
+        EXPECT_FALSE(result);
+        auto const message = std::string(result.message());
+        EXPECT_EQ(8, std::count(message.begin(), message.end(), '\n'))
+            << message;
+        EXPECT_EQ(message.find("truncating by removing"), std::string::npos);
+    }
 
     // Test nested containers
     std::vector<VecInt> expected_vec = {{0, 1}, {2, 3, 4}};
