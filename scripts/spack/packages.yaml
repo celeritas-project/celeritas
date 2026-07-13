@@ -1,9 +1,7 @@
 packages:
   all:
     prefer:
-    - "generator=ninja build_system=cmake"
-    - "build_type=Release"
-    - "cxxstd=20"
+      - 'cxxstd=20'
   cli11:
     require: '@2.4:'
   cmake:
