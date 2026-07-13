@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "DerivativeGridCalculator.hh"
 
+#include <fstream>
+
 #include "GridTypes.hh"
 #include "VectorUtils.hh"
-
+#include "nlohmann/json.hpp"
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -35,36 +37,28 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
 
     inp::Grid result;
     result.interpolation = grid.interpolation;
+    static std::ofstream out("derivative-mean.jsonl", std::ios::app);
+    size_type const n = grid.x.size();
+    result.x = grid.x;
+    result.y.resize(n);
 
-    result.x.reserve(2 * grid.x.size());
-    result.y.reserve(2 * grid.y.size());
-
-    // Calculate derivative for [i-1, i] grid interval
-    auto derivative = [&](size_type i) -> double {
-        if (i == 0 || i >= grid.x.size())
-        {
-            if (i == 0)
-                return (grid.y[1] - grid.y[0]) / (grid.x[1] - grid.x[0]);
-            size_type N = grid.x.size();
-            return (grid.y[N - 1] - grid.y[N - 2])
-                   / (grid.x[N - 1] - grid.x[N - 2]);
-        }
-        return (grid.y[i] - grid.y[i - 1]) / (grid.x[i] - grid.x[i - 1]);
+    auto derivative = [&](size_type i) {
+        // CELER_EXPECT(i < grid.x.size());
+        return (grid.y[i + 1] - grid.y[i]) / (grid.x[i + 1] - grid.x[i]);
     };
 
-    for (size_type i : range(grid.x.size()))
+    // One-sided derivatives at endpoints
+    result.y.front() = derivative(0);
+    result.y.back() = derivative(n - 2);
+    for (size_type i = 1; i + 1 < n; ++i)
     {
-        // Add left-derivative grid-point
-        result.x.push_back(grid.x[i]);
-        result.y.push_back(derivative(i));
+        double const s_left = derivative(i - 1);
+        double const s_right = derivative(i);
 
-        // Add right-derivative grid-point
-        result.x.push_back(grid.x[i]);
-        result.y.push_back(derivative(i + 1));
+        result.y[i] = 2 * s_left * s_right / (s_left + s_right);
     }
-    CELER_ASSERT(result.x.size() == 2 * grid.x.size());
-    CELER_ASSERT(result.y.size() == 2 * grid.y.size());
 
+    CELER_ASSERT(result.x.size() == result.y.size());
     // Ensure epsilon neighborhoods don't overlap
     CELER_ASSERT(is_monotonic_nondecreasing(make_span(result.x)));
 
