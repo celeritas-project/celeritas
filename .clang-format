@@ -270,11 +270,11 @@ PackConstructorInitializers: NextLine
 PenaltyBreakAssignment: 20
 PenaltyBreakBeforeFirstCallParameter: 5
 PenaltyBreakBeforeMemberAccess: 150
-PenaltyBreakComment: 10
-PenaltyBreakFirstLessLess: 1
-PenaltyBreakOpenParenthesis: 0
+PenaltyBreakComment: 20
+PenaltyBreakFirstLessLess: 5
+PenaltyBreakOpenParenthesis: 1
 PenaltyBreakScopeResolution: 500
-PenaltyBreakString: 25
+PenaltyBreakString: 100
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 25
 PenaltyIndentedWhitespace: 0
