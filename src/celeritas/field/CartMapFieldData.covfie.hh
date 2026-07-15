@@ -72,11 +72,10 @@ struct CartMapFieldParamsData<Ownership::value, MemSpace::device>
     }
 
     template<class other_t>
-    requires
-        std::same_as<other_t,
-                     CartMapFieldParamsData<Ownership::value,
-                                            MemSpace::host>> CartMapFieldParamsData&
-        operator=(other_t const& other)
+        requires std::same_as<
+            other_t,
+            CartMapFieldParamsData<Ownership::value, MemSpace::host>>
+    CartMapFieldParamsData& operator=(other_t const& other)
     {
         using host_field_t = detail::CovfieFieldTraits<MemSpace::host>::field_t;
         if constexpr (!std::is_same_v<field_t, host_field_t>)
