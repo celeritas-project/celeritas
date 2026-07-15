@@ -102,15 +102,16 @@ void from_json(nlohmann::json const& j, RunInput& v)
                         / num_streams);
     RI_LOAD_OPTION(max_steps);
     RI_LOAD_DEFAULT(initializer_capacity,
-                    Defaults::initializers_factor * v.num_track_slots);
-    RI_LOAD_DEFAULT(secondary_stack_factor, Defaults::secondaries_factor);
+                    Defaults::initializers_per_track * v.num_track_slots);
+    RI_LOAD_DEFAULT(secondary_stack_factor, Defaults::secondaries_per_track);
     RI_LOAD_OPTION(action_times);
     if (j.count("default_stream"))
     {
         // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
-    RI_LOAD_DEFAULT(auto_flush, Defaults::primaries_factor * v.num_track_slots);
+    RI_LOAD_DEFAULT(auto_flush,
+                    Defaults::primaries_per_track * v.num_track_slots);
 
     RI_LOAD_OPTION(track_order);
 

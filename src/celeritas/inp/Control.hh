@@ -78,15 +78,15 @@ struct CoreStateCapacity : StateCapacity
     //! Default values
     static constexpr size_type cpu_tracks = 4096;
     static constexpr size_type gpu_tracks = 1048576;
-    static constexpr size_type primaries_factor = 1;
-    static constexpr size_type initializers_factor = 8;
-    static constexpr size_type secondaries_factor = 2;
+    static constexpr size_type primaries_per_track = 1;
+    static constexpr size_type initializers_per_track = 8;
+    static constexpr size_type secondaries_per_track = 2;
 
     //! Maximum number of queued primaries+secondaries
     std::optional<size_type> initializers;
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
-    //! Maximum number of simultaneous events (zero for one event at a time)
+    //! Maximum number of simultaneous events
     std::optional<size_type> events;
 };
 
@@ -107,8 +107,8 @@ struct OpticalStateCapacity : StateCapacity
     //! Default values
     static constexpr size_type cpu_tracks = 4096;
     static constexpr size_type gpu_tracks = 1048576;
-    static constexpr size_type primaries_factor = 128;
-    static constexpr size_type generators_factor = 2;
+    static constexpr size_type primaries_per_track = 128;
+    static constexpr size_type generators_per_track = 2;
 
     //! Maximum number of queued photon-generating steps
     std::optional<size_type> generators{};
@@ -155,7 +155,7 @@ struct Control
     std::optional<DeviceDebug> device_debug;
 
     //! Perform a no-op step at the beginning to improve timing measurements
-    bool warm_up{false};
+    std::optional<bool> warm_up{false};
 
     //! Random number generator seed
     unsigned int seed{};

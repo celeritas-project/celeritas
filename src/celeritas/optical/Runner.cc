@@ -48,7 +48,7 @@ Runner::Runner(Input&& osi)
     // Save the optical transporter and generator
     CELER_ASSERT(loaded_.problem.transporter);
     CELER_ASSERT(loaded_.problem.generator);
-    CELER_ASSERT(stream_id < this->params()->max_streams());
+    CELER_ASSERT(stream_id < this->params()->sizes().streams);
 
     // Add problem input to output registry
     this->params()->output_reg()->insert(osi_output);

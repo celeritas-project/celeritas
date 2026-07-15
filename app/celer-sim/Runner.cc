@@ -109,7 +109,7 @@ auto Runner::operator()() -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     CELER_EXPECT(core_params_);
-    return core_params_->max_streams();
+    return core_params_->sizes().streams;
 }
 
 //---------------------------------------------------------------------------//

@@ -47,8 +47,7 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-
-#include "detail/CoreSizes.json.hh"
+#include "CoreSizesIO.json.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"  // IWYU pragma: keep
@@ -229,7 +228,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
-    CP_VALIDATE_INPUT(max_streams);
+    CP_VALIDATE_INPUT(sizes);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
@@ -282,7 +281,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     }
 
     // Save maximum number of streams
-    scalars.max_streams = this->max_streams();
+    scalars.max_streams = this->sizes().streams;
 
     // Save non-owning pointer to core params for host diagnostics
     scalars.host_core_params = ObserverPtr{this};
@@ -301,18 +300,11 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     insert_system_diagnostics(*input_.output_reg);
 
     // Save core sizes
-    detail::CoreSizes sizes;
-    sizes.processes = comm_world().size();
-    sizes.streams = this->max_streams();
-    sizes.initializers = *this->capacity().initializers;
-    sizes.tracks = *this->capacity().tracks;
-    sizes.secondaries = *this->capacity().secondaries;
-    sizes.events = *this->capacity().events;
     input_.output_reg->insert(
-        OutputInterfaceAdapter<detail::CoreSizes>::from_rvalue_ref(
+        OutputInterfaceAdapter<CoreSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
             "core-sizes",
-            std::move(sizes)));
+            CoreSizes{this->sizes()}));
 
     // Save core diagnostic information
     input_.output_reg->insert(
@@ -339,7 +331,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CELER_LOG(status) << "Celeritas core setup complete";
 
     CELER_ENSURE(host_ref_);
-    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->sizes().streams);
 }
 
 //---------------------------------------------------------------------------//

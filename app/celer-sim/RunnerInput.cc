@@ -114,7 +114,6 @@ inp::Problem load_problem(RunnerInput const& ri)
     // Control
     {
         inp::CoreStateCapacity capacity;
-        capacity.primaries = 0;  // Immediately generate initializers
         capacity.initializers = ri.initializer_capacity;
         capacity.tracks = ri.num_track_slots;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor

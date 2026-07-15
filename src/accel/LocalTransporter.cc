@@ -147,8 +147,8 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : auto_flush_(*params.Params()->capacity().primaries
-                  / params.Params()->max_streams())
+    : auto_flush_(params.Params()->sizes().primaries
+                  / params.Params()->sizes().streams)
     , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
@@ -166,7 +166,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     bbox_ = params.bbox();
 
     // Check the thread ID and MT model
-    validate_geant_threading(params.Params()->max_streams());
+    validate_geant_threading(params.Params()->sizes().streams);
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed

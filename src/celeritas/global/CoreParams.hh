@@ -14,9 +14,9 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/inp/Control.hh"
 
 #include "ActionInterface.hh"
+#include "CoreSizes.hh"
 #include "CoreTrackData.hh"
 
 namespace celeritas
@@ -99,21 +99,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPAuxRegistry aux_reg;  //!< Optional, empty default
         SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
-        //! Maximum number of simultaneous threads/tasks per process
-        StreamId::size_type max_streams{1};
-
         //! Per-process state and buffer capacities
-        inp::CoreStateCapacity capacity;
+        CoreSizes sizes;
 
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
                    && physics && rng && sim && volume && surface && init
-                   && action_reg && output_reg && max_streams
-                   && capacity.tracks > 0 && capacity.primaries > 0
-                   && capacity.initializers > 0 && capacity.secondaries > 0
-                   && capacity.events > 0;
+                   && action_reg && output_reg && sizes;
         }
     };
 
@@ -159,15 +153,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     inline ConstPtr<M> ptr() const;
 
     //! Per-process state and buffer capacities
-    inp::CoreStateCapacity const& capacity() const { return input_.capacity; }
+    CoreSizes const& sizes() const { return input_.sizes; }
 
     //! Maximum number of streams
-    size_type max_streams() const { return input_.max_streams; }
+    size_type max_streams() const { return this->sizes().streams; }
 
     //! Number of track slots per stream
     size_type tracks_per_stream() const
     {
-        return ceil_div(*this->capacity().tracks, this->max_streams());
+        return ceil_div(this->sizes().tracks, this->sizes().streams);
     }
 
   private:

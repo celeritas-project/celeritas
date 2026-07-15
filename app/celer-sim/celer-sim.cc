@@ -107,7 +107,8 @@ void run(std::shared_ptr<OutputRegistry>& output,
     size_type num_streams = run_stream.num_streams();
     result.num_streams = num_streams;
 
-    if (si.problem.control.warm_up)
+    auto use_device = static_cast<bool>(celeritas::device());
+    if (si.problem.control.warm_up.value_or(use_device))
     {
         get_setup_time = {};
         run_stream.warm_up();

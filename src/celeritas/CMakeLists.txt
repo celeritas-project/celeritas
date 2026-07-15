@@ -157,6 +157,7 @@ list(APPEND SOURCES
   phys/ProcessBuilder.cc
   phys/SurfaceModel.cc
   phys/SurfacePhysicsMapBuilder.cc
+  setup/Control.cc
   setup/Events.cc
   setup/FrameworkInput.cc
   setup/Import.cc

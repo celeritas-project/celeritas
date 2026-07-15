@@ -235,9 +235,14 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
             "processes": 1,
             "secondaries": 96,
             "tracks": 32,
+            "primaries": 1,
         }
     if not use_device and "lar" in inp["problem"]["model"]["geometry"]:
-        expected_opt_sizes = {"generators": 8388608, "tracks": 8192}
+        expected_opt_sizes = {
+            "generators": 8388608,
+            "tracks": 8192,
+            "primaries": 8192,
+        }
         assert "optical" in run_output
         cuts = sum(em_step["num_cut"] for em_step in run_output["optical"])
         assert cuts > 0

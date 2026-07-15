@@ -31,6 +31,7 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/setup/Control.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -215,14 +216,9 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
-    inp.capacity = [] {
-        using Defaults = inp::OpticalStateCapacity;
+    inp.sizes = [] {
         inp::OpticalStateCapacity cap;
-        cap.tracks = celeritas::Device::num_devices() ? Defaults::gpu_tracks
-                                                      : Defaults::cpu_tracks;
-        cap.primaries = Defaults::primaries_factor * *cap.tracks;
-        cap.generators = Defaults::generators_factor * *cap.tracks;
-        return cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
     }();
 
     CELER_ENSURE(inp);
@@ -268,16 +264,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
-    inp.capacity = [] {
-        using Defaults = inp::CoreStateCapacity;
+    inp.sizes = [] {
         inp::CoreStateCapacity cap;
-        cap.tracks = celeritas::Device::num_devices() ? Defaults::gpu_tracks
-                                                      : Defaults::cpu_tracks;
-        cap.primaries = Defaults::primaries_factor * *cap.tracks;
-        cap.initializers = Defaults::initializers_factor * *cap.tracks;
-        cap.secondaries = Defaults::secondaries_factor * *cap.tracks;
-        cap.events = 1;
-        return cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
     }();
     CELER_ASSERT(inp);
 

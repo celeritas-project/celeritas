@@ -69,7 +69,7 @@ void to_json(nlohmann::json& j, Control const& v)
         CELER_JSON_PAIR_OPTIONAL(v, optical_capacity),
         CELER_JSON_PAIR_OPTIONAL(v, track_order),
         CELER_JSON_PAIR_OPTIONAL(v, device_debug),
-        CELER_JSON_PAIR(v, warm_up),
+        CELER_JSON_PAIR_OPTIONAL(v, warm_up),
         CELER_JSON_PAIR(v, seed),
     };
 }
@@ -80,7 +80,7 @@ void from_json(nlohmann::json const& j, Control& v)
     CELER_JSON_LOAD_OPTIONAL(j, v, optical_capacity);
     CELER_JSON_LOAD_OPTIONAL(j, v, track_order);
     CELER_JSON_LOAD_OPTIONAL(j, v, device_debug);
-    CELER_JSON_LOAD_OPTION(j, v, warm_up);
+    CELER_JSON_LOAD_OPTIONAL(j, v, warm_up);
     CELER_JSON_LOAD_OPTION(j, v, seed);
 }
 
