@@ -34,8 +34,8 @@ namespace
  */
 char const* to_cstring(G4OpticalSurfaceModel value)
 {
-#define GSPL_OSM_PAIR(ENUMVALUE)     \
-    {                                \
+#define GSPL_OSM_PAIR(ENUMVALUE) \
+    { \
         G4OSM::ENUMVALUE, #ENUMVALUE \
     }
 
@@ -62,8 +62,8 @@ char const* to_cstring(G4OpticalSurfaceModel value)
  */
 char const* to_cstring(G4SurfaceType value)
 {
-#define GSPL_ST_PAIR(ENUMVALUE)     \
-    {                               \
+#define GSPL_ST_PAIR(ENUMVALUE) \
+    { \
         G4ST::ENUMVALUE, #ENUMVALUE \
     }
 
@@ -94,8 +94,8 @@ char const* to_cstring(G4SurfaceType value)
  */
 char const* to_cstring(G4OpticalSurfaceFinish value)
 {
-#define GSPL_OSF_PAIR(ENUMVALUE)     \
-    {                                \
+#define GSPL_OSF_PAIR(ENUMVALUE) \
+    { \
         G4OSF::ENUMVALUE, #ENUMVALUE \
     }
 

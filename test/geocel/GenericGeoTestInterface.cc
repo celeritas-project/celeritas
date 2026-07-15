@@ -95,22 +95,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                 \
-    try                                                              \
-    {                                                                \
-        ACTION;                                                      \
-    }                                                                \
-    catch (CheckedGeoError const& e)                                 \
-    {                                                                \
-        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e);       \
-        result.fail();                                               \
-        return result;                                               \
-    }                                                                \
-    catch (std::exception const& e)                                  \
-    {                                                                \
+#define GGTI_EXPECT_NO_THROW(ACTION) \
+    try \
+    { \
+        ACTION; \
+    } \
+    catch (CheckedGeoError const& e) \
+    { \
+        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e); \
+        result.fail(); \
+        return result; \
+    } \
+    catch (std::exception const& e) \
+    { \
         ADD_FAILURE() << StreamableActionException{#ACTION, geo, e}; \
-        result.fail();                                               \
-        return result;                                               \
+        result.fail(); \
+        return result; \
     }
 
     // Note: position is scaled according to test

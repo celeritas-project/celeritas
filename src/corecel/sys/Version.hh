@@ -120,10 +120,10 @@ constexpr Version::Version(size_type major, size_type minor, size_type patch)
 //---------------------------------------------------------------------------//
 // NOTE: constexpr is only defined for std::array in C++20
 
-#define CELER_DEFINE_VERSION_CMP(TOKEN)                                \
+#define CELER_DEFINE_VERSION_CMP(TOKEN) \
     inline bool operator TOKEN(Version const& lhs, Version const& rhs) \
-    {                                                                  \
-        return lhs.value() TOKEN rhs.value();                          \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
     }
 
 CELER_DEFINE_VERSION_CMP(==)

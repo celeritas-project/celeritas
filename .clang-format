@@ -65,7 +65,7 @@ AlignConsecutiveTableGenDefinitionColons:
   AlignFunctionDeclarations: false
   AlignFunctionPointers: false
   PadOperators:    false
-AlignEscapedNewlines: Left
+AlignEscapedNewlines: DontAlign
 AlignOperands:   Align
 AlignTrailingComments:
   AlignPPAndNotPP: true

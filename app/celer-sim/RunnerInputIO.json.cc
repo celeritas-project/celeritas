@@ -147,17 +147,17 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
 #define LDIO_SAVE_OPTION(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
-#define LDIO_SAVE_OPTIONAL(NAME)  \
-    do                            \
-    {                             \
-        if (v.NAME)               \
-        {                         \
+#define LDIO_SAVE_OPTIONAL(NAME) \
+    do \
+    { \
+        if (v.NAME) \
+        { \
             j[#NAME] = *(v.NAME); \
-        }                         \
-        else                      \
-        {                         \
-            j[#NAME] = nullptr;   \
-        }                         \
+        } \
+        else \
+        { \
+            j[#NAME] = nullptr; \
+        } \
     } while (0)
 
     j = nlohmann::json::object();

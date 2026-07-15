@@ -1404,13 +1404,13 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                          \
-    if (val1.ATTR != val2.ATTR)                                    \
-    {                                                              \
+#define IRE_COMPARE(ATTR) \
+    if (val1.ATTR != val2.ATTR) \
+    { \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR);           \
-    }                                                              \
-    else                                                           \
+                      << " but got " << repr(val2.ATTR); \
+    } \
+    else \
         CELER_DISCARD(int)
 
     IRE_COMPARE(num_boundary);

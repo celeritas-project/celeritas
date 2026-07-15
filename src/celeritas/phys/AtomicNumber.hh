@@ -55,10 +55,10 @@ class AtomicNumber
 
     //// FRIENDLY OPERATORS ////
 
-#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN)                                 \
+#define CELER_DEFINE_ATOMICNUMBER_CMP(TOKEN) \
     CELER_CEF friend bool operator TOKEN(AtomicNumber lhs, AtomicNumber rhs) \
-    {                                                                        \
-        return lhs.unchecked_get() TOKEN rhs.unchecked_get();                \
+    { \
+        return lhs.unchecked_get() TOKEN rhs.unchecked_get(); \
     }
 
     CELER_DEFINE_ATOMICNUMBER_CMP(==)

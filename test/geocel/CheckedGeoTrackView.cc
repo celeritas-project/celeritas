@@ -112,27 +112,27 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
         {RuntimeError::validate_err_str, std::move(msg).str(), cond, file, line}};
 }
 
-#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE)                                \
-    do                                                                       \
-    {                                                                        \
-        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed()))       \
-        {                                                                    \
-            std::ostringstream msg_;                                         \
-            msg_ << "failed during " << WHERE;                               \
+#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE) \
+    do \
+    { \
+        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed())) \
+        { \
+            std::ostringstream msg_; \
+            msg_ << "failed during " << WHERE; \
             throw_cgtv_error(CGTV, std::move(msg_), {}, __FILE__, __LINE__); \
-        }                                                                    \
+        } \
     } while (0)
 
-#define CGTV_VALIDATE(CGTV, COND, WHAT)                            \
-    do                                                             \
-    {                                                              \
-        if (CELER_UNLIKELY(!(COND)))                               \
-        {                                                          \
-            std::ostringstream msg_;                               \
-            msg_ WHAT;                                             \
-            throw_cgtv_error(                                      \
+#define CGTV_VALIDATE(CGTV, COND, WHAT) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream msg_; \
+            msg_ WHAT; \
+            throw_cgtv_error( \
                 CGTV, std::move(msg_), #COND, __FILE__, __LINE__); \
-        }                                                          \
+        } \
     } while (0)
 
 //---------------------------------------------------------------------------//

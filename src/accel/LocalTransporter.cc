@@ -118,26 +118,26 @@ void trace(StepperResult const& track_counts)
     trace_(track_counts);
 }
 
-#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
-    do                                                              \
-    {                                                               \
-        if (CELER_UNLIKELY(!(COND)))                                \
-        {                                                           \
-            std::ostringstream celer_runtime_msg_;                  \
-            celer_runtime_msg_ MSG;                                 \
-            if (nonfatal_flush())                                   \
-            {                                                       \
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream celer_runtime_msg_; \
+            celer_runtime_msg_ MSG; \
+            if (nonfatal_flush()) \
+            { \
                 CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
-                (STEPPER).kill_active();                            \
-            }                                                       \
-            else                                                    \
-            {                                                       \
-                CELER_RUNTIME_FAIL(                                 \
-                    ::celeritas::RuntimeError::validate_err_str,    \
-                    celer_runtime_msg_.str(),                       \
-                    #COND);                                         \
-            }                                                       \
-        }                                                           \
+                (STEPPER).kill_active(); \
+            } \
+            else \
+            { \
+                CELER_RUNTIME_FAIL( \
+                    ::celeritas::RuntimeError::validate_err_str, \
+                    celer_runtime_msg_.str(), \
+                    #COND); \
+            } \
+        } \
     } while (0)
 }  // namespace
 

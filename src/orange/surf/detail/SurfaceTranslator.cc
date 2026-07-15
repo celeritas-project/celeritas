@@ -20,11 +20,11 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                      \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT<Axis::x> SurfaceTranslator::operator()(IN<Axis::x> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::y> SurfaceTranslator::operator()(IN<Axis::y> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::z> SurfaceTranslator::operator()(IN<Axis::z> const&) \
         const
 

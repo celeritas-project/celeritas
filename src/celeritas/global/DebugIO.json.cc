@@ -99,10 +99,10 @@ struct IdToJson
 // Helper macros for writing data to JSON
 
 #define DIO_ASSIGN(NAME, TRANSFORM) j[#NAME] = TRANSFORM(view.NAME())
-#define DIO_ASSIGN_IF(NAME, TRANSFORM, COND)   \
+#define DIO_ASSIGN_IF(NAME, TRANSFORM, COND) \
     if (auto&& temp = view.NAME(); COND(temp)) \
-    {                                          \
-        j[#NAME] = TRANSFORM(temp);            \
+    { \
+        j[#NAME] = TRANSFORM(temp); \
     }
 
 //---------------------------------------------------------------------------//

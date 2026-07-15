@@ -115,13 +115,13 @@ template<StepPoint P>
 CELER_FUNCTION void
 StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
 {
-#define SGL_SET_IF_SELECTED(ATTR, VALUE)                          \
-    do                                                            \
-    {                                                             \
-        if (this->params.selection.ATTR)                          \
-        {                                                         \
+#define SGL_SET_IF_SELECTED(ATTR, VALUE) \
+    do \
+    { \
+        if (this->params.selection.ATTR) \
+        { \
             this->state.data.ATTR[track.track_slot_id()] = VALUE; \
-        }                                                         \
+        } \
     } while (0)
 
     {

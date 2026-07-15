@@ -38,10 +38,10 @@
 #include "../GeantStepView.hh"
 
 #define HP_ASSIGN_TRANSFORMED(SELECTION, VIEW, VAR, DATA, TRANSFORM, IDX) \
-    if (SELECTION.VAR)                                                    \
-    {                                                                     \
-        CELER_ASSERT(IDX < DATA.VAR.size());                              \
-        VIEW.VAR(TRANSFORM(DATA.VAR[IDX]));                               \
+    if (SELECTION.VAR) \
+    { \
+        CELER_ASSERT(IDX < DATA.VAR.size()); \
+        VIEW.VAR(TRANSFORM(DATA.VAR[IDX])); \
     }
 
 namespace celeritas
@@ -261,7 +261,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         GeantStepPointView sp_view{*g4sp};
 
 #define HP_ASSIGN_SP(VAR, TRANSFORM) \
-    HP_ASSIGN_TRANSFORMED(           \
+    HP_ASSIGN_TRANSFORMED( \
         ss_.points[sp], sp_view, VAR, out.points[sp], TRANSFORM, i)
 
         HP_ASSIGN_SP(time, native_value_to<GeantStepPointView::Time>);

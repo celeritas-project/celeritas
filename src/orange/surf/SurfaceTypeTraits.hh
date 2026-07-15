@@ -27,11 +27,11 @@ namespace celeritas
 template<SurfaceType S>
 struct SurfaceTypeTraits;
 
-#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS)                          \
-    template<>                                                          \
-    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE>                   \
+#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
+    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE> \
         : public EnumToClass<SurfaceType, SurfaceType::ENUM_VALUE, CLS> \
-    {                                                                   \
+    { \
     }
 
 // clang-format off
@@ -69,8 +69,8 @@ template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto)
 visit_surface_type(F&& func, SurfaceType st)
 {
-#define ORANGE_ST_VISIT_CASE(TYPE)          \
-    case SurfaceType::TYPE:                 \
+#define ORANGE_ST_VISIT_CASE(TYPE) \
+    case SurfaceType::TYPE: \
         return celeritas::forward<F>(func)( \
             SurfaceTypeTraits<SurfaceType::TYPE>{})
 

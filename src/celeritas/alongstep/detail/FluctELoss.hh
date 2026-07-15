@@ -104,10 +104,10 @@ CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
     auto rng = track.rng();
     switch (loss_helper.model())
     {
-#define ASU_SAMPLE_ELOSS(MODEL)                                              \
-    case EnergyLossFluctuationModel::MODEL:                                  \
+#define ASU_SAMPLE_ELOSS(MODEL) \
+    case EnergyLossFluctuationModel::MODEL: \
         eloss = this->sample_energy_loss<EnergyLossFluctuationModel::MODEL>( \
-            loss_helper, rng);                                               \
+            loss_helper, rng); \
         break
         ASU_SAMPLE_ELOSS(none);
         ASU_SAMPLE_ELOSS(gamma);

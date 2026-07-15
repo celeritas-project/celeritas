@@ -28,7 +28,7 @@ namespace detail
 #if !CELER_DEVICE_COMPILE
 // Print a track and why it failed.
 #    define CELER_PRINT_TRACK(MSG, TRACK) \
-        CELER_LOG_LOCAL(error)            \
+        CELER_LOG_LOCAL(error) \
             << MSG << ": " << ::celeritas::StreamableTrack{TRACK};
 #else
 #    define CELER_PRINT_TRACK(MSG, TRACK)
@@ -40,14 +40,14 @@ namespace detail
  * \note This macro is defined so that the condition is still checked in
  * "release" mode, and so that checking will work on GPU.
  */
-#define CELER_FAIL_IF(COND, MSG)                             \
-    do                                                       \
-    {                                                        \
-        if (CELER_UNLIKELY((COND)))                          \
-        {                                                    \
-            CELER_PRINT_TRACK(MSG, track)                    \
+#define CELER_FAIL_IF(COND, MSG) \
+    do \
+    { \
+        if (CELER_UNLIKELY((COND))) \
+        { \
+            CELER_PRINT_TRACK(MSG, track) \
             CELER_DEBUG_FAIL(MSG ": '" #COND "'", internal); \
-        }                                                    \
+        } \
     } while (0)
 
 //---------------------------------------------------------------------------//

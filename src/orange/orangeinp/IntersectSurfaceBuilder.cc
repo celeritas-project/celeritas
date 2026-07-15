@@ -234,9 +234,9 @@ void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 //! \cond
-#define CSB_INSTANTIATE(SURF)                          \
+#define CSB_INSTANTIATE(SURF) \
     template void IntersectSurfaceBuilder::operator()( \
-        Sense, SURF const&, std::string&&);            \
+        Sense, SURF const&, std::string&&); \
     template void IntersectSurfaceBuilder::operator()(Sense, SURF const&)
 CSB_INSTANTIATE(PlaneAligned<Axis::x>);
 CSB_INSTANTIATE(PlaneAligned<Axis::y>);
