@@ -23,8 +23,7 @@ SeltzerBergerReader::SeltzerBergerReader()
 {
     std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4LEDATA is not defined (needed "
-                      "to locate Seltzer-Berger data)");
+                   << "environment variable G4LEDATA is not defined (needed to locate Seltzer-Berger data)");
     path_ = dir + "/brem_SB";
 }
 

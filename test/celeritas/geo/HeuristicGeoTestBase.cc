@@ -43,8 +43,7 @@ void HeuristicGeoTestBase::run(size_type num_states,
     {
         ScopedStreamFormat save_fmt(&std::cout);
 
-        ADD_FAILURE() << "Implement the following as "
-                         "TestCase::reference_avg_path() const";
+        ADD_FAILURE() << "Implement the following as TestCase::reference_avg_path() const";
 
         int precision_digits
             = static_cast<int>(std::ceil(-std::log10(tolerance) + 0.5));
@@ -174,8 +173,7 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
             }
         }
 
-        ADD_FAILURE() << "Implement the following as "
-                         "TestCase::reference_volumes() const";
+        ADD_FAILURE() << "Implement the following as TestCase::reference_volumes() const";
         std::cout << "/* REFERENCE VOLUMES */\n"
                      "static std::string const vols[] = "
                   << repr(temp_labels)

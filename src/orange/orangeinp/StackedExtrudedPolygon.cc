@@ -196,8 +196,7 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
     {
         CELER_VALIDATE(soft_zero(scaling_[i]) == soft_zero(scaling_[i + 1])
                            || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
-                       << "non-zero-length polyline segment cannot have "
-                          "scaling = 0 on exactly one z plane");
+                       << "non-zero-length polyline segment cannot have scaling = 0 on exactly one z plane");
 
         if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
             && !soft_zero(scaling_[i]))

@@ -1563,9 +1563,7 @@ TEST_F(GenPrismTest, emec_blade)
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
         GTEST_SKIP()
-            << "Tolerance changes with floating point type, "
-               "so the GQ sign is flipped because it's ignored as zero since "
-               "it's below tolerance";
+            << "Tolerance changes with floating point type, so the GQ sign is flipped because it's ignored as zero since it's below tolerance";
     }
 
     static char const* const expected_surface_strings[] = {

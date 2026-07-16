@@ -61,8 +61,7 @@ struct GeoBuilder
             if (!filename.empty())
             {
                 CELER_LOG(warning)
-                    << "Using a temporary, unsupported, and dangerous "
-                       "hack to override the ORANGE geometry file: "
+                    << "Using a temporary, unsupported, and dangerous hack to override the ORANGE geometry file: "
                     << fi_hack_envname << "='" << filename << "'";
                 return (*this)(filename);
             }
@@ -79,8 +78,7 @@ struct GeoBuilder
                        << "null world pointer in problem.model.geometry");
         auto ggp = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(ggp && ggp->world() == world,
-                       << "inconsistent Geant4 world pointer given to model "
-                          "setup");
+                       << "inconsistent Geant4 world pointer given to model setup");
         return CoreGeoParams::from_geant(ggp);
     }
 };

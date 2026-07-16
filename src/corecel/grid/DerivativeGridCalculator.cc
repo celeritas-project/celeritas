@@ -30,8 +30,7 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
     CELER_EXPECT(grid);
     CELER_VALIDATE(grid.interpolation.type == InterpolationType::linear,
                    << to_cstring(grid.interpolation.type)
-                   << " derivative calculation is not supported on a "
-                      "non-linear grid");
+                   << " derivative calculation is not supported on a non-linear grid");
 
     inp::Grid result;
     result.interpolation = grid.interpolation;

@@ -109,16 +109,14 @@ void GeantDiagnostics::Finalize()
 {
     if (CELER_UNLIKELY(!queued_output().empty()))
     {
-        CELER_LOG(warning) << "Output interfaces were added after the run "
-                              "began: output will be missing";
+        CELER_LOG(warning) << "Output interfaces were added after the run began: output will be missing";
     }
 
     // Reset all data
     if (meh_ && !meh_->empty())
     {
         auto expiring = std::exchange(*this, GeantDiagnostics{});
-        CELER_LOG(debug) << "Finalizing diagnostics: rethrowing saved "
-                            "exception";
+        CELER_LOG(debug) << "Finalizing diagnostics: rethrowing saved exception";
         log_and_rethrow(std::move(*expiring.meh_));
     }
     CELER_LOG(debug) << "Resetting diagnostics";

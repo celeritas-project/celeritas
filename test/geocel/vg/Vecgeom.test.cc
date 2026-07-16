@@ -356,8 +356,7 @@ TEST_F(ReplicaTest, trace)
     if (vecgeom_version >= Version{2, 0})
     {
         // VecGeom 2.x-solid has small discrepancies in replica tracking
-        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
-                        "construction.";
+        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom construction.";
     }
     this->impl().test_trace();
 }

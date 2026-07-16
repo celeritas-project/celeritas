@@ -78,8 +78,7 @@ void GeantImportVolumeResult::print_expected() const
          << repr(this->volumes)
          << ";\n"
             "EXPECT_VEC_EQ(expected_volumes, result.volumes);\n"
-            "EXPECT_EQ(0, result.missing_labels.size()) << "
-            "repr(result.missing_labels);\n";
+            "EXPECT_EQ(0, result.missing_labels.size()) << repr(result.missing_labels);\n";
     if (!this->missing_labels.empty())
     {
         cout << "/* Currently missing: " << repr(this->missing_labels)

@@ -482,8 +482,7 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
             material.properties.refractive_index, "RINDEX");
 
         CELER_VALIDATE(has_rindex,
-                       << "back-painted surfaces require RINDEX defined "
-                          "for the interstitial material.");
+                       << "back-painted surfaces require RINDEX defined for the interstitial material.");
         materials_.push_back(std::move(material));
     }
 }

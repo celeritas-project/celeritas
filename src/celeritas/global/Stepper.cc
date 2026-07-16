@@ -77,8 +77,7 @@ Stepper<M>::Stepper(Input input)
                                        ? params_->tracks_per_stream()
                                        : input.num_track_slots);
     CELER_VALIDATE(track_slots > 0,
-                   << "track slots were specified neither in core params nor "
-                      "stepper input");
+                   << "track slots were specified neither in core params nor stepper input");
     // Create state, including aux data
     state_ = std::make_shared<CoreState<M>>(
         *params_, input.stream_id, track_slots);

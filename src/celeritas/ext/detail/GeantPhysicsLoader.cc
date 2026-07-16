@@ -104,18 +104,15 @@ void load_rayleigh_water(inp::OpticalRayleighAnalytic& analytic,
     double const betat = 7.658e-23 * CLHEP::m3 / CLHEP::MeV;
     constexpr auto units = ImportUnits::len_time_sq_per_mass;
     analytic.compressibility = betat * native_value_from_clhep(units);
-    CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh "
-                          "properties for water: setting compressibility to "
+    CELER_LOG(warning) << "DEPRECATED: using Geant4 built-in Rayleigh properties for water: setting compressibility to "
                        << analytic.compressibility << " " << to_cstring(units);
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
         CELER_LOG(error)
-            << "Geant4 Rayleigh optical scattering ignores material "
-               "temperature for Water (overriding "
+            << "Geant4 Rayleigh optical scattering ignores material temperature for Water (overriding "
             << g4mat.GetTemperature()
-            << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
-               "are provided";
+            << " K with 283.15 K) if no `RAYLEIGH` mean free paths are provided";
     }
 }
 
@@ -351,8 +348,7 @@ size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
     if (num_mats == 0)
     {
         // Do not create scintillation process
-        CELER_LOG(error) << "Scintillation process was defined with no "
-                            "scintillating materials";
+        CELER_LOG(error) << "Scintillation process was defined with no scintillating materials";
         return 0;
     }
 
@@ -385,8 +381,7 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
     auto& materials = imported_.optical_materials;
     if (materials.empty())
     {
-        CELER_LOG(error) << "Optical boundary process is defined but no "
-                            "optical materials are present";
+        CELER_LOG(error) << "Optical boundary process is defined but no optical materials are present";
         return 0;
     }
 

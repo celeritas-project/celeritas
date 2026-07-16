@@ -45,8 +45,7 @@ BetheHeitlerModel::BetheHeitlerModel(ActionId id,
     data_.enable_lpm = enable_lpm;
 
     CELER_VALIDATE(data_.ids,
-                   << "missing electron, positron and/or gamma particles "
-                      "(required for "
+                   << "missing electron, positron and/or gamma particles (required for "
                    << this->description() << ")");
     data_.electron_mass = particles.get(data_.ids.electron).mass();
     CELER_ENSURE(data_);

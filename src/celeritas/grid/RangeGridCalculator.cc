@@ -70,8 +70,7 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
     if (result.interpolation.type == InterpolationType::poly_spline)
     {
         CELER_LOG(warning) << InterpolationType::poly_spline
-                           << " interpolation is not supported for range "
-                              "or inverse range: defaulting to linear";
+                           << " interpolation is not supported for range or inverse range: defaulting to linear";
         result.interpolation.type = InterpolationType::linear;
     }
 
@@ -98,8 +97,7 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
             // affect the accuracy when the number of grid points is small and
             // the scale of the x grid is large
             CELER_VALIDATE(dedx > 0,
-                           << "negative value in range calculation: the "
-                              "interpolation method may be unstable");
+                           << "negative value in range calculation: the interpolation method may be unstable");
             cum_range += delta_energy / dedx;
         }
         result.y[i] = cum_range;

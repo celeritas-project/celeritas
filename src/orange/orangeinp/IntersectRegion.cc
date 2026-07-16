@@ -605,8 +605,7 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
     // Check for elliptical cylinders. Since we have already validated the
     // aspect ratio, we only need to test the x-values here.
     CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+                   << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -721,8 +720,7 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
     // counterclockwise orientation, which also guarantees it is convex.
     CELER_VALIDATE(has_orientation(make_span(polygon_),
                                    detail::Orientation::counterclockwise),
-                   << "polygon must be specified in strictly counterclockwise "
-                      "order");
+                   << "polygon must be specified in strictly counterclockwise order");
 }
 
 //---------------------------------------------------------------------------//
@@ -1454,8 +1452,7 @@ Paraboloid::Paraboloid(real_type lower_radius,
 
     // Check for cylinders (this throws when both radii are zero)
     CELER_VALIDATE(!soft_equal(r_lo_, r_hi_),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+                   << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -1677,8 +1674,7 @@ bool Prism::encloses(Prism const& other) const
     if (num_sides_ != other.num_sides_ || orientation_ != other.orientation_)
     {
         CELER_NOT_IMPLEMENTED(
-            "hollow prism unless number of sides and orientation are "
-            "identical");
+            "hollow prism unless number of sides and orientation are identical");
     }
     return apothem_ >= other.apothem() && hh_ >= other.halfheight();
 }

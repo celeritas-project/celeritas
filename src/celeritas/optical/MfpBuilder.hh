@@ -85,8 +85,7 @@ void MfpBuilder::operator()(inp::Grid const& grid)
     if (std::any_of(
             grid.y.begin(), grid.y.end(), [](double y) { return y <= 0; }))
     {
-        CELER_LOG(warning) << "MFP grid contains one or more nonpositive "
-                              "values: replacing with epsilon="
+        CELER_LOG(warning) << "MFP grid contains one or more nonpositive values: replacing with epsilon="
                            << numeric_limits<double>::epsilon();
 
         // Zero or negative MFPs are unphysical: replace with a small positive

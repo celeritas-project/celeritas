@@ -34,13 +34,11 @@ void ExampleInstanceCalo::Result::print_expected() const
             "static char const* const expected_instance[] = "
          << repr(this->instance)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_instance, "
-            "result.instance);\n"
+            "EXPECT_VEC_EQ(expected_instance, result.instance);\n"
             "static real_type const expected_edep[] = "
          << repr(this->edep)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, "
-            "result.edep);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -53,8 +51,7 @@ ExampleInstanceCalo::ExampleInstanceCalo(
     : det_labels_{std::move(vol_labels)}, volumes_{std::move(volumes)}
 {
     CELER_VALIDATE(volumes_,
-                   << "geometry volumes were not constructed before "
-                      "instantiating ExampleInstanceCalo");
+                   << "geometry volumes were not constructed before instantiating ExampleInstanceCalo");
 
     // Map labels to volume IDs
     volume_ids_.resize(det_labels_.size());
@@ -65,8 +62,7 @@ ExampleInstanceCalo::ExampleInstanceCalo(
     }
     CELER_VALIDATE(
         std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
-        << "failed to find one or more volumes while "
-           "constructing SimpleCalo");
+        << "failed to find one or more volumes while constructing SimpleCalo");
 }
 
 //---------------------------------------------------------------------------//

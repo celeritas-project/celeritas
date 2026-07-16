@@ -272,8 +272,7 @@ auto build_optical_params(inp::Problem const& p,
                           ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
-                   << "an optical tracking loop was requested but no optical "
-                      "materials are present");
+                   << "an optical tracking loop was requested but no optical materials are present");
     CELER_EXPECT(p.physics.optical);
     CELER_EXPECT(p.control.optical_capacity);
 
@@ -334,8 +333,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
                           ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
-                   << "an optical tracking loop was requested but no optical "
-                      "materials are present");
+                   << "an optical tracking loop was requested but no optical materials are present");
 
     // Create materials and geometry/material coupling
     auto material = MaterialParams::from_import(imported);
@@ -394,8 +392,7 @@ auto build_optical_params(inp::OpticalProblem const& p,
         }
         else
         {
-            CELER_LOG(warning) << "Disabling user-requested scintillation: no "
-                                  "process data available";
+            CELER_LOG(warning) << "Disabling user-requested scintillation: no process data available";
         }
     }
 
@@ -492,10 +489,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         if (!params.geometry->supports_safety())
         {
             CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps without displacement";
+                << "Geometry contains surfaces that are incompatible with the current ORANGE simple safety algorithm: multiple scattering may result in arbitrarily small steps without displacement";
         }
         params.volume = std::move(loaded_model.volume);
         CELER_ASSERT(loaded_model.surface);
@@ -509,8 +503,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         {
             if (!loaded_model.surface->empty())
             {
-                CELER_LOG(debug) << "Ignoring surfaces for non-optical "
-                                    "problem";
+                CELER_LOG(debug) << "Ignoring surfaces for non-optical problem";
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
@@ -630,8 +623,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
             }
             else
             {
-                CELER_LOG(error) << "Ignoring ExportFiles.geometry because "
-                                    "the Geant4 geometry has not been loaded";
+                CELER_LOG(error) << "Ignoring ExportFiles.geometry because the Geant4 geometry has not been loaded";
             }
         }
 
@@ -712,9 +704,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     {
         if (core_params->surface()->empty())
         {
-            CELER_LOG(warning) << "Problem contains optical physics without "
-                                  "any geometry surface definitions: default "
-                                  "physics will be used for all surfaces";
+            CELER_LOG(warning) << "Problem contains optical physics without any geometry surface definitions: default physics will be used for all surfaces";
         }
         // Construct the optical params from the core params
         auto optical_params = build_optical_params(p, *core_params, imported);
@@ -726,10 +716,7 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     else
     {
         CELER_VALIDATE(!imported.optical_physics.bulk,
-                       << "optical physics models were imported but no "
-                          "optical capacity was set. Either define optical "
-                          "tracking loop parameters, or ignore optical "
-                          "physics");
+                       << "optical physics models were imported but no optical capacity was set. Either define optical tracking loop parameters, or ignore optical physics");
     }
 
     // Construct the action sequence
@@ -775,8 +762,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
     ScopedProfiling profile_this{"problem"};
 
     CELER_VALIDATE(!imported.optical_materials.empty(),
-                   << "an optical tracking loop was requested but no optical "
-                      "materials are present");
+                   << "an optical tracking loop was requested but no optical materials are present");
 
     // Load geometry and model
     if (auto* filename = std::get_if<std::string>(&p.model.geometry))
@@ -789,9 +775,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                    << "surfaces are required for optical physics");
     if (loaded_model.surface->empty())
     {
-        CELER_LOG(warning) << "Problem contains optical physics without any "
-                              "geometry surface definitions: default physics "
-                              "will be used for all surfaces";
+        CELER_LOG(warning) << "Problem contains optical physics without any geometry surface definitions: default physics will be used for all surfaces";
     }
 
     // Build optical params
@@ -813,8 +797,7 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
         Overload{
             [&](inp::OpticalEmGenerator) -> SPGeneratorBase {
                 CELER_VALIDATE(false,
-                               << "OpticalEmGenerator cannot be used "
-                                  "with only optical physics enabled");
+                               << "OpticalEmGenerator cannot be used with only optical physics enabled");
                 return nullptr;
             },
             [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {

@@ -128,8 +128,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         if (!filename.empty())
         {
             CELER_LOG(warning)
-                << "Using a temporary, unsupported, and dangerous hack to "
-                   "override the ORANGE geometry file: "
+                << "Using a temporary, unsupported, and dangerous hack to override the ORANGE geometry file: "
                 << fi_hack_envname << "='" << filename << "'";
             options_->geometry_file = filename;
         }
@@ -150,8 +149,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     // Apply Celeritas \c SetupOptions commands
     options_->max_num_tracks = input_.num_track_slots;
     CELER_VALIDATE(input_.primary_options || !input_.event_file.empty(),
-                   << "no event input file nor primary options were "
-                      "specified");
+                   << "no event input file nor primary options were specified");
     options_->max_steps = input_.max_steps;
     options_->initializer_capacity = input_.initializer_capacity;
     options_->secondary_stack_factor = input_.secondary_stack_factor;
@@ -190,8 +188,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
         root_sd_io_ = RootFileManager::use_root();
         if (!root_sd_io_)
         {
-            CELER_LOG(warning) << "Collecting SD hit data that will not be "
-                                  "written because ROOT is disabled";
+            CELER_LOG(warning) << "Collecting SD hit data that will not be written because ROOT is disabled";
         }
     }
     else

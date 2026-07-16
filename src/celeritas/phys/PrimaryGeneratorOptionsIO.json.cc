@@ -76,8 +76,7 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
     }
     else
     {
-        CELER_LOG(warning) << "Primary generator options are missing 'seed': "
-                              "defaulting to "
+        CELER_LOG(warning) << "Primary generator options are missing 'seed': defaulting to "
                            << opts.seed;
     }
     std::vector<int> pdg;

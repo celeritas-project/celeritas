@@ -27,8 +27,7 @@ AtomicRelaxationReader::AtomicRelaxationReader()
 {
     std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4LEDATA is not defined (needed "
-                      "to locate atomic relaxation data)");
+                   << "environment variable G4LEDATA is not defined (needed to locate atomic relaxation data)");
     fluor_path_ = dir + "/fluor";
     auger_path_ = dir + "/auger";
 }

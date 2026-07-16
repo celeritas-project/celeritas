@@ -135,8 +135,7 @@ inp::CylMapField MakeCylMapFieldInput(std::vector<G4double> const& r_grid,
 {
     G4Field const* g4field = celeritas::geant_field();
     CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build "
-                      "magnetic field map");
+                   << "no Geant4 global field has been set: cannot build magnetic field map");
     return MakeCylMapFieldInput(*g4field, r_grid, phi_values, z_grid);
 }
 

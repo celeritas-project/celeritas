@@ -32,14 +32,12 @@ void SimpleHitsResult::print_expected() const
             "static double const expected_energy_deposition[] = "
          << repr(this->energy_deposition)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
-            "result.energy_deposition);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, result.energy_deposition);\n"
 
             "static double const expected_step_length[] = "
          << repr(this->step_length)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_step_length, "
-            "result.step_length);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);\n"
 
             "static char const* const expected_particle[] = "
          << repr(this->particle)

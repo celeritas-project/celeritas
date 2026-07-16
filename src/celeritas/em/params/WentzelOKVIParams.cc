@@ -770,8 +770,7 @@ auto WentzelOKVIParams::get_electron_mott_coeffs(AtomicNumber z) -> CoeffMat
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},
                    << "atomic number " << z.get()
-                   << " is out of range for Coulomb scattering model Mott "
-                      "coefficients (must be less than "
+                   << " is out of range for Coulomb scattering model Mott coefficients (must be less than "
                    << MottElementData::num_elements << ")");
 
     return electron_mott_coeffs[index];
@@ -1389,8 +1388,7 @@ auto WentzelOKVIParams::get_positron_mott_coeffs(AtomicNumber z) -> CoeffMat
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},
                    << "atomic number " << z.get()
-                   << " is out of range for Coulomb scattering model Mott "
-                      "coefficients (must be less than "
+                   << " is out of range for Coulomb scattering model Mott coefficients (must be less than "
                    << MottElementData::num_elements << ")");
 
     return positron_mott_coeffs[index];

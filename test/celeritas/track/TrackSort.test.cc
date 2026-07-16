@@ -293,16 +293,14 @@ TEST_F(TestTrackPartitionEm3Stepper, host_is_partitioned)
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
-        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
-                                               "partitioned by status";
+        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not partitioned by status";
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
-        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
-                                               "partitioned by status";
+        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not partitioned by status";
         step();
     }
 }
@@ -337,16 +335,14 @@ TEST_F(TestTrackPartitionEm3Stepper,
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
-        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
-                                               "partitioned by status";
+        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not partitioned by status";
         step();
     }
     step(make_span(primaries));
     for (auto i = 0; i < 10; ++i)
     {
         detail::sort_tracks(step.state_ref(), TrackOrder::reindex_status);
-        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not "
-                                               "partitioned by status";
+        EXPECT_TRUE(check_is_partitioned()) << "Track slots are not partitioned by status";
         step();
     }
 }

@@ -149,8 +149,7 @@ void from_json(nlohmann::json const& j, RunInput& v)
     if (auto iter = j.find("write_sd_hits"); iter != j.end())
     {
         // DEPRECATED: remove in v1.0
-        CELER_LOG(warning) << "Deprecated option 'write_sd_hits': disable "
-                              "output using CELER_DISABLE_ROOT";
+        CELER_LOG(warning) << "Deprecated option 'write_sd_hits': disable output using CELER_DISABLE_ROOT";
         if (!iter->get<bool>())
         {
             celeritas::environment().insert({"CELER_DISABLE_ROOT", "1"});
@@ -166,16 +165,13 @@ void from_json(nlohmann::json const& j, RunInput& v)
 
     // TODO: move these validation checks to GlobalSetup
     CELER_VALIDATE(v.event_file.empty() == static_cast<bool>(v.primary_options),
-                   << "either a HepMC3 filename or options to generate "
-                      "primaries must be provided (but not both)");
+                   << "either a HepMC3 filename or options to generate primaries must be provided (but not both)");
     CELER_VALIDATE(v.physics_list != PhysicsListSelection::ftfp_bert
                        || !j.contains("physics_options"),
-                   << "'physics_options' can only be specified for "
-                      "'celer_ftfp_bert' or 'celer_em'");
+                   << "'physics_options' can only be specified for 'celer_ftfp_bert' or 'celer_em'");
     CELER_VALIDATE((v.field != RunInput::no_field() || v.field_type == "rzmap")
                        || !j.contains("field_options"),
-                   << "'field_options' cannot be specified without providing "
-                      "'field'");
+                   << "'field_options' cannot be specified without providing 'field'");
 }
 
 //---------------------------------------------------------------------------//

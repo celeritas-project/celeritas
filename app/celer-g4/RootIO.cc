@@ -43,8 +43,7 @@ namespace app
 RootIO::RootIO()
 {
     CELER_VALIDATE(RootFileManager::use_root(),
-                   << "cannot interface with ROOT (disabled by user "
-                      "environment)");
+                   << "cannot interface with ROOT (disabled by user environment)");
 
     ROOT::EnableThreadSafety();
 

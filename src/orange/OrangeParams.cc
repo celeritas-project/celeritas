@@ -109,15 +109,11 @@ std::shared_ptr<OrangeParams>
 OrangeParams::from_gdml(std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
-                   << "cannot load Geant4 geometry into ORANGE from a "
-                      "file name: a global Geant4 geometry already "
-                      "exists");
+                   << "cannot load Geant4 geometry into ORANGE from a file name: a global Geant4 geometry already exists");
 
     if (!CELERITAS_USE_GEANT4)
     {
-        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
-                              "when Geant4 is disabled: trying "
-                              "`.org.json` instead";
+        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix when Geant4 is disabled: trying `.org.json` instead";
         CELER_VALIDATE(ends_with(filename, ".gdml"),
                        << "invalid extension for GDML file '" << filename
                        << "'");
@@ -185,8 +181,7 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
     SPConstVolumes volumes = geo->volumes();
     if (!volumes)
     {
-        CELER_LOG(debug) << "Constructing canonical volumes from "
-                            "GeantGeoParams";
+        CELER_LOG(debug) << "Constructing canonical volumes from GeantGeoParams";
         auto model_input = geo->make_model_input();
         auto const& model_volumes = model_input.volumes;
         if (auto const* sp = std::get_if<SPConstVolumes>(&model_volumes))

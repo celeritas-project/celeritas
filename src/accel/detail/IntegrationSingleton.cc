@@ -134,8 +134,7 @@ TrackOffloadInterface& IntegrationSingleton::local_track_offload()
 {
     auto* oi = dynamic_cast<TrackOffloadInterface*>(&this->local_offload());
     CELER_VALIDATE(oi,
-                   << "Cannot access track offload when "
-                      "LocalOpticalGenOffload is being used");
+                   << "Cannot access track offload when LocalOpticalGenOffload is being used");
     return *oi;
 }
 

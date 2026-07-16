@@ -33,8 +33,7 @@ RootEventReader::RootEventReader(std::string const& filename,
     CELER_VALIDATE(ttree_,
                    << "TTree '" << this->tree_name()
                    << "' not found. Verify that '" << filename
-                   << "' is a valid input file with Celeritas primary "
-                      "offloaded data");
+                   << "' is a valid input file with Celeritas primary offloaded data");
     num_entries_ = ttree_->GetEntries();
     CELER_ASSERT(num_entries_ > 0);
 

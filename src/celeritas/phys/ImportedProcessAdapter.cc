@@ -104,8 +104,7 @@ ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
         CELER_VALIDATE(insertion.second,
                        << "encountered duplicate imported process class '"
                        << ip.process_class << "' for PDG{" << ip.particle_pdg
-                       << "} (each particle must have at most one process of "
-                          "a given type)");
+                       << "} (each particle must have at most one process of a given type)");
     }
 
     CELER_ENSURE(processes_.size() == ids_.size());
@@ -213,9 +212,7 @@ auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
             // tables will be constructed but the range of the low-energy table
             // will be extended upward so that it overlaps with the high-energy
             // table. In this case the lower table can be ignored.
-            CELER_LOG(warning) << "Ignoring low-energy lambda table because "
-                                  "its range is redundant with high-energy "
-                                  "table";
+            CELER_LOG(warning) << "Ignoring low-energy lambda table because its range is redundant with high-energy table";
             result.lower = {};
             return result;
         }

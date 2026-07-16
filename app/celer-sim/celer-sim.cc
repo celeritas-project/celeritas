@@ -72,8 +72,7 @@ void run(std::shared_ptr<OutputRegistry>& output,
             j.get_to(result);
             return result;
         }
-        CELER_LOG(warning) << "Deprecated celer-sim input format. Update the "
-                              "input using the 'update' subcommand.";
+        CELER_LOG(warning) << "Deprecated celer-sim input format. Update the input using the 'update' subcommand.";
         RunnerInput old_inp;
         j.get_to(old_inp);
         return to_input(old_inp);

@@ -410,8 +410,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         {
             auto const& units = this->unit_length();
             CELER_LOG_LOCAL(warning)
-                << "Moved internally from boundary but safety didn't "
-                   "increase: volume "
+                << "Moved internally from boundary but safety didn't increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
                 << NativeLength{} << " to " << repr(t_->pos())
                 << NativeLength{} << " (distance: " << distance(orig_pos, pos)

@@ -114,23 +114,18 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
 
     if (!not_offloaded.empty())
     {
-        CELER_LOG(warning) << "Some particles known to Celeritas are not "
-                              "offloaded by TrackingManagerConstructor: "
+        CELER_LOG(warning) << "Some particles known to Celeritas are not offloaded by TrackingManagerConstructor: "
                            << join(not_offloaded.begin(),
                                    not_offloaded.end(),
                                    ", ",
                                    printable_pd)
-                           << " (perhaps SetupOptions::offload_particles has "
-                              "not been updated?)";
+                           << " (perhaps SetupOptions::offload_particles has not been updated?)";
     }
     CELER_VALIDATE(missing.empty(),
-                   << "not all particles from TrackingManagerConstructor are "
-                      "active in Celeritas: missing "
+                   << "not all particles from TrackingManagerConstructor are active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
     CELER_VALIDATE(all_attached_correctly,
-                   << "tracking manager(s) are not attached correctly "
-                      "(maybe add TrackingManagerConstructor to your physics "
-                      "list?)");
+                   << "tracking manager(s) are not attached correctly (maybe add TrackingManagerConstructor to your physics list?)");
 }
 
 //---------------------------------------------------------------------------//
@@ -154,8 +149,7 @@ void TrackingManagerIntegration::verify_local_setup()
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old to support the tracking manager offload "
-                      "interface (11.0 or higher is required)");
+                   << ") is too old to support the tracking manager offload interface (11.0 or higher is required)");
 
     auto& singleton = detail::IntegrationSingleton::instance();
 

@@ -58,8 +58,7 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
         {
             CELER_LOG(warning)
                 << "Deprecated RZ field input units '" << ustr
-                << "': use SI units for length (m) and field (T) "
-                   "and set units to 'si'";
+                << "': use SI units for length (m) and field (T) and set units to 'si'";
             field_units = UnitSystem::si;
         }
         else if (ustr == "gauss" || ustr == Gauss::label() || ustr == "native")
@@ -88,8 +87,7 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
     else
     {
         auto msg = CELER_LOG(warning);
-        msg << "No units given in RZ field input: assuming CGS for length "
-               "(cm) and SI for strength (T)";
+        msg << "No units given in RZ field input: assuming CGS for length (cm) and SI for strength (T)";
     }
 
     if (field_units != UnitSystem::native)

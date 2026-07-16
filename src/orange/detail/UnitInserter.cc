@@ -238,8 +238,7 @@ ForceMax const& forced_scalar_max()
             return ForceMax{};
         }
         CELER_LOG(warning)
-            << "Using a temporary, unsupported, and dangerous hack to "
-               "override maximum faces and intersections in ORANGE: "
+            << "Using a temporary, unsupported, and dangerous hack to override maximum faces and intersections in ORANGE: "
             << mfi_hack_envname << "='" << mfi << "'";
 
         ForceMax result;

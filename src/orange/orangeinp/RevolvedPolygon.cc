@@ -161,8 +161,7 @@ NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
     // The polygon should have a strictly clockwise orientation
     CELER_VALIDATE(has_orientation(make_span(polygon),
                                    detail::Orientation::counterclockwise),
-                   << "polygon must be specified in strictly counterclockwise "
-                      "order");
+                   << "polygon must be specified in strictly counterclockwise order");
 
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
     SoftZero<real_type> soft_zero(vb.tol().abs);

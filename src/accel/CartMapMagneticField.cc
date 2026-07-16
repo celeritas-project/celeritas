@@ -105,8 +105,7 @@ inp::CartMapField MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
     G4Field const* g4field = celeritas::geant_field();
     CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build "
-                      "magnetic field map");
+                   << "no Geant4 global field has been set: cannot build magnetic field map");
     return MakeCartMapFieldInput(*g4field, params);
 }
 

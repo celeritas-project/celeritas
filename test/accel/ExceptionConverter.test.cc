@@ -114,8 +114,7 @@ TEST_F(ExceptionConverterTest, not_configured)
         << "actual path: '" << handler().origin << '\'';
     EXPECT_EQ("test003", handler().code);
     EXPECT_EQ(
-        "Celeritas configuration error: required dependency is disabled in "
-        "this build: VecGeom",
+        "Celeritas configuration error: required dependency is disabled in this build: VecGeom",
         handler().desc);
 }
 
@@ -128,8 +127,7 @@ TEST_F(ExceptionConverterTest, not_implemented)
         << "actual path: '" << handler().origin << '\'';
     EXPECT_EQ("test004", handler().code);
     EXPECT_EQ(
-        "Celeritas implementation error: feature is not yet implemented: "
-        "tachyon decay",
+        "Celeritas implementation error: feature is not yet implemented: tachyon decay",
         handler().desc);
 }
 

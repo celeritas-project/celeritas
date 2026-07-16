@@ -31,8 +31,7 @@ LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const&,
                                                SharedParams& params)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
-                   << "cannot create local optical offload when Celeritas "
-                      "offloading is disabled");
+                   << "cannot create local optical offload when Celeritas offloading is disabled");
 
     // Save a pointer to the optical transporter
     transport_ = params.optical_problem_loaded().transporter;
@@ -224,8 +223,7 @@ void LocalOpticalGenOffload::Finalize()
     if (!gen.counters.empty())
     {
         CELER_LOG_LOCAL(warning)
-            << "Not all optical photons were tracked "
-               "at the end of the stepping loop: "
+            << "Not all optical photons were tracked at the end of the stepping loop: "
             << gen.counters.num_pending << " queued photons from "
             << gen.counters.buffer_size << " distributions";
     }

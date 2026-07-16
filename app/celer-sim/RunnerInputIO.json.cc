@@ -133,8 +133,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     CELER_VALIDATE(v.field != RunnerInput::no_field()
                        || !j.contains("field_options"),
-                   << "'field_options' cannot be specified without providing "
-                      "'field'");
+                   << "'field_options' cannot be specified without providing 'field'");
 }
 
 //---------------------------------------------------------------------------//

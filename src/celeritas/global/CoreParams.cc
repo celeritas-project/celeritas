@@ -168,8 +168,7 @@ CoreScalars build_actions(ActionRegistry* reg)
     if (!scalars.along_step_user_action)
     {
         // Use newly created neutral action by default
-        CELER_LOG(warning) << "No along-step action specified: using neutral "
-                              "particle propagation";
+        CELER_LOG(warning) << "No along-step action specified: using neutral particle propagation";
         scalars.along_step_user_action = scalars.along_step_neutral_action;
     }
 

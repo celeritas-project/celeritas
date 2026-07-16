@@ -55,8 +55,7 @@ FastSimulationModel::FastSimulationModel(G4String const& name,
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old to support the fast simulation Flush() "
-                      "interface (11.1 or higher is required)");
+                   << ") is too old to support the fast simulation Flush() interface (11.1 or higher is required)");
     CELER_EXPECT(region);
     CELER_EXPECT(params);
     CELER_EXPECT(local);

@@ -94,8 +94,7 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 
     CELER_VALIDATE(buffer_size + core_state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
-                   << ") for buffered optical photon distribution data (total "
-                      "capacity requirement of "
+                   << ") for buffered optical photon distribution data (total capacity requirement of "
                    << buffer_size + core_state.size() << ")");
 
     // Generate the optical distribution data

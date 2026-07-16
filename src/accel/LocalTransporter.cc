@@ -153,13 +153,11 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
-                   << "cannot create local transporter when Celeritas "
-                      "offloading is disabled");
+                   << "cannot create local transporter when Celeritas offloading is disabled");
     CELER_VALIDATE(!options.optical
                        || std::holds_alternative<inp::OpticalEmGenerator>(
                            options.optical->generator),
-                   << "invalid optical photon generation mechanism for local "
-                      "transporter");
+                   << "invalid optical photon generation mechanism for local transporter");
 
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
@@ -401,8 +399,7 @@ void LocalTransporter::flush_impl()
     while (track_counts)
     {
         CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
+                                      << "number of step iterations exceeded the allowed maximum ("
                                       << max_step_iters_ << ")",
                                       *step_);
 
@@ -471,8 +468,7 @@ void LocalTransporter::Finalize()
         std::lock_guard scoped_lock{mu};
         if (!have_warned_slow)
         {
-            CELER_LOG(warning) << "Performance is degraded due to "
-                                  "non-optimized build options: "
+            CELER_LOG(warning) << "Performance is degraded due to non-optimized build options: "
                                << BuildOutput{};
             have_warned_slow = true;
         }

@@ -104,8 +104,7 @@ int Device::num_devices()
         if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
         {
             CELER_LOG(info)
-                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
-                   "environment variable is present and non-empty";
+                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' environment variable is present and non-empty";
             return 0;
         }
 

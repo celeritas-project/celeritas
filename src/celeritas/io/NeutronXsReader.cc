@@ -28,8 +28,7 @@ NeutronXsReader::NeutronXsReader(NeutronXsType type) : type_(type)
 {
     std::string const& dir = celeritas::getenv("G4PARTICLEXSDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4PARTICLEXSDATA is not defined "
-                      "(needed to locate neutron cross section data)");
+                   << "environment variable G4PARTICLEXSDATA is not defined (needed to locate neutron cross section data)");
     path_ = dir + "/neutron";
 }
 

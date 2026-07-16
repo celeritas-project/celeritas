@@ -203,8 +203,7 @@ OpticalStandaloneLoaded standalone_input(inp::OpticalStandaloneInput& si)
         auto& gen = si.problem.physics.gen;
         if (!(gen.cherenkov || gen.scintillation))
         {
-            CELER_LOG(error) << "Optical offload generator should not be used "
-                                "without scintillation or Cherenkov physics";
+            CELER_LOG(error) << "Optical offload generator should not be used without scintillation or Cherenkov physics";
         }
     }
 

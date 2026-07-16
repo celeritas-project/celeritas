@@ -26,8 +26,7 @@ GammaNuclearXsReader::GammaNuclearXsReader()
 {
     std::string const& dir = celeritas::getenv("G4PARTICLEXSDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4PARTICLEXSDATA is not defined "
-                      "(needed to locate gamma-nuclear cross section data)");
+                   << "environment variable G4PARTICLEXSDATA is not defined (needed to locate gamma-nuclear cross section data)");
     path_ = dir + "/gamma";
 }
 

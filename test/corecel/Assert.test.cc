@@ -43,8 +43,7 @@ TEST_F(AssertTest, debug_error)
     details.line = 123;
 
     EXPECT_STREQ(
-        "\x1B[1;37mAssert.test.cc:123:\x1B[0m\nceleritas: \x1B[1;31minternal "
-        "assertion failed: \x1B[2;37m2 + 2 == 5\x1B[0m",
+        "\x1B[1;37mAssert.test.cc:123:\x1B[0m\nceleritas: \x1B[1;31minternal assertion failed: \x1B[2;37m2 + 2 == 5\x1B[0m",
         DebugError{std::move(details)}.what());
 }
 
@@ -58,8 +57,7 @@ TEST_F(AssertTest, runtime_error)
     {
         EXPECT_TRUE(std::string{e.what()}.find("configuration error:")
                     != std::string::npos);
-        EXPECT_TRUE(std::string{e.what()}.find("required dependency is "
-                                               "disabled in this build: foo")
+        EXPECT_TRUE(std::string{e.what()}.find("required dependency is disabled in this build: foo")
                     != std::string::npos)
             << e.what();
     }

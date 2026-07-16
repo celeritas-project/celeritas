@@ -68,8 +68,7 @@ inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 #    else
     CELER_VALIDATE(false,
                    << "Geant4 version " << cmake::geant4_version
-                   << " is too old for gamma-nuclear cross section "
-                      "calculation");
+                   << " is too old for gamma-nuclear cross section calculation");
 #    endif
 }
 

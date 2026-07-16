@@ -61,8 +61,7 @@ void SurfacePhysicsMapBuilder::operator()(SurfaceModel const& model)
         SurfaceModelId prev_id = std::exchange(
             data_.surface_models[surface_id], model.surface_model_id());
         CELER_VALIDATE(!prev_id,
-                       << "multiple surface physics models were assigned to "
-                          "the same surface");
+                       << "multiple surface physics models were assigned to the same surface");
 
         // Add the model surface ID
         data_.internal_surface_ids[surface_id] = SubModelId{ms_index++};

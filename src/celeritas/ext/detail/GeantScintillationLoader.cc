@@ -100,14 +100,11 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
     {
         // TODO: could check whether YIELDRATIO is given (2 components) and
         // fill in scintillation data accordingly
-        CELER_LOG(warning) << "Ignoring deprecated scintillation "
-                              "component properties";
+        CELER_LOG(warning) << "Ignoring deprecated scintillation component properties";
     }
 
     CELER_VALIDATE(!scint_mat.components.empty(),
-                   << "no scintillation components were present (perhaps "
-                      "the material has only unsupported particle "
-                      "scintillation or legacy G4 fast/slow components?)");
+                   << "no scintillation components were present (perhaps the material has only unsupported particle scintillation or legacy G4 fast/slow components?)");
 
     // Normalize component yields
     for (auto& s : scint_mat.components)
@@ -156,15 +153,13 @@ GeantScintillationLoader::load_gaussian(GeantMaterialPropertyGetter const& get,
     {
         if (has_gaussian)
         {
-            CELER_LOG(warning) << "Ignoring deprecated optical property "
-                                  "(missing CELER_ prefix): "
+            CELER_LOG(warning) << "Ignoring deprecated optical property (missing CELER_ prefix): "
                                << prefix << suffix;
         }
         else
         {
             CELER_LOG(warning)
-                << "Omitting CELER_ prefix is deprecated: rename "
-                   "optical property to 'CELER_"
+                << "Omitting CELER_ prefix is deprecated: rename optical property to 'CELER_"
                 << prefix << suffix << '\'';
         }
     }

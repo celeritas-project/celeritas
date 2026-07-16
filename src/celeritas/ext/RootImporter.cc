@@ -27,8 +27,7 @@ RootImporter::RootImporter(char const* filename)
 {
     CELER_LOG(info) << "Opening ROOT file at " << filename;
     CELER_VALIDATE(RootFileManager::use_root(),
-                   << "cannot interface with ROOT (disabled by user "
-                      "environment)");
+                   << "cannot interface with ROOT (disabled by user environment)");
 
     root_input_.reset(TFile::Open(filename, "read"));
     CELER_VALIDATE(root_input_ && !root_input_->IsZombie(),

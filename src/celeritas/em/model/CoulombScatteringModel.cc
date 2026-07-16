@@ -69,8 +69,7 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
         {
             CELER_VALIDATE(
                 energy_limit_ == imported_.energy_grid_bounds(pid, mid),
-                << "Coulomb scattering cross section energy limits are "
-                   "inconsistent across particles and/or materials");
+                << "Coulomb scattering cross section energy limits are inconsistent across particles and/or materials");
         }
     }
 

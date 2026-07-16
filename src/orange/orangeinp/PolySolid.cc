@@ -140,8 +140,7 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
     : inner_{std::move(inner)}, outer_{std::move(outer)}, z_{std::move(z)}
 {
     CELER_VALIDATE(z_.size() >= 2,
-                   << "no axial segments was specified: at least 2 points "
-                      "needed (given "
+                   << "no axial segments was specified: at least 2 points needed (given "
                    << z_.size() << ")");
     CELER_VALIDATE(outer_.size() == z_.size(),
                    << "inconsistent outer radius size (" << outer_.size()

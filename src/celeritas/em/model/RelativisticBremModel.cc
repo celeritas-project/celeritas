@@ -68,8 +68,7 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
         = imported_.low_energy_limit(host_ref.ids.electron);
     CELER_VALIDATE(host_ref.low_energy_limit
                        == imported_.low_energy_limit(host_ref.ids.positron),
-                   << "Relativistic bremsstrahlung energy grid bounds are "
-                      "inconsistent across particles");
+                   << "Relativistic bremsstrahlung energy grid bounds are inconsistent across particles");
 
     // Set the LPM flag (true by default)
     host_ref.enable_lpm = enable_lpm;

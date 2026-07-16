@@ -124,8 +124,7 @@ auto GlobalTestBase::build_geo_from_gdml(std::string const& filename) const
 void GlobalTestBase::disable_status_checker()
 {
     CELER_VALIDATE(!core_,
-                   << "disable_status_checker cannot be called after core "
-                      "params have been created");
+                   << "disable_status_checker cannot be called after core params have been created");
     insert_status_checker_ = false;
 }
 

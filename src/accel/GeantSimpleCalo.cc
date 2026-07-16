@@ -74,8 +74,7 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
             = storage_->volume_to_index.insert({volumes_[i], i});
         CELER_VALIDATE(inserted,
                        << "logical volume " << StreamableLV{iter->first}
-                       << " is duplicated in the list of volumes for "
-                          "GeantSimpleCalo '"
+                       << " is duplicated in the list of volumes for GeantSimpleCalo '"
                        << this->label() << "'");
     }
 

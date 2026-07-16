@@ -70,8 +70,7 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
         = imported_.high_energy_limit(host_data.ids.electron);
     CELER_VALIDATE(host_data.high_energy_limit
                        == imported_.high_energy_limit(host_data.ids.positron),
-                   << "Seltzer-Berger energy grid bounds are inconsistent "
-                      "across particles");
+                   << "Seltzer-Berger energy grid bounds are inconsistent across particles");
 
     // Load differential cross sections
     detail::SBTableInserter insert_element(&host_data.differential_xs);

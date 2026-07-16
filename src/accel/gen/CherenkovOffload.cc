@@ -28,9 +28,7 @@ void CherenkovOffload::PreparePhysicsTable(G4ParticleDefinition const& particle)
     // Enforce don't stack photons
     if (this->GetStackPhotons())
     {
-        CELER_LOG(warning) << "CherenkovOffload requires stacking photons set "
-                              "to false since it sends optical photon tracks "
-                              "directly to Celeritas.";
+        CELER_LOG(warning) << "CherenkovOffload requires stacking photons set to false since it sends optical photon tracks directly to Celeritas.";
         this->SetStackPhotons(false);
     }
 }
@@ -62,8 +60,7 @@ CherenkovOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
         auto* gen_offload = dynamic_cast<LocalOpticalGenOffload*>(&local);
 
         CELER_VALIDATE(gen_offload,
-                       << "LocalOpticalGenOffload required for "
-                          "CherenkovOffload");
+                       << "LocalOpticalGenOffload required for CherenkovOffload");
 
         CELER_LOG_LOCAL(debug)
             << "Offloading " << data.num_photons << " Cherenkov photons";

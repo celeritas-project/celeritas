@@ -482,8 +482,7 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // Scintillation, WLS, WLS2, Mie
 
         CELER_VALIDATE(optical,
-                       << "failed to load valid optical material data for "
-                          "OptMatId{"
+                       << "failed to load valid optical material data for OptMatId{"
                        << opt_mat_id.get() << "} = " << material->GetName());
     }
 
@@ -575,8 +574,7 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
     std::vector<ImportPhysMaterial> materials;
     materials.resize(pct.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
-                   << "no Geant4 production cuts are defined (you may "
-                      "need to call G4RunManager::RunInitialization)");
+                   << "no Geant4 production cuts are defined (you may need to call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;

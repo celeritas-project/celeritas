@@ -34,8 +34,7 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
     // Set particle properties
     data.electron_id = particles.find(pdg::electron());
     CELER_VALIDATE(data.electron_id,
-                   << "missing electron particle (required for energy loss "
-                      "fluctuations)");
+                   << "missing electron particle (required for energy loss fluctuations)");
     data.electron_mass = particles.get(data.electron_id).mass();
 
     // Loop over materials

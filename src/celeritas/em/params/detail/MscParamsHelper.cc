@@ -142,9 +142,7 @@ auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
             // look up the particle and material
             CELER_VALIDATE(x[Bound::lo] == grid.x[Bound::lo]
                                && x[Bound::hi] == grid.x[Bound::hi],
-                           << "multiple scattering cross section energy "
-                              "limits are inconsistent across particles "
-                              "and/or materials");
+                           << "multiple scattering cross section energy limits are inconsistent across particles and/or materials");
         }
     }
     return {Energy(std::exp(x[Bound::lo])), Energy(std::exp(x[Bound::hi]))};

@@ -116,8 +116,7 @@ void ScopedRootErrorHandler::throw_if_errors() const
     bool prev_errored = g_has_root_errored_;
     g_has_root_errored_ = false;
     CELER_VALIDATE(!prev_errored,
-                   << "ROOT encountered non-fatal errors: see log messages "
-                      "above");
+                   << "ROOT encountered non-fatal errors: see log messages above");
 }
 
 //---------------------------------------------------------------------------//

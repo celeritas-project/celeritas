@@ -45,13 +45,11 @@ void DiagnosticTestBase::RunResult::print_expected() const
             "static char const* const expected_nonzero_action_keys[] = "
          << repr(this->nonzero_action_keys)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_keys, "
-            "result.nonzero_action_keys);\n"
+            "EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);\n"
             "static size_type const expected_nonzero_action_counts[] = "
          << repr(this->nonzero_action_counts)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_nonzero_action_counts, "
-            "result.nonzero_action_counts);\n"
+            "EXPECT_VEC_EQ(expected_nonzero_action_counts, result.nonzero_action_counts);\n"
             "static size_type const expected_steps[] = "
          << repr(this->steps)
          << ";\n"

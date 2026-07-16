@@ -42,8 +42,7 @@ BvhBuilder::BvhBuilder(Storage* storage, Input inp)
     CELER_EXPECT(inp_);
     CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bvh_depth,
                    << "invalid BVH input depth limit " << inp_.depth_limit
-                   << ": must be positive and no more than compile-time "
-                      "maximum "
+                   << ": must be positive and no more than compile-time maximum "
                    << max_bvh_depth);
     CELER_VALIDATE(inp_.max_leaf_size > 0,
                    << "invalid BVH max leaf size " << inp_.max_leaf_size << ": "

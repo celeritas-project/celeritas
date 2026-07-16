@@ -231,12 +231,10 @@ Solid<T>::Solid(std::string&& label,
     , polar_{std::move(polar)}
 {
     CELER_VALIDATE(exclusion_ || azi_ || polar_,
-                   << "solid requires an excluded slice or region: use a "
-                      "Shape instead");
+                   << "solid requires an excluded slice or region: use a Shape instead");
     CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()
-                   << "' was given an interior region that is not enclosed by "
-                      "its exterior");
+                   << "' was given an interior region that is not enclosed by its exterior");
 }
 
 //---------------------------------------------------------------------------//

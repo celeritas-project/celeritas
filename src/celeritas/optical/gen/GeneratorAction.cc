@@ -78,8 +78,7 @@ GeneratorAction::GeneratorAction(ActionId id,
                     aux_id,
                     gen_id,
                     "generate",
-                    "generate Cherenkov or scintillation photons from optical "
-                    "distribution data")
+                    "generate Cherenkov or scintillation photons from optical distribution data")
     , initial_capacity_(capacity)
 {
     CELER_EXPECT(initial_capacity_ > 0);
@@ -118,8 +117,7 @@ void GeneratorAction::insert(CoreStateBase& state, SpanConstData data) const
             // here rather than for every track in CherenkovOffload (see
             // CherenkovOffload constructor)
             CELER_LOG_LOCAL(warning)
-                << "Optical generator distribution data has undefined "
-                   "direction due to coincident start/stop points: "
+                << "Optical generator distribution data has undefined direction due to coincident start/stop points: "
                 << d;
         }
     }

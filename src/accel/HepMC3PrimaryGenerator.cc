@@ -107,8 +107,7 @@ G4VSolid* get_world_solid()
 {
     auto* world = geant_world_volume();
     CELER_VALIDATE(world,
-                   << "detector geometry was not initialized before "
-                      "HepMC3PrimaryGenerator was instantiated");
+                   << "detector geometry was not initialized before HepMC3PrimaryGenerator was instantiated");
     auto* lv = world->GetLogicalVolume();
     CELER_ASSERT(lv);
     auto* solid = lv->GetSolid();
@@ -209,8 +208,7 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 
     CELER_VALIDATE(g4_event->GetNumberOfPrimaryVertex() > 0,
                    << "event " << g4_event->GetEventID()
-                   << " did not contain any primaries suitable for "
-                      "simulation");
+                   << " did not contain any primaries suitable for simulation");
 }
 
 //---------------------------------------------------------------------------//
@@ -266,8 +264,7 @@ auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
             && static_cast<size_type>(read_evt_id) != expected_id)
         {
             CELER_LOG_LOCAL(warning)
-                << "HepMC3 event IDs are not consecutive from zero: Celeritas "
-                   "currently assumes this but will change in the future";
+                << "HepMC3 event IDs are not consecutive from zero: Celeritas currently assumes this but will change in the future";
             warned_mismatched_events_ = true;
         }
     }

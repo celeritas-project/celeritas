@@ -132,8 +132,7 @@ inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
 {
     CELER_VALIDATE(pgo,
                    << "Invalid PrimaryGeneratorOptions: "
-                   << "ensure all distributions and parameters are correctly "
-                      "set.");
+                   << "ensure all distributions and parameters are correctly set.");
 
     inp::CorePrimaryGenerator result;
 

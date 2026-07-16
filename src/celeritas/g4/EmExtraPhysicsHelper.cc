@@ -22,8 +22,7 @@ EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "compiled version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old for gamma-nuclear cross section "
-                      "calculation");
+                   << ") is too old for gamma-nuclear cross section calculation");
     particle_ = std::make_shared<G4DynamicParticle>();
     en_xs_ = std::make_shared<G4ElectroNuclearCrossSection>();
     gn_xs_ = std::make_shared<G4GammaNuclearXS>();

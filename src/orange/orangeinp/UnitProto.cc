@@ -112,8 +112,7 @@ void implicit_parent_boundary(CsgUnit& unit)
         CELER_LOG(debug)
             << "- Some CSG nodes (" << unknowns.size() << " of "
             << orig_tree_size << ", now " << unit.tree.size()
-            << ") could not be logically eliminated from the "
-               "boundary: "
+            << ") could not be logically eliminated from the boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
