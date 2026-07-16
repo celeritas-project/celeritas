@@ -93,6 +93,9 @@ void count_num_photons(
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
+    // Note: The CUB/hipCUB functions need the number of entries being
+    // processed instead of the end of the entries, so we need to pass the end
+    // of distributions (size) minus the starting point, which is offset
     auto cub_error_code = cub::DeviceReduce::TransformReduce(
         nullptr,
         temp_storage_bytes,
