@@ -160,7 +160,7 @@ auto SharedParams::GetMode() -> Mode
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-            << "environment variable is present and non-empty";
+               "environment variable is present and non-empty";
         return true;
     }();
 

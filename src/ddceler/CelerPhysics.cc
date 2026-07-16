@@ -110,11 +110,10 @@ SetupOptions CelerPhysics::make_options()
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
         auto* const_field = dynamic_cast<ConstantField const*>(cartesian_obj);
 
-        CELER_VALIDATE(
-            const_field,
-            << "Celeritas currently only supports ConstantField magnetic "
-            << "fields. Found non-constant field component in DD4hep "
-            << "description.");
+        CELER_VALIDATE(const_field,
+                       << "Celeritas currently only supports ConstantField "
+                          "magnetic fields. Found non-constant field "
+                          "component in DD4hep description.");
         field_direction += const_field->direction;
     }
 

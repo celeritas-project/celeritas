@@ -46,12 +46,11 @@ BvhBuilder::BvhBuilder(Storage* storage, Input inp)
         << ": must be positive and no more than compile-time maximum "
         << max_bvh_depth);
     CELER_VALIDATE(inp_.max_leaf_size > 0,
-                   << "invalid BVH max leaf size " << inp_.max_leaf_size << ": "
-                   << "must be positive");
+                   << "invalid BVH max leaf size " << inp_.max_leaf_size
+                   << ": must be positive");
     CELER_VALIDATE(inp_.num_part_cands > 0,
                    << "invalid BVH partition candidate count "
-                   << inp_.num_part_cands << ": "
-                   << "must be positive");
+                   << inp_.num_part_cands << ": must be positive");
 }
 
 //---------------------------------------------------------------------------//
