@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Assert.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArraySoftUnit.hh"
@@ -13,6 +15,7 @@
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
+#include "corecel/random/engine/RanluxppRngEngine.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 
@@ -69,6 +72,13 @@ RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
 template<class Engine>
 CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
 {
+    if constexpr (std::is_same_v<Engine, RanluxppRngEngine>)
+    {
+        // If using Ranlux++, force the RNG to create a new block of bits
+        // in preparation for taking a bunch of samples
+        rng.advance();
+    }
+
     Real3 new_dir, new_pol;
     do
     {
