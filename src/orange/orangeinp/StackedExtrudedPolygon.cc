@@ -103,10 +103,10 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
                    << "z coordinates must be nondecreasing");
 
     // Validate scaling factors
-    CELER_VALIDATE(std::all_of(scaling_.begin(),
-                               scaling_.end(),
-                               [](auto& s) { return s >= 0; }),
-                   << "scaling factor must be nonnegative");
+    CELER_VALIDATE(
+        std::all_of(
+            scaling_.begin(), scaling_.end(), [](auto& s) { return s >= 0; }),
+        << "scaling factor must be nonnegative");
 }
 
 //---------------------------------------------------------------------------//
@@ -181,10 +181,10 @@ NodeId StackedExtrudedPolygon::make_levels(
 /*!
  * Extrude a *convex* polygon along the polyline.
  */
-NodeId
-StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
-                                   VecReal2 const& polygon,
-                                   StackedExtrudedPolygon::SubRegionIndex si) const
+NodeId StackedExtrudedPolygon::make_stack(
+    detail::VolumeBuilder& vb,
+    VecReal2 const& polygon,
+    StackedExtrudedPolygon::SubRegionIndex si) const
 {
     std::vector<NodeId> nodes;
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
@@ -196,7 +196,8 @@ StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
     {
         CELER_VALIDATE(soft_zero(scaling_[i]) == soft_zero(scaling_[i + 1])
                            || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
-                       << "non-zero-length polyline segment cannot have scaling = 0 on exactly one z plane");
+                       << "non-zero-length polyline segment cannot have "
+                          "scaling = 0 on exactly one z plane");
 
         if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
             && !soft_zero(scaling_[i]))

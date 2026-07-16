@@ -291,8 +291,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Reconstruct tracks and IDs if particles were provided
-    CELER_ASSERT(static_cast<bool>(track_reconstruction_)
-                 == !out.particle_id.empty());
+    CELER_ASSERT(
+        static_cast<bool>(track_reconstruction_) == !out.particle_id.empty());
     if (track_reconstruction_)
     {
         CELER_ASSERT(i < out.particle_id.size());

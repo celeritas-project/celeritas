@@ -169,7 +169,8 @@ class LdgIterator
         ptr_ -= n;
         return *this;
     }
-    CELER_CONSTEXPR_FUNCTION reference operator[](difference_type n) const noexcept
+    CELER_CONSTEXPR_FUNCTION reference operator[](
+        difference_type n) const noexcept
     {
         return LdgWrapper<T>{*(ptr_ + n)};
     }

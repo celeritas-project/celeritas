@@ -135,9 +135,8 @@ class KernelParamCalculator
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(std::string_view name,
-                                 F* kernel_func_ptr,
-                                 dim_type threads_per_block);
+    inline KernelParamCalculator(
+        std::string_view name, F* kernel_func_ptr, dim_type threads_per_block);
 
     // Get launch parameters
     inline LaunchParams operator()(size_type min_num_threads) const;
@@ -192,14 +191,13 @@ KernelParamCalculator::KernelParamCalculator(std::string_view name,
  * pointer to the profiling data if profiling is to be used.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(std::string_view name,
-                                             F* kernel_func_ptr,
-                                             dim_type threads_per_block)
+KernelParamCalculator::KernelParamCalculator(
+    std::string_view name, F* kernel_func_ptr, dim_type threads_per_block)
     : block_size_(threads_per_block)
 {
-    CELER_EXPECT(threads_per_block > 0
-                 && threads_per_block % celeritas::device().threads_per_warp()
-                        == 0);
+    CELER_EXPECT(
+        threads_per_block > 0
+        && threads_per_block % celeritas::device().threads_per_warp() == 0);
 
     auto attrs = make_kernel_attributes(kernel_func_ptr, threads_per_block);
     CELER_VALIDATE(threads_per_block <= attrs.max_threads_per_block,
@@ -227,8 +225,8 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
     // Ceiling integer division
     dim_type blocks_per_grid
         = celeritas::ceil_div<dim_type>(min_num_threads, this->block_size_);
-    CELER_ASSERT(blocks_per_grid
-                 < dim_type(celeritas::device().max_blocks_per_grid()));
+    CELER_ASSERT(
+        blocks_per_grid < dim_type(celeritas::device().max_blocks_per_grid()));
 
     LaunchParams result;
     result.blocks_per_grid.x = blocks_per_grid;

@@ -45,7 +45,8 @@ class OutputInterfaceAdapter final : public OutputInterface
     from_rvalue_ref(Category cat, std::string label, T&& obj);
 
     // Construct from category, label, and shared pointer
-    inline OutputInterfaceAdapter(Category cat, std::string label, SPConstT obj);
+    inline OutputInterfaceAdapter(
+        Category cat, std::string label, SPConstT obj);
 
     //! Category of data to write
     Category category() const final { return cat_; }
@@ -80,9 +81,8 @@ class OutputInterfaceAdapter final : public OutputInterface
  * \endcode
  */
 template<class T>
-auto OutputInterfaceAdapter<T>::from_const_ref(Category cat,
-                                               std::string label,
-                                               T const& obj) -> SPThis
+auto OutputInterfaceAdapter<T>::from_const_ref(
+    Category cat, std::string label, T const& obj) -> SPThis
 {
     auto null_deleter = [](T const*) {};
 
@@ -95,9 +95,8 @@ auto OutputInterfaceAdapter<T>::from_const_ref(Category cat,
  * Construct by capturing an object.
  */
 template<class T>
-auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category cat,
-                                                std::string label,
-                                                T&& obj) -> SPThis
+auto OutputInterfaceAdapter<T>::from_rvalue_ref(
+    Category cat, std::string label, T&& obj) -> SPThis
 {
     return std::make_shared<OutputInterfaceAdapter<T>>(
         cat, std::move(label), std::make_shared<T>(std::move(obj)));
@@ -108,9 +107,8 @@ auto OutputInterfaceAdapter<T>::from_rvalue_ref(Category cat,
  * Construct from category, label, and shared pointer.
  */
 template<class T>
-OutputInterfaceAdapter<T>::OutputInterfaceAdapter(Category cat,
-                                                  std::string label,
-                                                  SPConstT obj)
+OutputInterfaceAdapter<T>::OutputInterfaceAdapter(
+    Category cat, std::string label, SPConstT obj)
     : cat_(cat), label_(std::move(label)), obj_(std::move(obj))
 {
     CELER_EXPECT(cat != Category::size_);

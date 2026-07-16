@@ -43,12 +43,16 @@ bool ScopedProfiling::enabled()
         {
             if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
             {
-                CELER_LOG(error) << "Profiling support is disabled since ROC-TX is unavailable";
+                CELER_LOG(error) << "Profiling support is disabled since "
+                                    "ROC-TX is unavailable";
                 return false;
             }
             else if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
             {
-                CELER_LOG(error) << "CELER_ENABLE_PROFILING is set but Celeritas was compiled without a profiling backend: code will run but no profiling will be generated";
+                CELER_LOG(error)
+                    << "CELER_ENABLE_PROFILING is set but Celeritas was "
+                       "compiled without a profiling backend: code will run "
+                       "but no profiling will be generated";
                 return false;
             }
         }

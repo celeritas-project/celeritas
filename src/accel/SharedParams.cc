@@ -98,7 +98,8 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     auto printable_pd
         = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
     CELER_VALIDATE(missing.empty(),
-                   << "not all particles from TrackingManagerConstructor are active in Celeritas: missing "
+                   << "not all particles from TrackingManagerConstructor are "
+                      "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
 
     if (found_particle != std::vector<bool>(particles.size(), true))
@@ -143,7 +144,8 @@ auto SharedParams::GetMode() -> Mode
 
         if (result.value)
         {
-            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas offloading";
+            CELER_LOG(info)
+                << "Killing Geant4 tracks supported by Celeritas offloading";
         }
         return result.value;
     }();
@@ -153,7 +155,8 @@ auto SharedParams::GetMode() -> Mode
             return false;
 
         CELER_VALIDATE(!kill_offload,
-                       << "both CELER_DISABLE and CELER_KILL_OFFLOAD environment variables were defined: choose one");
+                       << "both CELER_DISABLE and CELER_KILL_OFFLOAD "
+                          "environment variables were defined: choose one");
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
@@ -467,7 +470,8 @@ void SharedParams::try_output() const
     std::string filename = loaded_.output_file;
     if (filename.empty())
     {
-        CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is empty";
+        CELER_LOG(debug)
+            << "Skipping output: SetupOptions::output_file is empty";
         return;
     }
 

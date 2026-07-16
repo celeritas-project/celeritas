@@ -72,9 +72,8 @@ class MuAngularDistribution
  * Construct with incident and secondary particle.
  */
 CELER_FUNCTION
-MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
-                                             Mass inc_mass,
-                                             Energy energy)
+MuAngularDistribution::MuAngularDistribution(
+    Energy inc_energy, Mass inc_mass, Energy energy)
     : gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(inc_mass))
 {
     using namespace celeritas::literals;

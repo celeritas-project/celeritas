@@ -51,8 +51,8 @@ DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
  * Return selected muonic molecule.
  */
 template<class Engine>
-CELER_FUNCTION MucfMuonicMolecule
-DTMixMuonicMoleculeSelector::operator()(Engine&)
+CELER_FUNCTION MucfMuonicMolecule DTMixMuonicMoleculeSelector::operator()(
+    Engine&)
 {
     MucfMuonicMolecule result{MucfMuonicMolecule::size_};
 

@@ -104,7 +104,8 @@ int Device::num_devices()
         if (!celeritas::getenv("CELER_DISABLE_DEVICE").empty())
         {
             CELER_LOG(info)
-                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' environment variable is present and non-empty";
+                << "Disabling GPU support since the 'CELER_DISABLE_DEVICE' "
+                   "environment variable is present and non-empty";
             return 0;
         }
 
@@ -375,12 +376,12 @@ void activate_device(Device&& device)
         constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
                                  : CELERITAS_USE_HIP ? "HIP"
                                                      : "";
-        CELER_LOG(warning)
-            << "Device '" << device.name() << "' has " << gpu_str
-            << " compute capability of " << device.capability()
-            << ", but Celeritas was compiled with CMAKE_" << gpu_str
-            << "_ARCHITECTURES=\"" << arch
-            << "\": code may mysteriously die at runtime";
+        CELER_LOG(warning) << "Device '" << device.name() << "' has "
+                           << gpu_str << " compute capability of "
+                           << device.capability()
+                           << ", but Celeritas was compiled with CMAKE_"
+                           << gpu_str << "_ARCHITECTURES=\"" << arch
+                           << "\": code may mysteriously die at runtime";
     }
 
     CELER_LOG(debug) << "Initializing '" << device.name() << "', ID "

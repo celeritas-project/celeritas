@@ -22,8 +22,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct MuPairProductionExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<MuPairProductionData> params;
 };
@@ -32,8 +32,8 @@ struct MuPairProductionExecutor
 /*!
  * Sample muon pair production from the current track.
  */
-CELER_FUNCTION Interaction
-MuPairProductionExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction MuPairProductionExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto cutoff = track.cutoff();
     auto particle = track.particle();

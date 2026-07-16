@@ -53,8 +53,8 @@ inp::CartMapField MakeCartMapFieldInput(G4Field const& field,
 
     // Prepare field data storage
     size_type const total_points = params.x.num * params.y.num * params.z.num;
-    field_input.field.resize(static_cast<size_type>(Axis::size_)
-                             * total_points);
+    field_input.field.resize(
+        static_cast<size_type>(Axis::size_) * total_points);
 
     Array<size_type, 4> const dims{params.x.num,
                                    params.y.num,
@@ -105,7 +105,8 @@ inp::CartMapField MakeCartMapFieldInput(CartMapFieldGridParams const& params)
 {
     G4Field const* g4field = celeritas::geant_field();
     CELER_VALIDATE(g4field,
-                   << "no Geant4 global field has been set: cannot build magnetic field map");
+                   << "no Geant4 global field has been set: cannot build "
+                      "magnetic field map");
     return MakeCartMapFieldInput(*g4field, params);
 }
 

@@ -74,13 +74,13 @@ class BaseLogicBuilder
     //!@}
 
     static_assert(std::is_same_v<LocalSurfaceId::size_type, logic_int>,
-                  "unsupported: add enum logic conversion for different-sized face and surface ints");
+                  "unsupported: add enum logic conversion for different-sized "
+                  "face and surface ints");
 
   public:
     // Construct with optional mapping pointer
-    BaseLogicBuilder(CsgTree const& tree,
-                     VecLogic& logic,
-                     VecSurface const* vs = nullptr);
+    BaseLogicBuilder(
+        CsgTree const& tree, VecLogic& logic, VecSurface const* vs = nullptr);
     //! Build from a node ID
     void operator()(NodeId const& n);
 
@@ -227,9 +227,8 @@ class DynamicBuildLogicPolicy
 
   public:
     // Construct with optional mapping
-    DynamicBuildLogicPolicy(LogicNotation notation,
-                            CsgTree const& tree,
-                            VecSurface const* mapping);
+    DynamicBuildLogicPolicy(
+        LogicNotation notation, CsgTree const& tree, VecSurface const* mapping);
 
     // Create a visitor for building logic
     Builder operator()(VecLogic& logic) const;

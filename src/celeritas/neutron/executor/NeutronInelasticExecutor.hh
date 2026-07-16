@@ -20,8 +20,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct NeutronInelasticExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NeutronInelasticRef params;
 };
@@ -30,8 +30,8 @@ struct NeutronInelasticExecutor
 /*!
  * Apply the NeutronInelasticInteractor to the current track.
  */
-CELER_FUNCTION Interaction
-NeutronInelasticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction NeutronInelasticExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto rng = track.rng();

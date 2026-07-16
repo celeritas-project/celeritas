@@ -32,9 +32,8 @@ namespace test
 /*!
  * Run tracks on host and device, and compare the resulting path length.
  */
-void HeuristicGeoTestBase::run(size_type num_states,
-                               size_type num_steps,
-                               real_type tolerance)
+void HeuristicGeoTestBase::run(
+    size_type num_states, size_type num_steps, real_type tolerance)
 {
     auto host_path = this->run_impl<MemSpace::host>(num_states, num_steps);
 
@@ -43,7 +42,8 @@ void HeuristicGeoTestBase::run(size_type num_states,
     {
         ScopedStreamFormat save_fmt(&std::cout);
 
-        ADD_FAILURE() << "Implement the following as TestCase::reference_avg_path() const";
+        ADD_FAILURE() << "Implement the following as "
+                         "TestCase::reference_avg_path() const";
 
         int precision_digits
             = static_cast<int>(std::ceil(-std::log10(tolerance) + 0.5));
@@ -151,9 +151,8 @@ auto HeuristicGeoTestBase::build_test_params()
 
 //---------------------------------------------------------------------------//
 
-auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
-                                             size_type num_states) const
-    -> VecReal
+auto HeuristicGeoTestBase::get_avg_path_impl(
+    VecReal const& path, size_type num_states) const -> VecReal
 {
     CELER_EXPECT(path.size() == this->geometry()->impl_volumes().size());
 
@@ -173,7 +172,8 @@ auto HeuristicGeoTestBase::get_avg_path_impl(VecReal const& path,
             }
         }
 
-        ADD_FAILURE() << "Implement the following as TestCase::reference_volumes() const";
+        ADD_FAILURE() << "Implement the following as "
+                         "TestCase::reference_volumes() const";
         std::cout << "/* REFERENCE VOLUMES */\n"
                      "static std::string const vols[] = "
                   << repr(temp_labels)

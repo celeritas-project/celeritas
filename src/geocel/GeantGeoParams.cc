@@ -183,7 +183,8 @@ void append_border_surfaces(GeantGeoParams const& geo,
         if (key.first->IsReplicated() || key.second->IsReplicated())
         {
             CELER_LOG(error) << "G4 border surface '" << surf->GetName()
-                             << "' uses replica/parameterised volumes: these will be ignored!";
+                             << "' uses replica/parameterised volumes: these "
+                                "will be ignored!";
             continue;
         }
         auto before = geo.geant_to_id(*key.first);
@@ -647,7 +648,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
 {
     auto* world = geant_world_volume();
     CELER_VALIDATE(world,
-                   << "cannot create Geant geometry wrapper: Geant4 tracking manager is not active");
+                   << "cannot create Geant geometry wrapper: Geant4 tracking "
+                      "manager is not active");
     auto result = std::make_shared<GeantGeoParams>(world, Ownership::reference);
     celeritas::global_geant_geo(result);
     return result;
@@ -745,7 +747,8 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
     if (world != nav_world)
     {
         auto msg = CELER_LOG(debug);
-        msg << "GeantGeoParams constructed with a non-navigation world: given '"
+        msg << "GeantGeoParams constructed with a non-navigation world: given "
+               "'"
             << world->GetName() << "'@" << static_cast<void const*>(world)
             << "; navigation world is ";
         if (nav_world)
@@ -818,7 +821,8 @@ GeantGeoParams::~GeantGeoParams()
         }
         else
         {
-            CELER_LOG(error) << "Geometry manager was deleted before Geant geo had a chance to clean up";
+            CELER_LOG(error) << "Geometry manager was deleted before Geant "
+                                "geo had a chance to clean up";
         }
     }
     if (ownership_ == Ownership::value)

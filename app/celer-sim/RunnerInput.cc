@@ -116,8 +116,8 @@ inp::Problem load_problem(RunnerInput const& ri)
         inp::CoreStateCapacity capacity;
         capacity.initializers = ri.initializer_capacity;
         capacity.tracks = ri.num_track_slots;
-        capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
-                                                      * ri.num_track_slots);
+        capacity.secondaries = static_cast<size_type>(
+            ri.secondary_stack_factor * ri.num_track_slots);
         p.control.capacity = capacity;
 
         p.control.warm_up = ri.warm_up;
@@ -166,7 +166,8 @@ inp::Problem load_problem(RunnerInput const& ri)
 inp::Events load_events(RunnerInput const& ri)
 {
     CELER_VALIDATE(ri.event_file.empty() != !ri.primary_options,
-                   << "either a event filename or options to generate primaries must be provided (but not both)");
+                   << "either a event filename or options to generate "
+                      "primaries must be provided (but not both)");
 
     inp::Events result;
     result.merge = ri.merge_events;
@@ -227,7 +228,8 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         CELER_VALIDATE(
             ri.poly_spline_order == 1
                 || ri.interpolation == InterpolationType::poly_spline,
-            << "piecewise polynomial spline order cannot be set if linear or cubic spline interpolation is enabled");
+            << "piecewise polynomial spline order cannot be set if linear or "
+               "cubic spline interpolation is enabled");
 
         inp::PhysicsFromGeant geant_import;
         geant_import.data_selection.interpolation.type = ri.interpolation;

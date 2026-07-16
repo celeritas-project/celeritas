@@ -135,7 +135,8 @@ void SortTracksAction::begin_run(CoreParams const& params, CoreStateHost& state)
 {
     CELER_VALIDATE(state.action_thread_offsets().size()
                        == params.action_reg()->num_actions() + 1,
-                   << "state action size is incorrect: actions might have been added after creating states");
+                   << "state action size is incorrect: actions might have "
+                      "been added after creating states");
 }
 
 //---------------------------------------------------------------------------//
@@ -147,7 +148,8 @@ void SortTracksAction::begin_run(CoreParams const& params,
 {
     CELER_VALIDATE(state.action_thread_offsets().size()
                        == params.action_reg()->num_actions() + 1,
-                   << "state action size is incorrect: actions might have been added after creating states");
+                   << "state action size is incorrect: actions might have "
+                      "been added after creating states");
 }
 
 //---------------------------------------------------------------------------//

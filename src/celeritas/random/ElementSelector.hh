@@ -80,10 +80,10 @@ class ElementSelector
 
     // Fill storage with micro xs, and return the accumulated weighted xs
     template<class MicroXsCalc>
-    static inline CELER_FUNCTION MicroXs
-    store_and_calc_xs(Span<MatElementComponent const> elements,
-                      MicroXsCalc&& calc_micro_xs,
-                      SpanReal storage);
+    static inline CELER_FUNCTION MicroXs store_and_calc_xs(
+        Span<MatElementComponent const> elements,
+        MicroXsCalc&& calc_micro_xs,
+        SpanReal storage);
 };
 
 //---------------------------------------------------------------------------//
@@ -93,9 +93,8 @@ class ElementSelector
  * Construct with material, xs calculator, and storage.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
-                                                MicroXsCalc&& calc_micro_xs,
-                                                SpanReal storage)
+CELER_FUNCTION ElementSelector::ElementSelector(
+    MaterialView const& material, MicroXsCalc&& calc_micro_xs, SpanReal storage)
     : select_component_{{material.elements(), storage.data()},
                         id_cast<ElementComponentId>(material.num_elements()),
                         value_as<MicroXs>(ElementSelector::store_and_calc_xs(
@@ -134,8 +133,8 @@ ElementSelector::store_and_calc_xs(Span<MatElementComponent const> elements,
 /*!
  * Get weighted cross section for the given element component.
  */
-CELER_FUNCTION real_type
-ElementSelector::MicroXsComponentGetter::operator()(ElementComponentId i) const
+CELER_FUNCTION real_type ElementSelector::MicroXsComponentGetter::operator()(
+    ElementComponentId i) const
 {
     CELER_EXPECT(i < elements_.size());
     return elements_[i.unchecked_get()].fraction

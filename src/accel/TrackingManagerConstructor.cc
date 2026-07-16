@@ -41,7 +41,8 @@ TrackingManagerConstructor::TrackingManagerConstructor(
 
     CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old to support the tracking manager offload interface (11.0 or higher is required)");
+                   << ") is too old to support the tracking manager offload "
+                      "interface (11.0 or higher is required)");
 }
 
 //---------------------------------------------------------------------------//
@@ -61,8 +62,8 @@ TrackingManagerConstructor::TrackingManagerConstructor(
     : TrackingManagerConstructor(
           &detail::IntegrationSingleton::instance().shared_params(),
           [](int tid) {
-              CELER_EXPECT(tid >= 0
-                           || !G4Threading::IsMultithreadedApplication());
+              CELER_EXPECT(
+                  tid >= 0 || !G4Threading::IsMultithreadedApplication());
               return &detail::IntegrationSingleton::instance()
                           .local_track_offload();
           })

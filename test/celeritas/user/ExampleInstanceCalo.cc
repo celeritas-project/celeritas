@@ -51,7 +51,8 @@ ExampleInstanceCalo::ExampleInstanceCalo(
     : det_labels_{std::move(vol_labels)}, volumes_{std::move(volumes)}
 {
     CELER_VALIDATE(volumes_,
-                   << "geometry volumes were not constructed before instantiating ExampleInstanceCalo");
+                   << "geometry volumes were not constructed before "
+                      "instantiating ExampleInstanceCalo");
 
     // Map labels to volume IDs
     volume_ids_.resize(det_labels_.size());

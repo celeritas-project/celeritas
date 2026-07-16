@@ -91,8 +91,8 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
 /*!
  * Construct with particle definitions for track reconstruction.
  */
-GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
-                                                   SPStep step)
+GeantTrackReconstruction::GeantTrackReconstruction(
+    VecParticle const& particles, SPStep step)
     : step_(std::move(step))
 {
     CELER_EXPECT(!particles.empty());
@@ -202,7 +202,8 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
     {
         int cur_event_id = get_current_event_id();
         CELER_VALIDATE(g4_event_id_ == cur_event_id,
-                       << "GeantTrackReconstruction::init_event was not called: last event "
+                       << "GeantTrackReconstruction::init_event was not "
+                          "called: last event "
                        << g4_event_id_ << " != current event " << cur_event_id);
     }
     auto primary_id = start_ + g4_track_data_.size();

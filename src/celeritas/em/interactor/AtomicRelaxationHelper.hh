@@ -67,10 +67,10 @@ class AtomicRelaxationHelper
     inline CELER_FUNCTION Span<SubshellId> scratch() const;
 
     // Create the sampling distribution from sampled shell and allocated mem
-    inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(CutoffView const& cutoffs,
-                       SubshellId shell_id,
-                       Span<Secondary> secondaries) const;
+    inline CELER_FUNCTION AtomicRelaxation build_distribution(
+        CutoffView const& cutoffs,
+        SubshellId shell_id,
+        Span<Secondary> secondaries) const;
 
   private:
     AtomicRelaxParamsRef const& shared_;
@@ -139,10 +139,10 @@ CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
 /*!
  * Create the sampling distribution.
  */
-CELER_FUNCTION AtomicRelaxation
-AtomicRelaxationHelper::build_distribution(CutoffView const& cutoffs,
-                                           SubshellId shell_id,
-                                           Span<Secondary> secondaries) const
+CELER_FUNCTION AtomicRelaxation AtomicRelaxationHelper::build_distribution(
+    CutoffView const& cutoffs,
+    SubshellId shell_id,
+    Span<Secondary> secondaries) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(secondaries.size() == this->max_secondaries());

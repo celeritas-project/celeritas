@@ -67,9 +67,8 @@ WentzelOKVIParams::from_import(ImportData const& data,
 /*!
  * Construct from cross section data and material properties.
  */
-WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
-                                     SPConstParticles particles,
-                                     Options options)
+WentzelOKVIParams::WentzelOKVIParams(
+    SPConstMaterials materials, SPConstParticles particles, Options options)
 {
     CELER_EXPECT(materials);
 
@@ -133,8 +132,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
         prefactors.push_back(value_as<InvMomSq>(
             ExpNuclearFormFactor{iso_view.atomic_mass_number()}.prefactor()));
     }
-    CELER_ENSURE(host_data.nuclear_form_prefactor.size()
-                 == materials.num_isotopes());
+    CELER_ENSURE(
+        host_data.nuclear_form_prefactor.size() == materials.num_isotopes());
 
     // Build material data
     if (host_data.params.is_combined)
@@ -770,7 +769,8 @@ auto WentzelOKVIParams::get_electron_mott_coeffs(AtomicNumber z) -> CoeffMat
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},
                    << "atomic number " << z.get()
-                   << " is out of range for Coulomb scattering model Mott coefficients (must be less than "
+                   << " is out of range for Coulomb scattering model Mott "
+                      "coefficients (must be less than "
                    << MottElementData::num_elements << ")");
 
     return electron_mott_coeffs[index];
@@ -1388,7 +1388,8 @@ auto WentzelOKVIParams::get_positron_mott_coeffs(AtomicNumber z) -> CoeffMat
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},
                    << "atomic number " << z.get()
-                   << " is out of range for Coulomb scattering model Mott coefficients (must be less than "
+                   << " is out of range for Coulomb scattering model Mott "
+                      "coefficients (must be less than "
                    << MottElementData::num_elements << ")");
 
     return positron_mott_coeffs[index];

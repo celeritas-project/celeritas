@@ -71,7 +71,8 @@ Converter::Converter(Options&& opts) : opts_{std::move(opts)}
     {
         CELER_LOG(warning)
             << "Requested relative tolerance (" << opts_.tol.rel
-            << ") for ORANGE is very small: tracking errors may result due to incomplete geometry simplification";
+            << ") for ORANGE is very small: tracking errors may result due to "
+               "incomplete geometry simplification";
     }
 
     CELER_ENSURE(opts_.tol);

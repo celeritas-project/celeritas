@@ -71,12 +71,14 @@ void ScopedProfiling::activate(Input const& input) noexcept
                 << "' (error code " << depth << ")";
             if (num_warnings == 1)
             {
-                CELER_LOG(info) << "Perhaps you're not running through `nsys` or using the `celeritas` domain?";
+                CELER_LOG(info) << "Perhaps you're not running through `nsys` "
+                                   "or using the `celeritas` domain?";
             }
 
             if (num_warnings == max_warnings)
             {
-                CELER_LOG(info) << "Suppressing future scoped profiling warnings";
+                CELER_LOG(info)
+                    << "Suppressing future scoped profiling warnings";
             }
         }
     }

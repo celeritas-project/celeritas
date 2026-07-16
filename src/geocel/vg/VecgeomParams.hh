@@ -94,10 +94,8 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
     // Build from existing geometry, with ownership and mappings
-    VecgeomParams(vecgeom::GeoManager const&,
-                  Ownership,
-                  VecLv const&,
-                  VecPv const&);
+    VecgeomParams(
+        vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv const&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;

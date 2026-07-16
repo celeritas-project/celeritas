@@ -32,7 +32,8 @@ void SimpleHitsResult::print_expected() const
             "static double const expected_energy_deposition[] = "
          << repr(this->energy_deposition)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, result.energy_deposition);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_energy_deposition, "
+            "result.energy_deposition);\n"
 
             "static double const expected_step_length[] = "
          << repr(this->step_length)
@@ -170,8 +171,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         auto* vol = touchable->GetVolume();
         hits_.pre_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
     }
-    hits_.post_time.push_back(step->GetPostStepPoint()->GetGlobalTime()
-                              / CLHEP::ns);
+    hits_.post_time.push_back(
+        step->GetPostStepPoint()->GetGlobalTime() / CLHEP::ns);
 
     if (auto* post_step = step->GetPostStepPoint())
     {

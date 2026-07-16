@@ -54,9 +54,8 @@ calc_kinetic_energy(Real3 const& momentum_vec, units::MevMass const mass)
  * energy.
  */
 template<class Engine>
-inline CELER_FUNCTION Secondary sample_mucf_secondary(ParticleId pid,
-                                                      units::MevEnergy energy,
-                                                      Engine& rng)
+inline CELER_FUNCTION Secondary sample_mucf_secondary(
+    ParticleId pid, units::MevEnergy energy, Engine& rng)
 {
     Secondary result;
     result.particle_id = pid;
@@ -105,13 +104,13 @@ inline CELER_FUNCTION Real3 opposite(Real3 const& vec)
  * \todo This may be expanded to do a full three-body energy + momentum
  * conservation.
  */
-inline CELER_FUNCTION Secondary
-calc_third_secondary(Secondary sec_a,
-                     units::MevMass const mass_a,
-                     Secondary sec_b,
-                     units::MevMass const mass_b,
-                     ParticleId pid_c,
-                     units::MevMass const mass_c)
+inline CELER_FUNCTION Secondary calc_third_secondary(
+    Secondary sec_a,
+    units::MevMass const mass_a,
+    Secondary sec_b,
+    units::MevMass const mass_b,
+    ParticleId pid_c,
+    units::MevMass const mass_c)
 {
     auto const momentum_a_mag = calc_momentum(sec_a.energy, mass_a);
     auto const momentum_b_mag = calc_momentum(sec_b.energy, mass_b);

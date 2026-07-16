@@ -62,7 +62,8 @@ GeoSimExporter::GeoSimExporter(Parameters const& config)
         geo_data->Fill();
     }
 
-    mf::LogInfo("GeoSimExporterModule") << "Saved detector information to root file";
+    mf::LogInfo("GeoSimExporterModule")
+        << "Saved detector information to root file";
 }
 
 //---------------------------------------------------------------------------//
@@ -110,7 +111,9 @@ void GeoSimExporter::analyze(art::Event const& e)
     if (!e.getByLabel(sim_tag_, energy_deps))
     {
         mf::LogError("GeoSimExporterModule")
-            << "Cannot find IonAndScint label. Either 1) missing input file (lar -c thisjob.fcl -s [geant4_output.root]) or 2) missing IonAndScint data in art::Event";
+            << "Cannot find IonAndScint label. Either 1) missing input file "
+               "(lar -c thisjob.fcl -s [geant4_output.root]) or 2) missing "
+               "IonAndScint data in art::Event";
         return;
     }
 
@@ -119,7 +122,8 @@ void GeoSimExporter::analyze(art::Event const& e)
     if (edeps_size == 0)
     {
         mf::LogWarning("GeoSimExporterModule")
-            << "sim::SimEnergyDeposit data is valid but has zero entries; Skipping event";
+            << "sim::SimEnergyDeposit data is valid but has zero entries; "
+               "Skipping event";
         return;
     }
 

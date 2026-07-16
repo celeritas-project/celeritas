@@ -90,7 +90,8 @@ void run(std::shared_ptr<OutputRegistry>& output,
                    },
                    [&run](celeritas::inp::OpticalOffloadGenerator const& g) {
                        CELER_VALIDATE(g.distribution_file,
-                                      << "missing file for loading optical distribution data");
+                                      << "missing file for loading optical "
+                                         "distribution data");
                        auto const distributions
                            = OpticalDistributionReader(*g.distribution_file)();
                        run.insert(make_span(distributions));
@@ -98,11 +99,13 @@ void run(std::shared_ptr<OutputRegistry>& output,
                    [](celeritas::inp::OpticalDirectGenerator const&) {
                        //! \todo Add support for direct generation from file
                        CELER_VALIDATE(false,
-                                      << "direct optical photon generation is not yet supported");
+                                      << "direct optical photon generation is "
+                                         "not yet supported");
                    },
                    [](celeritas::inp::OpticalEmGenerator const&) {
                        CELER_VALIDATE(false,
-                                      << "optical photon generation from EM particles is not supported");
+                                      << "optical photon generation from EM "
+                                         "particles is not supported");
                    },
                },
                generator);

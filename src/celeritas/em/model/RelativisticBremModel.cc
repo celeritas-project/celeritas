@@ -68,7 +68,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
         = imported_.low_energy_limit(host_ref.ids.electron);
     CELER_VALIDATE(host_ref.low_energy_limit
                        == imported_.low_energy_limit(host_ref.ids.positron),
-                   << "Relativistic bremsstrahlung energy grid bounds are inconsistent across particles");
+                   << "Relativistic bremsstrahlung energy grid bounds are "
+                      "inconsistent across particles");
 
     // Set the LPM flag (true by default)
     host_ref.enable_lpm = enable_lpm;
@@ -136,9 +137,8 @@ void RelativisticBremModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Build RelativisticBremData (lpm_table and elem_data).
  */
-void RelativisticBremModel::build_data(HostValue* data,
-                                       MaterialParams const& materials,
-                                       real_type particle_mass)
+void RelativisticBremModel::build_data(
+    HostValue* data, MaterialParams const& materials, real_type particle_mass)
 {
     // Build element data for available elements
     auto num_elements = materials.num_elements();
@@ -158,9 +158,8 @@ void RelativisticBremModel::build_data(HostValue* data,
  *
  * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
-auto RelativisticBremModel::compute_element_data(ElementView const& elem,
-                                                 real_type electron_mass)
-    -> ElementData
+auto RelativisticBremModel::compute_element_data(
+    ElementView const& elem, real_type electron_mass) -> ElementData
 {
     ElementData data;
 

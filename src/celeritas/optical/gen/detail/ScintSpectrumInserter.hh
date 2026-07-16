@@ -177,7 +177,8 @@ void ScintSpectrumInserter::SpectrumVisitor::operator()(inp::Grid const& grid)
 {
     // Explicit grid
     CELER_VALIDATE(is_monotonic_increasing(make_span(grid.x)),
-                   << "scintillation spectrum energy grid values are not monotonically increasing");
+                   << "scintillation spectrum energy grid values are not "
+                      "monotonically increasing");
 
     inp::Grid cdf_grid;
     cdf_grid.x = grid.x;

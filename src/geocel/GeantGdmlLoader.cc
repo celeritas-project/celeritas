@@ -152,7 +152,8 @@ void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename)
 
     if (!world->GetLogicalVolume()->GetRegion())
     {
-        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping export of energy cuts and regions";
+        CELER_LOG(warning) << "Geant4 regions have not been set up: skipping "
+                              "export of energy cuts and regions";
     }
     else
     {

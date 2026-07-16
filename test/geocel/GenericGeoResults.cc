@@ -190,9 +190,8 @@ void GenericGeoTrackingResult::print_expected() const
 /*!
  * Construct a stack result from raw geometry output.
  */
-GenericGeoVolumeStackResult
-GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
-                                       Span<VolumeInstanceId const> inst_ids)
+GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
+    LabelMap const& vol_inst, Span<VolumeInstanceId const> inst_ids)
 {
     GenericGeoVolumeStackResult result;
     result.volume_instances.resize(inst_ids.size());

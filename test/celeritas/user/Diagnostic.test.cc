@@ -146,7 +146,8 @@ TEST_F(TestEm3DiagnosticTest, host)
                         })
                != result.nonzero_action_keys.end())
     {
-        GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get stuck on some builds but not others";
+        GTEST_SKIP() << "VecGeom seems to have an edge case where tracks get "
+                        "stuck on some builds but not others";
     }
 
     if (this->is_ci_build())

@@ -70,7 +70,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
         = imported_.high_energy_limit(host_data.ids.electron);
     CELER_VALIDATE(host_data.high_energy_limit
                        == imported_.high_energy_limit(host_data.ids.positron),
-                   << "Seltzer-Berger energy grid bounds are inconsistent across particles");
+                   << "Seltzer-Berger energy grid bounds are inconsistent "
+                      "across particles");
 
     // Load differential cross sections
     detail::SBTableInserter insert_element(&host_data.differential_xs);
@@ -82,8 +83,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                        << "missing SB atomic xs for Z=" << z.get());
         insert_element(iter->second);
     }
-    CELER_ASSERT(host_data.differential_xs.elements.size()
-                 == materials.num_elements());
+    CELER_ASSERT(
+        host_data.differential_xs.elements.size() == materials.num_elements());
 
     for (auto el_id : range(ElementId(materials.num_elements())))
     {

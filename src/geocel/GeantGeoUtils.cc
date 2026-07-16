@@ -43,7 +43,8 @@ static_assert(G4VERSION_NUMBER
                   == 100 * (CELERITAS_GEANT4_VERSION / 0x10000)
                          + 10 * ((CELERITAS_GEANT4_VERSION / 0x100) % 0x100)
                          + (CELERITAS_GEANT4_VERSION % 0x100),
-              "CMake-reported Geant4 version does not match installed <G4Version.hh>: compare to 'corecel/Config.hh'");
+              "CMake-reported Geant4 version does not match installed "
+              "<G4Version.hh>: compare to 'corecel/Config.hh'");
 
 namespace celeritas
 {
@@ -245,7 +246,8 @@ find_geant_volumes(std::unordered_set<std::string> names)
 
     // Make sure all requested names are found
     CELER_VALIDATE(names.empty(),
-                   << "failed to find Geant4 volumes corresponding to the following names: "
+                   << "failed to find Geant4 volumes corresponding to the "
+                      "following names: "
                    << join(names.begin(), names.end(), ", "));
 
     return result;

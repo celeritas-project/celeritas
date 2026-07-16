@@ -53,7 +53,8 @@ SurfacePhysicsParams::SurfacePhysicsParams(
     ActionRegistry* action_reg, inp::OpticalSurfacePhysics const& input)
 {
     CELER_VALIDATE(!input.materials.empty(),
-                   << "cannot build optical surface physics when no optical material data is present");
+                   << "cannot build optical surface physics when no optical "
+                      "material data is present");
     CELER_EXPECT(action_reg);
 
     // Build actions
@@ -171,7 +172,8 @@ auto SurfacePhysicsParams::build_models(
 
         CELER_VALIDATE(
             build_model.num_surfaces() == num_phys_surfaces(input.materials),
-            << "same number of physics surfaces required for each surface physics step ("
+            << "same number of physics surfaces required for each surface "
+               "physics step ("
             << num_phys_surfaces(input.materials) << " expected surfaces, "
             << build_model.num_surfaces() << " surfaces from "
             << to_cstring(step) << " step)");

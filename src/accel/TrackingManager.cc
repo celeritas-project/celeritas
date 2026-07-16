@@ -138,7 +138,8 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
                 params_->mode()
                     == (*transport_ ? SharedParams::Mode::enabled
                                     : SharedParams::Mode::kill_offload),
-                << "Celeritas was not initialized properly (maybe BeginOfRunAction was not called?)"),
+                << "Celeritas was not initialized properly (maybe "
+                   "BeginOfRunAction was not called?)"),
             ExceptionConverter("celer.track.validate"));
         validated_ = true;
     }

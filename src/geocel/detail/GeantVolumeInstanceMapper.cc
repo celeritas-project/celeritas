@@ -111,7 +111,8 @@ GeantVolumeInstanceMapper::GeantVolumeInstanceMapper(G4PV const& world)
     if (!invalid_volumes.empty())
     {
         CELER_LOG(error)
-            << "The Geant4 geometry contains unsupported custom volume types that will be ignored: "
+            << "The Geant4 geometry contains unsupported custom volume types "
+               "that will be ignored: "
             << join(invalid_volumes.begin(), invalid_volumes.end(), ", ");
     }
 

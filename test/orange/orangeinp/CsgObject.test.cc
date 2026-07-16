@@ -344,7 +344,8 @@ TEST_F(CsgObjectTest, subtraction_sep)
     ASSERT_TRUE(sub);
     this->build_volume(*sub);
     static char const* const expected_volume_strings[] = {
-        "all(any(all(+0, -1, -2, +3, +4, -5), all(+1, -2, +3, +4, -5, -6)), !any(all(+0, -1, -7, +8, +9, -10), all(+1, -6, -7, +8, +9, -10)))"};
+        "all(any(all(+0, -1, -2, +3, +4, -5), all(+1, -2, +3, +4, -5, -6)), "
+        "!any(all(+0, -1, -7, +8, +9, -10), all(+1, -6, -7, +8, +9, -10)))"};
     static char const* const expected_md_strings[]
         = {"",
            "",

@@ -40,9 +40,9 @@ GammaNuclearModel::GammaNuclearModel(ActionId id,
     // Save IDs
     data.scalars.gamma_id = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(data.scalars.gamma_id,
-                   << "missing gamma (required for " << this->description()
-                   << ")");
+    CELER_VALIDATE(
+        data.scalars.gamma_id,
+        << "missing gamma (required for " << this->description() << ")");
 
     // Load gamma-nuclear element cross section data
     NonuniformGridInserter insert_xs_iaea{&data.reals, &data.xs_iaea};
@@ -122,8 +122,8 @@ void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
  * the upper limit of the IAEA cross-section data and 150 MeV, as used in
  * G4GammaNuclearXS, is also included in the tabulation.
  */
-inp::Grid
-GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
+inp::Grid GammaNuclearModel::calc_chips_xs(
+    AtomicNumber z, double emin, double emax) const
 {
     CELER_EXPECT(z);
 

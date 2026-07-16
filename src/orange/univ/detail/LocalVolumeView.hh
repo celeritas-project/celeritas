@@ -86,10 +86,8 @@ class LocalVolumeView
     ParamsRef const& params_;
     LocalVolumeRecord const& def_;
 
-    static inline CELER_FUNCTION LocalVolumeRecord const&
-    volume_record(ParamsRef const&,
-                  SimpleUnitRecord const& unit_record,
-                  LocalVolumeId id);
+    static inline CELER_FUNCTION LocalVolumeRecord const& volume_record(
+        ParamsRef const&, SimpleUnitRecord const& unit_record, LocalVolumeId id);
 };
 
 //---------------------------------------------------------------------------//

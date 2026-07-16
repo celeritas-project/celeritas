@@ -114,7 +114,8 @@ struct GeantGeoStateData
     GeantGeoStateData& operator=(GeantGeoStateData<W2, M2>& other)
     {
         static_assert(M2 == M && W == Ownership::reference,
-                      "Only supported assignment is from the same memspace to a reference");
+                      "Only supported assignment is from the same memspace to "
+                      "a reference");
         CELER_EXPECT(other);
         pos = other.pos;
         dir = other.dir;

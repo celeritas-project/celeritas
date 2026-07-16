@@ -107,7 +107,8 @@ G4VSolid* get_world_solid()
 {
     auto* world = geant_world_volume();
     CELER_VALIDATE(world,
-                   << "detector geometry was not initialized before HepMC3PrimaryGenerator was instantiated");
+                   << "detector geometry was not initialized before "
+                      "HepMC3PrimaryGenerator was instantiated");
     auto* lv = world->GetLogicalVolume();
     CELER_ASSERT(lv);
     auto* solid = lv->GetSolid();
@@ -135,9 +136,9 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
 #else
         temp_reader->skip(0);
 #endif
-        CELER_VALIDATE(!temp_reader->failed(),
-                       << "event file '" << filename
-                       << "' did not contain any events");
+        CELER_VALIDATE(
+            !temp_reader->failed(),
+            << "event file '" << filename << "' did not contain any events");
         do
         {
             result++;
@@ -201,14 +202,15 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
         {
             G4PrimaryVertex* vtx = g4_event->GetPrimaryVertex(vtx_id);
             CELER_ASSERT(vtx);
-            CELER_ASSERT(world_solid_->Inside(vtx->GetPosition())
-                         == EInside::kInside);
+            CELER_ASSERT(
+                world_solid_->Inside(vtx->GetPosition()) == EInside::kInside);
         }
     }
 
-    CELER_VALIDATE(g4_event->GetNumberOfPrimaryVertex() > 0,
-                   << "event " << g4_event->GetEventID()
-                   << " did not contain any primaries suitable for simulation");
+    CELER_VALIDATE(
+        g4_event->GetNumberOfPrimaryVertex() > 0,
+        << "event " << g4_event->GetEventID()
+        << " did not contain any primaries suitable for simulation");
 }
 
 //---------------------------------------------------------------------------//
@@ -264,7 +266,8 @@ auto HepMC3PrimaryGenerator::read_event(size_type event_id) -> SPHepEvt
             && static_cast<size_type>(read_evt_id) != expected_id)
         {
             CELER_LOG_LOCAL(warning)
-                << "HepMC3 event IDs are not consecutive from zero: Celeritas currently assumes this but will change in the future";
+                << "HepMC3 event IDs are not consecutive from zero: Celeritas "
+                   "currently assumes this but will change in the future";
             warned_mismatched_events_ = true;
         }
     }

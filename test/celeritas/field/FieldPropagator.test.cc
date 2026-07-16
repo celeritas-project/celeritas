@@ -390,7 +390,8 @@ TEST_F(TwoBoxesTest, gamma_exit)
     }
     {
         SCOPED_TRACE(
-            "Reported distance is based on requested step, not actual boundary, to avoid an extra substep");
+            "Reported distance is based on requested step, not actual "
+            "boundary, to avoid an extra substep");
         auto geo = this->make_geo_track_view({2, 4.749, 0}, {0, 1, 0});
         auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
             field, particle.charge());
@@ -1525,7 +1526,8 @@ TEST_F(CmseTest, coarse)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
-        GTEST_SKIP() << "Ignore checks due to reduced-precision numerical sensitivity";
+        GTEST_SKIP()
+            << "Ignore checks due to reduced-precision numerical sensitivity";
     }
 
     EXPECT_REF_EQ(ref, result)

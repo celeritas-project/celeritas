@@ -97,9 +97,8 @@ class UniverseInserter
     SurfId::size_type accum_surface_{0};
     VolId::size_type accum_volume_{0};
 
-    UnivId update_counters(UnivType type,
-                           size_type num_surfaces,
-                           size_type num_volumes);
+    UnivId update_counters(
+        UnivType type, size_type num_surfaces, size_type num_volumes);
 };
 
 //---------------------------------------------------------------------------//

@@ -44,8 +44,8 @@ class JsonOrangeTest : public OrangeGeoTestBase
 
     void SetUp() final
     {
-        this->build_geometry(std::string{this->geometry_basename()}
-                             + ".org.json");
+        this->build_geometry(
+            std::string{this->geometry_basename()} + ".org.json");
     }
 
     std::string surface_name(WrappedGeoTrack const& geo) const

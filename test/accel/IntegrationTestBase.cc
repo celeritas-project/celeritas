@@ -296,7 +296,8 @@ TestOffload IntegrationTestBase::test_offload()
         auto s = celeritas::getenv("CELER_OFFLOAD");
         if (s.empty())
         {
-            CELER_LOG(warning) << "Missing environment variable CELER_OFFLOAD: defaulting to CPU";
+            CELER_LOG(warning) << "Missing environment variable "
+                                  "CELER_OFFLOAD: defaulting to CPU";
             return TestOffload::cpu;
         }
 
@@ -377,7 +378,8 @@ G4RunManager& IntegrationTestBase::run_manager()
     if (prm)
     {
         CELER_VALIDATE(basename == prm.key(),
-                       << "cannot create a run manager for two problems in one execution: use '--gtest_filter'");
+                       << "cannot create a run manager for two problems in "
+                          "one execution: use '--gtest_filter'");
     }
     CELER_VALIDATE(!this->HasFatalFailure(),
                    << "cannot create run manager: test irrevocably failed");
@@ -411,7 +413,8 @@ G4RunManager& IntegrationTestBase::run_manager()
     if (referenced_test != this)
     {
         CELER_VALIDATE(referenced_test == nullptr,
-                       << "cannot run multiple integration tests in one execution: use ctest or --gtest_filter");
+                       << "cannot run multiple integration tests in one "
+                          "execution: use ctest or --gtest_filter");
         // Test callbacks reference the current harness, so multiple tests
         // cannot run consecutively unless we update the user initialization
         CELER_LOG(status) << "Setting run manager initialization";

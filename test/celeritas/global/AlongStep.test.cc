@@ -839,8 +839,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
         // VecGeom with Geant4 11.0 has eloss-range
-        EXPECT_TRUE(result.action == "tracking-cut"
-                    || result.action == "eloss-range")
+        EXPECT_TRUE(
+            result.action == "tracking-cut" || result.action == "eloss-range")
             << result.action;
         EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5);
         EXPECT_EQ(0, result.displacement);

@@ -143,8 +143,8 @@ CherenkovOffload::operator()(Generator& rng)
     }
 
     optical::GeneratorDistributionData data;
-    data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
-                                                      * step_length_)(rng);
+    data.num_photons = PoissonDistribution<real_type>(
+        num_photons_per_len_ * step_length_)(rng);
     if (data.num_photons > 0)
     {
         data.type = GeneratorType::cherenkov;

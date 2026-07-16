@@ -20,9 +20,8 @@ namespace celeritas
 /*!
  * Construct if Wentzel VI model is present, or else return nullptr.
  */
-std::shared_ptr<WentzelVIMscParams>
-WentzelVIMscParams::from_import(ParticleParams const& particles,
-                                ImportData const& data)
+std::shared_ptr<WentzelVIMscParams> WentzelVIMscParams::from_import(
+    ParticleParams const& particles, ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::wentzel_vi_uni))
     {

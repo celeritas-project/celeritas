@@ -199,9 +199,8 @@ nlohmann::json variants_to_json(std::vector<T> const& values)
  * Load a \c std::optional field.
  */
 template<class T>
-void load_json_optional(nlohmann::json const& j,
-                        char const* name,
-                        std::optional<T>& value)
+void load_json_optional(
+    nlohmann::json const& j, char const* name, std::optional<T>& value)
 {
     auto iter = j.find(name);
     if (iter == j.end())

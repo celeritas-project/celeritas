@@ -40,10 +40,11 @@ BvhBuilder::BvhBuilder(Storage* storage, Input inp)
 {
     CELER_EXPECT(storage);
     CELER_EXPECT(inp_);
-    CELER_VALIDATE(inp_.depth_limit > 0 && inp_.depth_limit <= max_bvh_depth,
-                   << "invalid BVH input depth limit " << inp_.depth_limit
-                   << ": must be positive and no more than compile-time maximum "
-                   << max_bvh_depth);
+    CELER_VALIDATE(
+        inp_.depth_limit > 0 && inp_.depth_limit <= max_bvh_depth,
+        << "invalid BVH input depth limit " << inp_.depth_limit
+        << ": must be positive and no more than compile-time maximum "
+        << max_bvh_depth);
     CELER_VALIDATE(inp_.max_leaf_size > 0,
                    << "invalid BVH max leaf size " << inp_.max_leaf_size << ": "
                    << "must be positive");
@@ -63,9 +64,8 @@ BvhBuilder::BvhBuilder(Storage* storage, Input inp)
  *
  * \return The record of the resultant BVH tree
  */
-BvhTreeRecord
-BvhBuilder::operator()(VecBBox&& bboxes,
-                       BvhBuilder::SetLocalVolId const& implicit_vol_ids)
+BvhTreeRecord BvhBuilder::operator()(
+    VecBBox&& bboxes, BvhBuilder::SetLocalVolId const& implicit_vol_ids)
 {
     CELER_EXPECT(!bboxes.empty());
 

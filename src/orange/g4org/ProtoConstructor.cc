@@ -201,8 +201,9 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                       << StreamableVariant{pv.transform} << std::endl;
         }
     }
-    else if ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
-             || (opts_.inline_unions && is_union(pv.lv->solid)))
+    else if (
+        (pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
+        || (opts_.inline_unions && is_union(pv.lv->solid)))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent

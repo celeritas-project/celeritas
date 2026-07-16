@@ -224,7 +224,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
  * Sample the shell from which the photoelectron is emitted.
  */
 template<class Engine>
-CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) const
+CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(
+    Engine& rng) const
 {
     LivermoreElement const& el = shared_.xs.elements[el_id_];
     auto const& shells = shared_.xs.shells[el.shells];

@@ -19,8 +19,8 @@ namespace celeritas
 template<class EnergySampler>
 struct MuHadIonizationExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     MuHadIonizationData params;
 };
@@ -30,8 +30,8 @@ struct MuHadIonizationExecutor
  * Apply the muon or hadron ionization interactor to the current track.
  */
 template<class ES>
-CELER_FUNCTION Interaction
-MuHadIonizationExecutor<ES>::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction MuHadIonizationExecutor<ES>::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto cutoff = track.cutoff();

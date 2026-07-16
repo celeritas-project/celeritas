@@ -50,8 +50,8 @@ class FluctELoss
     //// HELPER FUNCTIONS ////
 
     template<EnergyLossFluctuationModel M>
-    inline CELER_FUNCTION Energy
-    sample_energy_loss(EnergyLossHelper const& helper, RngEngine& rng);
+    inline CELER_FUNCTION Energy sample_energy_loss(
+        EnergyLossHelper const& helper, RngEngine& rng);
 };
 
 //---------------------------------------------------------------------------//

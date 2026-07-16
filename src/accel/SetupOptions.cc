@@ -186,7 +186,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
-    else if (auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
+    else if (
+        auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting covfie cartesian map field";
         p.field = u->get_field();
@@ -337,8 +338,8 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
             so.optical->generator))
     {
         // EM particles (required for scint/cherenkov) must be loaded
-        CELER_ASSERT(result.physics_import.data_selection.particles
-                     & GIDS::em_basic);
+        CELER_ASSERT(
+            result.physics_import.data_selection.particles & GIDS::em_basic);
     }
 
     if (!so.optical

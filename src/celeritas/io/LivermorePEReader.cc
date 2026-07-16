@@ -27,7 +27,8 @@ LivermorePEReader::LivermorePEReader(inp::Interpolation interpolation)
 {
     std::string const& dir = celeritas::getenv("G4LEDATA");
     CELER_VALIDATE(!dir.empty(),
-                   << "environment variable G4LEDATA is not defined (needed to locate Livermore data)");
+                   << "environment variable G4LEDATA is not defined (needed "
+                      "to locate Livermore data)");
     path_ = dir + "/livermore/phot_epics2014";
 }
 

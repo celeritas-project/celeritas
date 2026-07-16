@@ -55,8 +55,8 @@ CoreSizes capacity(inp::CoreStateCapacity const& c, size_type num_streams)
         = c.primaries.value_or(Defaults::primaries_per_track * result.tracks);
     result.initializers = c.initializers.value_or(
         Defaults::initializers_per_track * result.tracks);
-    result.secondaries = c.secondaries.value_or(Defaults::secondaries_per_track
-                                                * result.tracks);
+    result.secondaries = c.secondaries.value_or(
+        Defaults::secondaries_per_track * result.tracks);
     result.events = c.events.value_or(1);
     result.streams = num_streams;
     result.processes = comm_world().size();
@@ -98,8 +98,8 @@ OpticalSizes capacity(inp::OpticalStateCapacity const& c, size_type num_streams)
 
     result.primaries
         = c.primaries.value_or(Defaults::primaries_per_track * result.tracks);
-    result.generators = c.generators.value_or(Defaults::generators_per_track
-                                              * result.tracks);
+    result.generators = c.generators.value_or(
+        Defaults::generators_per_track * result.tracks);
     result.streams = num_streams;
 
     CELER_ENSURE(result);

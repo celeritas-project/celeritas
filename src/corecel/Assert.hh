@@ -528,10 +528,8 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_fail(
 }
 #elif defined(__HIP__)
 //! Host-only HIP call (whether or not NDEBUG is in use)
-inline __host__ void device_debug_fail(DebugErrorType which,
-                                       char const* condition,
-                                       char const* file,
-                                       int line)
+inline __host__ void device_debug_fail(
+    DebugErrorType which, char const* condition, char const* file, int line)
 {
     return ::celeritas::throw_debug_error({which, condition, file, line});
 }

@@ -58,8 +58,9 @@ int get_geant_num_threads(G4RunManager const& runman)
 int get_geant_num_threads()
 {
     auto* run_man = G4RunManager::GetRunManager();
-    CELER_VALIDATE(run_man,
-                   << "cannot query global thread count before G4RunManager is created");
+    CELER_VALIDATE(
+        run_man,
+        << "cannot query global thread count before G4RunManager is created");
     return get_geant_num_threads(*run_man);
 }
 
@@ -86,11 +87,13 @@ void validate_geant_threading(size_type num_streams)
     auto thread_id = get_geant_thread_id();
     CELER_VALIDATE(thread_id >= 0,
                    << "Geant4 ThreadID (" << thread_id
-                   << ") is invalid (perhaps local offload is being built on a non-worker thread?)");
-    CELER_VALIDATE(static_cast<size_type>(thread_id) < num_streams,
-                   << "Geant4 ThreadID (" << thread_id
-                   << ") is out of range for the reported number of worker threads ("
-                   << num_streams << ")");
+                   << ") is invalid (perhaps local offload is being built on "
+                      "a non-worker thread?)");
+    CELER_VALIDATE(
+        static_cast<size_type>(thread_id) < num_streams,
+        << "Geant4 ThreadID (" << thread_id
+        << ") is out of range for the reported number of worker threads ("
+        << num_streams << ")");
 
     // Check that OpenMP and Geant4 threading models don't collide
     if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK && !celeritas::device()
@@ -99,7 +102,8 @@ void validate_geant_threading(size_type num_streams)
         auto limit = openmp_max_threads();
 
         auto msg = CELER_LOG(warning);
-        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP parallelism (thread limit = "
+        msg << "Using multithreaded Geant4 with Celeritas track-level OpenMP "
+               "parallelism (thread limit = "
             << limit << ")";
         if (limit > 1)
         {

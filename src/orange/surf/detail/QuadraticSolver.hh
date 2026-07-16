@@ -45,8 +45,8 @@ class QuadraticSolver
         real_type a, real_type half_b, real_type c, SurfaceState on_surface);
 
     // Solve degenerate case when a ~ 0 but not on surface
-    static inline CELER_FUNCTION Intersections
-    solve_along_surface(real_type half_b, real_type c);
+    static inline CELER_FUNCTION Intersections solve_along_surface(
+        real_type half_b, real_type c);
 
   public:
     // Construct with nonzero a, and b/2
@@ -78,10 +78,8 @@ class QuadraticSolver
  *
  * This is used for cones, simple quadrics, and general quadrics.
  */
-CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
-                                                   real_type half_b,
-                                                   real_type c,
-                                                   SurfaceState on_surface)
+CELER_FUNCTION auto QuadraticSolver::solve_general(
+    real_type a, real_type half_b, real_type c, SurfaceState on_surface)
     -> Intersections
 {
     if (std::fabs(a) >= QuadraticSolver::min_a())
@@ -110,9 +108,8 @@ CELER_FUNCTION auto QuadraticSolver::solve_general(real_type a,
  * sufficiently small, no positive root is returned (because this case
  * corresponds to a ray crossing a surface at an extreme distance).
  */
-CELER_FUNCTION auto
-QuadraticSolver::solve_along_surface(real_type half_b, real_type c)
-    -> Intersections
+CELER_FUNCTION auto QuadraticSolver::solve_along_surface(
+    real_type half_b, real_type c) -> Intersections
 {
     Intersections result;
     if (std::fabs(half_b) > QuadraticSolver::min_a())

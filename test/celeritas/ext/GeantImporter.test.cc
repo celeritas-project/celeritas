@@ -361,7 +361,8 @@ class OneSteelSphereGG : public OneSteelSphere
     {
         if (geant4_version < Version{10, 6, 0})
         {
-            GTEST_SKIP() << "Celeritas does not support gamma general for old Geant4 versions";
+            GTEST_SKIP() << "Celeritas does not support gamma general for old "
+                            "Geant4 versions";
         }
     }
     GeantPhysicsOptions build_geant_options() const override
@@ -829,7 +830,8 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
     ASSERT_EQ(2, proc.models.size());
     if (geant4_version < Version{11})
     {
-        GTEST_SKIP() << "Cross sections changed with Geant4 version 11; older versions are not checked";
+        GTEST_SKIP() << "Cross sections changed with Geant4 version 11; older "
+                        "versions are not checked";
     }
 
     {
@@ -1746,8 +1748,8 @@ TEST_F(LarSphere, optical)
             components.push_back(to_cm(gauss->mean));
             components.push_back(to_cm(gauss->stddev));
         }
-        else if (auto* grid
-                 = std::get_if<inp::Grid>(&comp.spectrum_distribution))
+        else if (
+            auto* grid = std::get_if<inp::Grid>(&comp.spectrum_distribution))
         {
             EXPECT_TRUE(*grid);
             components.push_back(static_cast<double>(grid->x.size()));

@@ -119,9 +119,10 @@ class MomentumTransferSampler
  *  converted to the GeV value .
  */
 CELER_FUNCTION
-MomentumTransferSampler::MomentumTransferSampler(NeutronElasticRef const& shared,
-                                                 IsotopeView const& target,
-                                                 Momentum neutron_p)
+MomentumTransferSampler::MomentumTransferSampler(
+    NeutronElasticRef const& shared,
+    IsotopeView const& target,
+    Momentum neutron_p)
     : par_(shared.coeffs[target.isotope_id()].par)
     , neutron_mass_(shared.neutron_mass)
     , target_mass_(target.nuclear_mass())
@@ -177,15 +178,15 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         constexpr real_type one_fifth{0.2};
         constexpr real_type one_seventh = 1.0_r / 7.0_r;
 
-        real_type const r[4]
-            = {-std::expm1(-max_q_sq_
-                           * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
-               -std::expm1(
-                   -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
-                   * par_q_sq_.slope[1]),
-               -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
-                           * par_q_sq_.slope[2]),
-               -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
+        real_type const r[4] = {
+            -std::expm1(
+                -max_q_sq_ * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
+            -std::expm1(
+                -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
+                * par_q_sq_.slope[1]),
+            -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
+                        * par_q_sq_.slope[2]),
+            -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
 
         real_type mi[6] = {};
         for (auto i : range(4))
@@ -210,14 +211,14 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         }
         else if (rand < mi[4])
         {
-            q_sq = clamp_to_nonneg(this->sample_q_sq(r[1], rng)
-                                   / par_q_sq_.slope[1]);
+            q_sq = clamp_to_nonneg(
+                this->sample_q_sq(r[1], rng) / par_q_sq_.slope[1]);
             q_sq = std::pow(q_sq, heavy_target_ ? one_fifth : one_third);
         }
         else if (rand < mi[5])
         {
-            q_sq = clamp_to_nonneg(this->sample_q_sq(r[2], rng)
-                                   / par_q_sq_.slope[2]);
+            q_sq = clamp_to_nonneg(
+                this->sample_q_sq(r[2], rng) / par_q_sq_.slope[2]);
             if (heavy_target_)
             {
                 q_sq = std::pow(q_sq, one_seventh);

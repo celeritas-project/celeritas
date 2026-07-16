@@ -31,7 +31,8 @@ LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const&,
                                                SharedParams& params)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
-                   << "cannot create local optical offload when Celeritas offloading is disabled");
+                   << "cannot create local optical offload when Celeritas "
+                      "offloading is disabled");
 
     // Save a pointer to the optical transporter
     transport_ = params.optical_problem_loaded().transporter;
@@ -115,7 +116,8 @@ void LocalOpticalGenOffload::InitializeEvent(int id)
 /*!
  * Buffer distribution data for generating optical photons.
  */
-void LocalOpticalGenOffload::Push(optical::GeneratorDistributionData const& data)
+void LocalOpticalGenOffload::Push(
+    optical::GeneratorDistributionData const& data)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(data);
@@ -213,17 +215,18 @@ void LocalOpticalGenOffload::Finalize()
     auto const& accum = state_->accum();
     CELER_ASSERT(state_->aux());
     auto const& gen = generate_->counters(*state_->aux());
-    CELER_LOG_LOCAL(info)
-        << "Finalizing Celeritas after " << accum.steps
-        << " optical steps (over " << accum.step_iters << " step iterations)"
-        << " from " << gen.accum.num_generated
-        << " optical photons generated from " << gen.accum.buffer_size
-        << " distributions";
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum.steps
+                          << " optical steps (over " << accum.step_iters
+                          << " step iterations)"
+                          << " from " << gen.accum.num_generated
+                          << " optical photons generated from "
+                          << gen.accum.buffer_size << " distributions";
 
     if (!gen.counters.empty())
     {
         CELER_LOG_LOCAL(warning)
-            << "Not all optical photons were tracked at the end of the stepping loop: "
+            << "Not all optical photons were tracked at the end of the "
+               "stepping loop: "
             << gen.counters.num_pending << " queued photons from "
             << gen.counters.buffer_size << " distributions";
     }

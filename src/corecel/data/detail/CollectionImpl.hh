@@ -148,10 +148,8 @@ inline void validate_mappable_memory()
 }
 
 //! Check before assignment that the sizes are equal
-inline void validate_compatible_size(std::size_t dst_size,
-                                     MemSpace dm,
-                                     std::size_t src_size,
-                                     MemSpace sm)
+inline void validate_compatible_size(
+    std::size_t dst_size, MemSpace dm, std::size_t src_size, MemSpace sm)
 
 {
     CELER_VALIDATE(dst_size == src_size,
@@ -169,8 +167,8 @@ inline void validate_compatible_size(std::size_t dst_size,
  * use a separate resize+copy.
  */
 template<class T, Ownership SW, MemSpace SM, Ownership DW, MemSpace DM>
-inline void copy_collection(Span<T const> csrc,
-                            typename CollectionTraits<T, DW, DM>::StorageT* dst)
+inline void copy_collection(
+    Span<T const> csrc, typename CollectionTraits<T, DW, DM>::StorageT* dst)
 {
     CELER_EXPECT(dst);
     using DstStorageT = typename CollectionTraits<T, DW, DM>::StorageT;

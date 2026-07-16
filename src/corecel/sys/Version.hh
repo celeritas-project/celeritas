@@ -56,9 +56,8 @@ class Version
     static inline constexpr Version from_dec_xyz(size_type value);
 
     // Construct from x.y.z integers
-    inline constexpr Version(size_type major,
-                             size_type minor = 0,
-                             size_type patch = 0);
+    inline constexpr Version(
+        size_type major, size_type minor = 0, size_type patch = 0);
 
     //!@{
     //! \name Accessors

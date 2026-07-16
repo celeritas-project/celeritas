@@ -53,14 +53,13 @@ class VolumeSurfaceSelector
 
   public:
     // Construct with pre-volume IDs
-    inline CELER_FUNCTION
-    VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
-                          VolumeInstanceId pre_volume_inst);
+    inline CELER_FUNCTION VolumeSurfaceSelector(
+        VolumeSurfaceView pre_surface, VolumeInstanceId pre_volume_inst);
 
     // Select surface based on post-volume IDs
-    inline CELER_FUNCTION OrientedSurface
-    operator()(VolumeSurfaceView const& post_volume,
-               VolumeInstanceId post_volume_inst) const;
+    inline CELER_FUNCTION OrientedSurface operator()(
+        VolumeSurfaceView const& post_volume,
+        VolumeInstanceId post_volume_inst) const;
 
   private:
     VolumeSurfaceView pre_surface_;
@@ -87,10 +86,9 @@ VolumeSurfaceSelector::VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
  *
  * Returns an invalid \c SurfaceId if no surface data exists for the volumes.
  */
-CELER_FUNCTION auto
-VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
-                                  VolumeInstanceId post_volume_inst) const
-    -> OrientedSurface
+CELER_FUNCTION auto VolumeSurfaceSelector::operator()(
+    VolumeSurfaceView const& post_surface,
+    VolumeInstanceId post_volume_inst) const -> OrientedSurface
 {
     // P0 -> P1 interface surface in forward direction
     if (auto surface_id

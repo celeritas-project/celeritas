@@ -61,9 +61,8 @@ bool is_contained_in(inp::UniformGrid const& lower,
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<ImportedProcesses>
-ImportedProcesses::from_import(ImportData const& data,
-                               SPConstParticles particle_params)
+std::shared_ptr<ImportedProcesses> ImportedProcesses::from_import(
+    ImportData const& data, SPConstParticles particle_params)
 {
     CELER_EXPECT(
         std::all_of(data.processes.begin(), data.processes.end(), Identity{}));
@@ -104,7 +103,8 @@ ImportedProcesses::ImportedProcesses(std::vector<ImportProcess> io)
         CELER_VALIDATE(insertion.second,
                        << "encountered duplicate imported process class '"
                        << ip.process_class << "' for PDG{" << ip.particle_pdg
-                       << "} (each particle must have at most one process of a given type)");
+                       << "} (each particle must have at most one process of "
+                          "a given type)");
     }
 
     CELER_ENSURE(processes_.size() == ids_.size());
@@ -129,10 +129,11 @@ auto ImportedProcesses::find(key_type particle_process) const -> ImportProcessId
 /*!
  * Construct from shared process data.
  */
-ImportedProcessAdapter::ImportedProcessAdapter(SPConstImported imported,
-                                               SPConstParticles const& particles,
-                                               ImportProcessClass process_class,
-                                               SpanConstPDG pdg_numbers)
+ImportedProcessAdapter::ImportedProcessAdapter(
+    SPConstImported imported,
+    SPConstParticles const& particles,
+    ImportProcessClass process_class,
+    SpanConstPDG pdg_numbers)
     : imported_(std::move(imported)), process_class_(process_class)
 {
     CELER_EXPECT(particles);
@@ -212,7 +213,9 @@ auto ImportedProcessAdapter::macro_xs(Applicability const& applic) const
             // tables will be constructed but the range of the low-energy table
             // will be extended upward so that it overlaps with the high-energy
             // table. In this case the lower table can be ignored.
-            CELER_LOG(warning) << "Ignoring low-energy lambda table because its range is redundant with high-energy table";
+            CELER_LOG(warning)
+                << "Ignoring low-energy lambda table because its range is "
+                   "redundant with high-energy table";
             result.lower = {};
             return result;
         }

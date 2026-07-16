@@ -170,7 +170,8 @@ bool process_is_active(OpticalProcessType process,
 SupportedOpticalPhysics::SupportedOpticalPhysics(Options const& all_options)
 {
     CELER_VALIDATE(all_options.optical,
-                   << "cannot construct SupportedOpticalPhysics when optical physics is disabled");
+                   << "cannot construct SupportedOpticalPhysics when optical "
+                      "physics is disabled");
     options_ = all_options.optical.value();
     auto ensure_deactivated = [](auto& opt, char const* name, char const* why) {
         if (opt)
@@ -303,7 +304,8 @@ void SupportedOpticalPhysics::ConstructProcess()
     {
         auto mie = std::make_unique<G4OpMieHG>();
         process_manager->AddDiscreteProcess(mie.release());
-        CELER_LOG(debug) << "Added optical Mie (Henyey-Greenstein phase function) scattering process";
+        CELER_LOG(debug) << "Added optical Mie (Henyey-Greenstein phase "
+                            "function) scattering process";
     }
 
     if (process_is_active(OpticalProcessType::boundary, options_))

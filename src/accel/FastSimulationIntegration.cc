@@ -35,7 +35,8 @@ void FastSimulationIntegration::verify_local_setup()
 {
     CELER_VALIDATE(G4VERSION_NUMBER >= 1110,
                    << "the current version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old to support the fast simulation offload interface (11.1 or higher is required)");
+                   << ") is too old to support the fast simulation offload "
+                      "interface (11.1 or higher is required)");
 
     // TODO: Check requested offload particles have G4 fast sim process/manager
 
