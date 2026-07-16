@@ -11,6 +11,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
 
 #include "../GeneratorData.hh"
@@ -22,6 +24,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 using celeritas::optical::GeneratorDistributionData;
 using celeritas::optical::WlsDistributionData;
+using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
 
 template<class T, MemSpace M>
 using ItemsRef = Collection<T, Ownership::reference, M>;
@@ -40,33 +43,39 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
                             StreamId);
 
 //---------------------------------------------------------------------------//
-// Count the number of optical photons in the distributions.
-size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
-size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
+// Count the number of optical photons in the distributions and add these to
+// the number of pending  tracks.
+void count_num_photons(SPConstOpticalParams params,
+                       optical::CoreState<MemSpace::host>&,
+                       ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+                       size_type,
+                       size_type,
+                       StreamId);
+void count_num_photons(
+    SPConstOpticalParams params,
+    optical::CoreState<MemSpace::device>&,
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class T>
-inline size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
-                                   size_type,
-                                   size_type,
-                                   StreamId)
+inline void remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
+                              size_type,
+                              size_type,
+                              StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+inline void
+count_num_photons(SPConstOpticalParams,
+                  optical::CoreState<MemSpace::device>&,
+                  ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
                   size_type,
                   size_type,
                   StreamId)

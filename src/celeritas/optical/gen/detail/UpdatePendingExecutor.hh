@@ -32,7 +32,7 @@ struct UpdatePendingExecutor
 
     //// FUNCTIONS ////
 
-    // Update number of of primaries waiting to be generated
+    // Update number of primaries waiting to be generated
     CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
