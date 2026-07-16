@@ -44,8 +44,6 @@ JsonEventWriter::JsonEventWriter(std::string const& filename,
  */
 void JsonEventWriter::operator()(VecPrimary const& primaries)
 {
-    CELER_EXPECT(!primaries.empty());
-
     // Increment contiguous event id
     EventId const event_id{event_count_++};
 

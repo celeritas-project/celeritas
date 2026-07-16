@@ -102,12 +102,27 @@ CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
 
     if (!dist.material)
     {
-        // If the optical material hasn't been set, initialize a temporary
-        // geometry state at the pre-step point and use it to find the
-        // optical material ID
-        auto geo = vacancy.geometry();
-        geo = GeoTrackInitializer{dist.points[StepPoint::pre].pos, {1, 0, 0}};
-        dist.material = vacancy.material_record(geo).material_id();
+        // Determine the optical material if it hasn't been set
+        if (params->material.size() == 1)
+        {
+            // Only one optical material in the problem
+            dist.material = OptMatId{0};
+        }
+        else
+        {
+            // Initialize a temporary geometry state at the step midpoint and
+            // use it to find the optical material ID
+            auto geo = vacancy.geometry();
+            Real3 avg_pos;
+            for (auto i : range(3))
+            {
+                avg_pos[i] = (dist.points[StepPoint::pre].pos[i]
+                              + dist.points[StepPoint::post].pos[i])
+                             * 0.5_r;
+            }
+            geo = GeoTrackInitializer{avg_pos, {1, 0, 0}};
+            dist.material = vacancy.material_record(geo).material_id();
+        }
     }
     CELER_ASSERT(dist.material);
 

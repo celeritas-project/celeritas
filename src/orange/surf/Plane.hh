@@ -67,15 +67,18 @@ class Plane
     //// ACCESSORS ////
 
     //! Normal to the plane
-    CELER_FUNCTION Real3 const& normal() const { return normal_; }
+    CELER_CONSTEXPR_FUNCTION Real3 const& normal() const { return normal_; }
 
     //! Distance from the origin along the normal to the plane
-    CELER_FUNCTION real_type displacement() const { return d_; }
+    CELER_CONSTEXPR_FUNCTION real_type displacement() const { return d_; }
 
     //! Get a view to the data for type-deleted storage
     CELER_FUNCTION StorageSpan data() const { return {&normal_[0], 4}; }
 
     //// CALCULATION ////
+
+    // Calculate outward normal at a position on the surface
+    inline CELER_FUNCTION real_type dot_normal(Real3 const&) const;
 
     // Determine the sense of the position relative to this surface
     inline CELER_FUNCTION SignedSense calc_sense(Real3 const& pos) const;
@@ -85,7 +88,7 @@ class Plane
         Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const;
 
     // Calculate outward normal at a position on the surface
-    inline CELER_FUNCTION Real3 calc_normal(Real3 const&) const;
+    inline CELER_FUNCTION Real3 const& calc_normal(Real3 const&) const;
 
   private:
     // Normal to plane (a,b,c)
@@ -129,11 +132,22 @@ CELER_FUNCTION Plane::Plane(Span<R, StorageSpan::extent> data)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the dot product with the normal.
+ *
+ * This is used for intersection, sense, and combined-plane methods.
+ */
+CELER_FORCEINLINE_FUNCTION real_type Plane::dot_normal(Real3 const& x) const
+{
+    return dot_product(normal_, x);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Determine the sense of the position relative to this surface.
  */
 CELER_FUNCTION SignedSense Plane::calc_sense(Real3 const& pos) const
 {
-    return real_to_sense(dot_product(normal_, pos) - d_);
+    return real_to_sense(this->dot_normal(pos) - this->displacement());
 }
 
 //---------------------------------------------------------------------------//
@@ -145,24 +159,21 @@ CELER_FUNCTION auto Plane::calc_intersections(Real3 const& pos,
                                               SurfaceState on_surface) const
     -> Intersections
 {
-    real_type const n_dir = dot_product(normal_, dir);
-    if (on_surface == SurfaceState::off && n_dir != 0)
-    {
-        real_type const n_pos = dot_product(normal_, pos);
-        real_type dist = (d_ - n_pos) / n_dir;
-        if (dist > 0)
-        {
-            return {dist};
-        }
-    }
-    return {no_intersection()};
+    real_type const n_pos = this->dot_normal(pos);
+    real_type const n_dir = this->dot_normal(dir);
+    real_type const dist = (this->displacement() - n_pos) / n_dir;
+
+    bool valid = celeritas::logical_all(
+        (on_surface == SurfaceState::off), (n_dir != 0), (dist > 0));
+
+    return {valid ? dist : no_intersection()};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate outward normal at a position on the surface.
  */
-CELER_FORCEINLINE_FUNCTION Real3 Plane::calc_normal(Real3 const&) const
+CELER_FORCEINLINE_FUNCTION Real3 const& Plane::calc_normal(Real3 const&) const
 {
     return normal_;
 }

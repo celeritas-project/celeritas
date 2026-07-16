@@ -19,6 +19,9 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 
+void to_json(nlohmann::json& j, StandaloneInput const&);
+void from_json(nlohmann::json const& j, StandaloneInput&);
+
 void to_json(nlohmann::json& j, OpticalStandaloneInput const&);
 void from_json(nlohmann::json const& j, OpticalStandaloneInput&);
 

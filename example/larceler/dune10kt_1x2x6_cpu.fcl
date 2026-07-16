@@ -2,8 +2,7 @@
 // dune10kt_1x2x6_cpu.fcl
 // Example job execution file using PDFullSimCeler
 //---------------------------------------------------------------------------//
-
-#include "PDFullSimCeler.fcl"
+#include "pdfullsimceler.fcl"
 #include "standard_g4_dune10kt_1x2x6.fcl"
 
 dunefd_pdfullsim_cpu: {

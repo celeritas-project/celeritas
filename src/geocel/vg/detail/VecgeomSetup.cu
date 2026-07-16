@@ -13,21 +13,11 @@
 #    include <VecGeom/management/DeviceGlobals.h>
 #endif
 
-#include "corecel/data/DeviceVector.hh"
-
-#if CELERITAS_VECGEOM_SURFACE
-#    include <VecGeom/surfaces/cuda/BrepCudaManager.h>
-#endif
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ThreadId.hh"
-
-#if CELERITAS_VECGEOM_SURFACE
-using BrepCudaManager = vgbrep::BrepCudaManager<vecgeom::Precision>;
-using SurfData = vgbrep::SurfData<vecgeom::Precision>;
-#endif
 
 namespace celeritas
 {
@@ -211,26 +201,10 @@ void check_other_device_pointers()
  */
 void init_navstate_device(Span<VgNavStateImpl> states, StreamId stream)
 {
-    InplaceNew execute_thread{states.data()};
+    InplaceNew<VgNavStateImpl> execute_thread{states.data()};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "vecgeom-init-navtuple");
     launch_kernel(states.size(), stream, execute_thread);
-}
-#endif
-
-//---------------------------------------------------------------------------//
-// VECGEOM SURFACE
-//---------------------------------------------------------------------------//
-#if CELERITAS_VECGEOM_SURFACE
-void setup_surface_tracking_device(SurfData const& surf_data)
-{
-    BrepCudaManager::Instance().TransferSurfData(surf_data);
-    CELER_DEVICE_API_CALL(DeviceSynchronize());
-}
-
-void teardown_surface_tracking_device()
-{
-    BrepCudaManager::Instance().Cleanup();
 }
 #endif
 

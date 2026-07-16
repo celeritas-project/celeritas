@@ -9,17 +9,16 @@
 #include <iostream>
 #include <memory>
 #include <optional>
-#include <string_view>
 #include <utility>
 #include <vector>
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
+#include "corecel/Config.hh"
+
 #ifdef _OPENMP
 #    include <omp.h>
 #endif
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -38,6 +37,8 @@
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
+#include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/inp/StandaloneInputIO.json.hh"
 
 #include "CliUtils.hh"
 #include "Runner.hh"
@@ -55,54 +56,59 @@ namespace
 {
 //---------------------------------------------------------------------------//
 /*!
- * Get the OpenMP thread number.
- */
-int get_openmp_thread()
-{
-#ifdef _OPENMP
-    return omp_get_thread_num();
-#else
-    return 0;
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Run, launch, and get output.
  */
-void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
+void run(std::shared_ptr<OutputRegistry>& output,
+         std::string& output_filename,
+         std::string const& input_filename)
 {
     // Read input options
-    auto run_input = [&filename] {
-        celeritas::FileOrStdin instream{filename};
-        auto result = std::make_shared<RunnerInput>();
-        nlohmann::json::parse(instream).get_to(*result);
-        return result;
+    inp::StandaloneInput si = [&input_filename] {
+        celeritas::FileOrStdin instream{input_filename};
+        auto j = nlohmann::json::parse(instream);
+        if (j.contains("problem"))
+        {
+            inp::StandaloneInput result;
+            j.get_to(result);
+            return result;
+        }
+        CELER_LOG(warning) << "Deprecated celer-sim input format. Update the "
+                              "input using the 'update' subcommand.";
+        RunnerInput old_inp;
+        j.get_to(old_inp);
+        return to_input(old_inp);
     }();
 
+    // Get the output filename
+    output_filename = si.problem.diagnostics.output_file;
+
     // Start profiling
-    TracingSession tracing_session{run_input->tracing_file};
+    TracingSession tracing_session{si.problem.diagnostics.perfetto_file};
     std::optional<ScopedProfiling> profile_this{std::in_place, "setup"};
 
     // Create runner and save setup time
     Stopwatch get_setup_time;
-    Runner run_stream(*run_input);
+    Runner run_stream(si);
     SimulationResult result;
     result.setup_time = get_setup_time();
     result.events.resize(
-        run_input->transporter_result ? run_stream.num_events() : 1);
+        si.problem.diagnostics.counters.event ? run_stream.num_events() : 1);
 
     // Add processed input to resulting output
     output = run_stream.core_params().output_reg();
     CELER_ASSERT(output);
-    output->insert(std::make_shared<OutputInterfaceAdapter<RunnerInput>>(
-        OutputInterface::Category::input, "*", run_input));
+    output->insert(
+        std::make_shared<OutputInterfaceAdapter<inp::StandaloneInput>>(
+            OutputInterface::Category::input,
+            "*",
+            std::make_shared<inp::StandaloneInput>(si)));
 
     // Allocate device streams
     size_type num_streams = run_stream.num_streams();
     result.num_streams = num_streams;
 
-    if (run_input->warm_up)
+    auto use_device = static_cast<bool>(celeritas::device());
+    if (si.problem.control.warm_up.value_or(use_device))
     {
         get_setup_time = {};
         run_stream.warm_up();
@@ -112,11 +118,11 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     // Start profiling *after* initialization and warmup are complete
     profile_this.emplace("run");
     Stopwatch get_transport_time;
-    if (run_input->merge_events)
+    if (si.events.merge)
     {
         // Run all events simultaneously on a single stream
         auto event_result = run_stream();
-        if (run_input->transporter_result)
+        if (si.problem.diagnostics.counters.event)
         {
             result.events.front() = std::move(event_result);
         }
@@ -133,15 +139,19 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
         for (size_type event = 0; event < num_events; ++event)
         {
             activate_device_local();
+#if CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
+            auto stream = id_cast<StreamId>(omp_get_thread_num());
+#else
+            constexpr StreamId stream{0};
+#endif
 
             // Run a single event on a single thread
             TransporterResult event_result;
-            CELER_TRY_HANDLE(event_result = run_stream(
-                                 id_cast<StreamId>(get_openmp_thread()),
-                                 id_cast<EventId>(event)),
-                             capture_exception);
+            CELER_TRY_HANDLE(
+                event_result = run_stream(stream, id_cast<EventId>(event)),
+                capture_exception);
             tracing_session.flush();
-            if (run_input->transporter_result)
+            if (si.problem.diagnostics.counters.event)
             {
                 result.events[event] = std::move(event_result);
             }
@@ -151,22 +161,42 @@ void run(std::shared_ptr<OutputRegistry>& output, std::string const& filename)
     profile_this.reset();
 
     result.action_times = run_stream.get_action_times();
+    result.step_times = run_stream.get_step_times();
     result.total_time = get_transport_time();
     output->insert(std::make_shared<RunnerOutput>(std::move(result)));
 }
 
-std::string get_device_string()
+void print_config()
+{
+    std::cout << to_string(celeritas::BuildOutput{}) << std::endl;
+}
+
+void print_default()
+{
+    std::cout << nlohmann::json(inp::StandaloneInput{}).dump(1) << std::endl;
+}
+
+void print_device()
 {
     celeritas::activate_device();
 
     CELER_VALIDATE(celeritas::Device::num_devices() != 0,
                    << "no GPUs were detected");
-    return nlohmann::json(celeritas::device()).dump(1);
+    std::cout << nlohmann::json(celeritas::device()).dump(1) << std::endl;
 }
 
-std::string get_default_string()
+void update_input(std::string const& filename)
 {
-    return nlohmann::json(celeritas::app::RunnerInput{}).dump(1);
+    celeritas::FileOrStdin instream{filename};
+    auto j = nlohmann::json::parse(instream);
+    if (j.contains("problem"))
+    {
+        std::cout << j.dump(1) << std::endl;
+        return;
+    }
+    RunnerInput old_inp;
+    j.get_to(old_inp);
+    std::cout << nlohmann::json(to_input(old_inp)).dump(1) << std::endl;
 }
 
 //---------------------------------------------------------------------------//
@@ -184,7 +214,7 @@ int main(int argc, char* argv[])
     celeritas::ScopedMpiInit scoped_mpi(&argc, &argv);
     if (scoped_mpi.is_world_multiprocess())
     {
-        CELER_LOG(critical) << "TODO: this app cannot run in parallel";
+        CELER_LOG(critical) << "Parallel MPI execution is not yet supported";
         return EXIT_FAILURE;
     }
 
@@ -192,12 +222,36 @@ int main(int argc, char* argv[])
     auto& cli = cli_app();
     cli.description("Run standalone Celeritas");
 
-    // TODO for 1.0: instead of separate flags, make these subcommands
-    std::string filename;
-    cli.add_option("filename", filename, "Input JSON")
+    // Set up app
+    std::string input_filename;
+    cli.add_option("filename", input_filename, "Input JSON")
         ->check(CLI::ExistingFile | dash_validator());
 
-    std::function<std::string()> diagnostic;
+    // Add "config" subcommand to print configuration
+    auto* config_cmd = cli.add_subcommand("config", "Show configuration");
+    config_cmd->callback([] { std::exit(run_safely(print_config)); });
+
+    // Add "dump-default" subcommand to print default input
+    auto* default_cmd = cli.add_subcommand("default", "Show default input");
+    default_cmd->callback([] { std::exit(run_safely(print_default)); });
+
+    // Add "device" subcommand to print device information
+    auto* device_cmd = cli.add_subcommand("device", "Show device information");
+    device_cmd->callback([] { std::exit(run_safely(print_device)); });
+
+    // Add "update" subcommand to convert a deprecated input JSON file
+    std::string old_filename;
+    auto* update_cmd
+        = cli.add_subcommand("update", "Convert a deprecated input JSON file");
+    update_cmd->add_option("filename", old_filename, "Deprecated input JSON")
+        ->required()
+        ->check(CLI::ExistingFile | dash_validator());
+    update_cmd->callback([&old_filename] {
+        std::exit(run_safely([&old_filename] { update_input(old_filename); }));
+    });
+
+    // TODO DEPRECATED: remove flags in favor of subcommands in v1.0
+    std::function<void()> diagnostic;
     auto set_diagnostic = [&diagnostic](auto func) {
         return [&diagnostic, func = std::move(func)](auto count) {
             CELER_DISCARD(count);
@@ -209,37 +263,40 @@ int main(int argc, char* argv[])
             diagnostic = std::move(func);
         };
     };
-    cli.add_flag(
-        "--config",
-        set_diagnostic([] { return to_string(celeritas::BuildOutput{}); }),
-        "Show configuration");
+    cli.add_flag("--config",
+                 set_diagnostic(print_config),
+                 "DEPRECATED: use 'config' subcommand instead");
     cli.add_flag("--dump-default",
-                 set_diagnostic(get_default_string),
-                 "Dump default input");
+                 set_diagnostic(print_default),
+                 "DEPRECATED: use 'default' subcommand instead");
     cli.add_flag("--device",
-                 set_diagnostic(get_device_string),
-                 "Show device information");
-
-    // Require exactly one option
-    cli.require_option(1);
+                 set_diagnostic(print_device),
+                 "DEPRECATED: use 'device' subcommand instead");
 
     // Parse and run
     CELER_CLI11_PARSE(argc, argv);
 
+    if (!diagnostic && cli.get_subcommands().empty() && input_filename.empty())
+    {
+        CELER_LOG(critical)
+            << "Either an input filename or a subcommand must be provided.\n\n"
+            << cli.help();
+        return EXIT_FAILURE;
+    }
+
     if (diagnostic)
     {
         // Print diagnostic and immediately exit
-        auto print_diagnostic
-            = [&diagnostic] { std::cout << diagnostic() << std::endl; };
-        return run_safely(print_diagnostic);
+        return run_safely(diagnostic);
     }
 
     // Run and save output
     std::shared_ptr<celeritas::OutputRegistry> output;
+    std::string output_filename = "-";
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(output, filename);
+        run(output, output_filename, input_filename);
     }
     catch (std::exception const& e)
     {
@@ -253,17 +310,18 @@ int main(int argc, char* argv[])
             std::current_exception()));
     }
 
+    // Save output
+    celeritas::FileOrStdout ostream{output_filename};
+    CELER_LOG(status) << "Saving output to " << ostream.filename();
     if (!output)
     {
         CELER_LOG(warning) << "No output available";
-        std::cout << "null\n";
+        ostream << "null\n";
         return_code = EXIT_FAILURE;
     }
     else
     {
-        CELER_LOG(status) << "Saving output";
-        output->output(&std::cout);
-        std::cout << std::endl;
+        output->output(&static_cast<std::ostream&>(ostream));
     }
 
     // Delete streams before end of program (TODO: this is because of a static

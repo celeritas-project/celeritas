@@ -18,8 +18,10 @@
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
@@ -29,6 +31,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/DetectorData.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "accel/LocalTransporter.hh"
@@ -56,10 +59,6 @@ bool is_running_events()
     return !G4Threading::IsMasterThread()
            || !G4Threading::IsMultithreadedApplication();
 }
-
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
 
 /*!
  * Count particle types.
@@ -141,9 +140,12 @@ class TMITestBase : virtual public IntegrationTestBase
     }
     void EndOfEventAction(G4Event const*) override
     {
-        auto const& local_transport
-            = detail::IntegrationSingleton::instance().local_track_offload();
-        EXPECT_EQ(0, local_transport.GetBufferSize());
+        if (!this->HasFatalFailure())
+        {
+            auto const& local_transport
+                = detail::IntegrationSingleton::instance().local_track_offload();
+            EXPECT_EQ(0, local_transport.GetBufferSize());
+        }
     }
 
     std::function<void()> check_during_run_;
@@ -246,13 +248,9 @@ TEST_F(LarSphere, run)
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(3);
 
-    if (this->HasFailure())
+    if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
-    }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
     }
 
     CELER_LOG(status) << "Beam on (second run)";
@@ -329,10 +327,6 @@ TEST_F(LarSphere, state_dep)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
 
     CELER_LOG(status) << "Beam on (second run)";
     record_test_event("before-beamon");
@@ -386,7 +380,12 @@ TEST_F(LarSphere, state_dep)
                 << repr(all_state);
             EXPECT_EQ(state_counts["begin_init"], state_counts["end_init"]);
 
-            EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            if (this->test_runman_type() != "tasking"
+                || num_local_events_[sid] > 0)
+            {
+                // Task manager can skip local begin/end run if no local events
+                EXPECT_GT(state_counts["begin_run"], 0) << repr(all_state);
+            }
             // Begin/end run should be the same
             EXPECT_EQ(state_counts["begin_run"], state_counts["end_run"]);
 
@@ -524,6 +523,7 @@ class LarSphereOptical : public LarSphere
 
   private:
     std::vector<CounterTrackingAction*> tracking_;
+    std::vector<real_type> detector_x_positions_;
 };
 
 //---------------------------------------------------------------------------//
@@ -541,7 +541,14 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
         opt.capacity.primaries = opt.capacity.generators;
         return opt;
     }();
-
+    // Optical detector hit callback
+    result.optical->detectors.callback
+        = [this](Span<optical::DetectorHit const> hits) {
+              for (auto const& hit : hits)
+              {
+                  detector_x_positions_.push_back(hit.position[0]);
+              }
+          };
     return result;
 }
 
@@ -555,7 +562,7 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
 void LarSphereOptical::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -581,7 +588,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.steps, 0);
             EXPECT_GT(accum_stats.step_iters, 0);
             EXPECT_GT(accum_stats.flushes, 0);
-
+            EXPECT_GT(detector_x_positions_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
@@ -670,7 +677,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
 void OpNoviceOptical::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -817,7 +824,7 @@ auto OpticalSurfaces::make_setup_options() -> SetupOptions
 void OpticalSurfaces::EndOfRunAction(G4Run const* run)
 {
     auto& integration = detail::IntegrationSingleton::instance();
-    if (integration.mode() == OffloadMode::enabled)
+    if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
         auto& local_transporter
             = dynamic_cast<LocalTransporter&>(integration.local_offload());
@@ -899,13 +906,116 @@ TEST_F(TestEm3, run)
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
 
-    if (this->HasFailure())
+    if (this->HasFatalFailure())
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
 
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+// WATERSPHERE
+//---------------------------------------------------------------------------//
+class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
+{
+  public:
+    void process_hit(G4Step const* s) override
+    {
+        auto* t = s->GetTrack();
+        CELER_ASSERT(t);
+        int const track_id = t->GetTrackID();
+        int const parent_id = t->GetParentID();
+
+        EXPECT_GE(track_id, 0);
+        EXPECT_GE(parent_id, 0);
+
+        auto atomic_max = [](std::atomic<int>& dst, int value) {
+            int current = dst.load(std::memory_order_relaxed);
+            while (current < value
+                   && !dst.compare_exchange_weak(current,
+                                                 value,
+                                                 std::memory_order_relaxed,
+                                                 std::memory_order_relaxed))
+            {
+            }
+        };
+
+        atomic_max(max_track_id_, track_id);
+        atomic_max(max_parent_id_, parent_id);
+        ++num_hits_;
+    }
+
+    //! Get and reset track, parent IDs
+    std::pair<int, int> exchange_max_ids()
+    {
+        return {max_track_id_.exchange(-1), max_parent_id_.exchange(-1)};
+    }
+
+    //! Exchange hit counter
+    int exchange_hit_count() { return num_hits_.exchange(0); }
+
+  protected:
+    std::atomic<int> max_track_id_{-1};
+    std::atomic<int> max_parent_id_{-1};
+    std::atomic<int> num_hits_{0};
+};
+
+/*!
+ * Check that the test runs.
+ */
+TEST_F(WaterSphere, run_small_flush)
+{
+    auto& rm = this->run_manager();
+
+    TMI::Instance().SetOptions([this] {
+        auto opts = this->make_setup_options();
+        opts.auto_flush = 16;
+        return opts;
+    }());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    ASSERT_FALSE(this->HasFatalFailure());
+
+    CELER_LOG(status) << "Beam on";
+    {
+        ScopedLogStorer scoped_log_{&self_logger(), LogLevel::info};
+        rm.BeamOn(1);
+
+        auto has_msg = [](std::string const& msg) {
+            static auto expected_msg
+                = R"(from 8 flushes with 128 offloaded tracks over 1 events)";
+            return msg.find(expected_msg) != std::string::npos;
+        };
+        auto const& messages = scoped_log_.messages();
+        auto it = std::find_if(messages.begin(), messages.end(), has_msg);
+        EXPECT_TRUE(it != messages.end())
+            << "Expected message not found in logs:\n"
+            << scoped_log_;
+
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto&& [max_track, max_parent] = this->exchange_max_ids();
+        EXPECT_GE(max_parent, 0);
+        EXPECT_GT(max_track, max_parent);
+    }
+
+    if (this->HasFatalFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining test since we've already failed";
+    }
+
+    rm.BeamOn(4);
+    {
+        auto num_hits = this->exchange_hit_count();
+        EXPECT_GT(num_hits, 0);
+        auto&& [max_track, max_parent] = this->exchange_max_ids();
+        EXPECT_GE(max_parent, 0);
+        EXPECT_GT(max_track, max_parent);
+    }
 }
 
 //---------------------------------------------------------------------------//

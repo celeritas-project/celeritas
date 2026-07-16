@@ -846,4 +846,21 @@ CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
 }
 
 //---------------------------------------------------------------------------//
+// Other utility functions
+//---------------------------------------------------------------------------//
+//! Return true if all arguments are true, *without* short circuiting
+template<typename... Args>
+CELER_FORCEINLINE_FUNCTION bool logical_all(Args const&... args)
+{
+    return (1 & ... & (args ? 1 : 0));
+}
+
+//! Return true if any argument is true, *without* short circuiting
+template<typename... Args>
+CELER_FORCEINLINE_FUNCTION bool logical_any(Args const&... args)
+{
+    return (0 | ... | (args ? 1 : 0));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -13,6 +13,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/phys/Primary.hh"
 
 #include "TrackOffloadInterface.hh"
@@ -113,6 +114,7 @@ class LocalTransporter final : public TrackOffloadInterface
     struct RunAccum
     {
         std::size_t events{0};
+        std::size_t flushes{0};
         std::size_t primaries{0};
         std::size_t steps{0};
         std::size_t lost_primaries{0};
@@ -128,10 +130,11 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<StepperInterface> step_;
     std::vector<Primary> buffer_;
     std::shared_ptr<detail::HitProcessor> hit_processor_;
+    std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
 
-    // Current event ID or manager for obtaining it
-    UniqueEventId event_id_;
+    // Last seen event ID and manager for obtaining it
+    int event_id_{-1};
     G4EventManager* event_manager_{nullptr};
 
     size_type auto_flush_{};
@@ -142,6 +145,9 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Shared across threads to write flushed particles
     SPOffloadWriter dump_primaries_;
+
+    //// HELPER FUNCTIONS ////
+    void flush_impl();
 };
 
 //---------------------------------------------------------------------------//

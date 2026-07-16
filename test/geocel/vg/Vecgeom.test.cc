@@ -13,6 +13,7 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/Environment.hh"
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantImportVolumeResult.hh"
@@ -170,9 +171,9 @@ TEST_F(CmseTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (VecgeomParams::use_surface_tracking())
+    if (vecgeom_version >= Version{2})
     {
-        prefix += "surf";
+        prefix += "2";
     }
 
     write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
@@ -205,24 +206,26 @@ TEST_F(FourLevelsTest, locate_point)
 
 TEST_F(FourLevelsTest, levels)
 {
+    auto const& bbox = this->geometry()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
     EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
-    geo.find_next_step();
+    geo.find_next_step(max_distance);
     geo.move_to_boundary();
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
-    geo.find_next_step();
+    geo.find_next_step(max_distance);
     geo.move_to_boundary();
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
-    geo.find_next_step();
+    geo.find_next_step(max_distance);
     geo.move_to_boundary();
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV", this->unique_volume_name(geo));
-    geo.find_next_step();
+    geo.find_next_step(max_distance);
     geo.move_to_boundary();
     geo.cross_boundary();
 
@@ -344,17 +347,13 @@ class ReplicaTest
         // ~1e-12 discrepancy for some traces (when avx2 is enabled?)
         result.distance *= 10;
 
-        if (CELERITAS_VECGEOM_SURFACE)
-        {
-            result.safety = 5e-5;
-        }
         return result;
     }
 };
 
 TEST_F(ReplicaTest, trace)
 {
-    if (using_solids_vg && vecgeom_version >= Version{2, 0})
+    if (vecgeom_version >= Version{2, 0})
     {
         // VecGeom 2.x-solid has small discrepancies in replica tracking
         GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
@@ -517,7 +516,7 @@ TEST_F(SolidsTest, output)
         auto out_str = StringSimplifier{1}(to_string(out));
 
         EXPECT_JSON_EQ(
-            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"supports_safety":true,"volumes":{"label":["box500","cone1","para1","sphere1","parabol1","trap1","trd1","trd2","trd3_also","tube100","","","","","boolean1","polycone1","genPocone1","ellipsoid1","tetrah1","orb1","polyhedr1","hype1","elltube1","ellcone1","arb8b","arb8a","xtru1","World","","trd3_refl"]}})json",
+            R"json({"_category":"internal","_label":"geometry","bbox":[[-6e2,-3e2,-8e1],[6e2,3e2,8e1]],"num_impl_volumes":30,"supports_safety":true})json",
             out_str);
     }
 }
@@ -555,11 +554,7 @@ TEST_F(SolidsTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (VecgeomParams::use_surface_tracking())
-    {
-        prefix += "surf";
-    }
-    else if (vecgeom_version >= Version{2})
+    if (vecgeom_version >= Version{2})
     {
         prefix += "2";
     }

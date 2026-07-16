@@ -62,6 +62,7 @@ make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
     result.problem.num_streams = 1;
     result.problem.seed = cfg.Seed();
     result.problem.timers.action = cfg.ActionTimes();
+    result.problem.timers.step = cfg.StepTimes();
     result.problem.output_file = cfg.OutputFile();
 
     return result;
@@ -121,6 +122,9 @@ void PDFullSimCeler::produce(art::Event& e)
     CELER_EXPECT(runner_);
     auto edep_handle
         = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_);
+
+    mf::LogInfo("PDFullSimCeler") << "Transferring " << edep_handle->size()
+                                  << " SimEnergyDeposits to Celeritas";
 
     // Calculate detector response for the input steps
     using VecBTR = LarStandaloneRunner::VecBTR;

@@ -11,6 +11,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/data/Ldg.hh"
 
 namespace celeritas
 {
@@ -167,12 +168,13 @@ class range_iter
   public:
     //// CONSTRUCTOR ////
 
-    CELER_FORCEINLINE_FUNCTION range_iter(value_type value) : value_(value)
+    constexpr range_iter() = default;
+
+    explicit CELER_CONSTEXPR_FUNCTION range_iter(value_type value)
+        : value_(value)
     {
         CELER_EXPECT(TraitsT::is_valid(value_));
     }
-
-    CELER_CONSTEXPR_FUNCTION range_iter() : value_(TraitsT::zero()) {}
 
     //// ACCESSORS ////
 
@@ -204,7 +206,7 @@ class range_iter
 
     CELER_CONSTEXPR_FUNCTION range_iter operator+(difference_type inc) const
     {
-        return {TraitsT::increment(value_, inc)};
+        return range_iter{TraitsT::increment(value_, inc)};
     }
 
     CELER_CONSTEXPR_FUNCTION range_iter& operator--()
@@ -222,7 +224,7 @@ class range_iter
 
     CELER_CONSTEXPR_FUNCTION range_iter operator-(difference_type inc) const
     {
-        return {TraitsT::decrement(value_, inc)};
+        return range_iter{TraitsT::decrement(value_, inc)};
     }
 
     CELER_CONSTEXPR_FUNCTION bool operator==(range_iter const& other) const
@@ -245,11 +247,19 @@ class range_iter
     }
 
     // Access the underlying value
-    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
+    CELER_CEF value_type value() const& { return value_; }
+
+    //! Allow loading via ldg
+    CELER_CONSTEXPR_FUNCTION friend range_iter
+    ldg(range_iter const* ri) noexcept
+    {
+        using ::celeritas::ldg;
+        return range_iter{ldg(&ri->value_)};
+    }
 
   protected:
     // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
-    value_type value_;
+    value_type value_{TraitsT::zero()};
 };
 
 //---------------------------------------------------------------------------//
@@ -261,8 +271,9 @@ class inf_range_iter : public range_iter<T>
   public:
     using TraitsT = typename Base::TraitsT;
 
-    CELER_CONSTEXPR_FUNCTION inf_range_iter(T value = TraitsT::zero())
-        : Base(value)
+    explicit CELER_CONSTEXPR_FUNCTION inf_range_iter(T value) : Base(value) {}
+    explicit CELER_CONSTEXPR_FUNCTION inf_range_iter()
+        : inf_range_iter{TraitsT::zero()}
     {
     }
 
@@ -288,10 +299,8 @@ class step_range_iter : public range_iter<T>
     using counter_type = typename TraitsT::counter_type;
     using difference_type = typename TraitsT::difference_type;
 
-    CELER_CONSTEXPR_FUNCTION step_range_iter(T value, counter_type step)
-        : Base(value), step_(step)
-    {
-    }
+    CELER_CONSTEXPR_FUNCTION
+    step_range_iter(T value, counter_type step) : Base(value), step_(step) {}
 
     CELER_CONSTEXPR_FUNCTION step_range_iter& operator++()
     {

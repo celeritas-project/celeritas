@@ -39,8 +39,7 @@ namespace test
 {
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
-           || !CELERITAS_VECGEOM_SURFACE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -204,7 +203,7 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
     }
 
     auto const& gen_reg = collector_->gen_reg();
-    auto gen_id = gen_reg.find("optical-generate");
+    auto gen_id = gen_reg.find("generate");
     CELER_ASSERT(gen_id);
 
     // Access the auxiliary data for the generator

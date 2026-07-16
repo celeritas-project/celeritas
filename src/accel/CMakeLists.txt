@@ -8,7 +8,6 @@ set(PRIVATE_DEPS
   nlohmann_json::nlohmann_json
   Celeritas::Extcovfie # NOTE: only needed by Cart/RZMapMagneticField.cc
   Celeritas::ExtThrust # TODO: add thrust exception conversion to corecel?
-  Celeritas::ExtOpenMP # TODO: provide thread utils in corecel
 )
 set(PUBLIC_DEPS
   Celeritas::BuildFlags

@@ -15,7 +15,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct CylMapFieldInput;
+namespace inp
+{
+struct CylMapField;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -31,7 +34,7 @@ class CylMapFieldParams final
     //@{
     //! \name Type aliases
     using real_type = cylmap_real_type;
-    using Input = CylMapFieldInput;
+    using Input = inp::CylMapField;
     //@}
 
   public:

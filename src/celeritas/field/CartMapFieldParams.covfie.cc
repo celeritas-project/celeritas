@@ -21,7 +21,7 @@
 #include "geocel/Types.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/field/CartMapFieldData.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
+#include "celeritas/inp/Field.hh"
 
 #include "CartMapField.covfie.hh"
 

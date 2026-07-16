@@ -13,6 +13,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
@@ -30,6 +31,7 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/setup/Control.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -65,8 +67,6 @@ GlobalTestBase::~GlobalTestBase()
             std::cerr << "Failed to write diagnostics: " << e.what();
         }
     }
-    // Reset global volumes that we set
-    celeritas::global_volumes(nullptr);
 }
 
 //---------------------------------------------------------------------------//
@@ -147,8 +147,14 @@ auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
     }
 
     auto mi = model_geo->make_model_input();
-    volume_ = make_shared<VolumeParams>(std::move(mi.volumes));
-    celeritas::global_volumes(volume_);
+    volume_ = std::visit(
+        Overload{[](inp::Volumes const& v) {
+                     return make_shared<VolumeParams const>(v);
+                 },
+                 [](std::shared_ptr<VolumeParams const> const& v) {
+                     return v ? v : make_shared<VolumeParams const>();
+                 }},
+        mi.volumes);
     surface_ = make_shared<SurfaceParams>(std::move(mi.surfaces), *volume_);
     detector_ = make_shared<DetectorParams>(std::move(mi.detectors), *volume_);
     return core_geo;
@@ -210,8 +216,10 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
-    inp.capacity = inp::OpticalStateCapacity::from_default(
-        celeritas::Device::num_devices());
+    inp.sizes = [] {
+        inp::OpticalStateCapacity cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
+    }();
 
     CELER_ENSURE(inp);
     return inp;
@@ -256,6 +264,10 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
+    inp.sizes = [] {
+        inp::CoreStateCapacity cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
+    }();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop

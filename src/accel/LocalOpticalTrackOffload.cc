@@ -28,7 +28,7 @@ namespace celeritas
 /*!
  * Offload Geant4 optical photon tracks to Celeritas
  */
-LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
+LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const&,
                                                    SharedParams& params)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
@@ -51,11 +51,10 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     auto const& optical_params = *transport_->params();
 
     // Check the thread ID and MT model
-    validate_geant_threading(optical_params.max_streams());
+    validate_geant_threading(optical_params.sizes().streams);
 
-    CELER_EXPECT(options.optical);
-    auto const& capacity = options.optical->capacity;
-    auto_flush_ = capacity.primaries;
+    auto const& sizes = optical_params.sizes();
+    auto_flush_ = sizes.primaries;
 
     auto stream_id = id_cast<StreamId>(get_geant_thread_id());
 
@@ -64,19 +63,19 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const& options,
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, sizes.tracks);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, sizes.tracks);
     }
 
     // Allocate auxiliary data
     if (optical_params.aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
+            *optical_params.aux_reg(), memspace, stream_id, sizes.tracks);
     }
 
     CELER_ENSURE(*this);

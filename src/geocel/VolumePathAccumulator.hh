@@ -46,6 +46,19 @@ namespace celeritas
    }
  * \endcode
  *
+ * or, if it's easier to include the world as part of the path (using unsigned
+ * integer overflow that's part of the OpaqueId implementation), or if the path
+ * might be "empty" to indicate being outside:
+ * \code
+   VolumePathAccumulator accum{params.host_ref()};
+   VolumeUniqueInstanceId uid;
+   for (VolumeInstanceId vi : path_including_world)
+   {
+       uid = accum(uid, vi);  // unique ID for the node reached via this step
+   }
+ * \endcode
+
+ *
  * \internal The mapping relies on \c unique_instance_offsets precomputed in
  * \c VolumeParamsData.
  */
@@ -86,7 +99,7 @@ CELER_FUNCTION VolumeUniqueInstanceId VolumePathAccumulator::operator()(
 {
     CELER_EXPECT(vi < params_.unique_instance_offsets.size());
     auto const offset = params_.unique_instance_offsets[vi];
-    return uid + offset.get() + 1;
+    return VolumeUniqueInstanceId(*uid + offset.get() + 1);
 }
 
 //---------------------------------------------------------------------------//

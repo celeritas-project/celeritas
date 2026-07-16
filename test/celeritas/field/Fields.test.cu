@@ -15,7 +15,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/KernelParamCalculator.device.hh"
 #include "celeritas/field/CartMapField.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/field/RZMapField.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
@@ -39,9 +38,9 @@ using RZDeviceCRef = RZMapFieldParams::DeviceRef;
 
 __global__ void field_test_kernel(unsigned int const size,
                                   CartDeviceCRef field_map_data,
-                                  AxisGrid<real_type> x_grid,
-                                  AxisGrid<real_type> y_grid,
-                                  AxisGrid<real_type> z_grid,
+                                  inp::AxisGrid<double> x_grid,
+                                  inp::AxisGrid<double> y_grid,
+                                  inp::AxisGrid<double> z_grid,
                                   Array<size_type, 3> n_samples,
                                   real_type* field_values)
 {
@@ -66,15 +65,15 @@ __global__ void field_test_kernel(unsigned int const size,
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
         real_type x = interp_x(ix);
-        x = celeritas::min(x, x_grid.max - 1);
+        x = celeritas::min<real_type>(x, x_grid.max - 1);
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
             real_type y = interp_y(iy);
-            y = celeritas::min(y, y_grid.max - 1);
+            y = celeritas::min<real_type>(y, y_grid.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
                 real_type z = interp_z(iz);
-                z = celeritas::min(z, z_grid.max - 1);
+                z = celeritas::min<real_type>(z, z_grid.max - 1);
 
                 Real3 field = calc_field({x, y, z});
                 field_values[index++] = field[0];
@@ -107,7 +106,7 @@ __global__ void rzfield_test_kernel(unsigned int const num_points,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run CartMapField on device and return results
-void field_test(CartMapFieldInput& inp,
+void field_test(inp::CartMapField& inp,
                 Span<real_type>& field_values,
                 Array<size_type, 3>& n_samples)
 {

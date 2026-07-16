@@ -14,6 +14,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "geocel/GeantGeoParams.hh"
+#include "geocel/VolumeParams.hh"
 #include "geocel/rasterize/RaytraceImager.hh"
 #include "orange/OrangeParams.hh"
 #if CELERITAS_USE_VECGEOM
@@ -51,7 +52,7 @@ Runner::Runner(ModelSetup const& input)
         // Retain the Geant4 world for possible reuse across geometries
         CELER_EXPECT(celeritas::global_geant_geo().expired());
         this->load_geometry<Geometry::geant4>();
-        CELER_EXPECT(!celeritas::global_geant_geo().expired());
+        CELER_ASSERT(!celeritas::global_geant_geo().expired());
     }
     else
     {
@@ -92,11 +93,12 @@ auto Runner::trace(TraceSetup const& setup) -> SPImage
     SPImage image = this->make_traced_image(setup.memspace, *imager);
     return image;
 }
+
 //---------------------------------------------------------------------------//
 /*!
  * Get volume names from an already loaded geometry.
  */
-std::vector<std::string> Runner::get_volumes(Geometry g) const&
+std::vector<std::string> Runner::get_impl_volumes(Geometry g) const&
 {
     CELER_EXPECT(geo_cache_[g]);
 

@@ -29,7 +29,7 @@ class BoundingBox;
 //---------------------------------------------------------------------------//
 
 //! Real type used for acceleration
-using fast_real_type = double;
+using fast_real_type = real_type;
 
 //! Integer type for volume CSG tree representation
 using logic_int = ImplSurfaceId::size_type;
@@ -43,8 +43,8 @@ using AxisTag = std::integral_constant<Axis, T>;
 
 //// ID TYPES ////
 
-//! Identifier for a BIHNode objects
-using BIHNodeId = OpaqueId<struct BIHNode_>;
+//! Identifier for a BvhNode objects
+using BvhNodeId = OpaqueId<struct BvhNode_>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
@@ -144,6 +144,7 @@ enum class SurfaceType : unsigned char
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
     gq,  //!< General quadric
+    tor,  //!< Toroid
     inv,  //!< Involute
     size_  //!< Sentinel value for number of surface types
 };

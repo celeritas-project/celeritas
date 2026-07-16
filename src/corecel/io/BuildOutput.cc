@@ -65,6 +65,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_ADD_CFG(core_geo);
         CO_ADD_CFG(core_rng);
         CO_ADD_CFG(gpu_architectures);
+        CO_ADD_CFG(reseed);
 #undef CO_ADD_CFG
         if constexpr (CELER_USE_DEVICE)
         {
@@ -112,6 +113,11 @@ void BuildOutput::output(JsonPimpl* j) const
         if constexpr (CELERITAS_USE_VECGEOM)
         {
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+        }
+
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            cfg["orange_torus"] = static_cast<bool>(CELERITAS_ORANGE_TORUS);
         }
 
         return cfg;

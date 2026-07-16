@@ -184,7 +184,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * Calculate mean energy loss over the given "true" step length.
  *
  * Stopping power is an integral over low-exiting-energy
- * secondaries. Above some threshold energy \em T_c we treat exiting
+ * secondaries. Above some threshold energy \f$ T_c \f$ we treat exiting
  * secondaries discretely; below it, we lump them into this continuous loss
  * term that varies based on the energy, the atomic number density, and the
  * element number:

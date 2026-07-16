@@ -11,6 +11,7 @@
 #include <cstring>
 #include <png.h>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas
@@ -91,7 +92,7 @@ ImageWriter::ImageWriter(std::string const& filename, Size2 height_width)
         PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
     if (setjmp(png_jmpbuf(impl_->png)))
     {
-        CELER_RUNTIME_THROW("libpng", "Failed initialization", {});
+        CELER_RUNTIME_FAIL("libpng", "Failed initialization", {});
     }
 
     // Set up warning/error callbacks
@@ -141,7 +142,7 @@ void ImageWriter::operator()(Span<Color const> colors)
 
     if (setjmp(png_jmpbuf(impl_->png)))
     {
-        CELER_RUNTIME_THROW("libpng", "Failed to write line", {});
+        CELER_RUNTIME_FAIL("libpng", "Failed to write line", {});
     }
 
     auto iter = row_buffer_.begin();
@@ -189,7 +190,7 @@ void ImageWriter::close_impl(bool validate)
         {
             if (validate)
             {
-                CELER_RUNTIME_THROW("libpng", "Failed to write file", {});
+                CELER_RUNTIME_FAIL("libpng", "Failed to write file", {});
             }
             CELER_LOG(error) << "libpng failed to write file";
         }

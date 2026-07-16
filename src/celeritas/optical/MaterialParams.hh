@@ -88,7 +88,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
  */
 OptMatId::size_type MaterialParams::num_materials() const
 {
-    return this->host_ref().refractive_index.size();
+    return this->host_ref().size();
 }
 
 //---------------------------------------------------------------------------//

@@ -75,6 +75,7 @@
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-min/.spack-env/view"
       },
       "cacheVariables": {
+        "CMAKE_CXX_STANDARD":   {"type": "STRING",   "value": "17"},
         "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "OFF"},
         "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "OFF"}
@@ -82,10 +83,11 @@
     },
     {
       "name": "base",
-      "displayName": "Goldfinger default options",
+      "displayName": "Executor default options",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
+        "CELERITAS_USE_ROOT":    {"type": "BOOL",   "value": "ON"},
         "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_PYTHONPATH": "/Users/seth/Code/py-breathe:/Users/seth/Code/py-sphinxcontrib-bibtex/src",
         "CELERITAS_PYTHONWARNINGS": "ignore:::urllib3,ignore:::breathe.project,ignore::UserWarning:pybtex.plugin",
@@ -136,16 +138,7 @@
         "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_ROOT":  {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_VecGeom": {"type": "BOOL",   "value": "ON"},
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "OFF"},
         "VecGeom_DIR": {"type": "PATH", "value": "/Users/seth/Code/vecgeom/install/lib/cmake/VecGeom"}
-      }
-    },
-    {
-      "name": "vglocal-surface",
-      "displayName": "With local vecgeom, using surfaces",
-      "inherits": "vglocal",
-      "cacheVariables": {
-        "CELERITAS_VecGeom_SURFACE": {"type": "BOOL",   "value": "ON"}
       }
     },
     {

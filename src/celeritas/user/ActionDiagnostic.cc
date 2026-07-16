@@ -241,7 +241,7 @@ void ActionDiagnostic::begin_run_impl(CoreParams const& params)
             HostVal<ParticleTallyParamsData> host_params;
             host_params.num_bins = params.action_reg()->num_actions();
             host_params.num_particles = params.particle()->size();
-            store_ = {std::move(host_params), params.max_streams()};
+            store_ = {std::move(host_params), params.sizes().streams};
         }
     }
     CELER_ENSURE(store_);

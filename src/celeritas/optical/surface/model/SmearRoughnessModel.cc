@@ -26,7 +26,7 @@ namespace optical
  */
 SmearRoughnessModel::SmearRoughnessModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "roughness-smear")
+    : SurfaceModel(id, "smear-roughness")
 {
     surfaces_.reserve(layer_map.size());
     std::transform(layer_map.begin(),

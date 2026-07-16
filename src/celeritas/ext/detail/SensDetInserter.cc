@@ -24,9 +24,14 @@ namespace detail
  * Construct with references to the inserted data.
  */
 SensDetInserter::SensDetInserter(SetLV const& skip_volumes,
+                                 VolumeParams const* volumes,
+                                 GeantGeoParams const* geant_geo,
                                  MapIdLv* found,
                                  VecLV* missing)
-    : skip_volumes_{skip_volumes}, found_{found}, missing_{missing}
+    : to_vol_id_{volumes, geant_geo}
+    , skip_volumes_{skip_volumes}
+    , found_{found}
+    , missing_{missing}
 {
     CELER_EXPECT(found_);
     CELER_EXPECT(missing_);

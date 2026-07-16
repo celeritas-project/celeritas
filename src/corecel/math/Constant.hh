@@ -151,11 +151,11 @@ class Constant
 
 //!@{
 //! In-place arithmetic
-#define CELER_DEFINE_CONSTANT_OP(TOKEN)                                \
-    template<class T, EnableIfFloating<T> = true>                      \
-    CELER_CEF friend T& operator TOKEN(T & lhs, Constant rhs) noexcept \
-    {                                                                  \
-        return lhs TOKEN static_cast<T>(rhs.value());                  \
+#define CELER_DEFINE_CONSTANT_OP(TOKEN)                               \
+    template<class T, EnableIfFloating<T> = true>                     \
+    CELER_CEF friend T& operator TOKEN(T& lhs, Constant rhs) noexcept \
+    {                                                                 \
+        return lhs TOKEN static_cast<T>(rhs.value());                 \
     }
 
     CELER_DEFINE_CONSTANT_OP(*=)

@@ -61,7 +61,7 @@ WlsGeneratorAction::WlsGeneratorAction(Input&& input)
     : GeneratorBase(input.action_id,
                     input.aux_id,
                     input.gen_id,
-                    "optical-wls-generate",
+                    "wls-generate",
                     "generate photons from a wavelength shifting process")
     , wls_(std::move(input.wls))
     , wls2_(std::move(input.wls2))

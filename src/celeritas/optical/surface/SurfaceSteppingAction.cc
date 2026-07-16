@@ -6,6 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "SurfaceSteppingAction.hh"
 
+#include <string_view>
+
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 
@@ -21,9 +24,7 @@ namespace optical
  * Construct surface stepping action from ID.
  */
 SurfaceSteppingAction::SurfaceSteppingAction(ActionId aid)
-    : ConcreteAction(aid,
-                     "optical-surface-stepping",
-                     "step through optical surface actions")
+    : ConcreteAction(aid, "surface-physics", "apply optical surface physics")
 {
 }
 
@@ -59,13 +60,20 @@ template<MemSpace M>
 void SurfaceSteppingAction::step_impl(CoreParams const& params,
                                       CoreState<M>& state) const
 {
+    auto const& physics = *params.surface_physics();
     constexpr size_type num_iterations = 1;
 
     for ([[maybe_unused]] auto iteration : range(num_iterations))
     {
         for (auto substep : range(SurfacePhysicsOrder::size_))
         {
-            for (auto const& model : params.surface_physics()->models(substep))
+            auto const& models = physics.models(substep);
+            if (models.empty())
+                continue;
+
+            ScopedProfiling profile_this_{
+                std::string_view(to_cstring(substep))};
+            for (auto const& model : models)
             {
                 model->step(params, state);
             }

@@ -70,7 +70,9 @@ class ImageWriterTest : public ::celeritas::test::Test
             {
                 lines_.push_back({});
             }
-            else if (c == '\0') {}
+            else if (c == '\0')
+            {
+            }
             else
             {
                 CELER_ASSERT(!lines_.empty());

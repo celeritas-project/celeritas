@@ -90,28 +90,28 @@ void from_json(nlohmann::json const& j, RunInput& v)
     // DEPRECATED: remove in v1.0
     RI_LOAD_DEPRECATED(sync, action_times);
 
-    // Get default capacities *integrated* over streams
-    auto capacity = inp::CoreStateCapacity::from_default(
-        celeritas::Device::num_devices());
+    using Defaults = inp::CoreStateCapacity;
 
     // celer-g4 input capacities are *per-stream*
     size_type num_streams = get_geant_num_threads();
 
     RI_LOAD_OPTION(num_track_slots);
-    RI_LOAD_DEFAULT(num_track_slots, capacity.tracks / num_streams);
+    RI_LOAD_DEFAULT(num_track_slots,
+                    (celeritas::Device::num_devices() ? Defaults::gpu_tracks
+                                                      : Defaults::cpu_tracks)
+                        / num_streams);
     RI_LOAD_OPTION(max_steps);
-    RI_LOAD_DEFAULT(initializer_capacity, capacity.initializers / num_streams);
-    CELER_ASSERT(capacity.secondaries);
-    RI_LOAD_DEFAULT(
-        secondary_stack_factor,
-        static_cast<real_type>(*capacity.secondaries) / capacity.tracks);
+    RI_LOAD_DEFAULT(initializer_capacity,
+                    Defaults::initializers_per_track * v.num_track_slots);
+    RI_LOAD_DEFAULT(secondary_stack_factor, Defaults::secondaries_per_track);
     RI_LOAD_OPTION(action_times);
     if (j.count("default_stream"))
     {
         // DEPRECATED: remove in v1.0
         CELER_LOG(warning) << "Ignoring removed option 'default_stream'";
     }
-    RI_LOAD_DEFAULT(auto_flush, capacity.primaries / num_streams);
+    RI_LOAD_DEFAULT(auto_flush,
+                    Defaults::primaries_per_track * v.num_track_slots);
 
     RI_LOAD_OPTION(track_order);
 

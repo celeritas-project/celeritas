@@ -58,8 +58,8 @@ class Runner
     //! Access timers
     MapTimers const& timers() const { return timers_; }
 
-    //! Access volumes
-    std::vector<std::string> get_volumes(Geometry) const&;
+    //! Access impl volume names
+    std::vector<std::string> get_impl_volumes(Geometry) const&;
 
     //! Load a geometry
     template<Geometry G>

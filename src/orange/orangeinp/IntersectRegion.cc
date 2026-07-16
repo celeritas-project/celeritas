@@ -26,6 +26,7 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/surf/Toroid.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
@@ -1802,6 +1803,54 @@ Real3 const& Tet::vertex(size_type i) const
 {
     CELER_EXPECT(i < 4);
     return v_[i];
+}
+
+//---------------------------------------------------------------------------//
+// TORUS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radii.
+ */
+using ToroidSurf = ::celeritas::Toroid;
+
+Torus::Torus(real_type major_radius, real_type minor_radius)
+    : r_maj_{major_radius}, r_min_{minor_radius}
+{
+    CELER_VALIDATE(r_maj_ > 0, << "nonpositive major radius: " << r_maj_);
+    CELER_VALIDATE(r_min_ > 0, << "nonpositive minor radius: " << r_min_);
+    CELER_VALIDATE(r_maj_ > r_min_,
+                   << "toroid major radius (" << r_maj_
+                   << ") must be greater than"
+                   << "minor radius (" << r_min_ << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Torus::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside,
+                   ToroidSurf{{0, 0, 0}, r_maj_, r_min_, r_min_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Torus::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Returns whether this centered torus encloses another such torus.
+ */
+bool Torus::encloses(Torus const& other) const
+{
+    return std::fabs(this->major_radius() - other.major_radius())
+           < this->minor_radius() - other.minor_radius();
 }
 
 //---------------------------------------------------------------------------//

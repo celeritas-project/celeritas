@@ -37,7 +37,7 @@ challenging simulation problems in HEP.
 .. only:: html
 
    :Release: |release|
-   :Date: |today|
+   :Date: |build_date|
 
    .. _quickstart:
 

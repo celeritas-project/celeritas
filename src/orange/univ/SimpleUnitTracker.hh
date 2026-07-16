@@ -12,8 +12,8 @@
 #include "orange/OrangeData.hh"
 #include "orange/OrangeTypes.hh"
 #include "orange/SenseUtils.hh"
-#include "orange/detail/BIHEnclosingVolFinder.hh"
-#include "orange/detail/BIHIntersectingVolFinder.hh"
+#include "orange/detail/BvhEnclosingVolFinder.hh"
+#include "orange/detail/BvhIntersectingVolFinder.hh"
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
 #include "detail/InfixEvaluator.hh"
@@ -187,7 +187,7 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
 
-    // Use the BIH to locate a position that's inside, and save whether it's on
+    // Use the BVH to locate a position that's inside, and save whether it's on
     // a surface in the found volume
     detail::OnFace on_surface;
     auto is_inside = [this, &state, &on_surface](LocalVolumeId id) -> bool {
@@ -249,7 +249,7 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
     auto neighbors = this->get_neighbors(state.surface.id());
 
     // If this surface has 2 neighbors or fewer (excluding the current cell),
-    // use linear search to check neighbors. Otherwise, traverse the BIH tree.
+    // use linear search to check neighbors. Otherwise, traverse the BVH tree.
     if (neighbors.size() < 3)
     {
         for (LocalVolumeId id : neighbors)
@@ -446,7 +446,7 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Search the BIH to find where the predicate is true for the point.
+ * Search the BVH to find where the predicate is true for the point.
  *
  * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
  */
@@ -454,8 +454,8 @@ template<class F>
 CELER_FUNCTION LocalVolumeId
 SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 {
-    detail::BIHEnclosingVolFinder find_volume{unit_record_.bih_tree,
-                                              params_.bih_tree_data};
+    detail::BvhEnclosingVolFinder find_volume{unit_record_.bvh_tree,
+                                              params_.bvh_tree_data};
     return find_volume(pos, predicate);
 }
 
@@ -617,26 +617,59 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance from the background volume to enter any other volume.
+ * Calculate the distance from the background volume to enter any other volume.
  *
- * This function is accelerated with the BIH.
+ * This function is accelerated by the BVH, which is given a functor for
+ * calculating the distance to intersection from *outside* a given volume. That
+ * operation is implemented by calling complex_intersect, which checks that the
+ * sense changes after crossing a candidate surface. A volume is "simple" when
+ * it has no internal surfaces, from which it follows that for a ray
+ * originating inside a simple volume, crossing the nearest surface is
+ * guaranteed to change the sense to "outside." When the ray originates outside
+ * the volume, however, the absence of internal surfaces is not sufficient to
+ * guarantee a sense change will occur, so the candidate surfaces must still be
+ * checked. The example below illustrates this: a ray originating at point P
+ * does not undergo a sense change when it crosses the nearest surface of
+ * volume V.
+ * \verbatim
+              ^          ^
+       P ->   |          |
+              |          |
+       <------|----------|------>
+              |          |
+              | interior |
+              | of V     |
+              |          |
+       <------|----------|------>
+              |          |
+              |          |
+              v          v
+   \endverbatim
+ * For rays originating outside a volume, the sense-change check can be skipped
+ * only if the volume is defined by a single closed surface, e.g., a sphere, an
+ * ellipsoid, or a toroid. Because this function does not make this
+ * distinction, it uses complex_intersect for all volumes.
  */
 CELER_FUNCTION auto
 SimpleUnitTracker::background_intersect(LocalState const& state,
                                         real_type max_distance) const
     -> Intersection
 {
+    // Functor for calculating the distance to intersection, starting outside
+    // the given volume.
     auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
+        // No volume is "simple" because we are starting from the outside
+        constexpr bool is_simple = false;
         detail::CalcIntersections calc_intersections{
             cur_max_dist,
             state.pos,
             state.dir,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            false,
+            is_simple,
             state.temp_next};
 
         LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
@@ -660,14 +693,15 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                    < state.temp_next.distance[b];
                         });
 
-        // Call with a target sense of "inside," because we are seeking a
-        // surface for which crossing will result in entering the volume
+        // Call complex_intersect with a target sense of "inside," because we
+        // are seeking a surface for which crossing will result in entering the
+        // volume
         return this->complex_intersect(
             state, vol, num_isect, Sense::inside, cur_max_dist);
     };
 
-    detail::BIHIntersectingVolFinder find_intersection{unit_record_.bih_tree,
-                                                       params_.bih_tree_data};
+    detail::BvhIntersectingVolFinder find_intersection{unit_record_.bvh_tree,
+                                                       params_.bvh_tree_data};
 
     return find_intersection(
         {state.pos, state.dir}, is_intersecting, max_distance);

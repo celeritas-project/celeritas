@@ -139,19 +139,6 @@ struct GenericGeoModelInp
     struct
     {
         std::vector<std::string> labels;
-        std::vector<int> materials;
-        std::vector<std::vector<int>> daughters;
-    } volume;
-    struct
-    {
-        std::vector<std::string> labels;
-        std::vector<int> volumes;
-    } volume_instance;
-    std::string world;
-
-    struct
-    {
-        std::vector<std::string> labels;
         std::vector<std::string> volumes;
     } surface;
 

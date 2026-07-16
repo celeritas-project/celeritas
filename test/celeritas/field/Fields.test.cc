@@ -24,10 +24,8 @@
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/field/CartMapField.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/field/CylMapField.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 #include "celeritas/field/LoadCovfieField.hh"
 #include "celeritas/field/RZMapField.hh"
@@ -260,7 +258,7 @@ using CylMapFieldTest = ::celeritas::test::Test;
 TEST_F(CylMapFieldTest, all)
 {
     CylMapFieldParams field_map = [] {
-        CylMapFieldInput inp;
+        inp::CylMapField inp;
         // Set up grid points in cylindrical coordinates
         inp.grid_r = {0, 50, 100, 150};
         Array<real_type, 7> const phi_values = {
@@ -479,9 +477,9 @@ TEST_F(CovfieRZImportTest, load_2x3)
 #endif
 using CartMapFieldTest = ::celeritas::test::Test;
 
-CartMapFieldInput build_cart_map_input()
+inp::CartMapField build_cart_map_input()
 {
-    CartMapFieldInput inp;
+    inp::CartMapField inp;
     inp.x.min = -2750;
     inp.x.max = 2750;
     inp.x.num = static_cast<size_type>(inp.x.max * 2 / 100);
@@ -518,7 +516,7 @@ CartMapFieldInput build_cart_map_input()
 
 TEST_F(CartMapFieldTest, host)
 {
-    CartMapFieldInput inp = build_cart_map_input();
+    inp::CartMapField inp = build_cart_map_input();
     CartMapFieldParams field_map{inp};
 
     // FIXME: test data should be single-precision
@@ -526,26 +524,28 @@ TEST_F(CartMapFieldTest, host)
 
     // Sample the field
 
+    using Interp = Interpolator<Interp::linear, Interp::linear, double>;
+
     // Define samples in cylindrical coordinates
     size_type const nx_samples = 3;
     size_type const ny_samples = 3;
     size_type const nz_samples = 3;
     std::vector<real_type> actual;
-    Interpolator interp_x({0, inp.x.min}, {nx_samples - 1, inp.x.max});
-    Interpolator interp_y({0, inp.y.min}, {ny_samples - 1, inp.y.max});
-    Interpolator interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
+    Interp interp_x({0, inp.x.min}, {nx_samples - 1, inp.x.max});
+    Interp interp_y({0, inp.y.min}, {ny_samples - 1, inp.y.max});
+    Interp interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
         real_type x
-            = std::min(interp_x(static_cast<real_type>(ix)), inp.x.max - 1);
+            = std::min(interp_x(static_cast<double>(ix)), inp.x.max - 1);
 
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y = std::min(interp_y(static_cast<real_type>(iy)),
-                                   inp.y.max - 1);
+            real_type y
+                = std::min(interp_y(static_cast<double>(iy)), inp.y.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
-                real_type z = std::min(interp_z(static_cast<real_type>(iz)),
+                real_type z = std::min(interp_z(static_cast<double>(iz)),
                                        inp.z.max - 1);
 
                 Real3 field = calc_field({x, y, z});

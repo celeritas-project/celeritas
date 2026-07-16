@@ -11,6 +11,7 @@
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 #include "celeritas/user/ActionTimes.hh"
+#include "celeritas/user/StepTimes.hh"
 
 #include "Transporter.hh"
 #include "gen/DirectGeneratorAction.hh"
@@ -49,20 +50,24 @@ class Runner
     {
         CounterAccumStats counters;
         ActionTimes::MapStrDbl action_times;
+        StepTimes::VecDbl step_times;
     };
 
   public:
     // Construct with optical problem input definition
     explicit Runner(Input&&);
 
-    // Transport tracks generated with a primary generator
-    Result operator()();
+    // Set the number of pending tracks for a primary generator
+    void insert();
 
-    // Transport tracks generated directly from track initializers
-    Result operator()(SpanConstTrackInit);
+    // Insert track initializers
+    void insert(SpanConstTrackInit);
 
-    // Transport tracks generated through scintillation or Cherenkov
-    Result operator()(SpanConstGenDist);
+    // Insert distributions for generating through scintillation or Cherenkov
+    void insert(SpanConstGenDist);
+
+    // Generate optical photons and transport to completion
+    Result operator()() const;
 
     //! Access the shared params
     SPConstParams const& params() const

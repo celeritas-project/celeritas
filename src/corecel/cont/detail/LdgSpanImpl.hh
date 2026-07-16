@@ -8,7 +8,6 @@
 
 #include <iterator>
 #include <type_traits>
-#include <utility>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Ldg.hh"
@@ -17,23 +16,6 @@ namespace celeritas
 {
 namespace detail
 {
-//---------------------------------------------------------------------------//
-template<class T, class = void>
-struct IsLdgSupported : std::false_type
-{
-    static_assert(std::is_const_v<T>);
-};
-
-template<class T>
-struct IsLdgSupported<T, std::void_t<decltype(ldg_data(std::declval<T*>()))>>
-    : std::true_type
-{
-};
-
-//! Whether a type is supported by \c ldg
-template<class T>
-inline constexpr bool is_ldg_supported_v = IsLdgSupported<T>::value;
-
 //---------------------------------------------------------------------------//
 /*!
  * Wrapper that loads data safely via \c ldg on conversion.
@@ -51,7 +33,6 @@ template<class T>
 class LdgWrapper
 {
     static_assert(std::is_const_v<T>);
-    static_assert(is_ldg_supported_v<T>, "type is incompatible with ldg");
 
   public:
     //!@{
@@ -64,7 +45,11 @@ class LdgWrapper
     CELER_CEF LdgWrapper(T& ref) noexcept : ptr_{&ref} {}
 
     //! Load the referenced value using __ldg
-    CELER_CEF type get() const noexcept { return ldg(ptr_); }
+    CELER_CEF type get() const noexcept
+    {
+        using ::celeritas::ldg;
+        return ldg(ptr_);
+    }
 
     //! Implicit conversion: load via __ldg
     CELER_CEF operator type() const noexcept { return this->get(); }
@@ -105,6 +90,7 @@ class LdgWrapper
     //!@}
 
   private:
+    // Const pointer to global device data
     T* ptr_;
 };
 

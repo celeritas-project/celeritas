@@ -263,7 +263,7 @@ auto NuclearZoneBuilder::calc_zones_small(AtomicMassNumber a) const
  * The Woods-Saxon potential, \f$ V(r) \f$,
  *
  * \f[
-     V(r) = frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
+     V(r) = \frac{V_{o}}{1 + e^{\frac{r - R}{a}}}
    \f]
  * is integrated numerically over the volume from \f$ r_{min} \f$ to \f$
  * r_{rmax} \f$, where \f$ V_{o}, R, a\f$ are the potential well depth, nuclear
