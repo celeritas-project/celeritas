@@ -147,8 +147,6 @@ void Runner::insert(SpanConstGenDist data)
         auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
         this->update_pending(*s, total_pending);
     }
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
