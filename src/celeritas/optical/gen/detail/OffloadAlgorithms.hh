@@ -64,10 +64,10 @@ void count_num_photons(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class T>
-inline void remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
-                              size_type,
-                              size_type,
-                              StreamId)
+inline size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
+                                   size_type,
+                                   size_type,
+                                   StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
