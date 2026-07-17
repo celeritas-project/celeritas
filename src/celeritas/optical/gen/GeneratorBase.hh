@@ -16,8 +16,6 @@
 
 namespace celeritas
 {
-class CoreParams;
-
 namespace optical
 {
 //---------------------------------------------------------------------------//
