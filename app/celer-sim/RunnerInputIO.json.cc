@@ -35,7 +35,7 @@ namespace app
 /*!
  * Read options from JSON.
  *
- * TODO: for version 1.0, remove deprecated options.
+ * TODO: for version 1.0, remove \c RunnerInput.
  */
 void from_json(nlohmann::json const& j, RunnerInput& v)
 {
@@ -94,16 +94,15 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(seed);
     LDIO_LOAD_REQUIRED(use_device);
 
-    // Get default capacities *integrated* over streams
-    auto capacity = inp::CoreStateCapacity::from_default(v.use_device);
+    using Defaults = inp::CoreStateCapacity;
 
-    LDIO_LOAD_DEFAULT(num_track_slots, capacity.tracks);
+    LDIO_LOAD_DEFAULT(num_track_slots,
+                      v.use_device ? Defaults::gpu_tracks
+                                   : Defaults::cpu_tracks);
     LDIO_LOAD_OPTION(max_steps);
-    LDIO_LOAD_DEFAULT(initializer_capacity, capacity.initializers);
-    CELER_ASSERT(capacity.secondaries);
-    LDIO_LOAD_DEFAULT(
-        secondary_stack_factor,
-        static_cast<real_type>(*capacity.secondaries) / capacity.tracks);
+    LDIO_LOAD_DEFAULT(initializer_capacity,
+                      Defaults::initializers_per_track * v.num_track_slots);
+    LDIO_LOAD_DEFAULT(secondary_stack_factor, Defaults::secondaries_per_track);
     LDIO_LOAD_OPTION(interpolation);
     LDIO_LOAD_OPTION(poly_spline_order);
     LDIO_LOAD_OPTION(action_times);

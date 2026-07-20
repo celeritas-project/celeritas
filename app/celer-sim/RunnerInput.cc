@@ -113,9 +113,7 @@ inp::Problem load_problem(RunnerInput const& ri)
 
     // Control
     {
-        // NOTE: old celer-sim input is *integrated* over streams
         inp::CoreStateCapacity capacity;
-        capacity.primaries = 0;  // Immediately generate initializers
         capacity.initializers = ri.initializer_capacity;
         capacity.tracks = ri.num_track_slots;
         capacity.secondaries = static_cast<size_type>(ri.secondary_stack_factor
@@ -225,7 +223,7 @@ inp::StandaloneInput to_input(RunnerInput const& ri)
         si.geant_setup = ri.physics_options;
 
         CELER_VALIDATE(
-            !si.geant_setup->optical == !ri.optical,
+            !si.geant_setup.optical == !ri.optical,
             << R"(optical setup options require optical physics to be enabled and vice versa)");
         CELER_VALIDATE(
             ri.poly_spline_order == 1

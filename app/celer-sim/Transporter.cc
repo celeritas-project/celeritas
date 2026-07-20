@@ -58,7 +58,7 @@ template<MemSpace M>
 Transporter<M>::Transporter(TransporterInput inp)
     : optical_{std::move(inp.optical)}
     , max_steps_(inp.max_steps)
-    , num_streams_(inp.params->max_streams())
+    , num_streams_(inp.params->sizes().streams)
     , log_progress_(inp.log_progress)
     , store_track_counts_(inp.store_track_counts)
 {

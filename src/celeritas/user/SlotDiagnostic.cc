@@ -51,7 +51,7 @@ SlotDiagnostic::make_and_insert(CoreParams const& core,
     auto result = std::make_shared<SlotDiagnostic>(actions.next_id(),
                                                    aux.next_id(),
                                                    std::move(filename_base),
-                                                   core.max_streams(),
+                                                   core.sizes().streams,
                                                    core.particle());
     actions.insert(result);
     aux.insert(result);
