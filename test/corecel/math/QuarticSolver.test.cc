@@ -136,8 +136,7 @@ TYPED_TEST(QuarticSolverTest, two_roots)
                            sorted(solve(Real5{1, -6, 13, -12, 4})));
     }
     // [1.000000, 19.534611, -48660.891842, -476217.617178, 57126150.652217]
-    // Two positive, two negative; taken from runtime demonstration, unfixed
-    // returned one bogus root
+    // Two positive, two negative; taken from runtime demonstration
     {
         EXPECT_VEC_NEAR(make_roots({30.11797881450676, 213.24217809742103}),
                         sorted(solve(Real5{1.000000,
@@ -148,8 +147,7 @@ TYPED_TEST(QuarticSolverTest, two_roots)
                         practical_tolerance);
     }
     // [1.000000, 39.057127, -47753.699175, -940008.633992, 54384055.574769]
-    // Also two positive two negative from runtime demonstration; unfixed
-    // returned no roots
+    // Also two positive two negative from runtime demonstration
     {
         EXPECT_VEC_NEAR(make_roots({25.6335352, 207.19825152}),
                         sorted(solve(Real5{1.000000,
