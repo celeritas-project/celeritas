@@ -26,7 +26,7 @@ _apptainer_fnal() {
   fi
 
   if ! [ -d "/cvmfs" ]; then
-    celerlog error "cannot run ${1}: CVMFS is not available on this host"
+    celerlog error "cannot run apptainer image: CVMFS is not available on this host"
     return 1
   fi
 
@@ -38,7 +38,7 @@ _apptainer_fnal() {
   # BEGIN_DOC_APPTAINER
   APPTAINER_DIR=/usr
   IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
-  IMAGE=fnal-dev-sl7:latest
+  IMAGE=${1:-fnal-dev-sl7:latest}
   exec $APPTAINER_DIR/bin/apptainer \
     shell --shell=/bin/bash \
     -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,$HOME \
