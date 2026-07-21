@@ -7,6 +7,7 @@
 #include "ControlIO.json.hh"
 
 #include "corecel/io/JsonUtils.json.hh"
+#include "celeritas/TypesIO.json.hh"
 
 namespace celeritas
 {
