@@ -16,7 +16,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(IN)                                       \
+#define ORANGE_INSTANTIATE_OP(IN) \
     template void SurfaceClipper::operator()(IN<Axis::x> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::y> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::z> const&) const

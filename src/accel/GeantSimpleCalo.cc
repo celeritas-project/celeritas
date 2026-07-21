@@ -52,9 +52,8 @@ class DummyGeantSimpleCaloSD : public G4VSensitiveDetector
 /*!
  * Construct with name and logical volume pointers.
  */
-GeantSimpleCalo::GeantSimpleCalo(std::string name,
-                                 SPConstParams params,
-                                 VecLV volumes)
+GeantSimpleCalo::GeantSimpleCalo(
+    std::string name, SPConstParams params, VecLV volumes)
     : params_{std::move(params)}
     , volumes_{std::move(volumes)}
     , storage_{std::make_shared<detail::GeantSimpleCaloStorage>()}
@@ -72,11 +71,11 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
         CELER_EXPECT(volumes_[i]);
         auto&& [iter, inserted]
             = storage_->volume_to_index.insert({volumes_[i], i});
-        CELER_VALIDATE(inserted,
-                       << "logical volume " << StreamableLV{iter->first}
-                       << " is duplicated in the list of volumes for "
-                          "GeantSimpleCalo '"
-                       << this->label() << "'");
+        CELER_VALIDATE(
+            inserted,
+            << "logical volume " << StreamableLV{iter->first}
+            << " is duplicated in the list of volumes for GeantSimpleCalo '"
+            << this->label() << "'");
     }
 
     // Resize data

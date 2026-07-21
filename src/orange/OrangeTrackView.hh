@@ -59,9 +59,8 @@ class OrangeTrackView
 
   public:
     // Construct from params and state
-    inline CELER_FUNCTION OrangeTrackView(ParamsRef const& params,
-                                          StateRef const& states,
-                                          TrackSlotId tid);
+    inline CELER_FUNCTION OrangeTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId tid);
 
     // Initialize the state
     inline CELER_FUNCTION OrangeTrackView& operator=(Initializer_t const& init);
@@ -186,8 +185,8 @@ class OrangeTrackView
     operator=(DetailedInitializer const& init);
 
     // Iterate over universe levels to find the next step
-    inline CELER_FUNCTION Propagation
-    find_next_step_impl(detail::Intersection isect);
+    inline CELER_FUNCTION Propagation find_next_step_impl(
+        detail::Intersection isect);
 
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
@@ -211,13 +210,15 @@ class OrangeTrackView
     inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
 
     // Get the transform ID for the given daughter.
-    inline CELER_FUNCTION TransformId get_transform(DaughterId daughter_id) const;
+    inline CELER_FUNCTION TransformId get_transform(
+        DaughterId daughter_id) const;
 
     // Get the transform ID to increase the universe level by 1
     inline CELER_FUNCTION TransformId get_transform(UnivLevelId ulev_id) const;
 
     // The implementation volume ID at a given level
-    inline CELER_FUNCTION ImplVolumeId impl_volume_id(UnivLevelId ulev_id) const;
+    inline CELER_FUNCTION ImplVolumeId impl_volume_id(
+        UnivLevelId ulev_id) const;
 
     // Get the surface normal as defined by the geometry
     inline CELER_FUNCTION Real3 geo_normal() const;
@@ -230,9 +231,8 @@ class OrangeTrackView
  * Construct from persistent and state data.
  */
 CELER_FUNCTION
-OrangeTrackView::OrangeTrackView(ParamsRef const& params,
-                                 StateRef const& states,
-                                 TrackSlotId tid)
+OrangeTrackView::OrangeTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(params_);
@@ -1289,8 +1289,8 @@ CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId
-OrangeTrackView::get_transform(DaughterId daughter_id) const
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(
+    DaughterId daughter_id) const
 {
     CELER_EXPECT(daughter_id);
     return params_.daughters[daughter_id].trans_id;
@@ -1300,7 +1300,8 @@ OrangeTrackView::get_transform(DaughterId daughter_id) const
 /*!
  * Get the transform ID for the given daughter.
  */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(UnivLevelId ulev_id) const
+CELER_FUNCTION TransformId OrangeTrackView::get_transform(
+    UnivLevelId ulev_id) const
 {
     CELER_EXPECT(ulev_id < this->univ_level());
     LSA lsa(params_.scalars, &states_, track_slot_, ulev_id);
@@ -1314,8 +1315,8 @@ CELER_FUNCTION TransformId OrangeTrackView::get_transform(UnivLevelId ulev_id) c
  * \note It is allowable to call this function when "outside", because the
  * outside in ORANGE is just a special volume.
  */
-CELER_FUNCTION ImplVolumeId
-OrangeTrackView::impl_volume_id(UnivLevelId ulev_id) const
+CELER_FUNCTION ImplVolumeId OrangeTrackView::impl_volume_id(
+    UnivLevelId ulev_id) const
 {
     CELER_EXPECT(ulev_id <= this->univ_level());
     auto lsa = this->make_lsa(ulev_id);

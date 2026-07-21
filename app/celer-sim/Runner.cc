@@ -186,9 +186,9 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 
             if (use_device_)
             {
-                CELER_VALIDATE(device(),
-                               << "CUDA device is unavailable but GPU run was "
-                                  "requested");
+                CELER_VALIDATE(
+                    device(),
+                    << "CUDA device is unavailable but GPU run was requested");
                 return std::make_unique<Transporter<MemSpace::device>>(
                     std::move(local_trans_inp));
             }

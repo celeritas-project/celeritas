@@ -36,9 +36,8 @@ apply_transform(VariantTransform const& left, VariantTransform const& right);
 
 //---------------------------------------------------------------------------//
 // Dispatch "daughter-to-parent" transform to bounding box utilities
-[[nodiscard]] BoundingBox<real_type>
-apply_transform(VariantTransform const& transform,
-                BoundingBox<real_type> const& bbox);
+[[nodiscard]] BoundingBox<real_type> apply_transform(
+    VariantTransform const& transform, BoundingBox<real_type> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -33,9 +33,9 @@ SignedPermutation::SignedPermutation(SignedAxes permutation) : compressed_{0}
     for (auto ax : {Axis::z, Axis::y, Axis::x})
     {
         auto new_ax_sign = permutation[ax];
-        CELER_VALIDATE(new_ax_sign.first == '+' || new_ax_sign.first == '-',
-                       << "invalid permutation sign '" << new_ax_sign.first
-                       << "'");
+        CELER_VALIDATE(
+            new_ax_sign.first == '+' || new_ax_sign.first == '-',
+            << "invalid permutation sign '" << new_ax_sign.first << "'");
         CELER_VALIDATE(new_ax_sign.second < Axis::size_,
                        << "invalid permutation axis");
         CELER_VALIDATE(!encountered_ax[new_ax_sign.second],

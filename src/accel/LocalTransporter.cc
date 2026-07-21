@@ -118,26 +118,26 @@ void trace(StepperResult const& track_counts)
     trace_(track_counts);
 }
 
-#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
-    do                                                              \
-    {                                                               \
-        if (CELER_UNLIKELY(!(COND)))                                \
-        {                                                           \
-            std::ostringstream celer_runtime_msg_;                  \
-            celer_runtime_msg_ MSG;                                 \
-            if (nonfatal_flush())                                   \
-            {                                                       \
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream celer_runtime_msg_; \
+            celer_runtime_msg_ MSG; \
+            if (nonfatal_flush()) \
+            { \
                 CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
-                (STEPPER).kill_active();                            \
-            }                                                       \
-            else                                                    \
-            {                                                       \
-                CELER_RUNTIME_FAIL(                                 \
-                    ::celeritas::RuntimeError::validate_err_str,    \
-                    celer_runtime_msg_.str(),                       \
-                    #COND);                                         \
-            }                                                       \
-        }                                                           \
+                (STEPPER).kill_active(); \
+            } \
+            else \
+            { \
+                CELER_RUNTIME_FAIL( \
+                    ::celeritas::RuntimeError::validate_err_str, \
+                    celer_runtime_msg_.str(), \
+                    #COND); \
+            } \
+        } \
     } while (0)
 }  // namespace
 
@@ -400,11 +400,11 @@ void LocalTransporter::flush_impl()
 
     while (track_counts)
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
-                                      << max_step_iters_ << ")",
-                                      *step_);
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            step_iters < max_step_iters_,
+            << "number of step iterations exceeded the allowed maximum ("
+            << max_step_iters_ << ")",
+            *step_);
 
         track_counts = (*step_)();
         run_accum_.steps += track_counts.active;

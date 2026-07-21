@@ -30,9 +30,8 @@ class MuBremsstrahlungModel final : public Model, public StaticConcreteAction
 
   public:
     // Construct from model ID and other necessary data
-    MuBremsstrahlungModel(ActionId id,
-                          ParticleParams const& particles,
-                          SPConstImported data);
+    MuBremsstrahlungModel(
+        ActionId id, ParticleParams const& particles, SPConstImported data);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

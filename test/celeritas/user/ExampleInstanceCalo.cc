@@ -34,13 +34,11 @@ void ExampleInstanceCalo::Result::print_expected() const
             "static char const* const expected_instance[] = "
          << repr(this->instance)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_instance, "
-            "result.instance);\n"
+            "EXPECT_VEC_EQ(expected_instance, result.instance);\n"
             "static real_type const expected_edep[] = "
          << repr(this->edep)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_edep, "
-            "result.edep);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_edep, result.edep);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -65,8 +63,7 @@ ExampleInstanceCalo::ExampleInstanceCalo(
     }
     CELER_VALIDATE(
         std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
-        << "failed to find one or more volumes while "
-           "constructing SimpleCalo");
+        << "failed to find one or more volumes while constructing SimpleCalo");
 }
 
 //---------------------------------------------------------------------------//

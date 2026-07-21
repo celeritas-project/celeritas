@@ -110,12 +110,11 @@ void load_rayleigh_water(inp::OpticalRayleighAnalytic& analytic,
 
     if (!soft_equal(g4mat.GetTemperature(), 283.15 * CLHEP::kelvin))
     {
-        CELER_LOG(error)
-            << "Geant4 Rayleigh optical scattering ignores material "
-               "temperature for Water (overriding "
-            << g4mat.GetTemperature()
-            << " K with 283.15 K) if no `RAYLEIGH` mean free paths "
-               "are provided";
+        CELER_LOG(error) << "Geant4 Rayleigh optical scattering ignores "
+                            "material temperature for Water (overriding "
+                         << g4mat.GetTemperature()
+                         << " K with 283.15 K) if no `RAYLEIGH` mean free "
+                            "paths are provided";
     }
 }
 

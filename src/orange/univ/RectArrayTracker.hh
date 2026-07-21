@@ -81,8 +81,8 @@ class RectArrayTracker
     ////// OPERATIONS ////
 
     // Find the local volume from a position
-    inline CELER_FUNCTION Initialization
-    initialize(LocalState const& state) const;
+    inline CELER_FUNCTION Initialization initialize(
+        LocalState const& state) const;
 
     // DEPRECATED: search for intersection without limit
     inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
@@ -92,8 +92,8 @@ class RectArrayTracker
                                                  real_type max_dist) const;
 
     // Find the local volume given a post-crossing state
-    inline CELER_FUNCTION Initialization
-    cross_boundary(LocalState const& state) const;
+    inline CELER_FUNCTION Initialization cross_boundary(
+        LocalState const& state) const;
 
     // Calculate closest distance to a surface in any direction
     inline CELER_FUNCTION real_type safety(Real3 const& pos,
@@ -111,7 +111,8 @@ class RectArrayTracker
     //// METHODS ////
 
     // Find the index of axis (x/y/z) we are about to cross
-    inline CELER_FUNCTION size_type find_surface_axis_idx(LocalSurfaceId s) const;
+    inline CELER_FUNCTION size_type find_surface_axis_idx(
+        LocalSurfaceId s) const;
 
     // Create Grid object for a given axis
     inline CELER_FUNCTION Grid make_grid(Axis ax) const;
@@ -175,9 +176,8 @@ CELER_FUNCTION auto RectArrayTracker::initialize(LocalState const& state) const
 /*!
  * Find the local volume given a post-crossing state.
  */
-CELER_FUNCTION auto
-RectArrayTracker::cross_boundary(LocalState const& state) const
-    -> Initialization
+CELER_FUNCTION auto RectArrayTracker::cross_boundary(
+    LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
 
@@ -219,9 +219,8 @@ RectArrayTracker::intersect(LocalState const& state) const -> Intersection
 /*!
  * Calculate distance-to-intercept for the next surface, with max distance.
  */
-CELER_FUNCTION auto
-RectArrayTracker::intersect(LocalState const& state, real_type max_dist) const
-    -> Intersection
+CELER_FUNCTION auto RectArrayTracker::intersect(
+    LocalState const& state, real_type max_dist) const -> Intersection
 {
     CELER_EXPECT(max_dist > 0);
     CELER_EXPECT(state.volume);
@@ -290,8 +289,8 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
         }
     }
 
-    CELER_ENSURE(min_dist >= 0
-                 && min_dist < numeric_limits<real_type>::infinity());
+    CELER_ENSURE(
+        min_dist >= 0 && min_dist < numeric_limits<real_type>::infinity());
     return min_dist;
 }
 
@@ -315,8 +314,8 @@ RectArrayTracker::normal(Real3 const&, LocalSurfaceId surf) const -> Real3
 /*!
  * DaughterId of universe embedded in a given volume.
  */
-CELER_FORCEINLINE_FUNCTION DaughterId
-RectArrayTracker::daughter(LocalVolumeId vol) const
+CELER_FORCEINLINE_FUNCTION DaughterId RectArrayTracker::daughter(
+    LocalVolumeId vol) const
 {
     CELER_EXPECT(vol && vol.get() < this->num_volumes());
     return record_.daughters[vol];
@@ -326,8 +325,8 @@ RectArrayTracker::daughter(LocalVolumeId vol) const
 /*!
  * Find the index of axis (x/y/z) we are about to cross:
  */
-CELER_FUNCTION size_type
-RectArrayTracker::find_surface_axis_idx(LocalSurfaceId s) const
+CELER_FUNCTION size_type RectArrayTracker::find_surface_axis_idx(
+    LocalSurfaceId s) const
 {
     SurfaceInverseIndexer to_axis(record_.surface_indexer_data);
     return to_axis(s.unchecked_get())[0];

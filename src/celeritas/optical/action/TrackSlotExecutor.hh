@@ -97,10 +97,8 @@ class ConditionalTrackSlotExecutor
   public:
     //! Construct with condition and operator
     CELER_FUNCTION
-    ConditionalTrackSlotExecutor(ParamsPtr params,
-                                 StatePtr state,
-                                 C&& applies,
-                                 T&& execute_track)
+    ConditionalTrackSlotExecutor(
+        ParamsPtr params, StatePtr state, C&& applies, T&& execute_track)
         : params_{params}
         , state_{state}
         , applies_{celeritas::forward<C>(applies)}
@@ -186,15 +184,13 @@ struct IsSurfaceModelEqual
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION TrackSlotExecutor(CoreParamsPtr<MemSpace::native>,
-                                 CoreStatePtr<MemSpace::native>,
-                                 T&&) -> TrackSlotExecutor<T>;
+CELER_FUNCTION TrackSlotExecutor(
+    CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, T&&)
+    -> TrackSlotExecutor<T>;
 
 template<class C, class T>
-CELER_FUNCTION ConditionalTrackSlotExecutor(CoreParamsPtr<MemSpace::native>,
-                                            CoreStatePtr<MemSpace::native>,
-                                            C&&,
-                                            T&&)
+CELER_FUNCTION ConditionalTrackSlotExecutor(
+    CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, C&&, T&&)
     -> ConditionalTrackSlotExecutor<C, T>;
 
 //---------------------------------------------------------------------------//

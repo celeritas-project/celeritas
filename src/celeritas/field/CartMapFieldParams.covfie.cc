@@ -75,12 +75,12 @@ struct CartMapFieldParams::Impl
 
             // Scale world units to index units so max maps to (num - 1).
             auto affine_scale = covfie::algebra::affine<3>::scaling(
-                static_cast<field_real_type>((inp.x.num - 1)
-                                             / (inp.x.max - inp.x.min)),
-                static_cast<field_real_type>((inp.y.num - 1)
-                                             / (inp.y.max - inp.y.min)),
-                static_cast<field_real_type>((inp.z.num - 1)
-                                             / (inp.z.max - inp.z.min)));
+                static_cast<field_real_type>(
+                    (inp.x.num - 1) / (inp.x.max - inp.x.min)),
+                static_cast<field_real_type>(
+                    (inp.y.num - 1) / (inp.y.max - inp.y.min)),
+                static_cast<field_real_type>(
+                    (inp.z.num - 1) / (inp.z.max - inp.z.min)));
 
             using traits_t = detail::CovfieFieldTraits<MemSpace::host>;
             using field_t = typename traits_t::field_t;
@@ -106,8 +106,8 @@ struct CartMapFieldParams::Impl
                             clamp_max(inp.z.num)}};
 
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
-                field_t::backend_t::configuration_t(affine_scale
-                                                    * affine_translate),
+                field_t::backend_t::configuration_t(
+                    affine_scale * affine_translate),
                 std::move(clamp_config),
                 typename traits_t::interp_t::configuration_t{},  // std::monostate
                 builder.backend()));
@@ -120,8 +120,8 @@ struct CartMapFieldParams::Impl
         {
             device_ = host_;
             device_ref_ = device_;
-            CELER_ENSURE(static_cast<bool>(device_)
-                         && static_cast<bool>(device_ref_));
+            CELER_ENSURE(
+                static_cast<bool>(device_) && static_cast<bool>(device_ref_));
         }
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }

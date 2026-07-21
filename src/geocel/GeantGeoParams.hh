@@ -273,8 +273,8 @@ G4LogicalSurface const* GeantGeoParams::id_to_geant(SurfaceId id) const
  * the local navigation) \em must be used in concert with this method: i.e.,
  * navigation on the current thread needs to have just "visited" the instance.
  */
-CELER_FORCEINLINE VolumeInstanceId
-GeantGeoParams::geant_to_id(G4VPhysicalVolume const& volume) const
+CELER_FORCEINLINE VolumeInstanceId GeantGeoParams::geant_to_id(
+    G4VPhysicalVolume const& volume) const
 {
     return vi_mapper_.geant_to_id(volume);
 }

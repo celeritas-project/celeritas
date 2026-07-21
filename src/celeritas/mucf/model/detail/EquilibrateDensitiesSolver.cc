@@ -25,9 +25,9 @@ namespace
  * Calculate the infinity norm (\f$ ||x^{(k)} - x^{(k-1)} ||_\infty \f$)
  * between two consecutive iterations of an \c EquilibriumArray data.
  */
-real_type
-calc_infinity_norm(EquilibrateDensitiesSolver::EquilibriumArray const& current,
-                   EquilibrateDensitiesSolver::EquilibriumArray const& previous)
+real_type calc_infinity_norm(
+    EquilibrateDensitiesSolver::EquilibriumArray const& current,
+    EquilibrateDensitiesSolver::EquilibriumArray const& previous)
 {
     using MIP = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
 

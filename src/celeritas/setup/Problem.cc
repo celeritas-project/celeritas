@@ -267,9 +267,8 @@ auto build_along_step(inp::Field const& var_field,
  *
  * \todo build unique RNG streams for optical loop
  */
-auto build_optical_params(inp::Problem const& p,
-                          CoreParams const& core,
-                          ImportData const& imported)
+auto build_optical_params(
+    inp::Problem const& p, CoreParams const& core, ImportData const& imported)
 {
     CELER_VALIDATE(!imported.optical_materials.empty(),
                    << "an optical tracking loop was requested but no optical "
@@ -414,9 +413,9 @@ auto build_optical_offload(
     CoreParams const& params,
     std::shared_ptr<optical::CoreParams> const& optical_params)
 {
-    CELER_VALIDATE(optical_params->cherenkov()
-                       || optical_params->scintillation(),
-                   << "failed to construct optical offload procesess");
+    CELER_VALIDATE(
+        optical_params->cherenkov() || optical_params->scintillation(),
+        << "failed to construct optical offload procesess");
 
     OpticalCollector::Input oc_inp;
     oc_inp.optical_params = optical_params;
@@ -492,10 +491,10 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         if (!params.geometry->supports_safety())
         {
             CELER_LOG(warning)
-                << "Geometry contains surfaces that are "
-                   "incompatible with the current ORANGE simple "
-                   "safety algorithm: multiple scattering may "
-                   "result in arbitrarily small steps without displacement";
+                << "Geometry contains surfaces that are incompatible with the "
+                   "current ORANGE simple safety algorithm: multiple "
+                   "scattering may result in arbitrarily small steps without "
+                   "displacement";
         }
         params.volume = std::move(loaded_model.volume);
         CELER_ASSERT(loaded_model.surface);
@@ -509,8 +508,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         {
             if (!loaded_model.surface->empty())
             {
-                CELER_LOG(debug) << "Ignoring surfaces for non-optical "
-                                    "problem";
+                CELER_LOG(debug)
+                    << "Ignoring surfaces for non-optical problem";
             }
             params.surface = std::make_shared<SurfaceParams>();
         }
@@ -725,11 +724,11 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     }
     else
     {
-        CELER_VALIDATE(!imported.optical_physics.bulk,
-                       << "optical physics models were imported but no "
-                          "optical capacity was set. Either define optical "
-                          "tracking loop parameters, or ignore optical "
-                          "physics");
+        CELER_VALIDATE(
+            !imported.optical_physics.bulk,
+            << "optical physics models were imported but no optical capacity "
+               "was set. Either define optical tracking loop parameters, or "
+               "ignore optical physics");
     }
 
     // Construct the action sequence
@@ -789,9 +788,9 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
                    << "surfaces are required for optical physics");
     if (loaded_model.surface->empty())
     {
-        CELER_LOG(warning) << "Problem contains optical physics without any "
-                              "geometry surface definitions: default physics "
-                              "will be used for all surfaces";
+        CELER_LOG(warning)
+            << "Problem contains optical physics without any geometry surface "
+               "definitions: default physics will be used for all surfaces";
     }
 
     // Build optical params
@@ -813,8 +812,8 @@ problem(inp::OpticalProblem const& p, ImportData const& imported)
         Overload{
             [&](inp::OpticalEmGenerator) -> SPGeneratorBase {
                 CELER_VALIDATE(false,
-                               << "OpticalEmGenerator cannot be used "
-                                  "with only optical physics enabled");
+                               << "OpticalEmGenerator cannot be used with "
+                                  "only optical physics enabled");
                 return nullptr;
             },
             [&](inp::OpticalOffloadGenerator) -> SPGeneratorBase {

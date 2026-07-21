@@ -27,8 +27,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct DTMixMucfExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<DTMixMucfData> data;
 };
@@ -37,8 +37,8 @@ struct DTMixMucfExecutor
 /*!
  * Execute muon-catalyzed fusion for muonic dd, dt, or tt molecules.
  */
-CELER_FUNCTION Interaction
-DTMixMucfExecutor::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION Interaction DTMixMucfExecutor::operator()(
+    celeritas::CoreTrackView const& track)
 {
     auto phys_step_view = track.physics_step();
     auto elcomp_id = phys_step_view.element();

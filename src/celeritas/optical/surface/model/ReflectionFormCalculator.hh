@@ -54,8 +54,8 @@ class ReflectionFormCalculator
 
     // Sample diffuse Lambertian reflection
     template<class Engine>
-    inline CELER_FUNCTION SurfaceInteraction
-    sample_lambertian_reflection(Engine& rng) const;
+    inline CELER_FUNCTION SurfaceInteraction sample_lambertian_reflection(
+        Engine& rng) const;
 
   private:
     Real3 const& direction_;
@@ -64,8 +64,8 @@ class ReflectionFormCalculator
     Real3 const& facet_normal_;
 
     // Calculate specular reflection about the given normal
-    inline CELER_FUNCTION SurfaceInteraction
-    calc_specular_reflection(Real3 const& normal) const;
+    inline CELER_FUNCTION SurfaceInteraction calc_specular_reflection(
+        Real3 const& normal) const;
 };
 
 //---------------------------------------------------------------------------//

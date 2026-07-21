@@ -87,10 +87,8 @@ CELER_FUNCTION RungeKuttaIntegrator(EquationT&&)
  * Numerically integrate and return the updated state with estimated error.
  */
 template<class E>
-CELER_FUNCTION auto
-RungeKuttaIntegrator<E>::operator()(real_type step,
-                                    OdeState const& beg_state) const
-    -> result_type
+CELER_FUNCTION auto RungeKuttaIntegrator<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
     using namespace celeritas::literals;
 
@@ -124,10 +122,9 @@ RungeKuttaIntegrator<E>::operator()(real_type step,
  * The classical RungeKuttaIntegrator integrator (the 4th order).
  */
 template<class E>
-CELER_FUNCTION auto
-RungeKuttaIntegrator<E>::do_step(real_type step,
-                                 OdeState const& beg_state,
-                                 OdeState const& beg_slope) const -> OdeState
+CELER_FUNCTION auto RungeKuttaIntegrator<E>::do_step(
+    real_type step, OdeState const& beg_state, OdeState const& beg_slope) const
+    -> OdeState
 {
     using namespace celeritas::literals;
 

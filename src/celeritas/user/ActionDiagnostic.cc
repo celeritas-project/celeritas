@@ -173,8 +173,8 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
     if (!store_)
     {
-        CELER_LOG(error) << "Tried to access action counters before executing "
-                            "any actions";
+        CELER_LOG(error)
+            << "Tried to access action counters before executing any actions";
         return {};
     }
 

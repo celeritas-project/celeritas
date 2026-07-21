@@ -98,8 +98,8 @@ void GlobalTestBase::insert_primaries(CoreStateInterface& state,
 /*!
  * Build a new geometry via LazyGeantGeoManager.
  */
-auto GlobalTestBase::build_geo_from_geant(SPConstGeantGeo const& geant_geo) const
-    -> SPConstGeoI
+auto GlobalTestBase::build_geo_from_geant(
+    SPConstGeantGeo const& geant_geo) const -> SPConstGeoI
 {
     CELER_EXPECT(geant_geo);
     return CoreGeoParams::from_geant(geant_geo);
@@ -236,9 +236,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
 {
     // Load geometry and create empty attributes if needed
     auto geo = this->geometry();
-    CELER_ASSERT(static_cast<bool>(surface_) == static_cast<bool>(volume_)
-                 && static_cast<bool>(surface_)
-                        == static_cast<bool>(detector_));
+    CELER_ASSERT(
+        static_cast<bool>(surface_) == static_cast<bool>(volume_)
+        && static_cast<bool>(surface_) == static_cast<bool>(detector_));
     if (!surface_)
     {
         surface_ = make_shared<SurfaceParams>();

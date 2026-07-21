@@ -413,8 +413,8 @@ G4RunManager& IntegrationTestBase::run_manager()
     if (referenced_test != this)
     {
         CELER_VALIDATE(referenced_test == nullptr,
-                       << "cannot run multiple integration tests "
-                          "in one execution: use ctest or --gtest_filter");
+                       << "cannot run multiple integration tests in one "
+                          "execution: use ctest or --gtest_filter");
         // Test callbacks reference the current harness, so multiple tests
         // cannot run consecutively unless we update the user initialization
         CELER_LOG(status) << "Setting run manager initialization";

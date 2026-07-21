@@ -110,9 +110,8 @@ CELER_FUNCTION Interaction TTMucfInteractor::operator()(Engine& rng)
  * a simple combination of random direction + momentum conservation
  */
 template<class Engine>
-CELER_FUNCTION Span<Secondary>
-TTMucfInteractor::sample_secondaries(Secondary* secondaries /*, other args */,
-                                     Engine&)
+CELER_FUNCTION Span<Secondary> TTMucfInteractor::sample_secondaries(
+    Secondary* secondaries /*, other args */, Engine&)
 {
     // TODO: switch on channel_
     CELER_ASSERT_UNREACHABLE();

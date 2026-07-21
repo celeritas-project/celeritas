@@ -105,8 +105,8 @@ auto GeantTestBase::build_along_step() -> SPConstAction
         msc,
         this->imported_data().em_params.energy_loss_fluct);
     CELER_ASSERT(result);
-    CELER_ASSERT(result->has_fluct()
-                 == this->build_geant_options().eloss_fluctuation);
+    CELER_ASSERT(
+        result->has_fluct() == this->build_geant_options().eloss_fluctuation);
     CELER_ASSERT(
         result->has_msc()
         == (this->build_geant_options().msc != MscModelSelection::none));
@@ -173,9 +173,9 @@ auto GeantTestBase::load(std::string const& filename) const
                        << "' was already set up" << explanation);
         i = ps.value();
         CELER_ASSERT(i);
-        CELER_VALIDATE(opts == i->options,
-                       << "cannot change physics options after setup "
-                       << explanation);
+        CELER_VALIDATE(
+            opts == i->options,
+            << "cannot change physics options after setup " << explanation);
         CELER_VALIDATE(sd_names == i->sd_names,
                        << "cannot change sensitive detector names after setup "
                        << explanation);

@@ -52,9 +52,8 @@ class RngReseedExecutor
 /*!
  * Construct with state and event ID.
  */
-CELER_FUNCTION RngReseedExecutor::RngReseedExecutor(ParamsCRef const& params,
-                                                    StateRef const& state,
-                                                    UniqueEventId id)
+CELER_FUNCTION RngReseedExecutor::RngReseedExecutor(
+    ParamsCRef const& params, StateRef const& state, UniqueEventId id)
     : params_{params}, state_{state}, stride_{id.unchecked_get() * state.size()}
 {
     CELER_EXPECT(params_ && state_);

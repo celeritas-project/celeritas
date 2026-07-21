@@ -64,9 +64,8 @@ SafetyCalculator(GTV&&, NativeCRef<ImageParamsData> const&, real_type)
  * Construct with geo track view.
  */
 template<class GTV>
-CELER_FUNCTION SafetyCalculator<GTV>::SafetyCalculator(GTV&& geo,
-                                                       ParamsRef const& params,
-                                                       real_type max_distance)
+CELER_FUNCTION SafetyCalculator<GTV>::SafetyCalculator(
+    GTV&& geo, ParamsRef const& params, real_type max_distance)
     : geo_{celeritas::forward<GTV>(geo)}
     , scalars_{params.scalars}
     , dir_{make_unit_vector(cross_product(scalars_.down, scalars_.right))}

@@ -43,10 +43,8 @@ class PhysicsTrackView
 
   public:
     // Construct from params, state, and material ID for a given track
-    inline CELER_FUNCTION PhysicsTrackView(PhysicsParamsRef const&,
-                                           PhysicsStateRef const&,
-                                           OptMatId,
-                                           TrackSlotId);
+    inline CELER_FUNCTION PhysicsTrackView(
+        PhysicsParamsRef const&, PhysicsStateRef const&, OptMatId, TrackSlotId);
 
     // Initialize the physics for the track
     inline CELER_FUNCTION PhysicsTrackView& operator=(Initializer const&);

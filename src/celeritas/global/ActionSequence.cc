@@ -47,8 +47,8 @@ ActionSequence::ActionSequence(ActionRegistry const& reg, Options options)
         {
             // Add status checker
             status_checker_ = std::move(sc);
-            CELER_LOG(info) << "Executing actions with additional debug "
-                               "checking";
+            CELER_LOG(info)
+                << "Executing actions with additional debug checking";
             break;
         }
     }

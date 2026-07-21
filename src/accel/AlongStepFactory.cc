@@ -58,8 +58,8 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
  * The action will embed the linear propagator if the magnetic field strength
  * is zero (or the accessor is unset).
  */
-auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) const
-    -> result_type
+auto UniformAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field = this->get_field();
@@ -211,7 +211,8 @@ inp::CylMapField CylMapFieldAlongStepFactory::get_field() const
  *
  * The action will embed the field propagator with a CartMapField.
  */
-CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(CartMapFieldFunction f)
+CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(
+    CartMapFieldFunction f)
     : get_fieldmap_(std::move(f))
 {
     CELER_EXPECT(get_fieldmap_);

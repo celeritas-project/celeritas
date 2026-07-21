@@ -163,10 +163,10 @@ bool ImportedProcessAdapter::applies_at_rest() const
     bool result = imported_->get(it->second).applies_at_rest;
     while (++it != ids_.end())
     {
-        CELER_VALIDATE(result == imported_->get(it->second).applies_at_rest,
-                       << "process '" << process_class_
-                       << "' applies at rest for some particles but not "
-                          "others");
+        CELER_VALIDATE(
+            result == imported_->get(it->second).applies_at_rest,
+            << "process '" << process_class_
+            << "' applies at rest for some particles but not others");
     }
     return result;
 }

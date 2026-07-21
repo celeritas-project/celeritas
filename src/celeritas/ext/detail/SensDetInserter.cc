@@ -98,8 +98,8 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
             // This shouldn't be possible now
             CELER_LOG(error)
                 << "Canonical volume " << id.get()
-                << "\" is mapped to two different volumes with "
-                   "sensitive detectors: "
+                << "\" is mapped to two different volumes with sensitive "
+                   "detectors: "
                 << StreamableLV{lv} << " and " << StreamableLV{iter->second};
         }
         else

@@ -71,9 +71,8 @@ class SplineCalculator
     Values const& reals_;
     UniformGrid loge_grid_;
 
-    CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy,
-                                                     size_type low_idx,
-                                                     size_type high_idx) const;
+    CELER_FORCEINLINE_FUNCTION real_type interpolate(
+        real_type energy, size_type low_idx, size_type high_idx) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -175,9 +174,8 @@ CELER_FUNCTION real_type SplineCalculator::operator[](size_type index) const
 /*!
  * Interpolate the value using spline.
  */
-CELER_FUNCTION real_type SplineCalculator::interpolate(real_type energy,
-                                                       size_type low_idx,
-                                                       size_type high_idx) const
+CELER_FUNCTION real_type SplineCalculator::interpolate(
+    real_type energy, size_type low_idx, size_type high_idx) const
 {
     CELER_EXPECT(high_idx <= loge_grid_.size());
     real_type result = 0;

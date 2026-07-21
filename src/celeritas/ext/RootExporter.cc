@@ -26,9 +26,9 @@ namespace celeritas
 RootExporter::RootExporter(char const* filename)
 {
     CELER_LOG(info) << "Creating ROOT file at " << filename;
-    CELER_VALIDATE(RootFileManager::use_root(),
-                   << "cannot interface with ROOT (disabled by user "
-                      "environment)");
+    CELER_VALIDATE(
+        RootFileManager::use_root(),
+        << "cannot interface with ROOT (disabled by user environment)");
 
     root_output_.reset(TFile::Open(filename, "recreate"));
     CELER_VALIDATE(root_output_ && !root_output_->IsZombie(),

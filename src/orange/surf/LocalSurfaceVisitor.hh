@@ -40,9 +40,8 @@ class LocalSurfaceVisitor
 
   public:
     // Construct from ORANGE params and surfaces redord
-    inline CELER_FUNCTION
-    LocalSurfaceVisitor(ParamsRef const& params,
-                        SurfacesRecord const& local_surfaces);
+    inline CELER_FUNCTION LocalSurfaceVisitor(
+        ParamsRef const& params, SurfacesRecord const& local_surfaces);
 
     // Construct from ORANGE params and simple unit ID
     inline CELER_FUNCTION

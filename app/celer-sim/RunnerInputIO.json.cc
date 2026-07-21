@@ -96,9 +96,9 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 
     using Defaults = inp::CoreStateCapacity;
 
-    LDIO_LOAD_DEFAULT(num_track_slots,
-                      v.use_device ? Defaults::gpu_tracks
-                                   : Defaults::cpu_tracks);
+    LDIO_LOAD_DEFAULT(
+        num_track_slots,
+        v.use_device ? Defaults::gpu_tracks : Defaults::cpu_tracks);
     LDIO_LOAD_OPTION(max_steps);
     LDIO_LOAD_DEFAULT(initializer_capacity,
                       Defaults::initializers_per_track * v.num_track_slots);
@@ -131,10 +131,9 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
 #undef LDIO_LOAD_OPTION
 #undef LDIO_LOAD_REQUIRED
 
-    CELER_VALIDATE(v.field != RunnerInput::no_field()
-                       || !j.contains("field_options"),
-                   << "'field_options' cannot be specified without providing "
-                      "'field'");
+    CELER_VALIDATE(
+        v.field != RunnerInput::no_field() || !j.contains("field_options"),
+        << "'field_options' cannot be specified without providing 'field'");
 }
 
 //---------------------------------------------------------------------------//
@@ -147,17 +146,17 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
 #define LDIO_SAVE_WHEN(NAME, COND) CELER_JSON_SAVE_WHEN(j, v, NAME, COND)
 #define LDIO_SAVE_OPTION(NAME) \
     LDIO_SAVE_WHEN(NAME, v.NAME != default_args.NAME)
-#define LDIO_SAVE_OPTIONAL(NAME)  \
-    do                            \
-    {                             \
-        if (v.NAME)               \
-        {                         \
+#define LDIO_SAVE_OPTIONAL(NAME) \
+    do \
+    { \
+        if (v.NAME) \
+        { \
             j[#NAME] = *(v.NAME); \
-        }                         \
-        else                      \
-        {                         \
-            j[#NAME] = nullptr;   \
-        }                         \
+        } \
+        else \
+        { \
+            j[#NAME] = nullptr; \
+        } \
     } while (0)
 
     j = nlohmann::json::object();
@@ -210,9 +209,9 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
     LDIO_SAVE_OPTION(step_limiter);
 
     LDIO_SAVE(track_order);
-    LDIO_SAVE_WHEN(physics_options,
-                   v.physics_file.empty()
-                       || !ends_with(v.physics_file, ".root"));
+    LDIO_SAVE_WHEN(
+        physics_options,
+        v.physics_file.empty() || !ends_with(v.physics_file, ".root"));
 
     LDIO_SAVE_OPTIONAL(optical);
 

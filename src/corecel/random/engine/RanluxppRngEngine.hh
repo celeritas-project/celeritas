@@ -66,9 +66,8 @@ class RanluxppRngEngine
 
   public:
     //! Instantiate with optional default seed.
-    CELER_FUNCTION RanluxppRngEngine(ParamsRef const& params,
-                                     StateRef const& state,
-                                     TrackSlotId tid)
+    CELER_FUNCTION RanluxppRngEngine(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid)
         : params_(params)
     {
         CELER_EXPECT(tid < state.state.size());

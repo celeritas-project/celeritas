@@ -83,8 +83,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
                        << "missing SB atomic xs for Z=" << z.get());
         insert_element(iter->second);
     }
-    CELER_ASSERT(host_data.differential_xs.elements.size()
-                 == materials.num_elements());
+    CELER_ASSERT(
+        host_data.differential_xs.elements.size() == materials.num_elements());
 
     for (auto el_id : range(ElementId(materials.num_elements())))
     {

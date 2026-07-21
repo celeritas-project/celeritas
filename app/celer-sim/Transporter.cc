@@ -170,8 +170,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         }
         if (CELER_UNLIKELY(interrupted()))
         {
-            CELER_LOG_LOCAL(error) << "Caught interrupt signal: aborting "
-                                      "transport loop";
+            CELER_LOG_LOCAL(error)
+                << "Caught interrupt signal: aborting transport loop";
             interrupted = {};
             break;
         }
@@ -218,8 +218,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
         if (!buffer_counts.empty())
         {
             CELER_LOG_LOCAL(warning)
-                << "Not all optical photons were tracked "
-                   "at the end of the stepping loop: "
+                << "Not all optical photons were tracked at the end of the "
+                   "stepping loop: "
                 << buffer_counts.num_pending << " queued photons from "
                 << buffer_counts.buffer_size << " distributions";
         }

@@ -117,7 +117,8 @@ CELER_FUNCTION MuHadIonizationInteractor<ES>::MuHadIonizationInteractor(
  */
 template<class ES>
 template<class Engine>
-CELER_FUNCTION Interaction MuHadIonizationInteractor<ES>::operator()(Engine& rng)
+CELER_FUNCTION Interaction MuHadIonizationInteractor<ES>::operator()(
+    Engine& rng)
 {
     if (sample_energy_.min_secondary_energy()
         >= sample_energy_.max_secondary_energy())

@@ -38,10 +38,8 @@ class MuPairProductionModel final : public Model, public StaticConcreteAction
 
   public:
     // Construct from model ID and other necessary data
-    MuPairProductionModel(ActionId,
-                          ParticleParams const&,
-                          SPConstImported,
-                          Input const&);
+    MuPairProductionModel(
+        ActionId, ParticleParams const&, SPConstImported, Input const&);
 
     // Particle types and energy ranges that this model applies to
     SetApplicability applicability() const final;

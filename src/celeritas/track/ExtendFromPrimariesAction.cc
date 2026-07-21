@@ -82,9 +82,8 @@ ExtendFromPrimariesAction::ExtendFromPrimariesAction(ActionId action_id,
 /*!
  * Build state data for a stream.
  */
-auto ExtendFromPrimariesAction::create_state(MemSpace m,
-                                             StreamId,
-                                             size_type) const -> UPState
+auto ExtendFromPrimariesAction::create_state(
+    MemSpace m, StreamId, size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {
@@ -232,9 +231,8 @@ void ExtendFromPrimariesAction::process_primaries(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-void ExtendFromPrimariesAction::update_counters(CoreParams const&,
-                                                CoreStateDevice&,
-                                                size_type) const
+void ExtendFromPrimariesAction::update_counters(
+    CoreParams const&, CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

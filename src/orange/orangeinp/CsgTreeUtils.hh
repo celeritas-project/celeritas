@@ -31,9 +31,8 @@ using TransformedTree = std::pair<CsgTree, std::vector<NodeId>>;
 //---------------------------------------------------------------------------//
 
 // Replace a node in the tree with a boolean constant
-std::vector<NodeId> replace_and_simplify(CsgTree* tree,
-                                         orangeinp::NodeId n,
-                                         orangeinp::Node replacement);
+std::vector<NodeId> replace_and_simplify(
+    CsgTree* tree, orangeinp::NodeId n, orangeinp::Node replacement);
 
 // Simplify the tree by sweeping
 orangeinp::NodeId simplify_up(CsgTree* tree, orangeinp::NodeId start);

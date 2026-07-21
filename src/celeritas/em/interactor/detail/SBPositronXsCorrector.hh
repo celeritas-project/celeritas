@@ -138,8 +138,8 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
    = 1 / \beta(K)
  * \f]
  */
-CELER_FUNCTION real_type
-SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
+CELER_FUNCTION real_type SBPositronXsCorrector::calc_invbeta(
+    real_type gamma_energy) const
 {
     CELER_EXPECT(gamma_energy > 0 && gamma_energy < inc_energy_);
     //! \todo Use local-data ParticleTrackView

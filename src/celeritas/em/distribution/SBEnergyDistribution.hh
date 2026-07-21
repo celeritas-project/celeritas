@@ -108,8 +108,8 @@ class SBEnergyDistribution
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistribution(SBEnergyDistHelper const& helper,
-                                               XSCorrector scale_xs);
+    inline CELER_FUNCTION SBEnergyDistribution(
+        SBEnergyDistHelper const& helper, XSCorrector scale_xs);
 
     template<class Engine>
     inline CELER_FUNCTION Energy operator()(Engine& rng);
@@ -130,9 +130,8 @@ class SBEnergyDistribution
  * Model's applicability must be consistent with the table data.
  */
 template<class X>
-CELER_FUNCTION
-SBEnergyDistribution<X>::SBEnergyDistribution(SBEnergyDistHelper const& helper,
-                                              X scale_xs)
+CELER_FUNCTION SBEnergyDistribution<X>::SBEnergyDistribution(
+    SBEnergyDistHelper const& helper, X scale_xs)
     : helper_(helper), scale_xs_(::celeritas::move(scale_xs))
 {
 }

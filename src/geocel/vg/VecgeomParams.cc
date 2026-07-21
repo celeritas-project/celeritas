@@ -352,8 +352,8 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_g4(std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
-                   << "cannot load Geant4 geometry into VecGeom from a "
-                      "file name: a global Geant4 geometry already exists");
+                   << "cannot load Geant4 geometry into VecGeom from a file "
+                      "name: a global Geant4 geometry already exists");
 
     // Load temporarily and convert
     return VecgeomParams::from_geant(GeantGeoParams::from_gdml(filename));
@@ -396,8 +396,8 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    CELER_LOG(status) << "Loading VecGeom geometry from in-memory Geant4 "
-                         "geometry";
+    CELER_LOG(status)
+        << "Loading VecGeom geometry from in-memory Geant4 geometry";
 #if CELERITAS_USE_GEANT4
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"vecgeom-g4vg-load"};

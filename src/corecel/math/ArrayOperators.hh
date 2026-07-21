@@ -22,43 +22,43 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-#define CELER_DEFINE_ARRAY_ASSIGN(TOKEN)                                 \
-    template<class T, std::size_t N>                                     \
-    CELER_CONSTEXPR_FUNCTION Array<T, N>& operator TOKEN(                \
-        Array<T, N>& x, Array<T, N> const& y)                            \
-    {                                                                    \
-        for (size_type i = 0; i != N; ++i)                               \
-        {                                                                \
-            x[i] TOKEN y[i];                                             \
-        }                                                                \
-        return x;                                                        \
-    }                                                                    \
-                                                                         \
-    template<class T, std::size_t N, class T2 = std::remove_cv_t<T>>     \
+#define CELER_DEFINE_ARRAY_ASSIGN(TOKEN) \
+    template<class T, std::size_t N> \
+    CELER_CONSTEXPR_FUNCTION Array<T, N>& operator TOKEN( \
+        Array<T, N>& x, Array<T, N> const& y) \
+    { \
+        for (size_type i = 0; i != N; ++i) \
+        { \
+            x[i] TOKEN y[i]; \
+        } \
+        return x; \
+    } \
+\
+    template<class T, std::size_t N, class T2 = std::remove_cv_t<T>> \
     CELER_CONSTEXPR_FUNCTION Array<T, N>& operator TOKEN(Array<T, N>& x, \
-                                                         T2 const& y)    \
-    {                                                                    \
-        for (size_type i = 0; i != N; ++i)                               \
-        {                                                                \
-            x[i] TOKEN y;                                                \
-        }                                                                \
-        return x;                                                        \
+                                                         T2 const& y) \
+    { \
+        for (size_type i = 0; i != N; ++i) \
+        { \
+            x[i] TOKEN y; \
+        } \
+        return x; \
     }
 
-#define CELER_DEFINE_ARRAY_ARITHM(TOKEN)                                    \
-    template<class T, std::size_t N>                                        \
-    CELER_CEF Array<T, N> operator TOKEN(Array<T, N> const& x,              \
-                                         Array<T, N> const& y)              \
-    {                                                                       \
-        Array<T, N> result{x};                                              \
-        return (result TOKEN## = y);                                        \
-    }                                                                       \
-                                                                            \
-    template<class T, std::size_t N, class T2 = std::remove_cv_t<T>>        \
+#define CELER_DEFINE_ARRAY_ARITHM(TOKEN) \
+    template<class T, std::size_t N> \
+    CELER_CEF Array<T, N> operator TOKEN(Array<T, N> const& x, \
+                                         Array<T, N> const& y) \
+    { \
+        Array<T, N> result{x}; \
+        return (result TOKEN## = y); \
+    } \
+\
+    template<class T, std::size_t N, class T2 = std::remove_cv_t<T>> \
     CELER_CEF Array<T, N> operator TOKEN(Array<T, N> const& x, T2 const& y) \
-    {                                                                       \
-        Array<T, N> result{x};                                              \
-        return (result TOKEN## = y);                                        \
+    { \
+        Array<T, N> result{x}; \
+        return (result TOKEN## = y); \
     }
 
 //---------------------------------------------------------------------------//

@@ -18,6 +18,8 @@ namespace test
 using Real5 = Array<real_type, 5>;
 using Real4 = Array<real_type, 4>;
 using Roots = Array<real_type, 4>;
+static constexpr real_type practical_tolerance
+    = std::is_same_v<real_type, double> ? 1e-10 : 1e-6;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -104,6 +106,18 @@ TYPED_TEST(QuarticSolverTest, one_root)
         EXPECT_VEC_SOFT_EQ(make_roots({2.0}),
                            sorted(solve(Real5{1, -3, 2, 2, -4})));
     }
+    // [1.000000, 250.353530, -40111.798938, -6982487.888858,
+    // -174874197.079351] One positive, three negative; taken from runtime
+    // demonstration
+    {
+        EXPECT_VEC_NEAR(make_roots({187.76045963}),
+                        sorted(solve(Real5{1.000000,
+                                           250.353530,
+                                           -40111.798938,
+                                           -6982487.888858,
+                                           -174874197.079351})),
+                        practical_tolerance);
+    }
 }
 
 TYPED_TEST(QuarticSolverTest, two_roots)
@@ -120,6 +134,28 @@ TYPED_TEST(QuarticSolverTest, two_roots)
     {
         EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0}),
                            sorted(solve(Real5{1, -6, 13, -12, 4})));
+    }
+    // [1.000000, 19.534611, -48660.891842, -476217.617178, 57126150.652217]
+    // Two positive, two negative; taken from runtime demonstration
+    {
+        EXPECT_VEC_NEAR(make_roots({30.11797881450676, 213.24217809742103}),
+                        sorted(solve(Real5{1.000000,
+                                           19.534611,
+                                           -48660.891842,
+                                           -476217.617178,
+                                           57126150.652217})),
+                        practical_tolerance);
+    }
+    // [1.000000, 39.057127, -47753.699175, -940008.633992, 54384055.574769]
+    // Also two positive two negative from runtime demonstration
+    {
+        EXPECT_VEC_NEAR(make_roots({25.6335352, 207.19825152}),
+                        sorted(solve(Real5{1.000000,
+                                           39.057127,
+                                           -47753.699175,
+                                           -940008.633992,
+                                           54384055.574769})),
+                        practical_tolerance);
     }
 }
 

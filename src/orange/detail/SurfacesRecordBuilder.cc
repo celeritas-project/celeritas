@@ -16,9 +16,8 @@ namespace detail
 /*!
  * Construct with pointers to the underlying storage.
  */
-SurfacesRecordBuilder::SurfacesRecordBuilder(Items<SurfaceType>* types,
-                                             Items<RealId>* real_ids,
-                                             Items<real_type>* reals)
+SurfacesRecordBuilder::SurfacesRecordBuilder(
+    Items<SurfaceType>* types, Items<RealId>* real_ids, Items<real_type>* reals)
     : types_{types}, real_ids_{real_ids}, reals_{reals}
 {
 }

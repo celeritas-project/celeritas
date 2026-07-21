@@ -255,9 +255,9 @@ auto make_solid(G4VSolid const& solid, CR&& interior, Args&&... args)
  * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
  */
 template<class CR>
-auto make_truncated(G4VSolid const& solid,
-                    CR&& interior,
-                    Truncated::VecPlane&& planes) -> SPConstObject
+auto make_truncated(
+    G4VSolid const& solid, CR&& interior, Truncated::VecPlane&& planes)
+    -> SPConstObject
 {
     if (planes.empty())
     {
@@ -364,9 +364,9 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         = type_to_converter.find(std::type_index(typeid(solid_base)));
 
     result_type result = nullptr;
-    CELER_VALIDATE(func_iter != type_to_converter.end(),
-                   << "unsupported solid type "
-                   << TypeDemangler<G4VSolid>{}(solid_base));
+    CELER_VALIDATE(
+        func_iter != type_to_converter.end(),
+        << "unsupported solid type " << TypeDemangler<G4VSolid>{}(solid_base));
 
     // Call our corresponding member function to convert the solid
     ConvertFuncPtr fp = func_iter->second;

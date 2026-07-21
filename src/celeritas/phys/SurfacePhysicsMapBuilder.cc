@@ -22,8 +22,8 @@ SurfacePhysicsMapBuilder::SurfacePhysicsMapBuilder(
     PhysSurfaceId::size_type num_surfaces, HostData& data)
     : data_{data}
 {
-    CELER_EXPECT(data_.surface_models.empty()
-                 && data_.internal_surface_ids.empty());
+    CELER_EXPECT(
+        data_.surface_models.empty() && data_.internal_surface_ids.empty());
 
     resize(&data_.surface_models, num_surfaces);
     resize(&data_.internal_surface_ids, num_surfaces);

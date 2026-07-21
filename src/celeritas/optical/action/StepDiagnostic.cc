@@ -40,9 +40,8 @@ StepDiagnostic::make_and_insert(CoreParams const& core, size_type max_step_bin)
 /*!
  * Construct with ID and counts.
  */
-StepDiagnostic::StepDiagnostic(ActionId id,
-                               size_type max_step_bin,
-                               size_type num_streams)
+StepDiagnostic::StepDiagnostic(
+    ActionId id, size_type max_step_bin, size_type num_streams)
     : StepDiagnosticBase(1, max_step_bin, num_streams), id_(id)
 {
     CELER_EXPECT(id_);

@@ -67,9 +67,8 @@ ScopedLogStorer::~ScopedLogStorer()
 
 //---------------------------------------------------------------------------//
 //! Save a log message
-void ScopedLogStorer::operator()(LogProvenance prov,
-                                 LogLevel lev,
-                                 std::string msg)
+void ScopedLogStorer::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg)
 {
     static LogLevel const debug_level
         = getenv_loglevel("CELER_LOG_SCOPED", LogLevel::warning);
@@ -139,13 +138,11 @@ void ScopedLogStorer::print_expected() const
             "static char const* const expected_log_messages[] = "
          << repr(this->messages_)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_log_messages, "
-            "scoped_log_.messages());\n"
+            "EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());\n"
             "static char const* const expected_log_levels[] = "
          << repr(this->levels_)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_log_levels, "
-            "scoped_log_.levels());\n"
+            "EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());\n"
             "/*** END CODE ***/"
          << endl;
 }

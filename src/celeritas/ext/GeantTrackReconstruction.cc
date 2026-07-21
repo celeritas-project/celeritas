@@ -91,8 +91,8 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
 /*!
  * Construct with particle definitions for track reconstruction.
  */
-GeantTrackReconstruction::GeantTrackReconstruction(VecParticle const& particles,
-                                                   SPStep step)
+GeantTrackReconstruction::GeantTrackReconstruction(
+    VecParticle const& particles, SPStep step)
     : step_(std::move(step))
 {
     CELER_EXPECT(!particles.empty());

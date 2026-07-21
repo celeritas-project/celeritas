@@ -32,25 +32,22 @@ using ItemsRef = Collection<T, Ownership::reference, M>;
 //---------------------------------------------------------------------------//
 // Remove all invalid distributions from the buffer.
 template<class T>
-size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const&,
-                            size_type,
-                            size_type,
-                            StreamId);
+size_type remove_if_invalid(
+    ItemsRef<T, MemSpace::host> const&, size_type, size_type, StreamId);
 template<class T>
-size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
-                            size_type,
-                            size_type,
-                            StreamId);
+size_type remove_if_invalid(
+    ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId);
 
 //---------------------------------------------------------------------------//
 // Count the number of optical photons in the distributions and add these to
 // the number of pending  tracks.
-void count_num_photons(SPConstOpticalParams params,
-                       optical::CoreState<MemSpace::host>&,
-                       ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-                       size_type,
-                       size_type,
-                       StreamId);
+void count_num_photons(
+    SPConstOpticalParams params,
+    optical::CoreState<MemSpace::host>&,
+    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+    size_type,
+    size_type,
+    StreamId);
 void count_num_photons(
     SPConstOpticalParams params,
     optical::CoreState<MemSpace::device>&,
@@ -64,10 +61,8 @@ void count_num_photons(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class T>
-inline size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const&,
-                                   size_type,
-                                   size_type,
-                                   StreamId)
+inline size_type remove_if_invalid(
+    ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

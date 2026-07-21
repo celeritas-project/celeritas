@@ -144,8 +144,8 @@ auto SharedParams::GetMode() -> Mode
 
         if (result.value)
         {
-            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                               "offloading";
+            CELER_LOG(info)
+                << "Killing Geant4 tracks supported by Celeritas offloading";
         }
         return result.value;
     }();
@@ -160,7 +160,7 @@ auto SharedParams::GetMode() -> Mode
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-            << "environment variable is present and non-empty";
+               "environment variable is present and non-empty";
         return true;
     }();
 
@@ -470,8 +470,8 @@ void SharedParams::try_output() const
     std::string filename = loaded_.output_file;
     if (filename.empty())
     {
-        CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "
-                            "empty";
+        CELER_LOG(debug)
+            << "Skipping output: SetupOptions::output_file is empty";
         return;
     }
 

@@ -62,8 +62,8 @@ TrackingManagerConstructor::TrackingManagerConstructor(
     : TrackingManagerConstructor(
           &detail::IntegrationSingleton::instance().shared_params(),
           [](int tid) {
-              CELER_EXPECT(tid >= 0
-                           || !G4Threading::IsMultithreadedApplication());
+              CELER_EXPECT(
+                  tid >= 0 || !G4Threading::IsMultithreadedApplication());
               return &detail::IntegrationSingleton::instance()
                           .local_track_offload();
           })

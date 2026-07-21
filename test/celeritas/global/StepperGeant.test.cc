@@ -67,9 +67,8 @@ class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
     }
 
     // Return electron primaries as default
-    std::vector<Primary>
-    make_primaries_with_energy(size_type count,
-                               celeritas::units::MevEnergy energy) const
+    std::vector<Primary> make_primaries_with_energy(
+        size_type count, celeritas::units::MevEnergy energy) const
     {
         return this->make_primaries_with_energy(pdg::electron(), count, energy);
     }

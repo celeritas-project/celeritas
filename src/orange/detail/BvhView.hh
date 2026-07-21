@@ -118,8 +118,8 @@ CELER_FUNCTION Axis BvhInternalNodeView::axis() const
 /*!
  * Get child node for a side.
  */
-CELER_FUNCTION BvhNodeId
-BvhInternalNodeView::child(BvhInternalNodeView::Side side) const
+CELER_FUNCTION BvhNodeId BvhInternalNodeView::child(
+    BvhInternalNodeView::Side side) const
 {
     return node_.edges[side].child;
 }
@@ -210,8 +210,8 @@ CELER_FUNCTION FastBBox const& BvhView::bbox(LocalVolumeId vol_id) const
  */
 CELER_FUNCTION auto BvhView::leaf_vol_ids(BvhNodeId id) const -> SpanLocalVol
 {
-    CELER_EXPECT(id >= BvhNodeId{this->num_internal_nodes()}
-                 && id < this->num_nodes());
+    CELER_EXPECT(
+        id >= BvhNodeId{this->num_internal_nodes()} && id < this->num_nodes());
     ItemId<BvhLeafNode> leaf_id
         = tree_.leaf_nodes[*id - this->num_internal_nodes()];
     CELER_ASSERT(leaf_id < storage_.leaf_nodes.size());

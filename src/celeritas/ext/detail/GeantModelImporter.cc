@@ -98,9 +98,8 @@ bool needs_micro_xs(ImportModelClass value)
 /*!
  * Construct with materials, primary, and secondary.
  */
-GeantModelImporter::GeantModelImporter(VecMaterial const& materials,
-                                       PDGNumber particle,
-                                       PDGNumber secondary)
+GeantModelImporter::GeantModelImporter(
+    VecMaterial const& materials, PDGNumber particle, PDGNumber secondary)
     : materials_(materials), particle_(particle), secondary_(secondary)
 {
     CELER_EXPECT(particle_);

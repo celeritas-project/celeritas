@@ -89,8 +89,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     template<class T>
     OptMatId cycle_material_id(T other_id)
     {
-        return OptMatId((2 * other_id.get() + 3)
-                        % this->num_optical_materials());
+        return OptMatId(
+            (2 * other_id.get() + 3) % this->num_optical_materials());
     }
 
   private:

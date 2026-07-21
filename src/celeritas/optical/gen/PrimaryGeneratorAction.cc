@@ -55,10 +55,8 @@ PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
 /*!
  * Construct with IDs and distribution.
  */
-PrimaryGeneratorAction::PrimaryGeneratorAction(ActionId id,
-                                               AuxId aux_id,
-                                               GeneratorId gen_id,
-                                               Input inp)
+PrimaryGeneratorAction::PrimaryGeneratorAction(
+    ActionId id, AuxId aux_id, GeneratorId gen_id, Input inp)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,

@@ -33,8 +33,8 @@ BraggModel::BraggModel(ActionId id,
     : StaticConcreteAction(
           id, "ioni-bragg", "interact by muon ionization (Bragg)")
     , applicability_(applicability)
-    , data_(detail::MuHadIonizationBuilder(particles,
-                                           this->label())(applicability_))
+    , data_(detail::MuHadIonizationBuilder(particles, this->label())(
+          applicability_))
 {
     CELER_EXPECT(id);
     CELER_ENSURE(data_);

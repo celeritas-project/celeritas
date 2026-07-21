@@ -439,9 +439,9 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
  */
 UnivId UnitInserter::operator()(UnitInput&& inp)
 {
-    CELER_VALIDATE(inp,
-                   << "simple unit '" << inp.label
-                   << "' is not properly constructed");
+    CELER_VALIDATE(
+        inp,
+        << "simple unit '" << inp.label << "' is not properly constructed");
 
     SimpleUnitRecord unit;
 
@@ -598,8 +598,8 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
 /*!
  * Insert data from a single volume.
  */
-LocalVolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
-                                              VolumeInput const& v)
+LocalVolumeRecord UnitInserter::insert_volume(
+    SurfacesRecord const& surf_record, VolumeInput const& v)
 {
     CELER_EXPECT(v);
     CELER_EXPECT(std::is_sorted(v.faces.begin(), v.faces.end()));
@@ -681,8 +681,8 @@ LocalVolumeRecord UnitInserter::insert_volume(SurfacesRecord const& surf_record,
 /*!
  * Process a single oriented bounding zone record.
  */
-void UnitInserter::process_obz_record(LocalVolumeRecord* vol_record,
-                                      OrientedBoundingZoneInput const& obz_input)
+void UnitInserter::process_obz_record(
+    LocalVolumeRecord* vol_record, OrientedBoundingZoneInput const& obz_input)
 {
     CELER_EXPECT(obz_input);
 

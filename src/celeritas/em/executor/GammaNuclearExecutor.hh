@@ -20,8 +20,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct GammaNuclearExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     GammaNuclearRef params;
 };
@@ -30,8 +30,8 @@ struct GammaNuclearExecutor
 /*!
  * Apply the GammaNuclearInteractor to the current track.
  */
-CELER_FUNCTION Interaction
-GammaNuclearExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction GammaNuclearExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
 

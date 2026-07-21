@@ -31,9 +31,8 @@ CoreStateBase::~CoreStateBase() = default;
  * Construct from CoreParams.
  */
 template<MemSpace M>
-CoreState<M>::CoreState(CoreParams const& params,
-                        StreamId stream_id,
-                        size_type num_track_slots)
+CoreState<M>::CoreState(
+    CoreParams const& params, StreamId stream_id, size_type num_track_slots)
 {
     CELER_VALIDATE(stream_id < params.sizes().streams,
                    << "stream ID " << stream_id.unchecked_get()

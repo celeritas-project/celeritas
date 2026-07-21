@@ -172,9 +172,8 @@ struct WlsGeneratorState : public GeneratorStateBase
  * Resize optical buffers.
  */
 template<MemSpace M>
-void resize(WlsGeneratorStateData<Ownership::value, M>* state,
-            StreamId,
-            size_type size)
+void resize(
+    WlsGeneratorStateData<Ownership::value, M>* state, StreamId, size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&state->distributions, size);

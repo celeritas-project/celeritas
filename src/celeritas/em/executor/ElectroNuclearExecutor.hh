@@ -20,8 +20,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct ElectroNuclearExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     ElectroNuclearRef params;
 };
@@ -30,8 +30,8 @@ struct ElectroNuclearExecutor
 /*!
  * Apply the ElectroNuclearInteractor to the current track.
  */
-CELER_FUNCTION Interaction
-ElectroNuclearExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction ElectroNuclearExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
 

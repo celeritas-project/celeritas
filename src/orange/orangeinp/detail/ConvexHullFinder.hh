@@ -277,9 +277,8 @@ size_type ConvexHullFinder<T>::min_element_idx() const
  * Here, collinear points are considered clockwise.
  */
 template<class T>
-auto ConvexHullFinder<T>::is_counterclockwise(size_type i_prev,
-                                              size_type i,
-                                              size_type i_next) const -> bool
+auto ConvexHullFinder<T>::is_counterclockwise(
+    size_type i_prev, size_type i, size_type i_next) const -> bool
 {
     auto const& a = points_[i_prev];
     auto const& b = points_[i];

@@ -31,9 +31,8 @@ ActionTimes::make_and_insert(SPActionRegistry const& actions,
 /*!
  * Construct from ID, actions and label.
  */
-ActionTimes::ActionTimes(AuxId aux_id,
-                         SPActionRegistry const& action_reg,
-                         std::string label)
+ActionTimes::ActionTimes(
+    AuxId aux_id, SPActionRegistry const& action_reg, std::string label)
     : aux_id_(aux_id), action_reg_(action_reg), label_(std::move(label))
 {
     CELER_EXPECT(aux_id_);

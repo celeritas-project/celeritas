@@ -33,8 +33,7 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const&,
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical track offload when "
-                      "Celeritas "
-                      "offloading is disabled");
+                      "Celeritas offloading is disabled");
 
     // Save a pointer to the optical transporter
     transport_ = params.optical_problem_loaded().transporter;

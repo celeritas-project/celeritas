@@ -69,9 +69,8 @@ DirectGeneratorAction::make_and_insert(CoreParams& params)
 /*!
  * Construct with action and data IDs.
  */
-DirectGeneratorAction::DirectGeneratorAction(ActionId id,
-                                             AuxId aux_id,
-                                             GeneratorId gen_id)
+DirectGeneratorAction::DirectGeneratorAction(
+    ActionId id, AuxId aux_id, GeneratorId gen_id)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
@@ -158,9 +157,8 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
 /*!
  * Build state data for a stream.
  */
-auto DirectGeneratorAction::create_state(MemSpace m,
-                                         StreamId stream,
-                                         size_type size) const -> UPState
+auto DirectGeneratorAction::create_state(
+    MemSpace m, StreamId stream, size_type size) const -> UPState
 {
     if (m == MemSpace::host)
     {
