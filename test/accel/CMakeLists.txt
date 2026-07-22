@@ -11,10 +11,6 @@ if(NOT CELERITAS_USE_covfie)
   set(_needs_covfie DISABLE)
 endif()
 
-if(CELERITAS_VecGeom_SURFACE)
-  set(_no_vgsurf DISABLE)
-endif()
-
 include(CeleritasG4Tests)
 
 #-----------------------------------------------------------------------------#
@@ -174,7 +170,6 @@ celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
   OFFLOAD cpu
   RMTYPE serial mt
-  ${_no_vgsurf} # VG Surface geometry is broken (no hits) and will be deleted soon (v0.7)
 )
 
 #-----------------------------------------------------------------------------#

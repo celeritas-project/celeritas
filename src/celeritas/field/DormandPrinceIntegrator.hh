@@ -101,10 +101,8 @@ CELER_FUNCTION DormandPrinceIntegrator(EquationT&&)
  * Numerically integrate using the DormandPrince RK5(4)7M method.
  */
 template<class E>
-CELER_FUNCTION auto
-DormandPrinceIntegrator<E>::operator()(real_type step,
-                                       OdeState const& beg_state) const
-    -> result_type
+CELER_FUNCTION auto DormandPrinceIntegrator<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
     using namespace celeritas::literals;
 

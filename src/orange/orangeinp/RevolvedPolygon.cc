@@ -35,9 +35,8 @@ enum
 /*!
  * Construct from a polygon.
  */
-RevolvedPolygon::RevolvedPolygon(std::string&& label,
-                                 VecReal2&& polygon,
-                                 EnclosedAzi&& enclosed)
+RevolvedPolygon::RevolvedPolygon(
+    std::string&& label, VecReal2&& polygon, EnclosedAzi&& enclosed)
     : label_{std::move(label)}
     , polygon_{std::move(polygon)}
     , enclosed_{std::move(enclosed)}
@@ -154,15 +153,14 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
  * that define the outer edge of the polygon and subtracting out a set of inner
  * subregions.
  */
-NodeId RevolvedPolygon::make_region(detail::VolumeBuilder& vb,
-                                    VecReal2 const& polygon,
-                                    SubIndex si) const
+NodeId RevolvedPolygon::make_region(
+    detail::VolumeBuilder& vb, VecReal2 const& polygon, SubIndex si) const
 {
     // The polygon should have a strictly clockwise orientation
-    CELER_VALIDATE(has_orientation(make_span(polygon),
-                                   detail::Orientation::counterclockwise),
-                   << "polygon must be specified in strictly counterclockwise "
-                      "order");
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon),
+                        detail::Orientation::counterclockwise),
+        << "polygon must be specified in strictly counterclockwise order");
 
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
     SoftZero<real_type> soft_zero(vb.tol().abs);

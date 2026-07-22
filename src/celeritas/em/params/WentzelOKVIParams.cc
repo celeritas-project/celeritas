@@ -67,9 +67,8 @@ WentzelOKVIParams::from_import(ImportData const& data,
 /*!
  * Construct from cross section data and material properties.
  */
-WentzelOKVIParams::WentzelOKVIParams(SPConstMaterials materials,
-                                     SPConstParticles particles,
-                                     Options options)
+WentzelOKVIParams::WentzelOKVIParams(
+    SPConstMaterials materials, SPConstParticles particles, Options options)
 {
     CELER_EXPECT(materials);
 
@@ -133,8 +132,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
         prefactors.push_back(value_as<InvMomSq>(
             ExpNuclearFormFactor{iso_view.atomic_mass_number()}.prefactor()));
     }
-    CELER_ENSURE(host_data.nuclear_form_prefactor.size()
-                 == materials.num_isotopes());
+    CELER_ENSURE(
+        host_data.nuclear_form_prefactor.size() == materials.num_isotopes());
 
     // Build material data
     if (host_data.params.is_combined)

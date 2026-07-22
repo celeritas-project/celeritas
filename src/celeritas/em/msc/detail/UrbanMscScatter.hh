@@ -55,8 +55,8 @@ class UrbanMscScatter
 
   public:
     // TODO: improve this
-    static inline CELER_FUNCTION real_type
-    calc_displacement(real_type true_path, real_type geom_path);
+    static inline CELER_FUNCTION real_type calc_displacement(
+        real_type true_path, real_type geom_path);
 
     // Construct with shared and state data
     inline CELER_FUNCTION UrbanMscScatter(UrbanMscRef const& shared,
@@ -119,8 +119,8 @@ class UrbanMscScatter
     inline CELER_FUNCTION real_type simple_scattering(Engine& rng) const;
 
     // Calculate the theta0 of the Highland formula
-    inline CELER_FUNCTION real_type
-    compute_theta0(ParticleTrackView const& particle) const;
+    inline CELER_FUNCTION real_type compute_theta0(
+        ParticleTrackView const& particle) const;
 
     // Update direction and position after the multiple scattering
     template<class Engine>
@@ -131,8 +131,8 @@ class UrbanMscScatter
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-CELER_FUNCTION real_type UrbanMscScatter::calc_displacement(real_type geom_path,
-                                                            real_type true_path)
+CELER_FUNCTION real_type UrbanMscScatter::calc_displacement(
+    real_type geom_path, real_type true_path)
 {
     CELER_EXPECT(true_path >= geom_path);
 
@@ -560,8 +560,8 @@ UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
  * \param phi the azimuthal angle of the multiple scattering.
  */
 template<class Engine>
-CELER_FUNCTION Real3
-UrbanMscScatter::sample_displacement_dir(Engine& rng, real_type phi) const
+CELER_FUNCTION Real3 UrbanMscScatter::sample_displacement_dir(
+    Engine& rng, real_type phi) const
 {
     // Sample a unit direction of the displacement
     constexpr real_type cbeta = 2.160;

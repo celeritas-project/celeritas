@@ -17,8 +17,8 @@ class OrangeParams;
 namespace detail
 {
 template<Ownership W, MemSpace M>
-struct BIHTreeData;
-struct BIHTreeRecord;
+struct BvhTreeData;
+struct BvhTreeRecord;
 }  // namespace detail
 
 //---------------------------------------------------------------------------//
@@ -56,9 +56,9 @@ class OrangeParamsOutput final : public OutputInterface
 };
 
 //---------------------------------------------------------------------------//
-// Print a BIH structure to a JSON string for debugging
-std::string dump_bih_structure(detail::BIHTreeRecord const& tree,
-                               NativeCRef<detail::BIHTreeData> const& data);
+// Print a BVH structure to a JSON string for debugging
+std::string dump_bvh_structure(detail::BvhTreeRecord const& tree,
+                               NativeCRef<detail::BvhTreeData> const& data);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

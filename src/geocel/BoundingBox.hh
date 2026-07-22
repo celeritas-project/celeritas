@@ -60,20 +60,19 @@ class BoundingBox
     static inline CELER_FUNCTION BoundingBox from_infinite() noexcept;
 
     // Construct from unchecked lower/upper bounds
-    static CELER_CONSTEXPR_FUNCTION BoundingBox
-    from_unchecked(Real3 const& lower, Real3 const& upper) noexcept;
+    static CELER_CONSTEXPR_FUNCTION BoundingBox from_unchecked(
+        Real3 const& lower, Real3 const& upper) noexcept;
 
     // Construct from unchecked lo/hi extents
-    static CELER_CONSTEXPR_FUNCTION BoundingBox
-    from_unchecked(Extents3 const&) noexcept;
+    static CELER_CONSTEXPR_FUNCTION BoundingBox from_unchecked(
+        Extents3 const&) noexcept;
 
     // Construct in unassigned state
     CELER_CONSTEXPR_FUNCTION BoundingBox() noexcept;
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION
-    BoundingBox(Real3 const& lower,
-                Real3 const& upper) noexcept(!CELERITAS_DEBUG);
+    inline CELER_FUNCTION BoundingBox(
+        Real3 const& lower, Real3 const& upper) noexcept(!CELERITAS_DEBUG);
 
     // Construct from lo/hi extents (transposed layout)
     inline CELER_FUNCTION
@@ -110,8 +109,8 @@ class BoundingBox
     }
 
     //! Access a bounding point coordinate
-    CELER_CONSTEXPR_FUNCTION real_type
-    point(Bound b, Axis ax) const&& noexcept(!CELERITAS_DEBUG)
+    CELER_CONSTEXPR_FUNCTION real_type point(
+        Bound b, Axis ax) const&& noexcept(!CELERITAS_DEBUG)
     {
         return this->point(b, ax);
     }
@@ -284,9 +283,8 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
  * at a single point) but upper must not be less than lower.
  */
 template<class T>
-CELER_FUNCTION
-BoundingBox<T>::BoundingBox(Real3 const& lo,
-                            Real3 const& hi) noexcept(!CELERITAS_DEBUG)
+CELER_FUNCTION BoundingBox<T>::BoundingBox(
+    Real3 const& lo, Real3 const& hi) noexcept(!CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, Points{lo, hi}}
 {
     CELER_EXPECT(*this);

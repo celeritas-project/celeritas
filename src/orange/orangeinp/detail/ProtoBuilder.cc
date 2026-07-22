@@ -21,9 +21,8 @@ namespace detail
 /*!
  * Construct with output pointer, geometry construction options, and protos.
  */
-ProtoBuilder::ProtoBuilder(OrangeInput* inp,
-                           ProtoMap const& protos,
-                           Options const& opts)
+ProtoBuilder::ProtoBuilder(
+    OrangeInput* inp, ProtoMap const& protos, Options const& opts)
     : inp_{inp}
     , protos_{protos}
     , save_json_{opts.save_json}

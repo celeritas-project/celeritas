@@ -105,8 +105,8 @@ class PhysicsStepView
     inline CELER_FUNCTION SecondaryAllocator make_secondary_allocator() const;
 
     // Access atomic relaxation data
-    inline CELER_FUNCTION AtomicRelaxationHelper
-    make_relaxation_helper(ElementId el_id) const;
+    inline CELER_FUNCTION AtomicRelaxationHelper make_relaxation_helper(
+        ElementId el_id) const;
 
   private:
     //// DATA ////
@@ -321,9 +321,8 @@ CELER_FUNCTION auto PhysicsStepView::make_secondary_allocator() const
 /*!
  * Make an atomic relaxation helper for the given element.
  */
-CELER_FUNCTION auto
-PhysicsStepView::make_relaxation_helper(ElementId el_id) const
-    -> AtomicRelaxationHelper
+CELER_FUNCTION auto PhysicsStepView::make_relaxation_helper(
+    ElementId el_id) const -> AtomicRelaxationHelper
 {
     CELER_ASSERT(el_id);
     return AtomicRelaxationHelper{

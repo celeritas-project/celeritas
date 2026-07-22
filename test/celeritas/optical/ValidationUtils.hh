@@ -44,7 +44,8 @@ using namespace ::celeritas::test;
  * Converts the arguments supplied in units \c UnitType to native units.
  */
 template<class UnitType, class... Args>
-Array<real_type, sizeof...(Args)> constexpr native_array_from(Args const&... args)
+Array<real_type, sizeof...(Args)> constexpr native_array_from(
+    Args const&... args)
 {
     return Array<real_type, sizeof...(Args)>{
         native_value_from(UnitType(args))...};

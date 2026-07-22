@@ -109,8 +109,8 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
     CELER_EXPECT(!det_coords.empty());
     CELER_EXPECT(!i.detectors.empty());
 
-    CELER_LOG(info) << "Setting up Celeritas optical standalone runner "
-                       "built against LArSoft v"
+    CELER_LOG(info) << "Setting up Celeritas optical standalone runner built "
+                       "against LArSoft v"
                     << cmake::larsoft_version << " components";
 
     i.problem.detectors.callback

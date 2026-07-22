@@ -35,10 +35,8 @@ using deserialization_interp_t = covfie::backend::linear<B>;
  * Field values: Bx = ix, By = iy, Bz = iz (float).
  * Grid bounds: [0, nx-1] x [0, ny-1] x [0, nz-1] in native units.
  */
-void write_cart_covfie(std::string const& path,
-                       std::size_t nx,
-                       std::size_t ny,
-                       std::size_t nz)
+void write_cart_covfie(
+    std::string const& path, std::size_t nx, std::size_t ny, std::size_t nz)
 {
     using storage_t = covfie::backend::array<covfie::vector::float3>;
     using strided_t

@@ -91,7 +91,8 @@ class CoulombScatteringInteractor
     //// HELPER FUNCTIONS ////
 
     // Calculates the recoil energy for the given scattering angle
-    inline CELER_FUNCTION real_type calc_recoil_energy(real_type cos_theta) const;
+    inline CELER_FUNCTION real_type calc_recoil_energy(
+        real_type cos_theta) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -167,8 +168,8 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
  * Calculates the recoil energy for the given scattering angle sampled
  * by WentzelDistribution.
  */
-CELER_FUNCTION real_type
-CoulombScatteringInteractor::calc_recoil_energy(real_type cos_theta) const
+CELER_FUNCTION real_type CoulombScatteringInteractor::calc_recoil_energy(
+    real_type cos_theta) const
 {
     real_type projectile_momsq = value_as<MomentumSq>(particle_.momentum_sq());
     real_type projectile_mass = value_as<Mass>(particle_.mass())

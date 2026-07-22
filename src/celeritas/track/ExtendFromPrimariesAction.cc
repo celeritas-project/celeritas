@@ -80,9 +80,8 @@ ExtendFromPrimariesAction::ExtendFromPrimariesAction(ActionId action_id,
 /*!
  * Build state data for a stream.
  */
-auto ExtendFromPrimariesAction::create_state(MemSpace m,
-                                             StreamId,
-                                             size_type) const -> UPState
+auto ExtendFromPrimariesAction::create_state(
+    MemSpace m, StreamId, size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {

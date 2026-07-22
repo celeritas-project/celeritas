@@ -16,12 +16,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(S)                                         \
-    template bool SoftSurfaceEqual::operator()(S<Axis::x> const&,        \
+#define ORANGE_INSTANTIATE_OP(S) \
+    template bool SoftSurfaceEqual::operator()(S<Axis::x> const&, \
                                                S<Axis::x> const&) const; \
-    template bool SoftSurfaceEqual::operator()(S<Axis::y> const&,        \
+    template bool SoftSurfaceEqual::operator()(S<Axis::y> const&, \
                                                S<Axis::y> const&) const; \
-    template bool SoftSurfaceEqual::operator()(S<Axis::z> const&,        \
+    template bool SoftSurfaceEqual::operator()(S<Axis::z> const&, \
                                                S<Axis::z> const&) const
 
 //---------------------------------------------------------------------------//
@@ -210,6 +210,18 @@ bool SoftSurfaceEqual::operator()(Involute const& a, Involute const& b) const
            && this->soft_eq_(a.tmax(), b.tmax())
            && this->soft_eq_distance({a.origin()[0], a.origin()[1], 0},
                                      {b.origin()[0], b.origin()[1], 0});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Compare two toroids for near equality.
+ */
+bool SoftSurfaceEqual::operator()(Toroid const& a, Toroid const& b) const
+{
+    return this->soft_eq_distance(a.origin(), b.origin())
+           && this->soft_eq_(a.major_radius(), b.major_radius())
+           && this->soft_eq_(a.ellipse_xy_radius(), b.ellipse_xy_radius())
+           && this->soft_eq_(a.ellipse_z_radius(), b.ellipse_z_radius());
 }
 
 //---------------------------------------------------------------------------//

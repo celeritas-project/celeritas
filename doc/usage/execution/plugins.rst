@@ -25,7 +25,7 @@ generating the scintillation-to-detector response with full Monte Carlo optical
 tracking.
 
 Once Celeritas has been installed (see :ref:`build_ups`), load the
-module/library/FHICL paths provided by Celeritas in its install directory (or
+module/library/FHiCL paths provided by Celeritas in its install directory (or
 build directory if doing development):
 
 .. code::
@@ -57,7 +57,7 @@ in a module after LArG4 runs.
 
 Its configuration options are input via the FHiCL interface:
 
-.. literalinclude:: ../../../src/larceler/PDFullSimCeler.fcl
+.. literalinclude:: ../../../src/larceler/pdfullsimceler.fcl
    :language: none
    :start-after: BEGIN_PROLOG
    :end-before: END_PROLOG
@@ -71,6 +71,14 @@ GeoSimExporter
 
 This analysis module exports detector geometry data and energy deposition data
 for internal testing.
+
+PDSimAna module
+^^^^^^^^^^^^^^^
+
+The result from an optical simulation can be analyzed with the ``PDSimAna``
+module, which reads ``OpdetBacktrackerRecord`` data products to produce analysis
+plots. The FHiCL file ``pdsimana.fcl`` configures the module, and
+``pdsimana_job.fcl`` executes the module.
 
 DD4HEP
 ------

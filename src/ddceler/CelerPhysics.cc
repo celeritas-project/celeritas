@@ -94,14 +94,12 @@ SetupOptions CelerPhysics::make_options()
 
     // Validate field configuration: no electric components
     CELER_VALIDATE(overlaid_obj->electric_components.empty(),
-                   << "Celeritas does not support electric field components. "
-                      "Found "
-                   << overlaid_obj->electric_components.size()
-                   << " electric component(s).");
+                   << "found " << overlaid_obj->electric_components.size()
+                   << " electric components (not supported in Celeritas)");
 
-    CELER_VALIDATE(!overlaid_obj->magnetic_components.empty(),
-                   << "No magnetic field components found in DD4hep field "
-                      "description.");
+    CELER_VALIDATE(
+        !overlaid_obj->magnetic_components.empty(),
+        << "no magnetic field components found in DD4hep field description");
 
     // Check that all magnetic components are ConstantField and sum them
     Direction field_direction(0, 0, 0);
@@ -110,12 +108,10 @@ SetupOptions CelerPhysics::make_options()
         auto* cartesian_obj = mag_component.data<CartesianField::Object>();
         auto* const_field = dynamic_cast<ConstantField const*>(cartesian_obj);
 
-        CELER_VALIDATE(const_field,
-                       << "Celeritas currently only supports ConstantField "
-                          "magnetic "
-                       << "fields. Found non-constant field component in "
-                          "DD4hep "
-                       << "description.");
+        CELER_VALIDATE(
+            const_field,
+            << "found non-constant field component in DD4hep description "
+               "(Celeritas currently only supports ConstantField)");
         field_direction += const_field->direction;
     }
 
@@ -149,8 +145,8 @@ SetupOptions CelerPhysics::make_options()
     if (field_action)
     {
         driver_options = load_driver_options(field_action);
-        CELER_LOG(debug) << "Loaded field driver options from DD4hep "
-                            "FieldSetup action";
+        CELER_LOG(debug)
+            << "Loaded field driver options from DD4hep FieldSetup action";
     }
     else
     {

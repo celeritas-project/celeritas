@@ -105,8 +105,8 @@ auto DistOffloadMixin::make_setup_options() -> SetupOptions
     result.optical = [] {
         OpticalSetupOptions opt;
         opt.capacity.tracks = 32768;
-        opt.capacity.generators = opt.capacity.tracks * 8;
-        opt.capacity.primaries = opt.capacity.tracks * 16;
+        opt.capacity.generators = *opt.capacity.tracks * 8;
+        opt.capacity.primaries = *opt.capacity.tracks * 16;
 
         // Enable optical distribution offloading
         opt.generator = inp::OpticalOffloadGenerator{};

@@ -33,8 +33,8 @@ SimpleQuadric::SimpleQuadric(Real3 const& abc, Real3 const& def, real_type g)
     , f_(def[2])
     , g_(g)
 {
-    CELER_EXPECT(a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0
-                 || f_ != 0);
+    CELER_EXPECT(
+        a_ != 0 || b_ != 0 || c_ != 0 || d_ != 0 || e_ != 0 || f_ != 0);
 }
 
 //---------------------------------------------------------------------------//

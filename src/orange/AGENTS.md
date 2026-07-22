@@ -85,7 +85,7 @@ The `UnitInserter` then flattens the `UnitProto` hierarchy into the flat `Orange
 
 ### Acceleration structure
 
-At runtime, ORANGE uses a **bounding interval hierarchy (BIH)** to accelerate surface intersection queries, avoiding a brute-force search over all surfaces in a unit.
+At runtime, ORANGE uses a **bounding volume hierarchy (BVH)** to accelerate surface intersection queries, avoiding a brute-force search over all surfaces in a unit.
 
 ## Runtime Tracking System
 

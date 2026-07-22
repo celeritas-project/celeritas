@@ -116,12 +116,13 @@ assert counters["num_cut"] > 0
 assert counters["num_errored"] == 0
 
 expected_sizes = {
-    "generators": 1,
+    "primaries": 1,
     "tracks": 8192,
+    "generators": 1,
+    "streams": 1,
 }
 sizes = j["internal"]["optical-sizes"].copy()
-assert sizes.pop("streams") == 1
-assert sizes == expected_sizes
+assert sizes == expected_sizes, sizes
 
 steps = j["result"]["optical-step-diagnostic"]["steps"][0].copy()
 assert len(steps) == 12
@@ -137,3 +138,14 @@ else:
     assert time["actions"]
 
 print(json.dumps(j["result"]["time"], indent=1))
+
+# Check configuration
+config = j["system"]["build"]["config"]
+assert config["core_geo"].lower() == core_geo
+
+# Check OpenMP threads: see app/CMakeLists.txt which sets CELER_OMP_ENV
+use_deps = set(config["use"])
+if "openmp" in use_deps:
+    print(json.dumps(j["system"]["openmp"], indent=1))
+    assert j["system"]["openmp"]["thread_limit"] == 8
+    assert j["system"]["openmp"]["max_threads"] == 4

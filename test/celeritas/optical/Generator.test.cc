@@ -29,10 +29,9 @@ namespace test
 
 // Reference results:
 // - Double precision
-// - Not vecgeom surface
+// - XORWOW
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && !CELERITAS_VECGEOM_SURFACE
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -58,8 +57,8 @@ class GeneratorTestBase : public Test
         osi_.problem.capacity = [] {
             inp::OpticalStateCapacity cap;
             cap.tracks = 4096;
-            cap.primaries = 8 * cap.tracks;
-            cap.generators = 2 * cap.tracks;
+            cap.primaries = 8 * *cap.tracks;
+            cap.generators = 2 * *cap.tracks;
             return cap;
         }();
 
@@ -222,7 +221,7 @@ TEST_F(LArSphereGeneratorTest, offload)
 
     // Create host distributions and copy to generator
     auto const host_data
-        = this->make_distributions(osi_.problem.capacity.generators);
+        = this->make_distributions(*osi_.problem.capacity.generators);
 
     // Construct the runner and transport optical primaries
     optical::Runner run(std::move(osi_));
@@ -318,7 +317,7 @@ TEST_F(WlsGeneratorTest, primary)
 
     // Set number of track slots
     osi_.problem.capacity.tracks = 16384;
-    osi_.problem.capacity.generators = 2 * osi_.problem.capacity.tracks;
+    osi_.problem.capacity.generators = 2 * *osi_.problem.capacity.tracks;
 
     // Enable action times
     osi_.problem.timers.action = true;

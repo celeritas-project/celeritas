@@ -50,9 +50,8 @@ class ParticleTrackView
 
   public:
     // Construct from "dynamic" state and "static" particle definitions
-    inline CELER_FUNCTION ParticleTrackView(ParamsRef const& params,
-                                            StateRef const& states,
-                                            TrackSlotId id);
+    inline CELER_FUNCTION ParticleTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId id);
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView&
@@ -127,9 +126,8 @@ class ParticleTrackView
  * Construct from dynamic and static particle properties.
  */
 CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(ParamsRef const& params,
-                                     StateRef const& states,
-                                     TrackSlotId tid)
+ParticleTrackView::ParticleTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(track_slot_ < states_.size());
@@ -270,8 +268,8 @@ CELER_FUNCTION bool ParticleTrackView::is_heavy() const
  */
 CELER_FUNCTION auto ParticleTrackView::total_energy() const -> Energy
 {
-    return Energy(value_as<Energy>(this->energy())
-                  + value_as<Mass>(this->mass()));
+    return Energy(
+        value_as<Energy>(this->energy()) + value_as<Mass>(this->mass()));
 }
 
 //---------------------------------------------------------------------------//

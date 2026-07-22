@@ -98,9 +98,8 @@ class MockTrackView
     using ParamsData = NativeCRef<MockParamsData>;
     using StateData = NativeRef<MockStateData>;
 
-    CELER_FUNCTION MockTrackView(ParamsData const& params,
-                                 StateData const& states,
-                                 TrackSlotId tid)
+    CELER_FUNCTION MockTrackView(
+        ParamsData const& params, StateData const& states, TrackSlotId tid)
         : params_(params), states_(states), track_slot_(tid)
     {
         CELER_EXPECT(track_slot_ < states_.size());

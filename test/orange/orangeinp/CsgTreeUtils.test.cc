@@ -457,12 +457,12 @@ TEST_F(CsgTreeUtilsTest, tilecal_barrel_bug)
     EXPECT_EQ(N{17}, this->insert(Surface{S{6}}));  // Barrel.angle.p0
     EXPECT_EQ(N{18}, this->insert(Surface{S{7}}));  // Barrel.angle.p1
     EXPECT_EQ(N{19}, this->insert(Negated{N{18}}));
-    EXPECT_EQ(
-        N{20},
-        this->insert(Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
-    EXPECT_EQ(
-        N{21},
-        this->insert(Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
+    EXPECT_EQ(N{20},
+              this->insert(
+                  Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
+    EXPECT_EQ(N{21},
+              this->insert(
+                  Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
     EXPECT_EQ(N{22}, this->insert(Negated{N{21}}));
     EXPECT_EQ(N{23}, this->insert(Surface{S{8}}));  // Barrel.angle.p0
     EXPECT_EQ(N{24}, this->insert(Surface{S{9}}));  // Barrel.angle.p1
@@ -975,12 +975,12 @@ TEST_F(CsgTreeUtilsTest, transform_negated_joins_with_volumes)
     EXPECT_EQ(N{17}, this->insert(Surface{S{6}}));  // Barrel.angle.p0
     EXPECT_EQ(N{18}, this->insert(Surface{S{7}}));  // Barrel.angle.p1
     EXPECT_EQ(N{19}, this->insert(Negated{N{18}}));
-    EXPECT_EQ(
-        N{20},
-        this->insert(Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
-    EXPECT_EQ(
-        N{21},
-        this->insert(Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
+    EXPECT_EQ(N{20},
+              this->insert(
+                  Joined{op_and, {N{6}, N{17}, N{19}}}));  // Barrel.interior
+    EXPECT_EQ(N{21},
+              this->insert(
+                  Joined{op_and, {N{9}, N{17}, N{19}}}));  // Barrel.excluded
     EXPECT_EQ(N{22}, this->insert(Negated{N{21}}));
     EXPECT_EQ(N{23}, this->insert(Surface{S{8}}));  // Barrel.angle.p0
     EXPECT_EQ(N{24}, this->insert(Surface{S{9}}));  // Barrel.angle.p1

@@ -26,9 +26,8 @@ using M = SurfaceModelId;
 class MockSurfaceModel final : public SurfaceModel
 {
   public:
-    MockSurfaceModel(SurfaceModelId id,
-                     std::string_view label,
-                     VecSurfaceLayer surfaces)
+    MockSurfaceModel(
+        SurfaceModelId id, std::string_view label, VecSurfaceLayer surfaces)
         : SurfaceModel{id, label}, surfaces_{surfaces}
     {
     }

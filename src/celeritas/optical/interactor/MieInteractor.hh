@@ -75,7 +75,7 @@ MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
     : inc_dir_(direction)
     , inc_pol_(particle.polarization())
     , mie_params_(shared.mie_record[mat_id])
-    , sample_forward_(mie_params_.forward_g)
+    , sample_forward_(mie_params_.forward_ratio)
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(mat_id < shared.mie_record.size());

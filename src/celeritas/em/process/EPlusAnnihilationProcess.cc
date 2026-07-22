@@ -21,8 +21,8 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-EPlusAnnihilationProcess::EPlusAnnihilationProcess(SPConstParticles particles,
-                                                   SPConstImported process_data)
+EPlusAnnihilationProcess::EPlusAnnihilationProcess(
+    SPConstParticles particles, SPConstImported process_data)
     : particles_(std::move(particles))
     , positron_id_(particles_->find(pdg::positron()))
     , applies_at_rest_(ImportedProcessAdapter(process_data,

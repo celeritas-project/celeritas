@@ -172,8 +172,8 @@ auto SurfacePhysicsParams::build_models(
 
         CELER_VALIDATE(
             build_model.num_surfaces() == num_phys_surfaces(input.materials),
-            << "same number of physics surfaces required for each "
-               "surface physics step ("
+            << "same number of physics surfaces required for each surface "
+               "physics step ("
             << num_phys_surfaces(input.materials) << " expected surfaces, "
             << build_model.num_surfaces() << " surfaces from "
             << to_cstring(step) << " step)");

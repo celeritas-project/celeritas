@@ -289,8 +289,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (auto const secondary_energy : m_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(secondary_energy
-                    > cutoff_view.energy(ParticleId{0}).value());
+        EXPECT_TRUE(
+            secondary_energy > cutoff_view.energy(ParticleId{0}).value());
     }
 
     //// Bhabha
@@ -302,8 +302,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (auto const secondary_energy : b_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(secondary_energy
-                    > cutoff_view.energy(ParticleId{0}).value());
+        EXPECT_TRUE(
+            secondary_energy > cutoff_view.energy(ParticleId{0}).value());
     }
 }
 
@@ -362,8 +362,8 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
-            avg_engine_samples.push_back(double(rng_engine.count())
-                                         / double(num_particles_sampled));
+            avg_engine_samples.push_back(
+                double(rng_engine.count()) / double(num_particles_sampled));
         }
     }
 

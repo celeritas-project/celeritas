@@ -73,9 +73,8 @@ class XorwowRngEngine
     static CELER_CONSTEXPR_FUNCTION result_type max() { return 0xffffffffu; }
 
     // Construct from state and persistent data
-    inline CELER_FUNCTION XorwowRngEngine(ParamsRef const& params,
-                                          StateRef const& state,
-                                          TrackSlotId tid);
+    inline CELER_FUNCTION XorwowRngEngine(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid);
 
     // Initialize state with an RNG initializer
     inline CELER_FUNCTION XorwowRngEngine& operator=(Initializer_t const&);
@@ -143,9 +142,8 @@ struct GenerateCanonical<XorwowRngEngine, RealType>
  * Construct from state and persistent data.
  */
 CELER_FUNCTION
-XorwowRngEngine::XorwowRngEngine(ParamsRef const& params,
-                                 StateRef const& state,
-                                 TrackSlotId tid)
+XorwowRngEngine::XorwowRngEngine(
+    ParamsRef const& params, StateRef const& state, TrackSlotId tid)
     : params_(params)
 {
     CELER_EXPECT(tid < state.state.size());
@@ -281,9 +279,8 @@ CELER_FUNCTION void XorwowRngEngine::next(XorwowState& state)
  * This applies the jump polynomials until the given number of steps or
  * subsequences have been skipped.
  */
-CELER_FUNCTION void XorwowRngEngine::jump(ull_int count,
-                                          ArrayJumpPoly const& jump_poly_arr,
-                                          XorwowState& state)
+CELER_FUNCTION void XorwowRngEngine::jump(
+    ull_int count, ArrayJumpPoly const& jump_poly_arr, XorwowState& state)
 {
     // Maximum number of times to apply any jump polynomial. Since the jump
     // sizes are 4^i for i = [0, 32), the max is 3.

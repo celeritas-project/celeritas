@@ -68,9 +68,6 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
   public:
-    // Whether surface tracking is being used
-    static bool use_surface_tracking();
-
     // Whether VecGeom GDML is being used to load the geometry
     static bool use_vgdml();
 
@@ -97,10 +94,8 @@ class VecgeomParams final : public GeoParamsInterface,
     //!@}
 
     // Build from existing geometry, with ownership and mappings
-    VecgeomParams(vecgeom::GeoManager const&,
-                  Ownership,
-                  VecLv const&,
-                  VecPv const&);
+    VecgeomParams(
+        vecgeom::GeoManager const&, Ownership, VecLv const&, VecPv const&);
 
     // Clean up VecGeom on destruction
     ~VecgeomParams() final;
@@ -164,8 +159,6 @@ class VecgeomParams final : public GeoParamsInterface,
 
     //// HELPER FUNCTIONS ////
 
-    // Construct VecGeom tracking data and copy to GPU
-    void build_surface_tracking();
     void build_volume_tracking();
 };
 

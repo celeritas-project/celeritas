@@ -96,8 +96,8 @@ CherenkovDndxCalculator::CherenkovDndxCalculator(
  * coordinates on grid data. In the future we could cache these if the memory
  * lookups result in too much indirection.
  */
-CELER_FUNCTION real_type
-CherenkovDndxCalculator::operator()(units::LightSpeed beta)
+CELER_FUNCTION real_type CherenkovDndxCalculator::operator()(
+    units::LightSpeed beta)
 {
     CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 

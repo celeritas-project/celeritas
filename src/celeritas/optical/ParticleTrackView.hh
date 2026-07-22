@@ -66,8 +66,8 @@ class ParticleTrackView
  * Construct from dynamic particle properties.
  */
 CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(NativeRef<ParticleStateData> const& states,
-                                     TrackSlotId tid)
+ParticleTrackView::ParticleTrackView(
+    NativeRef<ParticleStateData> const& states, TrackSlotId tid)
     : states_(states), track_slot_(tid)
 {
     CELER_EXPECT(track_slot_ < states_.size());

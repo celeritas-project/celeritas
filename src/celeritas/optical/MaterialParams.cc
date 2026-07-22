@@ -107,16 +107,16 @@ MaterialParams::MaterialParams(Input const& inp)
         // In a dispersive medium, the index of refraction is an increasing
         // function of photon energy
         auto const& ri = mat.refractive_index;
-        CELER_VALIDATE(ri,
-                       << "no refractive index data is defined for optical "
-                          "material "
-                       << opt_mat_idx);
+        CELER_VALIDATE(
+            ri,
+            << "no refractive index data is defined for optical material "
+            << opt_mat_idx);
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(is_monotonic_nondecreasing(make_span(ri.y)),
-                       << "refractive index values are not constant or "
-                          "increasing");
+        CELER_VALIDATE(
+            is_monotonic_nondecreasing(make_span(ri.y)),
+            << "refractive index values are not constant or increasing");
         if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "
@@ -129,8 +129,8 @@ MaterialParams::MaterialParams(Input const& inp)
         insert_derivative_grid(construct_derivative_grid(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
-    CELER_ASSERT(data.refractive_index_derivative.size()
-                 == inp.properties.size());
+    CELER_ASSERT(
+        data.refractive_index_derivative.size() == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {

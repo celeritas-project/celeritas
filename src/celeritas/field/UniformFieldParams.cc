@@ -56,8 +56,8 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
                },
                inp.volumes);
     CELER_VALIDATE(std::all_of(result.begin(), result.end(), Identity{}),
-                   << "failed to find one or more volumes while "
-                      "constructing a uniform field");
+                   << "failed to find one or more volumes while constructing "
+                      "a uniform field");
     return result;
 }
 

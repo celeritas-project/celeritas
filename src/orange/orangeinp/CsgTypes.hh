@@ -100,10 +100,10 @@ inline constexpr bool operator==(Joined const& a, Joined const& b)
     return a.op == b.op && a.nodes == b.nodes;
 }
 
-#define CELER_DEFINE_CSG_NE(CLS)                                 \
+#define CELER_DEFINE_CSG_NE(CLS) \
     inline constexpr bool operator!=(CLS const& a, CLS const& b) \
-    {                                                            \
-        return !(a == b);                                        \
+    { \
+        return !(a == b); \
     }
 
 CELER_DEFINE_CSG_NE(True)

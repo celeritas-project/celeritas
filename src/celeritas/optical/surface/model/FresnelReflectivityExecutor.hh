@@ -19,8 +19,8 @@ namespace optical
 struct FresnelReflectivityExecutor
 {
     // Get trivial reflectivity action
-    inline CELER_FUNCTION ReflectivityAction
-    operator()(CoreTrackView const&) const;
+    inline CELER_FUNCTION ReflectivityAction operator()(
+        CoreTrackView const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -31,8 +31,8 @@ struct FresnelReflectivityExecutor
  *
  * Always returns a \c interact result for the reflectivity action.
  */
-CELER_FUNCTION ReflectivityAction
-FresnelReflectivityExecutor::operator()(CoreTrackView const&) const
+CELER_FUNCTION ReflectivityAction FresnelReflectivityExecutor::operator()(
+    CoreTrackView const&) const
 {
     return ReflectivityAction::interact;
 }

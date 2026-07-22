@@ -81,8 +81,8 @@ TabulatedElementSelector::TabulatedElementSelector(UniformTable const& table,
  * Sample the element with the given RNG.
  */
 template<class Engine>
-CELER_FUNCTION ElementComponentId
-TabulatedElementSelector::operator()(Engine& rng) const
+CELER_FUNCTION ElementComponentId TabulatedElementSelector::operator()(
+    Engine& rng) const
 {
     size_type i = 0;
     real_type u = generate_canonical(rng);

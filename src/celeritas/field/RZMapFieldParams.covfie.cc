@@ -63,10 +63,10 @@ struct RZMapFieldParams::Impl
 
             // Scale world units to index units so max maps to (num - 1).
             auto affine_scale = covfie::algebra::affine<2>::scaling(
-                static_cast<field_real_type>((inp.num_grid_r - 1)
-                                             / (inp.max_r - inp.min_r)),
-                static_cast<field_real_type>((inp.num_grid_z - 1)
-                                             / (inp.max_z - inp.min_z)));
+                static_cast<field_real_type>(
+                    (inp.num_grid_r - 1) / (inp.max_r - inp.min_r)),
+                static_cast<field_real_type>(
+                    (inp.num_grid_z - 1) / (inp.max_z - inp.min_z)));
 
             using traits_t = detail::CovfieRZFieldTraits<MemSpace::host>;
             using field_t = typename traits_t::field_t;
@@ -91,8 +91,8 @@ struct RZMapFieldParams::Impl
                             clamp_max(inp.num_grid_z)}};
 
             host.field = std::make_unique<field_t>(covfie::make_parameter_pack(
-                field_t::backend_t::configuration_t(affine_scale
-                                                    * affine_translate),
+                field_t::backend_t::configuration_t(
+                    affine_scale * affine_translate),
                 std::move(clamp_config),
                 typename traits_t::interp_t::configuration_t{},
                 builder.backend()));
@@ -111,8 +111,8 @@ struct RZMapFieldParams::Impl
         {
             device_ = host_;
             device_ref_ = device_;
-            CELER_ENSURE(static_cast<bool>(device_)
-                         && static_cast<bool>(device_ref_));
+            CELER_ENSURE(
+                static_cast<bool>(device_) && static_cast<bool>(device_ref_));
         }
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }

@@ -80,8 +80,8 @@ WentzelMacroXsCalculator::WentzelMacroXsCalculator(
 /*!
  * Compute the total cross section for the given angle.
  */
-CELER_FUNCTION real_type
-WentzelMacroXsCalculator::operator()(real_type cos_theta) const
+CELER_FUNCTION real_type WentzelMacroXsCalculator::operator()(
+    real_type cos_theta) const
 {
     real_type result = 0;
 

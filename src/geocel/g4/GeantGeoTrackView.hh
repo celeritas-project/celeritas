@@ -70,9 +70,8 @@ class GeantGeoTrackView
 
   public:
     // Construct from params and state data
-    inline GeantGeoTrackView(ParamsRef const& params,
-                             StateRef const& state,
-                             TrackSlotId tid);
+    inline GeantGeoTrackView(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid);
 
     // Initialize the state
     inline GeantGeoTrackView& operator=(Initializer_t const& init);
@@ -93,6 +92,9 @@ class GeantGeoTrackView
     inline VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
+    // Visit every volume instance in the track's path, including world
+    template<class F>
+    inline void foreach_volume_path(F&& visit) const;
 
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
@@ -199,9 +201,8 @@ class GeantGeoTrackView
 /*!
  * Construct from params and state data.
  */
-GeantGeoTrackView::GeantGeoTrackView(ParamsRef const& params,
-                                     StateRef const& states,
-                                     TrackSlotId tid)
+GeantGeoTrackView::GeantGeoTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_{params}
     , state_(states)
     , tid_(tid)
@@ -247,8 +248,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
                                               g4dir_,
                                               touch_handle_(),
                                               /* relative_search = */ false);
-    this->geo_status(this->is_outside() ? GeoStatus::invalid
-                                        : GeoStatus::interior);
+    this->geo_status(
+        this->is_outside() ? GeoStatus::invalid : GeoStatus::interior);
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -335,20 +336,34 @@ VolumeLevelId GeantGeoTrackView::volume_level() const
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
-                 == this->volume_level() + 1);
+    this->foreach_volume_path(
+        [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
+            CELER_EXPECT(lev < levels.size());
+            CELER_EXPECT(vol_inst);
+            levels[*lev] = vol_inst;
+        });
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Apply the function with the volume instance ID and level.
+ *
+ * This can be used to construct a unique volume instance ID or fill a vector
+ * with volume levels. It is performed in local-to-global order.
+ */
+template<class F>
+void GeantGeoTrackView::foreach_volume_path(F&& visit) const
+{
     auto* touch = touch_handle_();
     auto const num_vol_levels
         = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
-    for (auto vl_id : range(id_cast<VolumeLevelId>(levels.size())))
+    for (auto lev : range(num_vol_levels + 1))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - vl_id))
-        {
-            vi_id = params_.vi_mapper->geant_to_id(*pv);
-        }
-        levels[vl_id.get()] = vi_id;
+        G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - lev);
+        CELER_ASSERT(pv);
+        vi_id = params_.vi_mapper->geant_to_id(*pv);
+        visit(lev, vi_id);
     }
 }
 
@@ -359,8 +374,8 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 ImplVolumeId GeantGeoTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
-                                 - params_.lv_offset);
+    return id_cast<ImplVolumeId>(
+        this->volume()->GetInstanceID() - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//

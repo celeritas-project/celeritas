@@ -31,6 +31,7 @@
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
+#include "celeritas/setup/Control.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/StatusChecker.hh"
 
@@ -97,8 +98,8 @@ void GlobalTestBase::insert_primaries(CoreStateInterface& state,
 /*!
  * Build a new geometry via LazyGeantGeoManager.
  */
-auto GlobalTestBase::build_geo_from_geant(SPConstGeantGeo const& geant_geo) const
-    -> SPConstGeoI
+auto GlobalTestBase::build_geo_from_geant(
+    SPConstGeantGeo const& geant_geo) const -> SPConstGeoI
 {
     CELER_EXPECT(geant_geo);
     return CoreGeoParams::from_geant(geant_geo);
@@ -215,8 +216,10 @@ optical::CoreParams::Input GlobalTestBase::optical_params_input()
     inp.volume = this->volumes();
     inp.cherenkov = this->cherenkov();
     inp.scintillation = this->scintillation();
-    inp.capacity = inp::OpticalStateCapacity::from_default(
-        celeritas::Device::num_devices());
+    inp.sizes = [] {
+        inp::OpticalStateCapacity cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
+    }();
 
     CELER_ENSURE(inp);
     return inp;
@@ -233,9 +236,9 @@ auto GlobalTestBase::build_core() -> SPConstCore
 {
     // Load geometry and create empty attributes if needed
     auto geo = this->geometry();
-    CELER_ASSERT(static_cast<bool>(surface_) == static_cast<bool>(volume_)
-                 && static_cast<bool>(surface_)
-                        == static_cast<bool>(detector_));
+    CELER_ASSERT(
+        static_cast<bool>(surface_) == static_cast<bool>(volume_)
+        && static_cast<bool>(surface_) == static_cast<bool>(detector_));
     if (!surface_)
     {
         surface_ = make_shared<SurfaceParams>();
@@ -261,6 +264,10 @@ auto GlobalTestBase::build_core() -> SPConstCore
     inp.action_reg = this->action_reg();
     inp.output_reg = this->output_reg();
     inp.aux_reg = this->aux_reg();
+    inp.sizes = [] {
+        inp::CoreStateCapacity cap;
+        return setup::capacity(cap, /* num_streams = */ 1);
+    }();
     CELER_ASSERT(inp);
 
     // Build along-step action to add to the stepping loop

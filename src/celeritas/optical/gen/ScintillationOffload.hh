@@ -39,6 +39,9 @@ namespace celeritas
  * - for large (n > 10) mean yield, from a Gaussian distribution with a
  *   material-dependent spread, or
  * - for small yields, from a Poisson distribution.
+ *
+ * \todo rename \c ScintillationOffloadSampler; it conflicts with
+ * accel/ScintillationOffload
  */
 class ScintillationOffload
 {
@@ -92,8 +95,8 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     , pre_step_(pre_step)
     , post_step_({pre_post_step.speed, sim.time(), pos})
     , shared_(shared)
-    , continuous_edep_fraction_(pre_post_step.energy_deposition
-                                / energy_deposition)
+    , continuous_edep_fraction_(
+          pre_post_step.energy_deposition / energy_deposition)
 {
     CELER_EXPECT(step_length_ > 0);
     CELER_EXPECT(shared_);

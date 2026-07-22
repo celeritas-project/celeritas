@@ -1748,8 +1748,8 @@ TEST_F(LarSphere, optical)
             components.push_back(to_cm(gauss->mean));
             components.push_back(to_cm(gauss->stddev));
         }
-        else if (auto* grid
-                 = std::get_if<inp::Grid>(&comp.spectrum_distribution))
+        else if (
+            auto* grid = std::get_if<inp::Grid>(&comp.spectrum_distribution))
         {
             EXPECT_TRUE(*grid);
             components.push_back(static_cast<double>(grid->x.size()));

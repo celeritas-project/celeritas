@@ -43,9 +43,8 @@ __global__ void sample_native_kernel(RngDeviceParamsRef params,
 }
 
 template<class RealType>
-__global__ void sample_canonical_kernel(RngDeviceParamsRef params,
-                                        RngDeviceStateRef states,
-                                        RealType* samples)
+__global__ void sample_canonical_kernel(
+    RngDeviceParamsRef params, RngDeviceStateRef states, RealType* samples)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() < states.size())

@@ -17,6 +17,7 @@
 #include "celeritas/global/ActionInterface.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Physics.hh"
+#include "celeritas/inp/Scoring.hh"
 #include "celeritas/inp/Tracking.hh"
 
 class G4LogicalVolume;
@@ -128,6 +129,8 @@ struct OpticalSetupOptions
     inp::OpticalGenerator generator;
     //! Limits for the optical stepping loop
     inp::OpticalTrackingLimits limits;
+    //! Callback for optical photon hits
+    inp::OpticalDetector detectors;
 };
 
 //---------------------------------------------------------------------------//

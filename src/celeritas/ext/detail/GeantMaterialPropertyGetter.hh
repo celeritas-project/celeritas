@@ -45,9 +45,8 @@ class GeantMaterialPropertyGetter
     operator()(double& dst, std::string const& name, ImportUnits q) const;
 
     // Get physics vector property
-    inline bool operator()(inp::Grid& dst,
-                           std::string const& name,
-                           Array<ImportUnits, 2> q) const;
+    inline bool operator()(
+        inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q) const;
 
     //! Get the string label
     char const* c_str() const
@@ -84,9 +83,8 @@ GeantMaterialPropertyGetter::GeantMaterialPropertyGetter(MPT const* mpt,
 /*!
  * Get property for a scalar.
  */
-bool GeantMaterialPropertyGetter::operator()(double& dst,
-                                             std::string const& name,
-                                             ImportUnits q) const
+bool GeantMaterialPropertyGetter::operator()(
+    double& dst, std::string const& name, ImportUnits q) const
 {
     if (!*this || !mpt_->ConstPropertyExists(name.c_str()))
     {
@@ -100,9 +98,8 @@ bool GeantMaterialPropertyGetter::operator()(double& dst,
 /*!
  * Get property for a physics vector.
  */
-bool GeantMaterialPropertyGetter::operator()(inp::Grid& dst,
-                                             std::string const& name,
-                                             Array<ImportUnits, 2> q) const
+bool GeantMaterialPropertyGetter::operator()(
+    inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q) const
 {
     if (!*this)
     {

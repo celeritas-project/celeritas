@@ -78,7 +78,7 @@ else()
   endif()
 endif()
 set(CELERITAS_CONSTANTS "CODATA ${CELERITAS_CODATA}")
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG)
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG RESEED)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
@@ -133,11 +133,7 @@ endforeach()
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
-if(DEFINED CELERITAS_VecGeom_SURFACE)
-  # Override/pretend VecGeom has this option
-  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
-endif()
-foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+foreach(_opt BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
     set(_val "0 /* not defined */")
   elseif(VecGeom_${_opt})
@@ -212,6 +208,7 @@ list(APPEND SOURCES
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   inp/DistributionsIO.json.cc
+  inp/GridIO.json.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
@@ -220,6 +217,7 @@ list(APPEND SOURCES
   io/LogContextException.cc
   io/LogHandlers.cc
   io/LoggerTypes.cc
+  io/OpenmpOutput.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
@@ -256,6 +254,7 @@ list(APPEND SOURCES
 
 # All these classes depend on OpenMP if available
 celeritas_add_object_library(corecel_openmp_obj
+  sys/Openmp.cc
   sys/MultiExceptionHandler.cc
 )
 celeritas_target_link_libraries(corecel_openmp_obj

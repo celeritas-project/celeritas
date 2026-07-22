@@ -22,8 +22,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct MuBremsstrahlungExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     MuBremsstrahlungData params;
 };
@@ -32,8 +32,8 @@ struct MuBremsstrahlungExecutor
 /*!
  * Sample MuBremsstrahlung from the current track.
  */
-CELER_FUNCTION Interaction
-MuBremsstrahlungExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction MuBremsstrahlungExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto cutoff = track.cutoff();
     auto material = track.material().material_record();

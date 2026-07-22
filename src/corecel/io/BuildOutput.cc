@@ -35,9 +35,9 @@ void BuildOutput::output(JsonPimpl* j) const
 
         cfg["use"] = [] {
             std::vector<std::string> options;
-#define CO_ADD_OPT(NAME)                              \
-    if constexpr (CELERITAS_USE_##NAME)               \
-    {                                                 \
+#define CO_ADD_OPT(NAME) \
+    if constexpr (CELERITAS_USE_##NAME) \
+    { \
         options.push_back(celeritas::tolower(#NAME)); \
     }
             CO_ADD_OPT(COVFIE);
@@ -65,6 +65,7 @@ void BuildOutput::output(JsonPimpl* j) const
         CO_ADD_CFG(core_geo);
         CO_ADD_CFG(core_rng);
         CO_ADD_CFG(gpu_architectures);
+        CO_ADD_CFG(reseed);
 #undef CO_ADD_CFG
         if constexpr (CELER_USE_DEVICE)
         {
@@ -85,9 +86,9 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
 
-#define CO_ADD_COND_VERS(USE, NAME, LOWER)                 \
-    if constexpr (CELERITAS_USE_##USE)                     \
-    {                                                      \
+#define CO_ADD_COND_VERS(USE, NAME, LOWER) \
+    if constexpr (CELERITAS_USE_##USE) \
+    { \
         deps[#NAME] = std::string(cmake::LOWER##_version); \
     }
             CO_ADD_COND_VERS(COVFIE, covfie, covfie);
@@ -112,6 +113,11 @@ void BuildOutput::output(JsonPimpl* j) const
         if constexpr (CELERITAS_USE_VECGEOM)
         {
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+        }
+
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            cfg["orange_torus"] = static_cast<bool>(CELERITAS_ORANGE_TORUS);
         }
 
         return cfg;

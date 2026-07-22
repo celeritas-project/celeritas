@@ -77,9 +77,8 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
 /*!
  * Construct without custom user builders.
  */
-ProcessBuilder::ProcessBuilder(ImportData const& data,
-                               SPConstParticle particle,
-                               SPConstMaterial material)
+ProcessBuilder::ProcessBuilder(
+    ImportData const& data, SPConstParticle particle, SPConstMaterial material)
     : ProcessBuilder(
           data, std::move(particle), std::move(material), UserBuildMap{})
 {
@@ -128,9 +127,9 @@ auto ProcessBuilder::operator()(IPC ipc) -> SPProcess
     // Next, try built-in processes
     {
         auto iter = builtin_build.find(ipc);
-        CELER_VALIDATE(iter != builtin_build.end(),
-                       << "cannot build unsupported EM process '" << ipc
-                       << "'");
+        CELER_VALIDATE(
+            iter != builtin_build.end(),
+            << "cannot build unsupported EM process '" << ipc << "'");
 
         BuilderMemFn build_impl{iter->second};
         auto result = (this->*build_impl)();

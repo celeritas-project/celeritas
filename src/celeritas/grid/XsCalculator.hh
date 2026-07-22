@@ -123,8 +123,8 @@ CELER_FUNCTION real_type XsCalculator::operator()(Energy energy) const
  */
 CELER_FUNCTION auto XsCalculator::energy_min() const -> Energy
 {
-    return Energy(std::exp(data_.lower ? data_.lower.grid.front
-                                       : data_.upper.grid.front));
+    return Energy(std::exp(
+        data_.lower ? data_.lower.grid.front : data_.upper.grid.front));
 }
 
 //---------------------------------------------------------------------------//

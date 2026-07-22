@@ -7,9 +7,9 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/field/CartMapFieldParams.hh"
 #include "celeritas/g4/MagneticField.hh"
+#include "celeritas/inp/Field.hh"
 
 namespace celeritas
 {
@@ -18,9 +18,9 @@ namespace celeritas
 struct CartMapFieldGridParams
 {
     // TODO: should be double?
-    AxisGrid<real_type> x{};  //!< X-axis grid specification
-    AxisGrid<real_type> y{};  //!< Y-axis grid specification
-    AxisGrid<real_type> z{};  //!< Z-axis grid specification
+    inp::AxisGrid<real_type> x{};  //!< X-axis grid specification
+    inp::AxisGrid<real_type> y{};  //!< Y-axis grid specification
+    inp::AxisGrid<real_type> z{};  //!< Z-axis grid specification
 
     //! Check if parameters are valid for field generation
     explicit operator bool() const { return x && y && z; }
@@ -28,11 +28,11 @@ struct CartMapFieldGridParams
 
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined uniform grid and explicit field
-CartMapFieldInput MakeCartMapFieldInput(G4Field const& field,
+inp::CartMapField MakeCartMapFieldInput(G4Field const& field,
                                         CartMapFieldGridParams const& params);
 
 // Generate field input with user-defined uniform grid from global field
-CartMapFieldInput MakeCartMapFieldInput(CartMapFieldGridParams const& params);
+inp::CartMapField MakeCartMapFieldInput(CartMapFieldGridParams const& params);
 
 //---------------------------------------------------------------------------//
 /*!

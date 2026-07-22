@@ -70,8 +70,8 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
     if (result.interpolation.type == InterpolationType::poly_spline)
     {
         CELER_LOG(warning) << InterpolationType::poly_spline
-                           << " interpolation is not supported for range "
-                              "or inverse range: defaulting to linear";
+                           << " interpolation is not supported for range or "
+                              "inverse range: defaulting to linear";
         result.interpolation.type = InterpolationType::linear;
     }
 

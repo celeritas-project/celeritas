@@ -24,9 +24,6 @@
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #endif
-#if CELERITAS_VECGEOM_SURFACE
-#    include <VecGeom/surfaces/BrepHelper.h>
-#endif
 #ifdef VECGEOM_GDML
 #    include <VecGeom/gdml/Frontend.h>
 #endif
@@ -69,23 +66,13 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // MACROS
-// VecGeom interfaces change based on whether CUDA and Surface capabilities
-// are available. Use macros to hide the calls.
+// VecGeom interfaces change based on whether CUDA is available.
 //---------------------------------------------------------------------------//
 
 #ifdef VECGEOM_ENABLE_CUDA
 #    define VG_CUDA_CALL(CODE) CODE
 #else
 #    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
-#endif
-
-#if CELERITAS_VECGEOM_SURFACE
-#    define VG_SURF_CALL(CODE) CODE
-#else
-#    define VG_SURF_CALL(CODE) \
-        do                     \
-        {                      \
-        } while (0)
 #endif
 
 //---------------------------------------------------------------------------//
@@ -365,8 +352,8 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_gdml_g4(std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
-                   << "cannot load Geant4 geometry into VecGeom from a "
-                      "file name: a global Geant4 geometry already exists");
+                   << "cannot load Geant4 geometry into VecGeom from a file "
+                      "name: a global Geant4 geometry already exists");
 
     // Load temporarily and convert
     return VecgeomParams::from_geant(GeantGeoParams::from_gdml(filename));
@@ -409,8 +396,8 @@ std::shared_ptr<VecgeomParams>
 VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
-    CELER_LOG(status) << "Loading VecGeom geometry from in-memory Geant4 "
-                         "geometry";
+    CELER_LOG(status)
+        << "Loading VecGeom geometry from in-memory Geant4 geometry";
 #if CELERITAS_USE_GEANT4
     // Convert the geometry to VecGeom
     ScopedProfiling profile_this{"vecgeom-g4vg-load"};
@@ -435,19 +422,6 @@ VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
                                            std::move(result.physical_volumes));
 #else
     CELER_NOT_CONFIGURED("Geant4");
-#endif
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Whether surface tracking is being used.
- */
-bool VecgeomParams::use_surface_tracking()
-{
-#if CELERITAS_VECGEOM_SURFACE
-    return 1;
-#else
-    return 0;
 #endif
 }
 
@@ -484,15 +458,7 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
 
     {
         CELER_LOG(status) << "Initializing tracking information";
-
-        if (!VecgeomParams::use_surface_tracking() || CELERITAS_USE_CUDA)
-        {
-            this->build_volume_tracking();
-        }
-        if (VecgeomParams::use_surface_tracking())
-        {
-            this->build_surface_tracking();
-        }
+        this->build_volume_tracking();
     }
     {
         CELER_LOG(status) << "Constructing metadata";
@@ -601,20 +567,10 @@ VecgeomParams::~VecgeomParams()
 {
     if (device_ownership_ == Ownership::value)
     {
-        CELER_LOG(debug)
-            << "Clearing VecGeom "
-            << (VecgeomParams::use_surface_tracking() ? "surface" : "volume")
-            << "GPU data";
+        CELER_LOG(debug) << "Clearing VecGeom volume GPU data";
         try
         {
-            if (VecgeomParams::use_surface_tracking())
-            {
-                VG_SURF_CALL(detail::teardown_surface_tracking_device());
-            }
-            else
-            {
-                VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
-            }
+            VG_CUDA_CALL(vecgeom::CudaManager::Instance().Clear());
         }
         catch (std::exception const& e)
         {
@@ -625,19 +581,6 @@ VecgeomParams::~VecgeomParams()
 
     if (host_ownership_ == Ownership::value)
     {
-        if (VecgeomParams::use_surface_tracking())
-        {
-            CELER_LOG(debug) << "Clearing SurfModel CPU data";
-        }
-        try
-        {
-            VG_SURF_CALL(vgbrep::BrepHelper<real_type>::Instance().ClearData());
-        }
-        catch (std::exception const& e)
-        {
-            CELER_LOG(critical)
-                << "Failed during VecGeom surface model cleanup: " << e.what();
-        }
         CELER_LOG(debug) << "Clearing VecGeom CPU data";
         vecgeom::GeoManager::Instance().Clear();
     }
@@ -699,48 +642,6 @@ inp::Model VecgeomParams::make_model_input() const
 
     v.world = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After loading solids, set up VecGeom surface data and copy to GPU.
- */
-void VecgeomParams::build_surface_tracking()
-{
-    static int initialization_count{0};
-    CELER_VALIDATE(initialization_count == 0,
-                   << "VecGeom surface geometry currently crashes if "
-                      "recreated during an execution (you may call BeamOn "
-                      "only once)");
-
-    VG_SURF_CALL(auto& brep_helper = vgbrep::BrepHelper<real_type>::Instance());
-    VG_SURF_CALL(brep_helper.SetVerbosity(vecgeom_verbosity()));
-
-    {
-        CELER_LOG(debug) << "Creating surfaces";
-        ScopedTimeAndRedirect time_and_output_("BrepHelper::Convert");
-        VG_SURF_CALL(CELER_VALIDATE(brep_helper.Convert(),
-                                    << "failed to convert VecGeom to "
-                                       "surfaces"));
-        if (vecgeom_verbosity() > 1)
-        {
-            VG_SURF_CALL(brep_helper.PrintSurfData());
-        }
-        // Prevent us from accidentally rebuilding and getting a segfault
-        // See https://its.cern.ch/jira/projects/VECGEOM/issues/VECGEOM-634
-        ++initialization_count;
-    }
-
-    if (celeritas::device())
-    {
-        CELER_LOG(debug) << "Transferring surface data to GPU";
-        ScopedTimeAndRedirect time_and_output_(
-            "BrepCudaManager::TransferSurfData");
-
-        VG_SURF_CALL(
-            detail::setup_surface_tracking_device(brep_helper.GetSurfData()));
-        CELER_DEVICE_API_CALL(PeekAtLastError());
-    }
 }
 
 //---------------------------------------------------------------------------//

@@ -22,7 +22,7 @@
 #endif
 
 #define CASE_RETURN_FUNC_T(T, FUNC, ...) \
-    case T:                              \
+    case T: \
         return this->FUNC<T>(__VA_ARGS__)
 
 namespace celeritas

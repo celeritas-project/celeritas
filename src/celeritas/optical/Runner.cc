@@ -8,8 +8,10 @@
 
 #include <utility>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/Openmp.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
@@ -34,7 +36,6 @@ Runner::Runner(Input&& osi)
 
     ScopedProfiling profile_this{"setup"};
     StreamId stream_id{0};
-    auto num_tracks = osi.problem.capacity.tracks;
 
     // Prepare problem input for json output before it's modified during setup
     auto osi_output = std::make_shared<OutputInterfaceAdapter<Input>>(
@@ -46,12 +47,13 @@ Runner::Runner(Input&& osi)
     // Save the optical transporter and generator
     CELER_ASSERT(loaded_.problem.transporter);
     CELER_ASSERT(loaded_.problem.generator);
-    CELER_ASSERT(stream_id < this->params()->max_streams());
+    CELER_ASSERT(stream_id < this->params()->sizes().streams);
 
     // Add problem input to output registry
     this->params()->output_reg()->insert(osi_output);
 
     // Allocate state data
+    auto num_tracks = this->params()->sizes().tracks;
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
     if (memspace == MemSpace::device)
     {
@@ -62,6 +64,11 @@ Runner::Runner(Input&& osi)
     {
         state_ = std::make_shared<CoreState<MemSpace::host>>(
             *this->params(), stream_id, num_tracks);
+        if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK)
+        {
+            CELER_LOG(status) << "Running track-parallel with "
+                              << openmp_max_threads() << " max threads";
+        }
     }
 
     // Allocate auxiliary data

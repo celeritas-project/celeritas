@@ -6,15 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <VecGeom/base/BVH.h>
+
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/vg/VecgeomTypes.hh"
-
-#if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
-#    include <VecGeom/surfaces/BrepHelper.h>
-#endif
-#include <VecGeom/base/BVH.h>
 
 namespace celeritas
 {
@@ -59,15 +56,6 @@ void check_other_device_pointers();
 void init_navstate_device(Span<VgNavStateImpl> nav, StreamId);
 
 //---------------------------------------------------------------------------//
-#if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
-// Set up surface tracking
-void setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&);
-
-// Tear down surface tracking
-void teardown_surface_tracking_device();
-#endif
-
-//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #ifndef VECGEOM_ENABLE_CUDA
@@ -86,18 +74,6 @@ inline void check_other_device_pointers()
     CELER_ASSERT_UNREACHABLE();
 }
 
-#    if CELERITAS_VECGEOM_SURFACE && !defined(__NVCC__)
-inline void
-setup_surface_tracking_device(vgbrep::SurfData<vecgeom::Precision> const&)
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-
-inline void teardown_surface_tracking_device()
-{
-    CELER_ASSERT_UNREACHABLE();
-}
-#    endif
 #endif
 
 #if !defined(VECGEOM_ENABLE_CUDA) || CELER_VGNAV != CELER_VGNAV_TUPLE

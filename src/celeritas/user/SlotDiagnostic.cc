@@ -42,16 +42,15 @@ struct SlotDiagnostic::State final : AuxStateInterface
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<SlotDiagnostic>
-SlotDiagnostic::make_and_insert(CoreParams const& core,
-                                std::string filename_base)
+std::shared_ptr<SlotDiagnostic> SlotDiagnostic::make_and_insert(
+    CoreParams const& core, std::string filename_base)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
     auto result = std::make_shared<SlotDiagnostic>(actions.next_id(),
                                                    aux.next_id(),
                                                    std::move(filename_base),
-                                                   core.max_streams(),
+                                                   core.sizes().streams,
                                                    core.particle());
     actions.insert(result);
     aux.insert(result);

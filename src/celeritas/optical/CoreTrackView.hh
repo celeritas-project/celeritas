@@ -44,9 +44,8 @@ class CoreTrackView
 
   public:
     // Construct directly from a track slot ID
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        TrackSlotId slot);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId slot);
 
     // Initialize the track states
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
@@ -58,7 +57,8 @@ class CoreTrackView
     inline CELER_FUNCTION MaterialView material_record() const;
 
     // Return a material view (using an existing geo view)
-    inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
+    inline CELER_FUNCTION MaterialView material_record(
+        GeoTrackView const&) const;
 
     // Return a material view for a specific optical material
     inline CELER_FUNCTION MaterialView material_record(OptMatId) const;
@@ -118,9 +118,8 @@ class CoreTrackView
  * For optical tracks, the value of the track slot is the same as the track ID.
  */
 CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             TrackSlotId track_slot)
+CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : params_(params), states_(states), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());

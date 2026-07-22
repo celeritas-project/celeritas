@@ -35,9 +35,9 @@ void validate_input(FieldDriverOptions const& opts)
     CELER_VALIDATE(opts.pshrink < 0, << "invalid pshrink " << opts.pshrink);
     CELER_VALIDATE(opts.safety > 0 && opts.safety < 1,
                    << "invalid safety " << opts.safety);
-    CELER_VALIDATE(opts.max_stepping_increase > 1,
-                   << "invalid max_stepping_increase "
-                   << opts.max_stepping_increase);
+    CELER_VALIDATE(
+        opts.max_stepping_increase > 1,
+        << "invalid max_stepping_increase " << opts.max_stepping_increase);
     CELER_VALIDATE(
         opts.max_stepping_decrease > 0 && opts.max_stepping_decrease < 1,
         << "invalid max_stepping_decrease " << opts.max_stepping_decrease);

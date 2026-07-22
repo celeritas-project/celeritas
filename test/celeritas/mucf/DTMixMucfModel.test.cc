@@ -31,7 +31,7 @@ TEST_F(DTMixMucfModelTest, data)
     auto const& pids = data.particle_ids;
     auto const& masses = data.particle_masses;
 
-#define EXPECT_PDG_EQ(MEMBER)      \
+#define EXPECT_PDG_EQ(MEMBER) \
     EXPECT_EQ(pdg::MEMBER().get(), \
               this->particle_params()->id_to_pdg(pids.MEMBER).get())
 

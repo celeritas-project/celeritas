@@ -42,9 +42,9 @@ TEST(StringSimplifierTest, all)
               simplify("As does 3.4059123e3 and even 1.01e1 and 1E+7"));
     EXPECT_EQ("Single precision is 1., 2., 1.23, or -1.678",
               simplify("Single precision is 1f, 2.f, 1.23f, or -1.678f"));
-    EXPECT_EQ("Scientific single precision: 2e1, 3e2, 4.5e-1, -1e0",
-              simplify("Scientific single precision: 2e1f, 3.e2f, 4.5e-1f, "
-                       "-1e0f"));
+    EXPECT_EQ(
+        "Scientific single precision: 2e1, 3e2, 4.5e-1, -1e0",
+        simplify("Scientific single precision: 2e1f, 3.e2f, 4.5e-1f, -1e0f"));
     EXPECT_EQ("And finally we remove colors",
               simplify("And finally we remove \033[31;1mcolors\033[0m"));
     EXPECT_EQ("Zeros can be weird 0.0000 -0.0000 0.000 0e0 0.000e0 0e0 -0e0",

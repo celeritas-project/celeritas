@@ -228,9 +228,8 @@ GeantProcessImporter::GeantProcessImporter(
  * Cross sections are calculated in G4EmModelManager::FillLambdaVector by
  * calling G4VEmModel::CrossSection .
  */
-ImportProcess
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VEmProcess const& process)
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VEmProcess const& process)
 {
     auto result = init_process(particle, process);
     result.secondary_pdg = get_secondary_pdg(process);
@@ -272,9 +271,8 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-ImportProcess
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VEnergyLossProcess const& process)
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VEnergyLossProcess const& process)
 {
     auto result = init_process(particle, process);
     result.secondary_pdg = get_secondary_pdg(process);
@@ -326,9 +324,8 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
  * They're calculated in G4LossTableBuilder::BuildTableForModel which calls
  * G4VEmModel::Value.
  */
-std::vector<ImportMscModel>
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VMultipleScattering const& process)
+std::vector<ImportMscModel> GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VMultipleScattering const& process)
 {
     std::vector<ImportMscModel> result;
     int primary_pdg = particle.GetPDGEncoding();
@@ -398,8 +395,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     for (auto i : range(size))
     {
         // Check that the grid has log spacing
-        CELER_ASSERT(i == 0
-                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+        CELER_ASSERT(
+            i == 0 || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
         grid.y[i] = pv[i] * y_scaling;
     }
     CELER_ENSURE(grid);

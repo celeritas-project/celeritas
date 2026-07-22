@@ -454,11 +454,11 @@ auto RayleighModel::get_el_parameters(AtomicNumber z) -> ElScatParams const&
             {5.84949e+00, 3.28173e+00, 3.26330e-01}}};
 
     int idx = z.unchecked_get() - 1;
-    CELER_VALIDATE(idx >= 0 && idx * sizeof(ElScatParams) < sizeof(el_params),
-                   << "atomic number " << z.get()
-                   << " is out of range for Rayleigh model data (must be less "
-                      "than "
-                   << sizeof(el_params) / sizeof(ElScatParams) << ")");
+    CELER_VALIDATE(
+        idx >= 0 && idx * sizeof(ElScatParams) < sizeof(el_params),
+        << "atomic number " << z.get()
+        << " is out of range for Rayleigh model data (must be less than "
+        << sizeof(el_params) / sizeof(ElScatParams) << ")");
     return el_params[idx];
 }
 

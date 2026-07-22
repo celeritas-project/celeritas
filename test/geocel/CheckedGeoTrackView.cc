@@ -112,27 +112,27 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
         {RuntimeError::validate_err_str, std::move(msg).str(), cond, file, line}};
 }
 
-#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE)                                \
-    do                                                                       \
-    {                                                                        \
-        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed()))       \
-        {                                                                    \
-            std::ostringstream msg_;                                         \
-            msg_ << "failed during " << WHERE;                               \
+#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE) \
+    do \
+    { \
+        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed())) \
+        { \
+            std::ostringstream msg_; \
+            msg_ << "failed during " << WHERE; \
             throw_cgtv_error(CGTV, std::move(msg_), {}, __FILE__, __LINE__); \
-        }                                                                    \
+        } \
     } while (0)
 
-#define CGTV_VALIDATE(CGTV, COND, WHAT)                            \
-    do                                                             \
-    {                                                              \
-        if (CELER_UNLIKELY(!(COND)))                               \
-        {                                                          \
-            std::ostringstream msg_;                               \
-            msg_ WHAT;                                             \
-            throw_cgtv_error(                                      \
+#define CGTV_VALIDATE(CGTV, COND, WHAT) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream msg_; \
+            msg_ WHAT; \
+            throw_cgtv_error( \
                 CGTV, std::move(msg_), #COND, __FILE__, __LINE__); \
-        }                                                          \
+        } \
     } while (0)
 
 //---------------------------------------------------------------------------//
@@ -166,9 +166,9 @@ CheckedGeoTrackView&
 CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
 {
     CELER_EXPECT(t_);
-    CELER_VALIDATE(is_soft_unit_vector(init.dir),
-                   << "cannot initialize with a non-unit direction "
-                   << repr(init.dir));
+    CELER_VALIDATE(
+        is_soft_unit_vector(init.dir),
+        << "cannot initialize with a non-unit direction " << repr(init.dir));
 
     *t_ = init;
     CGTV_VALIDATE_NOT_FAILED(*this, "initialization");
@@ -207,10 +207,10 @@ real_type CheckedGeoTrackView::find_safety()
 
     auto result = t_->find_safety();
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
-    CGTV_VALIDATE(*this,
-                  result >= 0,
-                  << "safety " << repr(result) << NativeLength{}
-                  << " is out of bounds");
+    CGTV_VALIDATE(
+        *this,
+        result >= 0,
+        << "safety " << repr(result) << NativeLength{} << " is out of bounds");
     return result;
 }
 
@@ -232,10 +232,10 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
 
-    CGTV_VALIDATE(*this,
-                  result >= 0,
-                  << "invalid safety result " << repr(result)
-                  << NativeLength{});
+    CGTV_VALIDATE(
+        *this,
+        result >= 0,
+        << "invalid safety result " << repr(result) << NativeLength{});
 
     if (result > max_safety)
     {
@@ -361,10 +361,10 @@ void CheckedGeoTrackView::move_internal(real_type step)
     t_->move_internal(step);
     next_boundary_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
-    CGTV_VALIDATE(*this,
-                  !t_->is_on_boundary() && !t_->is_outside(),
-                  << "on boundary after moving " << repr(step)
-                  << NativeLength{});
+    CGTV_VALIDATE(
+        *this,
+        !t_->is_on_boundary() && !t_->is_outside(),
+        << "on boundary after moving " << repr(step) << NativeLength{});
 }
 
 //---------------------------------------------------------------------------//

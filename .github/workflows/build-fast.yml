@@ -26,24 +26,26 @@ jobs:
           - runner: jammy
             compiler: clang
             version: 15
+            cxxstd: 20
           - runner: noble
             compiler: gcc
             version: 14
           - runner: noble
             compiler: clang
             version: 18
-          - runner: noble
+            cxxstd: 20
+          - runner: resolute
             compiler: gcc
-            version: 14
-            cxxstd: 20
-          - runner: noble
+            version: 15
+          - runner: resolute
             compiler: clang
-            version: 18
-            cxxstd: 20
-          - runner: noble-arm
+            version: 22
+          - runner: resolute-arm
+            compiler: gcc
+            version: 15
+          - runner: resolute-arm
             compiler: clang
-            version: 18
-            cxxstd: 20
+            version: 22
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
       CCACHE_DIR: "${{github.workspace}}/.ccache"
@@ -55,10 +57,12 @@ jobs:
       ${{  matrix.runner == 'jammy' && 'ubuntu-22.04'
         || matrix.runner == 'noble' && 'ubuntu-24.04'
         || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
+        || matrix.runner == 'resolute' && 'ubuntu-26.04'
+        || matrix.runner == 'resolute-arm' && 'ubuntu-26.04-arm'
       }}
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
 
       ### ENVIRONMENT ###
 
@@ -92,7 +96,7 @@ jobs:
       ### BUILD ###
 
       - name: Restore ccache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
@@ -112,7 +116,7 @@ jobs:
           ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
@@ -129,7 +133,7 @@ jobs:
         run: |
           ctest --preset=${CMAKE_PRESET}-app
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: >-
           ${{
             always()
@@ -164,7 +168,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
 
       ### ENVIRONMENT ###
 
@@ -186,7 +190,7 @@ jobs:
       ### BUILD ###
 
       - name: Restore ccache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-fast-windows-${{github.run_id}}
@@ -206,7 +210,7 @@ jobs:
           ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-fast-windows-${{github.run_id}}
@@ -223,7 +227,7 @@ jobs:
         run: |
           ctest --preset=$Env:CMAKE_PRESET-app
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: >-
           ${{
             always()

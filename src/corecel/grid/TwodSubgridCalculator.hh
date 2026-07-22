@@ -33,9 +33,8 @@ class TwodSubgridCalculator
 
   public:
     // Construct with grid data, backend values, and lower X data.
-    inline CELER_FUNCTION TwodSubgridCalculator(TwodGridData const& grid,
-                                                Values const& storage,
-                                                InterpT x_loc);
+    inline CELER_FUNCTION TwodSubgridCalculator(
+        TwodGridData const& grid, Values const& storage, InterpT x_loc);
 
     // Calculate the value at the given y coordinate
     inline CELER_FUNCTION real_type operator()(real_type y) const;
@@ -74,9 +73,8 @@ class TwodSubgridCalculator
  * interpolating on the highest value of the x grid.
  */
 CELER_FUNCTION
-TwodSubgridCalculator::TwodSubgridCalculator(TwodGridData const& grids,
-                                             Values const& storage,
-                                             InterpT x_loc)
+TwodSubgridCalculator::TwodSubgridCalculator(
+    TwodGridData const& grids, Values const& storage, InterpT x_loc)
     : grids_{grids}, storage_(storage), x_loc_(x_loc)
 {
     CELER_EXPECT(grids);
