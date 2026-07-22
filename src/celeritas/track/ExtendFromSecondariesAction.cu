@@ -65,7 +65,7 @@ void ExtendFromSecondariesAction::update_secondaries(
     auto execute_thread = make_single_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::UpdateSecondariesExecutor{state.ptr(), state.size()});
+        detail::UpdateSecondariesExecutor{state.ptr()});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-secondaries");
     launch_kernel(1, state.stream_id(), execute_thread);

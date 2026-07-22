@@ -28,7 +28,6 @@ struct UpdateSecondariesExecutor
 {
     //// DATA ////
     RefPtr<CoreStateData, MemSpace::native> state;
-    size_type state_size;
 
     //// FUNCTIONS ////
 
@@ -58,11 +57,7 @@ UpdateSecondariesExecutor::operator()(CoreTrackView& track)
     // these new secondaries
     track.counters().num_secondaries = *end;
     track.counters().num_initializers += *end;
-    if (track.counters().num_initializers <= state->init.initializers.size())
-    {
-        track.counters().num_alive = state_size
-                                     - track.counters().num_vacancies;
-    }
+    track.counters().num_alive = state->size() - track.counters().num_vacancies;
 }
 
 //---------------------------------------------------------------------------//

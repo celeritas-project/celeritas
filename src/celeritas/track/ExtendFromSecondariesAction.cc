@@ -78,27 +78,9 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // Launch a kernel to update the secondaries and initializers counters
     this->update_secondaries(core_params, core_state);
 
-    /*! \todo If we don't have space for all the secondaries, we will need to
-     * buffer the current track initializers to create room.
-     *
-     * This isn't trivial because we will need to:
-     * - Allocate a new buffer (probably do something like 2x, rounding up to
-     *   nearest power of 2)?
-     * - Update the collection references for track sim
-     * - Update the *copies* of that reference (?) like in track state
-     * - Copy to device to update the on-device references (state.ptr)
-     */
-
-    auto counters = core_state.sync_get_counters();
-    CELER_VALIDATE(
-        counters.num_initializers <= init.initializers.size(),
-        << "insufficient capacity (" << init.initializers.size()
-        << ") for track initializers (created " << counters.num_secondaries
-        << " new secondaries for a total capacity requirement of "
-        << counters.num_initializers
-        << "): increase initializer capacity or decrease track slots");
-
     // Launch a kernel to create track initializers from secondaries
+    // Note: Test for insufficient space for this many secondaries has been
+    // moved inside the ProcessSecondaries executor
     this->process_secondaries(core_params, core_state);
 }
 
@@ -128,7 +110,7 @@ void ExtendFromSecondariesAction::update_secondaries(
     auto execute_thread = make_single_track_executor(
         core_params.ptr<MemSpace::native>(),
         core_state.ptr(),
-        detail::UpdateSecondariesExecutor{core_state.ptr(), core_state.size()});
+        detail::UpdateSecondariesExecutor{core_state.ptr()});
     launch_core(
         1, "update-secondaries", core_params, core_state, execute_thread);
 }
