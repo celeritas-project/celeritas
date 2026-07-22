@@ -138,27 +138,23 @@ void remove_if_alive(
  *
  * The return value is the sum of all elements in the input array.
  */
-size_type exclusive_scan_counts(
+void exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&
         counts,
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"prefix-sum-counts"};
-    auto& stream = device().stream(stream_id);
+    auto data = device_pointer_cast(counts.data());
 #if CELER_USE_THRUST
     // Exclusive scan:
-    auto data = device_pointer_cast(counts.data());
-    auto stop = thrust::exclusive_scan(
+    thrust::exclusive_scan(
         thrust_execute_on(stream_id), data, data + counts.size(), data, 0_sz);
     CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // Copy the last element (accumulated total) back to host
-    auto result = ItemCopier<size_type>{stream_id}(stop.get() - 1);
 #else
+    auto& stream = device().stream(stream_id);
     // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel.
+    // space needed instead of invoking the kernel
     size_t temp_storage_bytes = 0;
-    auto data = device_pointer_cast(counts.data());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream.get());
@@ -173,13 +169,10 @@ size_type exclusive_scan_counts(
                                                    stream.get());
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // Copy the last element (accumulated total) back to host
-    auto result
-        = ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
 #endif
-    stream.sync();
-    return result;
+    // No synchronization since the next use of the results (data array), which
+    // pulls the value from the results, will use another call on this stream
+    return;
 }
 
 //---------------------------------------------------------------------------//

@@ -47,10 +47,10 @@ void remove_if_alive(
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
-size_type exclusive_scan_counts(
+void exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&,
     StreamId);
-size_type exclusive_scan_counts(
+void exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId);
 
@@ -75,7 +75,7 @@ inline void remove_if_alive(
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline size_type exclusive_scan_counts(
+inline void exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId)
 {
