@@ -9,7 +9,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
-#include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
 {
@@ -92,9 +91,6 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.time = sim.time();
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
-    hit.num_steps = sim.num_steps();
-    hit.track_slot = track.track_slot_id();
-    hit.path_length = sim.step_length();
 
     // Construct unique instance ID from geometry volume path
     auto accum = track.volumes().path_accumulator();
