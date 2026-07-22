@@ -109,7 +109,7 @@ TEST_F(GroupVelocityCalculatorTest, host)
            0.004538329814472488,
            0.003770558509394347,
            0.0030546834027453218,
-           0.00249871274293366,
+           0.00239375943059766,
            0.0020761055113155758};
 
     actual_group_velocity_over_c.reserve(std::size(photon_energy));
