@@ -108,7 +108,8 @@ CELER_FUNCTION HyperslabIndexer<N>::HyperslabIndexer(Coords const& dims)
  * Convert N-dimensional coordinates to an index.
  */
 template<std::size_t N>
-CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Coords const& coords) const
+CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(
+    Coords const& coords) const
 {
     CELER_EXPECT(coords[0] < dims_[0]);
     size_type result = coords[0];

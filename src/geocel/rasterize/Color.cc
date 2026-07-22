@@ -12,8 +12,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static_assert(static_cast<size_type>(Color::Channel::size_)
-              == Color::Byte4{}.size());
+static_assert(
+    static_cast<size_type>(Color::Channel::size_) == Color::Byte4{}.size());
 
 //---------------------------------------------------------------------------//
 /*!

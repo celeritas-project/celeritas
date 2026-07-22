@@ -975,9 +975,9 @@ void GeantGeoParams::build_metadata()
     }();
     if (this->lv_offset() != 0 || this->mat_offset() != 0)
     {
-        CELER_LOG(debug) << "Building after volume stores were cleared: "
-                         << "lv_offset=" << this->lv_offset()
-                         << ", mat_offset=" << this->mat_offset();
+        CELER_LOG(debug)
+            << "Building after volume stores were cleared: lv_offset="
+            << this->lv_offset() << ", mat_offset=" << this->mat_offset();
     }
 
     // Construct volume instance mapper

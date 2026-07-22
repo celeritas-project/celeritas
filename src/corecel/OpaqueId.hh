@@ -258,10 +258,10 @@ class OpaqueId
 
     //// TEMPLATE FRIEND OPERATORS ////
 
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN) \
     CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
-    {                                                                         \
-        return *lhs TOKEN * rhs;                                              \
+    { \
+        return *lhs TOKEN * rhs; \
     }
 
     //!@{
@@ -302,12 +302,12 @@ class OpaqueId
     }
 
 #undef CELER_DEFINE_OPAQUEID_CMP
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
-    template<class J>                                                  \
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN) \
+    template<class J> \
     CELER_CEF friend auto operator TOKEN(OpaqueId lhs, J rhs) noexcept \
-        -> std::enable_if_t<std::is_unsigned_v<J>, bool>               \
-    {                                                                  \
-        return lhs && (static_cast<J>(*lhs) TOKEN rhs);                \
+        -> std::enable_if_t<std::is_unsigned_v<J>, bool> \
+    { \
+        return lhs && (static_cast<J>(*lhs) TOKEN rhs); \
     }
 
     //!@{

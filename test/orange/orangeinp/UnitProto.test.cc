@@ -118,9 +118,8 @@ void append_daughter(UnitProto::Input& inp,
     inp.daughters.emplace_back(std::move(di));
 }
 
-void append_material(UnitProto::Input& inp,
-                     SPConstObject&& obj,
-                     GeoMatId::size_type m)
+void append_material(
+    UnitProto::Input& inp, SPConstObject&& obj, GeoMatId::size_type m)
 {
     CELER_EXPECT(obj);
     UnitProto::MaterialInput mi;

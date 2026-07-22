@@ -163,8 +163,8 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
 /*!
  * Calculate the secondary particle momentum from the sampled energy.
  */
-CELER_FUNCTION real_type
-MuPairProductionInteractor::calc_momentum(Energy energy) const
+CELER_FUNCTION real_type MuPairProductionInteractor::calc_momentum(
+    Energy energy) const
 {
     return std::sqrt(ipow<2>(value_as<Energy>(energy))
                      + 2 * value_as<Mass>(shared_.electron_mass)

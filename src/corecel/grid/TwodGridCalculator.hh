@@ -61,8 +61,8 @@ class TwodGridCalculator
 /*!
  * Construct with grids and node-centered data.
  */
-CELER_FUNCTION TwodGridCalculator::TwodGridCalculator(TwodGridData const& grids,
-                                                      Values const& storage)
+CELER_FUNCTION TwodGridCalculator::TwodGridCalculator(
+    TwodGridData const& grids, Values const& storage)
     : grids_{grids}, storage_(storage)
 {
     CELER_EXPECT(grids);
@@ -88,8 +88,8 @@ CELER_FUNCTION real_type TwodGridCalculator::operator()(Point const& inp) const
 /*!
  * Get an interpolator for a preselected x value.
  */
-CELER_FUNCTION TwodSubgridCalculator
-TwodGridCalculator::operator()(real_type x) const
+CELER_FUNCTION TwodSubgridCalculator TwodGridCalculator::operator()(
+    real_type x) const
 {
     NonuniformGrid<real_type> const x_grid{grids_.x, storage_};
     CELER_EXPECT(x >= x_grid.front() && x < x_grid.back());

@@ -50,9 +50,8 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(SubstepperT&& advance,
-                                          ParticleTrackView const& particle,
-                                          GTV&& geo);
+    inline CELER_FUNCTION FieldPropagator(
+        SubstepperT&& advance, ParticleTrackView const& particle, GTV&& geo);
 
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);

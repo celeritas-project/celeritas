@@ -92,7 +92,8 @@ WavelengthShiftGenerator::WavelengthShiftGenerator(
  * Sampling the wavelength shift (WLS) photons.
  */
 template<class Engine>
-CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(Engine& rng)
+CELER_FUNCTION TrackInitializer WavelengthShiftGenerator::operator()(
+    Engine& rng)
 {
     using namespace celeritas::literals;
 

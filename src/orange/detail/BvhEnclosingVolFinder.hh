@@ -85,8 +85,8 @@ BvhEnclosingVolFinder::BvhEnclosingVolFinder(BvhTreeRecord const& tree,
  * Find a volume that satisfies is_inside_vol.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId
-BvhEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
+CELER_FUNCTION LocalVolumeId BvhEnclosingVolFinder::operator()(
+    Real3 const& pos, F&& is_inside_vol) const
 {
     using Side = BvhInternalNode::Side;
 
@@ -132,8 +132,8 @@ BvhEnclosingVolFinder::operator()(Real3 const& pos, F&& is_inside_vol) const
  * Determine if any leaf node volumes contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId
-BvhEnclosingVolFinder::visit_leaf(BvhNodeId leaf_id, F&& is_inside) const
+CELER_FUNCTION LocalVolumeId BvhEnclosingVolFinder::visit_leaf(
+    BvhNodeId leaf_id, F&& is_inside) const
 {
     for (auto id : view_.leaf_vol_ids(leaf_id))
     {
@@ -150,8 +150,8 @@ BvhEnclosingVolFinder::visit_leaf(BvhNodeId leaf_id, F&& is_inside) const
  * Determine if any volumes in inf_vols contain the point.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId
-BvhEnclosingVolFinder::visit_inf_vols(F&& is_inside) const
+CELER_FUNCTION LocalVolumeId BvhEnclosingVolFinder::visit_inf_vols(
+    F&& is_inside) const
 {
     for (auto id : view_.inf_vol_ids())
     {

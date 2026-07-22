@@ -62,9 +62,8 @@ class RangeGridCalculatorTest : public Test
     using BC = SplineDerivCalculator::BoundaryCondition;
 
     //! Build a dE/dx grid from energy bounds and values
-    void build(real_type energy_min,
-               real_type energy_max,
-               Span<real_type const> dedx)
+    void build(
+        real_type energy_min, real_type energy_max, Span<real_type const> dedx)
     {
         dedx_grid.x = {std::log(energy_min), std::log(energy_max)};
         dedx_grid.y = {dedx.begin(), dedx.end()};

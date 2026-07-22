@@ -58,9 +58,8 @@ class UniformBoxDistribution
  * Construct from upper and lower coordinates.
  */
 template<class RealType>
-CELER_FUNCTION
-UniformBoxDistribution<RealType>::UniformBoxDistribution(result_type lower,
-                                                         result_type upper)
+CELER_FUNCTION UniformBoxDistribution<RealType>::UniformBoxDistribution(
+    result_type lower, result_type upper)
     : sample_pos_{UniformRealDist{lower[0], upper[0]},
                   UniformRealDist{lower[1], upper[1]},
                   UniformRealDist{lower[2], upper[2]}}

@@ -101,10 +101,10 @@ class FresnelCalculator
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-inline CELER_FUNCTION real_type
-calc_relative_r_index(units::MevEnergy energy,
-                      MaterialView const& pre_material,
-                      MaterialView const& post_material)
+inline CELER_FUNCTION real_type calc_relative_r_index(
+    units::MevEnergy energy,
+    MaterialView const& pre_material,
+    MaterialView const& post_material)
 {
     auto calc_r = [energy](MaterialView const& mat) {
         return mat.make_refractive_index_calculator()(

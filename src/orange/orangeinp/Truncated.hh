@@ -69,9 +69,8 @@ class Truncated final : public ObjectInterface
  * Create a truncated region or just a shape.
  */
 template<class T>
-auto Truncated::or_shape(std::string&& label,
-                         T&& interior,
-                         VecPlane&& truncated) -> SPConstObject
+auto Truncated::or_shape(
+    std::string&& label, T&& interior, VecPlane&& truncated) -> SPConstObject
 {
     if (truncated.empty())
     {

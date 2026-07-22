@@ -71,11 +71,11 @@ DistributionVisitor::operator()(F&& func, OnedDistributionId id)
     ODT type = params_.oned_types[id];
     size_type idx = params_.oned_indices[id];
 
-#define CELER_DISTRIB_CASE(ENUM, FIELD)                                     \
-    case ODT::ENUM: {                                                       \
+#define CELER_DISTRIB_CASE(ENUM, FIELD) \
+    case ODT::ENUM: { \
         using TypeT = typename OnedDistributionTypeTraits<ODT::ENUM>::type; \
-        return celeritas::forward<F>(func)(                                 \
-            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]});             \
+        return celeritas::forward<F>(func)( \
+            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]}); \
     }
     switch (type)
     {
@@ -101,11 +101,11 @@ DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
     TDT type = params_.threed_types[id];
     size_type idx = params_.threed_indices[id];
 
-#define CELER_DISTRIB_CASE(ENUM, FIELD)                                       \
-    case TDT::ENUM: {                                                         \
+#define CELER_DISTRIB_CASE(ENUM, FIELD) \
+    case TDT::ENUM: { \
         using TypeT = typename ThreedDistributionTypeTraits<TDT::ENUM>::type; \
-        return celeritas::forward<F>(func)(                                   \
-            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]});               \
+        return celeritas::forward<F>(func)( \
+            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]}); \
     }
     switch (type)
     {

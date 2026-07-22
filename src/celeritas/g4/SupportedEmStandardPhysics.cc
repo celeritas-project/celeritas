@@ -115,10 +115,10 @@ SupportedEmStandardPhysics::SupportedEmStandardPhysics(Options const& options)
 
     em_params.SetNumberOfBinsPerDecade(options.em_bins_per_decade);
     em_params.SetLossFluctuations(options.eloss_fluctuation);
-    em_params.SetMinEnergy(value_as<Options::MevEnergy>(options.min_energy)
-                           * CLHEP::MeV);
-    em_params.SetMaxEnergy(value_as<Options::MevEnergy>(options.max_energy)
-                           * CLHEP::MeV);
+    em_params.SetMinEnergy(
+        value_as<Options::MevEnergy>(options.min_energy) * CLHEP::MeV);
+    em_params.SetMaxEnergy(
+        value_as<Options::MevEnergy>(options.max_energy) * CLHEP::MeV);
     em_params.SetLPM(options.lpm);
     em_params.SetFluo(options.relaxation != RelaxationSelection::none);
     em_params.SetAuger(options.relaxation == RelaxationSelection::all);
@@ -208,8 +208,8 @@ void SupportedEmStandardPhysics::ConstructProcess()
         auto* pm = G4MuonMinus::Definition()->GetProcessManager();
         CELER_ASSERT(pm);
         pm->AddRestProcess(new G4MuonMinusAtomicCapture());
-        CELER_LOG(debug) << "Using muon atomic capture with "
-                            "G4MuonMinusAtomicCapture";
+        CELER_LOG(debug)
+            << "Using muon atomic capture with G4MuonMinusAtomicCapture";
     }
 }
 
@@ -257,8 +257,8 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         // Compton Scattering: G4KleinNishinaCompton
         auto compton_scattering = std::make_unique<G4ComptonScattering>();
         add_process(compton_scattering.release());
-        CELER_LOG(debug) << "Using Compton scattering with "
-                            "G4KleinNishinaCompton";
+        CELER_LOG(debug)
+            << "Using Compton scattering with G4KleinNishinaCompton";
     }
 
     if (options_.photoelectric)
@@ -267,8 +267,8 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         auto pe = std::make_unique<G4PhotoElectricEffect>();
         pe->SetEmModel(new G4LivermorePhotoElectricModel());
         add_process(pe.release());
-        CELER_LOG(debug) << "Using photoelectric effect with "
-                            "G4LivermorePhotoElectricModel";
+        CELER_LOG(debug)
+            << "Using photoelectric effect with G4LivermorePhotoElectricModel";
     }
 
     if (options_.rayleigh_scattering)
@@ -276,8 +276,8 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         // Rayleigh: G4LivermoreRayleighModel
         auto rayl = std::make_unique<G4RayleighScattering>();
         add_process(rayl.release());
-        CELER_LOG(debug) << "Using Rayleigh scattering with "
-                            "G4LivermoreRayleighModel";
+        CELER_LOG(debug)
+            << "Using Rayleigh scattering with G4LivermoreRayleighModel";
     }
 
     if (options_.gamma_conversion)
@@ -286,8 +286,8 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         auto gamma_conversion = std::make_unique<G4GammaConversion>();
         gamma_conversion->SetEmModel(new G4PairProductionRelModel());
         add_process(gamma_conversion.release());
-        CELER_LOG(debug) << "Using gamma conversion with "
-                            "G4PairProductionRelModel";
+        CELER_LOG(debug)
+            << "Using gamma conversion with G4PairProductionRelModel";
     }
 
     if (ggproc)
@@ -320,8 +320,7 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         // e+e- annihilation: G4eeToTwoGammaModel
         ph.RegisterProcess(new G4eplusAnnihilation(), p);
 
-        CELER_LOG(debug) << "Using pair annihilation with "
-                            "G4eplusAnnihilation";
+        CELER_LOG(debug) << "Using pair annihilation with G4eplusAnnihilation";
     }
 
     if (options_.ionization)
@@ -395,8 +394,8 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         if (options_.msc == MMS::urban)
         {
             CELER_LOG(warning)
-                << "Urban multiple scattering is used for all "
-                   "energies: disabling G4eCoulombScatteringModel";
+                << "Urban multiple scattering is used for all energies: "
+                   "disabling G4eCoulombScatteringModel";
         }
         else
         {
@@ -436,10 +435,10 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
                 model->SetHighEnergyLimit(msc_energy_limit);
             }
 
-            CELER_LOG(debug) << "Using multiple scattering with "
-                                "G4UrbanMscModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
+            CELER_LOG(debug)
+                << "Using multiple scattering with G4UrbanMscModel from "
+                << model->LowEnergyLimit() << " MeV to "
+                << model->HighEnergyLimit() << " MeV";
 
             process->SetEmModel(model.release());
         }
@@ -453,10 +452,10 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
             {
                 model->SetLowEnergyLimit(msc_energy_limit);
             }
-            CELER_LOG(debug) << "Using multiple scattering with "
-                                "G4WentzelVIModel from "
-                             << model->LowEnergyLimit() << " MeV to "
-                             << model->HighEnergyLimit() << " MeV";
+            CELER_LOG(debug)
+                << "Using multiple scattering with G4WentzelVIModel from "
+                << model->LowEnergyLimit() << " MeV to "
+                << model->HighEnergyLimit() << " MeV";
 
             process->SetEmModel(model.release());
         }
@@ -480,8 +479,8 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
     if (options_.muon->pair_production)
     {
         ph.RegisterProcess(new G4MuPairProduction(), p);
-        CELER_LOG(debug) << "Using muon pair production with "
-                            "G4MuPairProductionModel";
+        CELER_LOG(debug)
+            << "Using muon pair production with G4MuPairProductionModel";
     }
 
     if (options_.muon->ionization)
@@ -494,15 +493,15 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
     if (options_.muon->bremsstrahlung)
     {
         ph.RegisterProcess(new G4MuBremsstrahlung(), p);
-        CELER_LOG(debug) << "Using muon bremsstrahlung with "
-                            "G4MuBremsstrahlungModel";
+        CELER_LOG(debug)
+            << "Using muon bremsstrahlung with G4MuBremsstrahlungModel";
     }
 
     if (options_.muon->coulomb)
     {
         ph.RegisterProcess(new G4CoulombScattering(), p);
-        CELER_LOG(debug) << "Using muon Coulomb scattering with "
-                            "G4eCoulombScatteringModel";
+        CELER_LOG(debug)
+            << "Using muon Coulomb scattering with G4eCoulombScatteringModel";
     }
 
     if (options_.muon->msc != MscModelSelection::none)
@@ -511,21 +510,21 @@ void SupportedEmStandardPhysics::add_mu_processes(G4ParticleDefinition* p)
         if (options_.muon->msc == MscModelSelection::wentzelvi)
         {
             process->SetEmModel(new G4WentzelVIModel());
-            CELER_LOG(debug) << "Using muon multiple scattering with "
-                                "G4WentzelVIModel";
+            CELER_LOG(debug)
+                << "Using muon multiple scattering with G4WentzelVIModel";
         }
         else if (options_.muon->msc == MscModelSelection::urban)
         {
             process->SetEmModel(new G4UrbanMscModel());
-            CELER_LOG(debug) << "Using muon multiple scattering with "
-                                "G4UrbanMscModel";
+            CELER_LOG(debug)
+                << "Using muon multiple scattering with G4UrbanMscModel";
         }
         else
         {
-            CELER_VALIDATE(false,
-                           << "unsupported muon multiple scattering model "
-                              "selection '"
-                           << options_.muon->msc << "'");
+            CELER_VALIDATE(
+                false,
+                << "unsupported muon multiple scattering model selection '"
+                << options_.muon->msc << "'");
         }
         ph.RegisterProcess(process.release(), p);
     }

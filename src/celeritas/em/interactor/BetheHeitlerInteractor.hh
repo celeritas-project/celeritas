@@ -339,8 +339,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
  * \f$ \delta \f$ is a function of \f$ \epsilon \f$ and is a measure of the
  * "impact parameter" of the incident photon.
  */
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::impact_parameter(real_type eps) const
+CELER_FUNCTION real_type BetheHeitlerInteractor::impact_parameter(
+    real_type eps) const
 {
     return screen_delta_ / (eps * (1 - eps));
 }

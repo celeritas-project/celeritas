@@ -110,8 +110,8 @@ void Transporter::transport_impl(CoreState<M>& state) const
             step_times.push_back(get_step_time());
         }
 
-        if (CELER_UNLIKELY(++num_step_iters
-                           == this->params()->sim()->max_step_iters()))
+        if (CELER_UNLIKELY(
+                ++num_step_iters == this->params()->sim()->max_step_iters()))
         {
             CELER_LOG_LOCAL(error)
                 << "Exceeded step count of "

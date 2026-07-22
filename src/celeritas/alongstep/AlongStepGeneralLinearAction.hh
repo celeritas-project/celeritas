@@ -50,9 +50,8 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
                 bool eloss_fluctuation);
 
     // Construct with next action ID, and optional EM energy fluctuation
-    AlongStepGeneralLinearAction(ActionId id,
-                                 SPConstFluctuations fluct,
-                                 SPConstMsc msc);
+    AlongStepGeneralLinearAction(
+        ActionId id, SPConstFluctuations fluct, SPConstMsc msc);
 
     // Default destructor
     ~AlongStepGeneralLinearAction() final;

@@ -87,8 +87,8 @@ auto GenericGeoTestBase<HP>::geometry() const -> SPConstGeo const&
 template<class HP>
 auto GenericGeoTestBase<HP>::make_geo_track_view_interface() -> UPGeoTrack
 {
-    if constexpr (std::is_same_v<real_type,
-                                 typename TraitsT::TrackView::real_type>)
+    if constexpr (
+        std::is_same_v<real_type, typename TraitsT::TrackView::real_type>)
     {
         return std::make_unique<WrappedGeoTrack>(this->make_geo_track_view());
     }
@@ -166,8 +166,8 @@ auto GenericGeoTestBase<HP>::build_geo_from_geant(
  * Build a new geometry via LazyGeantGeoManager (fallback when no Geant4).
  */
 template<class HP>
-auto GenericGeoTestBase<HP>::build_geo_from_gdml(std::string const& filename) const
-    -> SPConstGeoI
+auto GenericGeoTestBase<HP>::build_geo_from_gdml(
+    std::string const& filename) const -> SPConstGeoI
 {
     CELER_EXPECT(!CELERITAS_USE_GEANT4);
     return HP::from_gdml(filename);

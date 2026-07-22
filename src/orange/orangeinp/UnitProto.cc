@@ -112,8 +112,7 @@ void implicit_parent_boundary(CsgUnit& unit)
         CELER_LOG(debug)
             << "- Some CSG nodes (" << unknowns.size() << " of "
             << orig_tree_size << ", now " << unit.tree.size()
-            << ") could not be logically eliminated from the "
-               "boundary: "
+            << ") could not be logically eliminated from the boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
@@ -234,14 +233,14 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
     CELER_VALIDATE(input_,
                    << "no fill, daughters, or volumes are defined in '"
                    << this->label() << "'");
-    CELER_VALIDATE(std::all_of(input_.materials.begin(),
-                               input_.materials.begin(),
-                               Identity{}),
-                   << "incomplete material definition(s)");
-    CELER_VALIDATE(std::all_of(input_.daughters.begin(),
-                               input_.daughters.begin(),
-                               Identity{}),
-                   << "incomplete daughter definition(s)");
+    CELER_VALIDATE(
+        std::all_of(
+            input_.materials.begin(), input_.materials.begin(), Identity{}),
+        << "incomplete material definition(s)");
+    CELER_VALIDATE(
+        std::all_of(
+            input_.daughters.begin(), input_.daughters.begin(), Identity{}),
+        << "incomplete daughter definition(s)");
     CELER_VALIDATE(input_.boundary.zorder == ZOrder::media
                        || input_.boundary.zorder == ZOrder::exterior,
                    << "invalid exterior zorder '"
@@ -359,8 +358,8 @@ void UnitProto::build(ProtoBuilder& pb) const
     // Loop over all volumes to construct
     auto const& unit_volumes = csg_unit.tree.volumes();
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(unit_volumes.size()
-                           + static_cast<bool>(csg_unit.background));
+    result.volumes.reserve(
+        unit_volumes.size() + static_cast<bool>(csg_unit.background));
 
     // Use user-selected logic to build input: post-processing in OrangeParams
     // will convert to tracking notation if needed
@@ -407,9 +406,9 @@ void UnitProto::build(ProtoBuilder& pb) const
         CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
-    CELER_ASSERT(result.volumes.size()
-                 == unit_volumes.size()
-                        + static_cast<bool>(csg_unit.background));
+    CELER_ASSERT(
+        result.volumes.size()
+        == unit_volumes.size() + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG
@@ -531,9 +530,9 @@ void UnitProto::build(ProtoBuilder& pb) const
         // Save label volumes
         CELER_ASSERT(jp.obj.contains("volumes"));
         auto& jv = jp.obj["volumes"];
-        CELER_VALIDATE(jv.size() == unit_volumes.size(),
-                       << "jv = " << jv.size()
-                       << " csg = " << unit_volumes.size());
+        CELER_VALIDATE(
+            jv.size() == unit_volumes.size(),
+            << "jv = " << jv.size() << " csg = " << unit_volumes.size());
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {

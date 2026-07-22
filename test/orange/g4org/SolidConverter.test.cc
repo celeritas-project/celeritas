@@ -151,8 +151,8 @@ void SolidConverterTest::build_and_test(G4VSolid const& solid,
         SenseEvaluator eval_sense(u.tree, u.surfaces, pos);
         return eval_sense(node);
     };
-    auto calc_g4_sense = [&solid,
-                          inv_scale = 1 / scale_.value()](Real3 const& pos) {
+    auto calc_g4_sense = [&solid, inv_scale = 1 / scale_.value()](
+                             Real3 const& pos) {
         return to_signed_sense(solid.Inside(G4ThreeVector(
             inv_scale * pos[0], inv_scale * pos[1], inv_scale * pos[2])));
     };

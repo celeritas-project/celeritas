@@ -141,8 +141,9 @@ getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
         {
             result.value = true;
         }
-        else if (std::find(std::begin(false_str), std::end(false_str), str_value)
-                 != std::end(false_str))
+        else if (
+            std::find(std::begin(false_str), std::end(false_str), str_value)
+            != std::end(false_str))
         {
             result.value = false;
         }

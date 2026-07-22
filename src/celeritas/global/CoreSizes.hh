@@ -2,50 +2,40 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/CoreSizes.json.hh
+//! \file celeritas/global/CoreSizes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include "corecel/Types.hh"
-#include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
- * Save state size/capacity counters.
+ * Per-process core state and buffer capacities.
  *
- * These should be *integrated* across streams, *per process*.
+ * This stores the resolved values from \c inp::CoreStateCapacity: all values
+ * have been validated and device-dependent defaults have been applied at setup
+ * time. These should be *integrated* across streams, *per process*.
  */
 struct CoreSizes
 {
-    size_type initializers{};
+    size_type primaries{};
     size_type tracks{};
+    size_type initializers{};
     size_type secondaries{};
     size_type events{};
 
     size_type streams{};
     size_type processes{};
+
+    //! True if all values are assigned and valid
+    explicit operator bool() const
+    {
+        return primaries && tracks && initializers && secondaries && events
+               && streams && processes;
+    }
 };
 
 //---------------------------------------------------------------------------//
-
-void to_json(nlohmann::json& j, CoreSizes const& inp)
-{
-    j = {
-        CELER_JSON_PAIR(inp, initializers),
-        CELER_JSON_PAIR(inp, tracks),
-        CELER_JSON_PAIR(inp, secondaries),
-        CELER_JSON_PAIR(inp, events),
-        CELER_JSON_PAIR(inp, streams),
-        CELER_JSON_PAIR(inp, processes),
-    };
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace detail
 }  // namespace celeritas

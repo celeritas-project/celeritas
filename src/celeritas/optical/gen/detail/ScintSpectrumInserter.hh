@@ -162,12 +162,10 @@ void ScintSpectrumInserter::SpectrumVisitor::operator()(
 {
     // Gaussian distribution
     CELER_VALIDATE(spectrum_argument == inp::SpectrumArgument::wavelength,
-                   << "normal distribution scintillation must use "
-                      "wavelength");
+                   << "normal distribution scintillation must use wavelength");
     CELER_VALIDATE(norm_dist.mean > 0,
                    << "invalid lambda_mean=" << norm_dist.mean
-                   << " for scintillation component (should be "
-                      "positive)");
+                   << " for scintillation component (should be positive)");
     CELER_VALIDATE(norm_dist.stddev > 0,
                    << "invalid lambda_sigma=" << norm_dist.stddev
                    << " (should be positive)");
@@ -179,8 +177,8 @@ void ScintSpectrumInserter::SpectrumVisitor::operator()(inp::Grid const& grid)
 {
     // Explicit grid
     CELER_VALIDATE(is_monotonic_increasing(make_span(grid.x)),
-                   << "scintillation spectrum energy grid values are "
-                      "not monotonically increasing");
+                   << "scintillation spectrum energy grid values are not "
+                      "monotonically increasing");
 
     inp::Grid cdf_grid;
     cdf_grid.x = grid.x;

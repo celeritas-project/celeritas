@@ -120,13 +120,11 @@ void SlotDiagnosticTest::RunResult::print_expected() const
             "static char const* const expected_labels[] = "
          << repr(this->labels)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_labels, "
-            "result.labels);\n"
+            "EXPECT_VEC_EQ(expected_labels, result.labels);\n"
             "static char const* const expected_slots[] = "
          << repr(this->slots)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_slots, "
-            "result.slots);\n"
+            "EXPECT_VEC_EQ(expected_slots, result.slots);\n"
             "/*** END CODE ***/\n";
 }
 

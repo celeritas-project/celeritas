@@ -55,7 +55,7 @@ void check_input(T const& expected, T const& actual)
 }
 
 #define CHECK_DECL(TYPE) \
-    template<>           \
+    template<> \
     void check_input<TYPE>(TYPE const& expected, TYPE const& actual)
 
 CHECK_DECL(inp::Grid)

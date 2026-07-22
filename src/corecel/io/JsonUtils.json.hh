@@ -30,14 +30,14 @@
  *
  * If the field is missing or null, it is omitted.
  */
-#define CELER_JSON_LOAD_OPTION(OBJ, STRUCT, NAME)  \
-    do                                             \
-    {                                              \
-        if (auto iter = OBJ.find(#NAME);           \
+#define CELER_JSON_LOAD_OPTION(OBJ, STRUCT, NAME) \
+    do \
+    { \
+        if (auto iter = OBJ.find(#NAME); \
             iter != OBJ.end() && !iter->is_null()) \
-        {                                          \
-            iter->get_to(STRUCT.NAME);             \
-        }                                          \
+        { \
+            iter->get_to(STRUCT.NAME); \
+        } \
     } while (0)
 
 /*!
@@ -54,19 +54,19 @@
 /*!
  * Load a field if present and set a default value otherwise.
  */
-#define CELER_JSON_LOAD_DEFAULT(OBJ, STRUCT, NAME, DEFAULT)                 \
-    do                                                                      \
-    {                                                                       \
-        if (auto iter = OBJ.find(#NAME);                                    \
-            iter != OBJ.end() && !iter->is_null())                          \
-        {                                                                   \
-            iter->get_to(STRUCT.NAME);                                      \
-        }                                                                   \
-        else                                                                \
-        {                                                                   \
-            STRUCT.NAME = DEFAULT;                                          \
+#define CELER_JSON_LOAD_DEFAULT(OBJ, STRUCT, NAME, DEFAULT) \
+    do \
+    { \
+        if (auto iter = OBJ.find(#NAME); \
+            iter != OBJ.end() && !iter->is_null()) \
+        { \
+            iter->get_to(STRUCT.NAME); \
+        } \
+        else \
+        { \
+            STRUCT.NAME = DEFAULT; \
             CELER_LOG(debug) << "Set '" << #NAME << "' to " << STRUCT.NAME; \
-        }                                                                   \
+        } \
     } while (0)
 
 /*!
@@ -74,27 +74,27 @@
  *
  * If the field is missing or null, it is omitted.
  */
-#define CELER_JSON_LOAD_DEPRECATED(OBJ, STRUCT, OLD, NEW)         \
-    do                                                            \
-    {                                                             \
-        if (auto iter = OBJ.find(#OLD); iter != OBJ.end())        \
-        {                                                         \
+#define CELER_JSON_LOAD_DEPRECATED(OBJ, STRUCT, OLD, NEW) \
+    do \
+    { \
+        if (auto iter = OBJ.find(#OLD); iter != OBJ.end()) \
+        { \
             ::celeritas::warn_deprecated_json_option(#OLD, #NEW); \
-            iter->get_to(STRUCT.NEW);                             \
-        }                                                         \
+            iter->get_to(STRUCT.NEW); \
+        } \
     } while (0)
 
 /*!
  * Load a variant alternative encoded with a string "_type" tag.
  */
 #define CELER_JSON_LOAD_VARIANT(OBJ, VALUE, TAG, TYPE) \
-    do                                                 \
-    {                                                  \
-        if ((OBJ).at("_type") == #TAG)                 \
-        {                                              \
-            VALUE = (OBJ).get<TYPE>();                 \
-            return;                                    \
-        }                                              \
+    do \
+    { \
+        if ((OBJ).at("_type") == #TAG) \
+        { \
+            VALUE = (OBJ).get<TYPE>(); \
+            return; \
+        } \
     } while (0)
 
 /*!
@@ -110,16 +110,16 @@
  * \note Prefer CELER_JSON_PAIR_WHEN over this.
  */
 #define CELER_JSON_SAVE_WHEN(OBJ, STRUCT, NAME, COND) \
-    do                                                \
-    {                                                 \
-        if ((COND))                                   \
-        {                                             \
-            CELER_JSON_SAVE(OBJ, STRUCT, NAME);       \
-        }                                             \
-        else                                          \
-        {                                             \
-            OBJ[#NAME] = nullptr;                     \
-        }                                             \
+    do \
+    { \
+        if ((COND)) \
+        { \
+            CELER_JSON_SAVE(OBJ, STRUCT, NAME); \
+        } \
+        else \
+        { \
+            OBJ[#NAME] = nullptr; \
+        } \
     } while (0)
 
 /*!
@@ -142,8 +142,8 @@
 /*!
  * Construct a key/value pair with null value when std::optional is false.
  */
-#define CELER_JSON_PAIR_OPTIONAL(STRUCT, NAME)       \
-    {#NAME,                                          \
+#define CELER_JSON_PAIR_OPTIONAL(STRUCT, NAME) \
+    {#NAME, \
      ((STRUCT.NAME) ? nlohmann::json(*(STRUCT.NAME)) \
                     : nlohmann::json(nullptr))}
 
@@ -199,9 +199,8 @@ nlohmann::json variants_to_json(std::vector<T> const& values)
  * Load a \c std::optional field.
  */
 template<class T>
-void load_json_optional(nlohmann::json const& j,
-                        char const* name,
-                        std::optional<T>& value)
+void load_json_optional(
+    nlohmann::json const& j, char const* name, std::optional<T>& value)
 {
     auto iter = j.find(name);
     if (iter == j.end())

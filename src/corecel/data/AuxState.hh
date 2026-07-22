@@ -127,9 +127,8 @@ make_aux_state(MemSpace m, StreamId stream_id, size_type size)
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<template<Ownership, MemSpace> class P>
-AuxState<S, M>::AuxState(HostCRef<P> const& p,
-                         StreamId stream_id,
-                         size_type size)
+AuxState<S, M>::AuxState(
+    HostCRef<P> const& p, StreamId stream_id, size_type size)
     : store_{p, stream_id, size}
 {
 }

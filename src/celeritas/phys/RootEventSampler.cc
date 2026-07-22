@@ -28,8 +28,8 @@ RootEventSampler::RootEventSampler(std::string const& filename,
     CELER_EXPECT(particles);
 
     reader_ = std::make_unique<RootEventReader>(filename, std::move(particles));
-    CELER_EXPECT(num_merged_events_ > 0
-                 && num_merged_events_ <= reader_->num_events());
+    CELER_EXPECT(
+        num_merged_events_ > 0 && num_merged_events_ <= reader_->num_events());
 
     rng_.seed(seed);
     select_event_

@@ -44,9 +44,9 @@ EventReader::EventReader(std::string const& filename,
 #else
         temp_reader->skip(0);
 #endif
-        CELER_VALIDATE(!temp_reader->failed(),
-                       << "event file '" << filename
-                       << "' did not contain any events");
+        CELER_VALIDATE(
+            !temp_reader->failed(),
+            << "event file '" << filename << "' did not contain any events");
         do
         {
             result++;
@@ -164,10 +164,10 @@ auto EventReader::operator()() -> result_type
         result.push_back(primary);
     }
 
-    CELER_VALIDATE(!result.empty(),
-                   << "event " << event_id.get()
-                   << " did not contain any primaries suitable for "
-                      "simulation");
+    CELER_VALIDATE(
+        !result.empty(),
+        << "event " << event_id.get()
+        << " did not contain any primaries suitable for simulation");
 
     CELER_VALIDATE(missing_pdg.empty(),
                    << "event " << event_id.get()

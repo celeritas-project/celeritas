@@ -61,9 +61,8 @@ class InverseSquareDistribution
  * out of order.
  */
 template<class RealType>
-CELER_FUNCTION
-InverseSquareDistribution<RealType>::InverseSquareDistribution(real_type a,
-                                                               real_type b)
+CELER_FUNCTION InverseSquareDistribution<RealType>::InverseSquareDistribution(
+    real_type a, real_type b)
     : product_{a * b}, sample_denom_{a, b}
 {
     CELER_EXPECT(a > 0);

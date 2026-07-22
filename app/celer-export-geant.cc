@@ -154,8 +154,8 @@ int main(int argc, char* argv[])
     cli.add_option("gdml", gdml_filename, "Input GDML file")
         ->check(CLI::ExistingFile);
     cli.add_option("physopt", opts_filename, "Geant physics options JSON")
-        ->check(CLI::ExistingFile | dash_validator()
-                | empty_string_validator());
+        ->check(
+            CLI::ExistingFile | dash_validator() | empty_string_validator());
     cli.add_option("output",
                    out_filename,
                    R"(Output file (ROOT or JSON or '-' for stdout JSON))");

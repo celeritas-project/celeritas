@@ -94,9 +94,9 @@ TEST_F(MieTest, mie_basic)
     if constexpr (std::is_same_v<real_type, double>)
     {
         static real_type const expected_dir_angle[] = {
-            0.997467127484242,
+            -0.997467127484242,
             0.999530487034177,
-            0.999999642467185,
+            -0.999999642467185,
             0.996187032055894,
         };
         static real_type const expected_pol_angle[] = {
@@ -150,14 +150,14 @@ TEST_F(MieTest, stress_test)
                  || accum_pol.underflow() || accum_pol.overflow());
 
     static double const expected_accum_dir[] = {
-        0.04042,
+        0.792728,
         0.001868,
         0.002324,
         0.002896,
         0.0042,
         0.00708,
         0.0164,
-        3.924812,
+        3.172504,
     };
     static double const expected_accum_pol[] = {
         1.992904,

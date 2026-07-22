@@ -63,10 +63,8 @@ class TruncatedDistribution
  */
 template<class Distribution>
 template<class... Args>
-CELER_FUNCTION
-TruncatedDistribution<Distribution>::TruncatedDistribution(real_type lower,
-                                                           real_type upper,
-                                                           Args&&... args)
+CELER_FUNCTION TruncatedDistribution<Distribution>::TruncatedDistribution(
+    real_type lower, real_type upper, Args&&... args)
     : sample_(celeritas::forward<Args>(args)...), lower_(lower), upper_(upper)
 {
     CELER_EXPECT(lower < upper);

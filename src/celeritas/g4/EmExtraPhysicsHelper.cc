@@ -20,10 +20,10 @@ namespace celeritas
  */
 EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
-    CELER_VALIDATE(G4VERSION_NUMBER >= 1100,
-                   << "compiled version of Geant4 (" << G4VERSION_NUMBER
-                   << ") is too old for gamma-nuclear cross section "
-                      "calculation");
+    CELER_VALIDATE(
+        G4VERSION_NUMBER >= 1100,
+        << "compiled version of Geant4 (" << G4VERSION_NUMBER
+        << ") is too old for gamma-nuclear cross section calculation");
     particle_ = std::make_shared<G4DynamicParticle>();
     en_xs_ = std::make_shared<G4ElectroNuclearCrossSection>();
     gn_xs_ = std::make_shared<G4GammaNuclearXS>();
@@ -39,9 +39,8 @@ EmExtraPhysicsHelper::EmExtraPhysicsHelper()
  * Calculate the electro-nuclear element cross section using
  * G4ElectroNuclearCrossSection.
  */
-auto EmExtraPhysicsHelper::calc_electro_nuclear_xs(AtomicNumber z,
-                                                   MevEnergy energy) const
-    -> MmSqXs
+auto EmExtraPhysicsHelper::calc_electro_nuclear_xs(
+    AtomicNumber z, MevEnergy energy) const -> MmSqXs
 {
     particle_->SetKineticEnergy(energy.value());
     return MmSqXs{
@@ -52,9 +51,8 @@ auto EmExtraPhysicsHelper::calc_electro_nuclear_xs(AtomicNumber z,
 /*!
  * Calculate the gamma-nuclear element cross section using G4GammaNuclearXS.
  */
-auto EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber z,
-                                                 MevEnergy energy) const
-    -> MmSqXs
+auto EmExtraPhysicsHelper::calc_gamma_nuclear_xs(
+    AtomicNumber z, MevEnergy energy) const -> MmSqXs
 {
     return MmSqXs{gn_xs_->ElementCrossSection(energy.value(), z.get())};
 }

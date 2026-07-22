@@ -27,10 +27,8 @@ bool g_has_root_errored_{false};
 /*!
  * Actual ROOT Error Handler function for Celeritas.
  */
-void RootErrorHandler(Int_t rootlevel,
-                      Bool_t must_abort,
-                      char const* location,
-                      char const* msg)
+void RootErrorHandler(
+    Int_t rootlevel, Bool_t must_abort, char const* location, char const* msg)
 {
     if (rootlevel < gErrorIgnoreLevel)
         return;
@@ -115,9 +113,9 @@ void ScopedRootErrorHandler::throw_if_errors() const
 {
     bool prev_errored = g_has_root_errored_;
     g_has_root_errored_ = false;
-    CELER_VALIDATE(!prev_errored,
-                   << "ROOT encountered non-fatal errors: see log messages "
-                      "above");
+    CELER_VALIDATE(
+        !prev_errored,
+        << "ROOT encountered non-fatal errors: see log messages above");
 }
 
 //---------------------------------------------------------------------------//

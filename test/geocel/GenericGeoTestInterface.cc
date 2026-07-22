@@ -33,9 +33,8 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-void log_ggti_exception(LogProvenance where,
-                        char const* action,
-                        CheckedGeoError const& e)
+void log_ggti_exception(
+    LogProvenance where, char const* action, CheckedGeoError const& e)
 {
     auto& log = self_logger();
     auto const& d = e.details();
@@ -95,22 +94,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                 \
-    try                                                              \
-    {                                                                \
-        ACTION;                                                      \
-    }                                                                \
-    catch (CheckedGeoError const& e)                                 \
-    {                                                                \
-        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e);       \
-        result.fail();                                               \
-        return result;                                               \
-    }                                                                \
-    catch (std::exception const& e)                                  \
-    {                                                                \
+#define GGTI_EXPECT_NO_THROW(ACTION) \
+    try \
+    { \
+        ACTION; \
+    } \
+    catch (CheckedGeoError const& e) \
+    { \
+        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e); \
+        result.fail(); \
+        return result; \
+    } \
+    catch (std::exception const& e) \
+    { \
         ADD_FAILURE() << StreamableActionException{#ACTION, geo, e}; \
-        result.fail();                                               \
-        return result;                                               \
+        result.fail(); \
+        return result; \
     }
 
     // Note: position is scaled according to test
@@ -221,9 +220,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
 }
 
 // Track until exiting the geometry (default test tol)
-auto GenericGeoTestInterface::track(Real3 const& pos_cm,
-                                    Real3 const& dir,
-                                    int max_steps) -> TrackingResult
+auto GenericGeoTestInterface::track(
+    Real3 const& pos_cm, Real3 const& dir, int max_steps) -> TrackingResult
 {
     return this->track(pos_cm, dir, this->tracking_tol(), max_steps);
 }
@@ -316,9 +314,8 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 /*!
  * Construct an initializer with correct scaling/normalization.
  */
-GeoTrackInitializer
-GenericGeoTestInterface::make_initializer(Real3 const& pos_unit_length,
-                                          Real3 const& dir) const
+GeoTrackInitializer GenericGeoTestInterface::make_initializer(
+    Real3 const& pos_unit_length, Real3 const& dir) const
 {
     GeoTrackInitializer init{pos_unit_length, make_unit_vector(dir)};
     init.pos *= static_cast<real_type>(this->unit_length().value);

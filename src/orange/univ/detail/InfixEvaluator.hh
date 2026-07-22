@@ -81,8 +81,8 @@ CELER_FUNCTION bool InfixEvaluator::operator()(F&& eval_sense) const
         {
             result = static_cast<bool>(eval_sense(FaceId{lgc}));
         }
-        else if ((lgc == logic::lor && result)
-                 || (lgc == logic::land && !result))
+        else if (
+            (lgc == logic::lor && result) || (lgc == logic::land && !result))
         {
             if (par_depth == 0)
             {

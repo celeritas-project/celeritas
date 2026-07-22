@@ -86,9 +86,8 @@ CELER_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
  * "natural" unit system used by the \c ParticleTrackView.
  */
 template<class FieldT>
-CELER_FUNCTION
-MagFieldEquation<FieldT>::MagFieldEquation(FieldT&& field,
-                                           units::ElementaryCharge charge)
+CELER_FUNCTION MagFieldEquation<FieldT>::MagFieldEquation(
+    FieldT&& field, units::ElementaryCharge charge)
     : calc_field_(::celeritas::forward<FieldT>(field))
     , coeffi_{native_value_from(charge)
               / native_value_from(OdeState::MomentumUnits{1})}

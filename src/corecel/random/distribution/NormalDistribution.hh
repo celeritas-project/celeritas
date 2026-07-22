@@ -90,9 +90,8 @@ class NormalDistribution
  * Construct with mean and standard deviation.
  */
 template<class RealType>
-CELER_FUNCTION
-NormalDistribution<RealType>::NormalDistribution(real_type mean,
-                                                 real_type stddev)
+CELER_FUNCTION NormalDistribution<RealType>::NormalDistribution(
+    real_type mean, real_type stddev)
     : mean_(mean), stddev_(stddev)
 {
     CELER_EXPECT(stddev > 0);

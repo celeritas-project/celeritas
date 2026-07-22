@@ -77,10 +77,10 @@ StepParams::StepParams(AuxId aux_id,
         {
             has_det = this_has_detectors;
         }
-        CELER_VALIDATE(this_has_detectors == has_det,
-                       << "inconsistent step callbacks: mixing those with "
-                          "detectors and those without is currently "
-                          "unsupported");
+        CELER_VALIDATE(
+            this_has_detectors == has_det,
+            << "inconsistent step callbacks: mixing those with detectors and "
+               "those without is currently unsupported");
     }
     CELER_ASSERT(selection);
     CELER_ASSERT((has_det == HasDetectors::none) == detector_map.empty());
@@ -114,8 +114,8 @@ StepParams::StepParams(AuxId aux_id,
             // representation
             host_data.num_volume_levels = volume_params.num_volume_levels();
             CELER_VALIDATE(host_data.num_volume_levels > 0,
-                           << "geometry type does not support volume "
-                              "instance IDs: max depth is "
+                           << "geometry type does not support volume instance "
+                              "IDs: max depth is "
                            << host_data.num_volume_levels);
         }
 

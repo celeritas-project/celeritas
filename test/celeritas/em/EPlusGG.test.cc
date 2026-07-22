@@ -213,8 +213,8 @@ TEST_F(EPlusGGInteractorTest, stress_test)
                       this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(real_type(rng_engine.count())
-                                     / real_type(num_particles_sampled));
+        avg_engine_samples.push_back(
+            real_type(rng_engine.count()) / real_type(num_particles_sampled));
     }
 
     // PRINT_EXPECTED(avg_engine_samples);

@@ -128,9 +128,8 @@ void verify_tracking_managers(Span<G4PD const* const> expected,
                       "active in Celeritas: missing "
                    << join(missing.begin(), missing.end(), ", ", printable_pd));
     CELER_VALIDATE(all_attached_correctly,
-                   << "tracking manager(s) are not attached correctly "
-                      "(maybe add TrackingManagerConstructor to your physics "
-                      "list?)");
+                   << "tracking manager(s) are not attached correctly (maybe "
+                      "add TrackingManagerConstructor to your physics list?)");
 }
 
 //---------------------------------------------------------------------------//

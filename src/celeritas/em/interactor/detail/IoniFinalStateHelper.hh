@@ -97,8 +97,8 @@ template<class Engine>
 CELER_FUNCTION Interaction IoniFinalStateHelper::operator()(Engine& rng)
 {
     // Calculate the polar angle of the exiting electron
-    real_type momentum = std::sqrt(electron_energy_
-                                   * (electron_energy_ + 2 * electron_mass_));
+    real_type momentum = std::sqrt(
+        electron_energy_ * (electron_energy_ + 2 * electron_mass_));
     real_type costheta = electron_energy_
                          * (inc_energy_ + inc_mass_ + electron_mass_)
                          / (momentum * inc_momentum_);

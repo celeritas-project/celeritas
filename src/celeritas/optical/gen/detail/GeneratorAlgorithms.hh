@@ -29,8 +29,8 @@ using ItemsRef = Collection<T, Ownership::reference, M>;
  * This finds the index in offsets for which offsets[result - 1] <= value <
  * offsets[result].
  */
-inline CELER_FUNCTION size_type find_distribution_index(Span<size_type> offsets,
-                                                        size_type value)
+inline CELER_FUNCTION size_type find_distribution_index(
+    Span<size_type> offsets, size_type value)
 {
     CELER_EXPECT(!offsets.empty());
 

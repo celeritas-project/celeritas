@@ -118,26 +118,26 @@ void trace(StepperResult const& track_counts)
     trace_(track_counts);
 }
 
-#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER)           \
-    do                                                              \
-    {                                                               \
-        if (CELER_UNLIKELY(!(COND)))                                \
-        {                                                           \
-            std::ostringstream celer_runtime_msg_;                  \
-            celer_runtime_msg_ MSG;                                 \
-            if (nonfatal_flush())                                   \
-            {                                                       \
+#define CELER_VALIDATE_OR_KILL_ACTIVE(COND, MSG, STEPPER) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream celer_runtime_msg_; \
+            celer_runtime_msg_ MSG; \
+            if (nonfatal_flush()) \
+            { \
                 CELER_LOG_LOCAL(error) << celer_runtime_msg_.str(); \
-                (STEPPER).kill_active();                            \
-            }                                                       \
-            else                                                    \
-            {                                                       \
-                CELER_RUNTIME_FAIL(                                 \
-                    ::celeritas::RuntimeError::validate_err_str,    \
-                    celer_runtime_msg_.str(),                       \
-                    #COND);                                         \
-            }                                                       \
-        }                                                           \
+                (STEPPER).kill_active(); \
+            } \
+            else \
+            { \
+                CELER_RUNTIME_FAIL( \
+                    ::celeritas::RuntimeError::validate_err_str, \
+                    celer_runtime_msg_.str(), \
+                    #COND); \
+            } \
+        } \
     } while (0)
 }  // namespace
 
@@ -147,7 +147,9 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : max_step_iters_(options.max_step_iters)
+    : auto_flush_(params.Params()->sizes().primaries
+                  / params.Params()->sizes().streams)
+    , max_step_iters_(options.max_step_iters)
     , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
@@ -159,24 +161,12 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
                    << "invalid optical photon generation mechanism for local "
                       "transporter");
 
-    if (options.auto_flush)
-    {
-        auto_flush_ = options.auto_flush;
-    }
-    else
-    {
-        // Get default *per-process* auto flush and divide by number of streams
-        auto capacity = inp::CoreStateCapacity::from_default(
-            celeritas::Device::num_devices());
-        auto_flush_ = capacity.primaries / params.Params()->max_streams();
-    }
-
     particles_ = params.Params()->particle();
     CELER_ASSERT(particles_);
     bbox_ = params.bbox();
 
     // Check the thread ID and MT model
-    validate_geant_threading(params.Params()->max_streams());
+    validate_geant_threading(params.Params()->sizes().streams);
 
     // Create hit processor on the local thread so that it's deallocated when
     // this object is destroyed
@@ -410,11 +400,11 @@ void LocalTransporter::flush_impl()
 
     while (track_counts)
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
-                                      << max_step_iters_ << ")",
-                                      *step_);
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            step_iters < max_step_iters_,
+            << "number of step iterations exceeded the allowed maximum ("
+            << max_step_iters_ << ")",
+            *step_);
 
         track_counts = (*step_)();
         run_accum_.steps += track_counts.active;

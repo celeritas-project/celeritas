@@ -89,19 +89,19 @@ class SignedPermutation
     //// CALCULATION ////
 
     // Transform from daughter to parent
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_up(Real3 const& pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_up(
+        Real3 const& pos) const;
 
     // Transform from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_down(Real3 const& parent_pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_down(
+        Real3 const& parent_pos) const;
 
     // Rotate from daughter to parent
     [[nodiscard]] inline CELER_FUNCTION Real3 rotate_up(Real3 const& dir) const;
 
     // Rotate from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    rotate_down(Real3 const& parent_dir) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 rotate_down(
+        Real3 const& parent_dir) const;
 
   private:
     //// DATA ////
@@ -150,8 +150,8 @@ CELER_FUNCTION SignedPermutation::SignedPermutation(StorageSpan s)
 /*!
  * Transform from daughter to parent.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-SignedPermutation::transform_up(Real3 const& pos) const
+CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::transform_up(
+    Real3 const& pos) const
 {
     return this->rotate_up(pos);
 }
@@ -160,8 +160,8 @@ SignedPermutation::transform_up(Real3 const& pos) const
 /*!
  * Transform from parent to daughter.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-SignedPermutation::transform_down(Real3 const& parent_pos) const
+CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::transform_down(
+    Real3 const& parent_pos) const
 {
     return this->rotate_down(parent_pos);
 }
@@ -170,7 +170,8 @@ SignedPermutation::transform_down(Real3 const& parent_pos) const
 /*!
  * Rotate from daughter to parent.
  */
-CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::rotate_up(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::rotate_up(
+    Real3 const& d) const
 {
     Real3 result;
 
@@ -196,8 +197,8 @@ CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::rotate_up(Real3 const& d) co
 /*!
  * Rotate from parent to daughter.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-SignedPermutation::rotate_down(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 SignedPermutation::rotate_down(
+    Real3 const& d) const
 {
     Real3 result;
 

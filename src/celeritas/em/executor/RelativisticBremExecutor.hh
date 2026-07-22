@@ -17,8 +17,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct RelativisticBremExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<RelativisticBremData> params;
 };
@@ -27,8 +27,8 @@ struct RelativisticBremExecutor
 /*!
  * Apply RelativisticBrem to the current track.
  */
-CELER_FUNCTION Interaction
-RelativisticBremExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction RelativisticBremExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto cutoff = track.cutoff();
     auto material = track.material().material_record();

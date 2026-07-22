@@ -26,8 +26,8 @@ GeantSimpleCaloSD::GeantSimpleCaloSD(SPStorage storage, size_type thread_id)
 {
     CELER_EXPECT(storage_);
     CELER_EXPECT(thread_id < storage_->data.size());
-    CELER_EXPECT(storage_->data[thread_id].size()
-                 == storage_->volume_to_index.size());
+    CELER_EXPECT(
+        storage_->data[thread_id].size() == storage_->volume_to_index.size());
 }
 
 //---------------------------------------------------------------------------//

@@ -22,10 +22,8 @@ namespace test
 #if CELERITAS_USE_COVFIE
 
 //! Write a tiny 3D covfie field (nx x ny x nz) with Bi = index_i
-void write_cart_covfie(std::string const& path,
-                       std::size_t nx,
-                       std::size_t ny,
-                       std::size_t nz);
+void write_cart_covfie(
+    std::string const& path, std::size_t nx, std::size_t ny, std::size_t nz);
 
 //! Write a tiny 2D covfie field (nr x nz) with Br = ir, Bz = iz
 void write_rz_covfie(std::string const& path, std::size_t nr, std::size_t nz);

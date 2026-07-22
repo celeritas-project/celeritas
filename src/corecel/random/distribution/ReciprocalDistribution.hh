@@ -83,9 +83,8 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a)
  * optimize better for the constexpr case a=1.
  */
 template<class RealType>
-CELER_FUNCTION
-ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
-                                                         real_type b)
+CELER_FUNCTION ReciprocalDistribution<RealType>::ReciprocalDistribution(
+    real_type a, real_type b)
     : a_(a), logratio_(std::log((1 / a) * b))
 {
     CELER_EXPECT(a > 0);

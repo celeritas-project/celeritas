@@ -21,10 +21,10 @@
 // MACROS
 //---------------------------------------------------------------------------//
 //! Inject the source code provenance (current file and line)
-#define CELER_CODE_PROVENANCE  \
+#define CELER_CODE_PROVENANCE \
     ::celeritas::LogProvenance \
-    {                          \
-        __FILE__, __LINE__     \
+    { \
+        __FILE__, __LINE__ \
     }
 
 /*!
@@ -43,7 +43,7 @@
  CELER_LOG(critical) << "Caught a fatal exception: " << e.what();
  * \endcode
  */
-#define CELER_LOG(LEVEL)                               \
+#define CELER_LOG(LEVEL) \
     ::celeritas::world_logger()(CELER_CODE_PROVENANCE, \
                                 ::celeritas::LogLevel::LEVEL)
 
@@ -55,7 +55,7 @@
  * should be used for error messages from an event or
  * track at runtime.
  */
-#define CELER_LOG_LOCAL(LEVEL)                        \
+#define CELER_LOG_LOCAL(LEVEL) \
     ::celeritas::self_logger()(CELER_CODE_PROVENANCE, \
                                ::celeritas::LogLevel::LEVEL)
 

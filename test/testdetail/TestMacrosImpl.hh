@@ -425,8 +425,8 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    if constexpr (IsNestedContainer_v<ContainerE>
-                  && IsNestedContainer_v<ContainerA>)
+    if constexpr (
+        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -620,8 +620,8 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    if constexpr (IsNestedContainer_v<ContainerE>
-                  && IsNestedContainer_v<ContainerA>)
+    if constexpr (
+        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));

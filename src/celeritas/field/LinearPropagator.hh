@@ -64,8 +64,8 @@ CELER_FUNCTION auto LinearPropagator<GTV>::operator()(real_type dist)
     {
         // TODO: allow distance traveled to be less than the input distance for
         // cases like bumps, internal boundary, etc.
-        CELER_ASSERT(result.distance <= dist
-                     && (result.distance > 0 || geo_.failed()));
+        CELER_ASSERT(
+            result.distance <= dist && (result.distance > 0 || geo_.failed()));
         geo_.move_internal(dist);
     }
 

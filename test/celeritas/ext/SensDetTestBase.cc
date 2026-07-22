@@ -54,10 +54,10 @@ auto SensDetTestBase::build_geant_geo(std::string const& filename) const
         sd_vol_names.erase(name_iter);
     }
 
-    CELER_VALIDATE(sd_vol_names.empty(),
-                   << "SD volumes were specified that don't exist in the "
-                      "geometry: "
-                   << join(sd_vol_names.begin(), sd_vol_names.end(), ", "));
+    CELER_VALIDATE(
+        sd_vol_names.empty(),
+        << "SD volumes were specified that don't exist in the geometry: "
+        << join(sd_vol_names.begin(), sd_vol_names.end(), ", "));
     return result;
 }
 
@@ -76,9 +76,9 @@ auto SensDetTestBase::build_geometry() -> SPConstCoreGeo
             if (auto* ssd = dynamic_cast<SimpleSensitiveDetector*>(sd))
             {
                 auto [iter, inserted] = detectors_.insert({lv->GetName(), ssd});
-                CELER_VALIDATE(inserted,
-                               << "duplicate sensitive detector name: "
-                               << iter->first);
+                CELER_VALIDATE(
+                    inserted,
+                    << "duplicate sensitive detector name: " << iter->first);
 
                 // Clear hits if we're rebuilding the geometry
                 ssd->clear();

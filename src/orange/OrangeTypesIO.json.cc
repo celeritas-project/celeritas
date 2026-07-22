@@ -27,9 +27,9 @@ void from_json(nlohmann::json const& j, Tolerance<T>& value)
     }
 
     j.at("rel").get_to(value.rel);
-    CELER_VALIDATE(value.rel > 0 && value.rel < 1,
-                   << "tolerance " << value.rel
-                   << " is out of range [must be in (0,1)]");
+    CELER_VALIDATE(
+        value.rel > 0 && value.rel < 1,
+        << "tolerance " << value.rel << " is out of range [must be in (0,1)]");
 
     j.at("abs").get_to(value.abs);
     CELER_VALIDATE(value.abs > 0,

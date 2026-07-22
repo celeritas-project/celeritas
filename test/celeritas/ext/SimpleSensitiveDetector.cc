@@ -38,8 +38,7 @@ void SimpleHitsResult::print_expected() const
             "static double const expected_step_length[] = "
          << repr(this->step_length)
          << ";\n"
-            "EXPECT_VEC_SOFT_EQ(expected_step_length, "
-            "result.step_length);\n"
+            "EXPECT_VEC_SOFT_EQ(expected_step_length, result.step_length);\n"
 
             "static char const* const expected_particle[] = "
          << repr(this->particle)
@@ -172,8 +171,8 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         auto* vol = touchable->GetVolume();
         hits_.pre_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
     }
-    hits_.post_time.push_back(step->GetPostStepPoint()->GetGlobalTime()
-                              / CLHEP::ns);
+    hits_.post_time.push_back(
+        step->GetPostStepPoint()->GetGlobalTime() / CLHEP::ns);
 
     if (auto* post_step = step->GetPostStepPoint())
     {

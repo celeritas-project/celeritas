@@ -34,9 +34,8 @@ class NeutronInelasticInteractor
 
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    NeutronInelasticInteractor(NeutronInelasticRef const& shared,
-                               ParticleTrackView const& particle);
+    inline CELER_FUNCTION NeutronInelasticInteractor(
+        NeutronInelasticRef const& shared, ParticleTrackView const& particle);
 
     // Sample an interaction with the given RNG
     template<class Engine>

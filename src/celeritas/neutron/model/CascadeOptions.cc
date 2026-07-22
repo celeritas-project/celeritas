@@ -16,9 +16,9 @@ namespace celeritas
  */
 void validate_input(CascadeOptions const& opts)
 {
-    CELER_VALIDATE(opts.prob_pion_absorption >= 0,
-                   << "invalid prob_pion_absorption "
-                   << opts.prob_pion_absorption);
+    CELER_VALIDATE(
+        opts.prob_pion_absorption >= 0,
+        << "invalid prob_pion_absorption " << opts.prob_pion_absorption);
     CELER_VALIDATE(opts.radius_scale > 0,
                    << "invalid radius_scale " << opts.radius_scale);
     CELER_VALIDATE(opts.radius_small > 0,

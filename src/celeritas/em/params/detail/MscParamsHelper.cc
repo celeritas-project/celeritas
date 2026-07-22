@@ -140,11 +140,11 @@ auto MscParamsHelper::energy_grid_bounds() const -> EnergyBounds
             // Check that the limits are the same for all materials and
             // particles; otherwise we need to change \c *Msc::is_applicable to
             // look up the particle and material
-            CELER_VALIDATE(x[Bound::lo] == grid.x[Bound::lo]
-                               && x[Bound::hi] == grid.x[Bound::hi],
-                           << "multiple scattering cross section energy "
-                              "limits are inconsistent across particles "
-                              "and/or materials");
+            CELER_VALIDATE(
+                x[Bound::lo] == grid.x[Bound::lo]
+                    && x[Bound::hi] == grid.x[Bound::hi],
+                << "multiple scattering cross section energy limits are "
+                   "inconsistent across particles and/or materials");
         }
     }
     return {Energy(std::exp(x[Bound::lo])), Energy(std::exp(x[Bound::hi]))};
