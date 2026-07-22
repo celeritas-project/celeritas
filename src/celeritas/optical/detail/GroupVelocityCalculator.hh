@@ -61,6 +61,7 @@ GroupVelocityCalculator::GroupVelocityCalculator(MaterialView const& material)
  */
 CELER_FUNCTION real_type GroupVelocityCalculator::operator()(Energy energy) const
 {
+    // Clamp photon energy to the refractive-index grid endpoints
     real_type const bounded_energy = clamp(value_as<Energy>(energy),
                                            r_index_calc_.grid().front(),
                                            r_index_calc_.grid().back());

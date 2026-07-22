@@ -6,11 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DerivativeGridCalculator.hh"
 
-#include <fstream>
-
 #include "GridTypes.hh"
 #include "VectorUtils.hh"
-#include "nlohmann/json.hpp"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -18,14 +16,14 @@ namespace celeritas
  * Construct the derivative grid of an imported grid.
  *
  * Since grid are piecewise functions, the left-derivatives and
- * right-derivatives might not agree at a grid point. Each x grid-point is
- * duplicated with the first value taking the left-derivative and the second
- * taking the right-derivative.
+ * right-derivatives might not agree at a grid point. A single derivative
+ * is stored at each point by taking the harmonic mean of the adjacent interval
+ * slopes. This reduces the influence of a comparatively
+ * large slope while incorporating both one-sided derivatives.
+ * The endpoints use the one-sided slopes of their nearest intervals.
  *
  * \todo Currently only linearly interpolated grids are supported since they
- * are necessary for calculating group velocity from refractive index. The
- * endpoints of the input grid are assumed to be constant, and thus have 0
- * derivative.
+ * are necessary for calculating group velocity from refractive index.
  */
 inp::Grid construct_derivative_grid(inp::Grid const& grid)
 {
@@ -34,16 +32,19 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
                    << to_cstring(grid.interpolation.type)
                    << " derivative calculation is not supported on a "
                       "non-linear grid");
+    CELER_VALIDATE(is_monotonic_increasing(make_span(grid.x)),
+                   << "input grid has coincident x values; harmonic-mean "
+                      "derivative is undefined across a zero-width interval");
 
     inp::Grid result;
     result.interpolation = grid.interpolation;
-    static std::ofstream out("derivative-mean.jsonl", std::ios::app);
+
     size_type const n = grid.x.size();
     result.x = grid.x;
     result.y.resize(n);
 
     auto derivative = [&](size_type i) {
-        // CELER_EXPECT(i < grid.x.size());
+        CELER_EXPECT(i + 1 < grid.x.size());
         return (grid.y[i + 1] - grid.y[i]) / (grid.x[i + 1] - grid.x[i]);
     };
 
