@@ -70,9 +70,8 @@ void LocateVacanciesAction::step_impl(CoreState<M>& state) const
 /*!
  * Update the number of alive slots as the empty slots have been compacted.
  */
-void LocateVacanciesAction::update_alive(CoreParams const& params,
-                                         CoreStateHost& state,
-                                         size_type state_size) const
+void LocateVacanciesAction::update_alive(
+    CoreParams const& params, CoreStateHost& state, size_type state_size) const
 {
     auto execute_thread
         = make_single_track_executor(params.ptr<MemSpace::native>(),
@@ -85,9 +84,8 @@ void LocateVacanciesAction::update_alive(CoreParams const& params,
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline void LocateVacanciesAction::update_alive(CoreParams const&,
-                                                CoreStateDevice&,
-                                                size_type) const
+inline void LocateVacanciesAction::update_alive(
+    CoreParams const&, CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
