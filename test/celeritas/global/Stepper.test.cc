@@ -246,6 +246,36 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(3, result.calc_emptying_step());
 }
 
+TEST_F(SimpleComptonTest, async_lifecycle_host)
+{
+    size_type const num_primaries = 32;
+    size_type const num_tracks = 64;
+
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto primaries = this->make_primaries(num_primaries);
+
+    EXPECT_FALSE(step.in_flight());
+    EXPECT_THROW(step.ready(), RuntimeError);
+    EXPECT_THROW(step.complete(), RuntimeError);
+
+    auto first_result = step(make_span(primaries));
+    EXPECT_EQ(num_primaries, first_result.generated);
+    EXPECT_EQ(num_primaries, first_result.active);
+
+    step.launch();
+    EXPECT_TRUE(step.in_flight());
+    EXPECT_TRUE(step.ready());
+    EXPECT_THROW(step.launch(), RuntimeError);
+    EXPECT_THROW(step.warm_up(), RuntimeError);
+    EXPECT_THROW(step.reset_state(), RuntimeError);
+    EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step(make_span(primaries)), RuntimeError);
+
+    auto result = step.complete();
+    EXPECT_FALSE(step.in_flight());
+    EXPECT_GT(result.active, 0);
+}
+
 TEST_F(SimpleComptonTest, reseed)
 {
     constexpr auto M = MemSpace::host;

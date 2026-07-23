@@ -50,6 +50,20 @@ template<class F>
 ScopeExit(F&& func) -> ScopeExit<F>;
 
 //---------------------------------------------------------------------------//
+//! Convert internal state counters to a public step result
+StepperResult make_stepper_result(CoreStateCounters const& counters)
+{
+    StepperResult result;
+    result.generated = counters.num_generated;
+    result.active = counters.num_active;
+    result.alive = counters.num_alive;
+    result.queued = counters.num_initializers;
+    result.cut = counters.num_cut;
+    result.errored = counters.num_errored;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -106,6 +120,8 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot warm up while a step is in flight");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
@@ -118,14 +134,18 @@ void Stepper<M>::warm_up()
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport already-initialized states.
+ * Launch transport of already-initialized states.
  *
  * A single transport step is simply a loop over a topologically sorted DAG
- * of kernels.
+ * of kernels. The step result must be retrieved with \c complete before
+ * another step can be launched.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()() -> result_type
+void Stepper<M>::launch()
 {
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot launch while a step is in flight");
+
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
     counters.num_generated = 0;
@@ -133,18 +153,51 @@ auto Stepper<M>::operator()() -> result_type
     counters.num_errored = 0;
     state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
-    counters = state_->sync_get_counters();
+    result_counters_ = state_->sync_get_counters();
+    step_in_flight_ = true;
+}
 
-    // Get the number of track initializers and active tracks
-    result_type result;
-    result.generated = counters.num_generated;
-    result.active = counters.num_active;
-    result.alive = counters.num_alive;
-    result.queued = counters.num_initializers;
-    result.cut = counters.num_cut;
-    result.errored = counters.num_errored;
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the launched step has completed.
+ */
+template<MemSpace M>
+bool Stepper<M>::ready() const
+{
+    CELER_VALIDATE(step_in_flight_,
+                   << "cannot query completion without an in-flight step");
+    return true;
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for and return the launched step result.
+ *
+ * Calling this consumes the pending result and allows another step to be
+ * launched.
+ */
+template<MemSpace M>
+auto Stepper<M>::complete() -> result_type
+{
+    CELER_VALIDATE(step_in_flight_,
+                   << "cannot complete without an in-flight step");
+
+    auto result = make_stepper_result(result_counters_);
+    step_in_flight_ = false;
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport already-initialized states.
+ *
+ * This is the synchronous compatibility wrapper for \c launch and \c complete.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()() -> result_type
+{
+    this->launch();
+    return this->complete();
 }
 
 //---------------------------------------------------------------------------//
@@ -154,6 +207,8 @@ auto Stepper<M>::operator()() -> result_type
 template<MemSpace M>
 auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 {
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot transport primaries while a step is in flight");
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
 
@@ -187,6 +242,8 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::kill_active()
 {
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot kill active tracks while a step is in flight");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";
@@ -205,12 +262,26 @@ void Stepper<M>::kill_active()
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot reseed while a step is in flight");
     ScopedProfiling profile_this{"reseed"};
     reseed_rng(get_ref<M>(*params_->rng()),
                state_->ref().rng,
                state_->stream_id(),
                event_id);
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the core state counters and data so it can be reused.
+ */
+template<MemSpace M>
+void Stepper<M>::reset_state()
+{
+    CELER_VALIDATE(!step_in_flight_,
+                   << "cannot reset state while a step is in flight");
+    state_->reset();
 }
 
 //---------------------------------------------------------------------------//

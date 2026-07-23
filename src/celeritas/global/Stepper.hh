@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/Stepper.hh
+//! \sa Stepper.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -96,6 +97,18 @@ class StepperInterface
     // Warm up before stepping
     virtual void warm_up() = 0;
 
+    // Launch transport of existing states
+    virtual void launch() = 0;
+
+    //! Whether a launched step is awaiting completion
+    virtual bool in_flight() const = 0;
+
+    // Whether the launched step has completed
+    virtual bool ready() const = 0;
+
+    // Wait for and return the launched step result
+    virtual StepperResult complete() = 0;
+
     // Transport existing states
     virtual StepperResult operator()() = 0;
 
@@ -160,6 +173,18 @@ class Stepper final : public StepperInterface
     // Warm up before stepping
     void warm_up() final;
 
+    // Launch transport of existing states
+    void launch() final;
+
+    //! Whether a launched step is awaiting completion
+    bool in_flight() const final { return step_in_flight_; }
+
+    // Whether the launched step has completed
+    bool ready() const final;
+
+    // Wait for and return the launched step result
+    StepperResult complete() final;
+
     // Transport existing states
     StepperResult operator()() final;
 
@@ -181,8 +206,8 @@ class Stepper final : public StepperInterface
     //! Get the core state interface for diagnostic output
     CoreStateInterface const& state() const final { return *state_; }
 
-    //! Reset the core state counters and data so it can be reused
-    void reset_state() { state_->reset(); }
+    // Reset the core state counters and data so it can be reused
+    void reset_state();
 
     //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
     SPState sp_state() final { return state_; }
@@ -196,6 +221,10 @@ class Stepper final : public StepperInterface
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
+    // Result from the most recently launched step
+    CoreStateCounters result_counters_;
+    // Whether a step result is awaiting completion
+    bool step_in_flight_{false};
 };
 
 //---------------------------------------------------------------------------//
