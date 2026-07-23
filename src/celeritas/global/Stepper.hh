@@ -7,13 +7,16 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "corecel/sys/DeviceEvent.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/phys/Primary.hh"
@@ -142,6 +145,12 @@ class StepperInterface
  * \note This is likely to be removed and refactored since we're changing how
  * primaries are created and how multithread state ownership is managed.
  *
+ * Device steps have separate launch and completion phases. The launch enqueues
+ * the action sequence, a counter snapshot, and a completion event on the state
+ * stream. Diagnostic action or step timing can still synchronize the stream.
+ * Other synchronization within the action sequence is being removed
+ * separately.
+ *
  * \code
    Stepper<MemSpace::host> step(input);
 
@@ -213,6 +222,11 @@ class Stepper final : public StepperInterface
     SPState sp_state() final { return state_; }
 
   private:
+    using PinnedVecCounters
+        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
+    using CounterStorage
+        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
+
     // Params data
     std::shared_ptr<CoreParams const> params_;
     // Call sequence
@@ -221,8 +235,10 @@ class Stepper final : public StepperInterface
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
-    // Result from the most recently launched step
-    CoreStateCounters result_counters_;
+    // Preallocated result from the most recently launched step
+    CounterStorage result_counters_;
+    // Completion of device work and the result-counter copy
+    DeviceEvent step_done_{nullptr};
     // Whether a step result is awaiting completion
     bool step_in_flight_{false};
 };

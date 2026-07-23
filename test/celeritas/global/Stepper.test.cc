@@ -6,8 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/global/Stepper.hh"
 
+#include <chrono>
 #include <memory>
 #include <random>
+#include <thread>
 
 #include "corecel/Config.hh"
 
@@ -20,6 +22,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/InvalidOrangeTestBase.hh"
 #include "celeritas/SimpleTestBase.hh"
@@ -41,6 +45,43 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+void delay_stream(void* data)
+{
+    CELER_EXPECT(data);
+    auto const delay_ms = *static_cast<int const*>(data);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+}
+
+//---------------------------------------------------------------------------//
+class DelayAction final : public CoreStepActionInterface, public ConcreteAction
+{
+  public:
+    explicit DelayAction(ActionId id)
+        : ConcreteAction{id, "delay-step", "delay step completion"}
+    {
+    }
+
+    StepActionOrder order() const final { return StepActionOrder::end; }
+
+    void step(CoreParams const&, CoreStateHost&) const final {}
+
+    void step(CoreParams const&, CoreStateDevice& state) const final
+    {
+        celeritas::device()
+            .stream(state.stream_id())
+            .launch_host_func(delay_stream,
+                              const_cast<int*>(&delay_duration_ms_));
+    }
+
+  private:
+    int delay_duration_ms_{50};
+};
+
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -114,6 +155,16 @@ class StepperOrderTest : public SimpleComptonTest
     }
 
     std::shared_ptr<DummyParams> dummy_params_;
+};
+
+class AsyncStepperTest : public SimpleComptonTest
+{
+  public:
+    void SetUp()
+    {
+        auto& action_reg = *this->action_reg();
+        action_reg.insert(std::make_shared<DelayAction>(action_reg.next_id()));
+    }
 };
 
 #define BadGeometryTest TEST_IF_CELERITAS_ORANGE(BadGeometryTest)
@@ -274,6 +325,28 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     auto result = step.complete();
     EXPECT_FALSE(step.in_flight());
     EXPECT_GT(result.active, 0);
+}
+
+TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
+{
+    size_type const num_primaries = 32;
+    size_type const num_tracks = 64;
+
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
+    auto primaries = this->make_primaries(num_primaries);
+    auto initial_result = step(make_span(primaries));
+    EXPECT_GT(initial_result.active, 0);
+
+    for (int i = 0; i < 2; ++i)
+    {
+        step.launch();
+        EXPECT_TRUE(step.in_flight());
+        EXPECT_FALSE(step.ready());
+
+        auto result = step.complete();
+        EXPECT_FALSE(step.in_flight());
+        EXPECT_GT(result.active, 0);
+    }
 }
 
 TEST_F(SimpleComptonTest, reseed)

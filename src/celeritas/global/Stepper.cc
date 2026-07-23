@@ -8,10 +8,13 @@
 
 #include <utility>
 
+#include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/random/RngReseed.hh"
@@ -97,15 +100,45 @@ Stepper<M>::Stepper(Input input)
     state_ = std::make_shared<CoreState<M>>(
         *params_, input.stream_id, track_slots);
 
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate reusable asynchronous state before stepping begins
+        result_counters_.resize(1);
+        step_done_ = DeviceEvent{celeritas::device()};
+    }
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
-//! Default destructor
+/*!
+ * Synchronize outstanding device work before releasing its state.
+ */
 template<MemSpace M>
-Stepper<M>::~Stepper() = default;
+Stepper<M>::~Stepper()
+{
+    if constexpr (M == MemSpace::device)
+    {
+        try
+        {
+            // Include work that may follow the step-completion event
+            celeritas::device().stream(state_->stream_id()).sync();
+        }
+        catch (RuntimeError const& e)
+        {
+            CELER_LOG_LOCAL(error)
+                << "Failed to synchronize Stepper during destruction: "
+                << e.what();
+        }
+        catch (...)
+        {
+            CELER_LOG_LOCAL(error)
+                << "Failed to synchronize Stepper during destruction";
+        }
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -138,7 +171,12 @@ void Stepper<M>::warm_up()
  *
  * A single transport step is simply a loop over a topologically sorted DAG
  * of kernels. The step result must be retrieved with \c complete before
- * another step can be launched.
+ * another step can be launched. In device mode the result counters are copied
+ * asynchronously to pinned host memory, followed by a completion event.
+ *
+ * Existing synchronization within the action sequence can still block this
+ * call. Removing those counter-dependent synchronization points is handled
+ * separately.
  */
 template<MemSpace M>
 void Stepper<M>::launch()
@@ -153,7 +191,20 @@ void Stepper<M>::launch()
     counters.num_errored = 0;
     state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
-    result_counters_ = state_->sync_get_counters();
+
+    if constexpr (M == MemSpace::device)
+    {
+        auto const* counters_ptr = static_cast<CoreStateCounters const*>(
+            state_->ref().init.counters.data());
+        Copier<CoreStateCounters, MemSpace::host> copy_counters{
+            make_span(result_counters_), state_->stream_id()};
+        copy_counters(MemSpace::device, {counters_ptr, 1});
+        step_done_.record(celeritas::device().stream(state_->stream_id()));
+    }
+    else
+    {
+        result_counters_.front() = state_->sync_get_counters();
+    }
     step_in_flight_ = true;
 }
 
@@ -166,7 +217,7 @@ bool Stepper<M>::ready() const
 {
     CELER_VALIDATE(step_in_flight_,
                    << "cannot query completion without an in-flight step");
-    return true;
+    return step_done_.ready();
 }
 
 //---------------------------------------------------------------------------//
@@ -182,7 +233,8 @@ auto Stepper<M>::complete() -> result_type
     CELER_VALIDATE(step_in_flight_,
                    << "cannot complete without an in-flight step");
 
-    auto result = make_stepper_result(result_counters_);
+    step_done_.sync();
+    auto result = make_stepper_result(result_counters_.front());
     step_in_flight_ = false;
     return result;
 }
