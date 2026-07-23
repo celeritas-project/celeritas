@@ -118,12 +118,6 @@ class LocalTransporter final : public TrackOffloadInterface
     using BBox = BoundingBox<double>;
     using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
 
-    enum class FlushMode
-    {
-        staged_only,
-        staged_and_primary,
-    };
-
     struct BufferAccum
     {
         double energy{0};  // MeV
@@ -160,7 +154,9 @@ class LocalTransporter final : public TrackOffloadInterface
 
     void stage_primary_buffer();
     void clear_staging_buffer();
-    void flush_impl(FlushMode);
+    void flush_staging_buffer();
+    void flush_all_buffers();
+    void flush_impl(bool include_primary);
 
     //// DATA ////
 

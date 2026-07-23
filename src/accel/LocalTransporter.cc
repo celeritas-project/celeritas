@@ -371,7 +371,7 @@ void LocalTransporter::Push(G4Track& g4track)
                  * non-blocking Stepper progress once async step execution can
                  * be queried.
                  */
-                this->flush_impl(FlushMode::staged_only);
+                this->flush_staging_buffer();
             }
             this->stage_primary_buffer();
         }
@@ -388,17 +388,35 @@ void LocalTransporter::Push(G4Track& g4track)
  */
 void LocalTransporter::Flush()
 {
-    this->flush_impl(FlushMode::staged_and_primary);
+    this->flush_all_buffers();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport only the staging buffer.
+ */
+void LocalTransporter::flush_staging_buffer()
+{
+    this->flush_impl(false);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport the staging buffer and the primary buffer.
+ */
+void LocalTransporter::flush_all_buffers()
+{
+    this->flush_impl(true);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transport staged tracks, optionally including primary-buffer tracks.
  */
-void LocalTransporter::flush_impl(FlushMode mode)
+void LocalTransporter::flush_impl(bool include_primary)
 {
     CELER_EXPECT(*this);
-    bool const flush_primary = mode == FlushMode::staged_and_primary;
+    bool const flush_primary = include_primary;
     bool const has_primary_losses
         = flush_primary && primary_buffer_.accum.lost_primaries > 0;
     if (!staging_buffer_ && (primary_buffer_.empty() || !flush_primary)
