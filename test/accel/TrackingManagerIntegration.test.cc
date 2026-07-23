@@ -544,8 +544,8 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
     result.optical->detectors.callback
         = [this](Span<optical::DetectorHit const> hits) {
               std::scoped_lock lock{mutex_};
-              detector_x_positions_.reserve(detector_x_positions_.size()
-                                            + hits.size());
+              detector_x_positions_.reserve(
+                  detector_x_positions_.size() + hits.size());
               for (auto const& hit : hits)
               {
                   detector_x_positions_.push_back(hit.position[0]);
