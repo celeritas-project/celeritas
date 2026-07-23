@@ -126,9 +126,8 @@ LabelIdMultiMap<I>::LabelIdMultiMap(VecLabel&& keys)
  */
 template<class I>
 template<class T>
-LabelIdMultiMap<I>
-LabelIdMultiMap<I>::from_labeled_items(std::string type_label,
-                                       std::vector<T> const& items)
+LabelIdMultiMap<I> LabelIdMultiMap<I>::from_labeled_items(
+    std::string type_label, std::vector<T> const& items)
 {
     VecLabel labels;
     labels.reserve(items.size());

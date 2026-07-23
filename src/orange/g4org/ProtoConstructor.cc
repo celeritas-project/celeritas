@@ -195,14 +195,14 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
-            std::clog << std::string(depth_, ' ') << " -> "
-                      << "material " << new_mat << " locally inside "
-                      << local_parent << " at "
+            std::clog << std::string(depth_, ' ') << " -> material " << new_mat
+                      << " locally inside " << local_parent << " at "
                       << StreamableVariant{pv.transform} << std::endl;
         }
     }
-    else if ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
-             || (opts_.inline_unions && is_union(pv.lv->solid)))
+    else if (
+        (pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
+        || (opts_.inline_unions && is_union(pv.lv->solid)))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
@@ -211,9 +211,9 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
-            std::clog << std::string(depth_, ' ') << " -> inlined child to "
-                      << "material " << new_mat << " locally inside "
-                      << local_parent << " at "
+            std::clog << std::string(depth_, ' ')
+                      << " -> inlined child to material " << new_mat
+                      << " locally inside " << local_parent << " at "
                       << StreamableVariant{pv.transform} << "; subtracting "
                       << pv.lv->children.size() << " children" << std::endl;
         }
@@ -232,9 +232,8 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
-            std::clog << std::string(depth_, ' ') << " -> "
-                      << "placing " << (inserted ? "new" : "existing")
-                      << " universe '"
+            std::clog << std::string(depth_, ' ') << " -> placing "
+                      << (inserted ? "new" : "existing") << " universe '"
                       << volumes_.volume_labels().at(pv.lv->id)
                       << "' locally inside " << local_parent << " at "
                       << StreamableVariant{pv.transform} << std::endl;
@@ -257,8 +256,7 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
-            std::clog << std::string(depth_, ' ') << " :  "
-                      << "daughter shape is "
+            std::clog << std::string(depth_, ' ') << " :  daughter shape is "
                       << to_string(*proto->daughters.back().make_interior())
                       << std::endl;
         }

@@ -41,9 +41,8 @@ class UniformLogGridCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    UniformLogGridCalculator(UniformGridRecord const& grid,
-                             Values const& reals);
+    inline CELER_FUNCTION UniformLogGridCalculator(
+        UniformGridRecord const& grid, Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -76,8 +75,8 @@ class UniformLogGridCalculator
  * Construct from uniform grid data.
  */
 CELER_FUNCTION
-UniformLogGridCalculator::UniformLogGridCalculator(UniformGridRecord const& grid,
-                                                   Values const& reals)
+UniformLogGridCalculator::UniformLogGridCalculator(
+    UniformGridRecord const& grid, Values const& reals)
     : data_(grid), reals_(reals), loge_grid_(data_.grid)
 {
     CELER_EXPECT(data_);
@@ -87,7 +86,8 @@ UniformLogGridCalculator::UniformLogGridCalculator(UniformGridRecord const& grid
 /*!
  * Interpolate the value at the given energy.
  */
-CELER_FUNCTION real_type UniformLogGridCalculator::operator()(Energy energy) const
+CELER_FUNCTION real_type UniformLogGridCalculator::operator()(
+    Energy energy) const
 {
     real_type const loge = std::log(value_as<Energy>(energy));
 
@@ -134,7 +134,8 @@ CELER_FUNCTION real_type UniformLogGridCalculator::operator()(Energy energy) con
 /*!
  * Get the tabulated value at the given index.
  */
-CELER_FUNCTION real_type UniformLogGridCalculator::operator[](size_type index) const
+CELER_FUNCTION real_type UniformLogGridCalculator::operator[](
+    size_type index) const
 {
     CELER_EXPECT(index < data_.value.size());
     return reals_[data_.value[index]];

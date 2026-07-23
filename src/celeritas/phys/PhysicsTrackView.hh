@@ -120,10 +120,11 @@ class PhysicsTrackView
                                             Energy energy) const;
 
     // Estimate maximum macroscopic cross section for the process over the step
-    inline CELER_FUNCTION real_type calc_max_xs(IntegralXsProcess const& process,
-                                                ParticleProcessId ppid,
-                                                MaterialView const& material,
-                                                Energy energy) const;
+    inline CELER_FUNCTION real_type calc_max_xs(
+        IntegralXsProcess const& process,
+        ParticleProcessId ppid,
+        MaterialView const& material,
+        Energy energy) const;
 
     // Models that apply to the given process ID
     inline CELER_FUNCTION
@@ -133,9 +134,8 @@ class PhysicsTrackView
     inline CELER_FUNCTION UniformTableId cdf_table(ParticleModelId) const;
 
     // Construct an element selector
-    inline CELER_FUNCTION
-        TabulatedElementSelector make_element_selector(UniformTableId,
-                                                       Energy) const;
+    inline CELER_FUNCTION TabulatedElementSelector make_element_selector(
+        UniformTableId, Energy) const;
 
     // ID of the particle's at-rest process
     inline CELER_FUNCTION ParticleProcessId at_rest_process() const;
@@ -344,8 +344,8 @@ CELER_FUNCTION ProcessId PhysicsTrackView::process(ParticleProcessId ppid) const
 /*!
  * Return macro xs value grid data for the given process if available.
  */
-CELER_FUNCTION XsGridId
-PhysicsTrackView::macro_xs_grid(ParticleProcessId ppid) const
+CELER_FUNCTION XsGridId PhysicsTrackView::macro_xs_grid(
+    ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     auto table_id = this->process_group().macro_xs[ppid.get()];
@@ -432,9 +432,8 @@ CELER_FUNCTION UniformGridId PhysicsTrackView::inverse_range_grid() const
  *
  * See section 7.4 of the Geant4 Physics Reference (release 10.6) for details.
  */
-CELER_FUNCTION auto
-PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
-    -> IntegralXsProcess const&
+CELER_FUNCTION auto PhysicsTrackView::integral_xs_process(
+    ParticleProcessId ppid) const -> IntegralXsProcess const&
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     return params_.integral_xs[this->process_group().integral_xs[ppid.get()]];
@@ -444,9 +443,8 @@ PhysicsTrackView::integral_xs_process(ParticleProcessId ppid) const
 /*!
  * Calculate macroscopic cross section for the process.
  */
-CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
-                                                   MaterialView const& material,
-                                                   Energy energy) const
+CELER_FUNCTION real_type PhysicsTrackView::calc_xs(
+    ParticleProcessId ppid, MaterialView const& material, Energy energy) const
 {
     real_type result = 0;
 
@@ -508,11 +506,11 @@ CELER_FUNCTION real_type PhysicsTrackView::calc_xs(ParticleProcessId ppid,
  * interval does not contain the global maximum, the post-step cross section
  * \f$ \sigma(E_1) \f$ may be larger than \f$ \sigma_{\max} \f$.
  */
-CELER_FUNCTION real_type
-PhysicsTrackView::calc_max_xs(IntegralXsProcess const& process,
-                              ParticleProcessId ppid,
-                              MaterialView const& material,
-                              Energy energy) const
+CELER_FUNCTION real_type PhysicsTrackView::calc_max_xs(
+    IntegralXsProcess const& process,
+    ParticleProcessId ppid,
+    MaterialView const& material,
+    Energy energy) const
 {
     CELER_EXPECT(process);
     CELER_EXPECT(material_ < process.energy_max_xs.size());
@@ -536,8 +534,8 @@ PhysicsTrackView::calc_max_xs(IntegralXsProcess const& process,
  * the process is hardwired to calculate macroscopic cross sections on the fly.
  * If the result is null, tables should be used for this process/energy.
  */
-CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
-                                                         Energy energy) const
+CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(
+    ParticleProcessId ppid, Energy energy) const
 {
     ProcessId process = this->process(ppid);
     if ((process == params_.hardwired.ids.photoelectric
@@ -557,9 +555,8 @@ CELER_FUNCTION ModelId PhysicsTrackView::hardwired_model(ParticleProcessId ppid,
 /*!
  * Models that apply to the given process ID.
  */
-CELER_FUNCTION auto
-PhysicsTrackView::make_model_finder(ParticleProcessId ppid) const
-    -> ModelFinder
+CELER_FUNCTION auto PhysicsTrackView::make_model_finder(
+    ParticleProcessId ppid) const -> ModelFinder
 {
     CELER_EXPECT(ppid < this->num_particle_processes());
     ModelGroup const& md
@@ -604,9 +601,8 @@ auto PhysicsTrackView::cdf_table(ParticleModelId pmid) const -> UniformTableId
  * Construct an element selector to sample an element from tabulated xs data.
  */
 CELER_FUNCTION
-TabulatedElementSelector
-PhysicsTrackView::make_element_selector(UniformTableId table_id,
-                                        Energy energy) const
+TabulatedElementSelector PhysicsTrackView::make_element_selector(
+    UniformTableId table_id, Energy energy) const
 {
     CELER_EXPECT(table_id < params_.uniform_tables.size());
     auto const& table = params_.uniform_tables[table_id];
@@ -767,8 +763,8 @@ CELER_FUNCTION T PhysicsTrackView::make_calculator(UniformGridId id) const
  * associated value (e.g. if the table type is "energy_loss" and the process is
  * not a slowing-down process).
  */
-CELER_FUNCTION UniformGridId
-PhysicsTrackView::uniform_grid(UniformTable const& table) const
+CELER_FUNCTION UniformGridId PhysicsTrackView::uniform_grid(
+    UniformTable const& table) const
 {
     if (!table)
     {

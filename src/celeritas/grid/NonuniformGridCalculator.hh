@@ -34,13 +34,12 @@ class NonuniformGridCalculator
 
   public:
     // Construct by *inverting* a monotonicially increasing nonuniform grid
-    static inline CELER_FUNCTION NonuniformGridCalculator
-    from_inverse(NonuniformGridRecord const& grid, Storage const& reals);
+    static inline CELER_FUNCTION NonuniformGridCalculator from_inverse(
+        NonuniformGridRecord const& grid, Storage const& reals);
 
     // Construct from grid data and backend storage
-    inline CELER_FUNCTION
-    NonuniformGridCalculator(NonuniformGridRecord const& grid,
-                             Storage const& reals);
+    inline CELER_FUNCTION NonuniformGridCalculator(
+        NonuniformGridRecord const& grid, Storage const& reals);
 
     // Find and interpolate the y value from the given x value
     inline CELER_FUNCTION real_type operator()(real_type x) const;
@@ -71,10 +70,8 @@ class NonuniformGridCalculator
     //// HELPER FUNCTIONS ////
 
     // Private constructor implementation
-    inline CELER_FUNCTION NonuniformGridCalculator(Storage const& reals,
-                                                   RealIds x_grid,
-                                                   RealIds y_grid,
-                                                   RealIds deriv);
+    inline CELER_FUNCTION NonuniformGridCalculator(
+        Storage const& reals, RealIds x_grid, RealIds y_grid, RealIds deriv);
 
     //! Low-level access to storage for downstream utilities
     CELER_FORCEINLINE_FUNCTION Storage const& storage() const
@@ -154,7 +151,8 @@ CELER_FUNCTION real_type NonuniformGridCalculator::operator()(real_type x) const
 /*!
  * Get the tabulated y value at a particular index.
  */
-CELER_FUNCTION real_type NonuniformGridCalculator::operator[](size_type index) const
+CELER_FUNCTION real_type NonuniformGridCalculator::operator[](
+    size_type index) const
 {
     CELER_EXPECT(index < y_offset_.size());
     return this->storage()[y_offset_[index]];
@@ -193,10 +191,8 @@ NonuniformGridCalculator::make_inverse() const
  * Construct from grid data and backend storage.
  */
 CELER_FUNCTION
-NonuniformGridCalculator::NonuniformGridCalculator(Storage const& reals,
-                                                   RealIds x_grid,
-                                                   RealIds y_grid,
-                                                   RealIds deriv)
+NonuniformGridCalculator::NonuniformGridCalculator(
+    Storage const& reals, RealIds x_grid, RealIds y_grid, RealIds deriv)
     : x_grid_{x_grid, reals}, y_offset_{y_grid}, deriv_offset_(deriv)
 {
     CELER_EXPECT(!x_grid.empty() && x_grid.size() == y_grid.size());

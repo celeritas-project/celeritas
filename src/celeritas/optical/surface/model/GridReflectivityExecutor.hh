@@ -65,8 +65,8 @@ struct GridReflectivityExecutor
     NativeCRef<GridReflectivityData> data;
 
     //! Apply grid reflectivity executor
-    inline CELER_FUNCTION ReflectivityAction
-    operator()(CoreTrackView const& track) const;
+    inline CELER_FUNCTION ReflectivityAction operator()(
+        CoreTrackView const& track) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -76,9 +76,8 @@ struct GridReflectivityExecutor
  * Construct from data, surface, and energy.
  */
 CELER_FUNCTION
-GridReflectivityCalculator::GridReflectivityCalculator(DataRef const& data,
-                                                       SubModelId surface,
-                                                       Energy energy)
+GridReflectivityCalculator::GridReflectivityCalculator(
+    DataRef const& data, SubModelId surface, Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {
 }
@@ -87,8 +86,8 @@ GridReflectivityCalculator::GridReflectivityCalculator(DataRef const& data,
 /*!
  * Calculate the probability for the specified reflectivity action.
  */
-CELER_FUNCTION real_type
-GridReflectivityCalculator::operator()(ReflectivityAction action) const
+CELER_FUNCTION real_type GridReflectivityCalculator::operator()(
+    ReflectivityAction action) const
 {
     CELER_EXPECT(surface_ < data_.reflectivity[action].size());
     auto grid = data_.reflectivity[action][surface_];
@@ -108,8 +107,8 @@ GridReflectivityCalculator::operator()(ReflectivityAction action) const
 /*!
  * Apply the executor to a track.
  */
-CELER_FUNCTION ReflectivityAction
-GridReflectivityExecutor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION ReflectivityAction GridReflectivityExecutor::operator()(
+    CoreTrackView const& track) const
 {
     using namespace celeritas::literals;
 

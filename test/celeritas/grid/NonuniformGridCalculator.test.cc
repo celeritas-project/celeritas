@@ -41,9 +41,9 @@ class NonuniformGridCalculatorTest : public Test
         reals_ref_ = reals_;
 
         CELER_ENSURE(grid_);
-        CELER_ENSURE(!grid_.derivative.empty()
-                     || grid.interpolation.type
-                            != InterpolationType::cubic_spline);
+        CELER_ENSURE(
+            !grid_.derivative.empty()
+            || grid.interpolation.type != InterpolationType::cubic_spline);
         CELER_ENSURE(!reals_ref_.empty());
     }
 

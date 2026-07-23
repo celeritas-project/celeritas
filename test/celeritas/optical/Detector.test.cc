@@ -54,8 +54,8 @@ class DetectorTest : public Test
         osi_.problem.capacity = [] {
             inp::OpticalStateCapacity cap;
             cap.tracks = 4096;
-            cap.primaries = 8 * cap.tracks;
-            cap.generators = 2 * cap.tracks;
+            cap.primaries = 8 * *cap.tracks;
+            cap.generators = 2 * *cap.tracks;
             return cap;
         }();
 

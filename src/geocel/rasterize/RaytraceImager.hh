@@ -75,11 +75,11 @@ class RaytraceImager final : public ImagerInterface
     template<MemSpace M>
     void raytrace_impl(Image<M>* image);
 
-    void
-    launch_raytrace_kernel(GeoParamsCRef<MemSpace::host> const& geo_params,
-                           GeoStateRef<MemSpace::host> const& geo_states,
-                           ImageParamsCRef<MemSpace::host> const& img_params,
-                           ImageStateRef<MemSpace::host> const& img_state) const;
+    void launch_raytrace_kernel(
+        GeoParamsCRef<MemSpace::host> const& geo_params,
+        GeoStateRef<MemSpace::host> const& geo_states,
+        ImageParamsCRef<MemSpace::host> const& img_params,
+        ImageStateRef<MemSpace::host> const& img_state) const;
 
     void launch_raytrace_kernel(
         GeoParamsCRef<MemSpace::device> const& geo_params,

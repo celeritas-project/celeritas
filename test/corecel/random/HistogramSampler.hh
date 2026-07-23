@@ -67,9 +67,8 @@ class HistogramSampler
     //!@}
 
     // Construct with number of samples per operator
-    explicit inline HistogramSampler(size_type num_bins,
-                                     Dbl2 domain,
-                                     size_type num_samples);
+    explicit inline HistogramSampler(
+        size_type num_bins, Dbl2 domain, size_type num_samples);
 
     // Sample one distribution
     template<class DistributionT>
@@ -124,9 +123,8 @@ void accumulate_n(AccumulatorT&& accumulate,
 /*!
  * Construct with number of samples.
  */
-HistogramSampler::HistogramSampler(size_type num_bins,
-                                   Dbl2 domain,
-                                   size_type num_samples)
+HistogramSampler::HistogramSampler(
+    size_type num_bins, Dbl2 domain, size_type num_samples)
     : num_bins_(num_bins), domain_(domain), num_samples_(num_samples)
 {
     CELER_EXPECT(num_bins_ > 0);

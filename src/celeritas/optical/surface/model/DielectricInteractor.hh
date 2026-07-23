@@ -41,8 +41,8 @@ class DielectricInteractor
         NativeCRef<UnifiedReflectionData> unified_data;
 
         // Build and sample interactor for a track
-        inline CELER_FUNCTION SurfaceInteraction
-        operator()(CoreTrackView const&) const;
+        inline CELER_FUNCTION SurfaceInteraction operator()(
+            CoreTrackView const&) const;
     };
 
   public:
@@ -75,8 +75,8 @@ class DielectricInteractor
 /*!
  * Create an interactor and sample it for the given track.
  */
-CELER_FUNCTION SurfaceInteraction
-DielectricInteractor::Executor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION SurfaceInteraction DielectricInteractor::Executor::operator()(
+    CoreTrackView const& track) const
 {
     auto s_phys = track.surface_physics();
 
@@ -138,8 +138,8 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
  * Sample the dielectric interaction.
  */
 template<class Engine>
-CELER_FUNCTION SurfaceInteraction
-DielectricInteractor::operator()(Engine& rng) const
+CELER_FUNCTION SurfaceInteraction DielectricInteractor::operator()(
+    Engine& rng) const
 {
     if (BernoulliDistribution{fresnel_.calc_reflectivity()}(rng))
     {

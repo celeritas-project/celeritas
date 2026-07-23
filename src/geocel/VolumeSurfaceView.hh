@@ -48,8 +48,8 @@ class VolumeSurfaceView
     CELER_FORCEINLINE_FUNCTION bool has_interface() const;
 
     // Find surface ID for a transition to another volume instance
-    inline CELER_FUNCTION SurfaceId
-    find_interface(VolumeInstanceId pre_id, VolumeInstanceId post_id) const;
+    inline CELER_FUNCTION SurfaceId find_interface(
+        VolumeInstanceId pre_id, VolumeInstanceId post_id) const;
 
   private:
     SurfaceParamsRef const& params_;

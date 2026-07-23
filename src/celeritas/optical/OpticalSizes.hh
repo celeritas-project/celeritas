@@ -2,40 +2,36 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/OpticalSizes.json.hh
+//! \file celeritas/optical/OpticalSizes.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <nlohmann/json.hpp>
-
 #include "corecel/Types.hh"
-#include "corecel/io/JsonUtils.json.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Save state size/capacity counters.
+ * Per-process optical state and buffer capacities.
  *
- * These should be *integrated* across streams, *per process*.
+ * This stores the resolved values from \c inp::OpticalStateCapacity: all
+ * values have been validated and device-dependent defaults have been applied
+ * at setup time. These should be *integrated* across streams, *per process*.
  */
 struct OpticalSizes
 {
-    size_type generators{};
+    size_type primaries{};
     size_type tracks{};
+    size_type generators{};
+
     size_type streams{};
+
+    //! True if all values are assigned and valid
+    explicit operator bool() const
+    {
+        return primaries && tracks && generators && streams;
+    }
 };
-
-//---------------------------------------------------------------------------//
-
-void to_json(nlohmann::json& j, OpticalSizes const& inp)
-{
-    j = {
-        CELER_JSON_PAIR(inp, generators),
-        CELER_JSON_PAIR(inp, tracks),
-        CELER_JSON_PAIR(inp, streams),
-    };
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

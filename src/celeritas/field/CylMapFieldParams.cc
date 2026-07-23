@@ -53,9 +53,9 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
                    << "invalid field parameter (max_z=" << inp.grid_z.back()
                    << " <= min_z= " << inp.grid_z.front() << ")");
 
-    CELER_VALIDATE(inp.grid_r.front() >= 0,
-                   << "invalid field parameter (min_r=" << inp.grid_r.front()
-                   << ")");
+    CELER_VALIDATE(
+        inp.grid_r.front() >= 0,
+        << "invalid field parameter (min_r=" << inp.grid_r.front() << ")");
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
@@ -79,8 +79,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
         HostVal<CylMapFieldParamsData> host;
 
         auto grid = make_builder(&host.grids.storage);
-        grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
-                     + inp.grid_z.size());
+        grid.reserve(
+            inp.grid_phi.size() + inp.grid_r.size() + inp.grid_z.size());
 
         auto r_start = grid.size_id();
         std::transform(
@@ -115,8 +115,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field.size());
-        for (auto i :
-             range(inp.grid_r.size() * inp.grid_phi.size() * inp.grid_z.size()))
+        for (auto i : range(
+                 inp.grid_r.size() * inp.grid_phi.size() * inp.grid_z.size()))
         {
             // Save field vector
             fieldmap.push_back(

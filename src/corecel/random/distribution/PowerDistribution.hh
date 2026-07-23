@@ -91,9 +91,8 @@ CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p)
  * It is allowable for the two bounds to be out of order.
  */
 template<class RealType>
-CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(real_type p,
-                                                              real_type a,
-                                                              real_type b)
+CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(
+    real_type p, real_type a, real_type b)
     : sample_before_exp_{fastpow(a, p + 1), fastpow(b, p + 1)}
     , exp_{1 / (p + 1)}
 {

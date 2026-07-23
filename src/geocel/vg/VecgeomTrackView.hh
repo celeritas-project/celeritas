@@ -78,9 +78,8 @@ class VecgeomTrackView
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION VecgeomTrackView(ParamsRef const& data,
-                                           StateRef const& stateview,
-                                           TrackSlotId tid);
+    inline CELER_FUNCTION VecgeomTrackView(
+        ParamsRef const& data, StateRef const& stateview, TrackSlotId tid);
 
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView&
@@ -208,9 +207,8 @@ class VecgeomTrackView
  * Construct from persistent and state data.
  */
 CELER_FUNCTION
-VecgeomTrackView::VecgeomTrackView(ParamsRef const& params,
-                                   StateRef const& states,
-                                   TrackSlotId tid)
+VecgeomTrackView::VecgeomTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params)
     , state_(states)
     , tid_(tid)

@@ -125,10 +125,8 @@ RootStepWriter::WriteFilter make_write_filter(SimpleRootFilterInput const&);
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_ROOT
-inline RootStepWriter::RootStepWriter(SPRootFileManager,
-                                      SPParticleParams,
-                                      StepSelection,
-                                      WriteFilter)
+inline RootStepWriter::RootStepWriter(
+    SPRootFileManager, SPParticleParams, StepSelection, WriteFilter)
 {
     CELER_NOT_CONFIGURED("ROOT");
 }

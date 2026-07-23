@@ -12,13 +12,13 @@
 #include <CLI/CLI.hpp>
 
 //! Parse but only print on one processor on failure/help
-#define CELER_CLI11_PARSE(ARGC, ARGV)                  \
-    try                                                \
-    {                                                  \
+#define CELER_CLI11_PARSE(ARGC, ARGV) \
+    try \
+    { \
         ::celeritas::app::cli_app().parse(ARGC, ARGV); \
-    }                                                  \
-    catch (CLI::ParseError const& e)                   \
-    {                                                  \
+    } \
+    catch (CLI::ParseError const& e) \
+    { \
         return celeritas::app::process_parse_error(e); \
     }
 

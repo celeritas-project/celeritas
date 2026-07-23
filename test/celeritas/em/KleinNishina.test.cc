@@ -182,8 +182,8 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(double(rng_engine.count())
-                                     / double(num_particles_sampled));
+        avg_engine_samples.push_back(
+            double(rng_engine.count()) / double(num_particles_sampled));
     }
 
     // PRINT_EXPECTED(avg_engine_samples);

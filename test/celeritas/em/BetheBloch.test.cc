@@ -348,8 +348,8 @@ TEST_F(BetheBlochTest, stress_test)
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(real_type(rng.count())
-                                     / num_particles_sampled);
+        avg_engine_samples.push_back(
+            real_type(rng.count()) / num_particles_sampled);
         avg_energy.push_back(energy / num_particles_sampled);
         avg_costheta.push_back(costheta / num_particles_sampled);
     }

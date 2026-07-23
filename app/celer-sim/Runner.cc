@@ -109,7 +109,7 @@ auto Runner::operator()() -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     CELER_EXPECT(core_params_);
-    return core_params_->max_streams();
+    return core_params_->sizes().streams;
 }
 
 //---------------------------------------------------------------------------//
@@ -186,9 +186,9 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 
             if (use_device_)
             {
-                CELER_VALIDATE(device(),
-                               << "CUDA device is unavailable but GPU run was "
-                                  "requested");
+                CELER_VALIDATE(
+                    device(),
+                    << "CUDA device is unavailable but GPU run was requested");
                 return std::make_unique<Transporter<MemSpace::device>>(
                     std::move(local_trans_inp));
             }

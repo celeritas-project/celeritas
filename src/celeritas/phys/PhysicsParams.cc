@@ -173,14 +173,14 @@ PhysicsParams::PhysicsParams(Input inp)
     // Assign the host/device references to hardwired model data
     this->build_hardwired();
 
-    CELER_ENSURE(range_action_->action_id()
-                 == host_ref().scalars.range_action());
-    CELER_ENSURE(discrete_action_->action_id()
-                 == host_ref().scalars.discrete_action());
+    CELER_ENSURE(
+        range_action_->action_id() == host_ref().scalars.range_action());
+    CELER_ENSURE(
+        discrete_action_->action_id() == host_ref().scalars.discrete_action());
     CELER_ENSURE(integral_rejection_action_->action_id()
                  == host_ref().scalars.integral_rejection_action());
-    CELER_ENSURE(failure_action_->action_id()
-                 == host_ref().scalars.failure_action());
+    CELER_ENSURE(
+        failure_action_->action_id() == host_ref().scalars.failure_action());
 }
 
 //---------------------------------------------------------------------------//
@@ -231,9 +231,9 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 void PhysicsParams::build_particle_options(ParticleOptions const& opts,
                                            ParticleScalars* data) const
 {
-    CELER_VALIDATE(opts.min_range > 0,
-                   << "invalid min_range=" << opts.min_range
-                   << " (should be positive)");
+    CELER_VALIDATE(
+        opts.min_range > 0,
+        << "invalid min_range=" << opts.min_range << " (should be positive)");
     CELER_VALIDATE(opts.max_step_over_range > 0,
                    << "invalid max_step_over_range="
                    << opts.max_step_over_range << " (should be positive)");
@@ -323,9 +323,9 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             {
                 CELER_NOT_IMPLEMENTED("material-dependent models");
             }
-            CELER_VALIDATE(applic.particle < particles.size(),
-                           << "invalid particle ID "
-                           << applic.particle.unchecked_get());
+            CELER_VALIDATE(
+                applic.particle < particles.size(),
+                << "invalid particle ID " << applic.particle.unchecked_get());
             CELER_VALIDATE(applic.lower < applic.upper,
                            << "expected lower energy limit ("
                            << value_as<ModelGroup::Energy>(applic.lower)
@@ -512,9 +512,8 @@ void PhysicsParams::build_hardwired()
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_tables(Options const& opts,
-                                 MaterialParams const& mats,
-                                 HostValue* data) const
+void PhysicsParams::build_tables(
+    Options const& opts, MaterialParams const& mats, HostValue* data) const
 {
     CELER_EXPECT(*data);
 

@@ -86,9 +86,8 @@ class AuxParams : public AuxParamsInterface, public ParamsDataInterface<P>
  */
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
-auto AuxParams<P, S>::create_state(MemSpace m,
-                                   StreamId sid,
-                                   size_type size) const -> UPState
+auto AuxParams<P, S>::create_state(
+    MemSpace m, StreamId sid, size_type size) const -> UPState
 {
     return ::celeritas::make_aux_state<S, P>(*this, m, sid, size);
 }

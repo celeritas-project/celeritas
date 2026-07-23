@@ -68,7 +68,7 @@ void from_json(nlohmann::json const& j, OpticalProblem& v)
     CELER_JSON_LOAD_REQUIRED(j, v, model);
     CELER_JSON_LOAD_REQUIRED(j, v, generator);
     CELER_JSON_LOAD_OPTION(j, v, limits);
-    CELER_JSON_LOAD_REQUIRED(j, v, capacity);
+    CELER_JSON_LOAD_OPTION(j, v, capacity);
     CELER_JSON_LOAD_OPTION(j, v, seed);
     CELER_JSON_LOAD_OPTION(j, v, timers);
     CELER_JSON_LOAD_OPTIONAL(j, v, step);

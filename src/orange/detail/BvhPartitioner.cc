@@ -46,9 +46,8 @@ namespace detail
  * \param[in] num_part_cands  The number of candidate partitions to check per
  *                            axis
  */
-BvhPartitioner::BvhPartitioner(VecBBox const& bboxes,
-                               VecReal3 const& centers,
-                               size_type num_part_cands)
+BvhPartitioner::BvhPartitioner(
+    VecBBox const& bboxes, VecReal3 const& centers, size_type num_part_cands)
     : bboxes_(bboxes), centers_(centers), num_part_cands_(num_part_cands)
 {
     CELER_EXPECT(!bboxes_.empty());
@@ -79,8 +78,8 @@ BvhPartitioner::operator()(VecIndices const& indices) const
         // candidates
 
         auto step_size
-            = std::max(static_cast<size_type>(axes_centers[ax].size()
-                                              / (num_part_cands_ + 1)),
+            = std::max(static_cast<size_type>(
+                           axes_centers[ax].size() / (num_part_cands_ + 1)),
                        1_sz);
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
@@ -147,10 +146,8 @@ BvhPartitioner::calc_axes_centers(VecIndices const& indices) const
 /*!
  * Divide bboxes into left and right branches based on a partition.
  */
-BvhPartitioner::Partition
-BvhPartitioner::make_partition(VecIndices const& indices,
-                               Axis axis,
-                               real_type position) const
+BvhPartitioner::Partition BvhPartitioner::make_partition(
+    VecIndices const& indices, Axis axis, real_type position) const
 {
     CELER_EXPECT(indices.size() > 1);
 

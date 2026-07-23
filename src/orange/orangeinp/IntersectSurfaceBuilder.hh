@@ -91,9 +91,8 @@ class IntersectSurfaceBuilder
 
     //// HELPER FUNCTION ////
 
-    void insert_transformed(Sense sense,
-                            VariantSurface const& surf,
-                            std::string&& ext);
+    void insert_transformed(
+        Sense sense, VariantSurface const& surf, std::string&& ext);
     void shrink_exterior(BBox const& bbox);
     void grow_interior(BBox const& bbox);
 };
@@ -103,9 +102,8 @@ class IntersectSurfaceBuilder
 //---------------------------------------------------------------------------//
 
 // Apply a surface builder to an unknown type
-void visit(IntersectSurfaceBuilder& csb,
-           Sense sense,
-           VariantSurface const& surf);
+void visit(
+    IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS

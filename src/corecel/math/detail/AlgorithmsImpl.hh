@@ -59,10 +59,8 @@ half_positive(T value)
  * Implementation of binary search lower-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
-                                                ForwardIterator last,
-                                                T const& value_,
-                                                Compare comp)
+CELER_FUNCTION ForwardIterator lower_bound_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -87,10 +85,8 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
  * Implementation of linear search lower-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator lower_bound_linear_impl(ForwardIterator first,
-                                                       ForwardIterator last,
-                                                       T const& value_,
-                                                       Compare comp)
+CELER_FUNCTION ForwardIterator lower_bound_linear_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     for (ForwardIterator it = first; it != last; ++it)
     {
@@ -108,10 +104,8 @@ CELER_FUNCTION ForwardIterator lower_bound_linear_impl(ForwardIterator first,
  * Implementation of upper-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
-                                                ForwardIterator last,
-                                                T const& value_,
-                                                Compare comp)
+CELER_FUNCTION ForwardIterator upper_bound_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -143,9 +137,8 @@ CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
  * celeritas tends to use contiguous data).
  */
 template<class Predicate, class BidirectionalIterator>
-CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
-                                                    BidirectionalIterator last,
-                                                    Predicate pred)
+CELER_FUNCTION BidirectionalIterator partition_impl(
+    BidirectionalIterator first, BidirectionalIterator last, Predicate pred)
 {
     while (true)
     {

@@ -178,10 +178,8 @@ CELER_FUNCTION SignedSense ConeAligned<T>::calc_sense(Real3 const& pos) const
    \f]
  */
 template<Axis T>
-CELER_FUNCTION auto
-ConeAligned<T>::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CELER_FUNCTION auto ConeAligned<T>::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     // Expand translated positions into 'xyz' coordinate system

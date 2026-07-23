@@ -238,8 +238,8 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 /*!
  * Initialize particles randomly and tally their resulting locations.
  */
-auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
-    -> HeuristicInitResult
+auto SimpleUnitTrackerTest::run_heuristic_init_device(
+    size_type num_tracks) const -> HeuristicInitResult
 {
     using DStateStore = StateDataStore<OrangeStateData, MemSpace::device>;
     DStateStore states(this->setup_heuristic_states(num_tracks));
@@ -295,9 +295,8 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
-                                                  double wall_time) const
-    -> HeuristicInitResult
+auto SimpleUnitTrackerTest::reduce_heuristic_init(
+    StateHostRef const& host, double wall_time) const -> HeuristicInitResult
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
@@ -826,8 +825,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
     }
     {
         SCOPED_TRACE(
-            "Crossing the boundary from the inside of 'e' but with "
-            "numerical imprecision");
+            "Crossing the boundary from the inside of 'e' but with numerical "
+            "imprecision");
         real_type eps = 1e-10;
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));

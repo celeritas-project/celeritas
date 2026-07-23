@@ -48,8 +48,8 @@ EnclosedAzi::EnclosedAzi(Turn start, Turn stop) : start_{start}, stop_{stop}
         start_ = eumod(start_, Turn{1});
         stop_ = stop_ + (start_ - orig_start);
     }
-    CELER_ENSURE(start_ >= Turn{0} && stop_ > start_
-                 && stop_ - start_ <= Turn{1});
+    CELER_ENSURE(
+        start_ >= Turn{0} && stop_ > start_ && stop_ - start_ <= Turn{1});
 }
 
 //---------------------------------------------------------------------------//
@@ -230,9 +230,9 @@ Solid<T>::Solid(std::string&& label,
     , azi_{std::move(azi)}
     , polar_{std::move(polar)}
 {
-    CELER_VALIDATE(exclusion_ || azi_ || polar_,
-                   << "solid requires an excluded slice or region: use a "
-                      "Shape instead");
+    CELER_VALIDATE(
+        exclusion_ || azi_ || polar_,
+        << "solid requires an excluded slice or region: use a Shape instead");
     CELER_VALIDATE(!exclusion_ || interior_.encloses(*exclusion_),
                    << "solid '" << this->label()
                    << "' was given an interior region that is not enclosed by "

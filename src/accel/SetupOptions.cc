@@ -89,10 +89,10 @@ void ProblemSetup::operator()(inp::Problem& p) const
     // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
     // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        auto c = inp::CoreStateCapacity::from_default(
-            celeritas::Device::num_devices());
-
-        // Override default values if capacities were specified
+        size_type default_tracks = celeritas::Device::num_devices()
+                                       ? inp::CoreStateCapacity::gpu_tracks
+                                       : inp::CoreStateCapacity::cpu_tracks;
+        inp::CoreStateCapacity c;
         if (so.max_num_tracks)
         {
             c.tracks = so.max_num_tracks * num_streams;
@@ -107,8 +107,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         }
         if (so.secondary_stack_factor)
         {
-            c.secondaries
-                = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
+            c.secondaries = static_cast<size_type>(
+                so.secondary_stack_factor * c.tracks.value_or(default_tracks));
         }
         return c;
     }();
@@ -186,7 +186,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
-    else if (auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
+    else if (
+        auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting covfie cartesian map field";
         p.field = u->get_field();
@@ -337,8 +338,8 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
             so.optical->generator))
     {
         // EM particles (required for scint/cherenkov) must be loaded
-        CELER_ASSERT(result.physics_import.data_selection.particles
-                     & GIDS::em_basic);
+        CELER_ASSERT(
+            result.physics_import.data_selection.particles & GIDS::em_basic);
     }
 
     if (!so.optical

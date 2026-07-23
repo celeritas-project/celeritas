@@ -159,9 +159,9 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
     // Momentum magnitude (p = \sqrt{K^2 + 2mK})
     real_type calc_momentum(MevEnergy energy, MevMass mass) const
     {
-        return std::sqrt(ipow<2>(value_as<MevEnergy>(energy))
-                         + 2 * value_as<MevMass>(mass)
-                               * value_as<MevEnergy>(energy));
+        return std::sqrt(
+            ipow<2>(value_as<MevEnergy>(energy))
+            + 2 * value_as<MevMass>(mass) * value_as<MevEnergy>(energy));
     }
 
   protected:

@@ -180,9 +180,8 @@ UnivId UniverseInserter::operator()(UnivType type,
     return result;
 }
 
-UnivId UniverseInserter::update_counters(UnivType type,
-                                         size_type num_surfaces,
-                                         size_type num_volumes)
+UnivId UniverseInserter::update_counters(
+    UnivType type, size_type num_surfaces, size_type num_volumes)
 {
     UnivId result = this->next_univ_id();
 

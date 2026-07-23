@@ -146,23 +146,23 @@ class Quantity
 
     //// INLINE COMPARATOR FRIENDS ////
 
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                           \
-    template<class T2>                                             \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept            \
-    {                                                              \
-        return lhs.value() TOKEN rhs.value();                      \
-    }                                                              \
-    template<detail::QConstant QC>                                 \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        Quantity lhs, detail::UnitlessQuantity<QC>) noexcept       \
-    {                                                              \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN) \
+    template<class T2> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
+    } \
+    template<detail::QConstant QC> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        Quantity lhs, detail::UnitlessQuantity<QC>) noexcept \
+    { \
         return lhs.value() TOKEN detail::get_constant<ValueT>(QC); \
-    }                                                              \
-    template<detail::QConstant QC>                                 \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        detail::UnitlessQuantity<QC>, Quantity rhs) noexcept       \
-    {                                                              \
+    } \
+    template<detail::QConstant QC> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        detail::UnitlessQuantity<QC>, Quantity rhs) noexcept \
+    { \
         return detail::get_constant<ValueT>(QC) TOKEN rhs.value(); \
     }
 

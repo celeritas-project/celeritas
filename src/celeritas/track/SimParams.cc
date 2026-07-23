@@ -23,8 +23,8 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-SimParams::Input SimParams::Input::from_import(ImportData const& data,
-                                               SPConstParticles particle_params)
+SimParams::Input SimParams::Input::from_import(
+    ImportData const& data, SPConstParticles particle_params)
 {
     return SimParams::Input::from_import(
         data, std::move(particle_params), inp::CoreTrackingLimits{});

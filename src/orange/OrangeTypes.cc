@@ -82,9 +82,9 @@ Tolerance<T> Tolerance<T>::from_softequal()
 template<class T>
 Tolerance<T> Tolerance<T>::from_relative(real_type rel, real_type length)
 {
-    CELER_VALIDATE(rel > 0 && rel < 1,
-                   << "tolerance " << rel
-                   << " is out of range [must be in (0,1)]");
+    CELER_VALIDATE(
+        rel > 0 && rel < 1,
+        << "tolerance " << rel << " is out of range [must be in (0,1)]");
     CELER_VALIDATE(length > 0,
                    << "length scale " << length
                    << " is invalid [must be positive]");

@@ -91,11 +91,10 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Computes the isotropic safety from the globalpoint
-    CELER_FUNCTION static double
-    ComputeSafety(VgReal3 const& glpos,
-                  NavState const& curr,
-                  vg_real_type safety
-                  = std::numeric_limits<vg_real_type>::infinity())
+    CELER_FUNCTION static double ComputeSafety(
+        VgReal3 const& glpos,
+        NavState const& curr,
+        vg_real_type safety = std::numeric_limits<vg_real_type>::infinity())
     {
         auto* navigator = curr.Top()->GetLogicalVolume()->GetNavigator();
         real_type result

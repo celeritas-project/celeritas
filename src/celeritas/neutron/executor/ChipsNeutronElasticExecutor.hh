@@ -22,8 +22,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct ChipsNeutronElasticExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NeutronElasticRef params;
 };
@@ -32,8 +32,8 @@ struct ChipsNeutronElasticExecutor
 /*!
  * Apply the NeutronElasticInteractor to the current track.
  */
-CELER_FUNCTION Interaction
-ChipsNeutronElasticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction ChipsNeutronElasticExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto const& dir = track.geometry().dir();

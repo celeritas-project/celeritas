@@ -195,8 +195,8 @@ VolumeId VolumeSurfaceRecordBuilder::operator()(VolumeSurfaceData const& data)
         record.interface_post = {post_start, volume_instance_ids_.size_id()};
         record.surface = {surf_start, surface_ids_.size_id()};
 
-        CELER_ASSERT(record.interface_pre.size()
-                     == record.interface_post.size());
+        CELER_ASSERT(
+            record.interface_pre.size() == record.interface_post.size());
         CELER_ASSERT(record.interface_pre.size() == record.surface.size());
     }
 

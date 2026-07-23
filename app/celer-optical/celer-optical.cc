@@ -135,9 +135,8 @@ void print_config()
 
 void print_default()
 {
-    std::cout
-        << nlohmann::json(celeritas::inp::OpticalStandaloneInput{}).dump(1)
-        << std::endl;
+    std::cout << nlohmann::json(inp::OpticalStandaloneInput{}).dump(1)
+              << std::endl;
 }
 
 void print_device()

@@ -70,10 +70,8 @@ GeneratorAction::make_and_insert(CoreParams const& params, size_type capacity)
 /*!
  * Construct with action ID, data IDs, and optical properties.
  */
-GeneratorAction::GeneratorAction(ActionId id,
-                                 AuxId aux_id,
-                                 GeneratorId gen_id,
-                                 size_type capacity)
+GeneratorAction::GeneratorAction(
+    ActionId id, AuxId aux_id, GeneratorId gen_id, size_type capacity)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,

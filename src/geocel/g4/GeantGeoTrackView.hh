@@ -70,9 +70,8 @@ class GeantGeoTrackView
 
   public:
     // Construct from params and state data
-    inline GeantGeoTrackView(ParamsRef const& params,
-                             StateRef const& state,
-                             TrackSlotId tid);
+    inline GeantGeoTrackView(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid);
 
     // Initialize the state
     inline GeantGeoTrackView& operator=(Initializer_t const& init);
@@ -202,9 +201,8 @@ class GeantGeoTrackView
 /*!
  * Construct from params and state data.
  */
-GeantGeoTrackView::GeantGeoTrackView(ParamsRef const& params,
-                                     StateRef const& states,
-                                     TrackSlotId tid)
+GeantGeoTrackView::GeantGeoTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_{params}
     , state_(states)
     , tid_(tid)
@@ -250,8 +248,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
                                               g4dir_,
                                               touch_handle_(),
                                               /* relative_search = */ false);
-    this->geo_status(this->is_outside() ? GeoStatus::invalid
-                                        : GeoStatus::interior);
+    this->geo_status(
+        this->is_outside() ? GeoStatus::invalid : GeoStatus::interior);
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -376,8 +374,8 @@ void GeantGeoTrackView::foreach_volume_path(F&& visit) const
 ImplVolumeId GeantGeoTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
-                                 - params_.lv_offset);
+    return id_cast<ImplVolumeId>(
+        this->volume()->GetInstanceID() - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//

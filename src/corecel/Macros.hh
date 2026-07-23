@@ -120,8 +120,8 @@
  * (to provide a more detailed error message in case the point *is* reached).
  */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
-    || defined(__NVCOMPILER)                                               \
-    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030)                 \
+    || defined(__NVCOMPILER) \
+    || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030) \
     || defined(__HIP_DEVICE_COMPILE__)
 #    define CELER_UNREACHABLE __builtin_unreachable()
 #elif defined(_MSC_VER)
@@ -212,7 +212,7 @@
 #    define CELER_DEVICE_COMPILE 0
 #endif
 
-#if CELERITAS_USE_CUDA            \
+#if CELERITAS_USE_CUDA \
     && (__CUDACC_VER_MAJOR__ < 11 \
         || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
 /*!
@@ -261,17 +261,17 @@
  * "Try" to execute the statement, and "handle" *all* thrown errors by calling
  * the given function-like error handler with a \c std::exception_ptr object.
  */
-#define CELER_TRY_HANDLE(STATEMENT, HANDLE_EXCEPTION)   \
-    do                                                  \
-    {                                                   \
-        try                                             \
-        {                                               \
-            STATEMENT;                                  \
-        }                                               \
-        catch (...)                                     \
-        {                                               \
+#define CELER_TRY_HANDLE(STATEMENT, HANDLE_EXCEPTION) \
+    do \
+    { \
+        try \
+        { \
+            STATEMENT; \
+        } \
+        catch (...) \
+        { \
             HANDLE_EXCEPTION(std::current_exception()); \
-        }                                               \
+        } \
     } while (0)
 
 /*!
@@ -298,19 +298,19 @@
     log_and_rethrow(std::move(capture_exception));
  * \endcode
  */
-#define CELER_TRY_HANDLE_CONTEXT(                          \
-    STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION)        \
-    CELER_TRY_HANDLE(                                      \
-        do {                                               \
-            try                                            \
-            {                                              \
-                STATEMENT;                                 \
-            }                                              \
-            catch (...)                                    \
-            {                                              \
+#define CELER_TRY_HANDLE_CONTEXT( \
+    STATEMENT, HANDLE_EXCEPTION, CONTEXT_EXCEPTION) \
+    CELER_TRY_HANDLE( \
+        do { \
+            try \
+            { \
+                STATEMENT; \
+            } \
+            catch (...) \
+            { \
                 std::throw_with_nested(CONTEXT_EXCEPTION); \
-            }                                              \
-        } while (0),                                       \
+            } \
+        } while (0), \
         HANDLE_EXCEPTION)
 
 //!@}
@@ -326,10 +326,10 @@
  * the "protected" section of an interface class to prevent assignment between
  * incompatible classes.
  */
-#define CELER_DEFAULT_COPY_MOVE(CLS)      \
-    CLS(CLS const&) = default;            \
+#define CELER_DEFAULT_COPY_MOVE(CLS) \
+    CLS(CLS const&) = default; \
     CLS& operator=(CLS const&) = default; \
-    CLS(CLS&&) = default;                 \
+    CLS(CLS&&) = default; \
     CLS& operator=(CLS&&) = default
 
 /*!
@@ -338,10 +338,10 @@
  * Explicitly declare *deleted* copy and move constructors and assignment
  * operators. Use this for scoped RAII classes.
  */
-#define CELER_DELETE_COPY_MOVE(CLS)      \
-    CLS(CLS const&) = delete;            \
+#define CELER_DELETE_COPY_MOVE(CLS) \
+    CLS(CLS const&) = delete; \
     CLS& operator=(CLS const&) = delete; \
-    CLS(CLS&&) = delete;                 \
+    CLS(CLS&&) = delete; \
     CLS& operator=(CLS&&) = delete
 
 /*!
@@ -351,9 +351,9 @@
  * operators. Use this if the destructor is declared explicitly.
  */
 #define CELER_DEFAULT_MOVE_DELETE_COPY(CLS) \
-    CLS(CLS const&) = delete;               \
-    CLS& operator=(CLS const&) = delete;    \
-    CLS(CLS&&) = default;                   \
+    CLS(CLS const&) = delete; \
+    CLS& operator=(CLS const&) = delete; \
+    CLS(CLS&&) = default; \
     CLS& operator=(CLS&&) = default
 
 //!@}

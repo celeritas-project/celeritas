@@ -40,9 +40,8 @@ class EPlusGGMacroXsCalculator
 
   public:
     // Construct with shared data and material
-    inline CELER_FUNCTION
-    EPlusGGMacroXsCalculator(EPlusGGData const& shared,
-                             MaterialView const& material);
+    inline CELER_FUNCTION EPlusGGMacroXsCalculator(
+        EPlusGGData const& shared, MaterialView const& material);
 
     // Compute cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -65,8 +64,8 @@ class EPlusGGMacroXsCalculator
  * Construct with material.
  */
 CELER_FUNCTION
-EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(EPlusGGData const& shared,
-                                                   MaterialView const& material)
+EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(
+    EPlusGGData const& shared, MaterialView const& material)
     : electron_mass_(value_as<units::MevMass>(shared.electron_mass))
     , electron_density_(material.electron_density())
 {
@@ -76,7 +75,8 @@ EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(EPlusGGData const& shared,
 /*!
  * Compute macroscopic cross section in native units.
  */
-CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(Energy energy) const
+CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(
+    Energy energy) const
 {
     using constants::pi;
     using constants::r_electron;

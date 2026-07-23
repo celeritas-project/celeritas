@@ -62,7 +62,8 @@ class TransformVisitor
 
     // Construct a transform from a data offset
     template<class T>
-    inline CELER_FUNCTION T make_transform(OpaqueId<real_type> data_offset) const;
+    inline CELER_FUNCTION T make_transform(
+        OpaqueId<real_type> data_offset) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -118,8 +119,8 @@ TransformVisitor::operator()(F&& func, TransformId id)
  * Apply the function to the transform specified by the given ID.
  */
 template<class T>
-CELER_FUNCTION T
-TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
+CELER_FUNCTION T TransformVisitor::make_transform(
+    OpaqueId<real_type> data_offset) const
 {
     CELER_EXPECT(data_offset <= reals_.size());
     using SpanT = typename T::StorageSpan;

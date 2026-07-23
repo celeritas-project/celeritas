@@ -96,8 +96,8 @@ CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
 /*!
  * Replace signed zeros with positive zero.
  */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type
-canonicalize_zero(real_type value)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type canonicalize_zero(
+    real_type value)
 {
     return value == 0 ? 0 : value;
 }
@@ -301,9 +301,9 @@ CutCylinder::CutCylinder(real_type radius,
     CELER_VALIDATE(bot_normal_[Z] < 0,
                    << "bottom cutting plane normal is not pointing down: "
                    << bot_normal_[Z]);
-    CELER_VALIDATE(top_normal_[Z] > 0,
-                   << "top cutting plane normal is not pointing up: "
-                   << top_normal_[Z]);
+    CELER_VALIDATE(
+        top_normal_[Z] > 0,
+        << "top cutting plane normal is not pointing up: " << top_normal_[Z]);
     CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
                    << "bottom cutting plane normal is not a unit vector");
     CELER_VALIDATE(is_soft_unit_vector(top_normal_),
@@ -559,9 +559,8 @@ real_type EllipticalCylinder::radius(Axis ax) const
 /*!
  * Construct with lower/upper x- and y-radii and half-height in z.
  */
-EllipticalCone::EllipticalCone(Real2 const& lower_radii,
-                               Real2 const& upper_radii,
-                               real_type halfheight)
+EllipticalCone::EllipticalCone(
+    Real2 const& lower_radii, Real2 const& upper_radii, real_type halfheight)
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
     // True if either radius is negative
@@ -604,9 +603,9 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
 
     // Check for elliptical cylinders. Since we have already validated the
     // aspect ratio, we only need to test the x-values here.
-    CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+    CELER_VALIDATE(
+        !soft_equal(lower_radii_[X], upper_radii_[X]),
+        << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -719,10 +718,10 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
 
     // After removing collinear points, the polygon should have a *strictly*
     // counterclockwise orientation, which also guarantees it is convex.
-    CELER_VALIDATE(has_orientation(make_span(polygon_),
-                                   detail::Orientation::counterclockwise),
-                   << "polygon must be specified in strictly counterclockwise "
-                      "order");
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon_),
+                        detail::Orientation::counterclockwise),
+        << "polygon must be specified in strictly counterclockwise order");
 }
 
 //---------------------------------------------------------------------------//
@@ -1095,8 +1094,8 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             // Tilt of the edges (linear component)
             Real3 ghi = {myr - myl,
                          mxl - mxr,
-                         canonicalize_zero(txr * myl - txl * myr + tyl * mxr
-                                           - tyr * mxl)};
+                         canonicalize_zero(
+                             txr * myl - txl * myr + tyl * mxr - tyr * mxl)};
             // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
@@ -1144,9 +1143,8 @@ void GenPrism::output(JsonPimpl* j) const
 /*!
  * Construct with radius at midpoint (min) and end (max), and half-height.
  */
-Hyperboloid::Hyperboloid(real_type min_radius,
-                         real_type max_radius,
-                         real_type halfheight)
+Hyperboloid::Hyperboloid(
+    real_type min_radius, real_type max_radius, real_type halfheight)
     : r_min_{min_radius}, r_max_{max_radius}, hh_{halfheight}
 {
     CELER_VALIDATE(r_min_ > 0,
@@ -1443,9 +1441,8 @@ void Involute::output(JsonPimpl* j) const
 /*!
  * Construct with lower/upper radii and the half-height.
  */
-Paraboloid::Paraboloid(real_type lower_radius,
-                       real_type upper_radius,
-                       real_type halfheight)
+Paraboloid::Paraboloid(
+    real_type lower_radius, real_type upper_radius, real_type halfheight)
     : r_lo_{lower_radius}, r_hi_{upper_radius}, hh_{halfheight}
 {
     // Check for negative radii
@@ -1453,9 +1450,9 @@ Paraboloid::Paraboloid(real_type lower_radius,
     CELER_VALIDATE(r_hi_ >= 0, << "negative upper radius: " << r_hi_);
 
     // Check for cylinders (this throws when both radii are zero)
-    CELER_VALIDATE(!soft_equal(r_lo_, r_hi_),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+    CELER_VALIDATE(
+        !soft_equal(r_lo_, r_hi_),
+        << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -1522,10 +1519,8 @@ void Paraboloid::output(JsonPimpl* j) const
 /*!
  * Construct with a 3-vector of half-edges and three angles.
  */
-Parallelepiped::Parallelepiped(Real3 const& half_projs,
-                               Turn alpha,
-                               Turn theta,
-                               Turn phi)
+Parallelepiped::Parallelepiped(
+    Real3 const& half_projs, Turn alpha, Turn theta, Turn phi)
     : hpr_{half_projs}, alpha_{alpha}, theta_{theta}, phi_{phi}
 {
     for (auto ax : range(Axis::size_))

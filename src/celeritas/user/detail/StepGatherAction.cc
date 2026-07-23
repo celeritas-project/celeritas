@@ -32,9 +32,8 @@ namespace detail
  * Capture construction arguments.
  */
 template<StepPoint P>
-StepGatherAction<P>::StepGatherAction(ActionId id,
-                                      SPConstStepParams params,
-                                      VecInterface callbacks)
+StepGatherAction<P>::StepGatherAction(
+    ActionId id, SPConstStepParams params, VecInterface callbacks)
     : id_(id), params_(std::move(params)), callbacks_(std::move(callbacks))
 {
     CELER_EXPECT(id_);

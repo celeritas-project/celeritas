@@ -67,8 +67,8 @@ bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
     CELER_EXPECT(!out.points[StepPoint::pre].pos.empty());
     CELER_EXPECT(!out.points[StepPoint::pre].dir.empty());
     CELER_EXPECT(!out.detector_id.empty());
-    CELER_EXPECT(detector_volumes_
-                 && out.detector_id[i] < detector_volumes_->size());
+    CELER_EXPECT(
+        detector_volumes_ && out.detector_id[i] < detector_volumes_->size());
 
     G4LogicalVolume const* lv
         = (*detector_volumes_)[out.detector_id[i].unchecked_get()];

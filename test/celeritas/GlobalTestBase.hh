@@ -279,34 +279,34 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#define DEF_GTB_ACCESSORS(CLS, NAME)                \
-    auto GlobalTestBase::NAME() -> CLS const&       \
-    {                                               \
-        if (!this->NAME##_)                         \
-        {                                           \
-            this->NAME##_ = this->build_##NAME();   \
-            CELER_ASSERT(this->NAME##_);            \
-        }                                           \
-        return this->NAME##_;                       \
-    }                                               \
+#define DEF_GTB_ACCESSORS(CLS, NAME) \
+    auto GlobalTestBase::NAME() -> CLS const& \
+    { \
+        if (!this->NAME##_) \
+        { \
+            this->NAME##_ = this->build_##NAME(); \
+            CELER_ASSERT(this->NAME##_); \
+        } \
+        return this->NAME##_; \
+    } \
     auto GlobalTestBase::NAME() const -> CLS const& \
-    {                                               \
-        CELER_ASSERT(this->NAME##_);                \
-        return this->NAME##_;                       \
+    { \
+        CELER_ASSERT(this->NAME##_); \
+        return this->NAME##_; \
     }
 
-#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME)       \
-    auto GlobalTestBase::NAME() -> CLS const&       \
-    {                                               \
-        if (!this->NAME##_)                         \
-        {                                           \
-            this->NAME##_ = this->build_##NAME();   \
-        }                                           \
-        return this->NAME##_;                       \
-    }                                               \
+#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME) \
+    auto GlobalTestBase::NAME() -> CLS const& \
+    { \
+        if (!this->NAME##_) \
+        { \
+            this->NAME##_ = this->build_##NAME(); \
+        } \
+        return this->NAME##_; \
+    } \
     auto GlobalTestBase::NAME() const -> CLS const& \
-    {                                               \
-        return this->NAME##_;                       \
+    { \
+        return this->NAME##_; \
     }
 
 DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)

@@ -384,8 +384,8 @@ TEST_F(CmseTest, DISABLED_avg_path)
     EXPECT_VEC_SOFT_EQ(
         (Real3{-1750 - geo_eps, -1750 - geo_eps, -45000 - geo_eps}),
         bbox.lower());
-    EXPECT_VEC_SOFT_EQ((Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}),
-                       bbox.upper());
+    EXPECT_VEC_SOFT_EQ(
+        (Real3{1750 + geo_eps, 1750 + geo_eps, 45000 + geo_eps}), bbox.upper());
 
     real_type tol = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.005
                                                                      : 0.35;

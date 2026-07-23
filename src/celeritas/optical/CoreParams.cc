@@ -18,7 +18,7 @@
 #include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/OpticalSizes.json.hh"
+#include "celeritas/optical/OpticalSizesIO.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
@@ -140,7 +140,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(aux_reg);
     CP_VALIDATE_INPUT(gen_reg);
-    CP_VALIDATE_INPUT(max_streams);
+    CP_VALIDATE_INPUT(sizes);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
@@ -164,15 +164,11 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
         input_.action_reg, "optical-actions"));
 
     // Add optical sizes
-    OpticalSizes sizes;
-    sizes.streams = this->max_streams();
-    sizes.generators = input_.capacity.generators;
-    sizes.tracks = input_.capacity.tracks;
     input_.output_reg->insert(
         OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
             "optical-sizes",
-            std::move(sizes)));
+            OpticalSizes{this->sizes()}));
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
@@ -186,7 +182,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     }
 
     // Save maximum number of streams
-    scalars.max_streams = input_.max_streams;
+    scalars.max_streams = this->sizes().streams;
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
@@ -201,7 +197,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CELER_LOG(status) << "Celeritas optical setup complete";
 
     CELER_ENSURE(host_ref_);
-    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->sizes().streams);
 }
 
 //---------------------------------------------------------------------------//

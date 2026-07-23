@@ -44,14 +44,12 @@ class CoreTrackView
 
   public:
     // Construct with comprehensive param/state data and thread
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        ThreadId thread);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, ThreadId thread);
 
     // Construct directly from a track slot ID
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        TrackSlotId slot);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId slot);
 
     // Initialize the track states
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
@@ -133,9 +131,8 @@ class CoreTrackView
  * Construct with comprehensive param/state data and thread.
  */
 CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             ThreadId thread)
+CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, ThreadId thread)
     : states_(states), params_(params), thread_id_(thread)
 {
     CELER_EXPECT(states_.track_slots.empty()
@@ -154,9 +151,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  * for initialization.
  */
 CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             TrackSlotId track_slot)
+CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : states_(states), params_(params), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());

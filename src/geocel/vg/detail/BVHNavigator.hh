@@ -106,9 +106,8 @@ class BVHNavigator
     }
 
     // Computes the isotropic safety from the globalpoint.
-    CELER_FUNCTION static double ComputeSafety(VgReal3 const& globalpoint,
-                                               NavState const& state,
-                                               vg_real_type safety)
+    CELER_FUNCTION static double ComputeSafety(
+        VgReal3 const& globalpoint, NavState const& state, vg_real_type safety)
     {
         VgPlacedVol const* pvol = state.Top();
         vecgeom::Transformation3D m;
@@ -203,9 +202,8 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
-    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
-                                                    VgReal3 const& globaldir,
-                                                    NavState& state)
+    CELER_FUNCTION static void RelocateToNextVolume(
+        VgReal3 const& globalpoint, VgReal3 const& globaldir, NavState& state)
     {
         // Push the point inside the next volume.
         VgReal3 pushed = globalpoint + kBoundaryPush * globaldir;

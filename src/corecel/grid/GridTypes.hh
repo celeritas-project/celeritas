@@ -66,5 +66,8 @@ CELER_CONSTEXPR_FUNCTION int to_int(Bound b)
 // Get a string corresponding to the interpolation method
 char const* to_cstring(InterpolationType value);
 
+// Get a string corresponding to the spline boundary condition
+char const* to_cstring(SplineBoundaryCondition value);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -41,9 +41,8 @@ class SurfaceTraversalView
 
   public:
     // Create view from surface physics data and state
-    inline CELER_FUNCTION SurfaceTraversalView(SurfaceParamsRef const&,
-                                               SurfaceStateRef const&,
-                                               TrackSlotId);
+    inline CELER_FUNCTION SurfaceTraversalView(
+        SurfaceParamsRef const&, SurfaceStateRef const&, TrackSlotId);
 
     // Initialize track state
     inline CELER_FUNCTION SurfaceTraversalView& operator=(Initializer const&);

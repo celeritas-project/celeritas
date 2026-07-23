@@ -102,7 +102,8 @@ ScintillationGenerator::ScintillationGenerator(
  * Sample a single scintillation photon.
  */
 template<class Generator>
-CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(Generator& rng)
+CELER_FUNCTION TrackInitializer ScintillationGenerator::operator()(
+    Generator& rng)
 {
     // Sample a spectrum distribution from the spectra component
     ScintDistributionRecord const& component = [&] {

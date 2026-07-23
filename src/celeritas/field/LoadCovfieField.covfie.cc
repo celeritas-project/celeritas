@@ -60,9 +60,9 @@ inp::AxisGrid<double> from_affine(float scale, float translation, std::size_t n)
     CELER_VALIDATE(scale > 0,
                    << "covfie affine transform has non-positive scale factor "
                    << scale);
-    CELER_VALIDATE(n > 1,
-                   << "covfie field grid axis is degenerate with " << n
-                   << " points");
+    CELER_VALIDATE(
+        n > 1,
+        << "covfie field grid axis is degenerate with " << n << " points");
 
     inp::AxisGrid<double> result;
     result.min = -translation / scale;

@@ -69,8 +69,7 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 #endif
     CELER_VALIDATE(datadir_env != nullptr,
                    << "environment variable '" << datavar
-                   << "' is undefined: "
-                      "load 'g4photonevaporation' data");
+                   << "' is undefined: load 'g4photonevaporation' data");
 
     // And 11.3 will silently produce garbage if it's null but not valid
     {
