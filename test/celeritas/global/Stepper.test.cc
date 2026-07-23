@@ -56,6 +56,18 @@ void delay_stream(void* data)
 }
 
 //---------------------------------------------------------------------------//
+void expect_stepper_eq(StepperResult const& expected,
+                       StepperResult const& actual)
+{
+    EXPECT_EQ(expected.generated, actual.generated);
+    EXPECT_EQ(expected.queued, actual.queued);
+    EXPECT_EQ(expected.active, actual.active);
+    EXPECT_EQ(expected.alive, actual.alive);
+    EXPECT_EQ(expected.cut, actual.cut);
+    EXPECT_EQ(expected.errored, actual.errored);
+}
+
+//---------------------------------------------------------------------------//
 class DelayAction final : public CoreStepActionInterface, public ConcreteAction
 {
   public:
@@ -302,6 +314,7 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     size_type const num_primaries = 32;
     size_type const num_tracks = 64;
 
+    Stepper<MemSpace::host> expected_step(this->make_stepper_input(num_tracks));
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
 
@@ -309,10 +322,11 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     EXPECT_THROW(step.ready(), RuntimeError);
     EXPECT_THROW(step.complete(), RuntimeError);
 
-    auto first_result = step(make_span(primaries));
-    EXPECT_EQ(num_primaries, first_result.generated);
-    EXPECT_EQ(num_primaries, first_result.active);
+    auto expected_result = expected_step(make_span(primaries));
+    auto result = step(make_span(primaries));
+    expect_stepper_eq(expected_result, result);
 
+    expected_result = expected_step();
     step.launch();
     EXPECT_TRUE(step.in_flight());
     EXPECT_TRUE(step.ready());
@@ -320,11 +334,14 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.kill_active(), RuntimeError);
     EXPECT_THROW(step(make_span(primaries)), RuntimeError);
 
-    auto result = step.complete();
+    result = step.complete();
+    expect_stepper_eq(expected_result, result);
     EXPECT_FALSE(step.in_flight());
-    EXPECT_GT(result.active, 0);
+    EXPECT_THROW(step.ready(), RuntimeError);
+    EXPECT_THROW(step.complete(), RuntimeError);
 }
 
 TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
@@ -332,20 +349,24 @@ TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
     size_type const num_primaries = 32;
     size_type const num_tracks = 64;
 
+    Stepper<MemSpace::device> expected_step(
+        this->make_stepper_input(num_tracks));
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
-    auto initial_result = step(make_span(primaries));
-    EXPECT_GT(initial_result.active, 0);
+    auto expected_result = expected_step(make_span(primaries));
+    auto result = step(make_span(primaries));
+    expect_stepper_eq(expected_result, result);
 
     for (int i = 0; i < 2; ++i)
     {
+        expected_result = expected_step();
         step.launch();
         EXPECT_TRUE(step.in_flight());
         EXPECT_FALSE(step.ready());
 
-        auto result = step.complete();
+        result = step.complete();
+        expect_stepper_eq(expected_result, result);
         EXPECT_FALSE(step.in_flight());
-        EXPECT_GT(result.active, 0);
     }
 }
 

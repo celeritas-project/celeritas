@@ -79,6 +79,18 @@ struct StepperResult
  * This allows higher-level classes not to care whether the stepper operates on
  * host or device.
  *
+ * A stepper is initially idle. Calling \c launch transitions it to an
+ * in-flight state, and no other step can be launched until \c complete returns
+ * the pending result. The \c ready function queries completion without
+ * blocking, whereas \c complete waits if necessary and returns the stepper to
+ * the idle state. Both functions require an in-flight step. An in-flight step
+ * can be ready: \c in_flight indicates that its result has not yet been
+ * consumed, rather than that device execution is necessarily incomplete.
+ *
+ * Host steps execute synchronously and are immediately ready. The call
+ * operators preserve synchronous behavior by launching and completing a step
+ * before returning.
+ *
  * \note This class and its daughter may be removed soon to facilitate step
  * gathering.
  */
