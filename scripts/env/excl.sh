@@ -41,7 +41,7 @@ _apptainer_fnal() {
   IMAGE=${1:-fnal-dev-sl7:latest}
   exec $APPTAINER_DIR/bin/apptainer \
     shell --shell=/bin/bash \
-    -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,$HOME \
+    -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,${HOME},${CELER_APPTAINER_FWD}, \
     --nv --ipc --pid  \
     ${IMAGE_DIR}/${IMAGE}
   # END_DOC_APPTAINER
@@ -52,12 +52,17 @@ alias apptainer-fnal=_apptainer_fnal
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C
 
-# Set default scratchdir; /scratch should exist according to excl docs
-export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
+# Set scratchdir: /scratch should exist according to excl docs
+if ! [ -d "/scratch" ]; then
+  celerlog error "Scratch directory does not exist at '/'"
+  return 1
+fi
+export SCRATCHDIR="/scratch/$USER"
 if [ -n "${APPTAINER_NAME}" ]; then
   export SCRATCHDIR="${SCRATCHDIR}/${APPTAINER_NAME%%:*}"
 fi
-for _d in build install cache; do
+
+for _d in cache build install ; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="$SCRATCHDIR/$_d"
   if ! test -d "${_scratch}"; then
@@ -107,14 +112,18 @@ EOF
   unset _clangd
 fi
 
-CELER_ENV=/scratch/celeritas/view
+CELER_SCRATCHDIR=/scratch/celeritas
+export CELER_APPTAINER_FWD=${CELER_SCRATCHDIR},/auto/projects/celeritas/spack-cache
+
+CELER_ENV=${CELER_SCRATCHDIR}/view
 if ! [ -d "${CELER_ENV}" ]; then
   celerlog error "Celeritas spack environment does not exist (or is unreadable) at CELER_ENV=${CELER_ENV}"
   return 1
 fi
 
 # CELER_OPT can be used by downstream env for exact paths, e.g. CUDA
-CELER_OPT=/scratch/celeritas/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
+# it is exported to make it available to subshells
+export CELER_OPT=${CELER_SCRATCHDIR}/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
 if ! [ -d "${CELER_OPT}" ]; then
   celerlog warning "Celeritas toolchain does not exist (or is unreadable) at CELER_OPT=${CELER_OPT}"
 fi
