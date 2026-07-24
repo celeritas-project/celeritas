@@ -116,8 +116,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 ## Technical reports
 
 - O. Strong, E. Biondo, S. R. Johnson. "Comparing precision loss in ray-toroid intersections". Aug 2025.
-- S. Martinez, S. R. Johnson. "Parallelizing GPU-Accelerated Monte Carlo Transport in Celeritas Using NVIDIA CUDA Streams". Jul 2025.
 - S. R. Johnson, R. Lefebvre, K. Bekar. "ORANGE: Oak Ridge Advanced Nested Geometry Engine". 2025.
+- S. Martinez, S. R. Johnson. "Parallelizing GPU-Accelerated Monte Carlo Transport in Celeritas Using NVIDIA CUDA Streams". Jul 2025.
 - S. Johnson, S. Castro Tognini, T. Evans, A. Lund, M. Demarteau, *et al*. "Celeritas midterm SciDAC report". Nov 2024. [10.2172/2481196](https://doi.org/10.2172/2481196)
 - S. R. Johnson, S. Castro Tognini, E. Biondo, T. Evans, J. Esseiva, *et al*. "Celeritas R&D report: accelerating Geant4". Jan 2024. [10.2172/2281972](https://doi.org/10.2172/2281972)
 
