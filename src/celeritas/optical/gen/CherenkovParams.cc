@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/DedupeCollectionBuilder.hh"
+#include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/PdfUtils.hh"
 #include "celeritas/Quantities.hh"
@@ -41,6 +42,23 @@ CherenkovParams::CherenkovParams(optical::MaterialParams const& mats)
             = optical::MaterialView{mats.host_ref(), mat_id}
                   .make_refractive_index_calculator();
         auto energy = refractive_index.grid().values();
+
+        // The Cherenkov photon sampler inverts the refractive index to find
+        // the emission energy range, which requires monotonic data. The
+        // material params accept anomalous dispersion (needed only for
+        // transport), so enforce the stricter requirement here.
+        {
+            std::vector<double> rindex_values(energy.size());
+            for (auto i : range(rindex_values.size()))
+            {
+                rindex_values[i] = refractive_index[i];
+            }
+            CELER_VALIDATE(
+                is_monotonic_nondecreasing(make_span(rindex_values)),
+                << "refractive index for optical material " << mat_id.get()
+                << " is not monotonically increasing with photon energy, "
+                   "which Cherenkov photon generation requires");
+        }
 
         inp::Grid grid;
         grid.x = {energy.begin(), energy.end()};

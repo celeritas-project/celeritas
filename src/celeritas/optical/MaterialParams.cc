@@ -114,9 +114,19 @@ MaterialParams::MaterialParams(Input const& inp)
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(
-            is_monotonic_nondecreasing(make_span(ri.y)),
-            << "refractive index values are not constant or increasing");
+        if (!is_monotonic_nondecreasing(make_span(ri.y)))
+        {
+            // Anomalous dispersion (e.g. near a UV resonance) is physical:
+            // pointwise evaluation for transport and refraction is fine, and
+            // the group velocity clamps the group index in decreasing
+            // regions. Cherenkov photon generation, which inverts the
+            // refractive index, validates monotonicity separately.
+            CELER_LOG(warning)
+                << "Refractive index for optical material " << opt_mat_idx
+                << " is not monotonically increasing with photon energy "
+                   "(anomalous dispersion): group velocity will be clamped "
+                   "in decreasing regions";
+        }
         if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "
