@@ -161,7 +161,18 @@ struct CartMapField
 using RZMapField = ::celeritas::RZMapFieldInput;
 
 //---------------------------------------------------------------------------//
-//! Field type
+/*!
+ * Magnetic field specification.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "none": \c NoField
+ * - "uniform": \c UniformField
+ * - "rzmap": \c RZMapField
+ * - "cylmap": \c CylMapField
+ * - "cartmap": \c CartMapField
+ */
 using Field
     = std::variant<NoField, UniformField, RZMapField, CylMapField, CartMapField>;
 
