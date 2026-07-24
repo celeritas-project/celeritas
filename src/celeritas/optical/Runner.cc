@@ -148,20 +148,45 @@ auto Runner::operator()() const -> Result
     (*loaded_.problem.transporter)(*state_);
 
     Result result;
-    result.counters = state_->accum();
+    result.counters = this->get_counters();
+    result.action_times = this->get_action_times();
+    result.step_times = this->get_step_times();
+
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get accumulated track counters.
+ */
+CounterAccumStats Runner::get_counters() const
+{
+    CounterAccumStats counters = state_->accum();
     for (auto gen_id : range(GeneratorId(this->params()->gen_reg()->size())))
     {
         auto const gen = this->params()->gen_reg()->at(gen_id);
         CELER_ASSERT(gen);
-        result.counters.generators.push_back(
-            gen->counters(*state_->aux()).accum);
+        counters.generators.push_back(gen->counters(*state_->aux()).accum);
     }
-    result.action_times
-        = loaded_.problem.transporter->get_action_times(*state_->aux());
-    result.step_times
-        = loaded_.problem.transporter->get_step_times(*state_->aux());
+    return counters;
+}
 
-    return result;
+//---------------------------------------------------------------------------//
+/*!
+ * Get accumulated wall times for each action.
+ */
+ActionTimes::MapStrDbl Runner::get_action_times() const
+{
+    return loaded_.problem.transporter->get_action_times(*state_->aux());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the wall time for each step iteration.
+ */
+StepTimes::VecDbl Runner::get_step_times() const
+{
+    return loaded_.problem.transporter->get_step_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//
