@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "GeantPhysicsLoader.hh"
 
+#include <cstdlib>
+
 #include <typeindex>
 #include <unordered_map>
 #include <G4Cerenkov.hh>
@@ -406,6 +408,12 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
     auto& surfaces = imported_.optical_physics.surfaces;
 
     // Load each geometry surface and print any errors that occur
+    if (std::getenv("CELER_DEBUG_SKIP_SURFACES"))
+    {
+        CELER_LOG(warning) << "Skipping named surface import "
+                              "(CELER_DEBUG_SKIP_SURFACES)";
+    }
+    else
     {
         auto geo = celeritas::global_geant_geo().lock();
         CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
@@ -443,6 +451,11 @@ size_type GeantPhysicsLoader::op_boundary(G4VProcess const&)
 //! Load Mie scattering
 size_type GeantPhysicsLoader::op_mie_hg(G4VProcess const&)
 {
+    if (std::getenv("CELER_DEBUG_SKIP_MIE"))
+    {
+        CELER_LOG(warning) << "Skipping Mie import (CELER_DEBUG_SKIP_MIE)";
+        return 0;
+    }
     auto& model = imported_.optical_physics.bulk.mie;
     CELER_ASSERT(!model);
     for (auto opt_id : range(OptMatId{optical_ids_.num_optical()}))

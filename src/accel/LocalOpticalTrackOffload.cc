@@ -7,13 +7,16 @@
 #include "LocalOpticalTrackOffload.hh"
 
 #include <atomic>
+#include <cstdlib>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/ext/GeantParticleView.hh"
@@ -194,6 +197,20 @@ void LocalOpticalTrackOffload::Flush()
 
     // Transport tracks
     (*transport_)(*state_);
+
+    if (std::getenv("CELER_DEBUG_GENERATORS"))
+    {
+        // Report per-generator accumulated counts for photon budgeting
+        auto const& gen_reg = *transport_->params()->gen_reg();
+        for (auto gid : range(GeneratorId{gen_reg.size()}))
+        {
+            auto const& gen = *gen_reg.at(gid);
+            auto const& accum = gen.counters(*state_->aux()).accum;
+            CELER_LOG(info) << "generator '" << gen.label()
+                            << "': " << accum.num_generated
+                            << " photons generated";
+        }
+    }
 
     ++num_flushed_;
     buffer_.clear();

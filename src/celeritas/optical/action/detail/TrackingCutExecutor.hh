@@ -12,6 +12,7 @@
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
+#include "celeritas/optical/detail/OpticalKillTally.hh"
 
 namespace celeritas
 {
@@ -50,6 +51,12 @@ CELER_FUNCTION void TrackingCutExecutor::operator()(CoreTrackView& track)
     CELER_DISCARD(deposited);
 #endif
 
+#if !CELER_DEVICE_COMPILE
+    celeritas::optical::detail::tally_optical_kill(
+        "tracking-cut",
+        track.geometry().volume_id().unchecked_get(),
+        track.particle().energy().value() > 4.576e-6);
+#endif
     sim.status(TrackStatus::killed);
 }
 

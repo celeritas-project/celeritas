@@ -9,6 +9,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "celeritas/optical/CoreTrackView.hh"
+#include <cstdio>
+#include "celeritas/optical/detail/OpticalKillTally.hh"
 
 namespace celeritas
 {
@@ -46,6 +48,23 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     auto traverse = track.surface_physics().traversal();
     CELER_EXPECT(traverse.is_exiting());
 
+#if !CELER_DEVICE_COMPILE
+    if (celeritas::optical::detail::surface_trace_enabled()
+        && static_cast<int>(track.track_slot_id().get())
+               == celeritas::optical::detail::traced_slot().load())
+    {
+        char buf[160];
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "slot%d POST pos=%u in_pre=%d vol=%u",
+                      static_cast<int>(track.track_slot_id().get()),
+                      traverse.pos().unchecked_get(),
+                      static_cast<int>(traverse.in_pre_volume()),
+                      track.geometry().volume_id().unchecked_get());
+        celeritas::optical::detail::trace_surface(buf);
+    }
+#endif
+
     if (traverse.in_pre_volume())
     {
         // Re-entrant into the pre-volume
@@ -64,6 +83,12 @@ CELER_FUNCTION void PostBoundaryExecutor::operator()(CoreTrackView& track) const
     {
         // Kill track if it enters an invalid optical material after crossing
         // through a custom physics surface
+#if !CELER_DEVICE_COMPILE
+        celeritas::optical::detail::tally_optical_kill(
+            "nonoptical-material",
+            track.geometry().volume_id().unchecked_get(),
+            track.particle().energy().value() > 4.576e-6);
+#endif
         track.sim().status(TrackStatus::killed);
     }
 

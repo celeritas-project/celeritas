@@ -14,6 +14,7 @@
 #include "Interaction.hh"
 #include "ParticleTrackView.hh"
 #include "SimTrackView.hh"
+#include "celeritas/optical/detail/OpticalKillTally.hh"
 
 namespace celeritas
 {
@@ -61,6 +62,12 @@ CELER_FUNCTION void InteractionApplier<F>::operator()(
     if (result.action == Interaction::Action::absorbed)
     {
         // Mark particle as killed
+#if !CELER_DEVICE_COMPILE
+        celeritas::optical::detail::tally_optical_kill(
+            "bulk-absorbed",
+            track.geometry().volume_id().unchecked_get(),
+            track.particle().energy().value() > 4.576e-6);
+#endif
         track.sim().status(TrackStatus::killed);
     }
     else if (result.action == Interaction::Action::scattered)

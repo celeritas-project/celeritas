@@ -10,6 +10,7 @@
 
 #include "DielectricInteractionData.hh"
 #include "ReflectionFormCalculator.hh"
+#include "celeritas/optical/detail/OpticalKillTally.hh"
 
 namespace celeritas
 {
@@ -120,7 +121,16 @@ template<class Engine>
 inline CELER_FUNCTION SurfaceInteraction ReflectionFormSampler::operator()(
     Engine& rng) const
 {
-    switch (sample_mode_(rng))
+    auto sampled_mode = sample_mode_(rng);
+#if !CELER_DEVICE_COMPILE
+    {
+        char const* mode_label[] = {"form-spike", "form-lobe",
+                                    "form-backscatter", "form-lambert"};
+        celeritas::optical::detail::tally_optical_kill(
+            mode_label[static_cast<int>(sampled_mode)], 0, false);
+    }
+#endif
+    switch (sampled_mode)
     {
         case ReflectionMode::specular_spike:
             return calc_reflection_.calc_specular_spike();

@@ -12,6 +12,8 @@
 #include "corecel/Types.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/inp/Grid.hh"
+#include <cstdlib>
+
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreParams.hh"
@@ -76,6 +78,17 @@ void MieModel::build_mfps(OptMatId mat, MfpBuilder& build) const
 {
     if (auto iter = input_.materials.find(mat); iter != input_.materials.end())
     {
+        if (std::getenv("CELER_DEBUG_OPTICAL_FATES"))
+        {
+            auto const& mfp = iter->second.mfp;
+            auto const& p = input_.materials.find(mat)->second;
+            CELER_LOG(info)
+                << "Mie mat " << mat.get() << ": mfp e=[" << mfp.x.front()
+                << "," << mfp.x.back() << "] len=[" << mfp.y.front() << ","
+                << mfp.y.back() << "] (native), forward_g=" << p.forward_g
+                << " backward_g=" << p.backward_g
+                << " forward_ratio=" << p.forward_ratio;
+        }
         build(iter->second.mfp);
     }
     else

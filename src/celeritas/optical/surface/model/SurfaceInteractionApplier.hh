@@ -9,6 +9,8 @@
 #include "celeritas/optical/CoreTrackView.hh"
 
 #include "SurfaceInteraction.hh"
+#include "celeritas/optical/detail/OpticalKillTally.hh"
+#include "corecel/math/ArrayUtils.hh"
 
 namespace celeritas
 {
@@ -50,9 +52,35 @@ CELER_FUNCTION void SurfaceInteractionApplier<F>::operator()(
 
     CELER_ASSERT(result.is_valid());
 
+#if !CELER_DEVICE_COMPILE
+    if (celeritas::optical::detail::surface_trace_enabled()
+        && static_cast<int>(track.track_slot_id().get())
+               == celeritas::optical::detail::traced_slot().load())
+    {
+        auto s_phys = track.surface_physics();
+        char buf[192];
+        std::snprintf(buf,
+                      sizeof(buf),
+                      "slot%d INTERACT action=%d pos=%u inc_n=%.3f out_n=%.3f",
+                      static_cast<int>(track.track_slot_id().get()),
+                      static_cast<int>(result.action),
+                      s_phys.traversal().pos().unchecked_get(),
+                      dot_product(track.geometry().dir(),
+                                  s_phys.global_normal()),
+                      dot_product(result.direction, s_phys.global_normal()));
+        celeritas::optical::detail::trace_surface(buf);
+    }
+#endif
+
     if (result.action == SurfaceInteraction::Action::absorbed)
     {
         // Mark particle as killed
+#if !CELER_DEVICE_COMPILE
+        celeritas::optical::detail::tally_optical_kill(
+            "surface-absorbed",
+            track.geometry().volume_id().unchecked_get(),
+            track.particle().energy().value() > 4.576e-6);
+#endif
         track.sim().status(TrackStatus::killed);
     }
     else
@@ -67,6 +95,17 @@ CELER_FUNCTION void SurfaceInteractionApplier<F>::operator()(
 
         if (result.action != SurfaceInteraction::Action::transmitted)
         {
+#if !CELER_DEVICE_COMPILE
+            if (result.action == SurfaceInteraction::Action::reflected)
+            {
+                double d = dot_product(result.direction,
+                                       track.surface_physics().global_normal());
+                celeritas::optical::detail::tally_optical_kill(
+                    d < 0 ? "reflect-back" : "reflect-into-surface",
+                    track.geometry().volume_id().unchecked_get(),
+                    track.particle().energy().value() > 4.576e-6);
+            }
+#endif
             // Update direction and polarization
             track.geometry().set_dir(result.direction);
             track.particle().polarization(result.polarization);
