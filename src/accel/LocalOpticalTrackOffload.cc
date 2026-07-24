@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalOpticalTrackOffload.hh"
 
+#include <atomic>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -105,11 +106,13 @@ void LocalOpticalTrackOffload::InitializeEvent(int id)
         if (!(G4Threading::IsMultithreadedApplication()
               && G4MTRunManager::SeedOncePerCommunication()))
         {
-            // Since Geant4 schedules events dynamically, reseed the Celeritas
-            // RNGs using the Geant4 event ID for reproducibility. This
-            // guarantees that an event can be reproduced given the event ID.
+            // Reseed with a process-global event ordinal rather than the
+            // Geant4 event ID: frameworks that drive one event per BeamOn
+            // (e.g. IceTray) reset the Geant4 event ID to zero every call,
+            // which would replay identical random streams for every event.
+            static std::atomic<UniqueEventId::size_type> event_ordinal{0};
             state_->reseed(transport_->params()->rng(),
-                           id_cast<UniqueEventId>(id));
+                           UniqueEventId{event_ordinal++});
         }
     }
 }

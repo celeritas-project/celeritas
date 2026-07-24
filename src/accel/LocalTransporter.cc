@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <atomic>
 #include <csignal>
 #include <memory>
 #include <mutex>
@@ -227,10 +228,12 @@ void LocalTransporter::InitializeEvent(int id)
         if (!(G4Threading::IsMultithreadedApplication()
               && G4MTRunManager::SeedOncePerCommunication()))
         {
-            // Since Geant4 schedules events dynamically, reseed the Celeritas
-            // RNGs using the Geant4 event ID for reproducibility. This
-            // guarantees that an event can be reproduced given the event ID.
-            step_->reseed(id_cast<UniqueEventId>(event_id_));
+            // Reseed with a process-global event ordinal rather than the
+            // Geant4 event ID: frameworks that drive one event per BeamOn
+            // (e.g. IceTray) reset the Geant4 event ID to zero every call,
+            // which would replay identical random streams for every event.
+            static std::atomic<UniqueEventId::size_type> event_ordinal{0};
+            step_->reseed(UniqueEventId{event_ordinal++});
         }
     }
 
