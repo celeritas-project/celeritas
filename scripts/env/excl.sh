@@ -10,17 +10,13 @@ if ! command -v celerlog >/dev/null 2>&1; then
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
-if [ -z "${SYSTEM_NAME}" ]; then
-  SYSTEM_NAME=$(hostname -s)
-  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
-fi
 
 #-----------------------------------------------------------------------------#
 # Call this helper function on the login node bare metal
 _apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     celerlog error "Scratch directory does not exist: run
-  . \${CELER_SOURCE}/scripts/env/excl.sh
+  . \${CELER_SOURCE}/scripts/env/${SYSTEM_NAME:-excl}.sh
 "
     return 1
   fi

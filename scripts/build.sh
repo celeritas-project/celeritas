@@ -273,6 +273,8 @@ if [ "$(find_command pre-commit)" != "${OLD_PRE_COMMIT}" ]; then
 fi
 if [ "${CMAKE}" != "${OLD_CMAKE}" ]; then
   log warning "Local environment script uses a different CMake than your \$PATH"
+  log debug "Original: ${OLD_CMAKE}"
+  log debug "Updated : ${CMAKE}"
   needs_env=true
 fi
 if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then

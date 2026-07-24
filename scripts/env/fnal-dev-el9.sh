@@ -4,11 +4,6 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if [ -z "${APPTAINER_CONTAINER}" ]; then
-  celerlog error "Not running in an apptainer"
-  return 1
-fi
-
 if ! [ -d "/cvmfs" ]; then
   celerlog error "CVMFS is not mounted"
   return 1
@@ -22,7 +17,9 @@ fi
 #-----------------------------------------------------------------------------#
 # Set up environment
 
-celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
+if [ -n "${APPTAINER_CONTAINER}" ]; then
+  celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
+fi
 
 export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.1.1"
 SPACK_ENV_NAME="dunesw-10_21_01d00-justin-01_06_01-prototype"
@@ -33,15 +30,39 @@ unset CUDACXX
 
 celerlog info "Setting up spack environment from ${SPACK_ROOT}"
 . "${SPACK_ROOT}/share/spack/setup-env.sh"
+local _errcode=$?
+if [ ${_errcode} -ne 0 ]; then
+  celerlog error "Failed to set up spack"
+  return ${_errcode}
+fi
 celerlog info "Loading from spack environment '${SPACK_ENV_NAME}'"
-_spack_src_file=$(mktemp -p ${SCRATCHDIR}/build spack-XXXXXX.sh)
-command spack -e ${SPACK_ENV_NAME} load --sh \
-  gcc cmake root art larsim googletest cuda \
-  > ${_spack_src_file}
-celerlog debug "Temporary spack environment setup script: ${_spack_src_file}"
-. ${_spack_src_file}
+_spack_src_file="${SCRATCHDIR}/build/spack-env.sh"
+if ! [ -f "${_spack_src_file}" ]; then
+  _tmp_src_file=$(mktemp ${_spack_src_file}.XXXXXX)
+  command spack -e ${SPACK_ENV_NAME} load --sh \
+    gcc cmake root art larsim googletest cuda \
+    > ${_tmp_src_file}
+  _errcode=$?
+  if [ ${_errcode} -ne 0 ]; then
+    celerlog error "Failed to create spack environment at ${_tmp_src_file}"
+    return ${_errcode}
+  fi
+  mv "${_tmp_src_file}" "${_spack_src_file}"
+  celerlog info "Created spack environment setup script: ${_spack_src_file}"
+else
+  celerlog info "Reusing spack environment setup script at ${_spack_src_file}"
+fi
+. "${_spack_src_file}"
+local _errcode=$?
+if [ ${_errcode} -ne 0 ]; then
+  celerlog error "Failed to source spack environment"
+  mv "${_spack_src_file}" "${_spack_src_file}.old"
+  return ${_errcode}
+fi
+
 if [ ! command -v lar >/dev/null 2>&1 ]; then
-  celerlog error "failed to load spack environment: see ${_spack_src_file}"
+  celerlog error "Incorrect spack environment: see ${_spack_src_file}.old"
+  mv "${_spack_src_file}" "${_spack_src_file}.old"
   return 1
 fi
 
