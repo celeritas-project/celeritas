@@ -9,6 +9,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "corecel/Macros.hh"
 #include "corecel/data/ParamsDataInterface.hh"
@@ -196,6 +197,10 @@ class GeantGeoParams final : public GeoParamsInterface,
     ImplVolumeMap impl_volumes_;
     SPConstVolumeParams volume_params_;
     detail::GeantVolumeInstanceMapper vi_mapper_;
+    // Volume ID (instance ID minus offset) -> LV: the logical volume store
+    // cannot be indexed directly because instance IDs are not contiguous
+    // when volumes have been deleted during construction
+    std::unordered_map<ImplVolumeId::size_type, G4LogicalVolume*> lv_by_index_;
     std::shared_ptr<GeoOpticalIdMap> geo_to_opt_;
     std::vector<G4LogicalSurface const*> surfaces_;
     BBox bbox_;

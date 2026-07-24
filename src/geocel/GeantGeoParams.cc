@@ -451,7 +451,13 @@ std::vector<inp::Detector> make_inp_detectors(GeantGeoParams const& geo)
             // This volume isn't part of the world hierarchy
             continue;
         }
-        auto& g4lv = *geo.id_to_geant(vol_id);
+        auto* g4lv_ptr = geo.id_to_geant(vol_id);
+        if (!g4lv_ptr)
+        {
+            // Gap in instance IDs from a volume deleted during construction
+            continue;
+        }
+        auto& g4lv = *g4lv_ptr;
 
         // Add volume id to detector map if it is in a detector region
         if (G4VSensitiveDetector const* sd = g4lv.GetSensitiveDetector())
@@ -516,7 +522,13 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             // This volume isn't part of the world hierarchy
             continue;
         }
-        auto const& g4lv = *geo.id_to_geant(vol_id);
+        auto const* g4lv_ptr = geo.id_to_geant(vol_id);
+        if (!g4lv_ptr)
+        {
+            // Gap in instance IDs from a volume deleted during construction
+            continue;
+        }
+        auto const& g4lv = *g4lv_ptr;
 
         if (!(has_region_extras(g4lv) || has_volume_extras(g4lv)))
         {
@@ -894,10 +906,15 @@ G4LogicalVolume const* GeantGeoParams::id_to_geant(VolumeId id) const
         return nullptr;
     }
 
-    G4LogicalVolumeStore* lv_store = G4LogicalVolumeStore::GetInstance();
-    auto index = id.unchecked_get();
-    CELER_ASSERT(index < lv_store->size());
-    return (*lv_store)[index];
+    // Look up by instance ID rather than indexing the logical volume store:
+    // store positions do not match instance IDs when volumes have been
+    // deleted during construction
+    auto iter = lv_by_index_.find(id.unchecked_get());
+    if (iter == lv_by_index_.end())
+    {
+        return nullptr;
+    }
+    return iter->second;
 }
 
 //---------------------------------------------------------------------------//
@@ -984,6 +1001,16 @@ void GeantGeoParams::build_metadata()
     // Construct volume instance mapper
     vi_mapper_ = detail::GeantVolumeInstanceMapper(*this->world());
     data_.vi_mapper = &vi_mapper_;
+
+    // Map volume IDs to LVs by instance ID: store positions do not match
+    // instance IDs when volumes have been deleted during construction
+    {
+        auto* lv_store = G4LogicalVolumeStore::GetInstance();
+        for (G4LogicalVolume* lv : *lv_store)
+        {
+            lv_by_index_.emplace(lv->GetInstanceID() - this->lv_offset(), lv);
+        }
+    }
 
     // Construct volume labels for physically reachable volumes
     impl_volumes_ = ImplVolumeMap{
