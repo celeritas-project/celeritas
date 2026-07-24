@@ -40,7 +40,7 @@ _spack_src_file="${SCRATCHDIR}/build/spack-env.sh"
 if ! [ -f "${_spack_src_file}" ]; then
   _tmp_src_file=$(mktemp ${_spack_src_file}.XXXXXX)
   command spack -e ${SPACK_ENV_NAME} load --sh \
-    gcc cmake root art larsim googletest cuda \
+    gcc cmake larsim googletest cuda \
     > ${_tmp_src_file}
   _errcode=$?
   if [ ${_errcode} -ne 0 ]; then
