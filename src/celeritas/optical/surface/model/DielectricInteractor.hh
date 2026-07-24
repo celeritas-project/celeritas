@@ -141,6 +141,20 @@ template<class Engine>
 CELER_FUNCTION SurfaceInteraction DielectricInteractor::operator()(
     Engine& rng) const
 {
+    if (dielectric_interface_ == DielectricInterface::metal)
+    {
+        // Geant4 dielectric_metal semantics: the reflection probability is
+        // the REFLECTIVITY property (default 1), which the reflectivity
+        // stage has already applied (killing the non-reflected fraction).
+        // Re-rolling the dielectric Fresnel reflectivity here would absorb
+        // nearly everything for index-matched media; only the reflection
+        // form is sampled.
+        return ReflectionFormSampler{
+            reflection_calc_,
+            ReflectionFormCalculator{
+                inc_direction_, inc_photon_, surface_phys_}}(rng);
+    }
+
     if (BernoulliDistribution{fresnel_.calc_reflectivity()}(rng))
     {
         // Reflection
@@ -152,15 +166,7 @@ CELER_FUNCTION SurfaceInteraction DielectricInteractor::operator()(
     else
     {
         // Refraction
-        switch (dielectric_interface_)
-        {
-            case DielectricInterface::metal:
-                return SurfaceInteraction::from_absorption();
-            case DielectricInterface::dielectric:
-                return fresnel_.refracted_interaction();
-            default:
-                CELER_ASSERT_UNREACHABLE();
-        }
+        return fresnel_.refracted_interaction();
     }
 }
 
