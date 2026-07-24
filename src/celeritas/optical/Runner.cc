@@ -117,6 +117,7 @@ void Runner::insert(SpanConstTrackInit data)
  */
 void Runner::insert(SpanConstGenDist data)
 {
+    ScopedProfiling profile_this{"insert"};
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         loaded_.problem.generator);
     CELER_VALIDATE(generate,

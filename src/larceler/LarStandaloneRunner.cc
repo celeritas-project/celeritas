@@ -19,6 +19,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayQuantity.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
@@ -117,6 +118,7 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
         = [this](SpanCelerHits h) { return this->hit(h); };
     runner_ = std::make_shared<optical::Runner>(std::move(i));
 
+    ScopedProfiling profile_this("setup-channels");
     // Map detector coordinates
     auto geo = runner_->params()->geometry();
     CELER_ASSERT(geo);

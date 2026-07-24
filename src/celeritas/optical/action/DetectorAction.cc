@@ -8,6 +8,7 @@
 
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "ActionLauncher.hh"
 #include "TrackSlotExecutor.hh"
@@ -48,11 +49,16 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
                                                        MemSpace::host>{}];
 
     VecHit temp_hits(all_hits.size());
-    // Copy all valid hits, erasing remaining part of the vector
-    temp_hits.erase(
-        std::copy_if(
-            all_hits.begin(), all_hits.end(), temp_hits.begin(), Identity{}),
-        temp_hits.end());
+    {
+        ScopedProfiling profile_this("copy-prune");
+        // Copy all valid hits, erasing remaining part of the vector
+        temp_hits.erase(std::copy_if(all_hits.begin(),
+                                     all_hits.end(),
+                                     temp_hits.begin(),
+                                     Identity{}),
+                        temp_hits.end());
+    }
+
     this->callback_hits(temp_hits);
 }
 
@@ -77,19 +83,22 @@ auto DetectorAction::load_hits_sync(CoreStateDevice const& state) const
     auto const& native_hits = state.ref().detectors.detector_hits;
     VecHit temp_hits(native_hits.size());
 
-    // Ensure the kernel copied into the device buffer before copying out
-    celeritas::device().stream(state.stream_id()).sync();
+    {
+        // Copy all track hits to host from device
+        ScopedProfiling profile_this("copy");
+        copy_to_host(native_hits, make_span(temp_hits), state.stream_id());
 
-    // Copy all track hits to host from device
-    copy_to_host(native_hits, make_span(temp_hits), state.stream_id());
-
-    // Ensure copy is complete
-    celeritas::device().stream(state.stream_id()).sync();
+        // Ensure copy is complete
+        celeritas::device().stream(state.stream_id()).sync();
+    }
 
     // Erase all hits with invalid detector ID
-    temp_hits.erase(
-        std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{}),
-        temp_hits.end());
+    {
+        ScopedProfiling profile_this("prune");
+        temp_hits.erase(
+            std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{}),
+            temp_hits.end());
+    }
 
     return temp_hits;
 }
@@ -107,6 +116,7 @@ void DetectorAction::callback_hits(VecHit const& hits) const
     // Send hits to the callback function, if there are any
     if (!hits.empty())
     {
+        ScopedProfiling profile_this("callback");
         callback_(make_span(hits));
     }
 }
