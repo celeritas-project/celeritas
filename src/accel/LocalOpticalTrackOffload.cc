@@ -140,6 +140,9 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     init.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
     init.polarization
         = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
+    // Save the Geant4 track ID so detector hits can be mapped back to the
+    // originating photon for MC truth (propagated through WLS re-emission)
+    init.primary = id_cast<PrimaryId>(g4track.GetTrackID());
 
     ScopedProfiling profile_this{"push"};
 
