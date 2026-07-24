@@ -13,11 +13,12 @@ Summary
 
 This sequence of commands generate analysis files for Celeritas and the LArSim
 fast simulation using a single GENIE-generated event.
-The included ``run.sh`` script executes all the following steps.
+The included ``run.sh`` script executes all the following steps, where ``EXAMPLE_DIR``
+is :file:`example/larceler` inside the Celeritas source dir.
 
 .. literalinclude:: ../../example/larceler/run.sh
    :language: sh
-   :start-at: # Download and patch
+   :start-at: # Set up environment
 
 Optical simulation setup
 ------------------------
