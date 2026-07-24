@@ -58,6 +58,9 @@ for _d in cache build install; do
 done
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
 
+# Prevent Celeritas tests from trying to use nonexistent CUDA device, even though we build with it
+export CELER_DISABLE_DEVICE=1
+
 if [ -z "${APPTAINER_NAME}" ]; then
   # Check that we're using AlmaLinux 9
   if grep -q "platform:el9" /etc/os-release ; then

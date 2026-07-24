@@ -10,6 +10,7 @@
       "generator": "Ninja",
       "cacheVariables": {
         "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
+        "CELERITAS_BUILD_APPS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_LArSoft": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "ON"},
