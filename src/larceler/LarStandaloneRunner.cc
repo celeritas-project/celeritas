@@ -20,6 +20,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayQuantity.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stopwatch.hh"
 #include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
@@ -220,6 +221,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
 
     // Execute
     runner_->insert(make_span(std::as_const(gdd)));
+    Stopwatch get_transport_time;
     auto result = (*runner_)();
 
     CELER_ASSERT(result.counters.generators.size() == 1);
@@ -228,7 +230,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
                      << " optical photons from " << gen.buffer_size
                      << " sim energy deposits with a total of "
                      << result.counters.steps << " steps over "
-                     << result.counters.step_iters << " step iterations";
+                     << result.counters.step_iters << " step iterations in "
+                     << get_transport_time() << "s";
 
     // Convert BTR helpers to BTRs in the LarSoft order
     VecBTR btrs;
