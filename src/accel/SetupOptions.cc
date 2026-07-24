@@ -328,8 +328,11 @@ inp::FrameworkInput to_inp(SetupOptions const& so)
     result.physics_import.ignore_processes = so.ignore_processes;
     result.physics_import.data_selection.interpolation = so.interpolation;
 
-    // Correctly assign DataSelection import flags when muons are present
-    auto const selection = GIDS::optical
+    // Correctly assign DataSelection import flags when muons are present.
+    // Import optical physics only when an optical tracking loop is
+    // configured: otherwise problem setup fails with "optical physics models
+    // were imported but no optical capacity was set".
+    auto const selection = (so.optical ? GIDS::optical : GIDS::none)
                            | (includes_muon() ? GIDS::em : GIDS::em_basic);
     result.physics_import.data_selection.particles = selection;
     result.physics_import.data_selection.processes = selection;

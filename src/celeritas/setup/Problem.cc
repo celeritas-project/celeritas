@@ -120,6 +120,13 @@ auto build_physics_processes(inp::EmPhysics const& em,
         imported, params.particle, params.material, em.user_processes);
     for (auto pc : ProcessBuilder::get_all_process_classes(imported.processes))
     {
+        if (pc == ImportProcessClass::other)
+        {
+            // Unrecognized processes were already warned about at import
+            CELER_LOG(warning) << "Skipping imported processes with "
+                                  "unrecognized process classes";
+            continue;
+        }
         result.push_back(build_process(pc));
         if (!result.back())
         {

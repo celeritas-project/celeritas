@@ -304,9 +304,16 @@ bool GeantPhysicsLoader::operator()(GeantParticleView const& particle,
 //! Load Cherenkov emission (TODO: enable by material?)
 size_type GeantPhysicsLoader::cerenkov(G4VProcess const& p)
 {
-    CELER_VALIDATE(dynamic_cast<G4Cerenkov const*>(&p),
-                   << "process " << TypeDemangler<G4VProcess>{}(p)
-                   << " is not actually scintillation");
+    if (!dynamic_cast<G4Cerenkov const*>(&p))
+    {
+        // User-defined process that only shares the name: skip importing
+        // Cherenkov generation data (needed only for optical generator
+        // offload)
+        CELER_LOG(warning) << "Skipping Cherenkov data import: process "
+                           << TypeDemangler<G4VProcess>{}(p)
+                           << " is not a G4Cerenkov";
+        return 0;
+    }
     // TODO: import and use step limits
 
     imported_.optical_physics.gen.cherenkov.emplace();
@@ -328,9 +335,16 @@ size_type GeantPhysicsLoader::muon_minus_atomic_capture(G4VProcess const&)
 //! Load optical scintillation
 size_type GeantPhysicsLoader::scintillation(G4VProcess const& p)
 {
-    CELER_VALIDATE(dynamic_cast<G4Scintillation const*>(&p),
-                   << "process " << TypeDemangler<G4VProcess>{}(p)
-                   << " is not actually scintillation");
+    if (!dynamic_cast<G4Scintillation const*>(&p))
+    {
+        // User-defined process that only shares the name: skip importing
+        // scintillation generation data (needed only for optical generator
+        // offload)
+        CELER_LOG(warning) << "Skipping scintillation data import: process "
+                           << TypeDemangler<G4VProcess>{}(p)
+                           << " is not a G4Scintillation";
+        return 0;
+    }
 
     inp::ScintillationProcess s;
     GeantScintillationLoader load_material{s};
