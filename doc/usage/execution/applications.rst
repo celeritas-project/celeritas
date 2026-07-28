@@ -21,20 +21,20 @@ Usage:
 
 - :file:`{input}.json` is the path to the input file, or ``-`` to read the
   JSON from ``stdin``.
-- The ``--config`` option prints the contents of the ``["system"]["build"]``
+- The ``config`` option prints the contents of the ``["system"]["build"]``
   diagnostic output. It includes configuration options and the version number.
-- The ``--device`` option prints diagnostic output for the default GPU, similar
+- The ``device`` option prints diagnostic output for the default GPU, similar
   to the output from the ``deviceQuery`` CUDA example.
-- The ``--dump-default`` option prints the default options for the execution.
+- The ``default`` option prints the default options for the execution.
   Not all variables will be shown, because some are conditional on others.
 
 Input
 ^^^^^
 
-.. todo::
-   The input parameters will be documented for version 1 in the :ref:`input`
-   section and :ref:`inp_standalone_input`. Until then, refer to the
-   source code at :file:`app/celer-sim/RunnerInput.hh` .
+The input parameters are documented in the :ref:`input` section, including the
+standalone execution input described in :ref:`inp_standalone_input`. See
+:ref:`json-input` for the JSON encoding conventions and minimal standalone
+input examples.
 
 In addition to these input parameters, :ref:`environment` can be specified to
 change the program behavior.
@@ -43,12 +43,53 @@ Output
 ^^^^^^
 
 The primary output from ``celer-sim`` is a JSON object that includes several
-levels of diagnostic and result data (see :ref:`api_io`). The JSON
-output should be the only data sent to ``stdout``, so it should be suitable for
-piping directly into other executables such as Python or ``jq``.
+levels of diagnostic and result data. The JSON
+output is written either to the configured output file or, if no output
+file is specified, to ``stdout``. When writing to ``stdout``, the JSON output
+should be the only data sent there, so it is suitable for piping directly into
+other executables such as Python or ``jq``.
 
 Additional user-oriented output is sent to ``stderr`` via the Logger facility
-(see :ref:`logging`).
+(see :ref:`api_io` and :ref:`logging`).
+
+.. _celer-optical:
+
+Standalone optical simulation app (celer-optical)
+-------------------------------------------------
+
+The ``celer-optical`` application runs optical photon problems for independent
+validation and performance analysis. It is similar to ``celer-sim``, but it
+executes only the optical photon transport loop. See
+:ref:`example_celer_optical` for an example.
+
+Usage:
+
+.. literalinclude:: _usage/celer-optical.txt
+
+- ``input.json`` is the path to the input file, or ``-`` to read the JSON from
+  ``stdin``.
+- The ``config`` option prints the contents of the ``["system"]["build"]``
+  diagnostic output. It includes configuration options and the version number.
+- The ``device`` option prints diagnostic output for the default GPU, similar
+  to the output from the ``deviceQuery`` CUDA example.
+- The ``default`` option prints the default options for the execution.
+  Not all variables will be shown, because some are conditional on others.
+
+Input
+^^^^^
+
+The input parameters are documented in the :ref:`input` section, including the
+optical standalone execution input
+:cpp:struct:`celeritas::inp::OpticalStandaloneInput` described in
+:ref:`inp_standalone_input`. See :ref:`json-input` for the JSON encoding
+conventions and minimal standalone input examples.
+
+Output
+^^^^^^
+
+Like ``celer-sim``, the output from ``celer-optical`` is a JSON object
+containing diagnostic and result data which can be written either to the
+configured output file or to ``stdout``.
 
 .. _celer-g4:
 
@@ -72,7 +113,7 @@ Physics is set up using the top-level ``physics_option`` key in the JSON input,
 corresponding to :ref:`api_geant4_physics_options`. The magnetic field is
 specified with a combination of the ``field_type``, ``field``, and
 ``field_file`` keys, and detailed field driver configuration options are set
-with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`api_field_data`.
+with ``field_options`` corresponding to the ``FieldOptions`` class in :ref:`inp_field`.
 
 .. deprecated:: v0.5
 

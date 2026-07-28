@@ -7,8 +7,9 @@
 Input
 *****
 
-.. note:: This section is a sneak preview of Celeritas 1.0 input. It is *not*
-   currently exposed to users.
+.. note:: This section documents the input interface planned for Celeritas 1.0.
+   It is currently available only through the standalone applications
+   ``celer-sim`` and ``celer-optical``.
 
 .. only:: nobreathe
 
@@ -17,12 +18,12 @@ Input
 
    .. _breathe: https://github.com/michaeljones/breathe#readme
 
-All front ends to Celeritas, and the library interface for external
-integration, use a single interface to define properties about the simulation
-to be run. This interface is a nested set of simple struct objects that are
-used both to enable options and to set up low-level C++ data structures. Many
-of the struct names in the ``inp`` namespace correspond to runtime Celeritas
-classes and objects.
+The standalone applications and, beginning with Celeritas 1.0, the library
+interface for external integration use a single interface to define properties
+about the simulation to be run. This interface is a nested set of simple struct
+objects that are used both to enable options and to set up low-level C++ data
+structures. Many of the struct names in the ``inp`` namespace correspond to
+runtime Celeritas classes and objects.
 
 The following sections describe the members and their configuration options.
 Note that most input classes (namespace ``inp``) match up with the runtime
@@ -37,8 +38,12 @@ Problems are loaded into the framework or application front end via :ref:`api_pr
 
 .. toctree::
    :maxdepth: 2
-   :caption: Input definition
 
+   input/framework.rst
+   input/standalone.rst
+   input/events.rst
+   input/import.rst
+   input/system.rst
    input/problem.rst
    input/model.rst
    input/physics.rst
