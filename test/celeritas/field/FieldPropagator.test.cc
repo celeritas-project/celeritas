@@ -543,7 +543,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
 
         auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -1329,7 +1329,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         EXPECT_FALSE(result.looping);
     }
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+        ScopedLogStorer scoped_log_{&geo.logger()};
         ASSERT_TRUE(geo.is_on_boundary());
         // Simulate MSC making us reentrant
         geo.set_dir({-1.31178657592616127e-01,
@@ -1440,10 +1440,9 @@ TEST_F(CmseTest, coarse)
 
     for (real_type radius : {5, 10, 20, 50})
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
-                                    LogLevel::warning};
         auto geo = this->make_geo_track_view({2 * radius + 0.01_r, 0, -300},
                                              {0, 1, 1});
+        ScopedLogStorer scoped_log_{&geo.logger(), LogLevel::warning};
         // TODO: define a "reentrant" different propagation status: see
         // CheckedGeoTrackView, OrangeTrackView
         geo.check_zero_distance(false);
