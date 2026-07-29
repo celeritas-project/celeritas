@@ -102,10 +102,8 @@ class Selector
  * nontrivially less than the given total.
  */
 template<class F, class T>
-CELER_FUNCTION Selector<F, T>::Selector(F&& eval,
-                                        arg_type size,
-                                        real_type total,
-                                        SelectorNormalization norm)
+CELER_FUNCTION Selector<F, T>::Selector(
+    F&& eval, arg_type size, real_type total, SelectorNormalization norm)
     : eval_{celeritas::forward<F>(eval)}, last_{size}, total_{total}
 {
     CELER_EXPECT(last_ != IterT{});

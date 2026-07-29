@@ -100,9 +100,8 @@ CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
 /*!
  */
 template<class E>
-CELER_FUNCTION auto
-ZHelixIntegrator<E>::operator()(real_type step, OdeState const& beg_state) const
-    -> result_type
+CELER_FUNCTION auto ZHelixIntegrator<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
     using namespace celeritas::literals;
 

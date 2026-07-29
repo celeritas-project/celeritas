@@ -49,10 +49,10 @@ class UniverseIndexer
     UniverseIndexer(UniverseIndexerDataRef const& data);
 
     // Local-to-global
-    inline CELER_FUNCTION ImplSurfaceId
-    global_surface(UnivId uni, LocalSurfaceId surface) const;
-    inline CELER_FUNCTION ImplVolumeId global_volume(UnivId uni,
-                                                     LocalVolumeId volume) const;
+    inline CELER_FUNCTION ImplSurfaceId global_surface(
+        UnivId uni, LocalSurfaceId surface) const;
+    inline CELER_FUNCTION ImplVolumeId global_volume(
+        UnivId uni, LocalVolumeId volume) const;
 
     // Global-to-local
     inline CELER_FUNCTION LocalSurface local_surface(ImplSurfaceId id) const;
@@ -111,28 +111,28 @@ UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
 /*!
  * Transform local to global surface ID.
  */
-CELER_FUNCTION ImplSurfaceId
-UniverseIndexer::global_surface(UnivId uni, LocalSurfaceId surf) const
+CELER_FUNCTION ImplSurfaceId UniverseIndexer::global_surface(
+    UnivId uni, LocalSurfaceId surf) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
 
-    return ImplSurfaceId(data_.surfaces[SizeId{uni.unchecked_get()}]
-                         + surf.unchecked_get());
+    return ImplSurfaceId(
+        data_.surfaces[SizeId{uni.unchecked_get()}] + surf.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transform local to global volume ID.
  */
-CELER_FUNCTION ImplVolumeId
-UniverseIndexer::global_volume(UnivId uni, LocalVolumeId volume) const
+CELER_FUNCTION ImplVolumeId UniverseIndexer::global_volume(
+    UnivId uni, LocalVolumeId volume) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
 
-    return ImplVolumeId(data_.volumes[SizeId{uni.unchecked_get()}]
-                        + volume.unchecked_get());
+    return ImplVolumeId(
+        data_.volumes[SizeId{uni.unchecked_get()}] + volume.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//

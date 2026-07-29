@@ -32,8 +32,8 @@ struct WavelengthShiftExecutor
 /*!
  * Sample optical WLS interaction from the current track.
  */
-CELER_FUNCTION Interaction
-WavelengthShiftExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction WavelengthShiftExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto sim = track.sim();

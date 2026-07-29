@@ -150,9 +150,8 @@ class SoftOrientation
     }
 
     // Calculate orientation with tolerance for collinearity
-    CELER_FUNCTION Orientation operator()(Real2 const& a,
-                                          Real2 const& b,
-                                          Real2 const& c) const
+    CELER_FUNCTION Orientation operator()(
+        Real2 const& a, Real2 const& b, Real2 const& c) const
     {
         Real2 u{b[0] - a[0], b[1] - a[1]};
         Real2 v{c[0] - a[0], c[1] - a[1]};

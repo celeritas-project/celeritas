@@ -35,8 +35,8 @@ MuBetheBlochModel::MuBetheBlochModel(ActionId id,
                            "ioni-mu-bethe-bloch",
                            "interact by muon ionization (Bethe-Bloch)")
     , applicability_(applicability)
-    , data_(detail::MuHadIonizationBuilder(particles,
-                                           this->label())(applicability_))
+    , data_(detail::MuHadIonizationBuilder(particles, this->label())(
+          applicability_))
 {
     CELER_EXPECT(id);
     CELER_ENSURE(data_);

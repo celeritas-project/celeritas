@@ -68,10 +68,8 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
 /*!
  * Compare two JSON objects.
  */
-::testing::AssertionResult IsJsonEq(char const*,
-                                    char const*,
-                                    std::string_view expected,
-                                    std::string_view actual)
+::testing::AssertionResult IsJsonEq(
+    char const*, char const*, std::string_view expected, std::string_view actual)
 {
     JsonComparer compare{};
     auto result = compare(expected, actual);

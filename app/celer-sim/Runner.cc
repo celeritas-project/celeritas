@@ -24,7 +24,6 @@
 #include "celeritas/inp/StandaloneInput.hh"
 #include "celeritas/setup/StandaloneInput.hh"
 
-#include "RunnerInput.hh"
 #include "Transporter.hh"
 
 namespace celeritas
@@ -35,47 +34,27 @@ namespace app
 /*!
  * Construct on all threads from a JSON input and shared output manager.
  */
-Runner::Runner(RunnerInput const& old_inp)
+Runner::Runner(Input si)
 {
-    // Convert to new format and set up problem
-    inp::StandaloneInput si = to_input(old_inp);
+    // Set up problem
     auto loaded = setup::standalone_input(si);
     core_params_ = std::move(loaded.problem.core_params);
     CELER_ASSERT(core_params_);
     events_ = std::move(loaded.events);
+    use_device_ = static_cast<bool>(si.system.device);
 
-    if (old_inp.merge_events)
-    {
-        // Merge all events into a single one
-        VecPrimary merged;
+    CELER_VALIDATE(si.problem.tracking.limits.step_iters > 0,
+                   << "nonpositive max step_iters="
+                   << si.problem.tracking.limits.step_iters);
 
-        // Reserve space in the merged vector
-        merged.reserve(std::accumulate(
-            events_.begin(),
-            events_.end(),
-            std::size_t{0},
-            [](std::size_t sum, auto const& v) { return sum + v.size(); }));
-
-        for (auto const& v : events_)
-        {
-            merged.insert(merged.end(), v.begin(), v.end());
-        }
-        events_ = {std::move(merged)};
-    }
-
-    use_device_ = old_inp.use_device;
-
-    CELER_VALIDATE(old_inp.max_steps > 0,
-                   << "nonpositive max_steps=" << old_inp.max_steps);
     transporter_input_ = std::make_shared<TransporterInput>();
     transporter_input_->optical = std::move(loaded.problem.optical_collector);
     transporter_input_->params = core_params_;
-
-    transporter_input_->max_steps = old_inp.max_steps;
-    transporter_input_->store_track_counts = old_inp.write_track_counts;
-    transporter_input_->store_step_times = old_inp.write_step_times;
+    transporter_input_->max_steps = si.problem.tracking.limits.step_iters;
+    transporter_input_->store_track_counts
+        = si.problem.diagnostics.counters.step;
     transporter_input_->actions = std::move(loaded.problem.actions);
-    transporter_input_->log_progress = old_inp.log_progress;
+    transporter_input_->log_progress = si.problem.diagnostics.log_frequency;
 
     transporters_.resize(this->num_streams());
 
@@ -130,7 +109,7 @@ auto Runner::operator()() -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     CELER_EXPECT(core_params_);
-    return core_params_->max_streams();
+    return core_params_->sizes().streams;
 }
 
 //---------------------------------------------------------------------------//
@@ -174,6 +153,23 @@ auto Runner::get_action_times() const -> MapStrDouble
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the step times for each stream.
+ */
+auto Runner::get_step_times() const -> VecVecDouble
+{
+    VecVecDouble result(this->num_streams());
+    for (auto sid : range(StreamId{this->num_streams()}))
+    {
+        if (auto* transport = this->get_transporter_ptr(sid))
+        {
+            result[sid.get()] = transport->get_step_times();
+        }
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the transporter for the given stream, constructing if necessary.
  */
 auto Runner::get_transporter(StreamId stream) -> TransporterBase&
@@ -190,9 +186,9 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 
             if (use_device_)
             {
-                CELER_VALIDATE(device(),
-                               << "CUDA device is unavailable but GPU run was "
-                                  "requested");
+                CELER_VALIDATE(
+                    device(),
+                    << "CUDA device is unavailable but GPU run was requested");
                 return std::make_unique<Transporter<MemSpace::device>>(
                     std::move(local_trans_inp));
             }

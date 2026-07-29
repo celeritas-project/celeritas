@@ -116,9 +116,8 @@ class EnergyLossUrbanDistribution
     CELER_FUNCTION real_type sample_ionization_loss(Engine& rng);
 
     template<class Engine>
-    static CELER_FUNCTION real_type sample_fast_urban(real_type mean,
-                                                      real_type stddev,
-                                                      Engine& rng);
+    static CELER_FUNCTION real_type sample_fast_urban(
+        real_type mean, real_type stddev, Engine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -252,8 +251,8 @@ CELER_FUNCTION auto EnergyLossUrbanDistribution::operator()(Generator& rng)
  * Calculate the energy loss contribution from excitation for the Urban model.
  */
 template<class Engine>
-CELER_FUNCTION real_type
-EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
+CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_excitation_loss(
+    Engine& rng)
 {
     real_type result = 0;
 
@@ -297,8 +296,8 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
  * Calculate the energy loss contribution from ionization for the Urban model.
  */
 template<class Engine>
-CELER_FUNCTION real_type
-EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
+CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_ionization_loss(
+    Engine& rng)
 {
     real_type result = 0;
 

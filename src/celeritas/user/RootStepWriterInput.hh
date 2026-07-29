@@ -25,13 +25,14 @@ struct SimpleRootFilterInput
     std::vector<size_type> track_id;
     size_type event_id = unspecified;
     size_type parent_id = unspecified;
-    size_type action_id = unspecified;
+    size_type post_step_action_id = unspecified;
 
     //! True if any filtering is being applied
     explicit operator bool() const
     {
         return !track_id.empty() || event_id != unspecified
-               || parent_id != unspecified || action_id != unspecified;
+               || parent_id != unspecified
+               || post_step_action_id != unspecified;
     }
 };
 

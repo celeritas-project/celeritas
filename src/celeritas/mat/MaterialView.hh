@@ -63,14 +63,15 @@ class MaterialView
     inline CELER_FUNCTION ElementComponentId::size_type num_elements() const;
 
     // Element properties for a material-specific index
-    inline CELER_FUNCTION ElementView element_record(ElementComponentId id) const;
+    inline CELER_FUNCTION ElementView element_record(
+        ElementComponentId id) const;
 
     // ID of a component element in this material
     inline CELER_FUNCTION ElementId element_id(ElementComponentId id) const;
 
     // Total number density of an element in this material [1/len^3]
-    inline CELER_FUNCTION real_type
-    get_element_density(ElementComponentId id) const;
+    inline CELER_FUNCTION real_type get_element_density(
+        ElementComponentId id) const;
 
     // Advanced access to the elemental components (id/fraction)
     inline CELER_FUNCTION Span<MatElementComponent const> elements() const;
@@ -186,7 +187,8 @@ CELER_FUNCTION ElementComponentId::size_type MaterialView::num_elements() const
  *
  * \todo Rename element
  */
-CELER_FUNCTION ElementView MaterialView::element_record(ElementComponentId id) const
+CELER_FUNCTION ElementView MaterialView::element_record(
+    ElementComponentId id) const
 {
     CELER_EXPECT(id < this->material_def().elements.size());
     return ElementView(params_, this->element_id(id));
@@ -206,8 +208,8 @@ CELER_FUNCTION ElementId MaterialView::element_id(ElementComponentId id) const
 /*!
  * Number density of an element in this material [1/len^3]
  */
-CELER_FUNCTION real_type
-MaterialView::get_element_density(ElementComponentId id) const
+CELER_FUNCTION real_type MaterialView::get_element_density(
+    ElementComponentId id) const
 {
     CELER_EXPECT(id < this->material_def().elements.size());
     return this->number_density() * this->elements()[id.get()].fraction;

@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "GenericGeoTestInterface.hh"
 
+#include <memory>
+#include <variant>
 #include <gtest/gtest.h>
 
 #include "corecel/Types.hh"
+#include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -30,9 +33,8 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-void log_ggti_exception(LogProvenance where,
-                        char const* action,
-                        CheckedGeoError const& e)
+void log_ggti_exception(
+    LogProvenance where, char const* action, CheckedGeoError const& e)
 {
     auto& log = self_logger();
     auto const& d = e.details();
@@ -55,14 +57,15 @@ struct StreamableActionException
     char const* action;
     CheckedGeoTrackView const& geo;
     std::exception const& e;
-};
 
-std::ostream& operator<<(std::ostream& os, StreamableActionException const& sae)
-{
-    os << "Caught exception during '" << sae.action << "': " << sae.e.what()
-       << ": " << sae.geo;
-    return os;
-}
+    [[maybe_unused]] friend std::ostream&
+    operator<<(std::ostream& os, StreamableActionException const& sae)
+    {
+        os << "Caught exception during '" << sae.action
+           << "': " << sae.e.what() << ": " << sae.geo;
+        return os;
+    }
+};
 
 }  // namespace
 
@@ -91,22 +94,22 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         result.disable_surface_normal();
     }
 
-#define GGTI_EXPECT_NO_THROW(ACTION)                                 \
-    try                                                              \
-    {                                                                \
-        ACTION;                                                      \
-    }                                                                \
-    catch (CheckedGeoError const& e)                                 \
-    {                                                                \
-        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e);       \
-        result.fail();                                               \
-        return result;                                               \
-    }                                                                \
-    catch (std::exception const& e)                                  \
-    {                                                                \
+#define GGTI_EXPECT_NO_THROW(ACTION) \
+    try \
+    { \
+        ACTION; \
+    } \
+    catch (CheckedGeoError const& e) \
+    { \
+        log_ggti_exception(CELER_CODE_PROVENANCE, #ACTION, e); \
+        result.fail(); \
+        return result; \
+    } \
+    catch (std::exception const& e) \
+    { \
         ADD_FAILURE() << StreamableActionException{#ACTION, geo, e}; \
-        result.fail();                                               \
-        return result;                                               \
+        result.fail(); \
+        return result; \
     }
 
     // Note: position is scaled according to test
@@ -120,12 +123,14 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
     // Convert from Celeritas native unit system to unit test's internal system
     auto from_native_length
         = [scale = unit_length.value](auto&& v) { return v / scale; };
+    auto const& bbox = this->geometry_interface()->bbox();
+    real_type const max_distance = distance(bbox.lower(), bbox.upper());
 
     while (!geo.is_outside())
     {
         // Find next distance
         Propagation next;
-        GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
+        GGTI_EXPECT_NO_THROW(next = geo.find_next_step(max_distance));
 
         if (SoftZero{tol.distance}(next.distance))
         {
@@ -152,7 +157,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
             // Move halfway to next boundary
             real_type const half_distance = next.distance / 2;
             GGTI_EXPECT_NO_THROW(geo.move_internal(half_distance));
-            GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
+            GGTI_EXPECT_NO_THROW(next = geo.find_next_step(max_distance));
             EXPECT_SOFT_NEAR(next.distance, half_distance, tol.distance) << geo;
 
             real_type safety{0};
@@ -175,7 +180,7 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
                         << unit_length.label << "]) ";
                     result.volumes.back() += "/" + this->volume_name(geo);
                 }
-                GGTI_EXPECT_NO_THROW(next = geo.find_next_step());
+                GGTI_EXPECT_NO_THROW(next = geo.find_next_step(max_distance));
                 real_type length_scale = half_distance;
                 for (auto x : geo.pos())
                 {
@@ -215,9 +220,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
 }
 
 // Track until exiting the geometry (default test tol)
-auto GenericGeoTestInterface::track(Real3 const& pos_cm,
-                                    Real3 const& dir,
-                                    int max_steps) -> TrackingResult
+auto GenericGeoTestInterface::track(
+    Real3 const& pos_cm, Real3 const& dir, int max_steps) -> TrackingResult
 {
     return this->track(pos_cm, dir, this->tracking_tol(), max_steps);
 }
@@ -310,9 +314,8 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 /*!
  * Construct an initializer with correct scaling/normalization.
  */
-GeoTrackInitializer
-GenericGeoTestInterface::make_initializer(Real3 const& pos_unit_length,
-                                          Real3 const& dir) const
+GeoTrackInitializer GenericGeoTestInterface::make_initializer(
+    Real3 const& pos_unit_length, Real3 const& dir) const
 {
     GeoTrackInitializer init{pos_unit_length, make_unit_vector(dir)};
     init.pos *= static_cast<real_type>(this->unit_length().value);
@@ -342,11 +345,20 @@ auto GenericGeoTestInterface::get_test_volumes() const -> SPConstVolumes const&
         // Built without using Geant4 model
         static PersistentSP<VolumeParams const> pv{
             "GenericGeoTestBase volumes"};
-        pv.lazy_update(std::string{this->gdml_basename()},
-                       [g = this->geometry_interface()]() {
-                           return std::make_shared<VolumeParams const>(
-                               g->make_model_input().volumes);
-                       });
+
+        pv.lazy_update(
+            std::string{this->gdml_basename()},
+            [g = this->geometry_interface()]() {
+                auto model_input = g->make_model_input();
+                return std::visit(
+                    Overload{[](inp::Volumes const& v) {
+                                 return std::make_shared<VolumeParams const>(v);
+                             },
+                             [](std::shared_ptr<VolumeParams const> const& v) {
+                                 return v;
+                             }},
+                    model_input.volumes);
+            });
         volumes_ = pv.value();
     }
     CELER_ENSURE(volumes_);

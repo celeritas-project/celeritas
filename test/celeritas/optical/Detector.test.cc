@@ -10,6 +10,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathFinder.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -36,7 +37,6 @@ using namespace ::celeritas::test;
 
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && !CELERITAS_VECGEOM_SURFACE
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -54,8 +54,8 @@ class DetectorTest : public Test
         osi_.problem.capacity = [] {
             inp::OpticalStateCapacity cap;
             cap.tracks = 4096;
-            cap.primaries = 8 * cap.tracks;
-            cap.generators = 2 * cap.tracks;
+            cap.primaries = 8 * *cap.tracks;
+            cap.generators = 2 * *cap.tracks;
             return cap;
         }();
 
@@ -98,6 +98,7 @@ struct SimpleScores
     std::vector<real_type> y_positions;
     std::vector<real_type> z_positions;
     std::vector<size_type> volume_instance_ids;
+    std::vector<size_type> volume_unique_instance_ids;
 };
 
 struct SimpleScorer
@@ -116,6 +117,8 @@ struct SimpleScorer
             scores.z_positions.push_back(hit.position[2]);
             scores.volume_instance_ids.push_back(
                 hit.volume_instance.unchecked_get());
+            scores.volume_unique_instance_ids.push_back(
+                hit.unique_instance.unchecked_get());
         }
     }
 };
@@ -190,7 +193,9 @@ TEST_F(DetectorTest, simple)
     osi_.problem.generator = celeritas::inp::OpticalDirectGenerator{};
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))(make_span(std::as_const(inits)));
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(std::as_const(inits)));
+    run();
 
     // Check results
 
@@ -227,11 +232,15 @@ TEST_F(DetectorTest, simple)
         0,
         0,
     };
-    // adjusted by group velocity
+    // Adjust by group velocity: t = (c / v_g) * flight_time. The refractive
+    // index in optical-box-det-tra.gdml alternates between flat and rising
+    // linear intervals, so its slope is discontinuous at the grid points.
+    // At every interior point, one adjacent slope is zero, causing the
+    // harmonic-mean derivative to be zero.
     static double const expected_times[] = {
-        1.49995 * flight_time,
+        1.16665 * flight_time,
         1.3333 * flight_time,
-        3.66675 * flight_time,
+        1.66665 * flight_time,
         2 * flight_time,
         2 * flight_time,
         2 * flight_time,
@@ -239,6 +248,8 @@ TEST_F(DetectorTest, simple)
     };
 
     static size_type const expected_volume_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_unique_instance_ids[]
         = {5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
@@ -250,6 +261,8 @@ TEST_F(DetectorTest, simple)
         EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
         EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
         EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+        EXPECT_VEC_EQ(expected_volume_unique_instance_ids,
+                      scores.volume_unique_instance_ids);
     }
 }
 
@@ -299,7 +312,9 @@ TEST_F(DetectorTest, stress)
     }();
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
 
@@ -336,7 +351,9 @@ TEST_F(DetectorTest, efficiency)
     }();
 
     // Construct the runner and transport optical primaries
-    optical::Runner(std::move(osi_))();
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
     if constexpr (reference_configuration)

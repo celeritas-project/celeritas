@@ -267,10 +267,10 @@ TEST_F(LivermorePETest, stress_test)
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(real_type(rng_engine.count())
-                                     / real_type(num_particles_sampled));
-        avg_num_secondaries.push_back(real_type(num_secondaries)
-                                      / real_type(num_particles_sampled));
+        avg_engine_samples.push_back(
+            real_type(rng_engine.count()) / real_type(num_particles_sampled));
+        avg_num_secondaries.push_back(
+            real_type(num_secondaries) / real_type(num_particles_sampled));
         avg_cosine.push_back(tot_cosine / real_type(num_secondaries));
         avg_energy.push_back(tot_energy / real_type(num_secondaries));
     }

@@ -100,9 +100,8 @@ struct CylMapFieldParamsData
             && z <= grids.storage[grids.axes[CylAxis::z].back()]);
     }
 
-    inline CELER_FUNCTION ElementId id(size_type idx_r,
-                                       size_type idx_phi,
-                                       size_type idx_z) const
+    inline CELER_FUNCTION ElementId id(
+        size_type idx_r, size_type idx_phi, size_type idx_z) const
     {
         CELER_EXPECT(grids);
         Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{

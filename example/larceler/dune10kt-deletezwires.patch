@@ -1,0 +1,67 @@
+--- optical/dune10kt_v6_refactored_1x2x6_optical.gdml	2026-06-08 13:29:51
++++ zwires/dune10kt_v6_refactored_1x2x6_optical.gdml	2026-06-08 14:00:00
+@@ -6,6 +6,7 @@
+   0. DUNE: https://github.com/DUNE/dunecore/blob/develop/dunecore/Geometry/gdml/dune10kt_v6_refactored_1x2x6.gdml
+   1. Remove GDML extension
+   2. Add optical properties
++  3. Remove Z wire volumes
+ -->
+ 
+ <define>
+@@ -52288,18 +52289,6 @@
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+-       <volumeref ref="volTPCPlaneVInner0"/>
+-       <position name="posInner0PlaneV" unit="cm"
+-         x="-179.477" y="-3.24937500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+-       <volumeref ref="volTPCPlaneUInner0"/>
+-       <position name="posInner0PlaneU" unit="cm"
+-         x="-179.001" y="-3.40812500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+        <volumeref ref="volTPCActiveInner0"/>
+        <position name="posInner0Active" unit="cm"
+          x="0.713999999999999" y="-3.90500000000003" z="0"/>
+@@ -72643,18 +72632,6 @@
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+-       <volumeref ref="volTPCPlaneVInner1"/>
+-       <position name="posInner1PlaneV" unit="cm"
+-         x="-179.477" y="-3.24937500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+-       <volumeref ref="volTPCPlaneUInner1"/>
+-       <position name="posInner1PlaneU" unit="cm"
+-         x="-179.001" y="-3.40812500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+        <volumeref ref="volTPCActiveInner1"/>
+        <position name="posInner1Active" unit="cm"
+          x="0.713999999999999" y="-3.90500000000003" z="0"/>
+@@ -92998,18 +92975,6 @@
+        <rotationref ref="rIdentity"/>
+      </physvol>
+      <physvol>
+-       <volumeref ref="volTPCPlaneVOuter"/>
+-       <position name="posOuterPlaneV" unit="cm"
+-         x="-7.277" y="-3.24937500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+-       <volumeref ref="volTPCPlaneUOuter"/>
+-       <position name="posOuterPlaneU" unit="cm"
+-         x="-6.801" y="-3.40812500000004" z="0"/>
+-       <rotationref ref="rIdentity"/>
+-     </physvol>
+-     <physvol>
+        <volumeref ref="volTPCActiveOuter"/>
+        <position name="posOuterActive" unit="cm"
+          x="0.714" y="-3.90500000000003" z="0"/>

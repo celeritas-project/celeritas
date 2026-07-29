@@ -34,12 +34,12 @@ namespace
  */
 char const* to_cstring(G4OpticalSurfaceModel value)
 {
-#define GSPL_OSM_PAIR(ENUMVALUE)     \
-    {                                \
+#define GSPL_OSM_PAIR(ENUMVALUE) \
+    { \
         G4OSM::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OSM, const char*> const names = {
+    static std::unordered_map<G4OSM, char const*> const names = {
         GSPL_OSM_PAIR(glisur),
         GSPL_OSM_PAIR(unified),
         GSPL_OSM_PAIR(LUT),
@@ -62,12 +62,12 @@ char const* to_cstring(G4OpticalSurfaceModel value)
  */
 char const* to_cstring(G4SurfaceType value)
 {
-#define GSPL_ST_PAIR(ENUMVALUE)     \
-    {                               \
+#define GSPL_ST_PAIR(ENUMVALUE) \
+    { \
         G4ST::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4ST, const char*> const names = {
+    static std::unordered_map<G4ST, char const*> const names = {
         GSPL_ST_PAIR(dielectric_metal),
         GSPL_ST_PAIR(dielectric_dielectric),
         GSPL_ST_PAIR(dielectric_LUT),
@@ -94,12 +94,12 @@ char const* to_cstring(G4SurfaceType value)
  */
 char const* to_cstring(G4OpticalSurfaceFinish value)
 {
-#define GSPL_OSF_PAIR(ENUMVALUE)     \
-    {                                \
+#define GSPL_OSF_PAIR(ENUMVALUE) \
+    { \
         G4OSF::ENUMVALUE, #ENUMVALUE \
     }
 
-    static std::unordered_map<G4OSF, const char*> const names = {
+    static std::unordered_map<G4OSF, char const*> const names = {
         GSPL_OSF_PAIR(polished),
         GSPL_OSF_PAIR(polishedfrontpainted),
         GSPL_OSF_PAIR(polishedbackpainted),
@@ -241,8 +241,8 @@ void GeantSurfacePhysicsLoader::operator()(SurfaceId sid)
                 this->insert_unified(helper);
                 break;
             default:
-                CELER_NOT_IMPLEMENTED(std::string{"Model "}
-                                      + to_cstring(model));
+                CELER_NOT_IMPLEMENTED(
+                    std::string{"Model "} + to_cstring(model));
         }
     }
     catch (std::exception const& e)
@@ -278,8 +278,8 @@ void GeantSurfacePhysicsLoader::check_unimplemented_properties(
         // Check if the property exists on the surface
         if (helper.get_property(temp, name))
         {
-            CELER_NOT_IMPLEMENTED("unsupported optical '" + name
-                                  + "' surface property");
+            CELER_NOT_IMPLEMENTED(
+                "unsupported optical '" + name + "' surface property");
         }
     }
 }
@@ -482,8 +482,8 @@ void GeantSurfacePhysicsLoader::insert_gap_material(
             material.properties.refractive_index, "RINDEX");
 
         CELER_VALIDATE(has_rindex,
-                       << "back-painted surfaces require RINDEX defined "
-                          "for the interstitial material.");
+                       << "back-painted surfaces require RINDEX defined for "
+                          "the interstitial material.");
         materials_.push_back(std::move(material));
     }
 }

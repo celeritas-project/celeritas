@@ -42,7 +42,8 @@ make_sph(std::string&& label, real_type radius, Real3 const& trans)
         make_sph(std::move(label), radius), Translation{trans});
 }
 
-auto make_material(std::string&& label, GeoMatId::size_type m, SPConstObject obj)
+auto make_material(
+    std::string&& label, GeoMatId::size_type m, SPConstObject obj)
 {
     CELER_EXPECT(obj);
     orangeinp::UnitProto::MaterialInput result;

@@ -71,7 +71,11 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
         track.apply_errored();
         return;
     }
-
+    if (CELER_UNLIKELY(geo.is_outside()))
+    {
+        track.sim().status(TrackStatus::killed);
+        return;
+    }
     OptMatId post_volume_material = track.material_record().material_id();
     auto surface_physics = track.surface_physics();
 

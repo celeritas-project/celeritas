@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "OrangeTypesIO.json.hh"
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/StringEnumMapper.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -18,10 +19,17 @@ namespace celeritas
 template<class T>
 void from_json(nlohmann::json const& j, Tolerance<T>& value)
 {
+    if (j == nullptr)
+    {
+        CELER_LOG(warning) << "Given default null tolerance";
+        value = {};
+        return;
+    }
+
     j.at("rel").get_to(value.rel);
-    CELER_VALIDATE(value.rel > 0 && value.rel < 1,
-                   << "tolerance " << value.rel
-                   << " is out of range [must be in (0,1)]");
+    CELER_VALIDATE(
+        value.rel > 0 && value.rel < 1,
+        << "tolerance " << value.rel << " is out of range [must be in (0,1)]");
 
     j.at("abs").get_to(value.abs);
     CELER_VALIDATE(value.abs > 0,
@@ -38,7 +46,11 @@ template void from_json(nlohmann::json const&, Tolerance<real_type>&);
 template<class T>
 void to_json(nlohmann::json& j, Tolerance<T> const& value)
 {
-    CELER_EXPECT(value);
+    if (!value)
+    {
+        j = nullptr;
+        return;
+    }
 
     j = {
         {"rel", value.rel},

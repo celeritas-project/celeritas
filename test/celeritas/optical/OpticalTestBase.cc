@@ -58,9 +58,8 @@ OpticalTestBase::~OpticalTestBase() = default;
 /*!
  * Initialize particle state with given energy.
  */
-ParticleTrackView
-OpticalTestBase::make_particle_track_view(units::MevEnergy energy,
-                                          PDGNumber pdg)
+ParticleTrackView OpticalTestBase::make_particle_track_view(
+    units::MevEnergy energy, PDGNumber pdg)
 {
     ParticleTrackView::Initializer_t init_track;
     init_track.particle_id = particle_params_->find(pdg);

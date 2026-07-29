@@ -15,7 +15,8 @@ namespace celeritas
 /*!
  * Construct with a reference to mutable host data.
  */
-DistributionInserter::DistributionInserter(HostVal<DistributionParamsData>& data)
+DistributionInserter::DistributionInserter(
+    HostVal<DistributionParamsData>& data)
     : data_(data)
 {
 }

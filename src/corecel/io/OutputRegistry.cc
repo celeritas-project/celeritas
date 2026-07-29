@@ -8,7 +8,6 @@
 
 #include <algorithm>
 #include <string>
-#include <type_traits>
 #include <utility>
 #include <nlohmann/json.hpp>
 
@@ -16,19 +15,20 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/io/BuildOutput.hh"
-#include "corecel/io/StreamUtils.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/EnvironmentIO.json.hh"
+#include "corecel/sys/EnvironmentIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/KernelRegistry.hh"
-#include "corecel/sys/KernelRegistryIO.json.hh"
+#include "corecel/sys/KernelRegistryIO.json.hh"  // IWYU pragma: keep
 
+#include "BuildOutput.hh"
 #include "JsonPimpl.hh"
 #include "Logger.hh"  // IWYU pragma: keep
+#include "OpenmpOutput.hh"
 #include "OutputInterface.hh"
 #include "OutputInterfaceAdapter.hh"
+#include "StreamUtils.hh"
 
 namespace celeritas
 {
@@ -131,6 +131,10 @@ void insert_system_diagnostics(OutputRegistry& output_reg)
     output_reg.insert(OutputInterfaceAdapter<Environment>::from_const_ref(
         OutputInterface::Category::system, "environ", celeritas::environment()));
     output_reg.insert(std::make_shared<BuildOutput>());
+    if (CELERITAS_USE_OPENMP)
+    {
+        output_reg.insert(std::make_shared<OpenmpOutput>());
+    }
 }
 
 //---------------------------------------------------------------------------//

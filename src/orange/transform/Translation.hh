@@ -105,7 +105,8 @@ CELER_FUNCTION Translation::Translation(StorageSpan s) : tra_{s[0], s[1], s[2]}
 /*!
  * Transform from daughter to parent.
  */
-CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(Real3 const& pos) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(
+    Real3 const& pos) const
 {
     return pos + tra_;
 }
@@ -114,8 +115,8 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(Real3 const& pos) con
 /*!
  * Transform from parent to daughter.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-Translation::transform_down(Real3 const& parent_pos) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_down(
+    Real3 const& parent_pos) const
 {
     return parent_pos - tra_;
 }

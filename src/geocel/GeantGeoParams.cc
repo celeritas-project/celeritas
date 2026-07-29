@@ -42,6 +42,7 @@
 #include "GeoOpticalIdMap.hh"
 #include "ScopedGeantExceptionHandler.hh"
 #include "ScopedGeantLogger.hh"
+#include "VolumeParams.hh"
 #include "g4/Convert.hh"  // IWYU pragma: associated
 #include "g4/GeantGeoData.hh"  // IWYU pragma: associated
 #include "g4/detail/GeantGeoNavCollection.hh"
@@ -789,7 +790,18 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
 
     this->build_metadata();
 
+    // Construct canonical volume metadata once and reuse it downstream.
+    {
+        inp::Volumes volumes;
+        volumes.volumes = make_inp_volumes(*this);
+        volumes.volume_instances = make_inp_volume_instances(*this);
+        volumes.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
+        volume_params_
+            = std::make_shared<VolumeParams const>(std::move(volumes));
+    }
+
     CELER_ENSURE(impl_volumes_);
+    CELER_ENSURE(volume_params_);
     CELER_ENSURE(data_);
 }
 
@@ -828,16 +840,7 @@ inp::Model GeantGeoParams::make_model_input() const
     inp::Model result;
 
     result.geometry = this->world();
-    result.volumes = [this] {
-        inp::Volumes result;
-
-        // Get volumes from Geant4 geometry
-        result.volumes = make_inp_volumes(*this);
-        result.volume_instances = make_inp_volume_instances(*this);
-        result.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
-
-        return result;
-    }();
+    result.volumes = volume_params_;
     result.surfaces = [this] {
         inp::Surfaces result;
         result.surfaces = make_inp_surfaces(*this);
@@ -972,9 +975,9 @@ void GeantGeoParams::build_metadata()
     }();
     if (this->lv_offset() != 0 || this->mat_offset() != 0)
     {
-        CELER_LOG(debug) << "Building after volume stores were cleared: "
-                         << "lv_offset=" << this->lv_offset()
-                         << ", mat_offset=" << this->mat_offset();
+        CELER_LOG(debug)
+            << "Building after volume stores were cleared: lv_offset="
+            << this->lv_offset() << ", mat_offset=" << this->mat_offset();
     }
 
     // Construct volume instance mapper

@@ -25,9 +25,8 @@ namespace celeritas
  * simply generate pseudorandom, independent starting states for all data in
  * all threads using a 32-bit MT19937 engine.
  */
-void initialize_xorwow(Span<XorwowState> state,
-                       XorwowSeed const& seed,
-                       StreamId stream)
+void initialize_xorwow(
+    Span<XorwowState> state, XorwowSeed const& seed, StreamId stream)
 {
     // Seed sequence to generate well-distributed seed numbers, including
     // stream ID to give strings different starting contributions

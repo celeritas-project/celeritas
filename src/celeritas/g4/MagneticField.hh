@@ -15,7 +15,6 @@
 #include "corecel/cont/Span.hh"
 #include "geocel/g4/Convert.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/ext/GeantUnits.hh"
 
 namespace celeritas
 {
@@ -41,7 +40,7 @@ class MagneticField : public G4MagneticField
 
     // Calculate values of the magnetic field vector
     inline void
-    GetFieldValue(G4double const point[3], G4double* field) const override;
+    GetFieldValue(G4double const xyzt[4], G4double* field) const override;
 
   private:
     SPConstParams params_;
@@ -65,15 +64,17 @@ MagneticField<P, F>::MagneticField(SPConstParams params)
  * Calculate the magnetic field vector at the given position.
  */
 template<class P, class F>
-void MagneticField<P, F>::GetFieldValue(G4double const pos[3],
+void MagneticField<P, F>::GetFieldValue(G4double const xyzt[4],
                                         G4double* field) const
 {
     F calc_field{params_->host_ref()};
 
+    // Get the g4 position
+    Span<G4double const, 3> pos(xyzt, 3);
+
     // Calculate the magnetic field value in the native Celeritas unit system
-    Real3 field_native
-        = calc_field(native_from_geant<units::ClhepLength, real_type>(
-            to_array(Span<G4double const, 3>(pos, 3))));
+    Real3 field_native = calc_field(
+        native_from_geant<units::ClhepLength, real_type>(to_array(pos)));
     for (auto i : range(3))
     {
         // Return values of the field vector in native geant4 units

@@ -481,10 +481,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // Most properties are loaded by GeantPhysicsLoader:
         // Scintillation, WLS, WLS2, Mie
 
-        CELER_VALIDATE(optical,
-                       << "failed to load valid optical material data for "
-                          "OptMatId{"
-                       << opt_mat_id.get() << "} = " << material->GetName());
+        CELER_VALIDATE(
+            optical,
+            << "failed to load valid optical material data for OptMatId{"
+            << opt_mat_id.get() << "} = " << material->GetName());
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
@@ -575,8 +575,8 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
     std::vector<ImportPhysMaterial> materials;
     materials.resize(pct.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
-                   << "no Geant4 production cuts are defined (you may "
-                      "need to call G4RunManager::RunInitialization)");
+                   << "no Geant4 production cuts are defined (you may need to "
+                      "call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;
@@ -933,14 +933,13 @@ std::vector<ImportVolume> import_volumes()
 {
     auto geo = celeritas::global_geant_geo().lock();
     CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
+    CELER_ASSERT(geo->volumes());
 
-    VolumeParams volume_params{geo->make_model_input().volumes};
-
-    auto const& volumes = volume_params.volume_labels();
-    std::vector<ImportVolume> result(volumes.size());
+    auto const& volume_labels = geo->volumes()->volume_labels();
+    std::vector<ImportVolume> result(volume_labels.size());
     size_type count{0};
 
-    for (auto vol_id : range(VolumeId{volumes.size()}))
+    for (auto vol_id : range(VolumeId{volume_labels.size()}))
     {
         auto* g4lv = geo->id_to_geant(vol_id);
         if (!g4lv)
@@ -959,7 +958,7 @@ std::vector<ImportVolume> import_volumes()
         {
             volume.phys_material_id = cuts->GetIndex();
         }
-        volume.name = to_string(volume_params.volume_labels().at(vol_id));
+        volume.name = to_string(volume_labels.at(vol_id));
         volume.solid_name = g4lv->GetSolid()->GetName();
 
         ++count;

@@ -33,6 +33,8 @@ namespace celeritas
    \langle n \rangle = \ell_\text{step} \difd{N}{x}
  * \f]
  * where \f$ \ell_\text{step} \f$ is the step length.
+ *
+ * \todo rename \c CherenkovOffloadSampler
  */
 class CherenkovOffload
 {
@@ -141,8 +143,8 @@ CherenkovOffload::operator()(Generator& rng)
     }
 
     optical::GeneratorDistributionData data;
-    data.num_photons = PoissonDistribution<real_type>(num_photons_per_len_
-                                                      * step_length_)(rng);
+    data.num_photons = PoissonDistribution<real_type>(
+        num_photons_per_len_ * step_length_)(rng);
     if (data.num_photons > 0)
     {
         data.type = GeneratorType::cherenkov;

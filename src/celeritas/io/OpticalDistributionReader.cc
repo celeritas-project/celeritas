@@ -17,7 +17,8 @@ namespace celeritas
 /*!
  * Construct with input filename.
  */
-OpticalDistributionReader::OpticalDistributionReader(std::string const& filename)
+OpticalDistributionReader::OpticalDistributionReader(
+    std::string const& filename)
     : infile_(filename)
 {
     CELER_EXPECT(!filename.empty());

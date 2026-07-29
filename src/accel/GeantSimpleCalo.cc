@@ -8,8 +8,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/LabelIO.json.hh"
@@ -54,9 +52,8 @@ class DummyGeantSimpleCaloSD : public G4VSensitiveDetector
 /*!
  * Construct with name and logical volume pointers.
  */
-GeantSimpleCalo::GeantSimpleCalo(std::string name,
-                                 SPConstParams params,
-                                 VecLV volumes)
+GeantSimpleCalo::GeantSimpleCalo(
+    std::string name, SPConstParams params, VecLV volumes)
     : params_{std::move(params)}
     , volumes_{std::move(volumes)}
     , storage_{std::make_shared<detail::GeantSimpleCaloStorage>()}
@@ -74,11 +71,11 @@ GeantSimpleCalo::GeantSimpleCalo(std::string name,
         CELER_EXPECT(volumes_[i]);
         auto&& [iter, inserted]
             = storage_->volume_to_index.insert({volumes_[i], i});
-        CELER_VALIDATE(inserted,
-                       << "logical volume " << StreamableLV{iter->first}
-                       << " is duplicated in the list of volumes for "
-                          "GeantSimpleCalo '"
-                       << this->label() << "'");
+        CELER_VALIDATE(
+            inserted,
+            << "logical volume " << StreamableLV{iter->first}
+            << " is duplicated in the list of volumes for GeantSimpleCalo '"
+            << this->label() << "'");
     }
 
     // Resize data
@@ -190,7 +187,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
     // Save detector volumes
     {
         auto ggp = celeritas::global_geant_geo().lock();
-        auto vols = celeritas::global_volumes().lock();
+        std::shared_ptr<VolumeParams const> vols;
         if (!ggp)
         {
             // This can happen if using this class without Celeritas offloading
@@ -198,6 +195,7 @@ void GeantSimpleCalo::output(JsonPimpl* j) const
             ggp = GeantGeoParams::from_tracking_manager();
         }
         CELER_ASSERT(ggp);
+        vols = ggp->volumes();
 
         std::vector<int> ids(volumes_.size());
         std::vector<Label> labels(volumes_.size());

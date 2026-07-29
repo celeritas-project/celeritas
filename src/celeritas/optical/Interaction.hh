@@ -7,10 +7,8 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
-#include "geocel/Types.hh"
-
-#include "WavelengthShiftData.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {

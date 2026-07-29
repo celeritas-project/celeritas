@@ -111,7 +111,8 @@ class WentzelDistribution
     //// HELPER FUNCTIONS ////
 
     // Calculates the form factor from the scattered polar angle
-    inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
+    inline CELER_FUNCTION real_type calculate_form_factor(
+        real_type cos_t) const;
 
     // Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
@@ -124,9 +125,8 @@ class WentzelDistribution
 
     // Sample the scattered polar angle
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_costheta(real_type cos_thetamin,
-                                                    real_type cos_thetamax,
-                                                    Engine& rng) const;
+    inline CELER_FUNCTION real_type sample_costheta(
+        real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const;
 
     // Helper function for calculating the flat form factor
     inline static CELER_FUNCTION real_type flat_form_factor(real_type x);
@@ -212,8 +212,8 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
  * https://doi-org.ezproxy.cern.ch/10.1142/9167} section 2.4.2.1, parameterize
  * the charge distribution inside a nucleus.
  */
-CELER_FUNCTION real_type
-WentzelDistribution::calculate_form_factor(real_type cos_t) const
+CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
+    real_type cos_t) const
 {
     CELER_EXPECT(cos_t >= -1 && cos_t <= 1);
 
@@ -270,8 +270,8 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    return native_value_to<units::MevMomentum>(2 * units::femtometer
-                                               / constants::hbar_planck)
+    return native_value_to<units::MevMomentum>(
+               2 * units::femtometer / constants::hbar_planck)
         .value();
 }
 

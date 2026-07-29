@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Events.hh"
 
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -30,13 +31,26 @@ namespace
 {
 //---------------------------------------------------------------------------//
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-auto read_events(EventReaderInterface&& generate)
+auto read_events(EventReaderInterface& generate, bool merge)
 {
     std::vector<std::vector<Primary>> result;
     auto event = generate();
     while (!event.empty())
     {
-        result.push_back(event);
+        if (merge)
+        {
+            if (result.empty())
+            {
+                result.emplace_back();
+            }
+            result.front().insert(result.front().end(),
+                                  std::make_move_iterator(event.begin()),
+                                  std::make_move_iterator(event.end()));
+        }
+        else
+        {
+            result.push_back(std::move(event));
+        }
         event = generate();
     }
     return result;
@@ -58,38 +72,41 @@ events(inp::Events const& e,
     CELER_LOG(status) << "Loading events";
     ScopedProfiling profile_this{"setup::events"};
 
-    return std::visit(
-        Overload{
+    using UP_ERI = std::unique_ptr<EventReaderInterface>;
+    auto generator = std::visit(
+        return_as<UP_ERI>(Overload{
             [&particles](inp::CorePrimaryGenerator const& pg) {
-                return read_events(PrimaryGenerator{pg, *particles});
+                return std::make_unique<PrimaryGenerator>(pg, *particles);
             },
             [&particles](inp::SampleFileEvents const& sfe) {
-                return read_events(RootEventSampler{sfe.event_file,
-                                                    particles,
-                                                    sfe.num_events,
-                                                    sfe.num_merged,
-                                                    sfe.seed});
+                return std::make_unique<RootEventSampler>(sfe.event_file,
+                                                          particles,
+                                                          sfe.num_events,
+                                                          sfe.num_merged,
+                                                          sfe.seed);
             },
-            [&particles](inp::ReadFileEvents const& rfe) {
+            [&particles](inp::ReadFileEvents const& rfe) -> UP_ERI {
                 if (ends_with(rfe.event_file, ".jsonl"))
                 {
-                    return read_events(
-                        JsonEventReader{rfe.event_file, particles});
+                    return std::make_unique<JsonEventReader>(rfe.event_file,
+                                                             particles);
                 }
                 else if (ends_with(rfe.event_file, ".root"))
                 {
-                    return read_events(
-                        RootEventReader{rfe.event_file, particles});
+                    return std::make_unique<RootEventReader>(rfe.event_file,
+                                                             particles);
                 }
                 else
                 {
-                    // Assume filename is one of the HepMC3-supported
-                    // extensions
-                    return read_events(EventReader{rfe.event_file, particles});
+                    // Assume filename has a HepMC3-supported extension
+                    return std::make_unique<EventReader>(rfe.event_file,
+                                                         particles);
                 }
             },
-        },
-        e);
+        }),
+        e.generator);
+
+    return read_events(*generator, e.merge);
 }
 
 //---------------------------------------------------------------------------//

@@ -259,6 +259,7 @@ using EllipsoidSolid = Solid<Ellipsoid>;
 using HyperboloidSolid = Solid<Hyperboloid>;
 using PrismSolid = Solid<Prism>;
 using SphereSolid = Solid<Sphere>;
+using TorusSolid = Solid<Torus>;
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
@@ -271,6 +272,7 @@ extern template class Solid<Ellipsoid>;
 extern template class Solid<Hyperboloid>;
 extern template class Solid<Prism>;
 extern template class Solid<Sphere>;
+extern template class Solid<Torus>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

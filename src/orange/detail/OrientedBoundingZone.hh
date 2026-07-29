@@ -151,8 +151,8 @@ OrientedBoundingZone::OrientedBoundingZone(
  * point on the inner box. This is calculated by finding the minimum of the
  * distances to each half width.
  */
-CELER_FUNCTION real_type
-OrientedBoundingZone::calc_safety_inside(Real3 const& pos)
+CELER_FUNCTION real_type OrientedBoundingZone::calc_safety_inside(
+    Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::outside);
 
@@ -201,8 +201,8 @@ OrientedBoundingZone::calc_safety_inside(Real3 const& pos)
  * for a point in quadrant one at (\em p_x, \em p_y, \em p_z) and a box with
  * half-widths (\em h_x, \em h_y, \em h_z).
  */
-CELER_FUNCTION real_type
-OrientedBoundingZone::calc_safety_outside(Real3 const& pos)
+CELER_FUNCTION real_type OrientedBoundingZone::calc_safety_outside(
+    Real3 const& pos)
 {
     CELER_EXPECT(this->calc_sense(pos) != SignedSense::inside);
 
@@ -277,9 +277,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::translate(Real3 const& pos)
  *
  * This function also reflects the point into quadrant one.
  */
-CELER_FUNCTION auto
-OrientedBoundingZone::apply_offset(Real3 const& trans_pos, BBoxType bbt)
-    -> OffsetPos
+CELER_FUNCTION auto OrientedBoundingZone::apply_offset(
+    Real3 const& trans_pos, BBoxType bbt) -> OffsetPos
 {
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
     auto transform_down

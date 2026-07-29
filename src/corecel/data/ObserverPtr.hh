@@ -113,12 +113,12 @@ class ObserverPtr
 
     //!@{
     //! \name Comparators
-#define CELER_DEFINE_OBSPTR_CMP(TOKEN)                    \
-    template<class T2>                                    \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(  \
+#define CELER_DEFINE_OBSPTR_CMP(TOKEN) \
+    template<class T2> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
         ObserverPtr lhs, ObserverPtr<T2, M> rhs) noexcept \
-    {                                                     \
-        return lhs.get() TOKEN rhs.get();                 \
+    { \
+        return lhs.get() TOKEN rhs.get(); \
     }
     CELER_DEFINE_OBSPTR_CMP(==)
     CELER_DEFINE_OBSPTR_CMP(!=)

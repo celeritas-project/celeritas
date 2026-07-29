@@ -102,14 +102,13 @@ void StatusChecker::begin_run(CoreParams const& params, CoreStateDevice&)
  * This must be called after both \c create_state and \c begin_run .
  */
 template<MemSpace M>
-void StatusChecker::step(ActionId prev_action,
-                         CoreParams const& params,
-                         CoreState<M>& state) const
+void StatusChecker::step(
+    ActionId prev_action, CoreParams const& params, CoreState<M>& state) const
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(prev_action);
-    CELER_EXPECT(params.action_reg()->num_actions()
-                 == this->ref<M>().orders.size());
+    CELER_EXPECT(
+        params.action_reg()->num_actions() == this->ref<M>().orders.size());
 
     auto& aux_state = this->state_ref<M>(state.aux());
 
@@ -175,9 +174,10 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
 /*!
  * Execute with with the last action's ID and the state.
  */
-void StatusChecker::step_impl(CoreParams const& params,
-                              CoreState<MemSpace::host>& state,
-                              StatusStateRef<MemSpace::host> const& aux_state) const
+void StatusChecker::step_impl(
+    CoreParams const& params,
+    CoreState<MemSpace::host>& state,
+    StatusStateRef<MemSpace::host> const& aux_state) const
 {
     launch_core(this->label(),
                 params,
@@ -203,12 +203,10 @@ void StatusChecker::step_impl(CoreParams const&,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template void StatusChecker::step(ActionId,
-                                  CoreParams const&,
-                                  CoreState<MemSpace::host>&) const;
-template void StatusChecker::step(ActionId,
-                                  CoreParams const&,
-                                  CoreState<MemSpace::device>&) const;
+template void StatusChecker::step(
+    ActionId, CoreParams const&, CoreState<MemSpace::host>&) const;
+template void StatusChecker::step(
+    ActionId, CoreParams const&, CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

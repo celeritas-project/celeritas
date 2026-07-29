@@ -29,20 +29,20 @@
  * function itself has a \c _kernel suffix, and launch with the given
  * block/thread sizes and arguments list.
  */
-#define CELER_LAUNCH_KERNEL(NAME, THREADS, STREAM, ...)                      \
-    do                                                                       \
-    {                                                                        \
+#define CELER_LAUNCH_KERNEL(NAME, THREADS, STREAM, ...) \
+    do \
+    { \
         static const ::celeritas::KernelParamCalculator calc_launch_params_( \
-            #NAME, NAME##_kernel);                                           \
-        auto grid_ = calc_launch_params_(THREADS);                           \
-                                                                             \
-        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel,                              \
-                                 grid_.blocks_per_grid,                      \
-                                 grid_.threads_per_block,                    \
-                                 0,                                          \
-                                 STREAM,                                     \
-                                 __VA_ARGS__);                               \
-        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
+            #NAME, NAME##_kernel); \
+        auto grid_ = calc_launch_params_(THREADS); \
+\
+        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel, \
+                                 grid_.blocks_per_grid, \
+                                 grid_.threads_per_block, \
+                                 0, \
+                                 STREAM, \
+                                 __VA_ARGS__); \
+        CELER_DEVICE_API_CALL(PeekAtLastError()); \
     } while (0)
 
 /*!
@@ -52,20 +52,20 @@
  * one template parameter, assuming the unction itself has a \c _kernel
  * suffix, and launch with the given block/thread sizes and arguments list.
  */
-#define CELER_LAUNCH_KERNEL_TEMPLATE_1(NAME, T1, THREADS, STREAM, ...)       \
-    do                                                                       \
-    {                                                                        \
+#define CELER_LAUNCH_KERNEL_TEMPLATE_1(NAME, T1, THREADS, STREAM, ...) \
+    do \
+    { \
         static const ::celeritas::KernelParamCalculator calc_launch_params_( \
-            #NAME, NAME##_kernel<T1>);                                       \
-        auto grid_ = calc_launch_params_(THREADS);                           \
-                                                                             \
-        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel<T1>,                          \
-                                 grid_.blocks_per_grid,                      \
-                                 grid_.threads_per_block,                    \
-                                 0,                                          \
-                                 STREAM,                                     \
-                                 __VA_ARGS__);                               \
-        CELER_DEVICE_API_CALL(PeekAtLastError());                            \
+            #NAME, NAME##_kernel<T1>); \
+        auto grid_ = calc_launch_params_(THREADS); \
+\
+        CELER_LAUNCH_KERNEL_IMPL(NAME##_kernel<T1>, \
+                                 grid_.blocks_per_grid, \
+                                 grid_.threads_per_block, \
+                                 0, \
+                                 STREAM, \
+                                 __VA_ARGS__); \
+        CELER_DEVICE_API_CALL(PeekAtLastError()); \
     } while (0)
 
 #if CELERITAS_USE_CUDA
@@ -76,9 +76,9 @@
         hipLaunchKernelGGL(KERNEL, GRID, BLOCK, SHARED, STREAM, __VA_ARGS__)
 #else
 #    define CELER_LAUNCH_KERNEL_IMPL(KERNEL, GRID, BLOCK, SHARED, STREAM, ...) \
-        CELER_NOT_CONFIGURED("CUDA or HIP");                                   \
-        CELER_DISCARD(GRID)                                                    \
-        CELER_DISCARD(KERNEL)                                                  \
+        CELER_NOT_CONFIGURED("CUDA or HIP"); \
+        CELER_DISCARD(GRID) \
+        CELER_DISCARD(KERNEL) \
         CELER_DISCARD(__VA_ARGS__);
 #endif
 
@@ -135,9 +135,8 @@ class KernelParamCalculator
 
     // Construct with an explicit number of threads per block
     template<class F>
-    inline KernelParamCalculator(std::string_view name,
-                                 F* kernel_func_ptr,
-                                 dim_type threads_per_block);
+    inline KernelParamCalculator(
+        std::string_view name, F* kernel_func_ptr, dim_type threads_per_block);
 
     // Get launch parameters
     inline LaunchParams operator()(size_type min_num_threads) const;
@@ -192,14 +191,13 @@ KernelParamCalculator::KernelParamCalculator(std::string_view name,
  * pointer to the profiling data if profiling is to be used.
  */
 template<class F>
-KernelParamCalculator::KernelParamCalculator(std::string_view name,
-                                             F* kernel_func_ptr,
-                                             dim_type threads_per_block)
+KernelParamCalculator::KernelParamCalculator(
+    std::string_view name, F* kernel_func_ptr, dim_type threads_per_block)
     : block_size_(threads_per_block)
 {
-    CELER_EXPECT(threads_per_block > 0
-                 && threads_per_block % celeritas::device().threads_per_warp()
-                        == 0);
+    CELER_EXPECT(
+        threads_per_block > 0
+        && threads_per_block % celeritas::device().threads_per_warp() == 0);
 
     auto attrs = make_kernel_attributes(kernel_func_ptr, threads_per_block);
     CELER_VALIDATE(threads_per_block <= attrs.max_threads_per_block,
@@ -227,8 +225,8 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
     // Ceiling integer division
     dim_type blocks_per_grid
         = celeritas::ceil_div<dim_type>(min_num_threads, this->block_size_);
-    CELER_ASSERT(blocks_per_grid
-                 < dim_type(celeritas::device().max_blocks_per_grid()));
+    CELER_ASSERT(
+        blocks_per_grid < dim_type(celeritas::device().max_blocks_per_grid()));
 
     LaunchParams result;
     result.blocks_per_grid.x = blocks_per_grid;

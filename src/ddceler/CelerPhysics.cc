@@ -114,8 +114,8 @@ SetupOptions CelerPhysics::make_options()
     if (field_action)
     {
         driver_options = load_driver_options(field_action);
-        CELER_LOG(debug) << "Loaded field driver options from DD4hep "
-                            "FieldSetup action";
+        CELER_LOG(debug)
+            << "Loaded field driver options from DD4hep FieldSetup action";
     }
     else
     {

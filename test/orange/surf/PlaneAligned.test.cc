@@ -30,10 +30,8 @@ class PlaneAlignedTest : public Test
 {
   protected:
     template<class S>
-    real_type calc_intersection(S const& surf,
-                                Real3 pos,
-                                Real3 dir,
-                                SurfaceState s = SurfaceState::off)
+    real_type calc_intersection(
+        S const& surf, Real3 pos, Real3 dir, SurfaceState s = SurfaceState::off)
     {
         static_assert(sizeof(typename S::Intersections) == sizeof(real_type),
                       "Expected plane to have a single intercept");

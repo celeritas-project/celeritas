@@ -109,8 +109,8 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
     CELER_EXPECT(!det_coords.empty());
     CELER_EXPECT(!i.detectors.empty());
 
-    CELER_LOG(info) << "Setting up Celeritas optical standalone runner "
-                       "built against LArSoft v"
+    CELER_LOG(info) << "Setting up Celeritas optical standalone runner built "
+                       "against LArSoft v"
                     << cmake::larsoft_version << " components";
 
     i.problem.detectors.callback
@@ -217,7 +217,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     }
 
     // Execute
-    auto result = (*runner_)(make_span(std::as_const(gdd)));
+    runner_->insert(make_span(std::as_const(gdd)));
+    auto result = (*runner_)();
 
     CELER_ASSERT(result.counters.generators.size() == 1);
     auto const& gen = result.counters.generators.front();

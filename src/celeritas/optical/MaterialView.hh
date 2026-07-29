@@ -76,7 +76,7 @@ CELER_FUNCTION
 MaterialView::MaterialView(ParamsRef const& params, MatId id)
     : params_(params), mat_id_(id)
 {
-    CELER_EXPECT(id < params_.refractive_index.size());
+    CELER_EXPECT(id < params_.size());
 }
 
 //---------------------------------------------------------------------------//

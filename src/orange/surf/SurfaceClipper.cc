@@ -16,7 +16,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(IN)                                       \
+#define ORANGE_INSTANTIATE_OP(IN) \
     template void SurfaceClipper::operator()(IN<Axis::x> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::y> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::z> const&) const
@@ -205,6 +205,25 @@ void SurfaceClipper::operator()(VariantSurface const& surf) const
 {
     CELER_ASSUME(!surf.valueless_by_exception());
     return std::visit(*this, surf);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clip a toroid.
+ */
+void SurfaceClipper::operator()(Toroid const& surf) const
+{
+    auto [ox, oy, oz] = surf.origin();
+    real_type hw = surf.major_radius() + surf.ellipse_xy_radius();
+    real_type hh = surf.ellipse_z_radius();
+    shrink_if_nonnull(ext_, Bound::lo, Axis::x, ox - hw);
+    shrink_if_nonnull(ext_, Bound::hi, Axis::x, ox + hw);
+    shrink_if_nonnull(ext_, Bound::lo, Axis::y, oy - hw);
+    shrink_if_nonnull(ext_, Bound::hi, Axis::y, oy + hw);
+    shrink_if_nonnull(ext_, Bound::lo, Axis::z, oz - hh);
+    shrink_if_nonnull(ext_, Bound::hi, Axis::z, oz + hh);
+    // There are regions we can guarantee internally, but no central one
+    clear_if_nonnull(int_);
 }
 
 //---------------------------------------------------------------------------//

@@ -120,9 +120,9 @@ MaterialParams::from_import(ImportData const& data)
         ImportPhysMaterial const& phys_mat = data.phys_materials[mat_idx];
 
         auto geo_mat_idx = phys_mat.geo_material_id;
-        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
-                       << "geo material id " << geo_mat_idx
-                       << " is out of range");
+        CELER_VALIDATE(
+            geo_mat_idx < data.geo_materials.size(),
+            << "geo material id " << geo_mat_idx << " is out of range");
         auto const& geo_mat = data.geo_materials[geo_mat_idx];
 
         MaterialParams::MaterialInput material_params;
@@ -416,9 +416,8 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-ItemRange<MatElementComponent>
-MaterialParams::extend_elcomponents(MaterialInput const& inp,
-                                    HostValue* host_data) const
+ItemRange<MatElementComponent> MaterialParams::extend_elcomponents(
+    MaterialInput const& inp, HostValue* host_data) const
 {
     CELER_EXPECT(host_data);
     // Allocate material components
@@ -428,8 +427,8 @@ MaterialParams::extend_elcomponents(MaterialInput const& inp,
     real_type norm = 0;
     for (auto i : range(inp.elements_fractions.size()))
     {
-        CELER_EXPECT(inp.elements_fractions[i].first
-                     < host_data->elements.size());
+        CELER_EXPECT(
+            inp.elements_fractions[i].first < host_data->elements.size());
         CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
         components[i].element = inp.elements_fractions[i].first;

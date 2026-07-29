@@ -112,7 +112,8 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
  * neutron-nucleus system.
  */
 template<class Engine>
-CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(
+    Engine& rng)
 {
     using namespace celeritas::literals;
 

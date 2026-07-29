@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file corecel/cont/EnumArray.hh
+//! \sa corecel/cont/Array.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 

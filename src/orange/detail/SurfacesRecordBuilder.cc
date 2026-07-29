@@ -16,9 +16,8 @@ namespace detail
 /*!
  * Construct with pointers to the underlying storage.
  */
-SurfacesRecordBuilder::SurfacesRecordBuilder(Items<SurfaceType>* types,
-                                             Items<RealId>* real_ids,
-                                             Items<real_type>* reals)
+SurfacesRecordBuilder::SurfacesRecordBuilder(
+    Items<SurfaceType>* types, Items<RealId>* real_ids, Items<real_type>* reals)
     : types_{types}, real_ids_{real_ids}, reals_{reals}
 {
 }
@@ -45,6 +44,14 @@ auto SurfacesRecordBuilder::operator()(VecSurface const& surfaces)
             // See discussion on
             // https://github.com/celeritas-project/celeritas/pull/1342
             CELER_NOT_IMPLEMENTED("runtime involute support");
+        }
+        if constexpr (!CELERITAS_ORANGE_TORUS
+                      && std::remove_reference_t<decltype(s)>::surface_type()
+                             == SurfaceType::tor)
+        {
+            // See discussion on
+            // https://github.com/celeritas-project/celeritas/pull/2427
+            CELER_NOT_IMPLEMENTED("runtime toroid support");
         }
         types_.push_back(s.surface_type());
         auto data = s.data();

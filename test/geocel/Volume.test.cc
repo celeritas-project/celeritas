@@ -6,17 +6,19 @@
 //! Test VolumeParams and related utilities
 //---------------------------------------------------------------------------//
 #include <fstream>
+#include <memory>
 #include <unordered_map>
 
 #include "celeritas_test_config.h"
 
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/LabelIdMultiMapUtils.hh"
-#include "corecel/io/Join.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/StreamUtils.hh"
 #include "geocel/AllVolumesView.hh"
 #include "geocel/Types.hh"
+#include "geocel/UniqueVolumeToString.hh"
+#include "geocel/VolumeData.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumePathAccumulator.hh"
 #include "geocel/VolumePathFinder.hh"
@@ -181,6 +183,14 @@ TEST_F(SingleVolumeTest, volume_to_string)
     {
         EXPECT_THROW(to_string(VolumeId{1}), DebugError);
     }
+}
+
+TEST_F(SingleVolumeTest, unique_volume_to_string)
+{
+    auto to_string_path = UniqueVolumeToString::from_ref(this->volumes());
+
+    EXPECT_EQ("", to_string_path(nullid));
+    EXPECT_EQ("[WORLD]", to_string_path(world_unique_instance));
 }
 
 TEST_F(SingleVolumeTest, visit)
@@ -533,6 +543,10 @@ TEST_F(MultiLevelTest, path_round_trip)
         }
         EXPECT_EQ(uid, result) << "round-trip failed for uid=" << uid.get();
     }
+
+    // Special case with overflow: starting with nullid and adding world
+    // instance should result in world instance
+    EXPECT_EQ(world_unique_instance, acc(nullid, vols.world_instance()));
 }
 
 //---------------------------------------------------------------------------//
@@ -563,6 +577,19 @@ TEST_F(MultiLevelTest, path_finder)
               path_str(find_path(VolumeUniqueInstanceId{15})));
     EXPECT_EQ("topbox4/boxtri@1",
               path_str(find_path(VolumeUniqueInstanceId{17})));
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(MultiLevelTest, unique_volume_to_string)
+{
+    auto to_string_path = UniqueVolumeToString::from_ref(this->volumes());
+
+    using UniqueId = VolumeUniqueInstanceId;
+    EXPECT_EQ("", to_string_path(nullid));
+    EXPECT_EQ("world_PV", to_string_path(world_unique_instance));
+    EXPECT_EQ("world_PV/topbox1", to_string_path(UniqueId{1}));
+    EXPECT_EQ("world_PV/topsph1", to_string_path(UniqueId{5}));
+    EXPECT_EQ("world_PV/topbox4/boxtri@1", to_string_path(UniqueId{17}));
 }
 
 //---------------------------------------------------------------------------//
@@ -604,11 +631,13 @@ TEST_F(StressTest, DISABLED_io)
 {
     auto filename = this->make_unique_filename(".json");
     std::string script{celeritas_source_dir};
-    script += "/scripts/user/volumes-to-dot.py";
 
     std::ofstream{filename} << this->volumes();
-    cout << script << " --ids " << filename << " | dot -Tpdf -o "
-         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf";
+    cout << "Run the following to construct a graph: \""
+         << celeritas_source_dir << "/scripts/user/volumes-to-dot.py"
+         << "\" --ids \"" << filename << "\" | dot -Tpdf -o \""
+         << "stress-" << num_levels_ << '-' << num_children_ << ".pdf\""
+         << endl;
 }
 
 TEST_F(StressTest, path_round_trip)

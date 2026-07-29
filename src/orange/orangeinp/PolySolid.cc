@@ -27,9 +27,8 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct the unioned "interior" of a polysolid
 template<class T>
-[[nodiscard]] NodeId construct_segments(PolySolidBase const& base,
-                                        T&& build_region,
-                                        detail::VolumeBuilder& vb)
+[[nodiscard]] NodeId construct_segments(
+    PolySolidBase const& base, T&& build_region, detail::VolumeBuilder& vb)
 {
     std::string const label{base.label()};
     auto build_isect = [&](std::string&& ext, auto&& region) {
@@ -98,9 +97,8 @@ template<class T>
 /*!
  * Construct an enclosed angle if applicable.
  */
-[[nodiscard]] NodeId construct_enclosed_angle(PolySolidBase const& base,
-                                              detail::VolumeBuilder& vb,
-                                              NodeId result)
+[[nodiscard]] NodeId construct_enclosed_angle(
+    PolySolidBase const& base, detail::VolumeBuilder& vb, NodeId result)
 {
     if (auto const& azi = base.enclosed_azi())
     {
@@ -139,10 +137,10 @@ PolySegments::PolySegments(VecReal&& outer, VecReal&& z)
 PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
     : inner_{std::move(inner)}, outer_{std::move(outer)}, z_{std::move(z)}
 {
-    CELER_VALIDATE(z_.size() >= 2,
-                   << "no axial segments was specified: at least 2 points "
-                      "needed (given "
-                   << z_.size() << ")");
+    CELER_VALIDATE(
+        z_.size() >= 2,
+        << "no axial segments was specified: at least 2 points needed (given "
+        << z_.size() << ")");
     CELER_VALIDATE(outer_.size() == z_.size(),
                    << "inconsistent outer radius size (" << outer_.size()
                    << "): expected " << z_.size());
@@ -162,9 +160,9 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
     for (auto i : range(outer_.size()))
     {
         CELER_VALIDATE(outer_[i] >= 0, << "invalid outer radius " << outer_[i]);
-        CELER_VALIDATE(inner_.empty()
-                           || (inner_[i] >= 0 && inner_[i] <= outer_[i]),
-                       << "invalid inner radius " << inner_[i]);
+        CELER_VALIDATE(
+            inner_.empty() || (inner_[i] >= 0 && inner_[i] <= outer_[i]),
+            << "invalid inner radius " << inner_[i]);
     }
 }
 
@@ -172,9 +170,8 @@ PolySegments::PolySegments(VecReal&& inner, VecReal&& outer, VecReal&& z)
 /*!
  * Build with label, axial segments, optional restriction.
  */
-PolySolidBase::PolySolidBase(std::string&& label,
-                             PolySegments&& segments,
-                             EnclosedAzi&& enclosed)
+PolySolidBase::PolySolidBase(
+    std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed)
     : label_{std::move(label)}
     , segments_{std::move(segments)}
     , enclosed_{std::move(enclosed)}
@@ -189,9 +186,9 @@ PolySolidBase::~PolySolidBase() = default;
 /*!
  * Return a polycone *or* a simplified version for only a single segment.
  */
-auto PolyCone::or_solid(std::string&& label,
-                        PolySegments&& segments,
-                        EnclosedAzi&& enclosed) -> SPConstObject
+auto PolyCone::or_solid(
+    std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed)
+    -> SPConstObject
 {
     if (segments.size() > 1)
     {
@@ -227,9 +224,8 @@ auto PolyCone::or_solid(std::string&& label,
 /*!
  * Build with label, axial segments, optional restriction.
  */
-PolyCone::PolyCone(std::string&& label,
-                   PolySegments&& segments,
-                   EnclosedAzi&& enclosed)
+PolyCone::PolyCone(
+    std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed)
     : PolySolidBase{std::move(label), std::move(segments), std::move(enclosed)}
 {
 }

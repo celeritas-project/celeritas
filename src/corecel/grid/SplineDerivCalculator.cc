@@ -56,9 +56,8 @@ auto SplineDerivCalculator::operator()(SpanConstReal x, SpanConstReal y) const
 /*!
  * Calculate the second derivatives from inverted grid data.
  */
-auto SplineDerivCalculator::calc_from_inverse(UniformGridRecord const& data,
-                                              Values const& reals) const
-    -> VecReal
+auto SplineDerivCalculator::calc_from_inverse(
+    UniformGridRecord const& data, Values const& reals) const -> VecReal
 {
     return (*this)(detail::InverseGridAccessor(data, reals));
 }
@@ -118,9 +117,8 @@ auto SplineDerivCalculator::operator()(GA&& grid) const -> VecReal
  * Calculate the coefficients for the first row using the boundary conditions.
  */
 template<class GA>
-void SplineDerivCalculator::calc_initial_coeffs(GA const& grid,
-                                                Real3& tridiag,
-                                                real_type& rhs) const
+void SplineDerivCalculator::calc_initial_coeffs(
+    GA const& grid, Real3& tridiag, real_type& rhs) const
 {
     real_type h_lower = grid.delta_x(0);
     real_type h_upper = grid.delta_x(1);
@@ -144,9 +142,8 @@ void SplineDerivCalculator::calc_initial_coeffs(GA const& grid,
  * Calculate the coefficients for the last row using the boundary conditions.
  */
 template<class GA>
-void SplineDerivCalculator::calc_final_coeffs(GA const& grid,
-                                              Real3& tridiag,
-                                              real_type& rhs) const
+void SplineDerivCalculator::calc_final_coeffs(
+    GA const& grid, Real3& tridiag, real_type& rhs) const
 {
     real_type h_lower = grid.delta_x(grid.size() - 3);
     real_type h_upper = grid.delta_x(grid.size() - 2);

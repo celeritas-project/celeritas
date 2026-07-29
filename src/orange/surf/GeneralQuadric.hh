@@ -62,10 +62,8 @@ class GeneralQuadric
     //// CONSTRUCTORS ////
 
     // Construct from coefficients
-    explicit GeneralQuadric(Real3 const& abc,
-                            Real3 const& def,
-                            Real3 const& ghi,
-                            real_type j);
+    explicit GeneralQuadric(
+        Real3 const& abc, Real3 const& def, Real3 const& ghi, real_type j);
 
     // Construct from raw data
     template<class R>
@@ -156,10 +154,8 @@ CELER_FUNCTION SignedSense GeneralQuadric::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-GeneralQuadric::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CELER_FUNCTION auto GeneralQuadric::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     real_type const x = pos[0];

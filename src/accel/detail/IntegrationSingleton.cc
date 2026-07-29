@@ -44,7 +44,7 @@ validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
         return SharedParams::default_offload_particles();
     }
 
-    auto const supported = SharedParams::supported_offload_particles();
+    auto const& supported = SharedParams::supported_offload_particles();
     auto find = [&supported](G4ParticleDefinition* user) -> bool {
         return std::any_of(
             supported.begin(),

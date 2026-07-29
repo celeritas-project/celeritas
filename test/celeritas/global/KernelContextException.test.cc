@@ -70,6 +70,7 @@ class KernelContextExceptionTest : public SimpleTestBase, public StepperTestBase
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i / (count / 2)};
+            result[i].primary_id = PrimaryId{i % 2};
         }
         return result;
     }
@@ -130,7 +131,7 @@ TEST_F(KernelContextExceptionTest, typical)
         if (CELERITAS_UNITS == CELERITAS_UNITS_CGS)
         {
             EXPECT_EQ(
-                R"(track slot {15} in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":null,"post_step_action":"geo-boundary","status":"alive","step_length":[5.0,"cm"],"time":[1.67e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
+                R"(track slot {15} in kernel 'test-kernel': {"geo":{"dir":[0.0,0.0,1.0],"is_on_boundary":true,"is_outside":false,"pos":[[0.0,1.0,5.0],"cm"],"volume_id":"world"},"mat":"hard vacuum","particle":{"energy":[10.0,"MeV"],"particle_id":"gamma"},"sim":{"along_step_action":"along-step-neutral","event_id":1,"num_steps":1,"parent_id":null,"post_step_action":"geo-boundary","primary_id":1,"status":"alive","step_length":[5.0,"cm"],"time":[1.67e-10,"s"],"track_id":3},"thread_id":15,"track_slot_id":15})",
                 simplified_str)
                 << repr(simplified_str);
         }
@@ -154,7 +155,7 @@ TEST_F(KernelContextExceptionTest, typical)
             && CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             std::stringstream ss;
-            ss << R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"surface":11,"thread":)json"
+            ss << R"json({"dir":[0.0,0.0,1.0],"energy":[10.0,"MeV"],"event":1,"label":"test-kernel","num_steps":1,"particle":0,"pos":[0.0,1.0,5.0],"primary":1,"surface":11,"thread":)json"
                << e.thread().unchecked_get()
                << R"json(,"track":3,"track_slot":15,"volume":2})json";
             EXPECT_JSON_EQ(ss.str(), get_json_str(e));

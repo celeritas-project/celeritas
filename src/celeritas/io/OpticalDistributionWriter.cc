@@ -22,7 +22,8 @@ namespace celeritas
 /*!
  * Construct with output filename.
  */
-OpticalDistributionWriter::OpticalDistributionWriter(std::string const& filename)
+OpticalDistributionWriter::OpticalDistributionWriter(
+    std::string const& filename)
     : outfile_(filename)
 {
     CELER_EXPECT(!filename.empty());

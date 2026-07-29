@@ -47,8 +47,7 @@
 #include "celeritas/track/TrackInitParams.hh"  // IWYU pragma: keep
 
 #include "ActionInterface.hh"
-
-#include "detail/CoreSizes.json.hh"
+#include "CoreSizesIO.json.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
 #    include "orange/OrangeParams.hh"  // IWYU pragma: keep
@@ -204,30 +203,6 @@ CoreScalars build_actions(ActionRegistry* reg)
 }
 
 //---------------------------------------------------------------------------//
-auto get_core_sizes(CoreParams const& cp)
-{
-    auto const& init = *cp.init();
-
-    detail::CoreSizes result;
-    result.processes = comm_world().size();
-    result.streams = cp.max_streams();
-
-    // NOTE: quantities are *per-process* quantities: integrated over streams,
-    // but not processes
-    result.initializers = result.streams * init.capacity();
-    result.tracks = result.streams * cp.tracks_per_stream();
-    // Number of secondaries is currently based on track size
-    result.secondaries = static_cast<size_type>(
-        cp.physics()->host_ref().scalars.secondary_stack_factor
-        * result.tracks);
-    // Event IDs are the same across all threads so this is *not* multiplied by
-    // streams
-    result.events = init.max_events();
-
-    return result;
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -253,7 +228,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
     CP_VALIDATE_INPUT(output_reg);
-    CP_VALIDATE_INPUT(max_streams);
+    CP_VALIDATE_INPUT(sizes);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
@@ -306,7 +281,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     }
 
     // Save maximum number of streams
-    scalars.max_streams = input_.max_streams;
+    scalars.max_streams = this->sizes().streams;
 
     // Save non-owning pointer to core params for host diagnostics
     scalars.host_core_params = ObserverPtr{this};
@@ -326,10 +301,10 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
 
     // Save core sizes
     input_.output_reg->insert(
-        OutputInterfaceAdapter<detail::CoreSizes>::from_rvalue_ref(
+        OutputInterfaceAdapter<CoreSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
             "core-sizes",
-            get_core_sizes(*this)));
+            CoreSizes{this->sizes()}));
 
     // Save core diagnostic information
     input_.output_reg->insert(
@@ -356,7 +331,7 @@ CoreParams::CoreParams(Input input) : input_(std::move(input))
     CELER_LOG(status) << "Celeritas core setup complete";
 
     CELER_ENSURE(host_ref_);
-    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->sizes().streams);
 }
 
 //---------------------------------------------------------------------------//

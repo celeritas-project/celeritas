@@ -191,8 +191,7 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
             }
             else
             {
-                os << " -> "
-                   << "<INVALID>";
+                os << " -> <INVALID>";
             }
         }
         else
@@ -264,8 +263,11 @@ std::vector<real_type> flattened(BoundingZone const& bz)
     std::vector<real_type> result;
     for (auto const* bb : {&bz.interior, &bz.exterior})
     {
-        result.insert(result.end(), bb->lower().begin(), bb->lower().end());
-        result.insert(result.end(), bb->upper().begin(), bb->upper().end());
+        auto append = [&result](Real3 v) {
+            result.insert(result.end(), v.begin(), v.end());
+        };
+        append(bb->lower());
+        append(bb->upper());
     }
     result.push_back(bz.negated ? -1 : 1);
     return result;

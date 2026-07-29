@@ -46,10 +46,10 @@ struct SimpleCaloExecutor
  */
 CELER_FUNCTION void SimpleCaloExecutor::operator()(TrackSlotId tid)
 {
-    CELER_EXPECT(tid < step.data.detector.size());
+    CELER_EXPECT(tid < step.data.detector_id.size());
     CELER_EXPECT(!step.data.energy_deposition.empty());
 
-    DetectorId det = step.data.detector[tid];
+    DetectorId det = step.data.detector_id[tid];
     if (!det)
     {
         // No energy deposition or inactive track

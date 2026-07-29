@@ -57,17 +57,17 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
     TrackSlotId src_id{fast_get(state.valid_id, dst_id)};
     CELER_ASSERT(src_id < state.size());
 
-#define DS_COPY_IF_SELECTED(FIELD)                    \
-    do                                                \
-    {                                                 \
-        if (!state.data.FIELD.empty())                \
-        {                                             \
-            fast_get(state.scratch.FIELD, dst_id)     \
+#define DS_COPY_IF_SELECTED(FIELD) \
+    do \
+    { \
+        if (!state.data.FIELD.empty()) \
+        { \
+            fast_get(state.scratch.FIELD, dst_id) \
                 = fast_get(state.data.FIELD, src_id); \
-        }                                             \
+        } \
     } while (0)
 
-    DS_COPY_IF_SELECTED(detector);
+    DS_COPY_IF_SELECTED(detector_id);
     DS_COPY_IF_SELECTED(track_id);
 
     for (auto sp : range(StepPoint::size_))
@@ -97,10 +97,12 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
 
     DS_COPY_IF_SELECTED(event_id);
     DS_COPY_IF_SELECTED(parent_id);
+    DS_COPY_IF_SELECTED(primary_id);
+    DS_COPY_IF_SELECTED(post_step_action_id);
     DS_COPY_IF_SELECTED(track_step_count);
     DS_COPY_IF_SELECTED(step_length);
     DS_COPY_IF_SELECTED(weight);
-    DS_COPY_IF_SELECTED(particle);
+    DS_COPY_IF_SELECTED(particle_id);
     DS_COPY_IF_SELECTED(energy_deposition);
 #undef DS_COPY_IF_SELECTED
 }

@@ -25,7 +25,11 @@ class FluctuationParams;
 class PhysicsParams;
 class MaterialParams;
 class ParticleParams;
-struct CylMapFieldInput;
+
+namespace inp
+{
+struct CylMapField;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -36,6 +40,7 @@ class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
   public:
     //!@{
     //! \name Type aliases
+    using Input = inp::CylMapField;
     using SPConstFluctuations = std::shared_ptr<FluctuationParams const>;
     using SPConstMsc = std::shared_ptr<UrbanMscParams const>;
     using SPConstFieldParams = std::shared_ptr<CylMapFieldParams const>;
@@ -46,13 +51,13 @@ class AlongStepCylMapFieldMscAction final : public CoreStepActionInterface
     from_params(ActionId id,
                 MaterialParams const& materials,
                 ParticleParams const& particles,
-                CylMapFieldInput const& field_input,
+                Input const& field_input,
                 SPConstMsc const& msc,
                 bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
     AlongStepCylMapFieldMscAction(ActionId id,
-                                  CylMapFieldInput const& input,
+                                  Input const& input,
                                   SPConstFluctuations fluct,
                                   SPConstMsc msc);
 

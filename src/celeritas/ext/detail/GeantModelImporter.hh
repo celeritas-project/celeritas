@@ -35,9 +35,8 @@ class GeantModelImporter
 
   public:
     // Construct with materials, primary, and secondary
-    GeantModelImporter(VecMaterial const& materials,
-                       PDGNumber particle,
-                       PDGNumber secondary);
+    GeantModelImporter(
+        VecMaterial const& materials, PDGNumber particle, PDGNumber secondary);
 
     ImportModel operator()(G4VEmModel const& model) const;
 

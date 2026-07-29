@@ -53,9 +53,8 @@ class SurfacePhysicsTrackView
 
   public:
     // Create view from surface physics data and state
-    inline CELER_FUNCTION SurfacePhysicsTrackView(SurfaceParamsRef const&,
-                                                  SurfaceStateRef const&,
-                                                  TrackSlotId);
+    inline CELER_FUNCTION SurfacePhysicsTrackView(
+        SurfaceParamsRef const&, SurfaceStateRef const&, TrackSlotId);
 
     // Initialize track state
     inline CELER_FUNCTION SurfacePhysicsTrackView&
@@ -194,8 +193,8 @@ CELER_FUNCTION OptMatId SurfacePhysicsTrackView::next_material() const
 /*!
  * Get surface physics map for next surface.
  */
-CELER_FUNCTION SurfacePhysicsMapView
-SurfacePhysicsTrackView::interface(SurfacePhysicsOrder step) const
+CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsTrackView::interface(
+    SurfacePhysicsOrder step) const
 {
     auto traverse = this->traversal();
     return SurfacePhysicsMapView{
@@ -307,7 +306,8 @@ SurfacePhysicsTrackView::scalars() const
 /*!
  * Get material at given track position.
  */
-CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material(LocalPositionId pos) const
+CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material(
+    LocalPositionId pos) const
 {
     auto pos_range = range(LocalPositionId{this->traversal().num_local_pos()});
     CELER_EXPECT(pos < pos_range.size());

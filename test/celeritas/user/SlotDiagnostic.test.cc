@@ -22,9 +22,6 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool using_vecgeom_surface = CELERITAS_VECGEOM_SURFACE
-                                       && CELERITAS_CORE_GEO
-                                              == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
 char pid_to_char(int i)
@@ -123,13 +120,11 @@ void SlotDiagnosticTest::RunResult::print_expected() const
             "static char const* const expected_labels[] = "
          << repr(this->labels)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_labels, "
-            "result.labels);\n"
+            "EXPECT_VEC_EQ(expected_labels, result.labels);\n"
             "static char const* const expected_slots[] = "
          << repr(this->slots)
          << ";\n"
-            "EXPECT_VEC_EQ(expected_slots, "
-            "result.slots);\n"
+            "EXPECT_VEC_EQ(expected_slots, result.slots);\n"
             "/*** END CODE ***/\n";
 }
 
@@ -221,8 +216,7 @@ TEST_F(TestEm3SlotTest, host)
 
     // Some results change slightly as a function of architecture/build flags,
     // and they can change dramatically based on Geant4 cross sections etc.
-    auto max_check_count
-        = (this->is_ci_build() && !using_vecgeom_surface ? 37 : 6);
+    auto max_check_count = (this->is_ci_build() ? 37 : 6);
     ASSERT_LE(max_check_count, expected_slots.size());
     ASSERT_LE(max_check_count, result.slots.size());
 

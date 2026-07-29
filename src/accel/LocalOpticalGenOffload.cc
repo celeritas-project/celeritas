@@ -13,12 +13,10 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -29,17 +27,12 @@ namespace celeritas
 /*!
  * Construct with options and shared data.
  */
-LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const& options,
+LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const&,
                                                SharedParams& params)
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local optical offload when Celeritas "
                       "offloading is disabled");
-    CELER_VALIDATE(options.optical
-                       && std::holds_alternative<inp::OpticalOffloadGenerator>(
-                           options.optical->generator),
-                   << "invalid optical photon generation mechanism for local "
-                      "optical offload");
 
     // Save a pointer to the optical transporter
     transport_ = params.optical_problem_loaded().transporter;
@@ -49,7 +42,7 @@ LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const& options,
     auto const& optical_params = *transport_->params();
 
     // Check the thread ID and MT model
-    validate_geant_threading(optical_params.max_streams());
+    validate_geant_threading(optical_params.sizes().streams);
 
     // Save a pointer to the generator action
     generate_ = std::dynamic_pointer_cast<optical::GeneratorAction const>(
@@ -57,8 +50,8 @@ LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const& options,
     CELER_VALIDATE(generate_, << "invalid optical GeneratorAction");
 
     // Number of optical photons to buffer before offloading
-    auto const& capacity = options.optical->capacity;
-    auto_flush_ = capacity.primaries;
+    auto const& sizes = optical_params.sizes();
+    auto_flush_ = sizes.primaries;
 
     auto stream_id = id_cast<StreamId>(get_geant_thread_id());
 
@@ -67,19 +60,19 @@ LocalOpticalGenOffload::LocalOpticalGenOffload(SetupOptions const& options,
     if (memspace == MemSpace::device)
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::device>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, sizes.tracks);
     }
     else
     {
         state_ = std::make_shared<optical::CoreState<MemSpace::host>>(
-            optical_params, stream_id, capacity.tracks);
+            optical_params, stream_id, sizes.tracks);
     }
 
     // Allocate auxiliary data
     if (optical_params.aux_reg())
     {
         state_->aux() = std::make_shared<AuxStateVec>(
-            *optical_params.aux_reg(), memspace, stream_id, capacity.tracks);
+            *optical_params.aux_reg(), memspace, stream_id, sizes.tracks);
     }
 
     CELER_ENSURE(*this);
@@ -123,7 +116,8 @@ void LocalOpticalGenOffload::InitializeEvent(int id)
 /*!
  * Buffer distribution data for generating optical photons.
  */
-void LocalOpticalGenOffload::Push(optical::GeneratorDistributionData const& data)
+void LocalOpticalGenOffload::Push(
+    optical::GeneratorDistributionData const& data)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(data);
@@ -221,18 +215,18 @@ void LocalOpticalGenOffload::Finalize()
     auto const& accum = state_->accum();
     CELER_ASSERT(state_->aux());
     auto const& gen = generate_->counters(*state_->aux());
-    CELER_LOG_LOCAL(info)
-        << "Finalizing Celeritas after " << accum.steps
-        << " optical steps (over " << accum.step_iters << " step iterations)"
-        << " from " << gen.accum.num_generated
-        << " optical photons generated from " << gen.accum.buffer_size
-        << " distributions";
+    CELER_LOG_LOCAL(info) << "Finalizing Celeritas after " << accum.steps
+                          << " optical steps (over " << accum.step_iters
+                          << " step iterations)"
+                          << " from " << gen.accum.num_generated
+                          << " optical photons generated from "
+                          << gen.accum.buffer_size << " distributions";
 
     if (!gen.counters.empty())
     {
         CELER_LOG_LOCAL(warning)
-            << "Not all optical photons were tracked "
-               "at the end of the stepping loop: "
+            << "Not all optical photons were tracked at the end of the "
+               "stepping loop: "
             << gen.counters.num_pending << " queued photons from "
             << gen.counters.buffer_size << " distributions";
     }

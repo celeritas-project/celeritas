@@ -39,8 +39,7 @@ namespace test
 {
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM
-           || !CELERITAS_VECGEOM_SURFACE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
@@ -171,9 +170,9 @@ auto LArSphereOffloadTest::make_primaries(size_type count) -> VecPrimary
  * Run a number of tracks.
  */
 template<MemSpace M>
-auto LArSphereOffloadTest::run(size_type num_primaries,
-                               size_type num_track_slots,
-                               size_type num_steps) -> RunResult
+auto LArSphereOffloadTest::run(
+    size_type num_primaries, size_type num_track_slots, size_type num_steps)
+    -> RunResult
 {
     if constexpr (M == MemSpace::device)
     {
@@ -249,7 +248,8 @@ auto LArSphereOffloadTest::run(size_type num_primaries,
 template LArSphereOffloadTest::RunResult
     LArSphereOffloadTest::run<MemSpace::host>(size_type, size_type, size_type);
 template LArSphereOffloadTest::RunResult
-    LArSphereOffloadTest::run<MemSpace::device>(size_type, size_type, size_type);
+    LArSphereOffloadTest::run<MemSpace::device>(
+        size_type, size_type, size_type);
 
 //---------------------------------------------------------------------------//
 // TESTS

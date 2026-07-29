@@ -98,9 +98,8 @@ class MuDecayInteractor
     //// HELPER FUNCTIONS ////
 
     // Boost four vector from the rest frame to the lab frame
-    inline CELER_FUNCTION FourVector to_lab_frame(Real3 const& dir,
-                                                  Momentum momentum,
-                                                  Mass mass) const;
+    inline CELER_FUNCTION FourVector to_lab_frame(
+        Real3 const& dir, Momentum momentum, Mass mass) const;
 
     // Calculate particle momentum (or kinetic energy) in the center of mass
     inline CELER_FUNCTION Momentum calc_momentum(real_type energy_frac,
@@ -196,9 +195,8 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
  * \note This assumes the primary to be at rest and, thus, there is no need
  * to perform an inverse boost of the primary at the CM frame.
  */
-CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
-                                                          Momentum momentum,
-                                                          Mass mass) const
+CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(
+    Real3 const& dir, Momentum momentum, Mass mass) const
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     CELER_EXPECT(momentum > zero_quantity());
@@ -215,9 +213,8 @@ CELER_FUNCTION FourVector MuDecayInteractor::to_lab_frame(Real3 const& dir,
  * Calculate final particle momentum (or kinetic energy) from its sampled
  * fractional energy.
  */
-CELER_FUNCTION auto
-MuDecayInteractor::calc_momentum(real_type energy_frac, Mass mass) const
-    -> Momentum
+CELER_FUNCTION auto MuDecayInteractor::calc_momentum(
+    real_type energy_frac, Mass mass) const -> Momentum
 {
     return Momentum{std::sqrt(ipow<2>(energy_frac * max_energy_)
                               + 2 * energy_frac * max_energy_ * mass.value())};

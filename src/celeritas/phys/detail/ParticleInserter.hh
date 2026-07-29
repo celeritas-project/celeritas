@@ -74,8 +74,8 @@ auto ParticleInserter::operator()(inp::Particle const& inp) -> Id
     auto result = mass_.push_back(inp.mass);
     charge_.push_back(inp.charge);
     decay_constant_.push_back(inp.decay_constant);
-    matter_.push_back(inp.pdg.get() < 0 ? MatterType::antiparticle
-                                        : MatterType::particle);
+    matter_.push_back(
+        inp.pdg.get() < 0 ? MatterType::antiparticle : MatterType::particle);
     return result;
 }
 
