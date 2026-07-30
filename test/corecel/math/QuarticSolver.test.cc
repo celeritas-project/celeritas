@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/math/Alg1010Solver.hh"
 #include "corecel/math/FerrariSolver.hh"
 #include "corecel/math/NumericLimits.hh"
 
@@ -53,7 +54,7 @@ class QuarticSolverTest : public ::celeritas::test::Test
 {
 };
 
-using QuarticSolvers = ::testing::Types<FerrariSolver>;
+using QuarticSolvers = ::testing::Types<FerrariSolver, Alg1010Solver>;
 TYPED_TEST_SUITE(QuarticSolverTest, QuarticSolvers, );
 
 //---------------------------------------------------------------------------//
