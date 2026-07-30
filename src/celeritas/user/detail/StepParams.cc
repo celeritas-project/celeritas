@@ -101,8 +101,8 @@ StepParams::StepParams(AuxId aux_id,
 
         if (!detector_map.empty())
         {
-            host_data.detector
-                = build_volume_collection<DetectorId>(geo, vol_to_det);
+            host_data.detector = build_volume_collection<DetectorId>(
+                geo, vol_to_det);
             host_data.nonzero_energy_deposition = nonzero_energy_deposition;
             CELER_ASSERT(!host_data.detector.empty());
         }

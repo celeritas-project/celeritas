@@ -70,8 +70,8 @@ struct CoordinateAxes
         return std::sin(inc_angle) * s_hat - std::cos(inc_angle) * n_hat;
     }
 
-    Real3
-    make_polarization(real_type inc_angle, LinearPolarization const& pol) const
+    Real3 make_polarization(real_type inc_angle,
+                            LinearPolarization const& pol) const
     {
         return make_unit_vector(pol.t_e * p_hat
                                 + pol.t_m
@@ -79,8 +79,8 @@ struct CoordinateAxes
                                          + std::sin(inc_angle) * n_hat));
     }
 
-    real_type
-    calc_reflectivity(real_type angle, LinearPolarization const& pol) const
+    real_type calc_reflectivity(real_type angle,
+                                LinearPolarization const& pol) const
     {
         return FresnelCalculator{this->make_direction(angle),
                                  this->make_polarization(angle, pol),
@@ -89,8 +89,8 @@ struct CoordinateAxes
             .calc_reflectivity();
     }
 
-    SurfaceInteraction
-    calc_refraction(real_type angle, LinearPolarization const& pol) const
+    SurfaceInteraction calc_refraction(real_type angle,
+                                       LinearPolarization const& pol) const
     {
         return FresnelCalculator{this->make_direction(angle),
                                  this->make_polarization(angle, pol),
@@ -120,8 +120,8 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
         EXPECT_SOFT_EQ(0, dot_product(refract.direction, axes.p_hat));
 
-        real_type cos_theta
-            = clamp(-dot_product(refract.direction, axes.n_hat), 0_r, 1_r);
+        real_type cos_theta = clamp(
+            -dot_product(refract.direction, axes.n_hat), 0_r, 1_r);
         real_type theta = std::acos(cos_theta);
 
         result.cos_theta.push_back(cos_theta);
@@ -244,9 +244,9 @@ TEST_F(FresnelTest, internal_reflectivity)
     this->check_special_reflectivity_cases(axes);
 
     // Angles just past the critical angle imply total internal reflection
-    auto critical_angle
-        = std::asin(axes.rel_r_index)
-          + std::sqrt(std::numeric_limits<real_type>::epsilon());
+    auto critical_angle = std::asin(axes.rel_r_index)
+                          + std::sqrt(
+                              std::numeric_limits<real_type>::epsilon());
     EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TE));
     EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TM));
 

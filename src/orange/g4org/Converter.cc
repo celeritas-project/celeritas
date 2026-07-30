@@ -139,8 +139,8 @@ auto Converter::operator()(GeantGeoParams const& geo,
             // corresponding volume ID
             unit->volumes[bg_vol_id.get()].label.emplace<Label>(
                 "[BG]", unit->label.name);
-            unit->background.label
-                = volumes.volume_labels().find_exact(unit->label);
+            unit->background.label = volumes.volume_labels().find_exact(
+                unit->label);
             unit->background.volume = bg_vol_id;
         }
     }

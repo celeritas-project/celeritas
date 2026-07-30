@@ -90,8 +90,8 @@ CELER_FUNCTION auto VolumeSurfaceSelector::operator()(
     VolumeInstanceId post_volume_inst) const -> OrientedSurface
 {
     // P0 -> P1 interface surface in forward direction
-    if (auto surface_id
-        = pre_surface_.find_interface(pre_volume_inst_, post_volume_inst))
+    if (auto surface_id = pre_surface_.find_interface(pre_volume_inst_,
+                                                      post_volume_inst))
     {
         return {surface_id, LocalDirection::forward};
     }

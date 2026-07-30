@@ -187,12 +187,12 @@ TEST_F(SurfaceImporterTest, full_optical_surfaces)
 
     using Mode = optical::ReflectionMode;
     ReflectionForm unified_ground;
-    unified_ground.reflection_grids[Mode::specular_spike]
-        = {{1e-06, 1e-05}, {0.1, 0.3}};
-    unified_ground.reflection_grids[Mode::specular_lobe]
-        = {{1e-06, 1e-05}, {0.2, 0.2}};
-    unified_ground.reflection_grids[Mode::backscatter]
-        = {{1e-06, 1e-05}, {0.3, 0.1}};
+    unified_ground.reflection_grids[Mode::specular_spike] = {{1e-06, 1e-05},
+                                                             {0.1, 0.3}};
+    unified_ground.reflection_grids[Mode::specular_lobe] = {{1e-06, 1e-05},
+                                                            {0.2, 0.2}};
+    unified_ground.reflection_grids[Mode::backscatter] = {{1e-06, 1e-05},
+                                                          {0.3, 0.1}};
 
     OpticalSurfacePhysics expected_input;
 

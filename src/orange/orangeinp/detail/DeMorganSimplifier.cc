@@ -276,8 +276,8 @@ CsgTree DeMorganSimplifier::build_simplified_tree()
             CELER_ASSERT(!std::holds_alternative<Negated>(target_node)
                          && !std::holds_alternative<Joined>(target_node)
                          && !trans.new_negation);
-            auto [new_negated_node_id, negated_inserted]
-                = result.insert(Negated{new_id});
+            auto [new_negated_node_id,
+                  negated_inserted] = result.insert(Negated{new_id});
             trans.new_negation = new_negated_node_id;
         }
     }
@@ -373,8 +373,8 @@ bool DeMorganSimplifier::process_negated_joined_nodes(NodeId node_id,
         if (negated_join_nodes_.count(node_id))
         {
             // Insert the negated node
-            auto [new_id, inserted]
-                = result.insert(this->build_negated_node(*joined));
+            auto [new_id,
+                  inserted] = result.insert(this->build_negated_node(*joined));
             // Record that we inserted an opposite join for that node
             this->translation(node_id).opposite_join = std::move(new_id);
         }

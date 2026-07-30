@@ -92,8 +92,8 @@ inline CELER_FUNCTION bool lost_all_energy(CoreTrackView const& track)
  * - Stopped tracks are killed if they have no at-rest process
  * - Stopped tracks with at-rest processes are forced to undergo an interaction
  */
-inline CELER_FUNCTION void
-apply_slowing_down(CoreTrackView const& track, ParticleTrackView::Energy eloss)
+inline CELER_FUNCTION void apply_slowing_down(CoreTrackView const& track,
+                                              ParticleTrackView::Energy eloss)
 {
     auto particle = track.particle();
     auto phys = track.physics();

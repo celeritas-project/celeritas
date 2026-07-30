@@ -34,8 +34,8 @@ class GridReflectivityCalculator
 
   public:
     // Construct from data, surface, and energy
-    explicit inline CELER_FUNCTION
-    GridReflectivityCalculator(DataRef const&, SubModelId, Energy);
+    explicit inline CELER_FUNCTION GridReflectivityCalculator(
+        DataRef const&, SubModelId, Energy);
 
     // Calculate the probability for the specified reflectivity action
     inline CELER_FUNCTION real_type operator()(ReflectivityAction) const;
@@ -112,8 +112,8 @@ CELER_FUNCTION ReflectivityAction GridReflectivityExecutor::operator()(
     using namespace celeritas::literals;
 
     auto s_phys = track.surface_physics();
-    auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::reflectivity)
-                            .internal_surface_id();
+    auto sub_model_id
+        = s_phys.interface(SurfacePhysicsOrder::reflectivity).internal_surface_id();
 
     auto rng = track.rng();
 

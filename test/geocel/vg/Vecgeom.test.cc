@@ -45,8 +45,8 @@ namespace test
 
 namespace
 {
-auto const vecgeom_version
-    = celeritas::Version::from_string(cmake::vecgeom_version);
+auto const vecgeom_version = celeritas::Version::from_string(
+    cmake::vecgeom_version);
 
 }  // namespace
 
@@ -278,13 +278,13 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     // Run kernel
     auto output = vgg_test(input);
 
-    static int const expected_ids[]
-        = {1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
-           1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
+    static int const expected_ids[] = {
+        1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3,
+        1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3, 1, 2, 3, -2, -3};
 
-    static double const expected_distances[]
-        = {5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
-           5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
+    static double const expected_distances[] = {
+        5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3,
+        5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3, 5, 1, 1, 7, -3};
 
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
@@ -538,8 +538,8 @@ TEST_F(SolidsTest, geant_volumes)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
-    auto const& label
-        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
+    auto const& label = this->geometry()->impl_volumes().at(
+        geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", to_string(label));
 }
 
@@ -600,9 +600,7 @@ class ArbitraryVecgeomTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename_.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*)"
-            << ::testing::UnitTest::GetInstance()
-                       ->current_test_info()
-                       ->test_suite_name()
+            << ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name()
             << "*' --gtest_also_run_disabled_tests)");
     }
 

@@ -158,11 +158,11 @@ MucfInteractorHostBase::MucfInteractorHostBase()
     };
 
     // Define hydrogen element with 50/50 d and t
-    mat_inp.elements
-        = {{AtomicNumber{1},
-            AmuMass{2.515026},  // Weighted average of 50/50 d + t
-            {{IsotopeId{0}, 0.0}, {IsotopeId{1}, 0.5}, {IsotopeId{2}, 0.5}},
-            Label{"H_dt"}}};
+    mat_inp.elements = {
+        {AtomicNumber{1},
+         AmuMass{2.515026},  // Weighted average of 50/50 d + t
+         {{IsotopeId{0}, 0.0}, {IsotopeId{1}, 0.5}, {IsotopeId{2}, 0.5}},
+         Label{"H_dt"}}};
 
     // Number density based on the mucf-box.gdml data:
     // n = (rho * N_A) / M = (0.177496197091547 * N_A) / 2.515026

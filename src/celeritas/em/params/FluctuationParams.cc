@@ -51,11 +51,11 @@ FluctuationParams::FluctuationParams(ParticleParams const& particles,
         params.oscillator_strength[1] = avg_z > 2 ? 2 / avg_z : 0;
         params.oscillator_strength[0] = 1 - params.oscillator_strength[1];
         params.binding_energy[1] = 1e-5 * ipow<2>(avg_z);
-        params.binding_energy[0]
-            = std::pow(value_as<units::MevEnergy>(mat.mean_excitation_energy())
-                           / std::pow(params.binding_energy[1],
-                                      params.oscillator_strength[1]),
-                       1 / params.oscillator_strength[0]);
+        params.binding_energy[0] = std::pow(
+            value_as<units::MevEnergy>(mat.mean_excitation_energy())
+                / std::pow(params.binding_energy[1],
+                           params.oscillator_strength[1]),
+            1 / params.oscillator_strength[0]);
         params.log_binding_energy[1] = std::log(params.binding_energy[1]);
         params.log_binding_energy[0] = std::log(params.binding_energy[0]);
         urban.push_back(params);

@@ -155,10 +155,10 @@ auto Runner::operator()() const -> Result
         result.counters.generators.push_back(
             gen->counters(*state_->aux()).accum);
     }
-    result.action_times
-        = loaded_.problem.transporter->get_action_times(*state_->aux());
-    result.step_times
-        = loaded_.problem.transporter->get_step_times(*state_->aux());
+    result.action_times = loaded_.problem.transporter->get_action_times(
+        *state_->aux());
+    result.step_times = loaded_.problem.transporter->get_step_times(
+        *state_->aux());
 
     return result;
 }

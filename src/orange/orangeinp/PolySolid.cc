@@ -58,8 +58,8 @@ template<class T>
             continue;
         }
         real_type const hz = (zhi - zlo) / 2;
-        auto scoped_transform
-            = vb.make_scoped_transform(Translation{{0, 0, zlo + hz}});
+        auto scoped_transform = vb.make_scoped_transform(
+            Translation{{0, 0, zlo + hz}});
 
         // Build outer shape
         NodeId segment_node;
@@ -111,9 +111,9 @@ template<class T>
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
         }
-        result
-            = vb.insert_region(Label{std::string{base.label()}, "restricted"},
-                               Joined{op_and, {result, wedge_id}});
+        result = vb.insert_region(
+            Label{std::string{base.label()}, "restricted"},
+            Joined{op_and, {result, wedge_id}});
     }
     return result;
 }
@@ -186,9 +186,9 @@ PolySolidBase::~PolySolidBase() = default;
 /*!
  * Return a polycone *or* a simplified version for only a single segment.
  */
-auto PolyCone::or_solid(
-    std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed)
-    -> SPConstObject
+auto PolyCone::or_solid(std::string&& label,
+                        PolySegments&& segments,
+                        EnclosedAzi&& enclosed) -> SPConstObject
 {
     if (segments.size() > 1)
     {
@@ -236,8 +236,9 @@ PolyCone::PolyCone(
  */
 NodeId PolyCone::build(VolumeBuilder& vb) const
 {
-    auto build_cone
-        = [](Real2 const& radii, real_type hh) { return Cone{radii, hh}; };
+    auto build_cone = [](Real2 const& radii, real_type hh) {
+        return Cone{radii, hh};
+    };
 
     // Construct union of all cone segments
     NodeId result = construct_segments(*this, build_cone, vb);

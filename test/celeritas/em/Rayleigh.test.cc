@@ -136,8 +136,8 @@ TEST_F(RayleighInteractorTest, basic)
                                         0.99999999296325,
                                         0.999999999919784};
 
-    unsigned long int const expected_rng_counts[]
-        = {14, 8, 8, 8, 8, 8, 8, 8, 8};
+    unsigned long int const expected_rng_counts[] = {
+        14, 8, 8, 8, 8, 8, 8, 8, 8};
 
     EXPECT_VEC_SOFT_EQ(expected_angle, angle);
     EXPECT_VEC_EQ(expected_rng_counts, rng_counts);

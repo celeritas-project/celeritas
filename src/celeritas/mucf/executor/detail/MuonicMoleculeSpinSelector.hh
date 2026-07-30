@@ -23,8 +23,8 @@ class MuonicMoleculeSpinSelector
 {
   public:
     // Construct with muonic molecule type
-    inline CELER_FUNCTION
-    MuonicMoleculeSpinSelector(MucfMuonicMolecule molecule);
+    inline CELER_FUNCTION MuonicMoleculeSpinSelector(
+        MucfMuonicMolecule molecule);
 
     // Sample and return a spin value in units of hbar / 2
     template<class Engine>

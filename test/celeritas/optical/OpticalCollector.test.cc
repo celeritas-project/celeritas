@@ -37,10 +37,12 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool reference_configuration
-    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
-       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+constexpr bool reference_configuration = ((CELERITAS_REAL_TYPE
+                                           == CELERITAS_REAL_TYPE_DOUBLE)
+                                          && (CELERITAS_CORE_GEO
+                                              != CELERITAS_CORE_GEO_VECGEOM)
+                                          && CELERITAS_CORE_RNG
+                                                 == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -126,10 +128,10 @@ auto LArSphereOffloadTest::build_along_step() -> SPConstAction
 void LArSphereOffloadTest::build_optical_collector()
 {
     OpticalCollector::Input inp = input_;
-    inp.optical_params
-        = std::make_shared<optical::CoreParams>(std::move(params_));
-    collector_
-        = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
+    inp.optical_params = std::make_shared<optical::CoreParams>(
+        std::move(params_));
+    collector_ = std::make_shared<OpticalCollector>(*this->core(),
+                                                    std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
@@ -207,11 +209,11 @@ auto LArSphereOffloadTest::run(
     CELER_ASSERT(gen_id);
 
     // Access the auxiliary data for the generator
-    auto const* aux
-        = dynamic_cast<AuxParamsInterface const*>(gen_reg.at(gen_id).get());
+    auto const* aux = dynamic_cast<AuxParamsInterface const*>(
+        gen_reg.at(gen_id).get());
     CELER_ASSERT(aux);
-    auto const& state
-        = get<optical::GeneratorState<M>>(step.state().aux(), aux->aux_id());
+    auto const& state = get<optical::GeneratorState<M>>(step.state().aux(),
+                                                        aux->aux_id());
     auto buffer = copy_to_host(state.store.ref().distributions);
 
     for (auto const& dist :
@@ -331,8 +333,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_distributions))
     size_type primaries = 8;
     size_type core_track_slots = 8;
     size_type steps = 32;
-    auto result
-        = this->run<MemSpace::device>(primaries, core_track_slots, steps);
+    auto result = this->run<MemSpace::device>(
+        primaries, core_track_slots, steps);
 
     // No steps ran
     EXPECT_EQ(0, result.accum.steps);
@@ -536,8 +538,8 @@ TEST_F(LArSphereOffloadTest, TEST_IF_CELER_DEVICE(device_generate))
     size_type primaries = 1;
     size_type core_track_slots = 1024;
     size_type steps = 16;
-    auto result
-        = this->run<MemSpace::device>(primaries, core_track_slots, steps);
+    auto result = this->run<MemSpace::device>(
+        primaries, core_track_slots, steps);
 
     if (reference_configuration)
     {

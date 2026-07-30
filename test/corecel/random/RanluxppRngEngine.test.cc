@@ -106,12 +106,13 @@ TEST(RanluxImpl, compute_power_modulus)
     // Calculate the state after 2048 LCG samples
     RanluxppRngParams host_params{0};
     auto const& params = host_params.host_ref();
-    auto a_2048_actual
-        = detail::compute_power_modulus(a, RanluxppUInt(1) << 11);
+    auto a_2048_actual = detail::compute_power_modulus(a,
+                                                       RanluxppUInt(1) << 11);
     EXPECT_EQ(params.advance_state, a_2048_actual)
         << "actual: " << hex_repr(a_2048_actual);
 
-    auto a_32 = detail::compute_power_modulus(a, RanluxppUInt(1) << 5);  // a^2^5
+    auto a_32 = detail::compute_power_modulus(a,
+                                              RanluxppUInt(1) << 5);  // a^2^5
     auto a_1024 = detail::compute_power_modulus(a_32, RanluxppUInt(1) << 5);
     EXPECT_EQ(params.advance_state, detail::compute_power_modulus(a_1024, 2));
 
@@ -119,11 +120,12 @@ TEST(RanluxImpl, compute_power_modulus)
     // = (a^{2^{11}})^{2^{96}}
     // = a^{2^{11} * 2^{96}}
     // = a^{2^{107}}
-    auto temp
-        = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);  // a^2^50
+    auto temp = detail::compute_power_modulus(
+        a, RanluxppUInt(1) << 50);  // a^2^50
     temp = detail::compute_power_modulus(temp,
                                          RanluxppUInt(1) << 50);  // a^2^100
-    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 7);  // a^2^107
+    temp = detail::compute_power_modulus(temp,
+                                         RanluxppUInt(1) << 7);  // a^2^107
     EXPECT_EQ(params.advance_sequence, temp);
 }
 
@@ -382,8 +384,8 @@ TEST_F(RanluxppRngEngineTest, branch)
 
     // Advance the new RNG
     {
-        RanluxppArray9 lcg
-            = celeritas::detail::to_lcg(ref_branched_rng_state.value);
+        RanluxppArray9 lcg = celeritas::detail::to_lcg(
+            ref_branched_rng_state.value);
         lcg = celeritas::detail::compute_mod_multiply(
             params_->host_ref().advance_state, lcg);
         ref_branched_rng_state.value = celeritas::detail::to_ranlux(lcg);
@@ -405,7 +407,8 @@ TEST_F(RanluxppRngEngineTest, TEST_IF_CELER_DEVICE(device))
     DeviceStore rng_store(params_->host_ref(), StreamId{0}, 1024);
 
     // Copy to host
-    StateCollection<RanluxppRngState, Ownership::value, MemSpace::host> host_state;
+    StateCollection<RanluxppRngState, Ownership::value, MemSpace::host>
+        host_state;
     host_state = rng_store.ref().state;
 
     // Create and initialize states on host

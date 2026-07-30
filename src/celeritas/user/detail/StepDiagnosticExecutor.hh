@@ -21,8 +21,8 @@ namespace detail
 //---------------------------------------------------------------------------//
 struct StepDiagnosticExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<ParticleTallyParamsData> const params;
     NativeRef<ParticleTallyStateData> const state;
@@ -32,8 +32,8 @@ struct StepDiagnosticExecutor
 /*!
  * Collect distribution of steps per track for each particle type.
  */
-CELER_FUNCTION void
-StepDiagnosticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void StepDiagnosticExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
@@ -51,8 +51,8 @@ StepDiagnosticExecutor::operator()(CoreTrackView const& track)
             return state.counts[BinId(index)];
         };
 
-        size_type num_steps
-            = celeritas::min(sim.num_steps(), params.num_bins - 1);
+        size_type num_steps = celeritas::min(sim.num_steps(),
+                                             params.num_bins - 1);
         auto particle = track.particle().particle_id();
 
         // Increment the bin corresponding to the given particle and step count

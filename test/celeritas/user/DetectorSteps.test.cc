@@ -50,8 +50,8 @@ class DetectorStepsTest : public ::celeritas::test::Test
         celeritas::HostVal<StepParamsData> host_data;
 
         // Four volumes, three detectors
-        std::vector<DetectorId> detectors
-            = {DetectorId{}, DetectorId{2}, DetectorId{1}, DetectorId{0}};
+        std::vector<DetectorId> detectors = {
+            DetectorId{}, DetectorId{2}, DetectorId{1}, DetectorId{0}};
         make_builder(&host_data.detector)
             .insert_back(detectors.begin(), detectors.end());
 
@@ -190,8 +190,8 @@ TEST_F(DetectorStepsTest, host)
     DetectorStepOutput output;
     copy_steps(&output, make_ref(states));
 
-    static int const expected_detector[]
-        = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
+    static int const expected_detector[] = {
+        1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector_id));
 
     std::size_t num_tracks = 18;
@@ -286,8 +286,8 @@ TEST_F(SmallDetectorStepsTest, host)
     DetectorStepOutput output;
     copy_steps(&output, make_ref(states));
 
-    static int const expected_detector[]
-        = {1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
+    static int const expected_detector[] = {
+        1, 2, 0, 2, 0, 1, 0, 1, 2, 0, 1, 2, 1, 2, 0, 2, 0, 1};
     EXPECT_VEC_EQ(expected_detector, extract_ids(output.detector_id));
 
     std::size_t num_tracks = 18;

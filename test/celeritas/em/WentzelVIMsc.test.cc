@@ -105,10 +105,10 @@ TEST_F(WentzelVIMscTest, TEST_IF_CELERITAS_DOUBLE(total_xs))
 
     for (real_type energy : {1e2, 1e3, 1e4, 1e6, 1e8})
     {
-        ParticleTrackView particle
-            = this->make_par_view(pdg::electron(), MevEnergy{energy});
-        MevEnergy cutoff
-            = this->cutoff()->get(mat_id_).energy(particle.particle_id());
+        ParticleTrackView particle = this->make_par_view(pdg::electron(),
+                                                         MevEnergy{energy});
+        MevEnergy cutoff = this->cutoff()->get(mat_id_).energy(
+            particle.particle_id());
 
         costheta_limit.push_back(
             1

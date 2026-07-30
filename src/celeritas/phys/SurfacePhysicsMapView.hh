@@ -33,8 +33,8 @@ class SurfacePhysicsMapView
                                                 PhysSurfaceId surface);
 
     // Construct from data and "default" surface
-    explicit inline CELER_FUNCTION
-    SurfacePhysicsMapView(SurfaceParamsRef const& params);
+    explicit inline CELER_FUNCTION SurfacePhysicsMapView(
+        SurfaceParamsRef const& params);
 
     // Get the model ID for the current surface, if any
     inline CELER_FUNCTION SurfaceModelId surface_model_id() const;
@@ -71,8 +71,8 @@ CELER_FUNCTION SurfacePhysicsMapView::SurfacePhysicsMapView(
  * This provides default surface models for boundaries without user-specified
  * surfaces.
  */
-CELER_FUNCTION
-SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params)
+CELER_FUNCTION SurfacePhysicsMapView::SurfacePhysicsMapView(
+    SurfaceParamsRef const& params)
     : SurfacePhysicsMapView{
           params, id_cast<PhysSurfaceId>(params.surface_models.size() - 1)}
 {

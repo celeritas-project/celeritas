@@ -44,8 +44,8 @@ class ElementView
 
   public:
     // Construct from shared material data and global element ID
-    inline CELER_FUNCTION
-    ElementView(MaterialParamsRef const& params, ElementId el_id);
+    inline CELER_FUNCTION ElementView(MaterialParamsRef const& params,
+                                      ElementId el_id);
 
     //// STATIC PROPERTIES ////
 
@@ -94,8 +94,8 @@ class ElementView
 /*!
  * Construct from shared material data and global element ID.
  */
-CELER_FUNCTION
-ElementView::ElementView(MaterialParamsRef const& params, ElementId el_id)
+CELER_FUNCTION ElementView::ElementView(MaterialParamsRef const& params,
+                                        ElementId el_id)
     : params_(params), def_(params.elements[el_id])
 {
     CELER_EXPECT(el_id < params.elements.size());

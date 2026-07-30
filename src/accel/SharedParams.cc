@@ -95,8 +95,9 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
         }
     }
 
-    auto printable_pd
-        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
+    auto printable_pd = [](G4ParticleDefinition const* p) {
+        return StreamablePD{p};
+    };
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
                       "active in Celeritas: missing "
@@ -105,10 +106,11 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     if (found_particle != std::vector<bool>(particles.size(), true))
     {
         //! \todo Overhaul DataSelection Flags and GeantImporter
-        CELER_LOG(warning)
-            << "Mismatch between ParticlesParams (size " << particles.size()
-            << ") and user-defined offload list (size " << offload.size()
-            << "). Geant4 data import is not properly defined.";
+        CELER_LOG(warning) << "Mismatch between ParticlesParams (size "
+                           << particles.size()
+                           << ") and user-defined offload list (size "
+                           << offload.size()
+                           << "). Geant4 data import is not properly defined.";
     }
 }
 
@@ -261,8 +263,8 @@ SharedParams::SharedParams(SetupOptions const& options)
         loaded_.output_file = options.output_file;
 
         // Create the timing output
-        timer_
-            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
+        timer_ = std::make_shared<TimeOutput>(
+            celeritas::get_geant_num_threads());
 
         if (!loaded_.output_file.empty())
         {

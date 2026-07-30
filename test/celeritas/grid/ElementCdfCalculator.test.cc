@@ -110,8 +110,8 @@ TEST_F(ElementCdfCalculatorTest, calc_cdf)
         make_grids({{0.1, 1, 10, 100, 1000}});
 
         ElementCdfCalculator(make_span(elements))(grids);
-        static std::vector<double> const expected_cdf[]
-            = {{1}, {1}, {1}, {1}, {1}};
+        static std::vector<double> const expected_cdf[] = {
+            {1}, {1}, {1}, {1}, {1}};
         EXPECT_VEC_SOFT_EQ(expected_cdf, get_cdf(grids));
     }
 }

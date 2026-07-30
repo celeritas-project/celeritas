@@ -106,8 +106,8 @@ struct CalcSafetyDistance
         }
 
         // Return the closest intersection
-        auto intersect
-            = surf.calc_intersections(this->pos, dir, SurfaceState::off);
+        auto intersect = surf.calc_intersections(
+            this->pos, dir, SurfaceState::off);
         return *celeritas::min_element(intersect.begin(), intersect.end());
     }
 };

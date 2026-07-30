@@ -499,8 +499,8 @@ class DiscardStream
 
     //! Ignore anything streamed to this class
     template<class T>
-    CELER_CONSTEXPR_FUNCTION friend DiscardStream&
-    operator<<(DiscardStream& s, T&&)
+    CELER_CONSTEXPR_FUNCTION friend DiscardStream& operator<<(DiscardStream& s,
+                                                              T&&)
     {
         return s;
     }

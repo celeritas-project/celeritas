@@ -25,16 +25,16 @@ namespace detail
 //---------------------------------------------------------------------------//
 struct DiscreteSelectExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Select a physics process before undergoing a collision.
  */
-CELER_FUNCTION void
-DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void DiscreteSelectExecutor::operator()(
+    celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT(track.sim().status() == TrackStatus::alive);
     CELER_EXPECT(track.sim().post_step_action()
@@ -50,8 +50,8 @@ DiscreteSelectExecutor::operator()(celeritas::CoreTrackView const& track)
         auto mat = track.material().material_record();
         auto rng = track.rng();
         auto step = track.physics_step();
-        auto action
-            = select_discrete_interaction(mat, particle, phys, step, rng);
+        auto action = select_discrete_interaction(
+            mat, particle, phys, step, rng);
         CELER_ASSERT(action);
         // Save it as the next kernel
         auto sim = track.sim();

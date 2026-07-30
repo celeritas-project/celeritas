@@ -100,17 +100,17 @@ TEST_F(GroupVelocityCalculatorTest, host)
 
     // Expected group velocities as dumped by Geant4
     // for the corresponding photon energies
-    std::vector<real_type> expected_group_velocity_over_c
-        = {0.008965113444663051,
-           0.008015675516665738,
-           0.007069333106999173,
-           0.0061669453472211104,
-           0.005332671683488536,
-           0.004538329814472488,
-           0.003770558509394347,
-           0.0030546834027453218,
-           0.00239375943059766,
-           0.0020761055113155758};
+    std::vector<real_type> expected_group_velocity_over_c = {
+        0.008965113444663051,
+        0.008015675516665738,
+        0.007069333106999173,
+        0.0061669453472211104,
+        0.005332671683488536,
+        0.004538329814472488,
+        0.003770558509394347,
+        0.0030546834027453218,
+        0.00239375943059766,
+        0.0020761055113155758};
 
     actual_group_velocity_over_c.reserve(std::size(photon_energy));
 
@@ -186,19 +186,19 @@ TEST_F(GroupVelocityCalculatorTest, discontinuous_slope)
     std::vector<real_type> actual_group_velocity_over_c;
 
     // photon energies
-    static real_type const photon_energy[]
-        = {1e-06, 2e-6, 3e-06, 4e-06, 5e-06, 6e-06, 2e-07};
+    static real_type const photon_energy[] = {
+        1e-06, 2e-6, 3e-06, 4e-06, 5e-06, 6e-06, 2e-07};
 
     // Reference values from Geant4's generated GROUPVEL table, retained here
     // to document the difference from the harmonic-derivative implementation.
-    std::vector<real_type> expected_geant4_group_velocity_over_c
-        = {0.6802569607544037,
-           0.7500187504687618,
-           0.2741159434659529,
-           0.3063850943993882,
-           0.33865424533282357,
-           0.3709233962662588,
-           1.0};
+    std::vector<real_type> expected_geant4_group_velocity_over_c = {
+        0.6802569607544037,
+        0.7500187504687618,
+        0.2741159434659529,
+        0.3063850943993882,
+        0.33865424533282357,
+        0.3709233962662588,
+        1.0};
 
     // Expected Celeritas values
     std::vector<real_type> expected_group_velocity_over_c = {0.857155102215746,

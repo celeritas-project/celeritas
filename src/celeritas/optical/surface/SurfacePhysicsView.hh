@@ -84,8 +84,8 @@ class SurfacePhysicsView
 
   public:
     // Construct view from data and state
-    inline CELER_FUNCTION
-    SurfacePhysicsView(SurfaceParamsRef const&, SurfaceId, LocalDirection);
+    inline CELER_FUNCTION SurfacePhysicsView(
+        SurfaceParamsRef const&, SurfaceId, LocalDirection);
 
     //! Get geometric surface ID the track is currently on
     CELER_FIF SurfaceId surface() const { return surface_; }
@@ -97,8 +97,8 @@ class SurfacePhysicsView
     inline CELER_FUNCTION OptMatId interstitial_material(LocalPositionId) const;
 
     // Get the physics surface at the given position and direction
-    inline CELER_FUNCTION
-    PhysSurfaceId interface(LocalPositionId, LocalDirection) const;
+    inline CELER_FUNCTION PhysSurfaceId interface(LocalPositionId,
+                                                  LocalDirection) const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -115,10 +115,10 @@ class SurfacePhysicsView
 /*!
  * Construct from data, states, and a given track ID.
  */
-CELER_FUNCTION
-SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
-                                       SurfaceId surface,
-                                       LocalDirection orientation)
+CELER_FUNCTION SurfacePhysicsView::SurfacePhysicsView(
+    SurfaceParamsRef const& params,
+    SurfaceId surface,
+    LocalDirection orientation)
     : params_(params), surface_(surface), orientation_(orientation)
 {
     CELER_EXPECT(surface_ < params_.surfaces.size());

@@ -28,8 +28,8 @@ class EnergyLossCalculator
     //!@}
 
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    EnergyLossCalculator(UniformGridRecord const& grid, Values const& reals);
+    inline CELER_FUNCTION EnergyLossCalculator(UniformGridRecord const& grid,
+                                               Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;

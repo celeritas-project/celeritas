@@ -107,8 +107,8 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    DummyState const&
-    get_dummy_state(CoreStateInterface const& core_state) const
+    DummyState const& get_dummy_state(
+        CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }
@@ -255,8 +255,7 @@ TEST_F(SimpleComptonTest, reseed)
     Stepper<M> step(this->make_stepper_input(num_tracks));
     auto const primaries = this->make_primaries(num_primaries);
     auto const& params_ref = this->core()->ref<M>();
-    auto const& state_ref
-        = dynamic_cast<CoreState<M> const&>(step.state()).ref();
+    auto const& state_ref = dynamic_cast<CoreState<M> const&>(step.state()).ref();
     SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
     RngEngine engine{params_ref.rng, state_ref.rng, TrackSlotId{0}};
 
@@ -320,8 +319,8 @@ TEST_F(SimpleComptonTest, kill_active)
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
             << scoped_log;
     }
-    static char const* const expected_log_levels[]
-        = {"error", "error", "error"};
+    static char const* const expected_log_levels[] = {
+        "error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
 }
 
@@ -337,14 +336,14 @@ TEST_F(SimpleComptonTest, max_steps)
     ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run(step, num_primaries);
 
-    static char const* const expected_log_levels[]
-        = {"debug", "debug", "debug", "debug"};
+    static char const* const expected_log_levels[] = {
+        "debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
     ASSERT_EQ(4, scoped_log.messages().size());
     EXPECT_EQ("Track {62} exceeded maximum step count",
               scoped_log.messages()[0]);
-    EXPECT_TRUE(
-        scoped_log.messages()[2].find("\"num_steps\":2") != std::string::npos);
+    EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
+                != std::string::npos);
 }
 
 //---------------------------------------------------------------------------//
@@ -381,8 +380,8 @@ TEST_F(StepperOrderTest, warm_up)
     EXPECT_EQ(0, step.state().sync_get_counters().num_active);
     EXPECT_EQ(0, step.state().sync_get_counters().num_alive);
 
-    static char const* const expected_action_order[]
-        = {"user_start", "user_pre", "user_post"};
+    static char const* const expected_action_order[] = {
+        "user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, dumstate.action_order);
 }
 
@@ -404,8 +403,8 @@ TEST_F(StepperOrderTest, step)
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
 
-    static char const* const expected_action_order[]
-        = {"user_start", "user_pre", "user_post"};
+    static char const* const expected_action_order[] = {
+        "user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, state.action_order);
 }
 

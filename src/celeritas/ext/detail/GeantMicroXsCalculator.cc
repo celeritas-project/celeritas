@@ -55,17 +55,17 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         grid.y.resize(energy_grid.size());
     }
 
-    auto calc_element_xs
-        = [this, &elements](std::size_t elcomp_idx, double energy) {
-              // Calculate microscopic cross section
-              double xs = model_.ComputeCrossSectionPerAtom(
-                  &particle_,
-                  elements[elcomp_idx],
-                  energy,
-                  secondary_cut_,
-                  /* max_energy = */ std::numeric_limits<double>::max());
-              return clamp_to_nonneg(xs);
-          };
+    auto calc_element_xs = [this, &elements](std::size_t elcomp_idx,
+                                             double energy) {
+        // Calculate microscopic cross section
+        double xs = model_.ComputeCrossSectionPerAtom(
+            &particle_,
+            elements[elcomp_idx],
+            energy,
+            secondary_cut_,
+            /* max_energy = */ std::numeric_limits<double>::max());
+        return clamp_to_nonneg(xs);
+    };
     double const xs_scaling = native_value_from_clhep(ImportUnits::len_sq);
 
     // Outer loop over energy to reduce material setup calls
@@ -78,8 +78,9 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         // Inner loop over elements
         for (auto elcomp_idx : range(elements.size()))
         {
-            (*result_xs)[elcomp_idx].y[energy_idx]
-                = calc_element_xs(elcomp_idx, energy) * xs_scaling;
+            (*result_xs)[elcomp_idx].y[energy_idx] = calc_element_xs(
+                                                         elcomp_idx, energy)
+                                                     * xs_scaling;
         }
     }
 

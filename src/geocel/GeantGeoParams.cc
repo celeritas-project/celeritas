@@ -57,9 +57,9 @@ namespace
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
  */
-std::vector<Label>
-make_logical_vol_labels(detail::GeantVolumeInstanceMapper const& vi_mapper,
-                        ImplVolumeId::size_type lv_offset)
+std::vector<Label> make_logical_vol_labels(
+    detail::GeantVolumeInstanceMapper const& vi_mapper,
+    ImplVolumeId::size_type lv_offset)
 {
     std::unordered_set<G4LogicalVolume const*> visited_lv;
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
@@ -154,7 +154,8 @@ void append_border_surfaces(GeantGeoParams const& geo,
 {
     // Translate "border" (interface) surfaces
     using G4Surface = G4LogicalBorderSurface;
-    std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
+    std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*>
+        temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
 
@@ -339,8 +340,8 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
 /*!
  * Create volume instance input data.
  */
-std::vector<inp::VolumeInstance>
-make_inp_volume_instances(GeantGeoParams const& geo)
+std::vector<inp::VolumeInstance> make_inp_volume_instances(
+    GeantGeoParams const& geo)
 {
     CELER_ASSERT(geo.host_ref().vi_mapper);
     auto const& vi_mapper = *geo.host_ref().vi_mapper;
@@ -409,8 +410,8 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
             CELER_ASSERT(lv);
             inp_surf = inp::Surface::Boundary{geo.geant_to_id(*lv)};
         }
-        else if (auto* surf
-                 = dynamic_cast<G4LogicalBorderSurface const*>(surf_base))
+        else if (auto* surf = dynamic_cast<G4LogicalBorderSurface const*>(
+                     surf_base))
         {
             auto* pv_enter = surf->GetVolume1();
             auto* pv_exit = surf->GetVolume2();
@@ -535,9 +536,9 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             // Some of the volume data could override the region data: create a
             // new Celeritas region containing only this volume
             inp::Region region;
-            region.label
-                = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName() : "null",
-                   g4lv.GetName()};
+            region.label = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName()
+                                             : "null",
+                            g4lv.GetName()};
             region.volumes = {vol_id};
             result.push_back(region);
         }
@@ -677,8 +678,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * celeritas::DetectorConstruction as part of a Geant4 run manager if
  * thread-local detectors are needed.
  */
-std::shared_ptr<GeantGeoParams>
-GeantGeoParams::from_gdml(std::string const& filename)
+std::shared_ptr<GeantGeoParams> GeantGeoParams::from_gdml(
+    std::string const& filename)
 {
     ScopedGeantLogger logger(celeritas::world_logger());
     ScopedGeantExceptionHandler exception_handler;
@@ -717,8 +718,8 @@ GeantGeoParams::from_gdml(std::string const& filename)
         });
 
     // Create geo params
-    auto result
-        = std::make_shared<GeantGeoParams>(loaded.world, Ownership::value);
+    auto result = std::make_shared<GeantGeoParams>(loaded.world,
+                                                   Ownership::value);
     // We own constructed detectors (note that these live only on the main
     // thread and are not suitable for G4 MT: use DetectorConstruction instead)
     result->built_detectors_ = std::move(built_detectors);
@@ -780,8 +781,7 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         {
             ScopedProfiling profile_this{"geant-geo-close"};
             CELER_LOG(debug) << "Building geometry manager tracking";
-            auto optimize
-                = celeritas::getenv_flag("G4_GEO_OPTIMIZE", true).value;
+            auto optimize = celeritas::getenv_flag("G4_GEO_OPTIMIZE", true).value;
             geo_man->CloseGeometry(
                 optimize, /* verbose = */ false, this->world());
             closed_geometry_ = true;
@@ -796,8 +796,8 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         volumes.volumes = make_inp_volumes(*this);
         volumes.volume_instances = make_inp_volume_instances(*this);
         volumes.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
-        volume_params_
-            = std::make_shared<VolumeParams const>(std::move(volumes));
+        volume_params_ = std::make_shared<VolumeParams const>(
+            std::move(volumes));
     }
 
     CELER_ENSURE(impl_volumes_);
@@ -868,8 +868,8 @@ inp::Model GeantGeoParams::make_model_input() const
  */
 VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const& volume) const
 {
-    auto result
-        = id_cast<ImplVolumeId>(volume.GetInstanceID() - this->lv_offset());
+    auto result = id_cast<ImplVolumeId>(
+        volume.GetInstanceID() - this->lv_offset());
     if (!(result < impl_volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry
@@ -912,8 +912,8 @@ GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 /*!
  * Get the volume instance containing the global point.
  */
-VolumeInstanceId
-GeantGeoParams::find_volume_instance_at(Real3 const& point) const
+VolumeInstanceId GeantGeoParams::find_volume_instance_at(
+    Real3 const& point) const
 {
     // Create G4 Navigator
     auto g4_point = native_to_geant<lengthunits::ClhepLength>(point);

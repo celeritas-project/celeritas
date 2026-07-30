@@ -142,9 +142,9 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
     world_logger() = Logger{make_world_handler(),
                             getenv_loglevel("CELER_LOG", LogLevel::status)};
 
-    self_logger()
-        = Logger{make_self_handler(get_geant_num_threads(*run_manager)),
-                 getenv_loglevel("CELER_LOG_LOCAL", LogLevel::warning)};
+    self_logger() = Logger{
+        make_self_handler(get_geant_num_threads(*run_manager)),
+        getenv_loglevel("CELER_LOG_LOCAL", LogLevel::warning)};
 
     // Redirect Geant4 output and exceptions through Celeritas objects
     ScopedGeantLogger scoped_logger;

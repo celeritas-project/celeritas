@@ -79,8 +79,9 @@ class FerrariSolver
     //// STATIC DATA ////
 
     //! Default tolerance for quadric solve, taken from Orange `Tolerance`.
-    static constexpr real_type default_tol_
-        = (std::is_same_v<real_type, double> ? 1e-5 : 5e-2f);
+    static constexpr real_type default_tol_ = (std::is_same_v<real_type, double>
+                                                   ? 1e-5
+                                                   : 5e-2f);
 
     //! No positive real solution (aka "no intersection")
     static constexpr real_type no_solution_
@@ -93,8 +94,8 @@ class FerrariSolver
 
     //// HELPER FUNCTIONS ////
     // Try to place real at given index in list, return next free index
-    inline CELER_FUNCTION int
-    place_root(result_type& roots, real_type new_root, int free_index) const;
+    inline CELER_FUNCTION int place_root(
+        result_type& roots, real_type new_root, int free_index) const;
 
     // Find roots of special reduced quartic which is biquadratic
     inline CELER_FUNCTION result_type calc_biquadratic_roots(
@@ -174,8 +175,8 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
             t = -q / s;
         }
         auto const [r0, r1] = real_roots_normalized_quadratic(s * half, z0 + t);
-        auto const [r2, r3]
-            = real_roots_normalized_quadratic(-s * half, z0 - t);
+        auto const [r2, r3] = real_roots_normalized_quadratic(-s * half,
+                                                              z0 - t);
 
         result_type roots(
             no_solution_, no_solution_, no_solution_, no_solution_);

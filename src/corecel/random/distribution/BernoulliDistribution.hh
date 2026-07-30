@@ -42,8 +42,8 @@ class BernoulliDistribution
     explicit inline CELER_FUNCTION BernoulliDistribution(real_type p_true);
 
     // Construct with the UNnormalized probability of returning true or false
-    inline CELER_FUNCTION
-    BernoulliDistribution(real_type scaled_true, real_type scaled_false);
+    inline CELER_FUNCTION BernoulliDistribution(real_type scaled_true,
+                                                real_type scaled_false);
 
     // Sample true or false based on the probability
     template<class Generator>

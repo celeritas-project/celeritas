@@ -66,8 +66,8 @@ namespace
 //---------------------------------------------------------------------------//
 //!@{
 template<MemSpace M>
-CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
+CoreParamsData<Ownership::const_reference, M> build_params_refs(
+    CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -103,8 +103,8 @@ ActionId find_along_step_id(ActionRegistry const& reg)
     {
         // Get abstract action shared pointer and see if it's explicit
         auto const& base = reg.action(ActionId{aidx});
-        if (auto expl
-            = std::dynamic_pointer_cast<CoreStepActionInterface const>(base))
+        if (auto expl = std::dynamic_pointer_cast<CoreStepActionInterface const>(
+                base))
         {
             if (expl->order() == StepActionOrder::along)
             {
@@ -160,8 +160,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     if (!along_step_neutral)
     {
         // Create neutral action if one doesn't exist
-        along_step_neutral
-            = make_shared<AlongStepNeutralAction>(reg->next_id());
+        along_step_neutral = make_shared<AlongStepNeutralAction>(
+            reg->next_id());
         reg->insert(along_step_neutral);
     }
     scalars.along_step_neutral_action = along_step_neutral->action_id();

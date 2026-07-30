@@ -59,8 +59,8 @@ size_type MaxSecondariesCalculator::operator()()
  * Helper function for calculating the maximum possible number of secondaries
  * when the initial vacancy is in the given subshell.
  */
-size_type
-MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
+size_type MaxSecondariesCalculator::calc(SubshellId vacancy_shell,
+                                         size_type count)
 {
     // No transitions for this subshell, so no secondaries produced
     if (!vacancy_shell || vacancy_shell.get() >= shells_.size())
@@ -78,11 +78,12 @@ MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
         // electron production threshold, create an electron; if this is a
         // radiative transition with an energy above the gamma production
         // threshold, create a photon; otherwise, no secondaries produced.
-        size_type n
-            = ((transition.energy >= electron_cut_ && transition.auger_shell)
-               || (transition.energy >= gamma_cut_ && !transition.auger_shell))
-                  ? 1
-                  : 0;
+        size_type n = ((transition.energy >= electron_cut_
+                        && transition.auger_shell)
+                       || (transition.energy >= gamma_cut_
+                           && !transition.auger_shell))
+                          ? 1
+                          : 0;
 
         sub_count = std::max(n + this->calc(transition.initial_shell, count)
                                  + this->calc(transition.auger_shell, count),

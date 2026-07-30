@@ -119,8 +119,8 @@ TEST(ConeAlignedTest, intersection_along_surface)
             d *= -1;
         }
 
-        auto distances
-            = calc_intersections(cone, pos, tempdir, SurfaceState::off);
+        auto distances = calc_intersections(
+            cone, pos, tempdir, SurfaceState::off);
         EXPECT_SOFT_NEAR(1e-10, distances[0], 0.1);
         EXPECT_SOFT_EQ(2.1633307647466964, distances[1]);
     }
@@ -200,8 +200,8 @@ TEST(ConeAlignedTest, degenerate_boundary)
             // Left boundary
             pos[0] = origin[0] - diameter / 2 - eps;
 
-            auto distances
-                = calc_intersections(cone, pos, dir, SurfaceState::on);
+            auto distances = calc_intersections(
+                cone, pos, dir, SurfaceState::on);
             EXPECT_SOFT_NEAR(diameter + eps, distances[0], tol);
             EXPECT_EQ(no_intersection(), distances[1]);
 

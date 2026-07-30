@@ -169,8 +169,8 @@ TEST(AlgorithmsTest, lower_bound)
         for (int delta : {-1, 0, 1})
         {
             auto expected = std::lower_bound(v.begin(), v.end(), val + delta);
-            auto actual
-                = celeritas::lower_bound(v.begin(), v.end(), val + delta);
+            auto actual = celeritas::lower_bound(
+                v.begin(), v.end(), val + delta);
             EXPECT_EQ(expected - v.begin(), actual - v.begin())
                 << "Lower bound failed for value " << val + delta;
         }
@@ -214,8 +214,8 @@ TEST(AlgorithmsTest, upper_bound)
         for (int delta : {-1, 0, 1})
         {
             auto expected = std::upper_bound(v.begin(), v.end(), val + delta);
-            auto actual
-                = celeritas::upper_bound(v.begin(), v.end(), val + delta);
+            auto actual = celeritas::upper_bound(
+                v.begin(), v.end(), val + delta);
             EXPECT_EQ(expected - v.begin(), actual - v.begin())
                 << "Upper bound failed for value " << val + delta;
         }
@@ -627,8 +627,7 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
 
         // Input for testing sincospi
         std::vector<double> pi_frac = {0.123, 0.0, 0.5, 1.0, 1.5};
-        make_builder(&host_input.pi_frac)
-            .insert_back(pi_frac.begin(), pi_frac.end());
+        make_builder(&host_input.pi_frac).insert_back(pi_frac.begin(), pi_frac.end());
 
         // Input for testing fastpow, etc.
         std::vector<double> a = {0.0, 0.0, 1234.0, 123.456, 1000.0, 2.0};
@@ -658,10 +657,10 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
     {
         // sincospi
         auto threads = range(ThreadId{host_output.sinpi.size()});
-        static double const expected_sinpi[]
-            = {0.37687101041216264, 0.0, 1.0, 0.0, -1.0};
-        static double const expected_cospi[]
-            = {0.92626575101906661, 1.0, 0.0, -1.0, 0.0};
+        static double const expected_sinpi[] = {
+            0.37687101041216264, 0.0, 1.0, 0.0, -1.0};
+        static double const expected_cospi[] = {
+            0.92626575101906661, 1.0, 0.0, -1.0, 0.0};
         EXPECT_VEC_SOFT_EQ(expected_sinpi, host_output.sinpi[threads]);
         EXPECT_VEC_SOFT_EQ(expected_cospi, host_output.cospi[threads]);
 
@@ -672,8 +671,8 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
     {
         // fastpow
         auto threads = range(ThreadId{host_output.fastpow.size()});
-        static double const expected_fastpow[]
-            = {0, 0, 1, 123.456, 10, 0.03125};
+        static double const expected_fastpow[] = {
+            0, 0, 1, 123.456, 10, 0.03125};
         EXPECT_VEC_SOFT_EQ(expected_fastpow, host_output.fastpow[threads]);
     }
     {

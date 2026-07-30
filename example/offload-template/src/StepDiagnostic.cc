@@ -40,8 +40,8 @@ using DerivedPtr = std::conditional_t<std::is_const<A>::value, B const*, B*>;
 template<template<MemSpace> class Derived, typename Base, typename Func>
 auto visit_memspace_derived(Base& base, Func&& apply_derived)
 {
-    if (auto* derived
-        = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::host>>>(&base))
+    if (auto* derived = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::host>>>(
+            &base))
     {
         return apply_derived(*derived);
     }
@@ -60,13 +60,13 @@ auto visit_memspace_derived(Base& base, Func&& apply_derived)
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepDiagnostic>
-StepDiagnostic::make_and_insert(CoreParams const& core)
+std::shared_ptr<StepDiagnostic> StepDiagnostic::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
-    auto result
-        = std::make_shared<StepDiagnostic>(actions.next_id(), aux.next_id());
+    auto result = std::make_shared<StepDiagnostic>(actions.next_id(),
+                                                   aux.next_id());
     actions.insert(result);
     aux.insert(result);
     return result;
@@ -115,8 +115,8 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
 
     // Save to output, converting units
     StepStatistics result;
-    result.step_length
-        = native_to_geant<lengthunits::ClhepLength>(data.step_length);
+    result.step_length = native_to_geant<lengthunits::ClhepLength>(
+        data.step_length);
     result.energy_deposition = data.energy_deposition;
     result.num_steps = host_data.steps;
     result.num_primaries = host_data.generated;

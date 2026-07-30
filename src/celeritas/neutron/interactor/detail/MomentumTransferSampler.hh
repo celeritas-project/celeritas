@@ -43,10 +43,10 @@ class MomentumTransferSampler
 
   public:
     // Construct with shared and target data, and the neutron momentum
-    inline CELER_FUNCTION
-    MomentumTransferSampler(NeutronElasticRef const& shared,
-                            IsotopeView const& target,
-                            Momentum neutron_p);
+    inline CELER_FUNCTION MomentumTransferSampler(
+        NeutronElasticRef const& shared,
+        IsotopeView const& target,
+        Momentum neutron_p);
 
     // Sample the momentum transfer
     template<class Engine>
@@ -159,9 +159,9 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         real_type const r[2] = {-std::expm1(-max_q_sq_ * par_q_sq_.slope[0]),
                                 -std::expm1(-max_q_sq_ * par_q_sq_.slope[1])};
 
-        real_type const mi[2]
-            = {r[0] * par_q_sq_.expnt[0],
-               r[1] * par_q_sq_.expnt[1] / par_q_sq_.slope[1]};
+        real_type const mi[2] = {r[0] * par_q_sq_.expnt[0],
+                                 r[1] * par_q_sq_.expnt[1]
+                                     / par_q_sq_.slope[1]};
 
         // Sample by t-channel and u-channel (charge exchange)
         q_sq = (BernoulliDistribution(mi[0], mi[1])(rng))
@@ -251,7 +251,8 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
  * collision angle is 90 degree in the center of mass system, is currently
  * excluded, but may be supported if there is a user case.
  */
-CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) const
+CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(
+    Momentum p) const
 {
     // Momentum and mass square of the incident neutron
     real_type target_mass = value_as<Mass>(target_mass_);
@@ -348,10 +349,11 @@ CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
             result.expnt[2] = par_[22] / (pa * p + par_[23] / pa) + par_[24];
             result.slope[2] = par_[25] / (p3 + par_[26] / p6)
                               + par_[27] / (1 + par_[28] / p2);
-            result.expnt[3]
-                = p2
-                  * (pah * par_[29] * std::exp(-pah * par_[30])
-                     + par_[31] / (1 + par_[32] * std::pow(p, par_[33])));
+            result.expnt[3] = p2
+                              * (pah * par_[29] * std::exp(-pah * par_[30])
+                                 + par_[31]
+                                       / (1
+                                          + par_[32] * std::pow(p, par_[33])));
             result.slope[3] = par_[34] * pa / p2 / (1 + pa * par_[35]);
         }
         else
@@ -373,9 +375,10 @@ CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
                               + par_[24] / (1. + par_[25] / p6);
             result.slope[2] = par_[28] / p8 + par_[29] / p2
                               + par_[30] / (1 + par_[31] / p8);
-            result.expnt[3]
-                = (par_[32] / p4 + par_[37] / p) / (1 + par_[33] / p10)
-                  + (par_[34] + par_[35] * dl * dl) / (1 + par_[36] / p12);
+            result.expnt[3] = (par_[32] / p4 + par_[37] / p)
+                                  / (1 + par_[33] / p10)
+                              + (par_[34] + par_[35] * dl * dl)
+                                    / (1 + par_[36] / p12);
             result.slope[3] = par_[38] / (1 + par_[39] / p)
                               + par_[40] * p4 / (1 + par_[41] * p5);
         }

@@ -60,8 +60,8 @@ MatterState to_matter_state(ImportMaterialState state)
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.geo_materials.empty());
     CELER_EXPECT(!data.phys_materials.empty());
@@ -75,14 +75,14 @@ MaterialParams::from_import(ImportData const& data)
         MaterialParams::IsotopeInput isotope_params;
         isotope_params.label = isotope.name;
         isotope_params.atomic_number = AtomicNumber{isotope.atomic_number};
-        isotope_params.atomic_mass_number
-            = AtomicNumber{isotope.atomic_mass_number};
-        isotope_params.binding_energy
-            = units::MevEnergy(isotope.binding_energy);
-        isotope_params.proton_loss_energy
-            = units::MevEnergy(isotope.proton_loss_energy);
-        isotope_params.neutron_loss_energy
-            = units::MevEnergy(isotope.neutron_loss_energy);
+        isotope_params.atomic_mass_number = AtomicNumber{
+            isotope.atomic_mass_number};
+        isotope_params.binding_energy = units::MevEnergy(
+            isotope.binding_energy);
+        isotope_params.proton_loss_energy = units::MevEnergy(
+            isotope.proton_loss_energy);
+        isotope_params.neutron_loss_energy = units::MevEnergy(
+            isotope.neutron_loss_energy);
         // Convert from MeV (Geant4) to MeV/c^2 (Celeritas)
         isotope_params.nuclear_mass = units::MevMass(isotope.nuclear_mass);
 
@@ -120,9 +120,9 @@ MaterialParams::from_import(ImportData const& data)
         ImportPhysMaterial const& phys_mat = data.phys_materials[mat_idx];
 
         auto geo_mat_idx = phys_mat.geo_material_id;
-        CELER_VALIDATE(
-            geo_mat_idx < data.geo_materials.size(),
-            << "geo material id " << geo_mat_idx << " is out of range");
+        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
+                       << "geo material id " << geo_mat_idx
+                       << " is out of range");
         auto const& geo_mat = data.geo_materials[geo_mat_idx];
 
         MaterialParams::MaterialInput material_params;
@@ -364,16 +364,16 @@ void MaterialParams::append_element_def(ElementInput const& inp,
                           .insert_back(vec_eic.begin(), vec_eic.end());
 
     // Update maximum number of isotopes
-    host_data->max_isotope_components
-        = std::max(host_data->max_isotope_components, result.isotopes.size());
+    host_data->max_isotope_components = std::max(
+        host_data->max_isotope_components, result.isotopes.size());
 
     // Calculate various factors of the atomic number
     real_type const z_real = result.atomic_number.unchecked_get();
     result.cbrt_z = std::cbrt(z_real);
     result.cbrt_zzp = std::cbrt(z_real * (z_real + 1));
     result.log_z = std::log(z_real);
-    result.coulomb_correction
-        = detail::calc_coulomb_correction(result.atomic_number);
+    result.coulomb_correction = detail::calc_coulomb_correction(
+        result.atomic_number);
     result.mass_radiation_coeff = detail::calc_mass_rad_coeff(result);
 
     // Add to host vector
@@ -427,8 +427,8 @@ ItemRange<MatElementComponent> MaterialParams::extend_elcomponents(
     real_type norm = 0;
     for (auto i : range(inp.elements_fractions.size()))
     {
-        CELER_EXPECT(
-            inp.elements_fractions[i].first < host_data->elements.size());
+        CELER_EXPECT(inp.elements_fractions[i].first
+                     < host_data->elements.size());
         CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
         components[i].element = inp.elements_fractions[i].first;
@@ -504,10 +504,10 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
         avg_amu_mass += comp.fraction * el.atomic_mass.value();
         avg_z += frac_z;
         rad_coeff += comp.fraction * el.mass_radiation_coeff;
-        log_mean_exc_energy
-            += frac_z
-               * std::log(value_as<units::MevEnergy>(
-                   detail::get_mean_excitation_energy(el.atomic_number)));
+        log_mean_exc_energy += frac_z
+                               * std::log(value_as<units::MevEnergy>(
+                                   detail::get_mean_excitation_energy(
+                                       el.atomic_number)));
     }
     result.zeff = avg_z;
     result.density = result.number_density * avg_amu_mass
@@ -523,8 +523,8 @@ void MaterialParams::append_material_def(MaterialInput const& inp,
     make_builder(&host_data->materials).push_back(result);
 
     // Update maximum number of elements
-    host_data->max_element_components
-        = std::max(host_data->max_element_components, result.elements.size());
+    host_data->max_element_components = std::max(
+        host_data->max_element_components, result.elements.size());
 
     CELER_ENSURE(result.number_density >= 0);
     CELER_ENSURE(result.temperature >= 0);

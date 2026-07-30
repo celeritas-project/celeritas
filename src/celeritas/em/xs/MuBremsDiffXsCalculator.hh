@@ -113,11 +113,11 @@ class MuBremsDiffXsCalculator
 /*!
  * Construct with incident particle data and current element.
  */
-CELER_FUNCTION
-MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
-                                                 Energy inc_energy,
-                                                 Mass inc_mass,
-                                                 Mass electron_mass)
+CELER_FUNCTION MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(
+    ElementView const& element,
+    Energy inc_energy,
+    Mass inc_mass,
+    Mass electron_mass)
     : atomic_number_(element.atomic_number().unchecked_get())
     , atomic_mass_(value_as<units::AmuMass>(element.atomic_mass()))
     , inv_cbrt_z_(1 / element.cbrt_z())
@@ -177,9 +177,10 @@ CELER_FUNCTION real_type MuBremsDiffXsCalculator::operator()(Energy energy)
         / (d_n_ * (electron_mass_ + delta * sqrt_euler * b_ * inv_cbrt_z_))));
 
     // Photon energy above which there is no contribution from electrons
-    real_type energy_max_prime
-        = total_energy_
-          / (1 + 0.5_r * inc_mass_sq_ / (electron_mass_ * total_energy_));
+    real_type energy_max_prime = total_energy_
+                                 / (1
+                                    + 0.5_r * inc_mass_sq_
+                                          / (electron_mass_ * total_energy_));
 
     // Calculate the contribution to the cross section from electrons
     real_type phi_e = 0;

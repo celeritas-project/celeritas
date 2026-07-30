@@ -36,8 +36,8 @@ class ParticleTrackView
     };
 
   public:
-    inline CELER_FUNCTION
-    ParticleTrackView(NativeRef<ParticleStateData> const&, TrackSlotId);
+    inline CELER_FUNCTION ParticleTrackView(
+        NativeRef<ParticleStateData> const&, TrackSlotId);
 
     // Initialize the particle
     inline CELER_FUNCTION ParticleTrackView& operator=(Initializer const&);
@@ -76,8 +76,8 @@ CELER_FUNCTION ParticleTrackView::ParticleTrackView(
 /*!
  * Initialize the particle.
  */
-CELER_FUNCTION ParticleTrackView&
-ParticleTrackView::operator=(Initializer const& init)
+CELER_FUNCTION ParticleTrackView& ParticleTrackView::operator=(
+    Initializer const& init)
 {
     CELER_EXPECT(init.energy >= zero_quantity());
     CELER_EXPECT(is_soft_unit_vector(init.polarization));

@@ -34,11 +34,11 @@ class RayleighInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    RayleighInteractor(NativeCRef<RayleighData> const& shared,
-                       ParticleTrackView const& particle,
-                       Real3 const& inc_direction,
-                       ElementId element_id);
+    inline CELER_FUNCTION RayleighInteractor(
+        NativeCRef<RayleighData> const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        ElementId element_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -83,11 +83,11 @@ class RayleighInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(NativeCRef<RayleighData> const& shared,
-                                       ParticleTrackView const& particle,
-                                       Real3 const& direction,
-                                       ElementId el_id)
+CELER_FUNCTION RayleighInteractor::RayleighInteractor(
+    NativeCRef<RayleighData> const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& direction,
+    ElementId el_id)
 
     : shared_(shared)
     , inc_energy_(particle.energy())

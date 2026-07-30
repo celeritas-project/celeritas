@@ -35,8 +35,8 @@ class ReflectionModeSampler
 
   public:
     // Construct from data, surface, and energy
-    explicit inline CELER_FUNCTION
-    ReflectionModeSampler(DataRef const&, SubModelId, Energy);
+    explicit inline CELER_FUNCTION ReflectionModeSampler(
+        DataRef const&, SubModelId, Energy);
 
     // Calculate probability for a specific reflection mode
     inline CELER_FUNCTION real_type operator()(ReflectionMode) const;
@@ -55,9 +55,9 @@ class ReflectionFormSampler
 {
   public:
     // Construct from a mode sampler and a reflection calculator
-    inline CELER_FUNCTION
-    ReflectionFormSampler(ReflectionModeSampler sample_mode,
-                          ReflectionFormCalculator const& calc_reflection);
+    inline CELER_FUNCTION ReflectionFormSampler(
+        ReflectionModeSampler sample_mode,
+        ReflectionFormCalculator const& calc_reflection);
 
     // Sample a surface interaction
     template<class Engine>

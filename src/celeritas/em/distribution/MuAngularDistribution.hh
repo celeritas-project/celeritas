@@ -51,8 +51,8 @@ class MuAngularDistribution
 
   public:
     // Construct with incident and secondary particle quantities
-    inline CELER_FUNCTION
-    MuAngularDistribution(Energy inc_energy, Mass inc_mass, Energy energy);
+    inline CELER_FUNCTION MuAngularDistribution(
+        Energy inc_energy, Mass inc_mass, Energy energy);
 
     // Sample the cosine of the polar angle of the secondary
     template<class Engine>
@@ -79,8 +79,9 @@ CELER_FUNCTION MuAngularDistribution::MuAngularDistribution(
 
     real_type r_max_sq = ipow<2>(
         0.5_r * constants::pi * gamma_
-        * min(1.0_r,
-              gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
+        * min(
+            1.0_r,
+            gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
     sample_a_ = {0, r_max_sq / (1 + r_max_sq)};
 }
 

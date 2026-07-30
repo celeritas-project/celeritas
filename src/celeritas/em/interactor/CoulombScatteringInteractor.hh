@@ -56,15 +56,15 @@ class CoulombScatteringInteractor
 
   public:
     //! Construct with shared and state data
-    inline CELER_FUNCTION
-    CoulombScatteringInteractor(CoulombScatteringData const& shared,
-                                NativeCRef<WentzelOKVIData> const& wentzel,
-                                ParticleTrackView const& particle,
-                                Real3 const& inc_direction,
-                                MaterialView const& material,
-                                IsotopeView const& target,
-                                ElementId el_id,
-                                CutoffView const& cutoffs);
+    inline CELER_FUNCTION CoulombScatteringInteractor(
+        CoulombScatteringData const& shared,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        MaterialView const& material,
+        IsotopeView const& target,
+        ElementId el_id,
+        CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
     template<class Engine>

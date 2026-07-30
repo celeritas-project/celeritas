@@ -57,8 +57,8 @@ class SurfacePhysicsTrackView
         SurfaceParamsRef const&, SurfaceStateRef const&, TrackSlotId);
 
     // Initialize track state
-    inline CELER_FUNCTION SurfacePhysicsTrackView&
-    operator=(Initializer const&);
+    inline CELER_FUNCTION SurfacePhysicsTrackView& operator=(
+        Initializer const&);
 
     // Reset surface physics state of the track
     inline CELER_FUNCTION void reset();
@@ -73,8 +73,8 @@ class SurfacePhysicsTrackView
     inline CELER_FUNCTION OptMatId next_material() const;
 
     // Get surface physics map for next surface
-    inline CELER_FUNCTION
-    SurfacePhysicsMapView interface(SurfacePhysicsOrder) const;
+    inline CELER_FUNCTION SurfacePhysicsMapView interface(
+        SurfacePhysicsOrder) const;
 
     // Calculate and update traversal direction from track momentum
     inline CELER_FUNCTION void update_traversal_direction(Real3 const&);
@@ -118,10 +118,10 @@ class SurfacePhysicsTrackView
 /*!
  * Initialize view from surface physics data and state for a given track.
  */
-CELER_FUNCTION
-SurfacePhysicsTrackView::SurfacePhysicsTrackView(SurfaceParamsRef const& params,
-                                                 SurfaceStateRef const& states,
-                                                 TrackSlotId track)
+CELER_FUNCTION SurfacePhysicsTrackView::SurfacePhysicsTrackView(
+    SurfaceParamsRef const& params,
+    SurfaceStateRef const& states,
+    TrackSlotId track)
     : params_(params), states_(states), track_id_(track)
 {
     CELER_EXPECT(track_id_ < states_.size());
@@ -131,8 +131,8 @@ SurfacePhysicsTrackView::SurfacePhysicsTrackView(SurfaceParamsRef const& params,
 /*!
  * Initialize track state with given initializer data.
  */
-CELER_FUNCTION SurfacePhysicsTrackView&
-SurfacePhysicsTrackView::operator=(Initializer const& init)
+CELER_FUNCTION SurfacePhysicsTrackView& SurfacePhysicsTrackView::operator=(
+    Initializer const& init)
 {
     CELER_EXPECT(init.surface < params_.surfaces.size());
     CELER_EXPECT(is_soft_unit_vector(init.global_normal));
@@ -206,8 +206,8 @@ CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsTrackView::interface(
 /*!
  * Calculate and update traversal direction from track momentum.
  */
-CELER_FUNCTION void
-SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
+CELER_FUNCTION void SurfacePhysicsTrackView::update_traversal_direction(
+    Real3 const& dir)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     this->traversal().dir(
@@ -266,8 +266,8 @@ SurfacePhysicsTrackView::reflectivity_action() const
 /*!
  * Assign the reflectivity action for this step.
  */
-CELER_FUNCTION void
-SurfacePhysicsTrackView::reflectivity_action(ReflectivityAction action)
+CELER_FUNCTION void SurfacePhysicsTrackView::reflectivity_action(
+    ReflectivityAction action)
 {
     states_.reflectivity_action[track_id_] = action;
 }

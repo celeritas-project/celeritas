@@ -454,8 +454,8 @@ struct ReflectionForm
         ReflectionForm result;
         for (auto mode : range(optical::ReflectionMode::size_))
         {
-            result.reflection_grids[mode]
-                = Grid::from_constant(mode == only_mode ? 1 : 0);
+            result.reflection_grids[mode] = Grid::from_constant(
+                mode == only_mode ? 1 : 0);
         }
         return result;
     }

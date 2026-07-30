@@ -31,8 +31,8 @@ class GammaNuclearMicroXsCalculator
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    GammaNuclearMicroXsCalculator(ParamsRef const& shared, Energy energy);
+    inline CELER_FUNCTION GammaNuclearMicroXsCalculator(
+        ParamsRef const& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
@@ -60,8 +60,8 @@ CELER_FUNCTION GammaNuclearMicroXsCalculator::GammaNuclearMicroXsCalculator(
 /*!
  * Compute microscopic gamma-nuclear cross section at the given gamma energy.
  */
-CELER_FUNCTION auto
-GammaNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+CELER_FUNCTION auto GammaNuclearMicroXsCalculator::operator()(
+    ElementId el_id) const -> BarnXs
 {
     NonuniformGridRecord grid;
 

@@ -30,8 +30,8 @@ void remove_if_alive(
 {
     auto* start = init.vacancies.data().get();
     auto* counters = init.counters.data().get();
-    auto* stop
-        = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
+    auto* stop = std::remove_if(
+        start, start + init.vacancies.size(), LogicalNot{});
     counters->num_vacancies = stop - start;
     return;
 }
@@ -48,7 +48,8 @@ void remove_if_alive(
  * final element will be the total accumulated value.
  */
 size_type exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts,
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const&
+        counts,
     StreamId)
 {
     CELER_EXPECT(!counts.empty());

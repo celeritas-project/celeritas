@@ -42,8 +42,8 @@ TEST(SolveSurface, no_roots)
         real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -67,8 +67,8 @@ TEST(SolveSurface, no_roots)
         real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -92,8 +92,8 @@ TEST(SolveSurface, no_roots)
         real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -117,8 +117,8 @@ TEST(SolveSurface, no_roots)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -169,8 +169,8 @@ TEST(SolveSurface, one_root)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(2.9716938706703964, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -194,8 +194,8 @@ TEST(SolveSurface, one_root)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(3.7273045229446105, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -219,8 +219,8 @@ TEST(SolveSurface, one_root)
         real_type tmax = 4;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(6.0371012194546871, dist[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist[1]);
@@ -272,8 +272,8 @@ TEST(SolveSurface, two_roots)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
@@ -306,8 +306,8 @@ TEST(SolveSurface, two_roots)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
@@ -342,8 +342,8 @@ TEST(SolveSurface, three_roots)
         real_type tmax = 1.99 * pi;
 
         InvoluteSolver solve(r_b, a, sign, tmin, tmax);
-        auto dist
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(6.9112457587355429, dist[0]);
         EXPECT_SOFT_EQ(9.1676238065759748, dist[1]);
@@ -383,8 +383,8 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707953267948966;
         real_type y = 0.9999999999999999;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -400,8 +400,8 @@ TEST(SolveSurface, tangents)
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -423,8 +423,8 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707962267948965;
         real_type y = 0.9999999999999999;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -440,8 +440,8 @@ TEST(SolveSurface, tangents)
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -463,15 +463,15 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707963167948966;
         real_type y = 0.9999999999999999;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -493,15 +493,15 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707963367948965;
         real_type y = 0.9999999999999999;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -524,15 +524,15 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707960166494566;
         real_type y = 1.0019871577672377;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_off[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
@@ -544,15 +544,15 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707960166494566;
         real_type y = 1.0009871677672377;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_on[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[1]);
         EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         EXPECT_SOFT_EQ(no_intersection(), dist_off[0]);
         EXPECT_SOFT_EQ(no_intersection(), dist_off[1]);
@@ -564,8 +564,8 @@ TEST(SolveSurface, tangents)
         real_type x = 1.5707960168148234;
         real_type y = 0.999029247016899;
 
-        auto dist_on
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
+        auto dist_on = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::on);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -581,8 +581,8 @@ TEST(SolveSurface, tangents)
             EXPECT_SOFT_EQ(no_intersection(), dist_on[2]);
         }
 
-        auto dist_off
-            = solve(Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
+        auto dist_off = solve(
+            Real3{x, y, 0.0}, Real3{u, v, 0.0}, SurfaceState::off);
 
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)

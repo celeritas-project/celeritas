@@ -105,8 +105,9 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
     Array<T, 3> center;
     for (auto ax : range(Axis::size_))
     {
-        center[to_int(ax)]
-            = (bbox.point(Bound::lo, ax) + bbox.point(Bound::hi, ax)) / 2;
+        center[to_int(ax)] = (bbox.point(Bound::lo, ax)
+                              + bbox.point(Bound::hi, ax))
+                             / 2;
         if (CELER_UNLIKELY(std::isnan(center[to_int(ax)])))
         {
             // Infinite or half-infinite
@@ -131,8 +132,8 @@ inline Array<T, 3> calc_half_widths(BoundingBox<T> const& bbox)
     Array<T, 3> hw;
     for (auto ax : range(Axis::size_))
     {
-        hw[to_int(ax)]
-            = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax)) / 2;
+        hw[to_int(ax)] = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax))
+                         / 2;
     }
 
     return hw;
@@ -189,16 +190,16 @@ inline T calc_volume(BoundingBox<T> const& bbox)
  * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_union(BoundingBox<T> const& a,
+                                           BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
     {
-        extents[to_int(ax)][to_int(Bound::lo)]
-            = celeritas::min(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        extents[to_int(ax)][to_int(Bound::hi)]
-            = celeritas::max(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        extents[to_int(ax)][to_int(Bound::lo)] = celeritas::min(
+            a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)] = celeritas::max(
+            a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
     return BoundingBox<T>::from_unchecked(extents);
@@ -211,16 +212,16 @@ calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * If there is no intersection, the result will be a null bounding box.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_intersection(BoundingBox<T> const& a,
+                                                  BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
     {
-        extents[to_int(ax)][to_int(Bound::lo)]
-            = celeritas::max(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        extents[to_int(ax)][to_int(Bound::hi)]
-            = celeritas::min(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        extents[to_int(ax)][to_int(Bound::lo)] = celeritas::max(
+            a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)] = celeritas::min(
+            a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
     return BoundingBox<T>::from_unchecked(extents);
@@ -317,8 +318,9 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     }
 
     // Whether a separable axis was found orthogonal to the faces
-    auto found_sep_ortho_axis
-        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
+    auto found_sep_ortho_axis = [&](int i) {
+        return std::fabs(mid[i]) > hw[i] + abs_hseg[i];
+    };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
@@ -378,10 +380,10 @@ class BoundingBoxBumper
 
         for (auto ax : range(Axis::size_))
         {
-            extents[to_int(ax)][to_int(Bound::lo)]
-                = this->bumped<-1>(bbox.point(Bound::lo, ax));
-            extents[to_int(ax)][to_int(Bound::hi)]
-                = this->bumped<+1>(bbox.point(Bound::hi, ax));
+            extents[to_int(ax)][to_int(Bound::lo)] = this->bumped<-1>(
+                bbox.point(Bound::lo, ax));
+            extents[to_int(ax)][to_int(Bound::hi)] = this->bumped<+1>(
+                bbox.point(Bound::hi, ax));
         }
 
         return result_type::from_unchecked(extents);

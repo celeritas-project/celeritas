@@ -82,33 +82,33 @@ Span<real_type const> get_water_wavelength()
 
 Span<real_type const> get_water_refractive_index()
 {
-    static real_type const refractive_index[]
-        = {1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
-           1.3241317601229, 1.3242660923031, 1.3244149850321, 1.3245487081924,
-           1.3246970353146, 1.3248303521764, 1.3249783454392, 1.3251114708334,
-           1.3252593763883, 1.3253925390161, 1.3255346928953, 1.3256740639273,
-           1.3258151661284, 1.3259565897464, 1.326098409446,  1.3262392023332,
-           1.32638204417,   1.3265255240887, 1.3266682080154, 1.3268132228682,
-           1.3269591507928, 1.32710453999,   1.3272525883205, 1.3274018651452,
-           1.3275524865531, 1.3277029655807, 1.3278566311755, 1.3280120256415,
-           1.328167625867,  1.3283268916356, 1.3284883366632, 1.3286503921034,
-           1.3288166823394, 1.3289856845931, 1.3291575989438, 1.3293307783594,
-           1.3295091314406, 1.329691073075,  1.3298748828499, 1.3300647424335,
-           1.330259008797,  1.3304558735667, 1.3306598562207, 1.3308692454666,
-           1.3310844250714, 1.3313034432243, 1.3315313994219, 1.3317664745307,
-           1.3320065870964, 1.3322573970809, 1.3325169923974, 1.3327831408348,
-           1.3330622051201, 1.3333521716563, 1.3336538750639, 1.3339648469612,
-           1.334292688017,  1.3346352438404, 1.3349898436519, 1.3353653263299,
-           1.3357594410975, 1.3361692982684, 1.3366053508081, 1.3370652823778,
-           1.3375512404603, 1.3380600434506, 1.3386051585073, 1.3391843066628,
-           1.3397941348754, 1.34045134693,   1.3411539035636, 1.341898413271,
-           1.3427061376724, 1.3435756703017, 1.3445141685829, 1.3455187528254,
-           1.3466202523109, 1.3478194943997, 1.3491150472655, 1.350549622307,
-           1.3521281492629, 1.3538529543346, 1.3557865447701, 1.3579431129972,
-           1.3603615197762, 1.3630595401556, 1.3661548299831, 1.3696980785677,
-           1.3737440834249, 1.3785121412586, 1.3841454790718, 1.3908241012126,
-           1.399064758142,  1.4093866965284, 1.422764121467,  1.4407913910231,
-           1.4679465862259};
+    static real_type const refractive_index[] = {
+        1.3235601610672, 1.3236962786529, 1.3238469492274, 1.3239820826015,
+        1.3241317601229, 1.3242660923031, 1.3244149850321, 1.3245487081924,
+        1.3246970353146, 1.3248303521764, 1.3249783454392, 1.3251114708334,
+        1.3252593763883, 1.3253925390161, 1.3255346928953, 1.3256740639273,
+        1.3258151661284, 1.3259565897464, 1.326098409446,  1.3262392023332,
+        1.32638204417,   1.3265255240887, 1.3266682080154, 1.3268132228682,
+        1.3269591507928, 1.32710453999,   1.3272525883205, 1.3274018651452,
+        1.3275524865531, 1.3277029655807, 1.3278566311755, 1.3280120256415,
+        1.328167625867,  1.3283268916356, 1.3284883366632, 1.3286503921034,
+        1.3288166823394, 1.3289856845931, 1.3291575989438, 1.3293307783594,
+        1.3295091314406, 1.329691073075,  1.3298748828499, 1.3300647424335,
+        1.330259008797,  1.3304558735667, 1.3306598562207, 1.3308692454666,
+        1.3310844250714, 1.3313034432243, 1.3315313994219, 1.3317664745307,
+        1.3320065870964, 1.3322573970809, 1.3325169923974, 1.3327831408348,
+        1.3330622051201, 1.3333521716563, 1.3336538750639, 1.3339648469612,
+        1.334292688017,  1.3346352438404, 1.3349898436519, 1.3353653263299,
+        1.3357594410975, 1.3361692982684, 1.3366053508081, 1.3370652823778,
+        1.3375512404603, 1.3380600434506, 1.3386051585073, 1.3391843066628,
+        1.3397941348754, 1.34045134693,   1.3411539035636, 1.341898413271,
+        1.3427061376724, 1.3435756703017, 1.3445141685829, 1.3455187528254,
+        1.3466202523109, 1.3478194943997, 1.3491150472655, 1.350549622307,
+        1.3521281492629, 1.3538529543346, 1.3557865447701, 1.3579431129972,
+        1.3603615197762, 1.3630595401556, 1.3661548299831, 1.3696980785677,
+        1.3737440834249, 1.3785121412586, 1.3841454790718, 1.3908241012126,
+        1.399064758142,  1.4093866965284, 1.422764121467,  1.4407913910231,
+        1.4679465862259};
     return make_span(refractive_index);
 }
 
@@ -211,8 +211,7 @@ TEST_F(CherenkovWaterTest, dndx)
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -240,8 +239,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
     // 500 keV e-
     {
         // Pre-step values
-        auto pre_particle
-            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
+        auto pre_particle = this->make_particle_track_view(Energy{0.5},
+                                                           pdg::electron());
         OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = pre_particle.speed();
@@ -249,8 +248,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle
-            = this->make_particle_track_view(Energy{0.15}, pdg::electron());
+        auto particle = this->make_particle_track_view(Energy{0.15},
+                                                       pdg::electron());
         auto sim = this->make_sim_track_view(0.15);
         sim.add_time(sim.step_length() / native_value_from(particle.speed()));
         Real3 pos = {sim.step_length(), 0, 0};
@@ -283,8 +282,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             // Only number of photons is sampled
-            static size_type const expected_num_photons[]
-                = {15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
+            static size_type const expected_num_photons[] = {
+                15, 17, 11, 15, 14, 19, 23, 13, 10, 12};
             EXPECT_VEC_EQ(expected_num_photons, sampled_num_photons);
         }
     }
@@ -299,8 +298,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle
-            = this->make_particle_track_view(Energy{0.1}, pdg::electron());
+        auto particle = this->make_particle_track_view(Energy{0.1},
+                                                       pdg::electron());
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
@@ -345,9 +344,8 @@ TEST_F(CherenkovWaterTest, generator)
 
         // Displacement distribution binning
         int num_bins = 16;
-        auto ri_grid = material->get(material_id)
-                           .make_refractive_index_calculator()
-                           .grid();
+        auto ri_grid
+            = material->get(material_id).make_refractive_index_calculator().grid();
 
         Histogram costheta_hist(num_bins, {-1, 1});
         Histogram energy_hist(num_bins, {ri_grid.front(), ri_grid.back()});
@@ -389,8 +387,8 @@ TEST_F(CherenkovWaterTest, generator)
                 }
                 // Bin photon displacement
                 {
-                    real_type displacement
-                        = distance(pre_step.pos, photon.position);
+                    real_type displacement = distance(pre_step.pos,
+                                                      photon.position);
                     avg_displacement += displacement;
                     displacement_hist(displacement);
                 }
@@ -429,8 +427,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle
-            = this->make_particle_track_view(Energy(9999), pdg::electron());
+        auto particle = this->make_particle_track_view(Energy(9999),
+                                                       pdg::electron());
         auto sim = this->make_sim_track_view(1);
         Real3 pos = {sim.step_length(), 0, 0};
 
@@ -472,17 +470,17 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values (150 keV)
-        auto particle
-            = this->make_particle_track_view(Energy(0.15), pdg::electron());
+        auto particle = this->make_particle_track_view(Energy(0.15),
+                                                       pdg::electron());
         EXPECT_SOFT_EQ(0.63431981443206786,
                        value_as<units::LightSpeed>(particle.speed()));
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        static size_type const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
-        static size_type const expected_energy_dist[]
-            = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
+        static size_type const expected_costheta_dist[] = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
+        static size_type const expected_energy_dist[] = {
+            0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
         static size_type const expected_displacement_dist[] = {
             123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
 
@@ -510,8 +508,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values: 1e-2cm step
-        auto particle
-            = this->make_particle_track_view(Energy(100), pdg::electron());
+        auto particle = this->make_particle_track_view(Energy(100),
+                                                       pdg::electron());
         pre_step.speed = units::LightSpeed{
             0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
         auto sim = this->make_sim_track_view(1e-2);
@@ -551,8 +549,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values: 1e-3cm step
-        auto particle
-            = this->make_particle_track_view(Energy(10), pdg::electron());
+        auto particle = this->make_particle_track_view(Energy(10),
+                                                       pdg::electron());
         pre_step.speed = units::LightSpeed{
             0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
         auto sim = this->make_sim_track_view(1e-4);
@@ -607,13 +605,12 @@ TEST_F(CherenkovAirTest, dndx)
     for (real_type beta : betas)
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        static double const expected_dndx[]
-            = {26.95328666191, 3.3931341666038, 1.5013818039724, 0.0};
+        static double const expected_dndx[] = {
+            26.95328666191, 3.3931341666038, 1.5013818039724, 0.0};
         EXPECT_VEC_SOFT_EQ(expected_dndx, dndx);
     }
 }

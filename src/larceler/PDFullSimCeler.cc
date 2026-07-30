@@ -28,8 +28,8 @@ namespace
 /*!
  * Convert from a FHiCL config input.
  */
-inp::OpticalStandaloneInput
-make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
+inp::OpticalStandaloneInput make_input_from_config(
+    detail::PDFullSimCelerConfig const& cfg)
 {
     inp::OpticalStandaloneInput result;
 
@@ -120,8 +120,8 @@ void PDFullSimCeler::beginJob()
 void PDFullSimCeler::produce(art::Event& e)
 {
     CELER_EXPECT(runner_);
-    auto edep_handle
-        = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_);
+    auto edep_handle = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(
+        sim_tag_);
 
     mf::LogInfo("PDFullSimCeler") << "Transferring " << edep_handle->size()
                                   << " SimEnergyDeposits to Celeritas";

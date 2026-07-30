@@ -40,8 +40,8 @@ class InitializedValue
 {
     static_assert(std::is_default_constructible_v<T>);
     static_assert(std::is_default_constructible_v<Finalizer>);
-    static constexpr bool noexcept_finalize_
-        = noexcept(std::declval<Finalizer>()(std::declval<T&>()));
+    static constexpr bool noexcept_finalize_ = noexcept(
+        std::declval<Finalizer>()(std::declval<T&>()));
 
   public:
     //!@{
@@ -134,9 +134,9 @@ InitializedValue<T, Finalizer>::operator=(InitializedValue const& other) noexcep
 //---------------------------------------------------------------------------//
 //! Clear other value on move assign
 template<class T, class Finalizer>
-InitializedValue<T, Finalizer>&
-InitializedValue<T, Finalizer>::operator=(InitializedValue&& other) noexcept(
-    noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>)
+InitializedValue<T, Finalizer>& InitializedValue<T, Finalizer>::operator=(
+    InitializedValue&& other) noexcept(noexcept_finalize_
+                                       && std::is_nothrow_move_assignable_v<T>)
 {
     if (value_ != T{})
     {

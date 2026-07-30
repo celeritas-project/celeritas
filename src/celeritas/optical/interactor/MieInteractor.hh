@@ -104,8 +104,8 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
         bool is_forward = sample_forward_(rng);
 
         // Select forward or backward lobe
-        real_type g
-            = (is_forward ? mie_params_.forward_g : mie_params_.backward_g);
+        real_type g = (is_forward ? mie_params_.forward_g
+                                  : mie_params_.backward_g);
 
         // Compute cos(theta) distribution for optical photons that undergo mie
         // scattering

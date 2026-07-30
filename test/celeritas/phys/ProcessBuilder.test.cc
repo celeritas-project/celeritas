@@ -547,8 +547,8 @@ TEST_F(ProcessBuilderTest, neutron_elastic)
          zero_quantity(),
          constants::stable_decay_constant},
     };
-    SPConstParticle particle_params
-        = std::make_shared<ParticleParams>(std::move(particle_inp));
+    SPConstParticle particle_params = std::make_shared<ParticleParams>(
+        std::move(particle_inp));
 
     ProcessBuilder build_process(
         this->import_data(), particle_params, this->material());

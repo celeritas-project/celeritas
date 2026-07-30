@@ -29,12 +29,12 @@ TEST(GeneralQuadricTest, construction)
                                     {0, 0, 0},
                                     -1 * ipow<2>(2.5) * ipow<2>(0.3)}};
 
-    auto distances
-        = calc_intersections(gq, {-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    auto distances = calc_intersections(
+        gq, {-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.5, distances[0]);
     EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
-    distances
-        = calc_intersections(gq, {0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
+    distances = calc_intersections(
+        gq, {0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
     distances = calc_intersections(gq, {0, 0, 0}, {0, 0, 1}, SurfaceState::off);

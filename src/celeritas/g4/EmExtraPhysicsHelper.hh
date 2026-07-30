@@ -79,8 +79,8 @@ EmExtraPhysicsHelper::calc_electro_nuclear_xs(AtomicNumber, MevEnergy) const
     CELER_ASSERT_UNREACHABLE();
 }
 
-inline EmExtraPhysicsHelper::MmSqXs
-EmExtraPhysicsHelper::calc_gamma_nuclear_xs(AtomicNumber, MevEnergy) const
+inline EmExtraPhysicsHelper::MmSqXs EmExtraPhysicsHelper::calc_gamma_nuclear_xs(
+    AtomicNumber, MevEnergy) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

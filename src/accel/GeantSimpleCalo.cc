@@ -69,8 +69,8 @@ GeantSimpleCalo::GeantSimpleCalo(
     for (auto i : range(volumes_.size()))
     {
         CELER_EXPECT(volumes_[i]);
-        auto&& [iter, inserted]
-            = storage_->volume_to_index.insert({volumes_[i], i});
+        auto&& [iter,
+                inserted] = storage_->volume_to_index.insert({volumes_[i], i});
         CELER_VALIDATE(
             inserted,
             << "logical volume " << StreamableLV{iter->first}
@@ -113,8 +113,8 @@ auto GeantSimpleCalo::MakeSensitiveDetector() -> UPSensitiveDetector
         storage_->data[thread_id].assign(storage_->volume_to_index.size(), 0.0);
 
         // Create SD
-        detector
-            = std::make_unique<detail::GeantSimpleCaloSD>(storage_, thread_id);
+        detector = std::make_unique<detail::GeantSimpleCaloSD>(storage_,
+                                                               thread_id);
     }
 
     // Attach SD to LVs

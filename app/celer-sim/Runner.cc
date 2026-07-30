@@ -51,8 +51,7 @@ Runner::Runner(Input si)
     transporter_input_->optical = std::move(loaded.problem.optical_collector);
     transporter_input_->params = core_params_;
     transporter_input_->max_steps = si.problem.tracking.limits.step_iters;
-    transporter_input_->store_track_counts
-        = si.problem.diagnostics.counters.step;
+    transporter_input_->store_track_counts = si.problem.diagnostics.counters.step;
     transporter_input_->actions = std::move(loaded.problem.actions);
     transporter_input_->log_progress = si.problem.diagnostics.log_frequency;
 

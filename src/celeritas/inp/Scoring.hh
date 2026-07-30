@@ -146,8 +146,7 @@ struct OpticalDetector
 {
     //!@{
     //! \name Type aliases
-    using HitCallbackFunc
-        = std::function<void(Span<optical::DetectorHit const>)>;
+    using HitCallbackFunc = std::function<void(Span<optical::DetectorHit const>)>;
     //!@}
 
     //! Hit callback function for optical detectors

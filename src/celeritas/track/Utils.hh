@@ -55,8 +55,8 @@ inline CELER_FUNCTION TrackId make_track_id(
     EventId event)
 {
     CELER_EXPECT(event < state.track_counters.size());
-    auto result
-        = atomic_add(&state.track_counters[event], TrackId::size_type{1});
+    auto result = atomic_add(&state.track_counters[event],
+                             TrackId::size_type{1});
     return TrackId{result};
 }
 

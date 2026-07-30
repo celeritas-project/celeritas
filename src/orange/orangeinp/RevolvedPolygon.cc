@@ -58,8 +58,8 @@ RevolvedPolygon::RevolvedPolygon(
 NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
 {
     // Use the volume builder's tolerance to remove any colinear points
-    auto filtered_polygon
-        = detail::filter_collinear_points(polygon_, vb.tol().abs);
+    auto filtered_polygon = detail::filter_collinear_points(polygon_,
+                                                            vb.tol().abs);
 
     // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(filtered_polygon.size() >= 3,
@@ -110,8 +110,8 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
     auto concave_regions = hull_finder.calc_concave_regions();
 
     // Build the convex region
-    auto filtered_convex_hull
-        = detail::filter_collinear_points(convex_hull, vb.tol().abs);
+    auto filtered_convex_hull = detail::filter_collinear_points(convex_hull,
+                                                                vb.tol().abs);
     NodeId result = this->make_region(vb, filtered_convex_hull, si);
 
     // Return early if there are no concave regions to process
@@ -131,9 +131,9 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
     auto level_ext = this->make_level_ext(si);
 
     // Create a union of all concave regions
-    NodeId concave_union
-        = vb.insert_region(Label{label_, level_ext + ".cu"},
-                           Joined{op_or, std::move(concave_nodes)});
+    NodeId concave_union = vb.insert_region(
+        Label{label_, level_ext + ".cu"},
+        Joined{op_or, std::move(concave_nodes)});
 
     // Create a negation of this union
     auto sub_node = vb.insert_region(Label{label_, level_ext + ".ncu"},
@@ -200,9 +200,9 @@ NodeId RevolvedPolygon::make_region(
     if (!inner_nodes.empty())
     {
         // Create a union of all inner nodes
-        NodeId inner_union
-            = vb.insert_region(Label{label_, region_ext + ".iu"},
-                               Joined{op_or, std::move(inner_nodes)});
+        NodeId inner_union = vb.insert_region(
+            Label{label_, region_ext + ".iu"},
+            Joined{op_or, std::move(inner_nodes)});
 
         // Create a negation of this union
         auto negation = vb.insert_region(Label{label_, region_ext + ".nui"},
@@ -227,8 +227,8 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
 {
     real_type hh = std::fabs(p1[Z] - p0[Z]) / 2;
     auto z_bot = std::min(p0[Z], p1[Z]);
-    auto scoped_transform
-        = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
+    auto scoped_transform = vb.make_scoped_transform(
+        Translation({0, 0, hh + z_bot}));
     Cylinder local_cyl{p0[R], hh};
     return build_intersect_region(
         vb, std::string{label_}, this->make_subregion_ext(si), local_cyl);
@@ -254,8 +254,8 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
     real_type hh = 0.5_r * (p_top[Z] - p_bot[Z]);
     Real2 radii{p_bot[R], p_top[R]};
 
-    auto scoped_transform
-        = vb.make_scoped_transform(Translation({0, 0, hh + p_bot[Z]}));
+    auto scoped_transform = vb.make_scoped_transform(
+        Translation({0, 0, hh + p_bot[Z]}));
     Cone local_cone{radii, hh};
     return build_intersect_region(
         vb, std::string{label_}, this->make_subregion_ext(si), local_cone);
@@ -283,8 +283,8 @@ std::string RevolvedPolygon::make_region_ext(RevolvedPolygon::SubIndex si) const
 /*!
  * Make a label extension for a subregion within a region.
  */
-std::string
-RevolvedPolygon::make_subregion_ext(RevolvedPolygon::SubIndex si) const
+std::string RevolvedPolygon::make_subregion_ext(
+    RevolvedPolygon::SubIndex si) const
 {
     return this->make_region_ext(si) + "." + std::to_string(si.subregion);
 }

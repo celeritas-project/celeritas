@@ -51,8 +51,8 @@ auto make_state(StreamId stream, size_type size)
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<GeneratorAction>
-GeneratorAction::make_and_insert(CoreParams const& params, size_type capacity)
+std::shared_ptr<GeneratorAction> GeneratorAction::make_and_insert(
+    CoreParams const& params, size_type capacity)
 {
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
@@ -238,8 +238,8 @@ void GeneratorAction::generate(CoreParams const& params,
 
     ScopedProfiling profile_this_{"generate"};
 
-    auto& aux_state
-        = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
+    auto& aux_state = get<GeneratorState<MemSpace::native>>(*state.aux(),
+                                                            this->aux_id());
     size_type num_gen = min(state.sync_get_counters().num_vacancies,
                             aux_state.counters.num_pending);
     {

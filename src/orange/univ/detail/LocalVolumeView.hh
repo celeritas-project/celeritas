@@ -87,17 +87,19 @@ class LocalVolumeView
     LocalVolumeRecord const& def_;
 
     static inline CELER_FUNCTION LocalVolumeRecord const& volume_record(
-        ParamsRef const&, SimpleUnitRecord const& unit_record, LocalVolumeId id);
+        ParamsRef const&,
+        SimpleUnitRecord const& unit_record,
+        LocalVolumeId id);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION
-LocalVolumeView::LocalVolumeView(ParamsRef const& params,
-                                 SimpleUnitRecord const& unit_record,
-                                 LocalVolumeId id)
+CELER_FUNCTION LocalVolumeView::LocalVolumeView(
+    ParamsRef const& params,
+    SimpleUnitRecord const& unit_record,
+    LocalVolumeId id)
     : params_(params)
     , def_(LocalVolumeView::volume_record(params, unit_record, id))
 {
@@ -225,10 +227,10 @@ CELER_FUNCTION bool LocalVolumeView::simple_intersection() const
  *
  * This is called during construction.
  */
-inline CELER_FUNCTION LocalVolumeRecord const&
-LocalVolumeView::volume_record(ParamsRef const& params,
-                               SimpleUnitRecord const& unit,
-                               LocalVolumeId local_vol_id)
+inline CELER_FUNCTION LocalVolumeRecord const& LocalVolumeView::volume_record(
+    ParamsRef const& params,
+    SimpleUnitRecord const& unit,
+    LocalVolumeId local_vol_id)
 {
     CELER_EXPECT(local_vol_id < unit.volumes.size());
     return params.volume_records[unit.volumes[local_vol_id]];

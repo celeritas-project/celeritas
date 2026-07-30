@@ -65,12 +65,12 @@ class ExpNuclearFormFactor : public NuclearFormFactorTraits
     }
 
     // Construct with atomic mass number
-    explicit inline CELER_FUNCTION
-    ExpNuclearFormFactor(AtomicMassNumber a_mass);
+    explicit inline CELER_FUNCTION ExpNuclearFormFactor(
+        AtomicMassNumber a_mass);
 
     // Construct with precalculated form factor
-    explicit inline CELER_FUNCTION
-    ExpNuclearFormFactor(InvMomentumSq prefactor);
+    explicit inline CELER_FUNCTION ExpNuclearFormFactor(
+        InvMomentumSq prefactor);
 
     // Calculate from square of target momentum
     inline CELER_FUNCTION real_type operator()(MomentumSq target_momsq) const;
@@ -171,8 +171,8 @@ class UUNuclearFormFactor : public NuclearFormFactorTraits
 /*!
  * Construct from atomic mass number.
  */
-CELER_FUNCTION
-ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
+CELER_FUNCTION ExpNuclearFormFactor::ExpNuclearFormFactor(
+    AtomicMassNumber a_mass)
 {
     using namespace celeritas::literals;
 
@@ -194,8 +194,8 @@ ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
 /*!
  * Construct with precalculated form factor.
  */
-CELER_FUNCTION
-ExpNuclearFormFactor::ExpNuclearFormFactor(InvMomentumSq prefactor)
+CELER_FUNCTION ExpNuclearFormFactor::ExpNuclearFormFactor(
+    InvMomentumSq prefactor)
     : prefactor_{prefactor.value()}
 {
     CELER_EXPECT(prefactor_ > 0);

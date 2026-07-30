@@ -52,8 +52,8 @@ GridReflectivityModel::GridReflectivityModel(
         &data.reals, &data.reflectivity[ReflectivityAction::transmit]);
 
     auto build_efficiency_ids = CollectionBuilder{&data.efficiency_ids};
-    auto build_efficiency
-        = NonuniformGridInserter<GridId>(&data.reals, &data.efficiency);
+    auto build_efficiency = NonuniformGridInserter<GridId>(&data.reals,
+                                                           &data.efficiency);
 
     for (auto const& [surface, refl] : layer_map)
     {

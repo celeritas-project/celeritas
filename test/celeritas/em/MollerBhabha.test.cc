@@ -155,8 +155,8 @@ TEST_F(MollerBhabhaInteractorTest, basic)
     // Gold values based on the host rng. Energies are in MeV
     static double const expected_m_inc_exit_cost[] = {
         0.99973900914319, 0.99998439403408, 0.99999999892476, 0.99999999999959};
-    static double const expected_m_inc_exit_e[]
-        = {0.99896793373796, 9.996634923266, 999.9978936714, 99999.992056977};
+    static double const expected_m_inc_exit_e[] = {
+        0.99896793373796, 9.996634923266, 999.9978936714, 99999.992056977};
     static double const expected_m_inc_edep[] = {0, 0, 0, 0};
     static double const expected_m_sec_cost[] = {0.045164786751542,
                                                  0.060143518761038,
@@ -260,25 +260,25 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     // Gold values based on the host rng. Energies are in MeV
     static double const expected_m_inc_exit_cost[] = {
         0.99474381994671, 0.9998320422927, 0.99999935924924, 0.99999999959414};
-    static double const expected_m_inc_exit_e[]
-        = {8.9744580752619, 96.785484384822, 998.74637287344, 99992.05807867};
+    static double const expected_m_inc_exit_e[] = {
+        8.9744580752619, 96.785484384822, 998.74637287344, 99992.05807867};
     static double const expected_m_inc_edep[] = {0, 0, 0, 0};
     static double const expected_m_sec_cost[] = {
         0.74300321590697, 0.87551068112013, 0.74260120785797, 0.94127395616289};
-    static double const expected_m_sec_e[]
-        = {1.0255419247381, 3.2145156151784, 1.2536271265614, 7.9419213303979};
+    static double const expected_m_sec_e[] = {
+        1.0255419247381, 3.2145156151784, 1.2536271265614, 7.9419213303979};
 
     //// Bhabha
     // Gold values based on the host rng. Energies are in MeV
     static double const expected_b_inc_exit_cost[] = {
         0.99479050564194, 0.99987897158914, 0.99999937828724, 0.99999999991204};
-    static double const expected_b_inc_exit_e[]
-        = {8.9827046800673, 97.662824061219, 998.78357538952, 99998.278713671};
+    static double const expected_b_inc_exit_e[] = {
+        8.9827046800673, 97.662824061219, 998.78357538952, 99998.278713671};
     static double const expected_b_inc_edep[] = {0, 0, 0, 0};
     static double const expected_b_sec_cost[] = {
         0.74150459775358, 0.83837330389592, 0.73755324517749, 0.79212437269015};
-    static double const expected_b_sec_e[]
-        = {1.0172953199327, 2.3371759387812, 1.2164246104832, 1.721286329104};
+    static double const expected_b_sec_e[] = {
+        1.0172953199327, 2.3371759387812, 1.2164246104832, 1.721286329104};
 
     //// Moller
     EXPECT_VEC_SOFT_EQ(expected_m_inc_exit_cost, m_results.inc_exit_cost);
@@ -289,8 +289,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (auto const secondary_energy : m_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(
-            secondary_energy > cutoff_view.energy(ParticleId{0}).value());
+        EXPECT_TRUE(secondary_energy
+                    > cutoff_view.energy(ParticleId{0}).value());
     }
 
     //// Bhabha
@@ -302,8 +302,8 @@ TEST_F(MollerBhabhaInteractorTest, cutoff_1MeV)
     for (auto const secondary_energy : b_results.sec_e)
     {
         // Verify if secondary is above the cutoff threshold
-        EXPECT_TRUE(
-            secondary_energy > cutoff_view.energy(ParticleId{0}).value());
+        EXPECT_TRUE(secondary_energy
+                    > cutoff_view.energy(ParticleId{0}).value());
     }
 }
 

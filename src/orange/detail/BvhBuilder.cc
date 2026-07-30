@@ -122,14 +122,14 @@ BvhTreeRecord BvhBuilder::operator()(
         // Construct the tree recursively
         VecNodes nodes;
         this->construct_tree(indices, &nodes, 0, depth);
-        auto [internal_nodes, leaf_nodes]
-            = this->arrange_nodes(std::move(nodes));
+        auto [internal_nodes,
+              leaf_nodes] = this->arrange_nodes(std::move(nodes));
 
         tree.internal_nodes = internal_nodes_.insert_back(
             internal_nodes.begin(), internal_nodes.end());
 
-        tree.leaf_nodes
-            = leaf_nodes_.insert_back(leaf_nodes.begin(), leaf_nodes.end());
+        tree.leaf_nodes = leaf_nodes_.insert_back(leaf_nodes.begin(),
+                                                  leaf_nodes.end());
     }
     else
     {
@@ -181,8 +181,8 @@ void BvhBuilder::construct_tree(VecIndices const& indices,
     // once per call to construct_tree.
     auto make_leaf = [&]() {
         BvhLeafNode node;
-        node.vol_ids
-            = local_volume_ids_.insert_back(indices.begin(), indices.end());
+        node.vol_ids = local_volume_ids_.insert_back(indices.begin(),
+                                                     indices.end());
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
         depth = std::max(depth, current_depth);
@@ -242,17 +242,17 @@ BvhBuilder::ArrangedNodes BvhBuilder::arrange_nodes(VecNodes const& nodes) const
     is_leaf.reserve(nodes.size());
     new_indices.reserve(nodes.size());
 
-    auto insert_node
-        = Overload{[&](BvhInternalNode const& node) {
-                       new_indices.push_back(internal_nodes.size());
-                       internal_nodes.push_back(node);
-                       is_leaf.push_back(false);
-                   },
-                   [&](BvhLeafNode const& node) {
-                       new_indices.push_back(leaf_nodes.size());
-                       leaf_nodes.push_back(node);
-                       is_leaf.push_back(true);
-                   }};
+    auto insert_node = Overload{[&](BvhInternalNode const& node) {
+                                    new_indices.push_back(
+                                        internal_nodes.size());
+                                    internal_nodes.push_back(node);
+                                    is_leaf.push_back(false);
+                                },
+                                [&](BvhLeafNode const& node) {
+                                    new_indices.push_back(leaf_nodes.size());
+                                    leaf_nodes.push_back(node);
+                                    is_leaf.push_back(true);
+                                }};
     for (auto const& node : nodes)
     {
         std::visit(insert_node, node);

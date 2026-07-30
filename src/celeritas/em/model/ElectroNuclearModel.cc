@@ -39,9 +39,9 @@ ElectroNuclearModel::ElectroNuclearModel(ActionId id,
     data.scalars.electron_id = particles.find(pdg::electron());
     data.scalars.positron_id = particles.find(pdg::positron());
 
-    CELER_VALIDATE(
-        data.scalars.electron_id && data.scalars.positron_id,
-        << "missing particles (required for " << this->description() << ")");
+    CELER_VALIDATE(data.scalars.electron_id && data.scalars.positron_id,
+                   << "missing particles (required for " << this->description()
+                   << ")");
 
     // Electro-nuclear element cross section data
     NonuniformGridInserter insert_micro_xs{&data.reals, &data.micro_xs};

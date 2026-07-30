@@ -63,8 +63,7 @@ class Constant
 
   private:
     template<class T>
-    using EnableIfFloating
-        = std::enable_if_t<std::is_floating_point_v<T>, bool>;
+    using EnableIfFloating = std::enable_if_t<std::is_floating_point_v<T>, bool>;
     template<class T>
     using EnableIfIntegral = std::enable_if_t<std::is_integral_v<T>, bool>;
 

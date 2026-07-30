@@ -146,9 +146,8 @@ auto Runner::load_geometry() -> std::shared_ptr<GeoParams_t<G> const>
             if (geo_cache_[Geometry::geant4])
             {
                 // Load from existing Geant4 geometry
-                auto geant_geo
-                    = std::dynamic_pointer_cast<GeantGeoParams const>(
-                        geo_cache_[Geometry::geant4]);
+                auto geant_geo = std::dynamic_pointer_cast<GeantGeoParams const>(
+                    geo_cache_[Geometry::geant4]);
                 CELER_ASSUME(geant_geo);
                 geo = GP::from_geant(geant_geo);
             }

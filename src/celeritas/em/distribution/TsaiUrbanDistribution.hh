@@ -65,8 +65,8 @@ class TsaiUrbanDistribution
 /*!
  * Construct from input data.
  */
-CELER_FUNCTION
-TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy, Mass mass)
+CELER_FUNCTION TsaiUrbanDistribution::TsaiUrbanDistribution(Energy energy,
+                                                            Mass mass)
     : umax_(2 * (1 + energy.value() / mass.value()))
 {
 }
@@ -83,8 +83,8 @@ CELER_FUNCTION real_type TsaiUrbanDistribution::operator()(Engine& rng)
     real_type u;
     do
     {
-        real_type uu
-            = -std::log(generate_canonical(rng) * generate_canonical(rng));
+        real_type uu = -std::log(
+            generate_canonical(rng) * generate_canonical(rng));
         u = uu * (BernoulliDistribution(0.25)(rng) ? 1.6_r : 1.6_r / 3.0_r);
     } while (u > umax_);
 

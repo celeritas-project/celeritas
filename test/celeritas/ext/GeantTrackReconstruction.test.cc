@@ -274,8 +274,8 @@ TEST_F(GtrTest, end_event_cleanup)
 
     for (auto i : range(num_primaries))
     {
-        processes[i]
-            = std::make_unique<MockProcess>("MockProcess" + std::to_string(i));
+        processes[i] = std::make_unique<MockProcess>(
+            "MockProcess" + std::to_string(i));
     }
     EXPECT_NE(processes[0].get(), processes[1].get());
 
@@ -295,8 +295,8 @@ TEST_F(GtrTest, end_event_cleanup)
                     /* time = */ 0.0,
                     /* position = */ G4ThreeVector(0, 0, 0));
                 track->SetTrackID(flush * 100 + i);
-                auto user_info
-                    = std::make_unique<MockUserTrackInformation>(10 * i);
+                auto user_info = std::make_unique<MockUserTrackInformation>(
+                    10 * i);
                 track->SetUserInformation(user_info.release());
                 track->SetCreatorProcess(processes[i].get());
 

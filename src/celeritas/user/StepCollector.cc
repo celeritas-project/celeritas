@@ -27,8 +27,8 @@ namespace celeritas
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepCollector>
-StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
+std::shared_ptr<StepCollector> StepCollector::make_and_insert(
+    CoreParams const& core, VecInterface callbacks)
 {
     return std::make_shared<StepCollector>(core.geometry(),
                                            core.volume(),
@@ -61,9 +61,8 @@ StepCollector::StepCollector(SPConstCoreGeo geo,
     if (this->selection().points[StepPoint::pre] || params_->has_detectors())
     {
         // Some pre-step data is being gathered
-        pre_action_
-            = std::make_shared<detail::StepGatherAction<StepPoint::pre>>(
-                action_registry->next_id(), params_, VecInterface{});
+        pre_action_ = std::make_shared<detail::StepGatherAction<StepPoint::pre>>(
+            action_registry->next_id(), params_, VecInterface{});
         action_registry->insert(pre_action_);
     }
 

@@ -128,8 +128,8 @@ CELER_FUNCTION CoreTrackView::CoreTrackView(
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     // Initialiize the sim state
     this->sim() = SimTrackView::Initializer{init.primary, init.time};
@@ -152,8 +152,8 @@ CoreTrackView::operator=(TrackInitializer const& init)
     }
 
     // Initialize the particle state
-    this->particle()
-        = ParticleTrackView::Initializer{init.energy, init.polarization};
+    this->particle() = ParticleTrackView::Initializer{init.energy,
+                                                      init.polarization};
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};
@@ -188,8 +188,8 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
 /*!
  * Return a material view using an existing geo track view.
  */
-CELER_FUNCTION auto
-CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
+CELER_FUNCTION auto CoreTrackView::material_record(
+    GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.impl_volume_id()};

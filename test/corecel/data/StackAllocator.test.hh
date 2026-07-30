@@ -22,8 +22,9 @@ struct MockSecondary
 //! Input data
 struct SATestInput
 {
-    using MockAllocatorData
-        = StackAllocatorData<MockSecondary, Ownership::reference, MemSpace::device>;
+    using MockAllocatorData = StackAllocatorData<MockSecondary,
+                                                 Ownership::reference,
+                                                 MemSpace::device>;
 
     size_type num_threads;
     size_type num_iters;

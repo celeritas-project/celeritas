@@ -250,8 +250,8 @@ class range_iter
     CELER_CEF value_type value() const& { return value_; }
 
     //! Allow loading via ldg
-    CELER_CONSTEXPR_FUNCTION friend range_iter
-    ldg(range_iter const* ri) noexcept
+    CELER_CONSTEXPR_FUNCTION friend range_iter ldg(
+        range_iter const* ri) noexcept
     {
         using ::celeritas::ldg;
         return range_iter{ldg(&ri->value_)};
@@ -358,8 +358,8 @@ class inf_step_range_iter : public step_range_iter<T>
     using TraitsT = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
 
-    CELER_FUNCTION
-    inf_step_range_iter(T current = TraitsT::zero(), counter_type step = {})
+    CELER_FUNCTION inf_step_range_iter(T current = TraitsT::zero(),
+                                       counter_type step = {})
         : Base(current, step)
     {
     }

@@ -223,8 +223,8 @@ std::vector<Label> make_physical_vol_labels(vecgeom::VPlacedVolume const& world)
 }
 
 //---------------------------------------------------------------------------//
-vecgeom::VPlacedVolume const&
-get_placed_volume(vecgeom::GeoManager const& geo, VgVolumeInstanceId ivi_id)
+vecgeom::VPlacedVolume const& get_placed_volume(vecgeom::GeoManager const& geo,
+                                                VgVolumeInstanceId ivi_id)
 {
     CELER_EXPECT(ivi_id);
 
@@ -324,8 +324,8 @@ void check_navindex_device_pointers()
 /*!
  * Build by loading a GDML file.
  */
-std::shared_ptr<VecgeomParams>
-VecgeomParams::from_gdml(std::string const& filename)
+std::shared_ptr<VecgeomParams> VecgeomParams::from_gdml(
+    std::string const& filename)
 {
     if (CELERITAS_USE_GEANT4)
     {
@@ -348,8 +348,8 @@ VecgeomParams::from_gdml(std::string const& filename)
  * This mode is incompatible with having an existing run manager. It will clear
  * the geometry once complete.
  */
-std::shared_ptr<VecgeomParams>
-VecgeomParams::from_gdml_g4(std::string const& filename)
+std::shared_ptr<VecgeomParams> VecgeomParams::from_gdml_g4(
+    std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
                    << "cannot load Geant4 geometry into VecGeom from a file "
@@ -363,8 +363,8 @@ VecgeomParams::from_gdml_g4(std::string const& filename)
 /*!
  * Build by loading a GDML file using VecGeom's (buggy) in-house loader.
  */
-std::shared_ptr<VecgeomParams>
-VecgeomParams::from_gdml_vg(std::string const& filename)
+std::shared_ptr<VecgeomParams> VecgeomParams::from_gdml_vg(
+    std::string const& filename)
 {
     {
         ScopedProfiling profile_this{"vecgeom-vgdml-load"};
@@ -392,8 +392,8 @@ VecgeomParams::from_gdml_vg(std::string const& filename)
 /*!
  * Build from a Geant4 geometry.
  */
-std::shared_ptr<VecgeomParams>
-VecgeomParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+std::shared_ptr<VecgeomParams> VecgeomParams::from_geant(
+    std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
     CELER_LOG(status)
@@ -480,8 +480,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *geo.GetWorld();
 
         // Construct volume labels
-        impl_volumes_
-            = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
+        impl_volumes_ = ImplVolumeMap{"impl volume",
+                                      make_logical_vol_labels(world)};
         impl_vol_instances_ = ImplVolInstanceMap{
             "impl volume instance", make_physical_vol_labels(world)};
 
@@ -538,8 +538,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             for (auto ivi_id :
                  range(ImplVolInstanceId{host_data.volume_instances.size()}))
             {
-                host_data.volume_instances[ivi_id]
-                    = id_cast<VolumeInstanceId>(ivi_id.get());
+                host_data.volume_instances[ivi_id] = id_cast<VolumeInstanceId>(
+                    ivi_id.get());
             }
         }
         CELER_ASSERT(host_data);
@@ -636,8 +636,8 @@ inp::Model VecgeomParams::make_model_input() const
 
         v.volume_instances[ivi_id.get()].label = label;
         // Save the underlying volume for this instance
-        v.volume_instances[ivi_id.get()].volume
-            = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
+        v.volume_instances[ivi_id.get()].volume = id_cast<VolumeId>(
+            placed_vol.GetLogicalVolume()->id());
     }
 
     v.world = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());
@@ -753,8 +753,8 @@ void VecgeomParams::build_volume_tracking()
 /*!
  * Get the volume instance containing the global point.
  */
-inline VolumeInstanceId
-VecgeomParams::find_volume_instance_at(Real3 const& global_point) const
+inline VolumeInstanceId VecgeomParams::find_volume_instance_at(
+    Real3 const& global_point) const
 {
     using HostStateStore = StateDataStore<VecgeomStateData, MemSpace::host>;
     HostStateStore states(this->host_ref(), 1);

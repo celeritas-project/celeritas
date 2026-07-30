@@ -31,8 +31,7 @@ class XsGridInserter
     //!@{
     //! \name Type aliases
     using GridId = ItemId<XsGridRecord>;
-    using GridValues
-        = Collection<XsGridRecord, Ownership::value, MemSpace::host>;
+    using GridValues = Collection<XsGridRecord, Ownership::value, MemSpace::host>;
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
 

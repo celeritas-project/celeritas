@@ -113,8 +113,8 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 /*!
  * Initialize a process result.
  */
-ImportProcess
-init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
+ImportProcess init_process(G4ParticleDefinition const& particle,
+                           G4VProcess const& process)
 {
     CELER_LOG(debug) << "Loading process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
@@ -126,11 +126,10 @@ init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
     result.process_class = to_import_process_class(process);
     result.particle_pdg = particle.GetPDGEncoding();
 
-    auto* rest_processes
-        = particle.GetProcessManager()->GetAtRestProcessVector();
+    auto* rest_processes = particle.GetProcessManager()->GetAtRestProcessVector();
     CELER_ASSERT(rest_processes);
-    result.applies_at_rest
-        = rest_processes->contains(const_cast<G4VProcess*>(&process));
+    result.applies_at_rest = rest_processes->contains(
+        const_cast<G4VProcess*>(&process));
 
     return result;
 }
@@ -349,8 +348,8 @@ std::vector<ImportMscModel> GeantProcessImporter::operator()(
             imm.particle_pdg = primary_pdg;
             try
             {
-                imm.model_class
-                    = geant_name_to_import_model_class(model->GetName());
+                imm.model_class = geant_name_to_import_model_class(
+                    model->GetName());
             }
             catch (celeritas::RuntimeError const&)
             {
@@ -390,13 +389,13 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
               std::log(pv.Energy(size - 1) * x_scaling)};
     grid.y.resize(size);
 
-    double delta
-        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
+    double delta = fastpow(pv.Energy(size - 1) / pv.Energy(0),
+                           1.0 / (size - 1));
     for (auto i : range(size))
     {
         // Check that the grid has log spacing
-        CELER_ASSERT(
-            i == 0 || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+        CELER_ASSERT(i == 0
+                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
         grid.y[i] = pv[i] * y_scaling;
     }
     CELER_ENSURE(grid);
@@ -407,8 +406,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
 /*!
  * Import a generic physics vector with the given x, y units.
  */
-inp::Grid
-import_physics_vector(G4PhysicsVector const& pv, Array<ImportUnits, 2> units)
+inp::Grid import_physics_vector(G4PhysicsVector const& pv,
+                                Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);

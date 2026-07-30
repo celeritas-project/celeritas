@@ -45,8 +45,8 @@ BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
     {
         if (!logic::is_operator_token(v))
         {
-            auto iter
-                = find_sorted(faces.begin(), faces.end(), LocalSurfaceId{v});
+            auto iter = find_sorted(
+                faces.begin(), faces.end(), LocalSurfaceId{v});
             CELER_ASSUME(iter != faces.end());
             v = iter - faces.begin();
         }

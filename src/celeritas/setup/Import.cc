@@ -123,8 +123,8 @@ void physics_from(inp::PhysicsFromGeantFiles const& pfgf, ImportData& imported)
     {
         // TODO: delete interpolation parameter; see PhysicsFromGeant docs
         inp::LivermorePhotoModel lp_model;
-        lp_model.atomic_xs
-            = load_data(LivermorePEReader{imported.em_params.interpolation});
+        lp_model.atomic_xs = load_data(
+            LivermorePEReader{imported.em_params.interpolation});
         imported.livermore_photo = std::move(lp_model);
     }
 

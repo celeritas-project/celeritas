@@ -185,9 +185,8 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 
         // Check the weight is consistent with our modification at
         // begin-of-event
-        auto event_id = G4EventManager::GetEventManager()
-                            ->GetConstCurrentEvent()
-                            ->GetEventID();
+        auto event_id
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
@@ -272,10 +271,11 @@ TEST_F(LarSphere, state_dep)
 {
     // Map stream to status changes: initialize with empty vectors for
     // main thread to record test event
-    static std::map<StreamId, std::vector<std::string>> stream_state
-        = {{StreamId{0}, {}}};
+    static std::map<StreamId, std::vector<std::string>> stream_state = {
+        {StreamId{0}, {}}};
     // Record a change for the local stream ID
-    static auto record_state_change = [](StreamId sid, GeantStateChange change) {
+    static auto record_state_change = [](StreamId sid,
+                                         GeantStateChange change) {
         if (change != GeantStateChange::unknown)
         {
             static std::mutex mu;
@@ -542,13 +542,13 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
         return opt;
     }();
     // Optical detector hit callback
-    result.optical->detectors.callback
-        = [this](Span<optical::DetectorHit const> hits) {
-              for (auto const& hit : hits)
-              {
-                  detector_x_positions_.push_back(hit.position[0]);
-              }
-          };
+    result.optical->detectors.callback =
+        [this](Span<optical::DetectorHit const> hits) {
+            for (auto const& hit : hits)
+            {
+                detector_x_positions_.push_back(hit.position[0]);
+            }
+        };
     return result;
 }
 
@@ -564,8 +564,8 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
-        auto& local_transporter
-            = dynamic_cast<LocalTransporter&>(integration.local_offload());
+        auto& local_transporter = dynamic_cast<LocalTransporter&>(
+            integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -578,9 +578,10 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
         if (local_transporter && optical_collector)
         {
             // Use diagnostic methods to check counters
-            auto const& accum_stats
-                = optical_collector->optical_state(local_transporter.GetState())
-                      .accum();
+            auto const& accum_stats = optical_collector
+                                          ->optical_state(
+                                              local_transporter.GetState())
+                                          .accum();
             CELER_LOG_LOCAL(info)
                 << "Ran " << accum_stats.steps << " over "
                 << accum_stats.step_iters << " step iterations from "
@@ -679,8 +680,8 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
-        auto& local_transporter
-            = dynamic_cast<LocalTransporter&>(integration.local_offload());
+        auto& local_transporter = dynamic_cast<LocalTransporter&>(
+            integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -693,9 +694,10 @@ void OpNoviceOptical::EndOfRunAction(G4Run const* run)
         if (local_transporter && optical_collector)
         {
             // Use diagnostic methods to check counters
-            auto const& accum_stats
-                = optical_collector->optical_state(local_transporter.GetState())
-                      .accum();
+            auto const& accum_stats = optical_collector
+                                          ->optical_state(
+                                              local_transporter.GetState())
+                                          .accum();
             CELER_LOG_LOCAL(info)
                 << "Ran " << accum_stats.steps << " over "
                 << accum_stats.step_iters << " step iterations from "
@@ -826,8 +828,8 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
     auto& integration = detail::IntegrationSingleton::instance();
     if (integration.mode() == OffloadMode::enabled && !this->HasFatalFailure())
     {
-        auto& local_transporter
-            = dynamic_cast<LocalTransporter&>(integration.local_offload());
+        auto& local_transporter = dynamic_cast<LocalTransporter&>(
+            integration.local_offload());
         auto const& shared_params = integration.shared_params();
 
         // Check that local/shared data is available before end of run
@@ -845,9 +847,10 @@ void OpticalSurfaces::EndOfRunAction(G4Run const* run)
             }();
 
             // Use diagnostic methods to check counters
-            auto const& accum_stats
-                = optical_collector->optical_state(local_transporter.GetState())
-                      .accum();
+            auto const& accum_stats = optical_collector
+                                          ->optical_state(
+                                              local_transporter.GetState())
+                                          .accum();
             CELER_LOG_LOCAL(info)
                 << "Ran " << accum_stats.steps << " over "
                 << accum_stats.step_iters << " step iterations from "

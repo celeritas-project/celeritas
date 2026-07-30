@@ -138,8 +138,7 @@ void GlobalSetup::ReadInput(std::string const& filename)
     if (input_.physics_options.muon)
     {
         // Offload muons in addition to EM tracks if enabled
-        options_->offload_particles
-            = SharedParams::supported_offload_particles();
+        options_->offload_particles = SharedParams::supported_offload_particles();
     }
 
     // Output options

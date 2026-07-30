@@ -31,8 +31,8 @@ TEST(ExponentialDistributionTest, all)
     {
         histogram(sample(rng));
     }
-    static unsigned int const expected_counts[]
-        = {3897u, 2411u, 1368u, 897u, 587u, 354u, 184u, 127u};
+    static unsigned int const expected_counts[] = {
+        3897u, 2411u, 1368u, 897u, 587u, 354u, 184u, 127u};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }

@@ -48,11 +48,11 @@ class EPlusGGInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    EPlusGGInteractor(EPlusGGData const& shared,
-                      ParticleTrackView const& particle,
-                      Real3 const& inc_direction,
-                      StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION EPlusGGInteractor(
+        EPlusGGData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -75,11 +75,11 @@ class EPlusGGInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-EPlusGGInteractor::EPlusGGInteractor(EPlusGGData const& shared,
-                                     ParticleTrackView const& particle,
-                                     Real3 const& inc_direction,
-                                     StackAllocator<Secondary>& allocate)
+CELER_FUNCTION EPlusGGInteractor::EPlusGGInteractor(
+    EPlusGGData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
@@ -115,8 +115,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     if (inc_energy_ == 0)
     {
         // Save outgoing secondary data
-        secondaries[0].energy = secondaries[1].energy
-            = Energy{value_as<Mass>(shared_.electron_mass)};
+        secondaries[0].energy = secondaries[1].energy = Energy{
+            value_as<Mass>(shared_.electron_mass)};
 
         IsotropicDistribution<real_type> gamma_dir;
         secondaries[0].direction = gamma_dir(rng);
@@ -140,7 +140,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         {
             epsil = sample_eps(rng);
         } while (BernoulliDistribution(
-            epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(rng));
+            epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(
+            rng));
 
         // Scattered Gamma angles
         real_type const cost = (epsil * tau2 - 1)
@@ -148,15 +149,17 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         CELER_ASSERT(std::fabs(cost) <= 1);
 
         // Kinematic of the gamma pair
-        real_type const total_energy
-            = inc_energy_ + 2 * value_as<Mass>(shared_.electron_mass);
+        real_type const total_energy = inc_energy_
+                                       + 2
+                                             * value_as<Mass>(
+                                                 shared_.electron_mass);
         real_type const gamma_energy = epsil * total_energy;
         real_type const eplus_moment = std::sqrt(inc_energy_ * total_energy);
 
         // Sample and save outgoing secondary data
         secondaries[0].energy = Energy{gamma_energy};
-        secondaries[0].direction
-            = ExitingDirectionSampler{cost, inc_direction_}(rng);
+        secondaries[0].direction = ExitingDirectionSampler{
+            cost, inc_direction_}(rng);
         secondaries[1].energy = Energy{total_energy - gamma_energy};
         secondaries[1].direction = calc_exiting_direction(
             {eplus_moment, inc_direction_}, {inc_energy_, inc_direction_});

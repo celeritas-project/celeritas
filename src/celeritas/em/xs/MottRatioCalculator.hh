@@ -40,8 +40,8 @@ class MottRatioCalculator
 
   public:
     // Construct with state data
-    inline CELER_FUNCTION
-    MottRatioCalculator(MottCoeffMatrix const& coeffs, real_type beta);
+    inline CELER_FUNCTION MottRatioCalculator(MottCoeffMatrix const& coeffs,
+                                              real_type beta);
 
     // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;

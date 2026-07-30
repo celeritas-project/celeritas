@@ -62,8 +62,8 @@ BvhPartitioner::BvhPartitioner(
  * If no partition is found, an empty partition is returned. A partition is
  * also rejected when the subset is small and the child bboxes overlap heavily.
  */
-BvhPartitioner::Partition
-BvhPartitioner::operator()(VecIndices const& indices) const
+BvhPartitioner::Partition BvhPartitioner::operator()(
+    VecIndices const& indices) const
 {
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
@@ -77,10 +77,10 @@ BvhPartitioner::operator()(VecIndices const& indices) const
         // Loop through <candidates_per_axis_> equally-spaced partition
         // candidates
 
-        auto step_size
-            = std::max(static_cast<size_type>(
-                           axes_centers[ax].size() / (num_part_cands_ + 1)),
-                       1_sz);
+        auto step_size = std::max(
+            static_cast<size_type>(
+                axes_centers[ax].size() / (num_part_cands_ + 1)),
+            1_sz);
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
         {
@@ -117,8 +117,8 @@ BvhPartitioner::operator()(VecIndices const& indices) const
 /*!
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
-BvhPartitioner::AxesCenters
-BvhPartitioner::calc_axes_centers(VecIndices const& indices) const
+BvhPartitioner::AxesCenters BvhPartitioner::calc_axes_centers(
+    VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 

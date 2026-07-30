@@ -41,19 +41,19 @@ class FresnelCalculator
 {
   public:
     // Construct from initial state
-    explicit inline CELER_FUNCTION
-    FresnelCalculator(Real3 const& direction,
-                      Real3 const& polarization,
-                      Real3 const& normal,
-                      real_type relative_r_index);
+    explicit inline CELER_FUNCTION FresnelCalculator(
+        Real3 const& direction,
+        Real3 const& polarization,
+        Real3 const& normal,
+        real_type relative_r_index);
 
     // Construct from track views
-    explicit inline CELER_FUNCTION
-    FresnelCalculator(Real3 const& inc_direction,
-                      ParticleTrackView const& photon,
-                      Real3 const& normal,
-                      MaterialView const& pre_material,
-                      MaterialView const& post_material);
+    explicit inline CELER_FUNCTION FresnelCalculator(
+        Real3 const& inc_direction,
+        ParticleTrackView const& photon,
+        Real3 const& normal,
+        MaterialView const& pre_material,
+        MaterialView const& post_material);
 
     // Whether the interaction will be total internal reflection
     inline CELER_FUNCTION bool is_total_internal_reflection() const;
@@ -158,12 +158,12 @@ CELER_FUNCTION FresnelCalculator::FresnelCalculator(Real3 const& direction,
 /*!
  * Construct from track views.
  */
-CELER_FUNCTION
-FresnelCalculator::FresnelCalculator(Real3 const& inc_direction,
-                                     ParticleTrackView const& photon,
-                                     Real3 const& normal,
-                                     MaterialView const& pre_material,
-                                     MaterialView const& post_material)
+CELER_FUNCTION FresnelCalculator::FresnelCalculator(
+    Real3 const& inc_direction,
+    ParticleTrackView const& photon,
+    Real3 const& normal,
+    MaterialView const& pre_material,
+    MaterialView const& post_material)
     : FresnelCalculator(
           inc_direction,
           photon.polarization(),
@@ -191,10 +191,12 @@ CELER_FUNCTION real_type FresnelCalculator::calc_reflectivity() const
 {
     real_type te_comp_sq = ipow<2>(this->inc_te_component());
     real_type tm_comp_sq = ipow<2>(this->inc_tm_component());
-    real_type total_reflectivity
-        = (te_comp_sq * ipow<2>(this->calc_reflectivity_te())
-           + tm_comp_sq * ipow<2>(this->calc_reflectivity_tm()))
-          / (te_comp_sq + tm_comp_sq);
+    real_type total_reflectivity = (te_comp_sq
+                                        * ipow<2>(this->calc_reflectivity_te())
+                                    + tm_comp_sq
+                                          * ipow<2>(
+                                              this->calc_reflectivity_tm()))
+                                   / (te_comp_sq + tm_comp_sq);
 
     CELER_ENSURE(0 <= total_reflectivity && total_reflectivity <= 1);
 
@@ -324,7 +326,8 @@ CELER_FUNCTION real_type FresnelCalculator::inc_tm_component() const
 /*!
  * Helper function for calculating reflectivity coefficients.
  */
-CELER_FUNCTION real_type FresnelCalculator::reflectivity_ratio(real_type x) const
+CELER_FUNCTION real_type FresnelCalculator::reflectivity_ratio(
+    real_type x) const
 {
     return (x - 1) / (x + 1);
 }

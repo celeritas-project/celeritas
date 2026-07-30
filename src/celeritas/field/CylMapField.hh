@@ -99,8 +99,8 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Find interpolation points for given r, phi, z
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
-    auto [iphi, wphi1]
-        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
+    auto [iphi, wphi1] = find_interp<NonuniformGrid<real_type>>(grid_phi_,
+                                                                phi.value());
     auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
 
     auto get_field = [this](size_type ir, size_type iphi, size_type iz) {
@@ -122,13 +122,15 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
         real_type v111 = get_field(ir + 1, iphi + 1, iz + 1)[axis];
         // clang-format on
         // Trilinear interpolation formula for the current component
-        interp_field[axis]
-            = (1 - wr1)
-                  * ((1 - wphi1) * ((1 - wz1) * v000 + wz1 * v001)
-                     + wphi1 * ((1 - wz1) * v010 + wz1 * v011))
-              + wr1
-                    * ((1 - wphi1) * ((1 - wz1) * v100 + wz1 * v101)
-                       + wphi1 * ((1 - wz1) * v110 + wz1 * v111));
+        interp_field[axis] = (1 - wr1)
+                                 * ((1 - wphi1)
+                                        * ((1 - wz1) * v000 + wz1 * v001)
+                                    + wphi1 * ((1 - wz1) * v010 + wz1 * v011))
+                             + wr1
+                                   * ((1 - wphi1)
+                                          * ((1 - wz1) * v100 + wz1 * v101)
+                                      + wphi1
+                                            * ((1 - wz1) * v110 + wz1 * v111));
     }
 
     // Project cylindrical components to Cartesian coordinates

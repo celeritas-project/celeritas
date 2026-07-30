@@ -180,28 +180,30 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     static_assert(std::size(mass) == ZoneComponent::NucleonArray::size());
     static_assert(std::size(dm) == std::size(mass));
 
-    real_type const total_integral
-        = std::accumulate(zone_dens.begin(),
-                          zone_dens.end(),
-                          0_r,
-                          [](real_type sum, ZoneDensity const& zone) {
-                              return sum + zone.integral;
-                          });
+    real_type const total_integral = std::accumulate(
+        zone_dens.begin(),
+        zone_dens.end(),
+        0_r,
+        [](real_type sum, ZoneDensity const& zone) {
+            return sum + zone.integral;
+        });
 
     for (auto i : range(components.size()))
     {
         for (auto ptype : range(ZoneComponent::NucleonArray::size()))
         {
-            components[i].density[ptype]
-                = static_cast<real_type>(num_nucleons[ptype])
-                  * zone_dens[i].integral
-                  / (total_integral * components[i].volume);
-            components[i].fermi_mom[ptype]
-                = options_.fermi_scale
-                  * std::cbrt(components[i].density[ptype]);
-            components[i].potential[ptype]
-                = ipow<2>(components[i].fermi_mom[ptype]) / (2 * mass[ptype])
-                  + dm[ptype];
+            components[i].density[ptype] = static_cast<real_type>(
+                                               num_nucleons[ptype])
+                                           * zone_dens[i].integral
+                                           / (total_integral
+                                              * components[i].volume);
+            components[i].fermi_mom[ptype] = options_.fermi_scale
+                                             * std::cbrt(
+                                                 components[i].density[ptype]);
+            components[i].potential[ptype] = ipow<2>(
+                                                 components[i].fermi_mom[ptype])
+                                                 / (2 * mass[ptype])
+                                             + dm[ptype];
         }
     }
     return components;
@@ -298,11 +300,11 @@ auto NuclearZoneBuilder::calc_zones_heavy(AtomicMassNumber a) const
         real_type y = std::log((1 + skin_decay) / alpha[i] - 1);
         result[i].radius = nuclear_radius + skin_depth_ * y;
 
-        result[i].integral
-            = ipow<3>(skin_depth_)
-              * (integrate_ws(ymin, y)
-                 + ipow<2>(skin_ratio)
-                       * std::log((1 + std::exp(-ymin)) / (1 + std::exp(-y))));
+        result[i].integral = ipow<3>(skin_depth_)
+                             * (integrate_ws(ymin, y)
+                                + ipow<2>(skin_ratio)
+                                      * std::log((1 + std::exp(-ymin))
+                                                 / (1 + std::exp(-y))));
         ymin = y;
     }
 

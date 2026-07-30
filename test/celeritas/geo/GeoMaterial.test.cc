@@ -105,16 +105,16 @@ class MultiLevelTest : public GeantTestBase, public GeoMaterialTestBase
 TEST_F(SimpleCmsTest, plus_z)
 {
     auto materials = this->trace_materials({0, 0, 0}, {1, 0, 0});
-    static char const* const expected_materials[]
-        = {"vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
+    static char const* const expected_materials[] = {
+        "vacuum", "Si", "Pb", "C", "Ti", "Fe", "vacuum"};
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 
 TEST_F(Em3Test, plus_x)
 {
     auto materials = this->trace_materials({19.01, 0, 0}, {1, 0, 0});
-    static char const* const expected_materials[]
-        = {"lAr", "Pb", "lAr", "vacuum"};
+    static char const* const expected_materials[] = {
+        "lAr", "Pb", "lAr", "vacuum"};
     EXPECT_VEC_EQ(expected_materials, materials);
 }
 

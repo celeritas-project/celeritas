@@ -35,8 +35,8 @@ class VolumeSurfaceView
 
   public:
     // Construct from params and pre-step volume ID
-    inline CELER_FUNCTION
-    VolumeSurfaceView(SurfaceParamsRef const& params, VolumeId id);
+    inline CELER_FUNCTION VolumeSurfaceView(SurfaceParamsRef const& params,
+                                            VolumeId id);
 
     // ID of the Volume
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
@@ -121,13 +121,14 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
     VolumeInstanceId pre_id, VolumeInstanceId post_id) const
 {
     auto const& record = this->volume_record();
-    auto get_volinst_id
-        = [this](auto item) { return params_.volume_instance_ids[item]; };
+    auto get_volinst_id = [this](auto item) {
+        return params_.volume_instance_ids[item];
+    };
     for (size_type index = 0; index < record.interface_pre.size(); ++index)
     {
         {
-            VolumeInstanceId cur_pre_id
-                = get_volinst_id(record.interface_pre[index]);
+            VolumeInstanceId cur_pre_id = get_volinst_id(
+                record.interface_pre[index]);
             if (pre_id < cur_pre_id)
             {
                 // Past range of pre-step IDs: volume isn't in array
@@ -140,8 +141,8 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
             }
         }
         {
-            VolumeInstanceId cur_post_id
-                = get_volinst_id(record.interface_post[index]);
+            VolumeInstanceId cur_post_id = get_volinst_id(
+                record.interface_post[index]);
             if (post_id < cur_post_id)
             {
                 // Past range of post-step IDs
@@ -170,8 +171,7 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
 /*!
  * Get the volume surface record for the current volume.
  */
-CELER_FUNCTION VolumeSurfaceRecord const&
-VolumeSurfaceView::volume_record() const
+CELER_FUNCTION VolumeSurfaceRecord const& VolumeSurfaceView::volume_record() const
 {
     return params_.volume_surfaces[volume_];
 }

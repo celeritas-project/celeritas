@@ -67,8 +67,8 @@ class GridIdFinder
  * __ldg as needed
  */
 template<class K, class V>
-CELER_FUNCTION
-GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid, SpanConstValue value)
+CELER_FUNCTION GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid,
+                                                SpanConstValue value)
     : grid_(grid), value_(value)
 {
     CELER_EXPECT(grid_.size() == value_.size() + 1);
@@ -82,8 +82,8 @@ template<class K, class V>
 CELER_FUNCTION auto GridIdFinder<K, V>::operator()(argument_type quant) const
     -> result_type
 {
-    auto iter
-        = celeritas::lower_bound(grid_.begin(), grid_.end(), quant.value());
+    auto iter = celeritas::lower_bound(
+        grid_.begin(), grid_.end(), quant.value());
     if (iter == grid_.end()
         || (iter == grid_.begin() && quant.value() != *iter))
     {

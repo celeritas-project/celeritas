@@ -223,8 +223,8 @@ TEST_F(IntersectSurfaceBuilderTest, translate)
 
 TEST_F(IntersectSurfaceBuilderTest, transform)
 {
-    transform_
-        = Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1}};
+    transform_ = Transformation{make_rotation(Axis::x, Turn{0.25}),
+                                Real3{0, 0, 1}};
     {
         SCOPED_TRACE("hemi");
         auto css = this->make_state();
@@ -248,12 +248,12 @@ TEST_F(IntersectSurfaceBuilderTest, transform)
         EXPECT_VEC_EQ(expected_nodes, to_vec_int(css.nodes));
     }
 
-    static char const* const expected_surface_strings[]
-        = {"Plane: y=0", "Sphere: r=1 at {0,0,1}"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: y=0", "Sphere: r=1 at {0,0,1}"};
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["S",1],["~",3]])json";
-    static char const* const expected_md_strings[]
-        = {"", "", "h@c.pz", "h@c.s", ""};
+    static char const* const expected_md_strings[] = {
+        "", "", "h@c.pz", "h@c.s", ""};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -274,8 +274,8 @@ TEST_F(IntersectSurfaceBuilderTest, finite_extents)
 
         static real_type const expected_local_bz[] = {
             -0.5, -inf, -inf, 0.5, inf, inf, -0.5, -inf, -inf, 0.5, inf, inf, 1};
-        static real_type const expected_global_bz[]
-            = {-0.5, -10, -10, 0.5, 10, 10, -0.5, -10, -10, 0.5, 10, 10, 1};
+        static real_type const expected_global_bz[] = {
+            -0.5, -10, -10, 0.5, 10, 10, -0.5, -10, -10, 0.5, 10, 10, 1};
         static int const expected_nodes[] = {2, 4};
         EXPECT_VEC_SOFT_EQ(expected_local_bz, flattened(css.local_bzone));
         EXPECT_VEC_SOFT_EQ(expected_global_bz, flattened(css.global_bzone));

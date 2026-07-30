@@ -60,8 +60,8 @@ class NucleonNucleonXsCalculator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(ParamsRef const& shared)
+CELER_FUNCTION NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(
+    ParamsRef const& shared)
     : shared_(shared)
 {
 }

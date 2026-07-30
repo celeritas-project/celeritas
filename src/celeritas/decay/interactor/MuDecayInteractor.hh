@@ -63,11 +63,11 @@ class MuDecayInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    MuDecayInteractor(MuDecayData const& shared,
-                      ParticleTrackView const& particle,
-                      Real3 const& inc_direction,
-                      StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION MuDecayInteractor(
+        MuDecayData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -119,11 +119,11 @@ class MuDecayInteractor
  * MeV instead of the expected 105.7 MeV (muon mass), which is achieved by
  * using the physics manual definition.
  */
-CELER_FUNCTION
-MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
-                                     ParticleTrackView const& particle,
-                                     Real3 const& inc_direction,
-                                     StackAllocator<Secondary>& allocate)
+CELER_FUNCTION MuDecayInteractor::MuDecayInteractor(
+    MuDecayData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , allocate_(allocate)
@@ -181,8 +181,8 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 1};
     result.secondaries[0].particle_id = sec_id_;
     // Interaction stores kinetic energy; FourVector stores total energy
-    result.secondaries[0].energy
-        = Energy{charged_lep_fv.energy - shared_.electron_mass.value()};
+    result.secondaries[0].energy = Energy{charged_lep_fv.energy
+                                          - shared_.electron_mass.value()};
     result.secondaries[0].direction = make_unit_vector(charged_lep_fv.mom);
 
     return result;

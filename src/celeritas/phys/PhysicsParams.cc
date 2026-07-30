@@ -94,8 +94,8 @@ PhysicsParams::PhysicsParams(Input inp)
         using std::make_shared;
         auto& action_reg = *inp.action_registry;
 
-        auto pre_step_action
-            = make_shared<detail::PreStepAction>(action_reg.next_id());
+        auto pre_step_action = make_shared<detail::PreStepAction>(
+            action_reg.next_id());
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
@@ -113,8 +113,8 @@ PhysicsParams::PhysicsParams(Input inp)
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
-        auto discrete_action
-            = make_shared<detail::DiscreteSelectAction>(action_reg.next_id());
+        auto discrete_action = make_shared<detail::DiscreteSelectAction>(
+            action_reg.next_id());
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
@@ -173,14 +173,14 @@ PhysicsParams::PhysicsParams(Input inp)
     // Assign the host/device references to hardwired model data
     this->build_hardwired();
 
-    CELER_ENSURE(
-        range_action_->action_id() == host_ref().scalars.range_action());
-    CELER_ENSURE(
-        discrete_action_->action_id() == host_ref().scalars.discrete_action());
+    CELER_ENSURE(range_action_->action_id()
+                 == host_ref().scalars.range_action());
+    CELER_ENSURE(discrete_action_->action_id()
+                 == host_ref().scalars.discrete_action());
     CELER_ENSURE(integral_rejection_action_->action_id()
                  == host_ref().scalars.integral_rejection_action());
-    CELER_ENSURE(
-        failure_action_->action_id() == host_ref().scalars.failure_action());
+    CELER_ENSURE(failure_action_->action_id()
+                 == host_ref().scalars.failure_action());
 }
 
 //---------------------------------------------------------------------------//
@@ -231,9 +231,9 @@ auto PhysicsParams::build_models(ActionRegistry* mgr) const -> VecModel
 void PhysicsParams::build_particle_options(ParticleOptions const& opts,
                                            ParticleScalars* data) const
 {
-    CELER_VALIDATE(
-        opts.min_range > 0,
-        << "invalid min_range=" << opts.min_range << " (should be positive)");
+    CELER_VALIDATE(opts.min_range > 0,
+                   << "invalid min_range=" << opts.min_range
+                   << " (should be positive)");
     CELER_VALIDATE(opts.max_step_over_range > 0,
                    << "invalid max_step_over_range="
                    << opts.max_step_over_range << " (should be positive)");
@@ -323,9 +323,9 @@ void PhysicsParams::build_ids(ParticleParams const& particles,
             {
                 CELER_NOT_IMPLEMENTED("material-dependent models");
             }
-            CELER_VALIDATE(
-                applic.particle < particles.size(),
-                << "invalid particle ID " << applic.particle.unchecked_get());
+            CELER_VALIDATE(applic.particle < particles.size(),
+                           << "invalid particle ID "
+                           << applic.particle.unchecked_get());
             CELER_VALIDATE(applic.lower < applic.upper,
                            << "expected lower energy limit ("
                            << value_as<ModelGroup::Energy>(applic.lower)
@@ -626,8 +626,8 @@ void PhysicsParams::build_tables(
                                 inverse_range, make_const_ref(*data).reals);
                         inverse_range.derivative = reals.insert_back(
                             derivative.begin(), derivative.end());
-                        inverse_range_ids[mat_idx]
-                            = uniform_grids.push_back(inverse_range);
+                        inverse_range_ids[mat_idx] = uniform_grids.push_back(
+                            inverse_range);
                     }
                 }
 
@@ -664,9 +664,8 @@ void PhysicsParams::build_tables(
                     energy_loss_ids.begin(), energy_loss_ids.end());
                 process_group.range.grids = uniform_grid_ids.insert_back(
                     range_ids.begin(), range_ids.end());
-                process_group.inverse_range.grids
-                    = uniform_grid_ids.insert_back(inverse_range_ids.begin(),
-                                                   inverse_range_ids.end());
+                process_group.inverse_range.grids = uniform_grid_ids.insert_back(
+                    inverse_range_ids.begin(), inverse_range_ids.end());
             }
 
             // Store the energies of the maximum cross sections
@@ -734,8 +733,8 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
             }
             // Construct table for the model
             ModelCdfTable cdf;
-            cdf.tables
-                = tables.insert_back(temp_tables.begin(), temp_tables.end());
+            cdf.tables = tables.insert_back(temp_tables.begin(),
+                                            temp_tables.end());
             model_cdf.push_back(cdf);
         }
     }

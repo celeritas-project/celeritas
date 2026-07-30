@@ -43,10 +43,10 @@ class DTMucfInteractor
     };
 
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                     Channel channel,
-                     StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION DTMucfInteractor(
+        NativeCRef<DTMixMucfData> const& data,
+        Channel channel,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -84,10 +84,10 @@ class DTMucfInteractor
 /*!
  * Construct with shared data and channel selection.
  */
-CELER_FUNCTION
-DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                                   Channel const channel,
-                                   StackAllocator<Secondary>& allocate)
+CELER_FUNCTION DTMucfInteractor::DTMucfInteractor(
+    NativeCRef<DTMixMucfData> const& data,
+    Channel const channel,
+    StackAllocator<Secondary>& allocate)
     : data_(data), channel_(channel), allocate_(allocate)
 {
     CELER_EXPECT(data_);
@@ -129,13 +129,13 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
                 rng);
 
             // Alpha: Final state calculated via momentum conservation
-            sec[alpha_idx]
-                = detail::calc_third_secondary(sec[neutron_idx],
-                                               data_.particle_masses.neutron,
-                                               sec[muon_idx],
-                                               data_.particle_masses.mu_minus,
-                                               data_.particle_ids.alpha,
-                                               data_.particle_masses.alpha);
+            sec[alpha_idx] = detail::calc_third_secondary(
+                sec[neutron_idx],
+                data_.particle_masses.neutron,
+                sec[muon_idx],
+                data_.particle_masses.mu_minus,
+                data_.particle_ids.alpha,
+                data_.particle_masses.alpha);
             break;
         }
 
@@ -144,8 +144,8 @@ CELER_FUNCTION Interaction DTMucfInteractor::operator()(Engine& rng)
             sec[muonicalpha_idx].particle_id = data_.particle_ids.muonic_alpha;
             sec[muonicalpha_idx].energy = this->total_kinetic_energy()
                                           - this->neutron_kinetic_energy();
-            sec[muonicalpha_idx].direction
-                = detail::opposite(sec[neutron_idx].direction);
+            sec[muonicalpha_idx].direction = detail::opposite(
+                sec[neutron_idx].direction);
             break;
         }
 

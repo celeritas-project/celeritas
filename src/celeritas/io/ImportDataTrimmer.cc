@@ -22,8 +22,8 @@ void filter_out_infs(std::vector<T>& data)
 {
     if constexpr (std::is_floating_point_v<T>)
     {
-        constexpr auto max_real
-            = std::min(std::numeric_limits<T>::max(), 1e308);
+        constexpr auto max_real = std::min(std::numeric_limits<T>::max(),
+                                           1e308);
         for (auto& value : data)
         {
             if (std::fabs(value) > max_real)

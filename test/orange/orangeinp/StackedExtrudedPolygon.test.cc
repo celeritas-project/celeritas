@@ -60,8 +60,8 @@ TEST_F(StackedExtrudedPolygonTest, scaled_convex_stack)
         "Plane: n={0.70711,0,-0.70711}, d=-1.4142",
         "Plane: n={0,0.70711,-0.70711}, d=-1.4142",
     };
-    static char const* const expected_volume_strings[]
-        = {"any(all(+0, -1, -2, -3, +4, +5), all(+1, -6, -7, -8, +9, +10))"};
+    static char const* const expected_volume_strings[] = {
+        "any(all(+0, -1, -2, -3, +4, +5), all(+1, -6, -7, -8, +9, +10))"};
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -122,8 +122,8 @@ TEST_F(StackedExtrudedPolygonTest, skewed_convex_stack)
         "Plane: n={0,0.70711,-0.70711}, d=-1.4142",
     };
 
-    static char const* const expected_volume_strings[]
-        = {"any(all(+0, -1, -2, -3, +4, +5), all(+1, -6, -7, -8, +9, +10))"};
+    static char const* const expected_volume_strings[] = {
+        "any(all(+0, -1, -2, -3, +4, +5), all(+1, -6, -7, -8, +9, +10))"};
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -171,15 +171,15 @@ TEST_F(StackedExtrudedPolygonTest, entirely_outside)
     this->build_volume(StackedExtrudedPolygon{
         "pc", std::move(polygon), std::move(polyline), std::move(scaling)});
 
-    static char const* const expected_surface_strings[]
-        = {"Plane: z=0",
-           "Plane: z=1",
-           "Plane: n={0.8,0,-0.6}, d=0.4",
-           "Plane: y=0.5",
-           "Plane: n={0.8,0,-0.6}, d=-0.4",
-           "Plane: y=-0.5",
-           "Plane: z=2",
-           "Plane: z=3"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0",
+        "Plane: z=1",
+        "Plane: n={0.8,0,-0.6}, d=0.4",
+        "Plane: y=0.5",
+        "Plane: n={0.8,0,-0.6}, d=-0.4",
+        "Plane: y=-0.5",
+        "Plane: z=2",
+        "Plane: z=3"};
 
     static char const* const expected_volume_strings[] = {
         R"(any(all(+0, -1, -2, -3, +4, +5), all(+1, -2, -3, +4, +5, -6), all(-2, -3, +4, +5, +6, -7)))",
@@ -209,11 +209,11 @@ TEST_F(StackedExtrudedPolygonTest, entirely_outside)
 
     // \TODO: Fix StackedExtrudedPolygon such that these bounding boxes tightly
     // fit around each segment in z
-    static char const* const expected_bound_strings[]
-        = {"11: {null, {{-0.5,-0.5,0}, {1.25,0.5,1}}}",
-           "14: {null, {{0.25,-0.5,1}, {2,0.5,2}}}",
-           "17: {null, {{1,-0.5,2}, {2.75,0.5,3}}}",
-           "18: {null, {{-0.5,-0.5,0}, {2.75,0.5,3}}}"};
+    static char const* const expected_bound_strings[] = {
+        "11: {null, {{-0.5,-0.5,0}, {1.25,0.5,1}}}",
+        "14: {null, {{0.25,-0.5,1}, {2,0.5,2}}}",
+        "17: {null, {{1,-0.5,2}, {2.75,0.5,3}}}",
+        "18: {null, {{-0.5,-0.5,0}, {2.75,0.5,3}}}"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -299,11 +299,11 @@ TEST_F(StackedExtrudedPolygonTest, zero_length_z_segs)
         "pc@0.0",
     };
 
-    static char const* const expected_bound_strings[]
-        = {"11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
-           "20: {{{-2,-2,1}, {2,2,2}}, {{-2,-2,1}, {2,2,2}}}",
-           "29: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
-           "30: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
+    static char const* const expected_bound_strings[] = {
+        "11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
+        "20: {{{-2,-2,1}, {2,2,2}}, {{-2,-2,1}, {2,2,2}}}",
+        "29: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
+        "30: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -348,8 +348,8 @@ TEST_F(StackedExtrudedPolygonTest, discontinuous)
         "Plane: y=-3",
     };
 
-    static char const* const expected_volume_strings[]
-        = {"any(all(+0, -1, -2, -3, +4, +5), all(+6, -7, -8, -9, +10, +11))"};
+    static char const* const expected_volume_strings[] = {
+        "any(all(+0, -1, -2, -3, +4, +5), all(+6, -7, -8, -9, +10, +11))"};
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -376,10 +376,10 @@ TEST_F(StackedExtrudedPolygonTest, discontinuous)
         "pc@0.0",
     };
 
-    static char const* const expected_bound_strings[]
-        = {"11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
-           "21: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
-           "22: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
+    static char const* const expected_bound_strings[] = {
+        "11: {{{-1,-1,0}, {1,1,1}}, {{-1,-1,0}, {1,1,1}}}",
+        "21: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,2}, {3,3,3}}}",
+        "22: {{{-3,-3,2}, {3,3,3}}, {{-3,-3,0}, {3,3,3}}}"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));

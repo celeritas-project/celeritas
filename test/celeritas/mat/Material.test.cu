@@ -61,8 +61,8 @@ __global__ void m_test_kernel(unsigned int const size,
     {
         // Pretend to calculate cross section for the ec'th element
         auto const& element = mat.element_record(ElementComponentId{ec});
-        scratch[ec]
-            = static_cast<real_type>(element.atomic_number().unchecked_get());
+        scratch[ec] = static_cast<real_type>(
+            element.atomic_number().unchecked_get());
     }
 
     real_type tz = 0.0;

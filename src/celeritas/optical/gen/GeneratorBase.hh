@@ -95,8 +95,8 @@ void GeneratorBase::update_counters(optical::CoreState<M>& state) const
     auto& gen_counters = this->counters(*state.aux());
 
     // Calculate the number of new tracks generated at this step
-    size_type num_gen
-        = min(counters.num_vacancies, gen_counters.counters.num_pending);
+    size_type num_gen = min(counters.num_vacancies,
+                            gen_counters.counters.num_pending);
 
     // Update the optical core state counters
     counters.num_pending -= num_gen;

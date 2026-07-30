@@ -136,9 +136,9 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
 #else
         temp_reader->skip(0);
 #endif
-        CELER_VALIDATE(
-            !temp_reader->failed(),
-            << "event file '" << filename << "' did not contain any events");
+        CELER_VALIDATE(!temp_reader->failed(),
+                       << "event file '" << filename
+                       << "' did not contain any events");
         do
         {
             result++;
@@ -169,8 +169,8 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
 void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
     CELER_EXPECT(g4_event && g4_event->GetEventID() >= 0);
-    SPHepEvt evt
-        = this->read_event(static_cast<size_type>(g4_event->GetEventID()));
+    SPHepEvt evt = this->read_event(
+        static_cast<size_type>(g4_event->GetEventID()));
     CELER_ASSERT(evt && evt->particles().size() > 0);
 
     PrimaryInserter insert_primary{g4_event, *evt};
@@ -202,8 +202,8 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
         {
             G4PrimaryVertex* vtx = g4_event->GetPrimaryVertex(vtx_id);
             CELER_ASSERT(vtx);
-            CELER_ASSERT(
-                world_solid_->Inside(vtx->GetPosition()) == EInside::kInside);
+            CELER_ASSERT(world_solid_->Inside(vtx->GetPosition())
+                         == EInside::kInside);
         }
     }
 

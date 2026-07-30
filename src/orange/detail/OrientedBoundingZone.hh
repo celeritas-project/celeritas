@@ -66,9 +66,9 @@ class OrientedBoundingZone
 
   public:
     // Construct from an OBZ record and corresponding storage
-    inline CELER_FUNCTION
-    OrientedBoundingZone(OrientedBoundingZoneRecord const& obz_record,
-                         StoragePointers const& sp);
+    inline CELER_FUNCTION OrientedBoundingZone(
+        OrientedBoundingZoneRecord const& obz_record,
+        StoragePointers const& sp);
 
     // Calculate the safety distance for any position inside the outer box
     inline CELER_FUNCTION real_type calc_safety_inside(Real3 const& pos);
@@ -220,11 +220,11 @@ CELER_FUNCTION real_type OrientedBoundingZone::calc_safety_outside(
     fast_real_type min_squared = 0;
     for (auto ax : range(Axis::size_))
     {
-        auto temp
-            = celeritas::max(fast_real_type{0},
-                             static_cast<fast_real_type>(
-                                 outer_offset_pos.pos[celeritas::to_int(ax)])
-                                 - outer_hw[celeritas::to_int(ax)]);
+        auto temp = celeritas::max(
+            fast_real_type{0},
+            static_cast<fast_real_type>(
+                outer_offset_pos.pos[celeritas::to_int(ax)])
+                - outer_hw[celeritas::to_int(ax)]);
         min_squared += ipow<2>(temp);
     }
 
@@ -280,8 +280,9 @@ CELER_FUNCTION auto OrientedBoundingZone::apply_offset(
     Real3 const& trans_pos, BBoxType bbt) -> OffsetPos
 {
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
-    auto transform_down
-        = [&trans_pos](auto&& t) { return t.transform_down(trans_pos); };
+    auto transform_down = [&trans_pos](auto&& t) {
+        return t.transform_down(trans_pos);
+    };
 
     return {this->quadrant_one(apply_transform(
                 transform_down, obz_record_.offset_ids[this->to_int(bbt)])),
@@ -312,8 +313,8 @@ CELER_FUNCTION bool OrientedBoundingZone::is_inside(OffsetPos const& off_pos)
 /*!
  * Get half-widths for a bbox.
  */
-CELER_FUNCTION OrientedBoundingZone::FastReal3
-OrientedBoundingZone::get_hw(BBoxType bbt)
+CELER_FUNCTION OrientedBoundingZone::FastReal3 OrientedBoundingZone::get_hw(
+    BBoxType bbt)
 {
     return obz_record_.half_widths[this->to_int(bbt)];
 }
@@ -336,8 +337,8 @@ CELER_FUNCTION Real3 OrientedBoundingZone::quadrant_one(Real3 const& pos)
 /*!
  * Convert BBoxType enum value to int.
  */
-CELER_CONSTEXPR_FUNCTION int
-OrientedBoundingZone::to_int(OrientedBoundingZone::BBoxType bbt)
+CELER_CONSTEXPR_FUNCTION int OrientedBoundingZone::to_int(
+    OrientedBoundingZone::BBoxType bbt)
 {
     return static_cast<int>(bbt);
 }

@@ -42,11 +42,11 @@ class KleinNishinaInteractor
 {
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    KleinNishinaInteractor(KleinNishinaData const& shared,
-                           ParticleTrackView const& particle,
-                           Real3 const& inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION KleinNishinaInteractor(
+        KleinNishinaData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -169,8 +169,8 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
                                                result.direction}(rng);
 
     // Construct secondary energy by neglecting electron binding energy
-    electron_secondary->energy
-        = Energy{inc_energy_.value() - result.energy.value()};
+    electron_secondary->energy = Energy{inc_energy_.value()
+                                        - result.energy.value()};
 
     // Apply secondary production cutoff
     if (electron_secondary->energy < KleinNishinaInteractor::secondary_cutoff())
@@ -183,9 +183,9 @@ CELER_FUNCTION Interaction KleinNishinaInteractor::operator()(Engine& rng)
     // Outgoing secondary is an electron
     electron_secondary->particle_id = shared_.ids.electron;
     // Calculate exiting electron direction via conservation of momentum
-    electron_secondary->direction
-        = calc_exiting_direction({inc_energy_.value(), inc_direction_},
-                                 {result.energy.value(), result.direction});
+    electron_secondary->direction = calc_exiting_direction(
+        {inc_energy_.value(), inc_direction_},
+        {result.energy.value(), result.direction});
 
     return result;
 }

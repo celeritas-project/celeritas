@@ -56,8 +56,8 @@ CELER_FUNCTION Interaction ChipsNeutronElasticExecutor::operator()(
     ElementView element = material.element_record(elcomp_id);
 
     // Select a target nucleus
-    IsotopeView target
-        = element.isotope_record(make_isotope_selector(element)(rng));
+    IsotopeView target = element.isotope_record(
+        make_isotope_selector(element)(rng));
 
     // Construct the interactor
     ChipsNeutronElasticInteractor interact(params, particle, dir, target);

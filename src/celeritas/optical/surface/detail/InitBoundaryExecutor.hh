@@ -81,8 +81,8 @@ CELER_FUNCTION void InitBoundaryExecutor::operator()(CoreTrackView& track) const
 
     // Find oriented surface after crossing boundary using post-volume
     // information
-    auto oriented_surface
-        = select_surface(track.surface(), geo.volume_instance_id());
+    auto oriented_surface = select_surface(track.surface(),
+                                           geo.volume_instance_id());
     if (!oriented_surface)
     {
         // Use default surface properties: typically dielectric-dielectric

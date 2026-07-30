@@ -290,8 +290,8 @@ void AtlasHgtdGeoTest::test_trace() const
             2.3998244128449,
             652.50340341824,
         };
-        ref.dot_normal
-            = {9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
+        ref.dot_normal = {
+            9.2903580992121e-07, 0.99644211932289, 0.99673389979137};
         ref.bumps = {};
         delete_orange_safety(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1266,8 +1266,8 @@ void OpticalSurfacesGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"world", "tube1_mid", "world", "lar_sphere", "world"};
-        ref.volume_instances
-            = {"world_PV", "tube1_mid_pv", "world_PV", "lar_pv", "world_PV"};
+        ref.volume_instances = {
+            "world_PV", "tube1_mid_pv", "world_PV", "lar_pv", "world_PV"};
         ref.distances = {1, 20, 5, 10, 75};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {0.5, 10, 2.5, 5, 37.5};
@@ -1715,8 +1715,8 @@ void ReplicaGeoTest::test_volume_stack() const
         // Geant4 gets stuck here (it's close to a boundary)
         auto result = test_->volume_stack({-342.5, 0.1, 593.22740159234});
         GenericGeoVolumeStackResult ref;
-        ref.volume_instances
-            = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
+        ref.volume_instances = {
+            "world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
         if (test_->geometry_type() == "VecGeom"
             || (test_->geometry_type() == "ORANGE"
                 && (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)))
@@ -1736,8 +1736,8 @@ void ReplicaGeoTest::test_volume_stack() const
         // A bit further along from the stuck point
         auto result = test_->volume_stack({-343, 0.1, 596});
         GenericGeoVolumeStackResult ref;
-        ref.volume_instances
-            = {"world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
+        ref.volume_instances = {
+            "world_PV", "fSecondArmPhys", "EMcalorimeter", "cell_param@42"};
         EXPECT_REF_EQ(ref, result);
     }
     {
@@ -1792,9 +1792,9 @@ void SolidsGeoTest::test_accessors() const
 //---------------------------------------------------------------------------//
 void SolidsGeoTest::test_trace() const
 {
-    bool const single_orange
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-          && (test_->geometry_type() == "ORANGE");
+    bool const single_orange = (CELERITAS_REAL_TYPE
+                                == CELERITAS_REAL_TYPE_FLOAT)
+                               && (test_->geometry_type() == "ORANGE");
 
     if (single_orange)
     {
@@ -2474,8 +2474,8 @@ void TilecalPlugGeoTest::test_trace() const
         auto result = test_->track({6.25, 0.01, -40}, {0, 0, 1});
         GenericGeoTrackingResult ref;
         ref.volumes = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
-        ref.volume_instances
-            = {"Tile_ITCModule_PV", "Tile_Absorber", "Tile_Plug1Module"};
+        ref.volume_instances = {
+            "Tile_ITCModule_PV", "Tile_Absorber", "Tile_Plug1Module"};
         ref.distances = {23.0575, 42, 37};
         // All surface normals are along track dir: ref.dot_normal = {}
         ref.halfway_safeties = {9.2, 9.2, 9.2};
@@ -2694,13 +2694,13 @@ void TransformedBoxGeoTest::test_trace() const
 
         GenericGeoTrackingResult ref;
         ref.volumes = {"world", "enclosing", "tiny", "enclosing", "world"};
-        ref.volume_instances
-            = {"world_PV", "default", "rot", "default", "world_PV"};
-        ref.distances
-            = {18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
+        ref.volume_instances = {
+            "world_PV", "default", "rot", "default", "world_PV"};
+        ref.distances = {
+            18.5, 1.1250390198213, 0.75090449735279, 1.1240564828259, 48.5};
         ref.dot_normal = {1, 0.99879545620517, 0.99879545620517, 1};
-        ref.halfway_safeties
-            = {9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
+        ref.halfway_safeties = {
+            9.25, 0.56184193052552, 0.05, 0.56135125378224, 24.25};
 
         auto tol = test_->tracking_tol();
         delete_orange_safety(*test_, ref, result);
@@ -2759,8 +2759,9 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
 
     // Scatter to tangent along boundary
-    constexpr real_type dx
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
+    constexpr real_type dx = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+                                  ? 1e-8
+                                  : 1e-4);
     geo.set_dir({dx, 1, 0});
     next = geo.find_next_step(from_cm(1000));
     EXPECT_SOFT_EQ(500, to_cm(next.distance));

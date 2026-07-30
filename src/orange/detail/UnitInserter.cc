@@ -283,9 +283,9 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
  * local implementation volume IDs, even though the relationship they describe
  * is the "canonical" volume structure.
  */
-std::vector<LocalVolumeId>
-make_local_parent_vec(LocalVolumeId::size_type num_volumes,
-                      UnitInput::MapLocalParent const& local_parent_map)
+std::vector<LocalVolumeId> make_local_parent_vec(
+    LocalVolumeId::size_type num_volumes,
+    UnitInput::MapLocalParent const& local_parent_map)
 {
     CELER_EXPECT(num_volumes > 0);
     CELER_EXPECT(!local_parent_map.empty());
@@ -309,8 +309,8 @@ make_local_parent_vec(LocalVolumeId::size_type num_volumes,
  * Use a depth-first search to fill an array, indexed by local impl volumes, of
  * the volume relative to the top (most enclosing/closest to "world").
  */
-std::vector<vol_level_uint>
-make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
+std::vector<vol_level_uint> make_local_level_vec(
+    std::vector<LocalVolumeId> const& local_parents)
 {
     constexpr vol_level_uint not_visited{static_cast<vol_level_uint>(-1)};
     std::vector<vol_level_uint> local_vol_level(local_parents.size(),
@@ -381,8 +381,8 @@ void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
     if (v.zorder != ZOrder::background)
         return;
 
-    static auto const nowhere_logic
-        = detail::make_nowhere_expr(orange_tracking_logic);
+    static auto const nowhere_logic = detail::make_nowhere_expr(
+        orange_tracking_logic);
 
     v.faces.resize(num_surfaces);
     std::iota(v.faces.begin(), v.faces.end(), LocalSurfaceId{0});
@@ -439,9 +439,9 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
  */
 UnivId UnitInserter::operator()(UnitInput&& inp)
 {
-    CELER_VALIDATE(
-        inp,
-        << "simple unit '" << inp.label << "' is not properly constructed");
+    CELER_VALIDATE(inp,
+                   << "simple unit '" << inp.label
+                   << "' is not properly constructed");
 
     SimpleUnitRecord unit;
 
@@ -512,15 +512,15 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     // Save local parent IDs and local volume level
     if (!inp.local_parent_map.empty())
     {
-        auto parents
-            = make_local_parent_vec(inp.volumes.size(), inp.local_parent_map);
+        auto parents = make_local_parent_vec(inp.volumes.size(),
+                                             inp.local_parent_map);
         auto levels = make_local_level_vec(parents);
         CELER_ASSERT(parents.size() == levels.size());
 
-        unit.local_parent
-            = local_volume_ids_.insert_back(parents.begin(), parents.end());
-        unit.local_vol_level
-            = vl_uints_.insert_back(levels.begin(), levels.end());
+        unit.local_parent = local_volume_ids_.insert_back(parents.begin(),
+                                                          parents.end());
+        unit.local_vol_level = vl_uints_.insert_back(levels.begin(),
+                                                     levels.end());
     }
 
     // Save volumes
@@ -560,8 +560,8 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
             conn[i].neighbors = local_volume_ids_.insert_back(
                 connectivity[i].begin(), connectivity[i].end());
         }
-        unit.connectivity
-            = connectivity_records_.insert_back(conn.begin(), conn.end());
+        unit.connectivity = connectivity_records_.insert_back(conn.begin(),
+                                                              conn.end());
     }
 
     // Save unit scalars
@@ -631,8 +631,8 @@ LocalVolumeRecord UnitInserter::insert_volume(
     }
 
     LocalVolumeRecord output;
-    output.faces
-        = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
+    output.faces = local_surface_ids_.insert_back(v.faces.begin(),
+                                                  v.faces.end());
     output.logic = logic_ints_.insert_back(v.logic.begin(), v.logic.end());
     output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;

@@ -43,8 +43,10 @@ TEST(Distributions, UrbanLargeAngleDistribution)
 
     DiagnosticRngEngine<std::mt19937> rng;
 
-    constexpr auto samples_per_real
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 1 : 2);
+    constexpr auto samples_per_real = (CELERITAS_REAL_TYPE
+                                               == CELERITAS_REAL_TYPE_FLOAT
+                                           ? 1
+                                           : 2);
 
     // Separately sample tau = 1e-14 due to platform-dependent numerical issues
     {
@@ -77,7 +79,8 @@ TEST(Distributions, UrbanLargeAngleDistribution)
             {{0.0004, 0.0012, 0.0012, 0.0012, 0.0004, 0.0004, 0.0008, 3.9944},
              4},
             {{0.016, 0.012, 0.0144, 0.0104, 0.014, 0.0124, 0.1292, 3.7916}, 4},
-            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172}, 4},
+            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172},
+             4},
             {{0.1492, 0.184, 0.2536, 0.3392, 0.4668, 0.6328, 0.8564, 1.118}, 4},
             {{0.328, 0.3668, 0.416, 0.4708, 0.4996, 0.5796, 0.6384, 0.7008}, 4},
             {{0.4708, 0.494, 0.4884, 0.5148, 0.5168, 0.5172, 0.5012, 0.4968},
@@ -380,8 +383,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
         for (real_type energy : {0.01, 0.1, 1.0, 10.0, 100.0})
         {
             auto par = this->make_par_view(pdg::electron(), MevEnergy{energy});
-            auto phys
-                = this->make_phys_view(par, "G4_STAINLESS-STEEL", phys_params);
+            auto phys = this->make_phys_view(
+                par, "G4_STAINLESS-STEEL", phys_params);
             EXPECT_FALSE(phys.msc_range());
             UrbanMscHelper helper(msc_params, par, phys);
 
@@ -431,8 +434,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                     8.8845468955896};
         static double const expected_range_init[] = {inf, inf, inf, inf, inf};
         static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
+        static double const expected_limit_min[] = {
+            1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, false);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
@@ -453,8 +456,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.21762788543933,
                                                      15.553546812173};
         static double const expected_range_factor[] = {0.2, 0.2, 0.2, 0.2, 0.2};
-        static double const expected_limit_min[]
-            = {1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
+        static double const expected_limit_min[] = {
+            1e-08, 1e-08, 1e-08, 1e-08, 1e-08};
 
         auto result = sample(Algorithm::minimal, true);
         EXPECT_VEC_SOFT_EQ(expected_mean_step, result.mean_step);
@@ -474,8 +477,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.07706894630323,
                                                      1.0881394271966,
                                                      77.767734060865};
-        static double const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
+        static double const expected_range_factor[] = {
+            0.04, 0.04, 0.04, 0.13881394271966, 7.8067734060865};
         static double const expected_limit_min[] = {1.9688399316472e-06,
                                                     1.0522532283188e-05,
                                                     3.1432398888924e-05,
@@ -500,8 +503,8 @@ TEST_F(UrbanMscTest, TEST_IF_CELERITAS_DOUBLE(step_limit))
                                                      0.07706894630323,
                                                      0.90591081547834,
                                                      8.8845468955896};
-        static double const expected_range_factor[]
-            = {0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
+        static double const expected_range_factor[] = {
+            0.04, 0.04, 0.04, 0.10324092334058, 5.0107349798953};
         static double const expected_limit_min[] = {1.9688399316472e-06,
                                                     1.0522532283188e-05,
                                                     3.1432398888924e-05,

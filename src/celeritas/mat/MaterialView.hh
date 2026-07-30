@@ -37,8 +37,8 @@ class MaterialView
 
   public:
     // Construct from params and material ID
-    inline CELER_FUNCTION
-    MaterialView(MaterialParamsRef const& params, MatId id);
+    inline CELER_FUNCTION MaterialView(MaterialParamsRef const& params,
+                                       MatId id);
 
     //// MATERIAL DATA ////
 
@@ -94,8 +94,7 @@ class MaterialView
     inline CELER_FUNCTION units::MevEnergy mean_excitation_energy() const;
 
     // Log mean excitation energy
-    inline CELER_FUNCTION units::LogMevEnergy
-    log_mean_excitation_energy() const;
+    inline CELER_FUNCTION units::LogMevEnergy log_mean_excitation_energy() const;
 
   private:
     MaterialParamsRef const& params_;
@@ -112,8 +111,8 @@ class MaterialView
 /*!
  * Construct from dynamic and static particle properties.
  */
-CELER_FUNCTION
-MaterialView::MaterialView(MaterialParamsRef const& params, MatId id)
+CELER_FUNCTION MaterialView::MaterialView(MaterialParamsRef const& params,
+                                          MatId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());

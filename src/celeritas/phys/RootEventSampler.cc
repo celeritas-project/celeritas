@@ -28,12 +28,12 @@ RootEventSampler::RootEventSampler(std::string const& filename,
     CELER_EXPECT(particles);
 
     reader_ = std::make_unique<RootEventReader>(filename, std::move(particles));
-    CELER_EXPECT(
-        num_merged_events_ > 0 && num_merged_events_ <= reader_->num_events());
+    CELER_EXPECT(num_merged_events_ > 0
+                 && num_merged_events_ <= reader_->num_events());
 
     rng_.seed(seed);
-    select_event_
-        = std::uniform_int_distribution<size_type>(0, reader_->num_events());
+    select_event_ = std::uniform_int_distribution<size_type>(
+        0, reader_->num_events());
 }
 
 //---------------------------------------------------------------------------//

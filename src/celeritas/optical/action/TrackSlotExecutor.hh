@@ -43,8 +43,8 @@ class TrackSlotExecutor
 
   public:
     //! Construct with core data and executor
-    CELER_FUNCTION
-    TrackSlotExecutor(ParamsPtr params, StatePtr state, T&& execute_track)
+    CELER_FUNCTION TrackSlotExecutor(
+        ParamsPtr params, StatePtr state, T&& execute_track)
         : params_{params}
         , state_{state}
         , execute_track_{celeritas::forward<T>(execute_track)}
@@ -199,10 +199,10 @@ CELER_FUNCTION ConditionalTrackSlotExecutor(
  * Return a track executor that only applies to active, non-errored tracks.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_active_thread_executor(CoreParamsPtr<MemSpace::native> params,
-                            CoreStatePtr<MemSpace::native> const& state,
-                            T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_active_thread_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    T&& apply_track)
 {
     return ConditionalTrackSlotExecutor{
         params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
@@ -217,11 +217,11 @@ make_active_thread_executor(CoreParamsPtr<MemSpace::native> params,
  * all threads, active or not.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_action_thread_executor(CoreParamsPtr<MemSpace::native> params,
-                            CoreStatePtr<MemSpace::native> state,
-                            ActionId action,
-                            T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_action_thread_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> state,
+    ActionId action,
+    T&& apply_track)
 {
     CELER_EXPECT(action);
     return ConditionalTrackSlotExecutor{params,
@@ -255,12 +255,12 @@ inline CELER_FUNCTION decltype(auto) make_active_volumetric_thread_executor(
  * boundary crossing.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_surface_physics_executor(CoreParamsPtr<MemSpace::native> params,
-                              CoreStatePtr<MemSpace::native> const& state,
-                              SurfacePhysicsOrder step,
-                              SurfaceModelId model,
-                              T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_surface_physics_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    SurfacePhysicsOrder step,
+    SurfaceModelId model,
+    T&& apply_track)
 {
     CELER_EXPECT(step != SurfacePhysicsOrder::size_);
     CELER_EXPECT(model);

@@ -69,8 +69,8 @@ TEST_F(PhysicsParamsTest, accessors)
     {
         process_names.emplace_back(p.process(process_id)->label());
     }
-    static char const* const expected_process_names[]
-        = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
+    static char const* const expected_process_names[] = {
+        "scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
     // Test model names after construction
@@ -98,18 +98,18 @@ TEST_F(PhysicsParamsTest, accessors)
     };
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
-    static std::string const expected_model_desc[]
-        = {"MockModel(1, p=0, emin=1e-06, emax=100)",
-           "MockModel(2, p=1, emin=1, emax=100)",
-           "MockModel(3, p=0, emin=1e-06, emax=100)",
-           "MockModel(4, p=1, emin=0.001, emax=1)",
-           "MockModel(5, p=1, emin=1, emax=10)",
-           "MockModel(6, p=1, emin=10, emax=100)",
-           "MockModel(7, p=2, emin=0.001, emax=1)",
-           "MockModel(8, p=2, emin=1, emax=100)",
-           "MockModel(9, p=1, emin=0.001, emax=10)",
-           "MockModel(10, p=2, emin=0.001, emax=10)",
-           "MockModel(11, p=3, emin=1e-05, emax=1000)"};
+    static std::string const expected_model_desc[] = {
+        "MockModel(1, p=0, emin=1e-06, emax=100)",
+        "MockModel(2, p=1, emin=1, emax=100)",
+        "MockModel(3, p=0, emin=1e-06, emax=100)",
+        "MockModel(4, p=1, emin=0.001, emax=1)",
+        "MockModel(5, p=1, emin=1, emax=10)",
+        "MockModel(6, p=1, emin=10, emax=100)",
+        "MockModel(7, p=2, emin=0.001, emax=1)",
+        "MockModel(8, p=2, emin=1, emax=100)",
+        "MockModel(9, p=1, emin=0.001, emax=10)",
+        "MockModel(10, p=2, emin=0.001, emax=10)",
+        "MockModel(11, p=3, emin=1e-05, emax=1000)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
@@ -186,15 +186,15 @@ TEST_F(PhysicsParamsTest, energy_max_xs)
             energy_max_xs.push_back(std::move(energy));
         }
     }
-    static std::vector<double> const expected_energy_max_xs[]
-        = {{-1, -1, -1, -1},
-           {-1, -1, -1, -1},
-           {-1, -1, -1, -1},
-           {0.001, 0.001, 0.001, 0.001},
-           {0.001, 0.001, 0.001, 0.001},
-           {0.001, 0.001, 0.001, 0.001},
-           {0.001, 0.001, 0.001, 0.001},
-           {0.1, 0.1, 0.1, 0.1}};
+    static std::vector<double> const expected_energy_max_xs[] = {
+        {-1, -1, -1, -1},
+        {-1, -1, -1, -1},
+        {-1, -1, -1, -1},
+        {0.001, 0.001, 0.001, 0.001},
+        {0.001, 0.001, 0.001, 0.001},
+        {0.001, 0.001, 0.001, 0.001},
+        {0.001, 0.001, 0.001, 0.001},
+        {0.1, 0.1, 0.1, 0.1}};
     EXPECT_VEC_SOFT_EQ(expected_energy_max_xs, energy_max_xs);
 }
 
@@ -288,8 +288,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return this->make_step_view(tid);
     }
 
-    ParticleProcessId
-    find_ppid(PhysicsTrackView const& track, char const* label) const
+    ParticleProcessId find_ppid(PhysicsTrackView const& track,
+                                char const* label) const
     {
         auto iter = process_names.find(label);
         CELER_VALIDATE(iter != process_names.end(),
@@ -424,8 +424,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 {
     // Gamma
     {
-        PhysicsTrackView const phys
-            = this->make_track_view("gamma", PhysMatId{0});
+        PhysicsTrackView const phys = this->make_track_view("gamma",
+                                                            PhysMatId{0});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -437,8 +437,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Celeriton
     {
-        PhysicsTrackView const phys
-            = this->make_track_view("celeriton", PhysMatId{0});
+        PhysicsTrackView const phys = this->make_track_view("celeriton",
+                                                            PhysMatId{0});
 
         EXPECT_EQ(3, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -452,8 +452,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Anti-celeriton
     {
-        PhysicsTrackView const phys
-            = this->make_track_view("anti-celeriton", PhysMatId{1});
+        PhysicsTrackView const phys = this->make_track_view("anti-celeriton",
+                                                            PhysMatId{1});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const hiss_ppid{0};
@@ -466,8 +466,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Electron
     {
         // No at-rest interaction
-        PhysicsTrackView const phys
-            = this->make_track_view("electron", PhysMatId{1});
+        PhysicsTrackView const phys = this->make_track_view("electron",
+                                                            PhysMatId{1});
         EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
@@ -480,8 +480,8 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     {
         for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
-            PhysicsTrackView const phys
-                = this->make_track_view(particle, mat_id);
+            PhysicsTrackView const phys = this->make_track_view(particle,
+                                                                mat_id);
 
             for (auto pp_id :
                  range(ParticleProcessId{phys.num_particle_processes()}))
@@ -512,8 +512,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     {
         for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
-            PhysicsTrackView const phys
-                = this->make_track_view(particle, mat_id);
+            PhysicsTrackView const phys = this->make_track_view(particle,
+                                                                mat_id);
             MaterialView mat = this->material()->get(mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.macro_xs_grid(scat_ppid);
@@ -523,8 +523,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
         }
     }
 
-    double const expected_xs[]
-        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
+    double const expected_xs[] = {
+        0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
@@ -541,8 +541,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     // range and step will be zero.
     for (char const* particle : {"celeriton", "anti-celeriton"})
     {
-        PhysicsTrackView const phys
-            = this->make_track_view(particle, PhysMatId{0});
+        PhysicsTrackView const phys = this->make_track_view(particle,
+                                                            PhysMatId{0});
 
         auto eloss_id = phys.energy_loss_grid();
         ASSERT_TRUE(eloss_id);
@@ -561,8 +561,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
         }
     }
 
-    static double const expected_eloss[]
-        = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
+    static double const expected_eloss[] = {
+        0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
     static double const expected_range[] = {
         0.00010540925533895,
         0.018333333333333,
@@ -630,8 +630,8 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
-    PhysicsTrackView const phys
-        = this->make_track_view("celeriton", PhysMatId{0});
+    PhysicsTrackView const phys = this->make_track_view("celeriton",
+                                                        PhysMatId{0});
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
     auto find_model = phys.make_model_finder(purr_ppid);
@@ -680,8 +680,8 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
 
     // Material composed of a single element
     {
-        PhysicsTrackView phys
-            = this->make_track_view("celeriton", PhysMatId{1});
+        PhysicsTrackView phys = this->make_track_view("celeriton",
+                                                      PhysMatId{1});
         auto table_id = phys.cdf_table(pmid);
         EXPECT_FALSE(table_id);
     }
@@ -750,7 +750,8 @@ TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
+        StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
+            temp_inits;
 
         auto init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;

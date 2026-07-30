@@ -112,7 +112,8 @@ class ProtoConstructorTest : public GeantLoadTestBase
         for (auto id : range(UnivId{protos.size()}))
         {
             std::vector<std::string> local_parents;
-            if (auto const* unit = dynamic_cast<UnitProto const*>(protos.at(id)))
+            if (auto const* unit = dynamic_cast<UnitProto const*>(
+                    protos.at(id)))
             {
                 auto const& local_mats = unit->input().materials;
                 for (auto const& mat : unit->input().materials)
@@ -639,8 +640,8 @@ TEST_F(MultilevelTest, each_volume)
     auto global_proto = this->load("multi-level");
     ProtoMap protos{*global_proto};
     auto parents = this->get_all_local_parents(protos);
-    std::vector<std::string> const expected_parents[]
-        = {{}, {}, {}, {}, {}, {}, {}};
+    std::vector<std::string> const expected_parents[] = {
+        {}, {}, {}, {}, {}, {}, {}};
     EXPECT_VEC_EQ(expected_parents, parents);
 }
 
@@ -736,8 +737,8 @@ TEST_F(SimpleCmsTest, default)
             "all(+6, -7, any(-6, +7, +11), -12)",
             "all(+6, -7, any(-6, +7, +12), -13)",
         };
-        static char const* const expected_fill_strings[]
-            = {"<UNASSIGNED>", "m0", "m1", "m2", "m3", "m4", "m5"};
+        static char const* const expected_fill_strings[] = {
+            "<UNASSIGNED>", "m0", "m1", "m2", "m3", "m4", "m5"};
         static int const expected_volume_nodes[] = {11, 19, 23, 27, 31, 35, 39};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -793,8 +794,8 @@ TEST_F(Testem3Test, default)
         static char const* const expected_surface_strings[] = {
             "Plane: x=-0.17",
         };
-        static char const* const expected_volume_strings[]
-            = {"F", "-6", "+6", "F"};
+        static char const* const expected_volume_strings[] = {
+            "F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -850,8 +851,8 @@ TEST_F(TilecalPlugTest, default)
             "Plane: n={0,0.99879,-0.049068}, d=17.636",
             "Plane: n={0,0.99879,0.049068}, d=-17.636",
         };
-        static char const* const expected_fill_strings[]
-            = {"<UNASSIGNED>", "m1", "m0", "m1"};
+        static char const* const expected_fill_strings[] = {
+            "<UNASSIGNED>", "m1", "m0", "m1"};
         static int const expected_volume_nodes[] = {14, 35, 34, 36};
         static char const expected_tree_string[]
             = R"json(["t",["~",0],["S",0],["~",2],["S",1],["~",4],["S",2],["~",6],["S",3],["~",8],["S",4],["~",10],["S",5],["~",12],["|",[3,4,6,8,11,13]],["S",6],["~",15],["|",[4,6,8,11,13,16]],["&",[5,7,9,10,12,15]],["S",7],["~",19],["S",8],["~",21],["|",[8,11,13,15,20,21]],["&",[9,10,12,16,19,22]],["&",[17,23]],["|",[18,24]],["S",9],["~",27],["S",10],["~",29],["S",11],["~",31],["|",[6,11,16,27,29,32]],["&",[7,10,15,28,30,31]],["&",[26,33]],["&",[2,5,7,9,10,12,17,23]]])json";
@@ -964,8 +965,8 @@ TEST_F(ZnenvTest, default)
         SCOPED_TRACE("ZNTX");
 
         static char const* const expected_surface_strings[] = {"Plane: y=0"};
-        static char const* const expected_volume_strings[]
-            = {"F", "-6", "+6", "F"};
+        static char const* const expected_volume_strings[] = {
+            "F", "-6", "+6", "F"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -983,8 +984,8 @@ TEST_F(ZnenvTest, default)
             "2: t=2 -> {{0,1.76,0}}",
             "3: t=1 -> {{0,-1.76,0}}",
         };
-        static char const* const expected_fill_strings[]
-            = {"<UNASSIGNED>", "{u=0, t=1}", "{u=1, t=2}", "m2"};
+        static char const* const expected_fill_strings[] = {
+            "<UNASSIGNED>", "{u=0, t=1}", "{u=1, t=2}", "m2"};
         static int const expected_volume_nodes[] = {1, 3, 2, 1};
         static char const expected_tree_string[]
             = R"json(["t",["~",0],["S",6],["~",2]])json";
@@ -1035,8 +1036,8 @@ TEST_F(ZnenvTest, default)
     {
         SCOPED_TRACE("ZNG1");
         auto u = this->build_unit(protos, UnivId{5});
-        static char const* const expected_surface_strings[]
-            = {"Cyl z: r=0.01825"};
+        static char const* const expected_surface_strings[] = {
+            "Cyl z: r=0.01825"};
         static char const* const expected_volume_strings[] = {"F", "-6", "+6"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -1091,8 +1092,8 @@ TEST_F(ZnenvTest, explicit_interior)
         SCOPED_TRACE("global");
         auto u = this->build_unit(protos, UnivId{0});
 
-        static char const* const expected_volume_strings[]
-            = {"any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
+        static char const* const expected_volume_strings[] = {
+            "any(-0, +1, -2, +3, -4, +5)", "all(+6, -7, +8, -9, +10, -11)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{3}, u.background);
     }
@@ -1115,8 +1116,8 @@ TEST_F(ZnenvTest, explicit_interior)
             "Plane: z=500",
             "Cyl z: r=0.1825",
         };
-        static char const* const expected_volume_strings[]
-            = {"any(-0, +1, -2, +3, -4, +5)", "all(+4, -5, -6)"};
+        static char const* const expected_volume_strings[] = {
+            "any(-0, +1, -2, +3, -4, +5)", "all(+4, -5, -6)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -1145,10 +1146,10 @@ TEST_F(ZnenvTest, explicit_interior)
         SCOPED_TRACE("ZNF1");
         auto u = this->build_unit(protos, UnivId{11});
 
-        static char const* const expected_surface_strings[]
-            = {"Plane: z=-500", "Plane: z=500", "Cyl z: r=0.1825"};
-        static char const* const expected_volume_strings[]
-            = {"any(-0, +1, +2)", "all(+0, -1, -2)"};
+        static char const* const expected_surface_strings[] = {
+            "Plane: z=-500", "Plane: z=500", "Cyl z: r=0.1825"};
+        static char const* const expected_volume_strings[] = {
+            "any(-0, +1, +2)", "all(+0, -1, -2)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -1161,8 +1162,8 @@ TEST_F(ZnenvTest, explicit_interior)
             "[EXTERIOR]",
             "ZNF10x0",
         };
-        static char const* const expected_fill_strings[]
-            = {"<UNASSIGNED>", "m0"};
+        static char const* const expected_fill_strings[] = {"<UNASSIGNED>",
+                                                            "m0"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));

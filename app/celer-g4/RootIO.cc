@@ -163,8 +163,8 @@ void RootIO::WriteObject(EventData* event_data)
  */
 void RootIO::AddSensitiveDetector(std::string name)
 {
-    auto&& [iter, inserted]
-        = detector_name_id_map_.insert({std::move(name), ++detector_id_});
+    auto&& [iter, inserted] = detector_name_id_map_.insert(
+        {std::move(name), ++detector_id_});
     CELER_ASSERT(inserted);
     CELER_DISCARD(iter);
 }

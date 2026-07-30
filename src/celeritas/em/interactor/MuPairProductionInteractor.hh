@@ -38,13 +38,13 @@ class MuPairProductionInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    MuPairProductionInteractor(NativeCRef<MuPairProductionData> const& shared,
-                               ParticleTrackView const& particle,
-                               CutoffView const& cutoffs,
-                               ElementView const& element,
-                               Real3 const& inc_direction,
-                               StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION MuPairProductionInteractor(
+        NativeCRef<MuPairProductionData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        ElementView const& element,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -136,16 +136,16 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
     Secondary& electron = secondaries[0];
     electron.particle_id = shared_.ids.electron;
     electron.energy = energy.electron;
-    electron.direction
-        = rotate(from_spherical(sample_costheta(rng), phi), inc_direction_);
+    electron.direction = rotate(from_spherical(sample_costheta(rng), phi),
+                                inc_direction_);
 
     // Create the secondary positron
     Secondary& positron = secondaries[1];
     positron.particle_id = shared_.ids.positron;
     positron.energy = energy.positron;
-    positron.direction
-        = rotate(from_spherical(sample_costheta(rng), phi + constants::pi),
-                 inc_direction_);
+    positron.direction = rotate(
+        from_spherical(sample_costheta(rng), phi + constants::pi),
+        inc_direction_);
 
     // Construct interaction for change to the incident muon
     Interaction result;

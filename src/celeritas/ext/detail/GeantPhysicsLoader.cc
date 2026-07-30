@@ -486,15 +486,17 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 
         // Check for optional scale factor
         double scale_factor;
-        if (get_property(scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
+        if (get_property(
+                scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
         {
             analytic.scale_factor = scale_factor;
         }
 
         if (grid && (analytic.scale_factor || analytic))
         {
-            constexpr auto to_given_str
-                = [](bool v) { return v ? "provided" : "missing"; };
+            constexpr auto to_given_str = [](bool v) {
+                return v ? "provided" : "missing";
+            };
             CELER_LOG(warning)
                 << "Inconsistent Rayleigh input data: compressibility ("
                 << to_given_str(analytic.compressibility)
@@ -569,8 +571,9 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
             get_property(model_mat.mean_num_photons,
                          "WLSMEANNUMBERPHOTONS2",
                          ImportUnits::unitless);
-            get_property(
-                model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+            get_property(model_mat.time_constant,
+                         "WLSTIMECONSTANT2",
+                         ImportUnits::time);
             get_property(model_mat.component,
                          "WLSCOMPONENT2",
                          {ImportUnits::mev, ImportUnits::unitless});
@@ -580,8 +583,8 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    model.time_profile
-        = geant_to_wls_distribution(params->GetWLS2TimeProfile());
+    model.time_profile = geant_to_wls_distribution(
+        params->GetWLS2TimeProfile());
 
     return model.materials.size();
 #else

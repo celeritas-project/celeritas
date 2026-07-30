@@ -182,15 +182,15 @@ auto ActionSequence::get_step_times(AuxStateVec const& aux) const -> VecDbl
 
 //---------------------------------------------------------------------------//
 
-template void
-ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::host>&);
-template void
-ActionSequence::begin_run(CoreParams const&, CoreState<MemSpace::device>&);
+template void ActionSequence::begin_run(CoreParams const&,
+                                        CoreState<MemSpace::host>&);
+template void ActionSequence::begin_run(CoreParams const&,
+                                        CoreState<MemSpace::device>&);
 
-template void
-ActionSequence::step(CoreParams const&, CoreState<MemSpace::host>&);
-template void
-ActionSequence::step(CoreParams const&, CoreState<MemSpace::device>&);
+template void ActionSequence::step(CoreParams const&,
+                                   CoreState<MemSpace::host>&);
+template void ActionSequence::step(CoreParams const&,
+                                   CoreState<MemSpace::device>&);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

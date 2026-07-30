@@ -158,12 +158,12 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     CELER_EXPECT(primaries_action_);
 
     // Check that events are consistent with our 'max events'
-    auto max_id
-        = std::max_element(primaries.begin(),
-                           primaries.end(),
-                           [](Primary const& left, Primary const& right) {
-                               return left.event_id < right.event_id;
-                           });
+    auto max_id = std::max_element(
+        primaries.begin(),
+        primaries.end(),
+        [](Primary const& left, Primary const& right) {
+            return left.event_id < right.event_id;
+        });
     CELER_ASSERT(max_id->event_id);
     CELER_VALIDATE(max_id->event_id < params_->init()->max_events(),
                    << "event number " << max_id->event_id.unchecked_get()

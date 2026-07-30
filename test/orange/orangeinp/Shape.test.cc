@@ -53,8 +53,8 @@ TEST_F(ShapeTest, single)
         "",
         "box",
     };
-    static char const* const expected_bound_strings[]
-        = {"11: {{{-1,-2,-3}, {1,2,3}}, {{-1,-2,-3}, {1,2,3}}}"};
+    static char const* const expected_bound_strings[] = {
+        "11: {{{-1,-2,-3}, {1,2,3}}, {{-1,-2,-3}, {1,2,3}}}"};
     static char const* const expected_trans_strings[] = {"11: t=0 -> {}"};
     static int const expected_volume_nodes[] = {11};
     static char const* const expected_fill_strings[] = {"<UNASSIGNED>"};
@@ -115,11 +115,11 @@ TEST_F(ShapeTest, multiple)
         "11: {{{-1,-1,-2}, {1,1,2}}, {{-1,-1,-2}, {1,1,2}}}",
         "14: {{{-0.354,-0.354,-2}, {0.354,0.354,2}}, {{-1,-1,-2}, {1,1,2}}}",
         "17: {{{-0.707,-0.707,-2}, {0.707,0.707,2}}, {{-1,-1,-2}, {1,1,2}}}"};
-    static char const* const expected_trans_strings[]
-        = {"11: t=0 -> {}", "14: t=0", "17: t=0"};
+    static char const* const expected_trans_strings[] = {
+        "11: t=0 -> {}", "14: t=0", "17: t=0"};
     static int const expected_volume_nodes[] = {11, 14, 17};
-    static char const* const expected_fill_strings[]
-        = {"<UNASSIGNED>", "<UNASSIGNED>", "<UNASSIGNED>"};
+    static char const* const expected_fill_strings[] = {
+        "<UNASSIGNED>", "<UNASSIGNED>", "<UNASSIGNED>"};
     static char const expected_tree_string[]
         = R"json(["t",["~",0],["S",0],["S",1],["~",3],["S",2],["S",3],["~",6],["S",4],["S",5],["~",9],["&",[2,4,5,7,8,10]],["S",6],["~",12],["&",[8,10,13]],["S",7],["~",15],["&",[8,10,16]]])json";
 

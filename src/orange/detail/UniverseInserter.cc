@@ -141,8 +141,8 @@ UnivId UniverseInserter::operator()(UnivType type,
         // Add volume IDs and instance IDs
         for (auto& var_label : volume_labels)
         {
-            VolumeInstanceId vi_id
-                = get_or_default<VolumeInstanceId>(var_label);
+            VolumeInstanceId vi_id = get_or_default<VolumeInstanceId>(
+                var_label);
             VolumeId vol_id;
             if (vi_id)
             {

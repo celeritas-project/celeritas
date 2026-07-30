@@ -39,10 +39,10 @@ class BraggICRU73QOEnergyDistribution
 
   public:
     // Construct with incident and exiting particle data
-    inline CELER_FUNCTION
-    BraggICRU73QOEnergyDistribution(ParticleTrackView const& particle,
-                                    Energy electron_cutoff,
-                                    Mass electron_mass);
+    inline CELER_FUNCTION BraggICRU73QOEnergyDistribution(
+        ParticleTrackView const& particle,
+        Energy electron_cutoff,
+        Mass electron_mass);
 
     // Sample the exiting energy
     template<class Engine>

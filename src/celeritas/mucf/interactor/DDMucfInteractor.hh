@@ -46,10 +46,10 @@ class DDMucfInteractor
     };
 
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    DDMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                     Channel channel,
-                     StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION DDMucfInteractor(
+        NativeCRef<DTMixMucfData> const& data,
+        Channel channel,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -100,10 +100,10 @@ class DDMucfInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-DDMucfInteractor::DDMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                                   Channel channel,
-                                   StackAllocator<Secondary>& allocate)
+CELER_FUNCTION DDMucfInteractor::DDMucfInteractor(
+    NativeCRef<DTMixMucfData> const& data,
+    Channel channel,
+    StackAllocator<Secondary>& allocate)
     : data_(data), channel_(channel), allocate_(allocate)
 {
     CELER_EXPECT(data_);
@@ -137,7 +137,9 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
         case Channel::helium3_muon_neutron: {
             // Neutron: random direction with known energy
             sec[neutron_idx] = detail::sample_mucf_secondary(
-                data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
+                data_.particle_ids.neutron,
+                this->neutron_kinetic_energy(),
+                rng);
 
             // Muon: random direction with energy sampled from its CDF
             sec[muon_idx] = detail::sample_mucf_muon(
@@ -146,27 +148,29 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
                 rng);
 
             // Helium-3: momentum conservation
-            sec[he3_idx]
-                = detail::calc_third_secondary(sec[neutron_idx],
-                                               data_.particle_masses.neutron,
-                                               sec[muon_idx],
-                                               data_.particle_masses.mu_minus,
-                                               data_.particle_ids.he3,
-                                               data_.particle_masses.he3);
+            sec[he3_idx] = detail::calc_third_secondary(
+                sec[neutron_idx],
+                data_.particle_masses.neutron,
+                sec[muon_idx],
+                data_.particle_masses.mu_minus,
+                data_.particle_ids.he3,
+                data_.particle_masses.he3);
             break;
         }
 
         case Channel::muonichelium3_neutron: {
             // Neutron: random direction with known energy
             sec[neutron_idx] = detail::sample_mucf_secondary(
-                data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
+                data_.particle_ids.neutron,
+                this->neutron_kinetic_energy(),
+                rng);
 
             // Muonic helium-3: momentum conservation
             sec[muonic_he3].particle_id = data_.particle_ids.muonic_he3;
             sec[muonic_he3].energy = this->total_energy_neutron_channels()
                                      - this->neutron_kinetic_energy();
-            sec[muonic_he3].direction
-                = detail::opposite(sec[neutron_idx].direction);
+            sec[muonic_he3].direction = detail::opposite(
+                sec[neutron_idx].direction);
             break;
         }
 
@@ -182,13 +186,13 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
                 rng);
 
             // tritium: momentum conservation
-            sec[tritium_idx]
-                = detail::calc_third_secondary(sec[proton_idx],
-                                               data_.particle_masses.proton,
-                                               sec[muon_idx],
-                                               data_.particle_masses.mu_minus,
-                                               data_.particle_ids.triton,
-                                               data_.particle_masses.triton);
+            sec[tritium_idx] = detail::calc_third_secondary(
+                sec[proton_idx],
+                data_.particle_masses.proton,
+                sec[muon_idx],
+                data_.particle_masses.mu_minus,
+                data_.particle_ids.triton,
+                data_.particle_masses.triton);
             break;
         }
 

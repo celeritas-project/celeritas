@@ -31,8 +31,8 @@ class ElectroNuclearMicroXsCalculator
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    ElectroNuclearMicroXsCalculator(ParamsRef const& shared, Energy energy);
+    inline CELER_FUNCTION ElectroNuclearMicroXsCalculator(
+        ParamsRef const& shared, Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
@@ -61,8 +61,8 @@ CELER_FUNCTION ElectroNuclearMicroXsCalculator::ElectroNuclearMicroXsCalculator(
  * Compute microscopic electro-nuclear cross section at the given particle
  * energy.
  */
-CELER_FUNCTION auto
-ElectroNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+CELER_FUNCTION auto ElectroNuclearMicroXsCalculator::operator()(
+    ElementId el_id) const -> BarnXs
 {
     NonuniformGridRecord grid;
 

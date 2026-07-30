@@ -109,8 +109,8 @@ auto Transporter<M>::operator()(SpanConstPrimary primaries)
             result.alive.push_back(track_counts.alive);
             if constexpr (M == MemSpace::host)
             {
-                auto stream_id
-                    = std::to_string(stepper_->state_ref().stream_id.get());
+                auto stream_id = std::to_string(
+                    stepper_->state_ref().stream_id.get());
                 trace_counter(std::string("active-" + stream_id).c_str(),
                               track_counts.active);
                 trace_counter(std::string("alive-" + stream_id).c_str(),

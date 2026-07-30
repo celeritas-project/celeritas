@@ -63,8 +63,8 @@ class IntersectRegionTest : public ::celeritas::test::Test
                     VariantTransform const& vt);
 
     //! Test with default name
-    TestResult
-    test(IntersectRegionInterface const& r, VariantTransform const& vt)
+    TestResult test(IntersectRegionInterface const& r,
+                    VariantTransform const& vt)
     {
         return this->test("cr", r, vt);
     }
@@ -228,8 +228,8 @@ TEST_F(ConeTest, upward)
     auto result = this->test(Cone({1.5, 0}, 0.5));  // Lower r=1.5, height 1
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1.5 at {0,0,0.5}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1.5 at {0,0,0.5}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -264,8 +264,8 @@ TEST_F(ConeTest, cylinder)
     auto result = this->test(Cone({1.2, 1.2}, 1.3 / 2));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-0.65", "Plane: z=0.65", "Cyl z: r=1.2"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -282,8 +282,8 @@ TEST_F(ConeTest, truncated)
     auto result = this->test(Cone({0.5, 1.5}, 0.5));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-0.5", "Plane: z=0.5", "Cone z: t=1 at {0,0,-1}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -300,8 +300,8 @@ TEST_F(ConeTest, almost_cyl)
     auto result = this->test(Cone({0.55, 0.45}, 10.0));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-10", "Plane: z=10", "Cone z: t=5e-3 at {0,0,100}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-10", "Plane: z=10", "Cone z: t=5e-3 at {0,0,100}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -318,8 +318,8 @@ TEST_F(ConeTest, translated)
     auto result = this->test(Cone({1.0, 0.5}, 2.0), Translation{{1, 2, 3}});
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=1", "Plane: z=5", "Cone z: t=0.125 at {1,2,9}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=1", "Plane: z=5", "Cone z: t=0.125 at {1,2,9}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -339,8 +339,8 @@ TEST_F(ConeTest, transformed)
                        Real3{0, 0, 2.0}});
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {0,0,8}"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=0", "Plane: z=4", "Cone z: t=0.125 at {0,0,8}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -391,10 +391,10 @@ TEST_F(CutCylinderTest, standard)
     auto result = this->test(CutCylinder(0.75, 0.9, {0, k, -k}, {-k, 0, k}));
 
     static char const expected_node[] = "all(-0, +1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: n={0,0.70711,-0.70711}, d=0.63640",
-           "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
-           "Cyl z: r=0.75"};
+    static char const* const expected_surfaces[] = {
+        "Plane: n={0,0.70711,-0.70711}, d=0.63640",
+        "Plane: n={0.70711,0,-0.70711}, d=-0.63640",
+        "Cyl z: r=0.75"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -418,8 +418,8 @@ TEST_F(CylinderTest, standard)
     auto result = this->test(Cylinder(0.75, 0.9));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-0.9", "Plane: z=0.9", "Cyl z: r=0.75"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-0.9", "Plane: z=0.9", "Cyl z: r=0.75"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -436,8 +436,8 @@ TEST_F(CylinderTest, translated)
     auto result = this->test(Cylinder(0.75, 0.9), Translation{{1, 2, 3}});
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=2.1", "Plane: z=3.9", "Cyl z: r=0.75 at x=1, y=2"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=2.1", "Plane: z=3.9", "Cyl z: r=0.75 at x=1, y=2"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -456,8 +456,8 @@ TEST_F(CylinderTest, transformed)
         Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1.0}});
 
     static char const expected_node[] = "all(-0, +1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=0, z=1"};
+    static char const* const expected_surfaces[] = {
+        "Plane: y=0.9", "Plane: y=-0.9", "Cyl y: r=0.75 at x=0, z=1"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -494,8 +494,8 @@ TEST_F(EllipsoidTest, standard)
     auto result = this->test(Ellipsoid({3, 2, 1}));
 
     static char const expected_node[] = "-0";
-    static char const* const expected_surfaces[]
-        = {"SQuadric: {0.33333,0.75,3} {0,0,0} -3"};
+    static char const* const expected_surfaces[] = {
+        "SQuadric: {0.33333,0.75,3} {0,0,0} -3"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -514,8 +514,8 @@ TEST_F(EllipsoidTest, tiny)
     auto result = this->test(Ellipsoid({0.008, 0.004, 0.005}));
 
     static char const expected_node[] = "-0";
-    static char const* const expected_surfaces[]
-        = {"SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-5"};
+    static char const* const expected_surfaces[] = {
+        "SQuadric: {0.5,2,1.28} {0,0,0} -3.2e-5"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -606,8 +606,8 @@ TEST_F(EllipticalConeTest, standard)
     auto result = this->test(EllipticalCone({1, 3}, {2, 6}, 3));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {36,4,-1} {0,0,-18} -81"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3", "Plane: z=3", "SQuadric: {36,4,-1} {0,0,-18} -81"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -621,8 +621,8 @@ TEST_F(EllipticalConeTest, vertex)
     auto result = this->test(EllipticalCone({0, 0}, {2, 4}, 4));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-4", "Plane: z=4", "SQuadric: {16,4,-1} {0,0,-8} -16"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-4", "Plane: z=4", "SQuadric: {16,4,-1} {0,0,-8} -16"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1034,8 +1034,8 @@ TEST_F(GenPrismTest, full)
                  {{-2, -2}, {-2, 2}, {2, 2}, {2, -2}},
                  {{-2, -2}, {-1, 1}, {1, 1}, {2, -2}});
 
-    static real_type const expected_twist_angles[]
-        = {0.051208191174783, 0, 0.051208191174783, 0};
+    static real_type const expected_twist_angles[] = {
+        0.051208191174783, 0, 0.051208191174783, 0};
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
@@ -1084,8 +1084,8 @@ TEST_F(GenPrismTest, triang_prism)
 
 TEST_F(GenPrismTest, tetrahedron)
 {
-    auto pri
-        = GenPrism(3, {{-1, -1}, {2, 0}, {-1, 1}}, {{0, 0}, {0, 0}, {0, 0}});
+    auto pri = GenPrism(
+        3, {{-1, -1}, {2, 0}, {-1, 1}}, {{0, 0}, {0, 0}, {0, 0}});
 
     static real_type const expected_twist_angles[] = {0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
@@ -1110,8 +1110,8 @@ TEST_F(GenPrismTest, tetrahedron)
 
 TEST_F(GenPrismTest, odd_tetrahedron)
 {
-    auto pri
-        = GenPrism(3, {{2, 0}, {2, 0}, {2, 0}}, {{-1, -1}, {2, 0}, {-1, 1}});
+    auto pri = GenPrism(
+        3, {{2, 0}, {2, 0}, {2, 0}}, {{-1, -1}, {2, 0}, {-1, 1}});
 
     static real_type const expected_twist_angles[] = {0, 0, 0};
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
@@ -1215,10 +1215,10 @@ TEST_F(GenPrismTest, trap_theta)
 {
     auto pri = GenPrism::from_trap(
         40, Turn{0.125}, Turn{0}, {20, 10, 10, Turn{}}, {20, 10, 10, Turn{}});
-    static real_type const expected_lower[]
-        = {-30, -20, -30, 20, -50, 20, -50, -20};
-    static real_type const expected_upper[]
-        = {50, -20, 50, 20, 30, 20, 30, -20};
+    static real_type const expected_lower[] = {
+        -30, -20, -30, 20, -50, 20, -50, -20};
+    static real_type const expected_upper[] = {
+        50, -20, 50, 20, 30, 20, 30, -20};
     EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
     EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
@@ -1233,10 +1233,10 @@ TEST_F(GenPrismTest, trap_thetaphi)
                                    Turn{0.25},
                                    {20, 10, 10, Turn{0}},
                                    {20, 10, 10, Turn{0}});
-    static real_type const expected_lower[]
-        = {10, -60, 10, -20, -10, -20, -10, -60};
-    static real_type const expected_upper[]
-        = {10, 20, 10, 60, -10, 60, -10, 20};
+    static real_type const expected_lower[] = {
+        10, -60, 10, -20, -10, -20, -10, -60};
+    static real_type const expected_upper[] = {
+        10, 20, 10, 60, -10, 60, -10, 20};
     EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
     EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
@@ -1321,8 +1321,8 @@ TEST_F(GenPrismTest, trap_full2)
                                    {20, 10, 10, atan_to_turn(0.1)},
                                    {20, 10, 15, -atan_to_turn(0.2)});
 
-    static real_type const expected_twist_angles[]
-        = {0.027777073517552, 0, 0.065874318731703, 0};
+    static real_type const expected_twist_angles[] = {
+        0.027777073517552, 0, 0.065874318731703, 0};
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     auto result = this->test(pri);
@@ -1387,8 +1387,8 @@ TEST_F(GenPrismTest, trap_uneven_twist)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     static real_type const expected_lower[] = {2, -1, 2, 1, -2, 1, -2, -1};
-    static real_type const expected_upper[]
-        = {0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
+    static real_type const expected_upper[] = {
+        0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
     EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
     EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
@@ -1422,8 +1422,8 @@ TEST_F(GenPrismTest, trap_even_twist)
     EXPECT_VEC_SOFT_EQ(expected_twist_angles, this->get_twist_angles(pri));
 
     static real_type const expected_lower[] = {2, -1, 2, 1, -2, 1, -2, -1};
-    static real_type const expected_upper[]
-        = {0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
+    static real_type const expected_upper[] = {
+        0.5, -0.5, 1.5, 0.5, -0.5, 0.5, -1.5, -0.5};
     EXPECT_VEC_SOFT_EQ(expected_lower, to_vec(pri.lower()));
     EXPECT_VEC_SOFT_EQ(expected_upper, to_vec(pri.upper()));
 
@@ -1464,11 +1464,11 @@ TEST_F(GenPrismTest, adjacent_twisted)
 {
     {
         // Left
-        auto result
-            = this->test("left",
-                         GenPrism(1,
-                                  {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
-                                  {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
+        auto result = this->test(
+            "left",
+            GenPrism(1,
+                     {{-1, -1}, {0, -1}, {0, 1}, {-1, 1}},
+                     {{-1, -1}, {0.5, -1}, {-0.5, 1}, {-1, 1}}));
 
         static char const expected_node[] = "all(+0, -1, +2, -3, -4, +5)";
 
@@ -1478,11 +1478,11 @@ TEST_F(GenPrismTest, adjacent_twisted)
     }
     {
         // Right
-        auto result
-            = this->test("right",
-                         GenPrism(1,
-                                  {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
-                                  {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
+        auto result = this->test(
+            "right",
+            GenPrism(1,
+                     {{0, -1}, {1, -1}, {1, 1}, {0, 1}},
+                     {{0.5, -1}, {1, -1}, {1, 1}, {-0.5, 1}}));
 
         static char const expected_node[] = "all(+0, -1, +2, +3, -4, -6)";
 
@@ -1797,8 +1797,8 @@ TEST_F(HyperboloidTest, standard)
 
     IntersectTestResult ref;
     ref.node = "all(+0, -1, -2)";
-    ref.surfaces
-        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,-0.33333} {0,0,0} -1"};
+    ref.surfaces = {
+        "Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,-0.33333} {0,0,0} -1"};
     ref.interior = {{-0.70710678118655, -0.70710678118655, -3},
                     {0.70710678118655, 0.70710678118655, 3}};
     ref.exterior = {{-2, -2, -3}, {2, 2, 3}};
@@ -1857,8 +1857,8 @@ TEST_F(InfAziWedgeTest, quarter_turn)
         SCOPED_TRACE("first quadrant");
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
         static char const expected_node[] = "all(+0, +1)";
-        static char const* const expected_surfaces[]
-            = {"Plane: x=0", "Plane: y=0"};
+        static char const* const expected_surfaces[] = {"Plane: x=0",
+                                                        "Plane: y=0"};
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -1930,8 +1930,8 @@ TEST_F(InfAziWedgeTest, half_turn)
         SCOPED_TRACE("northeast half");
         auto result = this->test(InfAziWedge(Turn{0.125}, Turn{0.625}));
         static char const expected_node[] = "-1";
-        static char const* const expected_surfaces[]
-            = {"Plane: y=0", "Plane: n={0.70711,-0.70711,0}, d=0"};
+        static char const* const expected_surfaces[] = {
+            "Plane: y=0", "Plane: n={0.70711,-0.70711,0}, d=0"};
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -2269,8 +2269,8 @@ TEST_F(ParaboloidTest, standard)
     auto result = this->test(Paraboloid(1, 2, 3));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,0} {0,0,-0.5} -2.5"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-3", "Plane: z=3", "SQuadric: {1,1,0} {0,0,-0.5} -2.5"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -2285,8 +2285,8 @@ TEST_F(ParaboloidTest, vertex)
     auto result = this->test(Paraboloid(5, 0, 5));
 
     static char const expected_node[] = "all(+0, -1, -2)";
-    static char const* const expected_surfaces[]
-        = {"Plane: z=-5", "Plane: z=5", "SQuadric: {1,1,0} {0,0,2.5} -12.5"};
+    static char const* const expected_surfaces[] = {
+        "Plane: z=-5", "Plane: z=5", "SQuadric: {1,1,0} {0,0,2.5} -12.5"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
@@ -2321,8 +2321,8 @@ TEST_F(ParallelepipedTest, errors)
 TEST_F(ParallelepipedTest, box)
 {
     Real3 sides{1, 2, 3};
-    auto result
-        = this->test(Parallelepiped(sides, Turn(0.0), Turn(0.0), Turn(0.0)));
+    auto result = this->test(
+        Parallelepiped(sides, Turn(0.0), Turn(0.0), Turn(0.0)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
     static char const* const expected_surfaces[] = {
@@ -2345,8 +2345,8 @@ TEST_F(ParallelepipedTest, box)
 TEST_F(ParallelepipedTest, alpha)
 {
     Real3 sides{1, 2, 3};
-    auto result
-        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.0), Turn(0.0)));
+    auto result = this->test(
+        Parallelepiped(sides, Turn(0.1), Turn(0.0), Turn(0.0)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
     static char const* const expected_surfaces[] = {
@@ -2370,8 +2370,8 @@ TEST_F(ParallelepipedTest, alpha)
 TEST_F(ParallelepipedTest, theta)
 {
     Real3 sides{1, 2, 3};
-    auto result
-        = this->test(Parallelepiped(sides, Turn(0), Turn(0.1), Turn(0)));
+    auto result = this->test(
+        Parallelepiped(sides, Turn(0), Turn(0.1), Turn(0)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
     static char const* const expected_surfaces[] = {
@@ -2395,8 +2395,8 @@ TEST_F(ParallelepipedTest, theta)
 TEST_F(ParallelepipedTest, full)
 {
     Real3 sides{1, 2, 3};
-    auto result
-        = this->test(Parallelepiped(sides, Turn(0.1), Turn(0.05), Turn(0.15)));
+    auto result = this->test(
+        Parallelepiped(sides, Turn(0.1), Turn(0.05), Turn(0.15)));
 
     static char const expected_node[] = "all(+0, -1, +2, -3, +4, -5)";
     static char const* const expected_surfaces[] = {
@@ -2671,8 +2671,8 @@ TEST_F(TorusTest, standard)
     auto result = this->test(Torus(2, 1));
 
     static char const expected_node[] = "-0";
-    static char const* expected_surfaces[]
-        = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
+    static char const* expected_surfaces[] = {
+        "Toroid: r=2, a=1, b=1, at o={0,0,0}"};
 
     EXPECT_EQ(expected_node, result.node);
     EXPECT_VEC_EQ(expected_surfaces, result.surfaces);

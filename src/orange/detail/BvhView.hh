@@ -59,8 +59,8 @@ class BvhView
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION
-    BvhView(BvhTreeRecord const& tree, Storage const& storage);
+    inline CELER_FUNCTION BvhView(BvhTreeRecord const& tree,
+                                  Storage const& storage);
 
     // Determine if a node is inner, i.e., not a leaf
     inline CELER_FUNCTION bool is_internal(BvhNodeId id) const;
@@ -98,8 +98,8 @@ class BvhView
 /*!
  * Construct from an internal node.
  */
-CELER_FUNCTION
-BvhInternalNodeView::BvhInternalNodeView(BvhInternalNode const& node)
+CELER_FUNCTION BvhInternalNodeView::BvhInternalNodeView(
+    BvhInternalNode const& node)
     : node_(node)
 {
     CELER_EXPECT(node_);
@@ -128,8 +128,8 @@ CELER_FUNCTION BvhNodeId BvhInternalNodeView::child(
 /*!
  * Get edge bounding box for a side.
  */
-CELER_FUNCTION FastBBox const&
-BvhInternalNodeView::bbox(BvhInternalNodeView::Side side) const
+CELER_FUNCTION FastBBox const& BvhInternalNodeView::bbox(
+    BvhInternalNodeView::Side side) const
 {
     return node_.edges[side].bbox;
 }
@@ -138,8 +138,8 @@ BvhInternalNodeView::bbox(BvhInternalNodeView::Side side) const
 /*!
  * Construct from vector of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhView::BvhView(BvhTreeRecord const& tree, BvhView::Storage const& storage)
+CELER_FUNCTION BvhView::BvhView(BvhTreeRecord const& tree,
+                                BvhView::Storage const& storage)
     : tree_(tree), storage_(storage)
 {
     CELER_EXPECT(tree_);
@@ -208,8 +208,8 @@ CELER_FUNCTION FastBBox const& BvhView::bbox(LocalVolumeId vol_id) const
  */
 CELER_FUNCTION auto BvhView::leaf_vol_ids(BvhNodeId id) const -> SpanLocalVol
 {
-    CELER_EXPECT(
-        id >= BvhNodeId{this->num_internal_nodes()} && id < this->num_nodes());
+    CELER_EXPECT(id >= BvhNodeId{this->num_internal_nodes()}
+                 && id < this->num_nodes());
     ItemId<BvhLeafNode> leaf_id
         = tree_.leaf_nodes[*id - this->num_internal_nodes()];
     CELER_ASSERT(leaf_id < storage_.leaf_nodes.size());

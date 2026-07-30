@@ -82,8 +82,8 @@ void remove_if_alive(
     auto& stream = device().stream(stream_id);
     auto start = device_pointer_cast(init.vacancies.data());
     auto counters = device_pointer_cast(init.counters.data());
-    auto host_counters
-        = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
+    auto host_counters = ItemCopier<CoreStateCounters>{stream_id}(
+        counters.get());
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + init.vacancies.size(),
@@ -181,8 +181,8 @@ size_type exclusive_scan_counts(
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host
-    auto result
-        = ItemCopier<size_type>{stream_id}(data.get() + counts.size() - 1);
+    auto result = ItemCopier<size_type>{stream_id}(
+        data.get() + counts.size() - 1);
 
     stream.sync();
     return result;
@@ -260,15 +260,15 @@ void partition_initializers(
     // because the indices are always sequential from zero
     auto start = thrust::make_counting_iterator<size_type>(0);
     auto data = device_pointer_cast(init.indices.data());
-    auto cub_error_code
-        = cub::DevicePartition::Flagged(nullptr,
-                                        temp_storage_bytes,
-                                        start,
-                                        flags.data(),
-                                        data,
-                                        &(counters->num_neutral),
-                                        count,
-                                        stream.get());
+    auto cub_error_code = cub::DevicePartition::Flagged(
+        nullptr,
+        temp_storage_bytes,
+        start,
+        flags.data(),
+        data,
+        &(counters->num_neutral),
+        count,
+        stream.get());
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);

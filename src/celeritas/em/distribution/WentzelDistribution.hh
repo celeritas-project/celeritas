@@ -67,14 +67,14 @@ class WentzelDistribution
 
   public:
     // Construct with state and model data
-    inline CELER_FUNCTION
-    WentzelDistribution(NativeCRef<WentzelOKVIData> const& wentzel,
-                        WentzelHelper const& helper,
-                        ParticleTrackView const& particle,
-                        IsotopeView const& target,
-                        ElementId el_id,
-                        real_type cos_thetamin,
-                        real_type cos_thetamax);
+    inline CELER_FUNCTION WentzelDistribution(
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        WentzelHelper const& helper,
+        ParticleTrackView const& particle,
+        IsotopeView const& target,
+        ElementId el_id,
+        real_type cos_thetamin,
+        real_type cos_thetamax);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -225,8 +225,8 @@ CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
 
     // Approximate squared momentum transfer to the target (assuming heavy
     // target and light projectile)
-    auto mt_sq
-        = MomSq{2 * value_as<MomSq>(particle_.momentum_sq()) * (1 - cos_t)};
+    auto mt_sq = MomSq{2 * value_as<MomSq>(particle_.momentum_sq())
+                       * (1 - cos_t)};
 
     auto calc_ff = [mt_sq](auto&& calc_form_factor) {
         real_type result = calc_form_factor(mt_sq);

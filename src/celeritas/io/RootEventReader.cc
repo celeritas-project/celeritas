@@ -78,8 +78,8 @@ auto RootEventReader::operator()(EventId event_id) -> result_type
     do
     {
         ttree_->GetEntry(entry_count_);
-        entry_event_id
-            = EventId{from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
+        entry_event_id = EventId{
+            from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
 
         if (entry_event_id != expected_event_id_)
         {
@@ -116,8 +116,8 @@ auto RootEventReader::operator()() -> result_type
     {
         ttree_->GetEntry(entry_count_);
 
-        auto entry_evt_id
-            = EventId{from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
+        auto entry_evt_id = EventId{
+            from_leaf<size_type>(*ttree_->GetLeaf("event_id"))};
         if (primaries.empty())
         {
             // First entry; set current event id

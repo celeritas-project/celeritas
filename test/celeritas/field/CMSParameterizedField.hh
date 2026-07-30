@@ -83,8 +83,8 @@ CELER_FUNCTION auto CMSParameterizedField::operator()(Real3 const& pos) const
  *
  * \return Field strength in Tesla
  */
-CELER_FUNCTION auto
-CMSParameterizedField::evaluate_field(real_type r, real_type z) const -> Real3
+CELER_FUNCTION auto CMSParameterizedField::evaluate_field(
+    real_type r, real_type z) const -> Real3
 {
     using namespace celeritas::literals;
     using units::meter;
@@ -140,8 +140,8 @@ CMSParameterizedField::evaluate_field(real_type r, real_type z) const -> Real3
 /*!
  * Evaluate the parameterization function and its 3 derivatives.
  */
-CELER_FUNCTION auto
-CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
+CELER_FUNCTION auto CMSParameterizedField::evaluate_parameters(
+    real_type x) const -> Real4
 {
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);

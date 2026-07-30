@@ -54,8 +54,8 @@ class ParticleTrackView
         ParamsRef const& params, StateRef const& states, TrackSlotId id);
 
     // Initialize the particle
-    inline CELER_FUNCTION ParticleTrackView&
-    operator=(Initializer_t const& other);
+    inline CELER_FUNCTION ParticleTrackView& operator=(
+        Initializer_t const& other);
 
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
@@ -136,8 +136,8 @@ CELER_FUNCTION ParticleTrackView::ParticleTrackView(
 /*!
  * Initialize the particle.
  */
-CELER_FUNCTION ParticleTrackView&
-ParticleTrackView::operator=(Initializer_t const& other)
+CELER_FUNCTION ParticleTrackView& ParticleTrackView::operator=(
+    Initializer_t const& other)
 {
     CELER_EXPECT(other.particle_id < params_.size());
     CELER_EXPECT(other.energy >= zero_quantity());

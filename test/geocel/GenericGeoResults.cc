@@ -152,8 +152,8 @@ void GenericGeoTrackingResult::print_expected() const
     else \
         (void)sizeof(char)
 #define IRE_VEC_SOFT_EQ(ATTR, TOL) \
-    if (auto result \
-        = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
+    if (auto result = IsVecSoftEquiv( \
+            expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
         !static_cast<bool>(result)) \
     { \
         helper.fail() << result.message(); \

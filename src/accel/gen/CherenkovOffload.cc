@@ -44,8 +44,8 @@ void CherenkovOffload::PreparePhysicsTable(G4ParticleDefinition const& particle)
  * a \c GeneratorDistributionData and pushes it to the local offload, which
  * should be \c LocalOpticalGenOffload.
  */
-G4VParticleChange*
-CherenkovOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
+G4VParticleChange* CherenkovOffload::PostStepDoIt(G4Track const& aTrack,
+                                                  G4Step const& aStep)
 {
     CELER_EXPECT(!this->GetStackPhotons());
 

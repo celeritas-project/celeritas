@@ -67,8 +67,8 @@ bool NaviTouchableUpdater::operator()(DetectorStepOutput const& out,
     CELER_EXPECT(!out.points[StepPoint::pre].pos.empty());
     CELER_EXPECT(!out.points[StepPoint::pre].dir.empty());
     CELER_EXPECT(!out.detector_id.empty());
-    CELER_EXPECT(
-        detector_volumes_ && out.detector_id[i] < detector_volumes_->size());
+    CELER_EXPECT(detector_volumes_
+                 && out.detector_id[i] < detector_volumes_->size());
 
     G4LogicalVolume const* lv
         = (*detector_volumes_)[out.detector_id[i].unchecked_get()];
@@ -94,8 +94,8 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     CELER_EXPECT(lv);
     CELER_EXPECT(touchable);
 
-    auto g4pos
-        = native_to_geant<units::ClhepLength>(static_array_cast<double>(pos));
+    auto g4pos = native_to_geant<units::ClhepLength>(
+        static_array_cast<double>(pos));
     auto g4dir = to_g4vector(static_array_cast<double>(dir));
 
     // Locate pre-step point
@@ -117,8 +117,8 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     }
 
     constexpr double g4max_step = convert_to_geant(max_step(), clhep_length);
-    constexpr double g4max_quiet_step
-        = convert_to_geant(max_quiet_step(), clhep_length);
+    constexpr double g4max_quiet_step = convert_to_geant(max_quiet_step(),
+                                                         clhep_length);
     double g4safety{-1};
     double g4step{-1};
 

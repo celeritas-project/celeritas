@@ -36,10 +36,10 @@ namespace celeritas
 /*!
  * Construct if Urban model is present, or else return nullptr.
  */
-std::shared_ptr<UrbanMscParams>
-UrbanMscParams::from_import(ParticleParams const& particles,
-                            MaterialParams const& materials,
-                            ImportData const& data)
+std::shared_ptr<UrbanMscParams> UrbanMscParams::from_import(
+    ParticleParams const& particles,
+    MaterialParams const& materials,
+    ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
@@ -88,18 +88,18 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         CELER_ASSERT(par_id < pid_to_pmdata.size());
         if (par_id == host_data.ids.electron)
         {
-            pid_to_pmdata[par_id.unchecked_get()]
-                = UrbanParMatId(static_cast<size_type>(UPMT::electron));
+            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
+                static_cast<size_type>(UPMT::electron));
         }
         else if (par_id == host_data.ids.positron)
         {
-            pid_to_pmdata[par_id.unchecked_get()]
-                = UrbanParMatId(static_cast<size_type>(UPMT::positron));
+            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
+                static_cast<size_type>(UPMT::positron));
         }
         else
         {
-            pid_to_pmdata[par_id.unchecked_get()]
-                = UrbanParMatId(static_cast<size_type>(UPMT::muhad));
+            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
+                static_cast<size_type>(UPMT::muhad));
         }
     }
     make_builder(&host_data.pid_to_pmdata)
@@ -170,8 +170,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
-UrbanMscMaterialData
-UrbanMscParams::calc_material_data(MaterialView const& material_view)
+UrbanMscMaterialData UrbanMscParams::calc_material_data(
+    MaterialView const& material_view)
 {
     using PolyQuad = PolyEvaluator<double, 2>;
 

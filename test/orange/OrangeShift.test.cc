@@ -120,8 +120,8 @@ TEST_F(ShiftTrackerTest, host)
         auto costheta = mu_phi[n][0];
         auto sintheta = std::sqrt(1 - costheta * costheta);
         auto phi = mu_phi[n][1];
-        Real3 dir
-            = {sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
+        Real3 dir = {
+            sintheta * std::cos(phi), sintheta * std::sin(phi), costheta};
 
         this->initialize(pos[n], dir);
 

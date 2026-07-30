@@ -53,9 +53,9 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
                    << "invalid field parameter (max_z=" << inp.grid_z.back()
                    << " <= min_z= " << inp.grid_z.front() << ")");
 
-    CELER_VALIDATE(
-        inp.grid_r.front() >= 0,
-        << "invalid field parameter (min_r=" << inp.grid_r.front() << ")");
+    CELER_VALIDATE(inp.grid_r.front() >= 0,
+                   << "invalid field parameter (min_r=" << inp.grid_r.front()
+                   << ")");
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");
@@ -88,8 +88,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
             inp.grid_r.cend(),
             std::back_inserter(grid),
             [](auto const& val) { return static_cast<real_type>(val); });
-        host.grids.axes[CylAxis::r]
-            = ItemRange<real_type>{r_start, grid.size_id()};
+        host.grids.axes[CylAxis::r] = ItemRange<real_type>{r_start,
+                                                           grid.size_id()};
 
         // Replace first and last phi grid values with exact zero and unity
         auto phi_start = grid.size_id();
@@ -101,8 +101,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
                            return static_cast<real_type>(val.value());
                        });
         grid.push_back(1);
-        host.grids.axes[CylAxis::phi]
-            = ItemRange<real_type>{phi_start, grid.size_id()};
+        host.grids.axes[CylAxis::phi] = ItemRange<real_type>{phi_start,
+                                                             grid.size_id()};
 
         auto z_start = grid.size_id();
         std::transform(
@@ -110,8 +110,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
             inp.grid_z.cend(),
             std::back_inserter(grid),
             [](auto const& val) { return static_cast<real_type>(val); });
-        host.grids.axes[CylAxis::z]
-            = ItemRange<real_type>{z_start, grid.size_id()};
+        host.grids.axes[CylAxis::z] = ItemRange<real_type>{z_start,
+                                                           grid.size_id()};
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field.size());

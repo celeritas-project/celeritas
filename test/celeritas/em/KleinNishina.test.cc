@@ -122,14 +122,14 @@ TEST_F(KleinNishinaInteractorTest, ten_mev)
     EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    double const expected_energy[]
-        = {0.4581502636229, 1.325852509857, 9.837250571445, 0.5250297816972};
+    double const expected_energy[] = {
+        0.4581502636229, 1.325852509857, 9.837250571445, 0.5250297816972};
     double const expected_costheta[] = {
         -0.0642523962721, 0.6656882878883, 0.9991545931877, 0.07782377978055};
-    double const expected_energy_electron[]
-        = {9.541849736377, 8.674147490143, 0.1627494285554, 9.474970218303};
-    double const expected_costheta_electron[]
-        = {0.998962567429, 0.9941635460938, 0.3895748042313, 0.9986216572142};
+    double const expected_energy_electron[] = {
+        9.541849736377, 8.674147490143, 0.1627494285554, 9.474970218303};
+    double const expected_costheta_electron[] = {
+        0.998962567429, 0.9941635460938, 0.3895748042313, 0.9986216572142};
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_SOFT_EQ(expected_costheta, costheta);
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
@@ -159,8 +159,9 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
 
         // Loop over several incident directions (shouldn't affect anything
         // substantial, but scattering near Z axis loses precision)
-        for (Real3 const& inc_dir :
-             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        for (
+            Real3 const& inc_dir :
+            {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
@@ -188,8 +189,8 @@ TEST_F(KleinNishinaInteractorTest, stress_test)
 
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
-    double const expected_avg_engine_samples[]
-        = {10.99816894531, 9.483154296875, 8.295532226562, 8.00439453125};
+    double const expected_avg_engine_samples[] = {
+        10.99816894531, 9.483154296875, 8.295532226562, 8.00439453125};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
@@ -237,10 +238,10 @@ TEST_F(KleinNishinaInteractorTest, distributions)
     EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
     // PRINT_EXPECTED(eps_dist);
     // PRINT_EXPECTED(costheta_dist);
-    int const expected_eps_dist[]
-        = {0, 0, 2010, 1365, 1125, 1067, 1077, 1066, 1123, 1167};
-    int const expected_costheta_dist[]
-        = {495, 459, 512, 528, 565, 701, 803, 1101, 1693, 3143};
+    int const expected_eps_dist[] = {
+        0, 0, 2010, 1365, 1125, 1067, 1077, 1066, 1123, 1167};
+    int const expected_costheta_dist[] = {
+        495, 459, 512, 528, 565, 701, 803, 1101, 1693, 3143};
     EXPECT_VEC_EQ(expected_eps_dist, eps_dist);
     EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
 }

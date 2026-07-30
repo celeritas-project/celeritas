@@ -230,8 +230,8 @@ TEST_F(SimpleCmsNaviTest, too_far)
         R"(Failed to bump navigation state up to a distance of 1 [mm] at {1260, 0, 0} [mm] along {1, 0, 0} to try to reach "si_tracker"@0x0 (ID=1): found {{pv='em_calorimeter_pv', lv=2='em_calorimeter'}})",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[]
-        = {"warning", "warning", "warning", "warning"};
+    static char const* const expected_log_levels[] = {
+        "warning", "warning", "warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 

@@ -142,11 +142,11 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
 
     // Test postfix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
-    auto build_postfix
-        = [this](NodeId n,
-                 detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-              return this->build(LogicNotation::postfix, mapping, n);
-          };
+    auto build_postfix =
+        [this](NodeId n,
+               detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+            return this->build(LogicNotation::postfix, mapping, n);
+        };
 
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
@@ -204,8 +204,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_postfix(shell);
 
-        auto const expected_lgc
-            = string_to_logic("0 1~ & 3~ & 0 1~ & 2~ &~ &");
+        auto const expected_lgc = string_to_logic(
+            "0 1~ & 3~ & 0 1~ & 2~ &~ &");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc);
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -233,8 +233,8 @@ TEST_F(CsgTreeUtilsTest, postfix_simplify)
         EXPECT_TRUE(has_internal_surfaces(always_false));
         auto&& [faces, lgc] = build_postfix(always_false);
 
-        auto const expected_lgc
-            = string_to_logic("0 1~ & 2~ & 3~ & 0 1~ & 2~ &~ &");
+        auto const expected_lgc = string_to_logic(
+            "0 1~ & 2~ & 3~ & 0 1~ & 2~ &~ &");
         static S const expected_faces[] = {S{0}, S{1}, S{2}, S{3}};
         EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);
@@ -289,11 +289,11 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
     // Test infix and internal surface flagger
     InternalSurfaceFlagger has_internal_surfaces(tree_);
 
-    auto build_infix
-        = [this](NodeId n,
-                 detail::BuildLogicResult::VecSurface* mapping = nullptr) {
-              return this->build(LogicNotation::infix, mapping, n);
-          };
+    auto build_infix =
+        [this](NodeId n,
+               detail::BuildLogicResult::VecSurface* mapping = nullptr) {
+            return this->build(LogicNotation::infix, mapping, n);
+        };
     {
         EXPECT_FALSE(has_internal_surfaces(mz));
         auto&& [faces, lgc] = build_infix(mz);
@@ -350,8 +350,8 @@ TEST_F(CsgTreeUtilsTest, infix_simplify)
         EXPECT_TRUE(has_internal_surfaces(shell));
         auto&& [faces, lgc] = build_infix(shell);
 
-        auto const expected_lgc
-            = string_to_logic("0 & ~1 & ~3 & ~(0 & ~1 & ~2)");
+        auto const expected_lgc = string_to_logic(
+            "0 & ~1 & ~3 & ~(0 & ~1 & ~2)");
         static S const expected_faces[] = {S{0u}, S{1u}, S{2u}, S{3u}};
         EXPECT_VEC_EQ(expected_lgc, lgc) << ReprLogic{lgc};
         EXPECT_VEC_EQ(expected_faces, faces);

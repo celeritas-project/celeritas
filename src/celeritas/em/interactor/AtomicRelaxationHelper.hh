@@ -51,11 +51,11 @@ class AtomicRelaxationHelper
 {
   public:
     // Construct with the currently interacting element
-    inline CELER_FUNCTION
-    AtomicRelaxationHelper(AtomicRelaxParamsRef const& shared,
-                           AtomicRelaxStateRef const& states,
-                           ElementId el_id,
-                           TrackSlotId tid);
+    inline CELER_FUNCTION AtomicRelaxationHelper(
+        AtomicRelaxParamsRef const& shared,
+        AtomicRelaxStateRef const& states,
+        ElementId el_id,
+        TrackSlotId tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;

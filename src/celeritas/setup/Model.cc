@@ -142,13 +142,13 @@ ModelLoaded model(inp::Model const& m)
     {
         CELER_LOG(debug) << "No surfaces are defined";
     }
-    result.surface
-        = std::make_shared<SurfaceParams>(m.surfaces, *result.volume);
+    result.surface = std::make_shared<SurfaceParams>(m.surfaces,
+                                                     *result.volume);
 
     if (has_volume_data(m))
     {
-        result.detector
-            = std::make_shared<DetectorParams>(m.detectors, *result.volume);
+        result.detector = std::make_shared<DetectorParams>(m.detectors,
+                                                           *result.volume);
     }
     else
     {

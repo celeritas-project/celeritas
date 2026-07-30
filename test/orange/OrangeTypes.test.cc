@@ -79,8 +79,8 @@ TEST(Tolerance, single)
                                     LogLevel::warning};
         auto tol = TolT::from_relative(1e-9f);
         EXPECT_GT(tol.rel, 1e-9f);
-        static char const* const expected_log_messages[]
-            = {"Clamped relative tolerance 1e-9 to machine epsilon 1.192e-7"};
+        static char const* const expected_log_messages[] = {
+            "Clamped relative tolerance 1e-9 to machine epsilon 1.192e-7"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());

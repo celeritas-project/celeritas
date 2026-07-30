@@ -76,8 +76,8 @@ class VolumeBuilder
     NodeId insert_region(Metadata&& md, Negated&& n);
 
     // Apply a transform within this scope
-    [[nodiscard]] PopVBTransformOnDestruct
-    make_scoped_transform(VariantTransform const& t);
+    [[nodiscard]] PopVBTransformOnDestruct make_scoped_transform(
+        VariantTransform const& t);
 
   private:
     //// DATA ////
@@ -116,16 +116,16 @@ class PopVBTransformOnDestruct
     }
 
     //! Capture the pointer when move assigned
-    PopVBTransformOnDestruct&
-    operator=(PopVBTransformOnDestruct&& other) noexcept
+    PopVBTransformOnDestruct& operator=(
+        PopVBTransformOnDestruct&& other) noexcept
     {
         vb_ = std::exchange(other.vb_, nullptr);
         return *this;
     }
 
     PopVBTransformOnDestruct(PopVBTransformOnDestruct const&) = default;
-    PopVBTransformOnDestruct&
-    operator=(PopVBTransformOnDestruct const&) = default;
+    PopVBTransformOnDestruct& operator=(
+        PopVBTransformOnDestruct const&) = default;
 
     //! Call pop when we own the pointer and go out of scope
     ~PopVBTransformOnDestruct() noexcept(!CELERITAS_DEBUG)

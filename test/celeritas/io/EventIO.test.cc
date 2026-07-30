@@ -51,11 +51,11 @@ class EventIOTest : public EventIOTestBase,
 
 TEST_P(EventIOTest, variety_rwr)
 {
-    std::string const inp_filename
-        = this->test_data_path("celeritas", "event-variety.hepmc3");
+    std::string const inp_filename = this->test_data_path(
+        "celeritas", "event-variety.hepmc3");
     std::string const ext = this->GetParam();
-    std::string const out_filename
-        = this->make_unique_filename(std::string{"."} + ext);
+    std::string const out_filename = this->make_unique_filename(
+        std::string{"."} + ext);
 
     // Read one format, write (possibly) another
     this->read_write(inp_filename, out_filename);
@@ -105,11 +105,11 @@ TEST_P(EventIOTest, variety_rwr)
 
 TEST_P(EventIOTest, no_vertex_rwr)
 {
-    std::string const inp_filename
-        = this->test_data_path("celeritas", "event-novtx.hepmc3");
+    std::string const inp_filename = this->test_data_path(
+        "celeritas", "event-novtx.hepmc3");
     std::string const ext = this->GetParam();
-    std::string const out_filename
-        = this->make_unique_filename(std::string{"."} + ext);
+    std::string const out_filename = this->make_unique_filename(
+        std::string{"."} + ext);
 
     // Read one format, write (possibly) another
     this->read_write(inp_filename, out_filename);

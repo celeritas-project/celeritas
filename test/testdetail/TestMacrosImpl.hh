@@ -31,8 +31,8 @@ namespace testdetail
 int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc);
+char const* trunc_string(
+    unsigned int digits, char const* str, char const* trunc);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -136,12 +136,12 @@ constexpr bool can_soft_equiv()
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
 template<class BinaryOp>
-::testing::AssertionResult
-IsSoftEquivImpl(typename BinaryOp::value_type expected,
-                char const* expected_expr,
-                typename BinaryOp::value_type actual,
-                char const* actual_expr,
-                BinaryOp comp)
+::testing::AssertionResult IsSoftEquivImpl(
+    typename BinaryOp::value_type expected,
+    char const* expected_expr,
+    typename BinaryOp::value_type actual,
+    char const* actual_expr,
+    BinaryOp comp)
 {
     if (comp(expected, actual))
     {
@@ -356,15 +356,15 @@ using ScalarValueTypeT = typename ScalarValueType<T>::type;
  * Compare a range of values.
  */
 template<class Iter1, class Iter2, class BinaryOp>
-::testing::AssertionResult
-IsRangeEqImpl(Iter1 e_iter,
-              Iter1 e_end,
-              char const* expected_expr,
-              Iter2 a_iter,
-              Iter2 a_end,
-              char const* actual_expr,
-              typename FVIT<Iter1, Iter2>::Vec_t& failures,
-              BinaryOp comp)
+::testing::AssertionResult IsRangeEqImpl(
+    Iter1 e_iter,
+    Iter1 e_end,
+    char const* expected_expr,
+    Iter2 a_iter,
+    Iter2 a_end,
+    char const* actual_expr,
+    typename FVIT<Iter1, Iter2>::Vec_t& failures,
+    BinaryOp comp)
 {
     using size_type = std::size_t;
     size_type expected_size = std::distance(e_iter, e_end);
@@ -425,8 +425,8 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    if constexpr (
-        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -620,8 +620,8 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    if constexpr (
-        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -640,8 +640,8 @@ template<class ContainerE, class ContainerA>
 
         for (int i = 0; i < exp_size; ++i)
         {
-            auto result
-                = IsVecEq(expected_expr, actual_expr, expected[i], actual[i]);
+            auto result = IsVecEq(
+                expected_expr, actual_expr, expected[i], actual[i]);
             if (!result)
             {
                 return result;
@@ -655,15 +655,15 @@ template<class ContainerE, class ContainerA>
 
         typename Traits_t::VecFailedValue failures;
 
-        ::testing::AssertionResult result
-            = IsRangeEqImpl(std::begin(expected),
-                            std::end(expected),
-                            expected_expr,
-                            std::begin(actual),
-                            std::end(actual),
-                            actual_expr,
-                            failures,
-                            std::equal_to<typename Traits_t::common_type>());
+        ::testing::AssertionResult result = IsRangeEqImpl(
+            std::begin(expected),
+            std::end(expected),
+            expected_expr,
+            std::begin(actual),
+            std::end(actual),
+            actual_expr,
+            failures,
+            std::equal_to<typename Traits_t::common_type>());
 
         if (!result)
         {
@@ -699,8 +699,7 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using Value_t =
-        typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using Value_t = typename SoftPrecisionType<value_type_E, value_type_A>::type;
 
     // Construct with automatic or specified tolerances
     return IsVecSoftEquivImpl(expected,
@@ -731,8 +730,7 @@ template<class ContainerE, class ContainerA, class T>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using Value_t =
-        typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using Value_t = typename SoftPrecisionType<value_type_E, value_type_A>::type;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -777,8 +775,8 @@ IsRefEq(char const* expr1,
             if constexpr (!std::is_same_v<Tol, std::nullptr_t>)
             {
                 // Compare with tolerance
-                item_result
-                    = IsRefEq(expr1, expr2, tol_expr, *iter1, *iter2, tol);
+                item_result = IsRefEq(
+                    expr1, expr2, tol_expr, *iter1, *iter2, tol);
             }
             else
             {

@@ -30,8 +30,8 @@ namespace detail
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<OpticalLaunchAction>
-OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
+std::shared_ptr<OpticalLaunchAction> OpticalLaunchAction::make_and_insert(
+    CoreParams const& core, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *core.action_reg();

@@ -149,7 +149,8 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
     data.units = units::NativeTraits::label();
     auto& bulk = data.optical_physics.bulk;
 
-    auto mat_props = [&data](std::size_t opt_mat_idx) -> ImportOpticalProperty& {
+    auto mat_props = [&data](
+                         std::size_t opt_mat_idx) -> ImportOpticalProperty& {
         if (opt_mat_idx >= data.optical_materials.size())
             data.optical_materials.resize(opt_mat_idx + 1);
         return data.optical_materials[opt_mat_idx].properties;
@@ -182,8 +183,8 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
     model(0, bulk.wls2).time_constant = native_value_from(TimeSecond(21.7e-9));
     model(0, bulk.wls2).component.x = {
         1.771e-6, 1.850e-6, 1.901e-6, 2.003e-6, 2.073e-6, 2.141e-6, 2.171e-6};
-    model(0, bulk.wls2).component.y
-        = {0.016, 0.024, 0.040, 0.111, 0.206, 0.325, 0.413};
+    model(0, bulk.wls2).component.y = {
+        0.016, 0.024, 0.040, 0.111, 0.206, 0.325, 0.413};
     model(0, bulk.wls2).mfp = mfp({1e-1, 1e1}, {2.3, 5.4});
     model(0, bulk.mie).forward_g = 0.99;
     model(0, bulk.mie).backward_g = 0.99;

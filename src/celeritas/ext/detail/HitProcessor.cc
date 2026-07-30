@@ -60,8 +60,8 @@ namespace
  * that would be better done by using "touchables" globally and reconstructing
  * volume instances in post.
  */
-G4StepStatus
-get_step_status(DetectorStepOutput const& out, size_type step_index)
+G4StepStatus get_step_status(DetectorStepOutput const& out,
+                             size_type step_index)
 {
     auto pre = LevelTouchableUpdater::volume_instances(
         out, step_index, StepPoint::pre);
@@ -117,8 +117,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     if (!particles.empty())
     {
         // Reconstruct track
-        track_reconstruction_
-            = std::make_shared<GeantTrackReconstruction>(particles, step_);
+        track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
+            particles, step_);
     }
     CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
                  && ss_.primary_id == ss_.particle_id);
@@ -277,8 +277,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         // Copy attributes from logical volume
         if (sp == StepPoint::pre)
         {
-            G4LogicalVolume const* lv
-                = this->detector_volume(out.detector_id[i]);
+            G4LogicalVolume const* lv = this->detector_volume(
+                out.detector_id[i]);
             CELER_ASSERT(lv);
             // Use lv already known from the in-volume detector
             sp_view.update_from_volume(*lv);
@@ -291,8 +291,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     }
 
     // Reconstruct tracks and IDs if particles were provided
-    CELER_ASSERT(
-        static_cast<bool>(track_reconstruction_) == !out.particle_id.empty());
+    CELER_ASSERT(static_cast<bool>(track_reconstruction_)
+                 == !out.particle_id.empty());
     if (track_reconstruction_)
     {
         CELER_ASSERT(i < out.particle_id.size());

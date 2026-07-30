@@ -57,8 +57,16 @@ TEST(PowerDistributionTest, positive)
         hist(r);
     }
 
-    static size_type const expected_counts[] = {
-        344ul, 459ul, 623ul, 698ul, 806ul, 1004ul, 1166ul, 1459ul, 1604ul, 1837ul};
+    static size_type const expected_counts[] = {344ul,
+                                                459ul,
+                                                623ul,
+                                                698ul,
+                                                806ul,
+                                                1004ul,
+                                                1166ul,
+                                                1459ul,
+                                                1604ul,
+                                                1837ul};
     EXPECT_VEC_EQ(expected_counts, hist.counts());
 
     EXPECT_EQ(0, hist.underflow())
@@ -83,8 +91,8 @@ TEST(PowerDistributionTest, negative)
         hist(r);
     }
 
-    static unsigned int const expected_counts[]
-        = {9729ul, 171ul, 60ul, 17ul, 6ul, 8ul, 3ul, 3ul, 1ul, 2ul};
+    static unsigned int const expected_counts[] = {
+        9729ul, 171ul, 60ul, 17ul, 6ul, 8ul, 3ul, 3ul, 1ul, 2ul};
     EXPECT_VEC_EQ(expected_counts, hist.counts());
 
     EXPECT_EQ(0, hist.underflow())

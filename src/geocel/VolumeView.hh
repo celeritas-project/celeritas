@@ -41,8 +41,8 @@ class VolumeView
 
   public:
     // Construct with shared data and a volume ID
-    explicit inline CELER_FUNCTION
-    VolumeView(ParamsRef const& params, VolumeId vol_id);
+    explicit inline CELER_FUNCTION VolumeView(ParamsRef const& params,
+                                              VolumeId vol_id);
 
     //! Volume being viewed
     CELER_FUNCTION VolumeId volume_id() const { return vol_id_; }

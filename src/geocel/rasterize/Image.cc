@@ -70,10 +70,10 @@ ImageParams::ImageParams(ImageInput const& inp)
     // Set number of pixels in each direction.
     size_type num_y = inp.vertical_pixels;
     scalars.pixel_width = width_y / num_y;
-    size_type num_x
-        = inp.horizontal_divisor
-          * static_cast<size_type>(std::ceil(
-              width_x / (inp.horizontal_divisor * scalars.pixel_width)));
+    size_type num_x = inp.horizontal_divisor
+                      * static_cast<size_type>(std::ceil(
+                          width_x
+                          / (inp.horizontal_divisor * scalars.pixel_width)));
     CELER_ASSERT(num_x >= inp.horizontal_divisor);
     scalars.dims = {num_y, num_x};
 

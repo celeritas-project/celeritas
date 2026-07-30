@@ -58,10 +58,10 @@ void to_json(nlohmann::json& j, KernelRegistry const& kr)
         j.back()["name"] = md.name;
         if (write_profiling)
         {
-            j.back()["num_launches"]
-                = static_cast<int>(md.profiling.num_launches);
-            j.back()["accum_threads"]
-                = static_cast<int>(md.profiling.accum_threads);
+            j.back()["num_launches"] = static_cast<int>(
+                md.profiling.num_launches);
+            j.back()["accum_threads"] = static_cast<int>(
+                md.profiling.accum_threads);
         }
     }
 }

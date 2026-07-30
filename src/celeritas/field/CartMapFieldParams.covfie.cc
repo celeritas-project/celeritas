@@ -84,8 +84,7 @@ struct CartMapFieldParams::Impl
 
             using traits_t = detail::CovfieFieldTraits<MemSpace::host>;
             using field_t = typename traits_t::field_t;
-            using clamp_config_t =
-                typename traits_t::clamped_t::configuration_t;
+            using clamp_config_t = typename traits_t::clamped_t::configuration_t;
             using clamp_vec_t = decltype(clamp_config_t{}.min);
             using clamp_scalar_t = typename clamp_vec_t::value_type;
 
@@ -120,8 +119,8 @@ struct CartMapFieldParams::Impl
         {
             device_ = host_;
             device_ref_ = device_;
-            CELER_ENSURE(
-                static_cast<bool>(device_) && static_cast<bool>(device_ref_));
+            CELER_ENSURE(static_cast<bool>(device_)
+                         && static_cast<bool>(device_ref_));
         }
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }

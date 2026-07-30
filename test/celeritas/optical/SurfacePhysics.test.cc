@@ -192,9 +192,8 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
-        surface_physics_state_
-            = StateDataStore<SurfacePhysicsStateData, MemSpace::host>(
-                num_tracks);
+        surface_physics_state_ = StateDataStore<SurfacePhysicsStateData,
+                                                MemSpace::host>(num_tracks);
         CELER_ASSERT(surface_physics_state_.size() == num_tracks);
     }
 
@@ -207,7 +206,8 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     }
 
   private:
-    StateDataStore<SurfacePhysicsStateData, MemSpace::host> surface_physics_state_;
+    StateDataStore<SurfacePhysicsStateData, MemSpace::host>
+        surface_physics_state_;
 };
 
 //---------------------------------------------------------------------------//
@@ -395,12 +395,13 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     // Initialize tracks
     for (auto track : range(expected_surfaces.size()))
     {
-        this->surface_physics_view(TrackSlotId(track))
-            = SurfacePhysicsTrackView::Initializer{expected_surfaces[track],
-                                                   expected_orientations[track],
-                                                   Real3{0, 0, -1},
-                                                   OptMatId{0},
-                                                   OptMatId{1}};
+        this->surface_physics_view(
+            TrackSlotId(track)) = SurfacePhysicsTrackView::Initializer{
+            expected_surfaces[track],
+            expected_orientations[track],
+            Real3{0, 0, -1},
+            OptMatId{0},
+            OptMatId{1}};
     }
 
     // Check initialization

@@ -108,11 +108,11 @@ class PhysicsTrackView
 /*!
  * Construct from params, state, and material ID for a given track.
  */
-CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
-                                   PhysicsStateRef const& states,
-                                   OptMatId opt_mat,
-                                   TrackSlotId track_id)
+CELER_FUNCTION PhysicsTrackView::PhysicsTrackView(
+    PhysicsParamsRef const& params,
+    PhysicsStateRef const& states,
+    OptMatId opt_mat,
+    TrackSlotId track_id)
     : params_(params)
     , states_(states)
     , opt_material_(opt_mat)

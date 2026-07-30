@@ -65,14 +65,14 @@ class BremFinalStateHelper
 /*!
  * Construct from incident particle and exiting gamma data.
  */
-CELER_FUNCTION
-BremFinalStateHelper::BremFinalStateHelper(Energy inc_energy,
-                                           Real3 const& inc_direction,
-                                           Momentum inc_momentum,
-                                           ParticleId gamma_id,
-                                           Energy gamma_energy,
-                                           real_type costheta,
-                                           Secondary* secondary)
+CELER_FUNCTION BremFinalStateHelper::BremFinalStateHelper(
+    Energy inc_energy,
+    Real3 const& inc_direction,
+    Momentum inc_momentum,
+    ParticleId gamma_id,
+    Energy gamma_energy,
+    real_type costheta,
+    Secondary* secondary)
     : inc_direction_(inc_direction)
     , inc_momentum_(inc_momentum)
     , exit_energy_{inc_energy - gamma_energy}
@@ -93,8 +93,8 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
     // Generate exiting gamma direction from isotropic azimuthal angle and
     // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    secondary_->direction
-        = ExitingDirectionSampler{costheta_, inc_direction_}(rng);
+    secondary_->direction = ExitingDirectionSampler{costheta_,
+                                                    inc_direction_}(rng);
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;
 

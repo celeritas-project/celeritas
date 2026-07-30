@@ -41,14 +41,14 @@ class WavelengthShiftInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    WavelengthShiftInteractor(NativeCRef<WavelengthShiftData> const& shared,
-                              NativeRef<WlsGeneratorStateData> data,
-                              ParticleTrackView const& particle,
-                              SimTrackView const& sim,
-                              Real3 const& pos,
-                              OptMatId const& mat_id,
-                              DistId distribution_id);
+    inline CELER_FUNCTION WavelengthShiftInteractor(
+        NativeCRef<WavelengthShiftData> const& shared,
+        NativeRef<WlsGeneratorStateData> data,
+        ParticleTrackView const& particle,
+        SimTrackView const& sim,
+        Real3 const& pos,
+        OptMatId const& mat_id,
+        DistId distribution_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>

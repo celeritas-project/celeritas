@@ -95,8 +95,8 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
   public:
     PrimaryGeneratorAction()
     {
-        auto g4particle_def
-            = G4ParticleTable::GetParticleTable()->FindParticle(211);
+        auto g4particle_def = G4ParticleTable::GetParticleTable()->FindParticle(
+            211);
         gun_.SetParticleDefinition(g4particle_def);
         gun_.SetParticleEnergy(200 * MeV);
         gun_.SetParticlePosition(G4ThreeVector{0, 0, 0});  // origin

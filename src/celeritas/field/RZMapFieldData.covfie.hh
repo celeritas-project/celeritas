@@ -74,8 +74,7 @@ struct RZMapFieldParamsData<Ownership::value, MemSpace::device>
     RZMapFieldParamsData& operator=(
         RZMapFieldParamsData<Ownership::value, MemSpace::host> const& other)
     {
-        using host_field_t
-            = detail::CovfieRZFieldTraits<MemSpace::host>::field_t;
+        using host_field_t = detail::CovfieRZFieldTraits<MemSpace::host>::field_t;
         if constexpr (!std::is_same_v<field_t, host_field_t>)
         {
             // Use covfie's cross-type field constructor: propagates through

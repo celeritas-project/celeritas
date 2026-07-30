@@ -127,7 +127,8 @@ void MuPairProductionModel::step(CoreParams const&, CoreStateDevice&) const
  * Construct sampling table.
  */
 void MuPairProductionModel::build_table(
-    MuppetTable const& imported, HostVal<MuPairProductionTableData>* table) const
+    MuppetTable const& imported,
+    HostVal<MuPairProductionTableData>* table) const
 {
     CELER_EXPECT(imported);
     CELER_EXPECT(table);

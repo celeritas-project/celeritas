@@ -67,14 +67,15 @@ class BvhIntersectingVolFinder
 
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
-    inline CELER_FUNCTION bool
-    visit_bbox(FastBBox const& bbox, Ray ray, real_type min_dist) const;
+    inline CELER_FUNCTION bool visit_bbox(
+        FastBBox const& bbox, Ray ray, real_type min_dist) const;
 
     // Calculate the current min intersection, which may/may not be on this
     // leaf
     template<class F>
-    inline CELER_FUNCTION Intersection visit_leaf(
-        BvhNodeId leaf_node_id, Intersection intersection, F&& visit_vol) const;
+    inline CELER_FUNCTION Intersection visit_leaf(BvhNodeId leaf_node_id,
+                                                  Intersection intersection,
+                                                  F&& visit_vol) const;
 
     // Calculate the current min intersection, which may/may not be in inf_vols
     template<class F>
@@ -108,11 +109,10 @@ CELER_FUNCTION BvhIntersectingVolFinder::BvhIntersectingVolFinder(
  * lambda capture.
  */
 template<class F>
-CELER_FUNCTION auto
-BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
-                                     F&& visit_vol,
-                                     real_type max_search_dist) const
-    -> Intersection
+CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
+    BvhIntersectingVolFinder::Ray ray,
+    F&& visit_vol,
+    real_type max_search_dist) const -> Intersection
 {
     using Side = BvhInternalNode::Side;
 
@@ -129,8 +129,8 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
     {
         if (!view_.is_internal(stack.top()))
         {
-            intersection
-                = this->visit_leaf(stack.top(), intersection, visit_vol);
+            intersection = this->visit_leaf(
+                stack.top(), intersection, visit_vol);
             stack.pop();
             continue;
         }

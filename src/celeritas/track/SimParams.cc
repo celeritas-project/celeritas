@@ -34,10 +34,10 @@ SimParams::Input SimParams::Input::from_import(
 /*!
  * Construct with imported data.
  */
-SimParams::Input
-SimParams::Input::from_import(ImportData const& data,
-                              SPConstParticles particle_params,
-                              inp::CoreTrackingLimits const& limits)
+SimParams::Input SimParams::Input::from_import(
+    ImportData const& data,
+    SPConstParticles particle_params,
+    inp::CoreTrackingLimits const& limits)
 {
     CELER_EXPECT(particle_params);
     CELER_EXPECT(data.trans_params);
@@ -74,8 +74,8 @@ SimParams::Input::from_import(ImportData const& data,
         looping.max_subthreshold_steps = max_subthreshold_steps;
         looping.max_steps = iter->second.threshold_trials
                             * max_subthreshold_steps;
-        looping.threshold_energy
-            = LoopingThreshold::Energy(iter->second.important_energy);
+        looping.threshold_energy = LoopingThreshold::Energy(
+            iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
     input.max_steps = limits.steps;
@@ -90,12 +90,12 @@ SimParams::Input::from_import(ImportData const& data,
 SimParams::SimParams(Input const& input)
 {
     CELER_EXPECT(input.particles);
-    CELER_VALIDATE(
-        input.max_steps > 0
-            && input.max_steps <= std::numeric_limits<size_type>::max(),
-        << "maximum step limit " << input.max_steps
-        << " is out of range (should be in (0, "
-        << std::numeric_limits<size_type>::max() << "])");
+    CELER_VALIDATE(input.max_steps > 0
+                       && input.max_steps
+                              <= std::numeric_limits<size_type>::max(),
+                   << "maximum step limit " << input.max_steps
+                   << " is out of range (should be in (0, "
+                   << std::numeric_limits<size_type>::max() << "])");
 
     HostVal<SimParamsData> host_data;
 

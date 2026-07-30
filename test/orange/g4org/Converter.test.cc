@@ -359,8 +359,8 @@ TEST_F(ConverterTest, testem3)
         EXPECT_VEC_SOFT_EQ((Real3{-0.4, -20, -20}), to_cm(unit->bbox.lower()));
         EXPECT_VEC_SOFT_EQ((Real3{0.4, 20, 20}), to_cm(unit->bbox.upper()));
 
-        static char const* const expected_local_parent_map[]
-            = {"pb_pv->[BG]@layer", "lar_pv->[BG]@layer"};
+        static char const* const expected_local_parent_map[] = {
+            "pb_pv->[BG]@layer", "lar_pv->[BG]@layer"};
         EXPECT_VEC_EQ(expected_local_parent_map, this->local_parent_map(*unit));
     }
     else

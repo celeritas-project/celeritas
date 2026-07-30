@@ -35,8 +35,8 @@ template<class T, std::size_t N>
 //---------------------------------------------------------------------------//
 // Calculate product of two vectors
 template<class T>
-[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
-cross_product(Array<T, 3> const& x, Array<T, 3> const& y);
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3> cross_product(
+    Array<T, 3> const& x, Array<T, 3> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) norm of a vector
@@ -46,26 +46,26 @@ template<class T, std::size_t N>
 //---------------------------------------------------------------------------//
 // Construct a vector with unit magnitude
 template<class T, std::size_t N>
-[[nodiscard]] inline CELER_FUNCTION Array<T, N>
-make_unit_vector(Array<T, N> const& v);
+[[nodiscard]] inline CELER_FUNCTION Array<T, N> make_unit_vector(
+    Array<T, N> const& v);
 
 //---------------------------------------------------------------------------//
 // Return x - (x . y) * y for a unit vector y
 template<class T, std::size_t N>
-[[nodiscard]] inline CELER_FUNCTION Array<T, N>
-make_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
+[[nodiscard]] inline CELER_FUNCTION Array<T, N> make_orthogonal(
+    Array<T, N> const& x, Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Check whether two vectors are approximately orthogonal
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y);
+inline CELER_FUNCTION bool is_soft_orthogonal(Array<T, N> const& x,
+                                              Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Check whether two vectors are approximately collinear
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y);
+inline CELER_FUNCTION bool is_soft_collinear(Array<T, N> const& x,
+                                             Array<T, N> const& y);
 
 //---------------------------------------------------------------------------//
 // Calculate the Euclidean (2) distance between two points
@@ -76,14 +76,14 @@ template<class T, std::size_t N>
 //---------------------------------------------------------------------------//
 // Calculate a cartesian unit vector from spherical coordinates
 template<class T>
-[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
-from_spherical(T costheta, T phi);
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta,
+                                                               T phi);
 
 //---------------------------------------------------------------------------//
 // Rotate the direction 'dir' according to the reference rotation axis 'rot'
 template<class T>
-[[nodiscard]] inline CELER_FUNCTION Array<T, 3>
-rotate(Array<T, 3> const& dir, Array<T, 3> const& rot);
+[[nodiscard]] inline CELER_FUNCTION Array<T, 3> rotate(Array<T, 3> const& dir,
+                                                       Array<T, 3> const& rot);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -131,8 +131,8 @@ CELER_FUNCTION T dot_product(Array<T, N> const& x, Array<T, N> const& y)
  * Cross product of two space vectors.
  */
 template<class T>
-CELER_FUNCTION Array<T, 3>
-cross_product(Array<T, 3> const& x, Array<T, 3> const& y)
+CELER_FUNCTION Array<T, 3> cross_product(Array<T, 3> const& x,
+                                         Array<T, 3> const& y)
 {
     return {x[1] * y[2] - x[2] * y[1],
             x[2] * y[0] - x[0] * y[2],
@@ -180,8 +180,8 @@ CELER_FUNCTION Array<T, N> make_unit_vector(Array<T, N> const& v)
 \f]
  */
 template<class T, std::size_t N>
-[[nodiscard]] inline CELER_FUNCTION Array<T, N>
-make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
+[[nodiscard]] inline CELER_FUNCTION Array<T, N> make_orthogonal(
+    Array<T, N> const& x, Array<T, N> const& y)
 {
     CELER_EXPECT(is_soft_unit_vector(y));
     Array<T, N> result{x};
@@ -197,8 +197,8 @@ make_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
  * absolute.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
+inline CELER_FUNCTION bool is_soft_orthogonal(Array<T, N> const& x,
+                                              Array<T, N> const& y)
 {
     SoftZero const soft_zero{SoftEqual<T>{}.rel()};
     return soft_zero(dot_product(x, y));
@@ -211,8 +211,8 @@ is_soft_orthogonal(Array<T, N> const& x, Array<T, N> const& y)
  * \pre Vectors must be normalized, i.e., have unit magnitude.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_collinear(Array<T, N> const& x, Array<T, N> const& y)
+inline CELER_FUNCTION bool is_soft_collinear(Array<T, N> const& x,
+                                             Array<T, N> const& y)
 {
     CELER_EXPECT(is_soft_unit_vector(x) && is_soft_unit_vector(y));
     SoftEqual<T> const soft_eq;
@@ -292,8 +292,8 @@ inline CELER_FUNCTION Array<T, 3> from_spherical(T costheta, T phi)
  * choose \f$ \phi = 0 \f$.
  */
 template<class T>
-inline CELER_FUNCTION Array<T, 3>
-rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
+inline CELER_FUNCTION Array<T, 3> rotate(Array<T, 3> const& dir,
+                                         Array<T, 3> const& rot)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     CELER_EXPECT(is_soft_unit_vector(rot));
@@ -332,10 +332,10 @@ rotate(Array<T, 3> const& dir, Array<T, 3> const& rot)
         sinphi = 0;
     }
 
-    Array<T, 3> result
-        = {(rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
-           (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
-           -sintheta * dir[X] + rot[Z] * dir[Z]};
+    Array<T, 3> result = {
+        (rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
+        (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
+        -sintheta * dir[X] + rot[Z] * dir[Z]};
 
     // Always normalize to prevent roundoff error from propagating
     return make_unit_vector(result);

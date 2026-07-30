@@ -40,8 +40,8 @@ class BoundingZoneTest : public ::celeritas::test::Test
     };
 
   protected:
-    static BoundingZone
-    make_bz(Real3 center, real_type outer_hw, real_type inner_hw = -1)
+    static BoundingZone make_bz(
+        Real3 center, real_type outer_hw, real_type inner_hw = -1)
     {
         CELER_EXPECT(outer_hw >= 0);
         CELER_EXPECT(outer_hw >= inner_hw);
@@ -359,12 +359,12 @@ TEST_F(BoundingZoneTest, arapuca_walls)
     BoundingZone bz;
     bz.interior = {{-1.15, -618, -560}, {1.15, -606, -350}};
     bz.exterior = {{-1.15, -618, -560}, {1.15, -606, -350}};
-    auto subtract
-        = [&bz](BoundingBox<> const& inner, BoundingBox<> const& outer) {
-              BoundingZone rhs{inner, outer};
-              rhs.negate();
-              bz = calc_intersection(bz, rhs);
-          };
+    auto subtract = [&bz](BoundingBox<> const& inner,
+                          BoundingBox<> const& outer) {
+        BoundingZone rhs{inner, outer};
+        rhs.negate();
+        bz = calc_intersection(bz, rhs);
+    };
 
     subtract({{-1.2, -617, -559}, {1.2, -608, -512}},
              {{-1.2, -617, -559}, {1.2, -608, -512}});

@@ -39,8 +39,8 @@ TEST(TruncatedDistributionTest, normal)
     {
         histogram(sample_normal(rng));
     }
-    static unsigned int const expected_counts[]
-        = {449u, 1008u, 1567u, 1996u, 1992u, 1567u, 917u, 504u};
+    static unsigned int const expected_counts[] = {
+        449u, 1008u, 1567u, 1996u, 1992u, 1567u, 917u, 504u};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(0, histogram.underflow());
     EXPECT_EQ(0, histogram.overflow());

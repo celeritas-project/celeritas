@@ -127,8 +127,8 @@ CELER_FUNCTION auto CuHipRngEngine::operator()() -> result_type
 /*!
  * Specialization for CuHipRngEngine (float).
  */
-CELER_FUNCTION float
-GenerateCanonical<CuHipRngEngine, float>::operator()(CuHipRngEngine& rng)
+CELER_FUNCTION float GenerateCanonical<CuHipRngEngine, float>::operator()(
+    CuHipRngEngine& rng)
 {
     return CELER_RNG_PREFIX(rand_uniform)(rng.state_);
 }
@@ -137,8 +137,8 @@ GenerateCanonical<CuHipRngEngine, float>::operator()(CuHipRngEngine& rng)
 /*!
  * Specialization for CuHipRngEngine (double).
  */
-CELER_FUNCTION double
-GenerateCanonical<CuHipRngEngine, double>::operator()(CuHipRngEngine& rng)
+CELER_FUNCTION double GenerateCanonical<CuHipRngEngine, double>::operator()(
+    CuHipRngEngine& rng)
 {
     return CELER_RNG_PREFIX(rand_uniform_double)(rng.state_);
 }

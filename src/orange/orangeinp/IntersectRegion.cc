@@ -262,8 +262,8 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
         zmin = zmax - z;
     }
 
-    auto interior_bbox
-        = make_radial_bbox((constants::sqrt_two / 2) * r, {zmin, zmax});
+    auto interior_bbox = make_radial_bbox((constants::sqrt_two / 2) * r,
+                                          {zmin, zmax});
     // Check that the corners are actually inside the cone
     CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
                  == SignedSense::inside);
@@ -301,9 +301,9 @@ CutCylinder::CutCylinder(real_type radius,
     CELER_VALIDATE(bot_normal_[Z] < 0,
                    << "bottom cutting plane normal is not pointing down: "
                    << bot_normal_[Z]);
-    CELER_VALIDATE(
-        top_normal_[Z] > 0,
-        << "top cutting plane normal is not pointing up: " << top_normal_[Z]);
+    CELER_VALIDATE(top_normal_[Z] > 0,
+                   << "top cutting plane normal is not pointing up: "
+                   << top_normal_[Z]);
     CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
                    << "bottom cutting plane normal is not a unit vector");
     CELER_VALIDATE(is_soft_unit_vector(top_normal_),
@@ -564,8 +564,9 @@ EllipticalCone::EllipticalCone(
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
     // True if either radius is negative
-    auto has_negative
-        = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
+    auto has_negative = [](Real2 const& radii) {
+        return radii[X] < 0 || radii[Y] < 0;
+    };
 
     // True if radii is (0, 0)
     auto is_vertex = [](Real2 const& radii) {
@@ -795,12 +796,12 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
 
     // Find the extrema taking into account the extrusion process
     Range range;
-    range[X]
-        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
-                   poly_min * scaling_factors_[top] + line_segment_[top][dim]);
-    range[Y]
-        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
-                   poly_max * scaling_factors_[top] + line_segment_[top][dim]);
+    range[X] = std::min(
+        poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
+        poly_min * scaling_factors_[top] + line_segment_[top][dim]);
+    range[Y] = std::max(
+        poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
+        poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
     return range;
 }
@@ -823,10 +824,10 @@ GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     CELER_VALIDATE(lo[Y] > 0 || hi[Y] > 0, << "degenerate y width");
 
     // Construct points like prism: lower right is first
-    VecReal2 lower
-        = {{lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
-    VecReal2 upper
-        = {{hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
+    VecReal2 lower = {
+        {lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
+    VecReal2 upper = {
+        {hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
 
     return GenPrism{halfz, std::move(lower), std::move(upper)};
 }

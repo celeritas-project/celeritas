@@ -28,8 +28,8 @@ TEST(SimpleQuadricTest, construction)
     // Plane
     SimpleQuadric p{Plane{{1 / sqrt_two, 1 / sqrt_two, 0.0}, 2 * sqrt_two}};
 
-    auto distances
-        = p.calc_intersections({0, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    auto distances = p.calc_intersections(
+        {0, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(4.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
@@ -51,8 +51,8 @@ TEST(SimpleQuadricTest, construction)
     // Cylinder with radius 2 centered at {2, 3, 0}
     SimpleQuadric cz{CylZ{{2, 3, 0}, 2}};
 
-    distances
-        = cz.calc_intersections({-0.5, 3, 0}, {1, 0, 0}, SurfaceState::off);
+    distances = cz.calc_intersections(
+        {-0.5, 3, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(0.5, distances[0]);
     EXPECT_SOFT_EQ(0.5 + 4.0, distances[1]);
 
@@ -76,14 +76,14 @@ TEST(SimpleQuadricTest, ellipsoid)
 
     // Test intersections along major axes
     EXPECT_EQ(SignedSense::outside, sq.calc_sense({-2.5, 0, 0}));
-    auto distances
-        = sq.calc_intersections({-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    auto distances = sq.calc_intersections(
+        {-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.5, distances[0]);
     EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
 
     EXPECT_EQ(SignedSense::on, sq.calc_sense({0, 2.5, 0}));
-    distances
-        = sq.calc_intersections({0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
+    distances = sq.calc_intersections(
+        {0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
@@ -114,13 +114,13 @@ TEST(SimpleQuadricTest, scaled_ellipsoid)
     // 1e-3), but all intersections are missed due to the 'a' term being too
     // small.
     EXPECT_EQ(SignedSense::outside, sq.calc_sense({-2.5e-3, 0, 0}));
-    auto distances
-        = sq.calc_intersections({-2.5e-3, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    auto distances = sq.calc_intersections(
+        {-2.5e-3, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
-    distances
-        = sq.calc_intersections({0, 2.5e-3, 0}, {0, -1, 0}, SurfaceState::on);
+    distances = sq.calc_intersections(
+        {0, 2.5e-3, 0}, {0, -1, 0}, SurfaceState::on);
     EXPECT_SOFT_EQ(no_intersection(), distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
@@ -145,12 +145,12 @@ TEST(SimpleQuadricTest, small_ellipsoid)
     EXPECT_SOFT_EQ(zeroth, sq.zeroth());
 
     // Test intersections along major axes
-    auto distances
-        = sq.calc_intersections({-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    auto distances = sq.calc_intersections(
+        {-2.5, 0, 0}, {1, 0, 0}, SurfaceState::off);
     EXPECT_SOFT_EQ(1.5, distances[0]);
     EXPECT_SOFT_EQ(1.5 + 2.0, distances[1]);
-    distances
-        = sq.calc_intersections({0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
+    distances = sq.calc_intersections(
+        {0, 2.5, 0}, {0, -1, 0}, SurfaceState::on);
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
     distances = sq.calc_intersections({0, 0, 0}, {0, 0, 1}, SurfaceState::off);

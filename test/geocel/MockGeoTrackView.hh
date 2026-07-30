@@ -42,8 +42,8 @@ class MockGeoTrackView
     MockGeoTrackView() = default;
 
     // Initialize the state
-    inline CELER_FUNCTION MockGeoTrackView&
-    operator=(Initializer_t const& init);
+    inline CELER_FUNCTION MockGeoTrackView& operator=(
+        Initializer_t const& init);
 
     //!@{
     //! State accessors
@@ -93,8 +93,8 @@ class MockGeoTrackView
 /*!
  * Construct the state.
  */
-CELER_FUNCTION MockGeoTrackView&
-MockGeoTrackView::operator=(Initializer_t const& init)
+CELER_FUNCTION MockGeoTrackView& MockGeoTrackView::operator=(
+    Initializer_t const& init)
 {
     ++init_count_;
     this->state_ = init;
@@ -144,8 +144,8 @@ CELER_FUNCTION Propagation MockGeoTrackView::find_next_step(real_type max_step)
     real_type w = state_.dir[2];
 
     int next_z_plane = volume_id_ + (w > 0);
-    next_step_
-        = std::fmin((static_cast<real_type>(next_z_plane) - z) / w, max_step);
+    next_step_ = std::fmin((static_cast<real_type>(next_z_plane) - z) / w,
+                           max_step);
 
     Propagation result;
     result.boundary = next_step_ < max_step;

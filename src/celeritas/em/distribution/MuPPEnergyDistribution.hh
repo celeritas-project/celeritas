@@ -73,11 +73,11 @@ class MuPPEnergyDistribution
 
   public:
     // Construct from shared and incident particle data
-    inline CELER_FUNCTION
-    MuPPEnergyDistribution(NativeCRef<MuPairProductionData> const& shared,
-                           ParticleTrackView const& particle,
-                           CutoffView const& cutoffs,
-                           ElementView const& element);
+    inline CELER_FUNCTION MuPPEnergyDistribution(
+        NativeCRef<MuPairProductionData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        ElementView const& element);
 
     template<class Engine>
     inline CELER_FUNCTION PairEnergy operator()(Engine& rng);
@@ -174,8 +174,8 @@ CELER_FUNCTION MuPPEnergyDistribution::MuPPEnergyDistribution(
     y_max_ = std::log(max_pair_energy_ / inc_energy_) / coeff_;
 
     // Check that the bounds are within the grid bounds
-    CELER_ASSERT(
-        y_min_ >= y_grid.front() || soft_equal(y_grid.front(), y_min_));
+    CELER_ASSERT(y_min_ >= y_grid.front()
+                 || soft_equal(y_grid.front(), y_min_));
     CELER_ASSERT(y_max_ <= y_grid.back() || soft_equal(y_grid.back(), y_max_));
     y_min_ = max(y_min_, y_grid.front());
     y_max_ = min(y_max_, y_grid.back());
@@ -192,8 +192,9 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
     using namespace celeritas::literals;
 
     // Sample the energy transfer
-    real_type pair_energy
-        = inc_energy_ * std::exp(coeff_ * this->sample_scaled_energy(rng));
+    real_type pair_energy = inc_energy_
+                            * std::exp(
+                                coeff_ * this->sample_scaled_energy(rng));
     CELER_ASSERT(pair_energy >= min_energy_ && pair_energy <= max_pair_energy_);
 
     // Sample the energy partition between the electron and positron
@@ -240,8 +241,8 @@ CELER_FUNCTION real_type MuPPEnergyDistribution::calc_scaled_energy(
     CELER_EXPECT(u >= 0 && u < 1);
 
     TwodGridData const& cdf_grid = table_.grids[ItemId<TwodGridData>(z_idx)];
-    auto calc_cdf
-        = TwodGridCalculator(cdf_grid, table_.reals)(std::log(inc_energy_));
+    auto calc_cdf = TwodGridCalculator(cdf_grid,
+                                       table_.reals)(std::log(inc_energy_));
 
     // Get the sampled CDF value between the y bounds
     real_type cdf = LinearInterpolator<real_type>{{0, calc_cdf(y_min_)},

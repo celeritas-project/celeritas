@@ -55,8 +55,8 @@ CoulombScatteringModel::CoulombScatteringModel(ActionId id,
         << this->description() << ")");
 
     // Get high/low energy limits
-    energy_limit_
-        = imported_.energy_grid_bounds(data_.ids.electron, PhysMatId{0});
+    energy_limit_ = imported_.energy_grid_bounds(data_.ids.electron,
+                                                 PhysMatId{0});
 
     // Check that the bounds are the same for all particles/materials
     // TODO: This is only expected when using Coulomb scattering with the

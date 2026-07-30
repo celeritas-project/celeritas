@@ -59,8 +59,8 @@ class PowerDistribution
     explicit inline CELER_FUNCTION PowerDistribution(real_type p);
 
     // Construct on an arbitrary interval
-    inline CELER_FUNCTION
-    PowerDistribution(real_type p, real_type a, real_type b);
+    inline CELER_FUNCTION PowerDistribution(
+        real_type p, real_type a, real_type b);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -107,8 +107,8 @@ CELER_FUNCTION PowerDistribution<RealType>::PowerDistribution(
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-PowerDistribution<RealType>::operator()(Generator& rng) const -> result_type
+CELER_FUNCTION auto PowerDistribution<RealType>::operator()(
+    Generator& rng) const -> result_type
 {
     real_type xi = sample_before_exp_(rng);
     return fastpow(xi, exp_);

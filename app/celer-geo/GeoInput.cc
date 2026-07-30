@@ -22,8 +22,8 @@ namespace
  */
 Geometry to_geometry(std::string const& s)
 {
-    static auto const from_string
-        = StringEnumMapper<Geometry>::from_cstring_func(to_cstring, "geometry");
+    static auto const from_string = StringEnumMapper<Geometry>::from_cstring_func(
+        to_cstring, "geometry");
     return from_string(s);
 }
 
@@ -33,9 +33,8 @@ Geometry to_geometry(std::string const& s)
  */
 MemSpace to_memspace(std::string const& s)
 {
-    static auto const from_string
-        = StringEnumMapper<MemSpace>::from_cstring_func(
-            ::celeritas::to_cstring, "memspace");
+    static auto const from_string = StringEnumMapper<MemSpace>::from_cstring_func(
+        ::celeritas::to_cstring, "memspace");
     return from_string(s);
 }
 

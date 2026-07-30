@@ -29,8 +29,8 @@ class DetectorTest : public ComplexVolumeTestBase
     }
 
     // Build detector input from volume labels
-    inp::Detectors
-    make_detectors(std::vector<std::pair<std::string, VecStr>> const& det_vols)
+    inp::Detectors make_detectors(
+        std::vector<std::pair<std::string, VecStr>> const& det_vols)
     {
         inp::Detectors result;
         for (auto const& [det_label, vol_names] : det_vols)
@@ -132,9 +132,9 @@ TEST_F(DetectorTest, multi_vol)
     for (VolumeId vol_id : range(VolumeId{this->volumes().num_volumes()}))
     {
         bool is_in_tracker = params.detector_id(vol_id) == tracker_id;
-        bool is_in_list
-            = std::find(tracker_vols.begin(), tracker_vols.end(), vol_id)
-              != tracker_vols.end();
+        bool is_in_list = std::find(
+                              tracker_vols.begin(), tracker_vols.end(), vol_id)
+                          != tracker_vols.end();
         EXPECT_EQ(is_in_tracker, is_in_list)
             << "volume " << vol_id << " tracker membership mismatch";
     }
@@ -194,9 +194,9 @@ TEST_F(DetectorTest, multi_det)
         for (VolumeId vol_id : range(VolumeId{vols.num_volumes()}))
         {
             bool is_in_detector = params.detector_id(vol_id) == det_id;
-            bool is_in_list
-                = std::find(det_vols.begin(), det_vols.end(), vol_id)
-                  != det_vols.end();
+            bool is_in_list = std::find(
+                                  det_vols.begin(), det_vols.end(), vol_id)
+                              != det_vols.end();
             EXPECT_EQ(is_in_detector, is_in_list)
                 << "volume " << vol_id << " detector " << det_id
                 << " membership mismatch";

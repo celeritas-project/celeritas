@@ -35,9 +35,10 @@ namespace test
 {
 using namespace ::celeritas::test;
 
-constexpr bool reference_configuration
-    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
+constexpr bool reference_configuration = ((CELERITAS_REAL_TYPE
+                                           == CELERITAS_REAL_TYPE_DOUBLE)
+                                          && CELERITAS_CORE_RNG
+                                                 == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 /*!
@@ -186,8 +187,8 @@ TEST_F(DetectorTest, simple)
     };
 
     // Set geometry filename
-    osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
+    osi_.problem.model.geometry = Test::test_data_path(
+        "geocel", "optical-box-det-tra.gdml");
 
     // Create direct generator input
     osi_.problem.generator = celeritas::inp::OpticalDirectGenerator{};
@@ -203,8 +204,8 @@ TEST_F(DetectorTest, simple)
     real_type const flight_time = box_size / constants::c_light;
 
     static size_type const expected_detector_ids[] = {1, 1, 2, 2, 1, 0, 1};
-    static real_type const expected_energies[]
-        = {1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6, 2e-07};
+    static real_type const expected_energies[] = {
+        1e-6, 2e-6, 3e-6, 4e-6, 5e-6, 6e-6, 2e-07};
     static real_type const expected_x_positions[] = {
         box_size,
         -box_size,
@@ -247,10 +248,10 @@ TEST_F(DetectorTest, simple)
         flight_time,
     };
 
-    static size_type const expected_volume_instance_ids[]
-        = {5, 4, 6, 7, 5, 3, 5};
-    static size_type const expected_volume_unique_instance_ids[]
-        = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_instance_ids[] = {
+        5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_unique_instance_ids[] = {
+        5, 4, 6, 7, 5, 3, 5};
 
     if (reference_configuration)
     {
@@ -298,8 +299,8 @@ TEST_F(DetectorTest, stress)
     osi_.problem.detectors.callback = StressScorer{hits, errored};
 
     // Set geometry filename
-    osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
+    osi_.problem.model.geometry = Test::test_data_path(
+        "geocel", "optical-box-det-tra.gdml");
 
     // Isotropically generate photons
     osi_.problem.generator = [] {
@@ -337,8 +338,8 @@ TEST_F(DetectorTest, efficiency)
     osi_.problem.detectors.callback = StressScorer{hits, errored};
 
     // Set geometry filename
-    osi_.problem.model.geometry
-        = Test::test_data_path("geocel", "optical-box-det-eff.gdml");
+    osi_.problem.model.geometry = Test::test_data_path(
+        "geocel", "optical-box-det-eff.gdml");
 
     // Isotropically generate photons
     osi_.problem.generator = [] {

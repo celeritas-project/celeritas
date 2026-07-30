@@ -48,10 +48,10 @@ class CherenkovGenerator
 {
   public:
     // Construct from optical materials and distribution parameters
-    inline CELER_FUNCTION
-    CherenkovGenerator(MaterialView const& material,
-                       NativeCRef<CherenkovData> const& shared,
-                       GeneratorDistributionData const& dist);
+    inline CELER_FUNCTION CherenkovGenerator(
+        MaterialView const& material,
+        NativeCRef<CherenkovData> const& shared,
+        GeneratorDistributionData const& dist);
 
     // Sample a Cherenkov photon from the distribution
     template<class Generator>
@@ -85,10 +85,10 @@ class CherenkovGenerator
 /*!
  * Construct from optical materials and distribution parameters.
  */
-CELER_FUNCTION
-CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
-                                       NativeCRef<CherenkovData> const& shared,
-                                       GeneratorDistributionData const& dist)
+CELER_FUNCTION CherenkovGenerator::CherenkovGenerator(
+    MaterialView const& material,
+    NativeCRef<CherenkovData> const& shared,
+    GeneratorDistributionData const& dist)
     : dist_(dist)
     , calc_refractive_index_(material.make_refractive_index_calculator())
     , sample_phi_(0, real_type(2 * constants::pi))
@@ -116,8 +116,9 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
 
     // Calculate 1 / beta and the max sin^2 theta
     // note that with single precision, 10 GeV e- rounds to c=1
-    inv_beta_
-        = 2 / (value_as<LS>(pre_step.speed) + value_as<LS>(post_step.speed));
+    inv_beta_ = 2
+                / (value_as<LS>(pre_step.speed)
+                   + value_as<LS>(post_step.speed));
     CELER_ASSERT(inv_beta_ >= 1);
     real_type cos_max = inv_beta_ / calc_refractive_index_(energy_grid.back());
     sin_max_sq_ = 1 - ipow<2>(cos_max);
@@ -128,8 +129,8 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     delta_num_photons_ = dndx_post - dndx_pre_;
     delta_speed_ = post_step.speed - pre_step.speed;
 
-    if (CELER_UNLIKELY(
-            delta_pos_[0] == 0 && delta_pos_[1] == 0 && delta_pos_[2] == 0))
+    if (CELER_UNLIKELY(delta_pos_[0] == 0 && delta_pos_[1] == 0
+                       && delta_pos_[2] == 0))
     {
         // See GeneratorAction::insert, which detects and warns about this
         delta_pos_ = {dist_.step_length, 0, 0};
@@ -192,10 +193,10 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
         u = sample_step_fraction(rng);
     } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
 
-    real_type delta_time
-        = u * dist_.step_length
-          / (native_value_from(dist_.points[StepPoint::pre].speed)
-             + u * 0.5_r * native_value_from(delta_speed_));
+    real_type delta_time = u * dist_.step_length
+                           / (native_value_from(
+                                  dist_.points[StepPoint::pre].speed)
+                              + u * 0.5_r * native_value_from(delta_speed_));
     photon.time = dist_.points[StepPoint::pre].time + delta_time;
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);

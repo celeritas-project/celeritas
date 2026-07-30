@@ -86,8 +86,8 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         local_parent = id_cast<MaterialInputId>(input.materials.size());
 
         orangeinp::UnitProto::MaterialInput background;
-        background.interior
-            = this->make_explicit_background(lv, NoTransformation{});
+        background.interior = this->make_explicit_background(
+            lv, NoTransformation{});
         background.label = VolumeInstanceId{};
         background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;

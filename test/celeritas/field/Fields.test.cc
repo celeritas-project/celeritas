@@ -122,8 +122,8 @@ TEST_F(RZMapFieldTest, all)
     RZMapFieldParams field_map = [this] {
         // Read input file from JSON
         RZMapFieldInput inp;
-        auto filename
-            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        auto filename = this->test_data_path("celeritas",
+                                             "cms-tiny.field.json");
         std::ifstream(filename) >> inp;
         return RZMapFieldParams(inp);
     }();
@@ -206,8 +206,8 @@ TEST_F(RZMapFieldTest, TEST_IF_CELER_DEVICE(device))
 {
     RZMapFieldInput inp;
     {
-        auto filename
-            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        auto filename = this->test_data_path("celeritas",
+                                             "cms-tiny.field.json");
         std::ifstream(filename) >> inp;
     }
 
@@ -536,13 +536,13 @@ TEST_F(CartMapFieldTest, host)
     Interp interp_z({0, inp.z.min}, {nz_samples - 1, inp.z.max});
     for (size_type ix = 0; ix < nx_samples; ++ix)
     {
-        real_type x
-            = std::min(interp_x(static_cast<double>(ix)), inp.x.max - 1);
+        real_type x = std::min(interp_x(static_cast<double>(ix)),
+                               inp.x.max - 1);
 
         for (size_type iy = 0; iy < ny_samples; ++iy)
         {
-            real_type y
-                = std::min(interp_y(static_cast<double>(iy)), inp.y.max - 1);
+            real_type y = std::min(interp_y(static_cast<double>(iy)),
+                                   inp.y.max - 1);
             for (size_type iz = 0; iz < nz_samples; ++iz)
             {
                 real_type z = std::min(interp_z(static_cast<double>(iz)),
@@ -658,21 +658,21 @@ TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
     // Run the test on device
     field_test(input, span, n_samples);
 
-    static real_type const expected_field[]
-        = {1,         0,         0,        1,         0,         0.16975,
-           1,         0,         0.336311, 1,         0.956376,  0,
-           1,         0.956376,  0.16975,  1,         0.956376,  0.336311,
-           1,         -0.547601, 0,        1,         -0.547601, 0.16975,
-           1,         -0.547601, 0.336311, -0.292139, 0,         0,
-           -0.292139, 0,         0.16975,  -0.292139, 0,         0.336311,
-           -0.292139, 0.956376,  0,        -0.292139, 0.956376,  0.16975,
-           -0.292139, 0.956376,  0.336311, -0.292139, -0.547601, 0,
-           -0.292139, -0.547601, 0.16975,  -0.292139, -0.547601, 0.336311,
-           -0.830352, 0,         0,        -0.830352, 0,         0.16975,
-           -0.830352, 0,         0.336311, -0.830352, 0.956376,  0,
-           -0.830352, 0.956376,  0.16975,  -0.830352, 0.956376,  0.336311,
-           -0.830352, -0.547601, 0,        -0.830352, -0.547601, 0.16975,
-           -0.830352, -0.547601, 0.336311};
+    static real_type const expected_field[] = {
+        1,         0,         0,        1,         0,         0.16975,
+        1,         0,         0.336311, 1,         0.956376,  0,
+        1,         0.956376,  0.16975,  1,         0.956376,  0.336311,
+        1,         -0.547601, 0,        1,         -0.547601, 0.16975,
+        1,         -0.547601, 0.336311, -0.292139, 0,         0,
+        -0.292139, 0,         0.16975,  -0.292139, 0,         0.336311,
+        -0.292139, 0.956376,  0,        -0.292139, 0.956376,  0.16975,
+        -0.292139, 0.956376,  0.336311, -0.292139, -0.547601, 0,
+        -0.292139, -0.547601, 0.16975,  -0.292139, -0.547601, 0.336311,
+        -0.830352, 0,         0,        -0.830352, 0,         0.16975,
+        -0.830352, 0,         0.336311, -0.830352, 0.956376,  0,
+        -0.830352, 0.956376,  0.16975,  -0.830352, 0.956376,  0.336311,
+        -0.830352, -0.547601, 0,        -0.830352, -0.547601, 0.16975,
+        -0.830352, -0.547601, 0.336311};
 
     // FIXME: reference values use lower-precision texture interpolation
     constexpr real_type tol = CELERITAS_USE_HIP ? 1e-2 : 1e-5;

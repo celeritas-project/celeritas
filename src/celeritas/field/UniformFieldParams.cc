@@ -34,8 +34,8 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<VolumeId>
-make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
+std::unordered_set<VolumeId> make_volume_ids(CoreGeoParams const& geo,
+                                             inp::UniformField const& inp)
 {
     using SetVolume = std::unordered_set<VolumeId>;
 
@@ -61,8 +61,8 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
     return result;
 }
 
-HostVal<UniformFieldParamsData>
-validated_field_data(UniformFieldParams::Input const& inp)
+HostVal<UniformFieldParamsData> validated_field_data(
+    UniformFieldParams::Input const& inp)
 {
     if (inp.units != UnitSystem::si)
     {
@@ -100,10 +100,10 @@ UniformFieldParams::UniformFieldParams(CoreGeoParams const& geo,
     if (!volumes.empty())
     {
         // Convert from canonical to implementation volumes
-        host_data.has_field
-            = build_volume_collection<char>(geo, [&volumes](VolumeId vid) {
-                  return static_cast<bool>(volumes.count(vid));
-              });
+        host_data.has_field = build_volume_collection<char>(
+            geo, [&volumes](VolumeId vid) {
+                return static_cast<bool>(volumes.count(vid));
+            });
     }
 
     // Move to mirrored data, copying to device

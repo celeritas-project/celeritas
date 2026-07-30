@@ -135,8 +135,8 @@ double StepperTestBase::RunResult::calc_avg_steps_per_primary() const
     CELER_EXPECT(*this);
     using namespace celeritas::literals;
     size_type num_primaries = this->active.front();
-    auto accum_steps
-        = std::accumulate(this->active.begin(), this->active.end(), 0_sz);
+    auto accum_steps = std::accumulate(
+        this->active.begin(), this->active.end(), 0_sz);
     return static_cast<double>(accum_steps)
            / static_cast<double>(num_primaries);
 }

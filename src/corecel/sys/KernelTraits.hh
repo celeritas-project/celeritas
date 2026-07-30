@@ -13,12 +13,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Predicates used for \c __launch_bounds__ arguments
 template<typename T>
-inline constexpr bool kernel_no_bound
-    = !detail::has_max_block_size_v<T> && !detail::has_min_warps_per_eu_v<T>;
+inline constexpr bool kernel_no_bound = !detail::has_max_block_size_v<T>
+                                        && !detail::has_min_warps_per_eu_v<T>;
 
 template<typename T>
-inline constexpr bool kernel_max_blocks
-    = detail::has_max_block_size_v<T> && !detail::has_min_warps_per_eu_v<T>;
+inline constexpr bool kernel_max_blocks = detail::has_max_block_size_v<T>
+                                          && !detail::has_min_warps_per_eu_v<T>;
 
 template<typename T>
 inline constexpr bool kernel_max_blocks_min_warps

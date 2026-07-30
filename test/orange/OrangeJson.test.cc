@@ -148,8 +148,8 @@ TEST_F(UniversesTest, tracking)
     {
         SCOPED_TRACE("patty");
         auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "patty", "c", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "patty", "c", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -159,32 +159,32 @@ TEST_F(UniversesTest, tracking)
     {
         SCOPED_TRACE("inner +x");
         auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "c", "a", "b", "c", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "c", "a", "b", "c", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        static real_type const expected_hw_safety[] = {
+            0.5, 0, 0.5, 0.5, 0.5, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("inner +y");
         auto result = this->track({4, -5, 1.0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "c", "b", "c", "bobby", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        static real_type const expected_hw_safety[] = {
+            0.5, 0, 0.5, 0.5, 0.5, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("inner +z");
         auto result = this->track({4, -2, -0.75}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"johnny", "b", "b", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "b", "b", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -723,15 +723,17 @@ TEST_F(HexArrayTest, track_out)
         {-6.9258369494022292, -4.9982766629573767, -10.8378536157757495},
         {0.6750034206933703, -0.3679917428721818, 0.6394939086732125});
 
-    static char const* const expected_volumes[]
-        = {"interior", "cfill", "dfill", "interior"};
+    static char const* const expected_volumes[] = {
+        "interior", "cfill", "dfill", "interior"};
     EXPECT_VEC_EQ(expected_volumes, result.volumes);
     static real_type const expected_distances[] = {
         1.9914318088046, 5.3060674310398, 0.30636846908014, 5.9880767678838};
     EXPECT_VEC_NEAR(
         expected_distances, result.distances, 10 * SoftEqual<>{}.rel());
-    static real_type const expected_hw_safety[] = {
-        0.20109936014143, 0.29549138370648, 0.030952132652541, 0.90113367054536};
+    static real_type const expected_hw_safety[] = {0.20109936014143,
+                                                   0.29549138370648,
+                                                   0.030952132652541,
+                                                   0.90113367054536};
     EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
 }
 
@@ -822,8 +824,8 @@ TEST_F(InputBuilderTest, bgspheres)
         SCOPED_TRACE("from background");
         auto result = this->track({0, 0, -9}, {0, 0, 1});
 
-        static char const* const expected_volumes[]
-            = {"global", "bottom", "global", "top", "global"};
+        static char const* const expected_volumes[] = {
+            "global", "bottom", "global", "top", "global"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {3, 6, 1, 4, 5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -832,8 +834,8 @@ TEST_F(InputBuilderTest, bgspheres)
         SCOPED_TRACE("from inside top");
         auto result = this->track({0, 0, 3}, {0, 0, -1});
 
-        static char const* const expected_volumes[]
-            = {"top", "global", "bottom", "global"};
+        static char const* const expected_volumes[] = {
+            "top", "global", "bottom", "global"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {2, 1, 6, 4};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -852,8 +854,8 @@ TEST_F(InputBuilderTest, universes)
     {
         SCOPED_TRACE("patty");
         auto result = this->track({-1.0, -3.75, 0.75}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "patty", "c", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "patty", "c", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 0.5, 5.5, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -863,32 +865,32 @@ TEST_F(InputBuilderTest, universes)
     {
         SCOPED_TRACE("inner +x");
         auto result = this->track({-1, -2, 1.0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "c", "a", "b", "c", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "c", "a", "b", "c", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 1, 2, 2, 1, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        static real_type const expected_hw_safety[] = {
+            0.5, 0, 0.5, 0.5, 0.5, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("inner +y");
         auto result = this->track({4, -5, 1.0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"johnny", "c", "b", "c", "bobby", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "c", "b", "c", "bobby", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {1, 1, 2, 1, 2, 2};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
-        static real_type const expected_hw_safety[]
-            = {0.5, 0, 0.5, 0.5, 0.5, 0.5};
+        static real_type const expected_hw_safety[] = {
+            0.5, 0, 0.5, 0.5, 0.5, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
     }
     {
         SCOPED_TRACE("inner +z");
         auto result = this->track({4, -2, -0.75}, {0, 0, 1});
-        static char const* const expected_volumes[]
-            = {"johnny", "b", "b", "johnny"};
+        static char const* const expected_volumes[] = {
+            "johnny", "b", "b", "johnny"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {0.25, 1, 1, 0.5};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -916,8 +918,8 @@ TEST_F(InputBuilderTest, hierarchy)
     {
         SCOPED_TRACE("py");
         auto result = this->track({0, -20, 0}, {0, 1, 0});
-        static char const* const expected_volumes[]
-            = {"interior", "d2", "interior", "d1", "interior"};
+        static char const* const expected_volumes[] = {
+            "interior", "d2", "interior", "d1", "interior"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {14, 2, 8, 2, 94};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -934,8 +936,8 @@ TEST_F(InputBuilderTest, hierarchy)
             "interior",
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {3, 2, 8, 2, 4, 87.979589711327};
+        static real_type const expected_distances[] = {
+            3, 2, 8, 2, 4, 87.979589711327};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         static real_type const expected_hw_safety[] = {1.5, 1, 4, 1, 2, 39};
         EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
@@ -958,8 +960,8 @@ TEST_F(InputBuilderTest, hierarchy)
             "interior",
         };
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
-        static real_type const expected_distances[]
-            = {20, 4, 2, 8, 2, 4, 4, 2, 23, 1, 1, 79};
+        static real_type const expected_distances[] = {
+            20, 4, 2, 8, 2, 4, 4, 2, 23, 1, 1, 79};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
     }
 
@@ -986,8 +988,8 @@ TEST_F(InputBuilderTest, DISABLED_universe_union_boundary)
         SCOPED_TRACE("pz");
         auto result = this->track({0, 0, -15}, {0, 0, 1});
 
-        static char const* const expected_volumes[]
-            = {"shell", "bottomsph", "bite", "shell"};
+        static char const* const expected_volumes[] = {
+            "shell", "bottomsph", "bite", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {11.234, 10, 4, 9.766};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
@@ -1006,8 +1008,8 @@ TEST_F(InputBuilderTest, DISABLED_involute)
     {
         SCOPED_TRACE("involute");
         auto result = this->track({0, 2.1, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"channel", "blade", "rest", "shell"};
+        static char const* const expected_volumes[] = {
+            "channel", "blade", "rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         // Float and double produce different results
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -1022,8 +1024,8 @@ TEST_F(InputBuilderTest, DISABLED_involute)
         }
         else
         {
-            static real_type const expected_distances[]
-                = {0.531625, 0.66089, 2.21189389295726, 1.13321161570553};
+            static real_type const expected_distances[] = {
+                0.531625, 0.66089, 2.21189389295726, 1.13321161570553};
             EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);
         }
     }
@@ -1031,8 +1033,8 @@ TEST_F(InputBuilderTest, DISABLED_involute)
     {
         SCOPED_TRACE("involute");
         auto result = this->track({0, 3.5, 0}, {0, -1, 0});
-        static char const* const expected_volumes[]
-            = {"rest", "blade", "channel", "center", "rest", "shell"};
+        static char const* const expected_volumes[] = {
+            "rest", "blade", "channel", "center", "rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {
             0.528306129329604, 0.530097149547556, 0.441596721122841, 4, 2, 1};
@@ -1045,8 +1047,8 @@ TEST_F(InputBuilderTest, DISABLED_involute_cw)
     {
         SCOPED_TRACE("involute");
         auto result = this->track({-2, -1.5, 0}, {1, 0, 0});
-        static char const* const expected_volumes[]
-            = {"rest", "center", "rest", "blade", "rest", "shell"};
+        static char const* const expected_volumes[] = {
+            "rest", "center", "rest", "blade", "rest", "shell"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {
             0.6771243444677,

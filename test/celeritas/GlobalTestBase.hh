@@ -112,8 +112,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
     using SPConstOpticalSim = SP<optical::SimParams const>;
-    using SPConstOpticalSurfacePhysics
-        = SP<optical::SurfacePhysicsParams const>;
+    using SPConstOpticalSurfacePhysics = SP<optical::SurfacePhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
 
     using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;
@@ -182,8 +181,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
-    void
-    insert_primaries(CoreStateInterface& state, SpanConstPrimary primaries);
+    void insert_primaries(CoreStateInterface& state,
+                          SpanConstPrimary primaries);
 
     //// OUTPUT ////
 

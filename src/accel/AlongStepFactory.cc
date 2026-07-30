@@ -73,16 +73,16 @@ auto UniformAlongStepFactory::operator()(
         // Get the IDs of the volumes with field
         if (!volumes.empty())
         {
-            field.volumes
-                = inp::UniformField::SetVolume{volumes.begin(), volumes.end()};
+            field.volumes = inp::UniformField::SetVolume{volumes.begin(),
+                                                         volumes.end()};
         }
 
         // Create a uniform field
-        CELER_LOG(info)
-            << "Creating along-step action with field strength " << magnitude
-            << " T in "
-            << (volumes.empty() ? "all" : std::to_string(volumes.size()))
-            << " volumes";
+        CELER_LOG(info) << "Creating along-step action with field strength "
+                        << magnitude << " T in "
+                        << (volumes.empty() ? "all"
+                                            : std::to_string(volumes.size()))
+                        << " volumes";
 
         return celeritas::AlongStepUniformMscAction::from_params(
             input.action_id,

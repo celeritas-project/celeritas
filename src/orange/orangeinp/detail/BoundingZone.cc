@@ -172,19 +172,19 @@ BoundingZone calc_intersection(BoundingZone const& a, BoundingZone const& b)
     else if (!a.negated && b.negated)
     {
         // A - B
-        result.interior
-            = calc_difference(a.interior, b.exterior, Zone::interior);
-        result.exterior
-            = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.interior = calc_difference(
+            a.interior, b.exterior, Zone::interior);
+        result.exterior = calc_difference(
+            a.exterior, b.interior, Zone::exterior);
         result.negated = false;
     }
     else if (!b.negated && a.negated)
     {
         // B - A
-        result.interior
-            = calc_difference(b.interior, a.exterior, Zone::interior);
-        result.exterior
-            = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.interior = calc_difference(
+            b.interior, a.exterior, Zone::interior);
+        result.exterior = calc_difference(
+            b.exterior, a.interior, Zone::exterior);
         result.negated = false;
     }
     else if (a.negated && b.negated)
@@ -216,19 +216,19 @@ BoundingZone calc_union(BoundingZone const& a, BoundingZone const& b)
     else if (!a.negated && b.negated)
     {
         // A | ~B = ~(~A & B) = ~(B - A)
-        result.interior
-            = calc_difference(b.interior, a.exterior, Zone::interior);
-        result.exterior
-            = calc_difference(b.exterior, a.interior, Zone::exterior);
+        result.interior = calc_difference(
+            b.interior, a.exterior, Zone::interior);
+        result.exterior = calc_difference(
+            b.exterior, a.interior, Zone::exterior);
         result.negated = true;
     }
     else if (!b.negated && a.negated)
     {
         // ~A | B = ~(A & ~B) = ~(A - B)
-        result.interior
-            = calc_difference(a.interior, b.exterior, Zone::interior);
-        result.exterior
-            = calc_difference(a.exterior, b.interior, Zone::exterior);
+        result.interior = calc_difference(
+            a.interior, b.exterior, Zone::interior);
+        result.exterior = calc_difference(
+            a.exterior, b.interior, Zone::exterior);
         result.negated = true;
     }
     else if (a.negated && b.negated)

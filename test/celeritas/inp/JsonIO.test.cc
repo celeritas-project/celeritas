@@ -109,8 +109,8 @@ TEST(JsonIO, events)
         EXPECT_EQ(1.0, energy.mean);
         EXPECT_EQ(0.0, energy.stddev);
 
-        auto const& angle
-            = std::get<MonodirectionalDistribution>(rt_input.angle);
+        auto const& angle = std::get<MonodirectionalDistribution>(
+            rt_input.angle);
         EXPECT_EQ(Real3({0, 0, 1}), angle.value);
 
         auto const& shape = std::get<UniformBoxDistribution>(rt_input.shape);

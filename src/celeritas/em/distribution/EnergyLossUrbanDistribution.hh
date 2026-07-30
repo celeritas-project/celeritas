@@ -55,17 +55,17 @@ class EnergyLossUrbanDistribution
 
   public:
     // Construct from particle properties
-    inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(FluctuationRef const& shared,
-                                MaterialTrackView const& cur_mat,
-                                Energy unscaled_mean_loss,
-                                Energy max_energy,
-                                Mass two_mebsgs,
-                                real_type beta_sq);
+    inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        FluctuationRef const& shared,
+        MaterialTrackView const& cur_mat,
+        Energy unscaled_mean_loss,
+        Energy max_energy,
+        Mass two_mebsgs,
+        real_type beta_sq);
 
     // Construct from helper-calculated data
-    explicit inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(EnergyLossHelper const& helper);
+    explicit inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>
@@ -167,8 +167,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
         // two_mebsgs = 2 * m_e c^2 * beta^2 * gamma^2
         real_type const w = std::log(value_as<units::MevMass>(two_mebsgs))
                             - beta_sq;
-        real_type const w_0
-            = value_as<units::LogMevEnergy>(mat.log_mean_excitation_energy());
+        real_type const w_0 = value_as<units::LogMevEnergy>(
+            mat.log_mean_excitation_energy());
         if (w > w_0)
         {
             if (w > params.log_binding_energy[1])
@@ -330,8 +330,10 @@ CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_ionization_loss(
 
         // Mean and standard deviation of the total energy loss (Eqs. 18-19)
         real_type const mean = mean_num_coll * mean_loss_coll * e_0;
-        real_type const stddev
-            = e_0 * std::sqrt(xs_ion_ * (alpha - ipow<2>(mean_loss_coll)));
+        real_type const stddev = e_0
+                                 * std::sqrt(
+                                     xs_ion_
+                                     * (alpha - ipow<2>(mean_loss_coll)));
 
         // Sample energy loss from a Gaussian distribution
         result += this->sample_fast_urban(mean, stddev, rng);

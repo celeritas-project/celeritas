@@ -44,8 +44,8 @@ class RangeCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    RangeCalculator(UniformGridRecord const& grid, Values const& values);
+    inline CELER_FUNCTION RangeCalculator(UniformGridRecord const& grid,
+                                          Values const& values);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;

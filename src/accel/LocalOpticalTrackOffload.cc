@@ -39,9 +39,8 @@ LocalOpticalTrackOffload::LocalOpticalTrackOffload(SetupOptions const&,
     transport_ = params.optical_problem_loaded().transporter;
 
     // Save a pointer to the direct generator action to insert tracks
-    direct_gen_
-        = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
-            params.optical_problem_loaded().generator);
+    direct_gen_ = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
+        params.optical_problem_loaded().generator);
     CELER_VALIDATE(direct_gen_, << "invalid optical DirectGeneratorAction");
 
     CELER_ASSERT(transport_);
@@ -135,8 +134,8 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     init.direction = static_array_cast<real_type>(
         to_array(g4track.GetMomentumDirection()));
     init.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
-    init.polarization
-        = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
+    init.polarization = static_array_cast<real_type>(
+        to_array(g4track.GetPolarization()));
 
     ScopedProfiling profile_this{"push"};
 

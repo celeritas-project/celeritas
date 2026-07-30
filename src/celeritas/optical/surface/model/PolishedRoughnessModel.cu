@@ -24,11 +24,12 @@ namespace optical
 void PolishedRoughnessModel::step(CoreParams const& params,
                                   CoreStateDevice& state) const
 {
-    auto execute = make_surface_physics_executor(params.ptr<MemSpace::native>(),
-                                                 state.ptr(),
-                                                 SurfacePhysicsOrder::roughness,
-                                                 this->surface_model_id(),
-                                                 PolishedRoughnessExecutor{});
+    auto execute = make_surface_physics_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        SurfacePhysicsOrder::roughness,
+        this->surface_model_id(),
+        PolishedRoughnessExecutor{});
 
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);

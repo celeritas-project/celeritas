@@ -54,12 +54,12 @@ TEST(PoissonDistributionTest, bin_large)
     {
         histogram(static_cast<double>(sample_poisson(rng)));
     }
-    static unsigned int const expected_counts[]
-        = {1,   1,   5,   2,   5,   6,   6,   11,  11,  11,  28,  45,
-           58,  80,  72,  123, 135, 157, 203, 218, 272, 315, 352, 382,
-           389, 442, 454, 470, 508, 502, 490, 504, 438, 456, 410, 363,
-           337, 301, 239, 220, 187, 160, 161, 114, 95,  65,  57,  38,
-           34,  22,  11,  8,   8,   6,   6,   1,   2,   2,   0,   1};
+    static unsigned int const expected_counts[] = {
+        1,   1,   5,   2,   5,   6,   6,   11,  11,  11,  28,  45,
+        58,  80,  72,  123, 135, 157, 203, 218, 272, 315, 352, 382,
+        389, 442, 454, 470, 508, 502, 490, 504, 438, 456, 410, 363,
+        337, 301, 239, 220, 187, 160, 161, 114, 95,  65,  57,  38,
+        34,  22,  11,  8,   8,   6,   6,   1,   2,   2,   0,   1};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }

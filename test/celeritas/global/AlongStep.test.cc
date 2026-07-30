@@ -67,7 +67,11 @@ class MockAlongStepFieldTest : public MockAlongStepTest
 
         auto& action_reg = *this->action_reg();
         auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), *this->geometry(), field_inp, nullptr, nullptr);
+            action_reg.next_id(),
+            *this->geometry(),
+            field_inp,
+            nullptr,
+            nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -189,17 +193,17 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
         CELER_ASSERT(msc);
 
         RZMapFieldInput field_map;
-        auto filename
-            = this->test_data_path("celeritas", "cms-tiny.field.json");
+        auto filename = this->test_data_path("celeritas",
+                                             "cms-tiny.field.json");
         std::ifstream(filename) >> field_map;
 
-        auto result
-            = AlongStepRZMapFieldMscAction::from_params(action_reg.next_id(),
-                                                        *this->material(),
-                                                        *this->particle(),
-                                                        field_map,
-                                                        msc,
-                                                        fluct_);
+        auto result = AlongStepRZMapFieldMscAction::from_params(
+            action_reg.next_id(),
+            *this->material(),
+            *this->particle(),
+            field_map,
+            msc,
+            fluct_);
         action_reg.insert(result);
         return result;
     }
@@ -499,10 +503,10 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         SCOPED_TRACE("positron with MSC cross section near discontinuity");
         inp.particle_id = this->particle()->find(pdg::positron());
         inp.energy = MevEnergy{10.6026777729432};
-        inp.position
-            = {-3.81588975039638, 0.0396989319776775, -0.0362911231520308};
-        inp.direction
-            = {0.995881993983801, -0.0107323420361051, 0.0900215023939723};
+        inp.position = {
+            -3.81588975039638, 0.0396989319776775, -0.0362911231520308};
+        inp.direction = {
+            0.995881993983801, -0.0107323420361051, 0.0900215023939723};
         inp.phys_mfp = 0.469519866261640;
         auto result = this->run(inp, num_tracks);
         // Distance to interaction = 0.0499189990540797
@@ -715,8 +719,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
                          from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
-        inp.direction = {
-            -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        inp.direction = {-0.333769826820287552,
+                         0.641464235110772663,
+                         -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
@@ -781,8 +786,9 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
                          from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
-        inp.direction = {
-            -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        inp.direction = {-0.333769826820287552,
+                         0.641464235110772663,
+                         -0.690739703345700562};
         ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_DEBUG
@@ -839,8 +845,8 @@ TEST_F(LeadBoxAlongStepTest, position_change)
             EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
         }
         // VecGeom with Geant4 11.0 has eloss-range
-        EXPECT_TRUE(
-            result.action == "tracking-cut" || result.action == "eloss-range")
+        EXPECT_TRUE(result.action == "tracking-cut"
+                    || result.action == "eloss-range")
             << result.action;
         EXPECT_SOFT_NEAR(5.38228e-8, result.step, 1e-5);
         EXPECT_EQ(0, result.displacement);

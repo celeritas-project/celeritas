@@ -62,8 +62,8 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 
     // Construct a track initializer from a primary particle
     TrackInitializer ti;
-    ti.sim.track_id
-        = make_track_id(params->init, state->init, primary.event_id);
+    ti.sim.track_id = make_track_id(
+        params->init, state->init, primary.event_id);
     ti.sim.primary_id = primary.primary_id;
     ti.sim.event_id = primary.event_id;
     ti.sim.time = primary.time;

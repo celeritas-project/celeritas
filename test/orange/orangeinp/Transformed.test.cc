@@ -53,8 +53,8 @@ TEST_F(TransformedTest, single)
     auto sphshape = std::make_shared<SphereShape>("sph", Sphere{1.0});
     this->build_volume(Transformed{sphshape, Translation{{0, 0, 1.0}}});
 
-    static char const* const expected_surface_strings[]
-        = {"Sphere: r=1 at {0,0,1}"};
+    static char const* const expected_surface_strings[] = {
+        "Sphere: r=1 at {0,0,1}"};
     static char const* const expected_volume_strings[] = {"-0"};
     static char const* const expected_md_strings[] = {"", "", "sph@s", "sph"};
 
@@ -98,11 +98,11 @@ TEST_F(TransformedTest, several)
         "all(+2, -3, -5)",
         "all(-6, +7, -8)",
     };
-    static char const* const expected_md_strings[]
-        = {"",       "",       "sph@s", "sph",    "cyl@mz", "cyl@mz,cyl@pz",
-           "",       "cyl@cz", "",      "cyl",    "sph@s",  "sph",
-           "cyl@pz", "",       "cyl",   "cyl@mz", "",       "cyl@pz",
-           "cyl@cz", "",       "cyl"};
+    static char const* const expected_md_strings[] = {
+        "",       "",       "sph@s", "sph",    "cyl@mz", "cyl@mz,cyl@pz",
+        "",       "cyl@cz", "",      "cyl",    "sph@s",  "sph",
+        "cyl@pz", "",       "cyl",   "cyl@mz", "",       "cyl@pz",
+        "cyl@cz", "",       "cyl"};
     static char const* const expected_bound_strings[] = {
         "3: {{{-1.73,-1.73,-1.73}, {1.73,1.73,1.73}}, {{-2,-2,-2}, {2,2,2}}}",
         "9: {{{-0.707,-0.707,-2}, {0.707,0.707,2}}, {{-1,-1,-2}, {1,1,2}}}",
@@ -144,8 +144,8 @@ TEST_F(TransformedTest, stacked)
         "Sphere: r=1 at {2,0,0}",
         "Sphere: r=1",
     };
-    static char const* const expected_volume_strings[]
-        = {"-0", "-1", "-2", "-3"};
+    static char const* const expected_volume_strings[] = {
+        "-0", "-1", "-2", "-3"};
     static char const* const expected_md_strings[] = {
         "", "", "sph@s", "sph", "sph@s", "sph", "sph@s", "sph", "sph@s", "sph"};
     static char const* const expected_trans_strings[] = {
@@ -190,8 +190,8 @@ TEST_F(TransformedTest, inverse)
         "Plane: y=3",
         "Cyl y: r=1",
     };
-    static char const* const expected_volume_strings[]
-        = {"all(+0, -1, -2)", "all(+3, -4, -5)", "all(+0, -1, -2)"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -2)", "all(+3, -4, -5)", "all(+0, -1, -2)"};
     static char const* const expected_md_strings[] = {
         "",
         "",
@@ -208,8 +208,8 @@ TEST_F(TransformedTest, inverse)
         "",
         "cyl",
     };
-    static char const* const expected_trans_strings[]
-        = {"7: t=0 -> {}", "13: t=1 -> {{{1,0,0},{0,0,1},{0,-1,0}}, {0,2,0}}"};
+    static char const* const expected_trans_strings[] = {
+        "7: t=0 -> {}", "13: t=1 -> {{{1,0,0},{0,0,1},{0,-1,0}}, {0,2,0}}"};
 
     auto const& u = this->unit();
     EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
@@ -231,11 +231,11 @@ TEST_F(TransformedTest, deduplicated_inverse)
     this->build_volume(*sph_outer);
     this->build_volume(Transformed{tr_inner, inv_tr});
 
-    static char const* const expected_surface_strings[]
-        = {"Sphere: r=2", "Sphere: r=1"};
+    static char const* const expected_surface_strings[] = {"Sphere: r=2",
+                                                           "Sphere: r=1"};
     static char const* const expected_volume_strings[] = {"-0", "-1"};
-    static char const* const expected_trans_strings[]
-        = {"3: t=0 -> {}", "5: t=0"};
+    static char const* const expected_trans_strings[] = {"3: t=0 -> {}",
+                                                         "5: t=0"};
     static int const expected_volume_nodes[] = {3, 5};
 
     auto const& u = this->unit();

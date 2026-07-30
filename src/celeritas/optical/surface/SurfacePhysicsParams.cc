@@ -32,8 +32,8 @@ namespace
 /*!
  * Calculate number of physics surfaces as defined by interstitial materials.
  */
-PhysSurfaceId::size_type
-num_phys_surfaces(std::vector<std::vector<OptMatId>> const& materials)
+PhysSurfaceId::size_type num_phys_surfaces(
+    std::vector<std::vector<OptMatId>> const& materials)
 {
     PhysSurfaceId::size_type num = 0;
     for (auto const& mats : materials)
@@ -61,22 +61,22 @@ SurfacePhysicsParams::SurfacePhysicsParams(
 
     // Init boundary action
     {
-        init_boundary_action_
-            = std::make_shared<InitBoundaryAction>(action_reg->next_id());
+        init_boundary_action_ = std::make_shared<InitBoundaryAction>(
+            action_reg->next_id());
         CELER_ASSERT(init_boundary_action_);
         action_reg->insert(init_boundary_action_);
     }
     // Surface stepping action
     {
-        surface_stepping_action_
-            = std::make_shared<SurfaceSteppingAction>(action_reg->next_id());
+        surface_stepping_action_ = std::make_shared<SurfaceSteppingAction>(
+            action_reg->next_id());
         CELER_ASSERT(surface_stepping_action_);
         action_reg->insert(surface_stepping_action_);
     }
     // Post boundary action
     {
-        post_boundary_action_
-            = std::make_shared<PostBoundaryAction>(action_reg->next_id());
+        post_boundary_action_ = std::make_shared<PostBoundaryAction>(
+            action_reg->next_id());
         CELER_ASSERT(post_boundary_action_);
         action_reg->insert(post_boundary_action_);
     }
@@ -86,8 +86,7 @@ SurfacePhysicsParams::SurfacePhysicsParams(
 
     data.scalars.init_boundary_action = init_boundary_action_->action_id();
     data.scalars.post_boundary_action = post_boundary_action_->action_id();
-    data.scalars.surface_stepping_action
-        = surface_stepping_action_->action_id();
+    data.scalars.surface_stepping_action = surface_stepping_action_->action_id();
 
     this->build_surfaces(input.materials, data);
     models_ = this->build_models(input, data);
@@ -117,8 +116,8 @@ void SurfacePhysicsParams::build_surfaces(
         // Number of physics surfaces is equal to number of interstitial
         // materials plus one
         PhysSurfaceId phys_surface_start = next_phys_surface;
-        next_phys_surface
-            = PhysSurfaceId(phys_surface_start.get() + materials.size() + 1);
+        next_phys_surface = PhysSurfaceId(
+            phys_surface_start.get() + materials.size() + 1);
 
         build_surface.push_back(SurfacePhysicsRecord{
             build_material.insert_back(materials.begin(), materials.end()),

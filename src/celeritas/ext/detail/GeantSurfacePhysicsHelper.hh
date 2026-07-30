@@ -111,8 +111,8 @@ G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
 bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
                                              std::string const& name) const
 {
-    auto loaded
-        = get_property_(dst, name, {ImportUnits::mev, ImportUnits::unitless});
+    auto loaded = get_property_(
+        dst, name, {ImportUnits::mev, ImportUnits::unitless});
     return loaded;
 }
 
@@ -120,8 +120,8 @@ bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Write surface name and surface id to a stream
-inline std::ostream&
-operator<<(std::ostream& os, GeantSurfacePhysicsHelper const& helper)
+inline std::ostream& operator<<(std::ostream& os,
+                                GeantSurfacePhysicsHelper const& helper)
 {
     os << helper.property_getter()
        << " (surface id=" << helper.surface_id().unchecked_get() << ")";

@@ -271,7 +271,8 @@ void InteractorHostBase::resize_secondaries(int count)
 /*!
  * Check for energy and momentum conservation in the interaction.
  */
-void InteractorHostBase::check_conservation(Interaction const& interaction) const
+void InteractorHostBase::check_conservation(
+    Interaction const& interaction) const
 {
     ASSERT_NE(interaction.action, Action::failed);
 
@@ -304,8 +305,8 @@ void InteractorHostBase::check_energy_conservation(
         if (s && s.particle_id == particle_params_->find(pdg::positron())
             && interaction.action == Action::absorbed)
         {
-            exit_energy
-                += 2 * particle_params_->get(s.particle_id).mass().value();
+            exit_energy += 2
+                           * particle_params_->get(s.particle_id).mass().value();
         }
     }
 

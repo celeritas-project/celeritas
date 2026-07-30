@@ -21,8 +21,7 @@ namespace
 //---------------------------------------------------------------------------//
 
 template<class T>
-using ThreadItems
-    = Collection<T, Ownership::reference, MemSpace::host, ThreadId>;
+using ThreadItems = Collection<T, Ownership::reference, MemSpace::host, ThreadId>;
 
 using TrackSlots = ThreadItems<TrackSlotId::size_type>;
 

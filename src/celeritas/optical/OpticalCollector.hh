@@ -116,8 +116,8 @@ class OpticalCollector
     }
 
     // Access optical state
-    optical::CoreStateBase const&
-    optical_state(CoreStateInterface const& core) const;
+    optical::CoreStateBase const& optical_state(
+        CoreStateInterface const& core) const;
 
     //// GENERATOR MANAGEMENT ////
 

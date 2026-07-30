@@ -34,8 +34,9 @@ TEST(ContainerVisitorTest, all)
     using VecT = std::vector<VarT>;
 
     std::vector<std::string> result;
-    auto append_to_result
-        = [&result](auto&& v) { result.push_back(generic_to_string(v)); };
+    auto append_to_result = [&result](auto&& v) {
+        result.push_back(generic_to_string(v));
+    };
 
     ContainerVisitor visit{VecT{1, "three", 0, "two"}};
     EXPECT_TRUE((std::is_same_v<decltype(visit), ContainerVisitor<VecT>>));

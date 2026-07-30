@@ -160,8 +160,8 @@ CELER_FUNCTION CoreTrackView::CoreTrackView(
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     CELER_EXPECT(init);
 

@@ -139,9 +139,10 @@ TEST_F(JoinTest, streamed)
 
     // >>> REFERENCE CONJUNCTION
 
-    auto j2 = join(pairs.begin(), pairs.end(), conjunction, [](Pair_t const& p) {
-        return p.first * p.second;
-    });
+    auto j2 = join(pairs.begin(),
+                   pairs.end(),
+                   conjunction,
+                   [](Pair_t const& p) { return p.first * p.second; });
     // Change the passed value
     conjunction = Moveable{"|", &counter};
 

@@ -82,8 +82,8 @@ SignedSense SenseEvaluator::operator()(Joined const& j) const
     // Only keep testing if this sense results:
     // short circuit for the other sense, short circuit for being *on* a
     // surface too
-    auto const maybe
-        = (j.op == op_and ? SignedSense::inside : SignedSense::outside);
+    auto const maybe = (j.op == op_and ? SignedSense::inside
+                                       : SignedSense::outside);
 
     SignedSense result{};
 

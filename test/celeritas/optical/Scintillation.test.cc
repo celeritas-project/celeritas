@@ -99,8 +99,8 @@ class MaterialScintillationGaussianTest : public ScintillationTestBase
         mat_input.properties.push_back(prop);
         mat_input.volume_to_mat = {OptMatId{0}};
         mat_input.optical_to_core = {PhysMatId{0}};
-        auto optical_mat
-            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
+        auto optical_mat = std::make_shared<optical::MaterialParams>(
+            std::move(mat_input));
 
         // Build scintillation process with three components
         // Total yield: 2.5 + 1.5 + 1.0 = 5.0 photons/MeV
@@ -155,8 +155,8 @@ class MaterialScintillationTabularTest : public ScintillationTestBase
         mat_input.properties.push_back(prop);
         mat_input.volume_to_mat = {OptMatId{0}};
         mat_input.optical_to_core = {PhysMatId{0}};
-        auto optical_mat
-            = std::make_shared<optical::MaterialParams>(std::move(mat_input));
+        auto optical_mat = std::make_shared<optical::MaterialParams>(
+            std::move(mat_input));
 
         // Build scintillation process with tabular spectrum
         inp::ScintillationProcess process;
@@ -214,8 +214,8 @@ TEST_F(MaterialScintillationGaussianTest, data)
 
     // Expected values (O(1) units for testing)
     double const total_yield = 5.0;
-    static double const expected_yield_fracs[]
-        = {2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
+    static double const expected_yield_fracs[] = {
+        2.5 / total_yield, 1.5 / total_yield, 1.0 / total_yield};
     static real_type const expected_lambda_means[] = {100, 200, 400};
     static real_type const expected_lambda_sigmas[] = {5, 10, 20};
     static real_type const expected_rise_times[] = {10, 0, 10};
@@ -237,8 +237,8 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     // The particle's energy is necessary for the particle track view but
     // is irrelevant for the test since what matters is the energy
     // deposition
-    auto particle
-        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto particle = this->make_particle_track_view(post_energy_,
+                                                   pdg::electron());
     auto const pre_step = this->build_pre_step();
     auto sim = this->make_sim_track_view(step_length_);
     sim.add_time(sim.step_length() / native_value_from(particle.speed()));
@@ -275,8 +275,8 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    auto particle
-        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto particle = this->make_particle_track_view(post_energy_,
+                                                   pdg::electron());
     auto sim = this->make_sim_track_view(step_length_);
     auto const pre_step = this->build_pre_step();
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
@@ -291,9 +291,9 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     {
         EXPECT_EQ(10, rng.exchange_count());
     }
-    auto const inc_dir
-        = make_unit_vector(generated_dist.points[StepPoint::post].pos
-                           - generated_dist.points[StepPoint::pre].pos);
+    auto const inc_dir = make_unit_vector(
+        generated_dist.points[StepPoint::post].pos
+        - generated_dist.points[StepPoint::pre].pos);
 
     // Create the generator and output vectors
     optical::ScintillationGenerator generate_photon(params->host_ref(),
@@ -421,11 +421,12 @@ TEST_F(MaterialScintillationGaussianTest, time)
 
     // Use pre- and post-step time to sample time
     {
-        auto particle
-            = this->make_particle_track_view(post_energy_, pdg::electron());
+        auto particle = this->make_particle_track_view(post_energy_,
+                                                       pdg::electron());
         gdd.points[StepPoint::pre].time = 0;
-        gdd.points[StepPoint::post].time
-            = from_cm(step_length_) / native_value_from(particle.speed());
+        gdd.points[StepPoint::post].time = from_cm(step_length_)
+                                           / native_value_from(
+                                               particle.speed());
 
         auto time = sample_time(gdd);
 
@@ -447,8 +448,8 @@ TEST_F(MaterialScintillationGaussianTest, time)
 
     // Use pre- and post-step speed to sample time
     {
-        auto particle
-            = this->make_particle_track_view(post_energy_, pdg::electron());
+        auto particle = this->make_particle_track_view(post_energy_,
+                                                       pdg::electron());
         gdd.points[StepPoint::pre].speed = this->build_pre_step().speed;
         gdd.points[StepPoint::post].speed = particle.speed();
 
@@ -477,8 +478,8 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    auto particle
-        = this->make_particle_track_view(post_energy_, pdg::electron());
+    auto particle = this->make_particle_track_view(post_energy_,
+                                                   pdg::electron());
     auto const pre_step = this->build_pre_step();
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 
@@ -539,8 +540,7 @@ TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
     // Iterate components and, when an energy CDF is present, construct grid
     for (auto i : range(data.scint_records.size()))
     {
-        auto const& rec
-            = data.scint_records[ItemId<ScintDistributionRecord>(i)];
+        auto const& rec = data.scint_records[ItemId<ScintDistributionRecord>(i)];
 
         if (rec.energy_cdf)
         {

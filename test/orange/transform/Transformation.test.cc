@@ -62,8 +62,8 @@ TEST_F(TransformationTest, construction)
         SCOPED_TRACE("inverse");
 
         Transformation tr{make_rotation(Axis::z, Turn{0.125}), {1, 2, 3}};
-        auto trinv
-            = Transformation::from_inverse(tr.rotation(), tr.translation());
+        auto trinv = Transformation::from_inverse(tr.rotation(),
+                                                  tr.translation());
 
         EXPECT_VEC_SOFT_EQ(trinv.transform_down(Real3{2, -4, 0.1}),
                            tr.transform_up(Real3{2, -4, 0.1}));

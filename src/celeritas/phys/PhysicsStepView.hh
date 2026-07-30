@@ -71,8 +71,8 @@ class PhysicsStepView
 
     // Accumulate into local step's energy deposition from particle
     template<class PTV>
-    inline CELER_FUNCTION void
-    deposit_energy_from(Energy deposited, PTV&& particle);
+    inline CELER_FUNCTION void deposit_energy_from(Energy deposited,
+                                                   PTV&& particle);
 
     // Set secondaries during an interaction
     inline CELER_FUNCTION void secondaries(Span<Secondary>);
@@ -199,8 +199,8 @@ CELER_FUNCTION void PhysicsStepView::deposit_energy(Energy energy)
  * Deposit energy from the particle.
  */
 template<class PTV>
-inline CELER_FUNCTION void
-PhysicsStepView::deposit_energy_from(Energy deposited, PTV&& particle)
+inline CELER_FUNCTION void PhysicsStepView::deposit_energy_from(
+    Energy deposited, PTV&& particle)
 {
     CELER_EXPECT(deposited > zero_quantity());
     CELER_EXPECT(deposited <= particle.energy());
@@ -283,8 +283,8 @@ CELER_FUNCTION Span<Secondary const> PhysicsStepView::secondaries() const
 /*!
  * Access scratch space for particle-process cross section calculations.
  */
-CELER_FUNCTION real_type&
-PhysicsStepView::per_process_xs(ParticleProcessId ppid)
+CELER_FUNCTION real_type& PhysicsStepView::per_process_xs(
+    ParticleProcessId ppid)
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
     auto idx = track_slot_.get() * params_.scalars.max_particle_processes

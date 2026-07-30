@@ -213,10 +213,10 @@ TEST_F(ComplexVolumeTest, params)
     VolumeParams const& params = this->volumes();
     EXPECT_EQ(4, params.num_volume_levels());
 
-    static std::string const expected_volume_labels[]
-        = {"A", "B", "C", "D", "E"};
-    static std::string const expected_volume_instance_labels[]
-        = {"0", "1", "2", "3", "4", "", "6"};
+    static std::string const expected_volume_labels[] = {
+        "A", "B", "C", "D", "E"};
+    static std::string const expected_volume_instance_labels[] = {
+        "0", "1", "2", "3", "4", "", "6"};
 
     // Check volume labels
     EXPECT_VEC_EQ(expected_volume_labels,
@@ -237,10 +237,10 @@ TEST_F(ComplexVolumeTest, params)
         geo_mat.push_back(id_to_int(v.material()));
     }
 
-    static std::vector<int> const expected_children[]
-        = {{0, 1}, {2, 3}, {4, 6}, {}, {}};
-    static std::vector<int> const expected_parents[]
-        = {{}, {0}, {1, 2, 3}, {4}, {6}};
+    static std::vector<int> const expected_children[] = {
+        {0, 1}, {2, 3}, {4, 6}, {}, {}};
+    static std::vector<int> const expected_parents[] = {
+        {}, {0}, {1, 2, 3}, {4}, {6}};
     static int const expected_geo_mat[] = {0, 1, 2, 3, 4};
     EXPECT_VEC_EQ(expected_children, children);
     EXPECT_VEC_EQ(expected_parents, parents);
@@ -300,8 +300,8 @@ TEST_F(ComplexVolumeTest, visit)
         NameVisitor nv{this->volumes(), {}};
         visit(nv, VolumeId{0});
 
-        static std::string const expected_names[]
-            = {"A", "B", "C", "D", "E", "C", "D", "E", "C", "D", "E"};
+        static std::string const expected_names[] = {
+            "A", "B", "C", "D", "E", "C", "D", "E", "C", "D", "E"};
         EXPECT_VEC_EQ(expected_names, nv.names);
     }
 
@@ -309,16 +309,16 @@ TEST_F(ComplexVolumeTest, visit)
         NameVisitor nv{this->volumes(), {}};
         visit(nv, VolumeInstanceId{0});
 
-        static std::string const expected_names[]
-            = {"0:0", "1:2", "2:4", "2:6", "1:3", "2:4", "2:6"};
+        static std::string const expected_names[] = {
+            "0:0", "1:2", "2:4", "2:6", "1:3", "2:4", "2:6"};
         EXPECT_VEC_EQ(expected_names, nv.names);
     }
 
     {
         MaxVisitor<> mpv{this->volumes().volume_labels(), {}};
         visit(mpv, VolumeId{0});
-        static std::string const expected_names[]
-            = {"0:A", "1:B", "2:C", "3:D", "3:E"};
+        static std::string const expected_names[] = {
+            "0:A", "1:B", "2:C", "3:D", "3:E"};
         EXPECT_VEC_EQ(expected_names, mpv.get_names());
     }
 }
@@ -329,8 +329,8 @@ using MultiLevelTest = MultiLevelVolumeTestBase;
 TEST_F(MultiLevelTest, visit)
 {
     auto const& vols = this->volumes();
-    auto const world_vi
-        = vols.volume_instance_labels().find_unique("world_PV");
+    auto const world_vi = vols.volume_instance_labels().find_unique(
+        "world_PV");
     VolumeVisitor visit(vols);
 
     {

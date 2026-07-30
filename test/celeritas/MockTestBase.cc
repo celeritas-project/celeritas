@@ -242,12 +242,12 @@ auto MockTestBase::build_physics() -> SPConstPhysics
 auto MockTestBase::build_along_step() -> SPConstAction
 {
     auto& action_reg = *this->action_reg();
-    auto result
-        = AlongStepGeneralLinearAction::from_params(action_reg.next_id(),
-                                                    *this->material(),
-                                                    *this->particle(),
-                                                    nullptr,
-                                                    false);
+    auto result = AlongStepGeneralLinearAction::from_params(
+        action_reg.next_id(),
+        *this->material(),
+        *this->particle(),
+        nullptr,
+        false);
     CELER_ASSERT(result);
     CELER_ASSERT(!result->has_fluct());
     CELER_ASSERT(!result->has_msc());

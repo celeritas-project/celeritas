@@ -53,8 +53,8 @@ TEST(LogicEvaluatorTest, evaluate)
 {
     // Logic for alpha : 1 2 ~ & 3 & 4 ~ & ~ ~ 8 ~ ~ & ~
     // With senses substituted: T F ~ & T & F ~ & T & ~
-    auto const alpha_logic
-        = string_to_logic("1 2 ~ & 3 & 4 ~ & ~ ~ 8 ~ ~ & ~");
+    auto const alpha_logic = string_to_logic(
+        "1 2 ~ & 3 & 4 ~ & ~ ~ 8 ~ ~ & ~");
 
     // Logic for beta : 5 1 ~ & 6 & 7 ~ & ~ ~ 8 ~ ~ & ~
     // With senses substituted: T T ~ & F & F ~ & T & ~
@@ -80,16 +80,16 @@ TEST(LogicEvaluatorTest, evaluate)
 
     //// EVALUATE ////
 
-    VecSense senses
-        = {s_in, s_out, s_in, s_out, s_in, s_out, s_in, s_in, s_out};
+    VecSense senses = {
+        s_in, s_out, s_in, s_out, s_in, s_out, s_in, s_in, s_out};
     EXPECT_FALSE(eval_alpha(make_span(senses)));
     EXPECT_TRUE(eval_beta(make_span(senses)));
     EXPECT_TRUE(eval_gamma(make_span(senses)));
     EXPECT_TRUE(eval_everywhere(make_span(senses)));
 
     // Should evaluate to true (inside delta)
-    senses
-        = {s_in, s_out, s_in, s_out, s_out, s_out, s_out, s_in, s_out, s_out};
+    senses = {
+        s_in, s_out, s_in, s_out, s_out, s_out, s_out, s_in, s_out, s_out};
     EXPECT_TRUE(eval_delta(make_span(senses)));
     EXPECT_TRUE(eval_everywhere(make_span(senses)));
 }

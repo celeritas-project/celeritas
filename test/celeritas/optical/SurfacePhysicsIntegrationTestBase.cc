@@ -18,8 +18,7 @@ namespace optical
 namespace test
 {
 //---------------------------------------------------------------------------//
-GeantPhysicsOptions
-SurfacePhysicsIntegrationTestBase::build_geant_options() const
+GeantPhysicsOptions SurfacePhysicsIntegrationTestBase::build_geant_options() const
 {
     auto result = GeantTestBase::build_geant_options();
     result.optical.emplace();

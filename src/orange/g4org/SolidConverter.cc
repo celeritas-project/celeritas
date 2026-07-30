@@ -307,8 +307,8 @@ auto SolidConverter::operator()(arg_type solid_base) -> result_type
 auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 {
     double vol = this->calc_capacity(solid_base);
-    auto radius
-        = static_cast<real_type>(std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
+    auto radius = static_cast<real_type>(
+        std::cbrt(vol / (4.0 / 3.0 * constants::pi)));
     return make_shape<Sphere>(solid_base, radius);
 }
 
@@ -319,8 +319,7 @@ auto SolidConverter::to_sphere(arg_type solid_base) const -> result_type
 auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
 {
     using ConvertFuncPtr = result_type (SolidConverter::*)(arg_type);
-    using MapTypeConverter
-        = std::unordered_map<std::type_index, ConvertFuncPtr>;
+    using MapTypeConverter = std::unordered_map<std::type_index, ConvertFuncPtr>;
 
     // clang-format off
     #define SC_TYPE_FUNC(MIXED, LOWER) \
@@ -360,13 +359,13 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
 #undef SC_TYPE_FUNC
 
     // Look up converter function based on the solid's C++ type
-    auto func_iter
-        = type_to_converter.find(std::type_index(typeid(solid_base)));
+    auto func_iter = type_to_converter.find(
+        std::type_index(typeid(solid_base)));
 
     result_type result = nullptr;
-    CELER_VALIDATE(
-        func_iter != type_to_converter.end(),
-        << "unsupported solid type " << TypeDemangler<G4VSolid>{}(solid_base));
+    CELER_VALIDATE(func_iter != type_to_converter.end(),
+                   << "unsupported solid type "
+                   << TypeDemangler<G4VSolid>{}(solid_base));
 
     // Call our corresponding member function to convert the solid
     ConvertFuncPtr fp = func_iter->second;
@@ -418,10 +417,10 @@ auto SolidConverter::cuttubs(arg_type solid_base) -> result_type
     real_type const hh = scale_(solid.GetZHalfLength());
 
     // Get bottom and top normal vectors
-    auto const b_norm
-        = static_array_cast<real_type>(to_array(solid.GetLowNorm()));
-    auto const t_norm
-        = static_array_cast<real_type>(to_array(solid.GetHighNorm()));
+    auto const b_norm = static_array_cast<real_type>(
+        to_array(solid.GetLowNorm()));
+    auto const t_norm = static_array_cast<real_type>(
+        to_array(solid.GetHighNorm()));
 
     // Optional inner cylinder
     std::optional<CutCylinder> inner;
@@ -625,8 +624,8 @@ auto SolidConverter::hype(arg_type solid_base) -> result_type
     };
 
     auto outer_mid = scale_(solid.GetOuterRadius());
-    auto outer_top
-        = calc_radius_at_hh(solid.GetOuterRadius(), solid.GetOuterStereo());
+    auto outer_top = calc_radius_at_hh(solid.GetOuterRadius(),
+                                       solid.GetOuterStereo());
 
     std::optional<Hyperboloid> inner;
     if (solid.GetInnerRadius() > 0)

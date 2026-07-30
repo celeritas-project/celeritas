@@ -48,8 +48,8 @@ TEST(PolygonUtilsTest, calc_orientation)
 
 TEST(PolygonUtilsTest, has_orientation)
 {
-    static Real2 const cw_points[]
-        = {{-19, -30}, {-19, 30}, {21, 30}, {21, -30}};
+    static Real2 const cw_points[] = {
+        {-19, -30}, {-19, 30}, {21, 30}, {21, -30}};
     EXPECT_TRUE(has_orientation(make_span(cw_points), cw));
     EXPECT_FALSE(has_orientation(make_span(cw_points), ccw));
 
@@ -137,8 +137,8 @@ TEST(PolygonUtilsTest, convex_degenerate)
     EXPECT_TRUE(is_convex(degen3, /* degen_ok = */ true));
 
     // degenerate: repeated consecutive points
-    static Real2 const repeated[]
-        = {{0, 0}, {1, 0}, {1, 1}, {0.5, 0.5}, {0.5, 0.5}, {0, 1}};
+    static Real2 const repeated[] = {
+        {0, 0}, {1, 0}, {1, 1}, {0.5, 0.5}, {0.5, 0.5}, {0, 1}};
     EXPECT_FALSE(is_convex(repeated));
 }
 

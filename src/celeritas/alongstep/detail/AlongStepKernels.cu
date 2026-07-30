@@ -89,11 +89,11 @@ void launch_update_time(CoreStepActionInterface const& action,
                         CoreState<MemSpace::device>& state)
 {
     ScopedProfiling profile_this{"update-time"};
-    auto execute_thread
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         action.action_id(),
-                                         detail::TimeUpdater{});
+    auto execute_thread = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        action.action_id(),
+        detail::TimeUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "update-time");
     launch_kernel(action, params, state, execute_thread);
@@ -140,11 +140,11 @@ void launch_update_track(CoreStepActionInterface const& action,
                          CoreParams const& params,
                          CoreState<MemSpace::device>& state)
 {
-    auto execute_thread
-        = make_along_step_track_executor(params.ptr<MemSpace::native>(),
-                                         state.ptr(),
-                                         action.action_id(),
-                                         detail::TrackUpdater{});
+    auto execute_thread = make_along_step_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        action.action_id(),
+        detail::TrackUpdater{});
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(
         action, "update-track");
     launch_kernel(action, params, state, execute_thread);

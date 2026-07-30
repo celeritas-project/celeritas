@@ -108,8 +108,8 @@ TEST_F(OutputRegistryTest, empty)
 
 TEST_F(OutputRegistryTest, minimal)
 {
-    auto first
-        = std::make_shared<TestInterface>(Category::input, "input_value", 42);
+    auto first = std::make_shared<TestInterface>(
+        Category::input, "input_value", 42);
     auto second = std::make_shared<TestInterface>(Category::result, "out", 1);
     auto third = std::make_shared<TestInterface>(Category::result, "timing", 2);
 

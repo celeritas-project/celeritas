@@ -78,8 +78,8 @@ TEST(MaterialUtils, coulomb_correction)
  */
 TEST(MaterialUtils, radiation_length)
 {
-    auto calc_inv_rad_coeff
-        = [](int atomic_number, real_type amu_mass) -> real_type {
+    auto calc_inv_rad_coeff = [](int atomic_number,
+                                 real_type amu_mass) -> real_type {
         ElementRecord el;
         el.atomic_number = AtomicNumber{atomic_number};
         el.atomic_mass = units::AmuMass{amu_mass};
@@ -299,10 +299,10 @@ TEST_F(MaterialTest, isotope_view)
     }
 
     static int const expected_atomic_numbers[] = {1, 1, 13, 13, 11, 53, 53, 53};
-    static int const expected_atomic_mass_numbers[]
-        = {1, 2, 27, 28, 23, 125, 126, 127};
-    static real_type const expected_binding_energies[]
-        = {0, 2.22457, 224.952, 232.677, 186.564, 1056.29, 1063.43, 1072.58};
+    static int const expected_atomic_mass_numbers[] = {
+        1, 2, 27, 28, 23, 125, 126, 127};
+    static real_type const expected_binding_energies[] = {
+        0, 2.22457, 224.952, 232.677, 186.564, 1056.29, 1063.43, 1072.58};
     static real_type const expected_nuclear_masses[] = {
         938.272, 1875.61, 25126.5, 26058.3, 21409.2, 116321, 117253, 118184};
 
@@ -339,8 +339,8 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
     ImportData data = [this] {
         ScopedRootErrorHandler scoped_root_error_;
 
-        auto filename
-            = this->test_data_path("celeritas", "four-steel-slabs.root");
+        auto filename = this->test_data_path("celeritas",
+                                             "four-steel-slabs.root");
         RootImporter import_from_root(filename.c_str());
         return import_from_root();
     }();
@@ -480,10 +480,10 @@ TEST_F(MaterialDeviceTest, TEST_IF_CELER_DEVICE(all))
     auto inf = std::numeric_limits<real_type>::infinity();
 
     static real_type const expected_temperatures[] = {293, 0, 100, 110};
-    static real_type const expected_rad_len[]
-        = {3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
-    static real_type const expected_tot_z[]
-        = {9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
+    static real_type const expected_rad_len[] = {
+        3.5393292693170424, inf, 350729.99844063615, 351367.47504673258};
+    static real_type const expected_tot_z[] = {
+        9.4365282069664e+23, 0, 1.07394843590447e+20, 1.072e20};
 
     EXPECT_VEC_SOFT_EQ(expected_temperatures, result.temperatures);
     EXPECT_VEC_SOFT_EQ(expected_rad_len, result.rad_len);

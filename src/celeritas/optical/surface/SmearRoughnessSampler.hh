@@ -32,8 +32,8 @@ class SmearRoughnessSampler
 {
   public:
     // Construct from roughness and global normal
-    inline CELER_FUNCTION
-    SmearRoughnessSampler(Real3 const& normal, real_type roughness);
+    inline CELER_FUNCTION SmearRoughnessSampler(Real3 const& normal,
+                                                real_type roughness);
 
     // Sample facet normal
     template<class Engine>

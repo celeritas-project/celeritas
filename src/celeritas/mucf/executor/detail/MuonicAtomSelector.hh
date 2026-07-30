@@ -62,8 +62,8 @@ class MuonicAtomSelector
 /*!
  * Construct with deuterium fraction in the material.
  */
-CELER_FUNCTION
-MuonicAtomSelector::MuonicAtomSelector(real_type deuterium_fraction)
+CELER_FUNCTION MuonicAtomSelector::MuonicAtomSelector(
+    real_type deuterium_fraction)
 {
     using namespace celeritas::literals;
 

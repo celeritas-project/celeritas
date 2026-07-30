@@ -31,9 +31,9 @@ namespace
 /*!
  * Create JSON representation of the structure of a BVH tree.
  */
-nlohmann::json
-make_bvh_structure_json(detail::BvhTreeRecord const& tree,
-                        NativeCRef<detail::BvhTreeData> const& storage)
+nlohmann::json make_bvh_structure_json(
+    detail::BvhTreeRecord const& tree,
+    NativeCRef<detail::BvhTreeData> const& storage)
 {
     using json = nlohmann::json;
 

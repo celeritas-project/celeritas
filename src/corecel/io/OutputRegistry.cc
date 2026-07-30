@@ -45,8 +45,8 @@ void OutputRegistry::insert(SPConstInterface interface)
     CELER_VALIDATE(!label.empty(), << "empty label for output interface");
 
     Category cat = interface->category();
-    auto [prev, inserted]
-        = interfaces_[cat].insert({std::string{label}, std::move(interface)});
+    auto [prev, inserted] = interfaces_[cat].insert(
+        {std::string{label}, std::move(interface)});
     CELER_VALIDATE(inserted,
                    << "duplicate output entry '" << prev->first
                    << "' for category '" << cat << "'");

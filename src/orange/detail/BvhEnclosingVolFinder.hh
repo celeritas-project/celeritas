@@ -39,8 +39,8 @@ class BvhEnclosingVolFinder
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION
-    BvhEnclosingVolFinder(BvhTreeRecord const& tree, Storage const& storage);
+    inline CELER_FUNCTION BvhEnclosingVolFinder(BvhTreeRecord const& tree,
+                                                Storage const& storage);
 
     // Find a volume that satisfies is_inside
     template<class F>
@@ -63,8 +63,8 @@ class BvhEnclosingVolFinder
     inline CELER_FUNCTION LocalVolumeId visit_inf_vols(F&& is_inside) const;
 
     // Determine if a single bbox contains the point
-    inline CELER_FUNCTION bool
-    visit_bbox(LocalVolumeId const& id, Real3 const& pos) const;
+    inline CELER_FUNCTION bool visit_bbox(LocalVolumeId const& id,
+                                          Real3 const& pos) const;
 };
 
 //---------------------------------------------------------------------------//

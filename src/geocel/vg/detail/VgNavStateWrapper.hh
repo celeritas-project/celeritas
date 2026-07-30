@@ -44,8 +44,8 @@ class VgNavStateWrapper
 #endif
 
     // Constructor takes reference to low-level state and boundary
-    CELER_CONSTEXPR_FUNCTION
-    VgNavStateWrapper(VgNavStateImpl& impl_state, VgBoundary& boundary);
+    CELER_CONSTEXPR_FUNCTION VgNavStateWrapper(VgNavStateImpl& impl_state,
+                                               VgBoundary& boundary);
 
     //! Default copy constructor: both will reference the same data
     VgNavStateWrapper(VgNavStateWrapper const&) = default;

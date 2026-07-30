@@ -46,12 +46,12 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
-    CELER_FUNCTION static void
-    LocatePointIn(VgPlacedVol const* vol,
-                  VgReal3 const& point,
-                  NavState& nav,
-                  bool top,
-                  VgPlacedVol const* exclude = nullptr)
+    CELER_FUNCTION static void LocatePointIn(
+        VgPlacedVol const* vol,
+        VgReal3 const& point,
+        NavState& nav,
+        bool top,
+        VgPlacedVol const* exclude = nullptr)
     {
         ScopedVgNavState temp_nav{nav};
         if (exclude)
@@ -71,12 +71,12 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // FIXME: this *crosses* the volume
-    CELER_FUNCTION static vg_real_type
-    ComputeStepAndNextVolume(VgReal3 const& glpos,
-                             VgReal3 const& gldir,
-                             vg_real_type step_limit,
-                             NavState const& in_state,
-                             NavState& out_state)
+    CELER_FUNCTION static vg_real_type ComputeStepAndNextVolume(
+        VgReal3 const& glpos,
+        VgReal3 const& gldir,
+        vg_real_type step_limit,
+        NavState const& in_state,
+        NavState& out_state)
     {
         auto* curr_volume = in_state.Top()->GetLogicalVolume();
 
@@ -97,8 +97,8 @@ class SolidsNavigator
         vg_real_type safety = std::numeric_limits<vg_real_type>::infinity())
     {
         auto* navigator = curr.Top()->GetLogicalVolume()->GetNavigator();
-        real_type result
-            = navigator->GetSafetyEstimator()->ComputeSafety(glpos, curr);
+        real_type result = navigator->GetSafetyEstimator()->ComputeSafety(
+            glpos, curr);
         result = vecCore::math::Min(result, safety);
 
         return result;
@@ -106,8 +106,8 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
-    CELER_FUNCTION static void
-    RelocateToNextVolume(VgReal3 const&, VgReal3 const&, NavState&)
+    CELER_FUNCTION static void RelocateToNextVolume(
+        VgReal3 const&, VgReal3 const&, NavState&)
     {
         // Relocation is done previously :(
     }

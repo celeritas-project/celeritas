@@ -27,8 +27,8 @@ MscTestBase::MscTestBase()
                                                   state_size);
     particle_state_ = StateStore<ParticleStateData>(
         this->particle()->host_ref(), state_size);
-    geo_state_
-        = StateStore<GeoStateData>(this->geometry()->host_ref(), state_size);
+    geo_state_ = StateStore<GeoStateData>(this->geometry()->host_ref(),
+                                          state_size);
     sim_state_ = StateStore<SimStateData>(this->sim()->host_ref(), state_size);
 }
 
@@ -42,8 +42,8 @@ MscTestBase::~MscTestBase() = default;
 /*!
  * Access particle state data.
  */
-ParticleTrackView
-MscTestBase::make_par_view(PDGNumber pdg, MevEnergy energy) const
+ParticleTrackView MscTestBase::make_par_view(PDGNumber pdg,
+                                             MevEnergy energy) const
 {
     CELER_EXPECT(pdg);
     CELER_EXPECT(energy > zero_quantity());
@@ -63,10 +63,10 @@ MscTestBase::make_par_view(PDGNumber pdg, MevEnergy energy) const
 /*!
  * Access particle state data.
  */
-PhysicsTrackView
-MscTestBase::make_phys_view(ParticleTrackView const& par,
-                            std::string const& matname,
-                            HostCRef<PhysicsParamsData> const& host_ref) const
+PhysicsTrackView MscTestBase::make_phys_view(
+    ParticleTrackView const& par,
+    std::string const& matname,
+    HostCRef<PhysicsParamsData> const& host_ref) const
 {
     auto mid = this->material()->find_material(matname);
     CELER_ASSERT(mid);

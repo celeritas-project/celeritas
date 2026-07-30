@@ -32,8 +32,8 @@ TEST(ReciprocalDistributionTest, bin)
         histogram(1.0 / sample_recip(rng));
     }
 
-    static unsigned int const expected_counts[]
-        = {0, 2601, 1905, 1324, 974, 771, 747, 630, 582, 466};
+    static unsigned int const expected_counts[] = {
+        0, 2601, 1905, 1324, 974, 771, 747, 630, 582, 466};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_GE(histogram.min(), min);
     EXPECT_LE(histogram.max(), max);

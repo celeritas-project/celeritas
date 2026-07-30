@@ -25,8 +25,8 @@ namespace
  */
 bool print_usage(CLI::App const& cli, std::ostream& os)
 {
-    if (auto base_formatter
-        = std::dynamic_pointer_cast<CLI::Formatter>(cli.get_formatter()))
+    if (auto base_formatter = std::dynamic_pointer_cast<CLI::Formatter>(
+            cli.get_formatter()))
     {
         auto usage = base_formatter->make_usage(&cli, std::string{});
         if (!usage.empty() && usage.back() == '\n')

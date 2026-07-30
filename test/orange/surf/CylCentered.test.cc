@@ -390,8 +390,8 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                 dir = make_unit_vector(dir);
 
                 // Transport to inside of cylinder
-                real_type d
-                    = calc_intersections(cyl, pos, dir, SurfaceState::off)[0];
+                real_type d = calc_intersections(
+                    cyl, pos, dir, SurfaceState::off)[0];
                 all_first_distances.push_back(d);
                 if (d == no_intersection())
                     continue;

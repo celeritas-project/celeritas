@@ -32,8 +32,8 @@ RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc) {}
  *
  * This assumes the same log energy grid is used for range and energy loss.
  */
-inp::UniformGrid
-RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
+inp::UniformGrid RangeGridCalculator::operator()(
+    inp::UniformGrid const& dedx_grid) const
 {
     using HostValues = Collection<real_type, Ownership::value, MemSpace::host>;
     using HostCRef
@@ -75,8 +75,9 @@ RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
         result.interpolation.type = InterpolationType::linear;
     }
 
-    constexpr real_type delta
-        = 1 / static_cast<real_type>(integration_substeps());
+    constexpr real_type delta = 1
+                                / static_cast<real_type>(
+                                    integration_substeps());
 
     CELER_ASSERT(calc_dedx[0] > 0);
     real_type cum_range = 2 * std::exp(loge_grid[0]) / calc_dedx[0];

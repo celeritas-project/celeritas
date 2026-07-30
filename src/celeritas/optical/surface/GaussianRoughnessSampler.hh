@@ -50,8 +50,8 @@ class GaussianRoughnessSampler
 {
   public:
     // Construct from sigma_alpha, global normal, and incident direction
-    inline CELER_FUNCTION
-    GaussianRoughnessSampler(Real3 const& normal, real_type sigma_alpha);
+    inline CELER_FUNCTION GaussianRoughnessSampler(Real3 const& normal,
+                                                   real_type sigma_alpha);
 
     // Sample facet normal
     template<class Engine>

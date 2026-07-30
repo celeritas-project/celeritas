@@ -102,10 +102,10 @@ class RevolutionFieldSubstepperTest : public FieldSubstepperTest
 //---------------------------------------------------------------------------//
 
 template<template<class EquationT> class IntegratorT, class FieldT>
-CELER_FUNCTION decltype(auto)
-make_mag_field_substepper(FieldT&& field,
-                          FieldDriverOptions const& options,
-                          units::ElementaryCharge charge)
+CELER_FUNCTION decltype(auto) make_mag_field_substepper(
+    FieldT&& field,
+    FieldDriverOptions const& options,
+    units::ElementaryCharge charge)
 {
     using Substepper_t = FieldSubstepper<IntegratorT<MagFieldEquation<FieldT>>>;
     return Substepper_t{options,
@@ -357,8 +357,8 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
     real_type eps = 1.0e-4;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
-        y_expected.pos
-            = {test_params.radius, 0, (nr + 1) * test_params.delta_z};
+        y_expected.pos = {
+            test_params.radius, 0, (nr + 1) * test_params.delta_z};
 
         // Travel hstep for num_steps times in the field
         for ([[maybe_unused]] int j : range(test_params.nsteps))

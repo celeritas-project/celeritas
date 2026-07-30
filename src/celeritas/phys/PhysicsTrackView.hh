@@ -111,8 +111,8 @@ class PhysicsTrackView
     inline CELER_FUNCTION UniformGridId inverse_range_grid() const;
 
     // Get data for processes that use the integral approach
-    inline CELER_FUNCTION IntegralXsProcess const&
-    integral_xs_process(ParticleProcessId ppid) const;
+    inline CELER_FUNCTION IntegralXsProcess const& integral_xs_process(
+        ParticleProcessId ppid) const;
 
     // Calculate macroscopic cross section for the process
     inline CELER_FUNCTION real_type calc_xs(ParticleProcessId ppid,
@@ -197,12 +197,12 @@ class PhysicsTrackView
  *
  * Particle and material IDs are derived from other class states.
  */
-CELER_FUNCTION
-PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
-                                   PhysicsStateRef const& states,
-                                   ParticleTrackView const& particle,
-                                   PhysMatId mid,
-                                   TrackSlotId tid)
+CELER_FUNCTION PhysicsTrackView::PhysicsTrackView(
+    PhysicsParamsRef const& params,
+    PhysicsStateRef const& states,
+    ParticleTrackView const& particle,
+    PhysMatId mid,
+    TrackSlotId tid)
     : params_(params)
     , states_(states)
     , particle_(particle.particle_id())
@@ -217,8 +217,8 @@ PhysicsTrackView::PhysicsTrackView(PhysicsParamsRef const& params,
 /*!
  * Initialize the track view.
  */
-CELER_FUNCTION PhysicsTrackView&
-PhysicsTrackView::operator=(Initializer_t const&)
+CELER_FUNCTION PhysicsTrackView& PhysicsTrackView::operator=(
+    Initializer_t const&)
 {
     this->state().interaction_mfp = 0;
     this->state().msc_range = {};
@@ -398,8 +398,8 @@ CELER_FUNCTION UniformGridId PhysicsTrackView::range_grid() const
  */
 CELER_FUNCTION UniformGridId PhysicsTrackView::inverse_range_grid() const
 {
-    if (auto const& grid
-        = this->uniform_grid(this->process_group().inverse_range))
+    if (auto const& grid = this->uniform_grid(
+            this->process_group().inverse_range))
     {
         return grid;
     }

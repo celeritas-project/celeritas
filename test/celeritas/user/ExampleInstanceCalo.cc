@@ -152,8 +152,8 @@ void ExampleInstanceCalo::process_steps(DetectorStepOutput const& out)
             }
             os << (id_index == 0 ? ':' : '/') << vi_labels.at(vi_id);
         }
-        edep_[std::move(os).str()]
-            += value_as<units::MevEnergy>(out.energy_deposition[hit]);
+        edep_[std::move(os).str()] += value_as<units::MevEnergy>(
+            out.energy_deposition[hit]);
     }
 }
 

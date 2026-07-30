@@ -45,8 +45,8 @@ void ScintillationOffload::PreparePhysicsTable(
  * creates a \c GeneratorDistributionData and pushes it to the local offload,
  * which should be \c LocalOpticalGenOffload.
  */
-G4VParticleChange*
-ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
+G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
+                                                      G4Step const& aStep)
 {
     CELER_EXPECT(!this->GetStackPhotons());
 
@@ -84,8 +84,8 @@ ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
  * method, this override defers to \c ScintillationOffload::PostStepDoIt
  * instead.
  */
-G4VParticleChange*
-ScintillationOffload::AtRestDoIt(G4Track const& aTrack, G4Step const& aStep)
+G4VParticleChange* ScintillationOffload::AtRestDoIt(G4Track const& aTrack,
+                                                    G4Step const& aStep)
 {
     return this->PostStepDoIt(aTrack, aStep);
 }

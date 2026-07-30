@@ -93,16 +93,16 @@ namespace
 //---------------------------------------------------------------------------//
 decltype(auto) em_basic_particles()
 {
-    static std::unordered_set<PDGNumber> const particles
-        = {pdg::electron(), pdg::positron(), pdg::gamma()};
+    static std::unordered_set<PDGNumber> const particles = {
+        pdg::electron(), pdg::positron(), pdg::gamma()};
     return particles;
 }
 
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static std::unordered_set<PDGNumber> const particles
-        = {pdg::mu_minus(), pdg::mu_plus()};
+    static std::unordered_set<PDGNumber> const particles = {pdg::mu_minus(),
+                                                            pdg::mu_plus()};
     return particles;
 }
 
@@ -228,8 +228,8 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
  * Safely switch from G4MscStepLimitType [G4MscStepLimitType.hh] to
  * MscStepLimitAlgorithm.
  */
-MscStepLimitAlgorithm
-to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
+MscStepLimitAlgorithm to_msc_step_algorithm(
+    G4MscStepLimitType const& msc_step_algorithm)
 {
     switch (msc_step_algorithm)
     {
@@ -250,8 +250,8 @@ to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
  * Safely switch from G4NuclearFormfactorType [G4NuclearFormfactorType.hh] to
  * NuclearFormFactorType.
  */
-NuclearFormFactorType
-to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
+NuclearFormFactorType to_form_factor_type(
+    G4NuclearFormfactorType const& form_factor_type)
 {
     switch (form_factor_type)
     {
@@ -271,11 +271,11 @@ to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
 /*!
  * Return a populated \c inp::Particle vector.
  */
-std::vector<inp::Particle>
-import_particles(GeantImporter::DataSelection::Flags particle_flags)
+std::vector<inp::Particle> import_particles(
+    GeantImporter::DataSelection::Flags particle_flags)
 {
-    G4ParticleTable::G4PTblDicIterator& particle_iterator
-        = *(G4ParticleTable::GetParticleTable()->GetIterator());
+    G4ParticleTable::G4PTblDicIterator& particle_iterator = *(
+        G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
 
     std::vector<inp::Particle> particles;
@@ -305,8 +305,8 @@ import_particles(GeantImporter::DataSelection::Flags particle_flags)
             result.pdg = pdg;
             result.mass = particle_view.mass();
             result.charge = particle_view.charge();
-            result.decay_constant
-                = native_value_from(particle_view.decay_constant());
+            result.decay_constant = native_value_from(
+                particle_view.decay_constant());
             return result;
         }());
     }
@@ -347,17 +347,18 @@ std::vector<ImportIsotope> import_isotopes()
         if (isotope.atomic_mass_number > 1 && isotope.atomic_number > 1
             && isotope.atomic_mass_number >= isotope.atomic_number)
         {
-            isotope.proton_loss_energy
-                = G4NucleiProperties::GetBindingEnergy(
-                      isotope.atomic_mass_number, isotope.atomic_number)
-                  - G4NucleiProperties::GetBindingEnergy(
-                      isotope.atomic_mass_number - 1,
-                      isotope.atomic_number - 1);
-            isotope.neutron_loss_energy
-                = G4NucleiProperties::GetBindingEnergy(
-                      isotope.atomic_mass_number, isotope.atomic_number)
-                  - G4NucleiProperties::GetBindingEnergy(
-                      isotope.atomic_mass_number - 1, isotope.atomic_number);
+            isotope.proton_loss_energy = G4NucleiProperties::GetBindingEnergy(
+                                             isotope.atomic_mass_number,
+                                             isotope.atomic_number)
+                                         - G4NucleiProperties::GetBindingEnergy(
+                                             isotope.atomic_mass_number - 1,
+                                             isotope.atomic_number - 1);
+            isotope.neutron_loss_energy = G4NucleiProperties::GetBindingEnergy(
+                                              isotope.atomic_mass_number,
+                                              isotope.atomic_number)
+                                          - G4NucleiProperties::GetBindingEnergy(
+                                              isotope.atomic_mass_number - 1,
+                                              isotope.atomic_number);
         }
         else
         {
@@ -434,8 +435,8 @@ std::vector<ImportElement> import_elements()
  * This returns a vector of optical materials corresponding to an "optical
  * material ID".
  */
-std::vector<ImportOpticalMaterial>
-import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
+std::vector<ImportOpticalMaterial> import_optical_materials(
+    GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -470,10 +471,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         CELER_ASSERT(!optical);
 
         // Save common properties
-        bool has_rindex
-            = get_property(optical.properties.refractive_index,
-                           "RINDEX",
-                           {ImportUnits::mev, ImportUnits::unitless});
+        bool has_rindex = get_property(
+            optical.properties.refractive_index,
+            "RINDEX",
+            {ImportUnits::mev, ImportUnits::unitless});
         // Existence of RINDEX should correspond to GeoOpticalIdMap
         // construction
         CELER_ASSERT(has_rindex);
@@ -507,8 +508,8 @@ std::vector<ImportGeoMaterial> import_geo_materials()
     materials.resize(mt.size());
     CELER_VALIDATE(!materials.empty(), << "no Geant4 materials are defined");
 
-    double const numdens_scale
-        = native_value_from_clhep(ImportUnits::inv_len_cb);
+    double const numdens_scale = native_value_from_clhep(
+        ImportUnits::inv_len_cb);
 
     // Loop over material data
     for (auto i : range(materials.size()))
@@ -565,9 +566,9 @@ std::vector<ImportGeoMaterial> import_geo_materials()
 /*!
  * Return a populated \c ImportPhysMaterial vector.
  */
-std::vector<ImportPhysMaterial>
-import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
-                      GeoOpticalIdMap const& geo_to_opt)
+std::vector<ImportPhysMaterial> import_phys_materials(
+    GeantImporter::DataSelection::Flags particle_flags,
+    GeoOpticalIdMap const& geo_to_opt)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
@@ -724,8 +725,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         load_physics(GeantParticleView{particle}, process);
 
         // TODO: move implementation to GeantPhysicsLoader
-        if (auto const* gg_process
-            = dynamic_cast<G4GammaGeneralProcess const*>(&process))
+        if (auto const* gg_process = dynamic_cast<G4GammaGeneralProcess const*>(
+                &process))
         {
 #if G4VERSION_NUMBER >= 1060
             // Extract the real EM processes embedded inside "gamma general"
@@ -746,18 +747,20 @@ auto import_processes(GeantImporter::DataSelection selected,
             CELER_NOT_IMPLEMENTED("GammaGeneralProcess for Geant4 < 10.6");
 #endif
         }
-        else if (auto const* em_process
-                 = dynamic_cast<G4VEmProcess const*>(&process))
+        else if (auto const* em_process = dynamic_cast<G4VEmProcess const*>(
+                     &process))
         {
             processes.push_back(legacy_import_process(particle, *em_process));
         }
-        else if (auto const* el_process
-                 = dynamic_cast<G4VEnergyLossProcess const*>(&process))
+        else if (
+            auto const* el_process = dynamic_cast<G4VEnergyLossProcess const*>(
+                &process))
         {
             processes.push_back(legacy_import_process(particle, *el_process));
         }
-        else if (auto const* msc_process
-                 = dynamic_cast<G4VMultipleScattering const*>(&process))
+        else if (
+            auto const* msc_process = dynamic_cast<G4VMultipleScattering const*>(
+                &process))
         {
             // Unpack MSC process into multiple MSC models
             auto new_msc_models = legacy_import_process(particle, *msc_process);
@@ -836,13 +839,13 @@ G4Transportation const& find_transportation(G4ParticleDefinition const& p)
 /*!
  * Store particle-dependent transportation parameters.
  */
-ImportTransParameters
-import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+ImportTransParameters import_trans_parameters(
+    GeantImporter::DataSelection::Flags particle_flags)
 {
     ImportTransParameters result;
 
-    G4ParticleTable::G4PTblDicIterator& particle_iterator
-        = *(G4ParticleTable::GetParticleTable()->GetIterator());
+    G4ParticleTable::G4PTblDicIterator& particle_iterator = *(
+        G4ParticleTable::GetParticleTable()->GetIterator());
     particle_iterator.reset();
     ParticleFilter include_particle{particle_flags};
     while (particle_iterator())
@@ -903,8 +906,8 @@ ImportEmParameters import_em_parameters()
     import.fluorescence = g4.Fluo();
     import.auger = g4.Auger();
     import.msc_step_algorithm = to_msc_step_algorithm(g4.MscStepLimitType());
-    import.msc_muhad_step_algorithm
-        = to_msc_step_algorithm(g4.MscMuHadStepLimitType());
+    import.msc_muhad_step_algorithm = to_msc_step_algorithm(
+        g4.MscMuHadStepLimitType());
     import.msc_displaced = g4.LateralDisplacement();
     import.msc_muhad_displaced = g4.MuHadLateralDisplacement();
     import.msc_range_factor = g4.MscRangeFactor();
@@ -1021,15 +1024,15 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
                 CELER_VALIDATE(geo, << "global Geant4 geometry is not loaded");
 
                 geo_to_opt = geo->geo_optical_id_map();
-                imported.optical_materials
-                    = import_optical_materials(*geo_to_opt);
+                imported.optical_materials = import_optical_materials(
+                    *geo_to_opt);
             }
 
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.geo_materials = import_geo_materials();
-            imported.phys_materials
-                = import_phys_materials(selected.particles, *geo_to_opt);
+            imported.phys_materials = import_phys_materials(selected.particles,
+                                                            *geo_to_opt);
         }
         if (selected.processes != DataSelection::none)
         {

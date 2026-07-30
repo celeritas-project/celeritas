@@ -235,8 +235,8 @@ class BvhIntersectingVolFinderTest : public ::celeritas::test::Test
 
     // Get results for a ray across all leaf-size intersectors, with a max
     // search distance
-    IntersectResult
-    get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
+    IntersectResult get_result(
+        Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
         IntersectResult result;
         for (auto& tester : testers_)
@@ -484,8 +484,9 @@ TEST_F(BasicBvhTest, inside_first)
     // Ray starts in V2 and intersects V2
     pos = {2., 2., 50.};
     dir = {0., -1., 0.};
-    dist_map = {
-        {LocalVolumeId{2}, 1.}, {LocalVolumeId{4}, 2.}, {LocalVolumeId{5}, 2.}};
+    dist_map = {{LocalVolumeId{2}, 1.},
+                {LocalVolumeId{4}, 2.},
+                {LocalVolumeId{5}, 2.}};
     {
         IntersectResult ref;
         ref.distance = 1;

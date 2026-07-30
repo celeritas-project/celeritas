@@ -215,10 +215,10 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
  * - The Urban model is selected and samples zero collisions (possible in thin
  *   materials and/or small steps)
  */
-inline CELER_FUNCTION ParticleTrackView::Energy
-calc_mean_energy_loss(ParticleTrackView const& particle,
-                      PhysicsTrackView const& physics,
-                      real_type step)
+inline CELER_FUNCTION ParticleTrackView::Energy calc_mean_energy_loss(
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    real_type step)
 {
     CELER_EXPECT(step > 0);
     using Energy = ParticleTrackView::Energy;
@@ -231,8 +231,8 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
         auto grid_id = physics.energy_loss_grid();
         CELER_ASSERT(grid_id);
 
-        auto calc_eloss_rate
-            = physics.make_calculator<EnergyLossCalculator>(grid_id);
+        auto calc_eloss_rate = physics.make_calculator<EnergyLossCalculator>(
+            grid_id);
         eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
     }
 
@@ -319,8 +319,8 @@ CELER_FUNCTION ActionId select_discrete_interaction(
     {
         // Sample an element for discrete interactions that require it and for
         // materials with more than one element
-        auto select_element
-            = physics.make_element_selector(table_id, particle.energy());
+        auto select_element = physics.make_element_selector(table_id,
+                                                            particle.energy());
         elcomp_id = select_element(rng);
     }
     pstep.element(elcomp_id);

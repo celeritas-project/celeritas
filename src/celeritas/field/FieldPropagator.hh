@@ -129,8 +129,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  *   physical distance travelled.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto
-FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+    real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
     result_type result;
@@ -170,8 +170,8 @@ FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
             //   boundary test does lose some accuracy)
             geo_.set_dir(chord.dir);
         }
-        auto linear_step
-            = geo_.find_next_step(chord.length + this->delta_intersection());
+        auto linear_step = geo_.find_next_step(
+            chord.length + this->delta_intersection());
 
         // Scale the effective substep length to travel by the fraction along
         // the chord to the boundary. This value can be slightly larger than 1
@@ -344,7 +344,8 @@ CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
  * Distance to bump or to consider a "zero" movement.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() const
+CELER_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 {
     return advance_.minimum_step();
 }

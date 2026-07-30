@@ -47,15 +47,15 @@ class UrbanMscSafetyStepLimit
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    UrbanMscSafetyStepLimit(UrbanMscRef const& shared,
-                            UrbanMscHelper const& helper,
-                            ParticleTrackView const& particle,
-                            PhysicsTrackView* physics,
-                            PhysMatId matid,
-                            bool on_boundary,
-                            real_type safety,
-                            real_type phys_step);
+    inline CELER_FUNCTION UrbanMscSafetyStepLimit(
+        UrbanMscRef const& shared,
+        UrbanMscHelper const& helper,
+        ParticleTrackView const& particle,
+        PhysicsTrackView* physics,
+        PhysMatId matid,
+        bool on_boundary,
+        real_type safety,
+        real_type phys_step);
 
     // Apply the step limitation algorithm for the e-/e+ MSC with the RNG
     template<class Engine>

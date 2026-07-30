@@ -53,10 +53,10 @@ DielectricInteractionModel::DielectricInteractionModel(
     CELER_ENSURE(dielectric_data);
     CELER_ENSURE(reflection_data);
 
-    dielectric_data_
-        = ParamsDataStore<DielectricData>{std::move(dielectric_data)};
-    reflection_data_
-        = ParamsDataStore<UnifiedReflectionData>{std::move(reflection_data)};
+    dielectric_data_ = ParamsDataStore<DielectricData>{
+        std::move(dielectric_data)};
+    reflection_data_ = ParamsDataStore<UnifiedReflectionData>{
+        std::move(reflection_data)};
 }
 
 //---------------------------------------------------------------------------//

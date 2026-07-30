@@ -48,13 +48,13 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
-    inline CELER_FUNCTION
-    WentzelHelper(ParticleTrackView const& particle,
-                  MaterialView const& material,
-                  AtomicNumber target_z,
-                  NativeCRef<WentzelOKVIData> const& wentzel,
-                  CoulombIds const& ids,
-                  Energy cutoff);
+    inline CELER_FUNCTION WentzelHelper(
+        ParticleTrackView const& particle,
+        MaterialView const& material,
+        AtomicNumber target_z,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        CoulombIds const& ids,
+        Energy cutoff);
 
     //! Get the target atomic number
     CELER_FUNCTION AtomicNumber atomic_number() const { return target_z_; }
@@ -135,13 +135,13 @@ class WentzelHelper
 /*!
  * Construct from particle and material properties.
  */
-CELER_FUNCTION
-WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
-                             MaterialView const& material,
-                             AtomicNumber target_z,
-                             NativeCRef<WentzelOKVIData> const& wentzel,
-                             CoulombIds const& ids,
-                             Energy cutoff)
+CELER_FUNCTION WentzelHelper::WentzelHelper(
+    ParticleTrackView const& particle,
+    MaterialView const& material,
+    AtomicNumber target_z,
+    NativeCRef<WentzelOKVIData> const& wentzel,
+    CoulombIds const& ids,
+    Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)
@@ -335,9 +335,10 @@ CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
         // Muons and hadrons
         real_type mass_ratio = value_as<Mass>(electron_mass) / mass;
         real_type tau = inc_energy / mass;
-        real_type max_energy
-            = 2 * value_as<Mass>(electron_mass) * tau * (tau + 2)
-              / (1 + 2 * mass_ratio * (tau + 1) + ipow<2>(mass_ratio));
+        real_type max_energy = 2 * value_as<Mass>(electron_mass) * tau
+                               * (tau + 2)
+                               / (1 + 2 * mass_ratio * (tau + 1)
+                                  + ipow<2>(mass_ratio));
         result = -min(value_as<Energy>(cutoff), max_energy)
                  * value_as<Mass>(electron_mass)
                  / value_as<MomentumSq>(particle.momentum_sq());

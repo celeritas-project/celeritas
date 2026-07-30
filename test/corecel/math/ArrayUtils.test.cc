@@ -161,12 +161,12 @@ TEST(RotateTest, basic)
     double phi = 2 * constants::pi / 3.0;
 
     double a = 1.0 / sqrt(1.0 - vec[Z] * vec[Z]);
-    Dbl3 expected
-        = {vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
-               - vec[Y] * sintheta * sin(phi) * a,
-           vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
-               + vec[X] * sintheta * sin(phi) * a,
-           vec[Z] * costheta - sintheta * cos(phi) / a};
+    Dbl3 expected = {
+        vec[X] * costheta + vec[Z] * vec[X] * sintheta * cos(phi) * a
+            - vec[Y] * sintheta * sin(phi) * a,
+        vec[Y] * costheta + vec[Z] * vec[Y] * sintheta * cos(phi) * a
+            + vec[X] * sintheta * sin(phi) * a,
+        vec[Z] * costheta - sintheta * cos(phi) / a};
 
     auto scatter = from_spherical(costheta, phi);
     EXPECT_VEC_SOFT_EQ(expected, rotate(scatter, vec));

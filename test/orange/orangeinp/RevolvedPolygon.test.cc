@@ -67,8 +67,8 @@ TEST_F(RevolvedPolygonTest, one_subregion)
     vol_id_ = this->build_volume(
         RevolvedPolygon{"rp", std::move(polygon), EnclosedAzi{}});
 
-    static char const* const expected_surface_strings[]
-        = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0", "Plane: z=2", "Cyl z: r=3"};
 
     static char const* const expected_volume_strings[] = {"all(+0, -1, -2)"};
 
@@ -130,8 +130,8 @@ TEST_F(RevolvedPolygonTest, one_subregion_with_enclosed)
     vol_id_ = this->build_volume(RevolvedPolygon{
         "rp", std::move(polygon), EnclosedAzi{Turn{-0.25}, Turn{0.25}}});
 
-    static char const* const expected_surface_strings[]
-        = {"Plane: z=0", "Plane: z=2", "Cyl z: r=3", "Plane: x=0"};
+    static char const* const expected_surface_strings[] = {
+        "Plane: z=0", "Plane: z=2", "Cyl z: r=3", "Plane: x=0"};
 
     static char const* const expected_volume_strings[] = {
         "all(+0, -1, -2, +3)",
@@ -202,8 +202,8 @@ TEST_F(RevolvedPolygonTest, two_subregion)
 
     static char const* const expected_surface_strings[] = {
         "Plane: z=0", "Plane: z=2", "Cone z: t=0.5 at {0,0,0}", "Cyl z: r=3"};
-    static char const* const expected_volume_strings[]
-        = {"all(+0, -1, -3, !all(+0, -1, -2))"};
+    static char const* const expected_volume_strings[] = {
+        "all(+0, -1, -3, !all(+0, -1, -2))"};
 
     static char const* const expected_md_strings[] = {
         "",
@@ -221,11 +221,11 @@ TEST_F(RevolvedPolygonTest, two_subregion)
         "rp@0.0.d",
     };
 
-    static char const* const expected_bound_strings[]
-        = {"7: {{{-0.354,-0.354,1}, {0.354,0.354,2}}, {{-1,-1,0}, {1,1,2}}}",
-           "10: {{{-2.12,-2.12,0}, {2.12,2.12,2}}, {{-3,-3,0}, {3,3,2}}}",
-           "~11: {{{-0.354,-0.354,1}, {0.354,0.354,2}}, {{-1,-1,0}, {1,1,2}}}",
-           "12: {null, {{-3,-3,0}, {3,3,2}}}"};
+    static char const* const expected_bound_strings[] = {
+        "7: {{{-0.354,-0.354,1}, {0.354,0.354,2}}, {{-1,-1,0}, {1,1,2}}}",
+        "10: {{{-2.12,-2.12,0}, {2.12,2.12,2}}, {{-3,-3,0}, {3,3,2}}}",
+        "~11: {{{-0.354,-0.354,1}, {0.354,0.354,2}}, {{-1,-1,0}, {1,1,2}}}",
+        "12: {null, {{-3,-3,0}, {3,3,2}}}"};
 
     // Test construction
     auto const& u = this->unit();

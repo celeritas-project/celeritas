@@ -48,8 +48,8 @@ GammaNuclearXsReader::GammaNuclearXsReader(char const* path) : path_(path)
 /*!
  * Read the data for the given element.
  */
-GammaNuclearXsReader::result_type
-GammaNuclearXsReader::operator()(AtomicNumber atomic_number) const
+GammaNuclearXsReader::result_type GammaNuclearXsReader::operator()(
+    AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number);
 
@@ -84,8 +84,7 @@ GammaNuclearXsReader::operator()(AtomicNumber atomic_number) const
             // from clhep::mm^2 as stored in G4PARTICLEXS/gamma/inelXX data
             infile >> result.x[i] >> input_xs.value();
             result.y[i]
-                = native_value_to<units::BarnXs>(native_value_from(input_xs))
-                      .value();
+                = native_value_to<units::BarnXs>(native_value_from(input_xs)).value();
         }
     }
 
