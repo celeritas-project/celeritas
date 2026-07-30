@@ -149,10 +149,9 @@ auto build_physics(inp::Problem const& p,
 
     // Set physics options
     input.options.fixed_step_limiter = p.tracking.force_step_limit;
-    input.options.secondary_stack_factor = static_cast<real_type>(
-                                               params.sizes.secondaries)
-                                           / static_cast<real_type>(
-                                               params.sizes.tracks);
+    input.options.secondary_stack_factor
+        = static_cast<real_type>(params.sizes.secondaries)
+          / static_cast<real_type>(params.sizes.tracks);
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
     input.options.disable_integral_xs = !imported.em_params.integral_approach;
     input.options.light.lowest_energy = ParticleOptions::Energy(

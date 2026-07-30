@@ -192,11 +192,10 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
     {
         for (auto ptype : range(ZoneComponent::NucleonArray::size()))
         {
-            components[i].density[ptype] = static_cast<real_type>(
-                                               num_nucleons[ptype])
-                                           * zone_dens[i].integral
-                                           / (total_integral
-                                              * components[i].volume);
+            components[i].density[ptype]
+                = static_cast<real_type>(num_nucleons[ptype])
+                  * zone_dens[i].integral
+                  / (total_integral * components[i].volume);
             components[i].fermi_mom[ptype] = options_.fermi_scale
                                              * std::cbrt(
                                                  components[i].density[ptype]);

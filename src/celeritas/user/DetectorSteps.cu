@@ -37,7 +37,8 @@ using StateRef
     = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
 
 template<class T>
-using ItemRef = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
+using ItemRef
+    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
 struct HasDetector

@@ -177,10 +177,9 @@ CELER_FUNCTION real_type MuBremsDiffXsCalculator::operator()(Energy energy)
         / (d_n_ * (electron_mass_ + delta * sqrt_euler * b_ * inv_cbrt_z_))));
 
     // Photon energy above which there is no contribution from electrons
-    real_type energy_max_prime = total_energy_
-                                 / (1
-                                    + 0.5_r * inc_mass_sq_
-                                          / (electron_mass_ * total_energy_));
+    real_type energy_max_prime
+        = total_energy_
+          / (1 + 0.5_r * inc_mass_sq_ / (electron_mass_ * total_energy_));
 
     // Calculate the contribution to the cross section from electrons
     real_type phi_e = 0;

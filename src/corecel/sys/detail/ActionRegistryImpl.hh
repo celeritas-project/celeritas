@@ -38,7 +38,8 @@ inline constexpr bool is_const_action_v = ActionSpTraits<T>::is_const_action;
 //---------------------------------------------------------------------------//
 //! True if T is a mutable class inheriting from ActionInterface.
 template<class T>
-inline constexpr bool is_mutable_action_v = ActionSpTraits<T>::is_mutable_action;
+inline constexpr bool is_mutable_action_v
+    = ActionSpTraits<T>::is_mutable_action;
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -79,9 +79,8 @@ class FerrariSolver
     //// STATIC DATA ////
 
     //! Default tolerance for quadric solve, taken from Orange `Tolerance`.
-    static constexpr real_type default_tol_ = (std::is_same_v<real_type, double>
-                                                   ? 1e-5
-                                                   : 5e-2f);
+    static constexpr real_type default_tol_
+        = (std::is_same_v<real_type, double> ? 1e-5 : 5e-2f);
 
     //! No positive real solution (aka "no intersection")
     static constexpr real_type no_solution_

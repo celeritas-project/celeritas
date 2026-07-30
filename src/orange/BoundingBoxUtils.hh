@@ -105,9 +105,8 @@ inline Array<T, 3> calc_center(BoundingBox<T> const& bbox)
     Array<T, 3> center;
     for (auto ax : range(Axis::size_))
     {
-        center[to_int(ax)] = (bbox.point(Bound::lo, ax)
-                              + bbox.point(Bound::hi, ax))
-                             / 2;
+        center[to_int(ax)]
+            = (bbox.point(Bound::lo, ax) + bbox.point(Bound::hi, ax)) / 2;
         if (CELER_UNLIKELY(std::isnan(center[to_int(ax)])))
         {
             // Infinite or half-infinite

@@ -751,9 +751,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         {
             processes.push_back(legacy_import_process(particle, *em_process));
         }
-        else if (
-            auto const* el_process = dynamic_cast<G4VEnergyLossProcess const*>(
-                &process))
+        else if (auto const* el_process
+                 = dynamic_cast<G4VEnergyLossProcess const*>(&process))
         {
             processes.push_back(legacy_import_process(particle, *el_process));
         }
