@@ -104,8 +104,7 @@ class CoulombScatteringInteractor
  * \todo Use the proton production cutoff when the recoiled nucleus production
  * is supported.
  */
-CELER_FUNCTION
-CoulombScatteringInteractor::CoulombScatteringInteractor(
+CELER_FUNCTION CoulombScatteringInteractor::CoulombScatteringInteractor(
     CoulombScatteringData const& shared,
     NativeCRef<WentzelOKVIData> const& wentzel,
     ParticleTrackView const& particle,

@@ -37,21 +37,17 @@ class CMSParameterizedField
     //!@}
 
   public:
-    CELER_FUNCTION
-    inline CMSParameterizedField() {}
+    CELER_FUNCTION inline CMSParameterizedField() {}
 
     // Return the magnetic field for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
+    CELER_FUNCTION inline Real3 operator()(Real3 const& pos) const;
 
   private:
     // Evaluate the magnetic field for the given r and z
-    CELER_FUNCTION
-    inline Real3 evaluate_field(real_type r, real_type z) const;
+    CELER_FUNCTION inline Real3 evaluate_field(real_type r, real_type z) const;
 
     // Evaluate the parameterized function and its derivatives
-    CELER_FUNCTION
-    inline Real4 evaluate_parameters(real_type x) const;
+    CELER_FUNCTION inline Real4 evaluate_parameters(real_type x) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,8 +58,8 @@ class CMSParameterizedField
  * The parameterization is valid only for r < 1.15m and |z| < 2.80m when used
  * with the CMS detector geometry.
  */
-CELER_FUNCTION
-auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto CMSParameterizedField::operator()(Real3 const& pos) const
+    -> Real3
 {
     using units::tesla;
 
@@ -87,9 +83,8 @@ auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
  *
  * \return Field strength in Tesla
  */
-CELER_FUNCTION
-auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
-    -> Real3
+CELER_FUNCTION auto
+CMSParameterizedField::evaluate_field(real_type r, real_type z) const -> Real3
 {
     using namespace celeritas::literals;
     using units::meter;
@@ -145,8 +140,8 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 /*!
  * Evaluate the parameterization function and its 3 derivatives.
  */
-CELER_FUNCTION
-auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
+CELER_FUNCTION auto
+CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
 {
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);

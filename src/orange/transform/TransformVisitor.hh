@@ -72,9 +72,8 @@ class TransformVisitor
 /*!
  * Construct manually from required data.
  */
-CELER_FUNCTION
-TransformVisitor::TransformVisitor(TransformRecords const& transforms,
-                                   Reals const& reals)
+CELER_FUNCTION TransformVisitor::TransformVisitor(
+    TransformRecords const& transforms, Reals const& reals)
     : transforms_{transforms}, reals_{reals}
 {
 }

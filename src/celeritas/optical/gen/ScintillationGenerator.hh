@@ -81,8 +81,7 @@ class ScintillationGenerator
 /*!
  * Construct from shared scintillation data and distribution parameters.
  */
-CELER_FUNCTION
-ScintillationGenerator::ScintillationGenerator(
+CELER_FUNCTION ScintillationGenerator::ScintillationGenerator(
     NativeCRef<ScintillationData> const& shared,
     GeneratorDistributionData const& dist)
     : dist_(dist), shared_(shared)

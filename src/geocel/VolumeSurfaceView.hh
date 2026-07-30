@@ -66,9 +66,8 @@ class VolumeSurfaceView
 /*!
  * Construct from surface parameters and volume ID.
  */
-CELER_FUNCTION
-VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
-                                     VolumeId id)
+CELER_FUNCTION VolumeSurfaceView::VolumeSurfaceView(
+    SurfaceParamsRef const& params, VolumeId id)
     : params_(params), volume_(id)
 {
     CELER_EXPECT(id < params.volume_surfaces.size());

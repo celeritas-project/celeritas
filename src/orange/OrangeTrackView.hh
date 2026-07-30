@@ -230,8 +230,7 @@ class OrangeTrackView
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION
-OrangeTrackView::OrangeTrackView(
+CELER_FUNCTION OrangeTrackView::OrangeTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
@@ -345,8 +344,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 /*!
  * Construct the state from a direction and a copy of the parent state.
  */
-CELER_FUNCTION
-OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
+CELER_FUNCTION OrangeTrackView&
+OrangeTrackView::operator=(DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 

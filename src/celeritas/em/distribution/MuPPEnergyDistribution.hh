@@ -141,8 +141,7 @@ class MuPPEnergyDistribution
  *
  * The incident energy *must* be within the bounds of the sampling table data.
  */
-CELER_FUNCTION
-MuPPEnergyDistribution::MuPPEnergyDistribution(
+CELER_FUNCTION MuPPEnergyDistribution::MuPPEnergyDistribution(
     NativeCRef<MuPairProductionData> const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,

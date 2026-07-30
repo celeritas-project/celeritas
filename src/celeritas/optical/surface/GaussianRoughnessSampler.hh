@@ -70,9 +70,8 @@ class GaussianRoughnessSampler
 /*!
  * Construct from sigma_alpha and global normal.
  */
-CELER_FUNCTION
-GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
-                                                   real_type sigma_alpha)
+CELER_FUNCTION GaussianRoughnessSampler::GaussianRoughnessSampler(
+    Real3 const& normal, real_type sigma_alpha)
     : normal_(normal)
     , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))

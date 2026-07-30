@@ -127,8 +127,8 @@ class PhysicsTrackView
         Energy energy) const;
 
     // Models that apply to the given process ID
-    inline CELER_FUNCTION
-        ModelFinder make_model_finder(ParticleProcessId) const;
+    inline
+        CELER_FUNCTION ModelFinder make_model_finder(ParticleProcessId) const;
 
     // Return CDF table data for the given particle/model/material
     inline CELER_FUNCTION UniformTableId cdf_table(ParticleModelId) const;
@@ -571,8 +571,8 @@ CELER_FUNCTION auto PhysicsTrackView::make_model_finder(
  * A null result means either the model is material independent or the material
  * only has one element, so no cross section CDF tables are stored.
  */
-CELER_FUNCTION
-auto PhysicsTrackView::cdf_table(ParticleModelId pmid) const -> UniformTableId
+CELER_FUNCTION auto PhysicsTrackView::cdf_table(ParticleModelId pmid) const
+    -> UniformTableId
 {
     CELER_EXPECT(pmid < params_.model_cdf.size());
 
@@ -600,8 +600,7 @@ auto PhysicsTrackView::cdf_table(ParticleModelId pmid) const -> UniformTableId
 /*!
  * Construct an element selector to sample an element from tabulated xs data.
  */
-CELER_FUNCTION
-TabulatedElementSelector PhysicsTrackView::make_element_selector(
+CELER_FUNCTION TabulatedElementSelector PhysicsTrackView::make_element_selector(
     UniformTableId table_id, Energy energy) const
 {
     CELER_EXPECT(table_id < params_.uniform_tables.size());

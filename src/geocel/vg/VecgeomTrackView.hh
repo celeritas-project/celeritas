@@ -206,8 +206,7 @@ class VecgeomTrackView
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION
-VecgeomTrackView::VecgeomTrackView(
+CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params)
     , state_(states)

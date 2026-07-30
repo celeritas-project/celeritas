@@ -40,8 +40,7 @@ class GammaNuclearInteractor
 /*!
  * Construct with shared and state data, and a target nucleus.
  */
-CELER_FUNCTION
-GammaNuclearInteractor::GammaNuclearInteractor(
+CELER_FUNCTION GammaNuclearInteractor::GammaNuclearInteractor(
     NativeCRef<GammaNuclearData> const& shared,
     ParticleTrackView const& particle)
 {

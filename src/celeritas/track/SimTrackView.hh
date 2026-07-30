@@ -136,8 +136,7 @@ class SimTrackView
 /*!
  * Construct from persistent and local data.
  */
-CELER_FUNCTION
-SimTrackView::SimTrackView(
+CELER_FUNCTION SimTrackView::SimTrackView(
     SimParamsRef const& params, SimStateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {

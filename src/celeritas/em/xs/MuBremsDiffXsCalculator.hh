@@ -151,8 +151,7 @@ MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
 /*!
  * Compute the differential cross section per atom at the given photon energy.
  */
-CELER_FUNCTION
-real_type MuBremsDiffXsCalculator::operator()(Energy energy)
+CELER_FUNCTION real_type MuBremsDiffXsCalculator::operator()(Energy energy)
 {
     using namespace celeritas::literals;
 

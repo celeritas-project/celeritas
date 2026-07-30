@@ -74,8 +74,7 @@ class ReflectionFormSampler
 /*!
  * Construct from data, surface, and energy.
  */
-CELER_FUNCTION
-ReflectionModeSampler::ReflectionModeSampler(
+CELER_FUNCTION ReflectionModeSampler::ReflectionModeSampler(
     DataRef const& data, SubModelId surface, Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {

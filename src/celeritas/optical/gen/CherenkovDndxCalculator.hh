@@ -75,8 +75,7 @@ class CherenkovDndxCalculator
 /*!
  * Construct from optical materials and Cherenkov angle integrals.
  */
-CELER_FUNCTION
-CherenkovDndxCalculator::CherenkovDndxCalculator(
+CELER_FUNCTION CherenkovDndxCalculator::CherenkovDndxCalculator(
     optical::MaterialView const& material,
     NativeCRef<CherenkovData> const& shared,
     units::ElementaryCharge charge)

@@ -89,8 +89,7 @@ class BraggICRU73QOEnergyDistribution
  *
  * \todo Use proton mass from imported data instead of a constant
  */
-CELER_FUNCTION
-BraggICRU73QOEnergyDistribution::BraggICRU73QOEnergyDistribution(
+CELER_FUNCTION BraggICRU73QOEnergyDistribution::BraggICRU73QOEnergyDistribution(
     ParticleTrackView const& particle,
     Energy electron_cutoff,
     Mass electron_mass)

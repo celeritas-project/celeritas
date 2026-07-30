@@ -85,8 +85,7 @@ class AtomicRelaxationHelper
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-AtomicRelaxationHelper::AtomicRelaxationHelper(
+CELER_FUNCTION AtomicRelaxationHelper::AtomicRelaxationHelper(
     AtomicRelaxParamsRef const& shared,
     AtomicRelaxStateRef const& states,
     ElementId el_id,

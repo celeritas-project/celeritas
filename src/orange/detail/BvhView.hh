@@ -149,8 +149,7 @@ BvhView::BvhView(BvhTreeRecord const& tree, BvhView::Storage const& storage)
 /*!
  *  Determine if a node is inner, i.e., not a leaf.
  */
-CELER_FUNCTION
-bool BvhView::is_internal(BvhNodeId id) const
+CELER_FUNCTION bool BvhView::is_internal(BvhNodeId id) const
 {
     return id.unchecked_get() < tree_.internal_nodes.size();
 }
@@ -159,8 +158,7 @@ bool BvhView::is_internal(BvhNodeId id) const
 /*!
  *  Get an internal node for a given BvhNodeId.
  */
-CELER_FUNCTION
-BvhInternalNodeView BvhView::inner_node(BvhNodeId id) const
+CELER_FUNCTION BvhInternalNodeView BvhView::inner_node(BvhNodeId id) const
 {
     CELER_EXPECT(this->is_internal(id));
     return BvhInternalNodeView{

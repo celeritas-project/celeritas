@@ -82,7 +82,10 @@ class AllVolumesView
  * Construct with shared params data.
  */
 CELER_FORCEINLINE_FUNCTION
-AllVolumesView::AllVolumesView(ParamsRef const& params) : params_(params) {}
+AllVolumesView::AllVolumesView(ParamsRef const& params)
+    : params_(params)
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!

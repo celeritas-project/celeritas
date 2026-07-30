@@ -96,8 +96,7 @@ class ConditionalTrackSlotExecutor
 
   public:
     //! Construct with condition and operator
-    CELER_FUNCTION
-    ConditionalTrackSlotExecutor(
+    CELER_FUNCTION ConditionalTrackSlotExecutor(
         ParamsPtr params, StatePtr state, C&& applies, T&& execute_track)
         : params_{params}
         , state_{state}

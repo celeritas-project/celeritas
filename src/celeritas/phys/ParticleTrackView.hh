@@ -125,8 +125,7 @@ class ParticleTrackView
 /*!
  * Construct from dynamic and static particle properties.
  */
-CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(
+CELER_FUNCTION ParticleTrackView::ParticleTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
@@ -154,8 +153,7 @@ ParticleTrackView::operator=(Initializer_t const& other)
  * This should only be used when the particle is in a valid state. For HEP
  * applications, the new energy should always be less than the starting energy.
  */
-CELER_FUNCTION
-void ParticleTrackView::energy(Energy quantity)
+CELER_FUNCTION void ParticleTrackView::energy(Energy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());

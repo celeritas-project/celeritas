@@ -50,8 +50,7 @@ class GammaNuclearMicroXsCalculator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-GammaNuclearMicroXsCalculator::GammaNuclearMicroXsCalculator(
+CELER_FUNCTION GammaNuclearMicroXsCalculator::GammaNuclearMicroXsCalculator(
     ParamsRef const& data, Energy energy)
     : data_(data), inc_energy_(energy.value())
 {
@@ -61,8 +60,8 @@ GammaNuclearMicroXsCalculator::GammaNuclearMicroXsCalculator(
 /*!
  * Compute microscopic gamma-nuclear cross section at the given gamma energy.
  */
-CELER_FUNCTION
-auto GammaNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+CELER_FUNCTION auto
+GammaNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     NonuniformGridRecord grid;
 

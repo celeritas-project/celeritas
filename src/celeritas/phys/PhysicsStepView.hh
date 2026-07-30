@@ -297,8 +297,8 @@ PhysicsStepView::per_process_xs(ParticleProcessId ppid)
 /*!
  * Access scratch space for particle-process cross section calculations.
  */
-CELER_FUNCTION
-real_type PhysicsStepView::per_process_xs(ParticleProcessId ppid) const
+CELER_FUNCTION real_type PhysicsStepView::per_process_xs(
+    ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
     auto idx = track_slot_.get() * params_.scalars.max_particle_processes

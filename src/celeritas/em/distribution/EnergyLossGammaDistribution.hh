@@ -70,9 +70,8 @@ class EnergyLossGammaDistribution
  * it is allowable to construct the sampler explicitly but outside this range,
  * for analysis purposes.
  */
-CELER_FUNCTION
-EnergyLossGammaDistribution::EnergyLossGammaDistribution(Energy mean_loss,
-                                                         EnergySq bohr_var)
+CELER_FUNCTION EnergyLossGammaDistribution::EnergyLossGammaDistribution(
+    Energy mean_loss, EnergySq bohr_var)
     : sample_gamma_(EnergyLossGammaDistribution::build_gamma(mean_loss.value(),
                                                              bohr_var.value()))
 {

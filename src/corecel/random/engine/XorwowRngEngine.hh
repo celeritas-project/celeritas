@@ -141,8 +141,7 @@ struct GenerateCanonical<XorwowRngEngine, RealType>
 /*!
  * Construct from state and persistent data.
  */
-CELER_FUNCTION
-XorwowRngEngine::XorwowRngEngine(
+CELER_FUNCTION XorwowRngEngine::XorwowRngEngine(
     ParamsRef const& params, StateRef const& state, TrackSlotId tid)
     : params_(params)
 {

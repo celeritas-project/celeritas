@@ -88,8 +88,7 @@ class BvhIntersectingVolFinder
 /*!
  * Construct from vector a of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhIntersectingVolFinder::BvhIntersectingVolFinder(
+CELER_FUNCTION BvhIntersectingVolFinder::BvhIntersectingVolFinder(
     BvhTreeRecord const& tree, BvhIntersectingVolFinder::Storage const& storage)
     : view_(tree, storage)
 {
@@ -172,8 +171,7 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
 /*!
  * Determine if the intersection with an edge/vol bbox is less than min_dist.
  */
-CELER_FUNCTION
-bool BvhIntersectingVolFinder::visit_bbox(
+CELER_FUNCTION bool BvhIntersectingVolFinder::visit_bbox(
     FastBBox const& bbox, Ray ray, real_type min_dist) const
 {
     return intersects_segment(bbox, ray.pos, ray.dir, min_dist);

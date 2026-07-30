@@ -72,8 +72,7 @@ class MaterialView
 /*!
  * Construct from an optical material.
  */
-CELER_FUNCTION
-MaterialView::MaterialView(ParamsRef const& params, MatId id)
+CELER_FUNCTION MaterialView::MaterialView(ParamsRef const& params, MatId id)
     : params_(params), mat_id_(id)
 {
     CELER_EXPECT(id < params_.size());

@@ -69,8 +69,7 @@ class VolumeView
 /*!
  * Construct with shared data and a volume ID.
  */
-CELER_FUNCTION
-VolumeView::VolumeView(ParamsRef const& params, VolumeId vol_id)
+CELER_FUNCTION VolumeView::VolumeView(ParamsRef const& params, VolumeId vol_id)
     : params_(params), vol_id_(vol_id)
 {
     CELER_EXPECT(vol_id_ < params_.volumes.size());

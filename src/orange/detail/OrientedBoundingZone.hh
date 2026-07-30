@@ -128,8 +128,7 @@ class OrientedBoundingZone
 /*!
  * Construct from an OBZ record and corresponding storage.
  */
-CELER_FUNCTION
-OrientedBoundingZone::OrientedBoundingZone(
+CELER_FUNCTION OrientedBoundingZone::OrientedBoundingZone(
     OrientedBoundingZoneRecord const& obz_record, StoragePointers const& sp)
     : obz_record_(obz_record), sp_(sp)
 {

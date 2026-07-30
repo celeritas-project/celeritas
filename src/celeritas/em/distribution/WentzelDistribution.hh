@@ -141,8 +141,7 @@ class WentzelDistribution
 /*!
  * Construct with state and model data.
  */
-CELER_FUNCTION
-WentzelDistribution::WentzelDistribution(
+CELER_FUNCTION WentzelDistribution::WentzelDistribution(
     NativeCRef<WentzelOKVIData> const& wentzel,
     WentzelHelper const& helper,
     ParticleTrackView const& particle,

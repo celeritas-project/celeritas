@@ -105,8 +105,7 @@ class ConditionalTrackExecutor
 
   public:
     //! Construct with condition and operator
-    CELER_FUNCTION
-    ConditionalTrackExecutor(
+    CELER_FUNCTION ConditionalTrackExecutor(
         ParamsPtr params, StatePtr state, C&& applies, T&& execute_track)
         : params_{params}
         , state_{state}

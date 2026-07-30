@@ -9,6 +9,13 @@ AlignTrailingComments:
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Inline
 AlwaysBreakBeforeMultilineStrings: true
+AttributeMacros:
+  - CELER_FUNCTION
+  - CELER_FORCEINLINE
+  - CELER_FORCEINLINE_FUNCTION
+  - CELER_CONSTEXPR_FUNCTION
+  - CELER_FIF
+  - CELER_CEF
 BinPackArguments: false
 BinPackParameters: OnePerLine
 BraceWrapping:

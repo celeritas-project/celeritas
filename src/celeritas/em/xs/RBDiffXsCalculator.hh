@@ -109,8 +109,7 @@ class RBDiffXsCalculator
 /*!
  * Construct with incident electron and current element.
  */
-CELER_FUNCTION
-RBDiffXsCalculator::RBDiffXsCalculator(
+CELER_FUNCTION RBDiffXsCalculator::RBDiffXsCalculator(
     NativeCRef<RelativisticBremData> const& shared,
     ParticleTrackView const& particle,
     MaterialView const& material,
@@ -137,8 +136,7 @@ RBDiffXsCalculator::RBDiffXsCalculator(
  * Compute the relativistic differential cross section per atom at the given
  * bremsstrahlung photon energy in MeV.
  */
-CELER_FUNCTION
-real_type RBDiffXsCalculator::operator()(Energy energy)
+CELER_FUNCTION real_type RBDiffXsCalculator::operator()(Energy energy)
 {
     CELER_EXPECT(energy > zero_quantity());
     return enable_lpm_ ? this->dxsec_per_atom_lpm(energy.value())
@@ -149,8 +147,8 @@ real_type RBDiffXsCalculator::operator()(Energy energy)
 /*!
  * Compute the differential cross section without the LPM effect.
  */
-CELER_FUNCTION
-real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
+CELER_FUNCTION real_type RBDiffXsCalculator::dxsec_per_atom(
+    real_type gamma_energy)
 {
     real_type dxsec{0};
 
@@ -188,8 +186,8 @@ real_type RBDiffXsCalculator::dxsec_per_atom(real_type gamma_energy)
 /*!
  * Compute the differential cross section with the LPM effect.
  */
-CELER_FUNCTION
-real_type RBDiffXsCalculator::dxsec_per_atom_lpm(real_type gamma_energy)
+CELER_FUNCTION real_type RBDiffXsCalculator::dxsec_per_atom_lpm(
+    real_type gamma_energy)
 {
     // Evaluate LPM functions
     real_type epsilon = total_energy_ / gamma_energy;

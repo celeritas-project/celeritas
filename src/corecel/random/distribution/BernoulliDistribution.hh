@@ -72,9 +72,8 @@ CELER_FUNCTION BernoulliDistribution::BernoulliDistribution(real_type p_true)
 /*!
  * Construct with the UNnormalized probability of returning true or false
  */
-CELER_FUNCTION
-BernoulliDistribution::BernoulliDistribution(real_type scaled_true,
-                                             real_type scaled_false)
+CELER_FUNCTION BernoulliDistribution::BernoulliDistribution(
+    real_type scaled_true, real_type scaled_false)
     : p_true_(scaled_true / (scaled_true + scaled_false))
 {
     CELER_EXPECT(scaled_true > 0 || scaled_false > 0);

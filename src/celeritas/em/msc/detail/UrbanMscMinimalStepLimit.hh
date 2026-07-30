@@ -68,8 +68,7 @@ class UrbanMscMinimalStepLimit
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
+CELER_FUNCTION UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     NativeCRef<UrbanMscData> const& shared,
     UrbanMscHelper const& helper,
     PhysicsTrackView* physics,

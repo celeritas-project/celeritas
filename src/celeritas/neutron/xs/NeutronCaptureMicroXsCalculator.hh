@@ -61,9 +61,8 @@ CELER_FUNCTION NeutronCaptureMicroXsCalculator::NeutronCaptureMicroXsCalculator(
 /*!
  * Compute microscopic (element) cross section
  */
-CELER_FUNCTION
-auto NeutronCaptureMicroXsCalculator::operator()(ElementId el_id) const
-    -> BarnXs
+CELER_FUNCTION auto
+NeutronCaptureMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     CELER_EXPECT(el_id < shared_.micro_xs.size());
 

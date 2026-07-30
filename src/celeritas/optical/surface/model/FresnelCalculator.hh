@@ -120,11 +120,10 @@ inline CELER_FUNCTION real_type calc_relative_r_index(
 /*!
  * Construct calculator from initial photon and surface physics data.
  */
-CELER_FUNCTION
-FresnelCalculator::FresnelCalculator(Real3 const& direction,
-                                     Real3 const& polarization,
-                                     Real3 const& normal,
-                                     real_type relative_r_index)
+CELER_FUNCTION FresnelCalculator::FresnelCalculator(Real3 const& direction,
+                                                    Real3 const& polarization,
+                                                    Real3 const& normal,
+                                                    real_type relative_r_index)
     : direction_(direction)
     , polarization_(polarization)
     , normal_(normal)

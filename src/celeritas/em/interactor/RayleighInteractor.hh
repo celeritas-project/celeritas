@@ -154,8 +154,8 @@ CELER_FUNCTION Interaction RayleighInteractor::operator()(Engine& rng)
     return result;
 }
 
-CELER_FUNCTION
-auto RayleighInteractor::evaluate_weight_and_prob() const -> SampleInput
+CELER_FUNCTION auto RayleighInteractor::evaluate_weight_and_prob() const
+    -> SampleInput
 {
     Real3 const& a = shared_.params[element_id_].a;
     Real3 const& b = shared_.params[element_id_].b;

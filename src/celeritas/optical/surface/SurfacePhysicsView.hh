@@ -98,7 +98,7 @@ class SurfacePhysicsView
 
     // Get the physics surface at the given position and direction
     inline CELER_FUNCTION
-        PhysSurfaceId interface(LocalPositionId, LocalDirection) const;
+    PhysSurfaceId interface(LocalPositionId, LocalDirection) const;
 
   private:
     SurfaceParamsRef const& params_;

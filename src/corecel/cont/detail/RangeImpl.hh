@@ -299,8 +299,10 @@ class step_range_iter : public range_iter<T>
     using counter_type = typename TraitsT::counter_type;
     using difference_type = typename TraitsT::difference_type;
 
-    CELER_CONSTEXPR_FUNCTION
-    step_range_iter(T value, counter_type step) : Base(value), step_(step) {}
+    CELER_CONSTEXPR_FUNCTION step_range_iter(T value, counter_type step)
+        : Base(value), step_(step)
+    {
+    }
 
     CELER_CONSTEXPR_FUNCTION step_range_iter& operator++()
     {

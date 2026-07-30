@@ -54,8 +54,7 @@ class PrimaryGenerator
 /*!
  * Construct from optical materials and distribution parameters.
  */
-CELER_FUNCTION
-PrimaryGenerator::PrimaryGenerator(
+CELER_FUNCTION PrimaryGenerator::PrimaryGenerator(
     NativeCRef<DistributionParamsData> const& params,
     PrimaryDistributionData const& data)
     : params_(params), data_(data)

@@ -112,8 +112,7 @@ class LivermorePEInteractor
  * The incident particle must be above the energy threshold: this should be
  * handled in code *before* the interactor is constructed.
  */
-CELER_FUNCTION
-LivermorePEInteractor::LivermorePEInteractor(
+CELER_FUNCTION LivermorePEInteractor::LivermorePEInteractor(
     NativeCRef<LivermorePEData> const& shared,
     AtomicRelaxationHelper const& relaxation,
     ElementId el_id,

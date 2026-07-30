@@ -61,8 +61,7 @@ class WentzelMacroXsCalculator
 /*!
  * Construct with shared model and material data.
  */
-CELER_FUNCTION
-WentzelMacroXsCalculator::WentzelMacroXsCalculator(
+CELER_FUNCTION WentzelMacroXsCalculator::WentzelMacroXsCalculator(
     ParticleTrackView const& particle,
     MaterialView const& material,
     NativeCRef<WentzelVIMscData> const& data,

@@ -75,8 +75,7 @@ struct GridReflectivityExecutor
 /*!
  * Construct from data, surface, and energy.
  */
-CELER_FUNCTION
-GridReflectivityCalculator::GridReflectivityCalculator(
+CELER_FUNCTION GridReflectivityCalculator::GridReflectivityCalculator(
     DataRef const& data, SubModelId surface, Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {

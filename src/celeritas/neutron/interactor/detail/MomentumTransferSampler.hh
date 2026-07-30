@@ -118,8 +118,7 @@ class MomentumTransferSampler
  * \note The incident neutron momentum, and neutron and nucleus masses are
  *  converted to the GeV value .
  */
-CELER_FUNCTION
-MomentumTransferSampler::MomentumTransferSampler(
+CELER_FUNCTION MomentumTransferSampler::MomentumTransferSampler(
     NeutronElasticRef const& shared,
     IsotopeView const& target,
     Momentum neutron_p)
@@ -273,9 +272,8 @@ CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) cons
  * \param neutron_p the neutron momentum in the lab frame (value in clhep::GeV
  * unit).
  */
-CELER_FUNCTION
-auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
-    -> ExchangeParameters
+CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
+    Momentum neutron_p) const -> ExchangeParameters
 {
     // ExchangeParameters
     real_type p = value_as<units::MevMomentum>(neutron_p) * this->to_gev();

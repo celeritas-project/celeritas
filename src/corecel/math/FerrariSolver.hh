@@ -116,8 +116,10 @@ class FerrariSolver
  * Construct a solver instance with a specified tolerance for degenerate cases,
  * such as the particle starting on the surface.
  */
-CELER_FUNCTION
-FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
+CELER_FUNCTION FerrariSolver::FerrariSolver(real_type tolerance)
+    : soft_zero_{tolerance}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!

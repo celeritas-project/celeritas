@@ -43,8 +43,7 @@ class ElectroNuclearInteractor
 /*!
  * Construct with shared and state data, and a target nucleus.
  */
-CELER_FUNCTION
-ElectroNuclearInteractor::ElectroNuclearInteractor(
+CELER_FUNCTION ElectroNuclearInteractor::ElectroNuclearInteractor(
     NativeCRef<ElectroNuclearData> const& shared,
     ParticleTrackView const& particle)
 {

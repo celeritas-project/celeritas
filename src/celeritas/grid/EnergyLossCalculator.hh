@@ -45,9 +45,8 @@ class EnergyLossCalculator
 /*!
  * Construct from cross section data.
  */
-CELER_FUNCTION
-EnergyLossCalculator::EnergyLossCalculator(UniformGridRecord const& grid,
-                                           Values const& reals)
+CELER_FUNCTION EnergyLossCalculator::EnergyLossCalculator(
+    UniformGridRecord const& grid, Values const& reals)
     : data_(grid), reals_(reals)
 {
     CELER_EXPECT(data_);

@@ -503,9 +503,8 @@ CELER_FUNCTION real_type UrbanMscScatter::simple_scattering(Engine& rng) const
  * radiation length unit and the correction term, respectively. For details,
  * see the section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
-CELER_FUNCTION
-real_type
-UrbanMscScatter::compute_theta0(ParticleTrackView const& particle) const
+CELER_FUNCTION real_type UrbanMscScatter::compute_theta0(
+    ParticleTrackView const& particle) const
 {
     real_type const mass = value_as<Mass>(shared_.electron_mass);
     real_type true_path = max(limit_min_, true_path_);

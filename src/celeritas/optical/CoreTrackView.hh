@@ -117,8 +117,7 @@ class CoreTrackView
  *
  * For optical tracks, the value of the track slot is the same as the track ID.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(
+CELER_FUNCTION CoreTrackView::CoreTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : params_(params), states_(states), track_slot_id_(track_slot)
 {

@@ -65,9 +65,8 @@ class RangeCalculator
  *
  * Range tables should be uniform in energy, without extra scaling.
  */
-CELER_FUNCTION
-RangeCalculator::RangeCalculator(UniformGridRecord const& grid,
-                                 Values const& values)
+CELER_FUNCTION RangeCalculator::RangeCalculator(UniformGridRecord const& grid,
+                                                Values const& values)
     : data_(grid), reals_(values)
 {
     CELER_EXPECT(data_);

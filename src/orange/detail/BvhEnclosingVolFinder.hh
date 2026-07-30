@@ -73,9 +73,8 @@ class BvhEnclosingVolFinder
 /*!
  * Construct from vector of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhEnclosingVolFinder::BvhEnclosingVolFinder(BvhTreeRecord const& tree,
-                                             Storage const& storage)
+CELER_FUNCTION BvhEnclosingVolFinder::BvhEnclosingVolFinder(
+    BvhTreeRecord const& tree, Storage const& storage)
     : view_(tree, storage)
 {
 }
@@ -167,9 +166,8 @@ CELER_FUNCTION LocalVolumeId BvhEnclosingVolFinder::visit_inf_vols(
 /*!
  * Determinate if a single bbox contains the point.
  */
-CELER_FUNCTION
-bool BvhEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
-                                       Real3 const& point) const
+CELER_FUNCTION bool BvhEnclosingVolFinder::visit_bbox(LocalVolumeId const& id,
+                                                      Real3 const& point) const
 {
     return is_inside(view_.bbox(id), point);
 }

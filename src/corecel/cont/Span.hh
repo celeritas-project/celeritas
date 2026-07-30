@@ -113,7 +113,10 @@ class Span
 
     //! Construct from data and size
     CELER_CONSTEXPR_FUNCTION
-    Span(pointer d, std::size_t s) noexcept(ndebug_or_dyn) : s_(d, s) {}
+    Span(pointer d, std::size_t s) noexcept(ndebug_or_dyn)
+        : s_(d, s)
+    {
+    }
 
     /*!
      * Construct from two contiguous random-access iterators.
@@ -256,8 +259,8 @@ class Span
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data(), Count};
     }
-    CELER_CONSTEXPR_FUNCTION
-    Span<T, dynamic_extent> first(std::size_t count) const noexcept(ndebug)
+    CELER_CONSTEXPR_FUNCTION Span<T, dynamic_extent>
+    first(std::size_t count) const noexcept(ndebug)
     {
         CELER_EXPECT(count <= this->size());
         return {this->data(), count};
@@ -265,16 +268,15 @@ class Span
 
     template<std::size_t Offset, std::size_t Count = dynamic_extent>
     CELER_CONSTEXPR_FUNCTION
-        Span<T, detail::subspan_extent(Extent, Offset, Count)>
-        subspan() const noexcept(ndebug)
+    Span<T, detail::subspan_extent(Extent, Offset, Count)>
+    subspan() const noexcept(ndebug)
     {
         CELER_EXPECT((Count == dynamic_extent) || (Offset == 0 && Count == 0)
                      || (Offset + Count <= this->size()));
         return {this->data() + Offset,
                 detail::subspan_size(this->size(), Offset, Count)};
     }
-    CELER_CONSTEXPR_FUNCTION
-    Span<T, dynamic_extent>
+    CELER_CONSTEXPR_FUNCTION Span<T, dynamic_extent>
     subspan(std::size_t offset, std::size_t count = dynamic_extent) const
         noexcept(ndebug)
     {
@@ -289,8 +291,8 @@ class Span
         CELER_EXPECT(Count == 0 || Count <= this->size());
         return {this->data() + this->size() - Count, Count};
     }
-    CELER_CONSTEXPR_FUNCTION
-    Span<T, dynamic_extent> last(std::size_t count) const noexcept(ndebug)
+    CELER_CONSTEXPR_FUNCTION Span<T, dynamic_extent>
+    last(std::size_t count) const noexcept(ndebug)
     {
         CELER_EXPECT(count <= this->size());
         return {this->data() + this->size() - count, count};

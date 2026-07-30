@@ -65,8 +65,7 @@ class ParticleTrackView
 /*!
  * Construct from dynamic particle properties.
  */
-CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(
+CELER_FUNCTION ParticleTrackView::ParticleTrackView(
     NativeRef<ParticleStateData> const& states, TrackSlotId tid)
     : states_(states), track_slot_(tid)
 {
@@ -110,8 +109,7 @@ CELER_FUNCTION Real3 const& ParticleTrackView::polarization() const
 /*!
  * Change the particle's kinetic energy.
  */
-CELER_FUNCTION
-void ParticleTrackView::energy(Energy energy)
+CELER_FUNCTION void ParticleTrackView::energy(Energy energy)
 {
     CELER_EXPECT(energy >= zero_quantity());
     states_.energy[track_slot_] = value_as<Energy>(energy);
@@ -121,8 +119,7 @@ void ParticleTrackView::energy(Energy energy)
 /*!
  * Change the particle's polarization.
  */
-CELER_FUNCTION
-void ParticleTrackView::polarization(Real3 const& polarization)
+CELER_FUNCTION void ParticleTrackView::polarization(Real3 const& polarization)
 {
     CELER_EXPECT(is_soft_unit_vector(polarization));
     states_.polarization[track_slot_] = polarization;

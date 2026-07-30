@@ -74,7 +74,7 @@ class SurfacePhysicsTrackView
 
     // Get surface physics map for next surface
     inline CELER_FUNCTION
-        SurfacePhysicsMapView interface(SurfacePhysicsOrder) const;
+    SurfacePhysicsMapView interface(SurfacePhysicsOrder) const;
 
     // Calculate and update traversal direction from track momentum
     inline CELER_FUNCTION void update_traversal_direction(Real3 const&);

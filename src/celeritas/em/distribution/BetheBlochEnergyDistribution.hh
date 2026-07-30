@@ -86,8 +86,7 @@ class BetheBlochEnergyDistribution
 /*!
  * Construct with incident and exiting particle data.
  */
-CELER_FUNCTION
-BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
+CELER_FUNCTION BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
     ParticleTrackView const& particle,
     Energy electron_cutoff,
     Mass electron_mass)

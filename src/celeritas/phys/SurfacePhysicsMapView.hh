@@ -56,9 +56,8 @@ class SurfacePhysicsMapView
 /*!
  * Construct from data and current surface.
  */
-CELER_FUNCTION
-SurfacePhysicsMapView::SurfacePhysicsMapView(SurfaceParamsRef const& params,
-                                             PhysSurfaceId surface)
+CELER_FUNCTION SurfacePhysicsMapView::SurfacePhysicsMapView(
+    SurfaceParamsRef const& params, PhysSurfaceId surface)
     : params_{params}, surface_{surface}
 {
     CELER_EXPECT(params_);

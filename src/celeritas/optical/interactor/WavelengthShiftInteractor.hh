@@ -68,8 +68,7 @@ class WavelengthShiftInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-WavelengthShiftInteractor::WavelengthShiftInteractor(
+CELER_FUNCTION WavelengthShiftInteractor::WavelengthShiftInteractor(
     NativeCRef<WavelengthShiftData> const& shared,
     NativeRef<WlsGeneratorStateData> data,
     ParticleTrackView const& particle,

@@ -51,9 +51,8 @@ class SmearRoughnessSampler
 /*!
  * Construct from roughness and global normal.
  */
-CELER_FUNCTION
-SmearRoughnessSampler::SmearRoughnessSampler(Real3 const& normal,
-                                             real_type roughness)
+CELER_FUNCTION SmearRoughnessSampler::SmearRoughnessSampler(
+    Real3 const& normal, real_type roughness)
     : normal_(normal), roughness_(roughness)
 {
     CELER_EXPECT(0 <= roughness_ && roughness_ <= 1);

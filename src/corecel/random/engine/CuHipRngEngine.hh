@@ -97,8 +97,7 @@ struct GenerateCanonical<CuHipRngEngine, double>
 /*!
  * Construct from state.
  */
-CELER_FUNCTION
-CuHipRngEngine::CuHipRngEngine(
+CELER_FUNCTION CuHipRngEngine::CuHipRngEngine(
     ParamsRef const&, StateRef const& state, TrackSlotId tid)
 {
     CELER_EXPECT(tid < state.rng.size());

@@ -103,8 +103,7 @@ class UrbanMscSafetyStepLimit
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
+CELER_FUNCTION UrbanMscSafetyStepLimit::UrbanMscSafetyStepLimit(
     UrbanMscRef const& shared,
     UrbanMscHelper const& helper,
     ParticleTrackView const& particle,

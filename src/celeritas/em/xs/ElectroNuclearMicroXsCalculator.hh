@@ -50,8 +50,7 @@ class ElectroNuclearMicroXsCalculator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-ElectroNuclearMicroXsCalculator::ElectroNuclearMicroXsCalculator(
+CELER_FUNCTION ElectroNuclearMicroXsCalculator::ElectroNuclearMicroXsCalculator(
     ParamsRef const& data, Energy energy)
     : data_(data), inc_energy_(energy.value())
 {
@@ -62,9 +61,8 @@ ElectroNuclearMicroXsCalculator::ElectroNuclearMicroXsCalculator(
  * Compute microscopic electro-nuclear cross section at the given particle
  * energy.
  */
-CELER_FUNCTION
-auto ElectroNuclearMicroXsCalculator::operator()(ElementId el_id) const
-    -> BarnXs
+CELER_FUNCTION auto
+ElectroNuclearMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     NonuniformGridRecord grid;
 

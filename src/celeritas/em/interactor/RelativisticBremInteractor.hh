@@ -94,8 +94,7 @@ class RelativisticBremInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-RelativisticBremInteractor::RelativisticBremInteractor(
+CELER_FUNCTION RelativisticBremInteractor::RelativisticBremInteractor(
     NativeCRef<RelativisticBremData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& direction,

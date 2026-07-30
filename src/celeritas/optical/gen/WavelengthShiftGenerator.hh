@@ -72,8 +72,7 @@ class WavelengthShiftGenerator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-WavelengthShiftGenerator::WavelengthShiftGenerator(
+CELER_FUNCTION WavelengthShiftGenerator::WavelengthShiftGenerator(
     NativeCRef<WavelengthShiftData> const& shared,
     WlsDistributionData const& distribution)
     : distribution_(distribution)

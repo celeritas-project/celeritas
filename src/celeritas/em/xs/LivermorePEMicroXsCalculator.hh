@@ -66,8 +66,8 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
 /*!
  * Compute cross section.
  */
-CELER_FUNCTION
-auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+CELER_FUNCTION auto
+LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
 {
     CELER_EXPECT(el_id);
     LivermoreElement const& el = shared_.xs.elements[el_id];
