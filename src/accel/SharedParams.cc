@@ -106,11 +106,10 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
     if (found_particle != std::vector<bool>(particles.size(), true))
     {
         //! \todo Overhaul DataSelection Flags and GeantImporter
-        CELER_LOG(warning) << "Mismatch between ParticlesParams (size "
-                           << particles.size()
-                           << ") and user-defined offload list (size "
-                           << offload.size()
-                           << "). Geant4 data import is not properly defined.";
+        CELER_LOG(warning)
+            << "Mismatch between ParticlesParams (size " << particles.size()
+            << ") and user-defined offload list (size " << offload.size()
+            << "). Geant4 data import is not properly defined.";
     }
 }
 

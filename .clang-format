@@ -88,7 +88,7 @@ PenaltyBreakAssignment: 110
 PenaltyBreakBeforeFirstCallParameter: 20
 PenaltyBreakBeforeMemberAccess: 1500
 PenaltyBreakComment: 200
-PenaltyBreakFirstLessLess: 50
+PenaltyBreakFirstLessLess: 15
 PenaltyBreakOpenParenthesis: 10
 PenaltyBreakScopeResolution: 5000
 PenaltyBreakString: 1000

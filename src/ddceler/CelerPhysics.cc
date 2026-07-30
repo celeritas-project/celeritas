@@ -156,12 +156,12 @@ SetupOptions CelerPhysics::make_options()
 
     // Print field driver options
     constexpr auto celer_mm = units::millimeter;
-    CELER_LOG(debug) << "Field driver options: min_step="
-                     << driver_options.minimum_step / celer_mm
-                     << " mm, delta_chord="
-                     << driver_options.delta_chord / celer_mm
-                     << " mm, delta_intersection="
-                     << driver_options.delta_intersection / celer_mm << " mm";
+    CELER_LOG(debug)
+        << "Field driver options: min_step="
+        << driver_options.minimum_step / celer_mm
+        << " mm, delta_chord=" << driver_options.delta_chord / celer_mm
+        << " mm, delta_intersection="
+        << driver_options.delta_intersection / celer_mm << " mm";
 
     // Use a uniform magnetic field based on DD4hep ConstantField
     auto make_field_input = [field_direction, driver_options] {

@@ -136,10 +136,9 @@ auto PhysicalVolumeConverter::operator()(arg_type g4world) -> result_type
                                                 g4world.GetRotation());
         !std::holds_alternative<NoTransformation>(tf))
     {
-        CELER_LOG(warning) << "Ignoring transformation "
-                           << StreamableVariant{tf}
-                           << " on top-level Geant4 volume '"
-                           << g4world.GetName() << "'";
+        CELER_LOG(warning)
+            << "Ignoring transformation " << StreamableVariant{tf}
+            << " on top-level Geant4 volume '" << g4world.GetName() << "'";
     }
 
     // Construct world volume

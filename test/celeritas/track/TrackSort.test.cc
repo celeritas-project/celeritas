@@ -264,7 +264,8 @@ TEST_F(TestEm3NoMsc, host_is_sorting)
     detail::ActionAccessor action_accessor{actions, track_slots};
     for (std::uint32_t i = 1; i < state.size(); ++i)
     {
-        ASSERT_LE(action_accessor(ThreadId{i - 1}), action_accessor(ThreadId{i}))
+        ASSERT_LE(action_accessor(ThreadId{i - 1}),
+                  action_accessor(ThreadId{i}))
             << "Track slots are not sorted by action";
     }
 }
