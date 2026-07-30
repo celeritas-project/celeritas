@@ -451,7 +451,8 @@ auto RayleighModel::get_el_parameters(AtomicNumber z) -> ElScatParams const&
          {8.60979e+00, 3.76480e-01, 3.12240e+00}},
         {{8.72368e+02, 4.85661e+03, 4.27102e+03},
          {1.53226e-15, 2.49104e-16, 1.28308e-16},
-         {5.84949e+00, 3.28173e+00, 3.26330e-01}}};
+         {5.84949e+00, 3.28173e+00, 3.26330e-01}},
+    };
 
     int idx = z.unchecked_get() - 1;
     CELER_VALIDATE(
