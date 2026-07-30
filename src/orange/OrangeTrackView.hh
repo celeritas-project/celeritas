@@ -374,9 +374,8 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
     // Transform direction from global to local
     Real3 localdir = init.dir;
     auto apply_transform = TransformVisitor{params_};
-    auto rotate_down = [&localdir](auto&& t) {
-        localdir = t.rotate_down(localdir);
-    };
+    auto rotate_down
+        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
     for (auto ulev_id : range(this->univ_level()))
     {
         auto lsa = this->make_lsa(ulev_id);
@@ -795,9 +794,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
     // Transform all nonlocal universe levels
     auto local_pos = pos;
     auto apply_transform = TransformVisitor{params_};
-    auto translate_down = [&local_pos](auto&& t) {
-        local_pos = t.transform_down(local_pos);
-    };
+    auto translate_down
+        = [&local_pos](auto&& t) { local_pos = t.transform_down(local_pos); };
     for (auto ulev_id : range(this->univ_level()))
     {
         auto lsa = this->make_lsa(ulev_id);
@@ -986,9 +984,8 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
     // Complete direction setting by transforming direction all the way down
     Real3 localdir = newdir;
     auto apply_transform = TransformVisitor{params_};
-    auto rotate_down = [&localdir](auto&& t) {
-        localdir = t.rotate_down(localdir);
-    };
+    auto rotate_down
+        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
     for (auto ulev_id : range(this->univ_level()))
     {
         auto lsa = this->make_lsa(ulev_id);

@@ -73,8 +73,8 @@ auto UniformAlongStepFactory::operator()(
         // Get the IDs of the volumes with field
         if (!volumes.empty())
         {
-            field.volumes = inp::UniformField::SetVolume{volumes.begin(),
-                                                         volumes.end()};
+            field.volumes
+                = inp::UniformField::SetVolume{volumes.begin(), volumes.end()};
         }
 
         // Create a uniform field

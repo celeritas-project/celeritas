@@ -118,8 +118,8 @@ void WavelengthShiftModel::step(CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = get<WlsGeneratorState<MemSpace::native>>(*state.aux(),
-                                                               aux_id_);
+    auto& aux_state
+        = get<WlsGeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
 
     launch_action(
         state,

@@ -171,9 +171,9 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
             transitions[j].energy
                 = units::MevEnergy(import_transitions[j].energy);
         }
-        shells[i].transitions = make_builder(&data->transitions)
-                                    .insert_back(transitions.begin(),
-                                                 transitions.end());
+        shells[i].transitions
+            = make_builder(&data->transitions)
+                  .insert_back(transitions.begin(), transitions.end());
     }
     el.shells
         = make_builder(&data->shells).insert_back(shells.begin(), shells.end());

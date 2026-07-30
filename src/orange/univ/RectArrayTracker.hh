@@ -253,8 +253,8 @@ CELER_FUNCTION auto RectArrayTracker::intersect(
 
             auto local_surface = LocalSurfaceId(
                 to_index({static_cast<size_type>(to_int(ax)), target_coord}));
-            result.surface = {local_surface,
-                              dir > 0 ? Sense::inside : Sense::outside};
+            result.surface
+                = {local_surface, dir > 0 ? Sense::inside : Sense::outside};
         }
     }
 

@@ -78,8 +78,8 @@ TEST(MaterialUtils, coulomb_correction)
  */
 TEST(MaterialUtils, radiation_length)
 {
-    auto calc_inv_rad_coeff = [](int atomic_number,
-                                 real_type amu_mass) -> real_type {
+    auto calc_inv_rad_coeff
+        = [](int atomic_number, real_type amu_mass) -> real_type {
         ElementRecord el;
         el.atomic_number = AtomicNumber{atomic_number};
         el.atomic_mass = units::AmuMass{amu_mass};
@@ -339,8 +339,8 @@ TEST_F(MaterialParamsImportTest, TEST_IF_CELERITAS_USE_ROOT(root_materials))
     ImportData data = [this] {
         ScopedRootErrorHandler scoped_root_error_;
 
-        auto filename = this->test_data_path("celeritas",
-                                             "four-steel-slabs.root");
+        auto filename
+            = this->test_data_path("celeritas", "four-steel-slabs.root");
         RootImporter import_from_root(filename.c_str());
         return import_from_root();
     }();

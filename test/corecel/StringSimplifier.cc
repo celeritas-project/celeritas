@@ -144,8 +144,8 @@ std::string StringSimplifier::simplify_sci(std::string s) const
     auto exp_iter
         = std::find_if(iter, end, [](auto c) { return c == 'e' || c == 'E'; });
 
-    int const precision = std::min<int>(1 + std::distance(iter, exp_iter),
-                                        precision_);
+    int const precision
+        = std::min<int>(1 + std::distance(iter, exp_iter), precision_);
 
     // Format the rounded number with appropriate notation
     s = to_sci(std::stod(s), precision);

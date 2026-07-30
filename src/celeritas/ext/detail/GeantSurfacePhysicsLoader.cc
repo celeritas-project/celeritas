@@ -394,8 +394,8 @@ void GeantSurfacePhysicsLoader::insert_reflectivity(
     inp::GridReflection refl_grid;
 
     bool has_refl = helper.get_property(refl_grid.reflectivity, "REFLECTIVITY");
-    bool has_trans = helper.get_property(refl_grid.transmittance,
-                                         "TRANSMITTANCE");
+    bool has_trans
+        = helper.get_property(refl_grid.transmittance, "TRANSMITTANCE");
     bool has_eff = helper.get_property(refl_grid.efficiency, "EFFICIENCY");
 
     if (has_refl || has_trans || has_eff)

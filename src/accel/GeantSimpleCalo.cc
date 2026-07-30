@@ -113,8 +113,8 @@ auto GeantSimpleCalo::MakeSensitiveDetector() -> UPSensitiveDetector
         storage_->data[thread_id].assign(storage_->volume_to_index.size(), 0.0);
 
         // Create SD
-        detector = std::make_unique<detail::GeantSimpleCaloSD>(storage_,
-                                                               thread_id);
+        detector
+            = std::make_unique<detail::GeantSimpleCaloSD>(storage_, thread_id);
     }
 
     // Attach SD to LVs

@@ -352,8 +352,8 @@ TEST_F(SimpleCmsTest, no_touchable)
 
     {
         auto& result = this->get_hits("si_tracker");
-        static real_type const expected_energy_deposition[] = {1.0 * 0.1,
-                                                               1.0 * 0.4};
+        static real_type const expected_energy_deposition[]
+            = {1.0 * 0.1, 1.0 * 0.4};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static real_type const expected_step_length[] = {0.1, 1.0};
@@ -379,8 +379,8 @@ TEST_F(SimpleCmsTest, no_touchable)
     }
     {
         auto& result = this->get_hits("em_calorimeter");
-        static real_type const expected_energy_deposition[] = {0.5 * 0.2,
-                                                               0.5 * 0.5};
+        static real_type const expected_energy_deposition[]
+            = {0.5 * 0.2, 0.5 * 0.5};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"e-", "e-"};
@@ -406,8 +406,8 @@ TEST_F(SimpleCmsTest, no_touchable)
     }
     {
         auto& result = this->get_hits("had_calorimeter");
-        static real_type const expected_energy_deposition[] = {0.8 * 0.3,
-                                                               0.8 * 0.6};
+        static real_type const expected_energy_deposition[]
+            = {0.8 * 0.3, 0.8 * 0.6};
         EXPECT_VEC_SOFT_EQ(expected_energy_deposition,
                            result.energy_deposition);
         static char const* const expected_particle[] = {"gamma", "gamma"};
@@ -446,8 +446,8 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 
     {
         auto& result = this->get_hits("si_tracker");
-        static char const* const expected_pre_physvol[] = {"si_tracker_pv",
-                                                           "si_tracker_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"si_tracker_pv", "si_tracker_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
     {
@@ -498,8 +498,8 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
 
     {
         auto& result = this->get_hits("si_tracker");
-        static char const* const expected_pre_physvol[] = {"si_tracker_pv",
-                                                           "si_tracker_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"si_tracker_pv", "si_tracker_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
     {

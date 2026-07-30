@@ -237,8 +237,8 @@ TEST_F(MaterialScintillationGaussianTest, pre_generator)
     // The particle's energy is necessary for the particle track view but
     // is irrelevant for the test since what matters is the energy
     // deposition
-    auto particle = this->make_particle_track_view(post_energy_,
-                                                   pdg::electron());
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
     auto sim = this->make_sim_track_view(step_length_);
     sim.add_time(sim.step_length() / native_value_from(particle.speed()));
@@ -275,8 +275,8 @@ TEST_F(MaterialScintillationGaussianTest, basic)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    auto particle = this->make_particle_track_view(post_energy_,
-                                                   pdg::electron());
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
     auto sim = this->make_sim_track_view(step_length_);
     auto const pre_step = this->build_pre_step();
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
@@ -421,8 +421,8 @@ TEST_F(MaterialScintillationGaussianTest, time)
 
     // Use pre- and post-step time to sample time
     {
-        auto particle = this->make_particle_track_view(post_energy_,
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(post_energy_, pdg::electron());
         gdd.points[StepPoint::pre].time = 0;
         gdd.points[StepPoint::post].time
             = from_cm(step_length_) / native_value_from(particle.speed());
@@ -447,8 +447,8 @@ TEST_F(MaterialScintillationGaussianTest, time)
 
     // Use pre- and post-step speed to sample time
     {
-        auto particle = this->make_particle_track_view(post_energy_,
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(post_energy_, pdg::electron());
         gdd.points[StepPoint::pre].speed = this->build_pre_step().speed;
         gdd.points[StepPoint::post].speed = particle.speed();
 
@@ -477,8 +477,8 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     auto const params = this->build_scintillation_params();
     auto const& data = params->host_ref();
 
-    auto particle = this->make_particle_track_view(post_energy_,
-                                                   pdg::electron());
+    auto particle
+        = this->make_particle_track_view(post_energy_, pdg::electron());
     auto const pre_step = this->build_pre_step();
     OffloadPrePostStepData pre_post_step{particle.speed(), edep_};
 

@@ -88,8 +88,8 @@ template<MemSpace M>
 void OffloadAction<G>::step_impl(CoreParams const& core_params,
                                  CoreState<M>& core_state) const
 {
-    auto& gen_state = get<optical::GeneratorState<M>>(core_state.aux(),
-                                                      data_.gen_id);
+    auto& gen_state
+        = get<optical::GeneratorState<M>>(core_state.aux(), data_.gen_id);
     auto& buffer = gen_state.store.ref().distributions;
     auto& buffer_size = gen_state.counters.buffer_size;
 
@@ -109,8 +109,8 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
 
     // Count the number of optical photons that would be generated from the
     // distributions created in this step
-    auto& optical_state = get<optical::CoreState<M>>(core_state.aux(),
-                                                     data_.optical_id);
+    auto& optical_state
+        = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
     auto counters = optical_state.sync_get_counters();
     counters.num_pending += detail::count_num_photons(
         buffer, start, buffer_size, core_state.stream_id());

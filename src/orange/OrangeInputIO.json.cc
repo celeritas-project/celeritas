@@ -313,8 +313,8 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             auto vals = obj.get<Array<LocalVolumeId, 2>>();
             CELER_VALIDATE(vals[0] && vals[1],
                            << "null ID in local parent map");
-            auto [lp_iter, inserted] = value.local_parent_map.emplace(vals[0],
-                                                                      vals[1]);
+            auto [lp_iter, inserted]
+                = value.local_parent_map.emplace(vals[0], vals[1]);
             CELER_VALIDATE(inserted,
                            << "duplicate local parent: local volume "
                            << vals[0] << " cannot be inside both "

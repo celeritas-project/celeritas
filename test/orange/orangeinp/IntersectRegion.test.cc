@@ -1857,8 +1857,8 @@ TEST_F(InfAziWedgeTest, quarter_turn)
         SCOPED_TRACE("first quadrant");
         auto result = this->test(InfAziWedge(Turn{0}, Turn{0.25}));
         static char const expected_node[] = "all(+0, +1)";
-        static char const* const expected_surfaces[] = {"Plane: x=0",
-                                                        "Plane: y=0"};
+        static char const* const expected_surfaces[]
+            = {"Plane: x=0", "Plane: y=0"};
 
         EXPECT_EQ(expected_node, result.node);
         EXPECT_VEC_EQ(expected_surfaces, result.surfaces);

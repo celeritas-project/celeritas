@@ -41,8 +41,8 @@ void CaloTestBase::SetUp()
 
     StepCollector::VecInterface interfaces = {calo_};
 
-    collector_ = StepCollector::make_and_insert(*this->core(),
-                                                std::move(interfaces));
+    collector_
+        = StepCollector::make_and_insert(*this->core(), std::move(interfaces));
 }
 
 //---------------------------------------------------------------------------//

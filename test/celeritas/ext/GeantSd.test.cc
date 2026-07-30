@@ -124,8 +124,8 @@ TEST_F(SimpleCmsTest, no_change)
     EXPECT_EQ(0, man.geant_particles().size());
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
-    static char const* const expected_vnames[] = {"em_calorimeter",
-                                                  "had_calorimeter"};
+    static char const* const expected_vnames[]
+        = {"em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 
@@ -171,8 +171,8 @@ TEST_F(SimpleCmsTest, add_duplicate)
     EXPECT_EQ(2, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
 
-    static char const* const expected_vnames[] = {"em_calorimeter",
-                                                  "had_calorimeter"};
+    static char const* const expected_vnames[]
+        = {"em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {

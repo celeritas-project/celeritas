@@ -107,8 +107,8 @@ auto MockProcess::energy_loss(Applicability applic) const -> EnergyLossGrid
         auto eloss_rate = native_value_to<units::MevEnergy>(
             native_value_from(data_.energy_loss) * mat.number_density());
 
-        grid.x = {std::log(applic.lower.value()),
-                  std::log(applic.upper.value())};
+        grid.x
+            = {std::log(applic.lower.value()), std::log(applic.upper.value())};
         grid.y = VecDbl(3, eloss_rate.value());
     }
     return grid;

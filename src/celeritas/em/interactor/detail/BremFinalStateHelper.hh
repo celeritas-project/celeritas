@@ -93,8 +93,8 @@ CELER_FUNCTION Interaction BremFinalStateHelper::operator()(Engine& rng)
 {
     // Generate exiting gamma direction from isotropic azimuthal angle and
     // TsaiUrbanDistribution for polar angle (based on G4ModifiedTsai)
-    secondary_->direction = ExitingDirectionSampler{costheta_,
-                                                    inc_direction_}(rng);
+    secondary_->direction
+        = ExitingDirectionSampler{costheta_, inc_direction_}(rng);
     secondary_->particle_id = gamma_id_;
     secondary_->energy = gamma_energy_;
 

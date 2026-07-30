@@ -174,8 +174,8 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
             t = -q / s;
         }
         auto const [r0, r1] = real_roots_normalized_quadratic(s * half, z0 + t);
-        auto const [r2, r3] = real_roots_normalized_quadratic(-s * half,
-                                                              z0 - t);
+        auto const [r2, r3]
+            = real_roots_normalized_quadratic(-s * half, z0 - t);
 
         result_type roots(
             no_solution_, no_solution_, no_solution_, no_solution_);

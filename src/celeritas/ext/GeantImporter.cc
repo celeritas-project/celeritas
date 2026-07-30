@@ -101,8 +101,8 @@ decltype(auto) em_basic_particles()
 //---------------------------------------------------------------------------//
 decltype(auto) em_ex_particles()
 {
-    static std::unordered_set<PDGNumber> const particles = {pdg::mu_minus(),
-                                                            pdg::mu_plus()};
+    static std::unordered_set<PDGNumber> const particles
+        = {pdg::mu_minus(), pdg::mu_plus()};
     return particles;
 }
 
@@ -1028,8 +1028,8 @@ ImportData GeantImporter::operator()(DataSelection const& selected)
             imported.isotopes = import_isotopes();
             imported.elements = import_elements();
             imported.geo_materials = import_geo_materials();
-            imported.phys_materials = import_phys_materials(selected.particles,
-                                                            *geo_to_opt);
+            imported.phys_materials
+                = import_phys_materials(selected.particles, *geo_to_opt);
         }
         if (selected.processes != DataSelection::none)
         {

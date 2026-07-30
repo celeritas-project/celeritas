@@ -512,15 +512,15 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
     // Save local parent IDs and local volume level
     if (!inp.local_parent_map.empty())
     {
-        auto parents = make_local_parent_vec(inp.volumes.size(),
-                                             inp.local_parent_map);
+        auto parents
+            = make_local_parent_vec(inp.volumes.size(), inp.local_parent_map);
         auto levels = make_local_level_vec(parents);
         CELER_ASSERT(parents.size() == levels.size());
 
-        unit.local_parent = local_volume_ids_.insert_back(parents.begin(),
-                                                          parents.end());
-        unit.local_vol_level = vl_uints_.insert_back(levels.begin(),
-                                                     levels.end());
+        unit.local_parent
+            = local_volume_ids_.insert_back(parents.begin(), parents.end());
+        unit.local_vol_level
+            = vl_uints_.insert_back(levels.begin(), levels.end());
     }
 
     // Save volumes
@@ -560,8 +560,8 @@ UnivId UnitInserter::operator()(UnitInput&& inp)
             conn[i].neighbors = local_volume_ids_.insert_back(
                 connectivity[i].begin(), connectivity[i].end());
         }
-        unit.connectivity = connectivity_records_.insert_back(conn.begin(),
-                                                              conn.end());
+        unit.connectivity
+            = connectivity_records_.insert_back(conn.begin(), conn.end());
     }
 
     // Save unit scalars
@@ -631,8 +631,8 @@ LocalVolumeRecord UnitInserter::insert_volume(
     }
 
     LocalVolumeRecord output;
-    output.faces = local_surface_ids_.insert_back(v.faces.begin(),
-                                                  v.faces.end());
+    output.faces
+        = local_surface_ids_.insert_back(v.faces.begin(), v.faces.end());
     output.logic = logic_ints_.insert_back(v.logic.begin(), v.logic.end());
     output.max_intersections = static_cast<logic_int>(max_intersections);
     output.flags = v.flags;

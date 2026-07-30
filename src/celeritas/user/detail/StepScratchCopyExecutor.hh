@@ -89,8 +89,8 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
                                + i};
                 ViId src_vi_id{src_id.unchecked_get() * state.num_volume_levels
                                + i};
-                fast_get(scratch_vids, dst_vi_id) = fast_get(data_vids,
-                                                             src_vi_id);
+                fast_get(scratch_vids, dst_vi_id)
+                    = fast_get(data_vids, src_vi_id);
             }
         }
     }

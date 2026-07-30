@@ -128,8 +128,8 @@ void LArSphereOffloadTest::build_optical_collector()
     OpticalCollector::Input inp = input_;
     inp.optical_params
         = std::make_shared<optical::CoreParams>(std::move(params_));
-    collector_ = std::make_shared<OpticalCollector>(*this->core(),
-                                                    std::move(inp));
+    collector_
+        = std::make_shared<OpticalCollector>(*this->core(), std::move(inp));
 
     // Check accessors
     EXPECT_TRUE(collector_->optical_params());
@@ -210,8 +210,8 @@ auto LArSphereOffloadTest::run(
     auto const* aux
         = dynamic_cast<AuxParamsInterface const*>(gen_reg.at(gen_id).get());
     CELER_ASSERT(aux);
-    auto const& state = get<optical::GeneratorState<M>>(step.state().aux(),
-                                                        aux->aux_id());
+    auto const& state
+        = get<optical::GeneratorState<M>>(step.state().aux(), aux->aux_id());
     auto buffer = copy_to_host(state.store.ref().distributions);
 
     for (auto const& dist :

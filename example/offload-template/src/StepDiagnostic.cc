@@ -65,8 +65,8 @@ std::shared_ptr<StepDiagnostic> StepDiagnostic::make_and_insert(
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
-    auto result = std::make_shared<StepDiagnostic>(actions.next_id(),
-                                                   aux.next_id());
+    auto result
+        = std::make_shared<StepDiagnostic>(actions.next_id(), aux.next_id());
     actions.insert(result);
     aux.insert(result);
     return result;

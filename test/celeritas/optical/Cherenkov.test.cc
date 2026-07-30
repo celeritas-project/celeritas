@@ -239,8 +239,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
     // 500 keV e-
     {
         // Pre-step values
-        auto pre_particle = this->make_particle_track_view(Energy{0.5},
-                                                           pdg::electron());
+        auto pre_particle
+            = this->make_particle_track_view(Energy{0.5}, pdg::electron());
         OffloadPreStepData pre_step;
         pre_step.pos = {0, 0, 0};
         pre_step.speed = pre_particle.speed();
@@ -248,8 +248,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle = this->make_particle_track_view(Energy{0.15},
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy{0.15}, pdg::electron());
         auto sim = this->make_sim_track_view(0.15);
         sim.add_time(sim.step_length() / native_value_from(particle.speed()));
         Real3 pos = {sim.step_length(), 0, 0};
@@ -298,8 +298,8 @@ TEST_F(CherenkovWaterTest, pre_generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle = this->make_particle_track_view(Energy{0.1},
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy{0.1}, pdg::electron());
         auto sim = this->make_sim_track_view(0.1);
         Real3 pos = {sim.step_length(), 0, 0};
 
@@ -387,8 +387,8 @@ TEST_F(CherenkovWaterTest, generator)
                 }
                 // Bin photon displacement
                 {
-                    real_type displacement = distance(pre_step.pos,
-                                                      photon.position);
+                    real_type displacement
+                        = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
                     displacement_hist(displacement);
                 }
@@ -427,8 +427,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values
-        auto particle = this->make_particle_track_view(Energy(9999),
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy(9999), pdg::electron());
         auto sim = this->make_sim_track_view(1);
         Real3 pos = {sim.step_length(), 0, 0};
 
@@ -470,8 +470,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values (150 keV)
-        auto particle = this->make_particle_track_view(Energy(0.15),
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy(0.15), pdg::electron());
         EXPECT_SOFT_EQ(0.63431981443206786,
                        value_as<units::LightSpeed>(particle.speed()));
         auto sim = this->make_sim_track_view(0.15);
@@ -508,8 +508,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values: 1e-2cm step
-        auto particle = this->make_particle_track_view(Energy(100),
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy(100), pdg::electron());
         pre_step.speed = units::LightSpeed{
             0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
         auto sim = this->make_sim_track_view(1e-2);
@@ -549,8 +549,8 @@ TEST_F(CherenkovWaterTest, generator)
         pre_step.material = material_id;
 
         // Post-step values: 1e-3cm step
-        auto particle = this->make_particle_track_view(Energy(10),
-                                                       pdg::electron());
+        auto particle
+            = this->make_particle_track_view(Energy(10), pdg::electron());
         pre_step.speed = units::LightSpeed{
             0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
         auto sim = this->make_sim_track_view(1e-4);

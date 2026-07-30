@@ -223,8 +223,8 @@ TEST_F(IntersectSurfaceBuilderTest, translate)
 
 TEST_F(IntersectSurfaceBuilderTest, transform)
 {
-    transform_ = Transformation{make_rotation(Axis::x, Turn{0.25}),
-                                Real3{0, 0, 1}};
+    transform_
+        = Transformation{make_rotation(Axis::x, Turn{0.25}), Real3{0, 0, 1}};
     {
         SCOPED_TRACE("hemi");
         auto css = this->make_state();

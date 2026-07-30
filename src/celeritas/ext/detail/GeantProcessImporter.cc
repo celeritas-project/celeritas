@@ -390,8 +390,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
               std::log(pv.Energy(size - 1) * x_scaling)};
     grid.y.resize(size);
 
-    double delta = fastpow(pv.Energy(size - 1) / pv.Energy(0),
-                           1.0 / (size - 1));
+    double delta
+        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
     for (auto i : range(size))
     {
         // Check that the grid has log spacing

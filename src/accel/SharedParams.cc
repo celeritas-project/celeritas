@@ -95,9 +95,8 @@ void verify_offload(std::vector<G4ParticleDefinition*> const& offload,
         }
     }
 
-    auto printable_pd = [](G4ParticleDefinition const* p) {
-        return StreamablePD{p};
-    };
+    auto printable_pd
+        = [](G4ParticleDefinition const* p) { return StreamablePD{p}; };
     CELER_VALIDATE(missing.empty(),
                    << "not all particles from TrackingManagerConstructor are "
                       "active in Celeritas: missing "

@@ -117,8 +117,8 @@ bool NaviTouchableUpdater::operator()(Real3 const& pos,
     }
 
     constexpr double g4max_step = convert_to_geant(max_step(), clhep_length);
-    constexpr double g4max_quiet_step = convert_to_geant(max_quiet_step(),
-                                                         clhep_length);
+    constexpr double g4max_quiet_step
+        = convert_to_geant(max_quiet_step(), clhep_length);
     double g4safety{-1};
     double g4step{-1};
 

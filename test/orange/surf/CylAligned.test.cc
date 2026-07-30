@@ -412,8 +412,8 @@ TEST_F(CylZTest, TEST_IF_CELERITAS_DOUBLE(degenerate_boundary))
             {
                 SCOPED_TRACE(eps < 0 ? "neg" : eps > 0 ? "pos" : "zero");
 
-                real_type const tol = std::max<real_type>(1.e-14,
-                                                          2 * std::fabs(eps));
+                real_type const tol
+                    = std::max<real_type>(1.e-14, 2 * std::fabs(eps));
 
                 // Distance across the cylinder
                 real_type const diameter = 2 * radius;

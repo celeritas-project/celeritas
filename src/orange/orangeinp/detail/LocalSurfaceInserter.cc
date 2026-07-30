@@ -100,8 +100,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
 
     // Hash the surface and get keys for possible surfaces that might be
     // equivalent to the source
-    auto possible_keys = calc_hashes_(S::surface_type(),
-                                      SurfaceHashPoint{}(source));
+    auto possible_keys
+        = calc_hashes_(S::surface_type(), SurfaceHashPoint{}(source));
     for (auto key : possible_keys)
     {
         if (key == SurfaceGridHash::redundant())

@@ -49,8 +49,8 @@ std::shared_ptr<StatusChecker> StatusChecker::make_and_insert(
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
-    auto result = std::make_shared<StatusChecker>(actions.next_id(),
-                                                  aux.next_id());
+    auto result
+        = std::make_shared<StatusChecker>(actions.next_id(), aux.next_id());
 
     actions.insert(result);
     aux.insert(result);

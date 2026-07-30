@@ -1162,8 +1162,8 @@ TEST_F(ZnenvTest, explicit_interior)
             "[EXTERIOR]",
             "ZNF10x0",
         };
-        static char const* const expected_fill_strings[] = {"<UNASSIGNED>",
-                                                            "m0"};
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m0"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));

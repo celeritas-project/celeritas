@@ -43,8 +43,8 @@ TEST(SplineInterpolateTest, all)
         EXPECT_SOFT_EQ(2.05875, interpolate(0.9));
         EXPECT_EQ(2, interpolate(1));
 
-        interpolate = SplineInterpolator({x[1], y[1], ddy[1]},
-                                         {x[2], y[2], ddy[2]});
+        interpolate
+            = SplineInterpolator({x[1], y[1], ddy[1]}, {x[2], y[2], ddy[2]});
         EXPECT_EQ(2, interpolate(1));
         EXPECT_SOFT_EQ(1.40625, interpolate(1.5));
         EXPECT_SOFT_EQ(1.00000224875, interpolate(1.999));
@@ -62,8 +62,8 @@ TEST(SplineInterpolateTest, all)
         EXPECT_SOFT_EQ(1.87115625, interpolate(0.9));
         EXPECT_EQ(2, interpolate(1));
 
-        interpolate = SplineInterpolator({x[1], y[1], ddy[1]},
-                                         {x[2], y[2], ddy[2]});
+        interpolate
+            = SplineInterpolator({x[1], y[1], ddy[1]}, {x[2], y[2], ddy[2]});
         EXPECT_EQ(2, interpolate(1));
         EXPECT_SOFT_EQ(1.23046875, interpolate(1.5));
         EXPECT_SOFT_EQ(0.99956465553125, interpolate(1.999));

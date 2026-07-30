@@ -51,8 +51,8 @@ CELER_FUNCTION void StepDiagnosticExecutor::operator()(
             return state.counts[BinId(index)];
         };
 
-        size_type num_steps = celeritas::min(sim.num_steps(),
-                                             params.num_bins - 1);
+        size_type num_steps
+            = celeritas::min(sim.num_steps(), params.num_bins - 1);
         auto particle = track.particle().particle_id();
 
         // Increment the bin corresponding to the given particle and step count

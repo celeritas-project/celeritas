@@ -73,10 +73,10 @@ TEST(ItemMap, basic)
     std::vector<int> data_b = {9, 10, 11};
 
     // Add both vectors to the Collection, creating a Range for each
-    auto range_a = make_builder(&host_val).insert_back(data_a.begin(),
-                                                       data_a.end());
-    auto range_b = make_builder(&host_val).insert_back(data_b.begin(),
-                                                       data_b.end());
+    auto range_a
+        = make_builder(&host_val).insert_back(data_a.begin(), data_a.end());
+    auto range_b
+        = make_builder(&host_val).insert_back(data_b.begin(), data_b.end());
 
     ItemMap im_a;
     ItemMap im_b;

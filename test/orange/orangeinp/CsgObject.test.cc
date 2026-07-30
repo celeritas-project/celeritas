@@ -297,8 +297,8 @@ TEST_F(AllObjectsTest, allneg)
 TEST_F(CsgObjectTest, subtraction)
 {
     auto apple = this->make_sphere("apple", 1.0);
-    auto bite = this->make_translated(this->make_sphere("bite", 0.5),
-                                      {0, 0, 1});
+    auto bite
+        = this->make_translated(this->make_sphere("bite", 0.5), {0, 0, 1});
 
     auto sub = make_subtraction("nomnom", apple, bite);
     ASSERT_TRUE(sub);
@@ -510,10 +510,10 @@ TEST_F(CsgObjectTest, subtraction_nested)
 TEST_F(CsgObjectTest, rdv)
 {
     auto apple = this->make_sphere("apple", 1.0);
-    auto bite = this->make_translated(this->make_sphere("bite", 0.5),
-                                      {0, 0, 1});
-    auto apple2 = this->make_translated(this->make_sphere("apple2", 1.25),
-                                        {0, 0, 4});
+    auto bite
+        = this->make_translated(this->make_sphere("bite", 0.5), {0, 0, 1});
+    auto apple2
+        = this->make_translated(this->make_sphere("apple2", 1.25), {0, 0, 4});
 
     this->build_volume(
         *make_rdv("bitten", {{Sense::inside, apple}, {Sense::outside, bite}}));

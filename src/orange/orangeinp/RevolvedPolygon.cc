@@ -58,8 +58,8 @@ RevolvedPolygon::RevolvedPolygon(
 NodeId RevolvedPolygon::build(VolumeBuilder& vb) const
 {
     // Use the volume builder's tolerance to remove any colinear points
-    auto filtered_polygon = detail::filter_collinear_points(polygon_,
-                                                            vb.tol().abs);
+    auto filtered_polygon
+        = detail::filter_collinear_points(polygon_, vb.tol().abs);
 
     // After removing collinear points, at least 3 points must remain
     CELER_VALIDATE(filtered_polygon.size() >= 3,
@@ -110,8 +110,8 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
     auto concave_regions = hull_finder.calc_concave_regions();
 
     // Build the convex region
-    auto filtered_convex_hull = detail::filter_collinear_points(convex_hull,
-                                                                vb.tol().abs);
+    auto filtered_convex_hull
+        = detail::filter_collinear_points(convex_hull, vb.tol().abs);
     NodeId result = this->make_region(vb, filtered_convex_hull, si);
 
     // Return early if there are no concave regions to process

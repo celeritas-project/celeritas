@@ -78,8 +78,8 @@ class DuneCryoTest : public LarStandaloneRunnerTestBase
 auto DuneCryoTest::make_input() const -> Input
 {
     Input result;
-    result.problem.model.geometry = this->test_data_path("geocel",
-                                                         "dune-cryostat.gdml");
+    result.problem.model.geometry
+        = this->test_data_path("geocel", "dune-cryostat.gdml");
     result.detectors = {"PhotonDetector"};
     result.problem.limits.steps = 64;
     result.problem.limits.step_iters = 8;

@@ -369,8 +369,8 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
     // Reset interaction MFP
     for (auto track : range(TrackSlotId{num_tracks}))
     {
-        auto physics = this->make_track_view(cycle_material_id(track + 1),
-                                             track);
+        auto physics
+            = this->make_track_view(cycle_material_id(track + 1), track);
         physics.reset_interaction_mfp();
     }
 

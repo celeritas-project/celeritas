@@ -274,16 +274,16 @@ TEST_F(LarSphere, state_dep)
     static std::map<StreamId, std::vector<std::string>> stream_state
         = {{StreamId{0}, {}}};
     // Record a change for the local stream ID
-    static auto record_state_change = [](StreamId sid,
-                                         GeantStateChange change) {
-        if (change != GeantStateChange::unknown)
-        {
-            static std::mutex mu;
-            std::scoped_lock lock{mu};
-            stream_state[sid].emplace_back(to_cstring(change));
-        }
-        CELER_LOG_LOCAL(debug) << sid << ": " << change;
-    };
+    static auto record_state_change
+        = [](StreamId sid, GeantStateChange change) {
+              if (change != GeantStateChange::unknown)
+              {
+                  static std::mutex mu;
+                  std::scoped_lock lock{mu};
+                  stream_state[sid].emplace_back(to_cstring(change));
+              }
+              CELER_LOG_LOCAL(debug) << sid << ": " << change;
+          };
     // Record a testing event for all stream IDs from the test harness
     static auto record_test_event = [](std::string const& s) {
         for (auto& kv : stream_state)

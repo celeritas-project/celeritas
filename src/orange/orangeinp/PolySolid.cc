@@ -236,9 +236,8 @@ PolyCone::PolyCone(
  */
 NodeId PolyCone::build(VolumeBuilder& vb) const
 {
-    auto build_cone = [](Real2 const& radii, real_type hh) {
-        return Cone{radii, hh};
-    };
+    auto build_cone
+        = [](Real2 const& radii, real_type hh) { return Cone{radii, hh}; };
 
     // Construct union of all cone segments
     NodeId result = construct_segments(*this, build_cone, vb);

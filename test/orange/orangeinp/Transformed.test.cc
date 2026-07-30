@@ -231,11 +231,11 @@ TEST_F(TransformedTest, deduplicated_inverse)
     this->build_volume(*sph_outer);
     this->build_volume(Transformed{tr_inner, inv_tr});
 
-    static char const* const expected_surface_strings[] = {"Sphere: r=2",
-                                                           "Sphere: r=1"};
+    static char const* const expected_surface_strings[]
+        = {"Sphere: r=2", "Sphere: r=1"};
     static char const* const expected_volume_strings[] = {"-0", "-1"};
-    static char const* const expected_trans_strings[] = {"3: t=0 -> {}",
-                                                         "5: t=0"};
+    static char const* const expected_trans_strings[]
+        = {"3: t=0 -> {}", "5: t=0"};
     static int const expected_volume_nodes[] = {3, 5};
 
     auto const& u = this->unit();

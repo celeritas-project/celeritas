@@ -40,8 +40,8 @@ class SimTest : public GeantTestBase
     {
         // Allocate particle and sim states
         auto state_size = 1;
-        particle_state_ = ParticleStateStore(this->particle()->host_ref(),
-                                             state_size);
+        particle_state_
+            = ParticleStateStore(this->particle()->host_ref(), state_size);
         sim_state_ = SimStateStore(this->sim()->host_ref(), state_size);
     }
 

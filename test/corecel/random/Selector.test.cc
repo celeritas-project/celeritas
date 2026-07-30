@@ -84,8 +84,8 @@ TEST_F(SelectorTest, make_selector)
 {
     static double const prob[] = {0.1, 0.3, 0.5, 0.1};
 
-    auto sample_prob = make_selector([](int i) { return prob[i]; },
-                                     std::size(prob));
+    auto sample_prob
+        = make_selector([](int i) { return prob[i]; }, std::size(prob));
 
     auto rng = make_rng(0.0);
     EXPECT_EQ(0, sample_prob(rng));

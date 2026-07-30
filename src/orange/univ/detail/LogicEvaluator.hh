@@ -66,9 +66,8 @@ CELER_FUNCTION LogicEvaluator::LogicEvaluator(SpanConstLogic logic)
  */
 CELER_FUNCTION bool LogicEvaluator::operator()(SpanConstSense values) const
 {
-    auto calc_sense = [&](FaceId face_id) -> Sense {
-        return values[face_id.get()];
-    };
+    auto calc_sense
+        = [&](FaceId face_id) -> Sense { return values[face_id.get()]; };
     return (*this)(calc_sense);
 }
 

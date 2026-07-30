@@ -494,9 +494,8 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 
         if (grid && (analytic.scale_factor || analytic))
         {
-            constexpr auto to_given_str = [](bool v) {
-                return v ? "provided" : "missing";
-            };
+            constexpr auto to_given_str
+                = [](bool v) { return v ? "provided" : "missing"; };
             CELER_LOG(warning)
                 << "Inconsistent Rayleigh input data: compressibility ("
                 << to_given_str(analytic.compressibility)

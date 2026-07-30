@@ -106,8 +106,8 @@ TEST(RanluxImpl, compute_power_modulus)
     // Calculate the state after 2048 LCG samples
     RanluxppRngParams host_params{0};
     auto const& params = host_params.host_ref();
-    auto a_2048_actual = detail::compute_power_modulus(a,
-                                                       RanluxppUInt(1) << 11);
+    auto a_2048_actual
+        = detail::compute_power_modulus(a, RanluxppUInt(1) << 11);
     EXPECT_EQ(params.advance_state, a_2048_actual)
         << "actual: " << hex_repr(a_2048_actual);
 

@@ -17,8 +17,8 @@ namespace celeritas
 void KernelParamCalculator::register_kernel(std::string_view name,
                                             KernelAttributes&& attributes)
 {
-    profiling_ = celeritas::kernel_registry().insert(name,
-                                                     std::move(attributes));
+    profiling_
+        = celeritas::kernel_registry().insert(name, std::move(attributes));
 }
 
 //---------------------------------------------------------------------------//

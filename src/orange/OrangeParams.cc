@@ -282,10 +282,10 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
         }
 
         univ_labels_ = UniverseMap{"universe", std::move(labels.universe)};
-        impl_surf_labels_ = SurfaceMap{"impl surface",
-                                       std::move(labels.surface)};
-        impl_vol_labels_ = ImplVolumeMap{"impl volume",
-                                         std::move(labels.volume)};
+        impl_surf_labels_
+            = SurfaceMap{"impl surface", std::move(labels.surface)};
+        impl_vol_labels_
+            = ImplVolumeMap{"impl volume", std::move(labels.volume)};
     }
 
     // Clear captured input since we've consumed and modified it

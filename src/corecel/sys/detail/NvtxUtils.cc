@@ -54,8 +54,8 @@ nvtxStringHandle_t message_handle_for(std::string_view message)
     if (inserted)
     {
         // Register the domain
-        iter->second = nvtxDomainRegisterStringA(domain_handle(),
-                                                 iter->first.c_str());
+        iter->second
+            = nvtxDomainRegisterStringA(domain_handle(), iter->first.c_str());
     }
     return iter->second;
 }

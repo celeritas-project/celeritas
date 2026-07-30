@@ -128,8 +128,8 @@ BvhTreeRecord BvhBuilder::operator()(
         tree.internal_nodes = internal_nodes_.insert_back(
             internal_nodes.begin(), internal_nodes.end());
 
-        tree.leaf_nodes = leaf_nodes_.insert_back(leaf_nodes.begin(),
-                                                  leaf_nodes.end());
+        tree.leaf_nodes
+            = leaf_nodes_.insert_back(leaf_nodes.begin(), leaf_nodes.end());
     }
     else
     {
@@ -181,8 +181,8 @@ void BvhBuilder::construct_tree(VecIndices const& indices,
     // once per call to construct_tree.
     auto make_leaf = [&]() {
         BvhLeafNode node;
-        node.vol_ids = local_volume_ids_.insert_back(indices.begin(),
-                                                     indices.end());
+        node.vol_ids
+            = local_volume_ids_.insert_back(indices.begin(), indices.end());
         CELER_EXPECT(node);
         (*nodes)[current_index] = node;
         depth = std::max(depth, current_depth);

@@ -648,9 +648,9 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
 {
     // Functor for calculating the distance to intersection, starting outside
     // the given volume.
-    auto is_intersecting = [this,
-                            &state](LocalVolumeId vol_id,
-                                    real_type cur_max_dist) -> Intersection {
+    auto is_intersecting
+        = [this, &state](LocalVolumeId vol_id,
+                         real_type cur_max_dist) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
         // No volume is "simple" because we are starting from the outside

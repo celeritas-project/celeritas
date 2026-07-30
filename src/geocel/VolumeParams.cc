@@ -250,8 +250,8 @@ VolumeParams::VolumeParams(inp::Volumes const& in)
         rec.children = vi_storage_builder.insert_back(vol_children.begin(),
                                                       vol_children.end());
         auto const& parents = parent_lists[vol_idx];
-        rec.parents = vi_storage_builder.insert_back(parents.begin(),
-                                                     parents.end());
+        rec.parents
+            = vi_storage_builder.insert_back(parents.begin(), parents.end());
         vol_builder.push_back(rec);
     }
 

@@ -208,8 +208,8 @@ void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
     {
         // Global
         BBox& interior = state_->global_bzone.interior;
-        interior = calc_union(interior,
-                              apply_transform(*state_->transform, bbox));
+        interior
+            = calc_union(interior, apply_transform(*state_->transform, bbox));
         if (BBox& exterior = state_->global_bzone.exterior)
         {
             exterior = calc_union(interior, exterior);

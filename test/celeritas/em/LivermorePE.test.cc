@@ -357,8 +357,8 @@ TEST_F(LivermorePETest, distributions_all)
         num_secondaries += out.secondaries.size();
 
         // Bin directional change of the photoelectron
-        real_type costheta = dot_product(inc_direction,
-                                         out.secondaries.front().direction);
+        real_type costheta
+            = dot_product(inc_direction, out.secondaries.front().direction);
         int ct_bin = static_cast<int>(std::floor((1 + costheta) / 2 * nbins));
         if (ct_bin >= 0 && ct_bin < nbins)
         {
@@ -555,9 +555,9 @@ TEST_F(LivermorePEUtilsTest, one_neighbor)
     {
         std::vector<AtomicRelaxTransition> transitions
             = {{SubshellId{i + 1}, SubshellId{}, 1_r, MevEnergy{1}}};
-        shells[i].transitions = make_builder(&data.transitions)
-                                    .insert_back(transitions.begin(),
-                                                 transitions.end());
+        shells[i].transitions
+            = make_builder(&data.transitions)
+                  .insert_back(transitions.begin(), transitions.end());
     }
     el.shells
         = make_builder(&data.shells).insert_back(shells.begin(), shells.end());
@@ -593,9 +593,9 @@ TEST_F(LivermorePEUtilsTest, one_per_previous)
                                    1_r / (num_shells - i),
                                    MevEnergy{1}});
         }
-        shells[i].transitions = make_builder(&data.transitions)
-                                    .insert_back(transitions.begin(),
-                                                 transitions.end());
+        shells[i].transitions
+            = make_builder(&data.transitions)
+                  .insert_back(transitions.begin(), transitions.end());
     }
     el.shells
         = make_builder(&data.shells).insert_back(shells.begin(), shells.end());

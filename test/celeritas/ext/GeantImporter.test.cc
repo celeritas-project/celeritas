@@ -711,8 +711,8 @@ TEST_F(FourSteelSlabsEmStandard, geo_materials)
     EXPECT_VEC_EQ(expected_names, names);
     static int const expected_states[] = {1, 3};
     EXPECT_VEC_EQ(expected_states, states);
-    static double const expected_num_densities[] = {8.699348925899e+22,
-                                                    0.05974697167543};
+    static double const expected_num_densities[]
+        = {8.699348925899e+22, 0.05974697167543};
     EXPECT_VEC_NEAR(expected_num_densities, num_densities, tol);
     static double const expected_temperatures[] = {
         293.15,

@@ -113,9 +113,8 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
                        "against LArSoft v"
                     << cmake::larsoft_version << " components";
 
-    i.problem.detectors.callback = [this](SpanCelerHits h) {
-        return this->hit(h);
-    };
+    i.problem.detectors.callback
+        = [this](SpanCelerHits h) { return this->hit(h); };
     runner_ = std::make_shared<optical::Runner>(std::move(i));
 
     // Map detector coordinates

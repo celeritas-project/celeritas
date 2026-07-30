@@ -106,8 +106,8 @@ CELER_FUNCTION Interaction IoniFinalStateHelper::operator()(Engine& rng)
 
     // Sample and save outgoing secondary data
     secondary_->energy = Energy{electron_energy_};
-    secondary_->direction = ExitingDirectionSampler{costheta,
-                                                    inc_direction_}(rng);
+    secondary_->direction
+        = ExitingDirectionSampler{costheta, inc_direction_}(rng);
     secondary_->particle_id = electron_id_;
 
     // Construct interaction for change to parent (incoming) particle

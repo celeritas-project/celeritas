@@ -260,8 +260,8 @@ TEST_F(LeafTest, implicit_exterior)
         };
         static char const* const expected_volume_strings[]
             = {"any(-0, +1, +2)", "all(-2, +3, -4)"};
-        static char const* const expected_fill_strings[] = {"<UNASSIGNED>",
-                                                            "m1"};
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m1"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -271,8 +271,8 @@ TEST_F(LeafTest, implicit_exterior)
     {
         auto u = proto.build(this->proto_build_opts());
 
-        static char const* const expected_volume_strings[] = {"F",
-                                                              "all(+3, -4)"};
+        static char const* const expected_volume_strings[]
+            = {"F", "all(+3, -4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
         EXPECT_EQ(GeoMatId{0}, u.background);
     }

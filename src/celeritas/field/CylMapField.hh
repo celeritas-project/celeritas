@@ -99,8 +99,8 @@ CELER_FUNCTION auto CylMapField::operator()(Real3 const& pos) const -> Real3
 
     // Find interpolation points for given r, phi, z
     auto [ir, wr1] = find_interp<NonuniformGrid<real_type>>(grid_r_, r);
-    auto [iphi, wphi1] = find_interp<NonuniformGrid<real_type>>(grid_phi_,
-                                                                phi.value());
+    auto [iphi, wphi1]
+        = find_interp<NonuniformGrid<real_type>>(grid_phi_, phi.value());
     auto [iz, wz1] = find_interp<NonuniformGrid<real_type>>(grid_z_, pos[2]);
 
     auto get_field = [this](size_type ir, size_type iphi, size_type iz) {

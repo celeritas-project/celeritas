@@ -240,8 +240,8 @@ CELER_FUNCTION real_type MuPPEnergyDistribution::calc_scaled_energy(
     CELER_EXPECT(u >= 0 && u < 1);
 
     TwodGridData const& cdf_grid = table_.grids[ItemId<TwodGridData>(z_idx)];
-    auto calc_cdf = TwodGridCalculator(cdf_grid,
-                                       table_.reals)(std::log(inc_energy_));
+    auto calc_cdf
+        = TwodGridCalculator(cdf_grid, table_.reals)(std::log(inc_energy_));
 
     // Get the sampled CDF value between the y bounds
     real_type cdf = LinearInterpolator<real_type>{{0, calc_cdf(y_min_)},

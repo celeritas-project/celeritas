@@ -173,19 +173,19 @@ MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dt_cycle(
     auto const& hd_dens = eq_dens[IsoProt::protium_deuterium];
 
     // F = 0 interpolators
-    auto const& hd0_interpolate = this->interpolator(CTT::protium_deuterium,
-                                                     HalfSpinInt{0});
-    auto const& dd0_interpolate = this->interpolator(CTT::deuterium_deuterium,
-                                                     HalfSpinInt{0});
-    auto const& dt0_interpolate = this->interpolator(CTT::deuterium_tritium,
-                                                     HalfSpinInt{0});
+    auto const& hd0_interpolate
+        = this->interpolator(CTT::protium_deuterium, HalfSpinInt{0});
+    auto const& dd0_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{0});
+    auto const& dt0_interpolate
+        = this->interpolator(CTT::deuterium_tritium, HalfSpinInt{0});
     // F = 1 interpolators
-    auto const& hd1_interpolate = this->interpolator(CTT::protium_deuterium,
-                                                     HalfSpinInt{2});
-    auto const& dd1_interpolate = this->interpolator(CTT::deuterium_deuterium,
-                                                     HalfSpinInt{2});
-    auto const& dt1_interpolate = this->interpolator(CTT::deuterium_tritium,
-                                                     HalfSpinInt{2});
+    auto const& hd1_interpolate
+        = this->interpolator(CTT::protium_deuterium, HalfSpinInt{2});
+    auto const& dd1_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{2});
+    auto const& dt1_interpolate
+        = this->interpolator(CTT::deuterium_tritium, HalfSpinInt{2});
 
     // Interpolate over rates, store final cycle time (1/rate)
     MoleculeCycles result;
@@ -216,8 +216,8 @@ MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_tt_cycle(
     using units::HalfSpinInt;
 
     auto const& tt_dens = eq_dens[IsoProt::tritium_tritium];
-    auto const& tt_interpolate = this->interpolator(CTT::tritium_tritium,
-                                                    HalfSpinInt{1});
+    auto const& tt_interpolate
+        = this->interpolator(CTT::tritium_tritium, HalfSpinInt{1});
 
     MoleculeCycles result;
     result[0] = 1_r / (tt_dens * tt_interpolate(temperature));

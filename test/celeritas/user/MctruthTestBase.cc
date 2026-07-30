@@ -35,8 +35,8 @@ void MctruthTestBase::SetUp()
 
     StepCollector::VecInterface interfaces = {example_mctruth_};
 
-    collector_ = StepCollector::make_and_insert(*this->core(),
-                                                std::move(interfaces));
+    collector_
+        = StepCollector::make_and_insert(*this->core(), std::move(interfaces));
 }
 
 //---------------------------------------------------------------------------//

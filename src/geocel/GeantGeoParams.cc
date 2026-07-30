@@ -718,8 +718,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_gdml(
         });
 
     // Create geo params
-    auto result = std::make_shared<GeantGeoParams>(loaded.world,
-                                                   Ownership::value);
+    auto result
+        = std::make_shared<GeantGeoParams>(loaded.world, Ownership::value);
     // We own constructed detectors (note that these live only on the main
     // thread and are not suitable for G4 MT: use DetectorConstruction instead)
     result->built_detectors_ = std::move(built_detectors);

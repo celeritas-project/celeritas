@@ -262,8 +262,8 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
         zmin = zmax - z;
     }
 
-    auto interior_bbox = make_radial_bbox((constants::sqrt_two / 2) * r,
-                                          {zmin, zmax});
+    auto interior_bbox
+        = make_radial_bbox((constants::sqrt_two / 2) * r, {zmin, zmax});
     // Check that the corners are actually inside the cone
     CELER_ASSERT(cone.calc_sense(interior_bbox.lower() * real_type(1 - 1e-5))
                  == SignedSense::inside);
@@ -564,9 +564,8 @@ EllipticalCone::EllipticalCone(
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
     // True if either radius is negative
-    auto has_negative = [](Real2 const& radii) {
-        return radii[X] < 0 || radii[Y] < 0;
-    };
+    auto has_negative
+        = [](Real2 const& radii) { return radii[X] < 0 || radii[Y] < 0; };
 
     // True if radii is (0, 0)
     auto is_vertex = [](Real2 const& radii) {

@@ -247,12 +247,12 @@ TEST_F(WavelengthShiftTest, wls_stress)
 
             for (size_type j = 0; j < num_emitted; ++j)
             {
-                auto photon = WavelengthShiftGenerator(data_,
-                                                       distribution)(rng);
+                auto photon
+                    = WavelengthShiftGenerator(data_, distribution)(rng);
                 sum_energy += photon.energy.value();
                 sum_costheta += dot_product(photon.direction, inc_dir);
-                sum_orthogonality += dot_product(photon.polarization,
-                                                 photon.direction);
+                sum_orthogonality
+                    += dot_product(photon.polarization, photon.direction);
                 sum_time += photon.time;
             }
         }

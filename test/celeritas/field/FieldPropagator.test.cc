@@ -160,8 +160,8 @@ TEST_F(TwoBoxesTest, electron_interior)
     // Initialize position and direction so its curved track is centered about
     // the origin, moving counterclockwise from the right
     real_type const radius{3.8085385437789383};
-    auto particle = this->make_particle_view(pdg::electron(),
-                                             MevEnergy{10.9181415106});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
     UniformZField field(1.0 * units::tesla);
 
@@ -457,8 +457,8 @@ TEST_F(TwoBoxesTest, electron_super_small_step)
             real_type const bump_distance
                 = (driver_options.delta_intersection * 0.1_r);
             real_type const eps = bump_distance * 0.99_r;
-            auto geo = this->make_geo_track_view({5.0_r + eps, 0, 0},
-                                                 {-1, 0, 0});
+            auto geo
+                = this->make_geo_track_view({5.0_r + eps, 0, 0}, {-1, 0, 0});
             EXPECT_EQ("world", this->volume_name(geo));
             auto integrate = make_mag_field_integrator<DiagnosticDPIntegrator>(
                 field, particle.charge());
@@ -486,8 +486,8 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
     {
         SCOPED_TRACE("Small step *not quite* to boundary");
 
-        auto geo = this->make_geo_track_view({5 - delta - 1.0e-5, 0, 0},
-                                             {1, 0, 0});
+        auto geo
+            = this->make_geo_track_view({5 - delta - 1.0e-5, 0, 0}, {1, 0, 0});
         EXPECT_FALSE(geo.is_on_boundary());
 
         auto propagate = make_mag_field_propagator<DormandPrinceIntegrator>(
@@ -1123,8 +1123,8 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(nonuniform_field))
 TEST_F(LayersTest, revolutions_through_layers)
 {
     real_type const radius{3.8085385437789383};
-    auto particle = this->make_particle_view(pdg::electron(),
-                                             MevEnergy{10.9181415106});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, 0, 0}, {0, 1, 0});
     UniformZField field(1.0 * units::tesla);
 
@@ -1173,8 +1173,8 @@ TEST_F(LayersTest, revolutions_through_cms_field)
     // Scale the test radius with the approximated center value of the
     // parameterized field (3.8 units::tesla)
     real_type radius = 3.8085386036 / 3.8;
-    auto particle = this->make_particle_view(pdg::electron(),
-                                             MevEnergy{10.9181415106});
+    auto particle
+        = this->make_particle_view(pdg::electron(), MevEnergy{10.9181415106});
     auto geo = this->make_geo_track_view({radius, -10, 0}, {0, 1, 0});
 
     CMSParameterizedField field;
@@ -1220,9 +1220,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         {-2.43293925496543e+01, -1.75522265870979e+01, 2.80918346435833e+02},
         {7.01343313647855e-01, -6.43327996599957e-01, 3.06996164784077e-01});
 
-    auto calc_radius = [&geo]() {
-        return std::hypot(geo.pos()[0], geo.pos()[1]);
-    };
+    auto calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
     EXPECT_SOFT_EQ(30.000000000000011, calc_radius());
 
     // NOTE: vecgeom 2.x puts this position slightly *outside* the beam
@@ -1311,9 +1310,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
                                           -8.11661685885768147e-01,
                                           -5.23221772848529443e-01});
 
-    auto calc_radius = [&geo]() {
-        return std::hypot(geo.pos()[0], geo.pos()[1]);
-    };
+    auto calc_radius
+        = [&geo]() { return std::hypot(geo.pos()[0], geo.pos()[1]); };
 
     {
         auto particle = this->make_particle_view(

@@ -58,8 +58,8 @@ class SlotDiagnosticTest : public SimpleLoopTestBase
     void SetUp() override
     {
         basename_ = this->make_unique_filename("-");
-        slot_diagnostic_ = SlotDiagnostic::make_and_insert(*this->core(),
-                                                           basename_);
+        slot_diagnostic_
+            = SlotDiagnostic::make_and_insert(*this->core(), basename_);
     }
 
     template<MemSpace M>

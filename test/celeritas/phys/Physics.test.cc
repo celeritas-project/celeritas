@@ -424,8 +424,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 {
     // Gamma
     {
-        PhysicsTrackView const phys = this->make_track_view("gamma",
-                                                            PhysMatId{0});
+        PhysicsTrackView const phys
+            = this->make_track_view("gamma", PhysMatId{0});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -437,8 +437,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Celeriton
     {
-        PhysicsTrackView const phys = this->make_track_view("celeriton",
-                                                            PhysMatId{0});
+        PhysicsTrackView const phys
+            = this->make_track_view("celeriton", PhysMatId{0});
 
         EXPECT_EQ(3, phys.num_particle_processes());
         ParticleProcessId const scat_ppid{0};
@@ -452,8 +452,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
 
     // Anti-celeriton
     {
-        PhysicsTrackView const phys = this->make_track_view("anti-celeriton",
-                                                            PhysMatId{1});
+        PhysicsTrackView const phys
+            = this->make_track_view("anti-celeriton", PhysMatId{1});
 
         EXPECT_EQ(2, phys.num_particle_processes());
         ParticleProcessId const hiss_ppid{0};
@@ -466,8 +466,8 @@ TEST_F(PhysicsTrackViewHostTest, processes)
     // Electron
     {
         // No at-rest interaction
-        PhysicsTrackView const phys = this->make_track_view("electron",
-                                                            PhysMatId{1});
+        PhysicsTrackView const phys
+            = this->make_track_view("electron", PhysMatId{1});
         EXPECT_EQ(ParticleProcessId{}, phys.at_rest_process());
     }
 }
@@ -480,8 +480,8 @@ TEST_F(PhysicsTrackViewHostTest, value_grids)
     {
         for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
-            PhysicsTrackView const phys = this->make_track_view(particle,
-                                                                mat_id);
+            PhysicsTrackView const phys
+                = this->make_track_view(particle, mat_id);
 
             for (auto pp_id :
                  range(ParticleProcessId{phys.num_particle_processes()}))
@@ -512,8 +512,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
     {
         for (auto mat_id : range(PhysMatId{this->material()->size()}))
         {
-            PhysicsTrackView const phys = this->make_track_view(particle,
-                                                                mat_id);
+            PhysicsTrackView const phys
+                = this->make_track_view(particle, mat_id);
             MaterialView mat = this->material()->get(mat_id);
             auto scat_ppid = this->find_ppid(phys, "scattering");
             auto id = phys.macro_xs_grid(scat_ppid);
@@ -541,8 +541,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
     // range and step will be zero.
     for (char const* particle : {"celeriton", "anti-celeriton"})
     {
-        PhysicsTrackView const phys = this->make_track_view(particle,
-                                                            PhysMatId{0});
+        PhysicsTrackView const phys
+            = this->make_track_view(particle, PhysMatId{0});
 
         auto eloss_id = phys.energy_loss_grid();
         ASSERT_TRUE(eloss_id);
@@ -630,8 +630,8 @@ TEST_F(PhysicsTrackViewHostTest, use_integral)
 
 TEST_F(PhysicsTrackViewHostTest, model_finder)
 {
-    PhysicsTrackView const phys = this->make_track_view("celeriton",
-                                                        PhysMatId{0});
+    PhysicsTrackView const phys
+        = this->make_track_view("celeriton", PhysMatId{0});
     auto purr_ppid = this->find_ppid(phys, "purrs");
     ASSERT_TRUE(purr_ppid);
     auto find_model = phys.make_model_finder(purr_ppid);
@@ -680,8 +680,8 @@ TEST_F(PhysicsTrackViewHostTest, element_selector)
 
     // Material composed of a single element
     {
-        PhysicsTrackView phys = this->make_track_view("celeriton",
-                                                      PhysMatId{1});
+        PhysicsTrackView phys
+            = this->make_track_view("celeriton", PhysMatId{1});
         auto table_id = phys.cdf_table(pmid);
         EXPECT_FALSE(table_id);
     }

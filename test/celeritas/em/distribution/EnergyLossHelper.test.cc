@@ -191,8 +191,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
                        value_as<EnergySq>(helper.bohr_variance()));
 
         HistogramSampler calc_histogram(21, {0, 7}, 10000);
-        auto sampled = calc_histogram(to_mev,
-                                      EnergyLossGammaDistribution{helper});
+        auto sampled
+            = calc_histogram(to_mev, EnergyLossGammaDistribution{helper});
         SampledHistogram ref;
         ref.distribution = {
             2.7684, 0.105,  0.0507, 0.0225, 0.0168, 0.0108, 0.0078,
@@ -214,8 +214,8 @@ TEST_F(EnergyLossDistributionTest, gaussian)
         EXPECT_EQ(EnergyLossFluctuationModel::gaussian, helper.model());
 
         HistogramSampler calc_histogram(16, {0, 0.2}, 10000);
-        auto sampled = calc_histogram(to_mev,
-                                      EnergyLossGaussianDistribution{helper});
+        auto sampled
+            = calc_histogram(to_mev, EnergyLossGaussianDistribution{helper});
         // sampled.print_expected();
         SampledHistogram ref;
         ref.distribution = {

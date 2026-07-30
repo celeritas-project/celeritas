@@ -280,9 +280,8 @@ CELER_FUNCTION auto OrientedBoundingZone::apply_offset(
     Real3 const& trans_pos, BBoxType bbt) -> OffsetPos
 {
     TransformVisitor apply_transform(*sp_.transforms, *sp_.reals);
-    auto transform_down = [&trans_pos](auto&& t) {
-        return t.transform_down(trans_pos);
-    };
+    auto transform_down
+        = [&trans_pos](auto&& t) { return t.transform_down(trans_pos); };
 
     return {this->quadrant_one(apply_transform(
                 transform_down, obz_record_.offset_ids[this->to_int(bbt)])),

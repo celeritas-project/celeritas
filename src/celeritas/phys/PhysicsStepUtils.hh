@@ -319,8 +319,8 @@ CELER_FUNCTION ActionId select_discrete_interaction(
     {
         // Sample an element for discrete interactions that require it and for
         // materials with more than one element
-        auto select_element = physics.make_element_selector(table_id,
-                                                            particle.energy());
+        auto select_element
+            = physics.make_element_selector(table_id, particle.energy());
         elcomp_id = select_element(rng);
     }
     pstep.element(elcomp_id);

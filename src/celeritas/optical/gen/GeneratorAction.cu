@@ -38,8 +38,8 @@ void GeneratorAction::generate(CoreParams const& params,
 
     ScopedProfiling profile_this_{"generate"};
 
-    auto& aux_state = get<GeneratorState<MemSpace::native>>(*state.aux(),
-                                                            this->aux_id());
+    auto& aux_state
+        = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
     size_type num_gen = min(state.sync_get_counters().num_vacancies,
                             aux_state.counters.num_pending);
     {

@@ -124,8 +124,8 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = get<DirectGeneratorState<M>>(*state.aux(),
-                                                   this->aux_id());
+    auto& aux_state
+        = get<DirectGeneratorState<M>>(*state.aux(), this->aux_id());
 
     if (aux_state.counters.buffer_size != 0)
     {
@@ -180,8 +180,8 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
 {
     CELER_EXPECT(state.aux());
 
-    auto& aux_state = get<DirectGeneratorState<M>>(*state.aux(),
-                                                   this->aux_id());
+    auto& aux_state
+        = get<DirectGeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
     if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)

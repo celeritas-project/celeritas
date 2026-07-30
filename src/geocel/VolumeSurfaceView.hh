@@ -121,9 +121,8 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
     VolumeInstanceId pre_id, VolumeInstanceId post_id) const
 {
     auto const& record = this->volume_record();
-    auto get_volinst_id = [this](auto item) {
-        return params_.volume_instance_ids[item];
-    };
+    auto get_volinst_id
+        = [this](auto item) { return params_.volume_instance_ids[item]; };
     for (size_type index = 0; index < record.interface_pre.size(); ++index)
     {
         {

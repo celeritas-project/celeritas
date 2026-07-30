@@ -132,8 +132,8 @@ CELER_FUNCTION real_type SplineCalculator::operator()(Energy energy) const
     {
         true_low_idx = 0;
     }
-    size_type true_high_idx = min(lower_idx + order_steps + 1,
-                                  loge_grid_.size());
+    size_type true_high_idx
+        = min(lower_idx + order_steps + 1, loge_grid_.size());
 
     if (data_.spline_order % 2 == 0)
     {

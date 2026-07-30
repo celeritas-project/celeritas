@@ -32,9 +32,8 @@ TEST_F(ReflectionFormSamplerTest, lambertian)
     HistogramSampler calc_histogram(10, {0, 1}, num_samples);
 
     Real3 normal = make_unit_vector(Real3{2, -1, 3});
-    auto to_cos_normal = [&normal](Real3 const& refl) {
-        return dot_product(normal, refl);
-    };
+    auto to_cos_normal
+        = [&normal](Real3 const& refl) { return dot_product(normal, refl); };
 
     auto actual = calc_histogram(to_cos_normal, LambertianDistribution{normal});
 

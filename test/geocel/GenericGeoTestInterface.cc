@@ -121,9 +121,8 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
     // Length scale and description
     auto const unit_length = this->unit_length();
     // Convert from Celeritas native unit system to unit test's internal system
-    auto from_native_length = [scale = unit_length.value](auto&& v) {
-        return v / scale;
-    };
+    auto from_native_length
+        = [scale = unit_length.value](auto&& v) { return v / scale; };
     auto const& bbox = this->geometry_interface()->bbox();
     real_type const max_distance = distance(bbox.lower(), bbox.upper());
 

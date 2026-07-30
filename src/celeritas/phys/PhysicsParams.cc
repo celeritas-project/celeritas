@@ -734,8 +734,8 @@ void PhysicsParams::build_model_tables(MaterialParams const& mats,
             }
             // Construct table for the model
             ModelCdfTable cdf;
-            cdf.tables = tables.insert_back(temp_tables.begin(),
-                                            temp_tables.end());
+            cdf.tables
+                = tables.insert_back(temp_tables.begin(), temp_tables.end());
             model_cdf.push_back(cdf);
         }
     }

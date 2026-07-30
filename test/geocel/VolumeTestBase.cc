@@ -55,14 +55,14 @@ std::shared_ptr<VolumeParams> ComplexVolumeTestBase::build_volumes() const
     Volumes in;
 
     // Helper to create volumes
-    auto add_volume = [&in](std::string label,
-                            std::vector<VolInstId> children) {
-        Volume v;
-        v.label = std::move(label);
-        v.material = id_cast<GeoMatId>(in.volumes.size());
-        v.children = std::move(children);
-        in.volumes.push_back(v);
-    };
+    auto add_volume
+        = [&in](std::string label, std::vector<VolInstId> children) {
+              Volume v;
+              v.label = std::move(label);
+              v.material = id_cast<GeoMatId>(in.volumes.size());
+              v.children = std::move(children);
+              in.volumes.push_back(v);
+          };
     auto add_instance = [&in](VolumeId vol_id) {
         VolumeInstance vi;
         vi.label = std::to_string(in.volume_instances.size());
@@ -184,9 +184,8 @@ std::shared_ptr<VolumeParams> StressVolumeTestBase::build_volumes() const
 
     // One logical volume per depth level; level 0 is the world (root)
     // Labels are A, B, C, ... for depths 0, 1, 2, ...
-    auto depth_label = [](unsigned int d) {
-        return std::string(1, char('A' + d));
-    };
+    auto depth_label
+        = [](unsigned int d) { return std::string(1, char('A' + d)); };
 
     for (auto d : range(num_levels_ - 1))
     {

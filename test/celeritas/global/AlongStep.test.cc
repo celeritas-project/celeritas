@@ -193,8 +193,8 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
         CELER_ASSERT(msc);
 
         RZMapFieldInput field_map;
-        auto filename = this->test_data_path("celeritas",
-                                             "cms-tiny.field.json");
+        auto filename
+            = this->test_data_path("celeritas", "cms-tiny.field.json");
         std::ifstream(filename) >> field_map;
 
         auto result

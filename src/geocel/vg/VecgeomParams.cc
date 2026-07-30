@@ -480,8 +480,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
         auto const& world = *geo.GetWorld();
 
         // Construct volume labels
-        impl_volumes_ = ImplVolumeMap{"impl volume",
-                                      make_logical_vol_labels(world)};
+        impl_volumes_
+            = ImplVolumeMap{"impl volume", make_logical_vol_labels(world)};
         impl_vol_instances_ = ImplVolInstanceMap{
             "impl volume instance", make_physical_vol_labels(world)};
 

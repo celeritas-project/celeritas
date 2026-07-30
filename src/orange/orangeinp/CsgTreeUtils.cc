@@ -61,8 +61,8 @@ std::vector<NodeId> replace_and_simplify(
         simplifying = false;
         for (auto n = max_node; n > CsgTree::false_node_id(); --n)
         {
-            bool updated = std::visit(detail::NodeReplacer{&state, n},
-                                      (*tree)[n]);
+            bool updated
+                = std::visit(detail::NodeReplacer{&state, n}, (*tree)[n]);
             simplifying = simplifying || updated;
         }
 

@@ -152,8 +152,8 @@ CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
     }
 
     // Initialize the particle state
-    this->particle() = ParticleTrackView::Initializer{init.energy,
-                                                      init.polarization};
+    this->particle()
+        = ParticleTrackView::Initializer{init.energy, init.polarization};
 
     // Initialize the physics state
     this->physics() = PhysicsTrackView::Initializer{};

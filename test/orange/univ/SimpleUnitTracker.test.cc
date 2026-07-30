@@ -205,8 +205,8 @@ LocalState SimpleUnitTrackerTest::make_state_crossing(
     Real3 pos, Real3 dir, char const* vol, char const* surf, char sense)
 {
     auto state = this->make_state(pos, dir, vol, surf, sense);
-    state.surface = {state.surface.id(),
-                     flip_sense(state.surface.unchecked_sense())};
+    state.surface
+        = {state.surface.id(), flip_sense(state.surface.unchecked_sense())};
     return state;
 }
 

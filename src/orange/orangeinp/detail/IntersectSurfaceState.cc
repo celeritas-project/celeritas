@@ -33,11 +33,11 @@ BoundingZone calc_merged_bzone(IntersectSurfaceState const& iss)
     BoundingZone transformed_local;
     if (iss.local_bzone.interior)
     {
-        transformed_local.interior = apply_transform(*iss.transform,
-                                                     iss.local_bzone.interior);
+        transformed_local.interior
+            = apply_transform(*iss.transform, iss.local_bzone.interior);
     }
-    transformed_local.exterior = apply_transform(*iss.transform,
-                                                 iss.local_bzone.exterior);
+    transformed_local.exterior
+        = apply_transform(*iss.transform, iss.local_bzone.exterior);
     transformed_local.negated = false;
     return calc_intersection(transformed_local, iss.global_bzone);
 }

@@ -37,9 +37,8 @@ void GeantNavHistoryUpdater::operator()(Span<VolumeInstanceId const> stack,
     CELER_EXPECT(nav);
 
     size_type level = 0;
-    auto nav_stack_size = [nav] {
-        return static_cast<size_type>(nav->GetDepth()) + 1;
-    };
+    auto nav_stack_size
+        = [nav] { return static_cast<size_type>(nav->GetDepth()) + 1; };
 
     // Loop deeper until stack and nav disagree
     for (auto end_level = std::min<size_type>(stack.size(), nav_stack_size());

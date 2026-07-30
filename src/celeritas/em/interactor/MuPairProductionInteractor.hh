@@ -136,8 +136,8 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
     Secondary& electron = secondaries[0];
     electron.particle_id = shared_.ids.electron;
     electron.energy = energy.electron;
-    electron.direction = rotate(from_spherical(sample_costheta(rng), phi),
-                                inc_direction_);
+    electron.direction
+        = rotate(from_spherical(sample_costheta(rng), phi), inc_direction_);
 
     // Create the secondary positron
     Secondary& positron = secondaries[1];

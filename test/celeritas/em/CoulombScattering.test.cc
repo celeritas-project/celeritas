@@ -452,8 +452,8 @@ TEST_F(CoulombScatteringTest, simple_scattering)
                         this->sanity_check(result);
                     }
 
-                    real_type ct = dot_product(this->direction(),
-                                               result.direction);
+                    real_type ct
+                        = dot_product(this->direction(), result.direction);
                     real_type eloss = 1 - result.energy.value() / energy;
                     accum_costheta += ct;
                     accum_eloss += eloss;

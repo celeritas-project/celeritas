@@ -317,9 +317,8 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     }
 
     // Whether a separable axis was found orthogonal to the faces
-    auto found_sep_ortho_axis = [&](int i) {
-        return std::fabs(mid[i]) > hw[i] + abs_hseg[i];
-    };
+    auto found_sep_ortho_axis
+        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {

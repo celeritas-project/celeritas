@@ -625,8 +625,8 @@ auto SolidConverter::hype(arg_type solid_base) -> result_type
     };
 
     auto outer_mid = scale_(solid.GetOuterRadius());
-    auto outer_top = calc_radius_at_hh(solid.GetOuterRadius(),
-                                       solid.GetOuterStereo());
+    auto outer_top
+        = calc_radius_at_hh(solid.GetOuterRadius(), solid.GetOuterStereo());
 
     std::optional<Hyperboloid> inner;
     if (solid.GetInnerRadius() > 0)
