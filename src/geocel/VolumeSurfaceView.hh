@@ -171,7 +171,8 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
 /*!
  * Get the volume surface record for the current volume.
  */
-CELER_FUNCTION VolumeSurfaceRecord const& VolumeSurfaceView::volume_record() const
+CELER_FUNCTION VolumeSurfaceRecord const&
+VolumeSurfaceView::volume_record() const
 {
     return params_.volume_surfaces[volume_];
 }

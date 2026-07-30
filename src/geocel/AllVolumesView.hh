@@ -109,7 +109,8 @@ CELER_FORCEINLINE_FUNCTION VolumeInstanceId AllVolumesView::world_instance() con
 /*!
  * Get the number of logical volumes.
  */
-CELER_FORCEINLINE_FUNCTION VolumeId::size_type AllVolumesView::num_volumes() const
+CELER_FORCEINLINE_FUNCTION VolumeId::size_type
+AllVolumesView::num_volumes() const
 {
     return params_.scalars.num_volumes;
 }

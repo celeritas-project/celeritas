@@ -95,7 +95,7 @@ PenaltyBreakString: 1000
 PenaltyBreakTemplateDeclaration: 100
 PenaltyExcessCharacter: 35
 PenaltyIndentedWhitespace: 0
-PenaltyReturnTypeOnItsOwnLine: 100
+PenaltyReturnTypeOnItsOwnLine: 50
 PointerAlignment: Left
 QualifierAlignment: Right
 SpaceAfterTemplateKeyword: false

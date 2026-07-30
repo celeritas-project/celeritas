@@ -94,7 +94,8 @@ class MaterialView
     inline CELER_FUNCTION units::MevEnergy mean_excitation_energy() const;
 
     // Log mean excitation energy
-    inline CELER_FUNCTION units::LogMevEnergy log_mean_excitation_energy() const;
+    inline CELER_FUNCTION units::LogMevEnergy
+    log_mean_excitation_energy() const;
 
   private:
     MaterialParamsRef const& params_;

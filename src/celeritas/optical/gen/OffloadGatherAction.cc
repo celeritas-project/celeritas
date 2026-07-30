@@ -27,8 +27,8 @@ namespace celeritas
  * Construct and add to core params.
  */
 template<StepActionOrder S>
-std::shared_ptr<OffloadGatherAction<S>> OffloadGatherAction<S>::make_and_insert(
-    CoreParams const& core)
+std::shared_ptr<OffloadGatherAction<S>>
+OffloadGatherAction<S>::make_and_insert(CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
