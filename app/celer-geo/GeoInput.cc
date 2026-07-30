@@ -22,8 +22,8 @@ namespace
  */
 Geometry to_geometry(std::string const& s)
 {
-    static auto const from_string = StringEnumMapper<Geometry>::from_cstring_func(
-        to_cstring, "geometry");
+    static auto const from_string
+        = StringEnumMapper<Geometry>::from_cstring_func(to_cstring, "geometry");
     return from_string(s);
 }
 

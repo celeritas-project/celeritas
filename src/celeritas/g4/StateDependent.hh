@@ -68,7 +68,8 @@ enum class GeantStateChange
 };
 
 // Callback receives a stream id and the encoded `GeantStateChange`.
-using LocalGeantStateChangeFunc = std::function<void(StreamId, GeantStateChange)>;
+using LocalGeantStateChangeFunc
+    = std::function<void(StreamId, GeantStateChange)>;
 
 //---------------------------------------------------------------------------//
 // HELPER FUNCTIONS (HOST)

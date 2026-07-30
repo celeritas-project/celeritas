@@ -41,7 +41,8 @@ class PhysicsParams final : public ParamsDataInterface<PhysicsParamsData>
     using SPAuxRegistry = std::shared_ptr<AuxParamsRegistry>;
     using SPGeneratorRegistry = std::shared_ptr<GeneratorRegistry>;
     using SPConstModel = std::shared_ptr<Model const>;
-    using SPConstCoreMaterials = std::shared_ptr<celeritas::MaterialParams const>;
+    using SPConstCoreMaterials
+        = std::shared_ptr<celeritas::MaterialParams const>;
     using SPConstMaterials = std::shared_ptr<MaterialParams const>;
     using VecModels = std::vector<SPConstModel>;
     //!@}

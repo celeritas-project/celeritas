@@ -93,8 +93,8 @@ CELER_FUNCTION Interaction DTMixMucfExecutor::operator()(
     auto const molecule_spin = select_molecule_spin(rng);
 
     // Load cycle time for the selected molecule
-    auto const cycle_time = data.cycle_times[mucf_matid][muonic_molecule]
-                                            [molecule_spin];
+    auto const cycle_time
+        = data.cycle_times[mucf_matid][muonic_molecule][molecule_spin];
     CELER_ASSERT(cycle_time > 0);
 
     // Check if muon decays before fusion happens

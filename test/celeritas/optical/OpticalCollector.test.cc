@@ -37,12 +37,10 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool reference_configuration = ((CELERITAS_REAL_TYPE
-                                           == CELERITAS_REAL_TYPE_DOUBLE)
-                                          && (CELERITAS_CORE_GEO
-                                              != CELERITAS_CORE_GEO_VECGEOM)
-                                          && CELERITAS_CORE_RNG
-                                                 == CELERITAS_CORE_RNG_XORWOW);
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_VECGEOM)
+       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES

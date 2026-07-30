@@ -255,7 +255,8 @@ TEST_F(SimpleComptonTest, reseed)
     Stepper<M> step(this->make_stepper_input(num_tracks));
     auto const primaries = this->make_primaries(num_primaries);
     auto const& params_ref = this->core()->ref<M>();
-    auto const& state_ref = dynamic_cast<CoreState<M> const&>(step.state()).ref();
+    auto const& state_ref
+        = dynamic_cast<CoreState<M> const&>(step.state()).ref();
     SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
     RngEngine engine{params_ref.rng, state_ref.rng, TrackSlotId{0}};
 

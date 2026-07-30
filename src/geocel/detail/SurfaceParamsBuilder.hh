@@ -106,7 +106,8 @@ class VolumeSurfaceRecordBuilder
     template<class T>
     using Items = Collection<T, Ownership::value, MemSpace::host>;
     template<class T>
-    using VolumeItems = Collection<T, Ownership::value, MemSpace::host, VolumeId>;
+    using VolumeItems
+        = Collection<T, Ownership::value, MemSpace::host, VolumeId>;
     //!@}
 
     // Construct with pointers to target collections

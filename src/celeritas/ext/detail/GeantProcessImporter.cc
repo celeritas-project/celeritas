@@ -126,7 +126,8 @@ ImportProcess init_process(G4ParticleDefinition const& particle,
     result.process_class = to_import_process_class(process);
     result.particle_pdg = particle.GetPDGEncoding();
 
-    auto* rest_processes = particle.GetProcessManager()->GetAtRestProcessVector();
+    auto* rest_processes
+        = particle.GetProcessManager()->GetAtRestProcessVector();
     CELER_ASSERT(rest_processes);
     result.applies_at_rest = rest_processes->contains(
         const_cast<G4VProcess*>(&process));

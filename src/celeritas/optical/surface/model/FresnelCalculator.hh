@@ -191,12 +191,10 @@ CELER_FUNCTION real_type FresnelCalculator::calc_reflectivity() const
 {
     real_type te_comp_sq = ipow<2>(this->inc_te_component());
     real_type tm_comp_sq = ipow<2>(this->inc_tm_component());
-    real_type total_reflectivity = (te_comp_sq
-                                        * ipow<2>(this->calc_reflectivity_te())
-                                    + tm_comp_sq
-                                          * ipow<2>(
-                                              this->calc_reflectivity_tm()))
-                                   / (te_comp_sq + tm_comp_sq);
+    real_type total_reflectivity
+        = (te_comp_sq * ipow<2>(this->calc_reflectivity_te())
+           + tm_comp_sq * ipow<2>(this->calc_reflectivity_tm()))
+          / (te_comp_sq + tm_comp_sq);
 
     CELER_ENSURE(0 <= total_reflectivity && total_reflectivity <= 1);
 

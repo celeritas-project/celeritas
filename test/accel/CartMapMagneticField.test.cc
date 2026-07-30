@@ -54,7 +54,8 @@ TEST_F(CartMapMagneticFieldTest, make_input)
     std::vector<real_type> field_tesla(inp.field.size());
     for (auto i : range(inp.field.size()))
     {
-        field_tesla[i] = native_value_to<units::TeslaField>(inp.field[i]).value();
+        field_tesla[i]
+            = native_value_to<units::TeslaField>(inp.field[i]).value();
     }
     static double const expected_field_tesla[] = {
         -0.9, -0.9,  -0.75, -0.9, -0.9,  0.75,  -0.9, -0.9,  2.25,

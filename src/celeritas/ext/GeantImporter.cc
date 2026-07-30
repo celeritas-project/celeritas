@@ -353,12 +353,11 @@ std::vector<ImportIsotope> import_isotopes()
                                          - G4NucleiProperties::GetBindingEnergy(
                                              isotope.atomic_mass_number - 1,
                                              isotope.atomic_number - 1);
-            isotope.neutron_loss_energy = G4NucleiProperties::GetBindingEnergy(
-                                              isotope.atomic_mass_number,
-                                              isotope.atomic_number)
-                                          - G4NucleiProperties::GetBindingEnergy(
-                                              isotope.atomic_mass_number - 1,
-                                              isotope.atomic_number);
+            isotope.neutron_loss_energy
+                = G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number, isotope.atomic_number)
+                  - G4NucleiProperties::GetBindingEnergy(
+                      isotope.atomic_mass_number - 1, isotope.atomic_number);
         }
         else
         {
@@ -758,9 +757,8 @@ auto import_processes(GeantImporter::DataSelection selected,
         {
             processes.push_back(legacy_import_process(particle, *el_process));
         }
-        else if (
-            auto const* msc_process = dynamic_cast<G4VMultipleScattering const*>(
-                &process))
+        else if (auto const* msc_process
+                 = dynamic_cast<G4VMultipleScattering const*>(&process))
         {
             // Unpack MSC process into multiple MSC models
             auto new_msc_models = legacy_import_process(particle, *msc_process);

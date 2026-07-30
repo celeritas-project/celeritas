@@ -127,7 +127,8 @@ class GeantGeoTest : public GeantGeoTestBase
 };
 
 //---------------------------------------------------------------------------//
-using AtlasHgtdTest = GenericGeoParameterizedTest<GeantGeoTest, AtlasHgtdGeoTest>;
+using AtlasHgtdTest
+    = GenericGeoParameterizedTest<GeantGeoTest, AtlasHgtdGeoTest>;
 
 TEST_F(AtlasHgtdTest, volumes)
 {
@@ -370,7 +371,8 @@ TEST_F(FourLevelsTest, trace)
 }
 
 //---------------------------------------------------------------------------//
-using LarSphereTest = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
+using LarSphereTest
+    = GenericGeoParameterizedTest<GeantGeoTest, LarSphereGeoTest>;
 
 TEST_F(LarSphereTest, volumes)
 {
@@ -537,7 +539,8 @@ TEST_F(PincellTest, imager)
 
 //---------------------------------------------------------------------------//
 
-using PolyhedraTest = GenericGeoParameterizedTest<GeantGeoTest, PolyhedraGeoTest>;
+using PolyhedraTest
+    = GenericGeoParameterizedTest<GeantGeoTest, PolyhedraGeoTest>;
 
 TEST_F(PolyhedraTest, volumes)
 {
@@ -602,7 +605,8 @@ TEST_F(ReplicaTest, volume_stack)
 
 //---------------------------------------------------------------------------//
 
-using SimpleCmsTest = GenericGeoParameterizedTest<GeantGeoTest, SimpleCmsGeoTest>;
+using SimpleCmsTest
+    = GenericGeoParameterizedTest<GeantGeoTest, SimpleCmsGeoTest>;
 
 TEST_F(SimpleCmsTest, volumes)
 {

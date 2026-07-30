@@ -84,7 +84,7 @@ KeepEmptyLines:
   AtStartOfBlock:  false
   AtStartOfFile:   false
 PackConstructorInitializers: NextLine
-PenaltyBreakAssignment: 200
+PenaltyBreakAssignment: 150
 PenaltyBreakBeforeFirstCallParameter: 20
 PenaltyBreakBeforeMemberAccess: 1500
 PenaltyBreakComment: 200

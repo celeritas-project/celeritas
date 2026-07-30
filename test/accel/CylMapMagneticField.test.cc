@@ -48,7 +48,8 @@ TEST_F(CylMapMagneticFieldTest, make_input)
     std::vector<real_type> field_tesla(inp.field.size());
     for (auto i : range(inp.field.size()))
     {
-        field_tesla[i] = native_value_to<units::TeslaField>(inp.field[i]).value();
+        field_tesla[i]
+            = native_value_to<units::TeslaField>(inp.field[i]).value();
     }
 
     // Field values are computed at cylindrical grid points *and* stored as

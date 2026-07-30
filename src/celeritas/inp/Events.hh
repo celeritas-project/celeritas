@@ -58,7 +58,8 @@ using PointDistribution = DeltaDistribution<Array<double, 3>>;
  * - "delta": \c PointDistribution
  * - "uniform_box": \c UniformBoxDistribution
  */
-using ShapeDistribution = std::variant<PointDistribution, UniformBoxDistribution>;
+using ShapeDistribution
+    = std::variant<PointDistribution, UniformBoxDistribution>;
 
 //---------------------------------------------------------------------------//
 //! Generate angles in a single direction

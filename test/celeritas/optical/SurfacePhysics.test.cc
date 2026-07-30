@@ -192,8 +192,9 @@ class SurfacePhysicsTest : public OpticalMockTestBase
 
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
-        surface_physics_state_ = StateDataStore<SurfacePhysicsStateData,
-                                                MemSpace::host>(num_tracks);
+        surface_physics_state_
+            = StateDataStore<SurfacePhysicsStateData, MemSpace::host>(
+                num_tracks);
         CELER_ASSERT(surface_physics_state_.size() == num_tracks);
     }
 

@@ -99,7 +99,8 @@ void implicit_parent_boundary(CsgUnit& unit)
 {
     CELER_EXPECT(!unit.tree.volumes().empty());
     auto orig_tree_size = unit.tree.size();
-    NodeId ext_node = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
+    NodeId ext_node
+        = unit.tree.volumes()[orange_exterior_volume.unchecked_get()];
     auto unknowns = replace_and_simplify(&unit.tree, ext_node, False{});
     if (!unknowns.empty())
     {
