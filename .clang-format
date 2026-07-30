@@ -65,7 +65,7 @@ AlignConsecutiveTableGenDefinitionColons:
   AlignFunctionDeclarations: false
   AlignFunctionPointers: false
   PadOperators:    false
-AlignEscapedNewlines: Left
+AlignEscapedNewlines: DontAlign
 AlignOperands:   Align
 AlignTrailingComments:
   Kind:            Never
@@ -228,7 +228,7 @@ JavaScriptWrapImports: true
 KeepEmptyLines:
   AtEndOfFile:     false
   AtStartOfBlock:  false
-  AtStartOfFile:   true
+  AtStartOfFile:   false
 KeepFormFeed:    false
 LambdaBodyIndentation: Signature
 LineEnding:      DeriveLF
@@ -247,11 +247,11 @@ PackConstructorInitializers: NextLine
 PenaltyBreakAssignment: 20
 PenaltyBreakBeforeFirstCallParameter: 5
 PenaltyBreakBeforeMemberAccess: 150
-PenaltyBreakComment: 10
-PenaltyBreakFirstLessLess: 1
-PenaltyBreakOpenParenthesis: 0
+PenaltyBreakComment: 20
+PenaltyBreakFirstLessLess: 5
+PenaltyBreakOpenParenthesis: 1
 PenaltyBreakScopeResolution: 500
-PenaltyBreakString: 25
+PenaltyBreakString: 100
 PenaltyBreakTemplateDeclaration: 10
 PenaltyExcessCharacter: 25
 PenaltyIndentedWhitespace: 0
@@ -316,14 +316,14 @@ SpacesInParensOptions:
   InEmptyParentheses: false
   Other:           false
 SpacesInSquareBrackets: false
-Standard:        c++17
+Standard:        Latest
 StatementAttributeLikeMacros:
   - Q_EMIT
 StatementMacros:
   - Q_UNUSED
   - QT_REQUIRE_VERSION
 TableGenBreakInsideDAGArg: DontBreak
-TabWidth:        8
+TabWidth:        4
 UseTab:          Never
 VerilogBreakBetweenInstancePorts: true
 WhitespaceSensitiveMacros:
