@@ -781,7 +781,8 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         {
             ScopedProfiling profile_this{"geant-geo-close"};
             CELER_LOG(debug) << "Building geometry manager tracking";
-            auto optimize = celeritas::getenv_flag("G4_GEO_OPTIMIZE", true).value;
+            auto optimize
+                = celeritas::getenv_flag("G4_GEO_OPTIMIZE", true).value;
             geo_man->CloseGeometry(
                 optimize, /* verbose = */ false, this->world());
             closed_geometry_ = true;

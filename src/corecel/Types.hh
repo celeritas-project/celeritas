@@ -192,12 +192,10 @@ constexpr inline bool is_auto_ldg_v = IsAutoLdg<T>::value;
 
 //! True if an object (functor) is compatible with kernel launchers
 template<class F>
-constexpr inline bool is_launchable_v = (is_trivially_copyable_v<F>
-                                         || CELERITAS_USE_HIP
-                                         || CELER_COMPILER
-                                                == CELER_COMPILER_CLANG)
-                                        && !std::is_pointer_v<F>
-                                        && !std::is_reference_v<F>;
+constexpr inline bool is_launchable_v
+    = (is_trivially_copyable_v<F> || CELERITAS_USE_HIP
+       || CELER_COMPILER == CELER_COMPILER_CLANG)
+      && !std::is_pointer_v<F> && !std::is_reference_v<F>;
 
 //! Get the unsigned integer corresponding to an ID's capacity
 template<class T>

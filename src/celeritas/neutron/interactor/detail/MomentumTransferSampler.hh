@@ -349,11 +349,10 @@ CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
             result.expnt[2] = par_[22] / (pa * p + par_[23] / pa) + par_[24];
             result.slope[2] = par_[25] / (p3 + par_[26] / p6)
                               + par_[27] / (1 + par_[28] / p2);
-            result.expnt[3] = p2
-                              * (pah * par_[29] * std::exp(-pah * par_[30])
-                                 + par_[31]
-                                       / (1
-                                          + par_[32] * std::pow(p, par_[33])));
+            result.expnt[3]
+                = p2
+                  * (pah * par_[29] * std::exp(-pah * par_[30])
+                     + par_[31] / (1 + par_[32] * std::pow(p, par_[33])));
             result.slope[3] = par_[34] * pa / p2 / (1 + pa * par_[35]);
         }
         else

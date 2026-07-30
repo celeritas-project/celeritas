@@ -35,10 +35,9 @@ namespace test
 {
 using namespace ::celeritas::test;
 
-constexpr bool reference_configuration = ((CELERITAS_REAL_TYPE
-                                           == CELERITAS_REAL_TYPE_DOUBLE)
-                                          && CELERITAS_CORE_RNG
-                                                 == CELERITAS_CORE_RNG_XORWOW);
+constexpr bool reference_configuration
+    = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+       && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 /*!

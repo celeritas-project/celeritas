@@ -325,10 +325,8 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
         {"outward", {tilt, std::sqrt(1 - ipow<2>(tilt)), 0}, false},
     };
 
-    constexpr real_type large_dist = (CELERITAS_REAL_TYPE
-                                              == CELERITAS_REAL_TYPE_DOUBLE
-                                          ? 1e10_r
-                                          : 1e5_r);
+    constexpr real_type large_dist
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e5_r);
     for (auto const max_dist : {1 / large_dist, large_dist})
     {
         for (auto const& p : positions)

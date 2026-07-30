@@ -43,10 +43,8 @@ TEST(Distributions, UrbanLargeAngleDistribution)
 
     DiagnosticRngEngine<std::mt19937> rng;
 
-    constexpr auto samples_per_real = (CELERITAS_REAL_TYPE
-                                               == CELERITAS_REAL_TYPE_FLOAT
-                                           ? 1
-                                           : 2);
+    constexpr auto samples_per_real
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 1 : 2);
 
     // Separately sample tau = 1e-14 due to platform-dependent numerical issues
     {

@@ -330,10 +330,8 @@ CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_ionization_loss(
 
         // Mean and standard deviation of the total energy loss (Eqs. 18-19)
         real_type const mean = mean_num_coll * mean_loss_coll * e_0;
-        real_type const stddev = e_0
-                                 * std::sqrt(
-                                     xs_ion_
-                                     * (alpha - ipow<2>(mean_loss_coll)));
+        real_type const stddev
+            = e_0 * std::sqrt(xs_ion_ * (alpha - ipow<2>(mean_loss_coll)));
 
         // Sample energy loss from a Gaussian distribution
         result += this->sample_fast_urban(mean, stddev, rng);

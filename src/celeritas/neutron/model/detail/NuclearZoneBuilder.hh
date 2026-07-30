@@ -200,10 +200,9 @@ auto NuclearZoneBuilder::calc_zone_components(IsotopeView const& target) const
             components[i].fermi_mom[ptype] = options_.fermi_scale
                                              * std::cbrt(
                                                  components[i].density[ptype]);
-            components[i].potential[ptype] = ipow<2>(
-                                                 components[i].fermi_mom[ptype])
-                                                 / (2 * mass[ptype])
-                                             + dm[ptype];
+            components[i].potential[ptype]
+                = ipow<2>(components[i].fermi_mom[ptype]) / (2 * mass[ptype])
+                  + dm[ptype];
         }
     }
     return components;

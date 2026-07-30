@@ -305,8 +305,8 @@ void InteractorHostBase::check_energy_conservation(
         if (s && s.particle_id == particle_params_->find(pdg::positron())
             && interaction.action == Action::absorbed)
         {
-            exit_energy += 2
-                           * particle_params_->get(s.particle_id).mass().value();
+            exit_energy
+                += 2 * particle_params_->get(s.particle_id).mass().value();
         }
     }
 

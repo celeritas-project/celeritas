@@ -149,10 +149,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         CELER_ASSERT(std::fabs(cost) <= 1);
 
         // Kinematic of the gamma pair
-        real_type const total_energy = inc_energy_
-                                       + 2
-                                             * value_as<Mass>(
-                                                 shared_.electron_mass);
+        real_type const total_energy
+            = inc_energy_ + 2 * value_as<Mass>(shared_.electron_mass);
         real_type const gamma_energy = epsil * total_energy;
         real_type const eplus_moment = std::sqrt(inc_energy_ * total_energy);
 

@@ -78,12 +78,11 @@ size_type MaxSecondariesCalculator::calc(SubshellId vacancy_shell,
         // electron production threshold, create an electron; if this is a
         // radiative transition with an energy above the gamma production
         // threshold, create a photon; otherwise, no secondaries produced.
-        size_type n = ((transition.energy >= electron_cut_
-                        && transition.auger_shell)
-                       || (transition.energy >= gamma_cut_
-                           && !transition.auger_shell))
-                          ? 1
-                          : 0;
+        size_type n
+            = ((transition.energy >= electron_cut_ && transition.auger_shell)
+               || (transition.energy >= gamma_cut_ && !transition.auger_shell))
+                  ? 1
+                  : 0;
 
         sub_count = std::max(n + this->calc(transition.initial_shell, count)
                                  + this->calc(transition.auger_shell, count),

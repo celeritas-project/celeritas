@@ -33,8 +33,9 @@ Geometry to_geometry(std::string const& s)
  */
 MemSpace to_memspace(std::string const& s)
 {
-    static auto const from_string = StringEnumMapper<MemSpace>::from_cstring_func(
-        ::celeritas::to_cstring, "memspace");
+    static auto const from_string
+        = StringEnumMapper<MemSpace>::from_cstring_func(
+            ::celeritas::to_cstring, "memspace");
     return from_string(s);
 }
 
