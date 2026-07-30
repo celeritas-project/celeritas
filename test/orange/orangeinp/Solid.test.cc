@@ -519,8 +519,10 @@ TEST_F(SolidTest, or_shape)
             << "actual shape: " << demangle_shape(*shape);
     }
     {
-        auto solid = ConeSolid::or_shape(
-            "cone", Cone{{1.1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, EnclosedAzi{});
+        auto solid = ConeSolid::or_shape("cone",
+                                         Cone{{1.1, 2}, 10.0},
+                                         Cone{{0.9, 1.9}, 10.0},
+                                         EnclosedAzi{});
         EXPECT_TRUE(solid);
         EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()))
             << demangle_shape(*solid);

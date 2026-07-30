@@ -44,8 +44,8 @@ class GeneratorAction final : public GeneratorBase
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<GeneratorAction>
-    make_and_insert(CoreParams const&, size_type capacity);
+    static std::shared_ptr<GeneratorAction> make_and_insert(
+        CoreParams const&, size_type capacity);
 
     // Construct with action ID, data IDs, and optical properties
     GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);

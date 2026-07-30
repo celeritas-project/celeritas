@@ -82,9 +82,9 @@ class GeantProcessImporter
                              G4VEmProcess const& process);
     ImportProcess operator()(G4ParticleDefinition const& particle,
                              G4VEnergyLossProcess const& process);
-    std::vector<ImportMscModel>
-    operator()(G4ParticleDefinition const& particle,
-               G4VMultipleScattering const& process);
+    std::vector<ImportMscModel> operator()(
+        G4ParticleDefinition const& particle,
+        G4VMultipleScattering const& process);
 
   private:
     // Store material and element information for the element selector tables
@@ -97,15 +97,15 @@ class GeantProcessImporter
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Import a uniform physics vector with the given x, y units
-inp::UniformGrid
-import_physics_log_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
+inp::UniformGrid import_physics_log_vector(G4PhysicsVector const&,
+                                           Array<ImportUnits, 2>);
 
 // Import a generic physics vector with the given x, y units
 inp::Grid import_physics_vector(G4PhysicsVector const&, Array<ImportUnits, 2>);
 
 // Import a 2D physics vector
-inp::TwodGrid
-import_physics_2dvector(G4Physics2DVector const&, Array<ImportUnits, 3>);
+inp::TwodGrid import_physics_2dvector(G4Physics2DVector const&,
+                                      Array<ImportUnits, 3>);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

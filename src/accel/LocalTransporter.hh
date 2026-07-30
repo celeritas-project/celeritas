@@ -64,8 +64,8 @@ class LocalTransporter final : public TrackOffloadInterface
     //! \name LocalOffload interface
 
     // Alternative to construction + move assignment
-    inline void
-    Initialize(SetupOptions const& options, SharedParams& params) final;
+    inline void Initialize(SetupOptions const& options,
+                           SharedParams& params) final;
 
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int) final;

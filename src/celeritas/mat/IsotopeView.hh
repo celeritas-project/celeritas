@@ -36,8 +36,8 @@ class IsotopeView
 
   public:
     // Construct from shared material data and global isotope ID
-    inline CELER_FUNCTION
-    IsotopeView(MaterialParamsRef const& params, IsotopeId isot_id);
+    inline CELER_FUNCTION IsotopeView(MaterialParamsRef const& params,
+                                      IsotopeId isot_id);
 
     // ID of this isotope
     CELER_FORCEINLINE_FUNCTION IsotopeId isotope_id() const;
@@ -78,8 +78,8 @@ class IsotopeView
 /*!
  * Construct from shared material data and global isotope ID.
  */
-CELER_FUNCTION
-IsotopeView::IsotopeView(MaterialParamsRef const& params, IsotopeId isot_id)
+CELER_FUNCTION IsotopeView::IsotopeView(MaterialParamsRef const& params,
+                                        IsotopeId isot_id)
     : params_{params}, isotope_{isot_id}
 {
     CELER_EXPECT(isotope_ < params.isotopes.size());

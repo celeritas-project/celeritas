@@ -50,8 +50,8 @@ auto TransformHasher::operator()(SignedPermutation const& t) const
 /*!
  * Calculate a hash for a variant transform.
  */
-TransformHasher::result_type
-visit(TransformHasher const& th, VariantTransform const& transform)
+TransformHasher::result_type visit(TransformHasher const& th,
+                                   VariantTransform const& transform)
 {
     CELER_ASSUME(!transform.valueless_by_exception());
     return std::visit(th, transform);

@@ -28,8 +28,8 @@ namespace
 /*!
  * Convert from a FHiCL config input.
  */
-inp::OpticalStandaloneInput
-make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
+inp::OpticalStandaloneInput make_input_from_config(
+    detail::PDFullSimCelerConfig const& cfg)
 {
     inp::OpticalStandaloneInput result;
 

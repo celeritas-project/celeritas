@@ -39,8 +39,8 @@ class DTMixMuonicMoleculeSelector
  *
  * \todo Update documentation
  */
-CELER_FUNCTION
-DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
+CELER_FUNCTION DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(
+    /* args */)
 {
     //! \todo Implement
     CELER_NOT_IMPLEMENTED("Mucf muonic molecule selection");

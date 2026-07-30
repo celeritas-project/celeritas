@@ -260,8 +260,8 @@ class StaticActionData
 {
   public:
     // Construct from ID, unique label
-    StaticActionData(ActionId id, std::string_view label) noexcept(
-        !CELERITAS_DEBUG);
+    StaticActionData(ActionId id,
+                     std::string_view label) noexcept(!CELERITAS_DEBUG);
 
     // Construct from ID, unique label, and description
     StaticActionData(ActionId id,
@@ -298,8 +298,8 @@ class StaticConcreteAction : virtual public ActionInterface
 {
   public:
     // Construct from ID, unique label
-    StaticConcreteAction(ActionId id, std::string_view label) noexcept(
-        !CELERITAS_DEBUG);
+    StaticConcreteAction(ActionId id,
+                         std::string_view label) noexcept(!CELERITAS_DEBUG);
 
     // Construct from ID, unique label, and description
     StaticConcreteAction(

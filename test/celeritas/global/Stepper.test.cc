@@ -107,8 +107,8 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    DummyState const&
-    get_dummy_state(CoreStateInterface const& core_state) const
+    DummyState const& get_dummy_state(
+        CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }
@@ -343,8 +343,8 @@ TEST_F(SimpleComptonTest, max_steps)
     ASSERT_EQ(4, scoped_log.messages().size());
     EXPECT_EQ("Track {62} exceeded maximum step count",
               scoped_log.messages()[0]);
-    EXPECT_TRUE(
-        scoped_log.messages()[2].find("\"num_steps\":2") != std::string::npos);
+    EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
+                != std::string::npos);
 }
 
 //---------------------------------------------------------------------------//

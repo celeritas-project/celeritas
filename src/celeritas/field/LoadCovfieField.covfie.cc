@@ -38,14 +38,14 @@ using deserialization_interp_t = covfie::backend::linear<B>;
 // Covfie 3D field type for Cartesian maps.
 using storage3_t = covfie::backend::array<covfie::vector::float3>;
 using strided3_t = covfie::backend::strided<covfie::vector::size3, storage3_t>;
-using file_cart_t
-    = covfie::field<covfie::backend::affine<deserialization_interp_t<strided3_t>>>;
+using file_cart_t = covfie::field<
+    covfie::backend::affine<deserialization_interp_t<strided3_t>>>;
 
 // Covfie 2D field type for BrBz cylindrical maps.
 using storage2_t = covfie::backend::array<covfie::vector::float2>;
 using strided2_t = covfie::backend::strided<covfie::vector::size2, storage2_t>;
-using file_rz_t
-    = covfie::field<covfie::backend::affine<deserialization_interp_t<strided2_t>>>;
+using file_rz_t = covfie::field<
+    covfie::backend::affine<deserialization_interp_t<strided2_t>>>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -60,9 +60,9 @@ inp::AxisGrid<double> from_affine(float scale, float translation, std::size_t n)
     CELER_VALIDATE(scale > 0,
                    << "covfie affine transform has non-positive scale factor "
                    << scale);
-    CELER_VALIDATE(
-        n > 1,
-        << "covfie field grid axis is degenerate with " << n << " points");
+    CELER_VALIDATE(n > 1,
+                   << "covfie field grid axis is degenerate with " << n
+                   << " points");
 
     inp::AxisGrid<double> result;
     result.min = -translation / scale;

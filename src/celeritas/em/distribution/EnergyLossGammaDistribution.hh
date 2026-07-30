@@ -37,12 +37,12 @@ class EnergyLossGammaDistribution
 
   public:
     // Construct from distribution parameters
-    inline CELER_FUNCTION
-    EnergyLossGammaDistribution(Energy mean_loss, EnergySq bohr_var);
+    inline CELER_FUNCTION EnergyLossGammaDistribution(Energy mean_loss,
+                                                      EnergySq bohr_var);
 
     // Construct from helper-calculated data
-    explicit inline CELER_FUNCTION
-    EnergyLossGammaDistribution(EnergyLossHelper const& helper);
+    explicit inline CELER_FUNCTION EnergyLossGammaDistribution(
+        EnergyLossHelper const& helper);
 
     //! Sample energy loss according to the distribution
     template<class Generator>
@@ -70,9 +70,8 @@ class EnergyLossGammaDistribution
  * it is allowable to construct the sampler explicitly but outside this range,
  * for analysis purposes.
  */
-CELER_FUNCTION
-EnergyLossGammaDistribution::EnergyLossGammaDistribution(Energy mean_loss,
-                                                         EnergySq bohr_var)
+CELER_FUNCTION EnergyLossGammaDistribution::EnergyLossGammaDistribution(
+    Energy mean_loss, EnergySq bohr_var)
     : sample_gamma_(EnergyLossGammaDistribution::build_gamma(mean_loss.value(),
                                                              bohr_var.value()))
 {

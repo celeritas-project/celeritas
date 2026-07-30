@@ -35,8 +35,8 @@ class VolumeSurfaceView
 
   public:
     // Construct from params and pre-step volume ID
-    inline CELER_FUNCTION
-    VolumeSurfaceView(SurfaceParamsRef const& params, VolumeId id);
+    inline CELER_FUNCTION VolumeSurfaceView(SurfaceParamsRef const& params,
+                                            VolumeId id);
 
     // ID of the Volume
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
@@ -66,9 +66,8 @@ class VolumeSurfaceView
 /*!
  * Construct from surface parameters and volume ID.
  */
-CELER_FUNCTION
-VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
-                                     VolumeId id)
+CELER_FUNCTION VolumeSurfaceView::VolumeSurfaceView(
+    SurfaceParamsRef const& params, VolumeId id)
     : params_(params), volume_(id)
 {
     CELER_EXPECT(id < params.volume_surfaces.size());

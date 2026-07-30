@@ -68,15 +68,15 @@ class IoniFinalStateHelper
 /*!
  * Construct from incident particle and exiting gamma data.
  */
-CELER_FUNCTION
-IoniFinalStateHelper::IoniFinalStateHelper(Energy inc_energy,
-                                           Real3 const& inc_direction,
-                                           Momentum inc_momentum,
-                                           Mass inc_mass,
-                                           Energy electron_energy,
-                                           Mass electron_mass,
-                                           ParticleId electron_id,
-                                           Secondary* secondary)
+CELER_FUNCTION IoniFinalStateHelper::IoniFinalStateHelper(
+    Energy inc_energy,
+    Real3 const& inc_direction,
+    Momentum inc_momentum,
+    Mass inc_mass,
+    Energy electron_energy,
+    Mass electron_mass,
+    ParticleId electron_id,
+    Secondary* secondary)
     : inc_energy_(value_as<Energy>(inc_energy))
     , inc_direction_(inc_direction)
     , inc_momentum_(value_as<Momentum>(inc_momentum))

@@ -108,8 +108,11 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
                                    int line)
 {
     msg << ": " << cgtv;
-    throw CheckedGeoError{
-        {RuntimeError::validate_err_str, std::move(msg).str(), cond, file, line}};
+    throw CheckedGeoError{{RuntimeError::validate_err_str,
+                           std::move(msg).str(),
+                           cond,
+                           file,
+                           line}};
 }
 
 #define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE) \
@@ -162,13 +165,13 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
 /*!
  * Initialize the state.
  */
-CheckedGeoTrackView&
-CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
+CheckedGeoTrackView& CheckedGeoTrackView::operator=(
+    GeoTrackInitializer const& init)
 {
     CELER_EXPECT(t_);
-    CELER_VALIDATE(
-        is_soft_unit_vector(init.dir),
-        << "cannot initialize with a non-unit direction " << repr(init.dir));
+    CELER_VALIDATE(is_soft_unit_vector(init.dir),
+                   << "cannot initialize with a non-unit direction "
+                   << repr(init.dir));
 
     *t_ = init;
     CGTV_VALIDATE_NOT_FAILED(*this, "initialization");
@@ -207,10 +210,10 @@ real_type CheckedGeoTrackView::find_safety()
 
     auto result = t_->find_safety();
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
-    CGTV_VALIDATE(
-        *this,
-        result >= 0,
-        << "safety " << repr(result) << NativeLength{} << " is out of bounds");
+    CGTV_VALIDATE(*this,
+                  result >= 0,
+                  << "safety " << repr(result) << NativeLength{}
+                  << " is out of bounds");
     return result;
 }
 
@@ -232,10 +235,10 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
 
-    CGTV_VALIDATE(
-        *this,
-        result >= 0,
-        << "invalid safety result " << repr(result) << NativeLength{});
+    CGTV_VALIDATE(*this,
+                  result >= 0,
+                  << "invalid safety result " << repr(result)
+                  << NativeLength{});
 
     if (result > max_safety)
     {
@@ -361,10 +364,10 @@ void CheckedGeoTrackView::move_internal(real_type step)
     t_->move_internal(step);
     next_boundary_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
-    CGTV_VALIDATE(
-        *this,
-        !t_->is_on_boundary() && !t_->is_outside(),
-        << "on boundary after moving " << repr(step) << NativeLength{});
+    CGTV_VALIDATE(*this,
+                  !t_->is_on_boundary() && !t_->is_outside(),
+                  << "on boundary after moving " << repr(step)
+                  << NativeLength{});
 }
 
 //---------------------------------------------------------------------------//

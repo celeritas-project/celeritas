@@ -45,8 +45,8 @@ class UniverseIndexer
 
   public:
     // Construct from UniverseIndexerData
-    explicit inline CELER_FUNCTION
-    UniverseIndexer(UniverseIndexerDataRef const& data);
+    explicit inline CELER_FUNCTION UniverseIndexer(
+        UniverseIndexerDataRef const& data);
 
     // Local-to-global
     inline CELER_FUNCTION ImplSurfaceId global_surface(
@@ -97,8 +97,8 @@ class UniverseIndexer
 /*!
  * Construct from UniverseIndexerData.
  */
-CELER_FUNCTION
-UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
+CELER_FUNCTION UniverseIndexer::UniverseIndexer(
+    UniverseIndexerDataRef const& data)
     : data_(data)
 {
     using namespace celeritas::literals;
@@ -139,8 +139,8 @@ CELER_FUNCTION ImplVolumeId UniverseIndexer::global_volume(
 /*!
  * Transform global to local surface ID.
  */
-CELER_FUNCTION UniverseIndexer::LocalSurface
-UniverseIndexer::local_surface(ImplSurfaceId id) const
+CELER_FUNCTION UniverseIndexer::LocalSurface UniverseIndexer::local_surface(
+    ImplSurfaceId id) const
 {
     CELER_EXPECT(id < this->num_surfaces());
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
@@ -155,8 +155,8 @@ UniverseIndexer::local_surface(ImplSurfaceId id) const
 /*!
  * Transform global to local volume ID.
  */
-CELER_FUNCTION UniverseIndexer::LocalVolume
-UniverseIndexer::local_volume(ImplVolumeId id) const
+CELER_FUNCTION UniverseIndexer::LocalVolume UniverseIndexer::local_volume(
+    ImplVolumeId id) const
 {
     CELER_EXPECT(id < this->num_volumes());
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
@@ -173,8 +173,8 @@ UniverseIndexer::local_volume(ImplVolumeId id) const
 /*!
  * Locate the given ID in the list of offsets.
  */
-CELER_FUNCTION UniverseIndexer::SpanIter
-UniverseIndexer::find_local(DataRef offsets, size_type id)
+CELER_FUNCTION UniverseIndexer::SpanIter UniverseIndexer::find_local(
+    DataRef offsets, size_type id)
 {
     CELER_EXPECT(id < offsets[SizeId{offsets.size() - 1}]);
 

@@ -24,8 +24,8 @@ ConeAligned<T>::ConeAligned(Real3 const& origin, real_type tangent)
  * Construct with square of tangent for simplification.
  */
 template<Axis T>
-ConeAligned<T>
-ConeAligned<T>::from_tangent_sq(Real3 const& origin, real_type tsq)
+ConeAligned<T> ConeAligned<T>::from_tangent_sq(Real3 const& origin,
+                                               real_type tsq)
 {
     CELER_EXPECT(tsq > 0);
     ConeAligned result;

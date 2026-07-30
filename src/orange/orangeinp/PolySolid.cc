@@ -186,9 +186,9 @@ PolySolidBase::~PolySolidBase() = default;
 /*!
  * Return a polycone *or* a simplified version for only a single segment.
  */
-auto PolyCone::or_solid(
-    std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed)
-    -> SPConstObject
+auto PolyCone::or_solid(std::string&& label,
+                        PolySegments&& segments,
+                        EnclosedAzi&& enclosed) -> SPConstObject
 {
     if (segments.size() > 1)
     {

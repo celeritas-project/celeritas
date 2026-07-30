@@ -44,8 +44,8 @@ void simplify(CsgTree* tree, orangeinp::NodeId start);
 [[nodiscard]] TransformedTree transform_negated_joins(CsgTree const& tree);
 
 // Transform a CSG node into a string expression
-[[nodiscard]] std::string
-build_infix_string(CsgTree const& tree, orangeinp::NodeId n);
+[[nodiscard]] std::string build_infix_string(CsgTree const& tree,
+                                             orangeinp::NodeId n);
 
 // Get the set of unsimplified surfaces in a tree
 [[nodiscard]] std::vector<LocalSurfaceId> calc_surfaces(CsgTree const& tree);

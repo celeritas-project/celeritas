@@ -54,8 +54,8 @@ namespace
 //---------------------------------------------------------------------------//
 //!@{
 template<MemSpace M>
-CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
+CoreParamsData<Ownership::const_reference, M> build_params_refs(
+    CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 

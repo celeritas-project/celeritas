@@ -152,8 +152,8 @@ CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d)
 }
 
 //! Construct with position, direction, and parent ID
-CELER_FUNCTION
-GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(
+    Real3 p, Real3 d, TrackSlotId p_id)
     : pos(p), dir(d), parent(p_id)
 {
 }

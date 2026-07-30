@@ -22,7 +22,8 @@ namespace example
 {
 //---------------------------------------------------------------------------//
 // Launch a kernel from inside the .cu file
-void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
+void StepDiagnostic::step(CoreParams const& params,
+                          CoreStateDevice& state) const
 {
     auto const& step_params = this->ref<MemSpace::native>();
     auto& step_state = state.aux_data<StepStateData>(aux_id_);

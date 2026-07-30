@@ -55,7 +55,8 @@ using detail::CsgUnit;
 
 BoundingBox<> get_unit_bbox(CsgUnit const& unit)
 {
-    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
+    auto find_bz
+        = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
         CELER_EXPECT(n);
         auto iter = r.find(n);
         CELER_ENSURE(iter != r.end());
@@ -233,14 +234,14 @@ UnitProto::UnitProto(Input&& inp) : input_{std::move(inp)}
     CELER_VALIDATE(input_,
                    << "no fill, daughters, or volumes are defined in '"
                    << this->label() << "'");
-    CELER_VALIDATE(
-        std::all_of(
-            input_.materials.begin(), input_.materials.begin(), Identity{}),
-        << "incomplete material definition(s)");
-    CELER_VALIDATE(
-        std::all_of(
-            input_.daughters.begin(), input_.daughters.begin(), Identity{}),
-        << "incomplete daughter definition(s)");
+    CELER_VALIDATE(std::all_of(input_.materials.begin(),
+                               input_.materials.begin(),
+                               Identity{}),
+                   << "incomplete material definition(s)");
+    CELER_VALIDATE(std::all_of(input_.daughters.begin(),
+                               input_.daughters.begin(),
+                               Identity{}),
+                   << "incomplete daughter definition(s)");
     CELER_VALIDATE(input_.boundary.zorder == ZOrder::media
                        || input_.boundary.zorder == ZOrder::exterior,
                    << "invalid exterior zorder '"
@@ -530,9 +531,9 @@ void UnitProto::build(ProtoBuilder& pb) const
         // Save label volumes
         CELER_ASSERT(jp.obj.contains("volumes"));
         auto& jv = jp.obj["volumes"];
-        CELER_VALIDATE(
-            jv.size() == unit_volumes.size(),
-            << "jv = " << jv.size() << " csg = " << unit_volumes.size());
+        CELER_VALIDATE(jv.size() == unit_volumes.size(),
+                       << "jv = " << jv.size()
+                       << " csg = " << unit_volumes.size());
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {

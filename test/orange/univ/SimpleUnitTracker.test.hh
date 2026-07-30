@@ -32,8 +32,8 @@ using StateRef = OrangeStateData<Ownership::reference, M>;
 //---------------------------------------------------------------------------//
 
 template<class T>
-CELER_CONSTEXPR_FUNCTION ItemRange<T>
-build_range(size_type stride, TrackSlotId tid)
+CELER_CONSTEXPR_FUNCTION ItemRange<T> build_range(size_type stride,
+                                                  TrackSlotId tid)
 {
     CELER_EXPECT(tid);
     using IdT = ItemId<T>;

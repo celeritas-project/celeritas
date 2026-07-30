@@ -62,8 +62,8 @@ class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
         return {"em_calorimeter", "had_calorimeter"};
     }
 
-    std::vector<std::string>
-    volume_names(std::vector<VolumeId> const& vols) const
+    std::vector<std::string> volume_names(
+        std::vector<VolumeId> const& vols) const
     {
         auto const& labels = this->volumes()->volume_labels();
 
@@ -75,8 +75,8 @@ class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
         return result;
     }
 
-    std::vector<std::string>
-    particle_names(GeantSd::VecParticle const& particles) const
+    std::vector<std::string> particle_names(
+        GeantSd::VecParticle const& particles) const
     {
         std::vector<std::string> result;
         for (auto* par : particles)
@@ -228,8 +228,9 @@ TEST_F(SimpleCmsTest, detached_detector)
     sd_setup_.force_volumes = std::unordered_set<G4LogicalVolume const*>{
         SimpleCmsTest::detached_lv};
     EXPECT_THROW(
-        try { this->make_hit_manager(); } catch (
-            celeritas::RuntimeError const& e) {
+        try {
+            this->make_hit_manager();
+        } catch (celeritas::RuntimeError const& e) {
             EXPECT_EQ(
                 R"(failed to find Geant4 volume(s) "unused" while mapping sensitive detectors)",
                 e.details().what);

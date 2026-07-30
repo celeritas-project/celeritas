@@ -81,8 +81,8 @@ struct DetectorStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void
-resize(DetectorStateData<Ownership::value, M>* state, size_type size)
+inline void resize(DetectorStateData<Ownership::value, M>* state,
+                   size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);

@@ -65,8 +65,8 @@ CELER_FUNCTION BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION
-BisectionRootFinder<F>::BisectionRootFinder(F&& func, real_type tol)
+CELER_FUNCTION BisectionRootFinder<F>::BisectionRootFinder(F&& func,
+                                                           real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
