@@ -39,10 +39,10 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
     if (inp.action_times)
     {
         // Create aux data to accumulate optical action times
-        action_times_ = ActionTimes::make_and_insert(
-            inp.optical_params->action_reg(),
-            core.aux_reg(),
-            "optial-action-times");
+        action_times_
+            = ActionTimes::make_and_insert(inp.optical_params->action_reg(),
+                                           core.aux_reg(),
+                                           "optial-action-times");
     }
 
     // Create launch action with optical params+state and access to aux data
@@ -55,8 +55,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
                                                            std::move(la_inp));
 
     // Create core action to gather pre-step data for populating distributions
-    pre_gather_ = OffloadGatherAction<StepActionOrder::pre>::make_and_insert(
-        core);
+    pre_gather_
+        = OffloadGatherAction<StepActionOrder::pre>::make_and_insert(core);
 
     // Create optical action to generate Cherenkov or scintillation photons
     generate_ = optical::GeneratorAction::make_and_insert(*inp.optical_params,
@@ -127,8 +127,8 @@ GeneratorRegistry const& OpticalCollector::gen_reg() const
  */
 CounterAccumStats OpticalCollector::exchange_counters(AuxStateVec& aux) const
 {
-    auto& state = dynamic_cast<optical::CoreStateBase&>(
-        aux.at(launch_->aux_id()));
+    auto& state
+        = dynamic_cast<optical::CoreStateBase&>(aux.at(launch_->aux_id()));
     auto& accum = state.accum();
 
     accum.generators.resize(this->gen_reg().size());

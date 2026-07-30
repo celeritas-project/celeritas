@@ -320,8 +320,8 @@ TEST_F(SimpleComptonTest, kill_active)
         EXPECT_VEC_EQ(expected_log_messages, scoped_log.messages())
             << scoped_log;
     }
-    static char const* const expected_log_levels[] = {
-        "error", "error", "error"};
+    static char const* const expected_log_levels[]
+        = {"error", "error", "error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
 }
 
@@ -337,8 +337,8 @@ TEST_F(SimpleComptonTest, max_steps)
     ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::debug};
     auto result = this->run(step, num_primaries);
 
-    static char const* const expected_log_levels[] = {
-        "debug", "debug", "debug", "debug"};
+    static char const* const expected_log_levels[]
+        = {"debug", "debug", "debug", "debug"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log.levels());
     ASSERT_EQ(4, scoped_log.messages().size());
     EXPECT_EQ("Track {62} exceeded maximum step count",
@@ -381,8 +381,8 @@ TEST_F(StepperOrderTest, warm_up)
     EXPECT_EQ(0, step.state().sync_get_counters().num_active);
     EXPECT_EQ(0, step.state().sync_get_counters().num_alive);
 
-    static char const* const expected_action_order[] = {
-        "user_start", "user_pre", "user_post"};
+    static char const* const expected_action_order[]
+        = {"user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, dumstate.action_order);
 }
 
@@ -404,8 +404,8 @@ TEST_F(StepperOrderTest, step)
     auto primaries = this->make_primaries(num_primaries);
     step(make_span(primaries));
 
-    static char const* const expected_action_order[] = {
-        "user_start", "user_pre", "user_post"};
+    static char const* const expected_action_order[]
+        = {"user_start", "user_pre", "user_post"};
     EXPECT_VEC_EQ(expected_action_order, state.action_order);
 }
 

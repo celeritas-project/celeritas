@@ -38,7 +38,8 @@ class BvhBuilderTest : public ::celeritas::test::Test
     using Real3 = FastBBox::Real3;
 
   protected:
-    static constexpr auto inff = std::numeric_limits<fast_real_type>::infinity();
+    static constexpr auto inff
+        = std::numeric_limits<fast_real_type>::infinity();
 
     //! Build BVH tree data with a single tree in it and one volume per leaf
     void build(VecFastBbox bboxes)

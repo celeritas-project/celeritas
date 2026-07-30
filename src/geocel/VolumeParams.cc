@@ -98,8 +98,8 @@ std::vector<ull_int> calc_num_descendants(
     };
 
     // Iterative post-order DFS: pair (volume, fully_expanded)
-    std::vector<std::pair<VolumeId, bool>> stack = {
-        {params.scalars.world, false}};
+    std::vector<std::pair<VolumeId, bool>> stack
+        = {{params.scalars.world, false}};
 
     while (!stack.empty())
     {

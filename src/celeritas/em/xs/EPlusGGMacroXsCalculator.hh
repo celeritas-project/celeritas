@@ -81,16 +81,16 @@ CELER_FUNCTION real_type EPlusGGMacroXsCalculator::operator()(
     using constants::r_electron;
     using PolyQuad = PolyEvaluator<real_type, 2>;
 
-    real_type const gamma = celeritas::max(energy.value(),
-                                           value_as<Energy>(this->min_energy()))
-                            / electron_mass_;
+    real_type const gamma
+        = celeritas::max(energy.value(), value_as<Energy>(this->min_energy()))
+          / electron_mass_;
     real_type const sqrt_gg2 = std::sqrt(gamma * (gamma + 2));
 
-    real_type result = pi * ipow<2>(r_electron) * electron_density_
-                       * (PolyQuad{1, 4, 1}(gamma + 1)
-                              * std::log(gamma + 1 + sqrt_gg2)
-                          - (gamma + 4) * sqrt_gg2)
-                       / (gamma * ipow<2>(gamma + 2));
+    real_type result
+        = pi * ipow<2>(r_electron) * electron_density_
+          * (PolyQuad{1, 4, 1}(gamma + 1) * std::log(gamma + 1 + sqrt_gg2)
+             - (gamma + 4) * sqrt_gg2)
+          / (gamma * ipow<2>(gamma + 2));
 
     CELER_ENSURE(result >= 0);
     return result;

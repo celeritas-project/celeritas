@@ -58,8 +58,10 @@ class EnergyLossDistributionTest : public Test
   protected:
     using HostValue = HostVal<FluctuationData>;
     using HostRef = HostCRef<FluctuationData>;
-    using MaterialStateStore = StateDataStore<MaterialStateData, MemSpace::host>;
-    using ParticleStateStore = StateDataStore<ParticleStateData, MemSpace::host>;
+    using MaterialStateStore
+        = StateDataStore<MaterialStateData, MemSpace::host>;
+    using ParticleStateStore
+        = StateDataStore<ParticleStateData, MemSpace::host>;
     using EnergySq = RealQuantity<UnitProduct<units::Mev, units::Mev>>;
 
     void SetUp() override

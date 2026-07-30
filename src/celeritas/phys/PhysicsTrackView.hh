@@ -398,8 +398,8 @@ CELER_FUNCTION UniformGridId PhysicsTrackView::range_grid() const
  */
 CELER_FUNCTION UniformGridId PhysicsTrackView::inverse_range_grid() const
 {
-    if (auto const& grid = this->uniform_grid(
-            this->process_group().inverse_range))
+    if (auto const& grid
+        = this->uniform_grid(this->process_group().inverse_range))
     {
         return grid;
     }

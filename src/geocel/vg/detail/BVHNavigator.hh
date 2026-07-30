@@ -79,8 +79,8 @@ class BVHNavigator
 
         while (vol->GetDaughters().size() > 0)
         {
-            auto* bvh = vecgeom::BVHManager::GetBVH(
-                vol->GetLogicalVolume()->id());
+            auto* bvh
+                = vecgeom::BVHManager::GetBVH(vol->GetLogicalVolume()->id());
             CELER_ASSERT(bvh);
 
             // Note: vol *and* daughterlocalpoint are updated by this call
@@ -119,8 +119,8 @@ class BVHNavigator
 
         if (safety > 0 && pvol->GetDaughters().size() > 0)
         {
-            auto bvh = vecgeom::BVHManager::GetBVH(
-                pvol->GetLogicalVolume()->id());
+            auto bvh
+                = vecgeom::BVHManager::GetBVH(pvol->GetLogicalVolume()->id());
             safety = bvh->ComputeSafety(localpoint, safety);
         }
 
@@ -262,8 +262,8 @@ class BVHNavigator
 
         if (pvol->GetDaughters().size() > 0)
         {
-            auto bvh = vecgeom::BVHManager::GetBVH(
-                pvol->GetLogicalVolume()->id());
+            auto bvh
+                = vecgeom::BVHManager::GetBVH(pvol->GetLogicalVolume()->id());
             // TODO: this may recurse into daughters which may be unnecessary
             bvh->CheckDaughterIntersections(
                 localpoint, localdir, step, pvol, hitcandidate);

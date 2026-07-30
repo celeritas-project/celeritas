@@ -154,14 +154,15 @@ auto build_physics(inp::Problem const& p,
           / static_cast<real_type>(params.sizes.tracks);
     input.options.linear_loss_limit = imported.em_params.linear_loss_limit;
     input.options.disable_integral_xs = !imported.em_params.integral_approach;
-    input.options.light.lowest_energy = ParticleOptions::Energy(
-        imported.em_params.lowest_electron_energy);
-    input.options.heavy.lowest_energy = ParticleOptions::Energy(
-        imported.em_params.lowest_muhad_energy);
+    input.options.light.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_electron_energy);
+    input.options.heavy.lowest_energy
+        = ParticleOptions::Energy(imported.em_params.lowest_muhad_energy);
 
     // Set multiple scattering options
     input.options.light.range_factor = imported.em_params.msc_range_factor;
-    input.options.heavy.range_factor = imported.em_params.msc_muhad_range_factor;
+    input.options.heavy.range_factor
+        = imported.em_params.msc_muhad_range_factor;
     input.options.safety_factor = imported.em_params.msc_safety_factor;
     input.options.lambda_limit = imported.em_params.msc_lambda_limit;
     input.options.light.displaced = imported.em_params.msc_displaced;
@@ -387,8 +388,8 @@ auto build_optical_params(inp::OpticalProblem const& p,
             = imported.optical_physics.gen.scintillation;
         if (s && !s->empty())
         {
-            pi.scintillation = std::make_shared<ScintillationParams>(
-                *pi.material, *s);
+            pi.scintillation
+                = std::make_shared<ScintillationParams>(*pi.material, *s);
         }
         else
         {
@@ -621,8 +622,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
         if (!ef.geometry.empty())
         {
-            if (auto* geo = std::get_if<G4VPhysicalVolume const*>(
-                    &p.model.geometry))
+            if (auto* geo
+                = std::get_if<G4VPhysicalVolume const*>(&p.model.geometry))
             {
                 save_gdml(*geo, ef.geometry);
             }
@@ -655,8 +656,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
                 writer.reset(
                     new EventWriter(ef.offload, core_params->particle()));
             }
-            result.offload_writer = std::make_shared<OffloadWriter>(
-                std::move(writer));
+            result.offload_writer
+                = std::make_shared<OffloadWriter>(std::move(writer));
         }
     }
 
@@ -690,10 +691,10 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo = std::make_shared<SimpleCalo>(
-            p.scoring.simple_calo->volumes,
-            num_streams,
-            *core_params->volume());
+        auto simple_calo
+            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
+                                           num_streams,
+                                           *core_params->volume());
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);
@@ -720,8 +721,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         auto optical_params = build_optical_params(p, *core_params, imported);
 
         // Construct the optical offload and generation actions
-        result.optical_collector = build_optical_offload(
-            p, *core_params, optical_params);
+        result.optical_collector
+            = build_optical_offload(p, *core_params, optical_params);
     }
     else
     {

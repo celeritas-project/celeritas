@@ -310,8 +310,8 @@ void SupportedOpticalPhysics::ConstructProcess()
 
     if (process_is_active(OpticalProcessType::boundary, options_))
     {
-        auto boundary = ObservingUniquePtr{
-            std::make_unique<G4OpBoundaryProcess>()};
+        auto boundary
+            = ObservingUniquePtr{std::make_unique<G4OpBoundaryProcess>()};
 #if G4VERSION_NUMBER < 1070
         // Newer versions set these via G4OpticalParameters
         boundary->SetInvokeSD(options_.boundary->invoke_sd);

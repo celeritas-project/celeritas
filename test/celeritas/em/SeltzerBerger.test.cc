@@ -82,12 +82,12 @@ class SeltzerBergerTest : public InteractorHostTestBase
         model_inp.atomic_xs = {{z_cu, read_sb(z_cu)}};
 
         // Construct SeltzerBergerModel and set host data
-        model_ = std::make_shared<SeltzerBergerModel>(
-            ActionId{0},
-            *this->particle_params(),
-            *this->material_params(),
-            this->imported_processes(),
-            std::move(model_inp));
+        model_
+            = std::make_shared<SeltzerBergerModel>(ActionId{0},
+                                                   *this->particle_params(),
+                                                   *this->material_params(),
+                                                   this->imported_processes(),
+                                                   std::move(model_inp));
         data_ = model_->host_ref();
 
         // Set cutoffs
@@ -149,17 +149,18 @@ TEST_F(SeltzerBergerTest, sb_tables)
     ASSERT_EQ(1, xs.elements.size());
 
     auto argmax = xs.sizes[xs.elements[ElementId{0}].argmax];
-    unsigned int const expected_argmax[] = {
-        31, 31, 31, 30, 30, 7, 7, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0,
-        0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    unsigned int const expected_argmax[]
+        = {31, 31, 31, 30, 30, 7, 7, 6, 5, 4, 3, 0, 0, 0, 0, 0, 0, 0, 0,
+           0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+           0,  0,  0,  0,  0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_VEC_EQ(argmax, expected_argmax);
 }
 
 TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
 {
     ParticleParams const& pp = *this->particle_params();
-    units::MevMass const positron_mass = pp.get(pp.find(pdg::positron())).mass();
+    units::MevMass const positron_mass
+        = pp.get(pp.find(pdg::positron())).mass();
     MevEnergy const gamma_cutoff{0.01};
     ElementView const el = this->material_params()->get(ElementId{0});
 
@@ -455,8 +456,8 @@ TEST_F(SeltzerBergerTest, positron_xs_corrector_edge_case)
                           {{ElementId{0}, 1.0}},
                           "Fe"}};
 
-    auto const material_params = std::make_shared<MaterialParams>(
-        std::move(mat_inp));
+    auto const material_params
+        = std::make_shared<MaterialParams>(std::move(mat_inp));
 
     MevMass const positron_mass{0.51099890999999997};
     MevEnergy const min_gamma_energy{0.020822442086622296};

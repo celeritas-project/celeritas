@@ -235,24 +235,24 @@ TEST_F(SenseCalculatorTest, five_volumes)
         }
         {
             // Test square with correct face (surface 8, face 4)
-            auto&& [storage, face] = calc_senses(
-                vol_b, pos, OnFace{FaceId{4}, Sense::outside});
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{4}, Sense::outside});
             EXPECT_EQ("{- + - - + - +}", this->senses_to_string(storage));
             EXPECT_EQ(FaceId{4}, face.id());
             EXPECT_EQ(Sense::outside, face.sense());
         }
         {
             // Test square with flipped sense
-            auto&& [storage, face] = calc_senses(
-                vol_b, pos, OnFace{FaceId{4}, Sense::inside});
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{4}, Sense::inside});
             EXPECT_EQ("{- + - - - - +}", this->senses_to_string(storage));
             EXPECT_EQ(FaceId{4}, face.id());
             EXPECT_EQ(Sense::inside, face.sense());
         }
         {
             // Test square with "incorrect" face that gets assigned anyway
-            auto&& [storage, face] = calc_senses(
-                vol_b, pos, OnFace{FaceId{1}, Sense::inside});
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{1}, Sense::inside});
 
             EXPECT_EQ("{- - - - + - +}", this->senses_to_string(storage));
             EXPECT_EQ(FaceId{1}, face.id());
@@ -281,16 +281,16 @@ TEST_F(SenseCalculatorTest, five_volumes)
         }
         {
             // Test with lower face, flipped sense
-            auto&& [storage, face] = calc_senses(
-                vol_b, pos, OnFace{FaceId{5}, Sense::inside});
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{5}, Sense::inside});
             EXPECT_EQ("{- + - + + - +}", this->senses_to_string(storage));
             EXPECT_EQ(FaceId{5}, face.id());
             EXPECT_EQ(Sense::inside, face.sense());
         }
         {
             // Test with right face, flipped sense
-            auto&& [storage, face] = calc_senses(
-                vol_b, pos, OnFace{FaceId{6}, Sense::inside});
+            auto&& [storage, face]
+                = calc_senses(vol_b, pos, OnFace{FaceId{6}, Sense::inside});
             EXPECT_EQ("{- + - + + + -}", this->senses_to_string(storage));
             EXPECT_EQ(FaceId{6}, face.id());
             EXPECT_EQ(Sense::inside, face.sense());

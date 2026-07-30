@@ -159,9 +159,9 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         real_type const r[2] = {-std::expm1(-max_q_sq_ * par_q_sq_.slope[0]),
                                 -std::expm1(-max_q_sq_ * par_q_sq_.slope[1])};
 
-        real_type const mi[2] = {r[0] * par_q_sq_.expnt[0],
-                                 r[1] * par_q_sq_.expnt[1]
-                                     / par_q_sq_.slope[1]};
+        real_type const mi[2]
+            = {r[0] * par_q_sq_.expnt[0],
+               r[1] * par_q_sq_.expnt[1] / par_q_sq_.slope[1]};
 
         // Sample by t-channel and u-channel (charge exchange)
         q_sq = (BernoulliDistribution(mi[0], mi[1])(rng))
@@ -177,15 +177,15 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         constexpr real_type one_fifth{0.2};
         constexpr real_type one_seventh = 1.0_r / 7.0_r;
 
-        real_type const r[4] = {
-            -std::expm1(
-                -max_q_sq_ * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
-            -std::expm1(
-                -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
-                * par_q_sq_.slope[1]),
-            -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
-                        * par_q_sq_.slope[2]),
-            -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
+        real_type const r[4]
+            = {-std::expm1(-max_q_sq_
+                           * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
+               -std::expm1(
+                   -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
+                   * par_q_sq_.slope[1]),
+               -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
+                           * par_q_sq_.slope[2]),
+               -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
 
         real_type mi[6] = {};
         for (auto i : range(4))
@@ -374,10 +374,9 @@ CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
                               + par_[24] / (1. + par_[25] / p6);
             result.slope[2] = par_[28] / p8 + par_[29] / p2
                               + par_[30] / (1 + par_[31] / p8);
-            result.expnt[3] = (par_[32] / p4 + par_[37] / p)
-                                  / (1 + par_[33] / p10)
-                              + (par_[34] + par_[35] * dl * dl)
-                                    / (1 + par_[36] / p12);
+            result.expnt[3]
+                = (par_[32] / p4 + par_[37] / p) / (1 + par_[33] / p10)
+                  + (par_[34] + par_[35] * dl * dl) / (1 + par_[36] / p12);
             result.slope[3] = par_[38] / (1 + par_[39] / p)
                               + par_[40] * p4 / (1 + par_[41] * p5);
         }

@@ -125,8 +125,8 @@ TEST(UnitsTest, clhep)
     }
     {
         double g4_native = 1.5 * CLHEP::meter;
-        auto celer_native = native_from_geant<lengthunits::ClhepLength>(
-            g4_native);
+        auto celer_native
+            = native_from_geant<lengthunits::ClhepLength>(g4_native);
         EXPECT_SOFT_EQ(150 * units::centimeter, celer_native);
         EXPECT_SOFT_EQ(g4_native,
                        native_to_geant<lengthunits::ClhepLength>(celer_native));

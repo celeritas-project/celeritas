@@ -30,8 +30,8 @@ void remove_if_alive(
 {
     auto* start = init.vacancies.data().get();
     auto* counters = init.counters.data().get();
-    auto* stop = std::remove_if(
-        start, start + init.vacancies.size(), LogicalNot{});
+    auto* stop
+        = std::remove_if(start, start + init.vacancies.size(), LogicalNot{});
     counters->num_vacancies = stop - start;
     return;
 }

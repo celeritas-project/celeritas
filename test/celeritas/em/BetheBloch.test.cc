@@ -204,8 +204,8 @@ TEST_F(BetheBlochTest, distribution)
          0,
          0},
     };
-    static double const expected_min_energy[] = {
-        0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
+    static double const expected_min_energy[]
+        = {0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001};
     static double const expected_max_energy[] = {
         0.0038354680957569,
         0.019248476995285,
@@ -359,8 +359,8 @@ TEST_F(BetheBlochTest, stress_test)
     double const tol = 1e-11;
 
     // Gold values for average number of calls to RNG
-    static double const expected_avg_engine_samples[] = {
-        6.0069, 6.011, 6.0185, 6.0071, 6.0002, 6, 6, 6};
+    static double const expected_avg_engine_samples[]
+        = {6.0069, 6.011, 6.0185, 6.0071, 6.0002, 6, 6, 6};
     static double const expected_avg_energy[] = {
         0.001820244315187,
         0.0030955371350616,

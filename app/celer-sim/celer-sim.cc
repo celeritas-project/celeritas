@@ -241,8 +241,8 @@ int main(int argc, char* argv[])
 
     // Add "update" subcommand to convert a deprecated input JSON file
     std::string old_filename;
-    auto* update_cmd = cli.add_subcommand(
-        "update", "Convert a deprecated input JSON file");
+    auto* update_cmd
+        = cli.add_subcommand("update", "Convert a deprecated input JSON file");
     update_cmd->add_option("filename", old_filename, "Deprecated input JSON")
         ->required()
         ->check(CLI::ExistingFile | dash_validator());

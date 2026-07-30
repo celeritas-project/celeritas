@@ -438,8 +438,8 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
             daughter.univ_id = UnivId{daughters[i]};
 
             // Read and convert transform
-            daughter.transform = make_transform(
-                slice<3>(make_span(translations), i));
+            daughter.transform
+                = make_transform(slice<3>(make_span(translations), i));
 
             // Save daughter
             size_type parent = parents.empty() ? i : parents[i];

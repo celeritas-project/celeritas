@@ -77,8 +77,8 @@ void CsgUnitBuilder::insert_region(
     CELER_EXPECT(n < unit_->tree.size());
     CELER_EXPECT(trans_id < unit_->transforms.size());
 
-    auto&& [iter, inserted] = unit_->regions.insert(
-        {n, CsgUnit::Region{bzone, trans_id}});
+    auto&& [iter, inserted]
+        = unit_->regions.insert({n, CsgUnit::Region{bzone, trans_id}});
     if (CELERITAS_DEBUG && !inserted)
     {
         // The existing bounding zone should be effectively identical since

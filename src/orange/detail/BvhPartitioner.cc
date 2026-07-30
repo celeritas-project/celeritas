@@ -77,10 +77,10 @@ BvhPartitioner::Partition BvhPartitioner::operator()(
         // Loop through <candidates_per_axis_> equally-spaced partition
         // candidates
 
-        auto step_size = std::max(
-            static_cast<size_type>(
-                axes_centers[ax].size() / (num_part_cands_ + 1)),
-            1_sz);
+        auto step_size
+            = std::max(static_cast<size_type>(
+                           axes_centers[ax].size() / (num_part_cands_ + 1)),
+                       1_sz);
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
         {

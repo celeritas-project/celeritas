@@ -70,7 +70,8 @@ struct RZMapFieldParams::Impl
 
             using traits_t = detail::CovfieRZFieldTraits<MemSpace::host>;
             using field_t = typename traits_t::field_t;
-            using clamp_config_t = typename traits_t::clamped_t::configuration_t;
+            using clamp_config_t =
+                typename traits_t::clamped_t::configuration_t;
             using clamp_vec_t = decltype(clamp_config_t{}.min);
             using clamp_scalar_t = typename clamp_vec_t::value_type;
 

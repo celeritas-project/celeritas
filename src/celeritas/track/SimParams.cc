@@ -74,8 +74,8 @@ SimParams::Input SimParams::Input::from_import(
         looping.max_subthreshold_steps = max_subthreshold_steps;
         looping.max_steps = iter->second.threshold_trials
                             * max_subthreshold_steps;
-        looping.threshold_energy = LoopingThreshold::Energy(
-            iter->second.important_energy);
+        looping.threshold_energy
+            = LoopingThreshold::Energy(iter->second.important_energy);
         input.looping.insert({pdg, looping});
     }
     input.max_steps = limits.steps;

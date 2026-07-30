@@ -286,8 +286,8 @@ auto LarSphereOpticalTrackOffload::make_setup_options() -> SetupOptions
     }();
 
     // Offload optical photon
-    result.offload_particles = SetupOptions::VecG4PD{
-        G4OpticalPhoton::Definition()};
+    result.offload_particles
+        = SetupOptions::VecG4PD{G4OpticalPhoton::Definition()};
 
     return result;
 }

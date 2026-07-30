@@ -115,8 +115,8 @@ TEST(FindInterpTest, Quantity)
 {
     Collection<Turn, Ownership::value, MemSpace::host> data;
     auto build = CollectionBuilder{&data};
-    auto const irange = build.insert_back(
-        {Turn{0}, Turn{0.5}, Turn{0.75}, Turn{1}});
+    auto const irange
+        = build.insert_back({Turn{0}, Turn{0.5}, Turn{0.75}, Turn{1}});
     NonuniformGrid<Turn> grid(irange, make_ref(data));
 
     {

@@ -263,8 +263,8 @@ TEST_F(CoulombScatteringTest, mott_ratio)
 {
     auto wentzel = this->make_wentzel_params();
 
-    static real_type const cos_theta[] = {
-        1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
+    static real_type const cos_theta[]
+        = {1, 0.9, 0.5, 0.21, 0, -0.1, -0.6, -0.7, -0.9, -1};
     {
         // Test Mott ratios for electrons
         MottElementData::MottCoeffMatrix const& coeffs
@@ -506,8 +506,8 @@ TEST_F(CoulombScatteringTest, distribution)
         = material.element_record(elcomp_id_).isotope_record(isocomp_id_);
 
     // TODO: Use proton ParticleId{2}
-    MevEnergy const cutoff = this->cutoff_params()->get(mat_id_).energy(
-        ParticleId{0});
+    MevEnergy const cutoff
+        = this->cutoff_params()->get(mat_id_).energy(ParticleId{0});
 
     std::vector<real_type> avg_angles;
     std::vector<real_type> avg_engine_samples;

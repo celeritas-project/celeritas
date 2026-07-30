@@ -357,8 +357,8 @@ template<class F>
 void GeantGeoTrackView::foreach_volume_path(F&& visit) const
 {
     auto* touch = touch_handle_();
-    auto const num_vol_levels = id_cast<VolumeLevelId>(
-        touch->GetHistoryDepth());
+    auto const num_vol_levels
+        = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
     for (auto lev : range(num_vol_levels + 1))
     {
         VolumeInstanceId vi_id;

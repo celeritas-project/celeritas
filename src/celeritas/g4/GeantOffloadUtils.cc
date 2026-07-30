@@ -45,8 +45,8 @@ optical::GeneratorDistributionData distribution_from_step(G4Step const& g4_step)
         auto& data_point = data.points[p];
         data_point.speed = point.speed();
         data_point.time = native_value_from(point.time());
-        data_point.pos = static_array_cast<real_type>(
-            native_value_from(point.pos()));
+        data_point.pos
+            = static_array_cast<real_type>(native_value_from(point.pos()));
     }
 
     auto geant_geo = celeritas::global_geant_geo().lock();

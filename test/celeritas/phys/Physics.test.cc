@@ -69,8 +69,8 @@ TEST_F(PhysicsParamsTest, accessors)
     {
         process_names.emplace_back(p.process(process_id)->label());
     }
-    static char const* const expected_process_names[] = {
-        "scattering", "absorption", "purrs", "hisses", "meows", "barks"};
+    static char const* const expected_process_names[]
+        = {"scattering", "absorption", "purrs", "hisses", "meows", "barks"};
     EXPECT_VEC_EQ(expected_process_names, process_names);
 
     // Test model names after construction
@@ -98,18 +98,18 @@ TEST_F(PhysicsParamsTest, accessors)
     };
     EXPECT_VEC_EQ(expected_model_names, model_names);
 
-    static std::string const expected_model_desc[] = {
-        "MockModel(1, p=0, emin=1e-06, emax=100)",
-        "MockModel(2, p=1, emin=1, emax=100)",
-        "MockModel(3, p=0, emin=1e-06, emax=100)",
-        "MockModel(4, p=1, emin=0.001, emax=1)",
-        "MockModel(5, p=1, emin=1, emax=10)",
-        "MockModel(6, p=1, emin=10, emax=100)",
-        "MockModel(7, p=2, emin=0.001, emax=1)",
-        "MockModel(8, p=2, emin=1, emax=100)",
-        "MockModel(9, p=1, emin=0.001, emax=10)",
-        "MockModel(10, p=2, emin=0.001, emax=10)",
-        "MockModel(11, p=3, emin=1e-05, emax=1000)"};
+    static std::string const expected_model_desc[]
+        = {"MockModel(1, p=0, emin=1e-06, emax=100)",
+           "MockModel(2, p=1, emin=1, emax=100)",
+           "MockModel(3, p=0, emin=1e-06, emax=100)",
+           "MockModel(4, p=1, emin=0.001, emax=1)",
+           "MockModel(5, p=1, emin=1, emax=10)",
+           "MockModel(6, p=1, emin=10, emax=100)",
+           "MockModel(7, p=2, emin=0.001, emax=1)",
+           "MockModel(8, p=2, emin=1, emax=100)",
+           "MockModel(9, p=1, emin=0.001, emax=10)",
+           "MockModel(10, p=2, emin=0.001, emax=10)",
+           "MockModel(11, p=3, emin=1e-05, emax=1000)"};
     EXPECT_VEC_EQ(expected_model_desc, model_desc);
 
     // Test host-accessible process map
@@ -186,15 +186,15 @@ TEST_F(PhysicsParamsTest, energy_max_xs)
             energy_max_xs.push_back(std::move(energy));
         }
     }
-    static std::vector<double> const expected_energy_max_xs[] = {
-        {-1, -1, -1, -1},
-        {-1, -1, -1, -1},
-        {-1, -1, -1, -1},
-        {0.001, 0.001, 0.001, 0.001},
-        {0.001, 0.001, 0.001, 0.001},
-        {0.001, 0.001, 0.001, 0.001},
-        {0.001, 0.001, 0.001, 0.001},
-        {0.1, 0.1, 0.1, 0.1}};
+    static std::vector<double> const expected_energy_max_xs[]
+        = {{-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {-1, -1, -1, -1},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.001, 0.001, 0.001, 0.001},
+           {0.1, 0.1, 0.1, 0.1}};
     EXPECT_VEC_SOFT_EQ(expected_energy_max_xs, energy_max_xs);
 }
 
@@ -523,8 +523,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
         }
     }
 
-    double const expected_xs[] = {
-        0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
+    double const expected_xs[]
+        = {0.0001, 0.001, 0.1, 1e-24, 0.0001, 0.001, 0.1, 1e-24};
     EXPECT_VEC_SOFT_EQ(expected_xs, xs);
 }
 
@@ -561,8 +561,8 @@ TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
         }
     }
 
-    static double const expected_eloss[] = {
-        0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
+    static double const expected_eloss[]
+        = {0.6, 0.6, 0.6, 0.6, 0.7, 0.7, 0.7, 0.7};
     static double const expected_range[] = {
         0.00010540925533895,
         0.018333333333333,

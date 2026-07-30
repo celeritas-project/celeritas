@@ -32,7 +32,8 @@ class WavelengthShiftTest : public InteractorHostBase,
                             public OpticalMockTestBase
 {
   protected:
-    using HostStateStore = StateDataStore<WlsGeneratorStateData, MemSpace::host>;
+    using HostStateStore
+        = StateDataStore<WlsGeneratorStateData, MemSpace::host>;
     using DistId = ItemId<WlsDistributionData>;
 
     void SetUp() override {}

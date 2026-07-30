@@ -146,8 +146,8 @@ void EventWriter::operator()(VecPrimary const& primaries)
         par->set_pid(particles_->id_to_pdg(p.particle_id).get());
         par->set_status(final_code);
 
-        auto mass = value_as<units::MevMass>(
-            particles_->get(p.particle_id).mass());
+        auto mass
+            = value_as<units::MevMass>(particles_->get(p.particle_id).mass());
         auto energy = value_as<units::MevEnergy>(p.energy) + mass;
         real_type mom_mag = std::sqrt(ipow<2>(energy) - ipow<2>(mass));
 

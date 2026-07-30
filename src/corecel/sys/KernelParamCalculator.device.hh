@@ -223,8 +223,8 @@ auto KernelParamCalculator::operator()(size_type min_num_threads) const
     }
 
     // Ceiling integer division
-    dim_type blocks_per_grid = celeritas::ceil_div<dim_type>(
-        min_num_threads, this->block_size_);
+    dim_type blocks_per_grid
+        = celeritas::ceil_div<dim_type>(min_num_threads, this->block_size_);
     CELER_ASSERT(blocks_per_grid
                  < dim_type(celeritas::device().max_blocks_per_grid()));
 

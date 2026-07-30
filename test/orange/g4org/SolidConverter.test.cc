@@ -991,8 +991,8 @@ TEST_F(SolidConverterTest, polyhedra)
                                     20.7400000000002 * mm,
                                     20.7400000000002 * mm,
                                     20.7499999999995 * mm};
-        static double const rmin2[] = {
-            348.6 * mm, 348.6 * mm, 418.6 * mm, 418.6 * mm};
+        static double const rmin2[]
+            = {348.6 * mm, 348.6 * mm, 418.6 * mm, 418.6 * mm};
         static double const rmax2[] = {1984.08417370622 * mm,
                                        2036.42657691209 * mm,
                                        2036.42657691209 * mm,

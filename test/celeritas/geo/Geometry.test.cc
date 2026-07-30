@@ -20,8 +20,8 @@ namespace celeritas
 {
 namespace test
 {
-constexpr bool using_orange_geo = (CELERITAS_CORE_GEO
-                                   == CELERITAS_CORE_GEO_ORANGE);
+constexpr bool using_orange_geo
+    = (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE);
 constexpr bool using_vg = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM;
 
 //---------------------------------------------------------------------------//
@@ -65,8 +65,8 @@ class TestEm3Test : public HeuristicGeoTestBase
         HeuristicGeoScalars result;
         result.lower = {-19.77, -20, -20};
         result.upper = {19.43, 20, 20};
-        result.world_volume = this->geometry()->impl_volumes().find_unique(
-            "world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -76,33 +76,33 @@ class TestEm3Test : public HeuristicGeoTestBase
 
 auto TestEm3Test::reference_volumes() const -> SpanConstStr
 {
-    static std::string const vols[] = {
-        "world",       "gap_0",  "absorber_0",  "gap_1",
-        "absorber_1",  "gap_2",  "absorber_2",  "gap_3",
-        "absorber_3",  "gap_4",  "absorber_4",  "gap_5",
-        "absorber_5",  "gap_6",  "absorber_6",  "gap_7",
-        "absorber_7",  "gap_8",  "absorber_8",  "gap_9",
-        "absorber_9",  "gap_10", "absorber_10", "gap_11",
-        "absorber_11", "gap_12", "absorber_12", "gap_13",
-        "absorber_13", "gap_14", "absorber_14", "gap_15",
-        "absorber_15", "gap_16", "absorber_16", "gap_17",
-        "absorber_17", "gap_18", "absorber_18", "gap_19",
-        "absorber_19", "gap_20", "absorber_20", "gap_21",
-        "absorber_21", "gap_22", "absorber_22", "gap_23",
-        "absorber_23", "gap_24", "absorber_24", "gap_25",
-        "absorber_25", "gap_26", "absorber_26", "gap_27",
-        "absorber_27", "gap_28", "absorber_28", "gap_29",
-        "absorber_29", "gap_30", "absorber_30", "gap_31",
-        "absorber_31", "gap_32", "absorber_32", "gap_33",
-        "absorber_33", "gap_34", "absorber_34", "gap_35",
-        "absorber_35", "gap_36", "absorber_36", "gap_37",
-        "absorber_37", "gap_38", "absorber_38", "gap_39",
-        "absorber_39", "gap_40", "absorber_40", "gap_41",
-        "absorber_41", "gap_42", "absorber_42", "gap_43",
-        "absorber_43", "gap_44", "absorber_44", "gap_45",
-        "absorber_45", "gap_46", "absorber_46", "gap_47",
-        "absorber_47", "gap_48", "absorber_48", "gap_49",
-        "absorber_49"};
+    static std::string const vols[]
+        = {"world",       "gap_0",  "absorber_0",  "gap_1",
+           "absorber_1",  "gap_2",  "absorber_2",  "gap_3",
+           "absorber_3",  "gap_4",  "absorber_4",  "gap_5",
+           "absorber_5",  "gap_6",  "absorber_6",  "gap_7",
+           "absorber_7",  "gap_8",  "absorber_8",  "gap_9",
+           "absorber_9",  "gap_10", "absorber_10", "gap_11",
+           "absorber_11", "gap_12", "absorber_12", "gap_13",
+           "absorber_13", "gap_14", "absorber_14", "gap_15",
+           "absorber_15", "gap_16", "absorber_16", "gap_17",
+           "absorber_17", "gap_18", "absorber_18", "gap_19",
+           "absorber_19", "gap_20", "absorber_20", "gap_21",
+           "absorber_21", "gap_22", "absorber_22", "gap_23",
+           "absorber_23", "gap_24", "absorber_24", "gap_25",
+           "absorber_25", "gap_26", "absorber_26", "gap_27",
+           "absorber_27", "gap_28", "absorber_28", "gap_29",
+           "absorber_29", "gap_30", "absorber_30", "gap_31",
+           "absorber_31", "gap_32", "absorber_32", "gap_33",
+           "absorber_33", "gap_34", "absorber_34", "gap_35",
+           "absorber_35", "gap_36", "absorber_36", "gap_37",
+           "absorber_37", "gap_38", "absorber_38", "gap_39",
+           "absorber_39", "gap_40", "absorber_40", "gap_41",
+           "absorber_41", "gap_42", "absorber_42", "gap_43",
+           "absorber_43", "gap_44", "absorber_44", "gap_45",
+           "absorber_45", "gap_46", "absorber_46", "gap_47",
+           "absorber_47", "gap_48", "absorber_48", "gap_49",
+           "absorber_49"};
     return make_span(vols);
 }
 
@@ -163,8 +163,8 @@ class SimpleCmsTest : public HeuristicGeoTestBase
         result.upper = {30, 30, 700};
         result.log_min_step = std::log(1e-4);
         result.log_max_step = std::log(1e2);
-        result.world_volume = this->geometry()->impl_volumes().find_unique(
-            "world");
+        result.world_volume
+            = this->geometry()->impl_volumes().find_unique("world");
         return result;
     }
 
@@ -188,8 +188,8 @@ auto SimpleCmsTest::reference_avg_path() const -> SpanConstReal
 {
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
-        static real_type paths[] = {
-            56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
+        static real_type paths[]
+            = {56, 390, 255.5, 497.960489118954, 451, 1137, 1870};
         if (using_vg && CELERITAS_VECGEOM_VERSION >= 0x020000)
         {
             // TODO: try to fix any discrepancies from vg2.x
@@ -379,9 +379,8 @@ TEST_F(ThreeSpheresTest, avg_path)
 TEST_F(CmseTest, DISABLED_avg_path)
 {
     auto const& bbox = this->geometry()->bbox();
-    real_type const geo_eps = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-                                  ? 0.001
-                                  : 0;
+    real_type const geo_eps
+        = CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM ? 0.001 : 0;
     EXPECT_VEC_SOFT_EQ(
         (Real3{-1750 - geo_eps, -1750 - geo_eps, -45000 - geo_eps}),
         bbox.lower());

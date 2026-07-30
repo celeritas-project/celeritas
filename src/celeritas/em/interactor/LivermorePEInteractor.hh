@@ -171,8 +171,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
     {
         auto const& el = shared_.xs.elements[el_id_];
         auto const& shells = shared_.xs.shells[el.shells];
-        binding_energy = value_as<Energy>(
-            shells[shell_id.get()].binding_energy);
+        binding_energy
+            = value_as<Energy>(shells[shell_id.get()].binding_energy);
     }
 
     // Outgoing secondary is an electron
@@ -205,8 +205,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
         // The local energy deposition is the difference between the binding
         // energy of the vacancy subshell and the sum of the energies of any
         // secondaries created in atomic relaxation
-        result.energy_deposition = Energy{binding_energy
-                                          - value_as<Energy>(outgoing.energy)};
+        result.energy_deposition
+            = Energy{binding_energy - value_as<Energy>(outgoing.energy)};
     }
     else
     {

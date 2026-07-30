@@ -88,18 +88,18 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
         CELER_ASSERT(par_id < pid_to_pmdata.size());
         if (par_id == host_data.ids.electron)
         {
-            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
-                static_cast<size_type>(UPMT::electron));
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::electron));
         }
         else if (par_id == host_data.ids.positron)
         {
-            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
-                static_cast<size_type>(UPMT::positron));
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::positron));
         }
         else
         {
-            pid_to_pmdata[par_id.unchecked_get()] = UrbanParMatId(
-                static_cast<size_type>(UPMT::muhad));
+            pid_to_pmdata[par_id.unchecked_get()]
+                = UrbanParMatId(static_cast<size_type>(UPMT::muhad));
         }
     }
     make_builder(&host_data.pid_to_pmdata)

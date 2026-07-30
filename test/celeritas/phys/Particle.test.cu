@@ -38,8 +38,8 @@ __global__ void ptv_test_kernel(unsigned int size,
 {
     using InvSecDecay = RealQuantity<UnitInverse<units::Second>>;
 
-    auto local_tid = TrackSlotId{
-        KernelParamCalculator::thread_id().unchecked_get()};
+    auto local_tid
+        = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (!(local_tid < size))
         return;
 

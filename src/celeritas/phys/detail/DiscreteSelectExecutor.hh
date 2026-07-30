@@ -50,8 +50,8 @@ CELER_FUNCTION void DiscreteSelectExecutor::operator()(
         auto mat = track.material().material_record();
         auto rng = track.rng();
         auto step = track.physics_step();
-        auto action = select_discrete_interaction(
-            mat, particle, phys, step, rng);
+        auto action
+            = select_discrete_interaction(mat, particle, phys, step, rng);
         CELER_ASSERT(action);
         // Save it as the next kernel
         auto sim = track.sim();

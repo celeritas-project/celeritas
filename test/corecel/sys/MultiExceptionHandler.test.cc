@@ -79,8 +79,8 @@ TEST_F(MultiExceptionHandlerTest, multi)
         "[4/4]: test.cc:2:\nceleritas: internal assertion failed: false",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {
-        "critical", "critical", "critical", "critical"};
+    static char const* const expected_log_levels[]
+        = {"critical", "critical", "critical", "critical"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -113,8 +113,8 @@ celeritas: internal assertion failed: false
         "[3-5/5]: identical root cause to exception [2/5]",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages()) << scoped_log_;
-    static char const* const expected_log_levels[] = {
-        "critical", "critical", "critical"};
+    static char const* const expected_log_levels[]
+        = {"critical", "critical", "critical"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 

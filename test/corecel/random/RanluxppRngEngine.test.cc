@@ -120,8 +120,8 @@ TEST(RanluxImpl, compute_power_modulus)
     // = (a^{2^{11}})^{2^{96}}
     // = a^{2^{11} * 2^{96}}
     // = a^{2^{107}}
-    auto temp = detail::compute_power_modulus(
-        a, RanluxppUInt(1) << 50);  // a^2^50
+    auto temp
+        = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);  // a^2^50
     temp = detail::compute_power_modulus(temp,
                                          RanluxppUInt(1) << 50);  // a^2^100
     temp = detail::compute_power_modulus(temp,
@@ -384,8 +384,8 @@ TEST_F(RanluxppRngEngineTest, branch)
 
     // Advance the new RNG
     {
-        RanluxppArray9 lcg = celeritas::detail::to_lcg(
-            ref_branched_rng_state.value);
+        RanluxppArray9 lcg
+            = celeritas::detail::to_lcg(ref_branched_rng_state.value);
         lcg = celeritas::detail::compute_mod_multiply(
             params_->host_ref().advance_state, lcg);
         ref_branched_rng_state.value = celeritas::detail::to_ranlux(lcg);

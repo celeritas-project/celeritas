@@ -107,8 +107,8 @@ void validate_geant_threading(size_type num_streams)
             << limit << ")";
         if (limit > 1)
         {
-            if (std::string const& nt_str = celeritas::getenv(
-                    R"(OMP_NUM_THREADS)");
+            if (std::string const& nt_str
+                = celeritas::getenv(R"(OMP_NUM_THREADS)");
                 !nt_str.empty())
             {
                 msg << ": CPU threads may be oversubscribed (OMP_NUM_THREADS="

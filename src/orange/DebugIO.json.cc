@@ -99,8 +99,8 @@ struct IdToJson
                  if (impl_vol && orange && volumes)
                  {
                      result["canonical"] = (*this)(orange->volume_id(impl_vol));
-                     result["instance"] = (*this)(
-                         orange->volume_instance_id(impl_vol));
+                     result["instance"]
+                         = (*this)(orange->volume_instance_id(impl_vol));
                  }
                  return result;
              }()},

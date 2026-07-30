@@ -97,8 +97,8 @@ class SolidsNavigator
         vg_real_type safety = std::numeric_limits<vg_real_type>::infinity())
     {
         auto* navigator = curr.Top()->GetLogicalVolume()->GetNavigator();
-        real_type result = navigator->GetSafetyEstimator()->ComputeSafety(
-            glpos, curr);
+        real_type result
+            = navigator->GetSafetyEstimator()->ComputeSafety(glpos, curr);
         result = vecCore::math::Min(result, safety);
 
         return result;

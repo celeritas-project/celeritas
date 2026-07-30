@@ -69,8 +69,8 @@ GeantSimpleCalo::GeantSimpleCalo(
     for (auto i : range(volumes_.size()))
     {
         CELER_EXPECT(volumes_[i]);
-        auto&& [iter,
-                inserted] = storage_->volume_to_index.insert({volumes_[i], i});
+        auto&& [iter, inserted]
+            = storage_->volume_to_index.insert({volumes_[i], i});
         CELER_VALIDATE(
             inserted,
             << "logical volume " << StreamableLV{iter->first}

@@ -139,8 +139,8 @@ TEST_F(ParticleImportTest, TEST_IF_CELERITAS_USE_ROOT(import_particle))
         loaded_pdgs.push_back(particles->id_to_pdg(particle_id).get());
     }
 
-    std::string const expected_loaded_names[] = {
-        "gamma", "e-", "e+", "mu-", "mu+"};
+    std::string const expected_loaded_names[]
+        = {"gamma", "e-", "e+", "mu-", "mu+"};
     int const expected_loaded_pdgs[] = {22, 11, -11, 13, -13};
 
     EXPECT_VEC_EQ(expected_loaded_names, loaded_names);

@@ -123,8 +123,8 @@ TEST_F(MuDecayInteractorTest, stress_test)
     auto res_1gev = this->loop(num_samples, MevEnergy{1000});
 
     static double const expected_one_gev_avg_sec_energy = 384.834176348064;
-    static double const expected_one_gev_avg_total_momentum[] = {
-        0.36972198353269, 0.10949440149464, 383.06404348763};
+    static double const expected_one_gev_avg_total_momentum[]
+        = {0.36972198353269, 0.10949440149464, 383.06404348763};
 
     EXPECT_REAL_EQ(expected_one_gev_avg_sec_energy, res_1gev.avg_sec_energy);
     EXPECT_VEC_SOFT_EQ(expected_one_gev_avg_total_momentum,
@@ -134,8 +134,8 @@ TEST_F(MuDecayInteractorTest, stress_test)
     auto res_1mev = this->loop(num_samples, MevEnergy{1});
 
     static double const expected_one_mev_avg_sec_energy = 36.891223054430647;
-    static double const expected_one_mev_avg_total_momentum[] = {
-        0.31976610917125, -0.13376923570472, 5.5275940366016};
+    static double const expected_one_mev_avg_total_momentum[]
+        = {0.31976610917125, -0.13376923570472, 5.5275940366016};
 
     EXPECT_REAL_EQ(expected_one_mev_avg_sec_energy, res_1mev.avg_sec_energy);
     EXPECT_VEC_SOFT_EQ(expected_one_mev_avg_total_momentum,

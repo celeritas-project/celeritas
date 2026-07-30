@@ -26,8 +26,8 @@ Version Version::from_string(std::string_view sv)
     static std::regex const version_regex{
         R"re(^(\d+)(?:\.(\d+)(?:\.(\d+)(?:\.\d+)*)?)?(?:-.*)?)re"};
     std::match_results<std::string_view::iterator> version_match;
-    bool matched = std::regex_match(
-        sv.begin(), sv.end(), version_match, version_regex);
+    bool matched
+        = std::regex_match(sv.begin(), sv.end(), version_match, version_regex);
     CELER_VALIDATE(matched, << "failed to parse version '" << sv << "'");
 
     auto match_to_int = [](auto const& submatch) {

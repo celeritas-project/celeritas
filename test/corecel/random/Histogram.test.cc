@@ -24,10 +24,10 @@ TEST(HistogramTest, bin)
         Histogram bin(10, {0, 1});
         bin(values);
 
-        static unsigned int const expected_counts[] = {
-            100u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
-        static double const expected_density[] = {
-            10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        static unsigned int const expected_counts[]
+            = {100u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+        static double const expected_density[]
+            = {10, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         EXPECT_VEC_EQ(expected_counts, bin.counts());
         EXPECT_VEC_SOFT_EQ(expected_density, bin.calc_density());
     }
@@ -37,10 +37,10 @@ TEST(HistogramTest, bin)
         Histogram bin(10, {0, 1});
         bin(values);
 
-        static unsigned int const expected_counts[] = {
-            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 100u};
-        static double const expected_density[] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 10};
+        static unsigned int const expected_counts[]
+            = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 100u};
+        static double const expected_density[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 10};
         EXPECT_VEC_EQ(expected_counts, bin.counts());
         EXPECT_VEC_SOFT_EQ(expected_density, bin.calc_density());
     }
@@ -49,8 +49,8 @@ TEST(HistogramTest, bin)
         Histogram bin(8, {16, 32});
         bin(values);
 
-        static unsigned int const expected_counts[] = {
-            1u, 1u, 1u, 1u, 1u, 1u, 1u, 2u};
+        static unsigned int const expected_counts[]
+            = {1u, 1u, 1u, 1u, 1u, 1u, 1u, 2u};
         static double const expected_density[] = {
             1.0 / 18,
             1.0 / 18,

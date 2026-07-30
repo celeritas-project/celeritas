@@ -140,7 +140,8 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
     auto const& hsref = this->host_state();
     auto face_storage = hsref.temp_face[AllItems<FaceId>{}];
     state.temp_next.face = face_storage.data();
-    state.temp_next.distance = hsref.temp_distance[AllItems<real_type>{}].data();
+    state.temp_next.distance
+        = hsref.temp_distance[AllItems<real_type>{}].data();
     state.temp_next.isect = hsref.temp_isect[AllItems<size_type>{}].data();
     state.temp_next.size = face_storage.size();
     return state;
@@ -433,22 +434,22 @@ TEST_F(TwoVolumeTest, initialize)
 
     {
         SCOPED_TRACE("In the inner sphere");
-        auto init = tracker.initialize(
-            this->make_state({0.5, 0, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({0.5, 0, 0}, {0, 0, 1}));
         EXPECT_EQ("inside", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         // Test rejection
         SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init = tracker.initialize(
-            this->make_state({1.5, 0, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({1.5, 0, 0}, {0, 0, 1}));
         EXPECT_FALSE(init);
     }
     {
         SCOPED_TRACE("Outside the sphere");
-        auto init = tracker.initialize(
-            this->make_state({3.0, 0, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({3.0, 0, 0}, {0, 0, 1}));
         EXPECT_EQ("outside", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
@@ -586,7 +587,8 @@ TEST_F(TwoVolumeTest, safety)
 {
     SimpleUnitTracker tracker(this->host_params(), SimpleUnitId{0});
     detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
-    LocalVolumeId outside = ui.local_volume(this->find_volume("outside")).volume;
+    LocalVolumeId outside
+        = ui.local_volume(this->find_volume("outside")).volume;
     LocalVolumeId inside = ui.local_volume(this->find_volume("inside")).volume;
 
     EXPECT_SOFT_EQ(1.9641016151377535, tracker.safety({2, 2, 2}, outside));
@@ -658,8 +660,8 @@ TEST_F(FieldLayersTest, initialize)
 
     {
         SCOPED_TRACE("Exterior");
-        auto init = tracker.initialize(
-            this->make_state({0, 50, 0}, {0, -1, 0}));
+        auto init
+            = tracker.initialize(this->make_state({0, 50, 0}, {0, -1, 0}));
         EXPECT_EQ("[EXTERIOR]", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
@@ -669,8 +671,8 @@ TEST_F(FieldLayersTest, initialize)
         EXPECT_FALSE(init.surface);
     }
     {
-        auto init = tracker.initialize(
-            this->make_state({0, -2.4, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({0, -2.4, 0}, {0, 0, 1}));
         EXPECT_EQ("layer1", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
@@ -781,30 +783,30 @@ TEST_F(FiveVolumesTest, initialize)
     }
     {
         SCOPED_TRACE("Single sphere 'e'");
-        auto init = tracker.initialize(
-            this->make_state({-.25, -.25, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({-.25, -.25, 0}, {0, 0, 1}));
         EXPECT_EQ("e", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         SCOPED_TRACE("Trimmed square 'a'");
-        auto init = tracker.initialize(
-            this->make_state({-.7, .7, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({-.7, .7, 0}, {0, 0, 1}));
         EXPECT_EQ("a", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         SCOPED_TRACE("Complicated fill volume 'd'");
-        auto init = tracker.initialize(
-            this->make_state({.75, 0.2, 0}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({.75, 0.2, 0}, {0, 0, 1}));
         EXPECT_EQ("d", this->id_to_label(init.volume));
         EXPECT_FALSE(init.surface);
     }
     {
         // Triple point between a, c, d
         SCOPED_TRACE("On the boundary but not crossing a surface");
-        auto init = tracker.initialize(
-            this->make_state({0, 0.75, 0}, {1, 1, 0}));
+        auto init
+            = tracker.initialize(this->make_state({0, 0.75, 0}, {1, 1, 0}));
         EXPECT_FALSE(init);
     }
 }
@@ -935,8 +937,8 @@ TEST_F(FiveVolumesTest, TEST_IF_CELERITAS_DOUBLE(heuristic_init))
 {
     size_type num_tracks = 10000;
 
-    static double const expected_vol_fractions[] = {
-        0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063};
+    static double const expected_vol_fractions[]
+        = {0, 0.0701, 0.106, 0.1621, 0.6555, 0.0063};
 
     {
         SCOPED_TRACE("Host heuristic");

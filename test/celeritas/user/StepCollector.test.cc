@@ -301,21 +301,21 @@ TEST_F(TestEm3MctruthTest, four_step)
 
     if (this->is_ci_build())
     {
-        static int const expected_event[] = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        static int const expected_event[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         EXPECT_VEC_EQ(expected_event, result.event);
-        static int const expected_track[] = {
-            0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
+        static int const expected_track[]
+            = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3};
         EXPECT_VEC_EQ(expected_track, result.track);
-        static int const expected_step[] = {
-            1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
+        static int const expected_step[]
+            = {1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4};
         EXPECT_VEC_EQ(expected_step, result.step);
         if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
         {
             // 1 is gap_0
             // 101 is world
-            static int const expected_volume[] = {
-                101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1};
+            static int const expected_volume[]
+                = {101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1, 101, 1, 1, 1};
             EXPECT_VEC_EQ(expected_volume, result.volume);
         }
         static double const expected_pos[] = {
@@ -443,8 +443,8 @@ TEST_F(TestEm3CaloTest, thirtytwo_step)
     }
     auto result = this->run<MemSpace::host>(256, 32);
 
-    static double const expected_edep[] = {
-        1548.8862372467, 113.80254412772, 32.259504023678};
+    static double const expected_edep[]
+        = {1548.8862372467, 113.80254412772, 32.259504023678};
     EXPECT_VEC_NEAR(expected_edep, result.edep, 0.5);
 }
 

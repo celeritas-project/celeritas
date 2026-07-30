@@ -192,10 +192,10 @@ CELER_FUNCTION TrackInitializer CherenkovGenerator::operator()(Generator& rng)
         u = sample_step_fraction(rng);
     } while (sample_num_photons_(rng) > dndx_pre_ + u * delta_num_photons_);
 
-    real_type delta_time = u * dist_.step_length
-                           / (native_value_from(
-                                  dist_.points[StepPoint::pre].speed)
-                              + u * 0.5_r * native_value_from(delta_speed_));
+    real_type delta_time
+        = u * dist_.step_length
+          / (native_value_from(dist_.points[StepPoint::pre].speed)
+             + u * 0.5_r * native_value_from(delta_speed_));
     photon.time = dist_.points[StepPoint::pre].time + delta_time;
     photon.position = dist_.points[StepPoint::pre].pos;
     axpy(u, delta_pos_, &photon.position);

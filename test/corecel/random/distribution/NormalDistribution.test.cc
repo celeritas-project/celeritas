@@ -34,8 +34,8 @@ TEST(NormalDistributionTest, normal)
     {
         histogram(sample_normal(rng));
     }
-    static unsigned int const expected_counts[] = {
-        17, 218, 1379, 3397, 3411, 1352, 211, 15};
+    static unsigned int const expected_counts[]
+        = {17, 218, 1379, 3397, 3411, 1352, 211, 15};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_EQ(2 * num_samples, rng.count());
 }

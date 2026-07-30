@@ -220,8 +220,8 @@ CELER_FUNCTION auto SimpleUnitTracker::cross_boundary(
     CELER_EXPECT(state.surface && state.volume);
 
     detail::OnLocalSurface on_surface;
-    auto is_inside = [this, &state, &on_surface](
-                         LocalVolumeId const& id) -> bool {
+    auto is_inside
+        = [this, &state, &on_surface](LocalVolumeId const& id) -> bool {
         if (id == state.volume)
         {
             // Cannot cross surface into the same volume
@@ -466,11 +466,11 @@ CELER_FUNCTION auto SimpleUnitTracker::simple_intersect(
 
     // Crossing any surface will leave the volume; perform a linear search for
     // the smallest (but positive) distance
-    size_type distance_idx = celeritas::min_element(
-                                 state.temp_next.distance,
+    size_type distance_idx
+        = celeritas::min_element(state.temp_next.distance,
                                  state.temp_next.distance + num_isect,
                                  Less<real_type>{})
-                             - state.temp_next.distance;
+          - state.temp_next.distance;
     CELER_ASSERT(distance_idx < num_isect);
 
     // Determine the crossing surface

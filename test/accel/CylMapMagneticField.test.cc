@@ -41,8 +41,8 @@ TEST_F(CylMapMagneticFieldTest, make_input)
     std::vector<G4double> z_grid = {-3 * cm, -1 * cm, 0 * cm};
 
     // Convert
-    auto inp = MakeCylMapFieldInput(
-        this->g4field(), r_grid, phi_values, z_grid);
+    auto inp
+        = MakeCylMapFieldInput(this->g4field(), r_grid, phi_values, z_grid);
 
     // Check (being careful with units)
     std::vector<real_type> field_tesla(inp.field.size());

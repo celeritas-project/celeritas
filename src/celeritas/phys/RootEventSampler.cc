@@ -32,8 +32,8 @@ RootEventSampler::RootEventSampler(std::string const& filename,
                  && num_merged_events_ <= reader_->num_events());
 
     rng_.seed(seed);
-    select_event_ = std::uniform_int_distribution<size_type>(
-        0, reader_->num_events());
+    select_event_
+        = std::uniform_int_distribution<size_type>(0, reader_->num_events());
 }
 
 //---------------------------------------------------------------------------//

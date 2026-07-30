@@ -83,8 +83,8 @@ TEST_F(ScopedGeantLoggerTest, nesting)
             ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                         LogLevel::debug};
             G4cout << "This should still work" << endl;
-            static char const* const expected_log_messages[] = {
-                "This should still work"};
+            static char const* const expected_log_messages[]
+                = {"This should still work"};
             EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
             static char const* const expected_log_levels[] = {"diagnostic"};
             EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());

@@ -53,24 +53,24 @@ void PDSimAna::beginJob()
     auto vec_log_bins = geomspace(min_time, max_time, nbins_time + 1);
 
     // Initialize histograms
-    histograms_.btr_time = tfs->make<TH1D>(
-        "btr_timepdclock", "btr_timepdclock", 100, 0, 50e3);
-    histograms_.btr_detid_logtime_energy = tfs->make<TH2D>(
-        "btr_logtime_opdetid_energy",
-        "btr_logtime_opdetid_energy",
-        nbins_time,
-        vec_log_bins.data(),
-        480,
-        0,
-        480);
-    histograms_.btr_detid_logtime_numphotons = tfs->make<TH2D>(
-        "btr_logtime_opdetid_numphotons",
-        "btr_logtime_opdetid_numphotons",
-        nbins_time,
-        vec_log_bins.data(),
-        480,
-        0,
-        480);
+    histograms_.btr_time
+        = tfs->make<TH1D>("btr_timepdclock", "btr_timepdclock", 100, 0, 50e3);
+    histograms_.btr_detid_logtime_energy
+        = tfs->make<TH2D>("btr_logtime_opdetid_energy",
+                          "btr_logtime_opdetid_energy",
+                          nbins_time,
+                          vec_log_bins.data(),
+                          480,
+                          0,
+                          480);
+    histograms_.btr_detid_logtime_numphotons
+        = tfs->make<TH2D>("btr_logtime_opdetid_numphotons",
+                          "btr_logtime_opdetid_numphotons",
+                          nbins_time,
+                          vec_log_bins.data(),
+                          480,
+                          0,
+                          480);
 }
 
 //---------------------------------------------------------------------------//

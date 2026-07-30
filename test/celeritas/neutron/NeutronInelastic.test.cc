@@ -51,12 +51,12 @@ class NeutronInelasticTest : public NeutronTestBase
         // Build the model with the default material
         this->set_material("HeCu");
         CascadeOptions options;
-        model_ = std::make_shared<NeutronInelasticModel>(
-            ActionId{0},
-            particles,
-            *this->material_params(),
-            options,
-            xs_reader);
+        model_
+            = std::make_shared<NeutronInelasticModel>(ActionId{0},
+                                                      particles,
+                                                      *this->material_params(),
+                                                      options,
+                                                      xs_reader);
     }
 
   protected:
@@ -229,11 +229,11 @@ TEST_F(NeutronInelasticTest, model_data)
         }
     }
 
-    real_type const expected_cu_radii[] = {
-        12.0056427171327, 14.924785000235, 21.383497297248};
+    real_type const expected_cu_radii[]
+        = {12.0056427171327, 14.924785000235, 21.383497297248};
 
-    real_type const expected_cu_volumes[] = {
-        7248.44509638664, 6677.12103595803, 27031.1207141316};
+    real_type const expected_cu_volumes[]
+        = {7248.44509638664, 6677.12103595803, 27031.1207141316};
 
     // clang-format off
     real_type const expected_cu_densities[]
@@ -343,11 +343,11 @@ TEST_F(NeutronInelasticTest, model_data)
         }
     }
 
-    real_type const expected_b_radii[] = {
-        4.54355900675881, 8.34774540792328, 16.3261316488719};
+    real_type const expected_b_radii[]
+        = {4.54355900675881, 8.34774540792328, 16.3261316488719};
 
-    real_type const expected_b_volumes[] = {
-        392.895565424687, 2043.77151146382, 15791.3107610447};
+    real_type const expected_b_volumes[]
+        = {392.895565424687, 2043.77151146382, 15791.3107610447};
 
     // clang-format off
     real_type const expected_b_densities[]
@@ -443,12 +443,12 @@ TEST_F(NeutronInelasticTest, cascade_collider)
     // Expected results (verified with Geant4 11.2.2)
     real_type expected_nn_energy[] = {985.07411365134317, 1084.5568863486567};
     real_type expected_np_energy[] = {985.94825543412617, 956.47374456587363};
-    Real3 expected_np_mom[] = {
-        {295.582760097549, -7.33588399587099, 43.4489730961597},
-        {-49.2308600975493, 63.571683995871, -167.39957309616}};
-    Real3 expected_nn_mom[] = {
-        {-91.1374627277095, -224.52912872407, 169.907259286778},
-        {143.77896272771, 70.8863287240703, 517.477740713221}};
+    Real3 expected_np_mom[]
+        = {{295.582760097549, -7.33588399587099, 43.4489730961597},
+           {-49.2308600975493, 63.571683995871, -167.39957309616}};
+    Real3 expected_nn_mom[]
+        = {{-91.1374627277095, -224.52912872407, 169.907259286778},
+           {143.77896272771, 70.8863287240703, 517.477740713221}};
 
     for (auto i : range(2))
     {

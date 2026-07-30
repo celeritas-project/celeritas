@@ -37,8 +37,8 @@ TEST(PrintExpected, example)
         PRINT_EXPECTED(values);
 
         using Limits_t = std::numeric_limits<double>;
-        double const more[] = {
-            .5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
+        double const more[]
+            = {.5, .001, Limits_t::infinity(), Limits_t::quiet_NaN()};
         PRINT_EXPECTED(more);
 
         char const* const cstrings[] = {"one", "three", "five"};

@@ -117,8 +117,8 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
     if (!particles.empty())
     {
         // Reconstruct track
-        track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
-            particles, step_);
+        track_reconstruction_
+            = std::make_shared<GeantTrackReconstruction>(particles, step_);
     }
     CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
                  && ss_.primary_id == ss_.particle_id);
@@ -277,8 +277,8 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         // Copy attributes from logical volume
         if (sp == StepPoint::pre)
         {
-            G4LogicalVolume const* lv = this->detector_volume(
-                out.detector_id[i]);
+            G4LogicalVolume const* lv
+                = this->detector_volume(out.detector_id[i]);
             CELER_ASSERT(lv);
             // Use lv already known from the in-volume detector
             sp_view.update_from_volume(*lv);

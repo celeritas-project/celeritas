@@ -48,8 +48,8 @@ class SimpleCmsTest : public SensDetTestBase, public SimpleCmsTestBase
         auto result = SensDetTestBase::build_geant_geo(filename);
 
         // Create unused volume after building geometry
-        G4Material* mat = G4NistManager::Instance()->FindOrBuildMaterial(
-            "G4_AIR");
+        G4Material* mat
+            = G4NistManager::Instance()->FindOrBuildMaterial("G4_AIR");
         SimpleCmsTest::detached_lv = new G4LogicalVolume(
             new G4Orb("unused_solid", 10.0), mat, "unused");
 
@@ -183,8 +183,8 @@ TEST_F(SimpleCmsTest, add_duplicate)
             "Setting up thread-local hit processor for 2 sensitive detectors",
         };
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-        static char const* const expected_log_levels[] = {
-            "debug", "debug", "debug", "debug"};
+        static char const* const expected_log_levels[]
+            = {"debug", "debug", "debug", "debug"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
 
@@ -203,8 +203,8 @@ TEST_F(SimpleCmsTest, add_one)
     EXPECT_EQ(3, man.geant_vols()->size());
     auto vnames = this->volume_names(man.celer_vols());
 
-    static char const* const expected_vnames[] = {
-        "si_tracker", "em_calorimeter", "had_calorimeter"};
+    static char const* const expected_vnames[]
+        = {"si_tracker", "em_calorimeter", "had_calorimeter"};
     EXPECT_VEC_EQ(expected_vnames, vnames);
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
     EXPECT_JSON_EQ(
@@ -215,8 +215,8 @@ TEST_F(SimpleCmsTest, add_one)
 TEST_F(SimpleCmsTest, no_detector)
 {
     // No detectors
-    sd_setup_.skip_volumes = find_geant_volumes(
-        {"em_calorimeter", "had_calorimeter"});
+    sd_setup_.skip_volumes
+        = find_geant_volumes({"em_calorimeter", "had_calorimeter"});
     EXPECT_THROW(this->make_hit_manager(), celeritas::RuntimeError);
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }

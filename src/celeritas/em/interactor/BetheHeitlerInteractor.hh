@@ -218,8 +218,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
         // sections, an additional constraint that \epsilon > \epsilon_1 is
         // introduced, where \epsilon_1 is the solution to
         // \Phi(\delta(\epsilon)) - F(Z)/2 = 0.
-        real_type const epsilon1 = half
-                                   * (1 - std::sqrt(1 - delta_min / delta_max));
+        real_type const epsilon1
+            = half * (1 - std::sqrt(1 - delta_min / delta_max));
         real_type const epsilon_min = celeritas::max(epsilon0_, epsilon1);
 
         // Decide to choose f1, g1 [brems] or f2, g2 [pair production]
@@ -321,13 +321,13 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
     };
 
     // Note that positron has opposite azimuthal angle
-    secondaries[0].direction = rotate(
-        from_spherical(sample_costheta(secondaries[0].energy), phi),
-        inc_direction_);
-    secondaries[1].direction = rotate(
-        from_spherical(sample_costheta(secondaries[1].energy),
-                       phi + constants::pi),
-        inc_direction_);
+    secondaries[0].direction
+        = rotate(from_spherical(sample_costheta(secondaries[0].energy), phi),
+                 inc_direction_);
+    secondaries[1].direction
+        = rotate(from_spherical(sample_costheta(secondaries[1].energy),
+                                phi + constants::pi),
+                 inc_direction_);
 
     return result;
 }

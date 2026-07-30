@@ -77,7 +77,8 @@ LocalState RectArrayTrackerTest::make_state(Real3 pos, Real3 dir)
     auto const& hsref = this->host_state();
     auto face_storage = hsref.temp_face[AllItems<FaceId>{}];
     state.temp_next.face = face_storage.data();
-    state.temp_next.distance = hsref.temp_distance[AllItems<real_type>{}].data();
+    state.temp_next.distance
+        = hsref.temp_distance[AllItems<real_type>{}].data();
     state.temp_next.isect = hsref.temp_isect[AllItems<size_type>{}].data();
     state.temp_next.size = face_storage.size();
     return state;
@@ -121,8 +122,8 @@ TEST_F(RectArrayTrackerTest, initialize)
     RectArrayTracker tracker(this->host_params(), RectArrayId{0});
     SCOPED_TRACE("vol {0,0,0}");
     {
-        auto init = tracker.initialize(
-            this->make_state({0.1, 0.1, 0.1}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({0.1, 0.1, 0.1}, {0, 0, 1}));
 
         this->id_to_label(UnivId{2}, init.volume);
 
@@ -134,8 +135,8 @@ TEST_F(RectArrayTrackerTest, initialize)
 
     SCOPED_TRACE("vol {1,1,0}");
     {
-        auto init = tracker.initialize(
-            this->make_state({3.1, 3.1, 0.1}, {0, 0, 1}));
+        auto init
+            = tracker.initialize(this->make_state({3.1, 3.1, 0.1}, {0, 0, 1}));
 
         this->id_to_label(UnivId{2}, init.volume);
 

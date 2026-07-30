@@ -131,8 +131,8 @@ inline Array<T, 3> calc_half_widths(BoundingBox<T> const& bbox)
     Array<T, 3> hw;
     for (auto ax : range(Axis::size_))
     {
-        hw[to_int(ax)] = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax))
-                         / 2;
+        hw[to_int(ax)]
+            = (bbox.point(Bound::hi, ax) - bbox.point(Bound::lo, ax)) / 2;
     }
 
     return hw;
@@ -195,10 +195,10 @@ inline constexpr BoundingBox<T> calc_union(BoundingBox<T> const& a,
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
     {
-        extents[to_int(ax)][to_int(Bound::lo)] = celeritas::min(
-            a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        extents[to_int(ax)][to_int(Bound::hi)] = celeritas::max(
-            a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        extents[to_int(ax)][to_int(Bound::lo)]
+            = celeritas::min(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)]
+            = celeritas::max(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
     return BoundingBox<T>::from_unchecked(extents);
@@ -217,10 +217,10 @@ inline constexpr BoundingBox<T> calc_intersection(BoundingBox<T> const& a,
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
     {
-        extents[to_int(ax)][to_int(Bound::lo)] = celeritas::max(
-            a.point(Bound::lo, ax), b.point(Bound::lo, ax));
-        extents[to_int(ax)][to_int(Bound::hi)] = celeritas::min(
-            a.point(Bound::hi, ax), b.point(Bound::hi, ax));
+        extents[to_int(ax)][to_int(Bound::lo)]
+            = celeritas::max(a.point(Bound::lo, ax), b.point(Bound::lo, ax));
+        extents[to_int(ax)][to_int(Bound::hi)]
+            = celeritas::min(a.point(Bound::hi, ax), b.point(Bound::hi, ax));
     }
 
     return BoundingBox<T>::from_unchecked(extents);
@@ -379,10 +379,10 @@ class BoundingBoxBumper
 
         for (auto ax : range(Axis::size_))
         {
-            extents[to_int(ax)][to_int(Bound::lo)] = this->bumped<-1>(
-                bbox.point(Bound::lo, ax));
-            extents[to_int(ax)][to_int(Bound::hi)] = this->bumped<+1>(
-                bbox.point(Bound::hi, ax));
+            extents[to_int(ax)][to_int(Bound::lo)]
+                = this->bumped<-1>(bbox.point(Bound::lo, ax));
+            extents[to_int(ax)][to_int(Bound::hi)]
+                = this->bumped<+1>(bbox.point(Bound::hi, ax));
         }
 
         return result_type::from_unchecked(extents);

@@ -335,10 +335,9 @@ CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
         // Muons and hadrons
         real_type mass_ratio = value_as<Mass>(electron_mass) / mass;
         real_type tau = inc_energy / mass;
-        real_type max_energy = 2 * value_as<Mass>(electron_mass) * tau
-                               * (tau + 2)
-                               / (1 + 2 * mass_ratio * (tau + 1)
-                                  + ipow<2>(mass_ratio));
+        real_type max_energy
+            = 2 * value_as<Mass>(electron_mass) * tau * (tau + 2)
+              / (1 + 2 * mass_ratio * (tau + 1) + ipow<2>(mass_ratio));
         result = -min(value_as<Energy>(cutoff), max_energy)
                  * value_as<Mass>(electron_mass)
                  / value_as<MomentumSq>(particle.momentum_sq());

@@ -55,8 +55,8 @@ TEST_F(RoughnessSamplerTest, entering_surface)
     std::vector<SampledHistogram> actual;
 
     // Test over range of incident directions
-    static Real3 incident_directions[] = {
-        {0, 0, -1}, {1, 0, -1}, {0, 1, -1}, {-1, 0, -1}};
+    static Real3 incident_directions[]
+        = {{0, 0, -1}, {1, 0, -1}, {0, 1, -1}, {-1, 0, -1}};
 
     constexpr Real3 global_normal = {0, 0, 1};
     for (Real3 incident_dir : incident_directions)

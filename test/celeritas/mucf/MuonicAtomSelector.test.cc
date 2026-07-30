@@ -125,9 +125,8 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_dt_mixture)
         double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
         double const expected_d_count = num_samples_d * expected_d_prob;
         // 3 sigma tolerance
-        double const tolerance = 3
-                                 * this->calc_sigma(num_samples_d,
-                                                    expected_d_prob);
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_d_prob);
 
         EXPECT_NEAR(expected_d_count, deuterium_count_d, tolerance);
         EXPECT_NEAR(
@@ -162,9 +161,8 @@ TEST_F(MuonicAtomSelectorTest, muonic_atom_asymmetric_mixture)
         double const expected_d_prob = this->calc_deuterium_q1s_prob(d_frac);
         double const expected_d_count = num_samples_d * expected_d_prob;
         // 3 sigma tolerance
-        double const tolerance = 3
-                                 * this->calc_sigma(num_samples_d,
-                                                    expected_d_prob);
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_d_prob);
 
         EXPECT_NEAR(expected_d_count, deuterium_count_d, tolerance);
     }
@@ -208,9 +206,8 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_deuterium)
         double const expected_3_2_prob = 2.0 / 3.0;
         double const expected_3_2_count = num_samples_d * expected_3_2_prob;
         // 3 sigma tolerance
-        double const tolerance = 3
-                                 * this->calc_sigma(num_samples_d,
-                                                    expected_3_2_prob);
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_3_2_prob);
 
         EXPECT_NEAR(expected_3_2_count, spin_3_2_count_d, tolerance);
         EXPECT_NEAR(
@@ -256,9 +253,8 @@ TEST_F(MuonicAtomSelectorTest, spin_selector_tritium)
         double const expected_1_prob = 0.75;
         double const expected_1_count = num_samples_d * expected_1_prob;
         // 3 sigma tolerance
-        double const tolerance = 3
-                                 * this->calc_sigma(num_samples_d,
-                                                    expected_1_prob);
+        double const tolerance
+            = 3 * this->calc_sigma(num_samples_d, expected_1_prob);
 
         EXPECT_NEAR(expected_1_count, spin_1_count_d, tolerance);
         EXPECT_NEAR(

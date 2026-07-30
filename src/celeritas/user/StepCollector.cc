@@ -61,8 +61,9 @@ StepCollector::StepCollector(SPConstCoreGeo geo,
     if (this->selection().points[StepPoint::pre] || params_->has_detectors())
     {
         // Some pre-step data is being gathered
-        pre_action_ = std::make_shared<detail::StepGatherAction<StepPoint::pre>>(
-            action_registry->next_id(), params_, VecInterface{});
+        pre_action_
+            = std::make_shared<detail::StepGatherAction<StepPoint::pre>>(
+                action_registry->next_id(), params_, VecInterface{});
         action_registry->insert(pre_action_);
     }
 

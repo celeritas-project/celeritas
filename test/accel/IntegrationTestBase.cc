@@ -281,8 +281,8 @@ char const* to_cstring(TestOffload value)
 //! Convert string to TestOffload
 TestOffload to_test_offload(std::string const& s)
 {
-    static auto const map = StringEnumMapper<TestOffload>::from_cstring_func(
-        to_cstring);
+    static auto const map
+        = StringEnumMapper<TestOffload>::from_cstring_func(to_cstring);
     return map(s);
 }
 

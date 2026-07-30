@@ -119,8 +119,8 @@ CELER_FUNCTION auto ZHelixIntegrator<E>::operator()(
     Helicity helicity = Helicity(rhs.mom[0] / rhs.pos[1] > 0);
 
     // State after the half step
-    result.mid_state = this->move(
-        0.5_r * step, radius, helicity, beg_state, rhs);
+    result.mid_state
+        = this->move(0.5_r * step, radius, helicity, beg_state, rhs);
 
     // State after the full step
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);

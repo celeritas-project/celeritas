@@ -129,8 +129,8 @@ CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
     {
         if (!view_.is_internal(stack.top()))
         {
-            intersection = this->visit_leaf(
-                stack.top(), intersection, visit_vol);
+            intersection
+                = this->visit_leaf(stack.top(), intersection, visit_vol);
             stack.pop();
             continue;
         }

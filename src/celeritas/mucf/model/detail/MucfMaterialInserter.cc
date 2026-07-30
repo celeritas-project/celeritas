@@ -56,8 +56,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     for (auto elcompid : range(material.num_elements()))
     {
-        auto const& element_view = material.element_record(
-            ElementComponentId{elcompid});
+        auto const& element_view
+            = material.element_record(ElementComponentId{elcompid});
         if (element_view.atomic_number() != AtomicNumber{1})
         {
             // Skip non-hydrogen elements
@@ -68,8 +68,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
         auto const elem_rel_abundance = material.elements()[elcompid].fraction;
         for (auto el_comp : range(element_view.num_isotopes()))
         {
-            auto iso_view = element_view.isotope_record(
-                IsotopeComponentId{el_comp});
+            auto iso_view
+                = element_view.isotope_record(IsotopeComponentId{el_comp});
             auto const atom = from_mass_number(iso_view.atomic_mass_number());
             auto const iso_frac = element_view.isotopes()[el_comp].fraction;
 
@@ -91,8 +91,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
 
     // Found d and/or t, calculate and insert data into collection
 
-    auto equilibrium_densities = EquilibrateDensitiesSolver(lhd_densities)(
-        material.temperature());
+    auto equilibrium_densities
+        = EquilibrateDensitiesSolver(lhd_densities)(material.temperature());
 
     if (lhd_densities[MucfIsotope::deuterium])
     {
@@ -108,8 +108,9 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
     if (lhd_densities[MucfIsotope::deuterium]
         && lhd_densities[MucfIsotope::tritium])
     {
-        cycle_times[MucfMuonicMolecule::deuterium_tritium] = this->calc_dt_cycle(
-            equilibrium_densities, material.temperature());
+        cycle_times[MucfMuonicMolecule::deuterium_tritium]
+            = this->calc_dt_cycle(equilibrium_densities,
+                                  material.temperature());
     }
 
     // Add muCF material to the model's host/device data
@@ -137,10 +138,10 @@ MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dd_cycle(
 
     auto const& dd_dens = eq_dens[IsoProt::deuterium_deuterium];
 
-    auto const& dd_1_over_2_interpolate = this->interpolator(
-        CTT::deuterium_deuterium, HalfSpinInt{1});
-    auto const& dd_3_over_2_interpolate = this->interpolator(
-        CTT::deuterium_deuterium, HalfSpinInt{3});
+    auto const& dd_1_over_2_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{1});
+    auto const& dd_3_over_2_interpolate
+        = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{3});
 
     MoleculeCycles result;
     result[0] = 1_r / (dd_dens * dd_1_over_2_interpolate(temperature));  // F =

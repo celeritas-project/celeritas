@@ -220,11 +220,11 @@ CELER_FUNCTION real_type OrientedBoundingZone::calc_safety_outside(
     fast_real_type min_squared = 0;
     for (auto ax : range(Axis::size_))
     {
-        auto temp = celeritas::max(
-            fast_real_type{0},
-            static_cast<fast_real_type>(
-                outer_offset_pos.pos[celeritas::to_int(ax)])
-                - outer_hw[celeritas::to_int(ax)]);
+        auto temp
+            = celeritas::max(fast_real_type{0},
+                             static_cast<fast_real_type>(
+                                 outer_offset_pos.pos[celeritas::to_int(ax)])
+                                 - outer_hw[celeritas::to_int(ax)]);
         min_squared += ipow<2>(temp);
     }
 

@@ -160,8 +160,8 @@ CoreScalars build_actions(ActionRegistry* reg)
     if (!along_step_neutral)
     {
         // Create neutral action if one doesn't exist
-        along_step_neutral = make_shared<AlongStepNeutralAction>(
-            reg->next_id());
+        along_step_neutral
+            = make_shared<AlongStepNeutralAction>(reg->next_id());
         reg->insert(along_step_neutral);
     }
     scalars.along_step_neutral_action = along_step_neutral->action_id();

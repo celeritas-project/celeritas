@@ -71,14 +71,14 @@ class OpticalPhysicsTest : public OpticalMockTestBase
 
     void initialize_states(TrackSlotId::size_type num_tracks)
     {
-        particle_state_ = StateDataStore<ParticleStateData, MemSpace::host>(
-            num_tracks);
+        particle_state_
+            = StateDataStore<ParticleStateData, MemSpace::host>(num_tracks);
         for (auto i : range(TrackSlotId{num_tracks}))
         {
             particle_state_.ref().energy[i] = 3;
         }
-        physics_state_ = StateDataStore<PhysicsStateData, MemSpace::host>(
-            num_tracks);
+        physics_state_
+            = StateDataStore<PhysicsStateData, MemSpace::host>(num_tracks);
         CELER_ENSURE(physics_state_.ref().size() == num_tracks);
     }
 
@@ -235,8 +235,8 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
     std::vector<real_type> model_xs(num_models, 0);
     for (auto model : range(ModelId{num_models}))
     {
-        model_xs[model.get()] = physics.calc_xs(
-            model, this->make_particle_view().energy());
+        model_xs[model.get()]
+            = physics.calc_xs(model, this->make_particle_view().energy());
         total_xs += model_xs[model.get()];
     }
     physics.macro_xs(total_xs);
@@ -245,8 +245,8 @@ TEST_F(OpticalPhysicsTest, TEST_IF_CELERITAS_DOUBLE(select_discrete))
 
     // Sample actions based on cross sections
     std::vector<ActionId::size_type> actions;
-    static ActionId::size_type const expected_actions[] = {
-        1, 2, 4, 1, 1, 1, 1, 4, 4, 4};
+    static ActionId::size_type const expected_actions[]
+        = {1, 2, 4, 1, 1, 1, 1, 4, 4, 4};
 
     for ([[maybe_unused]] auto i : range(10))
     {
@@ -345,8 +345,8 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
     // Separate mutation and access loops to check independence
     // Note that there shouldn't be material dependence here
 
-    static real_type const expected_interaction_mfps[] = {
-        1, 11, 21, 31, 41, 51, 61, 71, 81, 91};
+    static real_type const expected_interaction_mfps[]
+        = {1, 11, 21, 31, 41, 51, 61, 71, 81, 91};
 
     // Assign interaction MFP
     for (auto track : range(TrackSlotId{num_tracks}))
@@ -358,8 +358,8 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
     std::vector<real_type> interaction_mfps;
     for (auto track : range(TrackSlotId{num_tracks}))
     {
-        auto const physics = this->make_track_view(
-            cycle_material_id(track + 3), track);
+        auto const physics
+            = this->make_track_view(cycle_material_id(track + 3), track);
         EXPECT_TRUE(physics.has_interaction_mfp());
         interaction_mfps.push_back(physics.interaction_mfp());
     }
@@ -376,8 +376,8 @@ TEST_F(OpticalPhysicsTest, track_view_interaction_mfp)
 
     for (auto track : range(TrackSlotId{num_tracks}))
     {
-        auto const physics = this->make_track_view(
-            cycle_material_id(track + 5), track);
+        auto const physics
+            = this->make_track_view(cycle_material_id(track + 5), track);
         EXPECT_FALSE(physics.has_interaction_mfp());
     }
 }

@@ -67,9 +67,9 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
         for (auto comp_id : range(ElementComponentId{material.num_elements()}))
         {
             auto el_idx = material.element_id(comp_id).get();
-            electron_cutoff[el_idx] = min(
-                electron_cutoff[el_idx],
-                cutoffs.energy(host_data.ids.electron));
+            electron_cutoff[el_idx]
+                = min(electron_cutoff[el_idx],
+                      cutoffs.energy(host_data.ids.electron));
             gamma_cutoff[el_idx] = min(gamma_cutoff[el_idx],
                                        cutoffs.energy(host_data.ids.gamma));
         }
@@ -168,8 +168,8 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
             transitions[j].auger_shell
                 = des_to_id[import_transitions[j].auger_shell];
             transitions[j].probability = import_transitions[j].probability;
-            transitions[j].energy = units::MevEnergy(
-                import_transitions[j].energy);
+            transitions[j].energy
+                = units::MevEnergy(import_transitions[j].energy);
         }
         shells[i].transitions = make_builder(&data->transitions)
                                     .insert_back(transitions.begin(),
@@ -184,9 +184,9 @@ void AtomicRelaxationParams::append_element(ImportAtomicRelaxation const& inp,
         make_const_ref(*data), el.shells, electron_cutoff, gamma_cutoff);
 
     // Maximum size of the stack used to store unprocessed vacancy subshell IDs
-    data->max_stack_size = max(
-        data->max_stack_size,
-        detail::calc_max_stack_size(make_const_ref(*data), el.shells));
+    data->max_stack_size
+        = max(data->max_stack_size,
+              detail::calc_max_stack_size(make_const_ref(*data), el.shells));
 
     // Add the elemental data (no data for Z < 6)
     CELER_ASSERT(el || inp.shells.empty());

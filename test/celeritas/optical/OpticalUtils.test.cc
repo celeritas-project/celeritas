@@ -80,8 +80,8 @@ TEST(OpticalUtilsTest, find_distribution_index)
     std::partial_sum(
         distributions.begin(), distributions.end(), counts.begin());
     {
-        static unsigned int const expected_counts[] = {
-            1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
+        static unsigned int const expected_counts[]
+            = {1u, 2u, 7u, 9u, 14u, 22u, 23u, 29u, 36u, 43u};
         EXPECT_VEC_EQ(expected_counts, counts);
     }
 
@@ -99,9 +99,8 @@ TEST(OpticalUtilsTest, find_distribution_index)
         {
             // In the vacsnt track slot, store the index of the distribution
             // that will generate the track
-            result[vacancies[thread_idx]] = offset
-                                            + find_distribution_index(
-                                                span_counts, thread_idx);
+            result[vacancies[thread_idx]]
+                = offset + find_distribution_index(span_counts, thread_idx);
         }
         return result;
     };
@@ -126,8 +125,8 @@ TEST(OpticalUtilsTest, find_distribution_index)
         }
     }
     {
-        static unsigned int const expected_counts[] = {
-            0u, 0u, 2u, 4u, 9u, 17u, 18u, 24u, 31u, 38u};
+        static unsigned int const expected_counts[]
+            = {0u, 0u, 2u, 4u, 9u, 17u, 18u, 24u, 31u, 38u};
         EXPECT_VEC_EQ(expected_counts, counts);
     }
     {

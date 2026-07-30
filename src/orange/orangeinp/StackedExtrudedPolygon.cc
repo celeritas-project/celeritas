@@ -164,9 +164,9 @@ NodeId StackedExtrudedPolygon::make_levels(
     auto level_label = this->make_level_ext(si);
 
     // Create a union of all concave regions
-    NodeId concave_union = vb.insert_region(
-        Label{label_, level_label + ".cu"},
-        Joined{op_or, std::move(concave_nodes)});
+    NodeId concave_union
+        = vb.insert_region(Label{label_, level_label + ".cu"},
+                           Joined{op_or, std::move(concave_nodes)});
 
     // Create a negation of this union
     auto sub_node = vb.insert_region(Label{label_, level_label + ".ncu"},

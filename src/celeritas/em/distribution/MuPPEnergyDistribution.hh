@@ -192,9 +192,8 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
     using namespace celeritas::literals;
 
     // Sample the energy transfer
-    real_type pair_energy = inc_energy_
-                            * std::exp(
-                                coeff_ * this->sample_scaled_energy(rng));
+    real_type pair_energy
+        = inc_energy_ * std::exp(coeff_ * this->sample_scaled_energy(rng));
     CELER_ASSERT(pair_energy >= min_energy_ && pair_energy <= max_pair_energy_);
 
     // Sample the energy partition between the electron and positron

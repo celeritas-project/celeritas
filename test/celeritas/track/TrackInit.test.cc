@@ -287,8 +287,8 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs of the track initializers created from primaries
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_track_ids[] = {
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        static int const expected_track_ids[]
+            = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.init_ids);
     }
 
@@ -298,13 +298,13 @@ TYPED_TEST(TrackInitTest, run)
     // Check the track IDs and parent IDs of the initialized tracks
     {
         auto result = RunResult::from_state(this->state());
-        static int const expected_track_ids[] = {
-            2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
+        static int const expected_track_ids[]
+            = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
         EXPECT_VEC_EQ(expected_track_ids, result.track_ids);
 
         // All primary particles, so no parent
-        static int const expected_parent_ids[] = {
-            -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+        static int const expected_parent_ids[]
+            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
         EXPECT_VEC_EQ(expected_parent_ids, result.parent_ids);
     }
 
@@ -438,8 +438,8 @@ TYPED_TEST(TrackInitTest, primaries)
         63,
         15,
     };
-    static int const expected_parent_ids[] = {
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    static int const expected_parent_ids[]
+        = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
     static int const expected_vacancies[] = {0, 2, 4, 6, 8, 10, 12, 14};
     static int const expected_init_ids[] = {
         16, 17, 18, 19, 20, 21, 22, 23, 32, 33, 34, 35,
@@ -458,8 +458,8 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     size_type num_primaries = 8;
     size_type num_tracks = 8;
 
-    std::vector<bool> const alive = {
-        true, false, false, true, true, false, false, true};
+    std::vector<bool> const alive
+        = {true, false, false, true, true, false, false, true};
 
     this->build_states(num_tracks);
 

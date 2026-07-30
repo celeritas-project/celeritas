@@ -52,8 +52,8 @@ G4Material const& get_g4material(unsigned int mat_idx)
 G4ParticleDefinition const& get_g4particle(PDGNumber pdg)
 {
     CELER_EXPECT(pdg);
-    auto* particle = G4ParticleTable::GetParticleTable()->FindParticle(
-        pdg.get());
+    auto* particle
+        = G4ParticleTable::GetParticleTable()->FindParticle(pdg.get());
     CELER_ENSURE(particle);
     return *particle;
 }
@@ -143,11 +143,11 @@ ImportModel GeantModelImporter::operator()(G4VEmModel const& model) const
 
         // Calculate lower and upper energy bounds
         double cutoff = this->get_cutoff(mat_idx);
-        double min_energy = std::max(
-                                model.LowEnergyLimit(),
-                                const_cast<G4VEmModel&>(model).MinPrimaryEnergy(
-                                    &g4mat, g4particle_, cutoff))
-                            / CLHEP::MeV;
+        double min_energy
+            = std::max(model.LowEnergyLimit(),
+                       const_cast<G4VEmModel&>(model).MinPrimaryEnergy(
+                           &g4mat, g4particle_, cutoff))
+              / CLHEP::MeV;
         double max_energy = model.HighEnergyLimit() / CLHEP::MeV;
         CELER_ASSERT(0 <= min_energy);
 

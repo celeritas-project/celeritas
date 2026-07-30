@@ -410,8 +410,8 @@ std::vector<inp::Surface> make_inp_surfaces(GeantGeoParams const& geo)
             CELER_ASSERT(lv);
             inp_surf = inp::Surface::Boundary{geo.geant_to_id(*lv)};
         }
-        else if (auto* surf = dynamic_cast<G4LogicalBorderSurface const*>(
-                     surf_base))
+        else if (auto* surf
+                 = dynamic_cast<G4LogicalBorderSurface const*>(surf_base))
         {
             auto* pv_enter = surf->GetVolume1();
             auto* pv_exit = surf->GetVolume2();
@@ -536,9 +536,9 @@ std::vector<inp::Region> make_inp_regions(GeantGeoParams const& geo)
             // Some of the volume data could override the region data: create a
             // new Celeritas region containing only this volume
             inp::Region region;
-            region.label = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName()
-                                             : "null",
-                            g4lv.GetName()};
+            region.label
+                = {g4lv.GetRegion() ? g4lv.GetRegion()->GetName() : "null",
+                   g4lv.GetName()};
             region.volumes = {vol_id};
             result.push_back(region);
         }
@@ -797,8 +797,8 @@ GeantGeoParams::GeantGeoParams(G4VPhysicalVolume const* world, Ownership owns)
         volumes.volumes = make_inp_volumes(*this);
         volumes.volume_instances = make_inp_volume_instances(*this);
         volumes.world = this->geant_to_id(*(this->world()->GetLogicalVolume()));
-        volume_params_ = std::make_shared<VolumeParams const>(
-            std::move(volumes));
+        volume_params_
+            = std::make_shared<VolumeParams const>(std::move(volumes));
     }
 
     CELER_ENSURE(impl_volumes_);
@@ -869,8 +869,8 @@ inp::Model GeantGeoParams::make_model_input() const
  */
 VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const& volume) const
 {
-    auto result = id_cast<ImplVolumeId>(
-        volume.GetInstanceID() - this->lv_offset());
+    auto result
+        = id_cast<ImplVolumeId>(volume.GetInstanceID() - this->lv_offset());
     if (!(result < impl_volumes_.size()))
     {
         // Volume is out of range: possibly an LV defined after this geometry

@@ -225,8 +225,8 @@ CELER_FUNCTION auto RectArrayTracker::intersect(
     CELER_EXPECT(max_dist > 0);
     CELER_EXPECT(state.volume);
 
-    auto coords = VolumeInverseIndexer{record_.dims}(
-        state.volume.unchecked_get());
+    auto coords
+        = VolumeInverseIndexer{record_.dims}(state.volume.unchecked_get());
 
     Intersection result{{}, max_dist};
     SurfaceIndexer to_index(record_.surface_indexer_data);

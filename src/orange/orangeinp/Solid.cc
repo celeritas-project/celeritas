@@ -140,8 +140,8 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
     {
         // Construct the excluded region by building a convex solid, then
         // negating it
-        NodeId smaller = build_intersect_region(
-            vb, this->label(), "exc", *exclu);
+        NodeId smaller
+            = build_intersect_region(vb, this->label(), "exc", *exclu);
         nodes.push_back(vb.insert_region({}, Negated{smaller}));
     }
 
@@ -168,8 +168,8 @@ NodeId SolidBase::build(VolumeBuilder& vb) const
             wedge_nodes.push_back(
                 build_intersect_region(vb, this->label(), "pol", wedge));
         }
-        auto union_id = vb.insert_region(
-            {}, Joined{op_or, std::move(wedge_nodes)});
+        auto union_id
+            = vb.insert_region({}, Joined{op_or, std::move(wedge_nodes)});
 
         // Intersect the union with the result
         nodes.push_back(union_id);

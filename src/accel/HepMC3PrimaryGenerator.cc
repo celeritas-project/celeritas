@@ -169,8 +169,8 @@ HepMC3PrimaryGenerator::HepMC3PrimaryGenerator(std::string const& filename)
 void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
 {
     CELER_EXPECT(g4_event && g4_event->GetEventID() >= 0);
-    SPHepEvt evt = this->read_event(
-        static_cast<size_type>(g4_event->GetEventID()));
+    SPHepEvt evt
+        = this->read_event(static_cast<size_type>(g4_event->GetEventID()));
     CELER_ASSERT(evt && evt->particles().size() > 0);
 
     PrimaryInserter insert_primary{g4_event, *evt};

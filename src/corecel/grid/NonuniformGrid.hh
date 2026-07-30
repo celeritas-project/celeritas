@@ -124,13 +124,13 @@ CELER_FUNCTION size_type NonuniformGrid<T>::find(value_type value) const
 {
     CELER_EXPECT(value >= this->front() && value < this->back());
 
-    auto iter = celeritas::upper_bound(
-        offset_.begin() + 1,
-        offset_.end() - 1,
-        value,
-        [&v = storage_](T lhs, ItemId<T> rhs_id) {
-            return lhs < v[rhs_id].get();
-        });
+    auto iter
+        = celeritas::upper_bound(offset_.begin() + 1,
+                                 offset_.end() - 1,
+                                 value,
+                                 [&v = storage_](T lhs, ItemId<T> rhs_id) {
+                                     return lhs < v[rhs_id].get();
+                                 });
 
     if (value < storage_[*iter].get())
     {

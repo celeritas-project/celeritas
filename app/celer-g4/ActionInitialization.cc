@@ -94,8 +94,8 @@ void ActionInitialization::Build() const
     {
         ExceptionConverter call_g4exception{"celer.init.hepmc3"};
         CELER_TRY_HANDLE(
-            generator_action = std::make_unique<HepMC3PrimaryGeneratorAction>(
-                hepmc_gen_),
+            generator_action
+            = std::make_unique<HepMC3PrimaryGeneratorAction>(hepmc_gen_),
             call_g4exception);
     }
     else

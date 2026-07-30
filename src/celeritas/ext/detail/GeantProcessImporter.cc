@@ -129,8 +129,8 @@ ImportProcess init_process(G4ParticleDefinition const& particle,
     auto* rest_processes
         = particle.GetProcessManager()->GetAtRestProcessVector();
     CELER_ASSERT(rest_processes);
-    result.applies_at_rest = rest_processes->contains(
-        const_cast<G4VProcess*>(&process));
+    result.applies_at_rest
+        = rest_processes->contains(const_cast<G4VProcess*>(&process));
 
     return result;
 }
@@ -349,8 +349,8 @@ std::vector<ImportMscModel> GeantProcessImporter::operator()(
             imm.particle_pdg = primary_pdg;
             try
             {
-                imm.model_class = geant_name_to_import_model_class(
-                    model->GetName());
+                imm.model_class
+                    = geant_name_to_import_model_class(model->GetName());
             }
             catch (celeritas::RuntimeError const&)
             {

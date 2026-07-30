@@ -206,8 +206,8 @@ TEST_F(BraggICRU73QOTest, distribution)
          0.00031626363804289,
          0.00012163986078573},
     };
-    static double const expected_min_energy[] = {
-        1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06};
+    static double const expected_min_energy[]
+        = {1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06, 1e-06};
     static double const expected_max_energy[] = {
         1.9159563630249e-06,
         1.915964366753e-05,
@@ -388,8 +388,8 @@ TEST_F(BraggICRU73QOTest, stress_test)
         inc_particle_ = pdg::mu_minus();
         sample(icru73qo_model_->host_ref());
 
-        static double const expected_avg_engine_samples[] = {
-            6.0027, 6.0021, 6.003, 6.0034, 6.0047};
+        static double const expected_avg_engine_samples[]
+            = {6.0027, 6.0021, 6.003, 6.0034, 6.0047};
         static double const expected_avg_energy[] = {0.00056893310178363,
                                                      0.00072492000606412,
                                                      0.00097487866369081,
@@ -409,8 +409,8 @@ TEST_F(BraggICRU73QOTest, stress_test)
         inc_particle_ = pdg::mu_plus();
         sample(bragg_model_->host_ref());
 
-        static double const expected_avg_engine_samples[] = {
-            6.0004, 6.0004, 6.0006, 6.0003, 6.0005};
+        static double const expected_avg_engine_samples[]
+            = {6.0004, 6.0004, 6.0006, 6.0003, 6.0005};
         static double const expected_avg_energy[] = {8.8601911130921e-05,
                                                      0.00010210349779604,
                                                      0.00012023485252326,

@@ -50,8 +50,8 @@ class GeneratorTestBase : public Test
     void SetUp() override
     {
         // Set geometry filename
-        osi_.problem.model.geometry = Test::test_data_path(
-            "geocel", this->gdml_basename() + ".gdml");
+        osi_.problem.model.geometry
+            = Test::test_data_path("geocel", this->gdml_basename() + ".gdml");
 
         // Set per-process state sizes
         osi_.problem.capacity = [] {
@@ -103,10 +103,10 @@ class LArSphereGeneratorTest : public GeneratorTestBase
         data.charge = units::ElementaryCharge{-1};
         data.material = OptMatId(0);
         data.continuous_edep_fraction = 1;
-        data.points[StepPoint::pre] = {
-            units::LightSpeed(0.7), 0, from_cm(Real3{0, 0, 0})};
-        data.points[StepPoint::post] = {
-            units::LightSpeed(0.6), 1e-11, from_cm(Real3{0, 0, 0.2})};
+        data.points[StepPoint::pre]
+            = {units::LightSpeed(0.7), 0, from_cm(Real3{0, 0, 0})};
+        data.points[StepPoint::post]
+            = {units::LightSpeed(0.6), 1e-11, from_cm(Real3{0, 0, 0.2})};
 
         VecDistribution result(count, data);
         for (auto i : range(count))
@@ -220,8 +220,8 @@ TEST_F(LArSphereGeneratorTest, offload)
     osi_.problem.timers.action = true;
 
     // Create host distributions and copy to generator
-    auto const host_data = this->make_distributions(
-        *osi_.problem.capacity.generators);
+    auto const host_data
+        = this->make_distributions(*osi_.problem.capacity.generators);
 
     // Construct the runner and transport optical primaries
     optical::Runner run(std::move(osi_));

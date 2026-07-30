@@ -286,10 +286,10 @@ CELER_FUNCTION Substep FieldSubstepper<IntegratorT>::accurate_advance(
     // step length and larger than the per-million fraction of the step length.
     // Otherwise, use the input step length for the first trial.
     // TODO: review whether this approach is an efficient bootstrapping.
-    real_type h = ((hinitial > options_.initial_step_tol * step)
-                   && (hinitial < step))
-                      ? hinitial
-                      : step;
+    real_type h
+        = ((hinitial > options_.initial_step_tol * step) && (hinitial < step))
+              ? hinitial
+              : step;
     real_type h_threshold = options_.epsilon_step * step;
 
     // Output with the next good step
@@ -357,9 +357,9 @@ CELER_FUNCTION auto FieldSubstepper<IntegratorT>::integrate_step(
         result.end.length = step;
 
         // Compute a proposed new step
-        real_type err_sq = detail::rel_err_sq(
-                               integrated.err_state, step, state.mom)
-                           / ipow<2>(options_.epsilon_rel_max);
+        real_type err_sq
+            = detail::rel_err_sq(integrated.err_state, step, state.mom)
+              / ipow<2>(options_.epsilon_rel_max);
         result.proposed_length = step * this->new_step_scale(err_sq);
     }
 

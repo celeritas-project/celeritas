@@ -107,8 +107,8 @@ void RunAction::BeginOfRunAction(G4Run const* run)
     {
         // Set up local logger; "master" thread in MT already has
         // logging/exception set through celer-g4 main
-        scoped_log_ = std::make_unique<ScopedGeantLogger>(
-            celeritas::self_logger());
+        scoped_log_
+            = std::make_unique<ScopedGeantLogger>(celeritas::self_logger());
     }
 }
 

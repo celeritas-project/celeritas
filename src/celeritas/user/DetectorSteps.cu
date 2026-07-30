@@ -55,13 +55,13 @@ size_type count_num_valid(
 {
     // Store the thread IDs of active tracks that are in a detector
     auto start = device_pointer_cast(state.valid_id.data());
-    auto end = thrust::copy_if(
-        thrust_execute_on(state.stream_id),
-        thrust::make_counting_iterator(0_sz),
-        thrust::make_counting_iterator(state.size()),
-        device_pointer_cast(state.data.detector_id.data()),
-        start,
-        HasDetector{});
+    auto end
+        = thrust::copy_if(thrust_execute_on(state.stream_id),
+                          thrust::make_counting_iterator(0_sz),
+                          thrust::make_counting_iterator(state.size()),
+                          device_pointer_cast(state.data.detector_id.data()),
+                          start,
+                          HasDetector{});
     return end - start;
 }
 

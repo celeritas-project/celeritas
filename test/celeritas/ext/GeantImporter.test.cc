@@ -474,8 +474,8 @@ TEST_F(FourSteelSlabsEmStandard, em_particles)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {
-        "e+", "e-", "gamma", "mu+", "mu-"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
     static char const* expected_processes[] = {
         "e_ioni",
@@ -527,8 +527,8 @@ TEST_F(FourSteelSlabsEmStandard, em_hadronic)
     auto&& imported = this->imported_data();
     auto summary = this->summarize(imported);
 
-    static char const* expected_particles[] = {
-        "e+", "e-", "gamma", "mu+", "mu-", "proton"};
+    static char const* expected_particles[]
+        = {"e+", "e-", "gamma", "mu+", "mu-", "proton"};
     EXPECT_VEC_EQ(expected_particles, summary.particles);
     static char const* expected_processes[] = {
         "e_ioni",
@@ -759,8 +759,8 @@ TEST_F(FourSteelSlabsEmStandard, phys_materials)
     EXPECT_VEC_NEAR(expected_cutoff_energies,
                     cutoff_energies,
                     geant4_version.major() == 10 ? 1e-12 : 0.02);
-    static double const expected_cutoff_ranges[] = {
-        0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
+    static double const expected_cutoff_ranges[]
+        = {0.1, 0.1, 0.1, 0.1, 0.1, 0.1};
     EXPECT_VEC_NEAR(expected_cutoff_ranges, cutoff_ranges, tol);
 }
 
@@ -843,8 +843,8 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         auto result = summarize(model.materials);
         static size_type const expected_size[] = {7ul, 5ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[] = {
-            0.001, 1000, 0.020822442086622, 1000};
+        static real_type const expected_e[]
+            = {0.001, 1000, 0.020822442086622, 1000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
         static real_type const expected_xs[] = {19.90859573288,
                                                 77.272184544415,
@@ -863,8 +863,8 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         auto result = summarize(model.materials);
         static size_type const expected_size[] = {6ul, 6ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[] = {
-            1000, 100000000, 1000, 100000000};
+        static real_type const expected_e[]
+            = {1000, 100000000, 1000, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
         static real_type const expected_xs[] = {77.086886023111,
                                                 14.346968386977,
@@ -896,8 +896,8 @@ TEST_F(FourSteelSlabsEmStandard, conv)
 
         static size_type const expected_size[] = {9ul, 9ul};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static real_type const expected_e[] = {
-            1.02199782, 100000000, 1.02199782, 100000000};
+        static real_type const expected_e[]
+            = {1.02199782, 100000000, 1.02199782, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
         static real_type const expected_xs[] = {1.4603666285612,
                                                 4.4976609946794,
@@ -923,8 +923,8 @@ TEST_F(FourSteelSlabsEmStandard, anni)
 
     EXPECT_EQ(2, model.materials.size());
     auto result = summarize(model.materials);
-    static double const expected_energy[] = {
-        0.0001, 100000000, 0.0001, 100000000};
+    static double const expected_energy[]
+        = {0.0001, 100000000, 0.0001, 100000000};
     static unsigned int const expected_size[] = {0, 0};
     EXPECT_VEC_EQ(expected_size, result.size);
     EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
@@ -978,14 +978,14 @@ TEST_F(FourSteelSlabsEmStandard, muioni)
         EXPECT_VEC_EQ(expected_size, result.size);
         if (geant4_version < Version(11, 1, 0))
         {
-            static double const expected_energy[] = {
-                1000, 100000000, 1000, 100000000};
+            static double const expected_energy[]
+                = {1000, 100000000, 1000, 100000000};
             EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         }
         else
         {
-            static double const expected_energy[] = {
-                0.2, 100000000, 0.2, 100000000};
+            static double const expected_energy[]
+                = {0.2, 100000000, 0.2, 100000000};
             EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         }
     }
@@ -1139,10 +1139,10 @@ TEST_F(FourSteelSlabsEmStandard, sb_data)
     }
 
     int const expected_atomic_numbers[] = {1, 24, 26, 28};
-    double const expected_sb_table_x[] = {
-        -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103};
-    double const expected_sb_table_y[] = {
-        1e-12, 1, 1e-12, 1, 1e-12, 1, 1e-12, 1};
+    double const expected_sb_table_x[]
+        = {-6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103, -6.9078, 9.2103};
+    double const expected_sb_table_y[]
+        = {1e-12, 1, 1e-12, 1, 1e-12, 1, 1e-12, 1};
     double const expected_sb_table_value[] = {7.85327,
                                               0.046875,
                                               2.33528,
@@ -1278,10 +1278,10 @@ TEST_F(FourSteelSlabsEmStandard, livermore_pe_data)
 
     int const expected_atomic_numbers[] = {1, 24, 26, 28};
     unsigned long const expected_shell_sizes[] = {1ul, 10ul, 10ul, 10ul};
-    double const expected_thresh_lo[] = {
-        0.00537032, 0.00615, 0.0070834, 0.0083028};
-    double const expected_thresh_hi[] = {
-        0.0609537, 0.0616595, 0.0616595, 0.0595662};
+    double const expected_thresh_lo[]
+        = {0.00537032, 0.00615, 0.0070834, 0.0083028};
+    double const expected_thresh_hi[]
+        = {0.0609537, 0.0616595, 0.0616595, 0.0595662};
 
     double const expected_shell_binding_energy[] = {1.361e-05,
                                                     1.361e-05,
@@ -1509,8 +1509,8 @@ TEST_F(OneSteelSphere, cutoffs)
     static int const expected_pdg[] = {-11, 11, 22, -11, 11, 22};
     EXPECT_VEC_EQ(expected_pdg, pdg);
     // 1 mm range cut in vacuum, 50 m range cut in steel
-    static real_type const expected_range_cut[] = {
-        0.1, 0.1, 0.1, 5000, 5000, 5000};
+    static real_type const expected_range_cut[]
+        = {0.1, 0.1, 0.1, 5000, 5000, 5000};
     EXPECT_VEC_SOFT_EQ(expected_range_cut, range_cut);
     static double const expected_energy_cut[] = {0.00099,
                                                  0.00099,
@@ -1543,8 +1543,8 @@ TEST_F(OneSteelSphere, physics)
         auto result = summarize(model.materials);
         static unsigned int const expected_size[] = {7u, 0u};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[] = {
-            0.001, 1000, 9549.6516356879, 1000};
+        static double const expected_energy[]
+            = {0.001, 1000, 9549.6516356879, 1000};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         // Gamma production cut in steel is higher than the SB model upper
         // energy limit, so there will be no micro xs
@@ -1559,8 +1559,8 @@ TEST_F(OneSteelSphere, physics)
         auto result = summarize(model.materials);
         static size_type const expected_size[] = {6u, 5u};
         EXPECT_VEC_EQ(expected_size, result.size);
-        static double const expected_energy[] = {
-            1000, 100000000, 9549.6516356879, 100000000};
+        static double const expected_energy[]
+            = {1000, 100000000, 9549.6516356879, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
         static double const expected_xs[] = {16.197663688566,
                                              14.176435287746,
@@ -1742,8 +1742,8 @@ TEST_F(LarSphere, optical)
         // Note that the input data for lar-sphere is *unnormalized*
         components.push_back(comp.yield / total_yield);
         // Spectrum is a variant: extract Normal distribution for wavelength
-        if (auto* gauss = std::get_if<NormalDistribution>(
-                &comp.spectrum_distribution))
+        if (auto* gauss
+            = std::get_if<NormalDistribution>(&comp.spectrum_distribution))
         {
             components.push_back(to_cm(gauss->mean));
             components.push_back(to_cm(gauss->stddev));
@@ -1779,8 +1779,8 @@ TEST_F(LarSphere, optical)
     // Check Rayleigh optical properties
     CELER_ASSERT(std::holds_alternative<inp::Grid>(
         bulk.rayleigh.materials.at(OptMatId{0}).mfp));
-    auto const& rayleigh_mfp = std::get<inp::Grid>(
-        bulk.rayleigh.materials.at(OptMatId{0}).mfp);
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(11, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());
@@ -1815,10 +1815,10 @@ TEST_F(LarSphere, optical)
             comp_grid.push_back(mat.component.y[i]);
         }
 
-        static real_type const expected_abslen_grid[] = {
-            1.3778e-06, 0.1, 1.55e-05, 0.01};
-        static double const expected_comp_grid[] = {
-            1.3778e-06, 0.1, 1e-05, 0.9};
+        static real_type const expected_abslen_grid[]
+            = {1.3778e-06, 0.1, 1.55e-05, 0.01};
+        static double const expected_comp_grid[]
+            = {1.3778e-06, 0.1, 1e-05, 0.9};
         EXPECT_VEC_SOFT_EQ(expected_abslen_grid, abslen_grid);
         EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
     }
@@ -1842,10 +1842,10 @@ TEST_F(LarSphere, optical)
             comp_grid.push_back(mat.component.y[i]);
         }
 
-        static double const expected_abslen_grid[] = {
-            1.3778e-06, 0.1, 1.55e-05, 0.01};
-        static double const expected_comp_grid[] = {
-            1.771e-06, 0.3, 2.484e-06, 0.8};
+        static double const expected_abslen_grid[]
+            = {1.3778e-06, 0.1, 1.55e-05, 0.01};
+        static double const expected_comp_grid[]
+            = {1.771e-06, 0.3, 2.484e-06, 0.8};
         EXPECT_VEC_NEAR(
             expected_abslen_grid, abslen_grid, this->comparison_tolerance());
         EXPECT_VEC_SOFT_EQ(expected_comp_grid, comp_grid);
@@ -1881,8 +1881,8 @@ TEST_F(LarSphereExtramat, optical)
         "Loaded no model data from process G4OpWLS2(\"OpWLS2\")",
     };
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {
-        "error", "warning", "warning", "warning", "warning"};
+    static char const* const expected_log_levels[]
+        = {"error", "warning", "warning", "warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1914,8 +1914,8 @@ TEST_F(LarSphereExtramat, optical)
     // Check Rayleigh optical properties
     CELER_ASSERT(std::holds_alternative<inp::Grid>(
         bulk.rayleigh.materials.at(OptMatId{0}).mfp));
-    auto const& rayleigh_mfp = std::get<inp::Grid>(
-        bulk.rayleigh.materials.at(OptMatId{0}).mfp);
+    auto const& rayleigh_mfp
+        = std::get<inp::Grid>(bulk.rayleigh.materials.at(OptMatId{0}).mfp);
     EXPECT_EQ(2, rayleigh_mfp.x.size());
     EXPECT_DOUBLE_EQ(1.55e-06, rayleigh_mfp.x.front());
     EXPECT_DOUBLE_EQ(1.55e-05, rayleigh_mfp.x.back());

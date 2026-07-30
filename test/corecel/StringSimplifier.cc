@@ -59,8 +59,8 @@ std::string to_sci(double value, int precision)
     }
     // Search up to the last digit
     CELER_ASSERT(num_iter != s.end());
-    auto end_iter = std::find_if(
-        num_iter, s.end() - 1, [](char c) { return c != '0'; });
+    auto end_iter
+        = std::find_if(num_iter, s.end() - 1, [](char c) { return c != '0'; });
     s.erase(exp_iter, end_iter);
     return s;
 }
@@ -141,8 +141,8 @@ std::string StringSimplifier::simplify_sci(std::string s) const
         // Not e.g. 1e7
         ++iter;
     }
-    auto exp_iter = std::find_if(
-        iter, end, [](auto c) { return c == 'e' || c == 'E'; });
+    auto exp_iter
+        = std::find_if(iter, end, [](auto c) { return c == 'e' || c == 'E'; });
 
     int const precision = std::min<int>(1 + std::distance(iter, exp_iter),
                                         precision_);

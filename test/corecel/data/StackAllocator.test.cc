@@ -40,10 +40,10 @@ class StackAllocatorTest : public Test
         // - "start" pointer of final allocation
         // - Plus size of final allocation
         // - Minus allocation "begin" address
-        MockSecondary* storage_end_ptr = static_cast<MockSecondary*>(
-                                             reinterpret_cast<void*>(
-                                                 out.last_secondary_address))
-                                         + in.alloc_size;
+        MockSecondary* storage_end_ptr
+            = static_cast<MockSecondary*>(
+                  reinterpret_cast<void*>(out.last_secondary_address))
+              + in.alloc_size;
         constexpr ItemId<MockSecondary> first_item{0};
         return storage_end_ptr - &in.sa_data.storage[first_item];
     }

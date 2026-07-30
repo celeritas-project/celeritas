@@ -92,8 +92,8 @@ void run(std::shared_ptr<OutputRegistry>& output,
                        CELER_VALIDATE(g.distribution_file,
                                       << "missing file for loading optical "
                                          "distribution data");
-                       auto const distributions = OpticalDistributionReader(
-                           *g.distribution_file)();
+                       auto const distributions
+                           = OpticalDistributionReader(*g.distribution_file)();
                        run.insert(make_span(distributions));
                    },
                    [](celeritas::inp::OpticalDirectGenerator const&) {

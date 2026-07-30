@@ -583,8 +583,8 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
     // Save time profile
     auto* params = G4OpticalParameters::Instance();
     CELER_ASSERT(params);
-    model.time_profile = geant_to_wls_distribution(
-        params->GetWLS2TimeProfile());
+    model.time_profile
+        = geant_to_wls_distribution(params->GetWLS2TimeProfile());
 
     return model.materials.size();
 #else

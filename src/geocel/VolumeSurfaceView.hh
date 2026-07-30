@@ -127,8 +127,8 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
     for (size_type index = 0; index < record.interface_pre.size(); ++index)
     {
         {
-            VolumeInstanceId cur_pre_id = get_volinst_id(
-                record.interface_pre[index]);
+            VolumeInstanceId cur_pre_id
+                = get_volinst_id(record.interface_pre[index]);
             if (pre_id < cur_pre_id)
             {
                 // Past range of pre-step IDs: volume isn't in array
@@ -141,8 +141,8 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
             }
         }
         {
-            VolumeInstanceId cur_post_id = get_volinst_id(
-                record.interface_post[index]);
+            VolumeInstanceId cur_post_id
+                = get_volinst_id(record.interface_post[index]);
             if (post_id < cur_post_id)
             {
                 // Past range of post-step IDs

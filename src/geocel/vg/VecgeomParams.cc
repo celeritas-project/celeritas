@@ -538,8 +538,8 @@ VecgeomParams::VecgeomParams(vecgeom::GeoManager const& geo,
             for (auto ivi_id :
                  range(ImplVolInstanceId{host_data.volume_instances.size()}))
             {
-                host_data.volume_instances[ivi_id] = id_cast<VolumeInstanceId>(
-                    ivi_id.get());
+                host_data.volume_instances[ivi_id]
+                    = id_cast<VolumeInstanceId>(ivi_id.get());
             }
         }
         CELER_ASSERT(host_data);
@@ -636,8 +636,8 @@ inp::Model VecgeomParams::make_model_input() const
 
         v.volume_instances[ivi_id.get()].label = label;
         // Save the underlying volume for this instance
-        v.volume_instances[ivi_id.get()].volume = id_cast<VolumeId>(
-            placed_vol.GetLogicalVolume()->id());
+        v.volume_instances[ivi_id.get()].volume
+            = id_cast<VolumeId>(placed_vol.GetLogicalVolume()->id());
     }
 
     v.world = id_cast<VolumeId>(geo.GetWorld()->GetLogicalVolume()->id());

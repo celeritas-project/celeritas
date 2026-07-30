@@ -42,8 +42,8 @@ namespace test
 {
 namespace
 {
-constexpr auto geant4_version = celeritas::Version::from_dec_xyz(
-    G4VERSION_NUMBER);
+constexpr auto geant4_version
+    = celeritas::Version::from_dec_xyz(G4VERSION_NUMBER);
 
 }  // namespace
 
@@ -360,8 +360,8 @@ TEST_F(FourLevelsTest, safety)
     this->impl().test_safety();
     // Don't test messages, which are unit system-dependent (they come from the
     // CheckedGeoTrackView)
-    static char const* const expected_log_levels[] = {
-        "warning", "warning", "warning", "warning", "warning", "warning"};
+    static char const* const expected_log_levels[]
+        = {"warning", "warning", "warning", "warning", "warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
@@ -697,8 +697,8 @@ TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
     EXPECT_EQ(25, geo.impl_volume_id().unchecked_get());
-    auto const& label = this->geometry()->impl_volumes().at(
-        geo.impl_volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }

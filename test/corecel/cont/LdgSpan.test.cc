@@ -177,8 +177,8 @@ TEST_F(LdgIteratorTest, opaqueid_t)
 TEST_F(LdgIteratorTest, byte_t)
 {
     using VecByte = std::vector<std::byte>;
-    VecByte const some_data = {
-        std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}};
+    VecByte const some_data
+        = {std::byte{1}, std::byte{2}, std::byte{3}, std::byte{4}};
     auto n = some_data.size();
     auto ldg_start = LdgIterator(some_data.data());
     auto ldg_end = LdgIterator(some_data.data() + n);

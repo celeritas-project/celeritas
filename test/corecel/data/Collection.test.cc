@@ -590,7 +590,8 @@ class CollectionTest : public Test
         {
             auto const& host_data_const = host_data;
 
-            MockMaterial const& m = host_data_const.materials[MockMaterialId{0}];
+            MockMaterial const& m
+                = host_data_const.materials[MockMaterialId{0}];
             EXPECT_EQ(3, m.elements.size());
             Span<MockElement const> els = host_data_const.elements[m.elements];
             EXPECT_EQ(3, els.size());

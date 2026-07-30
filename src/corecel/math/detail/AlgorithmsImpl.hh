@@ -189,7 +189,8 @@ CELER_FUNCTION void sift_down(RandomAccessIt first,
                               RandomAccessIt start)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
-    using value_type = typename std::iterator_traits<RandomAccessIt>::value_type;
+    using value_type =
+        typename std::iterator_traits<RandomAccessIt>::value_type;
 
     // Left-child of start is at 2 * start + 1
     // Right-child of start is at 2 * start + 2

@@ -223,9 +223,9 @@ TEST_F(BoundingBoxUtilsTest, bbox_overlap_fraction)
 
     {
         SCOPED_TRACE("overlap with semiinfinite");
-        real_type overlap = calc_overlap_fraction(
-            BBox{{-inf, -inf, -inf}, {inf, inf, 0}},
-            BBox{{-1, -1, -0.25}, {1, 1, 0.75}});
+        real_type overlap
+            = calc_overlap_fraction(BBox{{-inf, -inf, -inf}, {inf, inf, 0}},
+                                    BBox{{-1, -1, -0.25}, {1, 1, 0.75}});
         EXPECT_SOFT_EQ(0.25, overlap);
     }
 
@@ -310,9 +310,8 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
         {"barely outside", {1 + eps, 0.5, 0.5}, false},
     };
 
-    real_type tilt = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
-                          ? 1e-9_r
-                          : 5e-4_r);
+    real_type tilt
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-9_r : 5e-4_r);
     real_type const entry_dist = eps / tilt;
     struct
     {
@@ -336,9 +335,8 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
                 SCOPED_TRACE(::testing::Message{} << p.label << ", " << d.label
                                                   << ", max_dist=" << max_dist);
 
-                bool const expected = p.is_inside
-                                      || (d.is_inward
-                                          && max_dist >= entry_dist);
+                bool const expected
+                    = p.is_inside || (d.is_inward && max_dist >= entry_dist);
 
                 EXPECT_EQ(expected,
                           intersects_segment(bbox, p.pos, d.dir, max_dist));

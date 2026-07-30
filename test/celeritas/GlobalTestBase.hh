@@ -112,7 +112,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPOpticalParams = SP<optical::CoreParams>;
     using SPConstOpticalPhysics = SP<optical::PhysicsParams const>;
     using SPConstOpticalSim = SP<optical::SimParams const>;
-    using SPConstOpticalSurfacePhysics = SP<optical::SurfacePhysicsParams const>;
+    using SPConstOpticalSurfacePhysics
+        = SP<optical::SurfacePhysicsParams const>;
     using SPConstScintillation = SP<ScintillationParams const>;
 
     using SPConstPrimariesAction = SP<ExtendFromPrimariesAction const>;

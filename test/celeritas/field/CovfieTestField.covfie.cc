@@ -39,7 +39,8 @@ void write_cart_covfie(
     std::string const& path, std::size_t nx, std::size_t ny, std::size_t nz)
 {
     using storage_t = covfie::backend::array<covfie::vector::float3>;
-    using strided_t = covfie::backend::strided<covfie::vector::size3, storage_t>;
+    using strided_t
+        = covfie::backend::strided<covfie::vector::size3, storage_t>;
     using field_t = covfie::field<
         covfie::backend::affine<deserialization_interp_t<strided_t>>>;
 
@@ -84,7 +85,8 @@ void write_cart_covfie(
 void write_rz_covfie(std::string const& path, std::size_t nr, std::size_t nz)
 {
     using storage_t = covfie::backend::array<covfie::vector::float2>;
-    using strided_t = covfie::backend::strided<covfie::vector::size2, storage_t>;
+    using strided_t
+        = covfie::backend::strided<covfie::vector::size2, storage_t>;
     using field_t = covfie::field<
         covfie::backend::affine<deserialization_interp_t<strided_t>>>;
 

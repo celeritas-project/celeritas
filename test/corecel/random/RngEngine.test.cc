@@ -100,14 +100,14 @@ TEST_F(SequenceEngineTest, from_reals)
     SequenceEngine::VecResult actual(engine.max_count());
     std::generate(actual.begin(), actual.end(), std::ref(engine));
 
-    unsigned int const expected[] = {
-        0u,          0u,          1u,          0u,          1u,
-        0u,          12345678u,   0u,          4294901760u, 0u,
-        4294967040u, 0u,          0u,          1u,          0u,
-        1u,          512u,        1u,          0u,          2147483520u,
-        0u,          2147483647u, 4294966272u, 2147483647u, 0u,
-        2147483648u, 2048u,       2147483648u, 0u,          2147483904u,
-        0u,          4294967040u, 4294965248u, 4294967295u};
+    unsigned int const expected[]
+        = {0u,          0u,          1u,          0u,          1u,
+           0u,          12345678u,   0u,          4294901760u, 0u,
+           4294967040u, 0u,          0u,          1u,          0u,
+           1u,          512u,        1u,          0u,          2147483520u,
+           0u,          2147483647u, 4294966272u, 2147483647u, 0u,
+           2147483648u, 2048u,       2147483648u, 0u,          2147483904u,
+           0u,          4294967040u, 4294965248u, 4294967295u};
     EXPECT_VEC_EQ(expected, actual);
 
     // Past the end

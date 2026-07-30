@@ -220,8 +220,8 @@ TEST_F(EPlusGGInteractorTest, stress_test)
 
     // PRINT_EXPECTED(avg_engine_samples);
     // Gold values for average number of calls to RNG
-    real_type const expected_avg_engine_samples[] = {
-        4, 9.8341064453125, 7.19775390625, 6.960205078125, 6.5401611328125};
+    real_type const expected_avg_engine_samples[]
+        = {4, 9.8341064453125, 7.19775390625, 6.960205078125, 6.5401611328125};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 }
 
@@ -250,14 +250,14 @@ TEST_F(EPlusGGInteractorTest, macro_xs)
             native_value_to<units::InvCmXs>(calc_macro_xs(MevEnergy{e})).value());
         loge += delta;
     }
-    real_type const expected_macro_xs[] = {
-        0.001443034416941,  0.0007875334997718, 0.0004301446502063,
-        0.0002355766377589, 0.0001301463511539, 7.376415204169e-05,
-        4.419813786948e-05, 2.746581269388e-05, 1.508499252627e-05,
-        6.80154666357e-06,  2.782643662379e-06, 1.083362674122e-06,
-        4.039064800964e-07, 1.451975852737e-07, 5.07363090171e-08,
-        1.734848791099e-08, 5.833443676789e-09, 1.93572917075e-09,
-        6.355265134801e-10, 2.068312058021e-10};
+    real_type const expected_macro_xs[]
+        = {0.001443034416941,  0.0007875334997718, 0.0004301446502063,
+           0.0002355766377589, 0.0001301463511539, 7.376415204169e-05,
+           4.419813786948e-05, 2.746581269388e-05, 1.508499252627e-05,
+           6.80154666357e-06,  2.782643662379e-06, 1.083362674122e-06,
+           4.039064800964e-07, 1.451975852737e-07, 5.07363090171e-08,
+           1.734848791099e-08, 5.833443676789e-09, 1.93572917075e-09,
+           6.355265134801e-10, 2.068312058021e-10};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 

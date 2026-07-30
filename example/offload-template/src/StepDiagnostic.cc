@@ -40,8 +40,8 @@ using DerivedPtr = std::conditional_t<std::is_const<A>::value, B const*, B*>;
 template<template<MemSpace> class Derived, typename Base, typename Func>
 auto visit_memspace_derived(Base& base, Func&& apply_derived)
 {
-    if (auto* derived = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::host>>>(
-            &base))
+    if (auto* derived
+        = dynamic_cast<DerivedPtr<Base, Derived<MemSpace::host>>>(&base))
     {
         return apply_derived(*derived);
     }
@@ -115,8 +115,8 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
 
     // Save to output, converting units
     StepStatistics result;
-    result.step_length = native_to_geant<lengthunits::ClhepLength>(
-        data.step_length);
+    result.step_length
+        = native_to_geant<lengthunits::ClhepLength>(data.step_length);
     result.energy_deposition = data.energy_deposition;
     result.num_steps = host_data.steps;
     result.num_primaries = host_data.generated;

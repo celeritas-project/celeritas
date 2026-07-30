@@ -55,8 +55,8 @@ PhysicsParams::PhysicsParams(inp::OpticalBulkPhysics const& input,
     // Create and register actions
     {
         // Discrete select action
-        discrete_select_ = std::make_shared<DiscreteSelectAction>(
-            action_reg->next_id());
+        discrete_select_
+            = std::make_shared<DiscreteSelectAction>(action_reg->next_id());
         action_reg->insert(discrete_select_);
 
         // Build models
@@ -125,24 +125,24 @@ auto PhysicsParams::build_models(inp::OpticalBulkPhysics const& input,
 
         if (input.wls)
         {
-            auto model = std::make_shared<WavelengthShiftModel>(
-                action_reg.next_id(),
-                gen_inp.aux_id,
-                input.wls,
-                materials,
-                GeneratorType::wls);
+            auto model
+                = std::make_shared<WavelengthShiftModel>(action_reg.next_id(),
+                                                         gen_inp.aux_id,
+                                                         input.wls,
+                                                         materials,
+                                                         GeneratorType::wls);
             gen_inp.wls = model;
             action_reg.insert(model);
             models.push_back(std::move(model));
         }
         if (input.wls2)
         {
-            auto model = std::make_shared<WavelengthShiftModel>(
-                action_reg.next_id(),
-                gen_inp.aux_id,
-                input.wls2,
-                materials,
-                GeneratorType::wls2);
+            auto model
+                = std::make_shared<WavelengthShiftModel>(action_reg.next_id(),
+                                                         gen_inp.aux_id,
+                                                         input.wls2,
+                                                         materials,
+                                                         GeneratorType::wls2);
             gen_inp.wls2 = model;
             action_reg.insert(model);
             models.push_back(std::move(model));

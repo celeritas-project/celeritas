@@ -135,8 +135,8 @@ void LocalOpticalTrackOffload::Push(G4Track& g4track)
     init.direction = static_array_cast<real_type>(
         to_array(g4track.GetMomentumDirection()));
     init.time = native_from_geant<units::ClhepTime>(g4track.GetGlobalTime());
-    init.polarization = static_array_cast<real_type>(
-        to_array(g4track.GetPolarization()));
+    init.polarization
+        = static_array_cast<real_type>(to_array(g4track.GetPolarization()));
 
     ScopedProfiling profile_this{"push"};
 

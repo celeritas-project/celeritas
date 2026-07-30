@@ -40,8 +40,8 @@ class InitializedValue
 {
     static_assert(std::is_default_constructible_v<T>);
     static_assert(std::is_default_constructible_v<Finalizer>);
-    static constexpr bool noexcept_finalize_ = noexcept(
-        std::declval<Finalizer>()(std::declval<T&>()));
+    static constexpr bool noexcept_finalize_
+        = noexcept(std::declval<Finalizer>()(std::declval<T&>()));
 
   public:
     //!@{

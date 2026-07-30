@@ -43,8 +43,8 @@ TEST_F(RecursiveSimplifierTest, single)
     simplify(Sense::inside,
              GeneralQuadric{{-2, 0, -2}, {0, 0, 0}, {4, 0, 12}, -2 * 3.75});
 
-    static char const* const expected_result[] = {
-        "-Plane: z=1.5", "-Plane: x=2", "+Cyl y: r=2.5 at x=1, z=3"};
+    static char const* const expected_result[]
+        = {"-Plane: z=1.5", "-Plane: x=2", "+Cyl y: r=2.5 at x=1, z=3"};
     EXPECT_VEC_EQ(expected_result, result);
 }
 
@@ -75,11 +75,11 @@ TEST_F(RecursiveSimplifierTest, variant)
     }
 
     EXPECT_EQ("-+-+-+", senses);
-    static char const* const expected_stypes[] = {
-        "px", "py", "sc", "kz", "sc", "gq"};
+    static char const* const expected_stypes[]
+        = {"px", "py", "sc", "kz", "sc", "gq"};
     EXPECT_VEC_EQ(expected_stypes, stypes);
-    static double const expected_sdata[] = {
-        1, -2, 1, 1, 2, 3, 0.36, 4.5, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    static double const expected_sdata[]
+        = {1, -2, 1, 1, 2, 3, 0.36, 4.5, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     EXPECT_VEC_SOFT_EQ(expected_sdata, sdata);
 }
 

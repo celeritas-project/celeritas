@@ -132,8 +132,8 @@ void to_json(nlohmann::json& j, CsgUnit const& unit)
         json result = json::array();
         for (auto i : range(unit.tree.volumes().size()))
         {
-            auto entry = nlohmann::json{
-                {"csg_node", unit.tree.volumes()[i].get()}};
+            auto entry
+                = nlohmann::json{{"csg_node", unit.tree.volumes()[i].get()}};
             if (auto* m = std::get_if<GeoMatId>(&unit.fills[i]))
             {
                 entry["material"] = m->unchecked_get();

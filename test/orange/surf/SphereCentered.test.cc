@@ -63,8 +63,8 @@ TEST_F(SphereCenteredTest, maths)
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
     // At center
-    distances = calc_intersections(
-        s, Real3{0, 0, 0}, outward, SurfaceState::off);
+    distances
+        = calc_intersections(s, Real3{0, 0, 0}, outward, SurfaceState::off);
     EXPECT_SOFT_EQ(radius, distances[0]);
     EXPECT_SOFT_EQ(no_intersection(), distances[1]);
 
@@ -83,8 +83,8 @@ TEST_F(SphereCenteredTest, TEST_IF_CELERITAS_DOUBLE(degenerate))
         radius * sqrt_third, radius * sqrt_third, radius * sqrt_third};
 
     // "Not on surface", inward
-    auto distances = calc_intersections(
-        s, on_surface, inward, SurfaceState::off);
+    auto distances
+        = calc_intersections(s, on_surface, inward, SurfaceState::off);
     EXPECT_SOFT_EQ(1e-16, distances[0]);
     EXPECT_SOFT_EQ(2 * radius, distances[1]);
 }

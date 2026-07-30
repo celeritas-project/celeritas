@@ -143,9 +143,9 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
     Secondary& positron = secondaries[1];
     positron.particle_id = shared_.ids.positron;
     positron.energy = energy.positron;
-    positron.direction = rotate(
-        from_spherical(sample_costheta(rng), phi + constants::pi),
-        inc_direction_);
+    positron.direction
+        = rotate(from_spherical(sample_costheta(rng), phi + constants::pi),
+                 inc_direction_);
 
     // Construct interaction for change to the incident muon
     Interaction result;

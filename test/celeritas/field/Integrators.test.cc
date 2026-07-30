@@ -106,8 +106,8 @@ class IntegratorsTest : public Test
                     FieldIntegration result = integrate(hstep, y);
                     y = result.end_state;
 
-                    total_err2 += detail::rel_err_sq(
-                        result.err_state, hstep, y.mom);
+                    total_err2
+                        += detail::rel_err_sq(result.err_state, hstep, y.mom);
                 }
                 real_type tol = std::sqrt(total_err2) / 0.001;
                 SoftEqual soft_eq{tol, tol};

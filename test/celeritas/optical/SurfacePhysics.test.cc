@@ -396,13 +396,12 @@ TEST_F(SurfacePhysicsTest, init_surface_physics_view)
     // Initialize tracks
     for (auto track : range(expected_surfaces.size()))
     {
-        this->surface_physics_view(
-            TrackSlotId(track)) = SurfacePhysicsTrackView::Initializer{
-            expected_surfaces[track],
-            expected_orientations[track],
-            Real3{0, 0, -1},
-            OptMatId{0},
-            OptMatId{1}};
+        this->surface_physics_view(TrackSlotId(track))
+            = SurfacePhysicsTrackView::Initializer{expected_surfaces[track],
+                                                   expected_orientations[track],
+                                                   Real3{0, 0, -1},
+                                                   OptMatId{0},
+                                                   OptMatId{1}};
     }
 
     // Check initialization

@@ -37,8 +37,8 @@ OpticalTestBase::OpticalTestBase()
                    constants::stable_decay_constant});
     particle_params_ = std::make_shared<ParticleParams>(std::move(inp));
 
-    particle_state_ = StateStore<ParticleStateData>(
-        particle_params_->host_ref(), 1);
+    particle_state_
+        = StateStore<ParticleStateData>(particle_params_->host_ref(), 1);
 
     sim_params_ = std::make_shared<SimParams>([this] {
         SimParams::Input inp;

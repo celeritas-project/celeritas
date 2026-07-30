@@ -53,8 +53,8 @@ TEST_F(UniformRealDistributionTest, bin)
         histogram(sample_uniform(rng));
     }
 
-    static unsigned int const expected_counts[] = {
-        2071, 1955, 1991, 2013, 1970};
+    static unsigned int const expected_counts[]
+        = {2071, 1955, 1991, 2013, 1970};
     EXPECT_VEC_EQ(expected_counts, histogram.counts());
     EXPECT_GE(histogram.min(), min);
     EXPECT_LE(histogram.max(), max);

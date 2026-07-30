@@ -332,10 +332,10 @@ inline CELER_FUNCTION Array<T, 3> rotate(Array<T, 3> const& dir,
         sinphi = 0;
     }
 
-    Array<T, 3> result = {
-        (rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
-        (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
-        -sintheta * dir[X] + rot[Z] * dir[Z]};
+    Array<T, 3> result
+        = {(rot[Z] * dir[X] + sintheta * dir[Z]) * cosphi - sinphi * dir[Y],
+           (rot[Z] * dir[X] + sintheta * dir[Z]) * sinphi + cosphi * dir[Y],
+           -sintheta * dir[X] + rot[Z] * dir[Z]};
 
     // Always normalize to prevent roundoff error from propagating
     return make_unit_vector(result);

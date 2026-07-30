@@ -91,8 +91,8 @@ TEST(PowerDistributionTest, negative)
         hist(r);
     }
 
-    static unsigned int const expected_counts[] = {
-        9729ul, 171ul, 60ul, 17ul, 6ul, 8ul, 3ul, 3ul, 1ul, 2ul};
+    static unsigned int const expected_counts[]
+        = {9729ul, 171ul, 60ul, 17ul, 6ul, 8ul, 3ul, 3ul, 1ul, 2ul};
     EXPECT_VEC_EQ(expected_counts, hist.counts());
 
     EXPECT_EQ(0, hist.underflow())

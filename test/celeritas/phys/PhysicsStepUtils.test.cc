@@ -32,8 +32,10 @@ class PhysicsStepUtilsTest : public MockTestBase
     using RandomEngine = DiagnosticRngEngine<std::mt19937>;
 
   protected:
-    using MaterialStateStore = StateDataStore<MaterialStateData, MemSpace::host>;
-    using ParticleStateStore = StateDataStore<ParticleStateData, MemSpace::host>;
+    using MaterialStateStore
+        = StateDataStore<MaterialStateData, MemSpace::host>;
+    using ParticleStateStore
+        = StateDataStore<ParticleStateData, MemSpace::host>;
     using PhysicsStateStore = StateDataStore<PhysicsStateData, MemSpace::host>;
 
     using MevEnergy = units::MevEnergy;
@@ -115,8 +117,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1. / 3.e-4, to_cm(step.step));
     }
@@ -124,8 +126,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1.e-4 / 9.e-3, to_cm(step.step));
 
@@ -138,8 +140,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-2});
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.0018333333333333309, to_cm(step.step));
     }
@@ -150,8 +152,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
                                                  "anti-celeriton",
                                                  MevEnergy{1e-2});
         phys.interaction_mfp(1e-6);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1.e-6 / 9.e-1, to_cm(step.step));
 
@@ -164,8 +166,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
     {
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{2}, &particle, "anti-celeriton", MevEnergy{10});
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.014287142857142861, to_cm(step.step));
     }
@@ -173,8 +175,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1e-4);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1.e-4 / 9.e-3, to_cm(step.step));
 
@@ -189,8 +191,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-18});
         phys.interaction_mfp(1e-10);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(1.0540925533894607e-11, to_cm(step.step));
     }
@@ -199,8 +201,8 @@ TEST_F(PhysicsStepUtilsTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "celerino", MevEnergy{1});
         phys.interaction_mfp(1.234);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(ActionId{}, step.action);
         EXPECT_SOFT_EQ(std::numeric_limits<real_type>::infinity(),
                        to_cm(step.step));
@@ -286,8 +288,8 @@ TEST_F(PhysicsStepUtilsTest,
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_SOFT_EQ(1. / 3.e-4, to_cm(step.step));
 
         // Testing cheat.
@@ -313,8 +315,8 @@ TEST_F(PhysicsStepUtilsTest,
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{10});
         phys.interaction_mfp(1);
 
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_SOFT_EQ(0.48856714661867118, to_cm(step.step));
 
         // Testing cheat.
@@ -333,8 +335,8 @@ TEST_F(PhysicsStepUtilsTest,
             models[i] = action_id - first_action;
         }
 
-        static ActionId::size_type const expected_models[] = {
-            5, 8, 8, 8, 8, 8, 1, 5, 8, 8, 5, 5, 8};
+        static ActionId::size_type const expected_models[]
+            = {5, 8, 8, 8, 8, 8, 1, 5, 8, 8, 5, 5, 8};
         EXPECT_VEC_EQ(expected_models, models);
         EXPECT_EQ(56, this->rng().count());
     }
@@ -382,8 +384,8 @@ TEST_F(PhysicsStepUtilsTest,
             }
             acceptance_rate.push_back(real_type(count) / num_samples);
         }
-        real_type const expected_acceptance_rate[] = {
-            0.9204, 0.9999, 0.4972, 1};
+        real_type const expected_acceptance_rate[]
+            = {0.9204, 0.9999, 0.4972, 1};
         EXPECT_VEC_EQ(expected_acceptance_rate, acceptance_rate);
     }
 }
@@ -426,8 +428,8 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
         PhysicsTrackView phys = this->init_track(
             &material, PhysMatId{0}, &particle, "gamma", MevEnergy{1});
         phys.interaction_mfp(1);
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(discrete_action, step.action);
         EXPECT_SOFT_EQ(1. / 3.e-4, to_cm(step.step));
     }
@@ -436,8 +438,8 @@ TEST_F(StepLimiterTest, calc_physics_step_limit)
             &material, PhysMatId{1}, &particle, "celeriton", MevEnergy{1e-3});
 
         // Small energy: still range action
-        StepLimit step = calc_physics_step_limit(
-            material, particle, phys, pstep);
+        StepLimit step
+            = calc_physics_step_limit(material, particle, phys, pstep);
         EXPECT_EQ(range_action, step.action);
         EXPECT_SOFT_EQ(0.00033333333333333343, to_cm(step.step));
 

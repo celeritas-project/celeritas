@@ -198,10 +198,10 @@ TEST_F(LeafTest, explicit_exterior)
         opts.assume_inside = false;
         auto u = proto.build(opts);
 
-        static char const* const expected_surface_strings[] = {
-            "Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
-        static char const* const expected_volume_strings[] = {
-            "any(-0, +1, +2)", "all(+0, -2, -3)", "all(-1, -2, +3)"};
+        static char const* const expected_surface_strings[]
+            = {"Plane: z=-1", "Plane: z=1", "Cyl z: r=1", "Plane: z=0"};
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, +2)", "all(+0, -2, -3)", "all(-1, -2, +3)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -217,8 +217,8 @@ TEST_F(LeafTest, explicit_exterior)
             "bottom",
             "top",
         };
-        static char const* const expected_fill_strings[] = {
-            "<UNASSIGNED>", "m1", "m2"};
+        static char const* const expected_fill_strings[]
+            = {"<UNASSIGNED>", "m1", "m2"};
 
         EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -258,8 +258,8 @@ TEST_F(LeafTest, implicit_exterior)
             "Plane: z=-0.5",
             "Plane: z=0.5",
         };
-        static char const* const expected_volume_strings[] = {
-            "any(-0, +1, +2)", "all(-2, +3, -4)"};
+        static char const* const expected_volume_strings[]
+            = {"any(-0, +1, +2)", "all(-2, +3, -4)"};
         static char const* const expected_fill_strings[] = {"<UNASSIGNED>",
                                                             "m1"};
 
@@ -297,8 +297,8 @@ TEST_F(MotherTest, explicit_exterior)
         "e");
 
     // Construct "inside" cell
-    std::vector<std::pair<Sense, SPConstObject>> interior = {
-        {Sense::inside, inp.boundary.interior}};
+    std::vector<std::pair<Sense, SPConstObject>> interior
+        = {{Sense::inside, inp.boundary.interior}};
     for (auto const& m : inp.materials)
     {
         interior.push_back({Sense::outside, m.interior});
@@ -381,8 +381,8 @@ TEST_F(MotherTest, explicit_exterior)
     }
     {
         auto u = proto.build(this->proto_build_opts());
-        static char const* const expected_volume_strings[] = {
-            "F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
+        static char const* const expected_volume_strings[]
+            = {"F", "-1", "-2", "-3", "-4", "all(+1, +2, +3, +4)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
@@ -412,8 +412,8 @@ TEST_F(MotherTest, implicit_exterior)
         auto opts = this->proto_build_opts();
         opts.assume_inside = false;
         auto u = proto.build(opts);
-        static char const* const expected_volume_strings[] = {
-            "+0", "-1", "-2", "-3", "-4"};
+        static char const* const expected_volume_strings[]
+            = {"+0", "-1", "-2", "-3", "-4"};
         static int const expected_volume_nodes[] = {2, 5, 7, 9, 11};
 
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
@@ -422,8 +422,8 @@ TEST_F(MotherTest, implicit_exterior)
     }
     {
         auto u = proto.build(this->proto_build_opts());
-        static char const* const expected_volume_strings[] = {
-            "F", "-1", "-2", "-3", "-4"};
+        static char const* const expected_volume_strings[]
+            = {"F", "-1", "-2", "-3", "-4"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
@@ -449,10 +449,10 @@ TEST_F(MotherTest, fuzziness)
         auto opts = this->proto_build_opts();
         opts.assume_inside = false;
         auto u = proto.build(opts);
-        static char const* const expected_surface_strings[] = {
-            "Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
-        static char const* const expected_volume_strings[] = {
-            "+0", "-1", "all(-0, +2)"};
+        static char const* const expected_surface_strings[]
+            = {"Sphere: r=10", "Sphere: r=1", "Sphere: r=1.0001"};
+        static char const* const expected_volume_strings[]
+            = {"+0", "-1", "all(-0, +2)"};
         static char const* const expected_md_strings[] = {
             "",
             "",
@@ -475,8 +475,8 @@ TEST_F(MotherTest, fuzziness)
         opts.assume_inside = false;
         opts.tol = Tolerance<>::from_relative(1e-3);
         auto u = proto.build(opts);
-        static char const* const expected_volume_strings[] = {
-            "+0", "-1", "all(-0, +1)"};
+        static char const* const expected_volume_strings[]
+            = {"+0", "-1", "all(-0, +1)"};
         EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
     }
 }
@@ -741,8 +741,8 @@ TEST_F(InputBuilderTest, hierarchy)
             inp,
             make_rdv("interior",
                      [&] {
-                         VecSenseObj interior = {
-                             {Sense::inside, inp.boundary.interior}};
+                         VecSenseObj interior
+                             = {{Sense::inside, inp.boundary.interior}};
                          for (auto const& d : inp.daughters)
                          {
                              interior.push_back(
@@ -771,11 +771,11 @@ TEST_F(InputBuilderTest, incomplete_bb)
         inp.label = "inner";
 
         using VR2 = GenPrism::VecReal2;
-        auto trd = make_shape<GenPrism>(
-            "turd",
-            3_r,
-            VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
-            VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
+        auto trd
+            = make_shape<GenPrism>("turd",
+                                   3_r,
+                                   VR2{{-1, -1}, {1, -1}, {1, 1}, {-1, 1}},
+                                   VR2{{-2, -2}, {2, -2}, {2, 2}, {-2, 2}});
         append_material(inp,
                         make_rdv("fill",
                                  {{Sense::inside, inp.boundary.interior},
@@ -854,12 +854,12 @@ TEST_F(InputBuilderTest, involute)
     auto involute = std::make_shared<UnitProto>([] {
         auto invo1 = make_inv(
             "blade", {1.0, 2.0, 4.0}, {0, 0.15667 * constants::pi}, ccw, 1.0);
-        auto invo2 = make_inv(
-            "channel",
-            {1.0, 2.0, 4.0},
-            {0.15667 * constants::pi, 0.31334 * constants::pi},
-            ccw,
-            1.0);
+        auto invo2
+            = make_inv("channel",
+                       {1.0, 2.0, 4.0},
+                       {0.15667 * constants::pi, 0.31334 * constants::pi},
+                       ccw,
+                       1.0);
         auto cyl = make_cyl("bound", 5.0, 1.0);
         auto system = make_cyl("system", 4.0, 1.0);
         auto inner = make_cyl("center", 2.0, 1.0);

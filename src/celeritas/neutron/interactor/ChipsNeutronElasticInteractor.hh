@@ -129,9 +129,8 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(
 
     // Sample the scattered direction from the invariant momentum transfer
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
-    real_type cos_theta = 1
-                          - 0.5_r * sample_momentum_square_(rng)
-                                / ipow<2>(cm_p);
+    real_type cos_theta
+        = 1 - 0.5_r * sample_momentum_square_(rng) / ipow<2>(cm_p);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
     // Boost to the center of mass (c.m.) frame

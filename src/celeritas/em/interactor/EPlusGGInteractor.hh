@@ -115,8 +115,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
     if (inc_energy_ == 0)
     {
         // Save outgoing secondary data
-        secondaries[0].energy = secondaries[1].energy = Energy{
-            value_as<Mass>(shared_.electron_mass)};
+        secondaries[0].energy = secondaries[1].energy
+            = Energy{value_as<Mass>(shared_.electron_mass)};
 
         IsotropicDistribution<real_type> gamma_dir;
         secondaries[0].direction = gamma_dir(rng);
@@ -156,8 +156,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
 
         // Sample and save outgoing secondary data
         secondaries[0].energy = Energy{gamma_energy};
-        secondaries[0].direction = ExitingDirectionSampler{
-            cost, inc_direction_}(rng);
+        secondaries[0].direction
+            = ExitingDirectionSampler{cost, inc_direction_}(rng);
         secondaries[1].energy = Energy{total_energy - gamma_energy};
         secondaries[1].direction = calc_exiting_direction(
             {eplus_moment, inc_direction_}, {inc_energy_, inc_direction_});

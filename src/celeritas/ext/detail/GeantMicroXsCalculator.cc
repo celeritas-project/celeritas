@@ -78,9 +78,8 @@ void GeantMicroXsCalculator::operator()(VecDouble const& energy_grid,
         // Inner loop over elements
         for (auto elcomp_idx : range(elements.size()))
         {
-            (*result_xs)[elcomp_idx].y[energy_idx] = calc_element_xs(
-                                                         elcomp_idx, energy)
-                                                     * xs_scaling;
+            (*result_xs)[elcomp_idx].y[energy_idx]
+                = calc_element_xs(elcomp_idx, energy) * xs_scaling;
         }
     }
 

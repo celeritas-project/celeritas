@@ -796,12 +796,12 @@ auto ExtrudedPolygon::calc_range(VecReal2 const& polygon, size_type dim)
 
     // Find the extrema taking into account the extrusion process
     Range range;
-    range[X] = std::min(
-        poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
-        poly_min * scaling_factors_[top] + line_segment_[top][dim]);
-    range[Y] = std::max(
-        poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
-        poly_max * scaling_factors_[top] + line_segment_[top][dim]);
+    range[X]
+        = std::min(poly_min * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_min * scaling_factors_[top] + line_segment_[top][dim]);
+    range[Y]
+        = std::max(poly_max * scaling_factors_[bot] + line_segment_[bot][dim],
+                   poly_max * scaling_factors_[top] + line_segment_[top][dim]);
 
     return range;
 }
@@ -824,10 +824,10 @@ GenPrism GenPrism::from_trd(real_type halfz, Real2 const& lo, Real2 const& hi)
     CELER_VALIDATE(lo[Y] > 0 || hi[Y] > 0, << "degenerate y width");
 
     // Construct points like prism: lower right is first
-    VecReal2 lower = {
-        {lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
-    VecReal2 upper = {
-        {hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
+    VecReal2 lower
+        = {{lo[X], -lo[Y]}, {lo[X], lo[Y]}, {-lo[X], lo[Y]}, {-lo[X], -lo[Y]}};
+    VecReal2 upper
+        = {{hi[X], -hi[Y]}, {hi[X], hi[Y]}, {-hi[X], hi[Y]}, {-hi[X], -hi[Y]}};
 
     return GenPrism{halfz, std::move(lower), std::move(upper)};
 }

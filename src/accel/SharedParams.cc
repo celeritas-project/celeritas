@@ -262,8 +262,8 @@ SharedParams::SharedParams(SetupOptions const& options)
         loaded_.output_file = options.output_file;
 
         // Create the timing output
-        timer_ = std::make_shared<TimeOutput>(
-            celeritas::get_geant_num_threads());
+        timer_
+            = std::make_shared<TimeOutput>(celeritas::get_geant_num_threads());
 
         if (!loaded_.output_file.empty())
         {

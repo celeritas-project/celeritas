@@ -26,7 +26,8 @@ class SimTest : public GeantTestBase
 {
   protected:
     using SimStateStore = StateDataStore<SimStateData, MemSpace::host>;
-    using ParticleStateStore = StateDataStore<ParticleStateData, MemSpace::host>;
+    using ParticleStateStore
+        = StateDataStore<ParticleStateData, MemSpace::host>;
     using MevEnergy = units::MevEnergy;
 
   protected:

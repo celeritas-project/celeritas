@@ -75,9 +75,8 @@ inp::UniformGrid RangeGridCalculator::operator()(
         result.interpolation.type = InterpolationType::linear;
     }
 
-    constexpr real_type delta = 1
-                                / static_cast<real_type>(
-                                    integration_substeps());
+    constexpr real_type delta
+        = 1 / static_cast<real_type>(integration_substeps());
 
     CELER_ASSERT(calc_dedx[0] > 0);
     real_type cum_range = 2 * std::exp(loge_grid[0]) / calc_dedx[0];

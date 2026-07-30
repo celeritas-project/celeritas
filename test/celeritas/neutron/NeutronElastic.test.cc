@@ -28,7 +28,8 @@ class NeutronElasticTest : public NeutronTestBase
 {
   protected:
     using MevEnergy = units::MevEnergy;
-    using SPConstNElasticModel = std::shared_ptr<ChipsNeutronElasticModel const>;
+    using SPConstNElasticModel
+        = std::shared_ptr<ChipsNeutronElasticModel const>;
 
     void SetUp() override
     {

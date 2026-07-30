@@ -111,8 +111,8 @@ G4OpticalSurface const& GeantSurfacePhysicsHelper::surface() const
 bool GeantSurfacePhysicsHelper::get_property(inp::Grid& dst,
                                              std::string const& name) const
 {
-    auto loaded = get_property_(
-        dst, name, {ImportUnits::mev, ImportUnits::unitless});
+    auto loaded
+        = get_property_(dst, name, {ImportUnits::mev, ImportUnits::unitless});
     return loaded;
 }
 

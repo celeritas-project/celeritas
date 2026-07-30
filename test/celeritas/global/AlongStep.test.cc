@@ -66,12 +66,12 @@ class MockAlongStepFieldTest : public MockAlongStepTest
         field_inp.strength = {4, 0, 0};
 
         auto& action_reg = *this->action_reg();
-        auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(),
-            *this->geometry(),
-            field_inp,
-            nullptr,
-            nullptr);
+        auto result
+            = std::make_shared<AlongStepUniformMscAction>(action_reg.next_id(),
+                                                          *this->geometry(),
+                                                          field_inp,
+                                                          nullptr,
+                                                          nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -197,13 +197,13 @@ class SimpleCmsRZFieldAlongStepTest : public SimpleCmsAlongStepTest
                                              "cms-tiny.field.json");
         std::ifstream(filename) >> field_map;
 
-        auto result = AlongStepRZMapFieldMscAction::from_params(
-            action_reg.next_id(),
-            *this->material(),
-            *this->particle(),
-            field_map,
-            msc,
-            fluct_);
+        auto result
+            = AlongStepRZMapFieldMscAction::from_params(action_reg.next_id(),
+                                                        *this->material(),
+                                                        *this->particle(),
+                                                        field_map,
+                                                        msc,
+                                                        fluct_);
         action_reg.insert(result);
         return result;
     }
@@ -503,10 +503,10 @@ TEST_F(Em3AlongStepTest, msc_nofluct_finegrid)
         SCOPED_TRACE("positron with MSC cross section near discontinuity");
         inp.particle_id = this->particle()->find(pdg::positron());
         inp.energy = MevEnergy{10.6026777729432};
-        inp.position = {
-            -3.81588975039638, 0.0396989319776775, -0.0362911231520308};
-        inp.direction = {
-            0.995881993983801, -0.0107323420361051, 0.0900215023939723};
+        inp.position
+            = {-3.81588975039638, 0.0396989319776775, -0.0362911231520308};
+        inp.direction
+            = {0.995881993983801, -0.0107323420361051, 0.0900215023939723};
         inp.phys_mfp = 0.469519866261640;
         auto result = this->run(inp, num_tracks);
         // Distance to interaction = 0.0499189990540797

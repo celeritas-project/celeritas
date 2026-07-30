@@ -167,8 +167,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
         // two_mebsgs = 2 * m_e c^2 * beta^2 * gamma^2
         real_type const w = std::log(value_as<units::MevMass>(two_mebsgs))
                             - beta_sq;
-        real_type const w_0 = value_as<units::LogMevEnergy>(
-            mat.log_mean_excitation_energy());
+        real_type const w_0
+            = value_as<units::LogMevEnergy>(mat.log_mean_excitation_energy());
         if (w > w_0)
         {
             if (w > params.log_binding_energy[1])

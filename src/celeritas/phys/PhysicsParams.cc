@@ -94,8 +94,8 @@ PhysicsParams::PhysicsParams(Input inp)
         using std::make_shared;
         auto& action_reg = *inp.action_registry;
 
-        auto pre_step_action = make_shared<detail::PreStepAction>(
-            action_reg.next_id());
+        auto pre_step_action
+            = make_shared<detail::PreStepAction>(action_reg.next_id());
         inp.action_registry->insert(pre_step_action);
         pre_step_action_ = std::move(pre_step_action);
 
@@ -113,8 +113,8 @@ PhysicsParams::PhysicsParams(Input inp)
         action_reg.insert(range_action);
         range_action_ = std::move(range_action);
 
-        auto discrete_action = make_shared<detail::DiscreteSelectAction>(
-            action_reg.next_id());
+        auto discrete_action
+            = make_shared<detail::DiscreteSelectAction>(action_reg.next_id());
         inp.action_registry->insert(discrete_action);
         discrete_action_ = std::move(discrete_action);
 
@@ -626,8 +626,8 @@ void PhysicsParams::build_tables(
                                 inverse_range, make_const_ref(*data).reals);
                         inverse_range.derivative = reals.insert_back(
                             derivative.begin(), derivative.end());
-                        inverse_range_ids[mat_idx] = uniform_grids.push_back(
-                            inverse_range);
+                        inverse_range_ids[mat_idx]
+                            = uniform_grids.push_back(inverse_range);
                     }
                 }
 
@@ -664,8 +664,9 @@ void PhysicsParams::build_tables(
                     energy_loss_ids.begin(), energy_loss_ids.end());
                 process_group.range.grids = uniform_grid_ids.insert_back(
                     range_ids.begin(), range_ids.end());
-                process_group.inverse_range.grids = uniform_grid_ids.insert_back(
-                    inverse_range_ids.begin(), inverse_range_ids.end());
+                process_group.inverse_range.grids
+                    = uniform_grid_ids.insert_back(inverse_range_ids.begin(),
+                                                   inverse_range_ids.end());
             }
 
             // Store the energies of the maximum cross sections

@@ -181,8 +181,8 @@ CELER_FUNCTION Interaction MuDecayInteractor::operator()(Engine& rng)
     result.secondaries = {secondaries, 1};
     result.secondaries[0].particle_id = sec_id_;
     // Interaction stores kinetic energy; FourVector stores total energy
-    result.secondaries[0].energy = Energy{charged_lep_fv.energy
-                                          - shared_.electron_mass.value()};
+    result.secondaries[0].energy
+        = Energy{charged_lep_fv.energy - shared_.electron_mass.value()};
     result.secondaries[0].direction = make_unit_vector(charged_lep_fv.mom);
 
     return result;

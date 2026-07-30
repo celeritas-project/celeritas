@@ -54,8 +54,9 @@ ExtendFromPrimariesAction::find_action(CoreParams const& core)
 {
     if (auto aid = core.action_reg()->find_action(efp_label))
     {
-        auto action = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
-            core.action_reg()->action(aid));
+        auto action
+            = std::dynamic_pointer_cast<ExtendFromPrimariesAction const>(
+                core.action_reg()->action(aid));
         CELER_VALIDATE(action,
                        << "incorrect type for '" << efp_label << "' action");
         return action;

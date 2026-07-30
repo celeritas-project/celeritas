@@ -292,9 +292,9 @@ CELER_FORCEINLINE_FUNCTION Real3 Involute::calc_normal(Real3 const& pos) const
     xy[1] = pos[1] - origin_[1];
 
     // Calculate normal
-    real_type const angle = std::sqrt(clamp_to_nonneg(
-                                dot_product(xy, xy) / ipow<2>(r_b_) - 1))
-                            + a_;
+    real_type const angle
+        = std::sqrt(clamp_to_nonneg(dot_product(xy, xy) / ipow<2>(r_b_) - 1))
+          + a_;
     Real3 normal_ = {std::sin(angle), -std::cos(angle), 0};
 
     if (this->sign() == Chirality::right)

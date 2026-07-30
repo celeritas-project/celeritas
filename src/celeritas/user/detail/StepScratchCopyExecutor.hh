@@ -62,8 +62,8 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
     { \
         if (!state.data.FIELD.empty()) \
         { \
-            fast_get(state.scratch.FIELD, \
-                     dst_id) = fast_get(state.data.FIELD, src_id); \
+            fast_get(state.scratch.FIELD, dst_id) \
+                = fast_get(state.data.FIELD, src_id); \
         } \
     } while (0)
 

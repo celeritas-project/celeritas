@@ -59,8 +59,8 @@ TEST(InfixEvaluatorTest, evaluate)
 
     //// EVALUATE ////
 
-    VecSense senses = {
-        s_in, s_out, s_in, s_out, s_in, s_out, s_in, s_in, s_out};
+    VecSense senses
+        = {s_in, s_out, s_in, s_out, s_in, s_out, s_in, s_in, s_out};
 
     auto eval = [&senses](FaceId i) {
         CELER_EXPECT(i < senses.size());
@@ -72,8 +72,8 @@ TEST(InfixEvaluatorTest, evaluate)
     EXPECT_TRUE(eval_everywhere(eval));
 
     // Should evaluate to true (inside delta)
-    senses = {
-        s_in, s_out, s_in, s_out, s_out, s_out, s_out, s_in, s_out, s_out};
+    senses
+        = {s_in, s_out, s_in, s_out, s_out, s_out, s_out, s_in, s_out, s_out};
     EXPECT_TRUE(eval_delta(eval));
     EXPECT_TRUE(eval_everywhere(eval));
 }

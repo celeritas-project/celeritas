@@ -315,8 +315,8 @@ CELER_FUNCTION auto UrbanMscScatter::operator()(Engine& rng) -> MscInteraction
     CELER_ASSERT(std::fabs(costheta) <= 1);
 
     // Sample azimuthal angle, used for displacement and exiting angle
-    real_type phi = UniformRealDistribution<real_type>(0, 2_r * constants::pi)(
-        rng);
+    real_type phi
+        = UniformRealDistribution<real_type>(0, 2_r * constants::pi)(rng);
 
     MscInteraction result;
     result.action = MscInteraction::Action::scattered;
@@ -381,9 +381,8 @@ CELER_FUNCTION real_type UrbanMscScatter::sample_cos_theta(Engine& rng) const
     real_type xsi = [this] {
         using PolyQuad = PolyEvaluator<real_type, 2>;
 
-        real_type maxtau = true_path_ < limit_min_
-                               ? limit_min_ / helper_.msc_mfp()
-                               : tau_;
+        real_type maxtau
+            = true_path_ < limit_min_ ? limit_min_ / helper_.msc_mfp() : tau_;
         // note: 0 < u <= sqrt(2) when shared_.params.tau_big == 8
         real_type u = fastpow(maxtau, 1.0_r / 6.0_r);
         // Number of radiation lengths traveled by the average MFP over this
@@ -519,15 +518,15 @@ CELER_FUNCTION real_type UrbanMscScatter::compute_theta0(
     }
     CELER_ASSERT(y > 0);
 
-    real_type invbetacp = std::sqrt(
-        (inc_energy_ + mass) * (end_energy_ + mass)
-        / (inc_energy_ * (inc_energy_ + 2 * mass) * end_energy_
-           * (end_energy_ + 2 * mass)));
+    real_type invbetacp
+        = std::sqrt((inc_energy_ + mass) * (end_energy_ + mass)
+                    / (inc_energy_ * (inc_energy_ + 2 * mass) * end_energy_
+                       * (end_energy_ + 2 * mass)));
     constexpr units::MevEnergy c_highland{13.6};
-    real_type theta0 = c_highland.value()
-                       * std::abs(value_as<units::ElementaryCharge>(
-                           particle.charge()))
-                       * std::sqrt(y) * invbetacp;
+    real_type theta0
+        = c_highland.value()
+          * std::abs(value_as<units::ElementaryCharge>(particle.charge()))
+          * std::sqrt(y) * invbetacp;
 
     // Correction factor from e- scattering data
     theta0 *= PolyEvaluator<real_type, 1>(msc_.theta_coeff)(std::log(y));

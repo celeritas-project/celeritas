@@ -170,8 +170,8 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             //   boundary test does lose some accuracy)
             geo_.set_dir(chord.dir);
         }
-        auto linear_step = geo_.find_next_step(
-            chord.length + this->delta_intersection());
+        auto linear_step
+            = geo_.find_next_step(chord.length + this->delta_intersection());
 
         // Scale the effective substep length to travel by the fraction along
         // the chord to the boundary. This value can be slightly larger than 1

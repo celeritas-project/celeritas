@@ -381,8 +381,8 @@ void fixup_background_volume(LocalSurfaceId::size_type num_surfaces,
     if (v.zorder != ZOrder::background)
         return;
 
-    static auto const nowhere_logic = detail::make_nowhere_expr(
-        orange_tracking_logic);
+    static auto const nowhere_logic
+        = detail::make_nowhere_expr(orange_tracking_logic);
 
     v.faces.resize(num_surfaces);
     std::iota(v.faces.begin(), v.faces.end(), LocalSurfaceId{0});

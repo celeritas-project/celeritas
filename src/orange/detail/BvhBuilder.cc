@@ -122,8 +122,8 @@ BvhTreeRecord BvhBuilder::operator()(
         // Construct the tree recursively
         VecNodes nodes;
         this->construct_tree(indices, &nodes, 0, depth);
-        auto [internal_nodes,
-              leaf_nodes] = this->arrange_nodes(std::move(nodes));
+        auto [internal_nodes, leaf_nodes]
+            = this->arrange_nodes(std::move(nodes));
 
         tree.internal_nodes = internal_nodes_.insert_back(
             internal_nodes.begin(), internal_nodes.end());
@@ -242,17 +242,17 @@ BvhBuilder::ArrangedNodes BvhBuilder::arrange_nodes(VecNodes const& nodes) const
     is_leaf.reserve(nodes.size());
     new_indices.reserve(nodes.size());
 
-    auto insert_node = Overload{[&](BvhInternalNode const& node) {
-                                    new_indices.push_back(
-                                        internal_nodes.size());
-                                    internal_nodes.push_back(node);
-                                    is_leaf.push_back(false);
-                                },
-                                [&](BvhLeafNode const& node) {
-                                    new_indices.push_back(leaf_nodes.size());
-                                    leaf_nodes.push_back(node);
-                                    is_leaf.push_back(true);
-                                }};
+    auto insert_node
+        = Overload{[&](BvhInternalNode const& node) {
+                       new_indices.push_back(internal_nodes.size());
+                       internal_nodes.push_back(node);
+                       is_leaf.push_back(false);
+                   },
+                   [&](BvhLeafNode const& node) {
+                       new_indices.push_back(leaf_nodes.size());
+                       leaf_nodes.push_back(node);
+                       is_leaf.push_back(true);
+                   }};
     for (auto const& node : nodes)
     {
         std::visit(insert_node, node);

@@ -52,8 +52,8 @@ CELER_FUNCTION Interaction CoulombScatteringExecutor::operator()(
 
     // Select isotope
     ElementView element = material.element_record(elcomp_id);
-    IsotopeView target = element.isotope_record(
-        make_isotope_selector(element)(rng));
+    IsotopeView target
+        = element.isotope_record(make_isotope_selector(element)(rng));
 
     // Construct the interactor
     CoulombScatteringInteractor interact(

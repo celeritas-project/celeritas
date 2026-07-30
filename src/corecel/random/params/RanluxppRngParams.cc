@@ -36,8 +36,8 @@ RanluxppRngParams::RanluxppRngParams(RanluxppUInt seed)
     };
 
     // Multiplication constant to apply 2^96 'advance' operations
-    host_data.advance_sequence = detail::compute_power_exp_modulus(
-        host_data.advance_state, 96);
+    host_data.advance_sequence
+        = detail::compute_power_exp_modulus(host_data.advance_state, 96);
 
     CELER_ASSERT(host_data);
     data_ = ParamsDataStore<RanluxppRngParamsData>(std::move(host_data));

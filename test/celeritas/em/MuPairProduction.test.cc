@@ -133,9 +133,8 @@ TEST_F(MuPairProductionTest, distribution)
     int num_samples = 10000;
     int num_bins = 8;
 
-    real_type two_me = 2
-                       * value_as<units::MevMass>(
-                           model_->host_ref().electron_mass);
+    real_type two_me
+        = 2 * value_as<units::MevMass>(model_->host_ref().electron_mass);
 
     // Get view to the current element
     auto element = this->material_track().material_record().element_record(
@@ -374,10 +373,10 @@ TEST_F(MuPairProductionTest, stress_test)
                 Interaction result = interact(rng);
                 this->sanity_check(result);
 
-                electron_energy += value_as<MevEnergy>(
-                    result.secondaries[0].energy);
-                positron_energy += value_as<MevEnergy>(
-                    result.secondaries[1].energy);
+                electron_energy
+                    += value_as<MevEnergy>(result.secondaries[0].energy);
+                positron_energy
+                    += value_as<MevEnergy>(result.secondaries[1].energy);
                 costheta += dot_product(result.secondaries[0].direction,
                                         result.secondaries[1].direction);
             }

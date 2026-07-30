@@ -66,8 +66,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     host_data.electron_mass = particles.get(host_data.ids.electron).mass();
 
     // Set the model high energy limit
-    host_data.high_energy_limit = imported_.high_energy_limit(
-        host_data.ids.electron);
+    host_data.high_energy_limit
+        = imported_.high_energy_limit(host_data.ids.electron);
     CELER_VALIDATE(host_data.high_energy_limit
                        == imported_.high_energy_limit(host_data.ids.positron),
                    << "Seltzer-Berger energy grid bounds are inconsistent "
@@ -89,8 +89,8 @@ SeltzerBergerModel::SeltzerBergerModel(ActionId id,
     for (auto el_id : range(ElementId(materials.num_elements())))
     {
         auto const& el = host_data.differential_xs.elements[el_id];
-        auto max_energy = std::exp(
-            host_data.differential_xs.reals[el.grid.x.back()]);
+        auto max_energy
+            = std::exp(host_data.differential_xs.reals[el.grid.x.back()]);
         CELER_VALIDATE(max_energy >= host_data.high_energy_limit.value(),
                        << "Seltzer-Berger high energy limit ("
                        << host_data.high_energy_limit.value()

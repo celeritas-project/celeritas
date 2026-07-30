@@ -77,8 +77,8 @@ auto GlobalTestBase::primaries_action() -> SPConstPrimariesAction const&
 {
     if (!primaries_action_)
     {
-        primaries_action_ = ExtendFromPrimariesAction::find_action(
-            *this->core());
+        primaries_action_
+            = ExtendFromPrimariesAction::find_action(*this->core());
         CELER_ASSERT(primaries_action_);
     }
     return primaries_action_;
@@ -134,8 +134,8 @@ void GlobalTestBase::disable_status_checker()
 auto GlobalTestBase::build_geometry() -> SPConstCoreGeo
 {
     // Construct core geo
-    auto core_geo = std::dynamic_pointer_cast<CoreGeoParams const>(
-        this->lazy_geo());
+    auto core_geo
+        = std::dynamic_pointer_cast<CoreGeoParams const>(this->lazy_geo());
     CELER_ASSERT(core_geo);
 
     // Get model for constructing volumes/surfaces

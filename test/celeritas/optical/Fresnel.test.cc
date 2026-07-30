@@ -120,8 +120,8 @@ ScatteringResult scan_refraction(CoordinateAxes const& axes,
         EXPECT_EQ(SurfaceInteraction::Action::refracted, refract.action);
         EXPECT_SOFT_EQ(0, dot_product(refract.direction, axes.p_hat));
 
-        real_type cos_theta = clamp(
-            -dot_product(refract.direction, axes.n_hat), 0_r, 1_r);
+        real_type cos_theta
+            = clamp(-dot_product(refract.direction, axes.n_hat), 0_r, 1_r);
         real_type theta = std::acos(cos_theta);
 
         result.cos_theta.push_back(cos_theta);
@@ -244,9 +244,9 @@ TEST_F(FresnelTest, internal_reflectivity)
     this->check_special_reflectivity_cases(axes);
 
     // Angles just past the critical angle imply total internal reflection
-    auto critical_angle = std::asin(axes.rel_r_index)
-                          + std::sqrt(
-                              std::numeric_limits<real_type>::epsilon());
+    auto critical_angle
+        = std::asin(axes.rel_r_index)
+          + std::sqrt(std::numeric_limits<real_type>::epsilon());
     EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TE));
     EXPECT_SOFT_EQ(1, axes.calc_reflectivity(critical_angle, TM));
 

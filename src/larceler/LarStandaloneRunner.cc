@@ -185,14 +185,14 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         // Assume continuous energy loss along the step
         //! \todo For neutral particles, set this to 0 (LED at post-step point)
         data.continuous_edep_fraction = 1;
-        data.points[StepPoint::pre].time = convert_from_larsoft<LarsoftTime>(
-            step.StartT());
-        data.points[StepPoint::pre].pos = convert_from_larsoft<LarsoftLen>(
-            step.Start());
-        data.points[StepPoint::post].time = convert_from_larsoft<LarsoftTime>(
-            step.EndT());
-        data.points[StepPoint::post].pos = convert_from_larsoft<LarsoftLen>(
-            step.End());
+        data.points[StepPoint::pre].time
+            = convert_from_larsoft<LarsoftTime>(step.StartT());
+        data.points[StepPoint::pre].pos
+            = convert_from_larsoft<LarsoftLen>(step.Start());
+        data.points[StepPoint::post].time
+            = convert_from_larsoft<LarsoftTime>(step.EndT());
+        data.points[StepPoint::post].pos
+            = convert_from_larsoft<LarsoftLen>(step.End());
         CELER_ASSERT(data);
         gdd.push_back(data);
     }

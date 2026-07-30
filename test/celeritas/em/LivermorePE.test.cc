@@ -43,8 +43,8 @@ class LivermorePETest : public InteractorHostTestBase
 
     void set_relaxation_params(AtomicRelaxationParams::Input inp)
     {
-        relax_params_ = std::make_shared<AtomicRelaxationParams>(
-            std::move(inp));
+        relax_params_
+            = std::make_shared<AtomicRelaxationParams>(std::move(inp));
         relax_params_ref_ = relax_params_->host_ref();
     }
 
@@ -186,12 +186,12 @@ TEST_F(LivermorePETest, basic)
     EXPECT_EQ(4, this->secondary_allocator().get().size());
 
     // Note: these are "gold" values based on the host RNG.
-    real_type const expected_energy_electron[] = {
-        0.00062884, 0.00062884, 0.00070136, 0.00069835};
+    real_type const expected_energy_electron[]
+        = {0.00062884, 0.00062884, 0.00070136, 0.00069835};
     real_type const expected_costheta_electron[] = {
         0.1217302869581, 0.8769397871407, -0.1414717733267, -0.2414106440617};
-    real_type const expected_energy_deposition[] = {
-        0.00037116, 0.00037116, 0.00029864, 0.00030165};
+    real_type const expected_energy_deposition[]
+        = {0.00037116, 0.00037116, 0.00029864, 0.00030165};
     EXPECT_VEC_SOFT_EQ(expected_energy_electron, energy_electron);
     EXPECT_VEC_SOFT_EQ(expected_costheta_electron, costheta_electron);
     EXPECT_VEC_SOFT_EQ(expected_energy_deposition, energy_deposition);
@@ -277,8 +277,8 @@ TEST_F(LivermorePETest, stress_test)
     }
 
     // Gold values
-    real_type const expected_avg_engine_samples[] = {
-        15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
+    real_type const expected_avg_engine_samples[]
+        = {15.99755859375, 16.09204101562, 13.79919433594, 8.590209960938, 2};
     EXPECT_VEC_SOFT_EQ(expected_avg_engine_samples, avg_engine_samples);
 
     real_type const expected_avg_num_secondaries[] = {1, 1, 1, 1, 1};
@@ -379,8 +379,8 @@ TEST_F(LivermorePETest, distributions_all)
         energy.push_back(it.first);
         count.push_back(it.second);
     }
-    real_type const expected_costheta_dist[] = {
-        23, 61, 83, 129, 135, 150, 173, 134, 85, 27};
+    real_type const expected_costheta_dist[]
+        = {23, 61, 83, 129, 135, 150, 173, 134, 85, 27};
     real_type const expected_energy[] = {
         2.901e-05,  3.202e-05,  4.576e-05,  4.604e-05,  4.877e-05,  4.905e-05,
         6.529e-05,  6.83e-05,   0.00021764, 0.00022065, 0.00023439, 0.00023467,
@@ -478,8 +478,8 @@ TEST_F(LivermorePETest, distributions_radiative)
         0.00097653,
         0.00099578,
     };
-    int const expected_count[] = {
-        2, 1, 1, 1, 2, 2525, 2228, 4358, 337, 181, 361, 10};
+    int const expected_count[]
+        = {2, 1, 1, 1, 2, 2525, 2228, 4358, 337, 181, 361, 10};
     EXPECT_VEC_SOFT_EQ(expected_energy, energy);
     EXPECT_VEC_EQ(expected_count, count);
 }
@@ -508,14 +508,14 @@ TEST_F(LivermorePETest, macro_xs)
             native_value_to<units::InvCmXs>(calc_macro_xs(MevEnergy{e})).value());
         loge += delta;
     }
-    real_type const expected_macro_xs[] = {
-        9.235615290944,     17.56658325086,     1.161217594282,
-        0.4108511065363,    0.01515608909912,   0.0004000659204694,
-        9.083754758322e-06, 2.449452106704e-07, 1.800625084911e-08,
-        3.188458732396e-09, 8.028833591133e-10, 2.2700912115e-10,
-        6.653075041804e-11, 1.971081007251e-11, 5.85857761177e-12,
-        1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
-        4.594922185898e-14, 1.367605938008e-14};
+    real_type const expected_macro_xs[]
+        = {9.235615290944,     17.56658325086,     1.161217594282,
+           0.4108511065363,    0.01515608909912,   0.0004000659204694,
+           9.083754758322e-06, 2.449452106704e-07, 1.800625084911e-08,
+           3.188458732396e-09, 8.028833591133e-10, 2.2700912115e-10,
+           6.653075041804e-11, 1.971081007251e-11, 5.85857761177e-12,
+           1.743005702864e-12, 5.187166124179e-13, 1.543827005416e-13,
+           4.594922185898e-14, 1.367605938008e-14};
     EXPECT_VEC_SOFT_EQ(expected_macro_xs, macro_xs);
 }
 //---------------------------------------------------------------------------//
@@ -553,8 +553,8 @@ TEST_F(LivermorePEUtilsTest, one_neighbor)
     std::vector<AtomicRelaxSubshell> shells(num_shells);
     for (auto i : range(num_shells))
     {
-        std::vector<AtomicRelaxTransition> transitions = {
-            {SubshellId{i + 1}, SubshellId{}, 1_r, MevEnergy{1}}};
+        std::vector<AtomicRelaxTransition> transitions
+            = {{SubshellId{i + 1}, SubshellId{}, 1_r, MevEnergy{1}}};
         shells[i].transitions = make_builder(&data.transitions)
                                     .insert_back(transitions.begin(),
                                                  transitions.end());

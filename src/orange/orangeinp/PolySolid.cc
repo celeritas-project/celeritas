@@ -58,8 +58,8 @@ template<class T>
             continue;
         }
         real_type const hz = (zhi - zlo) / 2;
-        auto scoped_transform = vb.make_scoped_transform(
-            Translation{{0, 0, zlo + hz}});
+        auto scoped_transform
+            = vb.make_scoped_transform(Translation{{0, 0, zlo + hz}});
 
         // Build outer shape
         NodeId segment_node;
@@ -111,9 +111,9 @@ template<class T>
         {
             wedge_id = vb.insert_region({}, Negated{wedge_id});
         }
-        result = vb.insert_region(
-            Label{std::string{base.label()}, "restricted"},
-            Joined{op_and, {result, wedge_id}});
+        result
+            = vb.insert_region(Label{std::string{base.label()}, "restricted"},
+                               Joined{op_and, {result, wedge_id}});
     }
     return result;
 }

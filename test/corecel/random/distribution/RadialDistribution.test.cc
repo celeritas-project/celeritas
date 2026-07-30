@@ -36,8 +36,8 @@ TEST(RadialDistributionTest, bin)
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
-        static unsigned int const expected_counts[] = {
-            80, 559, 1608, 2860, 4893};
+        static unsigned int const expected_counts[]
+            = {80, 559, 1608, 2860, 4893};
         EXPECT_VEC_EQ(expected_counts, histogram.counts());
     }
     EXPECT_GE(histogram.min(), 0.0);

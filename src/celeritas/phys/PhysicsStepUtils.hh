@@ -231,8 +231,8 @@ inline CELER_FUNCTION ParticleTrackView::Energy calc_mean_energy_loss(
         auto grid_id = physics.energy_loss_grid();
         CELER_ASSERT(grid_id);
 
-        auto calc_eloss_rate = physics.make_calculator<EnergyLossCalculator>(
-            grid_id);
+        auto calc_eloss_rate
+            = physics.make_calculator<EnergyLossCalculator>(grid_id);
         eloss = Energy{step * calc_eloss_rate(pre_step_energy)};
     }
 

@@ -55,8 +55,8 @@ using detail::CsgUnit;
 
 BoundingBox<> get_unit_bbox(CsgUnit const& unit)
 {
-    auto find_bz = [&r = unit.regions](
-                       NodeId n) -> detail::BoundingZone const& {
+    auto find_bz
+        = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
         CELER_EXPECT(n);
         auto iter = r.find(n);
         CELER_ENSURE(iter != r.end());
@@ -425,8 +425,8 @@ void UnitProto::build(ProtoBuilder& pb) const
             return;
         }
         LocalVolumeId parent_id;
-        auto child_id = id_cast<LocalVolumeId>(
-            vol_iter - result.volumes.begin());
+        auto child_id
+            = id_cast<LocalVolumeId>(vol_iter - result.volumes.begin());
         if (MaterialInputId parent_mi_id = *lp)
         {
             parent_id = first_lv + parent_mi_id.get();
@@ -537,9 +537,9 @@ void UnitProto::build(ProtoBuilder& pb) const
         CELER_ASSERT(unit_volumes.size() <= result.volumes.size());
         for (auto vol_idx : range(unit_volumes.size()))
         {
-            jv[vol_idx]["label"] = std::visit(
-                [](auto&& obj) -> nlohmann::json { return obj; },
-                result.volumes[vol_idx].label);
+            jv[vol_idx]["label"]
+                = std::visit([](auto&& obj) -> nlohmann::json { return obj; },
+                             result.volumes[vol_idx].label);
         }
 
         // Save our universe label
@@ -606,8 +606,8 @@ auto UnitProto::build(BuildOptions const& opts) const -> Unit
     {
         CELER_NOT_IMPLEMENTED("implicit exterior without background fill");
     }
-    auto ext_vol = build_volume(
-        NegatedObject("[EXTERIOR]", input_.boundary.interior));
+    auto ext_vol
+        = build_volume(NegatedObject("[EXTERIOR]", input_.boundary.interior));
     CELER_ASSERT(ext_vol == orange_exterior_volume);
 
     // Build daughters

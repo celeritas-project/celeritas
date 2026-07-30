@@ -197,8 +197,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(
      * to account for the floating point error when performing square roots and
      * Regula Falsi iterations.
      */
-    real_type tol_point = (on_surface == SurfaceState::on ? r_b_ * tol() * 100
-                                                          : 0);
+    real_type tol_point
+        = (on_surface == SurfaceState::on ? r_b_ * tol() * 100 : 0);
 
     // Iteration method for finding roots with convergence tolerance of
     // r_b_*tol

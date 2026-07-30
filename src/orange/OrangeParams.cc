@@ -257,8 +257,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     // Create host data for construction, setting tolerances first
     HostVal<OrangeParamsData> host_data;
     host_data.scalars.tol = input.tol;
-    host_data.scalars.num_univ_levels = detail::DepthCalculator{
-        input.universes}();
+    host_data.scalars.num_univ_levels
+        = detail::DepthCalculator{input.universes}();
     host_data.scalars.num_vol_levels = volumes_ ? volumes_->num_volume_levels()
                                                 : 0;
 
@@ -323,8 +323,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
         for (auto ivi_id : range(ImplVolumeId{impl_vol_labels_.size()}))
         {
             host_data.volume_ids[ivi_id] = id_cast<VolumeId>(ivi_id.get());
-            host_data.volume_instance_ids[ivi_id] = id_cast<VolumeInstanceId>(
-                ivi_id.get());
+            host_data.volume_instance_ids[ivi_id]
+                = id_cast<VolumeInstanceId>(ivi_id.get());
         }
     }
 

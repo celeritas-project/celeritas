@@ -149,8 +149,8 @@ TEST_F(MatrixUtilsTest, make_rotation)
         for (auto ax : range(Axis::size_))
         {
             auto r = make_rotation(ax, Turn{0.});
-            static double const expected_flattened[] = {
-                1, 0, 0, 0, 1, 0, 0, 0, 1};
+            static double const expected_flattened[]
+                = {1, 0, 0, 0, 1, 0, 0, 0, 1};
             EXPECT_VEC_EQ(expected_flattened, flattened(r));
         }
     }
@@ -158,12 +158,12 @@ TEST_F(MatrixUtilsTest, make_rotation)
         SCOPED_TRACE("x");
         auto r = make_rotation(Axis::x, native_value_to<Turn>(std::acos(0.3)));
         EXPECT_SOFT_EQ(2 * 0.3 + 1, trace(r));
-        static double const expected_r[] = {
-            1, 0, 0, 0, 0.3, -0.95393920141695, 0, 0.95393920141695, 0.3};
+        static double const expected_r[]
+            = {1, 0, 0, 0, 0.3, -0.95393920141695, 0, 0.95393920141695, 0.3};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
 
-        static double const expected_rotated[] = {
-            1, -2.2618176042508, 2.8078784028339};
+        static double const expected_rotated[]
+            = {1, -2.2618176042508, 2.8078784028339};
         EXPECT_VEC_SOFT_EQ(expected_rotated, gemv(r, {1, 2, 3}));
     }
     {
@@ -180,8 +180,8 @@ TEST_F(MatrixUtilsTest, make_rotation)
                                             0.70710678118655};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
 
-        static double const expected_rotated[] = {
-            -1.4142135623731, 2, 2.8284271247462};
+        static double const expected_rotated[]
+            = {-1.4142135623731, 2, 2.8284271247462};
         EXPECT_VEC_SOFT_EQ(expected_rotated, gemv(r, {1, 2, 3}));
     }
     {
@@ -199,8 +199,8 @@ TEST_F(MatrixUtilsTest, make_rotation)
                                             1};
         EXPECT_VEC_SOFT_EQ(expected_r, flattened(r));
 
-        static double const expected_rotated[] = {
-            1.9845874989599, 1.0302487364574, 3};
+        static double const expected_rotated[]
+            = {1.9845874989599, 1.0302487364574, 3};
         EXPECT_VEC_SOFT_EQ(expected_rotated, gemv(r, {1, 2, 3}));
     }
     {

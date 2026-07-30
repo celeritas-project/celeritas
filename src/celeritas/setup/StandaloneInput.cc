@@ -125,10 +125,10 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     CELER_ASSERT(ctl.capacity.events > 0);
 
     // Set the number of streams
-    ctl.num_streams = (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT
-                       && !si.events.merge)
-                          ? openmp_max_threads()
-                          : 1;
+    ctl.num_streams
+        = (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT && !si.events.merge)
+              ? openmp_max_threads()
+              : 1;
     ctl.num_streams = std::min(ctl.num_streams, *ctl.capacity.events);
 
     StandaloneLoaded result;

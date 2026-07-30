@@ -233,14 +233,14 @@ TEST_F(MultiLevelTest, manual_volumes)
         local_parent.emplace_back(std::move(cur_local_parent));
         volume_names.emplace_back(std::move(cur_volume_names));
     }
-    static std::vector<int> const expected_local_level[] = {
-        {-1, 1, 1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}};
-    static std::vector<int> const expected_local_parent[] = {
-        {-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
-    static std::vector<std::string> const expected_volume_names[] = {
-        {"[EXTERIOR]", "box", "box", "box", "box_refl", "sph", "world"},
-        {"[EXTERIOR]", "sph", "sph", "tri", "box"},
-        {"[EXTERIOR]", "sph_refl", "sph_refl", "tri_refl", "box_refl"}};
+    static std::vector<int> const expected_local_level[]
+        = {{-1, 1, 1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}, {-1, 1, 1, 1, 0}};
+    static std::vector<int> const expected_local_parent[]
+        = {{-1, 6, 6, 6, 6, 6, -1}, {-1, 4, 4, 4, -1}, {-1, 4, 4, 4, -1}};
+    static std::vector<std::string> const expected_volume_names[]
+        = {{"[EXTERIOR]", "box", "box", "box", "box_refl", "sph", "world"},
+           {"[EXTERIOR]", "sph", "sph", "tri", "box"},
+           {"[EXTERIOR]", "sph_refl", "sph_refl", "tri_refl", "box_refl"}};
     EXPECT_VEC_EQ(expected_local_level, local_level);
     EXPECT_VEC_EQ(expected_local_parent, local_parent);
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
@@ -419,8 +419,8 @@ TEST_F(SolidsTest, trace)
 TEST_F(SolidsTest, reflected_vol)
 {
     auto geo = this->make_geo_track_view({-480, -125, 0}, {0, 1, 0});
-    auto const& label = this->geometry()->impl_volumes().at(
-        geo.impl_volume_id());
+    auto const& label
+        = this->geometry()->impl_volumes().at(geo.impl_volume_id());
     EXPECT_EQ("trd3_refl", label.name);
     EXPECT_FALSE(ends_with(label.ext, "_refl"));
 }
@@ -442,7 +442,8 @@ TEST_F(SolidsTest, DISABLED_imager)
 }
 
 //---------------------------------------------------------------------------//
-using TestEm3Test = GenericGeoParameterizedTest<GeantOrangeTest, TestEm3GeoTest>;
+using TestEm3Test
+    = GenericGeoParameterizedTest<GeantOrangeTest, TestEm3GeoTest>;
 
 TEST_F(TestEm3Test, trace)
 {
@@ -482,8 +483,8 @@ TEST_F(TilecalPlugTest, trace)
     {
         SCOPED_TRACE("hi x");
         auto result = this->track({6.25, 0.01, -40}, {0, 0, 1});
-        static char const* const expected_volumes[] = {
-            "Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
+        static char const* const expected_volumes[]
+            = {"Tile_ITCModule", "Tile_Absorber", "Tile_Plug1Module"};
         EXPECT_VEC_EQ(expected_volumes, result.volumes);
         static real_type const expected_distances[] = {23.0575, 42, 37};
         EXPECT_VEC_SOFT_EQ(expected_distances, result.distances);

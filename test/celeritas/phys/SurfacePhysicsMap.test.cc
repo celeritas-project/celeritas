@@ -91,8 +91,8 @@ TEST_F(SurfacePhysicsMapTest, typical)
 
     static int const expected_actions[] = {3, 0, 3, 0, 0, 0, -1, 0, 1, 3};
     EXPECT_VEC_EQ(expected_actions, actions);
-    static int const expected_model_surfaces[] = {
-        0, 1, 1, 0, 2, 3, -2, 4, 0, 2};
+    static int const expected_model_surfaces[]
+        = {0, 1, 1, 0, 2, 3, -2, 4, 0, 2};
     EXPECT_VEC_EQ(expected_model_surfaces, model_surfaces);
 }
 

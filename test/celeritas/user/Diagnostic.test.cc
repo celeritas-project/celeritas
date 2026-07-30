@@ -111,15 +111,15 @@ TEST_F(SimpleComptonDiagnosticTest, host)
 {
     auto result = this->run<MemSpace::host>(256, 32);
 
-    static char const* const expected_nonzero_action_keys[] = {
-        "geo-boundary electron",
-        "geo-boundary gamma",
-        "scat-klein-nishina gamma"};
+    static char const* const expected_nonzero_action_keys[]
+        = {"geo-boundary electron",
+           "geo-boundary gamma",
+           "scat-klein-nishina gamma"};
     EXPECT_VEC_EQ(expected_nonzero_action_keys, result.nonzero_action_keys);
     if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW)
     {
-        static size_type const expected_nonzero_action_counts[] = {
-            3780u, 525u, 3887u};
+        static size_type const expected_nonzero_action_counts[]
+            = {3780u, 525u, 3887u};
         EXPECT_VEC_EQ(expected_nonzero_action_counts,
                       result.nonzero_action_counts);
         static size_type const expected_steps[] = {

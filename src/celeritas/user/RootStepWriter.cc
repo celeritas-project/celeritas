@@ -57,8 +57,8 @@ bool srf_match(size_type step_trk_id, std::vector<size_type> const& vec_trk_id)
     }
     else
     {
-        auto iter = std::find(
-            vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
+        auto iter
+            = std::find(vec_trk_id.begin(), vec_trk_id.end(), step_trk_id);
         // True if step track ID is in the list of IDs
         return iter != vec_trk_id.end();
     }

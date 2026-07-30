@@ -357,8 +357,8 @@ TEST_F(RevolutionFieldSubstepperTest, advance)
     real_type eps = 1.0e-4;
     for (int nr = 0; nr < test_params.revolutions; ++nr)
     {
-        y_expected.pos = {
-            test_params.radius, 0, (nr + 1) * test_params.delta_z};
+        y_expected.pos
+            = {test_params.radius, 0, (nr + 1) * test_params.delta_z};
 
         // Travel hstep for num_steps times in the field
         for ([[maybe_unused]] int j : range(test_params.nsteps))

@@ -64,8 +64,8 @@ RelativisticBremModel::RelativisticBremModel(ActionId id,
     host_ref.electron_mass = particles.get(host_ref.ids.electron).mass();
 
     // Set the model low energy limit
-    host_ref.low_energy_limit = imported_.low_energy_limit(
-        host_ref.ids.electron);
+    host_ref.low_energy_limit
+        = imported_.low_energy_limit(host_ref.ids.electron);
     CELER_VALIDATE(host_ref.low_energy_limit
                        == imported_.low_energy_limit(host_ref.ids.positron),
                    << "Relativistic bremsstrahlung energy grid bounds are "

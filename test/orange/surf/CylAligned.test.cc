@@ -69,30 +69,30 @@ TEST_F(CylXTest, intersect)
 {
     // From inside
     CylX cyl{{1234.5, 0, 1}, 3.0};
-    auto distances = calc_intersections(
-        cyl, {0, 0, 2.5}, {0, 1, 0}, SurfaceState::off);
+    auto distances
+        = calc_intersections(cyl, {0, 0, 2.5}, {0, 1, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.598076211353316, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {0, 0, -4.0}, {0, 0, 1}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {0, 0, -4.0}, {0, 0, 1}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
     EXPECT_SOFT_EQ(8.0, distances[1]);
 
     // From outside, tangent
-    distances = calc_intersections(
-        cyl, {0, -3, -4.0}, {0, 0, 1}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {0, -3, -4.0}, {0, 0, 1}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting neither
-    distances = calc_intersections(
-        cyl, {0, 0, -4.0}, {0, 1, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {0, 0, -4.0}, {0, 1, 0}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
@@ -109,11 +109,11 @@ TEST_F(CylXTest, intersect_from_surface)
     EXPECT_SOFT_EQ(6.9, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {12345., 2.7728869044748548, 5.42577380894971},
-        {0.6, 0, -0.8},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {12345., 2.7728869044748548, 5.42577380894971},
+                             {0.6, 0, -0.8},
+                             SurfaceState::on);
     EXPECT_SOFT_EQ(7.714434522374273, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
@@ -124,11 +124,11 @@ TEST_F(CylXTest, intersect_from_surface)
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {12345., 2.7728869044748548, 5.42577380894971},
-        {0.6, 0, 0.8},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {12345., 2.7728869044748548, 5.42577380894971},
+                             {0.6, 0, 0.8},
+                             SurfaceState::on);
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 }
@@ -164,32 +164,32 @@ TEST_F(CylYTest, intersect)
 {
     // From inside
     CylY cyl{{1, 1234.5, 0}, 3.0};
-    auto distances = calc_intersections(
-        cyl, {2.5, 0, 0}, {0, 0, 1}, SurfaceState::off);
+    auto distances
+        = calc_intersections(cyl, {2.5, 0, 0}, {0, 0, 1}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.598076211353316, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, 0, 0}, {1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
     EXPECT_SOFT_EQ(8.0, distances[1]);
 
     // From outside, tangent
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, 0, -3}, {1, 0, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, 0, -3}, {1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting neither
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, 0, 0}, {0, 0, 1}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, 0, 0}, {0, 0, 1}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
@@ -206,11 +206,11 @@ TEST_F(CylYTest, intersect_from_surface)
     EXPECT_SOFT_EQ(6.9, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {2.7728869044748548, 12345., 5.42577380894971},
-        {0, 0.6, -0.8},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {2.7728869044748548, 12345., 5.42577380894971},
+                             {0, 0.6, -0.8},
+                             SurfaceState::on);
     EXPECT_SOFT_EQ(7.714434522374273, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
@@ -221,11 +221,11 @@ TEST_F(CylYTest, intersect_from_surface)
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {2.7728869044748548, 12345., 5.42577380894971},
-        {0, 0.6, 0.8},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {2.7728869044748548, 12345., 5.42577380894971},
+                             {0, 0.6, 0.8},
+                             SurfaceState::on);
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 }
@@ -261,16 +261,16 @@ TEST_F(CylZTest, calc_intersections)
 {
     // From inside
     CylZ cyl{{1, 0, 1234.5}, 3.0};
-    auto distances = calc_intersections(
-        cyl, {2.5, 0, 0}, {0, 1, 0}, SurfaceState::off);
+    auto distances
+        = calc_intersections(cyl, {2.5, 0, 0}, {0, 1, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.598076211353316, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting both
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, 0, 0}, {1, 0, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, 0, 0}, {1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(2.0, distances[0]);
     // TODO: we should calculate intersection to both surfaces
@@ -278,16 +278,16 @@ TEST_F(CylZTest, calc_intersections)
 
     // From outside, tangent
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, -3, 0}, {1, 0, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, -3, 0}, {1, 0, 0}, SurfaceState::off);
 
     EXPECT_SOFT_EQ(5.0, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
     // From outside, hitting neither
     distances[0] = distances[1] = -1;
-    distances = calc_intersections(
-        cyl, {-4.0, 0, 0}, {0, 1, 0}, SurfaceState::off);
+    distances
+        = calc_intersections(cyl, {-4.0, 0, 0}, {0, 1, 0}, SurfaceState::off);
 
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
@@ -304,11 +304,11 @@ TEST_F(CylZTest, calc_intersections_on_surface)
     EXPECT_SOFT_EQ(6.9, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {2.7728869044748548, 5.42577380894971, 12345.},
-        {0, -0.8, 0.6},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {2.7728869044748548, 5.42577380894971, 12345.},
+                             {0, -0.8, 0.6},
+                             SurfaceState::on);
     EXPECT_SOFT_EQ(7.714434522374273, distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
@@ -319,11 +319,11 @@ TEST_F(CylZTest, calc_intersections_on_surface)
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 
-    distances = calc_intersections(
-        cyl,
-        {2.7728869044748548, 5.42577380894971, 12345.},
-        {0, 0.8, 0.6},
-        SurfaceState::on);
+    distances
+        = calc_intersections(cyl,
+                             {2.7728869044748548, 5.42577380894971, 12345.},
+                             {0, 0.8, 0.6},
+                             SurfaceState::on);
     EXPECT_EQ(no_intersection(), distances[0]);
     EXPECT_EQ(no_intersection(), distances[1]);
 }
@@ -423,8 +423,8 @@ TEST_F(CylZTest, TEST_IF_CELERITAS_DOUBLE(degenerate_boundary))
 
                 // >>> Inward boundary
                 pos[0] = origin[0] - xdir * (diameter / 2 + eps);
-                auto distances = calc_intersections(
-                    cyl, pos, dir, SurfaceState::on);
+                auto distances
+                    = calc_intersections(cyl, pos, dir, SurfaceState::on);
                 EXPECT_SOFT_NEAR(diameter + eps, distances[0], tol);
                 EXPECT_EQ(no_intersection(), distances[1]);
 

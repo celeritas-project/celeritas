@@ -114,10 +114,10 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
     {
         // Load Mott coefficients
         MottElementData z_data;
-        z_data.electron = get_electron_mott_coeffs(
-            materials.get(el_id).atomic_number());
-        z_data.positron = get_positron_mott_coeffs(
-            materials.get(el_id).atomic_number());
+        z_data.electron
+            = get_electron_mott_coeffs(materials.get(el_id).atomic_number());
+        z_data.positron
+            = get_positron_mott_coeffs(materials.get(el_id).atomic_number());
         mott_coeffs.push_back(z_data);
     }
 

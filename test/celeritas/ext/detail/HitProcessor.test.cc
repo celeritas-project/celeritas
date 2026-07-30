@@ -293,8 +293,8 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
         auto emvi = vi_names.find_unique("em_calorimeter_pv");
         auto havi = vi_names.find_unique("had_calorimeter_pv");
         auto sivi = vi_names.find_unique("si_tracker_pv");
-        dso.points[StepPoint::pre].volume_instance_ids = {
-            wovi, sivi, wovi, emvi, wovi, havi};
+        dso.points[StepPoint::pre].volume_instance_ids
+            = {wovi, sivi, wovi, emvi, wovi, havi};
     }
     return dso;
 }
@@ -452,14 +452,14 @@ TEST_F(SimpleCmsTest, touchable_midvol)
     }
     {
         auto& result = this->get_hits("em_calorimeter");
-        static char const* const expected_pre_physvol[] = {
-            "em_calorimeter_pv", "em_calorimeter_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"em_calorimeter_pv", "em_calorimeter_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
     {
         auto& result = this->get_hits("had_calorimeter");
-        static char const* const expected_pre_physvol[] = {
-            "had_calorimeter_pv", "had_calorimeter_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"had_calorimeter_pv", "had_calorimeter_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
 }
@@ -504,14 +504,14 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
     }
     {
         auto& result = this->get_hits("em_calorimeter");
-        static char const* const expected_pre_physvol[] = {
-            "em_calorimeter_pv", "em_calorimeter_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"em_calorimeter_pv", "em_calorimeter_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
     {
         auto& result = this->get_hits("had_calorimeter");
-        static char const* const expected_pre_physvol[] = {
-            "had_calorimeter_pv", "had_calorimeter_pv"};
+        static char const* const expected_pre_physvol[]
+            = {"had_calorimeter_pv", "had_calorimeter_pv"};
         EXPECT_VEC_EQ(expected_pre_physvol, result.pre_physvol);
     }
 }
@@ -544,8 +544,8 @@ TEST_F(SimpleCmsTest, touchable_exiting)
         from_cm(Real3{0, 0, 2000}),
         from_cm(Real3{50.0, 0, 700}),
     };
-    dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir = {
-        Real3{0, 0, 1}, Real3{0, 0, 1}};
+    dso.points[StepPoint::pre].dir = dso.points[StepPoint::post].dir
+        = {Real3{0, 0, 1}, Real3{0, 0, 1}};
 
     dso.num_volume_levels = 2;
     auto const& vol_inst = this->volumes()->volume_instance_labels();
