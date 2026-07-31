@@ -17,7 +17,7 @@ load_system_env excl || return $?
 
 export CUDAARCHS=70
 export CUDAFLAGS="-Werror all-warnings -Wno-deprecated-gpu-targets"
-export CUDA_HOME=${CELER_OPT}/cuda/12.9.1/pmicvvf
+export CUDA_HOME=${CELER_SPACK_OPT}/cuda/12.9.1/pmicvvf
 export CUDACXX=${CUDA_HOME}/bin/nvcc
 
 if ! [ -d "${CUDA_HOME}" ]; then

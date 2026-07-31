@@ -17,5 +17,5 @@ load_system_env excl || return $?
 
 export CUDAARCHS=90
 export CUDAFLAGS="-Werror all-warnings"
-export CUDACXX=${CELER_ENV}/bin/nvcc
+export CUDACXX=${CELER_SPACK_VIEW}/bin/nvcc
 #export CUDAHOSTCXX=$CXX

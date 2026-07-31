@@ -106,18 +106,20 @@ fi
 CELER_SCRATCHDIR=/scratch/celeritas
 export CELER_APPTAINER_FWD=${CELER_SCRATCHDIR},/auto/projects/celeritas/spack-cache
 
-CELER_ENV=${CELER_SCRATCHDIR}/view
-if ! [ -d "${CELER_ENV}" ]; then
-  celerlog error "Celeritas spack environment does not exist (or is unreadable) at CELER_ENV=${CELER_ENV}"
+
+CELER_SPACK_ENV="celeritas-${SYSTEM_NAME:-excl}-scratch"
+CELER_SPACK_VIEW=${CELER_SCRATCHDIR}/view
+if ! [ -d "${CELER_SPACK_VIEW}" ]; then
+  celerlog error "Celeritas spack environment does not exist (or is unreadable) at CELER_SPACK_VIEW=${CELER_SPACK_VIEW}"
   return 1
 fi
 
-# CELER_OPT can be used by downstream env for exact paths, e.g. CUDA
+# CELER_SPACK_OPT can be used by downstream env for exact paths, e.g. CUDA
 # it is exported to make it available to subshells
-export CELER_OPT=${CELER_SCRATCHDIR}/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
-if ! [ -d "${CELER_OPT}" ]; then
-  celerlog warning "Celeritas toolchain does not exist (or is unreadable) at CELER_OPT=${CELER_OPT}"
+export CELER_SPACK_OPT=${CELER_SCRATCHDIR}/opt/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder__/__spack_path_placeholder
+if ! [ -d "${CELER_SPACK_OPT}" ]; then
+  celerlog warning "Celeritas toolchain does not exist (or is unreadable) at CELER_SPACK_OPT=${CELER_SPACK_OPT}"
 fi
 
-export PATH=${CELER_ENV}/bin:${PATH}
-export CMAKE_PREFIX_PATH=${CELER_ENV}:${CMAKE_PREFIX_PATH}
+export PATH=${CELER_SPACK_VIEW}/bin:${PATH}
+export CMAKE_PREFIX_PATH=${CELER_SPACK_VIEW}:${CMAKE_PREFIX_PATH}
