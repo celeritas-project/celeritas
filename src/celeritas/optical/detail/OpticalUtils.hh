@@ -21,8 +21,8 @@ namespace detail
 /*!
  * Convert a native-system wavelength into a photon energy.
  */
-inline CELER_FUNCTION units::MevEnergy
-wavelength_to_energy(real_type wavelength)
+inline CELER_FUNCTION units::MevEnergy wavelength_to_energy(
+    real_type wavelength)
 {
     CELER_EXPECT(wavelength > 0);
     return native_value_to<units::MevEnergy>(

@@ -125,8 +125,8 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_down(
 /*!
  * Rotate from daughter to parent (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const&
-Translation::rotate_up(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_up(
+    Real3 const& d) const
 {
     return d;
 }
@@ -135,8 +135,8 @@ Translation::rotate_up(Real3 const& d) const
 /*!
  * Rotate from parent to daughter (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const&
-Translation::rotate_down(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_down(
+    Real3 const& d) const
 {
     return d;
 }

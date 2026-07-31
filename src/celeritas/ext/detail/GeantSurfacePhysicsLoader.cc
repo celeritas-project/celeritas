@@ -174,8 +174,8 @@ bool is_probability(inp::Grid const& grid)
 /*!
  * Populate all \c ReflectionForm parameters for the Unified model.
  */
-inp::ReflectionForm
-load_unified_refl_form(GeantSurfacePhysicsHelper const& helper)
+inp::ReflectionForm load_unified_refl_form(
+    GeantSurfacePhysicsHelper const& helper)
 {
     static EnumArray<optical::ReflectionMode, char const*> labels{
         "SPECULARSPIKECONSTANT", "SPECULARLOBECONSTANT", "BACKSCATTERCONSTANT"};

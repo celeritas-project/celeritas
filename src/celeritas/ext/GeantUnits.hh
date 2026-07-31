@@ -27,8 +27,8 @@ inline constexpr double clhep_time{1 / units::ClhepTraits::Time::value()};
  *
  * The unit value should always be CLHEP::MeV which is defined to be unity.
  */
-inline constexpr double
-convert_to_geant(units::MevEnergy const& energy, double units)
+inline constexpr double convert_to_geant(units::MevEnergy const& energy,
+                                         double units)
 {
     CELER_EXPECT(units == 1);
     return energy.value();

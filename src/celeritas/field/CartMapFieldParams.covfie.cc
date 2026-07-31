@@ -120,8 +120,8 @@ struct CartMapFieldParams::Impl
         {
             device_ = host_;
             device_ref_ = device_;
-            CELER_ENSURE(
-                static_cast<bool>(device_) && static_cast<bool>(device_ref_));
+            CELER_ENSURE(static_cast<bool>(device_)
+                         && static_cast<bool>(device_ref_));
         }
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }

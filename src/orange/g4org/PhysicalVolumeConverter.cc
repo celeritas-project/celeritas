@@ -100,8 +100,8 @@ struct PhysicalVolumeConverter::Builder
     PhysicalVolume make_pv(int depth, G4VPhysicalVolume const& pv);
 
     // Build a child
-    void
-    place_child(int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv);
+    void place_child(
+        int depth, G4VPhysicalVolume const& g4pv, LogicalVolume* lv);
 
     // Build all children in the queue
     void build_children();

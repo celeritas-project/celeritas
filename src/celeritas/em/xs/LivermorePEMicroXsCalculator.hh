@@ -37,8 +37,8 @@ class LivermorePEMicroXsCalculator
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    LivermorePEMicroXsCalculator(ParamsRef const& shared, Energy energy);
+    inline CELER_FUNCTION LivermorePEMicroXsCalculator(ParamsRef const& shared,
+                                                       Energy energy);
 
     // Compute cross section
     inline CELER_FUNCTION BarnXs operator()(ElementId el_id) const;
@@ -66,8 +66,8 @@ CELER_FUNCTION LivermorePEMicroXsCalculator::LivermorePEMicroXsCalculator(
 /*!
  * Compute cross section.
  */
-CELER_FUNCTION
-auto LivermorePEMicroXsCalculator::operator()(ElementId el_id) const -> BarnXs
+CELER_FUNCTION auto LivermorePEMicroXsCalculator::operator()(
+    ElementId el_id) const -> BarnXs
 {
     CELER_EXPECT(el_id);
     LivermoreElement const& el = shared_.xs.elements[el_id];

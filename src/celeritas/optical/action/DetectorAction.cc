@@ -44,8 +44,8 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
     launch_action(state, execute);
 
     auto all_hits
-        = state.ref()
-              .detectors.detector_hits[AllItems<DetectorHit, MemSpace::host>{}];
+        = state.ref().detectors.detector_hits[AllItems<DetectorHit,
+                                                       MemSpace::host>{}];
 
     VecHit temp_hits(all_hits.size());
     // Copy all valid hits, erasing remaining part of the vector

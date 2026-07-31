@@ -80,8 +80,8 @@ class XorwowRngEngine
     inline CELER_FUNCTION XorwowRngEngine& operator=(Initializer_t const&);
 
     // Initialize state with a state initializer
-    inline CELER_FUNCTION XorwowRngEngine&
-    operator=(RngStateInitializer_t const&);
+    inline CELER_FUNCTION XorwowRngEngine& operator=(
+        RngStateInitializer_t const&);
 
     // Generate a 32-bit pseudorandom number
     inline CELER_FUNCTION result_type operator()();
@@ -107,8 +107,8 @@ class XorwowRngEngine
 
     inline CELER_FUNCTION void discard_subsequence(ull_int);
     inline CELER_FUNCTION void next(XorwowState&);
-    inline CELER_FUNCTION void
-    jump(ull_int, ArrayJumpPoly const&, XorwowState&);
+    inline CELER_FUNCTION void jump(
+        ull_int, ArrayJumpPoly const&, XorwowState&);
     inline CELER_FUNCTION void jump(JumpPoly const&, XorwowState&);
 };
 
@@ -141,8 +141,7 @@ struct GenerateCanonical<XorwowRngEngine, RealType>
 /*!
  * Construct from state and persistent data.
  */
-CELER_FUNCTION
-XorwowRngEngine::XorwowRngEngine(
+CELER_FUNCTION XorwowRngEngine::XorwowRngEngine(
     ParamsRef const& params, StateRef const& state, TrackSlotId tid)
     : params_(params)
 {
@@ -154,8 +153,8 @@ XorwowRngEngine::XorwowRngEngine(
 /*!
  * Initialize the RNG engine.
  */
-CELER_FUNCTION XorwowRngEngine&
-XorwowRngEngine::operator=(Initializer_t const& init)
+CELER_FUNCTION XorwowRngEngine& XorwowRngEngine::operator=(
+    Initializer_t const& init)
 {
     auto& s = state_->xorstate;
 
@@ -182,8 +181,8 @@ XorwowRngEngine::operator=(Initializer_t const& init)
 /*!
  * Initialize the RNG engine with a state initializer.
  */
-CELER_FUNCTION XorwowRngEngine&
-XorwowRngEngine::operator=(RngStateInitializer_t const& state_init)
+CELER_FUNCTION XorwowRngEngine& XorwowRngEngine::operator=(
+    RngStateInitializer_t const& state_init)
 {
     state_->xorstate = state_init.xorstate;
     state_->weylstate = state_init.weylstate;
@@ -330,8 +329,8 @@ CELER_FUNCTION void XorwowRngEngine::jump(
  * addition is the same as subtraction and equivalent to bitwise exclusive or,
  * and multiplication is bitwise and.
  */
-CELER_FUNCTION void
-XorwowRngEngine::jump(JumpPoly const& jump_poly, XorwowState& state)
+CELER_FUNCTION void XorwowRngEngine::jump(JumpPoly const& jump_poly,
+                                          XorwowState& state)
 {
     Array<uint_t, 5> s = {0};
     for (size_type i : range(params_.num_words()))

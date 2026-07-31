@@ -54,8 +54,8 @@ class ParticleTrackView
         ParamsRef const& params, StateRef const& states, TrackSlotId id);
 
     // Initialize the particle
-    inline CELER_FUNCTION ParticleTrackView&
-    operator=(Initializer_t const& other);
+    inline CELER_FUNCTION ParticleTrackView& operator=(
+        Initializer_t const& other);
 
     // Change the particle's energy [MeV]
     inline CELER_FUNCTION void energy(Energy);
@@ -125,8 +125,7 @@ class ParticleTrackView
 /*!
  * Construct from dynamic and static particle properties.
  */
-CELER_FUNCTION
-ParticleTrackView::ParticleTrackView(
+CELER_FUNCTION ParticleTrackView::ParticleTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
@@ -137,8 +136,8 @@ ParticleTrackView::ParticleTrackView(
 /*!
  * Initialize the particle.
  */
-CELER_FUNCTION ParticleTrackView&
-ParticleTrackView::operator=(Initializer_t const& other)
+CELER_FUNCTION ParticleTrackView& ParticleTrackView::operator=(
+    Initializer_t const& other)
 {
     CELER_EXPECT(other.particle_id < params_.size());
     CELER_EXPECT(other.energy >= zero_quantity());
@@ -154,8 +153,7 @@ ParticleTrackView::operator=(Initializer_t const& other)
  * This should only be used when the particle is in a valid state. For HEP
  * applications, the new energy should always be less than the starting energy.
  */
-CELER_FUNCTION
-void ParticleTrackView::energy(Energy quantity)
+CELER_FUNCTION void ParticleTrackView::energy(Energy quantity)
 {
     CELER_EXPECT(this->particle_id());
     CELER_EXPECT(quantity >= zero_quantity());

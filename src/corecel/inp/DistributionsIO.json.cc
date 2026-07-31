@@ -93,14 +93,14 @@ void from_json(nlohmann::json const& j, UniformBoxDistribution& v)
 
 template void from_json(nlohmann::json const&, DeltaDistribution<double>&);
 template void to_json(nlohmann::json&, DeltaDistribution<double> const&);
-template void
-from_json(nlohmann::json const&, DeltaDistribution<Array<double, 3>>&);
-template void
-to_json(nlohmann::json&, DeltaDistribution<Array<double, 3>> const&);
-template void
-from_json(nlohmann::json const&, TruncatedDistribution<NormalDistribution>&);
-template void
-to_json(nlohmann::json&, TruncatedDistribution<NormalDistribution> const&);
+template void from_json(nlohmann::json const&,
+                        DeltaDistribution<Array<double, 3>>&);
+template void to_json(nlohmann::json&,
+                      DeltaDistribution<Array<double, 3>> const&);
+template void from_json(nlohmann::json const&,
+                        TruncatedDistribution<NormalDistribution>&);
+template void to_json(nlohmann::json&,
+                      TruncatedDistribution<NormalDistribution> const&);
 
 //---------------------------------------------------------------------------//
 }  // namespace inp

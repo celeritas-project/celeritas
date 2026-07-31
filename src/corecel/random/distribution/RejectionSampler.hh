@@ -92,8 +92,8 @@ class RejectionSampler
  * Construct with acceptance probability and maximum probability.
  */
 template<class RealType>
-CELER_CONSTEXPR_FUNCTION
-RejectionSampler<RealType>::RejectionSampler(real_type fmax)
+CELER_CONSTEXPR_FUNCTION RejectionSampler<RealType>::RejectionSampler(
+    real_type fmax)
     : fmax_{fmax}
 {
     CELER_EXPECT(fmax >= 0);
@@ -105,9 +105,8 @@ RejectionSampler<RealType>::RejectionSampler(real_type fmax)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-RejectionSampler<RealType>::operator()(real_type f, Generator& rng) const
-    -> result_type
+CELER_FUNCTION auto RejectionSampler<RealType>::operator()(
+    real_type f, Generator& rng) const -> result_type
 {
     CELER_EXPECT(f <= fmax_ * (1 + tolerance()));
     return f < fmax_ * generate_canonical<RealType>(rng);

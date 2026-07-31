@@ -37,12 +37,12 @@ class WentzelMacroXsCalculator
 
   public:
     // Construct with particle, material, and precalculatad Wentzel data
-    inline CELER_FUNCTION
-    WentzelMacroXsCalculator(ParticleTrackView const& particle,
-                             MaterialView const& material,
-                             NativeCRef<WentzelVIMscData> const& data,
-                             NativeCRef<WentzelOKVIData> const& wentzel,
-                             Energy cutoff);
+    inline CELER_FUNCTION WentzelMacroXsCalculator(
+        ParticleTrackView const& particle,
+        MaterialView const& material,
+        NativeCRef<WentzelVIMscData> const& data,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        Energy cutoff);
 
     // Compute the total cross section for the given angle
     inline CELER_FUNCTION real_type operator()(real_type cos_theta) const;
@@ -61,8 +61,7 @@ class WentzelMacroXsCalculator
 /*!
  * Construct with shared model and material data.
  */
-CELER_FUNCTION
-WentzelMacroXsCalculator::WentzelMacroXsCalculator(
+CELER_FUNCTION WentzelMacroXsCalculator::WentzelMacroXsCalculator(
     ParticleTrackView const& particle,
     MaterialView const& material,
     NativeCRef<WentzelVIMscData> const& data,

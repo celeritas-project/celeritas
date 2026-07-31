@@ -142,9 +142,8 @@ CELER_FUNCTION auto FluctELoss::operator()(CoreTrackView const& track) -> Energy
 
 //---------------------------------------------------------------------------//
 template<EnergyLossFluctuationModel M>
-CELER_FUNCTION auto
-FluctELoss::sample_energy_loss(EnergyLossHelper const& helper, RngEngine& rng)
-    -> Energy
+CELER_FUNCTION auto FluctELoss::sample_energy_loss(
+    EnergyLossHelper const& helper, RngEngine& rng) -> Energy
 {
     CELER_EXPECT(helper.model() == M);
 

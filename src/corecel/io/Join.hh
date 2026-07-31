@@ -29,8 +29,8 @@ namespace celeritas
  * large and dynamic containers can be e.g. saved to disk.
  */
 template<class InputIterator, class Conjunction>
-detail::Joined<InputIterator, Conjunction, detail::StreamValue>
-join(InputIterator first, InputIterator last, Conjunction&& conjunction)
+detail::Joined<InputIterator, Conjunction, detail::StreamValue> join(
+    InputIterator first, InputIterator last, Conjunction&& conjunction)
 {
     return {first, last, std::forward<Conjunction>(conjunction), {}};
 }
@@ -64,11 +64,11 @@ join(InputIterator first,
  * Join using a functor that takes (ostream&, value).
  */
 template<class InputIterator, class Conjunction, class StreamOp>
-detail::Joined<InputIterator, Conjunction, StreamOp>
-join_stream(InputIterator first,
-            InputIterator last,
-            Conjunction&& conjunction,
-            StreamOp&& op)
+detail::Joined<InputIterator, Conjunction, StreamOp> join_stream(
+    InputIterator first,
+    InputIterator last,
+    Conjunction&& conjunction,
+    StreamOp&& op)
 {
     return {first,
             last,

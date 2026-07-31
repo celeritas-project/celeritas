@@ -74,8 +74,7 @@ class UniformLogGridCalculator
 /*!
  * Construct from uniform grid data.
  */
-CELER_FUNCTION
-UniformLogGridCalculator::UniformLogGridCalculator(
+CELER_FUNCTION UniformLogGridCalculator::UniformLogGridCalculator(
     UniformGridRecord const& grid, Values const& reals)
     : data_(grid), reals_(reals), loge_grid_(data_.grid)
 {

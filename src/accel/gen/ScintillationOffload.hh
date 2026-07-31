@@ -25,12 +25,12 @@ class ScintillationOffload : public G4Scintillation
     void PreparePhysicsTable(G4ParticleDefinition const&) override;
 
     // Create a generator distribution for the given track and step
-    G4VParticleChange*
-    PostStepDoIt(G4Track const& aTrack, G4Step const& aStep) override;
+    G4VParticleChange* PostStepDoIt(G4Track const& aTrack,
+                                    G4Step const& aStep) override;
 
     // Create a generator distribution for the given track and step
-    G4VParticleChange*
-    AtRestDoIt(G4Track const& aTrack, G4Step const& aStep) override;
+    G4VParticleChange* AtRestDoIt(G4Track const& aTrack,
+                                  G4Step const& aStep) override;
 };
 
 //---------------------------------------------------------------------------//

@@ -51,8 +51,8 @@ LivermorePEReader::LivermorePEReader(char const* path,
 /*!
  * Read the data for the given element.
  */
-LivermorePEReader::result_type
-LivermorePEReader::operator()(AtomicNumber atomic_number) const
+LivermorePEReader::result_type LivermorePEReader::operator()(
+    AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 

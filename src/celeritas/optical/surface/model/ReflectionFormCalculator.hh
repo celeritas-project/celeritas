@@ -31,17 +31,17 @@ class ReflectionFormCalculator
 {
   public:
     // Construct from photon and surface data
-    explicit inline CELER_FUNCTION
-    ReflectionFormCalculator(Real3 const& direction,
-                             Real3 const& polarization,
-                             Real3 const& global_normal,
-                             Real3 const& facet_normal);
+    explicit inline CELER_FUNCTION ReflectionFormCalculator(
+        Real3 const& direction,
+        Real3 const& polarization,
+        Real3 const& global_normal,
+        Real3 const& facet_normal);
 
     // Construct from track views
-    explicit inline CELER_FUNCTION
-    ReflectionFormCalculator(Real3 const& inc_direction,
-                             ParticleTrackView const& photon,
-                             SurfacePhysicsTrackView const& surface_physics);
+    explicit inline CELER_FUNCTION ReflectionFormCalculator(
+        Real3 const& inc_direction,
+        ParticleTrackView const& photon,
+        SurfacePhysicsTrackView const& surface_physics);
 
     // Calculate specular spike reflection
     inline CELER_FUNCTION SurfaceInteraction calc_specular_spike() const;
@@ -72,11 +72,11 @@ class ReflectionFormCalculator
 /*!
  * Construct calculator from photon and surface data.
  */
-CELER_FUNCTION
-ReflectionFormCalculator::ReflectionFormCalculator(Real3 const& direction,
-                                                   Real3 const& polarization,
-                                                   Real3 const& global_normal,
-                                                   Real3 const& facet_normal)
+CELER_FUNCTION ReflectionFormCalculator::ReflectionFormCalculator(
+    Real3 const& direction,
+    Real3 const& polarization,
+    Real3 const& global_normal,
+    Real3 const& facet_normal)
     : direction_(direction)
     , polarization_(polarization)
     , global_normal_(global_normal)
@@ -133,7 +133,8 @@ ReflectionFormCalculator::calc_specular_lobe() const
  *
  * The photon direction and polarization are reversed.
  */
-CELER_FUNCTION SurfaceInteraction ReflectionFormCalculator::calc_backscatter() const
+CELER_FUNCTION SurfaceInteraction
+ReflectionFormCalculator::calc_backscatter() const
 {
     SurfaceInteraction result;
     result.action = SurfaceInteraction::Action::reflected;

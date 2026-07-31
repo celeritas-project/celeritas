@@ -45,8 +45,8 @@ void kill_active(CoreParams const& params, CoreState<MemSpace::device>& state);
 /*!
  * Construct with defaults.
  */
-CELER_FUNCTION void
-KillActiveExecutor::operator()(celeritas::CoreTrackView& track)
+CELER_FUNCTION void KillActiveExecutor::operator()(
+    celeritas::CoreTrackView& track)
 {
     if (track.sim().status() != TrackStatus::inactive)
     {

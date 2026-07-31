@@ -142,9 +142,8 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
 
         // Check the weight is consistent with our modification at
         // begin-of-event
-        auto event_id = G4EventManager::GetEventManager()
-                            ->GetConstCurrentEvent()
-                            ->GetEventID();
+        auto event_id
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }

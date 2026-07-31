@@ -84,8 +84,8 @@ class RelativisticBremModel final : public Model, public StaticConcreteAction
                     real_type particle_mass);
 
     static FormFactor const& get_form_factor(AtomicNumber index);
-    ElementData
-    compute_element_data(ElementView const& elem, real_type particle_mass);
+    ElementData compute_element_data(ElementView const& elem,
+                                     real_type particle_mass);
 };
 
 //---------------------------------------------------------------------------//

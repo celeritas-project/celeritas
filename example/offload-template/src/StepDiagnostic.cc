@@ -60,8 +60,8 @@ auto visit_memspace_derived(Base& base, Func&& apply_derived)
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepDiagnostic>
-StepDiagnostic::make_and_insert(CoreParams const& core)
+std::shared_ptr<StepDiagnostic> StepDiagnostic::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();

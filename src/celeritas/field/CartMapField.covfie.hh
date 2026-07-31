@@ -40,8 +40,7 @@ class CartMapField
     inline CELER_FUNCTION explicit CartMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
+    CELER_FUNCTION inline Real3 operator()(Real3 const& pos) const;
 
   private:
     using field_view_t = ParamsRef::view_t;
@@ -54,8 +53,8 @@ class CartMapField
 /*!
  * Construct with the shared magnetic field map data.
  */
-CELER_FUNCTION
-CartMapField::CartMapField(ParamsRef const& shared) : field_{shared.get_view()}
+CELER_FUNCTION CartMapField::CartMapField(ParamsRef const& shared)
+    : field_{shared.get_view()}
 {
 }
 

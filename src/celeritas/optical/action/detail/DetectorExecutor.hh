@@ -47,8 +47,8 @@ struct DetectorExecutor
 /*!
  * Copy track hit into the state buffer.
  */
-CELER_FUNCTION void
-DetectorExecutor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION void DetectorExecutor::operator()(
+    CoreTrackView const& track) const
 {
     auto& hit = detector_state_.detector_hits[track.track_slot_id()];
     // Clear the hit if inactive, errored, or not detected

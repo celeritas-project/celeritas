@@ -40,8 +40,8 @@ class DiscreteSelectAction final : public CoreStepActionInterface,
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void
-DiscreteSelectAction::step(CoreParams const&, CoreStateDevice&) const
+inline void DiscreteSelectAction::step(CoreParams const&,
+                                       CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

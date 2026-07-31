@@ -248,8 +248,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
                                               g4dir_,
                                               touch_handle_(),
                                               /* relative_search = */ false);
-    this->geo_status(
-        this->is_outside() ? GeoStatus::invalid : GeoStatus::interior);
+    this->geo_status(this->is_outside() ? GeoStatus::invalid
+                                        : GeoStatus::interior);
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -280,7 +280,9 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         // Update the touchable and navigator
         touch_handle_ = other.touch_handle_;
         navi_.ResetHierarchyAndLocate(
-            g4pos_, g4dir_, dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+            g4pos_,
+            g4dir_,
+            dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
         this->geo_status(state_.status[init.parent]);
     }
 

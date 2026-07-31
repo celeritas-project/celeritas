@@ -30,15 +30,15 @@ namespace detail
  */
 struct SlotDiagnosticExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     ObserverPtr<int> output;
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-SlotDiagnosticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void SlotDiagnosticExecutor::operator()(
+    CoreTrackView const& track)
 {
     int result = [&track] {
         auto sim = track.sim();

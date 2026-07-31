@@ -85,12 +85,12 @@ class GeantGeoParams final : public GeoParamsInterface,
     static std::shared_ptr<GeantGeoParams> from_tracking_manager();
 
     // Create from a GDML file
-    static std::shared_ptr<GeantGeoParams>
-    from_gdml(std::string const& filename);
+    static std::shared_ptr<GeantGeoParams> from_gdml(
+        std::string const& filename);
 
     // Return the input geometry for a consistent interface
-    inline static std::shared_ptr<GeantGeoParams>
-    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+    inline static std::shared_ptr<GeantGeoParams> from_geant(
+        std::shared_ptr<GeantGeoParams const> const& geo);
 
     // Create a VecGeom model from an already-loaded Geant4 geometry
     // TODO: also take model input? see #1815
@@ -222,8 +222,8 @@ std::weak_ptr<GeantGeoParams const> const& global_geant_geo();
 /*!
  * Return the input geometry for a consistent interface.
  */
-std::shared_ptr<GeantGeoParams>
-GeantGeoParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+std::shared_ptr<GeantGeoParams> GeantGeoParams::from_geant(
+    std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
     return std::const_pointer_cast<GeantGeoParams>(geo);
@@ -244,8 +244,8 @@ auto GeantGeoParams::impl_volumes() const -> ImplVolumeMap const&
 /*!
  * Get the Geant4 physical volume corresponding to a volume instance ID.
  */
-CELER_FORCEINLINE G4VPhysicalVolume const*
-GeantGeoParams::id_to_geant(VolumeInstanceId id) const
+CELER_FORCEINLINE G4VPhysicalVolume const* GeantGeoParams::id_to_geant(
+    VolumeInstanceId id) const
 {
     return &vi_mapper_.id_to_geant(id);
 }
@@ -322,8 +322,8 @@ inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
     return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
 }
 
-inline std::shared_ptr<GeantGeoParams>
-GeantGeoParams::from_gdml(std::string const&)
+inline std::shared_ptr<GeantGeoParams> GeantGeoParams::from_gdml(
+    std::string const&)
 {
     return std::make_shared<GeantGeoParams>(nullptr, Ownership::reference);
 }
@@ -353,8 +353,8 @@ inline VolumeId GeantGeoParams::geant_to_id(G4LogicalVolume const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline VolumeInstanceId
-GeantGeoParams::find_volume_instance_at(Real3 const&) const
+inline VolumeInstanceId GeantGeoParams::find_volume_instance_at(
+    Real3 const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

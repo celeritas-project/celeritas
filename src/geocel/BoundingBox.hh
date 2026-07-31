@@ -75,8 +75,8 @@ class BoundingBox
         Real3 const& lower, Real3 const& upper) noexcept(!CELERITAS_DEBUG);
 
     // Construct from lo/hi extents (transposed layout)
-    inline CELER_FUNCTION
-    BoundingBox(Extents3 const& extents) noexcept(!CELERITAS_DEBUG);
+    inline CELER_FUNCTION BoundingBox(Extents3 const& extents) noexcept(
+        !CELERITAS_DEBUG);
 
     //// ACCESSORS ////
 
@@ -101,8 +101,8 @@ class BoundingBox
     }
 
     //! Access a bounding point coordinate (const ref to support LDG)
-    CELER_CONSTEXPR_FUNCTION real_type const&
-    point(Bound b, Axis ax) const& noexcept(!CELERITAS_DEBUG)
+    CELER_CONSTEXPR_FUNCTION real_type const& point(
+        Bound b, Axis ax) const& noexcept(!CELERITAS_DEBUG)
     {
         CELER_EXPECT(ax != Axis::size_);
         return points_[to_int(b)][to_int(ax)];
@@ -132,22 +132,22 @@ class BoundingBox
     //// FRIENDS ////
 
     //! Test equality of two bounding boxes
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(BoundingBox const& lhs, BoundingBox const& rhs)
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(BoundingBox const& lhs,
+                                                    BoundingBox const& rhs)
     {
         return lhs.points_ == rhs.points_;
     }
 
     //! Test inequality of two bounding boxes
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(BoundingBox const& lhs, BoundingBox const& rhs)
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(BoundingBox const& lhs,
+                                                    BoundingBox const& rhs)
     {
         return !(lhs == rhs);
     }
 
     //! Allow loading via ldg
-    CELER_CONSTEXPR_FUNCTION friend BoundingBox
-    ldg(BoundingBox const* bb) noexcept
+    CELER_CONSTEXPR_FUNCTION friend BoundingBox ldg(
+        BoundingBox const* bb) noexcept
     {
         return BoundingBox{std::true_type{}, ldg(&bb->points_)};
     }
@@ -174,14 +174,14 @@ class BoundingBox
     //// PRIVATE HELPERS ////
 
     // Construct internally without validation (using tag type)
-    CELER_CONSTEXPR_FUNCTION
-    BoundingBox(std::true_type, Points const& points) noexcept;
-    CELER_CONSTEXPR_FUNCTION
-    BoundingBox(std::true_type, Extents3 const& extents) noexcept;
+    CELER_CONSTEXPR_FUNCTION BoundingBox(std::true_type,
+                                         Points const& points) noexcept;
+    CELER_CONSTEXPR_FUNCTION BoundingBox(std::true_type,
+                                         Extents3 const& extents) noexcept;
 
     //! Set a bounding point coordinate (different signature to allow private)
-    CELER_CONSTEXPR_FUNCTION void
-    point(Bound b, Axis ax, real_type p) & noexcept
+    CELER_CONSTEXPR_FUNCTION void point(
+        Bound b, Axis ax, real_type p) & noexcept
     {
         points_[to_int(b)][to_int(ax)] = p;
     }
@@ -204,8 +204,8 @@ using BBox = BoundingBox<>;
  * box will return "true" for any point on its face.
  */
 template<class T, class U>
-CELER_CONSTEXPR_FUNCTION bool
-is_inside(BoundingBox<T> const& bb, Array<U, 3> const& p) noexcept
+CELER_CONSTEXPR_FUNCTION bool is_inside(BoundingBox<T> const& bb,
+                                        Array<U, 3> const& p) noexcept
 {
     // clang-format off
     using B = Bound; using A = Axis;
@@ -233,8 +233,8 @@ CELER_FUNCTION BoundingBox<T> BoundingBox<T>::from_infinite() noexcept
  * Create a bounding box from unchecked lower/upper points.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION BoundingBox<T>
-BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi) noexcept
+CELER_CONSTEXPR_FUNCTION BoundingBox<T> BoundingBox<T>::from_unchecked(
+    Real3 const& lo, Real3 const& hi) noexcept
 {
     return BoundingBox{std::true_type{}, Points{lo, hi}};
 }
@@ -244,8 +244,8 @@ BoundingBox<T>::from_unchecked(Real3 const& lo, Real3 const& hi) noexcept
  * Create a bounding box from unchecked lo/hi extents.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION BoundingBox<T>
-BoundingBox<T>::from_unchecked(Extents3 const& extents) noexcept
+CELER_CONSTEXPR_FUNCTION BoundingBox<T> BoundingBox<T>::from_unchecked(
+    Extents3 const& extents) noexcept
 {
     return BoundingBox{std::true_type{}, extents};
 }
@@ -295,8 +295,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(
  * Create a non-null bounding box from lo/hi extents.
  */
 template<class T>
-CELER_FUNCTION
-BoundingBox<T>::BoundingBox(Extents3 const& extents) noexcept(!CELERITAS_DEBUG)
+CELER_FUNCTION BoundingBox<T>::BoundingBox(Extents3 const& extents) noexcept(
+    !CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, extents}
 {
     CELER_EXPECT(*this);
@@ -307,8 +307,8 @@ BoundingBox<T>::BoundingBox(Extents3 const& extents) noexcept(!CELERITAS_DEBUG)
  * Create a bounding box from points without validation (internal).
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION
-BoundingBox<T>::BoundingBox(std::true_type, Points const& points) noexcept
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox(
+    std::true_type, Points const& points) noexcept
     : points_{points}
 {
 }
@@ -318,8 +318,8 @@ BoundingBox<T>::BoundingBox(std::true_type, Points const& points) noexcept
  * Create a bounding box from extents without validation (internal).
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION
-BoundingBox<T>::BoundingBox(std::true_type, Extents3 const& extents) noexcept
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox(
+    std::true_type, Extents3 const& extents) noexcept
 {
     for (auto ax : {Axis::x, Axis::y, Axis::z})
     {
@@ -355,8 +355,8 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::operator bool() const noexcept
  * on that point. Otherwise no change is made.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::shrink(Bound b, Axis ax, real_type v)
+CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::shrink(
+    Bound b, Axis ax, real_type v)
 {
     real_type p = this->point(b, ax);
     if (b == Bound::lo)
@@ -378,8 +378,8 @@ BoundingBox<T>::shrink(Bound b, Axis ax, real_type v)
  * is on that point. Otherwise no change is made.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION void
-BoundingBox<T>::grow(Bound b, Axis ax, real_type v)
+CELER_CONSTEXPR_FUNCTION void BoundingBox<T>::grow(
+    Bound b, Axis ax, real_type v)
 {
     real_type p = this->point(b, ax);
     if (b == Bound::lo)

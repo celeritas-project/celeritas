@@ -47,8 +47,8 @@ class GroupVelocityCalculator
 /*!
  * Construct from a material view.
  */
-CELER_FUNCTION
-GroupVelocityCalculator::GroupVelocityCalculator(MaterialView const& material)
+CELER_FUNCTION GroupVelocityCalculator::GroupVelocityCalculator(
+    MaterialView const& material)
     : r_index_calc_(material.make_refractive_index_calculator())
     , r_index_deriv_calc_(
           material.make_refractive_index_derivative_calculator())
@@ -59,7 +59,8 @@ GroupVelocityCalculator::GroupVelocityCalculator(MaterialView const& material)
 /*!
  * Calculate group velocity for the given energy.
  */
-CELER_FUNCTION real_type GroupVelocityCalculator::operator()(Energy energy) const
+CELER_FUNCTION real_type GroupVelocityCalculator::operator()(
+    Energy energy) const
 {
     // Clamp photon energy to the refractive-index grid endpoints
     real_type const bounded_energy = clamp(value_as<Energy>(energy),

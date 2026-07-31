@@ -19,7 +19,8 @@ namespace celeritas
  * It can't be part of the main "catch" clause when building with HIP because
  * of how the HIP-thrust fork is implemented.
  */
-void ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) const
+void ExceptionConverter::convert_device_exceptions(
+    std::exception_ptr eptr) const
 {
     try
     {

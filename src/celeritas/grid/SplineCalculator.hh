@@ -45,8 +45,8 @@ class SplineCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    SplineCalculator(UniformGridRecord const& grid, Values const& reals);
+    inline CELER_FUNCTION SplineCalculator(UniformGridRecord const& grid,
+                                           Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -81,9 +81,8 @@ class SplineCalculator
 /*!
  * Construct from cross section data.
  */
-CELER_FUNCTION
-SplineCalculator::SplineCalculator(UniformGridRecord const& grid,
-                                   Values const& reals)
+CELER_FUNCTION SplineCalculator::SplineCalculator(
+    UniformGridRecord const& grid, Values const& reals)
     : data_(grid), reals_(reals), loge_grid_(data_.grid)
 {
     CELER_EXPECT(data_);

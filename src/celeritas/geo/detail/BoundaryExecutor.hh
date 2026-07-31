@@ -37,8 +37,8 @@ struct BoundaryExecutor
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-BoundaryExecutor::operator()(celeritas::CoreTrackView& track)
+CELER_FUNCTION void BoundaryExecutor::operator()(
+    celeritas::CoreTrackView& track)
 {
     CELER_EXPECT([track] {
         auto sim = track.sim();
