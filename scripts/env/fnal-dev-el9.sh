@@ -36,8 +36,8 @@ unset CUDACXX
 # Try loading spack commands
 celerlog info "Setting up spack environment from ${SPACK_ROOT}"
 . "${SPACK_ROOT}/share/spack/setup-env.sh"
-local _errcode=$?
-if [ ${_errcode} -ne 0 ]; then
+_errcode=$?
+if [ "${_errcode}" -ne 0 ]; then
   celerlog error "Failed to set up spack"
   return ${_errcode}
 fi
@@ -77,8 +77,8 @@ fi
 
 # Load the build environment
 . "${_spack_src_file}"
-local _errcode=$?
-if [ ${_errcode} -ne 0 ]; then
+_errcode=$?
+if [ "${_errcode}" -ne 0 ]; then
   celerlog error "Failed to source spack environment"
   mv "${_spack_src_file}" "${_spack_src_file}.old"
   return ${_errcode}
@@ -89,3 +89,4 @@ if [ ! command -v lar >/dev/null 2>&1 ]; then
   mv "${_spack_src_file}" "${_spack_src_file}.old"
   return 1
 fi
+unset _errcode
