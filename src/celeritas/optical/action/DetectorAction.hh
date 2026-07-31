@@ -13,14 +13,15 @@
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/inp/Scoring.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/DetectorData.hh"
 
 #include "ActionInterface.hh"
 
 namespace celeritas
 {
+class ActionRegistry;
+class AuxParamsRegistry;
+
 namespace optical
 {
 //---------------------------------------------------------------------------//
@@ -42,12 +43,20 @@ class DetectorAction final : public OpticalStepActionInterface,
   public:
     //!@{
     //! \name Type aliases
+    using SPActionRegistry = std::shared_ptr<ActionRegistry>;
+    using SPAuxParamsRegistry = std::shared_ptr<AuxParamsRegistry>;
     using CallbackFunc = inp::OpticalDetector::HitCallbackFunc;
     //!@}
 
   public:
+    // Create and add to core params
+    static std::shared_ptr<DetectorAction> make_and_insert(
+        SPActionRegistry const&,
+        SPAuxParamsRegistry const&,
+        CallbackFunc const&);
+
     // Construct with action ID, aux ID, and callback function
-    explicit DetectorAction(ActionId, AuxId, CallbackFunc const&);
+    DetectorAction(ActionId, AuxId, CallbackFunc const&);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

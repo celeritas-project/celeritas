@@ -8,10 +8,15 @@
 
 #include <algorithm>
 
+#include "corecel/Assert.hh"
+#include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
 
 #include "ActionLauncher.hh"
 #include "TrackSlotExecutor.hh"
@@ -24,11 +29,29 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Create and add to optical params.
+ */
+std::shared_ptr<DetectorAction> DetectorAction::make_and_insert(
+    SPActionRegistry const& action_reg,
+    SPAuxParamsRegistry const& aux_reg,
+    CallbackFunc const& cb)
+{
+    CELER_EXPECT(action_reg);
+    CELER_EXPECT(aux_reg);
+    CELER_EXPECT(cb);
+    auto action = std::make_shared<DetectorAction>(
+        action_reg->next_id(), aux_reg->next_id(), cb);
+    action_reg->insert(action);
+    aux_reg->insert(action);
+    return action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with action ID, aux ID, and callback function.
  */
-DetectorAction::DetectorAction(ActionId aid,
-                               AuxId aux_id,
-                               CallbackFunc const& callback)
+DetectorAction::DetectorAction(
+    ActionId aid, AuxId aux_id, CallbackFunc const& callback)
     : sad_(aid, "detector", "Score optical detector hits")
     , aux_id_(aux_id)
     , callback_(callback)
@@ -98,8 +121,8 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Process hits copied from the kernels and send them to the callback.
  */
-Span<DetectorHit const>
-DetectorAction::load_hits_sync(CoreStateDevice const& state) const
+Span<DetectorHit const> DetectorAction::load_hits_sync(
+    CoreStateDevice const& state) const
 {
     auto const& device_hits = state.ref().detectors.detector_hits;
     auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
