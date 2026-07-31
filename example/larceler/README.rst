@@ -3,8 +3,10 @@ LArSoft workflow example
 
 This example assumes that:
 
-- A suitable Apptainer container has been activated (see :ref:`apptainer_env`),
-- DUNESW has been loaded via UPS (see :ref:`ups_mrb`),
+- A suitable Apptainer container has been activated (see :ref:`apptainer_env`)
+  if necessary (UPS or non-FNAL machine),
+- DUNESW has been loaded via Spack (see :ref:`fnal_spack`) or UPS (see
+  :ref:`build_ups`),
 - Celeritas has been installed against a compatible LArSoft version, and
 - Celeritas environment variables have been loaded (see :ref:`plugins_larsoft`).
 

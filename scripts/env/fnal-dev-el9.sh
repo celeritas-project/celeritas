@@ -21,9 +21,12 @@ if [ -n "${APPTAINER_CONTAINER}" ]; then
   celerlog info "Running in apptainer ${APPTAINER_CONTAINER}"
 fi
 
+# BEGIN_DOC_FNALSPACK
 # Latest release of FNAL-Spack and DUNESW spack environment
 export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.1.1"
-SPACK_ENV_NAME="dunesw-10_21_01d00-justin-01_06_01-prototype"
+CELER_SPACK_ENV="dunesw-10_21_01d00-justin-01_06_01-prototype"
+CELER_SPACK_PACKAGES="gcc cmake larsim googletest cuda"
+# END_DOC_FNALSPACK
 
 # Remove cuda home and compiler from parent (milan2) environment
 # since these interfere with the build
@@ -46,15 +49,15 @@ fi
 # 3. Setup is quicker, and saving to a `.sh` file dramatically reduces time for subsequent rebuilds.
 #
 # NOTE that this environment is *not sufficient* to run `lar`; it is only used to build and test Celeritas.
-celerlog info "Loading from spack environment '${SPACK_ENV_NAME}'"
+celerlog info "Loading from spack environment '${CELER_SPACK_ENV}'"
 _spack_src_file="${SCRATCHDIR}/build/spack-env.sh"
 
 
 if ! [ -f "${_spack_src_file}" ]; then
   # Create a cached environment setup script
   _tmp_src_file=$(mktemp ${_spack_src_file}.XXXXXX)
-  command spack -e ${SPACK_ENV_NAME} load --sh \
-    gcc cmake larsim googletest cuda \
+  command spack -e "${CELER_SPACK_ENV}" load --sh \
+    ${CELER_SPACK_PACKAGES} \
     > ${_tmp_src_file}
   _errcode=$?
   if [ ${_errcode} -ne 0 ]; then

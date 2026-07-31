@@ -37,6 +37,7 @@ cases for building.
 .. _develop archive: https://github.com/celeritas-project/celeritas/archive/refs/heads/develop.zip
 .. _release version: https://github.com/celeritas-project/celeritas/releases
 
+
 .. _install_spack:
 
 Installing with Spack
@@ -62,6 +63,7 @@ The typical HEP use case, which requires Geant4 and VecGeom, is built by default
 
 .. _Spack: https://spack.io
 .. _Celeritas Spack package: https://packages.spack.io/package.html?name=celeritas
+
 
 .. _dependencies:
 
@@ -153,6 +155,7 @@ have (or want) all the dependencies or features available.
 .. _cetmodules: https://fnalssi.github.io/cetmodules/
 .. _art: https://art.fnal.gov/
 
+
 .. _spack_deps:
 
 Installing dependencies with Spack
@@ -200,6 +203,7 @@ with ``spack env activate celeritas``.
 .. _getting started: https://spack.readthedocs.io/en/latest/getting_started.html
 .. _architecture flags: https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/
 
+
 .. _build_script:
 
 Developer build script
@@ -242,6 +246,7 @@ environment script at login.
 .. _Frontier: https://docs.olcf.ornl.gov/systems/frontier_user_guide.html
 .. _JLSE: https://www.jlse.anl.gov/
 .. _ccache: https://ccache.dev/
+
 
 .. _configuration:
 
@@ -360,43 +365,38 @@ basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
 call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
 build, and test.
 
-.. _build_ups:
 
-UPS for LArSoft
----------------
+Installing for LArSoft/DUNE
+---------------------------
 
 Since LArSoft and DUNE (see :ref:`plugins_larsoft`) require many infrastructure
-components specific to the Fermilab UPS_ packaging system and art_ framework,
-it is difficult to install on a typical user system.
-However, the necessary dependencies are available as "build products" via the
-DUNE/LArSoft/Fermilab CVMFS_ distribution and built through a standard
-Fermilab-provided Apptainer_ image.
+components specific to the Fermilab art_ framework, it is difficult to install
+on a typical user system.
+However, the necessary dependencies are available via
+DUNE/LArSoft/Fermilab CVMFS_ distributions and can be built through standard
+Fermilab-provided Apptainer_ images.
 Building Celeritas for LArSoft is trivial once the LArSoft development
 environment has been set up.
 
-.. _MRB: https://cdcvs.fnal.gov/redmine/projects/mrb/wiki/MrbUserGuide
 .. _CVMFS: https://cvmfs.readthedocs.io/en/stable/
 .. _Apptainer: https://apptainer.org/docs/user/main/quick_start.html
-.. _UPS: https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Getting_Started_Using_UPS
-
-.. note:: UPS and these images are in the process of being replaced with a
-   Spack toolchain. If you are using a Spack-based distribution of
-   larsoft/dunesw already, you should be able to install Celeritas with the
-   standard instructions above.
 
 .. _apptainer_env:
 
-Apptainer
-^^^^^^^^^
+Apptainer images
+^^^^^^^^^^^^^^^^
 
-UPS-based builds always happen within a containerized system. These
-instructions demonstrate container execution for two use cases: using CUDA on the ExCL milan2_ system, and without CUDA on Fermilab's ``scisoftbuild01`` machine.
+When building with UPS *or* using a non-FNAL system with FNAL-Spack, you will
+probably need to use a container image loaded with Apptainer_ and provided
+via CVMFS_.
 
-.. _milan2: https://docs.excl.ornl.gov/system-overview/milan
+AlmaLinux 9
+~~~~~~~~~~~
 
-To enable CUDA, launch the ``fnal-dev-sl7:latest`` Apptainer_ image, stored on
-CVMFS_, with CUDA forwarding enabled (and the CUDA directory forwarded via
-``-B``):
+To build with Spack or run with CUDA on a non-Fermilab system, launch the
+``fnal-dev-el9:devel`` Apptainer_ image, stored on CVMFS_.
+This example, used for running on ORNL ExCL's milan2_ system, enables CUDA with
+the ``--nv`` flag:
 
 .. literalinclude:: ../../scripts/env/excl.sh
    :language: sh
@@ -410,7 +410,14 @@ This command is wrapped into the ``apptainer-fnal`` shell command when
 The ``--ipc --pid`` options ask Apptainer to give the container isolated
 interprocess communication and process ID namespaces for VM-like process
 isolation.
+Scratch and code directories are forwarded with ``-B``.
 
+.. _milan2: https://docs.excl.ornl.gov/system-overview/milan
+
+Scientific Linux 7
+~~~~~~~~~~~~~~~~~~
+
+The SL7 images are used to build the legacy :ref:`ups_mrb` build system.
 On Fermilab machines, most of which require Kerberos authentication and do
 *not* have CUDA support, omit the ``--nv`` flag and forward the hosts files.
 
@@ -442,20 +449,60 @@ This script forwards:
    It can be fixed by commenting out the lines in
    :file:`{/etc}/apptainer/nvliblist.conf` that start with libGL and libgl.
 
-.. tip:: Apptainer overrides the ``$PS1`` shell prompt variable even if your
-   forwarded home directory overrides it. To override it inside the apptainer,
-   define the ``APPTAINERENV_PS1`` environment variable in the bare-metal
-   machine (i.e., the login node). For example:
+.. _fnal_spack:
 
-   .. code:: sh
+FNAL Spack
+^^^^^^^^^^
 
-      APPTAINERENV_PS1='\D{%b %d %H:%M:%S} \u@\h|$APPTAINER_NAME:\w\n$ '
+A new effort to distribute DUNE software infrastructure with Spack is the
+recommended way to build Celeritas with LArSoft support.
+Spack DUNESW environments are distributed via CVMFS for AlmaLinux 9 that work
+on bare-metal Fermilab machines such as ``scisoftbuild01.fnal.gov``.
 
+The currently recommended Spack directory and environment are:
 
-.. _ups_mrb:
+.. literalinclude:: ../../scripts/env/fnal-dev-el9.sh
+   :language: sh
+   :dedent: 2
+   :start-after: BEGIN_DOC_FNALSPACK
+   :end-before: END_DOC_FNALSPACK
 
-UPS and MRB
-^^^^^^^^^^^
+To build Celeritas, it is recommended to load only the required packages (since
+the full DUNESW environment currently contains a broken version of googletest), then clone and build Celeritas::
+
+   $ . "${SPACK_ROOT}/setup-env.sh"
+   $ spack -e ${CELER_SPACK_ENV} load ${CELER_SPACK_PACKAGES}
+   $ git clone https://github.com/celeritas-project/celeritas.git
+   $ cd celeritas
+   $ cmake --preset=larsoft .
+   $ cmake --preset=larsoft --install .
+
+Here we have used the LArSoft preset, which activates ``CELERITAS_USE_LArSoft`` and disables unnecessary :ref:`dependencies`.
+
+.. note::
+
+   Although the LArSoft preset enables CUDA using the provided Spack
+   installation, it does not automatically know what kind of graphics card
+   you're using.
+   It is recommended to add ``export CUDAARCHS=80`` (or equivalent) in the
+   startup script for the machine that you run on.
+
+When running jobs that require the full DUNESW stack, you will need to activate
+the Spack environment and then load the Celeritas environment variables::
+
+   $ . "${SPACK_ROOT}/setup-env.sh"
+   $ spack env activate ${CELER_SPACK_ENV}
+   $ eval $(install/bin/larceler-env)
+
+.. _build_ups:
+
+UPS
+^^^
+
+The older Fermilab UPS_ packaging system, which is being phased out in favor of
+Spack, can provide Celeritas/LArSoft dependencies as "build products" on CVMFS.
+
+.. _UPS: https://cdcvs.fnal.gov/redmine/projects/ups/wiki/Getting_Started_Using_UPS
 
 To set up Celeritas dependencies for minimal LArSoft development:
 
@@ -489,20 +536,6 @@ If using MRB_ with at least one repository (i.e. you called ``mrb g ...``),
 
 .. _DUNESW: https://github.com/DUNE/dunesw/releases
 .. _MRB: https://cdcvs.fnal.gov/redmine/projects/mrb/wiki/MrbUserGuide
-
-Installing Celeritas
-^^^^^^^^^^^^^^^^^^^^
-
-Celeritas does not currently have a UPS package.
-Instead, build and install it like any other CMake package, using the build
-script, the LArSoft preset (which activates ``CELERITAS_USE_LArSoft`` and disables unnecessary :ref:`dependencies`), or manually:
-
-.. code::
-
-   $ git clone https://github.com/celeritas-project/celeritas.git
-   $ cd celeritas
-   $ cmake --preset=larsoft .
-   $ cmake --preset=larsoft --install .
 
 On some machines such as Perlmutter, which has Nvidia's HPC SDK installed, you
 may need additional setup inside a container to configure Celeritas with CUDA:
