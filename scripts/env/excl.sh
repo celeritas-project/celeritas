@@ -26,18 +26,13 @@ _apptainer_fnal() {
     return 1
   fi
 
-  if ! [ -d "${CUDA_HOME}" ]; then
-    celerlog error "CUDA_HOME=${CUDA_HOME} does not exist"
-    return 1
-  fi
-
   # BEGIN_DOC_APPTAINER
   APPTAINER_DIR=/usr
   IMAGE_DIR=/cvmfs/singularity.opensciencegrid.org/fermilab
-  IMAGE=${1:-fnal-dev-sl7:latest}
+  IMAGE=${1:-fnal-dev-el9:devel}
   exec $APPTAINER_DIR/bin/apptainer \
     shell --shell=/bin/bash \
-    -B /cvmfs,$CUDA_HOME,$SCRATCHDIR,${HOME},${CELER_APPTAINER_FWD}, \
+    -B /cvmfs,$SCRATCHDIR,${HOME},${CELER_APPTAINER_FWD}, \
     --nv --ipc --pid  \
     ${IMAGE_DIR}/${IMAGE}
   # END_DOC_APPTAINER
