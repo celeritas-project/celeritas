@@ -105,11 +105,14 @@ class DetectorAction final : public OpticalStepActionInterface,
 
 //---------------------------------------------------------------------------//
 /*!
- * Persistent per-stream storage for pruned detector hits.
+ * Persistent per-stream storage for pruned detector hits on device.
  *
  * The pinned buffer is allocated and sized once in \c
  * DetectorAction::create_state so that no reallocation occurs during
  * stepping.
+ *
+ * This is \em only done when running on device; in host memory, we operate
+ * directly on the hit vector.
  */
 struct DetectorActionState : public AuxStateInterface
 {

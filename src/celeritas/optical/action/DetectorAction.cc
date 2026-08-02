@@ -9,6 +9,7 @@
 #include <algorithm>
 
 #include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
@@ -67,13 +68,16 @@ DetectorAction::DetectorAction(
  * The pinned hit buffer is allocated and sized here once per stream so that
  * \c step and \c load_hits_sync never need to reallocate.
  */
-auto DetectorAction::create_state(MemSpace, StreamId, size_type size) const
+auto DetectorAction::create_state(MemSpace m, StreamId, size_type size) const
     -> UPState
 {
     CELER_EXPECT(size > 0);
 
     auto result = std::make_unique<DetectorActionState>();
-    result->hits.resize(size);
+    if (m == MemSpace::device)
+    {
+        result->hits.resize(size);
+    }
 
     CELER_ENSURE(result);
     return result;
@@ -94,19 +98,14 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
         = state.ref().detectors.detector_hits[AllItems<DetectorHit,
                                                        MemSpace::host>{}];
 
-    auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
-    CELER_ASSERT(temp_hits.size() == all_hits.size());
-
-    std::size_t num_valid = [&all_hits, &temp_hits] {
-        ScopedProfiling profile_this("copy-prune");
-        // Copy all valid hits into the persistent buffer, keeping only the
-        // valid ones
-        auto end = std::copy_if(
-            all_hits.begin(), all_hits.end(), temp_hits.begin(), Identity{});
-        return std::distance(temp_hits.begin(), end);
+    std::size_t num_valid = [&all_hits] {
+        ScopedProfiling profile_this("prune");
+        auto end
+            = std::remove_if(all_hits.begin(), all_hits.end(), LogicalNot{});
+        return std::distance(all_hits.begin(), end);
     }();
 
-    this->callback_hits(make_span(temp_hits).first(num_valid));
+    this->callback_hits(make_span(all_hits).first(num_valid));
 }
 
 //---------------------------------------------------------------------------//
