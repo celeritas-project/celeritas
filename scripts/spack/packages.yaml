@@ -6,28 +6,32 @@ packages:
     require: "@2.4:"
   cmake:
     require: "@3.21:"
-  nlohmann-json:
-    require: "@3.7.0:"
+  covfie:
+    require: "@0.13:"
+  dd4hep:
+    require:
+      - "@1.33:"
+    variants:
+      - ~utilityapps ~ddeve
+  g4vg:
+    require: "@1.0.3:"
   geant4:
     require: "@10.5:"
     version:
       - "11.3"
   googletest:
     require: "@1.10:"
+  llvm: # for lldb-dap compatibility
+    variants:
+      - +python
+    version:
+      - "20:"
+  nlohmann-json:
+    require: "@3.7.0:"
   py-identify: # needed by py-pre-commit
     require: "@2.6:"
   python:
     require: "@3.9:"
-  covfie:
-    require: "@0.13:"
-  g4vg:
-    require: "@1.0.3:"
-  vecgeom:
-    require:
-      - "@1.2.10:"
-      - +gdml
-    version:
-      - "1"
   root:
     require:
       - "@6.28:"
@@ -35,8 +39,9 @@ packages:
       # These are "default starting values", not required
       # using it rather than `prefer` prevents `all:prefer:` from being overwritten
       - ~aqua ~davix ~examples ~opengl ~x ~tbb ~webgui +root7
-  dd4hep:
+  vecgeom:
     require:
-      - "@1.33:"
-    variants:
-      - ~utilityapps ~ddeve
+      - "@1.2.10:"
+      - +gdml
+    version:
+      - "1"
