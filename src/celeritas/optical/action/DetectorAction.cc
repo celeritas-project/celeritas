@@ -123,6 +123,12 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 Span<DetectorHit const> DetectorAction::load_hits_sync(
     CoreStateDevice const& state) const
 {
+    if constexpr (!CELER_USE_DEVICE)
+    {
+        // Mark unreachable for optimization and coverage
+        CELER_ASSERT_UNREACHABLE();
+    }
+
     auto const& device_hits = state.ref().detectors.detector_hits;
     auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
     if (CELER_UNLIKELY(temp_hits.size() != device_hits.size()))
