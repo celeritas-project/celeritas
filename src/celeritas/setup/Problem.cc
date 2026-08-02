@@ -276,52 +276,52 @@ auto build_optical_params(
     CELER_EXPECT(p.physics.optical);
     CELER_EXPECT(p.control.optical_capacity);
 
-    optical::CoreParams::Input op_pi;
+    optical::CoreParams::Input pi;
 
     // Validate state capacity and buffer sizes and set default values
-    op_pi.sizes = capacity(*p.control.optical_capacity, p.control.num_streams);
+    pi.sizes = capacity(*p.control.optical_capacity, p.control.num_streams);
 
     // Registries
-    op_pi.action_reg = std::make_shared<ActionRegistry>();
-    op_pi.output_reg = core.output_reg();
-    op_pi.gen_reg = std::make_shared<GeneratorRegistry>();
-    op_pi.aux_reg = std::make_shared<AuxParamsRegistry>();
+    pi.action_reg = std::make_shared<ActionRegistry>();
+    pi.output_reg = core.output_reg();
+    pi.gen_reg = std::make_shared<GeneratorRegistry>();
+    pi.aux_reg = core.aux_reg();
 
     // Geometry, physics, core
-    op_pi.geometry = core.geometry();
-    op_pi.material = optical::MaterialParams::from_import(
+    pi.geometry = core.geometry();
+    pi.material = optical::MaterialParams::from_import(
         imported, *core.geomaterial(), *core.material());
-    op_pi.physics = std::make_shared<optical::PhysicsParams>(
+    pi.physics = std::make_shared<optical::PhysicsParams>(
         imported.optical_physics.bulk,
-        op_pi.material,
+        pi.material,
         core.material(),
-        op_pi.action_reg,
-        op_pi.aux_reg,
-        op_pi.gen_reg,
-        op_pi.sizes.generators);
-    op_pi.rng = core.rng();
-    op_pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
-    op_pi.surface = core.surface();
-    op_pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
-        op_pi.action_reg.get(), p.physics.optical.surfaces);
-    op_pi.detectors = core.detectors();
-    op_pi.optical_detector = p.scoring.optical_detector;
-    op_pi.volume = core.volume();
+        pi.action_reg,
+        pi.aux_reg,
+        pi.gen_reg,
+        pi.sizes.generators);
+    pi.rng = core.rng();
+    pi.sim = std::make_shared<optical::SimParams>(p.tracking.optical_limits);
+    pi.surface = core.surface();
+    pi.surface_physics = std::make_shared<optical::SurfacePhysicsParams>(
+        pi.action_reg.get(), p.physics.optical.surfaces);
+    pi.detectors = core.detectors();
+    pi.optical_detector = p.scoring.optical_detector;
+    pi.volume = core.volume();
 
     // Photon generating processes
     if (p.physics.optical.gen.cherenkov)
     {
-        op_pi.cherenkov = std::make_shared<CherenkovParams>(*op_pi.material);
+        pi.cherenkov = std::make_shared<CherenkovParams>(*pi.material);
     }
     if (p.physics.optical.gen.scintillation)
     {
         CELER_ASSERT(imported.optical_physics.gen.scintillation);
-        op_pi.scintillation = std::make_shared<ScintillationParams>(
-            *op_pi.material, *imported.optical_physics.gen.scintillation);
+        pi.scintillation = std::make_shared<ScintillationParams>(
+            *pi.material, *imported.optical_physics.gen.scintillation);
     }
 
-    CELER_ENSURE(op_pi);
-    return std::make_shared<optical::CoreParams>(std::move(op_pi));
+    CELER_ENSURE(pi);
+    return std::make_shared<optical::CoreParams>(std::move(pi));
 }
 
 //---------------------------------------------------------------------------//
@@ -796,13 +796,13 @@ OpticalProblemLoaded problem(inp::OpticalProblem const& p,
     }
 
     // Build optical params
-    auto op_params = build_optical_params(p, std::move(loaded_model), imported);
-    CELER_ASSERT(op_params);
+    auto params = build_optical_params(p, std::move(loaded_model), imported);
+    CELER_ASSERT(params);
 
     // Set up streams
     if (auto& device = celeritas::device())
     {
-        device.create_streams(op_params->sizes().streams);
+        device.create_streams(params->sizes().streams);
     }
 
     OpticalProblemLoaded result;
@@ -827,15 +827,14 @@ OpticalProblemLoaded problem(inp::OpticalProblem const& p,
                             p.offload_file);
                 }
                 return optical::GeneratorAction::make_and_insert(
-                    *op_params, op_params->sizes().generators);
+                    *params, params->sizes().generators);
             },
             [&](inp::OpticalPrimaryGenerator opg) -> SPGeneratorBase {
                 return optical::PrimaryGeneratorAction::make_and_insert(
-                    *op_params, std::move(opg));
+                    *params, std::move(opg));
             },
             [&](inp::OpticalDirectGenerator) -> SPGeneratorBase {
-                return optical::DirectGeneratorAction::make_and_insert(
-                    *op_params);
+                return optical::DirectGeneratorAction::make_and_insert(*params);
             },
         },
         p.generator);
@@ -843,7 +842,7 @@ OpticalProblemLoaded problem(inp::OpticalProblem const& p,
     // Add step diagnostic
     if (p.step)
     {
-        optical::StepDiagnostic::make_and_insert(*op_params, p.step->bins);
+        optical::StepDiagnostic::make_and_insert(*params, p.step->bins);
     }
 
     // Build the optical transporter \em after all optical actions have been
@@ -852,17 +851,16 @@ OpticalProblemLoaded problem(inp::OpticalProblem const& p,
     if (p.timers.action)
     {
         // Create aux data to accumulate optical action times
-        ti.action_times = ActionTimes::make_and_insert(op_params->action_reg(),
-                                                       op_params->aux_reg(),
-                                                       "optical-action-times");
+        ti.action_times = ActionTimes::make_and_insert(
+            params->action_reg(), params->aux_reg(), "optical-action-times");
     }
     if (p.timers.step)
     {
         // Create aux data to record optical step times
-        ti.step_times = StepTimes::make_and_insert(op_params->aux_reg(),
+        ti.step_times = StepTimes::make_and_insert(params->aux_reg(),
                                                    "optical-step-times");
     }
-    ti.params = std::move(op_params);
+    ti.params = std::move(params);
     result.transporter = std::make_shared<optical::Transporter>(std::move(ti));
 
     CELER_ENSURE(result.transporter);
