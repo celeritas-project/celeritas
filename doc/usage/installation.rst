@@ -417,7 +417,7 @@ Scratch and code directories are forwarded with ``-B``.
 Scientific Linux 7
 ~~~~~~~~~~~~~~~~~~
 
-The SL7 images are used to build the legacy :ref:`ups_mrb` build system.
+The SL7 images are used to build the legacy :ref:`build_ups` build system.
 On Fermilab machines, most of which require Kerberos authentication and do
 *not* have CUDA support, omit the ``--nv`` flag and forward the hosts files.
 
@@ -463,7 +463,6 @@ The currently recommended Spack directory and environment are:
 
 .. literalinclude:: ../../scripts/env/fnal-dev-el9.sh
    :language: sh
-   :dedent: 2
    :start-after: BEGIN_DOC_FNALSPACK
    :end-before: END_DOC_FNALSPACK
 
