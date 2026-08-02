@@ -125,7 +125,16 @@ Span<DetectorHit const> DetectorAction::load_hits_sync(
 {
     auto const& device_hits = state.ref().detectors.detector_hits;
     auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
-    CELER_ASSERT(temp_hits.size() == device_hits.size());
+    if (CELER_UNLIKELY(temp_hits.size() != device_hits.size()))
+    {
+        // FIXME: we currently share a single aux state between core and optical
+        // tracking loops, but they may have different number of tracks, so this
+        // is an error. It basically amounts to doing a lazy resize.
+        CELER_LOG(warning) << "FIXME: expected optical aux state to be size "
+                           << device_hits.size() << " but is actually size "
+                           << temp_hits.size();
+        temp_hits.resize(device_hits.size());
+    }
 
     {
         // Copy all track hits to host from device
