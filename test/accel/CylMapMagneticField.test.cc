@@ -14,7 +14,6 @@
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/CylMapFieldParams.hh"
 
 #include "LinearMagFieldTestBase.hh"
@@ -80,9 +79,9 @@ TEST_F(CylMapMagneticFieldTest, make_input)
     EXPECT_EQ(2, inp.grid_r.size());
 
     ASSERT_EQ(4, inp.grid_phi.size());
-    EXPECT_SOFT_EQ(0, value_as<RealTurn>(inp.grid_phi.front()));
-    EXPECT_SOFT_EQ(1.0 / 12, value_as<RealTurn>(inp.grid_phi[1]));
-    EXPECT_SOFT_EQ(1.0, value_as<RealTurn>(inp.grid_phi.back()));
+    EXPECT_SOFT_EQ(0, inp.grid_phi.front().value());
+    EXPECT_SOFT_EQ(1_r / 12, inp.grid_phi[1].value());
+    EXPECT_SOFT_EQ(1.0, inp.grid_phi.back().value());
 
     EXPECT_VEC_SOFT_EQ(
         (Real2{-3, 0}),

@@ -362,8 +362,8 @@ TEST_F(MollerBhabhaInteractorTest, stress_test)
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
-            avg_engine_samples.push_back(double(rng_engine.count())
-                                         / double(num_particles_sampled));
+            avg_engine_samples.push_back(
+                double(rng_engine.count()) / double(num_particles_sampled));
         }
     }
 

@@ -21,18 +21,18 @@ class DistributionVisitor
 {
   public:
     // Construct with a reference to distribution data
-    explicit inline CELER_FUNCTION
-    DistributionVisitor(NativeCRef<DistributionParamsData> const&);
+    explicit inline CELER_FUNCTION DistributionVisitor(
+        NativeCRef<DistributionParamsData> const&);
 
     // Apply a functor to a 1D dietribution
     template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, OnedDistributionId id);
+    CELER_CONSTEXPR_FUNCTION decltype(auto) operator()(F&& func,
+                                                       OnedDistributionId id);
 
     // Apply a functor to a 3D dietribution
     template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, ThreedDistributionId id);
+    CELER_CONSTEXPR_FUNCTION decltype(auto) operator()(
+        F&& func, ThreedDistributionId id);
 
   private:
     //// TYPES ////
@@ -63,19 +63,19 @@ CELER_FUNCTION DistributionVisitor::DistributionVisitor(
  * Expand a macro to a switch statement over all 1D distribution types.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, OnedDistributionId id)
+CELER_CONSTEXPR_FUNCTION decltype(auto) DistributionVisitor::operator()(
+    F&& func, OnedDistributionId id)
 {
     CELER_EXPECT(id < params_.oned_types.size());
 
     ODT type = params_.oned_types[id];
     size_type idx = params_.oned_indices[id];
 
-#define CELER_DISTRIB_CASE(ENUM, FIELD)                                     \
-    case ODT::ENUM: {                                                       \
+#define CELER_DISTRIB_CASE(ENUM, FIELD) \
+    case ODT::ENUM: { \
         using TypeT = typename OnedDistributionTypeTraits<ODT::ENUM>::type; \
-        return celeritas::forward<F>(func)(                                 \
-            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]});             \
+        return celeritas::forward<F>(func)( \
+            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]}); \
     }
     switch (type)
     {
@@ -93,19 +93,19 @@ DistributionVisitor::operator()(F&& func, OnedDistributionId id)
  * Expand a macro to a switch statement over all 3D distribution types.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
+CELER_CONSTEXPR_FUNCTION decltype(auto) DistributionVisitor::operator()(
+    F&& func, ThreedDistributionId id)
 {
     CELER_EXPECT(id < params_.threed_types.size());
 
     TDT type = params_.threed_types[id];
     size_type idx = params_.threed_indices[id];
 
-#define CELER_DISTRIB_CASE(ENUM, FIELD)                                       \
-    case TDT::ENUM: {                                                         \
+#define CELER_DISTRIB_CASE(ENUM, FIELD) \
+    case TDT::ENUM: { \
         using TypeT = typename ThreedDistributionTypeTraits<TDT::ENUM>::type; \
-        return celeritas::forward<F>(func)(                                   \
-            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]});               \
+        return celeritas::forward<F>(func)( \
+            TypeT{params_.FIELD[ItemId<TypeT::RecordT>(idx)]}); \
     }
     switch (type)
     {
@@ -125,8 +125,8 @@ DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
  * Helper function for sampling from a distribution.
  */
 template<class Visitor, class Dist, class Engine>
-CELER_FUNCTION decltype(auto)
-sample_with(Visitor&& visit, Dist&& dist, Engine& rng)
+CELER_FUNCTION decltype(auto) sample_with(
+    Visitor&& visit, Dist&& dist, Engine& rng)
 {
     return celeritas::forward<Visitor>(visit)(
         [&rng](auto&& d) -> decltype(auto) { return d(rng); },

@@ -116,19 +116,19 @@ class Transformation
     //// CALCULATION ////
 
     // Transform from daughter to parent
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_up(Real3 const& pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_up(
+        Real3 const& pos) const;
 
     // Transform from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_down(Real3 const& parent_pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_down(
+        Real3 const& parent_pos) const;
 
     // Rotate from daughter to parent
     [[nodiscard]] inline CELER_FUNCTION Real3 rotate_up(Real3 const& dir) const;
 
     // Rotate from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    rotate_down(Real3 const& parent_dir) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 rotate_down(
+        Real3 const& parent_dir) const;
 
     // Calculate the inverse during preprocessing
     Transformation calc_inverse() const;

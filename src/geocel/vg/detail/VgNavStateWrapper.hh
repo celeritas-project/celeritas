@@ -44,8 +44,8 @@ class VgNavStateWrapper
 #endif
 
     // Constructor takes reference to low-level state and boundary
-    CELER_CONSTEXPR_FUNCTION
-    VgNavStateWrapper(VgNavStateImpl& impl_state, VgBoundary& boundary);
+    CELER_CONSTEXPR_FUNCTION VgNavStateWrapper(VgNavStateImpl& impl_state,
+                                               VgBoundary& boundary);
 
     //! Default copy constructor: both will reference the same data
     VgNavStateWrapper(VgNavStateWrapper const&) = default;
@@ -71,23 +71,19 @@ class VgNavStateWrapper
     }
 
     //! Implicitly convert to a true vecgeom nav state
-    CELER_FUNCTION
-    operator VgNavState() const
+    CELER_FUNCTION operator VgNavState() const
     {
         VgNavState result{this->GetState()};
         result.SetBoundaryState(this->IsOnBoundary());
         return result;
     }
 
-    CELER_FIF
-    VgNavStateImpl const& GetState() const { return s_; }
+    CELER_FIF VgNavStateImpl const& GetState() const { return s_; }
 
     //! Debug print
-    CELER_FIF
-    void Print() const { VgNavState{*this}.Print(); }
+    CELER_FIF void Print() const { VgNavState{*this}.Print(); }
 
-    CELER_FIF
-    void Push(VPlacedVolume const* v)
+    CELER_FIF void Push(VPlacedVolume const* v)
     {
 #if VECGEOM_VERSION < 0x020000
         // VG1 returns value; VG2 modifies in place :(
@@ -96,8 +92,7 @@ class VgNavStateWrapper
             VgNavState::PushImpl(s_, v);
     }
 
-    CELER_FIF
-    void Pop()
+    CELER_FIF void Pop()
     {
 #if VECGEOM_VERSION < 0x020000
         // VG1 returns value; VG2 modifies in place :(
@@ -106,41 +101,38 @@ class VgNavStateWrapper
             VgNavState::PopImpl(s_);
     }
 
-    CELER_FIF
-    VPlacedVolume const* Top() const { return VgNavState::TopImpl(s_); }
+    CELER_FIF VPlacedVolume const* Top() const
+    {
+        return VgNavState::TopImpl(s_);
+    }
 
-    CELER_FIF
-    unsigned char GetLevel() const { return VgNavState::GetLevelImpl(s_); }
+    CELER_FIF unsigned char GetLevel() const
+    {
+        return VgNavState::GetLevelImpl(s_);
+    }
 
     inline CELER_FUNCTION VPlacedVolume const* At(int level) const;
 
     inline CELER_FUNCTION void TopMatrix(Transformation& trans) const;
 
-    CELER_FIF
-    void Clear();
+    CELER_FIF void Clear();
 
-    CELER_FIF
-    bool IsOutside() const;
+    CELER_FIF bool IsOutside() const;
 
-    CELER_FIF
-    bool IsOnBoundary() const { return to_bool(b_); }
+    CELER_FIF bool IsOnBoundary() const { return to_bool(b_); }
 
-    CELER_FIF
-    void SetBoundaryState(bool b) { b_ = to_vgboundary(b); }
+    CELER_FIF void SetBoundaryState(bool b) { b_ = to_vgboundary(b); }
 
-    CELER_FIF
-    void CopyTo(VgNavStateWrapper* other) const { *other = *this; }
+    CELER_FIF void CopyTo(VgNavStateWrapper* other) const { *other = *this; }
 
     CELER_FIF bool HasSamePathAsOther(VgNavStateWrapper const& other) const
     {
         return s_ == other.s_;
     }
 
-    CELER_FIF
-    void SetLastExited() {}
+    CELER_FIF void SetLastExited() {}
 
-    CELER_FIF
-    VPlacedVolume const* GetLastExited() { return nullptr; }
+    CELER_FIF VPlacedVolume const* GetLastExited() { return nullptr; }
 
   private:
     VgNavStateImpl& s_;
@@ -151,16 +143,14 @@ class VgNavStateWrapper
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-CELER_CONSTEXPR_FUNCTION
-VgNavStateWrapper::VgNavStateWrapper(VgNavStateImpl& impl_state,
-                                     VgBoundary& boundary)
+CELER_CONSTEXPR_FUNCTION VgNavStateWrapper::VgNavStateWrapper(
+    VgNavStateImpl& impl_state, VgBoundary& boundary)
     : s_{impl_state}, b_{boundary}
 {
     CELER_EXPECT(CELER_VGNAV != CELER_VGNAV_PATH);
 }
 
-CELER_FIF
-vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
+CELER_FIF vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
 {
     CELER_EXPECT(level >= 0);
     // This value is 1 for navtuple (V2) or index (V1 only), but 2 for navindex
@@ -179,14 +169,12 @@ vecgeom::VPlacedVolume const* VgNavStateWrapper::At(int level) const
                : nullptr;
 }
 
-CELER_FIF
-void VgNavStateWrapper::TopMatrix(Transformation& trans) const
+CELER_FIF void VgNavStateWrapper::TopMatrix(Transformation& trans) const
 {
     VgNavState::TopMatrixImpl(s_, trans);
 }
 
-CELER_FIF
-void VgNavStateWrapper::Clear()
+CELER_FIF void VgNavStateWrapper::Clear()
 {
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
     s_.Clear();
@@ -196,8 +184,7 @@ void VgNavStateWrapper::Clear()
     this->SetBoundaryState(false);
 }
 
-CELER_FIF
-bool VgNavStateWrapper::IsOutside() const
+CELER_FIF bool VgNavStateWrapper::IsOutside() const
 {
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
     return (s_.Top() == vg_outside_nav_index);

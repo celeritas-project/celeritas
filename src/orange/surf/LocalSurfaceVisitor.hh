@@ -40,18 +40,17 @@ class LocalSurfaceVisitor
 
   public:
     // Construct from ORANGE params and surfaces redord
-    inline CELER_FUNCTION
-    LocalSurfaceVisitor(ParamsRef const& params,
-                        SurfacesRecord const& local_surfaces);
+    inline CELER_FUNCTION LocalSurfaceVisitor(
+        ParamsRef const& params, SurfacesRecord const& local_surfaces);
 
     // Construct from ORANGE params and simple unit ID
-    inline CELER_FUNCTION
-    LocalSurfaceVisitor(ParamsRef const& params, SimpleUnitId unit);
+    inline CELER_FUNCTION LocalSurfaceVisitor(ParamsRef const& params,
+                                              SimpleUnitId unit);
 
     // Apply the function to the surface specified by the given ID
     template<class F>
-    inline CELER_FUNCTION decltype(auto)
-    operator()(F&& typed_visitor, LocalSurfaceId t);
+    inline CELER_FUNCTION decltype(auto) operator()(F&& typed_visitor,
+                                                    LocalSurfaceId t);
 
   private:
     //// TYPES ////
@@ -80,9 +79,8 @@ class LocalSurfaceVisitor
  *
  * This is meant to be called from inside a simple unit tracker.
  */
-CELER_FORCEINLINE_FUNCTION
-LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
-                                         SurfacesRecord const& local_surfaces)
+CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor::LocalSurfaceVisitor(
+    ParamsRef const& params, SurfacesRecord const& local_surfaces)
     : params_{params}, surfaces_{local_surfaces}
 {
 }
@@ -91,9 +89,8 @@ LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
 /*!
  * Construct from ORANGE data with surfaces from a simple unit.
  */
-CELER_FORCEINLINE_FUNCTION
-LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
-                                         SimpleUnitId unit)
+CELER_FORCEINLINE_FUNCTION LocalSurfaceVisitor::LocalSurfaceVisitor(
+    ParamsRef const& params, SimpleUnitId unit)
     : LocalSurfaceVisitor{params, params.simple_units[unit].surfaces}
 {
 }
@@ -104,8 +101,8 @@ LocalSurfaceVisitor::LocalSurfaceVisitor(ParamsRef const& params,
  * Apply the function to the surface specified by the given ID.
  */
 template<class F>
-CELER_FUNCTION decltype(auto)
-LocalSurfaceVisitor::operator()(F&& func, LocalSurfaceId id)
+CELER_FUNCTION decltype(auto) LocalSurfaceVisitor::operator()(
+    F&& func, LocalSurfaceId id)
 {
     CELER_EXPECT(id < surfaces_.size());
 

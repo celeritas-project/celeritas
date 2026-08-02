@@ -29,8 +29,8 @@ using ItemsRef = Collection<T, Ownership::reference, M>;
  * This finds the index in offsets for which offsets[result - 1] <= value <
  * offsets[result].
  */
-inline CELER_FUNCTION size_type find_distribution_index(Span<size_type> offsets,
-                                                        size_type value)
+inline CELER_FUNCTION size_type find_distribution_index(
+    Span<size_type> offsets, size_type value)
 {
     CELER_EXPECT(!offsets.empty());
 
@@ -62,11 +62,11 @@ size_type inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class T>
-inline size_type
-inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
-                       ItemsRef<size_type, MemSpace::device> const&,
-                       size_type,
-                       StreamId)
+inline size_type inclusive_scan_photons(
+    ItemsRef<T, MemSpace::device> const&,
+    ItemsRef<size_type, MemSpace::device> const&,
+    size_type,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

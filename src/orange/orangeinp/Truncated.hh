@@ -35,8 +35,8 @@ class Truncated final : public ObjectInterface
   public:
     // Return a truncated *or* shape given optional planes
     template<class T>
-    inline static SPConstObject
-    or_shape(std::string&& label, T&& interior, VecPlane&& truncated);
+    inline static SPConstObject or_shape(
+        std::string&& label, T&& interior, VecPlane&& truncated);
 
     // Construct with a region to truncate and a vector of planes
     Truncated(std::string&& label, UPRegion&& region, VecPlane&& planes);
@@ -69,9 +69,8 @@ class Truncated final : public ObjectInterface
  * Create a truncated region or just a shape.
  */
 template<class T>
-auto Truncated::or_shape(std::string&& label,
-                         T&& interior,
-                         VecPlane&& truncated) -> SPConstObject
+auto Truncated::or_shape(
+    std::string&& label, T&& interior, VecPlane&& truncated) -> SPConstObject
 {
     if (truncated.empty())
     {

@@ -152,7 +152,8 @@ void ImportDataTrimmer::operator()(ImportMscModel& data)
 }
 
 //---------------------------------------------------------------------------//
-void ImportDataTrimmer::operator()(inp::MuPairProductionEnergyTransferTable& data)
+void ImportDataTrimmer::operator()(
+    inp::MuPairProductionEnergyTransferTable& data)
 {
     if (!data)
     {

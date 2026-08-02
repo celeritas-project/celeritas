@@ -2,31 +2,31 @@
 // Job execution file for the GeoSimExporter module
 //---------------------------------------------------------------------------//
 #include "services_dune.fcl"
-#include "GeoSimExporter.fcl"
+#include "geosimexporter.fcl"
 
 process_name: geoandsimdataexport
 
-// Set up message logger threshold
+# Set up message logger threshold
 services.message.destinations.console.type: "cout"
 services.message.destinations.console.threshold: "INFO"
 
-// Set up root output filename and geometry
+# Set up root output filename and geometry
 services:
 {
     TFileService: { fileName: "larsim-dune-data.root" }
     Geometry: @local::dune10kt_1x2x6_v1_geo
 }
 
-// Set up analyzer execution
+# Set up analyzer execution
 physics:
 {
     analyzers:
     {
-        // Create a path for art to execute
-        // This name also doubles as the directory name in the ROOT file
+        # Create a path for art to execute
+        # This name also doubles as the directory name in the ROOT file
         data: @local::GeoSimExporter
     }
 
-    // Execution ordering of all analyzers that should be invoked
+    # Execution ordering of all analyzers that should be invoked
     end_path: [ data ]
 }

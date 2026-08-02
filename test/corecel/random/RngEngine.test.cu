@@ -43,9 +43,8 @@ __global__ void sample_native_kernel(RngDeviceParamsRef params,
 }
 
 template<class RealType>
-__global__ void sample_canonical_kernel(RngDeviceParamsRef params,
-                                        RngDeviceStateRef states,
-                                        RealType* samples)
+__global__ void sample_canonical_kernel(
+    RngDeviceParamsRef params, RngDeviceStateRef states, RealType* samples)
 {
     auto tid = TrackSlotId{KernelParamCalculator::thread_id().unchecked_get()};
     if (tid.get() < states.size())
@@ -60,8 +59,8 @@ __global__ void sample_canonical_kernel(RngDeviceParamsRef params,
 // TESTING INTERFACE
 //---------------------------------------------------------------------------//
 //! Run on device and return results
-std::vector<unsigned int>
-re_test_native(RngDeviceParamsRef params, RngDeviceStateRef states)
+std::vector<unsigned int> re_test_native(RngDeviceParamsRef params,
+                                         RngDeviceStateRef states)
 {
     thrust::device_vector<unsigned int> samples(states.size());
 
@@ -81,8 +80,8 @@ re_test_native(RngDeviceParamsRef params, RngDeviceStateRef states)
 //---------------------------------------------------------------------------//
 //! Run on device and return results
 template<class T>
-std::vector<T>
-re_test_canonical(RngDeviceParamsRef params, RngDeviceStateRef states)
+std::vector<T> re_test_canonical(RngDeviceParamsRef params,
+                                 RngDeviceStateRef states)
 {
     thrust::device_vector<T> samples(states.size());
 
@@ -110,10 +109,10 @@ re_test_canonical(RngDeviceParamsRef params, RngDeviceStateRef states)
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template std::vector<float>
-    re_test_canonical<float>(RngDeviceParamsRef, RngDeviceStateRef);
-template std::vector<double>
-    re_test_canonical<double>(RngDeviceParamsRef, RngDeviceStateRef);
+template std::vector<float> re_test_canonical<float>(RngDeviceParamsRef,
+                                                     RngDeviceStateRef);
+template std::vector<double> re_test_canonical<double>(RngDeviceParamsRef,
+                                                       RngDeviceStateRef);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

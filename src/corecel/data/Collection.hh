@@ -10,6 +10,7 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/data/Ldg.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "detail/CollectionImpl.hh"
@@ -238,6 +239,12 @@ class ItemMap
 
     //! Size of the underlying Range<T2>
     CELER_FIF size_type size() const { return range_.size(); }
+
+    //! Allow loading via ldg
+    CELER_CEF friend ItemMap ldg(ItemMap const* m) noexcept
+    {
+        return ItemMap{ldg(&m->range_)};
+    }
 
   private:
     //// DATA ////
@@ -499,8 +506,8 @@ Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
+Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
+    Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
@@ -509,8 +516,8 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
+Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
+    Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
@@ -535,8 +542,8 @@ CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](ItemIdT i)
  * Access a single element (const).
  */
 template<class T, Ownership W, MemSpace M, class I>
-CELER_FORCEINLINE_FUNCTION auto
-Collection<T, W, M, I>::operator[](ItemIdT i) const -> const_reference
+CELER_FORCEINLINE_FUNCTION auto Collection<T, W, M, I>::operator[](
+    ItemIdT i) const -> const_reference
 {
     CELER_EXPECT(i < this->size());
     return s_[i.unchecked_get()];

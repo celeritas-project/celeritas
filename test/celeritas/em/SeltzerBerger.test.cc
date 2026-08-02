@@ -207,8 +207,8 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         }
 
         avg_exit_frac.push_back(total_exit_energy / (num_samples * inc_energy));
-        avg_engine_samples.push_back(real_type(rng_engine.count())
-                                     / num_samples);
+        avg_engine_samples.push_back(
+            real_type(rng_engine.count()) / num_samples);
     };
 
     // Note: the first point has a very low cross section compared to

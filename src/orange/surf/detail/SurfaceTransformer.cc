@@ -21,6 +21,7 @@
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
+#include "../Toroid.hh"
 
 namespace celeritas
 {
@@ -29,7 +30,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                     \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT SurfaceTransformer::operator()(IN<Axis::x> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::y> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::z> const&) const
@@ -231,6 +232,15 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
 Involute SurfaceTransformer::operator()(Involute const&) const
 {
     CELER_NOT_IMPLEMENTED("transformed involutes");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform a toroid.
+ */
+Toroid SurfaceTransformer::operator()(Toroid const&) const
+{
+    CELER_NOT_IMPLEMENTED("transformed toroids");
 }
 
 //---------------------------------------------------------------------------//

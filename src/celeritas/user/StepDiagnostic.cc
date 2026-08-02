@@ -22,13 +22,13 @@ namespace celeritas
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepDiagnostic>
-StepDiagnostic::make_and_insert(CoreParams const& core, size_type max_step_bin)
+std::shared_ptr<StepDiagnostic> StepDiagnostic::make_and_insert(
+    CoreParams const& core, size_type max_step_bin)
 {
     ActionRegistry& actions = *core.action_reg();
     OutputRegistry& out = *core.output_reg();
     auto result = std::make_shared<StepDiagnostic>(
-        actions.next_id(), core.particle(), max_step_bin, core.max_streams());
+        actions.next_id(), core.particle(), max_step_bin, core.sizes().streams);
     actions.insert(result);
     out.insert(result);
     return result;

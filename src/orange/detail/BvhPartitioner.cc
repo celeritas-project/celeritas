@@ -46,9 +46,8 @@ namespace detail
  * \param[in] num_part_cands  The number of candidate partitions to check per
  *                            axis
  */
-BvhPartitioner::BvhPartitioner(VecBBox const& bboxes,
-                               VecReal3 const& centers,
-                               size_type num_part_cands)
+BvhPartitioner::BvhPartitioner(
+    VecBBox const& bboxes, VecReal3 const& centers, size_type num_part_cands)
     : bboxes_(bboxes), centers_(centers), num_part_cands_(num_part_cands)
 {
     CELER_EXPECT(!bboxes_.empty());
@@ -60,10 +59,11 @@ BvhPartitioner::BvhPartitioner(VecBBox const& bboxes,
 /*!
  * Find a suitable partition for the given subset of bounding boxes.
  *
- * If no partition is found, an empty partition is returned
+ * If no partition is found, an empty partition is returned. A partition is
+ * also rejected when the subset is small and the child bboxes overlap heavily.
  */
-BvhPartitioner::Partition
-BvhPartitioner::operator()(VecIndices const& indices) const
+BvhPartitioner::Partition BvhPartitioner::operator()(
+    VecIndices const& indices) const
 {
     Partition best_partition;
     real_type best_cost = std::numeric_limits<real_type>::infinity();
@@ -78,8 +78,8 @@ BvhPartitioner::operator()(VecIndices const& indices) const
         // candidates
 
         auto step_size
-            = std::max(static_cast<size_type>(axes_centers[ax].size()
-                                              / (num_part_cands_ + 1)),
+            = std::max(static_cast<size_type>(
+                           axes_centers[ax].size() / (num_part_cands_ + 1)),
                        1_sz);
 
         for (auto i = step_size; i < axes_centers[ax].size(); i += step_size)
@@ -97,6 +97,17 @@ BvhPartitioner::operator()(VecIndices const& indices) const
         }
     }
 
+    // If there are fewer than volume_threshold_ volumes and the partition
+    // yields bboxes with an overlap fraction hire than overlap_threshold_,
+    // return an empty partition instead.
+    if (best_partition && indices.size() <= volume_threshold_
+        && calc_overlap_fraction(best_partition.bboxes[Side::left],
+                                 best_partition.bboxes[Side::right])
+               >= overlap_threshold_)
+    {
+        return {};
+    }
+
     return best_partition;
 }
 
@@ -106,8 +117,8 @@ BvhPartitioner::operator()(VecIndices const& indices) const
 /*!
  * Create sorted and uniquified X, Y, Z values of bbox centers.
  */
-BvhPartitioner::AxesCenters
-BvhPartitioner::calc_axes_centers(VecIndices const& indices) const
+BvhPartitioner::AxesCenters BvhPartitioner::calc_axes_centers(
+    VecIndices const& indices) const
 {
     CELER_EXPECT(!indices.empty());
 
@@ -135,10 +146,8 @@ BvhPartitioner::calc_axes_centers(VecIndices const& indices) const
 /*!
  * Divide bboxes into left and right branches based on a partition.
  */
-BvhPartitioner::Partition
-BvhPartitioner::make_partition(VecIndices const& indices,
-                               Axis axis,
-                               real_type position) const
+BvhPartitioner::Partition BvhPartitioner::make_partition(
+    VecIndices const& indices, Axis axis, real_type position) const
 {
     CELER_EXPECT(indices.size() > 1);
 

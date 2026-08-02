@@ -512,9 +512,8 @@ void PhysicsParams::build_hardwired()
 /*!
  * Construct cross section data.
  */
-void PhysicsParams::build_tables(Options const& opts,
-                                 MaterialParams const& mats,
-                                 HostValue* data) const
+void PhysicsParams::build_tables(
+    Options const& opts, MaterialParams const& mats, HostValue* data) const
 {
     CELER_EXPECT(*data);
 

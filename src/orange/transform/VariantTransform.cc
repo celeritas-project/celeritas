@@ -51,8 +51,8 @@ struct VariantTransformDispatcher
  * Apply an identity transform to a bounding box.
  */
 template<class T>
-BoundingBox<T>
-calc_transform(NoTransformation const&, BoundingBox<T> const& bbox)
+BoundingBox<T> calc_transform(NoTransformation const&,
+                              BoundingBox<T> const& bbox)
 {
     return bbox;
 }
@@ -76,8 +76,8 @@ calc_transform(NoTransformation const&, BoundingBox<T> const& bbox)
    \mathbf{t}' = \mathbf{R}_1\mathbf{t}_2 + \mathbf{t}_1
  * \f]
  */
-[[nodiscard]] VariantTransform
-apply_transform(VariantTransform const& left, VariantTransform const& right)
+[[nodiscard]] VariantTransform apply_transform(VariantTransform const& left,
+                                               VariantTransform const& right)
 {
     CELER_ASSUME(!left.valueless_by_exception());
     return std::visit(VariantTransformDispatcher{right}, left);
@@ -87,8 +87,8 @@ apply_transform(VariantTransform const& left, VariantTransform const& right)
 /*!
  * Dispatch "daughter-to-parent" transform to bounding box utilities.
  */
-[[nodiscard]] BBox
-apply_transform(VariantTransform const& transform, BBox const& bbox)
+[[nodiscard]] BBox apply_transform(VariantTransform const& transform,
+                                   BBox const& bbox)
 {
     CELER_EXPECT(bbox);
     CELER_ASSUME(!transform.valueless_by_exception());

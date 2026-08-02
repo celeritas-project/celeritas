@@ -54,10 +54,10 @@ auto SensDetTestBase::build_geant_geo(std::string const& filename) const
         sd_vol_names.erase(name_iter);
     }
 
-    CELER_VALIDATE(sd_vol_names.empty(),
-                   << "SD volumes were specified that don't exist in the "
-                      "geometry: "
-                   << join(sd_vol_names.begin(), sd_vol_names.end(), ", "));
+    CELER_VALIDATE(
+        sd_vol_names.empty(),
+        << "SD volumes were specified that don't exist in the geometry: "
+        << join(sd_vol_names.begin(), sd_vol_names.end(), ", "));
     return result;
 }
 

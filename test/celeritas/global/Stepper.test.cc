@@ -107,8 +107,8 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    DummyState const&
-    get_dummy_state(CoreStateInterface const& core_state) const
+    DummyState const& get_dummy_state(
+        CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }

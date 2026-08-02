@@ -44,6 +44,9 @@ struct MaterialParamsData
 
     //// MEMBER FUNCTIONS ////
 
+    //! Number of optical materials
+    CELER_FUNCTION size_type size() const { return refractive_index.size(); }
+
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {

@@ -52,8 +52,8 @@ class MaterialTrackView
                                             TrackSlotId tid);
 
     // Initialize the particle
-    inline CELER_FUNCTION MaterialTrackView&
-    operator=(Initializer_t const& other);
+    inline CELER_FUNCTION MaterialTrackView& operator=(
+        Initializer_t const& other);
 
     //// DYNAMIC PROPERTIES (pure accessors, free) ////
 
@@ -82,10 +82,10 @@ class MaterialTrackView
 /*!
  * Construct from dynamic and static particle properties.
  */
-CELER_FUNCTION
-MaterialTrackView::MaterialTrackView(MaterialParamsRef const& params,
-                                     MaterialStateRef const& states,
-                                     TrackSlotId tid)
+CELER_FUNCTION MaterialTrackView::MaterialTrackView(
+    MaterialParamsRef const& params,
+    MaterialStateRef const& states,
+    TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(tid < states.state.size());
@@ -95,8 +95,8 @@ MaterialTrackView::MaterialTrackView(MaterialParamsRef const& params,
 /*!
  * Initialize the particle.
  */
-CELER_FUNCTION MaterialTrackView&
-MaterialTrackView::operator=(Initializer_t const& other)
+CELER_FUNCTION MaterialTrackView& MaterialTrackView::operator=(
+    Initializer_t const& other)
 {
     CELER_EXPECT(other.material_id < params_.materials.size());
     this->state() = other;

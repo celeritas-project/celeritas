@@ -7,6 +7,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -150,8 +152,8 @@ CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d)
 }
 
 //! Construct with position, direction, and parent ID
-CELER_FUNCTION
-GeoTrackInitializer::GeoTrackInitializer(Real3 p, Real3 d, TrackSlotId p_id)
+CELER_FUNCTION GeoTrackInitializer::GeoTrackInitializer(
+    Real3 p, Real3 d, TrackSlotId p_id)
     : pos(p), dir(d), parent(p_id)
 {
 }
@@ -188,17 +190,17 @@ inline constexpr char to_char(Axis ax)
 }
 
 //---------------------------------------------------------------------------//
-//! Whether the geometry is on a boundary
+//! Whether the geometry state is usable
 CELER_CONSTEXPR_FUNCTION bool is_valid(GeoStatus s)
 {
-    return static_cast<char>(s) >= 0;
+    return static_cast<std::underlying_type_t<GeoStatus>>(s) >= 0;
 }
 
 //---------------------------------------------------------------------------//
 //! Whether the geometry is on a boundary
 CELER_CONSTEXPR_FUNCTION bool is_on_boundary(GeoStatus s)
 {
-    return static_cast<char>(s) > 0;
+    return static_cast<std::underlying_type_t<GeoStatus>>(s) > 0;
 }
 
 //---------------------------------------------------------------------------//

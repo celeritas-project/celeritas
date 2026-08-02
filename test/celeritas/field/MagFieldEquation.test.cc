@@ -29,8 +29,8 @@ Real3 dummy_field(Real3 const& pos)
 }
 
 template<class FieldT>
-CELER_FUNCTION decltype(auto)
-make_equation(FieldT&& field, ElementaryCharge charge)
+CELER_FUNCTION decltype(auto) make_equation(FieldT&& field,
+                                            ElementaryCharge charge)
 {
     using Equation_t = celeritas::MagFieldEquation<FieldT>;
     return Equation_t{::celeritas::forward<FieldT>(field), charge};

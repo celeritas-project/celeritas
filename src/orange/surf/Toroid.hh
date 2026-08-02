@@ -65,9 +65,9 @@ class Toroid
     //// CLASS ATTRIBUTES ////
 
     // Surface type identifier
-    static SurfaceType surface_type()
+    static CELER_CONSTEXPR_FUNCTION SurfaceType surface_type()
     {
-        CELER_NOT_IMPLEMENTED("runtime toroid");
+        return SurfaceType::tor;
     }
 
     //! Safety distance is calculable w/xy of normal and ellipse safety
@@ -189,9 +189,8 @@ CELER_FUNCTION SignedSense Toroid::calc_sense(Real3 const& pos) const
  * Calculate all possible straight-line intersections between the given ray and
  * this surface.
  */
-CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
-                                               Real3 const& dir,
-                                               SurfaceState on_surface) const
+CELER_FUNCTION auto Toroid::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     Real5 abcde = calc_intersection_polynomial(pos, dir, on_surface);
@@ -218,10 +217,8 @@ CELER_FUNCTION auto Toroid::calc_intersections(Real3 const& pos,
  *
  * Written referencing Graphics Gems II\cite{arvo-graphicsgems-1995}.
  */
-CELER_FUNCTION auto
-Toroid::calc_intersection_polynomial(Real3 const& pos,
-                                     Real3 const& dir,
-                                     SurfaceState on_surface) const -> Real5
+CELER_FUNCTION auto Toroid::calc_intersection_polynomial(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const -> Real5
 {
     auto [x0, y0, z0] = pos - origin_;
     auto [ax, ay, az] = make_unit_vector(dir);

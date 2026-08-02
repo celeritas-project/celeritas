@@ -83,8 +83,8 @@ struct GeneratorDistributionData
 
 #if !CELER_DEVICE_COMPILE
     // Defined in GeneratorDataIO.json.cc
-    friend std::ostream&
-    operator<<(std::ostream& os, GeneratorDistributionData const&);
+    friend std::ostream& operator<<(std::ostream& os,
+                                    GeneratorDistributionData const&);
 #endif
 };
 
@@ -164,9 +164,8 @@ struct GeneratorState : public GeneratorStateBase
     //! Access valid range of distributions
     auto distributions()
     {
-        return this->store.ref()
-            .distributions[ItemRange<GeneratorDistributionData>(
-                ItemId<GeneratorDistributionData>(this->counters.buffer_size))];
+        return this->store.ref().distributions[ItemRange<GeneratorDistributionData>(
+            ItemId<GeneratorDistributionData>(this->counters.buffer_size))];
     }
 
     //! True if states have been allocated
@@ -178,9 +177,8 @@ struct GeneratorState : public GeneratorStateBase
  * Resize optical buffere.
  */
 template<MemSpace M>
-void resize(GeneratorStateData<Ownership::value, M>* state,
-            StreamId,
-            size_type size)
+void resize(
+    GeneratorStateData<Ownership::value, M>* state, StreamId, size_type size)
 {
     CELER_EXPECT(size > 0);
     resize(&state->distributions, size);

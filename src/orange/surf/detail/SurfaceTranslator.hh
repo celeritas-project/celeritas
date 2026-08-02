@@ -55,6 +55,8 @@ class SurfaceTranslator
 
     Involute operator()(Involute const&) const;
 
+    Toroid operator()(Toroid const&) const;
+
   private:
     Translation tr_;
 };

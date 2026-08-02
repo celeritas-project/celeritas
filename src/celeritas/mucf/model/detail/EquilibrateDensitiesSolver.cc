@@ -25,9 +25,9 @@ namespace
  * Calculate the infinity norm (\f$ ||x^{(k)} - x^{(k-1)} ||_\infty \f$)
  * between two consecutive iterations of an \c EquilibriumArray data.
  */
-real_type
-calc_infinity_norm(EquilibrateDensitiesSolver::EquilibriumArray const& current,
-                   EquilibrateDensitiesSolver::EquilibriumArray const& previous)
+real_type calc_infinity_norm(
+    EquilibrateDensitiesSolver::EquilibriumArray const& current,
+    EquilibrateDensitiesSolver::EquilibriumArray const& previous)
 {
     using MIP = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
 
@@ -145,8 +145,8 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + D_2 \rightleftharpoons 2HD \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -169,8 +169,8 @@ EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + T_2 \rightleftharpoons 2HT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -193,8 +193,8 @@ EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ D_2 + T_2 \rightleftharpoons 2DT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 

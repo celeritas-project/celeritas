@@ -60,10 +60,10 @@ TEST(StringEnumMapperTest, from_generic)
     EnumArray<CeleritasLabs, std::string> storage;
     auto capstring = [&storage](CeleritasLabs lab) -> std::string_view {
         std::string temp = to_cstring(lab);
-        std::transform(
-            temp.begin(), temp.end(), temp.begin(), [](unsigned char c) {
-                return std::toupper(c);
-            });
+        std::transform(temp.begin(),
+                       temp.end(),
+                       temp.begin(),
+                       [](unsigned char c) { return std::toupper(c); });
         storage[lab] = std::move(temp);
         return storage[lab];
     };

@@ -61,8 +61,8 @@ class SimpleUnitTracker
 
   public:
     // Construct with parameters (unit definitions and this one's ID)
-    inline CELER_FUNCTION
-    SimpleUnitTracker(ParamsRef const& params, SimpleUnitId id);
+    inline CELER_FUNCTION SimpleUnitTracker(ParamsRef const& params,
+                                            SimpleUnitId id);
 
     //// ACCESSORS ////
 
@@ -88,7 +88,8 @@ class SimpleUnitTracker
     inline CELER_FUNCTION DaughterId daughter(LocalVolumeId vol) const;
 
     // Volume level relative to the "top" canonical volume in the universe
-    inline CELER_FUNCTION vol_level_uint local_vol_level(LocalVolumeId vol) const;
+    inline CELER_FUNCTION vol_level_uint local_vol_level(
+        LocalVolumeId vol) const;
 
     // Local volume ID of the parent canonical volume, if any
     inline CELER_FUNCTION LocalVolumeId local_parent(LocalVolumeId vol) const;
@@ -96,12 +97,12 @@ class SimpleUnitTracker
     //// OPERATIONS ////
 
     // Find the local volume from a position
-    inline CELER_FUNCTION Initialization
-    initialize(LocalState const& state) const;
+    inline CELER_FUNCTION Initialization initialize(
+        LocalState const& state) const;
 
     // Find the new volume by crossing a surface
-    inline CELER_FUNCTION Initialization
-    cross_boundary(LocalState const& state) const;
+    inline CELER_FUNCTION Initialization cross_boundary(
+        LocalState const& state) const;
 
     // DEPRECATED: search for intersection without limit
     inline CELER_FUNCTION Intersection intersect(LocalState const& state) const;
@@ -127,21 +128,17 @@ class SimpleUnitTracker
     //// METHODS ////
 
     // Get volumes that have the given surface as a "face" (connectivity)
-    inline CELER_FUNCTION LdgSpan<LocalVolumeId const>
-        get_neighbors(LocalSurfaceId) const;
+    inline CELER_FUNCTION LdgSpan<LocalVolumeId const> get_neighbors(
+        LocalSurfaceId) const;
 
     template<class F>
     inline CELER_FUNCTION LocalVolumeId find_volume_where(Real3 const& pos,
                                                           F&& predicate) const;
 
-    inline CELER_FUNCTION Intersection simple_intersect(LocalState const&,
-                                                        VolumeView const&,
-                                                        size_type) const;
-    inline CELER_FUNCTION Intersection complex_intersect(LocalState const&,
-                                                         VolumeView const&,
-                                                         size_type,
-                                                         Sense,
-                                                         real_type) const;
+    inline CELER_FUNCTION Intersection simple_intersect(
+        LocalState const&, VolumeView const&, size_type) const;
+    inline CELER_FUNCTION Intersection complex_intersect(
+        LocalState const&, VolumeView const&, size_type, Sense, real_type) const;
     inline CELER_FUNCTION Intersection background_intersect(LocalState const&,
                                                             real_type) const;
 
@@ -149,8 +146,8 @@ class SimpleUnitTracker
     inline CELER_FUNCTION LocalSurfaceVisitor make_surface_visitor() const;
 
     // Create a Volumes object from the params
-    inline CELER_FUNCTION VolumeView
-    make_local_volume(LocalVolumeId vol_id) const;
+    inline CELER_FUNCTION VolumeView make_local_volume(
+        LocalVolumeId vol_id) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -163,8 +160,8 @@ class SimpleUnitTracker
  * LocalVolumeIds that belong to this unit. For now we assume all volumes and
  * surfaces belong to us.
  */
-CELER_FUNCTION
-SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
+CELER_FUNCTION SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params,
+                                                    SimpleUnitId suid)
     : params_(params), unit_record_(params.simple_units[suid])
 {
     CELER_EXPECT(params_);
@@ -181,8 +178,8 @@ SimpleUnitTracker::SimpleUnitTracker(ParamsRef const& params, SimpleUnitId suid)
  * if both sides of that surface are "in" the current cell. We may need to
  * relax that.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
+CELER_FUNCTION auto SimpleUnitTracker::initialize(
+    LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(params_);
     CELER_EXPECT(!state.surface && !state.volume);
@@ -217,9 +214,8 @@ SimpleUnitTracker::initialize(LocalState const& state) const -> Initialization
 /*!
  * Find the local volume on the opposite side of a surface.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::cross_boundary(LocalState const& state) const
-    -> Initialization
+CELER_FUNCTION auto SimpleUnitTracker::cross_boundary(
+    LocalState const& state) const -> Initialization
 {
     CELER_EXPECT(state.surface && state.volume);
 
@@ -278,8 +274,8 @@ SimpleUnitTracker::cross_boundary(LocalState const& state) const
  * \deprecated Provide a physically reasonable upper bound to the distance
  * to reduce search cost and avoid a redundant method.
  */
-CELER_FORCEINLINE_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FORCEINLINE_FUNCTION auto SimpleUnitTracker::intersect(
+    LocalState const& state) const -> Intersection
 {
     return this->intersect(state, NumericLimits<real_type>::max());
 }
@@ -306,9 +302,8 @@ SimpleUnitTracker::intersect(LocalState const& state) const -> Intersection
  *   simple_intersect.
  * - If the volume has internal surfaces call \c complex_intersect.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::intersect(LocalState const& state, real_type max_dist) const
-    -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::intersect(
+    LocalState const& state, real_type max_dist) const -> Intersection
 {
     CELER_EXPECT(state.volume);
     CELER_EXPECT(max_dist > 0);
@@ -417,8 +412,8 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
 /*!
  * Calculate the local surface normal.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::normal(Real3 const& pos, LocalSurfaceId surf) const -> Real3
+CELER_FUNCTION auto SimpleUnitTracker::normal(
+    Real3 const& pos, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf);
 
@@ -451,8 +446,8 @@ CELER_FUNCTION auto SimpleUnitTracker::get_neighbors(LocalSurfaceId surf) const
  * The predicate should have the signature \code bool(LocalVolumeId) \endcode.
  */
 template<class F>
-CELER_FUNCTION LocalVolumeId
-SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
+CELER_FUNCTION LocalVolumeId SimpleUnitTracker::find_volume_where(
+    Real3 const& pos, F&& predicate) const
 {
     detail::BvhEnclosingVolFinder find_volume{unit_record_.bvh_tree,
                                               params_.bvh_tree_data};
@@ -463,10 +458,9 @@ SimpleUnitTracker::find_volume_where(Real3 const& pos, F&& predicate) const
 /*!
  * Calculate distance to the next boundary for nonreentrant volumes.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::simple_intersect(LocalState const& state,
-                                    VolumeView const& vol,
-                                    size_type num_isect) const -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::simple_intersect(
+    LocalState const& state, VolumeView const& vol, size_type num_isect) const
+    -> Intersection
 {
     CELER_EXPECT(num_isect > 0);
 
@@ -528,13 +522,12 @@ SimpleUnitTracker::simple_intersect(LocalState const& state,
  * \pre The `state.temp_next.isect` array must be sorted by the caller by
  * ascending distance.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::complex_intersect(LocalState const& state,
-                                     VolumeView const& vol,
-                                     size_type num_isect,
-                                     Sense target_sense,
-                                     real_type max_distance) const
-    -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::complex_intersect(
+    LocalState const& state,
+    VolumeView const& vol,
+    size_type num_isect,
+    Sense target_sense,
+    real_type max_distance) const -> Intersection
 {
     CELER_ASSERT(num_isect > 0);
 
@@ -617,26 +610,57 @@ SimpleUnitTracker::complex_intersect(LocalState const& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate distance from the background volume to enter any other volume.
+ * Calculate the distance from the background volume to enter any other volume.
  *
- * This function is accelerated with the BVH.
+ * This function is accelerated by the BVH, which is given a functor for
+ * calculating the distance to intersection from *outside* a given volume. That
+ * operation is implemented by calling complex_intersect, which checks that the
+ * sense changes after crossing a candidate surface. A volume is "simple" when
+ * it has no internal surfaces, from which it follows that for a ray
+ * originating inside a simple volume, crossing the nearest surface is
+ * guaranteed to change the sense to "outside." When the ray originates outside
+ * the volume, however, the absence of internal surfaces is not sufficient to
+ * guarantee a sense change will occur, so the candidate surfaces must still be
+ * checked. The example below illustrates this: a ray originating at point P
+ * does not undergo a sense change when it crosses the nearest surface of
+ * volume V.
+ * \verbatim
+              ^          ^
+       P ->   |          |
+              |          |
+       <------|----------|------>
+              |          |
+              | interior |
+              | of V     |
+              |          |
+       <------|----------|------>
+              |          |
+              |          |
+              v          v
+   \endverbatim
+ * For rays originating outside a volume, the sense-change check can be skipped
+ * only if the volume is defined by a single closed surface, e.g., a sphere, an
+ * ellipsoid, or a toroid. Because this function does not make this
+ * distinction, it uses complex_intersect for all volumes.
  */
-CELER_FUNCTION auto
-SimpleUnitTracker::background_intersect(LocalState const& state,
-                                        real_type max_distance) const
-    -> Intersection
+CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
+    LocalState const& state, real_type max_distance) const -> Intersection
 {
+    // Functor for calculating the distance to intersection, starting outside
+    // the given volume.
     auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
         VolumeView vol = this->make_local_volume(vol_id);
 
+        // No volume is "simple" because we are starting from the outside
+        constexpr bool is_simple = false;
         detail::CalcIntersections calc_intersections{
             cur_max_dist,
             state.pos,
             state.dir,
             state.surface ? vol.find_face(state.surface.id()) : FaceId{},
-            false,
+            is_simple,
             state.temp_next};
 
         LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
@@ -660,8 +684,9 @@ SimpleUnitTracker::background_intersect(LocalState const& state,
                                    < state.temp_next.distance[b];
                         });
 
-        // Call with a target sense of "inside," because we are seeking a
-        // surface for which crossing will result in entering the volume
+        // Call complex_intersect with a target sense of "inside," because we
+        // are seeking a surface for which crossing will result in entering the
+        // volume
         return this->complex_intersect(
             state, vol, num_isect, Sense::inside, cur_max_dist);
     };
@@ -687,8 +712,8 @@ SimpleUnitTracker::make_surface_visitor() const
 /*!
  * Create a Volume view object from the params for this unit.
  */
-CELER_FORCEINLINE_FUNCTION auto
-SimpleUnitTracker::make_local_volume(LocalVolumeId vol_id) const -> VolumeView
+CELER_FORCEINLINE_FUNCTION auto SimpleUnitTracker::make_local_volume(
+    LocalVolumeId vol_id) const -> VolumeView
 {
     return VolumeView{params_, unit_record_, vol_id};
 }
@@ -733,8 +758,8 @@ CELER_FUNCTION auto SimpleUnitTracker::local_vol_level(LocalVolumeId vol) const
  * volume. If the local parent volume is null, then the parent is the placement
  * of the current ORANGE universe as a daughter.
  */
-CELER_FUNCTION LocalVolumeId
-SimpleUnitTracker::local_parent(LocalVolumeId vol) const
+CELER_FUNCTION LocalVolumeId SimpleUnitTracker::local_parent(
+    LocalVolumeId vol) const
 {
     CELER_EXPECT(unit_record_.local_parent.empty()
                  || vol < unit_record_.volumes.size());

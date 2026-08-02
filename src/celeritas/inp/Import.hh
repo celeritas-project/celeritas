@@ -58,6 +58,18 @@ struct PhysicsFromGeant
 
 //---------------------------------------------------------------------------//
 /*!
+ * Physics import specification.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "geant": \c PhysicsFromGeant
+ * - "file": \c PhysicsFromFile
+ */
+using PhysicsImport = std::variant<PhysicsFromGeant, PhysicsFromFile>;
+
+//---------------------------------------------------------------------------//
+/*!
  * Options for loading cross section data from Geant4 data files.
  *
  * \todo Since Geant4 data structures don't provide access to these, we must

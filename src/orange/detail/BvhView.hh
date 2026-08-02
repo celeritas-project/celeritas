@@ -59,8 +59,8 @@ class BvhView
     //!@}
 
     // Construct from vector of bounding boxes and storage for LocalVolumeIds
-    inline CELER_FUNCTION
-    BvhView(BvhTreeRecord const& tree, Storage const& storage);
+    inline CELER_FUNCTION BvhView(BvhTreeRecord const& tree,
+                                  Storage const& storage);
 
     // Determine if a node is inner, i.e., not a leaf
     inline CELER_FUNCTION bool is_internal(BvhNodeId id) const;
@@ -98,8 +98,8 @@ class BvhView
 /*!
  * Construct from an internal node.
  */
-CELER_FUNCTION
-BvhInternalNodeView::BvhInternalNodeView(BvhInternalNode const& node)
+CELER_FUNCTION BvhInternalNodeView::BvhInternalNodeView(
+    BvhInternalNode const& node)
     : node_(node)
 {
     CELER_EXPECT(node_);
@@ -118,8 +118,8 @@ CELER_FUNCTION Axis BvhInternalNodeView::axis() const
 /*!
  * Get child node for a side.
  */
-CELER_FUNCTION BvhNodeId
-BvhInternalNodeView::child(BvhInternalNodeView::Side side) const
+CELER_FUNCTION BvhNodeId BvhInternalNodeView::child(
+    BvhInternalNodeView::Side side) const
 {
     return node_.edges[side].child;
 }
@@ -128,8 +128,8 @@ BvhInternalNodeView::child(BvhInternalNodeView::Side side) const
 /*!
  * Get edge bounding box for a side.
  */
-CELER_FUNCTION FastBBox const&
-BvhInternalNodeView::bbox(BvhInternalNodeView::Side side) const
+CELER_FUNCTION FastBBox const& BvhInternalNodeView::bbox(
+    BvhInternalNodeView::Side side) const
 {
     return node_.edges[side].bbox;
 }
@@ -138,8 +138,8 @@ BvhInternalNodeView::bbox(BvhInternalNodeView::Side side) const
 /*!
  * Construct from vector of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhView::BvhView(BvhTreeRecord const& tree, BvhView::Storage const& storage)
+CELER_FUNCTION BvhView::BvhView(BvhTreeRecord const& tree,
+                                BvhView::Storage const& storage)
     : tree_(tree), storage_(storage)
 {
     CELER_EXPECT(tree_);
@@ -149,8 +149,7 @@ BvhView::BvhView(BvhTreeRecord const& tree, BvhView::Storage const& storage)
 /*!
  *  Determine if a node is inner, i.e., not a leaf.
  */
-CELER_FUNCTION
-bool BvhView::is_internal(BvhNodeId id) const
+CELER_FUNCTION bool BvhView::is_internal(BvhNodeId id) const
 {
     return id.unchecked_get() < tree_.internal_nodes.size();
 }
@@ -159,8 +158,7 @@ bool BvhView::is_internal(BvhNodeId id) const
 /*!
  *  Get an internal node for a given BvhNodeId.
  */
-CELER_FUNCTION
-BvhInternalNodeView BvhView::inner_node(BvhNodeId id) const
+CELER_FUNCTION BvhInternalNodeView BvhView::inner_node(BvhNodeId id) const
 {
     CELER_EXPECT(this->is_internal(id));
     return BvhInternalNodeView{

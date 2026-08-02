@@ -39,8 +39,8 @@ class DTMixMuonicMoleculeSelector
  *
  * \todo Update documentation
  */
-CELER_FUNCTION
-DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
+CELER_FUNCTION DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(
+    /* args */)
 {
     //! \todo Implement
     CELER_NOT_IMPLEMENTED("Mucf muonic molecule selection");
@@ -51,8 +51,8 @@ DTMixMuonicMoleculeSelector::DTMixMuonicMoleculeSelector(/* args */)
  * Return selected muonic molecule.
  */
 template<class Engine>
-CELER_FUNCTION MucfMuonicMolecule
-DTMixMuonicMoleculeSelector::operator()(Engine&)
+CELER_FUNCTION MucfMuonicMolecule DTMixMuonicMoleculeSelector::operator()(
+    Engine&)
 {
     MucfMuonicMolecule result{MucfMuonicMolecule::size_};
 

@@ -101,9 +101,9 @@ namespace pdg
 //---------------------------------------------------------------------------//
 //! \todo replace with inline constexpr value.
 #define CELER_DEFINE_PDGNUMBER(NAME, VALUE) \
-    inline constexpr PDGNumber NAME()       \
-    {                                       \
-        return PDGNumber{VALUE};            \
+    inline constexpr PDGNumber NAME() \
+    { \
+        return PDGNumber{VALUE}; \
     }
 
 //!@{

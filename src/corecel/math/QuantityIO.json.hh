@@ -26,10 +26,10 @@ void from_json(nlohmann::json const& j, Quantity<UnitT, ValueT>& q)
                   "Unit does not have a 'label' definition");
     if (j.is_array())
     {
-        CELER_VALIDATE(j.size() == 2,
-                       << "unexpected array size (" << j.size()
-                       << ") for quantity in JSON input: should be [value, "
-                          "\"units\"]");
+        CELER_VALIDATE(
+            j.size() == 2,
+            << "unexpected array size (" << j.size()
+            << ") for quantity in JSON input: should be [value, \"units\"]");
         CELER_VALIDATE(j[1].get<std::string>() == UnitT::label(),
                        << "incorrect units '" << j[1].get<std::string>()
                        << "' in JSON input: expected '" << UnitT::label()

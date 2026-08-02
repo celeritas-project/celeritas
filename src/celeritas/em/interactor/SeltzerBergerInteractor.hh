@@ -55,14 +55,14 @@ class SeltzerBergerInteractor
 
   public:
     //! Construct sampler from device/shared and state data
-    inline CELER_FUNCTION
-    SeltzerBergerInteractor(NativeCRef<SeltzerBergerData> const& shared,
-                            ParticleTrackView const& particle,
-                            Real3 const& inc_direction,
-                            CutoffView const& cutoffs,
-                            StackAllocator<Secondary>& allocate,
-                            MaterialView const& material,
-                            ElementComponentId const& elcomp_id);
+    inline CELER_FUNCTION SeltzerBergerInteractor(
+        NativeCRef<SeltzerBergerData> const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        CutoffView const& cutoffs,
+        StackAllocator<Secondary>& allocate,
+        MaterialView const& material,
+        ElementComponentId const& elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>

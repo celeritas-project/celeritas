@@ -52,9 +52,8 @@ class RayleighInteractor
 /*!
  * Construct the interactor for the given optical track.
  */
-CELER_FUNCTION
-RayleighInteractor::RayleighInteractor(ParticleTrackView const& particle,
-                                       Real3 const& direction)
+CELER_FUNCTION RayleighInteractor::RayleighInteractor(
+    ParticleTrackView const& particle, Real3 const& direction)
     : inc_dir_(direction), inc_pol_(particle.polarization())
 {
     CELER_EXPECT(is_soft_unit_vector(inc_dir_));

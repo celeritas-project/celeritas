@@ -71,8 +71,8 @@ class PoissonDistributionKnuth
  * Construct from the mean of the Poisson distribution.
  */
 template<class RealType>
-CELER_FUNCTION
-PoissonDistributionKnuth<RealType>::PoissonDistributionKnuth(real_type lambda)
+CELER_FUNCTION PoissonDistributionKnuth<RealType>::PoissonDistributionKnuth(
+    real_type lambda)
     : exp_lambda_{std::exp(lambda)}
 {
     CELER_EXPECT(lambda >= 0);
@@ -85,8 +85,8 @@ PoissonDistributionKnuth<RealType>::PoissonDistributionKnuth(real_type lambda)
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-PoissonDistributionKnuth<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto PoissonDistributionKnuth<RealType>::operator()(
+    Generator& rng) -> result_type
 {
     std::make_signed_t<result_type> k{0};
     real_type p = exp_lambda_;
@@ -182,8 +182,8 @@ class PoissonDistribution
  * Construct from the mean of the Poisson distribution.
  */
 template<class RealType>
-CELER_FUNCTION
-PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
+CELER_FUNCTION PoissonDistribution<RealType>::PoissonDistribution(
+    real_type lambda)
 {
     CELER_EXPECT(lambda >= 0);
 

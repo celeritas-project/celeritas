@@ -29,23 +29,23 @@ namespace
 /*!
  * Assign particle IDs from \c ParticleParams .
  */
-static std::pair<MucfParticleIds, MucfParticleMasses>
-from_params(ParticleParams const& particles)
+static std::pair<MucfParticleIds, MucfParticleMasses> from_params(
+    ParticleParams const& particles)
 {
     using PairStrPdg = std::pair<std::string, PDGNumber>;
     std::vector<PairStrPdg> missing;
     MucfParticleIds ids;
     MucfParticleMasses masses;
-#define MP_ADD(MEMBER)                               \
-    ids.MEMBER = particles.find(pdg::MEMBER());      \
-    if (!ids.MEMBER)                                 \
-    {                                                \
+#define MP_ADD(MEMBER) \
+    ids.MEMBER = particles.find(pdg::MEMBER()); \
+    if (!ids.MEMBER) \
+    { \
         missing.push_back({#MEMBER, pdg::MEMBER()}); \
-    }                                                \
-    else                                             \
-    {                                                \
-        auto p_view = particles.get(ids.MEMBER);     \
-        masses.MEMBER = p_view.mass();               \
+    } \
+    else \
+    { \
+        auto p_view = particles.get(ids.MEMBER); \
+        masses.MEMBER = p_view.mass(); \
     }
 
     MP_ADD(mu_minus);

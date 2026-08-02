@@ -26,7 +26,7 @@
 
 namespace celeritas
 {
-#define ORANGE_INSTANTIATE_SHAPE_STREAM(SHAPE)                               \
+#define ORANGE_INSTANTIATE_SHAPE_STREAM(SHAPE) \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::x>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::y>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::z>&)
@@ -130,7 +130,7 @@ std::ostream& operator<<(std::ostream& os, Toroid const& tor)
 {
     os << "Toroid: r=" << tor.major_radius()
        << ", a=" << tor.ellipse_xy_radius() << ", b=" << tor.ellipse_z_radius()
-       << " at " << tor.origin();
+       << ", at o=" << tor.origin();
     return os;
 }
 

@@ -87,8 +87,8 @@ struct CylMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool
-    valid(real_type r, Turn_t<real_type> phi, real_type z) const
+    inline CELER_FUNCTION bool valid(
+        real_type r, Turn_t<real_type> phi, real_type z) const
     {
         CELER_EXPECT(grids);
         return (
@@ -100,9 +100,8 @@ struct CylMapFieldParamsData
             && z <= grids.storage[grids.axes[CylAxis::z].back()]);
     }
 
-    inline CELER_FUNCTION ElementId id(size_type idx_r,
-                                       size_type idx_phi,
-                                       size_type idx_z) const
+    inline CELER_FUNCTION ElementId id(
+        size_type idx_r, size_type idx_phi, size_type idx_z) const
     {
         CELER_EXPECT(grids);
         Array<size_type, static_cast<size_type>(CylAxis::size_)> tmp{

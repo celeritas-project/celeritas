@@ -1,4 +1,6 @@
-Sphinx >= 7.4
-breathe
-furo
+# NOTE: these specifications are only for the CI, not the
+# actual requirements to run sphinx with correct documentation.
+Sphinx >= 9.1
+breathe >= 4.36
+furo >= 2025.12.19
 sphinxcontrib-bibtex

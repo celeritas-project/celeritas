@@ -44,14 +44,12 @@ class CoreTrackView
 
   public:
     // Construct with comprehensive param/state data and thread
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        ThreadId thread);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, ThreadId thread);
 
     // Construct directly from a track slot ID
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        TrackSlotId slot);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId slot);
 
     // Initialize the track states
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
@@ -132,10 +130,8 @@ class CoreTrackView
 /*!
  * Construct with comprehensive param/state data and thread.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             ThreadId thread)
+CELER_FUNCTION CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, ThreadId thread)
     : states_(states), params_(params), thread_id_(thread)
 {
     CELER_EXPECT(states_.track_slots.empty()
@@ -153,10 +149,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  * This signature is used for creating a view of a \em second track in a kernel
  * for initialization.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             TrackSlotId track_slot)
+CELER_FUNCTION CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : states_(states), params_(params), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());
@@ -166,8 +160,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     CELER_EXPECT(init);
 

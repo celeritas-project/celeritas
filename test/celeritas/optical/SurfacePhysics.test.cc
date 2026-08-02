@@ -207,7 +207,8 @@ class SurfacePhysicsTest : public OpticalMockTestBase
     }
 
   private:
-    StateDataStore<SurfacePhysicsStateData, MemSpace::host> surface_physics_state_;
+    StateDataStore<SurfacePhysicsStateData, MemSpace::host>
+        surface_physics_state_;
 };
 
 //---------------------------------------------------------------------------//

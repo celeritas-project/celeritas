@@ -144,6 +144,7 @@ enum class SurfaceType : unsigned char
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
     gq,  //!< General quadric
+    tor,  //!< Toroid
     inv,  //!< Involute
     size_  //!< Sentinel value for number of surface types
 };

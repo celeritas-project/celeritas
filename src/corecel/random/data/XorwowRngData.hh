@@ -132,9 +132,8 @@ struct XorwowRngStateData
 
 //---------------------------------------------------------------------------//
 // Initialize XORWOW states with well-distributed random data
-void initialize_xorwow(Span<XorwowState> state,
-                       XorwowSeed const& seed,
-                       StreamId stream);
+void initialize_xorwow(
+    Span<XorwowState> state, XorwowSeed const& seed, StreamId stream);
 
 //---------------------------------------------------------------------------//
 // Resize and seed the RNG states

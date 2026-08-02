@@ -16,10 +16,8 @@ namespace celeritas
 /*!
  * Create from params on a device/host stream.
  */
-AuxStateVec::AuxStateVec(AuxParamsRegistry const& registry,
-                         MemSpace m,
-                         StreamId sid,
-                         size_type size)
+AuxStateVec::AuxStateVec(
+    AuxParamsRegistry const& registry, MemSpace m, StreamId sid, size_type size)
 {
     CELER_EXPECT(m == MemSpace::host || m == MemSpace::device);
     CELER_EXPECT(sid);

@@ -141,6 +141,69 @@ manual.
 
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 
+# Running a standalone Celeritas app
+
+The `celer-sim` application runs electromagnetic particle transport with
+Celeritas directly from a JSON input file. At minimum, the input must specify a
+GDML geometry and a source of primary particles.
+
+For example, the following input generates 100 10 MeV electrons emitted
+isotropically at the origin:
+
+```json
+{
+ "problem": {
+  "model": {
+   "geometry": "/path/to/geometry.gdml"
+  }
+ },
+ "events": {
+  "generator": {
+   "_type": "primary",
+   "angle": {
+    "_type": "isotropic"
+   },
+   "energy": {
+    "_type": "delta",
+    "value": 10.0
+   },
+   "shape": {
+    "_type": "delta",
+    "value": [0.0, 0.0, 0.0]
+   },
+   "pdg": [11],
+   "num_events": 1,
+   "primaries_per_event": 100
+  }
+ }
+}
+```
+
+Save the input as `input.json` and run:
+
+```console
+$ celer-sim input.json
+```
+
+Celeritas uses Geant4 to load the GDML geometry and construct the corresponding
+material and physics data. Additional input options can be used to configure
+the physics, magnetic field, scoring, diagnostics, and runtime parameters.
+
+More details are provided in the [application documentation][applications], and
+an [extended example][celer-sim-example] demonstrates how to configure
+additional options and interpret the output.
+
+The `celer-optical` application provides a standalone interface for simulating
+optical photon transport without running the full electromagnetic problem
+supported by `celer-sim`. It exposes a subset of the standalone functionality
+focused on optical physics; see the [celer-optical
+example][celer-optical-example] and [documentation][applications] for a
+complete input and invocation.
+
+[applicaations]: https://celeritas-project.github.io/celeritas/user/usage/execution/applications.html
+[celer-sim-example]: https://celeritas-project.github.io/celeritas/user/example/celer-sim.html
+[celer-optical-example]: https://celeritas-project.github.io/celeritas/user/example/celer-optical.html
+
 # Installation for developers
 
 Since Celeritas is still under very active development, you may be installing it
@@ -184,8 +247,8 @@ Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
 See the configure output from the [GitHub runners][runners] for the full list of combinations.
 - Compilers
-    - GCC 11, 12, 14
-    - Clang 10, 15, 18
+    - GCC 12, 14, 15
+    - Clang 15, 18, 22
     - MSVC 19
     - GCC 11.5 + NVCC 12.6
     - ROCm Clang 18

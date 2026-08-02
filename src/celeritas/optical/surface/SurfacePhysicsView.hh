@@ -84,8 +84,8 @@ class SurfacePhysicsView
 
   public:
     // Construct view from data and state
-    inline CELER_FUNCTION
-    SurfacePhysicsView(SurfaceParamsRef const&, SurfaceId, LocalDirection);
+    inline CELER_FUNCTION SurfacePhysicsView(
+        SurfaceParamsRef const&, SurfaceId, LocalDirection);
 
     //! Get geometric surface ID the track is currently on
     CELER_FIF SurfaceId surface() const { return surface_; }
@@ -97,8 +97,8 @@ class SurfacePhysicsView
     inline CELER_FUNCTION OptMatId interstitial_material(LocalPositionId) const;
 
     // Get the physics surface at the given position and direction
-    inline CELER_FUNCTION
-        PhysSurfaceId interface(LocalPositionId, LocalDirection) const;
+    inline CELER_FUNCTION PhysSurfaceId interface(LocalPositionId,
+                                                  LocalDirection) const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -115,10 +115,10 @@ class SurfacePhysicsView
 /*!
  * Construct from data, states, and a given track ID.
  */
-CELER_FUNCTION
-SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
-                                       SurfaceId surface,
-                                       LocalDirection orientation)
+CELER_FUNCTION SurfacePhysicsView::SurfacePhysicsView(
+    SurfaceParamsRef const& params,
+    SurfaceId surface,
+    LocalDirection orientation)
     : params_(params), surface_(surface), orientation_(orientation)
 {
     CELER_EXPECT(surface_ < params_.surfaces.size());
@@ -131,8 +131,8 @@ SurfacePhysicsView::SurfacePhysicsView(SurfaceParamsRef const& params,
  * Position should be in the range [1,N] where N is the number of subsurface
  * materials.
  */
-CELER_FUNCTION OptMatId
-SurfacePhysicsView::interstitial_material(LocalPositionId pos) const
+CELER_FUNCTION OptMatId SurfacePhysicsView::interstitial_material(
+    LocalPositionId pos) const
 {
     auto const& ids = this->surface_record().interstitial_mat_ids;
     CELER_EXPECT(pos > LocalPositionId{0} && pos <= ids.size());
@@ -158,8 +158,8 @@ SurfacePhysicsView::interstitial_material(LocalPositionId pos) const
 /*!
  * Return the next physics surface at the given position along the direction.
  */
-CELER_FUNCTION PhysSurfaceId
-SurfacePhysicsView::interface(LocalPositionId pos, LocalDirection dir) const
+CELER_FUNCTION PhysSurfaceId SurfacePhysicsView::interface(
+    LocalPositionId pos, LocalDirection dir) const
 {
     auto const& ids = this->surface_record().local_surface_ids;
     CELER_EXPECT(pos >= LocalPositionId{0} && pos <= ids.size());
@@ -168,8 +168,8 @@ SurfacePhysicsView::interface(LocalPositionId pos, LocalDirection dir) const
     if (orientation_ == LocalDirection::reverse)
     {
         // Reverse index in ids: 0 -> N-1; 1 -> N-2; ...
-        local_surf = id_cast<LocalSurfaceId>(ids.size() - 1
-                                             - local_surf.unchecked_get());
+        local_surf = id_cast<LocalSurfaceId>(
+            ids.size() - 1 - local_surf.unchecked_get());
     }
 
     CELER_ENSURE(local_surf < ids.size());

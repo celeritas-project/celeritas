@@ -34,9 +34,8 @@ class LoggerMessage
 
   public:
     // Construct with reference to function object, etc.
-    inline LoggerMessage(LogHandler const* handle,
-                         LogProvenance&& prov,
-                         LogLevel lev);
+    inline LoggerMessage(
+        LogHandler const* handle, LogProvenance&& prov, LogLevel lev);
 
     // Flush message on destruction
     inline ~LoggerMessage();
@@ -74,9 +73,8 @@ class LoggerMessage
  * The handle *may be* null, indicating that the output of this message will
  * not be displayed.
  */
-CELER_FORCEINLINE LoggerMessage::LoggerMessage(LogHandler const* handle,
-                                               LogProvenance&& prov,
-                                               LogLevel lev)
+CELER_FORCEINLINE LoggerMessage::LoggerMessage(
+    LogHandler const* handle, LogProvenance&& prov, LogLevel lev)
     : handle_(handle)
 {
     if (CELER_UNLIKELY(handle_))

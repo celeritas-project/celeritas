@@ -31,6 +31,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
+#include "celeritas/optical/DetectorData.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "accel/LocalTransporter.hh"
@@ -184,9 +185,8 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 
         // Check the weight is consistent with our modification at
         // begin-of-event
-        auto event_id = G4EventManager::GetEventManager()
-                            ->GetConstCurrentEvent()
-                            ->GetEventID();
+        auto event_id
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
@@ -274,15 +274,16 @@ TEST_F(LarSphere, state_dep)
     static std::map<StreamId, std::vector<std::string>> stream_state
         = {{StreamId{0}, {}}};
     // Record a change for the local stream ID
-    static auto record_state_change = [](StreamId sid, GeantStateChange change) {
-        if (change != GeantStateChange::unknown)
-        {
-            static std::mutex mu;
-            std::scoped_lock lock{mu};
-            stream_state[sid].emplace_back(to_cstring(change));
-        }
-        CELER_LOG_LOCAL(debug) << sid << ": " << change;
-    };
+    static auto record_state_change
+        = [](StreamId sid, GeantStateChange change) {
+              if (change != GeantStateChange::unknown)
+              {
+                  static std::mutex mu;
+                  std::scoped_lock lock{mu};
+                  stream_state[sid].emplace_back(to_cstring(change));
+              }
+              CELER_LOG_LOCAL(debug) << sid << ": " << change;
+          };
     // Record a testing event for all stream IDs from the test harness
     static auto record_test_event = [](std::string const& s) {
         for (auto& kv : stream_state)
@@ -522,6 +523,7 @@ class LarSphereOptical : public LarSphere
 
   private:
     std::vector<CounterTrackingAction*> tracking_;
+    std::vector<real_type> detector_x_positions_;
 };
 
 //---------------------------------------------------------------------------//
@@ -539,7 +541,14 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
         opt.capacity.primaries = opt.capacity.generators;
         return opt;
     }();
-
+    // Optical detector hit callback
+    result.optical->detectors.callback
+        = [this](Span<optical::DetectorHit const> hits) {
+              for (auto const& hit : hits)
+              {
+                  detector_x_positions_.push_back(hit.position[0]);
+              }
+          };
     return result;
 }
 
@@ -579,7 +588,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.steps, 0);
             EXPECT_GT(accum_stats.step_iters, 0);
             EXPECT_GT(accum_stats.flushes, 0);
-
+            EXPECT_GT(detector_x_positions_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators

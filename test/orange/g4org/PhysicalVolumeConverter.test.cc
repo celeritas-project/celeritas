@@ -67,8 +67,8 @@ class PhysicalVolumeConverterTest : public GeantLoadTestBase
         CELER_EXPECT(pv_id);
         auto* g4pv = this->geo().id_to_geant(pv_id);
         CELER_VALIDATE(g4pv,
-                       << "could not find Geant4 physical volume "
-                          "matching volume instance "
+                       << "could not find Geant4 physical volume matching "
+                          "volume instance "
                        << pv_id.get());
         return *g4pv;
     }

@@ -189,8 +189,8 @@ inline T calc_volume(BoundingBox<T> const& bbox)
  * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_union(BoundingBox<T> const& a,
+                                           BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
@@ -211,8 +211,8 @@ calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * If there is no intersection, the result will be a null bounding box.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_intersection(BoundingBox<T> const& a,
+                                                  BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
@@ -224,6 +224,27 @@ calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
     }
 
     return BoundingBox<T>::from_unchecked(extents);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the overlap fraction.
+ *
+ * The overlap fraction is the ratio of the volume of the intersection bbox to
+ * the volume of the smaller bbox. The overlap fraction is not defined if both
+ * bboxes are infinite or either/both are degenerate.
+ */
+template<class T>
+inline T calc_overlap_fraction(BoundingBox<T> const& a, BoundingBox<T> const& b)
+{
+    CELER_EXPECT(is_finite(a) || is_finite(b));
+    CELER_EXPECT(!is_degenerate(a) && !is_degenerate(b));
+
+    auto intersection = calc_intersection(a, b);
+    T overlap_vol = intersection ? calc_volume(intersection) : 0;
+    T small_vol = std::min(calc_volume(a), calc_volume(b));
+
+    return overlap_vol / small_vol;
 }
 
 //---------------------------------------------------------------------------//
@@ -284,21 +305,20 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
 
     for (auto ax : range(Axis::size_))
     {
-        auto i = to_int(ax);
         T const lower = bbox.point(Bound::lo, ax);
         T const upper = bbox.point(Bound::hi, ax);
         T const center = (lower + upper) / 2;
 
+        auto i = to_int(ax);
         hw[i] = (upper - lower) / 2;
         hseg[i] = dir[i] * half_distance;
         abs_hseg[i] = std::fabs(hseg[i]) + eps;
         mid[i] = pos[i] + hseg[i] - center;
-
-        if (std::fabs(mid[i]) > hw[i] + abs_hseg[i])
-        {
-            return false;
-        }
     }
+
+    // Whether a separable axis was found orthogonal to the faces
+    auto found_sep_ortho_axis
+        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
@@ -309,16 +329,14 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     constexpr auto x = to_int(Axis::x);
     constexpr auto y = to_int(Axis::y);
     constexpr auto z = to_int(Axis::z);
-    if (found_sep_axis(y, z))
-        return false;
 
-    if (found_sep_axis(z, x))
-        return false;
-
-    if (found_sep_axis(x, y))
-        return false;
-
-    return true;
+    // Any separating axis means no intersection
+    return !logical_any(found_sep_ortho_axis(x),
+                        found_sep_ortho_axis(y),
+                        found_sep_ortho_axis(z),
+                        found_sep_axis(y, z),
+                        found_sep_axis(z, x),
+                        found_sep_axis(x, y));
 }
 
 //---------------------------------------------------------------------------//

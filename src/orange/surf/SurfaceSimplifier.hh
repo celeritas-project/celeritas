@@ -82,8 +82,8 @@ class SurfaceSimplifier
     operator()(SimpleQuadric const&) const;
 
     // Quadric can be normalized or simplified
-    Optional<SimpleQuadric, GeneralQuadric>
-    operator()(GeneralQuadric const&) const;
+    Optional<SimpleQuadric, GeneralQuadric> operator()(
+        GeneralQuadric const&) const;
 
     //! Default: no simplification
     template<class S>

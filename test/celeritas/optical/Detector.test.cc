@@ -54,8 +54,8 @@ class DetectorTest : public Test
         osi_.problem.capacity = [] {
             inp::OpticalStateCapacity cap;
             cap.tracks = 4096;
-            cap.primaries = 8 * cap.tracks;
-            cap.generators = 2 * cap.tracks;
+            cap.primaries = 8 * *cap.tracks;
+            cap.generators = 2 * *cap.tracks;
             return cap;
         }();
 
@@ -232,11 +232,15 @@ TEST_F(DetectorTest, simple)
         0,
         0,
     };
-    // adjusted by group velocity
+    // Adjust by group velocity: t = (c / v_g) * flight_time. The refractive
+    // index in optical-box-det-tra.gdml alternates between flat and rising
+    // linear intervals, so its slope is discontinuous at the grid points.
+    // At every interior point, one adjacent slope is zero, causing the
+    // harmonic-mean derivative to be zero.
     static double const expected_times[] = {
-        1.49995 * flight_time,
+        1.16665 * flight_time,
         1.3333 * flight_time,
-        3.66675 * flight_time,
+        1.66665 * flight_time,
         2 * flight_time,
         2 * flight_time,
         2 * flight_time,

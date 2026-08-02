@@ -27,8 +27,8 @@ using VariantTransform = EnumVariant<TransformType, TransformTypeTraits>;
 
 //---------------------------------------------------------------------------//
 // Apply the left "daughter-to-parent" transform to the right
-[[nodiscard]] VariantTransform
-apply_transform(VariantTransform const& left, VariantTransform const& right);
+[[nodiscard]] VariantTransform apply_transform(VariantTransform const& left,
+                                               VariantTransform const& right);
 
 //---------------------------------------------------------------------------//
 // Calculate the inverse of a transform
@@ -36,9 +36,8 @@ apply_transform(VariantTransform const& left, VariantTransform const& right);
 
 //---------------------------------------------------------------------------//
 // Dispatch "daughter-to-parent" transform to bounding box utilities
-[[nodiscard]] BoundingBox<real_type>
-apply_transform(VariantTransform const& transform,
-                BoundingBox<real_type> const& bbox);
+[[nodiscard]] BoundingBox<real_type> apply_transform(
+    VariantTransform const& transform, BoundingBox<real_type> const& bbox);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

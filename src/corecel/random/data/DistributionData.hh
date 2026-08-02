@@ -121,8 +121,8 @@ struct DistributionParamsData
 
     //! Assign from another memory/ownership specialization
     template<Ownership W2, MemSpace M2>
-    DistributionParamsData&
-    operator=(DistributionParamsData<W2, M2> const& other)
+    DistributionParamsData& operator=(
+        DistributionParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 

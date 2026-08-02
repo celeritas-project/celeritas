@@ -29,9 +29,9 @@ class ElectroNuclearInteractor
 {
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    ElectroNuclearInteractor(NativeCRef<ElectroNuclearData> const& shared,
-                             ParticleTrackView const& particle);
+    inline CELER_FUNCTION ElectroNuclearInteractor(
+        NativeCRef<ElectroNuclearData> const& shared,
+        ParticleTrackView const& particle);
 
     // Sample an interaction
     inline CELER_FUNCTION Interaction operator()();
@@ -43,8 +43,7 @@ class ElectroNuclearInteractor
 /*!
  * Construct with shared and state data, and a target nucleus.
  */
-CELER_FUNCTION
-ElectroNuclearInteractor::ElectroNuclearInteractor(
+CELER_FUNCTION ElectroNuclearInteractor::ElectroNuclearInteractor(
     NativeCRef<ElectroNuclearData> const& shared,
     ParticleTrackView const& particle)
 {

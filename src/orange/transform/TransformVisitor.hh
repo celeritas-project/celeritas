@@ -45,16 +45,16 @@ class TransformVisitor
 
   public:
     // Construct manually from required data
-    inline CELER_FUNCTION
-    TransformVisitor(TransformRecords const& transforms, Reals const& reals);
+    inline CELER_FUNCTION TransformVisitor(TransformRecords const& transforms,
+                                           Reals const& reals);
 
     // Construct from ORANGE params
     explicit inline CELER_FUNCTION TransformVisitor(ParamsRef const& params);
 
     // Apply the function to the transform specified by the given ID
     template<class F>
-    inline CELER_FUNCTION decltype(auto)
-    operator()(F&& typed_visitor, TransformId t);
+    inline CELER_FUNCTION decltype(auto) operator()(F&& typed_visitor,
+                                                    TransformId t);
 
   private:
     TransformRecords const& transforms_;
@@ -62,7 +62,8 @@ class TransformVisitor
 
     // Construct a transform from a data offset
     template<class T>
-    inline CELER_FUNCTION T make_transform(OpaqueId<real_type> data_offset) const;
+    inline CELER_FUNCTION T make_transform(
+        OpaqueId<real_type> data_offset) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -71,9 +72,8 @@ class TransformVisitor
 /*!
  * Construct manually from required data.
  */
-CELER_FUNCTION
-TransformVisitor::TransformVisitor(TransformRecords const& transforms,
-                                   Reals const& reals)
+CELER_FUNCTION TransformVisitor::TransformVisitor(
+    TransformRecords const& transforms, Reals const& reals)
     : transforms_{transforms}, reals_{reals}
 {
 }
@@ -93,8 +93,8 @@ CELER_FUNCTION TransformVisitor::TransformVisitor(ParamsRef const& params)
  * Apply the function to the transform specified by the given ID.
  */
 template<class F>
-CELER_FUNCTION decltype(auto)
-TransformVisitor::operator()(F&& func, TransformId id)
+CELER_FUNCTION decltype(auto) TransformVisitor::operator()(F&& func,
+                                                           TransformId id)
 {
     CELER_EXPECT(id < transforms_.size());
 
@@ -118,8 +118,8 @@ TransformVisitor::operator()(F&& func, TransformId id)
  * Apply the function to the transform specified by the given ID.
  */
 template<class T>
-CELER_FUNCTION T
-TransformVisitor::make_transform(OpaqueId<real_type> data_offset) const
+CELER_FUNCTION T TransformVisitor::make_transform(
+    OpaqueId<real_type> data_offset) const
 {
     CELER_EXPECT(data_offset <= reals_.size());
     using SpanT = typename T::StorageSpan;

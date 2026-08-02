@@ -50,9 +50,8 @@ class SimpleCalo final : public StepInterface, public OutputInterface
                VolumeParams const& volumes);
 
     //! Construct with default label
-    SimpleCalo(VecLabel labels,
-               size_type max_streams,
-               VolumeParams const& volumes)
+    SimpleCalo(
+        VecLabel labels, size_type max_streams, VolumeParams const& volumes)
         : SimpleCalo{"simple_calo", std::move(labels), max_streams, volumes}
     {
     }

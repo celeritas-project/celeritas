@@ -1,0 +1,13 @@
+//---------------------------------------------------------------------------//
+// Job execution for Celeritas optical simulation DUNE 1x2x6 geometry
+//---------------------------------------------------------------------------//
+#include "pdfullsimceler.fcl"
+#include "opticalsim_dune10kt_1x2x6.fcl"
+
+# Replace fast simulation module with Celeritas
+pdfullsim: {
+  # Use PDFullSimCelerGPU for device execution
+  @table::PDFullSimCeler
+}
+
+physics.producers.OpticalSim: @local::pdfullsim

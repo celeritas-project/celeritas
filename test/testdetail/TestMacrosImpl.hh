@@ -135,12 +135,12 @@ constexpr bool can_soft_equiv()
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
 template<class BinaryOp>
-::testing::AssertionResult
-IsSoftEquivImpl(typename BinaryOp::value_type expected,
-                char const* expected_expr,
-                typename BinaryOp::value_type actual,
-                char const* actual_expr,
-                BinaryOp comp)
+::testing::AssertionResult IsSoftEquivImpl(
+    typename BinaryOp::value_type expected,
+    char const* expected_expr,
+    typename BinaryOp::value_type actual,
+    char const* actual_expr,
+    BinaryOp comp)
 {
     if (comp(expected, actual))
     {
@@ -355,15 +355,15 @@ using ScalarValueTypeT = typename ScalarValueType<T>::type;
  * Compare a range of values.
  */
 template<class Iter1, class Iter2, class BinaryOp>
-::testing::AssertionResult
-IsRangeEqImpl(Iter1 e_iter,
-              Iter1 e_end,
-              char const* expected_expr,
-              Iter2 a_iter,
-              Iter2 a_end,
-              char const* actual_expr,
-              typename FVIT<Iter1, Iter2>::Vec_t& failures,
-              BinaryOp comp)
+::testing::AssertionResult IsRangeEqImpl(
+    Iter1 e_iter,
+    Iter1 e_end,
+    char const* expected_expr,
+    Iter2 a_iter,
+    Iter2 a_end,
+    char const* actual_expr,
+    typename FVIT<Iter1, Iter2>::Vec_t& failures,
+    BinaryOp comp)
 {
     using size_type = std::size_t;
     auto expected_size = std::distance(e_iter, e_end);

@@ -40,8 +40,8 @@ class BoundingZoneTest : public ::celeritas::test::Test
     };
 
   protected:
-    static BoundingZone
-    make_bz(Real3 center, real_type outer_hw, real_type inner_hw = -1)
+    static BoundingZone make_bz(
+        Real3 center, real_type outer_hw, real_type inner_hw = -1)
     {
         CELER_EXPECT(outer_hw >= 0);
         CELER_EXPECT(outer_hw >= inner_hw);
@@ -97,22 +97,22 @@ class BoundingZoneTest : public ::celeritas::test::Test
              << (bz.negated ? "EXPECT_TRUE" : "EXPECT_FALSE")
              << "(bz.negated);\n";
 
-#define BZ_EXPECTED_PT(BOX, POINT)                                          \
+#define BZ_EXPECTED_PT(BOX, POINT) \
     cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(bz.BOX.POINT()) << "), bz." \
          << #BOX "." #POINT "());\n"
-#define BZ_EXPECTED(BOX)                                            \
-    if (!bz.BOX)                                                    \
-    {                                                               \
-        cout << "EXPECT_FALSE(bz." #BOX ") << bz." #BOX ";\n";      \
-    }                                                               \
-    else if (bz.BOX == BBox::from_infinite())                       \
-    {                                                               \
+#define BZ_EXPECTED(BOX) \
+    if (!bz.BOX) \
+    { \
+        cout << "EXPECT_FALSE(bz." #BOX ") << bz." #BOX ";\n"; \
+    } \
+    else if (bz.BOX == BBox::from_infinite()) \
+    { \
         cout << "EXPECT_EQ(BBox::from_infinite(), bz." #BOX ");\n"; \
-    }                                                               \
-    else                                                            \
-    {                                                               \
-        BZ_EXPECTED_PT(BOX, lower);                                 \
-        BZ_EXPECTED_PT(BOX, upper);                                 \
+    } \
+    else \
+    { \
+        BZ_EXPECTED_PT(BOX, lower); \
+        BZ_EXPECTED_PT(BOX, upper); \
     }
         BZ_EXPECTED(interior);
         BZ_EXPECTED(exterior);

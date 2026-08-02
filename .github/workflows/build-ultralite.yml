@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
 
       ### ENVIRONMENT ###
 
@@ -48,7 +48,7 @@ jobs:
       ### BUILD ###
 
       - name: Cache ccache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-ubuntu-${{github.run_id}}
@@ -68,13 +68,13 @@ jobs:
           ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-ubuntu-${{github.run_id}}
       - name: Upload ccache debug
         if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{env.CCACHE_DEBUGDIR}}
           name: debug-ccache-ubuntu-${{github.job}}
@@ -88,7 +88,7 @@ jobs:
         run: |
           ctest --preset=${CMAKE_PRESET}
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: >-
           ${{
             always()
@@ -121,7 +121,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1 (2 Dec 2025)
+        uses: actions/checkout@v6
 
       ### ENVIRONMENT ###
 
@@ -148,7 +148,7 @@ jobs:
       ### BUILD ###
 
       - name: Restore ccache
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-windows-${{github.run_id}}
@@ -166,13 +166,13 @@ jobs:
           ccache -s
       - name: Save ccache
         if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{env.CCACHE_DIR}}
           key: ccache-ultralite-windows-${{github.run_id}}
       - name: Upload ccache debug
         if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           path: ${{env.CCACHE_DEBUGDIR}}
           name: debug-ccache-windows-${{github.run_id}}
@@ -186,7 +186,7 @@ jobs:
         run: |
           ctest --preset=$Env:CMAKE_PRESET
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: >-
           ${{
             always()

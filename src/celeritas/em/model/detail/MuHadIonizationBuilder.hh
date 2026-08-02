@@ -63,8 +63,8 @@ MuHadIonizationBuilder::MuHadIonizationBuilder(ParticleParams const& particles,
 /*!
  * Construct model data from applicability.
  */
-MuHadIonizationData
-MuHadIonizationBuilder::operator()(SetApplicability const& applicability) const
+MuHadIonizationData MuHadIonizationBuilder::operator()(
+    SetApplicability const& applicability) const
 {
     CELER_EXPECT(!applicability.empty());
 

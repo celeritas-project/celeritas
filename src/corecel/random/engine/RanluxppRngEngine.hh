@@ -66,9 +66,8 @@ class RanluxppRngEngine
 
   public:
     //! Instantiate with optional default seed.
-    CELER_FUNCTION RanluxppRngEngine(ParamsRef const& params,
-                                     StateRef const& state,
-                                     TrackSlotId tid)
+    CELER_FUNCTION RanluxppRngEngine(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid)
         : params_(params)
     {
         CELER_EXPECT(tid < state.state.size());
@@ -85,12 +84,12 @@ class RanluxppRngEngine
     }
 
     // Initialize state with the given seed initializer
-    inline CELER_FUNCTION RanluxppRngEngine&
-    operator=(Initializer_t const& init);
+    inline CELER_FUNCTION RanluxppRngEngine& operator=(
+        Initializer_t const& init);
 
     // Initialize state with the given state initializer
-    inline CELER_FUNCTION RanluxppRngEngine&
-    operator=(RngStateInitializer_t const& state_init);
+    inline CELER_FUNCTION RanluxppRngEngine& operator=(
+        RngStateInitializer_t const& state_init);
 
     // Generate a 32-bit random integer.
     inline CELER_FUNCTION result_type operator()();
@@ -142,8 +141,8 @@ struct GenerateCanonical<RanluxppRngEngine, RealType>
 /*!
  * Initialize state for the given seed and subsequence.
  */
-inline CELER_FUNCTION RanluxppRngEngine&
-RanluxppRngEngine::operator=(Initializer_t const& init)
+inline CELER_FUNCTION RanluxppRngEngine& RanluxppRngEngine::operator=(
+    Initializer_t const& init)
 {
     // Skip forward (2^96) * (init.seed + init.subsequence) states
     RanluxppArray9 new_a_seed = celeritas::detail::compute_power_modulus(
@@ -165,8 +164,8 @@ RanluxppRngEngine::operator=(Initializer_t const& init)
 /*!
  * Initialize state for the given state initializer.
  */
-inline CELER_FUNCTION RanluxppRngEngine&
-RanluxppRngEngine::operator=(RngStateInitializer_t const& state_init)
+inline CELER_FUNCTION RanluxppRngEngine& RanluxppRngEngine::operator=(
+    RngStateInitializer_t const& state_init)
 {
     (*state_).value = state_init.value;
     return *this;

@@ -10,7 +10,6 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
-#include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas
@@ -21,7 +20,7 @@ namespace celeritas
  *
  * The polar angle is sampled according to a simplified PDF
  * \f[
-   f(r) \sim \frac{r}{(1 + r^2)^2}, \ r = frac{E\theta}{m}
+   f(r) \sim \frac{r}{(1 + r^2)^2}, \ r = \frac{E\theta}{m}
  * \f]
  * by sampling
  * \f[
@@ -29,9 +28,9 @@ namespace celeritas
  * \f]
  * with
  * \f[
-   r = \sqrt{frac{a}{1 - a}},
+   r = \sqrt{\frac{a}{1 - a}},
    a = \xi \frac{r^2_{\text{max}}}{1 + r^2_{\text{max}}},
-   r_{\text{max}} = frac{\pi}{2} E' / m \min(1, E' / \epsilon),
+   r_{\text{max}} = \frac{\pi}{2} E' / m \min(1, E' / \epsilon),
  * \f]
  * and where \f$ m \f$ is the incident muon mass, \f$ E \f$ is incident energy,
  * \f$ \epsilon \f$ is the emitted energy,
@@ -52,8 +51,8 @@ class MuAngularDistribution
 
   public:
     // Construct with incident and secondary particle quantities
-    inline CELER_FUNCTION
-    MuAngularDistribution(Energy inc_energy, Mass inc_mass, Energy energy);
+    inline CELER_FUNCTION MuAngularDistribution(
+        Energy inc_energy, Mass inc_mass, Energy energy);
 
     // Sample the cosine of the polar angle of the secondary
     template<class Engine>
@@ -72,18 +71,17 @@ class MuAngularDistribution
 /*!
  * Construct with incident and secondary particle.
  */
-CELER_FUNCTION
-MuAngularDistribution::MuAngularDistribution(Energy inc_energy,
-                                             Mass inc_mass,
-                                             Energy energy)
+CELER_FUNCTION MuAngularDistribution::MuAngularDistribution(
+    Energy inc_energy, Mass inc_mass, Energy energy)
     : gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(inc_mass))
 {
     using namespace celeritas::literals;
 
     real_type r_max_sq = ipow<2>(
         0.5_r * constants::pi * gamma_
-        * min(1.0_r,
-              gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
+        * min(
+            1.0_r,
+            gamma_ * value_as<Mass>(inc_mass) / value_as<Energy>(energy) - 1));
     sample_a_ = {0, r_max_sq / (1 + r_max_sq)};
 }
 

@@ -98,9 +98,8 @@ KernelLauncher<F>::KernelLauncher(std::string&& name)
  * Launch a kernel for a thread range.
  */
 template<class F>
-void KernelLauncher<F>::operator()(Range<ThreadId> threads,
-                                   StreamId stream_id,
-                                   F const& execute_thread) const
+void KernelLauncher<F>::operator()(
+    Range<ThreadId> threads, StreamId stream_id, F const& execute_thread) const
 {
     if (!threads.empty())
     {
@@ -128,9 +127,8 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
  * \param execute_thread Call the given functor with the thread ID
  */
 template<class F>
-void KernelLauncher<F>::operator()(size_type num_threads,
-                                   StreamId stream_id,
-                                   F const& execute_thread) const
+void KernelLauncher<F>::operator()(
+    size_type num_threads, StreamId stream_id, F const& execute_thread) const
 {
     (*this)(range(ThreadId{num_threads}), stream_id, execute_thread);
 }

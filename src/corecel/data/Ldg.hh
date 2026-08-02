@@ -114,8 +114,8 @@ namespace celeritas
  * This is generally true for Params data but not State data.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T>
-ldg(T const* ptr) noexcept
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_arithmetic_v<T>, T> ldg(
+    T const* ptr) noexcept
 {
 #if CELER_DEVICE_COMPILE
     return __ldg(ptr);
@@ -130,8 +130,8 @@ ldg(T const* ptr) noexcept
  * Get a pointer to the underlying integer for an enum type.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_enum_v<T>, T>
-ldg(T const* ptr) noexcept
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<std::is_enum_v<T>, T> ldg(
+    T const* ptr) noexcept
 {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
     auto const* data = reinterpret_cast<std::underlying_type_t<T> const*>(ptr);
@@ -150,6 +150,7 @@ ldg(T const* ptr) noexcept
 template<class Class, class T>
 CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
 {
+    using ::celeritas::ldg;
     return ldg(&(obj.*mp));
 }
 
@@ -174,6 +175,7 @@ struct LdgMember
 
     CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
+        using ::celeritas::ldg;
         return ldg(&(obj.*mp));
     }
 };

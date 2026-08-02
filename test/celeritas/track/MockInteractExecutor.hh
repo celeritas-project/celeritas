@@ -18,8 +18,8 @@ namespace test
 //---------------------------------------------------------------------------//
 struct MockInteractExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<MockInteractData> data;
 };

@@ -32,8 +32,8 @@ using StateRef = OrangeStateData<Ownership::reference, M>;
 //---------------------------------------------------------------------------//
 
 template<class T>
-CELER_CONSTEXPR_FUNCTION ItemRange<T>
-build_range(size_type stride, TrackSlotId tid)
+CELER_CONSTEXPR_FUNCTION ItemRange<T> build_range(size_type stride,
+                                                  TrackSlotId tid)
 {
     CELER_EXPECT(tid);
     using IdT = ItemId<T>;
@@ -42,9 +42,8 @@ build_range(size_type stride, TrackSlotId tid)
 }
 
 template<MemSpace M = MemSpace::native>
-inline CELER_FUNCTION LocalState build_local_state(ParamsRef<M> params,
-                                                   StateRef<M> states,
-                                                   TrackSlotId tid)
+inline CELER_FUNCTION LocalState build_local_state(
+    ParamsRef<M> params, StateRef<M> states, TrackSlotId tid)
 {
     // Create local state from global memory
     LocalState lstate;

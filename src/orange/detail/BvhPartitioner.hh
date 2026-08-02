@@ -81,6 +81,10 @@ class BvhPartitioner
     VecReal3 const& centers_;
     //! The number of partition candidates to check per axis
     size_type num_part_cands_{0};
+    //! Min num vols to consider discarding partition based on overlap fraction
+    static constexpr size_type volume_threshold_ = 2;
+    //! Threshold for discarding partitions that yield overlapping children
+    static constexpr real_type overlap_threshold_ = real_type{0.5};
 
     //// HELPER FUNCTIONS ////
 
@@ -88,9 +92,8 @@ class BvhPartitioner
     AxesCenters calc_axes_centers(VecIndices const& indices) const;
 
     // Create a partition object
-    Partition make_partition(VecIndices const& indices,
-                             Axis axis,
-                             real_type position) const;
+    Partition make_partition(
+        VecIndices const& indices, Axis axis, real_type position) const;
 
     // Calculate the cost of partition using a surface area heuristic
     real_type calc_cost(Partition const& partition) const;

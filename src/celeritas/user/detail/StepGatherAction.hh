@@ -44,9 +44,8 @@ class StepGatherAction final : public CoreStepActionInterface
 
   public:
     // Construct with action ID and storage
-    StepGatherAction(ActionId id,
-                     SPConstStepParams params,
-                     VecInterface callbacks);
+    StepGatherAction(
+        ActionId id, SPConstStepParams params, VecInterface callbacks);
 
     // Launch kernel with host data
     void step(CoreParams const&, CoreStateHost&) const final;

@@ -44,10 +44,8 @@ class ActionTimes : public AuxParamsInterface
 
   public:
     // Construct and add to the aux registry
-    static std::shared_ptr<ActionTimes>
-    make_and_insert(SPActionRegistry const&,
-                    SPAuxParamsRegistry const&,
-                    std::string label);
+    static std::shared_ptr<ActionTimes> make_and_insert(
+        SPActionRegistry const&, SPAuxParamsRegistry const&, std::string label);
 
     // Construct from ID, actions and label
     ActionTimes(AuxId, SPActionRegistry const&, std::string label);

@@ -67,8 +67,8 @@ struct GeantMuonPhysicsOptions
 };
 
 //! Equality operator
-constexpr bool
-operator==(GeantMuonPhysicsOptions const& a, GeantMuonPhysicsOptions const& b)
+constexpr bool operator==(GeantMuonPhysicsOptions const& a,
+                          GeantMuonPhysicsOptions const& b)
 {
     // clang-format off
     return a.pair_production == b.pair_production
@@ -239,8 +239,8 @@ struct GeantPhysicsOptions
 
 //! Equality operator, mainly for test harness
 // TODO: when we require C++20, use `friend bool operator==(...) = default;`
-constexpr bool
-operator==(GeantPhysicsOptions const& a, GeantPhysicsOptions const& b)
+constexpr bool operator==(GeantPhysicsOptions const& a,
+                          GeantPhysicsOptions const& b)
 {
     // clang-format off
     return a.compton_scattering == b.compton_scattering

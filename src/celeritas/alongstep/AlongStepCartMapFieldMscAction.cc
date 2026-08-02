@@ -13,11 +13,11 @@
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
 #include "celeritas/field/CartMapField.hh"  // IWYU pragma: keep
-#include "celeritas/field/CartMapFieldInput.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/inp/Field.hh"
 
 #include "detail/ElossApplier.hh"
 #include "detail/FieldTrackPropagator.hh"
@@ -39,7 +39,7 @@ std::shared_ptr<AlongStepCartMapFieldMscAction>
 AlongStepCartMapFieldMscAction::from_params(ActionId id,
                                             MaterialParams const& materials,
                                             ParticleParams const& particles,
-                                            CartMapFieldInput const& field_input,
+                                            Input const& field_input,
                                             SPConstMsc const& msc,
                                             bool eloss_fluctuation)
 {
@@ -60,10 +60,7 @@ AlongStepCartMapFieldMscAction::from_params(ActionId id,
  * Construct with next action ID, energy loss parameters, and MSC.
  */
 AlongStepCartMapFieldMscAction::AlongStepCartMapFieldMscAction(
-    ActionId id,
-    CartMapFieldInput const& input,
-    SPConstFluctuations fluct,
-    SPConstMsc msc)
+    ActionId id, Input const& input, SPConstFluctuations fluct, SPConstMsc msc)
     : id_(id)
     , field_{std::make_shared<CartMapFieldParams>(input)}
     , fluct_(std::move(fluct))

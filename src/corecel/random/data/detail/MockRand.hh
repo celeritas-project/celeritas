@@ -21,10 +21,8 @@ struct MockRandState
 //---------------------------------------------------------------------------//
 //!@{
 //! Random functions with cuRAND-like interface.
-inline void mockrand_init(unsigned long long,
-                          unsigned long long,
-                          unsigned long long,
-                          MockRandState*)
+inline void mockrand_init(
+    unsigned long long, unsigned long long, unsigned long long, MockRandState*)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

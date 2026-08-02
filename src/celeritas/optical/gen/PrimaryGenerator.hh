@@ -35,9 +35,9 @@ class PrimaryGenerator
 {
   public:
     // Construct from distribution data
-    inline CELER_FUNCTION
-    PrimaryGenerator(NativeCRef<DistributionParamsData> const& params,
-                     PrimaryDistributionData const& data);
+    inline CELER_FUNCTION PrimaryGenerator(
+        NativeCRef<DistributionParamsData> const& params,
+        PrimaryDistributionData const& data);
 
     // Sample an optical photon from the distributions
     template<class Generator>
@@ -54,8 +54,7 @@ class PrimaryGenerator
 /*!
  * Construct from optical materials and distribution parameters.
  */
-CELER_FUNCTION
-PrimaryGenerator::PrimaryGenerator(
+CELER_FUNCTION PrimaryGenerator::PrimaryGenerator(
     NativeCRef<DistributionParamsData> const& params,
     PrimaryDistributionData const& data)
     : params_(params), data_(data)
@@ -69,8 +68,8 @@ PrimaryGenerator::PrimaryGenerator(
  * Sample an optical photon from the energy, angular and spatial distributions.
  */
 template<class Generator>
-CELER_FUNCTION optical::TrackInitializer
-PrimaryGenerator::operator()(Generator& rng)
+CELER_FUNCTION optical::TrackInitializer PrimaryGenerator::operator()(
+    Generator& rng)
 {
     DistributionVisitor visit{params_};
 

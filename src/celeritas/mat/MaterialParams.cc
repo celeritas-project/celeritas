@@ -60,8 +60,8 @@ MatterState to_matter_state(ImportMaterialState state)
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.geo_materials.empty());
     CELER_EXPECT(!data.phys_materials.empty());
@@ -416,9 +416,8 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-ItemRange<MatElementComponent>
-MaterialParams::extend_elcomponents(MaterialInput const& inp,
-                                    HostValue* host_data) const
+ItemRange<MatElementComponent> MaterialParams::extend_elcomponents(
+    MaterialInput const& inp, HostValue* host_data) const
 {
     CELER_EXPECT(host_data);
     // Allocate material components
