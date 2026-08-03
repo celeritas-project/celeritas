@@ -12,6 +12,15 @@
 namespace celeritas
 {
 
+inline constexpr CELER_FUNCTION real_type copysignr(real_type x, real_type y)
+{
+#if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+    return std::copysignf(x, y);
+#else
+    return std::copysign(x, y);
+#endif
+}
+
 struct complex
 {
     real_type real;
@@ -29,8 +38,9 @@ struct complex
     {
         real_type a = this->real, b = this->imag;
         real_type absv = this->abs();
-        return complex{std::sqrt(0.5 * (absv + a)),
-                       std::copysign(std::sqrt(0.5 * (absv - a)), b)};
+        return complex{
+            std::sqrt(static_cast<real_type>(0.5) * (absv + a)),
+            copysignr(std::sqrt(static_cast<real_type>(0.5) * (absv - a)), b)};
     }
 
     inline CELER_FUNCTION real_type abs() const

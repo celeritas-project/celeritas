@@ -201,7 +201,7 @@ Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
     else
     {
         real_type RQ = R / Q;
-        KK = std::copysign(1.0, Q) * (ipow<2>(RQ) / Q - 1.0);
+        KK = copysignr(1.0, Q) * (ipow<2>(RQ) / Q - 1.0);
     }
 
     if (KK < 0.0)
@@ -217,11 +217,10 @@ Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
     {
         real_type A;
         if (std::fabs(Q) < std::fabs(R))
-            A = -std::copysign(1.0, R)
-                * cbrt(std::fabs(R) * (1.0 + std::sqrt(KK)));
+            A = -copysignr(1.0, R) * cbrt(std::fabs(R) * (1.0 + std::sqrt(KK)));
         else
         {
-            A = -std::copysign(1.0, R)
+            A = -copysignr(1.0, R)
                 * cbrt(
                     std::fabs(R)
                     + std::sqrt(std::fabs(Q)) * std::fabs(Q) * std::sqrt(KK));
@@ -255,7 +254,7 @@ CELER_FUNCTION real_type Alg1010Solver::solve_cubic_analytic_depressed(
     }
     else
     {
-        real_type A = -std::copysign(1.0, R)
+        real_type A = -copysignr(1.0, R)
                       * std::pow(std::fabs(R) + std::sqrt(R2 - Q3), 1.0 / 3.0);
         real_type B = (A == 0.0) ? 0.0 : Q / A;
         return A + B; /* this is always largest root even if A=B */
@@ -274,7 +273,7 @@ CELER_FUNCTION real_type Alg1010Solver::calc_phi0(Real4 const& abcd,
     if (diskr > 0.0)
     {
         diskr = std::sqrt(diskr);
-        s = -2 * b / (3 * a + std::copysign(diskr, a));
+        s = -2 * b / (3 * a + copysignr(diskr, a));
     }
     else
     {
@@ -550,7 +549,7 @@ CELER_FUNCTION void Alg1010Solver::solve_quadratic(
     }
     else if (diskr > 0.0)
     {
-        real_type div = -a - std::copysign(std::sqrt(diskr), a);
+        real_type div = -a - copysignr(std::sqrt(diskr), a);
         real_type zmax = div / 2;
         real_type zmin = (zmax == 0.0) ? 0.0 : b / zmax;
 
