@@ -36,8 +36,8 @@ struct UpdateNumActiveExecutor
 /*!
  * Update number of active trackes based on the number of vacancies.
  */
-CELER_FORCEINLINE_FUNCTION void
-UpdateNumActiveExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void UpdateNumActiveExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 

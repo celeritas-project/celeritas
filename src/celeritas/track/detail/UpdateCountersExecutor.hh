@@ -37,8 +37,8 @@ struct UpdateCountersExecutor
 /*!
  * Update state counters based on the number of primaries.
  */
-CELER_FORCEINLINE_FUNCTION void
-UpdateCountersExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void UpdateCountersExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 

@@ -92,13 +92,13 @@ CELER_FUNCTION void GeneratorExecutor::operator()(ThreadId tid) const
     CELER_ASSERT(dist);
 
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there
-            // are more vacancies than photons to generate
-            TrackSlotId idx{index_before(counters->num_vacancies, tid)};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{
+                                  index_before(counters->num_vacancies, tid)};
+                              return state->init.vacancies[idx];
+                          }()};
 
     if (!dist.material)
     {

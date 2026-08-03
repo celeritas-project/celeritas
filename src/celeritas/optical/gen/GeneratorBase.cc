@@ -57,8 +57,9 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 /*!
  * Launch a (host) kernel to update the number of pending optical photons.
  */
-void GeneratorBase::update_pending(
-    CoreParams const& params, CoreStateHost& state, size_type num_pending) const
+void GeneratorBase::update_pending(CoreParams const& params,
+                                   CoreStateHost& state,
+                                   size_type num_pending) const
 {
     // Update the number of pending optical photons
     auto execute_thread = make_single_track_executor(

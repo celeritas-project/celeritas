@@ -42,8 +42,8 @@ struct UpdateAliveExecutor
 /*!
  * Update number of photons that are still alive after compacting vacancies.
  */
-CELER_FORCEINLINE_FUNCTION void
-UpdateAliveExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void UpdateAliveExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 
