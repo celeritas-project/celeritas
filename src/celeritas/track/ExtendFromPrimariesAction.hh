@@ -35,13 +35,13 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
 {
   public:
     // Construct and add to core params
-    static std::shared_ptr<ExtendFromPrimariesAction>
-    make_and_insert(CoreParams const& core);
+    static std::shared_ptr<ExtendFromPrimariesAction> make_and_insert(
+        CoreParams const& core);
 
     // Hacky helper function (DEPRECATED) to get the primary action from core
     // params
-    static std::shared_ptr<ExtendFromPrimariesAction const>
-    find_action(CoreParams const& core);
+    static std::shared_ptr<ExtendFromPrimariesAction const> find_action(
+        CoreParams const& core);
 
     // Construct with explicit ids
     ExtendFromPrimariesAction(ActionId action_id, AuxId aux_id);
@@ -87,8 +87,8 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     AuxId aux_id_;
 
     template<MemSpace M>
-    void
-    insert_impl(CoreState<M>& state, Span<Primary const> host_primaries) const;
+    void insert_impl(CoreState<M>& state,
+                     Span<Primary const> host_primaries) const;
 
     template<MemSpace M>
     void step_impl(CoreParams const&, CoreState<M>&) const;

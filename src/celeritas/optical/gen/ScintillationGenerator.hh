@@ -60,9 +60,9 @@ class ScintillationGenerator
 
   public:
     // Construct from scintillation data and distribution parameters
-    inline CELER_FUNCTION
-    ScintillationGenerator(NativeCRef<ScintillationData> const& shared,
-                           GeneratorDistributionData const& dist);
+    inline CELER_FUNCTION ScintillationGenerator(
+        NativeCRef<ScintillationData> const& shared,
+        GeneratorDistributionData const& dist);
 
     // Sample a single photon from the distribution
     template<class Generator>
@@ -81,8 +81,7 @@ class ScintillationGenerator
 /*!
  * Construct from shared scintillation data and distribution parameters.
  */
-CELER_FUNCTION
-ScintillationGenerator::ScintillationGenerator(
+CELER_FUNCTION ScintillationGenerator::ScintillationGenerator(
     NativeCRef<ScintillationData> const& shared,
     GeneratorDistributionData const& dist)
     : dist_(dist), shared_(shared)

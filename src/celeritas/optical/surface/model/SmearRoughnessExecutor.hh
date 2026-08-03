@@ -30,8 +30,8 @@ struct SmearRoughnessExecutor
     CELER_FUNCTION void operator()(CoreTrackView& track) const
     {
         auto s_phys = track.surface_physics();
-        auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::roughness)
-                                .internal_surface_id();
+        auto sub_model_id
+            = s_phys.interface(SurfacePhysicsOrder::roughness).internal_surface_id();
         CELER_ASSERT(sub_model_id < data.roughness.size());
         EnteringSurfaceNormalSampler<SmearRoughnessSampler> sample_facet{
             track.geometry().dir(),

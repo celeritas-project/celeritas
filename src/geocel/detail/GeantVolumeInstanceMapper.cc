@@ -159,8 +159,8 @@ VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv) const
  * If the pv is not included in the geometry for some reason, the result is a
  * null \c VolumeInstanceId .
  */
-VolumeInstanceId
-GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv, int copy_no) const
+VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const& pv,
+                                                        int copy_no) const
 {
     CELER_EXPECT(copy_no >= 0);
     auto iter = base_vi_.find(&pv);

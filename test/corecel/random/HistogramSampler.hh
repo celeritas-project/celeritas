@@ -76,8 +76,8 @@ class HistogramSampler
 
     // Sample one distribution, transforming the result to a single real number
     template<class TransformT, class DistributionT>
-    inline SampledHistogram
-    operator()(TransformT&& transform, DistributionT&& sample_from);
+    inline SampledHistogram operator()(TransformT&& transform,
+                                       DistributionT&& sample_from);
 
   private:
     size_type num_bins_;

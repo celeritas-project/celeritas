@@ -26,8 +26,8 @@ class StepDiagnostic final : public StepDiagnosticBase,
 {
   public:
     // Construct and add to core params
-    static std::shared_ptr<StepDiagnostic>
-    make_and_insert(CoreParams const& core, size_type max_bins);
+    static std::shared_ptr<StepDiagnostic> make_and_insert(
+        CoreParams const& core, size_type max_bins);
 
     //! Construct with ID and counts
     StepDiagnostic(ActionId id, size_type max_bins, size_type num_streams);

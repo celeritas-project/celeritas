@@ -119,8 +119,8 @@ auto GenericGeoTestBase<HP>::make_geo_track_view(TrackSlotId tsid)
 //---------------------------------------------------------------------------//
 //! Get and initialize a single-thread host track view
 template<class HP>
-auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm, Real3 dir)
-    -> WrappedGeoTrack
+auto GenericGeoTestBase<HP>::make_geo_track_view(Real3 const& pos_cm,
+                                                 Real3 dir) -> WrappedGeoTrack
 {
     auto tv = this->make_geo_track_view();
     tv = this->make_initializer(pos_cm, dir);

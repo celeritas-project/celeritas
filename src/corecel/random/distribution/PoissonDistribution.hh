@@ -82,8 +82,8 @@ class PoissonDistribution
  * Construct from the mean of the Poisson distribution.
  */
 template<class RealType>
-CELER_FUNCTION
-PoissonDistribution<RealType>::PoissonDistribution(real_type lambda)
+CELER_FUNCTION PoissonDistribution<RealType>::PoissonDistribution(
+    real_type lambda)
     : lambda_(lambda), sample_normal_(lambda_, std::sqrt(lambda_))
 {
     CELER_EXPECT(lambda_ > 0);

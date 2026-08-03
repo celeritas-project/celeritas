@@ -101,11 +101,10 @@ class LPMCalculator
 /*!
  * Construct with LPM data, material data, and photon energy.
  */
-CELER_FUNCTION
-LPMCalculator::LPMCalculator(MaterialView const& material,
-                             ElementView const& element,
-                             bool dielectric_suppression,
-                             units::MevEnergy gamma_energy)
+CELER_FUNCTION LPMCalculator::LPMCalculator(MaterialView const& material,
+                                            ElementView const& element,
+                                            bool dielectric_suppression,
+                                            units::MevEnergy gamma_energy)
     : element_(element)
     , electron_density_(material.electron_density())
     , lpm_energy_(material.radiation_length()

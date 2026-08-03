@@ -42,8 +42,8 @@ class MockGeoTrackView
     MockGeoTrackView() = default;
 
     // Initialize the state
-    inline CELER_FUNCTION MockGeoTrackView&
-    operator=(Initializer_t const& init);
+    inline CELER_FUNCTION MockGeoTrackView& operator=(
+        Initializer_t const& init);
 
     //!@{
     //! State accessors
@@ -93,8 +93,8 @@ class MockGeoTrackView
 /*!
  * Construct the state.
  */
-CELER_FUNCTION MockGeoTrackView&
-MockGeoTrackView::operator=(Initializer_t const& init)
+CELER_FUNCTION MockGeoTrackView& MockGeoTrackView::operator=(
+    Initializer_t const& init)
 {
     ++init_count_;
     this->state_ = init;

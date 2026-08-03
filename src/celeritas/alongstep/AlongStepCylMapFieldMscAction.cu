@@ -49,8 +49,9 @@ void AlongStepCylMapFieldMscAction::step(CoreParams const& params,
             params.ptr<MemSpace::native>(),
             state.ptr(),
             this->action_id(),
-            detail::PropagationApplier{detail::FieldTrackPropagator<CylMapField>{
-                field_->ref<MemSpace::native>()}});
+            detail::PropagationApplier{
+                detail::FieldTrackPropagator<CylMapField>{
+                    field_->ref<MemSpace::native>()}});
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
             *this, "propagate-cylmap");
         launch_kernel(*this, params, state, execute_thread);

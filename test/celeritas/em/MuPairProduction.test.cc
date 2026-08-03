@@ -351,8 +351,9 @@ TEST_F(MuPairProductionTest, stress_test)
         double costheta = 0;
 
         // Loop over several incident directions
-        for (Real3 const& inc_dir :
-             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        for (
+            Real3 const& inc_dir :
+            {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);

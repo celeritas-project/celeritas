@@ -56,15 +56,15 @@ class CoulombScatteringInteractor
 
   public:
     //! Construct with shared and state data
-    inline CELER_FUNCTION
-    CoulombScatteringInteractor(CoulombScatteringData const& shared,
-                                NativeCRef<WentzelOKVIData> const& wentzel,
-                                ParticleTrackView const& particle,
-                                Real3 const& inc_direction,
-                                MaterialView const& material,
-                                IsotopeView const& target,
-                                ElementId el_id,
-                                CutoffView const& cutoffs);
+    inline CELER_FUNCTION CoulombScatteringInteractor(
+        CoulombScatteringData const& shared,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        MaterialView const& material,
+        IsotopeView const& target,
+        ElementId el_id,
+        CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
     template<class Engine>
@@ -104,8 +104,7 @@ class CoulombScatteringInteractor
  * \todo Use the proton production cutoff when the recoiled nucleus production
  * is supported.
  */
-CELER_FUNCTION
-CoulombScatteringInteractor::CoulombScatteringInteractor(
+CELER_FUNCTION CoulombScatteringInteractor::CoulombScatteringInteractor(
     CoulombScatteringData const& shared,
     NativeCRef<WentzelOKVIData> const& wentzel,
     ParticleTrackView const& particle,

@@ -94,8 +94,8 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                     && IsNeutral{params}(init))
                 {
                     // Get the vacancy from the front of the track state
-                    return data
-                        .vacancies[TrackSlotId(index_before(num_init, tid))];
+                    return data.vacancies[TrackSlotId(
+                        index_before(num_init, tid))];
                 }
                 // Get the vacancy from the back of the track state
                 return data.vacancies[TrackSlotId(

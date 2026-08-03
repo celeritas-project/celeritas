@@ -189,8 +189,8 @@ inline T calc_volume(BoundingBox<T> const& bbox)
  * Calculate the smallest bounding box enclosing two bounding boxes.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_union(BoundingBox<T> const& a,
+                                           BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))
@@ -211,8 +211,8 @@ calc_union(BoundingBox<T> const& a, BoundingBox<T> const& b)
  * If there is no intersection, the result will be a null bounding box.
  */
 template<class T>
-inline constexpr BoundingBox<T>
-calc_intersection(BoundingBox<T> const& a, BoundingBox<T> const& b)
+inline constexpr BoundingBox<T> calc_intersection(BoundingBox<T> const& a,
+                                                  BoundingBox<T> const& b)
 {
     typename BoundingBox<T>::Extents3 extents;
     for (auto ax : range(Axis::size_))

@@ -27,8 +27,7 @@ class ReferencedVgNavState
     }
 
     //! Implicit cast to reference type for use in VecGeom function calls
-    CELER_FORCEINLINE_FUNCTION
-    operator VgNavState&() { return src_; }
+    CELER_FORCEINLINE_FUNCTION operator VgNavState&() { return src_; }
 
   private:
     VgNavState& src_;
@@ -61,8 +60,7 @@ class ScopedTempVgNavState
     CELER_FORCEINLINE_FUNCTION ~ScopedTempVgNavState() { src_ = tmp_; }
 
     //! Implicit cast to reference type for use in VecGeom function calls
-    CELER_FORCEINLINE_FUNCTION
-    operator VgNavState&() { return tmp_; }
+    CELER_FORCEINLINE_FUNCTION operator VgNavState&() { return tmp_; }
 
   private:
     VgNavWrapper src_;

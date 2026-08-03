@@ -80,8 +80,8 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
     VecgeomNavCollection(VecgeomNavCollection const&) = default;
 
     // Obtain reference from host memory
-    VecgeomNavCollection&
-    operator=(VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
+    VecgeomNavCollection& operator=(
+        VecgeomNavCollection<Ownership::value, MemSpace::host>& other);
     // Default copy assignment
     VecgeomNavCollection& operator=(VecgeomNavCollection const&) = default;
 
@@ -105,8 +105,8 @@ struct VecgeomNavCollection<Ownership::reference, MemSpace::host>
 void resize(VecgeomNavCollection<Ownership::value, MemSpace::host>* nav,
             size_type size);
 
-inline void
-resize(VecgeomNavCollection<Ownership::value, MemSpace::device>*, size_type)
+inline void resize(VecgeomNavCollection<Ownership::value, MemSpace::device>*,
+                   size_type)
 {
     CELER_ASSERT_UNREACHABLE();
 }

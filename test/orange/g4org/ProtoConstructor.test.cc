@@ -112,7 +112,8 @@ class ProtoConstructorTest : public GeantLoadTestBase
         for (auto id : range(UnivId{protos.size()}))
         {
             std::vector<std::string> local_parents;
-            if (auto const* unit = dynamic_cast<UnitProto const*>(protos.at(id)))
+            if (auto const* unit
+                = dynamic_cast<UnitProto const*>(protos.at(id)))
             {
                 auto const& local_mats = unit->input().materials;
                 for (auto const& mat : unit->input().materials)

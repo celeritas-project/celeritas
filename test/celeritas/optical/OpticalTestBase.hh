@@ -49,8 +49,8 @@ class OpticalTestBase : public Test
     //!@}
 
     //! Initialize particle state data with given energy
-    ParticleTrackView
-    make_particle_track_view(units::MevEnergy energy, PDGNumber pdg);
+    ParticleTrackView make_particle_track_view(units::MevEnergy energy,
+                                               PDGNumber pdg);
 
     //! Initialize sim track state
     SimTrackView make_sim_track_view(real_type step_len_cm);

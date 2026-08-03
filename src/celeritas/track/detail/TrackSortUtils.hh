@@ -76,8 +76,8 @@ struct ActionAccessor
 //---------------------------------------------------------------------------//
 //! Return a raw pointer to action IDs based on the given sort order
 template<Ownership W, MemSpace M>
-CELER_FUNCTION ObserverPtr<ActionId const>
-get_action_ptr(CoreStateData<W, M> const& states, TrackOrder order)
+CELER_FUNCTION ObserverPtr<ActionId const> get_action_ptr(
+    CoreStateData<W, M> const& states, TrackOrder order)
 {
     if (order == TrackOrder::reindex_along_step_action)
     {

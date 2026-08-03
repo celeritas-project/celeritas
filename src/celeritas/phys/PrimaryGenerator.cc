@@ -38,9 +38,9 @@ auto make_energy_sampler(inp::EnergyDistribution const& i)
     return std::visit(
         return_as<PrimaryGenerator::EnergySampler>(Overload{
             [](inp::MonoenergeticDistribution const& me) {
-                CELER_VALIDATE(
-                    me.value > 0,
-                    << R"(invalid primary generator energy )" << me.value);
+                CELER_VALIDATE(me.value > 0,
+                               << R"(invalid primary generator energy )"
+                               << me.value);
                 return DeltaDistribution{static_cast<real_type>(me.value)};
             },
             [](inp::NormalDistribution const& ge) {

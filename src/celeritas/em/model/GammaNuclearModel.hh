@@ -89,8 +89,8 @@ class GammaNuclearModel final : public Model, public StaticConcreteAction
 
     //// HELPER FUNCTIONS ////
 
-    inp::Grid
-    calc_chips_xs(AtomicNumber atomic_number, double emin, double emax) const;
+    inp::Grid calc_chips_xs(
+        AtomicNumber atomic_number, double emin, double emax) const;
 };
 
 //---------------------------------------------------------------------------//

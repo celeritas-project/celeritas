@@ -45,8 +45,8 @@ ORANGE_TRANSFORM_TRAITS(transformation, Transformation);
  * is a TransformTypeTraits instance.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-visit_transform_type(F&& func, TransformType st)
+CELER_CONSTEXPR_FUNCTION decltype(auto) visit_transform_type(F&& func,
+                                                             TransformType st)
 {
 #define ORANGE_TT_VISIT_CASE(TYPE) \
     case TransformType::TYPE: \

@@ -96,11 +96,11 @@ struct GenericGeoTrackingTolerance
                                    GenericGeoTrackingTolerance const& tol);
 
 //! Compare tracking results with default tolerance
-inline ::testing::AssertionResult
-IsRefEq(char const* expected_expr,
-        char const* actual_expr,
-        GenericGeoTrackingResult const& expected,
-        GenericGeoTrackingResult const& actual)
+inline ::testing::AssertionResult IsRefEq(
+    char const* expected_expr,
+    char const* actual_expr,
+    GenericGeoTrackingResult const& expected,
+    GenericGeoTrackingResult const& actual)
 {
     return IsRefEq(expected_expr, actual_expr, "default", expected, actual, {});
 }
@@ -116,8 +116,8 @@ struct GenericGeoVolumeStackResult
 
     std::vector<std::string> volume_instances;
 
-    static GenericGeoVolumeStackResult
-    from_span(LabelMap const&, Span<VolumeInstanceId const>);
+    static GenericGeoVolumeStackResult from_span(LabelMap const&,
+                                                 Span<VolumeInstanceId const>);
     void print_expected() const;
 
     //! Add a failure sentinel at the end

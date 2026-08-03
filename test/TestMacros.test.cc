@@ -424,8 +424,8 @@ struct FooTol
     int val{0};
 };
 
-inline ::testing::AssertionResult
-IsRefEq(char const* expr1, char const* expr2, Foo const& val1, Foo const& val2)
+inline ::testing::AssertionResult IsRefEq(
+    char const* expr1, char const* expr2, Foo const& val1, Foo const& val2)
 {
     ::celeritas::test::AssertionHelper result(expr1, expr2);
 

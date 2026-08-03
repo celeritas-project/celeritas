@@ -106,8 +106,8 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
 /*!
  * Access optical state.
  */
-optical::CoreStateBase const&
-OpticalCollector::optical_state(CoreStateInterface const& core) const
+optical::CoreStateBase const& OpticalCollector::optical_state(
+    CoreStateInterface const& core) const
 {
     auto& state = dynamic_cast<optical::CoreStateBase const&>(
         core.aux().at(launch_->aux_id()));

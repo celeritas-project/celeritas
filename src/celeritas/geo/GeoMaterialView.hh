@@ -39,8 +39,7 @@ class GeoMaterialView
 /*!
  * Construct from shared data.
  */
-CELER_FUNCTION
-GeoMaterialView::GeoMaterialView(GeoMaterialData const& params)
+CELER_FUNCTION GeoMaterialView::GeoMaterialView(GeoMaterialData const& params)
     : params_(params)
 {
 }

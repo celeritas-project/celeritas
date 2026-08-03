@@ -59,8 +59,8 @@ class TrackExecutor
 
   public:
     //! Construct with core data and executor
-    CELER_FUNCTION
-    TrackExecutor(ParamsPtr params, StatePtr state, T&& execute_track)
+    CELER_FUNCTION TrackExecutor(
+        ParamsPtr params, StatePtr state, T&& execute_track)
         : params_{params}
         , state_{state}
         , execute_track_{celeritas::forward<T>(execute_track)}
@@ -105,8 +105,7 @@ class ConditionalTrackExecutor
 
   public:
     //! Construct with condition and operator
-    CELER_FUNCTION
-    ConditionalTrackExecutor(
+    CELER_FUNCTION ConditionalTrackExecutor(
         ParamsPtr params, StatePtr state, C&& applies, T&& execute_track)
         : params_{params}
         , state_{state}
@@ -157,10 +156,10 @@ CELER_FUNCTION ConditionalTrackExecutor(
  * Return a track executor that applies to only active, non-errored tracks.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
-                           CoreStatePtr<MemSpace::native> const& state,
-                           T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_active_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    T&& apply_track)
 {
     return ConditionalTrackExecutor{
         params, state, AppliesValid{}, celeritas::forward<T>(apply_track)};
@@ -172,10 +171,10 @@ make_active_track_executor(CoreParamsPtr<MemSpace::native> params,
  * primarily when updating state counters, as these need only one thread.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_single_track_executor(CoreParamsPtr<MemSpace::native> params,
-                           CoreStatePtr<MemSpace::native> const& state,
-                           T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_single_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> const& state,
+    T&& apply_track)
 {
     return ConditionalTrackExecutor{
         params, state, IsThreadZero{}, celeritas::forward<T>(apply_track)};
@@ -190,11 +189,11 @@ make_single_track_executor(CoreParamsPtr<MemSpace::native> params,
  * threads, active or not.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
-                           CoreStatePtr<MemSpace::native> state,
-                           ActionId action,
-                           T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_action_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> state,
+    ActionId action,
+    T&& apply_track)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,
@@ -208,11 +207,11 @@ make_action_track_executor(CoreParamsPtr<MemSpace::native> params,
  * Return a track executor that only applies for the given along-step action.
  */
 template<class T>
-inline CELER_FUNCTION decltype(auto)
-make_along_step_track_executor(CoreParamsPtr<MemSpace::native> params,
-                               CoreStatePtr<MemSpace::native> state,
-                               ActionId action,
-                               T&& apply_track)
+inline CELER_FUNCTION decltype(auto) make_along_step_track_executor(
+    CoreParamsPtr<MemSpace::native> params,
+    CoreStatePtr<MemSpace::native> state,
+    ActionId action,
+    T&& apply_track)
 {
     CELER_EXPECT(action);
     return ConditionalTrackExecutor{params,

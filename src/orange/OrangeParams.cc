@@ -105,8 +105,8 @@ ComponentLabels make_reserved_label_vecs(OrangeInput const& input)
  *
  * This mode is incompatible with having an existing run manager.
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_gdml(std::string const& filename)
+std::shared_ptr<OrangeParams> OrangeParams::from_gdml(
+    std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
                    << "cannot load Geant4 geometry into ORANGE from a file "
@@ -116,9 +116,9 @@ OrangeParams::from_gdml(std::string const& filename)
     {
         CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix when "
                               "Geant4 is disabled: trying `.org.json` instead";
-        CELER_VALIDATE(
-            ends_with(filename, ".gdml"),
-            << "invalid extension for GDML file '" << filename << "'");
+        CELER_VALIDATE(ends_with(filename, ".gdml"),
+                       << "invalid extension for GDML file '" << filename
+                       << "'");
 
         std::string json_filename(filename.begin(), filename.end() - 5);
         json_filename += ".org.json";
@@ -175,8 +175,8 @@ std::shared_ptr<OrangeParams> OrangeParams::from_geant(
 /*!
  * Build from a Geant4 world (no volumes available?).
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+std::shared_ptr<OrangeParams> OrangeParams::from_geant(
+    std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
     SPConstVolumes volumes = geo->volumes();
@@ -203,8 +203,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 /*!
  * Build from a JSON input.
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_json(std::string const& filename)
+std::shared_ptr<OrangeParams> OrangeParams::from_json(
+    std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedProfiling profile_this{"orange-load-json"};
@@ -329,8 +329,8 @@ OrangeParams::OrangeParams(OrangeInput&& input, SPConstVolumes&& volumes)
     }
 
     CELER_ASSERT(host_data.volume_ids.size() == impl_vol_labels_.size());
-    CELER_ASSERT(
-        host_data.volume_instance_ids.size() == impl_vol_labels_.size());
+    CELER_ASSERT(host_data.volume_instance_ids.size()
+                 == impl_vol_labels_.size());
 
     // Construct device values and device/host references
     CELER_ASSERT(host_data);
@@ -383,8 +383,8 @@ inp::Model OrangeParams::make_model_input() const
 /*!
  * Get the volume instance containing the global point.
  */
-VolumeInstanceId
-OrangeParams::find_volume_instance_at(Real3 const& global_point) const
+VolumeInstanceId OrangeParams::find_volume_instance_at(
+    Real3 const& global_point) const
 {
     using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
     HostStateStore states(this->host_ref(), 1);

@@ -46,8 +46,8 @@ class PrimaryGeneratorAction final : public GeneratorBase
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<PrimaryGeneratorAction>
-    make_and_insert(CoreParams&, Input&&);
+    static std::shared_ptr<PrimaryGeneratorAction> make_and_insert(CoreParams&,
+                                                                   Input&&);
 
     // Construct with IDs and distributions
     PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);

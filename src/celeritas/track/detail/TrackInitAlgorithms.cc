@@ -48,7 +48,8 @@ void remove_if_alive(
  * final element will be the total accumulated value.
  */
 void exclusive_scan_counts(
-    StateCollection<size_type, Ownership::reference, MemSpace::host> const& counts,
+    StateCollection<size_type, Ownership::reference, MemSpace::host> const&
+        counts,
     StreamId)
 {
     CELER_EXPECT(!counts.empty());

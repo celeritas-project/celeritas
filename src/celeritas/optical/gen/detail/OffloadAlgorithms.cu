@@ -147,16 +147,16 @@ void count_num_photons(
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template size_type
-remove_if_invalid(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
-template size_type
-remove_if_invalid(ItemsRef<WlsDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
+template size_type remove_if_invalid(
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId);
+template size_type remove_if_invalid(
+    ItemsRef<WlsDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

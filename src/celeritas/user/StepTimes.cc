@@ -14,8 +14,8 @@ namespace celeritas
 /*!
  * Construct and add to the aux registry.
  */
-std::shared_ptr<StepTimes>
-StepTimes::make_and_insert(SPAuxParamsRegistry const& aux, std::string label)
+std::shared_ptr<StepTimes> StepTimes::make_and_insert(
+    SPAuxParamsRegistry const& aux, std::string label)
 {
     auto result = std::make_shared<StepTimes>(aux->next_id(), std::move(label));
     aux->insert(result);

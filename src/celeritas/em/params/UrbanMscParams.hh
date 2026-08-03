@@ -37,10 +37,10 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
 
   public:
     // Construct if MSC process data is present, else return nullptr
-    static std::shared_ptr<UrbanMscParams>
-    from_import(ParticleParams const& particles,
-                MaterialParams const& materials,
-                ImportData const& data);
+    static std::shared_ptr<UrbanMscParams> from_import(
+        ParticleParams const& particles,
+        MaterialParams const& materials,
+        ImportData const& data);
 
     // Construct from process data
     UrbanMscParams(ParticleParams const& particles,
@@ -60,8 +60,8 @@ class UrbanMscParams final : public ParamsDataInterface<UrbanMscData>
     // Host/device storage and reference
     ParamsDataStore<UrbanMscData> data_;
 
-    static UrbanMscMaterialData
-    calc_material_data(MaterialView const& material_view);
+    static UrbanMscMaterialData calc_material_data(
+        MaterialView const& material_view);
 };
 
 //---------------------------------------------------------------------------//

@@ -73,11 +73,11 @@ class MuPPEnergyDistribution
 
   public:
     // Construct from shared and incident particle data
-    inline CELER_FUNCTION
-    MuPPEnergyDistribution(NativeCRef<MuPairProductionData> const& shared,
-                           ParticleTrackView const& particle,
-                           CutoffView const& cutoffs,
-                           ElementView const& element);
+    inline CELER_FUNCTION MuPPEnergyDistribution(
+        NativeCRef<MuPairProductionData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        ElementView const& element);
 
     template<class Engine>
     inline CELER_FUNCTION PairEnergy operator()(Engine& rng);
@@ -141,8 +141,7 @@ class MuPPEnergyDistribution
  *
  * The incident energy *must* be within the bounds of the sampling table data.
  */
-CELER_FUNCTION
-MuPPEnergyDistribution::MuPPEnergyDistribution(
+CELER_FUNCTION MuPPEnergyDistribution::MuPPEnergyDistribution(
     NativeCRef<MuPairProductionData> const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,
@@ -175,8 +174,8 @@ MuPPEnergyDistribution::MuPPEnergyDistribution(
     y_max_ = std::log(max_pair_energy_ / inc_energy_) / coeff_;
 
     // Check that the bounds are within the grid bounds
-    CELER_ASSERT(
-        y_min_ >= y_grid.front() || soft_equal(y_grid.front(), y_min_));
+    CELER_ASSERT(y_min_ >= y_grid.front()
+                 || soft_equal(y_grid.front(), y_min_));
     CELER_ASSERT(y_max_ <= y_grid.back() || soft_equal(y_grid.back(), y_max_));
     y_min_ = max(y_min_, y_grid.front());
     y_max_ = min(y_max_, y_grid.back());

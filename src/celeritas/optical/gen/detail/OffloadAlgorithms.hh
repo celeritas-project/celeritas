@@ -67,13 +67,13 @@ inline size_type remove_if_invalid(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline void
-count_num_photons(SPConstOpticalParams,
-                  optical::CoreState<MemSpace::device>&,
-                  ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId)
+inline void count_num_photons(
+    SPConstOpticalParams,
+    optical::CoreState<MemSpace::device>&,
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

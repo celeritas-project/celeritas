@@ -76,8 +76,8 @@ class UnitInserter
 
     //// HELPER METHODS ////
 
-    LocalVolumeRecord
-    insert_volume(SurfacesRecord const& unit, VolumeInput const& v);
+    LocalVolumeRecord insert_volume(SurfacesRecord const& unit,
+                                    VolumeInput const& v);
 
     void process_daughter(LocalVolumeRecord* vol_record,
                           DaughterInput const& daughter_input);

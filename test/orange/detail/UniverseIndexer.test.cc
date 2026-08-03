@@ -122,9 +122,9 @@ TEST_F(UniverseIndexerTest, multi)
             auto local = indexer.local_surface(ImplSurfaceId{global_surface});
             EXPECT_EQ(u, local.univ.unchecked_get());
             EXPECT_EQ(s, local.surface.unchecked_get());
-            EXPECT_EQ(global_surface,
-                      indexer.global_surface(local.univ, local.surface)
-                          .unchecked_get());
+            EXPECT_EQ(
+                global_surface,
+                indexer.global_surface(local.univ, local.surface).unchecked_get());
             ++global_surface;
         }
 

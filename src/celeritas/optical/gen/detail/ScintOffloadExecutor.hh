@@ -29,8 +29,8 @@ namespace detail
  */
 struct ScintOffloadExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<celeritas::optical::MaterialParamsData> const material;
     NativeCRef<ScintillationData> const scint;

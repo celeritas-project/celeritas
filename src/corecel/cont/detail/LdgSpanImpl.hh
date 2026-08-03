@@ -190,73 +190,73 @@ class LdgIterator
 
     //!@{
     //! RandomAccessIterator requirements
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return static_cast<pointer>(lhs) == static_cast<pointer>(rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return !(lhs == rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(LdgIterator const& it, std::nullptr_t) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(LdgIterator const& it,
+                                                    std::nullptr_t) noexcept
     {
         return !static_cast<bool>(it);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(LdgIterator const& it, std::nullptr_t) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(LdgIterator const& it,
+                                                    std::nullptr_t) noexcept
     {
         return static_cast<bool>(it);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(std::nullptr_t, LdgIterator const& it) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(
+        std::nullptr_t, LdgIterator const& it) noexcept
     {
         return !static_cast<bool>(it);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(std::nullptr_t, LdgIterator const& it) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(
+        std::nullptr_t, LdgIterator const& it) noexcept
     {
         return static_cast<bool>(it);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator<(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator<(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return static_cast<pointer>(lhs) < static_cast<pointer>(rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator>(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator>(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return rhs < lhs;
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator<=(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator<=(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return !(lhs > rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator>=(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator>=(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return !(lhs < rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend LdgIterator
-    operator+(LdgIterator const& it, difference_type const n) noexcept
+    CELER_CONSTEXPR_FUNCTION friend LdgIterator operator+(
+        LdgIterator const& it, difference_type const n) noexcept
     {
         return LdgIterator{it} += n;
     }
-    CELER_CONSTEXPR_FUNCTION friend LdgIterator
-    operator+(difference_type const n, LdgIterator const& it) noexcept
+    CELER_CONSTEXPR_FUNCTION friend LdgIterator operator+(
+        difference_type const n, LdgIterator const& it) noexcept
     {
         return it + n;
     }
-    CELER_CONSTEXPR_FUNCTION friend LdgIterator
-    operator-(LdgIterator const& it, difference_type const n) noexcept
+    CELER_CONSTEXPR_FUNCTION friend LdgIterator operator-(
+        LdgIterator const& it, difference_type const n) noexcept
     {
         return LdgIterator{it} -= n;
     }
-    CELER_CONSTEXPR_FUNCTION friend difference_type
-    operator-(LdgIterator const& lhs, LdgIterator const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend difference_type operator-(
+        LdgIterator const& lhs, LdgIterator const& rhs) noexcept
     {
         return static_cast<pointer>(lhs) - static_cast<pointer>(rhs);
     }

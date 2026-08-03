@@ -113,8 +113,8 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 /*!
  * Initialize a process result.
  */
-ImportProcess
-init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
+ImportProcess init_process(G4ParticleDefinition const& particle,
+                           G4VProcess const& process)
 {
     CELER_LOG(debug) << "Loading process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
@@ -395,8 +395,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     for (auto i : range(size))
     {
         // Check that the grid has log spacing
-        CELER_ASSERT(
-            i == 0 || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
+        CELER_ASSERT(i == 0
+                     || soft_equal(delta, pv.Energy(i) / pv.Energy(i - 1)));
         grid.y[i] = pv[i] * y_scaling;
     }
     CELER_ENSURE(grid);
@@ -407,8 +407,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
 /*!
  * Import a generic physics vector with the given x, y units.
  */
-inp::Grid
-import_physics_vector(G4PhysicsVector const& pv, Array<ImportUnits, 2> units)
+inp::Grid import_physics_vector(G4PhysicsVector const& pv,
+                                Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);

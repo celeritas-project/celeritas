@@ -32,8 +32,8 @@ RangeGridCalculator::RangeGridCalculator(BC bc) : bc_(bc) {}
  *
  * This assumes the same log energy grid is used for range and energy loss.
  */
-inp::UniformGrid
-RangeGridCalculator::operator()(inp::UniformGrid const& dedx_grid) const
+inp::UniformGrid RangeGridCalculator::operator()(
+    inp::UniformGrid const& dedx_grid) const
 {
     using HostValues = Collection<real_type, Ownership::value, MemSpace::host>;
     using HostCRef

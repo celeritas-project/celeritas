@@ -215,10 +215,10 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
  * - The Urban model is selected and samples zero collisions (possible in thin
  *   materials and/or small steps)
  */
-inline CELER_FUNCTION ParticleTrackView::Energy
-calc_mean_energy_loss(ParticleTrackView const& particle,
-                      PhysicsTrackView const& physics,
-                      real_type step)
+inline CELER_FUNCTION ParticleTrackView::Energy calc_mean_energy_loss(
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    real_type step)
 {
     CELER_EXPECT(step > 0);
     using Energy = ParticleTrackView::Energy;

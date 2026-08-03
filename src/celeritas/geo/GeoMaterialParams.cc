@@ -300,11 +300,11 @@ VecMat BuildFromImplVolumes::operator()(MapImplMat const& materials) const
  * Note that the import volume index (see GeantImporter.cc) corresponds to the
  * canonical \c VolumeId .
  */
-std::shared_ptr<GeoMaterialParams>
-GeoMaterialParams::from_import(ImportData const& data,
-                               SPConstCoreGeo geo_params,
-                               SPConstVolume vol_params,
-                               SPConstMaterial material_params)
+std::shared_ptr<GeoMaterialParams> GeoMaterialParams::from_import(
+    ImportData const& data,
+    SPConstCoreGeo geo_params,
+    SPConstVolume vol_params,
+    SPConstMaterial material_params)
 {
     GeoMaterialParams::Input input;
 
