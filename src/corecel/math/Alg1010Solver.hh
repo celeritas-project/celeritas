@@ -208,10 +208,10 @@ Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
     {
         real_type sqrtQ = std::sqrt(Q);
         real_type theta = std::acos((R / std::fabs(Q)) / sqrtQ);
-        if (2.0 * theta < M_PI)
+        if (2.0 * theta < constants::pi)
             return -2.0 * sqrtQ * std::cos(theta / 3.0);
         else
-            return -2.0 * sqrtQ * std::cos((theta + 2.0 * M_PI) / 3.0);
+            return -2.0 * sqrtQ * std::cos((theta + 2.0 * constants::pi) / 3.0);
     }
     else
     {
@@ -248,10 +248,10 @@ CELER_FUNCTION real_type Alg1010Solver::solve_cubic_analytic_depressed(
     {
         real_type theta = std::acos(R / std::sqrt(Q3));
         real_type sqrtQ = -2.0 * std::sqrt(Q);
-        if (2.0 * theta < M_PI)
+        if (2.0 * theta < constants::pi)
             return sqrtQ * std::cos(theta / 3.0);
         else
-            return sqrtQ * std::cos((theta + 2.0 * M_PI) / 3.0);
+            return sqrtQ * std::cos((theta + 2.0 * constants::pi) / 3.0);
     }
     else
     {
