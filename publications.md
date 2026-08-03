@@ -17,10 +17,16 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Presentations
 
+- S. Tognini. "Full-fidelity DUNE optical photon simulations on GPU with Celeritas". *American Physiacl Society Division of Particles and Fields 2026*, 20 Jul 2026. [presentation](https://indico.fnal.gov/event/72820/contributions/341182/)
+- H. Hollenbeck. "Celeritas: Full-Fidelity Optical Photon Simulation on GPU". *New Perspectives 2026*, 17 Jul 2026. [presentation](https://indico.fnal.gov/event/73553/contributions/344392/)
+- S. Diedrichs, S. R. Johnson. "Production-quality, high-throughput detector simulation with GPUs". *CHEP 2026*, 28 May 2026. [presentation](https://indico.cern.ch/event/1471803/contributions/7018863/)
 - R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India Scientific Workshop*, 06 May 2026. [presentation](https://indico.cern.ch/event/1649033/timetable/#20260504)
 - R. Gupta. "Celeritas: Accelerating HEP Simulations using GPU". *HSF-India*, 28 Apr 2026. [presentation](https://indico.cern.ch/event/1649043/)
+- S. Johnson. "Computational Physics Isn't Just Coding Formulas". *Wayne State University*, 21 Apr 2026.
+- A. Lund. "Efficient GPU-Based Monte Carlo Transport for Detector Simulation". *Wayne State University*, 14 Apr 2026.
 - R. Gupta. "GPU-Accelerated Optical Physics in Celeritas". *APS Global Summit*, 18 Mar 2026.
-- J. Esseiva. "Energy eﬃciency of Full Simulation on GPUs". *WLCG Sustainability Forum Meeting #4: Detector Simulation*, 18 Feb 2026. [presentation](https://indico.cern.ch/event/1526077/contributions/6773808/attachments/3185466/5667936/celeritas-wlcg.pdf)
+- S. R. Johnson. "GPU simulation for space applications". *High Performance Monte-Carlo Radiation Simulations workshop*, 05 Mar 2026. [presentation](https://indico.esa.int/event/609/contributions/11890/)
+- J. Esseiva. "Energy eﬃciency of Full Simulation on GPUs". *WLCG Sustainability Forum Meeting #4: Detector Simulation*, 18 Feb 2026. [presentation](https://indico.cern.ch/event/1644632/#2-update-from-celeritas-tbc)
 - S. R. Johnson. "Celeritas for WLCG". *Heterogeneous Architectures in WLCG*, 03 Dec 2025. [presentation](https://indico.cern.ch/event/1526077/contributions/6773808/attachments/3185466/5667936/celeritas-wlcg.pdf)
 - S. R. Johnson. "New integrations and capabilities in Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
 - S. Tognini. "Muon-catalyzed fusion beamline simulation using Celeritas". *SciDAC PI meeting*, 16 Sep 2025.
