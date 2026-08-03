@@ -7,7 +7,6 @@
 #include "StepDiagnostic.hh"
 
 #include <type_traits>
-#include <vector>
 #include <celeritas/global/ActionInterface.hh>
 #include <celeritas/global/ActionLauncher.hh>
 #include <celeritas/global/CoreParams.hh>
@@ -99,10 +98,6 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
     // Since the underlying state (and thus the copy methods we have to call)
     // is host/device-dependent, we use a helper lambda
     visit_memspace_derived<CoreState>(state, [&](auto& derived) {
-        // Whether the given state is device/host
-        constexpr MemSpace M
-            = std::remove_reference_t<decltype(derived)>::memspace;
-
         // Get the step data from the core state
         auto& step_state = derived.template aux_data<StepStateData>(aux_id_);
         // Copy it

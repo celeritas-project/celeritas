@@ -10,17 +10,13 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 #include "../Transporter.hh"
-#include "../action/ActionGroups.hh"
-#include "../gen/GeneratorData.hh"
 
 namespace celeritas
 {
