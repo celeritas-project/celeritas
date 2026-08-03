@@ -165,8 +165,8 @@ class Alg1010Solver
                                       real_type* CQ,
                                       real_type* DQ) const;
 
-    inline CELER_FUNCTION void
-    solve_quadratic(real_type a, real_type b, Comp2& roots) const;
+    inline CELER_FUNCTION void solve_quadratic(
+        real_type a, real_type b, Comp2& roots) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -178,8 +178,9 @@ CELER_FUNCTION Alg1010Solver::Alg1010Solver(real_type tolerance)
 {
 }
 
-CELER_FUNCTION real_type Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(
-    real_type b, real_type c) const
+CELER_FUNCTION real_type
+Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
+                                                         real_type c) const
 {
     /* find analytically the dominant root of a depressed cubic x^3+b*x+c
      * where coefficients b and c are large (see sec. 2.2 in the manuscript) */
@@ -537,8 +538,8 @@ CELER_FUNCTION void Alg1010Solver::NRabcd(real_type a,
     *DQ = x[3];
 }
 
-CELER_FUNCTION void
-Alg1010Solver::solve_quadratic(real_type a, real_type b, Comp2& roots) const
+CELER_FUNCTION void Alg1010Solver::solve_quadratic(
+    real_type a, real_type b, Comp2& roots) const
 {
     real_type diskr = ipow<2>(a) - 4 * b;
 
