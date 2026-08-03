@@ -270,10 +270,10 @@ class LdgIterator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION LdgWrapper(T&) -> LdgWrapper<std::add_const_t<T>>;
+CELER_CTAD_FUNCTION LdgWrapper(T&) -> LdgWrapper<std::add_const_t<T>>;
 
 template<class T>
-CELER_FUNCTION LdgIterator(T*) -> LdgIterator<std::add_const_t<T>>;
+CELER_CTAD_FUNCTION LdgIterator(T*) -> LdgIterator<std::add_const_t<T>>;
 
 //---------------------------------------------------------------------------//
 //! Get the item that's wrapped
