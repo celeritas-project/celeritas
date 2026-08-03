@@ -315,7 +315,7 @@ CELER_CTAD_FUNCTION Span(T*, std::size_t) -> Span<T>;
 
 // Deduction guide for two iterators
 template<class Iter>
-CELER_FUNCTION Span(Iter, Iter)
+CELER_CTAD_FUNCTION Span(Iter, Iter)
     -> Span<typename std::iterator_traits<Iter>::value_type>;
 
 // Deduction guide for C array

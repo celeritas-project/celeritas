@@ -103,7 +103,7 @@ CELER_CTAD_FUNCTION PolyEvaluator(Array<T, N> const&)
 template<typename... Ts,
          std::enable_if_t<std::is_arithmetic_v<std::common_type_t<Ts...>>, bool>
          = true>
-CELER_FUNCTION PolyEvaluator(Ts&&...)
+CELER_CTAD_FUNCTION PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//

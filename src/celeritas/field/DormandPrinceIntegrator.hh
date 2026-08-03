@@ -91,7 +91,7 @@ class DormandPrinceIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION DormandPrinceIntegrator(EquationT&&)
+CELER_CTAD_FUNCTION DormandPrinceIntegrator(EquationT&&)
     -> DormandPrinceIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
