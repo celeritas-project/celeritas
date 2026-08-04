@@ -19,18 +19,17 @@
 #pragma once
 
 #include <cmath>
-#include <complex>
-#include <cstdlib>
-#include <limits>
 
 #include "corecel/Constants.hh"
+#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/math/Complex.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/PolyEvaluator.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "corecel/math/detail/Alg1010Impl.hh"
 
 namespace celeritas
 {
@@ -542,13 +541,7 @@ CELER_FUNCTION void Alg1010Solver::solve_quadratic(
 {
     real_type diskr = ipow<2>(a) - 4 * b;
 
-    if (soft_zero_(diskr))
-    {
-        printf("a: %e, b: %e, d: %e", a, b, diskr);
-        roots[0] = cmplx_type(-a / 2, 0.0);
-        roots[1] = cmplx_type(no_solution_, no_solution_);
-    }
-    else if (diskr > 0.0)
+    if (diskr >= 0.0)
     {
         real_type div = -a - copysignr(std::sqrt(diskr), a);
         real_type zmax = div / 2;
@@ -568,8 +561,6 @@ CELER_FUNCTION void Alg1010Solver::solve_quadratic(
 CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
     -> result_type
 {
-    Comp4 roots;
-
     cmplx_type acx, bcx, ccx, dcx;
     Array<real_type, 12> l2m, d2m, res;
     Real3 errv, aqv, cqv;
@@ -813,6 +804,7 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             }
         }
     }
+    Comp4 roots;
     if (realcase[whichcase] == 1)
     {
         /* if alpha1, beta1, alpha2 and beta2 are real first refine
