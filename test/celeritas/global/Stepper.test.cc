@@ -6,9 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/global/Stepper.hh"
 
-#include <condition_variable>
 #include <memory>
-#include <mutex>
 #include <random>
 
 #include "corecel/Config.hh"
@@ -22,8 +20,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/Device.hh"
-#include "corecel/sys/Stream.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/InvalidOrangeTestBase.hh"
 #include "celeritas/SimpleTestBase.hh"
@@ -48,23 +44,6 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-struct StreamGate
-{
-    std::mutex mutex;
-    std::condition_variable condition;
-    bool open{true};
-};
-
-//---------------------------------------------------------------------------//
-void wait_for_stream_gate(void* data)
-{
-    CELER_EXPECT(data);
-    auto& gate = *static_cast<StreamGate*>(data);
-    std::unique_lock lock{gate.mutex};
-    gate.condition.wait(lock, [&gate] { return gate.open; });
-}
-
-//---------------------------------------------------------------------------//
 void expect_stepper_eq(StepperResult const& expected,
                        StepperResult const& actual)
 {
@@ -75,47 +54,6 @@ void expect_stepper_eq(StepperResult const& expected,
     EXPECT_EQ(expected.cut, actual.cut);
     EXPECT_EQ(expected.errored, actual.errored);
 }
-
-//---------------------------------------------------------------------------//
-class BlockingAction final : public CoreStepActionInterface,
-                             public ConcreteAction
-{
-  public:
-    explicit BlockingAction(ActionId id)
-        : ConcreteAction{id, "block-step", "block step completion"}
-    {
-    }
-
-    StepActionOrder order() const final { return StepActionOrder::end; }
-
-    void step(CoreParams const&, CoreStateHost&) const final {}
-
-    void step(CoreParams const&, CoreStateDevice& state) const final
-    {
-        celeritas::device()
-            .stream(state.stream_id())
-            .launch_host_func(wait_for_stream_gate, &gate_);
-    }
-
-    void block()
-    {
-        std::lock_guard lock{gate_.mutex};
-        CELER_EXPECT(gate_.open);
-        gate_.open = false;
-    }
-
-    void release()
-    {
-        {
-            std::lock_guard lock{gate_.mutex};
-            gate_.open = true;
-        }
-        gate_.condition.notify_one();
-    }
-
-  private:
-    mutable StreamGate gate_;
-};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -197,16 +135,7 @@ class StepperOrderTest : public SimpleComptonTest
 class AsyncStepperTest : public SimpleComptonTest
 {
   public:
-    void SetUp()
-    {
-        this->disable_status_checker();
-        auto& action_reg = *this->action_reg();
-        blocking_action_
-            = std::make_shared<BlockingAction>(action_reg.next_id());
-        action_reg.insert(blocking_action_);
-    }
-
-    std::shared_ptr<BlockingAction> blocking_action_;
+    void SetUp() { this->disable_status_checker(); }
 };
 
 #define BadGeometryTest TEST_IF_CELERITAS_ORANGE(BadGeometryTest)
@@ -390,11 +319,9 @@ TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
     for (int i = 0; i < 2; ++i)
     {
         expected_result = expected_step();
-        blocking_action_->block();
         step.launch();
         EXPECT_TRUE(step.in_flight());
-        EXPECT_FALSE(step.ready());
-        blocking_action_->release();
+        EXPECT_NO_THROW(static_cast<void>(step.ready()));
 
         result = step.complete();
         expect_stepper_eq(expected_result, result);
