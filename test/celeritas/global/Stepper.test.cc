@@ -174,6 +174,7 @@ class AsyncStepperTest : public SimpleComptonTest
   public:
     void SetUp()
     {
+        this->disable_status_checker();
         auto& action_reg = *this->action_reg();
         action_reg.insert(std::make_shared<DelayAction>(action_reg.next_id()));
     }
