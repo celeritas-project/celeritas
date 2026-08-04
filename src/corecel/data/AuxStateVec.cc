@@ -7,6 +7,7 @@
 #include "AuxStateVec.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 
 #include "AuxParamsRegistry.hh"
 
@@ -23,6 +24,10 @@ AuxStateVec::AuxStateVec(
     CELER_EXPECT(sid);
     CELER_EXPECT(size > 0);
 
+    CELER_LOG_LOCAL(debug) << "Allocating " << registry.size()
+                           << " aux state classes for " << to_cstring(m)
+                           << " on stream " << sid << " with state size "
+                           << size;
     states_.reserve(registry.size());
 
     for (auto auxid : range(AuxId{registry.size()}))

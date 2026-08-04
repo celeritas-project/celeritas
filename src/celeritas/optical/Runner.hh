@@ -69,6 +69,15 @@ class Runner
     // Generate optical photons and transport to completion
     Result operator()() const;
 
+    // Get accumulated track counters
+    CounterAccumStats get_counters() const;
+
+    // Get accumulated wall times for each action
+    ActionTimes::MapStrDbl get_action_times() const;
+
+    // Get the wall time for each step iteration
+    StepTimes::VecDbl get_step_times() const;
+
     //! Access the shared params
     SPConstParams const& params() const
     {
