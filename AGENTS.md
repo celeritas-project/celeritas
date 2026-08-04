@@ -217,4 +217,3 @@ Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // V
 | Use raw integers for public indices | Use `OpaqueId<T>` |
 | Omit `CELER_FUNCTION` from View member functions | Always decorate functions that can be called on device |
 | Edit files via terminal commands or Python scripts | Use agentic tools; the terminal is for building and testing only |
-| Force an event to remain pending with a sleep or blocking host callback | Do not require an immediate readiness value unless a device-native test primitive guarantees it without blocking later stream operations |
