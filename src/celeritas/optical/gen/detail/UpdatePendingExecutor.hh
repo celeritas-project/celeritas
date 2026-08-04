@@ -43,8 +43,8 @@ struct UpdatePendingExecutor
  * Update number of primaries to be generated to include the buffered optical
  * photons.
  */
-CELER_FORCEINLINE_FUNCTION void
-UpdatePendingExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void UpdatePendingExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 

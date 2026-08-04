@@ -66,13 +66,13 @@ CELER_FUNCTION void PrimaryGeneratorExecutor::operator()(ThreadId tid) const
         return;
     }
     // Create the view to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            // Get the vacancy from the back in case there
-            // are more vacancies than photons to generate
-            TrackSlotId idx{index_before(counters->num_vacancies, tid)};
-            return state->init.vacancies[idx];
-        }()};
+    CoreTrackView vacancy{*params, *state, [&] {
+                              // Get the vacancy from the back in case there
+                              // are more vacancies than photons to generate
+                              TrackSlotId idx{
+                                  index_before(counters->num_vacancies, tid)};
+                              return state->init.vacancies[idx];
+                          }()};
 
     // Generate one primary from the distribution
     CoreTrackView track(*params, *state, TrackSlotId{tid.get()});

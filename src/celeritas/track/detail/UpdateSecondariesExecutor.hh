@@ -44,8 +44,8 @@ struct UpdateSecondariesExecutor
  * room for all the secondaries. If so, update the number of alive tracks to
  * include these secondaries.
  */
-CELER_FORCEINLINE_FUNCTION void
-UpdateSecondariesExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void UpdateSecondariesExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
 

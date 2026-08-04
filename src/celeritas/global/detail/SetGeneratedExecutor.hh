@@ -42,8 +42,8 @@ struct SetGeneratedExecutor
 /*!
  * Initialize the num_generated counter to zero.
  */
-CELER_FORCEINLINE_FUNCTION void
-SetGeneratedExecutor::operator()(CoreTrackView& track)
+CELER_FORCEINLINE_FUNCTION void SetGeneratedExecutor::operator()(
+    CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
     track.counters().num_generated = 0;
