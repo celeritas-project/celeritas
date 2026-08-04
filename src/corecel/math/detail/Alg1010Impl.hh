@@ -87,7 +87,7 @@ struct complex
     inline CELER_FUNCTION complex operator/(complex divisor_complex) const
     {
         complex d = divisor_complex;
-        real_type d2 = d.real * d.real - d.imag * d.imag;
+        real_type d2 = d.real * d.real + d.imag * d.imag;
         complex c = d.conj();
         return ((*this) * c) / d2;
     }
