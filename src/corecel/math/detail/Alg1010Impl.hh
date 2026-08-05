@@ -33,7 +33,7 @@ struct complex
         this->imag = i;
     }
 
-    inline CELER_FUNCTION complex() { complex(0.0, 0.0); }
+    inline CELER_FUNCTION complex() : complex(0.0, 0.0) {}
 
     inline CELER_FUNCTION complex sqrt() const
     {
@@ -95,7 +95,7 @@ struct complex
     inline CELER_FUNCTION complex operator*(complex const& other) const
     {
         real_type r1 = this->real, i1 = this->imag, r2 = other.real,
-                  i2 = other.real;
+                  i2 = other.imag;
         return complex{r1 * r2 - i1 * i2, i1 * r2 + r1 * i2};
     }
 
