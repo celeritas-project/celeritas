@@ -13,7 +13,7 @@
 namespace celeritas
 {
 
-inline constexpr CELER_FUNCTION real_type copysignr(real_type x, real_type y)
+inline CELER_FUNCTION real_type copysignr(real_type x, real_type y)
 {
 #if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     return std::copysignf(x, y);
