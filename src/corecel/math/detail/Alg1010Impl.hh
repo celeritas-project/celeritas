@@ -10,7 +10,7 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 
-namespace celeritas
+namespace celeritas::detail
 {
 
 inline CELER_FUNCTION real_type copysignr(real_type x, real_type y)
@@ -22,24 +22,24 @@ inline CELER_FUNCTION real_type copysignr(real_type x, real_type y)
 #endif
 }
 
-struct complex
+struct Complex
 {
     real_type real;
     real_type imag;
 
-    inline CELER_FUNCTION complex(real_type r, real_type i)
+    inline CELER_FUNCTION Complex(real_type r, real_type i)
     {
         this->real = r;
         this->imag = i;
     }
 
-    inline CELER_FUNCTION complex() : complex(0.0, 0.0) {}
+    inline CELER_FUNCTION Complex() : Complex(0.0, 0.0) {}
 
-    inline CELER_FUNCTION complex sqrt() const
+    inline CELER_FUNCTION Complex sqrt() const
     {
         real_type a = this->real, b = this->imag;
         real_type absv = this->abs();
-        return complex{
+        return Complex{
             std::sqrt(static_cast<real_type>(0.5) * (absv + a)),
             copysignr(std::sqrt(static_cast<real_type>(0.5) * (absv - a)), b)};
     }
@@ -49,64 +49,64 @@ struct complex
         return hypot<real_type>(this->real, this->imag);
     }
 
-    inline CELER_FUNCTION complex conj() const
+    inline CELER_FUNCTION Complex conj() const
     {
-        return complex{this->real, -this->imag};
+        return Complex{this->real, -this->imag};
     }
 
-    inline CELER_FUNCTION complex operator+(complex const& other) const
+    inline CELER_FUNCTION Complex operator+(Complex const& other) const
     {
-        return complex{this->real + other.real, this->imag + other.imag};
+        return Complex{this->real + other.real, this->imag + other.imag};
     }
 
-    inline CELER_FUNCTION complex operator-(complex const& other) const
+    inline CELER_FUNCTION Complex operator-(Complex const& other) const
     {
-        return complex{this->real - other.real, this->imag - other.imag};
+        return Complex{this->real - other.real, this->imag - other.imag};
     }
 
-    inline CELER_FUNCTION complex operator+(real_type other) const
+    inline CELER_FUNCTION Complex operator+(real_type other) const
     {
-        return complex{this->real + other, this->imag};
+        return Complex{this->real + other, this->imag};
     }
 
-    inline CELER_FUNCTION complex operator-(real_type other) const
+    inline CELER_FUNCTION Complex operator-(real_type other) const
     {
         return (*this) + (-other);
     }
 
-    inline CELER_FUNCTION complex operator*(real_type factor_real) const
+    inline CELER_FUNCTION Complex operator*(real_type factor_real) const
     {
-        return complex{this->real * factor_real, this->imag * factor_real};
+        return Complex{this->real * factor_real, this->imag * factor_real};
     }
 
-    inline CELER_FUNCTION complex operator/(real_type divisor_real) const
+    inline CELER_FUNCTION Complex operator/(real_type divisor_real) const
     {
-        return complex{this->real / divisor_real, this->imag / divisor_real};
+        return Complex{this->real / divisor_real, this->imag / divisor_real};
     }
 
-    inline CELER_FUNCTION complex operator/(complex divisor_complex) const
+    inline CELER_FUNCTION Complex operator/(Complex divisor_complex) const
     {
-        complex d = divisor_complex;
+        Complex d = divisor_complex;
         real_type d2 = d.real * d.real + d.imag * d.imag;
-        complex c = d.conj();
+        Complex c = d.conj();
         return ((*this) * c) / d2;
     }
 
-    inline CELER_FUNCTION complex operator*(complex const& other) const
+    inline CELER_FUNCTION Complex operator*(Complex const& other) const
     {
         real_type r1 = this->real, i1 = this->imag, r2 = other.real,
-                  i2 = other.imag;
-        return complex{r1 * r2 - i1 * i2, i1 * r2 + r1 * i2};
+                  i2 = other.real;
+        return Complex{r1 * r2 - i1 * i2, i1 * r2 + r1 * i2};
     }
 
-    inline CELER_FUNCTION complex& operator=(real_type right)
+    inline CELER_FUNCTION Complex& operator=(real_type right)
     {
         real = right;
         imag = 0.0;
         return *this;
     }
 
-    inline CELER_FUNCTION complex& operator*=(real_type right)
+    inline CELER_FUNCTION Complex& operator*=(real_type right)
     {
         real *= right;
         imag *= right;
@@ -114,4 +114,4 @@ struct complex
     }
 };
 
-}  // namespace celeritas
+}  // namespace celeritas::detail
