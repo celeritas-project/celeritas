@@ -16,22 +16,22 @@
 {"user": "LSchwiebert", "name": "Loren Schwiebert", "orcid": "0000-0002-7167-7436", "institute": "Wayne State U"}
 {"user": "mdemarteau", "name": "Marcel Demarteau", "orcid": "0000-0001-9409-4308", "institute": "ORNL"}
 {"user": "mrguilima", "name": "Guilherme Lima", "orcid": "0000-0003-4585-0546", "institute": "FNAL"}
-{"user": "osanstrong", "name": "Owen Strong", "orcid": null, "institute": null}
+{"user": "osanstrong", "name": "Owen Strong", "orcid": "0009-0008-2165-8406", "institute": null}
 {"user": "paulromano", "name": "Paul Romano", "orcid": "0000-0002-1147-045X", "institute": "ANL"}
 {"user": "pcanal", "name": "Philippe Canal", "orcid": "0000-0002-7748-7887", "institute": "FNAL"}
 {"user": "ptheywood", "name": "Peter Heywood", "orcid": "0000-0001-9277-8394", "institute": null}
 {"user": "rahmans1", "name": "Sakib Rahman", "orcid": "0000-0001-6844-2786", "institute": "BNL"}
 {"user": "Rashika-Gupta", "name": "Rashika Gupta", "orcid": "0009-0003-0658-9549", "institute": "ORNL"}
-{"user": "salmart", "name": "Sala", "orcid": null, "institute": null}
-{"user": "sanmayphy", "name": "Sanmay Ganguly", "orcid": null, "institute": null}
+{"user": "salmart", "name": "Salatiel Martinez", "orcid": null, "institute": null}
+{"user": "sanmayphy", "name": "Sanmay Ganguly", "orcid": "0000-0003-1285-9261", "institute": null}
 {"user": "sawenzel", "name": "Sandro Wenzel", "orcid": null, "institute": "CERN"}
 {"user": "seriksen", "name": "Sam Eriksen", "orcid": null, "institute": "U Bristol"}
 {"user": "sethrj", "name": "Seth R. Johnson", "orcid": "0000-0003-1504-8966", "institute": "ORNL"}
 {"user": "sphamil", "name": "Steven Hamilton", "orcid": null, "institute": "ORNL"}
-{"user": "stephenswat", "name": "Stephen Nicholas Swatman", "orcid": null, "institute": null}
+{"user": "stephenswat", "name": "Stephen Nicholas Swatman", "orcid": "0000-0002-3747-3229", "institute": null}
 {"user": "stognini", "name": "Stefano Tognini", "orcid": "0000-0001-9741-6608", "institute": "ORNL"}
 {"user": "tmdelellis", "name": "Tom Evans", "orcid": "0000-0001-5743-3788", "institute": "ORNL"}
-{"user": "VHLM2001", "name": "Vidor Heli Lujan Montiel", "orcid": null, "institute": null}
+{"user": "VHLM2001", "name": "Vidor Heli Lujan Montiel", "orcid": "0009-0002-4636-0530", "institute": null}
 {"user": "vrpascuzzi", "name": "Vincent R. Pascuzzi", "orcid": "0000-0003-3167-8773", "institute": "IBM"}
 {"user": "wdconinc", "name": "Wouter Deconinck", "orcid": null, "institute": "U Manitoba"}
 {"user": "whokion", "name": "Soon Yung Jun", "orcid": "0000-0003-3370-6109", "institute": "FNAL"}
