@@ -127,11 +127,11 @@ void PDFullSimCeler::produce(art::Event& e)
                                   << " SimEnergyDeposits to Celeritas";
 
     // Calculate detector response for the input steps
-    using VecBTR = LarStandaloneRunner::VecBTR;
-    VecBTR result = (*runner_)(*edep_handle);
+    auto result = (*runner_)(*edep_handle);
 
     // Add to event
-    e.put(std::make_unique<VecBTR>(std::move(result)));
+    using VecBTR = LarStandaloneRunner::VecBTR;
+    e.put(std::make_unique<VecBTR>(std::move(result.btr)));
 }
 
 //---------------------------------------------------------------------------//

@@ -66,6 +66,12 @@ class LarStandaloneRunner
     using VecReal3 = std::vector<Real3>;
     //!@}
 
+    //! Calculated output from an event
+    struct result_type
+    {
+        VecBTR btr;
+    };
+
   public:
     // Set up the problem, including detector ID coordinates
     LarStandaloneRunner(Input&&, VecReal3 const& det_coords);
@@ -73,7 +79,7 @@ class LarStandaloneRunner
     CELER_DEFAULT_MOVE_DELETE_COPY(LarStandaloneRunner);
 
     // Run optical photons from a single set of energy steps
-    VecBTR operator()(VecSED const& edep);
+    result_type operator()(VecSED const& edep);
 
   private:
     using SpanCelerHits = Span<optical::DetectorHit const>;

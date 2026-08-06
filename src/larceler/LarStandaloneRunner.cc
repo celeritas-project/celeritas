@@ -151,7 +151,7 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
  * particle's charge and the pre- and post-step speed.
  */
 auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
-    -> VecBTR
+    -> result_type
 {
     CELER_EXPECT(!sim_energy_deposits.empty());
 
@@ -247,7 +247,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     }
     btr_helpers_.clear();
 
-    return btrs;
+    return result_type{std::move(btrs)};
 }
 
 //---------------------------------------------------------------------------//
