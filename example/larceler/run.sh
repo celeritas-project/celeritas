@@ -7,7 +7,7 @@
 #-----------------------------------------------------------------------------#
 EXAMPLE_DIR="$(cd "$(dirname $0)" && pwd)"
 
-# Check that Celeritas
+# Check that Celeritas library/FHiCL paths are loaded
 if [ -z "${CELERITAS_DIR}" ]; then
   echo "error: Celeritas has not been activated: run 'eval \$(\$CELERITAS_DIR/bin/larceler-env)'"
   exit 1
