@@ -121,48 +121,18 @@ class Alg1010Solver
     inline CELER_FUNCTION real_type calc_phi0(Real4 const& abcd,
                                               bool scaled) const;
 
-    inline CELER_FUNCTION real_type calc_err_ldlt(real_type b,
-                                                  real_type c,
-                                                  real_type d,
-                                                  real_type d2,
-                                                  real_type l1,
-                                                  real_type l2,
-                                                  real_type l3) const;
+    inline CELER_FUNCTION real_type calc_err_ldlt(Real3 bcd,
+                                                  Real4 d2l123) const;
 
-    inline CELER_FUNCTION real_type calc_err_abcd(real_type a,
-                                                  real_type b,
-                                                  real_type c,
-                                                  real_type d,
-                                                  real_type aq,
-                                                  real_type bq,
-                                                  real_type cq,
-                                                  real_type dq) const;
+    inline CELER_FUNCTION real_type calc_err_abcd(Real4 abcd,
+                                                  Real4 abcd_q) const;
 
-    inline CELER_FUNCTION real_type calc_err_abcd_cmplx(real_type a,
-                                                        real_type b,
-                                                        real_type c,
-                                                        real_type d,
-                                                        cmplx_type aq,
-                                                        cmplx_type bq,
-                                                        cmplx_type cq,
-                                                        cmplx_type dq) const;
+    inline CELER_FUNCTION real_type calc_err_abcd_cmplx(Real4 abcd,
+                                                        Comp4 abcd_q) const;
 
-    inline CELER_FUNCTION real_type calc_err_abc(real_type a,
-                                                 real_type b,
-                                                 real_type c,
-                                                 real_type aq,
-                                                 real_type bq,
-                                                 real_type cq,
-                                                 real_type dq) const;
+    inline CELER_FUNCTION real_type calc_err_abc(Real3 abc, Real4 abcd_q) const;
 
-    inline CELER_FUNCTION void NRabcd(real_type a,
-                                      real_type b,
-                                      real_type c,
-                                      real_type d,
-                                      real_type* AQ,
-                                      real_type* BQ,
-                                      real_type* CQ,
-                                      real_type* DQ) const;
+    inline CELER_FUNCTION void newton_raphson(Real4 nr_dcba, Real4 x) const;
 
     inline CELER_FUNCTION void solve_quadratic(
         real_type a, real_type b, Comp2& roots) const;
@@ -362,15 +332,12 @@ CELER_FUNCTION real_type Alg1010Solver::calc_phi0(Real4 const& abcd,
     return x;
 }
 
-CELER_FUNCTION real_type Alg1010Solver::calc_err_ldlt(real_type b,
-                                                      real_type c,
-                                                      real_type d,
-                                                      real_type d2,
-                                                      real_type l1,
-                                                      real_type l2,
-                                                      real_type l3) const
+CELER_FUNCTION real_type Alg1010Solver::calc_err_ldlt(Real3 bcd,
+                                                      Real4 d2l123) const
 {
     /* Eqs. (29) and (30) in the manuscript */
+    auto [b, c, d] = bcd;
+    auto [d2, l1, l2, l3] = d2l123;
     real_type sum = (b == 0)
                         ? std::fabs(d2 + ipow<2>(l1) + 2.0 * l3)
                         : std::fabs(((d2 + ipow<2>(l1) + 2.0 * l3) - b) / b);
@@ -381,18 +348,14 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_ldlt(real_type b,
     return sum;
 }
 
-CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd_cmplx(real_type a,
-                                                            real_type b,
-                                                            real_type c,
-                                                            real_type d,
-                                                            cmplx_type aq,
-                                                            cmplx_type bq,
-                                                            cmplx_type cq,
-                                                            cmplx_type dq) const
+CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd_cmplx(Real4 abcd,
+                                                            Comp4 abcd_q) const
 {
     /* Eqs. (68) and (69) in the manuscript for complex alpha1 (aq), beta1
      * (bq), alpha2 (cq) and beta2 (dq) */
     auto cabs = [](cmplx_type comp) { return comp.abs(); };
+    auto [a, b, c, d] = abcd;
+    auto [aq, bq, cq, dq] = abcd_q;
 
     real_type sum = (d == 0) ? cabs(bq * dq) : cabs((bq * dq - d) / d);
     sum += (c == 0) ? cabs(bq * cq + aq * dq)
@@ -403,17 +366,13 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd_cmplx(real_type a,
     return sum;
 }
 
-CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd(real_type a,
-                                                      real_type b,
-                                                      real_type c,
-                                                      real_type d,
-                                                      real_type aq,
-                                                      real_type bq,
-                                                      real_type cq,
-                                                      real_type dq) const
+CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd(Real4 abcd,
+                                                      Real4 abcd_q) const
 {
     /* Eqs. (68) and (69) in the manuscript for real alpha1 (aq), beta1 (bq),
      * alpha2 (cq) and beta2 (dq)*/
+    auto [a, b, c, d] = abcd;
+    auto [aq, bq, cq, dq] = abcd_q;
     real_type sum = (d == 0) ? std::fabs(bq * dq)
                              : std::fabs((bq * dq - d) / d);
     sum += (c == 0) ? std::fabs(bq * cq + aq * dq)
@@ -424,15 +383,12 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd(real_type a,
     return sum;
 }
 
-CELER_FUNCTION real_type Alg1010Solver::calc_err_abc(real_type a,
-                                                     real_type b,
-                                                     real_type c,
-                                                     real_type aq,
-                                                     real_type bq,
-                                                     real_type cq,
-                                                     real_type dq) const
+CELER_FUNCTION real_type Alg1010Solver::calc_err_abc(Real3 abc,
+                                                     Real4 abcd_q) const
 {
     /* Eqs. (48)-(51) in the manuscript */
+    auto [a, b, c] = abc;
+    auto [aq, bq, cq, dq] = abcd_q;
     real_type sum = (c == 0) ? std::fabs(bq * cq + aq * dq)
                              : std::fabs(((bq * cq + aq * dq) - c) / c);
     sum += (b == 0) ? std::fabs(bq + aq * cq + dq)
@@ -441,29 +397,15 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_abc(real_type a,
     return sum;
 }
 
-CELER_FUNCTION void Alg1010Solver::NRabcd(real_type a,
-                                          real_type b,
-                                          real_type c,
-                                          real_type d,
-                                          real_type* AQ,
-                                          real_type* BQ,
-                                          real_type* CQ,
-                                          real_type* DQ) const
+CELER_FUNCTION void Alg1010Solver::newton_raphson(Real4 vr_dcba, Real4 x) const
 {
     /* Newton-Raphson described in sec. 2.3 of the manuscript for complex
      * coefficients a,b,c,d */
-    Real4 xold, x, dx, fvec, vr;
+    Real4 xold, dx, fvec, vr = vr_dcba;
     Array<Array<real_type, 4>, 4> Jinv;
     real_type det;
 
-    x[0] = *AQ;
-    x[1] = *BQ;
-    x[2] = *CQ;
-    x[3] = *DQ;
-    vr[0] = d;
-    vr[1] = c;
-    vr[2] = b;
-    vr[3] = a;
+    auto [d, c, b, a] = vr;
     fvec[0] = x[1] * x[3] - d;
     fvec[1] = x[1] * x[2] + x[0] * x[3] - c;
     fvec[2] = x[1] + x[0] * x[2] + x[3] - b;
@@ -530,10 +472,6 @@ CELER_FUNCTION void Alg1010Solver::NRabcd(real_type a,
             break;
         }
     }
-    *AQ = x[0];
-    *BQ = x[1];
-    *CQ = x[2];
-    *DQ = x[3];
 }
 
 CELER_FUNCTION void Alg1010Solver::solve_quadratic(
@@ -595,12 +533,13 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
 
     /* Three possible solutions for d2 and l2 (see eqs. (28) and discussion
      * which follows) */
+    Real3 bcd{b, c, d};
     if (bl311 != 0.0)
     {
         d2m[nsol] = bl311;
         l2m[nsol] = del2 / (2.0 * d2m[nsol]);
         res[nsol] = Alg1010Solver::calc_err_ldlt(
-            b, c, d, d2m[nsol], l1, l2m[nsol], l3);
+            bcd, {d2m[nsol], l1, l2m[nsol], l3});
         nsol++;
     }
     if (del2 != 0)
@@ -610,14 +549,14 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
         {
             d2m[nsol] = del2 / (2 * l2m[nsol]);
             res[nsol] = Alg1010Solver::calc_err_ldlt(
-                b, c, d, d2m[nsol], l1, l2m[nsol], l3);
+                bcd, {d2m[nsol], l1, l2m[nsol], l3});
             nsol++;
         }
 
         d2m[nsol] = bl311;
         l2m[nsol] = 2.0 * dml3l3 / del2;
         res[nsol] = Alg1010Solver::calc_err_ldlt(
-            b, c, d, d2m[nsol], l1, l2m[nsol], l3);
+            bcd, {d2m[nsol], l1, l2m[nsol], l3});
         nsol++;
     }
 
@@ -657,6 +596,7 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             dq = d / bq;
         else if (std::fabs(dq) > std::fabs(bq))
             bq = d / dq;
+        Real3 abc{a, b, c};
         if (std::fabs(aq) < std::fabs(cq))
         {
             nsol = 0;
@@ -664,19 +604,19 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             {
                 aqv[nsol] = (c - bq * cq) / dq; /* see eqs. (47) */
                 errv[nsol] = Alg1010Solver::calc_err_abc(
-                    a, b, c, aqv[nsol], bq, cq, dq);
+                    abc, {aqv[nsol], bq, cq, dq});
                 nsol++;
             }
             if (cq != 0)
             {
                 aqv[nsol] = (b - dq - bq) / cq; /* see eqs. (47) */
                 errv[nsol] = Alg1010Solver::calc_err_abc(
-                    a, b, c, aqv[nsol], bq, cq, dq);
+                    abc, {aqv[nsol], bq, cq, dq});
                 nsol++;
             }
             aqv[nsol] = a - cq; /* see eqs. (47) */
             errv[nsol]
-                = Alg1010Solver::calc_err_abc(a, b, c, aqv[nsol], bq, cq, dq);
+                = Alg1010Solver::calc_err_abc(abc, {aqv[nsol], bq, cq, dq});
             nsol++;
             /* we select the value of aq (i.e. alpha1 in the manuscript) which
              * minimizes errors */
@@ -699,19 +639,19 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             {
                 cqv[nsol] = (c - aq * dq) / bq; /* see eqs. (53) */
                 errv[nsol] = Alg1010Solver::calc_err_abc(
-                    a, b, c, aq, bq, cqv[nsol], dq);
+                    abc, {aq, bq, cqv[nsol], dq});
                 nsol++;
             }
             if (aq != 0)
             {
                 cqv[nsol] = (b - bq - dq) / aq; /* see eqs. (53) */
                 errv[nsol] = Alg1010Solver::calc_err_abc(
-                    a, b, c, aq, bq, cqv[nsol], dq);
+                    abc, {aq, bq, cqv[nsol], dq});
                 nsol++;
             }
             cqv[nsol] = a - aq; /* see eqs. (53) */
             errv[nsol]
-                = Alg1010Solver::calc_err_abc(a, b, c, aq, bq, cqv[nsol], dq);
+                = Alg1010Solver::calc_err_abc(abc, {aq, bq, cqv[nsol], dq});
             nsol++;
             /* we select the value of cq (i.e. alpha2 in the manuscript) which
              * minimizes errors */
@@ -748,13 +688,14 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             <= Alg1010Solver::MACHEPS
                    * (std::fabs(2. * b / 3.) + std::fabs(phi0) + ipow<2>(l1))))
     {
+        Real4 abcd{a, b, c, d};
         real_type d3 = d - ipow<2>(l3);
         real_type err0 = 0.0;
         if (realcase[0] == 1)
-            err0 = Alg1010Solver::calc_err_abcd(a, b, c, d, aq, bq, cq, dq);
+            err0 = Alg1010Solver::calc_err_abcd(abcd, {aq, bq, cq, dq});
         else if (realcase[0] == 0)
-            err0 = Alg1010Solver::calc_err_abcd_cmplx(
-                a, b, c, d, acx, bcx, ccx, dcx);
+            err0 = Alg1010Solver::calc_err_abcd_cmplx(abcd,
+                                                      {acx, bcx, ccx, dcx});
         real_type aq1, bq1, cq1, dq1;
         cmplx_type acx1, bcx1, ccx1, dcx1;
         real_type err1 = 0.0;
@@ -769,10 +710,10 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
                 dq1 = d / bq1;
             else if (std::fabs(dq1) > std::fabs(bq1))
                 bq1 = d / dq1;
-            err1 = Alg1010Solver::calc_err_abcd(
-                a, b, c, d, aq1, bq1, cq1, dq1); /* eq.
-                                          (68)
-                                        */
+            err1 = Alg1010Solver::calc_err_abcd(abcd,
+                                                {aq1, bq1, cq1, dq1}); /* eq.
+                                                                    (68)
+                                                                  */
         }
         else
         {
@@ -783,7 +724,7 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
             ccx1 = l1;
             dcx1 = bcx1.conj();
             err1 = Alg1010Solver::calc_err_abcd_cmplx(
-                a, b, c, d, acx1, bcx1, ccx1, dcx1);
+                abcd, {acx1, bcx1, ccx1, dcx1});
         }
         if (realcase[0] == -1 || err1 < err0)
         {
@@ -809,14 +750,17 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
     {
         /* if alpha1, beta1, alpha2 and beta2 are real first refine
          * the coefficient through a Newton-Raphson */
-        Alg1010Solver::NRabcd(a, b, c, d, &aq, &bq, &cq, &dq);
+        Real4 dcba{d, c, b, a};
+        Real4 x{aq, bq, cq, dq};
+        // Alg1010Solver::NRabcd(a, b, c, d, &aq, &bq, &cq, &dq);
+        Alg1010Solver::newton_raphson(dcba, x);
         /* finally calculate the roots as roots of p1(x) and p2(x) (see end of
          * sec. 2.1) */
         Comp2 qroots;
-        Alg1010Solver::solve_quadratic(aq, bq, qroots);
+        Alg1010Solver::solve_quadratic(x[0], x[1], qroots);
         roots[0] = qroots[0];
         roots[1] = qroots[1];
-        Alg1010Solver::solve_quadratic(cq, dq, qroots);
+        Alg1010Solver::solve_quadratic(x[2], x[3], qroots);
         roots[2] = qroots[0];
         roots[3] = qroots[1];
     }
