@@ -121,6 +121,8 @@ void PDSimAna::analyze(art::Event const& event)
                 total_numphotons_per_timeclock += sdp.numPhotons;
             }
 
+            // NOTE: btr_time is weighted by #records, *not* #photons, so its
+            // sum is <= sum of btr_detid_logtime_numphotons
             histograms_.btr_time->Fill(time);
             histograms_.btr_detid_logtime_energy->Fill(
                 time, opdet_id, total_energy_per_timeclock);

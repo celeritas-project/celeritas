@@ -179,6 +179,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         }
 
         // Convert LArSoft sim edeps to Celeritas generator distribution data
+        // TODO: use individual fast/slow spectra by multiplying with the
+        // edep's ScintYieldRatio() (fraction fast spectrum)
         celeritas::optical::GeneratorDistributionData data;
         data.type = GeneratorType::scintillation;
         data.num_photons = step.NumPhotons();
