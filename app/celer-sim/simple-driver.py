@@ -189,7 +189,7 @@ def run_celer_sim(inp: dict, run_name: str) -> dict:
         else:
             out_file = Path(f"{run_name}.out.failed.json")
             out_file.write_text(json.dumps(j, indent=1))
-            print("Failure written to", out_file, file=stderr)
+            print("Failure written to", out_file.absolute(), file=stderr)
         exit(result.returncode)
 
     print("Received {} bytes of data".format(len(result.stdout)), file=stderr)
@@ -204,7 +204,7 @@ def run_celer_sim(inp: dict, run_name: str) -> dict:
 
     out_file = Path(f"{run_name}.out.json")
     out_file.write_text(json.dumps(j, indent=1))
-    print("Results written to", out_file, file=stderr)
+    print("Results written to", out_file.absolute(), file=stderr)
     return j
 
 

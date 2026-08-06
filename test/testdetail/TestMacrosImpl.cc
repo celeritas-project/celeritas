@@ -6,14 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "TestMacrosImpl.hh"
 
-#include <cstdio>
 #include <cstring>
-#include <string>
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ColorUtils.hh"
 
 #include "JsonComparer.hh"
 

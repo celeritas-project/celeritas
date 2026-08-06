@@ -3,8 +3,10 @@ LArSoft workflow example
 
 This example assumes that:
 
-- A suitable Apptainer container has been activated (see :ref:`apptainer_env`),
-- DUNESW has been loaded via UPS (see :ref:`ups_mrb`),
+- A suitable Apptainer container has been activated (see :ref:`apptainer_env`)
+  if necessary (UPS or non-FNAL machine),
+- DUNESW has been loaded via Spack (see :ref:`fnal_spack`) or UPS (see
+  :ref:`build_ups`),
 - Celeritas has been installed against a compatible LArSoft version, and
 - Celeritas environment variables have been loaded (see :ref:`plugins_larsoft`).
 
@@ -13,11 +15,12 @@ Summary
 
 This sequence of commands generate analysis files for Celeritas and the LArSim
 fast simulation using a single GENIE-generated event.
-The included ``run.sh`` script executes all the following steps.
+The included ``run.sh`` script executes all the following steps, where ``EXAMPLE_DIR``
+is :file:`example/larceler` inside the Celeritas source dir.
 
 .. literalinclude:: ../../example/larceler/run.sh
    :language: sh
-   :start-at: # Download and patch
+   :start-at: # Set up environment
 
 Optical simulation setup
 ------------------------
