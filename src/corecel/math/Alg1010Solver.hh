@@ -136,7 +136,7 @@ class Alg1010Solver
 
     inline CELER_FUNCTION real_type calc_err_abc(Real3 abc, Real4 abcd_q) const;
 
-    inline CELER_FUNCTION void newton_raphson(Real4 nr_dcba, Real4 x) const;
+    inline CELER_FUNCTION Real4 newton_raphson(Real4 nr_dcba, Real4 x) const;
 
     inline CELER_FUNCTION void solve_quadratic(
         real_type a, real_type b, Comp2& roots) const;
@@ -402,7 +402,8 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_abc(Real3 abc,
     return sum;
 }
 
-CELER_FUNCTION void Alg1010Solver::newton_raphson(Real4 vr_dcba, Real4 x) const
+CELER_FUNCTION auto Alg1010Solver::newton_raphson(Real4 vr_dcba, Real4 x) const
+    -> Real4
 {
     /* Newton-Raphson described in sec. 2.3 of the manuscript for complex
      * coefficients a,b,c,d */
@@ -477,6 +478,7 @@ CELER_FUNCTION void Alg1010Solver::newton_raphson(Real4 vr_dcba, Real4 x) const
             break;
         }
     }
+    return x;
 }
 
 CELER_FUNCTION void Alg1010Solver::solve_quadratic(
@@ -758,7 +760,7 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
         Real4 dcba{d, c, b, a};
         Real4 x{aq, bq, cq, dq};
         // Alg1010Solver::NRabcd(a, b, c, d, &aq, &bq, &cq, &dq);
-        Alg1010Solver::newton_raphson(dcba, x);
+        x = Alg1010Solver::newton_raphson(dcba, x);
         /* finally calculate the roots as roots of p1(x) and p2(x) (see end of
          * sec. 2.1) */
         Comp2 qroots;
