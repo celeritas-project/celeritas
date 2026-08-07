@@ -74,9 +74,13 @@ class Alg1010Solver
 
   public:
     // pow(DBL_MAX,1.0/3.0)/1.618034;
-    static constexpr real_type CUBIC_RESCAL_FACT = 3.488062113727083e+102;
+    static constexpr real_type CUBIC_RESCAL_FACT
+        = std::is_same_v<real_type, double> ? 3.488062113727083e+102
+                                            : 4.3147817163436147e+12;
     // pow(DBL_MAX,1.0/4.0)/1.618034;
-    static constexpr real_type QUART_RESCAL_FACT = 7.156344627944542e+76;
+    static constexpr real_type QUART_RESCAL_FACT
+        = std::is_same_v<real_type, double> ? 7.156344627944542e+76
+                                            : 2.654435711486902e+9;
     static constexpr real_type MACHEPS
         = celeritas::numeric_limits<real_type>::epsilon();
 
