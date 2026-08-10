@@ -9,6 +9,7 @@
 #include "corecel/math/Alg1010Solver.hh"
 #include "corecel/math/FerrariSolver.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/detail/Alg1010Impl.hh"
 
 #include "celeritas_test.hh"
 
@@ -23,6 +24,7 @@ namespace test
 {
 using Real5 = Array<real_type, 5>;
 using Real4 = Array<real_type, 4>;
+using Comp4 = Array<detail::Complex, 4>;
 using Roots = Array<real_type, 4>;
 static constexpr real_type practical_tolerance
     = std::is_same_v<real_type, double> ? 1e-10 : 1e-6;
@@ -38,6 +40,21 @@ Roots make_roots(std::initializer_list<real_type> const& inp)
     auto iter = std::copy(inp.begin(), inp.end(), result.begin());
     std::fill(iter, result.end(), NumericLimits<real_type>::infinity());
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*
+ * Generates a set of coefficients from a set of roots, as in Alg. 1010 tests
+ */
+Real5 make_coeffs(Comp4 const& roots)
+{
+    auto [x1c, x2c, x3c, x4c] = roots;
+    return Real5{
+        1.0,
+        ((x1c + x2c + x3c + x4c) * -1.0).real,
+        (x1c * x2c + (x1c + x2c) * (x3c + x4c) + x3c * x4c).real,
+        (x1c * x2c * (x3c + x4c) * -1.0 - x3c * x4c * (x1c + x2c)).real,
+        (x1c * x2c * x3c * x4c).real};
 }
 
 //---------------------------------------------------------------------------//
@@ -241,6 +258,19 @@ TYPED_TEST(QuarticSolverTest, surf_three_roots)
     EXPECT_VEC_SOFT_EQ(make_roots({1.0, 2.0, 3.0}),
                        sorted(solve(Real4{1, -6, 11, -6})));
 }
+
+//---------------------------------------------------------------------------//
+/*
+ * Test cases from Orellana & De Michele Algorithm 1010
+ */
+
+class Alg1010Test : public testing::Test
+{
+  protected:
+    Alg1010Test() {}
+
+    Alg1010Solver solver_;
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace test
