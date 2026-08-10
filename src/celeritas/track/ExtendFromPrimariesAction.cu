@@ -37,7 +37,8 @@ void ExtendFromPrimariesAction::process_primaries(
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to update state counters for number of primary particles.
+ * Launch a (device) kernel to update state counters based on the number of
+ * primary particles.
  */
 void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateDevice& state,

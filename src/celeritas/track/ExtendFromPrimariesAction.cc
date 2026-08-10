@@ -184,10 +184,10 @@ template<MemSpace M>
 void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
-    auto& primaries = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-    this->process_primaries(params, state, primaries);
-    this->update_counters(params, state, primaries.count);
-    primaries.count = 0;
+    auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    this->process_primaries(params, state, pstate);
+    this->update_counters(params, state, pstate.count);
+    pstate.count = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -207,8 +207,8 @@ void ExtendFromPrimariesAction::process_primaries(
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a (host) kernel to update state counters for number of primary
- * particles.
+ * Launch a (host) kernel to update state counters based on the number of
+ * primary particles.
  */
 void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateHost& state,
