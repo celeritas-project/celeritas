@@ -762,6 +762,13 @@ endif()
 
 if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
+else()
+  # Replacement for running celer-config
+  add_custom_target("get-config"
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+    VERBATIM
+  )
 endif()
 
 #----------------------------------------------------------------------------#

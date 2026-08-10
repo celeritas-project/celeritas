@@ -402,10 +402,17 @@ template<class Iter1, class Iter2, class BinaryOp>
     result << "Values in: " << actual_expr << "\n Expected: " << expected_expr
            << '\n'
            << failures.size() << " of " << expected_size << " elements differ";
-    if (failures.size() > 40)
+    // Chop out the middle failures so we can see the beginning/end but not be
+    // overwhelmed for large outputs. When truncation happens, trunc_size is
+    // always 20, but it's written with `min` to avoid a dozen different false
+    // positives from GCC range checking when the expression is consteval.
+    auto const trunc_size = std::min<std::size_t>(failures.size(), 20);
+    if (failures.size() > 2 * trunc_size)
     {
-        result << " (truncating by removing all but the first and last 20)";
-        failures.erase(failures.begin() + 20, failures.end() - 20);
+        failures.erase(failures.begin() + trunc_size,
+                       failures.end() - trunc_size);
+        result << " (truncating by removing all but the first and last "
+               << trunc_size << ")";
     }
     result << '\n';
     return result;
