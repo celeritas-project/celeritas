@@ -23,11 +23,16 @@ namespace celeritas
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const& params,
     CoreStateDevice& state,
-    PrimaryStateData<MemSpace::device> const& pstate) const
+    PrimaryStateData<MemSpace::device> const& pstate,
+    size_type init_capacity) const
 {
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute_thread{
-        params.ptr<MemSpace::native>(), state.ptr(), primaries, pstate.count};
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        primaries,
+        pstate.count,
+        init_capacity};
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (!primaries.empty())
     {

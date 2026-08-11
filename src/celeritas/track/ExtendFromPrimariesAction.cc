@@ -100,18 +100,12 @@ auto ExtendFromPrimariesAction::create_state(
 /*!
  * Add user-provided primaries on host.
  */
-void ExtendFromPrimariesAction::insert(CoreParams const& params,
+void ExtendFromPrimariesAction::insert(CoreParams const&,
                                        CoreStateInterface& state,
                                        Span<Primary const> host_primaries) const
 {
-    size_type num_initializers = state.sync_get_counters().num_initializers;
-    size_type init_capacity = params.init()->capacity();
-
-    CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << host_primaries.size() << ")");
-
+    // To avoid synchronization, check whether we have space for all the host
+    // primaries in the process_primaries executor instead of here
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
         this->insert_impl(*s, host_primaries);
@@ -185,7 +179,8 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
     auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-    this->process_primaries(params, state, pstate);
+    size_type init_capacity = params.init()->capacity();
+    this->process_primaries(params, state, pstate, init_capacity);
     this->update_counters(params, state, pstate.count);
     pstate.count = 0;
 }
@@ -197,11 +192,15 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const& params,
     CoreStateHost& state,
-    PrimaryStateData<MemSpace::host> const& pstate) const
+    PrimaryStateData<MemSpace::host> const& pstate,
+    size_type init_capacity) const
 {
     auto primaries = pstate.primaries();
-    detail::ProcessPrimariesExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), primaries, pstate.count};
+    detail::ProcessPrimariesExecutor execute{params.ptr<MemSpace::native>(),
+                                             state.ptr(),
+                                             primaries,
+                                             pstate.count,
+                                             init_capacity};
     return launch_action(*this, primaries.size(), params, state, execute);
 }
 
@@ -226,7 +225,8 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,
     CoreStateDevice&,
-    PrimaryStateData<MemSpace::device> const&) const
+    PrimaryStateData<MemSpace::device> const&,
+    size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
