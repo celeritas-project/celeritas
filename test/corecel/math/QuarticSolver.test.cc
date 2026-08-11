@@ -43,21 +43,6 @@ Roots make_roots(std::initializer_list<real_type> const& inp)
 }
 
 //---------------------------------------------------------------------------//
-/*
- * Generates a set of coefficients from a set of roots, as in Alg. 1010 tests
- */
-Real5 make_coeffs(Comp4 const& roots)
-{
-    auto [x1c, x2c, x3c, x4c] = roots;
-    return Real5{
-        1.0,
-        ((x1c + x2c + x3c + x4c) * -1.0).real,
-        (x1c * x2c + (x1c + x2c) * (x3c + x4c) + x3c * x4c).real,
-        (x1c * x2c * (x3c + x4c) * -1.0 - x3c * x4c * (x1c + x2c)).real,
-        (x1c * x2c * x3c * x4c).real};
-}
-
-//---------------------------------------------------------------------------//
 /*!
  * Sorts a given array of four roots and returns the array.
  */
@@ -261,16 +246,192 @@ TYPED_TEST(QuarticSolverTest, surf_three_roots)
 
 //---------------------------------------------------------------------------//
 /*
- * Test cases from Orellana & De Michele Algorithm 1010
+ * Test cases from Orellana & De Michele Algorithm 1010.
+ * These cases are denoted by number matching appearance in the paper.
  */
 
-class Alg1010Test : public testing::Test
+/*
+ * Generates a set of coefficients from a set of roots, as in ODM's demos 1-22
+ */
+Real5 make_coeffs(Comp4 const& roots)
+{
+    auto [x1c, x2c, x3c, x4c] = roots;
+    return Real5{
+        1.0,
+        ((x1c + x2c + x3c + x4c) * -1.0).real,
+        (x1c * x2c + (x1c + x2c) * (x3c + x4c) + x3c * x4c).real,
+        (x1c * x2c * (x3c + x4c) * -1.0 - x3c * x4c * (x1c + x2c)).real,
+        (x1c * x2c * x3c * x4c).real};
+}
+
+Real5 make_coeffs(Real4 const& roots)
+{
+    auto [x1, x2, x3, x4] = roots;
+    return Real5{1.0,
+                 (x1 + x2 + x3 + x4) * -1.0,
+                 x1 * x2 + (x1 + x2) * (x3 + x4) + x3 * x4,
+                 x1 * x2 * (x3 + x4) * -1.0 - x3 * x4 * (x1 + x2),
+                 x1 * x2 * x3 * x4};
+}
+/*
+ * Harness for ODM tests
+ */
+class ODMTest : public testing::Test
 {
   protected:
-    Alg1010Test() {}
+    using ctype = detail::Complex;
+    ODMTest() : solve_{} {}
 
-    Alg1010Solver solver_;
+    Alg1010Solver solve_;
+    // ctype i_{0, 1};
+
+    // void VerifyRoots(Comp4 const& roots) {
+    //     Real5 coeffs = make_coeffs(roots);
+    //     EXPECT_VEC_SOFT_EQ(roots, sorted(solve_(coeffs)));
+    // }
+
+    // void VerifyRoots(Real4 roots) {
+    //     auto [x, y, z, w] = roots;
+    //     Comp4 croots{ctype{x, 0}, ctype{y, 0}, ctype{z, 0}, ctype{w, 0}};
+    // }
 };
+
+TEST_F(ODMTest, case_1)
+{
+    Real4 expected = sorted({1E9, 1E6, 1E3, 1});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
+TEST_F(ODMTest, case_2)
+{
+    Real4 expected = sorted({2.003, 2.002, 2.001, 2});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
+TEST_F(ODMTest, case_3)
+{
+    Real4 expected = sorted({1E53, 1E50, 1E49, 1E47});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+
+TEST_F(ODMTest, case_4)
+{
+    Real4 expected = sorted({1E14, 2, 1, -1});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_5)
+{
+    Real4 expected = sorted({-2E7, 1E7, 1, -1});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+// TEST_F(ODMTest, case_6)
+// {
+// 	Real4 expected = sorted({1E7, -1E6, 1+i_, 1-i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_7)
+// {
+// 	Real4 expected = sorted({-7, -4, -1E6+i_*1E5, -1E6-i_*1E5});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_8)
+// {
+// 	Real4 expected = sorted({1E8, 11, 1E3+i_, 1E3-i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_9)
+// {
+// 	Real4 expected = sorted({1E7+i_*1E6, 1E7-i_*1E6, 1+2*i_, 1-2*i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_10)
+// {
+// 	Real4 expected = sorted({1E4+3*i_, 1E4-3*i_, -7+1E3*i_, -7-1E3*i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_11)
+// {
+// 	Real4 expected =
+// sorted({1.001+4.998*i_, 1.001-4.998*i_, 1.000+5.001*i_, 1.000-5.001*i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_12)
+// {
+// 	Real4 expected = sorted({1E3+3*i_, 1E3-3*i_, 1E3+i_, 1E3-i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+// TEST_F(ODMTest, case_13)
+// {
+// 	Real4 expected = sorted({2+1E4*i_, 2-1E4*i_, 1+1E3*i_, 1-1E3*i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+TEST_F(ODMTest, case_14)
+{
+    Real4 expected = sorted({1000, 1000, 1000, 1000});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_15)
+{
+    Real4 expected = sorted({1000, 1000, 1000, 1E-15});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+// TEST_F(ODMTest, case_16)
+// {
+// 	Real4 expected = sorted({1E16 + i_*1E7,1E16 - i_*1E7,1 +0.1*i_,1 -0.1*i_});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+TEST_F(ODMTest, case_17)
+{
+    Real4 expected = sorted({10000, 10001, 10010, 10100});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+// TEST_F(ODMTest, case_18)
+// {
+// 	Real4 expected = sorted({4E5+i_*3E2,4E5-i_*3E2,3E4+i_*7E3,3E4-i_*7E3});
+// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
+// 	EXPECT_VEC_SOFT_EQ(expected, actual);
+// }
+TEST_F(ODMTest, case_19)
+{
+    Real4 expected = sorted({1E44, 1E30, 1E30, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_20)
+{
+    Real4 expected = sorted({1E14, 1E7, 1E7, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_21)
+{
+    Real4 expected = sorted({1E15, 1E7, 1E7, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
+TEST_F(ODMTest, case_22)
+{
+    Real4 expected = sorted({1E154, 1E152, 10.0, 1.0});
+    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    EXPECT_VEC_SOFT_EQ(expected, actual);
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace test

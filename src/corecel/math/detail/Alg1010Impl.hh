@@ -33,6 +33,8 @@ struct Complex
         this->imag = i;
     }
 
+    inline CELER_FUNCTION Complex(real_type r) : Complex(r, 0.0) {}
+
     inline CELER_FUNCTION Complex() : Complex(0.0, 0.0) {}
 
     inline CELER_FUNCTION Complex sqrt() const
@@ -113,5 +115,20 @@ struct Complex
         return *this;
     }
 };
+
+inline CELER_FUNCTION Complex operator-(real_type left, Complex const& right)
+{
+    return Complex{left - right.real, -right.imag};
+}
+
+inline CELER_FUNCTION Complex operator+(real_type left, Complex const& right)
+{
+    return right + left;
+}
+
+inline CELER_FUNCTION Complex operator*(real_type left, Complex const& right)
+{
+    return right * left;
+}
 
 }  // namespace celeritas::detail
