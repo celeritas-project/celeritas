@@ -31,8 +31,8 @@ class Raytracer
 
   public:
     // Construct from geo track view, function to calculate ID, and image
-    inline CELER_FUNCTION
-    Raytracer(GTV&& geo, F&& calc_id, ImageLineView const& image);
+    inline CELER_FUNCTION Raytracer(
+        GTV&& geo, F&& calc_id, ImageLineView const& image);
 
     // Calculate the value for the next pixel
     inline CELER_FUNCTION result_type operator()(size_type pix);
@@ -84,8 +84,8 @@ CELER_FUNCTION Raytracer(GTV&&, F&&, ImageLineView const&)
  * Construct from geo track view, function to calculate ID, and image.
  */
 template<class GTV, class F>
-CELER_FUNCTION
-Raytracer<GTV, F>::Raytracer(GTV&& geo, F&& calc_id, ImageLineView const& image)
+CELER_FUNCTION Raytracer<GTV, F>::Raytracer(
+    GTV&& geo, F&& calc_id, ImageLineView const& image)
     : geo_{celeritas::forward<GTV>(geo)}
     , calc_id_{celeritas::forward<F>(calc_id)}
     , image_{image}

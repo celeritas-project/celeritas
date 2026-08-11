@@ -49,7 +49,8 @@ class ObserverPtr
     {
     }
 
-    template<class T2, std::enable_if_t<std::is_convertible_v<T2*, T*>, bool> = true>
+    template<class T2,
+             std::enable_if_t<std::is_convertible_v<T2*, T*>, bool> = true>
     CELER_CONSTEXPR_FUNCTION ObserverPtr(ObserverPtr<T2, M> other) noexcept
         : ptr_{other.ptr_}
     {
@@ -132,23 +133,23 @@ class ObserverPtr
     //!@{
     //! \name Comparators
 
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(ObserverPtr const& lhs, std::nullptr_t) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(ObserverPtr const& lhs,
+                                                    std::nullptr_t) noexcept
     {
         return !static_cast<bool>(lhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(ObserverPtr const& lhs, std::nullptr_t) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(ObserverPtr const& lhs,
+                                                    std::nullptr_t) noexcept
     {
         return static_cast<bool>(lhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator==(std::nullptr_t, ObserverPtr const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator==(
+        std::nullptr_t, ObserverPtr const& rhs) noexcept
     {
         return !static_cast<bool>(rhs);
     }
-    CELER_CONSTEXPR_FUNCTION friend bool
-    operator!=(std::nullptr_t, ObserverPtr const& rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend bool operator!=(
+        std::nullptr_t, ObserverPtr const& rhs) noexcept
     {
         return static_cast<bool>(rhs);
     }
@@ -166,8 +167,8 @@ CELER_FUNCTION ObserverPtr(T*) -> ObserverPtr<T>;
 //---------------------------------------------------------------------------//
 //! Swap two pointers
 template<class T, MemSpace M>
-CELER_CONSTEXPR_FUNCTION void
-swap(ObserverPtr<T, M>& lhs, ObserverPtr<T, M>& rhs) noexcept
+CELER_CONSTEXPR_FUNCTION void swap(ObserverPtr<T, M>& lhs,
+                                   ObserverPtr<T, M>& rhs) noexcept
 {
     return lhs.swap(rhs);
 }

@@ -204,8 +204,8 @@ class OpaqueId
     //!@{
     //! \name Pointer-like arithmetic
     //! Get the distance between two opaque IDs
-    CELER_FUNCTION friend difference_type
-    operator-(OpaqueId self, OpaqueId other)
+    CELER_FUNCTION friend difference_type operator-(OpaqueId self,
+                                                    OpaqueId other)
     {
         CELER_EXPECT(self);
         CELER_EXPECT(other);
@@ -321,8 +321,8 @@ class OpaqueId
 
 #if !CELER_DEVICE_COMPILE
     //! Output an opaque ID's value or a placeholder if unavailable.
-    CELER_FORCEINLINE friend std::ostream&
-    operator<<(std::ostream& os, OpaqueId v)
+    CELER_FORCEINLINE friend std::ostream& operator<<(std::ostream& os,
+                                                      OpaqueId v)
     {
         detail::stream_opaqueid_impl(os, v.value_, v.null_);
         return os;
@@ -436,8 +436,8 @@ inline void stream_opaqueid_impl(std::ostream& os, V v, V nullint)
 
 // Specialization avoids printing integers as '\x1'
 template<>
-CELER_FORCEINLINE void
-stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
+CELER_FORCEINLINE void stream_opaqueid_impl(
+    std::ostream& os, unsigned char v, unsigned char nullid)
 {
     return stream_opaqueid_impl(
         os, static_cast<unsigned int>(v), static_cast<unsigned int>(nullid));

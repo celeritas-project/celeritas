@@ -27,9 +27,9 @@ namespace detail
  * ID.
  */
 template<class T, class GetId>
-std::vector<Label>
-make_label_vector(std::unordered_map<std::string, std::vector<T>> const& names,
-                  GetId&& get_id)
+std::vector<Label> make_label_vector(
+    std::unordered_map<std::string, std::vector<T>> const& names,
+    GetId&& get_id)
 {
     std::vector<Label> result;
     auto add_label = [&result](std::size_t id, Label&& label) {

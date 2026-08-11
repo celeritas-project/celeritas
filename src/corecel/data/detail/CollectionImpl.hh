@@ -65,7 +65,8 @@ struct CollectionTraits : DefaultCollectionTraits<T>
 
 //---------------------------------------------------------------------------//
 template<class T, MemSpace M>
-struct CollectionTraits<T, Ownership::reference, M> : DefaultCollectionTraits<T>
+struct CollectionTraits<T, Ownership::reference, M>
+    : DefaultCollectionTraits<T>
 {
     using const_type = T;  //!< Return type is *mutable* for reference!
     using SpanConstT = Span<T>;

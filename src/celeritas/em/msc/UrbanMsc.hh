@@ -40,8 +40,8 @@ class UrbanMsc
     explicit inline CELER_FUNCTION UrbanMsc(ParamsRef const& shared);
 
     // Whether MSC applies to the current track
-    inline CELER_FUNCTION bool
-    is_applicable(CoreTrackView const&, real_type step) const;
+    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&,
+                                             real_type step) const;
 
     // Update the physical and geometric step lengths
     inline CELER_FUNCTION void limit_step(CoreTrackView const&);
@@ -73,8 +73,8 @@ CELER_FUNCTION UrbanMsc::UrbanMsc(ParamsRef const& shared) : shared_(shared)
 /*!
  * Whether MSC applies to the current track.
  */
-CELER_FUNCTION bool
-UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
+CELER_FUNCTION bool UrbanMsc::is_applicable(CoreTrackView const& track,
+                                            real_type step) const
 {
     if (step <= shared_.params.geom_limit)
         return false;

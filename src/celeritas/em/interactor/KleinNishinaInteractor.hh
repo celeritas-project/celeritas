@@ -42,11 +42,11 @@ class KleinNishinaInteractor
 {
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    KleinNishinaInteractor(KleinNishinaData const& shared,
-                           ParticleTrackView const& particle,
-                           Real3 const& inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION KleinNishinaInteractor(
+        KleinNishinaData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>

@@ -691,8 +691,10 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
 
     if (p.scoring.simple_calo)
     {
-        auto simple_calo = std::make_shared<SimpleCalo>(
-            p.scoring.simple_calo->volumes, num_streams, *core_params->volume());
+        auto simple_calo
+            = std::make_shared<SimpleCalo>(p.scoring.simple_calo->volumes,
+                                           num_streams,
+                                           *core_params->volume());
 
         // Add to step interfaces
         step_interfaces.push_back(simple_calo);
@@ -766,8 +768,8 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
  * This constructs the optical params \em without additionally constructing the
  * core params.
  */
-OpticalProblemLoaded
-problem(inp::OpticalProblem const& p, ImportData const& imported)
+OpticalProblemLoaded problem(inp::OpticalProblem const& p,
+                             ImportData const& imported)
 {
     CELER_LOG(status) << "Initializing problem";
 

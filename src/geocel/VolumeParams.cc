@@ -84,8 +84,8 @@ int calc_num_volume_levels(HostVal<VolumeParamsData> const& params)
  * descending further.  Computed bottom-up via iterative post-order DFS so
  * that shared sub-volumes (DAG diamonds) are evaluated only once.
  */
-std::vector<ull_int>
-calc_num_descendants(HostVal<VolumeParamsData> const& params)
+std::vector<ull_int> calc_num_descendants(
+    HostVal<VolumeParamsData> const& params)
 {
     CELER_EXPECT(params.scalars.world);
 
@@ -150,9 +150,9 @@ calc_num_descendants(HostVal<VolumeParamsData> const& params)
  * preceding siblings \c vj (positions 0..k-1). Volume instances not appearing
  * in any children list receive offset 0.
  */
-std::vector<ull_int>
-calc_unique_instance_offsets(HostVal<VolumeParamsData> const& params,
-                             std::vector<ull_int> const& num_desc)
+std::vector<ull_int> calc_unique_instance_offsets(
+    HostVal<VolumeParamsData> const& params,
+    std::vector<ull_int> const& num_desc)
 {
     auto const num_vi = params.volume_ids.size();
     std::vector<ull_int> offsets(num_vi, 0);

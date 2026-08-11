@@ -71,8 +71,8 @@ std::string to_sci(double value, int precision)
 /*!
  * Simplify.
  */
-[[nodiscard]] std::string
-StringSimplifier::operator()(std::string const& old) const
+[[nodiscard]] std::string StringSimplifier::operator()(
+    std::string const& old) const
 {
     // Regex to match floating point numbers (both standard and scientific
     // notation) with optional scientific notation and trailing f

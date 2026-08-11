@@ -78,8 +78,8 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
 
   private:
     StateHostValue setup_heuristic_states(size_type num_tracks) const;
-    HeuristicInitResult
-    reduce_heuristic_init(StateHostRef const&, double) const;
+    HeuristicInitResult reduce_heuristic_init(StateHostRef const&,
+                                              double) const;
 };
 
 class DetailTest : public OrangeGeoTestBase
@@ -151,8 +151,8 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 /*!
  * Initialize inside a volume.
  */
-LocalState
-SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
+LocalState SimpleUnitTrackerTest::make_state(
+    Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
     detail::UniverseIndexer ui(this->host_params().univ_indexer_data);

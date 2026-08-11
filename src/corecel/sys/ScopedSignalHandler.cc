@@ -160,8 +160,8 @@ ScopedSignalHandler::ScopedSignalHandler(ScopedSignalHandler&& other) noexcept
 /*!
  * Move assign.
  */
-ScopedSignalHandler&
-ScopedSignalHandler::operator=(ScopedSignalHandler&& other) noexcept
+ScopedSignalHandler& ScopedSignalHandler::operator=(
+    ScopedSignalHandler&& other) noexcept
 {
     ScopedSignalHandler temp(std::move(other));
     this->swap(temp);

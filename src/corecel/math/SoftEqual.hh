@@ -229,8 +229,8 @@ CELER_CONSTEXPR_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel)
  *           (default 1.0e-14 for doubles)
  */
 template<class RealType>
-CELER_CONSTEXPR_FUNCTION
-SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
+CELER_CONSTEXPR_FUNCTION SoftEqual<RealType>::SoftEqual(value_type rel,
+                                                        value_type abs)
     : rel_{rel}, abs_{abs}
 {
     CELER_EXPECT(rel > 0);
@@ -242,8 +242,8 @@ SoftEqual<RealType>::SoftEqual(value_type rel, value_type abs)
  * Compare two values, implicitly casting arguments.
  */
 template<class RealType>
-CELER_FUNCTION bool
-SoftEqual<RealType>::operator()(value_type a, value_type b) const
+CELER_FUNCTION bool SoftEqual<RealType>::operator()(value_type a,
+                                                    value_type b) const
 {
     real_type rel = rel_ * std::fmax(std::fabs(a), std::fabs(b));
     return std::fabs(a - b) < std::fmax(abs_, rel);
@@ -276,8 +276,8 @@ CELER_FUNCTION SoftClose<RealType>::SoftClose(value_type abs) : abs_(abs)
  * Compare two values (implicitly casting arguments)
  */
 template<class RealType>
-CELER_FUNCTION bool
-SoftClose<RealType>::operator()(value_type a, value_type b) const
+CELER_FUNCTION bool SoftClose<RealType>::operator()(value_type a,
+                                                    value_type b) const
 {
     return std::fabs(a - b) < abs_;
 }
@@ -327,8 +327,8 @@ inline CELER_FUNCTION bool soft_equal(RealType expected, RealType actual)
 //---------------------------------------------------------------------------//
 //! Soft equivalence with relative error
 template<class RealType>
-inline CELER_FUNCTION bool
-soft_near(RealType expected, RealType actual, RealType rel_error)
+inline CELER_FUNCTION bool soft_near(
+    RealType expected, RealType actual, RealType rel_error)
 {
     return SoftEqual<RealType>(rel_error)(expected, actual);
 }

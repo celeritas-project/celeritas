@@ -101,8 +101,8 @@ class GeantImporterTest : public GeantTestBase
         return selection_;
     }
 
-    ImportProcess const&
-    find_process(PDGNumber pdg, ImportProcessClass ipc) const
+    ImportProcess const& find_process(PDGNumber pdg,
+                                      ImportProcessClass ipc) const
     {
         auto const& processes = this->imported_data().processes;
         auto result = std::find_if(processes.begin(),
@@ -118,8 +118,8 @@ class GeantImporterTest : public GeantTestBase
         return *result;
     }
 
-    ImportMscModel const&
-    find_msc_model(PDGNumber pdg, ImportModelClass imc) const
+    ImportMscModel const& find_msc_model(PDGNumber pdg,
+                                         ImportModelClass imc) const
     {
         auto const& models = this->imported_data().msc_models;
         auto result = std::find_if(
@@ -2015,18 +2015,17 @@ TEST_F(Solids, physics)
 TEST_F(OpticalSurfaces, surfaces)
 {
     auto specular_spike = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::specular_spike];
+        return di.reflection.reflection_grids
+            [optical::ReflectionMode::specular_spike];
     };
 
     auto specular_lobe = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::specular_lobe];
+        return di.reflection.reflection_grids
+            [optical::ReflectionMode::specular_lobe];
     };
 
     auto backscatter = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::backscatter];
+        return di.reflection.reflection_grids[optical::ReflectionMode::backscatter];
     };
 
     auto&& osp = this->imported_data().optical_physics.surfaces;

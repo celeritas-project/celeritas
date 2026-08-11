@@ -70,8 +70,7 @@ class WentzelTransportXsCalculator
  * OK and VI model in \c WentzelHelper and depend on properties of the incident
  * particle, the energy cutoff in the current material, and the target element.
  */
-CELER_FUNCTION
-WentzelTransportXsCalculator::WentzelTransportXsCalculator(
+CELER_FUNCTION WentzelTransportXsCalculator::WentzelTransportXsCalculator(
     ParticleTrackView const& particle, WentzelHelper const& helper)
     : z_(helper.atomic_number())
     , screening_coeff_(2 * helper.screening_coefficient())

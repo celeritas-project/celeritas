@@ -55,17 +55,17 @@ class EnergyLossUrbanDistribution
 
   public:
     // Construct from particle properties
-    inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(FluctuationRef const& shared,
-                                MaterialTrackView const& cur_mat,
-                                Energy unscaled_mean_loss,
-                                Energy max_energy,
-                                Mass two_mebsgs,
-                                real_type beta_sq);
+    inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        FluctuationRef const& shared,
+        MaterialTrackView const& cur_mat,
+        Energy unscaled_mean_loss,
+        Energy max_energy,
+        Mass two_mebsgs,
+        real_type beta_sq);
 
     // Construct from helper-calculated data
-    explicit inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(EnergyLossHelper const& helper);
+    explicit inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>

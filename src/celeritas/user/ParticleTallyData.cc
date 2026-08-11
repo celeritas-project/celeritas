@@ -31,17 +31,17 @@ inline void resize(ParticleTallyStateData<Ownership::value, M>* state,
 
 //---------------------------------------------------------------------------//
 // Explicit instantiations
-template void
-resize(ParticleTallyStateData<Ownership::value, MemSpace::host>* state,
-       HostCRef<ParticleTallyParamsData> const& params,
-       StreamId,
-       size_type);
+template void resize(
+    ParticleTallyStateData<Ownership::value, MemSpace::host>* state,
+    HostCRef<ParticleTallyParamsData> const& params,
+    StreamId,
+    size_type);
 
-template void
-resize(ParticleTallyStateData<Ownership::value, MemSpace::device>* state,
-       HostCRef<ParticleTallyParamsData> const& params,
-       StreamId,
-       size_type);
+template void resize(
+    ParticleTallyStateData<Ownership::value, MemSpace::device>* state,
+    HostCRef<ParticleTallyParamsData> const& params,
+    StreamId,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

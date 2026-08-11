@@ -105,10 +105,10 @@ class SimTrackView
 /*!
  * Construct from local data.
  */
-CELER_FUNCTION
-SimTrackView::SimTrackView(NativeCRef<SimParamsData> const& params,
-                           NativeRef<SimStateData> const& states,
-                           TrackSlotId tid)
+CELER_FUNCTION SimTrackView::SimTrackView(
+    NativeCRef<SimParamsData> const& params,
+    NativeRef<SimStateData> const& states,
+    TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(params_);

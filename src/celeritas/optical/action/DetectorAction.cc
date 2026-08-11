@@ -6,8 +6,18 @@
 //---------------------------------------------------------------------------//
 #include "DetectorAction.hh"
 
+#include <algorithm>
+
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
+#include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
+#include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
+#include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/optical/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/optical/CoreState.hh"  // IWYU pragma: keep
 
 #include "ActionLauncher.hh"
 #include "TrackSlotExecutor.hh"
@@ -20,21 +30,62 @@ namespace optical
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct with action ID.
+ * Create and add to optical params.
  */
-DetectorAction::DetectorAction(ActionId aid, CallbackFunc const& callback)
-    : StaticConcreteAction(aid, "detector", "Score optical detector hits")
+std::shared_ptr<DetectorAction> DetectorAction::make_and_insert(
+    SPActionRegistry const& action_reg,
+    SPAuxParamsRegistry const& aux_reg,
+    CallbackFunc const& cb)
+{
+    CELER_EXPECT(action_reg);
+    CELER_EXPECT(aux_reg);
+    CELER_EXPECT(cb);
+    auto action = std::make_shared<DetectorAction>(
+        action_reg->next_id(), aux_reg->next_id(), cb);
+    action_reg->insert(action);
+    aux_reg->insert(action);
+    return action;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with action ID, aux ID, and callback function.
+ */
+DetectorAction::DetectorAction(
+    ActionId aid, AuxId aux_id, CallbackFunc const& callback)
+    : sad_(aid, "detector", "Score optical detector hits")
+    , aux_id_(aux_id)
     , callback_(callback)
 {
     CELER_EXPECT(callback);
+    CELER_EXPECT(aux_id_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build auxiliary state data for a stream.
+ *
+ * The pinned hit buffer is allocated and sized here once per stream so that
+ * \c step and \c load_hits_sync never need to reallocate.
+ */
+auto DetectorAction::create_state(MemSpace m, StreamId, size_type size) const
+    -> UPState
+{
+    CELER_EXPECT(size > 0);
+
+    auto result = std::make_unique<DetectorActionState>();
+    if (m == MemSpace::device)
+    {
+        result->hits.resize(size);
+    }
+
+    CELER_ENSURE(result);
+    return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Launch the detector action on host.
- *
- * \todo avoid reallocating the temporary storage at every step, or as an
- * optimization just call contiguous chunks of hits.
  */
 void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
 {
@@ -44,16 +95,17 @@ void DetectorAction::step(CoreParams const& params, CoreStateHost& state) const
     launch_action(state, execute);
 
     auto all_hits
-        = state.ref()
-              .detectors.detector_hits[AllItems<DetectorHit, MemSpace::host>{}];
+        = state.ref().detectors.detector_hits[AllItems<DetectorHit,
+                                                       MemSpace::host>{}];
 
-    VecHit temp_hits(all_hits.size());
-    // Copy all valid hits, erasing remaining part of the vector
-    temp_hits.erase(
-        std::copy_if(
-            all_hits.begin(), all_hits.end(), temp_hits.begin(), Identity{}),
-        temp_hits.end());
-    this->callback_hits(temp_hits);
+    std::size_t num_valid = [&all_hits] {
+        ScopedProfiling profile_this("prune");
+        auto end
+            = std::remove_if(all_hits.begin(), all_hits.end(), LogicalNot{});
+        return std::distance(all_hits.begin(), end);
+    }();
+
+    this->callback_hits(make_span(all_hits).first(num_valid));
 }
 
 //---------------------------------------------------------------------------//
@@ -67,31 +119,49 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 //---------------------------------------------------------------------------//
 /*!
  * Process hits copied from the kernels and send them to the callback.
- *
- * \todo Replace this with asynchronous calls into pinned memory in aux
- * state, followed by an asynchronous callback.
  */
-auto DetectorAction::load_hits_sync(CoreStateDevice const& state) const
-    -> VecHit
+Span<DetectorHit const> DetectorAction::load_hits_sync(
+    CoreStateDevice const& state) const
 {
-    auto const& native_hits = state.ref().detectors.detector_hits;
-    VecHit temp_hits(native_hits.size());
+    if constexpr (!CELER_USE_DEVICE)
+    {
+        // Mark unreachable for optimization and coverage
+        CELER_ASSERT_UNREACHABLE();
+    }
 
-    // Ensure the kernel copied into the device buffer before copying out
-    celeritas::device().stream(state.stream_id()).sync();
+    auto const& device_hits = state.ref().detectors.detector_hits;
+    auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
+    if (CELER_UNLIKELY(temp_hits.size() != device_hits.size()))
+    {
+        // FIXME: we currently share a single aux state between core and optical
+        // tracking loops, but they may have different number of tracks, so this
+        // is an error. It basically amounts to doing a lazy resize.
+        CELER_LOG(warning) << "FIXME: expected optical aux state to be size "
+                           << device_hits.size() << " but is actually size "
+                           << temp_hits.size();
+        temp_hits.resize(device_hits.size());
+    }
 
-    // Copy all track hits to host from device
-    copy_to_host(native_hits, make_span(temp_hits), state.stream_id());
+    {
+        // Copy all track hits to host from device
+        ScopedProfiling profile_this("copy");
+        copy_to_host(device_hits, make_span(temp_hits), state.stream_id());
 
-    // Ensure copy is complete
-    celeritas::device().stream(state.stream_id()).sync();
+        // Ensure copy is complete
+        celeritas::device().stream(state.stream_id()).sync();
+    }
 
-    // Erase all hits with invalid detector ID
-    temp_hits.erase(
-        std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{}),
-        temp_hits.end());
+    // Move all hits with a valid detector ID to the front of the buffer,
+    // keeping the buffer itself at its original size
+    std::size_t num_valid = [&temp_hits] {
+        ScopedProfiling profile_this("prune");
+        auto end
+            = std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{});
+        return std::distance(temp_hits.begin(), end);
+    }();
+    CELER_ASSERT(num_valid <= temp_hits.size());
 
-    return temp_hits;
+    return make_span(temp_hits).first(num_valid);
 }
 
 //---------------------------------------------------------------------------//
@@ -102,12 +172,13 @@ auto DetectorAction::load_hits_sync(CoreStateDevice const& state) const
  * callback function. The callback is only executed when a non-zero number of
  * valid hits occurs.
  */
-void DetectorAction::callback_hits(VecHit const& hits) const
+void DetectorAction::callback_hits(Span<DetectorHit const> hits) const
 {
     // Send hits to the callback function, if there are any
     if (!hits.empty())
     {
-        callback_(make_span(hits));
+        ScopedProfiling profile_this("callback");
+        callback_(hits);
     }
 }
 

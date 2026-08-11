@@ -92,10 +92,10 @@ class SurfaceTraversalView
 /*!
  * Create view from surface physics data and state for a given track.
  */
-CELER_FUNCTION
-SurfaceTraversalView::SurfaceTraversalView(SurfaceParamsRef const& params,
-                                           SurfaceStateRef const& states,
-                                           TrackSlotId track)
+CELER_FUNCTION SurfaceTraversalView::SurfaceTraversalView(
+    SurfaceParamsRef const& params,
+    SurfaceStateRef const& states,
+    TrackSlotId track)
     : params_(params), states_(states), track_id_(track)
 {
     CELER_EXPECT(track_id_ < states_.size());
@@ -106,8 +106,8 @@ SurfaceTraversalView::SurfaceTraversalView(SurfaceParamsRef const& params,
 /*!
  * Initialize track state with given initializer data.
  */
-CELER_FUNCTION SurfaceTraversalView&
-SurfaceTraversalView::operator=(Initializer const&)
+CELER_FUNCTION SurfaceTraversalView& SurfaceTraversalView::operator=(
+    Initializer const&)
 {
     states_.local_position[track_id_] = LocalPositionId{0};
     states_.local_direction[track_id_] = LocalDirection::forward;

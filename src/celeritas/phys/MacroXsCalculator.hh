@@ -36,8 +36,8 @@ class MacroXsCalculator
 
   public:
     // Construct with shared and material
-    inline CELER_FUNCTION
-    MacroXsCalculator(ParamsRef const& shared, MaterialView const& material);
+    inline CELER_FUNCTION MacroXsCalculator(ParamsRef const& shared,
+                                            MaterialView const& material);
 
     // Compute the macroscopic cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;

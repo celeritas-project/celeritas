@@ -55,8 +55,8 @@ class MagFieldEquation
 
   public:
     // Construct with a magnetic field
-    inline CELER_FUNCTION
-    MagFieldEquation(FieldT&& field, units::ElementaryCharge q);
+    inline CELER_FUNCTION MagFieldEquation(FieldT&& field,
+                                           units::ElementaryCharge q);
 
     // Evaluate the right hand side of the field equation
     inline CELER_FUNCTION OdeState operator()(OdeState const& y) const;
@@ -99,8 +99,8 @@ CELER_FUNCTION MagFieldEquation<FieldT>::MagFieldEquation(
  * Evaluate the right hand side of the Lorentz equation.
  */
 template<class FieldT>
-CELER_FUNCTION auto
-MagFieldEquation<FieldT>::operator()(OdeState const& y) const -> OdeState
+CELER_FUNCTION auto MagFieldEquation<FieldT>::operator()(
+    OdeState const& y) const -> OdeState
 {
     CELER_EXPECT(y.mom[0] != 0 || y.mom[1] != 0 || y.mom[2] != 0);
     real_type momentum_inv = celeritas::rsqrt(dot_product(y.mom, y.mom));

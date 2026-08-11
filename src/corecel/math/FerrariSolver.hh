@@ -93,8 +93,8 @@ class FerrariSolver
 
     //// HELPER FUNCTIONS ////
     // Try to place real at given index in list, return next free index
-    inline CELER_FUNCTION int
-    place_root(result_type& roots, real_type new_root, int free_index) const;
+    inline CELER_FUNCTION int place_root(
+        result_type& roots, real_type new_root, int free_index) const;
 
     // Find roots of special reduced quartic which is biquadratic
     inline CELER_FUNCTION result_type calc_biquadratic_roots(
@@ -116,8 +116,10 @@ class FerrariSolver
  * Construct a solver instance with a specified tolerance for degenerate cases,
  * such as the particle starting on the surface.
  */
-CELER_FUNCTION
-FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
+CELER_FUNCTION FerrariSolver::FerrariSolver(real_type tolerance)
+    : soft_zero_{tolerance}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!

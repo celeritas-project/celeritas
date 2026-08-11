@@ -32,8 +32,8 @@ class UniformBoxDistribution
 
   public:
     // Constructor
-    inline CELER_FUNCTION
-    UniformBoxDistribution(result_type lower, result_type upper);
+    inline CELER_FUNCTION UniformBoxDistribution(result_type lower,
+                                                 result_type upper);
 
     // Construct with record
     explicit CELER_FUNCTION UniformBoxDistribution(RecordT const& record)
@@ -75,8 +75,8 @@ CELER_FUNCTION UniformBoxDistribution<RealType>::UniformBoxDistribution(
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-UniformBoxDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto UniformBoxDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     result_type result;
     for (int i = 0; i < 3; ++i)

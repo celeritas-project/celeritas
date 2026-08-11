@@ -51,8 +51,8 @@ NeutronXsReader::NeutronXsReader(NeutronXsType type, char const* path)
 /*!
  * Read the data for the given element.
  */
-NeutronXsReader::result_type
-NeutronXsReader::operator()(AtomicNumber atomic_number) const
+NeutronXsReader::result_type NeutronXsReader::operator()(
+    AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number);
 
@@ -88,8 +88,7 @@ NeutronXsReader::operator()(AtomicNumber atomic_number) const
             // from clhep::mm^2 as stored in G4PARTICLEXS/neutron/el data
             infile >> result.x[i] >> input_xs.value();
             result.y[i]
-                = native_value_to<units::BarnXs>(native_value_from(input_xs))
-                      .value();
+                = native_value_to<units::BarnXs>(native_value_from(input_xs)).value();
         }
     }
 

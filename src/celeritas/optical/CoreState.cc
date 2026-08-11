@@ -60,7 +60,8 @@ CoreState<M>::CoreState(
         ptr_ = make_observer(&this->ref());
     }
 
-    CELER_LOG(status) << "Initialized Celeritas optical state";
+    CELER_LOG(info) << "Initialized Celeritas optical state with "
+                    << num_track_slots << " track slots";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }

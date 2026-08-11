@@ -283,9 +283,9 @@ std::string to_string(VolumeInput::VariantLabel const& vlabel)
  * local implementation volume IDs, even though the relationship they describe
  * is the "canonical" volume structure.
  */
-std::vector<LocalVolumeId>
-make_local_parent_vec(LocalVolumeId::size_type num_volumes,
-                      UnitInput::MapLocalParent const& local_parent_map)
+std::vector<LocalVolumeId> make_local_parent_vec(
+    LocalVolumeId::size_type num_volumes,
+    UnitInput::MapLocalParent const& local_parent_map)
 {
     CELER_EXPECT(num_volumes > 0);
     CELER_EXPECT(!local_parent_map.empty());
@@ -309,8 +309,8 @@ make_local_parent_vec(LocalVolumeId::size_type num_volumes,
  * Use a depth-first search to fill an array, indexed by local impl volumes, of
  * the volume relative to the top (most enclosing/closest to "world").
  */
-std::vector<vol_level_uint>
-make_local_level_vec(std::vector<LocalVolumeId> const& local_parents)
+std::vector<vol_level_uint> make_local_level_vec(
+    std::vector<LocalVolumeId> const& local_parents)
 {
     constexpr vol_level_uint not_visited{static_cast<vol_level_uint>(-1)};
     std::vector<vol_level_uint> local_vol_level(local_parents.size(),
@@ -439,9 +439,9 @@ UnitInserter::UnitInserter(UniverseInserter* insert_universe,
  */
 UnivId UnitInserter::operator()(UnitInput&& inp)
 {
-    CELER_VALIDATE(
-        inp,
-        << "simple unit '" << inp.label << "' is not properly constructed");
+    CELER_VALIDATE(inp,
+                   << "simple unit '" << inp.label
+                   << "' is not properly constructed");
 
     SimpleUnitRecord unit;
 

@@ -44,8 +44,8 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StatusChecker>
-StatusChecker::make_and_insert(CoreParams const& core)
+std::shared_ptr<StatusChecker> StatusChecker::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
@@ -107,8 +107,8 @@ void StatusChecker::step(
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(prev_action);
-    CELER_EXPECT(
-        params.action_reg()->num_actions() == this->ref<M>().orders.size());
+    CELER_EXPECT(params.action_reg()->num_actions()
+                 == this->ref<M>().orders.size());
 
     auto& aux_state = this->state_ref<M>(state.aux());
 

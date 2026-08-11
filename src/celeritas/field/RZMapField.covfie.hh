@@ -39,8 +39,7 @@ class RZMapField
     inline CELER_FUNCTION explicit RZMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
+    CELER_FUNCTION inline Real3 operator()(Real3 const& pos) const;
 
   private:
     using field_view_t =
@@ -55,8 +54,7 @@ class RZMapField
 /*!
  * Construct with the shared magnetic field map data.
  */
-CELER_FUNCTION
-RZMapField::RZMapField(ParamsRef const& shared)
+CELER_FUNCTION RZMapField::RZMapField(ParamsRef const& shared)
     : shared_{shared}, field_{get_rz_map_field_view(shared)}
 {
 }
