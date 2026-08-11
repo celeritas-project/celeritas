@@ -42,10 +42,10 @@ physics:
 {
     producers:
     {
-        OpticalSim: @local::dunefd_pdfastsim
+        PDSim: @local::dunefd_pdfastsim
         rns: { module_type: "RandomNumberSaver" }
     }
-    simulate: [ rns, OpticalSim ]
+    simulate: [ rns, PDSim ]
     stream:  [ out ]
     trigger_paths: [ simulate ]
     end_paths: [ stream ]

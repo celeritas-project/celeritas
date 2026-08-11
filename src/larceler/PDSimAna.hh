@@ -28,11 +28,11 @@ class PDSimAna : public art::EDAnalyzer
     {
         fhicl::Atom<art::InputTag> SimulationLabel{
             fhicl::Name("SimulationLabel"),
-            fhicl::Comment(R"(SimEnergyDeposit event tag)")};
+            fhicl::Comment(R"(Module label containing SimEnergyDeposit)")};
 
-        fhicl::Atom<art::InputTag> ModuleLabel{
-            fhicl::Name{"ModuleLabel"},
-            fhicl::Comment{R"(OpdetBacktrackerRecord event tag)"}};
+        fhicl::Atom<art::InputTag> PDModuleLabel{
+            fhicl::Name{"PDModuleLabel"},
+            fhicl::Comment{R"(Module containing SimPhotonsLite/OpDetBTRs)"}};
     };
     using Parameters = art::EDAnalyzer::Table<Config>;
 

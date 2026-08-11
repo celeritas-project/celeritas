@@ -33,7 +33,7 @@ namespace celeritas
 PDSimAna::PDSimAna(Parameters const& config)
     : art::EDAnalyzer{config}
     , sim_tag_{config().SimulationLabel()}
-    , obtr_tag_{config().ModuleLabel()}
+    , pd_tag_{config().PDModuleLabel()}
 {
 }
 
@@ -84,7 +84,7 @@ void PDSimAna::analyze(art::Event const& event)
 
     // Load SimEnergyDeposit and OpDetBacktrackerRecord data
     auto const& vec_simedep = *(event.getValidHandle<VecSimEdep>(sim_tag_));
-    auto const& vec_obtr = *(event.getValidHandle<VecOpDetBTR>(obtr_tag_));
+    auto const& vec_obtr = *(event.getValidHandle<VecOpDetBTR>(pd_tag_));
 
     // Initialize step length histogram for a given PDG encoding
     auto init_step_len_hist = [](int pdg) {

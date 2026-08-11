@@ -52,7 +52,7 @@ The set of FHiCL job files in this example can
 
 The flow chart :numref:`fig-larsim` shows every step of the workflow,
 their respective ``fcl`` job file, along with the generated data type and
-their ``ModuleLabel``.
+their module label.
 
 .. _fig-larsim:
 
@@ -144,36 +144,36 @@ Generating analysis files from the optical simulation
   equivalent to passing the full
   ``--services.TFileService.fileName=my-output.root`` path directly to ``lar``.
 - As noted in the ``pdsimana.fcl`` documentation, the
-  ``ModuleLabel: "OpticalSim"`` in ``pdsimana.fcl`` is correct if
+  ``PDModuleLabel: "PDSim"`` in ``pdsimana.fcl`` is correct if
   optical simulation is generated with the local ``*optical*.fcl``
-  files. If fast simulation is generated from a default LArSoft ``fcl``
+  files (which define "PDSim" as the name of the producer).
+  If fast simulation is generated from a default LArSoft ``fcl``
   job, that will likely be ``PDFastSim``.
 
-Note on ``ModuleLabel``
-^^^^^^^^^^^^^^^^^^^^^^^
+.. note::
 
-- ``art`` stores the module labels as part of the object naming
-  convention inside an ``art::Event`` object. If unsure about what label
-  to use while trying to load an object type in ``PDSimAna``, you can
-  view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
-  ``IonAndScint`` label is shown as part of the branch name:
+   - ``art`` stores the module labels as part of the object naming
+   convention inside an ``art::Event`` object. If unsure about what label
+   to use while trying to load an object type in ``PDSimAna``, you can
+   view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
+   ``IonAndScint`` label is shown as part of the branch name:
 
-.. code:: none
+   .. code:: none
 
-   $ root art-file.root
-   root[1] Events->Print()
-   .
-   .
-   .
-   *............................................................................*
-   *Br   21 :sim::SimEnergyDeposits_IonAndScint__geantionandscint.obj :         *
-   *         | vector<sim::SimEnergyDeposit>                                    *
-   *Entries :       10 : Total  Size=   61060255 bytes  File Size  =   30434130 *
-   *Baskets :       10 : Basket Size=      16384 bytes  Compression=   2.01     *
-   *............................................................................*
-   .
-   .
-   .
+      $ root art-file.root
+      root[1] Events->Print()
+      .
+      .
+      .
+      *............................................................................*
+      *Br   21 :sim::SimEnergyDeposits_IonAndScint__geantionandscint.obj :         *
+      *         | vector<sim::SimEnergyDeposit>                                    *
+      *Entries :       10 : Total  Size=   61060255 bytes  File Size  =   30434130 *
+      *Baskets :       10 : Basket Size=      16384 bytes  Compression=   2.01     *
+      *............................................................................*
+      .
+      .
+      .
 
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
