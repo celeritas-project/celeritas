@@ -79,17 +79,18 @@ struct StepperResult
  * This allows higher-level classes not to care whether the stepper operates on
  * host or device.
  *
- * A stepper is initially idle. Calling \c launch transitions it to an
- * in-flight state, and no other step can be launched until \c complete returns
- * the pending result. The \c ready function queries completion without
- * blocking, whereas \c complete waits if necessary and returns the stepper to
- * the idle state. Both functions require an in-flight step. An in-flight step
- * can be ready: \c in_flight indicates that its result has not yet been
- * consumed, rather than that device execution is necessarily incomplete.
+ * A stepper initially has no asynchronous result, so \c valid returns false.
+ * Calling \c async, with or without primaries, starts one step and makes the
+ * result valid. No other step can be started until \c get returns the result
+ * and restores the initial state. The \c ready function queries completion
+ * without blocking, \c wait blocks without consuming the result, and \c get
+ * waits if necessary before consuming it. All three require a valid result.
+ * A valid result can be ready: \c valid describes whether the result can be
+ * retrieved, rather than whether device execution is still underway.
  *
- * Host steps execute synchronously and are immediately ready. The call
- * operators preserve synchronous behavior by launching and completing a step
- * before returning.
+ * Host steps execute synchronously and are immediately ready. The deprecated
+ * call operators preserve synchronous behavior by calling \c async followed
+ * by \c get.
  *
  * \note This class and its daughter may be removed soon to facilitate step
  * gathering.
@@ -112,22 +113,30 @@ class StepperInterface
     // Warm up before stepping
     virtual void warm_up() = 0;
 
-    // Launch transport of existing states
-    virtual void launch() = 0;
+    // Start asynchronous transport of existing states
+    virtual void async() = 0;
 
-    //! Whether a launched step is awaiting completion
-    virtual bool in_flight() const = 0;
+    // Start asynchronous transport with new primaries
+    virtual void async(SpanConstPrimary primaries) = 0;
 
-    // Whether the launched step has completed
+    //! Whether an asynchronous step result can be retrieved
+    virtual bool valid() const noexcept = 0;
+
+    // Whether the asynchronous step has completed
     virtual bool ready() const = 0;
 
-    // Wait for and return the launched step result
-    virtual StepperResult complete() = 0;
+    // Wait for the asynchronous step to complete
+    virtual void wait() const = 0;
+
+    // Wait for and return the asynchronous step result
+    virtual StepperResult get() = 0;
 
     // Transport existing states
+    [[deprecated("use async() and get()")]]
     virtual StepperResult operator()() = 0;
 
     // Transport existing states and these new primaries
+    [[deprecated("use async(primaries) and get()")]]
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
     // Kill all tracks in flight to debug "stuck" tracks
@@ -157,21 +166,26 @@ class StepperInterface
  * \note This is likely to be removed and refactored since we're changing how
  * primaries are created and how multithread state ownership is managed.
  *
- * Device steps have separate launch and completion phases. The launch enqueues
- * the action sequence, a counter snapshot, and a completion event on the state
- * stream. Diagnostic action or step timing can still synchronize the stream.
- * Other synchronization within the action sequence is being removed
+ * Device steps have separate start and result phases. Calling \c async
+ * enqueues the action sequence, a counter snapshot, and a completion event on
+ * the state stream. Diagnostic action or step timing can still synchronize the
+ * stream. Other synchronization within the action sequence is being removed
  * separately.
  *
  * \code
-   Stepper<MemSpace::host> step(input);
+   Stepper<MemSpace::device> step(input);
 
-   // Transport primaries for the initial step
-   StepperResult alive_tracks = step(my_primaries);
-   while (alive_tracks)
+   // Start the initial step and later retrieve its result
+   step.async(my_primaries);
+   while (step.valid())
    {
-       // Transport secondaries
-       alive_tracks = step();
+       // Optional: do host work or poll step.ready() before waiting
+       step.wait();
+       StepperResult result = step.get();
+       if (result)
+       {
+           step.async();
+       }
    }
    \endcode
  */
@@ -194,22 +208,30 @@ class Stepper final : public StepperInterface
     // Warm up before stepping
     void warm_up() final;
 
-    // Launch transport of existing states
-    void launch() final;
+    // Start asynchronous transport of existing states
+    void async() final;
 
-    //! Whether a launched step is awaiting completion
-    bool in_flight() const final { return step_in_flight_; }
+    // Start asynchronous transport with new primaries
+    void async(SpanConstPrimary primaries) final;
 
-    // Whether the launched step has completed
+    //! Whether an asynchronous step result can be retrieved
+    bool valid() const noexcept final { return has_result_; }
+
+    // Whether the asynchronous step has completed
     bool ready() const final;
 
-    // Wait for and return the launched step result
-    StepperResult complete() final;
+    // Wait for the asynchronous step to complete
+    void wait() const final;
+
+    // Wait for and return the asynchronous step result
+    StepperResult get() final;
 
     // Transport existing states
+    [[deprecated("use async() and get()")]]
     StepperResult operator()() final;
 
     // Transport existing states and these new primaries
+    [[deprecated("use async(primaries) and get()")]]
     StepperResult operator()(SpanConstPrimary primaries) final;
 
     // Kill all tracks in flight to debug "stuck" tracks
@@ -247,12 +269,12 @@ class Stepper final : public StepperInterface
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
-    // Preallocated result from the most recently launched step
+    // Preallocated result from the most recently started step
     CounterStorage result_counters_;
     // Completion of device work and the result-counter copy
     DeviceEvent step_done_{nullptr};
-    // Whether a step result is awaiting completion
-    bool step_in_flight_{false};
+    // Whether an asynchronous step result can be retrieved
+    bool has_result_{false};
 };
 
 //---------------------------------------------------------------------------//

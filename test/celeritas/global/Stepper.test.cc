@@ -277,30 +277,41 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
 
-    EXPECT_FALSE(step.in_flight());
+    EXPECT_FALSE(step.valid());
     EXPECT_THROW(step.ready(), RuntimeError);
-    EXPECT_THROW(step.complete(), RuntimeError);
+    EXPECT_THROW(step.wait(), RuntimeError);
+    EXPECT_THROW(step.get(), RuntimeError);
 
     auto expected_result = expected_step(make_span(primaries));
-    auto result = step(make_span(primaries));
+    step.async(make_span(primaries));
+    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.ready());
+    step.wait();
+    EXPECT_TRUE(step.valid());
+    auto result = step.get();
     expect_stepper_eq(expected_result, result);
+    EXPECT_FALSE(step.valid());
 
     expected_result = expected_step();
-    step.launch();
-    EXPECT_TRUE(step.in_flight());
+    step.async();
+    EXPECT_TRUE(step.valid());
     EXPECT_TRUE(step.ready());
-    EXPECT_THROW(step.launch(), RuntimeError);
+    EXPECT_NO_THROW(step.wait());
+    EXPECT_TRUE(step.valid());
+    EXPECT_THROW(step.async(), RuntimeError);
+    EXPECT_THROW(step.async(make_span(primaries)), RuntimeError);
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
     EXPECT_THROW(step.kill_active(), RuntimeError);
     EXPECT_THROW(step(make_span(primaries)), RuntimeError);
 
-    result = step.complete();
+    result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.in_flight());
+    EXPECT_FALSE(step.valid());
     EXPECT_THROW(step.ready(), RuntimeError);
-    EXPECT_THROW(step.complete(), RuntimeError);
+    EXPECT_THROW(step.wait(), RuntimeError);
+    EXPECT_THROW(step.get(), RuntimeError);
 }
 
 TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
@@ -313,19 +324,26 @@ TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
     Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
     auto expected_result = expected_step(make_span(primaries));
-    auto result = step(make_span(primaries));
+    step.async(make_span(primaries));
+    EXPECT_TRUE(step.valid());
+    step.wait();
+    EXPECT_TRUE(step.valid());
+    auto result = step.get();
     expect_stepper_eq(expected_result, result);
+    EXPECT_FALSE(step.valid());
 
     for (int i = 0; i < 2; ++i)
     {
         expected_result = expected_step();
-        step.launch();
-        EXPECT_TRUE(step.in_flight());
+        step.async();
+        EXPECT_TRUE(step.valid());
         EXPECT_NO_THROW(static_cast<void>(step.ready()));
+        step.wait();
+        EXPECT_TRUE(step.valid());
 
-        result = step.complete();
+        result = step.get();
         expect_stepper_eq(expected_result, result);
-        EXPECT_FALSE(step.in_flight());
+        EXPECT_FALSE(step.valid());
     }
 }
 

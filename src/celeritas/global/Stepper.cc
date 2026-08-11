@@ -153,8 +153,8 @@ Stepper<M>::~Stepper()
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot warm up while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot warm up with a valid asynchronous result");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
@@ -167,11 +167,11 @@ void Stepper<M>::warm_up()
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch transport of already-initialized states.
+ * Start asynchronous transport of already-initialized states.
  *
  * A single transport step is simply a loop over a topologically sorted DAG
- * of kernels. The step result must be retrieved with \c complete before
- * another step can be launched. In device mode the result counters are copied
+ * of kernels. The step result must be retrieved with \c get before another
+ * step can be started. In device mode the result counters are copied
  * asynchronously to pinned host memory, followed by a completion event.
  *
  * Existing synchronization within the action sequence can still block this
@@ -179,10 +179,10 @@ void Stepper<M>::warm_up()
  * separately.
  */
 template<MemSpace M>
-void Stepper<M>::launch()
+void Stepper<M>::async()
 {
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot launch while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot start a step with a valid asynchronous result");
 
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
@@ -205,62 +205,18 @@ void Stepper<M>::launch()
     {
         result_counters_.front() = state_->sync_get_counters();
     }
-    step_in_flight_ = true;
+    has_result_ = true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Whether the launched step has completed.
+ * Start asynchronous transport with new primaries.
  */
 template<MemSpace M>
-bool Stepper<M>::ready() const
+void Stepper<M>::async(SpanConstPrimary primaries)
 {
-    CELER_VALIDATE(step_in_flight_,
-                   << "cannot query completion without an in-flight step");
-    return step_done_.ready();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Wait for and return the launched step result.
- *
- * Calling this consumes the pending result and allows another step to be
- * launched.
- */
-template<MemSpace M>
-auto Stepper<M>::complete() -> result_type
-{
-    CELER_VALIDATE(step_in_flight_,
-                   << "cannot complete without an in-flight step");
-
-    step_done_.sync();
-    auto result = make_stepper_result(result_counters_.front());
-    step_in_flight_ = false;
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Transport already-initialized states.
- *
- * This is the synchronous compatibility wrapper for \c launch and \c complete.
- */
-template<MemSpace M>
-auto Stepper<M>::operator()() -> result_type
-{
-    this->launch();
-    return this->complete();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Initialize new primaries and transport them for a single step.
- */
-template<MemSpace M>
-auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
-{
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot transport primaries while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot start a step with a valid asynchronous result");
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
 
@@ -281,7 +237,73 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
 
-    return (*this)();
+    this->async();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the asynchronous step has completed.
+ */
+template<MemSpace M>
+bool Stepper<M>::ready() const
+{
+    CELER_VALIDATE(has_result_,
+                   << "cannot query readiness without a valid result");
+    return step_done_.ready();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for the asynchronous step to complete without consuming its result.
+ */
+template<MemSpace M>
+void Stepper<M>::wait() const
+{
+    CELER_VALIDATE(has_result_, << "cannot wait without a valid result");
+    step_done_.sync();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for and return the asynchronous step result.
+ *
+ * Calling this consumes the pending result and allows another step to be
+ * started.
+ */
+template<MemSpace M>
+auto Stepper<M>::get() -> result_type
+{
+    CELER_VALIDATE(has_result_, << "cannot get without a valid result");
+
+    this->wait();
+    auto result = make_stepper_result(result_counters_.front());
+    has_result_ = false;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport already-initialized states.
+ *
+ * This is the deprecated synchronous compatibility wrapper for \c async and
+ * \c get.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()() -> result_type
+{
+    this->async();
+    return this->get();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize new primaries and transport them for a single step.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
+{
+    this->async(primaries);
+    return this->get();
 }
 
 //---------------------------------------------------------------------------//
@@ -294,8 +316,9 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::kill_active()
 {
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot kill active tracks while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot kill active tracks with a valid asynchronous "
+                      "result");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";
@@ -314,8 +337,8 @@ void Stepper<M>::kill_active()
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot reseed while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot reseed with a valid asynchronous result");
     ScopedProfiling profile_this{"reseed"};
     reseed_rng(get_ref<M>(*params_->rng()),
                state_->ref().rng,
@@ -331,8 +354,8 @@ void Stepper<M>::reseed(UniqueEventId event_id)
 template<MemSpace M>
 void Stepper<M>::reset_state()
 {
-    CELER_VALIDATE(!step_in_flight_,
-                   << "cannot reset state while a step is in flight");
+    CELER_VALIDATE(!has_result_,
+                   << "cannot reset state with a valid asynchronous result");
     state_->reset();
 }
 
