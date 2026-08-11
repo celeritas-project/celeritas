@@ -130,8 +130,8 @@ void PDFullSimCeler::produce(art::Event& e)
     auto result = (*runner_)(*edep_handle);
 
     // Add to event
-    using VecBTR = LarStandaloneRunner::VecBTR;
-    e.put(std::make_unique<VecBTR>(std::move(result.btr)));
+    using LSR = LarStandaloneRunner;
+    e.put(std::make_unique<LSR::VecBTR>(std::move(result.backtrack)));
 }
 
 //---------------------------------------------------------------------------//

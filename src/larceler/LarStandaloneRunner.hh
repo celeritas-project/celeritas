@@ -8,6 +8,8 @@
 
 #include <memory>
 #include <vector>
+#include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
+#include <lardataobj/Simulation/SimPhotons.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
@@ -17,7 +19,6 @@
 namespace sim
 {
 class SimEnergyDeposit;
-class OpDetBacktrackerRecord;
 class OBTRHelper;
 }  // namespace sim
 
@@ -37,23 +38,33 @@ class Runner;
  * Setup and run a standalone optical simulation.
  *
  * This class manages the interface between LArSoft data objects and Celeritas.
- * It is separated from the PDFullSimCeler plugin to allow testing
+ * It is separated from the \c PDFullSimCeler plugin to allow testing
  * and extension to future plugin frameworks (e.g., Phlex).
  * Instantiating the class sets up Celeritas shared and state objects using an
  * input configuration, and each call take a set of energy deposition steps and
  * returns a vector of detector hits.
  *
- * The implementation of this class will set up a standalone celeritas optical
- * simulation using internal Celeritas code to extra hits and "backtracker"
- * data. Conversion between Celeritas objects and the LArSoft data model
+ * The implementation of this class sets up a standalone Celeritas optical
+ * simulation using internal code to extract hits and "backtracker"
+ * metadata. Conversion between Celeritas objects and the LArSoft data model
  * happens in this class inside the "call" operator.
  *
  * Since LArSoft is single-threaded, this runner uses only a single "stream".
  * We can in theory enable OpenMP to support parallelism across multiple CPUs
- * in a single-process execution.
+ * in a single-process execution. The class is also \em stateful because it
+ * stores the backtracker record helpers and particle metadata.
+
+ * Requirements for PDFastSimPar run:
+ * - IncludePropTime: true
+ * - UseLitePhotons: true
+ * - GeoPropTimeOnly: false
+ * Differences:
+ * - Reflected and unreflected light are combined
+ * TODO:
+ * - OnlyActiveVolume: check ISTPC::isScintInActiveVolume
  *
  * \par Construction
- * See \c celeritas::inp::LarStandaloneRunner .
+ * See \c celeritas::inp::OpticalStandaloneInput .
  */
 class LarStandaloneRunner
 {
@@ -62,6 +73,7 @@ class LarStandaloneRunner
     //! \name Type aliases
     using VecSED = std::vector<sim::SimEnergyDeposit>;
     using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
+    using VecSPL = std::vector<sim::SimPhotonsLite>;
     using Input = inp::OpticalStandaloneInput;
     using VecReal3 = std::vector<Real3>;
     //!@}
@@ -69,7 +81,7 @@ class LarStandaloneRunner
     //! Calculated output from an event
     struct result_type
     {
-        VecBTR btr;
+        VecBTR backtrack;
     };
 
   public:
@@ -82,14 +94,42 @@ class LarStandaloneRunner
     result_type operator()(VecSED const& edep);
 
   private:
+    //// TYPES ////
     using SpanCelerHits = Span<optical::DetectorHit const>;
+    using MapIntInt = std::unordered_map<int, int>;
+
+    struct StepMetadata
+    {
+        //! Unique LArG4 track ID
+        //! see ParticleListActionService::preUserTrackingAction
+        int track_id = sim::NoParticleId;
+        //! Energy deposit per emitted photon
+        double avg_edep{};
+        //! Midpoint of step (nativeLArSoft units)
+        Array<double, 3> midpoint{};
+    };
+
+    //// DATA ////
+
+    //!@{
+    //! \name Problem setup
 
     std::shared_ptr<optical::Runner> runner_;
     // Celeritas volume instance ID for each LArSoft detector channel
-    std::vector<VolumeInstanceId> channel_to_geo_;
+    std::unordered_map<VolumeInstanceId, unsigned int> geo_to_channel_;
+
+    //!@}
+    //!@{
+    //! \name Temporary state
+
+    // Energy deposits
+    std::vector<StepMetadata> step_md_;
     // Hit recorders for each celeritas volume instance ID
-    std::unordered_map<VolumeInstanceId, std::unique_ptr<sim::OBTRHelper>>
-        btr_helpers_;
+    std::vector<std::unique_ptr<sim::OBTRHelper>> btr_helpers_;
+
+    //!@}
+
+    //// HELPERS ////
 
     void hit(SpanCelerHits);
 };
