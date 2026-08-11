@@ -10,6 +10,7 @@
 #include <vector>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimPhotons.h>
+#include <lardataobj/Simulation/sim.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
@@ -82,6 +83,7 @@ class LarStandaloneRunner
     struct result_type
     {
         VecBTR backtrack;
+        VecSPL sim_photons;
     };
 
   public:
@@ -126,6 +128,8 @@ class LarStandaloneRunner
     std::vector<StepMetadata> step_md_;
     // Hit recorders for each celeritas volume instance ID
     std::vector<std::unique_ptr<sim::OBTRHelper>> btr_helpers_;
+    //! Photon hit count, by detector and rounded ns
+    std::vector<MapIntInt> lite_hits_;
 
     //!@}
 

@@ -13,6 +13,7 @@
 #include <larcorealg/Geometry/OpDetGeo.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
+#include <lardataobj/Simulation/SimPhotons.h>
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
@@ -79,8 +80,9 @@ PDFullSimCeler::PDFullSimCeler(Parameters const& config)
     , runner_inp_{make_input_from_config(config())}
     , sim_tag_{config().SimulationLabel()}
 {
-    // Inform LArSoft we're going to make OpBTR
+    // Inform LArSoft we're going to make OpBTR and SimPhotons
     produces<std::vector<sim::OpDetBacktrackerRecord>>();
+    produces<std::vector<sim::SimPhotonsLite>>();
 }
 
 //---------------------------------------------------------------------------//
@@ -132,6 +134,7 @@ void PDFullSimCeler::produce(art::Event& e)
     // Add to event
     using LSR = LarStandaloneRunner;
     e.put(std::make_unique<LSR::VecBTR>(std::move(result.backtrack)));
+    e.put(std::make_unique<LSR::VecSPL>(std::move(result.sim_photons)));
 }
 
 //---------------------------------------------------------------------------//
