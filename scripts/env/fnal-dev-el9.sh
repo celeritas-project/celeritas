@@ -15,6 +15,34 @@ if [ -z "${SCRATCHDIR}" ]; then
 fi
 
 #-----------------------------------------------------------------------------#
+# Helper function to set up LArSoft with Celeritas
+_setup_celer_larsoft() {
+  # BEGIN_DOC_LARENV
+  # Load spack
+  if command -v spack >/dev/null 2>&1; then
+    celerlog debug "Loading spack commands"
+    source "${SPACK_ROOT}/share/spack/setup-env.sh"
+  fi
+  # Source DUNESW environment
+  if [ -z "${SPACK_ENV}" ]; then
+    celerlog debug "Activating spack environment"
+    spack env activate "${CELER_SPACK_ENV}"
+  fi
+  # Load celeritas plugin
+  if [ -z "${CELERITAS_DIR}" ]; then
+    celerlog warning "Celeritas not loaded"
+    celerlog info "Run: eval \$(\${CELERITAS_DIR}/bin/larceler-env)"
+  fi
+  # Set up local FHICL/GDML paths
+  if ! printf '%s\n' "${FW_SEARCH_PATH}" | grep -Eq '(^|:)[.](:|$)'; then
+    export FW_SEARCH_PATH=".:${FW_SEARCH_PATH}"
+    export FHICL_FILE_PATH=".:./job:${FHICL_FILE_PATH}"
+  fi
+  # END_DOC_LARENV
+}
+alias setup-celer-larsoft=_setup_celer_larsoft
+
+#-----------------------------------------------------------------------------#
 # Set up environment
 
 if [ -n "${APPTAINER_CONTAINER}" ]; then

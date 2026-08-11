@@ -493,6 +493,9 @@ the Spack environment and then load the Celeritas environment variables::
    $ spack env activate ${CELER_SPACK_ENV}
    $ eval $(install/bin/larceler-env)
 
+Most jobs may also require manually setting the environment variables
+``FW_SEARCH_PATH`` and ``FHICL_FILE_PATH`` to search the current working directory.
+
 .. _build_ups:
 
 UPS
