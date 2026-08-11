@@ -92,6 +92,9 @@ struct StepperResult
  * call operators preserve synchronous behavior by calling \c async followed
  * by \c get.
  *
+ * Before destroying a device Stepper, the caller must ensure that any valid
+ * asynchronous operation has completed by calling \c wait or \c get.
+ *
  * \note This class and its daughter may be removed soon to facilitate step
  * gathering.
  */

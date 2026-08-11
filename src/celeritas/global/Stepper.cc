@@ -113,32 +113,9 @@ Stepper<M>::Stepper(Input input)
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Synchronize outstanding device work before releasing its state.
- */
+//! Default destructor
 template<MemSpace M>
-Stepper<M>::~Stepper()
-{
-    if constexpr (M == MemSpace::device)
-    {
-        try
-        {
-            // Include work that may follow the step-completion event
-            celeritas::device().stream(state_->stream_id()).sync();
-        }
-        catch (RuntimeError const& e)
-        {
-            CELER_LOG_LOCAL(error)
-                << "Failed to synchronize Stepper during destruction: "
-                << e.what();
-        }
-        catch (...)
-        {
-            CELER_LOG_LOCAL(error)
-                << "Failed to synchronize Stepper during destruction";
-        }
-    }
-}
+Stepper<M>::~Stepper() = default;
 
 //---------------------------------------------------------------------------//
 /*!
