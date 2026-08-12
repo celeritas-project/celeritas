@@ -189,6 +189,38 @@ class StepperInterface
        }
    }
    \endcode
+ *
+ * \internal
+ *
+ * \par Asynchronous state
+ *
+ * The \c valid_ flag tracks whether a result can be consumed, whereas
+ * \c step_done_ tracks completion of device work. Their states after successful
+ * calls are:
+ *
+ * | Lifecycle point | \c valid_ | CPU \c step_done_ | GPU \c step_done_ |
+ * | --------------- | -------------- | ------------------ | ------------------ |
+ * | Construction or after \c get | false | Null | Allocated and ready |
+ * | After \c async | true | Null and ready | Recorded; pending or ready |
+ * | After \c ready returns false | true | Not possible | Recorded and pending |
+ * | After \c ready is true or \c wait | true | Null/ready | Recorded/ready |
+ *
+ * A host step executes synchronously, so its null event is always ready. A
+ * device event is allocated once and re-recorded after each counter snapshot.
+ * Calling \c get first waits for completion and then clears \c valid_;
+ * it does not reset or replace the event.
+ *
+ * The expected state transitions are
+ * \code
+ *   no result -- async([primaries]) --> valid result
+ *   valid result -- ready() or wait() --> valid result
+ *   valid result -- get() --> no result
+ * \endcode
+ * Calling \c ready or \c wait repeatedly with a valid result is allowed. The
+ * next \c async call is allowed only after \c get consumes the previous result.
+ * While a result is valid, calls to \c warm_up, \c reset_state, \c reseed, and
+ * \c kill_active are rejected. The synchronous call operators perform \c async
+ * followed immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface
