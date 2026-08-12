@@ -134,12 +134,10 @@ class StepperInterface
     // Wait for and return the asynchronous step result
     virtual StepperResult get() = 0;
 
-    // Transport existing states
-    [[deprecated("use async() and get()")]]
+    //! \deprecated Transport existing states
     virtual StepperResult operator()() = 0;
 
-    // Transport existing states and these new primaries
-    [[deprecated("use async(primaries) and get()")]]
+    //! \deprecated Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
     // Kill all tracks in flight to debug "stuck" tracks
@@ -218,7 +216,7 @@ class Stepper final : public StepperInterface
     void async(SpanConstPrimary primaries) final;
 
     //! Whether an asynchronous step result can be retrieved
-    bool valid() const noexcept final { return has_result_; }
+    bool valid() const noexcept final { return valid_; }
 
     // Whether the asynchronous step has completed
     bool ready() const final;
@@ -230,11 +228,9 @@ class Stepper final : public StepperInterface
     StepperResult get() final;
 
     // Transport existing states
-    [[deprecated("use async() and get()")]]
     StepperResult operator()() final;
 
     // Transport existing states and these new primaries
-    [[deprecated("use async(primaries) and get()")]]
     StepperResult operator()(SpanConstPrimary primaries) final;
 
     // Kill all tracks in flight to debug "stuck" tracks
@@ -277,7 +273,7 @@ class Stepper final : public StepperInterface
     // Completion of device work and the result-counter copy
     DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
-    bool has_result_{false};
+    bool valid_{false};
 };
 
 //---------------------------------------------------------------------------//
