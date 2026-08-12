@@ -90,6 +90,9 @@ class Alg1010Solver
     //! Construct with default tolerance equal to ORANGE tolerance.
     inline CELER_FUNCTION Alg1010Solver() : Alg1010Solver{default_tol_} {}
 
+    // Base solver, including complex and negative roots
+    inline CELER_FUNCTION Comp4 unfiltered_roots(Real5 const& abcde) const;
+
     // Solver for fully general case
     inline CELER_FUNCTION result_type operator()(Real5 const& abcde) const;
 
@@ -503,8 +506,8 @@ CELER_FUNCTION void Alg1010Solver::solve_quadratic(
     }
 }
 
-CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
-    -> result_type
+CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
+    -> Comp4
 {
     cmplx_type acx, bcx, ccx, dcx;
     Array<real_type, 12> l2m, d2m, res;
@@ -813,12 +816,20 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
         for (int k = 0; k < 4; k++)
             roots[k] *= rfact;
     }
+    return roots;
+}
+
+CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
+    -> result_type
+{
+    Comp4 raw_roots = this->unfiltered_roots(coeff);
+
     result_type real_roots{
         no_solution_, no_solution_, no_solution_, no_solution_};
     int ri = 0;
     for (int i : range(4))
     {
-        cmplx_type new_root = roots[i];
+        cmplx_type new_root = raw_roots[i];
 
         if (soft_zero_(new_root.imag) && new_root.real != no_solution_
             && new_root.real > 0 && !soft_zero_(new_root.real))
