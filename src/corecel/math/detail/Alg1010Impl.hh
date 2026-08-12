@@ -97,7 +97,7 @@ struct Complex
     inline CELER_FUNCTION Complex operator*(Complex const& other) const
     {
         real_type r1 = this->real, i1 = this->imag, r2 = other.real,
-                  i2 = other.real;
+                  i2 = other.imag;
         return Complex{r1 * r2 - i1 * i2, i1 * r2 + r1 * i2};
     }
 
