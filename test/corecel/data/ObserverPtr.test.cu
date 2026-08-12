@@ -25,9 +25,8 @@ namespace
 // KERNELS
 //---------------------------------------------------------------------------//
 
-__global__ void copy_test_kernel(ObserverPtr<int const> in,
-                                 ObserverPtr<int> out,
-                                 size_type size)
+__global__ void copy_test_kernel(
+    ObserverPtr<int const> in, ObserverPtr<int> out, size_type size)
 {
     auto thread_idx = KernelParamCalculator::thread_id().unchecked_get();
     if (thread_idx >= size)

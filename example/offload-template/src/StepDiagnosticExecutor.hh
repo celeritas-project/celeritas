@@ -28,16 +28,16 @@ struct StepDiagnosticExecutor
     // Same here but non-const (state data can change)
     NativeRef<StepStateData> const state;
 
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Collect statistics about the current step.
  */
-CELER_FUNCTION void
-StepDiagnosticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void StepDiagnosticExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(state);
 

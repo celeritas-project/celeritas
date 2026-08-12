@@ -211,8 +211,7 @@ TEST_F(CherenkovWaterTest, dndx)
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -345,9 +344,8 @@ TEST_F(CherenkovWaterTest, generator)
 
         // Displacement distribution binning
         int num_bins = 16;
-        auto ri_grid = material->get(material_id)
-                           .make_refractive_index_calculator()
-                           .grid();
+        auto ri_grid
+            = material->get(material_id).make_refractive_index_calculator().grid();
 
         Histogram costheta_hist(num_bins, {-1, 1});
         Histogram energy_hist(num_bins, {ri_grid.front(), ri_grid.back()});
@@ -607,8 +605,7 @@ TEST_F(CherenkovAirTest, dndx)
     for (real_type beta : betas)
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

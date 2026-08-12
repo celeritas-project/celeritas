@@ -233,8 +233,14 @@ TEST_F(SolidConverterTest, cons)
         R"json({"_type":"solid","enclosed_azi":{"stop":0.8611111111111125,"start":0.027777777777777308},"excluded":{"_type":"cone","halfheight":0.1,"radii":[2.0,6.0]},"interior":{"_type":"cone","halfheight":0.1,"radii":[8.0,14.0]},"label":"test10"})json");
 
     this->build_and_test(
-        G4Cons(
-            "aCone", 2 * cm, 6 * cm, 8 * cm, 14 * cm, 10 * cm, 10 * deg, 300 * deg),
+        G4Cons("aCone",
+               2 * cm,
+               6 * cm,
+               8 * cm,
+               14 * cm,
+               10 * cm,
+               10 * deg,
+               300 * deg),
         R"json({"_type":"solid","enclosed_azi":{"stop":0.8611111111111112,"start":0.027777777777777776},"excluded":{"_type":"cone","halfheight":10.0,"radii":[2.0,8.0]},"interior":{"_type":"cone","halfheight":10.0,"radii":[6.0,14.0]},"label":"aCone"})json");
 }
 
@@ -260,8 +266,9 @@ TEST_F(SolidConverterTest, cuttubs)
                   15.5 * mm,
                   87.03229 * deg,
                   7.90680999999999 * deg,
-                  G4ThreeVector(
-                      0.48599950039277, 0.00835999140593325, -0.873919101611625),
+                  G4ThreeVector(0.48599950039277,
+                                0.00835999140593325,
+                                -0.873919101611625),
                   G4ThreeVector(0, 0, 1)),
         R"json({"_type":"solid","enclosed_azi":{"start":0.24175636111111112,"stop":0.2637197222222222},"excluded":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.485,"top_normal":[0.0,0.0,1.0]},"interior":{"_type":"cutcylinder","bottom_normal":[0.48599950039277023,0.008359991405933253,-0.8739191016116253],"halfheight":1.55,"radius":11.735,"top_normal":[0.0,0.0,1.0]},"label":"pixfwdInnerDiskZplus_PixelForwardInnerDiskOuterRing_seg_10x7f7110ba4900"})json");
 }
@@ -891,8 +898,14 @@ TEST_F(SolidConverterTest, polyhedra)
 
         // Flat-top hexagon
         this->build_and_test(
-            G4Polyhedra(
-                "HGCalEEAbs", 330 * deg, 360 * deg, 6, std::size(z), z, rmin, rmax),
+            G4Polyhedra("HGCalEEAbs",
+                        330 * deg,
+                        360 * deg,
+                        6,
+                        std::size(z),
+                        z,
+                        rmin,
+                        rmax),
             R"json({"_type":"shape","interior":{"_type":"extrudedpolygon","bot_line_segment_point":[0.0,0.0,-0.06],"bot_scaling_factor":7.141822829875671,"polygon":[[0.8660254037844385,-0.5000000000000001],[0.8660254037844389,0.49999999999999956],[0.0,1.0],[-0.8660254037844382,0.5000000000000008],[-0.8660254037844389,-0.49999999999999956],[0.0,-1.0]],"top_line_segment_point":[0.0,0.0,0.06],"top_scaling_factor":7.141822829875671},"label":"HGCalEEAbs"})json",
             {{6.18, 6.18, 0.05},
              {0, 0, 0.06},
@@ -1141,10 +1154,9 @@ TEST_F(SolidConverterTest, tet)
 
 TEST_F(SolidConverterTest, torus)
 {
-    G4Torus torus("testTorus", 0 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
+    G4Torus torus("testTorus", 10 * cm, 20 * cm, 50 * cm, 0 * deg, 270 * deg);
     auto json_str
-        = R"json({"_type":"solid","enclosed_azi":{"stop":0.75,"start":0.0},"excluded":{"_type":"cylinder","halfheight":20.0,"radius":30.0},"interior":{"_type":"cylinder","halfheight":20.0,"radius":70.0},"label":"testTorus"})json";
-
+        = R"json({"_type":"solid","enclosed_azi":{"stop":0.75,"start":0.0},"excluded":{"_type":"torus","minor_radius":10.0,"major_radius":50.0},"interior":{"_type":"torus","minor_radius":20.0,"major_radius":50.0},"label":"testTorus"})json";
     SolidConverter convert{scale_, transform_};
     auto obj = convert(torus);
     CELER_ASSERT(obj);
@@ -1262,7 +1274,8 @@ TEST_F(SolidConverterTest, trd)
 
     // From ATLAS LAr calo model: degenerate lower face
     this->build_and_test(
-        G4Trd("LAr::DM::TBox", 0.5 * 89, 0.5 * 89, 0, 0.5 * 429.44, 0.5 * 188.4),
+        G4Trd(
+            "LAr::DM::TBox", 0.5 * 89, 0.5 * 89, 0, 0.5 * 429.44, 0.5 * 188.4),
         R"json({"_type":"shape","interior":{"_type":"genprism","halfheight":9.42,"lower":[[4.45,-0.0],[4.45,0.0],[-4.45,0.0],[-4.45,-0.0]],"upper":[[4.45,-21.472],[4.45,21.472],[-4.45,21.472],[-4.45,-21.472]]},"label":"LAr::DM::TBox"})json",
         {
             {4.45, 0.0, -9.41},

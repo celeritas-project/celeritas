@@ -29,8 +29,8 @@ struct DiscreteSelectExecutor
 /*!
  * Select a physics process before undergoing a collision.
  */
-CELER_FUNCTION void
-DiscreteSelectExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void DiscreteSelectExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(track.sim().status() == TrackStatus::alive);
     CELER_EXPECT(track.sim().post_step_action()

@@ -94,8 +94,8 @@ struct FieldDriverOptions
 
 //---------------------------------------------------------------------------//
 //! Equality operator
-constexpr bool
-operator==(FieldDriverOptions const& a, FieldDriverOptions const& b)
+constexpr bool operator==(FieldDriverOptions const& a,
+                          FieldDriverOptions const& b)
 {
     // clang-format off
     return a.minimum_step == b.minimum_step

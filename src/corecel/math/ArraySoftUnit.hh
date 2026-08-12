@@ -111,8 +111,8 @@ CELER_CONSTEXPR_FUNCTION ArraySoftUnit<T>::ArraySoftUnit()
  */
 template<class T>
 template<std::size_t N>
-CELER_CONSTEXPR_FUNCTION bool
-ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
+CELER_CONSTEXPR_FUNCTION bool ArraySoftUnit<T>::operator()(
+    Array<T, N> const& arr) const
 {
     using namespace celeritas::literals;
 

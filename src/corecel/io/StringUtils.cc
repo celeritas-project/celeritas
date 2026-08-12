@@ -90,10 +90,10 @@ bool cstring_equal(char const* lhs, char const* rhs)
 [[nodiscard]] std::string tolower(std::string_view input)
 {
     std::string result(input.size(), ' ');
-    std::transform(
-        input.begin(), input.end(), result.begin(), [](unsigned char c) {
-            return std::tolower(c);
-        });
+    std::transform(input.begin(),
+                   input.end(),
+                   result.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
     return result;
 }
 

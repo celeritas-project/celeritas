@@ -151,8 +151,7 @@ int main(int argc, char* argv[])
 
     cli.add_flag("--dump-default", dump_default, "Dump default options");
     cli.add_flag("--gen-test", gen_test, "Generate test data");
-    cli.add_option("gdml", gdml_filename, "Input GDML file")
-        ->check(CLI::ExistingFile);
+    cli.add_option("gdml", gdml_filename, "Input GDML file")->check(CLI::ExistingFile);
     cli.add_option("physopt", opts_filename, "Geant physics options JSON")
         ->check(CLI::ExistingFile | dash_validator()
                 | empty_string_validator());

@@ -38,13 +38,13 @@ class MuPairProductionInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    MuPairProductionInteractor(NativeCRef<MuPairProductionData> const& shared,
-                               ParticleTrackView const& particle,
-                               CutoffView const& cutoffs,
-                               ElementView const& element,
-                               Real3 const& inc_direction,
-                               StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION MuPairProductionInteractor(
+        NativeCRef<MuPairProductionData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        ElementView const& element,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -163,8 +163,8 @@ CELER_FUNCTION Interaction MuPairProductionInteractor::operator()(Engine& rng)
 /*!
  * Calculate the secondary particle momentum from the sampled energy.
  */
-CELER_FUNCTION real_type
-MuPairProductionInteractor::calc_momentum(Energy energy) const
+CELER_FUNCTION real_type MuPairProductionInteractor::calc_momentum(
+    Energy energy) const
 {
     return std::sqrt(ipow<2>(value_as<Energy>(energy))
                      + 2 * value_as<Mass>(shared_.electron_mass)

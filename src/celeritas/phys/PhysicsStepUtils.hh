@@ -45,12 +45,12 @@ namespace celeritas
  * interaction
  */
 template<class Engine>
-inline CELER_FUNCTION ParticleProcessId
-find_ppid(MaterialView const& material,
-          ParticleTrackView const& particle,
-          PhysicsTrackView const& physics,
-          PhysicsStepView& pstep,
-          Engine& rng)
+inline CELER_FUNCTION ParticleProcessId find_ppid(
+    MaterialView const& material,
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    PhysicsStepView& pstep,
+    Engine& rng)
 {
     if (physics.at_rest_process() && particle.is_stopped())
     {
@@ -101,11 +101,11 @@ find_ppid(MaterialView const& material,
  * step, we can reuse the previously calculated cross section (but may not want
  * to if it's expensive).
  */
-inline CELER_FUNCTION StepLimit
-calc_physics_step_limit(MaterialTrackView const& material,
-                        ParticleTrackView const& particle,
-                        PhysicsTrackView& physics,
-                        PhysicsStepView& pstep)
+inline CELER_FUNCTION StepLimit calc_physics_step_limit(
+    MaterialTrackView const& material,
+    ParticleTrackView const& particle,
+    PhysicsTrackView& physics,
+    PhysicsStepView& pstep)
 {
     CELER_EXPECT(physics.has_interaction_mfp());
 
@@ -184,7 +184,7 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * Calculate mean energy loss over the given "true" step length.
  *
  * Stopping power is an integral over low-exiting-energy
- * secondaries. Above some threshold energy \em T_c we treat exiting
+ * secondaries. Above some threshold energy \f$ T_c \f$ we treat exiting
  * secondaries discretely; below it, we lump them into this continuous loss
  * term that varies based on the energy, the atomic number density, and the
  * element number:
@@ -215,10 +215,10 @@ calc_physics_step_limit(MaterialTrackView const& material,
  * - The Urban model is selected and samples zero collisions (possible in thin
  *   materials and/or small steps)
  */
-inline CELER_FUNCTION ParticleTrackView::Energy
-calc_mean_energy_loss(ParticleTrackView const& particle,
-                      PhysicsTrackView const& physics,
-                      real_type step)
+inline CELER_FUNCTION ParticleTrackView::Energy calc_mean_energy_loss(
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    real_type step)
 {
     CELER_EXPECT(step > 0);
     using Energy = ParticleTrackView::Energy;
@@ -288,12 +288,12 @@ calc_mean_energy_loss(ParticleTrackView const& particle,
  *   distribution (section 7.4 of the Geant4 Physics Reference release 10.6).
  */
 template<class Engine>
-CELER_FUNCTION ActionId
-select_discrete_interaction(MaterialView const& material,
-                            ParticleTrackView const& particle,
-                            PhysicsTrackView const& physics,
-                            PhysicsStepView& pstep,
-                            Engine& rng)
+CELER_FUNCTION ActionId select_discrete_interaction(
+    MaterialView const& material,
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    PhysicsStepView& pstep,
+    Engine& rng)
 {
     // Nonzero MFP to interaction -- no interaction model
     CELER_EXPECT(physics.interaction_mfp() <= 0);

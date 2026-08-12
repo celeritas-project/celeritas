@@ -30,9 +30,8 @@ void ScintillationOffload::PreparePhysicsTable(
     if (this->GetStackPhotons())
     {
         CELER_LOG(warning)
-            << "ScintillationOffload requires stacking photons set "
-               "to false since it sends optical photon tracks "
-               "directly to Celeritas.";
+            << "ScintillationOffload requires stacking photons set to false "
+               "since it sends optical photon tracks directly to Celeritas.";
         this->SetStackPhotons(false);
     }
 }
@@ -46,8 +45,8 @@ void ScintillationOffload::PreparePhysicsTable(
  * creates a \c GeneratorDistributionData and pushes it to the local offload,
  * which should be \c LocalOpticalGenOffload.
  */
-G4VParticleChange*
-ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
+G4VParticleChange* ScintillationOffload::PostStepDoIt(G4Track const& aTrack,
+                                                      G4Step const& aStep)
 {
     CELER_EXPECT(!this->GetStackPhotons());
 
@@ -64,9 +63,9 @@ ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
         auto& local = detail::IntegrationSingleton::instance().local_offload();
         auto* gen_offload = dynamic_cast<LocalOpticalGenOffload*>(&local);
 
-        CELER_VALIDATE(gen_offload,
-                       << "LocalOpticalGenOffload required for "
-                          "ScintillationOffload");
+        CELER_VALIDATE(
+            gen_offload,
+            << "LocalOpticalGenOffload required for ScintillationOffload");
 
         CELER_LOG_LOCAL(debug)
             << "Offloading " << data.num_photons << " scintillation photons";
@@ -85,8 +84,8 @@ ScintillationOffload::PostStepDoIt(G4Track const& aTrack, G4Step const& aStep)
  * method, this override defers to \c ScintillationOffload::PostStepDoIt
  * instead.
  */
-G4VParticleChange*
-ScintillationOffload::AtRestDoIt(G4Track const& aTrack, G4Step const& aStep)
+G4VParticleChange* ScintillationOffload::AtRestDoIt(G4Track const& aTrack,
+                                                    G4Step const& aStep)
 {
     return this->PostStepDoIt(aTrack, aStep);
 }

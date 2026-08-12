@@ -20,11 +20,11 @@ constexpr char to_pm(Sense s)
     return s == Sense::inside ? 'p' : 'm';
 }
 
-#define ORANGE_INSTANTIATE_OP(IN)                                        \
+#define ORANGE_INSTANTIATE_OP(IN) \
     template std::string FaceNamer::Impl::operator()(IN<Axis::x> const&) \
-        const;                                                           \
+        const; \
     template std::string FaceNamer::Impl::operator()(IN<Axis::y> const&) \
-        const;                                                           \
+        const; \
     template std::string FaceNamer::Impl::operator()(IN<Axis::z> const&) const
 
 //---------------------------------------------------------------------------//
@@ -157,6 +157,15 @@ std::string FaceNamer::Impl::operator()(GeneralQuadric const&) const
         result += std::to_string(gqid);
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a name for a toroid.
+ */
+std::string FaceNamer::Impl::operator()(Toroid const&) const
+{
+    return "tor";
 }
 
 //---------------------------------------------------------------------------//

@@ -113,8 +113,8 @@ ImportProcessClass to_import_process_class(G4VProcess const& process)
 /*!
  * Initialize a process result.
  */
-ImportProcess
-init_process(G4ParticleDefinition const& particle, G4VProcess const& process)
+ImportProcess init_process(G4ParticleDefinition const& particle,
+                           G4VProcess const& process)
 {
     CELER_LOG(debug) << "Loading process '" << process.GetProcessName()
                      << "' for particle " << particle.GetParticleName() << " ("
@@ -228,9 +228,8 @@ GeantProcessImporter::GeantProcessImporter(
  * Cross sections are calculated in G4EmModelManager::FillLambdaVector by
  * calling G4VEmModel::CrossSection .
  */
-ImportProcess
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VEmProcess const& process)
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VEmProcess const& process)
 {
     auto result = init_process(particle, process);
     result.secondary_pdg = get_secondary_pdg(process);
@@ -272,9 +271,8 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
  * - IonisationTableForSubsec()
  * - SubLambdaTable()
  */
-ImportProcess
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VEnergyLossProcess const& process)
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VEnergyLossProcess const& process)
 {
     auto result = init_process(particle, process);
     result.secondary_pdg = get_secondary_pdg(process);
@@ -326,9 +324,8 @@ GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
  * They're calculated in G4LossTableBuilder::BuildTableForModel which calls
  * G4VEmModel::Value.
  */
-std::vector<ImportMscModel>
-GeantProcessImporter::operator()(G4ParticleDefinition const& particle,
-                                 G4VMultipleScattering const& process)
+std::vector<ImportMscModel> GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4VMultipleScattering const& process)
 {
     std::vector<ImportMscModel> result;
     int primary_pdg = particle.GetPDGEncoding();
@@ -410,8 +407,8 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
 /*!
  * Import a generic physics vector with the given x, y units.
  */
-inp::Grid
-import_physics_vector(G4PhysicsVector const& pv, Array<ImportUnits, 2> units)
+inp::Grid import_physics_vector(G4PhysicsVector const& pv,
+                                Array<ImportUnits, 2> units)
 {
     // Convert units
     double const x_scaling = native_value_from_clhep(units[0]);

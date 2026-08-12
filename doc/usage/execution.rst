@@ -7,15 +7,15 @@
 Execution
 *********
 
-Celeritas has two applications for standalone execution, and a few additional
+Celeritas has three applications for standalone execution, and a few additional
 utilities. The environment variables described here are applicable to *all*
 uses of Celeritas, including as a library and when unit testing.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Execution
 
    execution/applications.rst
+   execution/json-input.rst
    execution/plugins.rst
    execution/utilities.rst
    execution/environment.rst

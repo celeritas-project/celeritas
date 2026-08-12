@@ -149,7 +149,8 @@ void OpticalMockTestBase::build_import_data(ImportData& data) const
     data.units = units::NativeTraits::label();
     auto& bulk = data.optical_physics.bulk;
 
-    auto mat_props = [&data](std::size_t opt_mat_idx) -> ImportOpticalProperty& {
+    auto mat_props
+        = [&data](std::size_t opt_mat_idx) -> ImportOpticalProperty& {
         if (opt_mat_idx >= data.optical_materials.size())
             data.optical_materials.resize(opt_mat_idx + 1);
         return data.optical_materials[opt_mat_idx].properties;

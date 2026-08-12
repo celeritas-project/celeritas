@@ -7,6 +7,7 @@
 #include "AuxStateVec.hh"
 
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 
 #include "AuxParamsRegistry.hh"
 
@@ -16,15 +17,17 @@ namespace celeritas
 /*!
  * Create from params on a device/host stream.
  */
-AuxStateVec::AuxStateVec(AuxParamsRegistry const& registry,
-                         MemSpace m,
-                         StreamId sid,
-                         size_type size)
+AuxStateVec::AuxStateVec(
+    AuxParamsRegistry const& registry, MemSpace m, StreamId sid, size_type size)
 {
     CELER_EXPECT(m == MemSpace::host || m == MemSpace::device);
     CELER_EXPECT(sid);
     CELER_EXPECT(size > 0);
 
+    CELER_LOG_LOCAL(debug) << "Allocating " << registry.size()
+                           << " aux state classes for " << to_cstring(m)
+                           << " on stream " << sid << " with state size "
+                           << size;
     states_.reserve(registry.size());
 
     for (auto auxid : range(AuxId{registry.size()}))

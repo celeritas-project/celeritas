@@ -118,9 +118,8 @@ void ElectroNuclearModel::step(CoreParams const&, CoreStateDevice&) const
  * calculations used in G4ElectroNuclearCrossSection, which can be made
  * configurable if needed (TODO).
  */
-inp::Grid ElectroNuclearModel::calc_micro_xs(AtomicNumber z,
-                                             double emin,
-                                             double emax) const
+inp::Grid ElectroNuclearModel::calc_micro_xs(
+    AtomicNumber z, double emin, double emax) const
 {
     CELER_EXPECT(z);
 

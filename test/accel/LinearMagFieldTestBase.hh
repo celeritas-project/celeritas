@@ -115,8 +115,8 @@ class LinearMagFieldTestBase : public ::celeritas::test::Test
     }
 
     template<class T>
-    void
-    check_field(G4MagneticField const& actual, Dbl3 const& pos, T cmp) const
+    void check_field(
+        G4MagneticField const& actual, Dbl3 const& pos, T cmp) const
     {
         EXPECT_VEC_NEAR(
             calc_field(this->g4field(), pos), calc_field(actual, pos), cmp)

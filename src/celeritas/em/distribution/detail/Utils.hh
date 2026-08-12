@@ -27,9 +27,8 @@ namespace detail
  * where \f$ m_e \f$ is the electron mass and \f$ M \f$ is the mass of the
  * incident particle.
  */
-inline CELER_FUNCTION units::MevEnergy
-calc_max_secondary_energy(ParticleTrackView const& particle,
-                          units::MevMass electron_mass)
+inline CELER_FUNCTION units::MevEnergy calc_max_secondary_energy(
+    ParticleTrackView const& particle, units::MevMass electron_mass)
 {
     real_type inc_mass = value_as<units::MevMass>(particle.mass());
     real_type mass_ratio = value_as<units::MevMass>(electron_mass) / inc_mass;

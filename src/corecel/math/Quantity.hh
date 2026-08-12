@@ -146,23 +146,23 @@ class Quantity
 
     //// INLINE COMPARATOR FRIENDS ////
 
-#define CELER_DEFINE_QUANTITY_CMP(TOKEN)                           \
-    template<class T2>                                             \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept            \
-    {                                                              \
-        return lhs.value() TOKEN rhs.value();                      \
-    }                                                              \
-    template<detail::QConstant QC>                                 \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        Quantity lhs, detail::UnitlessQuantity<QC>) noexcept       \
-    {                                                              \
+#define CELER_DEFINE_QUANTITY_CMP(TOKEN) \
+    template<class T2> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
+    } \
+    template<detail::QConstant QC> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        Quantity lhs, detail::UnitlessQuantity<QC>) noexcept \
+    { \
         return lhs.value() TOKEN detail::get_constant<ValueT>(QC); \
-    }                                                              \
-    template<detail::QConstant QC>                                 \
-    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN(           \
-        detail::UnitlessQuantity<QC>, Quantity rhs) noexcept       \
-    {                                                              \
+    } \
+    template<detail::QConstant QC> \
+    CELER_CONSTEXPR_FUNCTION friend bool operator TOKEN( \
+        detail::UnitlessQuantity<QC>, Quantity rhs) noexcept \
+    { \
         return detail::get_constant<ValueT>(QC) TOKEN rhs.value(); \
     }
 
@@ -189,22 +189,22 @@ class Quantity
     //! Arithmetic with unitless scalars
 
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator*(Quantity lhs, T2 rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator*(Quantity lhs,
+                                                   T2 rhs) noexcept
     {
         return OtherQuantity<T2>{lhs.value() * rhs};
     }
 
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator*(T2 lhs, Quantity rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator*(T2 lhs,
+                                                   Quantity rhs) noexcept
     {
         return OtherQuantity<T2>{lhs * rhs.value()};
     }
 
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator/(Quantity lhs, T2 rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator/(Quantity lhs,
+                                                   T2 rhs) noexcept
     {
         return OtherQuantity<T2>{lhs.value() / rhs};
     }
@@ -214,22 +214,22 @@ class Quantity
     //!@{
     //! Operators with same units
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator+(Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator+(
+        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
     {
         return OtherQuantity<T2>{lhs.value() + rhs.value()};
     }
 
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator-(Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator-(
+        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
     {
         return OtherQuantity<T2>{lhs.value() - rhs.value()};
     }
 
     template<class T2>
-    CELER_CONSTEXPR_FUNCTION friend auto
-    operator/(Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
+    CELER_CONSTEXPR_FUNCTION friend auto operator/(
+        Quantity lhs, Quantity<UnitT, T2> rhs) noexcept
     {
         return lhs.value() / rhs.value();
     }
@@ -298,8 +298,8 @@ CELER_CONSTEXPR_FUNCTION auto neg_max_quantity() noexcept
  * Swap two Quantities.
  */
 template<class U, class V>
-CELER_CONSTEXPR_FUNCTION void
-swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
+CELER_CONSTEXPR_FUNCTION void swap(Quantity<U, V>& a,
+                                   Quantity<U, V>& b) noexcept
 {
     Quantity<U, V> tmp{a};
     a = b;
@@ -316,8 +316,8 @@ swap(Quantity<U, V>& a, Quantity<U, V>& b) noexcept
  * \endcode
  */
 template<class UnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto
-native_value_from(Quantity<UnitT, ValueT> quant) noexcept
+CELER_CONSTEXPR_FUNCTION auto native_value_from(
+    Quantity<UnitT, ValueT> quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
     return static_cast<common_type>(quant.value())
@@ -356,8 +356,8 @@ CELER_CONSTEXPR_FUNCTION Q native_value_to(T value) noexcept
  * \endcode
  */
 template<class Q, class SrcUnitT, class ValueT>
-CELER_CONSTEXPR_FUNCTION auto
-value_as(Quantity<SrcUnitT, ValueT> quant) noexcept -> ValueT
+CELER_CONSTEXPR_FUNCTION auto value_as(
+    Quantity<SrcUnitT, ValueT> quant) noexcept -> ValueT
 {
     static_assert(std::is_same<Q, Quantity<SrcUnitT, ValueT>>::value,
                   "quantity units do not match");

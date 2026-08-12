@@ -32,12 +32,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                       \
-    template SurfaceSimplifier::Optional<OUT<Axis::x>>       \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
+    template SurfaceSimplifier::Optional<OUT<Axis::x>> \
     SurfaceSimplifier::operator()(IN<Axis::x> const&) const; \
-    template SurfaceSimplifier::Optional<OUT<Axis::y>>       \
+    template SurfaceSimplifier::Optional<OUT<Axis::y>> \
     SurfaceSimplifier::operator()(IN<Axis::y> const&) const; \
-    template SurfaceSimplifier::Optional<OUT<Axis::z>>       \
+    template SurfaceSimplifier::Optional<OUT<Axis::z>> \
     SurfaceSimplifier::operator()(IN<Axis::z> const&) const
 
 class ZeroSnapper

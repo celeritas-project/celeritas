@@ -60,9 +60,9 @@ class PolyEvaluator
         : coeffs_{static_cast<T>(coeffs)...}
     {
         // Protect against leaving off a coefficient, e.g. PolyQuad(1, 2)
-        static_assert(sizeof...(coeffs) == N + 1,
-                      "All coefficients for PolyEvaluator must be explicitly "
-                      "specified");
+        static_assert(
+            sizeof...(coeffs) == N + 1,
+            "All coefficients for PolyEvaluator must be explicitly specified");
     }
 
     //! Construct from an array of data

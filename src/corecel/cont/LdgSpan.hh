@@ -83,16 +83,16 @@ CELER_CONSTEXPR_FUNCTION LdgSpan<T const, N> make_ldg_span(T const (&arr)[N])
 //---------------------------------------------------------------------------//
 //! Convert an LdgSpan to a regular Span, \em not using \c ldg
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Span<T const, N>
-remove_ldg_wrapper(Span<detail::LdgWrapper<T const>, N> cont)
+CELER_CONSTEXPR_FUNCTION Span<T const, N> remove_ldg_wrapper(
+    Span<detail::LdgWrapper<T const>, N> cont)
 {
     return {cont.data(), cont.size()};
 }
 
 //! Convert an LdgSpan to a regular Span, \em not using \c ldg
 template<class T, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Span<T const, N>
-remove_ldg_wrapper(Span<T const, N> cont)
+CELER_CONSTEXPR_FUNCTION Span<T const, N> remove_ldg_wrapper(
+    Span<T const, N> cont)
 {
     return cont;
 }

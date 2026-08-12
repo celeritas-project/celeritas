@@ -1,0 +1,17 @@
+/*
+ * Required for MathJax 3 to render with "lazy" method on Safari ~26 and
+ * higher: see https://github.com/mathjax/MathJax/issues/3579
+ * (A fix is expected to be released in 4.1.3, which should automatically
+ * deploy to Sphinx 9 or greater where 4.x is the default.)
+ */
+mjx-lazy {
+  display: inline-block;
+}
+
+/*
+ * Customize citation style.
+ */
+.bibtex-citation {
+  color: var(--color-foreground-muted);
+  font-style: oblique;
+}

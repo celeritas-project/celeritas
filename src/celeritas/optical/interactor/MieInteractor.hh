@@ -67,15 +67,14 @@ class MieInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
-                             ParticleTrackView const& particle,
-                             Real3 const& direction,
-                             OptMatId const& mat_id)
+CELER_FUNCTION MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
+                                            ParticleTrackView const& particle,
+                                            Real3 const& direction,
+                                            OptMatId const& mat_id)
     : inc_dir_(direction)
     , inc_pol_(particle.polarization())
     , mie_params_(shared.mie_record[mat_id])
-    , sample_forward_(mie_params_.forward_g)
+    , sample_forward_(mie_params_.forward_ratio)
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(mat_id < shared.mie_record.size());

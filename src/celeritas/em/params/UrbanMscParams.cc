@@ -36,10 +36,10 @@ namespace celeritas
 /*!
  * Construct if Urban model is present, or else return nullptr.
  */
-std::shared_ptr<UrbanMscParams>
-UrbanMscParams::from_import(ParticleParams const& particles,
-                            MaterialParams const& materials,
-                            ImportData const& data)
+std::shared_ptr<UrbanMscParams> UrbanMscParams::from_import(
+    ParticleParams const& particles,
+    MaterialParams const& materials,
+    ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
@@ -170,8 +170,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
-UrbanMscMaterialData
-UrbanMscParams::calc_material_data(MaterialView const& material_view)
+UrbanMscMaterialData UrbanMscParams::calc_material_data(
+    MaterialView const& material_view)
 {
     using PolyQuad = PolyEvaluator<double, 2>;
 

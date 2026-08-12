@@ -56,6 +56,16 @@ struct PhysicsFromGeant
     GeantImportDataSelection data_selection;
 };
 
+//---------------------------------------------------------------------------//
+/*!
+ * Physics import specification.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "geant": \c PhysicsFromGeant
+ * - "file": \c PhysicsFromFile
+ */
 using PhysicsImport = std::variant<PhysicsFromGeant, PhysicsFromFile>;
 
 //---------------------------------------------------------------------------//

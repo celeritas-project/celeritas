@@ -122,8 +122,8 @@ void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
  * the upper limit of the IAEA cross-section data and 150 MeV, as used in
  * G4GammaNuclearXS, is also included in the tabulation.
  */
-inp::Grid
-GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
+inp::Grid GammaNuclearModel::calc_chips_xs(
+    AtomicNumber z, double emin, double emax) const
 {
     CELER_EXPECT(z);
 

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <type_traits>
 
 #include "corecel/data/Ldg.hh"
@@ -16,7 +17,6 @@
 #include "Types.hh"
 
 #if !CELER_DEVICE_COMPILE
-#    include <functional>
 #    include <ostream>
 #endif
 
@@ -204,8 +204,8 @@ class OpaqueId
     //!@{
     //! \name Pointer-like arithmetic
     //! Get the distance between two opaque IDs
-    CELER_FUNCTION friend difference_type
-    operator-(OpaqueId self, OpaqueId other)
+    CELER_FUNCTION friend difference_type operator-(OpaqueId self,
+                                                    OpaqueId other)
     {
         CELER_EXPECT(self);
         CELER_EXPECT(other);
@@ -258,10 +258,10 @@ class OpaqueId
 
     //// TEMPLATE FRIEND OPERATORS ////
 
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                                      \
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN) \
     CELER_CEF friend bool operator TOKEN(OpaqueId lhs, OpaqueId rhs) noexcept \
-    {                                                                         \
-        return *lhs TOKEN * rhs;                                              \
+    { \
+        return *lhs TOKEN * rhs; \
     }
 
     //!@{
@@ -297,16 +297,17 @@ class OpaqueId
     //! Allow loading via \c ldg
     CELER_CONSTEXPR_FUNCTION friend OpaqueId ldg(OpaqueId const* id)
     {
+        using ::celeritas::ldg;
         return OpaqueId{ldg(&id->value_)};
     }
 
 #undef CELER_DEFINE_OPAQUEID_CMP
-#define CELER_DEFINE_OPAQUEID_CMP(TOKEN)                               \
-    template<class J>                                                  \
+#define CELER_DEFINE_OPAQUEID_CMP(TOKEN) \
+    template<class J> \
     CELER_CEF friend auto operator TOKEN(OpaqueId lhs, J rhs) noexcept \
-        -> std::enable_if_t<std::is_unsigned_v<J>, bool>               \
-    {                                                                  \
-        return lhs && (static_cast<J>(*lhs) TOKEN rhs);                \
+        -> std::enable_if_t<std::is_unsigned_v<J>, bool> \
+    { \
+        return lhs && (static_cast<J>(*lhs) TOKEN rhs); \
     }
 
     //!@{
@@ -320,8 +321,8 @@ class OpaqueId
 
 #if !CELER_DEVICE_COMPILE
     //! Output an opaque ID's value or a placeholder if unavailable.
-    CELER_FORCEINLINE friend std::ostream&
-    operator<<(std::ostream& os, OpaqueId v)
+    CELER_FORCEINLINE friend std::ostream& operator<<(std::ostream& os,
+                                                      OpaqueId v)
     {
         detail::stream_opaqueid_impl(os, v.value_, v.null_);
         return os;
@@ -435,8 +436,8 @@ inline void stream_opaqueid_impl(std::ostream& os, V v, V nullint)
 
 // Specialization avoids printing integers as '\x1'
 template<>
-CELER_FORCEINLINE void
-stream_opaqueid_impl(std::ostream& os, unsigned char v, unsigned char nullid)
+CELER_FORCEINLINE void stream_opaqueid_impl(
+    std::ostream& os, unsigned char v, unsigned char nullid)
 {
     return stream_opaqueid_impl(
         os, static_cast<unsigned int>(v), static_cast<unsigned int>(nullid));
@@ -475,7 +476,6 @@ inline CELER_FUNCTION auto id_cast(J value) noexcept(!CELERITAS_DEBUG)
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
 
-#if !CELER_DEVICE_COMPILE
 //! \cond
 namespace std
 {
@@ -490,4 +490,3 @@ struct hash<celeritas::OpaqueId<I, T>>
 };
 }  // namespace std
 //! \endcond
-#endif

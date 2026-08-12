@@ -12,10 +12,10 @@
 #include "corecel/data/ParamsDataInterface.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
 #include "celeritas/geo/GeoFwd.hh"
-#include "celeritas/inp/Control.hh"
 #include "celeritas/inp/Scoring.hh"
 
 #include "CoreTrackData.hh"
+#include "OpticalSizes.hh"
 
 namespace celeritas
 {
@@ -93,19 +93,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPConstCherenkov cherenkov;  //!< Optional
         SPConstScintillation scintillation;  //!< Optional
 
-        //! Maximum number of simultaneous threads/tasks per process
-        StreamId::size_type max_streams{1};
-
         //! Per-process state and buffer capacities
-        inp::OpticalStateCapacity capacity;
+        OpticalSizes sizes;
 
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && rng && sim && volume && surface
                    && surface_physics && action_reg && aux_reg && gen_reg
-                   && max_streams && capacity.generators > 0
-                   && capacity.tracks > 0 && capacity.primaries > 0;
+                   && sizes;
         }
     };
 
@@ -154,8 +150,11 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     template<MemSpace M>
     inline ConstPtr<M> ptr() const;
 
+    //! Per-process state and buffer capacities
+    OpticalSizes const& sizes() const { return input_.sizes; }
+
     //! Maximum number of streams
-    size_type max_streams() const { return input_.max_streams; }
+    size_type max_streams() const { return this->sizes().streams; }
 
   private:
     Input input_;

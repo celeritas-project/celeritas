@@ -6,13 +6,19 @@
 Field
 =====
 
+The field type is selected with a variant:
+
+.. doxygentypedef:: celeritas::inp::Field
+
 The field currently allows a few hard-coded options. It will be extended to
 additional field types and may allow completely custom field implementations.
 
 .. celerstruct:: inp::NoField
 .. celerstruct:: inp::UniformField
-.. doxygentypedef:: celeritas::inp::RZMapField
+.. celerstruct:: inp::CylMapField
+.. celerstruct:: inp::CartMapField
+.. celerstruct:: RZMapFieldInput
 
-The field type is selected with a variant:
+The field driver options are not yet a stable part of the API:
 
-.. doxygentypedef:: celeritas::inp::Field
+.. celerstruct:: FieldDriverOptions

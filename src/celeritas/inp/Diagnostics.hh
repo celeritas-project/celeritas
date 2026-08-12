@@ -74,9 +74,9 @@ struct Timers
 struct Counters
 {
     //! Write diagnostics for each step
-    bool step{false};
+    bool step{true};
     //! Write diagnostics for each event (or run, if multiple events)
-    bool event{false};
+    bool event{true};
 };
 
 //---------------------------------------------------------------------------//

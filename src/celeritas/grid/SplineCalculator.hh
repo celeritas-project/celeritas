@@ -45,8 +45,8 @@ class SplineCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    SplineCalculator(UniformGridRecord const& grid, Values const& reals);
+    inline CELER_FUNCTION SplineCalculator(UniformGridRecord const& grid,
+                                           Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -71,9 +71,8 @@ class SplineCalculator
     Values const& reals_;
     UniformGrid loge_grid_;
 
-    CELER_FORCEINLINE_FUNCTION real_type interpolate(real_type energy,
-                                                     size_type low_idx,
-                                                     size_type high_idx) const;
+    CELER_FORCEINLINE_FUNCTION real_type interpolate(
+        real_type energy, size_type low_idx, size_type high_idx) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -82,9 +81,8 @@ class SplineCalculator
 /*!
  * Construct from cross section data.
  */
-CELER_FUNCTION
-SplineCalculator::SplineCalculator(UniformGridRecord const& grid,
-                                   Values const& reals)
+CELER_FUNCTION SplineCalculator::SplineCalculator(
+    UniformGridRecord const& grid, Values const& reals)
     : data_(grid), reals_(reals), loge_grid_(data_.grid)
 {
     CELER_EXPECT(data_);
@@ -175,9 +173,8 @@ CELER_FUNCTION real_type SplineCalculator::operator[](size_type index) const
 /*!
  * Interpolate the value using spline.
  */
-CELER_FUNCTION real_type SplineCalculator::interpolate(real_type energy,
-                                                       size_type low_idx,
-                                                       size_type high_idx) const
+CELER_FUNCTION real_type SplineCalculator::interpolate(
+    real_type energy, size_type low_idx, size_type high_idx) const
 {
     CELER_EXPECT(high_idx <= loge_grid_.size());
     real_type result = 0;

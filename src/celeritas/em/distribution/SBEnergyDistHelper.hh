@@ -81,8 +81,8 @@ class SBEnergyDistHelper
     inline CELER_FUNCTION Xs calc_max_xs(SBTables const& xs_params,
                                          ElementId element) const;
 
-    inline CELER_FUNCTION ReciprocalSampler
-    make_esq_sampler(real_type inc_energy, real_type min_gamma_energy) const;
+    inline CELER_FUNCTION ReciprocalSampler make_esq_sampler(
+        real_type inc_energy, real_type min_gamma_energy) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -94,12 +94,12 @@ class SBEnergyDistHelper
  * The incident energy *must* be within the bounds of the SB table data, so the
  * Model's applicability must be consistent with the table data.
  */
-CELER_FUNCTION
-SBEnergyDistHelper::SBEnergyDistHelper(SBDXsec const& differential_xs,
-                                       Energy inc_energy,
-                                       ElementId element,
-                                       EnergySq density_correction,
-                                       Energy min_gamma_energy)
+CELER_FUNCTION SBEnergyDistHelper::SBEnergyDistHelper(
+    SBDXsec const& differential_xs,
+    Energy inc_energy,
+    ElementId element,
+    EnergySq density_correction,
+    Energy min_gamma_energy)
     : calc_xs_{this->make_xs_calc(differential_xs, inc_energy.value(), element)}
     , max_xs_{this->calc_max_xs(differential_xs, element)}
     , inv_inc_energy_(1 / inc_energy.value())
@@ -149,10 +149,10 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
     CELER_ASSERT(inc_energy >= std::exp(xs_params.reals[grid.x.front()])
                  && inc_energy < std::exp(xs_params.reals[grid.x.back()]));
 
-    static_assert(
-        std::is_same<Energy::unit_type, units::Mev>::value
-            && std::is_same<SBElementTableData::EnergyUnits, units::LogMev>::value,
-        "Inconsistent energy units");
+    static_assert(std::is_same<Energy::unit_type, units::Mev>::value
+                      && std::is_same<SBElementTableData::EnergyUnits,
+                                      units::LogMev>::value,
+                  "Inconsistent energy units");
     return TwodGridCalculator(grid, xs_params.reals)(std::log(inc_energy));
 }
 
@@ -171,9 +171,8 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
  * \note This is called during construction, so \c calc_xs_ must be initialized
  * before whatever calls this.
  */
-CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
-                                                    ElementId element) const
-    -> Xs
+CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(
+    SBTables const& xs_params, ElementId element) const -> Xs
 {
     CELER_EXPECT(element);
     SBElementTableData const& el = xs_params.elements[element];
@@ -200,10 +199,8 @@ CELER_FUNCTION auto SBEnergyDistHelper::calc_max_xs(SBTables const& xs_params,
 /*!
  * Construct a sampler for scaled exiting energy.
  */
-CELER_FUNCTION auto
-SBEnergyDistHelper::make_esq_sampler(real_type inc_energy,
-                                     real_type min_gamma_energy) const
-    -> ReciprocalSampler
+CELER_FUNCTION auto SBEnergyDistHelper::make_esq_sampler(
+    real_type inc_energy, real_type min_gamma_energy) const -> ReciprocalSampler
 {
     CELER_EXPECT(min_gamma_energy > 0);
     return ReciprocalSampler(ipow<2>(min_gamma_energy) + dens_corr_,

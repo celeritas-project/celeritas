@@ -20,11 +20,11 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                      \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT<Axis::x> SurfaceTranslator::operator()(IN<Axis::x> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::y> SurfaceTranslator::operator()(IN<Axis::y> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::z> SurfaceTranslator::operator()(IN<Axis::z> const&) \
         const
 
@@ -36,8 +36,8 @@ namespace
  * Construct a translated axis-aligned plane.
  */
 template<Axis T>
-PlaneAligned<T>
-SurfaceTranslator::operator()(PlaneAligned<T> const& other) const
+PlaneAligned<T> SurfaceTranslator::operator()(
+    PlaneAligned<T> const& other) const
 {
     real_type origin = tr_.translation()[to_int(T)];
     return PlaneAligned<T>{other.position() + origin};
@@ -91,9 +91,9 @@ ORANGE_INSTANTIATE_OP(CylAligned, CylAligned);
  */
 Plane SurfaceTranslator::operator()(Plane const& other) const
 {
-    return Plane{
-        other.normal(),
-        other.displacement() + dot_product(tr_.translation(), other.normal())};
+    return Plane{other.normal(),
+                 other.displacement()
+                     + dot_product(tr_.translation(), other.normal())};
 }
 
 //---------------------------------------------------------------------------//
@@ -195,6 +195,22 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
                   other.tmin(),
                   other.tmax()};
     return invo;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a translated Toroid.
+ */
+Toroid SurfaceTranslator::operator()(Toroid const& other) const
+{
+    Real3 origin = tr_.transform_up(other.origin());
+
+    Toroid tor{origin,
+               other.major_radius(),
+               other.ellipse_xy_radius(),
+               other.ellipse_z_radius()};
+
+    return tor;
 }
 
 //---------------------------------------------------------------------------//

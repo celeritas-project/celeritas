@@ -2,8 +2,8 @@
 
 module use /soft/modulefiles
 export PROJ=/vast/projects/celeritas
-export SPACKROOT=$PROJ/spack
-. $SPACKROOT/share/spack/setup-env.sh
+export SPACK_ROOT=$PROJ/spack
+. $SPACK_ROOT/share/spack/setup-env.sh
 
 qsub_gpu() {
     # Usage: qsub_gpu [mi300x|h100] <qsub args>
@@ -33,7 +33,7 @@ case "$(uname -n)" in
     module load cmake/3.28.3
     module load cuda/12.9.1
     spacktivate h100
-    ENVFILE="$SPACKROOT/var/spack/environments/h100/spack.yaml"; export ENVFILE
+    ENVFILE="$SPACK_ROOT/var/spack/environments/h100/spack.yaml"; export ENVFILE
     ;;
   amdgpu*)
     echo "Loading environment for MI300X"
@@ -41,6 +41,6 @@ case "$(uname -n)" in
     module load cmake/3.28.3
     module load aomp/rocm-6.4.1
     spacktivate mi300x
-    ENVFILE="$SPACKROOT/var/spack/environments/mi300x/spack.yaml"; export ENVFILE
+    ENVFILE="$SPACK_ROOT/var/spack/environments/mi300x/spack.yaml"; export ENVFILE
     ;;
 esac

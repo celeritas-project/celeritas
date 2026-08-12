@@ -61,7 +61,7 @@ set(_test_ext "cms")
 if(NOT CELERITAS_DEBUG)
   set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
-  set(_test_ext "${_label}-large")
+  set(_test_ext "${_test_ext}-large")
 else()
   # Use fewer events for debug
   set(_events

@@ -35,9 +35,8 @@ class WentzelTransportXsCalculator
 
   public:
     // Construct with particle and precalculatad Wentzel data
-    inline CELER_FUNCTION
-    WentzelTransportXsCalculator(ParticleTrackView const& particle,
-                                 WentzelHelper const& helper);
+    inline CELER_FUNCTION WentzelTransportXsCalculator(
+        ParticleTrackView const& particle, WentzelHelper const& helper);
 
     // Calculate the transport cross section for the given angle [len^2]
     inline CELER_FUNCTION real_type operator()(real_type cos_thetamax) const;
@@ -71,8 +70,7 @@ class WentzelTransportXsCalculator
  * OK and VI model in \c WentzelHelper and depend on properties of the incident
  * particle, the energy cutoff in the current material, and the target element.
  */
-CELER_FUNCTION
-WentzelTransportXsCalculator::WentzelTransportXsCalculator(
+CELER_FUNCTION WentzelTransportXsCalculator::WentzelTransportXsCalculator(
     ParticleTrackView const& particle, WentzelHelper const& helper)
     : z_(helper.atomic_number())
     , screening_coeff_(2 * helper.screening_coefficient())
@@ -86,8 +84,8 @@ WentzelTransportXsCalculator::WentzelTransportXsCalculator(
 /*!
  * Calculate the transport cross section for the given angle [len^2].
  */
-CELER_FUNCTION real_type
-WentzelTransportXsCalculator::operator()(real_type cos_thetamax) const
+CELER_FUNCTION real_type WentzelTransportXsCalculator::operator()(
+    real_type cos_thetamax) const
 {
     CELER_EXPECT(cos_thetamax <= 1);
 

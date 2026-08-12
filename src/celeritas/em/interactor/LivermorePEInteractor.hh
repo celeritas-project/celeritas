@@ -57,14 +57,14 @@ class LivermorePEInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    LivermorePEInteractor(NativeCRef<LivermorePEData> const& shared,
-                          AtomicRelaxationHelper const& relaxation,
-                          ElementId el_id,
-                          ParticleTrackView const& particle,
-                          CutoffView const& cutoffs,
-                          Real3 const& inc_direction,
-                          StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION LivermorePEInteractor(
+        NativeCRef<LivermorePEData> const& shared,
+        AtomicRelaxationHelper const& relaxation,
+        ElementId el_id,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -112,8 +112,7 @@ class LivermorePEInteractor
  * The incident particle must be above the energy threshold: this should be
  * handled in code *before* the interactor is constructed.
  */
-CELER_FUNCTION
-LivermorePEInteractor::LivermorePEInteractor(
+CELER_FUNCTION LivermorePEInteractor::LivermorePEInteractor(
     NativeCRef<LivermorePEData> const& shared,
     AtomicRelaxationHelper const& relaxation,
     ElementId el_id,
@@ -224,7 +223,8 @@ CELER_FUNCTION Interaction LivermorePEInteractor::operator()(Engine& rng)
  * Sample the shell from which the photoelectron is emitted.
  */
 template<class Engine>
-CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(Engine& rng) const
+CELER_FUNCTION SubshellId LivermorePEInteractor::sample_subshell(
+    Engine& rng) const
 {
     LivermoreElement const& el = shared_.xs.elements[el_id_];
     auto const& shells = shared_.xs.shells[el.shells];

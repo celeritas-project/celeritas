@@ -33,10 +33,10 @@ namespace optical
  *
  * TODO: use logical volumes or geo materials or something!!
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data,
-                            ::celeritas::GeoMaterialParams const& geo_mat,
-                            ::celeritas::MaterialParams const& mat)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data,
+    ::celeritas::GeoMaterialParams const& geo_mat,
+    ::celeritas::MaterialParams const& mat)
 {
     CELER_EXPECT(!data.optical_materials.empty());
     CELER_EXPECT(geo_mat.num_volumes() > 0);
@@ -107,16 +107,16 @@ MaterialParams::MaterialParams(Input const& inp)
         // In a dispersive medium, the index of refraction is an increasing
         // function of photon energy
         auto const& ri = mat.refractive_index;
-        CELER_VALIDATE(ri,
-                       << "no refractive index data is defined for optical "
-                          "material "
-                       << opt_mat_idx);
+        CELER_VALIDATE(
+            ri,
+            << "no refractive index data is defined for optical material "
+            << opt_mat_idx);
         CELER_VALIDATE(is_monotonic_increasing(make_span(ri.x)),
                        << "refractive index energy grid values are not "
                           "monotonically increasing");
-        CELER_VALIDATE(is_monotonic_nondecreasing(make_span(ri.y)),
-                       << "refractive index values are not constant or "
-                          "increasing");
+        CELER_VALIDATE(
+            is_monotonic_nondecreasing(make_span(ri.y)),
+            << "refractive index values are not constant or increasing");
         if (ri.y.front() < 1)
         {
             CELER_LOG(warning) << "Encountered refractive index below unity "

@@ -91,8 +91,8 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Joined&& j)
 /*!
  * Add a region to the CSG tree using a custom bounding zone.
  */
-NodeId
-VolumeBuilder::insert_region(Metadata&& md, Joined&& j, BoundingZone&& bz)
+NodeId VolumeBuilder::insert_region(
+    Metadata&& md, Joined&& j, BoundingZone&& bz)
 {
     auto node_id = ub_->insert_csg(std::move(j)).first;
     ub_->insert_md(node_id, std::move(md));
@@ -132,8 +132,8 @@ NodeId VolumeBuilder::insert_region(Metadata&& md, Negated&& n)
 /*!
  * Apply a transform within this scope.
  */
-[[nodiscard]] PopVBTransformOnDestruct
-VolumeBuilder::make_scoped_transform(VariantTransform const& t)
+[[nodiscard]] PopVBTransformOnDestruct VolumeBuilder::make_scoped_transform(
+    VariantTransform const& t)
 {
     // Apply the current local transform to get a new local transform, and add
     // it to the stack

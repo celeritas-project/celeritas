@@ -56,15 +56,15 @@ class CoulombScatteringInteractor
 
   public:
     //! Construct with shared and state data
-    inline CELER_FUNCTION
-    CoulombScatteringInteractor(CoulombScatteringData const& shared,
-                                NativeCRef<WentzelOKVIData> const& wentzel,
-                                ParticleTrackView const& particle,
-                                Real3 const& inc_direction,
-                                MaterialView const& material,
-                                IsotopeView const& target,
-                                ElementId el_id,
-                                CutoffView const& cutoffs);
+    inline CELER_FUNCTION CoulombScatteringInteractor(
+        CoulombScatteringData const& shared,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        MaterialView const& material,
+        IsotopeView const& target,
+        ElementId el_id,
+        CutoffView const& cutoffs);
 
     //! Sample an interaction with the given RNG
     template<class Engine>
@@ -91,7 +91,8 @@ class CoulombScatteringInteractor
     //// HELPER FUNCTIONS ////
 
     // Calculates the recoil energy for the given scattering angle
-    inline CELER_FUNCTION real_type calc_recoil_energy(real_type cos_theta) const;
+    inline CELER_FUNCTION real_type calc_recoil_energy(
+        real_type cos_theta) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,8 +104,7 @@ class CoulombScatteringInteractor
  * \todo Use the proton production cutoff when the recoiled nucleus production
  * is supported.
  */
-CELER_FUNCTION
-CoulombScatteringInteractor::CoulombScatteringInteractor(
+CELER_FUNCTION CoulombScatteringInteractor::CoulombScatteringInteractor(
     CoulombScatteringData const& shared,
     NativeCRef<WentzelOKVIData> const& wentzel,
     ParticleTrackView const& particle,
@@ -167,8 +167,8 @@ CELER_FUNCTION Interaction CoulombScatteringInteractor::operator()(Engine& rng)
  * Calculates the recoil energy for the given scattering angle sampled
  * by WentzelDistribution.
  */
-CELER_FUNCTION real_type
-CoulombScatteringInteractor::calc_recoil_energy(real_type cos_theta) const
+CELER_FUNCTION real_type CoulombScatteringInteractor::calc_recoil_energy(
+    real_type cos_theta) const
 {
     real_type projectile_momsq = value_as<MomentumSq>(particle_.momentum_sq());
     real_type projectile_mass = value_as<Mass>(particle_.mass())

@@ -23,8 +23,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-OrangeInput
-make_input_with_logic(std::vector<logic_int> logic, LogicNotation notation)
+OrangeInput make_input_with_logic(std::vector<logic_int> logic,
+                                  LogicNotation notation)
 {
     OrangeInput input;
     UnitInput unit;
@@ -58,9 +58,9 @@ TEST(NotationConverter, basic)
     round_trip("0 ~ 1 & 2 & 3 & 7 & 4 5 ~ & 6 ~ & ~ |",
                "( ~ 0 & 1 & 2 & 3 & 7 ) | ~ ( 4 & ~ 5 & ~ 6 )");
     round_trip("0 ~ 1 ~ 2 ~ | ~ &", "~ 0 & ~ ( ~ 1 | ~ 2 )");
-    round_trip("0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 & 8 ~ & 9 & 10 ~ & 11 ~ & ~ &",
-               "0 & ~ 1 & 2 & ~ 3 & 4 & ~ 5 & ~ ( 6 & 7 & ~ 8 & 9 & ~ 10 & ~ "
-               "11 )");
+    round_trip(
+        "0 1 ~ & 2 & 3 ~ & 4 & 5 ~ & 6 7 & 8 ~ & 9 & 10 ~ & 11 ~ & ~ &",
+        "0 & ~ 1 & 2 & ~ 3 & 4 & ~ 5 & ~ ( 6 & 7 & ~ 8 & 9 & ~ 10 & ~ 11 )");
 
     round_trip("0 1 ~ & 2 & 3 ~ | 4 & 5 ~ & 6 7 & 8 ~ & 9 & 10 ~ & 11 ~ & ~ &",
                "( ( 0 & ~ 1 & 2 ) | ~ 3 ) & 4 & ~ 5 & ~ ( 6 & 7 & ~ 8 & 9 & ~ "

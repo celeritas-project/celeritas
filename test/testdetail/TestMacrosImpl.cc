@@ -6,14 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "TestMacrosImpl.hh"
 
-#include <cstdio>
 #include <cstring>
-#include <string>
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ColorUtils.hh"
 
 #include "JsonComparer.hh"
 
@@ -50,8 +45,8 @@ int num_digits(unsigned long val)
  *
  * where too long means > digits digits.
  */
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc)
+char const* trunc_string(
+    unsigned int digits, char const* str, char const* trunc)
 {
     CELER_EXPECT(str && trunc);
     CELER_EXPECT(digits > 0);

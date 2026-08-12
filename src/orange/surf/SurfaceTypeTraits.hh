@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Config.hh"
+
 #include "corecel/cont/EnumClassUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
@@ -25,11 +27,11 @@ namespace celeritas
 template<SurfaceType S>
 struct SurfaceTypeTraits;
 
-#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS)                          \
-    template<>                                                          \
-    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE>                   \
+#define ORANGE_SURFACE_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
+    struct SurfaceTypeTraits<SurfaceType::ENUM_VALUE> \
         : public EnumToClass<SurfaceType, SurfaceType::ENUM_VALUE, CLS> \
-    {                                                                   \
+    { \
     }
 
 // clang-format off
@@ -48,6 +50,7 @@ ORANGE_SURFACE_TRAITS(s,   Sphere);
 ORANGE_SURFACE_TRAITS(kx,  ConeAligned<Axis::x>);
 ORANGE_SURFACE_TRAITS(ky,  ConeAligned<Axis::y>);
 ORANGE_SURFACE_TRAITS(kz,  ConeAligned<Axis::z>);
+ORANGE_SURFACE_TRAITS(tor, Toroid);
 ORANGE_SURFACE_TRAITS(sq,  SimpleQuadric);
 ORANGE_SURFACE_TRAITS(gq,  GeneralQuadric);
 ORANGE_SURFACE_TRAITS(inv, Involute);
@@ -63,11 +66,11 @@ ORANGE_SURFACE_TRAITS(inv, Involute);
  * is a SurfaceTypeTraits instance.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-visit_surface_type(F&& func, SurfaceType st)
+CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
+                                                           SurfaceType st)
 {
-#define ORANGE_ST_VISIT_CASE(TYPE)          \
-    case SurfaceType::TYPE:                 \
+#define ORANGE_ST_VISIT_CASE(TYPE) \
+    case SurfaceType::TYPE: \
         return celeritas::forward<F>(func)( \
             SurfaceTypeTraits<SurfaceType::TYPE>{})
 
@@ -90,6 +93,12 @@ visit_surface_type(F&& func, SurfaceType st)
         ORANGE_ST_VISIT_CASE(kz);
         ORANGE_ST_VISIT_CASE(sq);
         ORANGE_ST_VISIT_CASE(gq);
+#if CELERITAS_ORANGE_TORUS
+        ORANGE_ST_VISIT_CASE(tor);
+#else
+        case SurfaceType::tor:
+            CELER_ASSERT_UNREACHABLE();
+#endif
         case SurfaceType::inv:
             // Prevented by input reader: see
             // orange/detail/SurfacesRecordBuilder.cc

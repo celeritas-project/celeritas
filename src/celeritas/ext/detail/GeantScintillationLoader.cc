@@ -100,14 +100,14 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
     {
         // TODO: could check whether YIELDRATIO is given (2 components) and
         // fill in scintillation data accordingly
-        CELER_LOG(warning) << "Ignoring deprecated scintillation "
-                              "component properties";
+        CELER_LOG(warning)
+            << "Ignoring deprecated scintillation component properties";
     }
 
     CELER_VALIDATE(!scint_mat.components.empty(),
-                   << "no scintillation components were present (perhaps "
-                      "the material has only unsupported particle "
-                      "scintillation or legacy G4 fast/slow components?)");
+                   << "no scintillation components were present (perhaps the "
+                      "material has only unsupported particle scintillation "
+                      "or legacy G4 fast/slow components?)");
 
     // Normalize component yields
     for (auto& s : scint_mat.components)
@@ -125,10 +125,10 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
  * Returns nullopt if neither the deprecated nor the CELER_-prefixed variant of
  * the property is present.
  */
-std::optional<inp::NormalDistribution>
-GeantScintillationLoader::load_gaussian(GeantMaterialPropertyGetter const& get,
-                                        std::string const& prefix,
-                                        std::string const& suffix)
+std::optional<inp::NormalDistribution> GeantScintillationLoader::load_gaussian(
+    GeantMaterialPropertyGetter const& get,
+    std::string const& prefix,
+    std::string const& suffix)
 {
     inp::NormalDistribution gaussian;
     auto load_gaussian_impl = [&](std::string const& newprefix) {
@@ -162,10 +162,9 @@ GeantScintillationLoader::load_gaussian(GeantMaterialPropertyGetter const& get,
         }
         else
         {
-            CELER_LOG(warning)
-                << "Omitting CELER_ prefix is deprecated: rename "
-                   "optical property to 'CELER_"
-                << prefix << suffix << '\'';
+            CELER_LOG(warning) << "Omitting CELER_ prefix is deprecated: "
+                                  "rename optical property to 'CELER_"
+                               << prefix << suffix << '\'';
         }
     }
     return gaussian;

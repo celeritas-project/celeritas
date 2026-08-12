@@ -39,17 +39,17 @@
 
 //! Soft equivalence macro with relative error or comparator
 #define EXPECT_SOFT_NEAR(expected, actual, rel_error) \
-    EXPECT_PRED_FORMAT3(                              \
+    EXPECT_PRED_FORMAT3( \
         ::celeritas::testdetail::IsSoftEquiv, expected, actual, rel_error)
 
 //! Container soft equivalence macro
 #define EXPECT_VEC_SOFT_EQ(expected, actual) \
-    EXPECT_PRED_FORMAT2(                     \
+    EXPECT_PRED_FORMAT2( \
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual)
 
 //! Container soft equivalence macro with relative error or comparator
 #define EXPECT_VEC_NEAR(expected, actual, rel_error) \
-    EXPECT_PRED_FORMAT3(                             \
+    EXPECT_PRED_FORMAT3( \
         ::celeritas::testdetail::IsVecSoftEquiv, expected, actual, rel_error)
 
 //! Print the given container as an array for regression testing

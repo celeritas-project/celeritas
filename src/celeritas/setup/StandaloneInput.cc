@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "StandaloneInput.hh"
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <variant>
@@ -13,6 +14,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StringUtils.hh"
+#include "corecel/sys/Openmp.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -21,7 +24,10 @@
 #include "celeritas/inp/Import.hh"
 #include "celeritas/inp/Problem.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/io/EventReader.hh"
 #include "celeritas/io/ImportData.hh"
+#include "celeritas/io/JsonEventReader.hh"
+#include "celeritas/io/RootEventReader.hh"
 
 #include "Events.hh"
 #include "Import.hh"
@@ -41,79 +47,101 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     // Set up system
     setup::system(si.system);
 
-    // Load problem
-    auto& problem = si.problem;
-
-    // Set up Geant4
-    std::optional<GeantSetup> geant_setup;
+    CELER_ASSUME(
+        std::holds_alternative<std::string>(si.problem.model.geometry));
     std::shared_ptr<GeantGeoParams> ggp;
-    if (si.geant_setup)
-    {
-        CELER_ASSUME(
-            std::holds_alternative<std::string>(problem.model.geometry));
-        // Take file name from problem and physics options from the arguments,
-        // and set up Geant4
-        geant_setup.emplace(std::get<std::string>(problem.model.geometry),
-                            *si.geant_setup);
-
-        // Keep the geant4 geometry and set it as global
-        ggp = geant_setup->geo_params();
-        CELER_ASSERT(ggp);
-    }
-    else if (auto* s = std::get_if<std::string>(&problem.model.geometry))
-    {
-        // Load model directly (when loading ROOT physics)
-        ggp = GeantGeoParams::from_gdml(*s);
-    }
-    else if (auto* pv
-             = std::get_if<G4VPhysicalVolume const*>(&problem.model.geometry))
-    {
-        // Load model directly (unused?)
-        ggp = std::make_shared<GeantGeoParams>(*pv, Ownership::reference);
-    }
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
-
-    // Replace model input: load geometry, surfaces, regions from Geant4 world
-    // pointer
-    problem.model = ggp->make_model_input();
 
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;
-    std::visit(
-        [&imported](auto const& physics_source_opts) {
-            setup::physics_from(physics_source_opts, imported);
-        },
-        si.physics_import);
+    std::visit(Overload{
+                   [&](inp::PhysicsFromFile const& pff) {
+                       // Load model directly (when loading ROOT physics)
+                       ggp = GeantGeoParams::from_gdml(
+                           std::get<std::string>(si.problem.model.geometry));
+
+                       setup::physics_from(pff, imported);
+                   },
+                   [&](inp::PhysicsFromGeant& pfg) {
+                       // Take file name from problem and physics options from
+                       // the arguments, and set up Geant4
+                       GeantSetup geant_setup(
+                           std::get<std::string>(si.problem.model.geometry),
+                           si.geant_setup);
+
+                       // Keep the geant4 geometry and set it as global
+                       ggp = geant_setup.geo_params();
+                       CELER_ASSERT(ggp);
+
+                       // Adjust Geant4 data selection based on physics options
+                       GeantImportDataSelection::Flags selection
+                           = GeantImportDataSelection::em_basic;
+                       if (si.geant_setup.muon || si.geant_setup.mucf_physics)
+                       {
+                           selection |= GeantImportDataSelection::em_ex;
+                       }
+                       if (si.geant_setup.optical)
+                       {
+                           selection |= GeantImportDataSelection::optical;
+                       }
+                       pfg.data_selection.particles = selection;
+                       pfg.data_selection.processes = selection;
+                       setup::physics_from(pfg, imported);
+                   },
+               },
+               si.physics_import);
+
+    // Replace model input: load geometry, surfaces, regions from Geant4 world
+    // pointer
+    si.problem.model = ggp->make_model_input();
 
     // Load from external Geant4 data files
     setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);
 
     // Copy optical physics from import data
     // (TODO: will be replaced)
-    problem.physics.optical = imported.optical_physics;
+    si.problem.physics.optical = imported.optical_physics;
+
+    auto& ctl = si.problem.control;
+
+    // Load number of events, needed to construct core params before loading
+    // events
+    ctl.capacity.events = std::visit(
+        Overload{
+            [](inp::CorePrimaryGenerator const& pg) { return pg.num_events; },
+            [](inp::SampleFileEvents const& sfe) { return sfe.num_events; },
+            [](inp::ReadFileEvents const& rfe) {
+                if (ends_with(rfe.event_file, ".jsonl"))
+                {
+                    return JsonEventReader{rfe.event_file, nullptr}.num_events();
+                }
+                else if (ends_with(rfe.event_file, ".root"))
+                {
+                    return RootEventReader{rfe.event_file, nullptr}.num_events();
+                }
+                return EventReader{rfe.event_file, nullptr}.num_events();
+            },
+        },
+        si.events.generator);
+    CELER_ASSERT(ctl.capacity.events > 0);
+
+    // Set the number of streams
+    ctl.num_streams
+        = (CELERITAS_OPENMP == CELERITAS_OPENMP_EVENT && !si.events.merge)
+              ? openmp_max_threads()
+              : 1;
+    ctl.num_streams = std::min(ctl.num_streams, *ctl.capacity.events);
 
     StandaloneLoaded result;
 
     // Set up core params
-    result.problem = setup::problem(problem, imported);
+    result.problem = setup::problem(si.problem, imported);
 
     // Save geometry if loaded
     result.geant_geo = ggp;
 
     // Load events
     result.events = events(si.events, result.problem.core_params->particle());
-
-    auto const& ctl = problem.control;
-    if (ctl.capacity.events && ctl.num_streams > result.events.size())
-    {
-        CELER_LOG(warning)
-            << "Configured number of streams (" << ctl.num_streams
-            << ") exceeds number of loaded events (" << result.events.size()
-            << ")";
-    }
+    CELER_ENSURE(ctl.num_streams <= result.events.size());
 
     return result;
 }

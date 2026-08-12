@@ -31,8 +31,9 @@ class TabulatedElementSelector
     //!@{
     //! \name Type aliases
     using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
-    using GridValues
-        = Collection<UniformGridRecord, Ownership::const_reference, MemSpace::native>;
+    using GridValues = Collection<UniformGridRecord,
+                                  Ownership::const_reference,
+                                  MemSpace::native>;
     using GridIdValues
         = Collection<UniformGridId, Ownership::const_reference, MemSpace::native>;
     using Values
@@ -65,12 +66,12 @@ class TabulatedElementSelector
 /*!
  * Construct with xs CDF data for a particular model and material.
  */
-CELER_FUNCTION
-TabulatedElementSelector::TabulatedElementSelector(UniformTable const& table,
-                                                   GridValues const& grids,
-                                                   GridIdValues const& ids,
-                                                   Values const& reals,
-                                                   Energy energy)
+CELER_FUNCTION TabulatedElementSelector::TabulatedElementSelector(
+    UniformTable const& table,
+    GridValues const& grids,
+    GridIdValues const& ids,
+    Values const& reals,
+    Energy energy)
     : table_(table), grids_(grids), ids_(ids), reals_(reals), energy_(energy)
 {
     CELER_EXPECT(table);
@@ -81,8 +82,8 @@ TabulatedElementSelector::TabulatedElementSelector(UniformTable const& table,
  * Sample the element with the given RNG.
  */
 template<class Engine>
-CELER_FUNCTION ElementComponentId
-TabulatedElementSelector::operator()(Engine& rng) const
+CELER_FUNCTION ElementComponentId TabulatedElementSelector::operator()(
+    Engine& rng) const
 {
     size_type i = 0;
     real_type u = generate_canonical(rng);

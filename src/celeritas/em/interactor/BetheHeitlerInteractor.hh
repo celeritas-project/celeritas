@@ -56,13 +56,13 @@ class BetheHeitlerInteractor
 
   public:
     //! Construct sampler from shared and state data
-    inline CELER_FUNCTION
-    BetheHeitlerInteractor(BetheHeitlerData const& shared,
-                           ParticleTrackView const& particle,
-                           Real3 const& inc_direction,
-                           StackAllocator<Secondary>& allocate,
-                           MaterialView const& material,
-                           ElementView const& element);
+    inline CELER_FUNCTION BetheHeitlerInteractor(
+        BetheHeitlerData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate,
+        MaterialView const& material,
+        ElementView const& element);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -339,8 +339,8 @@ CELER_FUNCTION Interaction BetheHeitlerInteractor::operator()(Engine& rng)
  * \f$ \delta \f$ is a function of \f$ \epsilon \f$ and is a measure of the
  * "impact parameter" of the incident photon.
  */
-CELER_FUNCTION real_type
-BetheHeitlerInteractor::impact_parameter(real_type eps) const
+CELER_FUNCTION real_type BetheHeitlerInteractor::impact_parameter(
+    real_type eps) const
 {
     return screen_delta_ / (eps * (1 - eps));
 }

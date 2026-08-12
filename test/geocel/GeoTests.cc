@@ -39,36 +39,36 @@ using namespace celeritas::literals;
  * Run \c STATEMENT. If and only if \c COND is true, the statement should
  * throw a CheckedGeoError.
  */
-#define SHOULD_FAIL_WHEN(STATEMENT, COND)                                \
-    do                                                                   \
-    {                                                                    \
-        bool threw_{false};                                              \
-        try                                                              \
-        {                                                                \
-            STATEMENT;                                                   \
-        }                                                                \
-        catch (::celeritas::test::CheckedGeoError const& e)              \
-        {                                                                \
-            threw_ = true;                                               \
-            if (COND)                                                    \
-            {                                                            \
-                CELER_LOG(debug)                                         \
+#define SHOULD_FAIL_WHEN(STATEMENT, COND) \
+    do \
+    { \
+        bool threw_{false}; \
+        try \
+        { \
+            STATEMENT; \
+        } \
+        catch (::celeritas::test::CheckedGeoError const& e) \
+        { \
+            threw_ = true; \
+            if (COND) \
+            { \
+                CELER_LOG(debug) \
                     << "Ignored expected failure: " << e.details().what; \
-            }                                                            \
-            else                                                         \
-            {                                                            \
-                ADD_FAILURE() << "'" << #STATEMENT                       \
-                              << "' failed unexpectedly: " << e.what();  \
-            }                                                            \
-        }                                                                \
-        catch (std::exception const& e)                                  \
-        {                                                                \
-            threw_ = true;                                               \
-            FAIL() << "'" << #STATEMENT                                  \
-                   << "' failed unexpectedly: " << e.what();             \
-        }                                                                \
-                                                                         \
-        EXPECT_EQ(COND, threw_);                                         \
+            } \
+            else \
+            { \
+                ADD_FAILURE() << "'" << #STATEMENT \
+                              << "' failed unexpectedly: " << e.what(); \
+            } \
+        } \
+        catch (std::exception const& e) \
+        { \
+            threw_ = true; \
+            FAIL() << "'" << #STATEMENT \
+                   << "' failed unexpectedly: " << e.what(); \
+        } \
+\
+        EXPECT_EQ(COND, threw_); \
     } while (0)
 
 namespace celeritas
@@ -845,10 +845,10 @@ void FourLevelsGeoTest::test_locate_point() const
             = test_->geometry_interface()->find_volume_instance_at(
                 from_cm(point));
 
-        auto volume_label = volume_instance
-                                ? test_->volumes()->volume_instance_labels().at(
-                                      volume_instance)
-                                : "[INVALID]";
+        auto volume_label
+            = volume_instance ? test_->volumes()->volume_instance_labels().at(
+                                    volume_instance)
+                              : "[INVALID]";
 
         // Get expected volume label from test chassis
         auto expected_volume_label

@@ -44,8 +44,8 @@ void copy_in_memspace(Collection<T, W, M, I> const& src,
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StatusChecker>
-StatusChecker::make_and_insert(CoreParams const& core)
+std::shared_ptr<StatusChecker> StatusChecker::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
@@ -102,9 +102,8 @@ void StatusChecker::begin_run(CoreParams const& params, CoreStateDevice&)
  * This must be called after both \c create_state and \c begin_run .
  */
 template<MemSpace M>
-void StatusChecker::step(ActionId prev_action,
-                         CoreParams const& params,
-                         CoreState<M>& state) const
+void StatusChecker::step(
+    ActionId prev_action, CoreParams const& params, CoreState<M>& state) const
 {
     CELER_EXPECT(data_);
     CELER_EXPECT(prev_action);
@@ -175,9 +174,10 @@ void StatusChecker::begin_run_impl(CoreParams const& params)
 /*!
  * Execute with with the last action's ID and the state.
  */
-void StatusChecker::step_impl(CoreParams const& params,
-                              CoreState<MemSpace::host>& state,
-                              StatusStateRef<MemSpace::host> const& aux_state) const
+void StatusChecker::step_impl(
+    CoreParams const& params,
+    CoreState<MemSpace::host>& state,
+    StatusStateRef<MemSpace::host> const& aux_state) const
 {
     launch_core(this->label(),
                 params,
@@ -203,12 +203,10 @@ void StatusChecker::step_impl(CoreParams const&,
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template void StatusChecker::step(ActionId,
-                                  CoreParams const&,
-                                  CoreState<MemSpace::host>&) const;
-template void StatusChecker::step(ActionId,
-                                  CoreParams const&,
-                                  CoreState<MemSpace::device>&) const;
+template void StatusChecker::step(
+    ActionId, CoreParams const&, CoreState<MemSpace::host>&) const;
+template void StatusChecker::step(
+    ActionId, CoreParams const&, CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

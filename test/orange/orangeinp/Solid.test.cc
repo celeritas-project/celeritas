@@ -369,6 +369,29 @@ TEST_F(SolidTest, cyl)
     EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
 }
 
+TEST_F(SolidTest, tor)
+{
+    this->build_volume(TorusSolid("tor",
+                                  Torus{10, 1},
+                                  Torus{10, 0.9},
+                                  EnclosedAzi{Turn{-0.125}, Turn{0.125}},
+                                  {}));
+
+    static char const* const expected_surface_strings[] = {
+        "Toroid: r=10, a=1, b=1, at o={0,0,0}",
+        "Toroid: r=10, a=0.9, b=0.9, at o={0,0,0}",
+        "Plane: n={0.70711,-0.70711,0}, d=0",
+        "Plane: n={0.70711,0.70711,0}, d=0",
+    };
+    static char const* const expected_volume_strings[] = {
+        "all(-0, +1, +2, +3)",
+    };
+
+    auto const& u = this->unit();
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    EXPECT_VEC_EQ(expected_volume_strings, volume_strings(u));
+}
+
 TEST_F(SolidTest, sphere_polar)
 {
     using SS = SphereSolid;
@@ -496,8 +519,10 @@ TEST_F(SolidTest, or_shape)
             << "actual shape: " << demangle_shape(*shape);
     }
     {
-        auto solid = ConeSolid::or_shape(
-            "cone", Cone{{1.1, 2}, 10.0}, Cone{{0.9, 1.9}, 10.0}, EnclosedAzi{});
+        auto solid = ConeSolid::or_shape("cone",
+                                         Cone{{1.1, 2}, 10.0},
+                                         Cone{{0.9, 1.9}, 10.0},
+                                         EnclosedAzi{});
         EXPECT_TRUE(solid);
         EXPECT_TRUE(dynamic_cast<ConeSolid const*>(solid.get()))
             << demangle_shape(*solid);

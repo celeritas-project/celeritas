@@ -40,12 +40,12 @@ class UrbanMscMinimalStepLimit
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    UrbanMscMinimalStepLimit(NativeCRef<UrbanMscData> const& shared,
-                             UrbanMscHelper const& helper,
-                             PhysicsTrackView* physics,
-                             bool on_boundary,
-                             real_type phys_step);
+    inline CELER_FUNCTION UrbanMscMinimalStepLimit(
+        NativeCRef<UrbanMscData> const& shared,
+        UrbanMscHelper const& helper,
+        PhysicsTrackView* physics,
+        bool on_boundary,
+        real_type phys_step);
 
     // Apply the step limitation algorithm for e-/e+ MSC
     template<class Engine>
@@ -68,8 +68,7 @@ class UrbanMscMinimalStepLimit
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
+CELER_FUNCTION UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     NativeCRef<UrbanMscData> const& shared,
     UrbanMscHelper const& helper,
     PhysicsTrackView* physics,

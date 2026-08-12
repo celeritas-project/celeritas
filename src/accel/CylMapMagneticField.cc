@@ -84,8 +84,8 @@ inp::CylMapField MakeCylMapFieldInput(G4Field const& field,
     size_type const total_points = nr * nphi * nz;
 
     // Prepare field data storage
-    field_input.field.resize(static_cast<size_type>(CylAxis::size_)
-                             * total_points);
+    field_input.field.resize(
+        static_cast<size_type>(CylAxis::size_) * total_points);
 
     Array<size_type, 4> const dims{
         nr, nphi, nz, static_cast<size_type>(CylAxis::size_)};

@@ -155,8 +155,8 @@ class Array
 
     //! Test equality of two arrays
     template<class U>
-    CELER_CEF friend auto
-    operator==(Array const& lhs, Array<U, N> const& rhs) noexcept
+    CELER_CEF friend auto operator==(Array const& lhs,
+                                     Array<U, N> const& rhs) noexcept
         -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
     {
         for (size_type i = 0; i != N; ++i)
@@ -169,8 +169,8 @@ class Array
 
     //! Test inequality of two arrays
     template<class U>
-    CELER_CEF friend auto
-    operator!=(Array const& lhs, Array<U, N> const& rhs) noexcept
+    CELER_CEF friend auto operator!=(Array const& lhs,
+                                     Array<U, N> const& rhs) noexcept
         -> std::enable_if_t<std::is_convertible_v<U, T>, bool>
     {
         return !(lhs == rhs);
@@ -210,8 +210,8 @@ CELER_FUNCTION Array(T, Us...)
  * Write the elements of array \a a to stream \a os.
  */
 template<class T, std::size_t N>
-CELER_FORCEINLINE std::ostream&
-operator<<(std::ostream& os, Array<T, N> const& a)
+CELER_FORCEINLINE std::ostream& operator<<(std::ostream& os,
+                                           Array<T, N> const& a)
 {
     os << StreamableContainer{a.data(), a.size()};
     return os;
@@ -257,8 +257,8 @@ CELER_CONSTEXPR_FUNCTION auto to_array(Span<T, N> s)
 
 // DEPRECATED: remove in v1.0
 template<class T, std::size_t N>
-[[deprecated("use to_array")]] CELER_CONSTEXPR_FUNCTION auto
-make_array(Span<T, N> s)
+[[deprecated("use to_array")]] CELER_CONSTEXPR_FUNCTION auto make_array(
+    Span<T, N> s)
 {
     return to_array(s);
 }

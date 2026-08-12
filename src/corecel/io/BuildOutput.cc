@@ -35,9 +35,9 @@ void BuildOutput::output(JsonPimpl* j) const
 
         cfg["use"] = [] {
             std::vector<std::string> options;
-#define CO_ADD_OPT(NAME)                              \
-    if constexpr (CELERITAS_USE_##NAME)               \
-    {                                                 \
+#define CO_ADD_OPT(NAME) \
+    if constexpr (CELERITAS_USE_##NAME) \
+    { \
         options.push_back(celeritas::tolower(#NAME)); \
     }
             CO_ADD_OPT(COVFIE);
@@ -86,9 +86,9 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
 
-#define CO_ADD_COND_VERS(USE, NAME, LOWER)                 \
-    if constexpr (CELERITAS_USE_##USE)                     \
-    {                                                      \
+#define CO_ADD_COND_VERS(USE, NAME, LOWER) \
+    if constexpr (CELERITAS_USE_##USE) \
+    { \
         deps[#NAME] = std::string(cmake::LOWER##_version); \
     }
             CO_ADD_COND_VERS(COVFIE, covfie, covfie);
@@ -98,6 +98,7 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
             CO_ADD_COND_VERS(HEPMC3, HepMC3, hepmc3);
             CO_ADD_COND_VERS(HIP, HIP, hip);
+            CO_ADD_COND_VERS(LARSOFT, LArSoft, larsoft);
             CO_ADD_COND_VERS(ROOT, ROOT, root);
             CO_ADD_COND_VERS(VECGEOM, G4VG, g4vg);
             CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
@@ -113,6 +114,11 @@ void BuildOutput::output(JsonPimpl* j) const
         if constexpr (CELERITAS_USE_VECGEOM)
         {
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+        }
+
+        if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
+        {
+            cfg["orange_torus"] = static_cast<bool>(CELERITAS_ORANGE_TORUS);
         }
 
         return cfg;

@@ -41,9 +41,8 @@ class MscParamsHelper
     using Values = Collection<real_type, Ownership::value, MemSpace::host>;
     //!@}
 
-    MscParamsHelper(ParticleParams const&,
-                    VecImportMscModel const&,
-                    ImportModelClass);
+    MscParamsHelper(
+        ParticleParams const&, VecImportMscModel const&, ImportModelClass);
 
     void build_ids(CoulombIds*, IndexValues*) const;
     void build_xs(XsValues*, Values*) const;

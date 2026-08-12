@@ -164,10 +164,10 @@ auto EventReader::operator()() -> result_type
         result.push_back(primary);
     }
 
-    CELER_VALIDATE(!result.empty(),
-                   << "event " << event_id.get()
-                   << " did not contain any primaries suitable for "
-                      "simulation");
+    CELER_VALIDATE(
+        !result.empty(),
+        << "event " << event_id.get()
+        << " did not contain any primaries suitable for simulation");
 
     CELER_VALIDATE(missing_pdg.empty(),
                    << "event " << event_id.get()

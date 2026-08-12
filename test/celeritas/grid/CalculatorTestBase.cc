@@ -49,9 +49,8 @@ void CalculatorTestBase::build_inverted(inp::UniformGrid grid)
 /*!
  * Construct from grid bounds and cross section values.
  */
-void CalculatorTestBase::build_impl(inp::UniformGrid lower,
-                                    inp::UniformGrid upper,
-                                    bool invert)
+void CalculatorTestBase::build_impl(
+    inp::UniformGrid lower, inp::UniformGrid upper, bool invert)
 {
     CELER_EXPECT(
         (lower || upper)
@@ -88,9 +87,8 @@ void CalculatorTestBase::build_impl(inp::UniformGrid lower,
 /*!
  * Build a uniform grid.
  */
-void CalculatorTestBase::build_grid(UniformGridRecord& data,
-                                    inp::UniformGrid const& grid,
-                                    bool invert)
+void CalculatorTestBase::build_grid(
+    UniformGridRecord& data, inp::UniformGrid const& grid, bool invert)
 {
     CollectionBuilder build(&value_storage_);
 

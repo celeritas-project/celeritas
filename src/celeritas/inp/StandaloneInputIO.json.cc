@@ -31,7 +31,7 @@ void to_json(nlohmann::json& j, StandaloneInput const& v)
     j = nlohmann::json{
         CELER_JSON_PAIR(v, system),
         CELER_JSON_PAIR(v, problem),
-        CELER_JSON_PAIR_OPTIONAL(v, geant_setup),
+        CELER_JSON_PAIR(v, geant_setup),
         CELER_JSON_PAIR(v, physics_import),
         CELER_JSON_PAIR(v, events),
     };
@@ -45,7 +45,7 @@ void from_json(nlohmann::json const& j, StandaloneInput& v)
 
     CELER_JSON_LOAD_OPTION(j, v, system);
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
-    CELER_JSON_LOAD_OPTIONAL(j, v, geant_setup);
+    CELER_JSON_LOAD_OPTION(j, v, geant_setup);
     CELER_JSON_LOAD_OPTION(j, v, physics_import);
     CELER_JSON_LOAD_REQUIRED(j, v, events);
 }

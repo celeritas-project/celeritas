@@ -47,19 +47,19 @@ class ScintillationOffload
 {
   public:
     // Construct with optical properties, scintillation, and step data
-    inline CELER_FUNCTION
-    ScintillationOffload(ParticleTrackView const& particle,
-                         SimTrackView const& sim,
-                         Real3 const& pos,
-                         units::MevEnergy energy_deposition,
-                         NativeCRef<ScintillationData> const& shared,
-                         OffloadPreStepData const& pre_step,
-                         OffloadPrePostStepData const& pre_post_step);
+    inline CELER_FUNCTION ScintillationOffload(
+        ParticleTrackView const& particle,
+        SimTrackView const& sim,
+        Real3 const& pos,
+        units::MevEnergy energy_deposition,
+        NativeCRef<ScintillationData> const& shared,
+        OffloadPreStepData const& pre_step,
+        OffloadPrePostStepData const& pre_post_step);
 
     // Gather the input data needed to sample scintillation photons
     template<class Generator>
-    inline CELER_FUNCTION optical::GeneratorDistributionData
-    operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData operator()(
+        Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
@@ -95,8 +95,8 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     , pre_step_(pre_step)
     , post_step_({pre_post_step.speed, sim.time(), pos})
     , shared_(shared)
-    , continuous_edep_fraction_(pre_post_step.energy_deposition
-                                / energy_deposition)
+    , continuous_edep_fraction_(
+          pre_post_step.energy_deposition / energy_deposition)
 {
     CELER_EXPECT(step_length_ > 0);
     CELER_EXPECT(shared_);

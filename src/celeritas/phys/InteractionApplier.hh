@@ -101,8 +101,8 @@ CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
  * ID.
  */
 template<class F>
-CELER_FUNCTION void
-InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void InteractionApplierBaseImpl<F>::operator()(
+    celeritas::CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 

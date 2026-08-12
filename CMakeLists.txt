@@ -121,6 +121,10 @@ celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
 celeritas_force_package(Python ${_needs_python})
 
+# Optional capabilities
+# Enable torus by default for debugging but not optimized until performance consequences are known
+option(CELERITAS_ORANGE_TORUS "Enable runtime ORANGE torus" ${CELERITAS_DEBUG})
+
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS
 #----------------------------------------------------------------------------#
@@ -758,6 +762,13 @@ endif()
 
 if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
+else()
+  # Replacement for running celer-config
+  add_custom_target("get-config"
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+    VERBATIM
+  )
 endif()
 
 #----------------------------------------------------------------------------#
