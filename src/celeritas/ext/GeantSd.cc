@@ -151,7 +151,8 @@ auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 
     auto weak_slot = std::weak_ptr<ProcessorSlot>{slot};
     SPProcessor result{
-        new HitProcessor(geant_vols_, particles_, selection_, locate_touchable_),
+        new HitProcessor(
+            geant_vols_, particles_, selection_, locate_touchable_),
         [weak_slot](HitProcessor* processor) {
             if (auto slot = weak_slot.lock())
             {

@@ -26,9 +26,8 @@ namespace celeritas
  * \note We also store a pointer to the thread-local manager that registered
  * this object so terminal notifications can deregister from the same manager.
  */
-StateDependent::StateDependent(LocalGeantStateChangeFunc cb,
-                               Mode mode,
-                               LifecycleRole lifecycle_role)
+StateDependent::StateDependent(
+    LocalGeantStateChangeFunc cb, Mode mode, LifecycleRole lifecycle_role)
     : local_stream_{geant_stream()}
     , cb_{std::move(cb)}
     , manager_{G4StateManager::GetStateManager()}

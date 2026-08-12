@@ -128,10 +128,10 @@ class StateDependent final : public G4VStateDependent
     };
 
     // Construct locally with state-change callback
-    explicit StateDependent(LocalGeantStateChangeFunc cb,
-                            Mode mode = Mode::raw,
-                            LifecycleRole lifecycle_role
-                            = LifecycleRole::global);
+    explicit StateDependent(
+        LocalGeantStateChangeFunc cb,
+        Mode mode = Mode::raw,
+        LifecycleRole lifecycle_role = LifecycleRole::global);
 
     // Prevent move/copy because the base class registers this object by
     // pointer
