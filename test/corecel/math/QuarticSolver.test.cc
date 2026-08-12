@@ -25,6 +25,8 @@ namespace test
 using Real5 = Array<real_type, 5>;
 using Real4 = Array<real_type, 4>;
 using Comp4 = Array<detail::Complex, 4>;
+using Real2 = Array<real_type, 2>;
+using TwinReal4 = Array<Real2, 4>;
 using Roots = Array<real_type, 4>;
 static constexpr real_type practical_tolerance
     = std::is_same_v<real_type, double> ? 1e-10 : 1e-6;
@@ -273,6 +275,47 @@ Real5 make_coeffs(Real4 const& roots)
                  x1 * x2 * (x3 + x4) * -1.0 - x3 * x4 * (x1 + x2),
                  x1 * x2 * x3 * x4};
 }
+
+Real4 strip_imag(Comp4 const& comp_roots)
+{
+    auto [x1c, x2c, x3c, x4c] = comp_roots;
+    return {x1c.real, x2c.real, x3c.real, x4c.real};
+}
+
+Real2 split(detail::Complex value)
+{
+    return {value.real, value.imag};
+}
+
+TwinReal4 split(Comp4 const& comp_roots)
+{
+    auto [x1c, x2c, x3c, x4c] = comp_roots;
+    return {split(x1c), split(x2c), split(x3c), split(x4c)};
+}
+
+/*
+ * Flip first two and last two roots in lieu of sorting complexes
+ */
+Comp4 flip2(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {z, w, x, y};
+}
+
+/*
+ * Alternatingly swap every other root
+ */
+Comp4 alternate(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {y, x, w, z};
+}
+
+Array<real_type, 8> full_split(Comp4 const& comp_roots)
+{
+    auto [x, y, z, w] = comp_roots;
+    return {x.real, x.imag, y.real, y.imag, z.real, z.imag, w.real, w.imag};
+}
 /*
  * Harness for ODM tests
  */
@@ -283,17 +326,7 @@ class ODMTest : public testing::Test
     ODMTest() : solve_{} {}
 
     Alg1010Solver solve_;
-    // ctype i_{0, 1};
-
-    // void VerifyRoots(Comp4 const& roots) {
-    //     Real5 coeffs = make_coeffs(roots);
-    //     EXPECT_VEC_SOFT_EQ(roots, sorted(solve_(coeffs)));
-    // }
-
-    // void VerifyRoots(Real4 roots) {
-    //     auto [x, y, z, w] = roots;
-    //     Comp4 croots{ctype{x, 0}, ctype{y, 0}, ctype{z, 0}, ctype{w, 0}};
-    // }
+    ctype i_{0, 1};
 };
 
 TEST_F(ODMTest, case_1)
@@ -320,64 +353,70 @@ TEST_F(ODMTest, case_3)
 TEST_F(ODMTest, case_4)
 {
     Real4 expected = sorted({1E14, 2, 1, -1});
-    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    Real4 actual
+        = sorted(strip_imag(solve_.unfiltered_roots(make_coeffs(expected))));
     EXPECT_VEC_SOFT_EQ(expected, actual);
 }
 TEST_F(ODMTest, case_5)
 {
     Real4 expected = sorted({-2E7, 1E7, 1, -1});
-    Real4 actual = sorted(solve_(make_coeffs(expected)));
+    Real4 actual
+        = sorted(strip_imag(solve_.unfiltered_roots(make_coeffs(expected))));
     EXPECT_VEC_SOFT_EQ(expected, actual);
 }
-// TEST_F(ODMTest, case_6)
-// {
-// 	Real4 expected = sorted({1E7, -1E6, 1+i_, 1-i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_7)
-// {
-// 	Real4 expected = sorted({-7, -4, -1E6+i_*1E5, -1E6-i_*1E5});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_8)
-// {
-// 	Real4 expected = sorted({1E8, 11, 1E3+i_, 1E3-i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_9)
-// {
-// 	Real4 expected = sorted({1E7+i_*1E6, 1E7-i_*1E6, 1+2*i_, 1-2*i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_10)
-// {
-// 	Real4 expected = sorted({1E4+3*i_, 1E4-3*i_, -7+1E3*i_, -7-1E3*i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_11)
-// {
-// 	Real4 expected =
-// sorted({1.001+4.998*i_, 1.001-4.998*i_, 1.000+5.001*i_, 1.000-5.001*i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_12)
-// {
-// 	Real4 expected = sorted({1E3+3*i_, 1E3-3*i_, 1E3+i_, 1E3-i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
-// TEST_F(ODMTest, case_13)
-// {
-// 	Real4 expected = sorted({2+1E4*i_, 2-1E4*i_, 1+1E3*i_, 1-1E3*i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
+TEST_F(ODMTest, case_6)
+{
+    Comp4 expected{1E7, -1E6, 1 + i_, 1 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_7)
+{
+    Comp4 expected{-7, -4, -1E6 + i_ * 1E5, -1E6 - i_ * 1E5};
+    printf("Case 7!\n");
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_8)
+{
+    Comp4 expected{1E8, 11, 1E3 + i_, 1E3 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_9)
+{
+    Comp4 expected{1E7 + i_ * 1E6, 1E7 - i_ * 1E6, 1 + 2 * i_, 1 - 2 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_10)
+{
+    Comp4 expected{1E4 + 3 * i_, 1E4 - 3 * i_, -7 + 1E3 * i_, -7 - 1E3 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
+TEST_F(ODMTest, case_11)
+{
+    Comp4 expected = {1.001 + 4.998 * i_,
+                      1.001 - 4.998 * i_,
+                      1.000 + 5.001 * i_,
+                      1.000 - 5.001 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(alternate(actual)));
+}
+TEST_F(ODMTest, case_12)
+{
+    Comp4 expected{1E3 + 3 * i_, 1E3 - 3 * i_, 1E3 + i_, 1E3 - i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected),
+                       full_split(flip2(alternate(actual))));
+}
+TEST_F(ODMTest, case_13)
+{
+    Comp4 expected{2 + 1E4 * i_, 2 - 1E4 * i_, 1 + 1E3 * i_, 1 - 1E3 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
 TEST_F(ODMTest, case_14)
 {
     Real4 expected = sorted({1000, 1000, 1000, 1000});
@@ -390,24 +429,26 @@ TEST_F(ODMTest, case_15)
     Real4 actual = sorted(solve_(make_coeffs(expected)));
     EXPECT_VEC_SOFT_EQ(expected, actual);
 }
-// TEST_F(ODMTest, case_16)
-// {
-// 	Real4 expected = sorted({1E16 + i_*1E7,1E16 - i_*1E7,1 +0.1*i_,1 -0.1*i_});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
+TEST_F(ODMTest, case_16)
+{
+    Comp4 expected{
+        1E16 + i_ * 1E7, 1E16 - i_ * 1E7, 1 + 0.1 * i_, 1 - 0.1 * i_};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
 TEST_F(ODMTest, case_17)
 {
     Real4 expected = sorted({10000, 10001, 10010, 10100});
     Real4 actual = sorted(solve_(make_coeffs(expected)));
     EXPECT_VEC_SOFT_EQ(expected, actual);
 }
-// TEST_F(ODMTest, case_18)
-// {
-// 	Real4 expected = sorted({4E5+i_*3E2,4E5-i_*3E2,3E4+i_*7E3,3E4-i_*7E3});
-// 	Real4 actual = sorted(solve_(make_coeffs(expected)));
-// 	EXPECT_VEC_SOFT_EQ(expected, actual);
-// }
+TEST_F(ODMTest, case_18)
+{
+    Comp4 expected{
+        4E5 + i_ * 3E2, 4E5 - i_ * 3E2, 3E4 + i_ * 7E3, 3E4 - i_ * 7E3};
+    Comp4 actual = solve_.unfiltered_roots(make_coeffs(expected));
+    EXPECT_VEC_SOFT_EQ(full_split(expected), full_split(flip2(actual)));
+}
 TEST_F(ODMTest, case_19)
 {
     Real4 expected = sorted({1E44, 1E30, 1E30, 1.0});
