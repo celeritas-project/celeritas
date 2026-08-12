@@ -122,7 +122,9 @@ CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
     using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
     BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
-    static_assert(StackT{}.capacity() == max_bvh_depth);
+    // This local var is necessary for gcc 8.5 compilation
+    constexpr auto capacity = stack.capacity();
+    static_assert(capacity == max_bvh_depth);
     stack.push(BvhNodeId{0});
 
     while (!stack.empty())
