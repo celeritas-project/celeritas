@@ -6,10 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "LarStandaloneRunner.hh"
 
-#include <algorithm>
 #include <limits>
 #include <memory>
-#include <type_traits>
 #include <utility>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
@@ -21,14 +19,11 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/math/ArrayOperators.hh"
-#include "corecel/math/ArrayQuantity.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "geocel/DetectorParams.hh"  // IWYU pragma: keep
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/detail/LengthUnits.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/CoreGeoParams.hh"  // IWYU pragma: keep
 #include "celeritas/inp/StandaloneInput.hh"  // IWYU pragma: keep
@@ -85,8 +80,8 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
     CELER_ASSERT(dets);
 
     geo_to_channel_.reserve(det_coords.size());
-    btr_helpers_.resize(det_coords.size());
-    lite_hits_.resize(det_coords.size());
+    btr_helpers_.reserve(det_coords.size());
+    lite_hits_.reserve(det_coords.size());
     for (auto i : range(det_coords.size()))
     {
         auto inst_id = geo->find_volume_instance_at(det_coords[i]);
@@ -99,6 +94,7 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
                        << iter->second << ") share the same volume instance ("
                        << vols->volume_instance_labels().at(inst_id));
     }
+    CELER_ENSURE(this->num_channels() == det_coords.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -108,6 +104,8 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
  * The optical material is determined in Celeritas when the tracks are
  * initialized from the pre-step position.
  *
+ * Note that the returned BTRs *omit* empty channels, just as PDFastSimPar does.
+ *
  * \todo With Cherenkov enabled we need the incident particle's charge and the
  * pre- and post-step speed.
  */
@@ -115,21 +113,25 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     -> result_type
 {
     CELER_EXPECT(!sim_energy_deposits.empty());
+    CELER_EXPECT(lite_hits_.empty());
 
     // Allocate BTR helpers
     btr_helpers_.clear();
-    for (auto i : range(geo_to_channel_.size()))
+    for (auto i : range(this->num_channels()))
     {
         btr_helpers_.emplace_back(std::make_unique<sim::OBTRHelper>(i));
     }
-    // Check that no lite hits are yet stored
-    CELER_ASSERT(std::all_of(lite_hits_.begin(),
-                             lite_hits_.end(),
-                             [](MapIntInt const& m) { return m.empty(); }));
+    // Clear any existing lite hits
+    lite_hits_.resize(this->num_channels());
+    for (auto& lh : lite_hits_)
+    {
+        lh.clear();
+    }
 
     // Convert SimEnergyDep input and save metadata for BTRs
     std::vector<celeritas::optical::GeneratorDistributionData> gdd;
     gdd.reserve(sim_energy_deposits.size());
+    step_md_.clear();
     step_md_.reserve(sim_energy_deposits.size());
     size_type num_skipped{0};
     double edep_skipped{0};
@@ -213,18 +215,13 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
                      << get_transport_time() << "s";
 
     // Convert BTR helpers to BTRs in the LarSoft order
+    // and convert SimPhotons from unordered to ordered map
+    VecSPL sim_photons(lite_hits_.size());
     VecBTR btrs;
     btrs.reserve(btr_helpers_.size());
-    for (auto& btrh : btr_helpers_)
-    {
-        btrs.emplace_back(make_obtr(std::move(*btrh)));
-    }
-    btr_helpers_.clear();
-    step_md_.clear();
-
-    VecSPL sim_photons(lite_hits_.size());
     for (auto channel_id : range(lite_hits_.size()))
     {
+        // Convert photon hits
         auto& lite = lite_hits_[channel_id];
         auto& spl = sim_photons[channel_id];
         spl.OpChannel = channel_id;
@@ -232,10 +229,20 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         {
             spl.DetectedPhotons.insert(kv);
         }
-        lite.clear();
+
+        if (!lite.empty())
+        {
+            // Only insert BTRs if optical hits were encountered (for
+            // consistency with PDFastSimPar
+            btrs.emplace_back(make_obtr(std::move(*btr_helpers_[channel_id])));
+            CELER_ENSURE(btrs.back().OpDetNum()
+                         == static_cast<int>(channel_id));
+        }
     }
 
-    return result_type{std::move(btrs), std::move(sim_photons)};
+    CELER_ENSURE(sim_photons.size() == this->num_channels());
+    CELER_ENSURE(btrs.size() <= this->num_channels());
+    return result_type{std::move(sim_photons), std::move(btrs)};
 }
 
 //---------------------------------------------------------------------------//
@@ -269,11 +276,11 @@ void LarStandaloneRunner::hit(SpanCelerHits hits)
             step_md.avg_edep);
 
         // Add to sim photon hits, rounding to nearest nanosecond
-        // TODO: if WLS is used for cryostat reflection, we'll need separate
-        // arrays [see e.g.,
+        // TODO: if WLS is used for cryostat reflection, we'll need
+        // separate arrays [see e.g.,
         // produces<std::vector<sim::SimPhotonsLite>>("Reflected") in
-        // PDFastSimPAR] and probably discriminate based on the wavelength of
-        // the detected photon
+        // PDFastSimPAR] and probably discriminate based on the wavelength
+        // of the detected photon
         auto rounded_time_ns
             = std::round(convert_to_larsoft<LarsoftTime>(h.time));
         CELER_ASSERT(rounded_time_ns > 0

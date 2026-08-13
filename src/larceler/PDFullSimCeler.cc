@@ -81,8 +81,8 @@ PDFullSimCeler::PDFullSimCeler(Parameters const& config)
     , sim_tag_{config().SimulationLabel()}
 {
     // Inform LArSoft we're going to make OpBTR and SimPhotons
-    produces<std::vector<sim::OpDetBacktrackerRecord>>();
     produces<std::vector<sim::SimPhotonsLite>>();
+    produces<std::vector<sim::OpDetBacktrackerRecord>>();
 }
 
 //---------------------------------------------------------------------------//
@@ -130,11 +130,12 @@ void PDFullSimCeler::produce(art::Event& e)
 
     // Calculate detector response for the input steps
     auto result = (*runner_)(*edep_handle);
+    CELER_ASSERT(result.backtrack.size() <= result.sim_photons.size());
 
     // Add to event
     using LSR = LarStandaloneRunner;
-    e.put(std::make_unique<LSR::VecBTR>(std::move(result.backtrack)));
     e.put(std::make_unique<LSR::VecSPL>(std::move(result.sim_photons)));
+    e.put(std::make_unique<LSR::VecBTR>(std::move(result.backtrack)));
 }
 
 //---------------------------------------------------------------------------//

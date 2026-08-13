@@ -82,8 +82,8 @@ class LarStandaloneRunner
     //! Calculated output from an event
     struct result_type
     {
-        VecBTR backtrack;
         VecSPL sim_photons;
+        VecBTR backtrack;
     };
 
   public:
@@ -135,6 +135,7 @@ class LarStandaloneRunner
 
     //// HELPERS ////
 
+    std::size_t num_channels() const { return geo_to_channel_.size(); }
     void hit(SpanCelerHits);
 };
 
