@@ -12,30 +12,30 @@
 #   eval `larceler-env -c`      # csh/tcsh
 #-----------------------------------------------------------------------------#
 
-# Detect shell and define _append_var(varname value)
+# Detect shell and define _prepend_var(varname value)
 if [ "${1}" = "-c" ]; then
   # csh style
   _set_var() {
     printf "setenv %s \"%s\";\n" "$1" "$2"
   }
-  _append_var() {
-    printf "setenv %s \"\${%s}:%s\";\n" "$1" "$1" "$2"
+  _prepend_var() {
+    printf "setenv %s %s:\"\${%s}\";\n" "$1" "$2" "$1"
   }
 else
   # sh style
   _set_var() {
     printf "export %s=\"%s\";\n" "$1" "$2"
   }
-  _append_var() {
-    printf "export %s=\"\${%s}:%s\";\n" "$1" "$1" "$2"
+  _prepend_var() {
+    printf "export %s=\"%s:\${%s}\";\n" "$1" "$2" "$1"
   }
 fi
 
 prefix="@CELER_INSTALL_PREFIX@"
 
-_append_var "CMAKE_PREFIX_PATH" "${prefix}"
+_prepend_var "CMAKE_PREFIX_PATH" "${prefix}"
 _set_var "CELERITAS_DIR" "${prefix}"
-_append_var "@CELER_LDVAR@" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
-_append_var "CET_PLUGIN_PATH" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
-_append_var "FHICL_FILE_PATH" "${prefix}/@CELERITAS_INSTALL_FHICLDIR@"
+_prepend_var "@CELER_LDVAR@" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
+_prepend_var "CET_PLUGIN_PATH" "${prefix}/@CMAKE_INSTALL_LIBDIR@"
+_prepend_var "FHICL_FILE_PATH" "${prefix}/@CELERITAS_INSTALL_FHICLDIR@"
 printf "printf \"Loaded Celeritas at %%s\\\\n\" \"${prefix}\" >&2\n"
