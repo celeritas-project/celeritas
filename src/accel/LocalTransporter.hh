@@ -7,16 +7,12 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/Types.hh"
-#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/DeviceEvent.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
-#include "celeritas/phys/Primary.hh"
 
 #include "TrackOffloadInterface.hh"
 
@@ -50,13 +46,13 @@ class StepperInterface;
  *   of the event)
  * - a tracking action (to try offloading every track)
  *
- * LocalTransporter keeps two host primary buffers. Geant4 tracks are
- * validated, converted to Celeritas primaries, and accumulated in the primary
- * buffer. In device mode, a full primary buffer is swapped into the staging
- * buffer so Stepper can queue the H2D copy while Geant4 continues filling the
- * primary buffer. Transport later consumes the staging buffer and, at event
- * end, any remaining primary buffer contents. Host mode transports the primary
- * buffer synchronously.
+ * Stepper owns two fixed-capacity host primary buffers. LocalTransporter
+ * validates and converts Geant4 tracks, pushes them into the producer buffer,
+ * and keeps the corresponding Geant4 accounting. In device mode, a full
+ * producer buffer is staged so Stepper can queue the H2D copy while Geant4
+ * continues filling the other buffer. Transport later consumes the staged
+ * buffer and, at event end, any remaining producer-buffer contents. Host mode
+ * transports the producer buffer synchronously.
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
@@ -90,10 +86,7 @@ class LocalTransporter final : public TrackOffloadInterface
     bool Initialized() const final { return static_cast<bool>(step_); }
 
     // Number of local primary/staging buffer tracks
-    size_type GetBufferSize() const final
-    {
-        return primary_buffer_.size() + staging_buffer_.size();
-    }
+    size_type GetBufferSize() const final;
 
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
@@ -116,7 +109,6 @@ class LocalTransporter final : public TrackOffloadInterface
 
     using SPOffloadWriter = std::shared_ptr<OffloadWriter>;
     using BBox = BoundingBox<double>;
-    using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
 
     struct BufferAccum
     {
@@ -133,21 +125,6 @@ class LocalTransporter final : public TrackOffloadInterface
         std::size_t steps{0};
         std::size_t lost_primaries{0};
         std::size_t hits{0};
-    };
-
-    struct PrimaryBuffer
-    {
-        PinnedVecPrimary primaries;
-        BufferAccum accum;
-
-        bool empty() const { return primaries.empty(); }
-        size_type size() const { return primaries.size(); }
-        void clear()
-        {
-            primaries.clear();
-            accum = {};
-        }
-        explicit operator bool() const { return !this->empty(); }
     };
 
     //// HELPER FUNCTIONS ////
@@ -169,9 +146,8 @@ class LocalTransporter final : public TrackOffloadInterface
 
     // Thread-local stepper data
     std::shared_ptr<StepperInterface> step_;
-    PrimaryBuffer primary_buffer_;
-    PrimaryBuffer staging_buffer_;
-    DeviceEvent staging_copy_done_{nullptr};
+    BufferAccum primary_accum_;
+    BufferAccum staging_accum_;
 
     // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;

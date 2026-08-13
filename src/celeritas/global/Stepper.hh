@@ -93,7 +93,9 @@ struct StepperResult
  * by \c get.
  *
  * Before destroying a device Stepper, the caller must ensure that any valid
- * asynchronous operation has completed by calling \c wait or \c get.
+ * asynchronous operation has completed by calling \c wait or \c get, and that
+ * any staged primary batch has been submitted with \c async. Destruction does
+ * not add hidden synchronization.
  *
  * \note This class and its daughter may be removed soon to facilitate step
  * gathering.
