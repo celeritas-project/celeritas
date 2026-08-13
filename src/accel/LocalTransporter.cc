@@ -261,7 +261,7 @@ void LocalTransporter::stage_buffered_primaries()
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a step, consuming staged primaries if present.
+ * Launch a step, submitting staged primaries if present.
  */
 void LocalTransporter::launch_step()
 {
@@ -306,10 +306,14 @@ void LocalTransporter::launch_step()
     }
 
     step_->async();
+    CELER_ENSURE(step_->valid());
+    CELER_ENSURE(step_->staged_primaries().empty());
     if (has_staged)
     {
         in_flight_accum_ = std::exchange(staged_accum_, {});
         step_iters_ = 0;
+        CELER_ENSURE(staged_accum_.empty());
+        CELER_ENSURE(in_flight_accum_.primaries == staged_primaries.size());
     }
 }
 

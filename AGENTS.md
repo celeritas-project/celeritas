@@ -51,6 +51,10 @@ attachments>
 ```
 
 **Common failure modes:**
+- Assuming a launch consumed staged input because it was present before the
+  call. For every queued-input launch, verify the callee's post-launch phase,
+  the pending-input counters, and the corresponding ownership/accounting move
+  before accepting the transition.
 - Tying asynchronous progress to availability of newly staged input. Poll any
   pending step at producer entry points and launch a continuation whenever its
   completed result still has queued or alive work, whether or not a successor

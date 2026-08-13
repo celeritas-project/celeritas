@@ -201,6 +201,7 @@ void Stepper<M>::async()
         result_counters_.front() = state_->sync_get_counters();
     }
     valid_ = true;
+    CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
 }
 
 //---------------------------------------------------------------------------//
