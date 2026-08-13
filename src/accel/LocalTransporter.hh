@@ -68,27 +68,29 @@ struct StepperResult;
  * At most one step result, one staged batch, and one producer batch can be
  * pending. Before reusing a full producer buffer, \c Push submits any staged
  * batch. It then applies backpressure by consuming and advancing the current
- * result only until the initializer queue has room for both the full producer
- * buffer and the complete secondary stack. Active tail tracks may remain when
- * a new batch is staged and launched. Calls to \c stage_primaries and \c async
- * can still block on synchronization internal to the current Stepper
- * implementation.
+ * result only until start-of-step initialization can consume enough queued
+ * tracks and primaries to preserve room for the secondary stack. Active tail
+ * tracks may remain when a new batch is staged and launched. Calls to \c
+ * stage_primaries and \c async can still block on synchronization internal to
+ * the current Stepper implementation.
  * Before accepting each subsequent track, \c Push polls a pending step. If it
  * is ready, its result is consumed and another step is launched whenever
  * existing transport remains or another batch is staged. This allows device
  * transport to progress while Geant4 continues producing primaries. A full
- * producer batch is staged only when the initializer queue also has room for
- * the maximum number of secondaries that can be produced by the next step.
+ * producer batch is staged only when it fits alongside queued initializers and
+ * leaves the maximum usable initializer capacity for secondaries after vacant
+ * track slots have been filled.
  *
  * \par Event completion
  *
  * At event end, \c Flush first submits any staged batch. If a partially filled
  * producer buffer remains, it advances the current transport until that batch
- * and the reserved secondary stack fit, then stages and launches the producer
- * batch. It finally steps all transport synchronously to completion. Hit
- * processing and Geant4 track reconstruction are kept alive across the
- * asynchronous work and cleared only after this drain completes. A flush with
- * only rejected primaries still reports and clears their loss accounting.
+ * satisfies the same initializer and secondary-capacity admission rule, then
+ * stages and launches the producer batch. It finally steps all transport
+ * synchronously to completion. Hit processing and Geant4 track reconstruction
+ * are kept alive across the asynchronous work and cleared only after this
+ * drain completes. A flush with only rejected primaries still reports and
+ * clears their loss accounting.
  *
  * Host mode has the same buffering interface but no asynchronous overlap: a
  * full producer buffer calls \c Flush and is transported to completion before
@@ -194,13 +196,13 @@ class LocalTransporter final : public TrackOffloadInterface
 
     //// HELPER FUNCTIONS ////
 
-    void stage_buffered_primaries();
-    size_type available_primary_capacity(size_type queued) const;
+    void stage_buffered_primaries(StepperResult const&);
+    size_type available_primary_capacity(StepperResult const&) const;
     void launch_step();
     StepperResult complete_step();
     void advance_if_ready();
     StepperResult advance_transport();
-    void wait_for_initializer_capacity();
+    StepperResult wait_for_initializer_capacity();
     void drain_transport();
 
     //// DATA ////

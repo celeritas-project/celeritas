@@ -56,6 +56,7 @@ celeritas_add_test(HepMC3PrimaryGenerator.test.cc
 # Fields
 celeritas_add_test(CartMapMagneticField.test.cc ${_needs_covfie})
 celeritas_add_test(CylMapMagneticField.test.cc)
+celeritas_add_test(detail/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS
@@ -170,6 +171,13 @@ celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
   OFFLOAD cpu gpu
   RMTYPE serial mt
+)
+
+# Test primary admission with a larger secondary stack
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
+  OFFLOAD cpu gpu
+  RMTYPE serial
 )
 
 #-----------------------------------------------------------------------------#
