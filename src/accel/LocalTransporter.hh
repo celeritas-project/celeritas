@@ -65,19 +65,22 @@ struct StepperResult;
  * Stepper retains the staged host storage until the copy completes, while
  * Geant4 can continue filling the second buffer.
  *
- * At most one step and one additional producer buffer can be pending. If the
- * producer buffer fills while a step is in flight, \c Push applies
- * backpressure by consuming the previous result and advancing the existing
- * Celeritas tracks only until the initializer queue has room for the full
- * producer buffer. Active tail tracks may remain when the new batch is staged
- * and launched. Thus the first full buffer starts device work; the second full
- * buffer is the first point that waits for enough device progress to refill
- * the queue.
+ * At most one step, one staged successor, and one producer batch can be
+ * pending. If the producer buffer fills while a step is in flight, \c Push
+ * applies backpressure by consuming the previous result and advancing the
+ * existing Celeritas tracks only until the initializer queue has room for the
+ * full producer buffer. If a successor is already staged, it is launched first
+ * so its former host buffer can become the next staging source. Active tail
+ * tracks may remain when a new batch is staged and launched.
  * Calls to \c stage_primaries and \c async can still block on synchronization
  * internal to the current Stepper implementation.
  * This admission check reserves space for the incoming primaries; secondaries
  * generated during the next step remain subject to the existing initializer
  * capacity validation.
+ * Before accepting each subsequent track, \c Push polls a pending step only
+ * when another batch is already staged. If that step is ready, its result is
+ * consumed and the staged batch is launched immediately, allowing device
+ * transport to progress while Geant4 continues producing primaries.
  *
  * \par Event completion
  *
@@ -188,6 +191,7 @@ class LocalTransporter final : public TrackOffloadInterface
     void stage_buffered_primaries();
     void launch_step();
     StepperResult complete_step();
+    void launch_staged_if_ready();
     StepperResult advance_transport();
     void wait_for_initializer_capacity();
     void drain_transport();

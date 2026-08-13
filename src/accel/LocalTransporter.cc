@@ -339,6 +339,29 @@ auto LocalTransporter::complete_step() -> StepperResult
 
 //---------------------------------------------------------------------------//
 /*!
+ * Poll a predecessor and launch its staged successor without blocking.
+ */
+void LocalTransporter::launch_staged_if_ready()
+{
+    CELER_EXPECT(*this);
+
+    if (step_->staged_primaries().empty())
+    {
+        return;
+    }
+    if (step_->valid())
+    {
+        if (!step_->ready())
+        {
+            return;
+        }
+        static_cast<void>(this->complete_step());
+    }
+    this->launch_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Advance existing transport by one step.
  */
 auto LocalTransporter::advance_transport() -> StepperResult
@@ -427,6 +450,7 @@ void LocalTransporter::Push(G4Track& g4track)
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
+    this->launch_staged_if_ready();
 
     // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the
@@ -495,6 +519,14 @@ void LocalTransporter::Push(G4Track& g4track)
     {
         if (celeritas::device())
         {
+            if (!step_->staged_primaries().empty())
+            {
+                if (step_->valid())
+                {
+                    static_cast<void>(this->complete_step());
+                }
+                this->launch_step();
+            }
             if (step_->valid())
             {
                 // Preserve active tracks while waiting for initializer space
@@ -520,8 +552,6 @@ void LocalTransporter::Flush()
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
-    CELER_ASSERT(!(has_staged && has_buffered));
-    CELER_ASSERT(!(step_->valid() && has_staged));
     if (!step_->valid() && !has_staged && !has_buffered
         && buffered_accum_.lost_primaries == 0)
     {
@@ -530,20 +560,20 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    if (step_->valid() && has_buffered)
-    {
-        this->wait_for_initializer_capacity();
-    }
-    else if (step_->valid())
-    {
-        this->drain_transport();
-    }
     if (!step_->staged_primaries().empty())
     {
+        if (step_->valid())
+        {
+            static_cast<void>(this->complete_step());
+        }
         this->launch_step();
     }
     if (step_->num_buffered_primaries() > 0)
     {
+        if (step_->valid())
+        {
+            this->wait_for_initializer_capacity();
+        }
         this->stage_buffered_primaries();
         this->launch_step();
     }

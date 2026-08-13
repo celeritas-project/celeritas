@@ -51,6 +51,10 @@ attachments>
 ```
 
 **Common failure modes:**
+- Driving asynchronous progress only at buffer-capacity boundaries. On every
+  producer entry point, poll any pending completion and immediately submit
+  already staged work when its predecessor is ready, before accepting more
+  producer input.
 - Solving asynchronous backpressure by draining all downstream work without
   checking occupancy. At each bounded handoff, compute the earliest safe
   admission point and refill as soon as capacity permits; active tail work is

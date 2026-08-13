@@ -154,6 +154,8 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         ASSERT_EQ(num_primaries, step.staged_primaries().size());
         EXPECT_NE(first_data, step.staged_primaries().data());
 
+        step.wait();
+        EXPECT_TRUE(step.ready());
         expect_stepper_eq(expected_first, step.get());
         EXPECT_FALSE(step.valid());
         EXPECT_EQ(num_primaries, step.staged_primaries().size());
