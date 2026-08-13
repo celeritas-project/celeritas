@@ -15,13 +15,13 @@
 #include "../univ/detail/Types.hh"
 
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
-      // We are using GCC (not Clang, not ICC)
-      #if __GNUC__ < 9
-      #else
-        #define ALLOW_CODE 1
-      #endif
+// We are using GCC (not Clang, not ICC)
+#    if __GNUC__ < 9
+#    else
+#        define ALLOW_CODE 1
+#    endif
 #else
-    #define ALLOW_CODE 1
+#    define ALLOW_CODE 1
 #endif
 
 namespace celeritas
@@ -133,7 +133,7 @@ CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
     BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
 // This static_assert does not compile with gcc 8.5
-#ifdef ALLOW_CODE 
+#ifdef ALLOW_CODE
     static_assert(stack.capacity() == max_bvh_depth);
 #endif
     stack.push(BvhNodeId{0});
