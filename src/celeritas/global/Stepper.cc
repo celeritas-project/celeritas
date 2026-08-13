@@ -189,8 +189,6 @@ void Stepper<M>::async()
 
 //---------------------------------------------------------------------------//
 /*!
- * Start asynchronous transport of already-initialized states.
-
  * Start asynchronous transport with new primaries.
  */
 template<MemSpace M>
