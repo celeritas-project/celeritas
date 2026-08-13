@@ -76,7 +76,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int) final;
 
-    // Transport all local primary/staging buffer tracks to completion
+    // Transport all locally buffered and staged tracks to completion
     void Flush() final;
 
     // Clear local data and return to an invalid state
@@ -85,7 +85,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
 
-    // Number of local primary/staging buffer tracks
+    // Number of locally buffered and staged tracks
     size_type GetBufferSize() const final;
 
     // Get accumulated action times
@@ -129,11 +129,8 @@ class LocalTransporter final : public TrackOffloadInterface
 
     //// HELPER FUNCTIONS ////
 
-    void stage_primary_buffer();
-    void clear_staging_buffer();
-    void flush_staging_buffer();
-    void flush_all_buffers();
-    void flush_impl(bool include_primary);
+    void stage_buffered_primaries();
+    void flush(bool include_buffered);
 
     //// DATA ////
 
@@ -141,13 +138,12 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<ParticleParams const> particles_;
     BBox bbox_;
     SPOffloadWriter dump_primaries_;
-    size_type auto_flush_{};
     size_type max_step_iters_{};
 
     // Thread-local stepper data
     std::shared_ptr<StepperInterface> step_;
-    BufferAccum primary_accum_;
-    BufferAccum staging_accum_;
+    BufferAccum buffered_accum_;
+    BufferAccum staged_accum_;
 
     // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;
