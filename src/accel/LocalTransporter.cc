@@ -339,6 +339,59 @@ auto LocalTransporter::complete_step() -> StepperResult
 
 //---------------------------------------------------------------------------//
 /*!
+ * Advance existing transport by one step.
+ */
+auto LocalTransporter::advance_transport() -> StepperResult
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(!step_->valid());
+
+    CELER_VALIDATE_OR_KILL_ACTIVE(step_iters_ < max_step_iters_,
+                                  << "number of step iterations exceeded the "
+                                     "allowed maximum ("
+                                  << max_step_iters_ << ")",
+                                  *step_);
+
+    this->launch_step();
+    return this->complete_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Advance transport until the producer buffer fits in the initializer queue.
+ *
+ * Active tracks may remain when this returns. The completed result guarantees
+ * that staging the producer buffer cannot exceed initializer capacity.
+ */
+void LocalTransporter::wait_for_initializer_capacity()
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->num_buffered_primaries() > 0);
+    CELER_EXPECT(step_->staged_primaries().empty());
+
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+
+    auto track_counts = this->complete_step();
+    size_type const init_capacity = step_->initializer_capacity();
+    CELER_ASSERT(track_counts.queued <= init_capacity);
+    while (step_->num_buffered_primaries()
+           > init_capacity - track_counts.queued)
+    {
+        CELER_VALIDATE(track_counts,
+                       << "primary buffer of size "
+                       << step_->num_buffered_primaries()
+                       << " exceeds initializer capacity " << init_capacity);
+
+        track_counts = this->advance_transport();
+        CELER_ASSERT(track_counts.queued <= init_capacity);
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Complete all transport without consuming the producer buffer.
  */
 void LocalTransporter::drain_transport()
@@ -359,14 +412,7 @@ void LocalTransporter::drain_transport()
     auto track_counts = this->complete_step();
     while (track_counts)
     {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters_ < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
-                                      << max_step_iters_ << ")",
-                                      *step_);
-
-        this->launch_step();
-        track_counts = this->complete_step();
+        track_counts = this->advance_transport();
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
@@ -451,8 +497,8 @@ void LocalTransporter::Push(G4Track& g4track)
         {
             if (step_->valid())
             {
-                // Leave this buffer untouched while draining prior transport
-                this->drain_transport();
+                // Preserve active tracks while waiting for initializer space
+                this->wait_for_initializer_capacity();
             }
             this->stage_buffered_primaries();
             this->launch_step();
@@ -484,19 +530,25 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    if (step_->valid())
+    if (step_->valid() && has_buffered)
+    {
+        this->wait_for_initializer_capacity();
+    }
+    else if (step_->valid())
     {
         this->drain_transport();
     }
     if (!step_->staged_primaries().empty())
     {
         this->launch_step();
-        this->drain_transport();
     }
     if (step_->num_buffered_primaries() > 0)
     {
         this->stage_buffered_primaries();
         this->launch_step();
+    }
+    if (step_->valid())
+    {
         this->drain_transport();
     }
 

@@ -67,22 +67,26 @@ struct StepperResult;
  *
  * At most one step and one additional producer buffer can be pending. If the
  * producer buffer fills while a step is in flight, \c Push applies
- * backpressure by consuming the previous result and advancing only the
- * existing Celeritas tracks until none remain. The full producer buffer stays
- * unchanged during this drain and is staged only after the initializer queue
- * is empty. Thus the first full buffer starts device work; the second full
- * buffer is the first point that waits for the prior transport to finish.
+ * backpressure by consuming the previous result and advancing the existing
+ * Celeritas tracks only until the initializer queue has room for the full
+ * producer buffer. Active tail tracks may remain when the new batch is staged
+ * and launched. Thus the first full buffer starts device work; the second full
+ * buffer is the first point that waits for enough device progress to refill
+ * the queue.
  * Calls to \c stage_primaries and \c async can still block on synchronization
  * internal to the current Stepper implementation.
+ * This admission check reserves space for the incoming primaries; secondaries
+ * generated during the next step remain subject to the existing initializer
+ * capacity validation.
  *
  * \par Event completion
  *
- * At event end, \c Flush consumes an in-flight result, stages and launches any
- * partially filled producer buffer, and synchronously steps until no tracks or
- * initializers remain. Hit processing and Geant4 track reconstruction are kept
- * alive across the asynchronous work and cleared only after this drain
- * completes. A flush with only rejected primaries still reports and clears
- * their loss accounting.
+ * At event end, \c Flush first advances an in-flight step until any partially
+ * filled producer buffer fits, then stages and launches that buffer before
+ * synchronously stepping all transport to completion. Hit processing and
+ * Geant4 track reconstruction are kept alive across the asynchronous work and
+ * cleared only after this drain completes. A flush with only rejected
+ * primaries still reports and clears their loss accounting.
  *
  * Host mode has the same buffering interface but no asynchronous overlap: a
  * full producer buffer calls \c Flush and is transported to completion before
@@ -184,6 +188,8 @@ class LocalTransporter final : public TrackOffloadInterface
     void stage_buffered_primaries();
     void launch_step();
     StepperResult complete_step();
+    StepperResult advance_transport();
+    void wait_for_initializer_capacity();
     void drain_transport();
 
     //// DATA ////

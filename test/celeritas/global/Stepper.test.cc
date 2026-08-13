@@ -170,6 +170,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         size_type const num_tracks = 8;
 
         Stepper<M> step(this->make_stepper_input(num_tracks));
+        EXPECT_GE(step.initializer_capacity(), num_primaries);
         auto first = this->make_primaries(num_primaries);
         auto second = this->make_primaries(num_primaries);
 

@@ -51,6 +51,10 @@ attachments>
 ```
 
 **Common failure modes:**
+- Solving asynchronous backpressure by draining all downstream work without
+  checking occupancy. At each bounded handoff, compute the earliest safe
+  admission point and refill as soon as capacity permits; active tail work is
+  not a reason to delay admission once queue capacity is available.
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 - Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 

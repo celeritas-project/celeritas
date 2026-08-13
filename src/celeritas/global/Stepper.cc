@@ -222,6 +222,19 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Return the fixed capacity of the track initializer queue.
+ *
+ * After consuming a step result, callers can compare this with the result's
+ * queued initializers and the producer buffer size before staging primaries.
+ */
+template<MemSpace M>
+size_type Stepper<M>::initializer_capacity() const noexcept
+{
+    return params_->init()->capacity();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Add a primary to the producer buffer.
  *
  * The producer buffer can be filled while a step result is valid or another
