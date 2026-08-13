@@ -8,10 +8,14 @@
 
 #include <utility>
 
+#include "corecel/Assert.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/random/RngReseed.hh"
@@ -50,6 +54,20 @@ template<class F>
 ScopeExit(F&& func) -> ScopeExit<F>;
 
 //---------------------------------------------------------------------------//
+//! Convert internal state counters to a public step result
+StepperResult make_stepper_result(CoreStateCounters const& counters)
+{
+    StepperResult result;
+    result.generated = counters.num_generated;
+    result.active = counters.num_active;
+    result.alive = counters.num_alive;
+    result.queued = counters.num_initializers;
+    result.cut = counters.num_cut;
+    result.errored = counters.num_errored;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -83,9 +101,17 @@ Stepper<M>::Stepper(Input input)
     state_ = std::make_shared<CoreState<M>>(
         *params_, input.stream_id, track_slots);
 
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate reusable asynchronous state before stepping begins
+        result_counters_.resize(1);
+        step_done_ = DeviceEvent{celeritas::device()};
+    }
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, *state_);
+    CELER_ENSURE(result_counters_.size() == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -106,6 +132,7 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
+    CELER_VALIDATE(!valid_, << "cannot warm up with a pending step");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
@@ -118,14 +145,24 @@ void Stepper<M>::warm_up()
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport already-initialized states.
+ * Start asynchronous transport of already-initialized states.
  *
  * A single transport step is simply a loop over a topologically sorted DAG
- * of kernels.
+ * of kernels. The step result must be retrieved with \c get before another
+ * step can be started. In device mode the result counters are copied
+ * asynchronously to pinned host memory, followed by a completion event.
+ *
+ * Existing synchronization within the action sequence can still block this
+ * call. Removing those counter-dependent synchronization points is handled
+ * separately.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()() -> result_type
+void Stepper<M>::async()
 {
+    CELER_VALIDATE(
+        !valid_,
+        << "cannot start a step before the current step has been consumed");
+
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
     counters.num_generated = 0;
@@ -133,27 +170,33 @@ auto Stepper<M>::operator()() -> result_type
     counters.num_errored = 0;
     state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
-    counters = state_->sync_get_counters();
 
-    // Get the number of track initializers and active tracks
-    result_type result;
-    result.generated = counters.num_generated;
-    result.active = counters.num_active;
-    result.alive = counters.num_alive;
-    result.queued = counters.num_initializers;
-    result.cut = counters.num_cut;
-    result.errored = counters.num_errored;
-
-    return result;
+    if constexpr (M == MemSpace::device)
+    {
+        auto const* counters_ptr = static_cast<CoreStateCounters const*>(
+            state_->ref().init.counters.data());
+        Copier<CoreStateCounters, MemSpace::host> copy_counters{
+            make_span(result_counters_), state_->stream_id()};
+        copy_counters(MemSpace::device, {counters_ptr, 1});
+        step_done_.record(celeritas::device().stream(state_->stream_id()));
+    }
+    else
+    {
+        result_counters_.front() = state_->sync_get_counters();
+    }
+    valid_ = true;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Initialize new primaries and transport them for a single step.
+ * Start asynchronous transport with new primaries.
  */
 template<MemSpace M>
-auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
+void Stepper<M>::async(SpanConstPrimary primaries)
 {
+    CELER_VALIDATE(
+        !valid_,
+        << "cannot start a step before the current step has been consumed");
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
 
@@ -174,7 +217,73 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
     state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
 
-    return (*this)();
+    this->async();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the asynchronous step has completed.
+ */
+template<MemSpace M>
+bool Stepper<M>::ready() const
+{
+    CELER_VALIDATE(valid_, << "cannot query readiness without a pending step");
+    return step_done_.ready();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for the asynchronous step to complete without consuming its result.
+ */
+template<MemSpace M>
+void Stepper<M>::wait() const
+{
+    CELER_VALIDATE(valid_, << "cannot wait without a pending step");
+    step_done_.sync();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for and return the asynchronous step result.
+ *
+ * Calling this consumes the pending result and allows another step to be
+ * started.
+ */
+template<MemSpace M>
+auto Stepper<M>::get() -> result_type
+{
+    CELER_VALIDATE(valid_, << "cannot get without a pending step");
+
+    this->wait();
+    auto result = make_stepper_result(result_counters_.front());
+    valid_ = false;
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport already-initialized states.
+ *
+ * \deprecated This is the deprecated synchronous compatibility wrapper for \c
+ * async and
+ * \c get.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()() -> result_type
+{
+    this->async();
+    return this->get();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * \deprecated Initialize new primaries and transport them for a single step.
+ */
+template<MemSpace M>
+auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
+{
+    this->async(primaries);
+    return this->get();
 }
 
 //---------------------------------------------------------------------------//
@@ -187,6 +296,8 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
 template<MemSpace M>
 void Stepper<M>::kill_active()
 {
+    CELER_VALIDATE(
+        !valid_, << "cannot kill active tracks while an asynchronous step is executing");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";
@@ -205,12 +316,27 @@ void Stepper<M>::kill_active()
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
+    CELER_VALIDATE(!valid_,
+                   << "cannot reseed while an asynchronous step is executing");
     ScopedProfiling profile_this{"reseed"};
     reseed_rng(get_ref<M>(*params_->rng()),
                state_->ref().rng,
                state_->stream_id(),
                event_id);
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset the core state counters and data so it can be reused.
+ */
+template<MemSpace M>
+void Stepper<M>::reset_state()
+{
+    CELER_VALIDATE(
+        !valid_,
+        << "cannot reset state while an asynchronous step is executing");
+    state_->reset();
 }
 
 //---------------------------------------------------------------------------//
