@@ -80,7 +80,9 @@ struct StepperResult;
  * Before accepting each subsequent track, \c Push polls a pending step. If it
  * is ready, its result is consumed and another step is launched whenever
  * existing transport remains or another batch is staged. This allows device
- * transport to progress while Geant4 continues producing primaries.
+ * transport to progress while Geant4 continues producing primaries. New
+ * primaries are admitted only when the initializer queue also has room for the
+ * maximum number of secondaries that can be produced by the next step.
  *
  * \par Event completion
  *
@@ -108,7 +110,12 @@ struct StepperResult;
  *
  * \c GetBufferSize returns accepted primaries in the producer, staged, and
  * in-flight phases. It does not count rejected primaries, active Celeritas
- * tracks, or generated secondaries.
+ * tracks, or generated secondaries. The \c transport_active_ flag records
+ * whether the last consumed result requires another step, while \c valid on
+ * the Stepper records a currently pending result. The step iteration count
+ * spans all overlapping primary batches and resets only after transport
+ * becomes empty. Calling \c Finalize requires both states to be idle, normally
+ * by first calling \c Flush.
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
@@ -189,6 +196,7 @@ class LocalTransporter final : public TrackOffloadInterface
     //// HELPER FUNCTIONS ////
 
     void stage_buffered_primaries();
+    size_type available_primary_capacity(size_type queued) const;
     void launch_step();
     StepperResult complete_step();
     void advance_if_ready();
@@ -210,6 +218,7 @@ class LocalTransporter final : public TrackOffloadInterface
     BufferAccum staged_accum_;
     BufferAccum in_flight_accum_;
     size_type step_iters_{0};
+    bool transport_active_{false};
 
     // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;

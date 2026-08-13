@@ -162,6 +162,9 @@ class StepperInterface
     //! Fixed capacity of the track initializer queue
     virtual size_type initializer_capacity() const noexcept = 0;
 
+    //! Maximum number of secondaries produced by a step
+    virtual size_type secondary_capacity() const noexcept = 0;
+
     //! Number of primaries accumulated in the producer buffer
     virtual size_type num_buffered_primaries() const noexcept = 0;
 
@@ -350,6 +353,12 @@ class Stepper final : public StepperInterface
 
     // Fixed capacity of the track initializer queue
     size_type initializer_capacity() const noexcept final;
+
+    //! Maximum number of secondaries produced by a step
+    size_type secondary_capacity() const noexcept final
+    {
+        return state_->ref().physics.secondaries.capacity();
+    }
 
     //! Number of primaries accumulated in the producer buffer
     size_type num_buffered_primaries() const noexcept final

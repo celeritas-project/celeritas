@@ -255,8 +255,35 @@ void LocalTransporter::stage_buffered_primaries()
     CELER_EXPECT(step_->staged_primaries().empty());
     CELER_EXPECT(staged_accum_.empty());
 
+    CELER_VALIDATE(
+        step_->num_buffered_primaries() <= this->available_primary_capacity(0),
+        << "primary buffer of size " << step_->num_buffered_primaries()
+        << " plus secondary capacity " << step_->secondary_capacity()
+        << " exceeds initializer capacity " << step_->initializer_capacity());
+
     step_->stage_primaries();
     staged_accum_ = std::exchange(buffered_accum_, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate primary capacity after reserving queued tracks and secondaries.
+ */
+size_type LocalTransporter::available_primary_capacity(size_type queued) const
+{
+    CELER_EXPECT(*this);
+
+    size_type const init_capacity = step_->initializer_capacity();
+    size_type const secondary_capacity = step_->secondary_capacity();
+    CELER_VALIDATE(secondary_capacity <= init_capacity,
+                   << "secondary capacity " << secondary_capacity
+                   << " exceeds initializer capacity " << init_capacity);
+    size_type const primary_queue_capacity = init_capacity - secondary_capacity;
+    if (queued >= primary_queue_capacity)
+    {
+        return 0;
+    }
+    return primary_queue_capacity - queued;
 }
 
 //---------------------------------------------------------------------------//
@@ -271,6 +298,12 @@ void LocalTransporter::launch_step()
 
     auto const staged_primaries = step_->staged_primaries();
     bool const has_staged = !staged_primaries.empty();
+    CELER_EXPECT(has_staged || transport_active_);
+    if (has_staged && !transport_active_)
+    {
+        // Start a new transport epoch
+        step_iters_ = 0;
+    }
     if (has_staged)
     {
         CELER_ASSERT(staged_accum_.primaries == staged_primaries.size());
@@ -311,7 +344,6 @@ void LocalTransporter::launch_step()
     if (has_staged)
     {
         in_flight_accum_ = std::exchange(staged_accum_, {});
-        step_iters_ = 0;
         CELER_ENSURE(staged_accum_.empty());
         CELER_ENSURE(in_flight_accum_.primaries == staged_primaries.size());
     }
@@ -328,8 +360,29 @@ auto LocalTransporter::complete_step() -> StepperResult
 
     auto result = step_->get();
     ++step_iters_;
+    transport_active_ = static_cast<bool>(result);
     run_accum_.steps += result.active;
     trace(result);
+
+    if (transport_active_)
+    {
+        if (step_->staged_primaries().empty())
+        {
+            CELER_VALIDATE_OR_KILL_ACTIVE(
+                step_iters_ < max_step_iters_,
+                << "number of step iterations exceeded the allowed maximum ("
+                << max_step_iters_ << ")",
+                *step_);
+        }
+        else
+        {
+            // A staged batch prevents the nonfatal kill-active fallback
+            CELER_VALIDATE(
+                step_iters_ < max_step_iters_,
+                << "number of step iterations exceeded the allowed maximum ("
+                << max_step_iters_ << ")");
+        }
+    }
 
     if (!in_flight_accum_.empty())
     {
@@ -378,12 +431,6 @@ auto LocalTransporter::advance_transport() -> StepperResult
     CELER_EXPECT(*this);
     CELER_EXPECT(!step_->valid());
 
-    CELER_VALIDATE_OR_KILL_ACTIVE(step_iters_ < max_step_iters_,
-                                  << "number of step iterations exceeded the "
-                                     "allowed maximum ("
-                                  << max_step_iters_ << ")",
-                                  *step_);
-
     this->launch_step();
     return this->complete_step();
 }
@@ -393,7 +440,8 @@ auto LocalTransporter::advance_transport() -> StepperResult
  * Advance transport until the producer buffer fits in the initializer queue.
  *
  * Active tracks may remain when this returns. The completed result guarantees
- * that staging the producer buffer cannot exceed initializer capacity.
+ * that the existing initializer queue, producer buffer, and maximum number of
+ * secondaries from the next step cannot exceed initializer capacity.
  */
 void LocalTransporter::wait_for_initializer_capacity()
 {
@@ -406,17 +454,21 @@ void LocalTransporter::wait_for_initializer_capacity()
 
     auto track_counts = this->complete_step();
     size_type const init_capacity = step_->initializer_capacity();
-    CELER_ASSERT(track_counts.queued <= init_capacity);
-    while (step_->num_buffered_primaries()
-           > init_capacity - track_counts.queued)
+    size_type const secondary_capacity = step_->secondary_capacity();
+    auto primaries_fit = [this](size_type queued) {
+        return step_->num_buffered_primaries()
+               <= this->available_primary_capacity(queued);
+    };
+    while (!primaries_fit(track_counts.queued))
     {
-        CELER_VALIDATE(track_counts,
-                       << "primary buffer of size "
-                       << step_->num_buffered_primaries()
-                       << " exceeds initializer capacity " << init_capacity);
+        CELER_VALIDATE(
+            track_counts,
+            << "primary buffer of size " << step_->num_buffered_primaries()
+            << " plus secondary capacity " << secondary_capacity
+            << " exceeds available initializer capacity " << init_capacity
+            << " with " << track_counts.queued << " queued tracks");
 
         track_counts = this->advance_transport();
-        CELER_ASSERT(track_counts.queued <= init_capacity);
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
@@ -643,9 +695,12 @@ size_type LocalTransporter::GetBufferSize() const
 void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
-    CELER_VALIDATE(this->GetBufferSize() == 0,
-                   << "offloaded tracks (" << this->GetBufferSize()
-                   << " in buffer) were not flushed");
+    auto const buffer_size = this->GetBufferSize();
+    CELER_VALIDATE(
+        !step_->valid() && !transport_active_ && buffer_size == 0,
+        << "offloaded tracks were not flushed (" << buffer_size
+        << " primaries buffered" << (step_->valid() ? ", step in flight" : "")
+        << (transport_active_ ? ", transport incomplete" : "") << ")");
 
     std::size_t num_optical_steps{0};
     {

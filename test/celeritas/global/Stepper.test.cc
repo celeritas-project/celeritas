@@ -400,6 +400,8 @@ TEST_F(SimpleComptonTest, primary_capacity_override)
     input.primary_capacity = 2;
     Stepper<MemSpace::host> step(std::move(input));
     EXPECT_EQ(2, step.primary_capacity());
+    EXPECT_EQ(step.state_ref().physics.secondaries.capacity(),
+              step.secondary_capacity());
 
     auto primaries = this->make_primaries(3);
     EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
