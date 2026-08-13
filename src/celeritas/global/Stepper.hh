@@ -204,9 +204,20 @@ class Stepper final : public StepperInterface
 };
 
 //---------------------------------------------------------------------------//
-// EXPLICIT INSTANTIATION removed but retained in Stepper.cc so that the
-// set_generated() member function can be specialized based on MemSpace
+// SPECIALIZATION
 //---------------------------------------------------------------------------//
+template<>
+void Stepper<MemSpace::host>::set_generated();
+
+template<>
+void Stepper<MemSpace::device>::set_generated();
+
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class Stepper<MemSpace::host>;
+extern template class Stepper<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

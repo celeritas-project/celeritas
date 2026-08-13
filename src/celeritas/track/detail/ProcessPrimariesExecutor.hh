@@ -42,7 +42,6 @@ struct ProcessPrimariesExecutor
 
     Span<Primary const> primaries;
     size_type num_primaries;
-    size_type init_capacity;
 
     //// FUNCTIONS ////
 
@@ -61,6 +60,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
         = (state->init.counters.data().get())->num_initializers;
     CELER_EXPECT(primaries.size()
                  <= num_initializers + num_primaries + tid.get());
+    size_type init_capacity = params->init.capacity;
     CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity
                    << ") with size (" << num_initializers
