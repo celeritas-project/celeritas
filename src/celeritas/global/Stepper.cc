@@ -194,6 +194,9 @@ void Stepper<M>::async()
 template<MemSpace M>
 void Stepper<M>::async(SpanConstPrimary primaries)
 {
+    CELER_VALIDATE(
+        !valid_,
+        << "cannot start a step before the current step has been consumed");
     this->stage_primaries(primaries);
     this->async();
 }
@@ -213,9 +216,6 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 template<MemSpace M>
 void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
 {
-    CELER_VALIDATE(
-        !valid_,
-        << "cannot start a step before the current step has been consumed");
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
 
