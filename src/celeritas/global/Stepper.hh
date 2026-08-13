@@ -98,11 +98,12 @@ struct StepperResult
  * only the current unsubmitted batch and should not be retained after a call
  * that changes the staging state.
  *
- * Calling \c async requires the producer buffer to be empty: accumulated
- * primaries must first be staged. Primaries can be pushed and staged while a
- * previous result is valid, but the next step cannot start until \c get
- * consumes that result. Thus result completion and primary production have
- * independent lifecycles.
+ * Calling \c async submits staged primaries, if present, and otherwise
+ * advances existing tracks without changing the producer buffer. This allows
+ * prior transport to be drained while a later primary batch remains buffered.
+ * Primaries can be pushed and staged while a previous result is valid, but the
+ * next step cannot start until \c get consumes that result. Thus result
+ * completion and primary production have independent lifecycles.
  *
  * Host steps execute synchronously and are immediately ready. The deprecated
  * call operators preserve synchronous behavior by calling \c async followed
@@ -228,9 +229,14 @@ class StepperInterface
    {
        step.push_primary(std::move(primary));
    }
-   step.stage_primaries();
+   StepperResult result = step.get();
+   while (result)
+   {
+       step.async();
+       result = step.get();
+   }
 
-   StepperResult first_result = step.get();
+   step.stage_primaries();
    step.async();
    StepperResult second_result = step.get();
    \endcode
@@ -274,7 +280,7 @@ class StepperInterface
  *
  * The expected state transitions are
  * \code
- *   no result + empty producer -- async() --> valid result
+ *   no result + producer -- async() --> valid result + same producer
  *   no result + no queued input -- async(primaries) --> valid result
  *   valid result -- ready() or wait() --> valid result
  *   valid result -- get() --> no result
@@ -288,9 +294,10 @@ class StepperInterface
  * Primaries may be pushed and staged while a result is valid, and the producer
  * may begin filling again while that next batch is staged. The staged batch
  * cannot be submitted until the prior result is consumed. Calls to \c warm_up,
- * \c reset_state, \c reseed, and \c kill_active are rejected while a result or
- * queued primary batch exists. The synchronous call operators perform \c async
- * followed immediately by \c get.
+ * \c reset_state, and \c reseed are rejected while a result or queued primary
+ * batch exists. Calling \c kill_active permits buffered primaries but rejects a
+ * pending result or staged batch. The synchronous call operators perform \c
+ * async followed immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface

@@ -339,6 +339,41 @@ auto LocalTransporter::complete_step() -> StepperResult
 
 //---------------------------------------------------------------------------//
 /*!
+ * Complete all transport without consuming the producer buffer.
+ */
+void LocalTransporter::drain_transport()
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->staged_primaries().empty());
+
+    /*!
+     * Abort cleanly for interrupt and user-defined (i.e., job manager)
+     * signals.
+     *
+     * \todo The signal handler is \em not thread safe. We may need to set an
+     * atomic/volatile bit so all local transporters abort.
+     */
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+
+    auto track_counts = this->complete_step();
+    while (track_counts)
+    {
+        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters_ < max_step_iters_,
+                                      << "number of step iterations exceeded "
+                                         "the allowed maximum ("
+                                      << max_step_iters_ << ")",
+                                      *step_);
+
+        this->launch_step();
+        track_counts = this->complete_step();
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a Geant4 track and add it to the Stepper producer buffer.
  */
 void LocalTransporter::Push(G4Track& g4track)
@@ -416,8 +451,8 @@ void LocalTransporter::Push(G4Track& g4track)
         {
             if (step_->valid())
             {
-                // Apply backpressure only after both buffers have filled
-                static_cast<void>(this->complete_step());
+                // Leave this buffer untouched while draining prior transport
+                this->drain_transport();
             }
             this->stage_buffered_primaries();
             this->launch_step();
@@ -440,6 +475,7 @@ void LocalTransporter::Flush()
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
     CELER_ASSERT(!(has_staged && has_buffered));
+    CELER_ASSERT(!(step_->valid() && has_staged));
     if (!step_->valid() && !has_staged && !has_buffered
         && buffered_accum_.lost_primaries == 0)
     {
@@ -448,44 +484,20 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    /*!
-     * Abort cleanly for interrupt and user-defined (i.e., job manager)
-     * signals.
-     *
-     * \todo The signal handler is \em not thread safe. We may need to set an
-     * atomic/volatile bit so all local transporters abort.
-     */
-    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
-
-    StepperResult track_counts;
     if (step_->valid())
     {
-        track_counts = this->complete_step();
+        this->drain_transport();
     }
     if (!step_->staged_primaries().empty())
     {
         this->launch_step();
-        track_counts = this->complete_step();
+        this->drain_transport();
     }
     if (step_->num_buffered_primaries() > 0)
     {
         this->stage_buffered_primaries();
         this->launch_step();
-        track_counts = this->complete_step();
-    }
-
-    while (track_counts)
-    {
-        CELER_VALIDATE_OR_KILL_ACTIVE(step_iters_ < max_step_iters_,
-                                      << "number of step iterations exceeded "
-                                         "the allowed maximum ("
-                                      << max_step_iters_ << ")",
-                                      *step_);
-
-        this->launch_step();
-        track_counts = this->complete_step();
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            !interrupted(), << "caught interrupt signal", *step_);
+        this->drain_transport();
     }
 
     if (buffered_accum_.lost_primaries > 0)

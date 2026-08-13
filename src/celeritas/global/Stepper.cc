@@ -161,6 +161,8 @@ void Stepper<M>::warm_up()
  * of kernels. The step result must be retrieved with \c get before another
  * step can be started. In device mode the result counters are copied
  * asynchronously to pinned host memory, followed by a completion event.
+ * Primaries in the producer buffer remain there unless they have first been
+ * staged.
  *
  * Existing synchronization within the action sequence can still block this
  * call. Removing those counter-dependent synchronization points is handled
@@ -172,8 +174,6 @@ void Stepper<M>::async()
     CELER_VALIDATE(
         !valid_,
         << "cannot start a step before the current step has been consumed");
-    CELER_VALIDATE(primary_buffer_.empty(),
-                   << "cannot start a step with unstaged primaries");
 
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
@@ -408,15 +408,17 @@ auto Stepper<M>::operator()(SpanConstPrimary primaries) -> result_type
  * Kill all tracks in flight to debug "stuck" tracks.
  *
  * The next "step" will apply the tracking cut and (if CPU) print diagnostic
- * output about the failed tracks.
+ * output about the failed tracks. Primaries in the producer buffer are not yet
+ * part of the core state and remain unchanged, but staged primaries prevent
+ * this operation.
  */
 template<MemSpace M>
 void Stepper<M>::kill_active()
 {
     CELER_VALIDATE(
         !valid_, << "cannot kill active tracks while an asynchronous step is executing");
-    CELER_VALIDATE(!this->has_queued_primaries(),
-                   << "cannot kill active tracks with queued primaries");
+    CELER_VALIDATE(primary_phase_ != PrimaryPhase::staged,
+                   << "cannot kill active tracks with staged primaries");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";

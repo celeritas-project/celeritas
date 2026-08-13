@@ -163,6 +163,41 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         EXPECT_TRUE(step.staged_primaries().empty());
     }
 
+    template<MemSpace M>
+    void run_buffered_continuation()
+    {
+        size_type const num_primaries = 32;
+        size_type const num_tracks = 8;
+
+        Stepper<M> step(this->make_stepper_input(num_tracks));
+        auto first = this->make_primaries(num_primaries);
+        auto second = this->make_primaries(num_primaries);
+
+        step.async(make_span(first));
+        for (auto primary : second)
+        {
+            step.push_primary(std::move(primary));
+        }
+
+        auto result = step.get();
+        ASSERT_TRUE(result);
+        for (size_type step_iters = 0; result; ++step_iters)
+        {
+            ASSERT_LT(step_iters, 10000);
+            EXPECT_EQ(num_primaries, step.num_buffered_primaries());
+            EXPECT_TRUE(step.staged_primaries().empty());
+
+            step.async();
+            result = step.get();
+        }
+
+        EXPECT_EQ(num_primaries, step.num_buffered_primaries());
+        step.stage_primaries();
+        step.async();
+        result = step.get();
+        EXPECT_EQ(num_primaries, result.generated);
+    }
+
     size_type max_steps_{0};
 };
 
@@ -369,6 +404,16 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(buffered_pipeline_device))
     this->run_buffered_pipeline<MemSpace::device>();
 }
 
+TEST_F(SimpleComptonTest, buffered_continuation_host)
+{
+    this->run_buffered_continuation<MemSpace::host>();
+}
+
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(buffered_continuation_device))
+{
+    this->run_buffered_continuation<MemSpace::device>();
+}
+
 TEST_F(SimpleComptonTest, fail_queued_primary_operations)
 {
     Stepper<MemSpace::host> step(this->make_stepper_input(64));
@@ -376,11 +421,10 @@ TEST_F(SimpleComptonTest, fail_queued_primary_operations)
 
     EXPECT_THROW(step.stage_primaries(), RuntimeError);
     step.push_primary(primaries.front());
-    EXPECT_THROW(step.async(), RuntimeError);
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
-    EXPECT_THROW(step.kill_active(), RuntimeError);
+    EXPECT_NO_THROW(step.kill_active());
 
     step.stage_primaries();
     EXPECT_THROW(step.stage_primaries(), RuntimeError);

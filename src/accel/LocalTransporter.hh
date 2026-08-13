@@ -67,10 +67,11 @@ struct StepperResult;
  *
  * At most one step and one additional producer buffer can be pending. If the
  * producer buffer fills while a step is in flight, \c Push applies
- * backpressure by consuming the previous result with \c
- * StepperInterface::get. It then stages the new buffer and immediately
- * launches the next step. Thus the first full buffer starts device work; the
- * second full buffer is the first point that must wait for device progress.
+ * backpressure by consuming the previous result and advancing only the
+ * existing Celeritas tracks until none remain. The full producer buffer stays
+ * unchanged during this drain and is staged only after the initializer queue
+ * is empty. Thus the first full buffer starts device work; the second full
+ * buffer is the first point that waits for the prior transport to finish.
  * Calls to \c stage_primaries and \c async can still block on synchronization
  * internal to the current Stepper implementation.
  *
@@ -183,6 +184,7 @@ class LocalTransporter final : public TrackOffloadInterface
     void stage_buffered_primaries();
     void launch_step();
     StepperResult complete_step();
+    void drain_transport();
 
     //// DATA ////
 
