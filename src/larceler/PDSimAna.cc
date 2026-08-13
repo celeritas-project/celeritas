@@ -24,6 +24,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/grid/VectorUtils.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {
@@ -36,6 +37,13 @@ PDSimAna::PDSimAna(Parameters const& config)
     , sim_tag_{config().SimulationLabel()}
     , pd_tag_{config().PDModuleLabel()}
 {
+    inp_.num_channels = config().NumChannels();
+    inp_.min_time = config().MinTime();
+    inp_.max_time = config().MaxTime();
+    CELER_VALIDATE(inp_.num_channels > 0,
+                   << "invalid number of channels " << inp_.num_channels);
+    CELER_VALIDATE(inp_.min_time < inp_.max_time,
+                   << "min time is not greater than max time");
 }
 
 //---------------------------------------------------------------------------//
@@ -59,13 +67,14 @@ void PDSimAna::beginJob()
         = tfs->make<TH1D>("time", "Hit time/ns", 100, 0, inp_.max_time);
 
     auto time_grid = geomspace(inp_.min_time, inp_.max_time, 101);
-    hist_.photons_detid_time = tfs->make<TH2D>("photons_detid_time",
-                                               "Photons;opdet;hit time/ns",
-                                               time_grid.size() - 1,
-                                               time_grid.data(),
-                                               inp_.num_channels,
-                                               0,
-                                               inp_.num_channels);
+    hist_.photons_detid_time
+        = tfs->make<TH2D>("photons_detid_time",
+                          "Photons;hit time/ns;opdet",
+                          static_cast<int>(time_grid.size()) - 1,
+                          time_grid.data(),
+                          static_cast<int>(inp_.num_channels),
+                          0.0,
+                          static_cast<double>(inp_.num_channels));
 }
 
 //---------------------------------------------------------------------------//
@@ -86,13 +95,26 @@ void PDSimAna::analyze(art::Event const& event)
     using VecBTR = std::vector<sim::OpDetBacktrackerRecord>;
     auto const& sim_photons = *event.getValidHandle<VecSPL>(pd_tag_);
     auto const& btrs = *event.getValidHandle<VecBTR>(pd_tag_);
-    CELER_VALIDATE(sim_photons.size() == btrs.size(),
+    CELER_VALIDATE(sim_photons.size() >= btrs.size(),
                    << "expected sim photon size (" << sim_photons.size()
-                   << ") to be same as backtracker record size ("
+                   << ") to be same at least as large as btr size ("
                    << btrs.size() << ")");
-    for (auto i : range(sim_photons.size()))
+    std::vector<bool> encountered(sim_photons.size());
+    for (auto const& btr : btrs)
     {
-        this->fill(sim_photons[i], btrs[i]);
+        auto i = static_cast<std::size_t>(btr.OpDetNum());
+        CELER_VALIDATE(i < encountered.size() && !encountered[i],
+                       << "invalid or duplicate BTR OpDetNum " << i);
+        CELER_ASSERT(i < sim_photons.size());
+        this->fill(sim_photons[i], btr);
+        encountered[i].flip();
+    }
+    auto num_missing
+        = std::count(encountered.begin(), encountered.end(), false);
+    if (num_missing > 0)
+    {
+        CELER_LOG(info) << "No hits encountered in " << num_missing
+                        << " channels in event " << event.event();
     }
 }
 
@@ -134,6 +156,7 @@ void PDSimAna::fill(sim::SimPhotonsLite const& spl,
     for (auto [tick, photons] : spl.DetectedPhotons)
     {
         hist_.photons_detid_time->Fill(tick, opdet_id, photons);
+        hist_.hit_time->Fill(tick, photons);
     }
 }
 

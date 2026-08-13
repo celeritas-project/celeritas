@@ -86,7 +86,7 @@ class PDSimAna : public art::EDAnalyzer
         unsigned int num_channels{0};
         double min_time{1e100};
         double max_time{0};
-    } dims;
+    };
 
     struct Histograms
     {
