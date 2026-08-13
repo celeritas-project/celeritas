@@ -45,7 +45,7 @@ struct TransporterInput
     size_type max_steps{};
     bool store_track_counts{};  //!< Store track counts at each step
     size_type log_progress{};  //!< CELER_LOG progress every N events
-    size_type primary_capacity{};  //!< Largest input event
+    size_type primary_capacity{};  //!< Maximum primaries accepted per call
 
     StreamId stream_id{0};
 

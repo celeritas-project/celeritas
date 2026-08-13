@@ -91,6 +91,8 @@ Stepper<M>::Stepper(Input input)
     CELER_VALIDATE(primaries_action_,
                    << "primary generator was not added to the stepping loop");
 
+    // An override lets callers size both buffers for their batching policy
+    // while preserving the configured per-stream default for existing users.
     primary_capacity_ = input.primary_capacity;
     if (primary_capacity_ == 0)
     {
@@ -189,6 +191,8 @@ void Stepper<M>::async()
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
     {
+        // The action sequence has enqueued work that consumes the staged input,
+        // but its host source remains protected until the H2D copy completes.
         primary_phase_ = PrimaryPhase::submitted;
     }
 
@@ -231,7 +235,8 @@ void Stepper<M>::async(SpanConstPrimary primaries)
  * Return the fixed capacity of the track initializer queue.
  *
  * After consuming a step result, callers can compare this with the result's
- * queued initializers and the producer buffer size before staging primaries.
+ * queued initializers, the producer buffer size, and \c secondary_capacity
+ * before staging primaries.
  */
 template<MemSpace M>
 size_type Stepper<M>::initializer_capacity() const noexcept
@@ -260,12 +265,10 @@ void Stepper<M>::push_primary(Primary primary)
  * Stage the producer buffer for transport.
  *
  * This validates and inserts primaries into the stepper state but does not
- * execute transport actions. In device mode the current implementation may
- * still synchronize internally while updating counters; a future non-blocking
- * stepper interface should build on this staging split without assuming this
- * function is fully asynchronous.
- * Reusing the source of a previously submitted batch waits only for its copy
- * event, not for completion of the previous step.
+ * execute transport actions. This separation does not by itself make staging
+ * nonblocking: in device mode the current counter updates may still
+ * synchronize internally. Reusing the source of a previously submitted batch
+ * waits only for its copy event, not for completion of the previous step.
  *
  * \pre No primaries are currently staged.
  */
@@ -490,6 +493,8 @@ void Stepper<M>::reset_state()
 template<MemSpace M>
 bool Stepper<M>::has_queued_primaries() const noexcept
 {
+    // A submitted copy source is owned by the pending result lifecycle, which
+    // callers validate separately through valid_.
     return !primary_buffer_.empty() || primary_phase_ == PrimaryPhase::staged;
 }
 
@@ -502,6 +507,7 @@ void Stepper<M>::reclaim_submitted_primaries()
 {
     if (primary_phase_ == PrimaryPhase::submitted)
     {
+        // Wait only for the copy source lifetime, not for step completion.
         primary_copy_done_.sync();
         staged_primaries_.clear();
         primary_phase_ = PrimaryPhase::empty;

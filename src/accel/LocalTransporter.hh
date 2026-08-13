@@ -65,33 +65,30 @@ struct StepperResult;
  * Stepper retains the staged host storage until the copy completes, while
  * Geant4 can continue filling the second buffer.
  *
- * At most one step, one staged successor, and one producer batch can be
- * pending. If the producer buffer fills while a step is in flight, \c Push
- * applies backpressure by consuming the previous result and advancing the
- * existing Celeritas tracks only until the initializer queue has room for the
- * full producer buffer. If a successor is already staged, it is launched first
- * so its former host buffer can become the next staging source. Active tail
- * tracks may remain when a new batch is staged and launched.
- * Calls to \c stage_primaries and \c async can still block on synchronization
- * internal to the current Stepper implementation.
- * This admission check reserves space for the incoming primaries; secondaries
- * generated during the next step remain subject to the existing initializer
- * capacity validation.
+ * At most one step result, one staged batch, and one producer batch can be
+ * pending. Before reusing a full producer buffer, \c Push submits any staged
+ * batch. It then applies backpressure by consuming and advancing the current
+ * result only until the initializer queue has room for both the full producer
+ * buffer and the complete secondary stack. Active tail tracks may remain when
+ * a new batch is staged and launched. Calls to \c stage_primaries and \c async
+ * can still block on synchronization internal to the current Stepper
+ * implementation.
  * Before accepting each subsequent track, \c Push polls a pending step. If it
  * is ready, its result is consumed and another step is launched whenever
  * existing transport remains or another batch is staged. This allows device
- * transport to progress while Geant4 continues producing primaries. New
- * primaries are admitted only when the initializer queue also has room for the
- * maximum number of secondaries that can be produced by the next step.
+ * transport to progress while Geant4 continues producing primaries. A full
+ * producer batch is staged only when the initializer queue also has room for
+ * the maximum number of secondaries that can be produced by the next step.
  *
  * \par Event completion
  *
- * At event end, \c Flush first advances an in-flight step until any partially
- * filled producer buffer fits, then stages and launches that buffer before
- * synchronously stepping all transport to completion. Hit processing and
- * Geant4 track reconstruction are kept alive across the asynchronous work and
- * cleared only after this drain completes. A flush with only rejected
- * primaries still reports and clears their loss accounting.
+ * At event end, \c Flush first submits any staged batch. If a partially filled
+ * producer buffer remains, it advances the current transport until that batch
+ * and the reserved secondary stack fit, then stages and launches the producer
+ * batch. It finally steps all transport synchronously to completion. Hit
+ * processing and Geant4 track reconstruction are kept alive across the
+ * asynchronous work and cleared only after this drain completes. A flush with
+ * only rejected primaries still reports and clears their loss accounting.
  *
  * Host mode has the same buffering interface but no asynchronous overlap: a
  * full producer buffer calls \c Flush and is transported to completion before
@@ -104,12 +101,14 @@ struct StepperResult;
  * | State | Stepper state | Local accounting |
  * | ----- | ------------- | ---------------- |
  * | Producer | Primaries accepted by \c push_primary | \c buffered_accum_ |
- * | Staged | H2D copy queued, not submitted | \c staged_accum_ |
- * | In flight | Step result is valid | \c in_flight_accum_ |
- * | Complete | Step result consumed | Added to \c run_accum_ |
+ * | Staged | H2D copy queued; actions not submitted | \c staged_accum_ |
+ * | Submitted | Batch submitted by \c async | \c in_flight_accum_ |
+ * | Accounted | First result for batch consumed | Added to \c run_accum_ |
  *
- * \c GetBufferSize returns accepted primaries in the producer, staged, and
- * in-flight phases. It does not count rejected primaries, active Celeritas
+ * \c in_flight_accum_ is cleared when the first result for its submitted batch
+ * is consumed, even if the resulting active tracks require additional steps.
+ * \c GetBufferSize returns accepted primaries that have not yet reached this
+ * accounting point. It does not count rejected primaries, active Celeritas
  * tracks, or generated secondaries. The \c transport_active_ flag records
  * whether the last consumed result requires another step, while \c valid on
  * the Stepper records a currently pending result. The step iteration count
@@ -148,7 +147,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
 
-    // Number of buffered, staged, and in-flight primaries
+    // Number of accepted primaries not yet accounted as transported
     size_type GetBufferSize() const final;
 
     // Get accumulated action times
@@ -217,7 +216,9 @@ class LocalTransporter final : public TrackOffloadInterface
     BufferAccum buffered_accum_;
     BufferAccum staged_accum_;
     BufferAccum in_flight_accum_;
+    // Completed iterations in the current uninterrupted transport epoch
     size_type step_iters_{0};
+    // Whether the last consumed result requires another step
     bool transport_active_{false};
 
     // Thread-local Geant4 integration data

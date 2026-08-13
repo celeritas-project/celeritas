@@ -42,9 +42,10 @@ class ExtendFromPrimariesAction;
  * - \c actions : Ordered sequence of transport actions
  * - \c stream_id : Unique thread or task ID for this state
  * - \c num_track_slots : Maximum number of tracks transported in parallel
- *   (optional, may be set by \c params)
+ *   (optional, defaults to the per-stream value from \c params)
  * - \c primary_capacity : Maximum primaries in either owned host buffer
- *   (optional, may be set by \c params)
+ *   (optional, defaults to the total primary capacity in \c params divided by
+ *   the number of streams)
  */
 struct StepperInput
 {
@@ -162,7 +163,7 @@ class StepperInterface
     //! Fixed capacity of the track initializer queue
     virtual size_type initializer_capacity() const noexcept = 0;
 
-    //! Maximum number of secondaries produced by a step
+    //! Fixed capacity of the per-step secondary stack
     virtual size_type secondary_capacity() const noexcept = 0;
 
     //! Number of primaries accumulated in the producer buffer
@@ -238,16 +239,14 @@ class StepperInterface
    {
        step.push_primary(std::move(primary));
    }
+   step.stage_primaries();
    StepperResult result = step.get();
-   while (result)
+   do
    {
+       // Submit the staged batch while continuing any active tracks
        step.async();
        result = step.get();
-   }
-
-   step.stage_primaries();
-   step.async();
-   StepperResult second_result = step.get();
+   } while (result);
    \endcode
  *
  * \internal
@@ -295,6 +294,7 @@ class StepperInterface
  *   valid result -- get() --> no result
  *
  *   producer -- stage_primaries() --> staged
+ *   valid result + producer -- stage_primaries() --> valid result + staged
  *   staged + no result -- async() --> submitted + valid result
  *   submitted + producer -- stage_primaries() --> staged
  * \endcode
@@ -354,7 +354,7 @@ class Stepper final : public StepperInterface
     // Fixed capacity of the track initializer queue
     size_type initializer_capacity() const noexcept final;
 
-    //! Maximum number of secondaries produced by a step
+    //! Fixed capacity of the per-step secondary stack
     size_type secondary_capacity() const noexcept final
     {
         return state_->ref().physics.secondaries.capacity();
@@ -435,13 +435,13 @@ class Stepper final : public StepperInterface
     PrimaryStorage primary_buffer_;
     // Host source for a staged or submitted primary copy
     PrimaryStorage staged_primaries_;
-    // Completion of the staged-primary H2D copy
+    // Completion of the H2D copy that uses staged_primaries_ as its source
     DeviceEvent primary_copy_done_{nullptr};
     // Logical state of staged_primaries_
     PrimaryPhase primary_phase_{PrimaryPhase::empty};
     // Preallocated result from the most recently started step
     CounterStorage result_counters_;
-    // Completion of device work and the result-counter copy
+    // Completion of device work and the result-counter snapshot
     DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
     bool valid_{false};

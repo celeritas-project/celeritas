@@ -57,6 +57,7 @@ Runner::Runner(Input si)
     transporter_input_->actions = std::move(loaded.problem.actions);
     transporter_input_->log_progress = si.problem.diagnostics.log_frequency;
     CELER_ASSERT(!events_.empty());
+    // Preallocate both Stepper primary buffers to fit every input event.
     transporter_input_->primary_capacity
         = std::max_element(events_.begin(),
                            events_.end(),

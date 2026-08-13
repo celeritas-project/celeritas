@@ -255,6 +255,8 @@ void LocalTransporter::stage_buffered_primaries()
     CELER_EXPECT(step_->staged_primaries().empty());
     CELER_EXPECT(staged_accum_.empty());
 
+    // Callers with active transport first drain enough queued initializers;
+    // passing zero here verifies the batch also fits an otherwise empty queue.
     CELER_VALIDATE(
         step_->num_buffered_primaries() <= this->available_primary_capacity(0),
         << "primary buffer of size " << step_->num_buffered_primaries()
@@ -281,6 +283,7 @@ size_type LocalTransporter::available_primary_capacity(size_type queued) const
     size_type const primary_queue_capacity = init_capacity - secondary_capacity;
     if (queued >= primary_queue_capacity)
     {
+        // Saturate instead of underflowing unsigned capacity arithmetic.
         return 0;
     }
     return primary_queue_capacity - queued;
@@ -301,7 +304,8 @@ void LocalTransporter::launch_step()
     CELER_EXPECT(has_staged || transport_active_);
     if (has_staged && !transport_active_)
     {
-        // Start a new transport epoch
+        // A batch submitted into an empty state starts a new transport epoch;
+        // adding a batch to active tail tracks continues the existing epoch.
         step_iters_ = 0;
     }
     if (has_staged)
@@ -376,7 +380,8 @@ auto LocalTransporter::complete_step() -> StepperResult
         }
         else
         {
-            // A staged batch prevents the nonfatal kill-active fallback
+            // kill_active rejects staged input, so abort rather than discard a
+            // successor batch while recovering from excessive iterations.
             CELER_VALIDATE(
                 step_iters_ < max_step_iters_,
                 << "number of step iterations exceeded the allowed maximum ("
@@ -406,6 +411,7 @@ void LocalTransporter::advance_if_ready()
     {
         if (!step_->staged_primaries().empty())
         {
+            // Submit queued input immediately whenever the Stepper is idle.
             this->launch_step();
         }
         return;
@@ -415,7 +421,9 @@ void LocalTransporter::advance_if_ready()
         return;
     }
 
+    // Polling consumes at most one result and refills the stream when needed.
     auto result = this->complete_step();
+    // Launch staged input even if the preceding transport just became idle.
     if (result || !step_->staged_primaries().empty())
     {
         this->launch_step();
@@ -452,6 +460,8 @@ void LocalTransporter::wait_for_initializer_capacity()
 
     ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
 
+    // Consume the current result, then advance only as far as needed to admit
+    // the producer while retaining a full secondary-stack reserve.
     auto track_counts = this->complete_step();
     size_type const init_capacity = step_->initializer_capacity();
     size_type const secondary_capacity = step_->secondary_capacity();
@@ -468,6 +478,8 @@ void LocalTransporter::wait_for_initializer_capacity()
             << " exceeds available initializer capacity " << init_capacity
             << " with " << track_counts.queued << " queued tracks");
 
+        // A false result means the queue is already empty: failure above then
+        // avoids looping when the producer cannot fit an empty core state.
         track_counts = this->advance_transport();
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
@@ -582,15 +594,20 @@ void LocalTransporter::Push(G4Track& g4track)
         {
             if (!step_->staged_primaries().empty())
             {
+                // Submit a staged successor before using the full producer as
+                // the next staged batch.
                 if (step_->valid())
                 {
+                    // complete_step stores continuation in transport_active_,
+                    // which launch_step uses after the result is discarded.
                     static_cast<void>(this->complete_step());
                 }
                 this->launch_step();
             }
             if (step_->valid())
             {
-                // Preserve active tracks while waiting for initializer space
+                // Preserve active tracks while making room for this producer
+                // batch and a full secondary stack.
                 this->wait_for_initializer_capacity();
             }
             this->stage_buffered_primaries();
@@ -613,6 +630,7 @@ void LocalTransporter::Flush()
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
+    // Rejected primaries have no Stepper state but still need loss accounting.
     if (!step_->valid() && !has_staged && !has_buffered
         && buffered_accum_.lost_primaries == 0)
     {
@@ -623,14 +641,18 @@ void LocalTransporter::Flush()
 
     if (!step_->staged_primaries().empty())
     {
+        // Preserve an already staged successor by submitting it first.
         if (step_->valid())
         {
+            // complete_step stores continuation in transport_active_, which
+            // launch_step uses after the result is discarded.
             static_cast<void>(this->complete_step());
         }
         this->launch_step();
     }
     if (step_->num_buffered_primaries() > 0)
     {
+        // A partial producer follows the same admission rule as a full batch.
         if (step_->valid())
         {
             this->wait_for_initializer_capacity();
@@ -671,7 +693,7 @@ void LocalTransporter::Flush()
 
 //---------------------------------------------------------------------------//
 /*!
- * Number of primaries buffered, staged, or in flight.
+ * Number of accepted primaries not yet accounted as transported.
  */
 size_type LocalTransporter::GetBufferSize() const
 {
@@ -696,6 +718,8 @@ void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
     auto const buffer_size = this->GetBufferSize();
+    // Submitted-batch accounting may already be clear while active tail tracks
+    // or an unconsumed Stepper result still require transport.
     CELER_VALIDATE(
         !step_->valid() && !transport_active_ && buffer_size == 0,
         << "offloaded tracks were not flushed (" << buffer_size
