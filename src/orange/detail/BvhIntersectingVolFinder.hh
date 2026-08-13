@@ -16,7 +16,7 @@
 
 #if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #    if __GNUC__ < 9
-     // We are using GCC (not Clang, not ICC)
+// We are using GCC (not Clang, not ICC)
 #    else
 #        define CELER_GCC8_BUGGY_CONSTEXPR 1
 #    endif
