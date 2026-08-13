@@ -43,6 +43,8 @@ class ExtendFromPrimariesAction;
  * - \c stream_id : Unique thread or task ID for this state
  * - \c num_track_slots : Maximum number of tracks transported in parallel
  *   (optional, may be set by \c params)
+ * - \c primary_capacity : Maximum primaries in either owned host buffer
+ *   (optional, may be set by \c params)
  */
 struct StepperInput
 {
@@ -50,6 +52,7 @@ struct StepperInput
     std::shared_ptr<ActionSequence> actions;
     StreamId stream_id{};
     size_type num_track_slots{};
+    size_type primary_capacity{};
 
     //! True if defined
     explicit operator bool() const { return params && actions && stream_id; }

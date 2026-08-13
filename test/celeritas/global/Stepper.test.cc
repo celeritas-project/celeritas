@@ -394,6 +394,20 @@ TEST_F(SimpleComptonTest, fail_stage_primaries_twice)
     EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
 }
 
+TEST_F(SimpleComptonTest, primary_capacity_override)
+{
+    auto input = this->make_stepper_input(64);
+    input.primary_capacity = 2;
+    Stepper<MemSpace::host> step(std::move(input));
+    EXPECT_EQ(2, step.primary_capacity());
+
+    auto primaries = this->make_primaries(3);
+    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+    step.stage_primaries(make_span(primaries).first(2));
+    EXPECT_EQ(2, step.staged_primaries().size());
+    static_cast<void>(step());
+}
+
 TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(stage_primaries_device))
 {
     this->run_staged_first_step<MemSpace::device>();

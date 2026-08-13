@@ -91,7 +91,12 @@ Stepper<M>::Stepper(Input input)
     CELER_VALIDATE(primaries_action_,
                    << "primary generator was not added to the stepping loop");
 
-    primary_capacity_ = params_->sizes().primaries / params_->sizes().streams;
+    primary_capacity_ = input.primary_capacity;
+    if (primary_capacity_ == 0)
+    {
+        primary_capacity_ = params_->sizes().primaries
+                            / params_->sizes().streams;
+    }
     CELER_VALIDATE(
         primary_capacity_ > 0,
         << "primary capacity is smaller than the number of streams");
