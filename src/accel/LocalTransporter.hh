@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.hh
+//! \sa TrackingManagerIntegration.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -47,14 +48,59 @@ struct StepperResult;
  *   of the event)
  * - a tracking action (to try offloading every track)
  *
- * Stepper owns two fixed-capacity host primary buffers. LocalTransporter
- * validates and converts Geant4 tracks, pushes them into the producer buffer,
- * and keeps the corresponding Geant4 accounting. In device mode, a full
- * producer buffer is staged and launched so GPU transport can overlap with
- * Geant4 filling the other buffer. Filling that buffer consumes the previous
- * step result before launching the next batch. Event-end transport consumes
- * any remaining producer-buffer contents and drains all active tracks. Host
- * mode transports the producer buffer synchronously.
+ * \par Primary buffering
+ *
+ * Stepper owns two fixed-capacity host primary buffers and the device event
+ * that protects the source of an asynchronous H2D copy. LocalTransporter
+ * validates and converts Geant4 tracks, pushes accepted primaries into the
+ * Stepper producer buffer, and keeps the corresponding Geant4 energy and loss
+ * accounting. Primaries outside the Celeritas geometry are counted as lost but
+ * are not added to either Stepper buffer.
+ *
+ * \par Device execution
+ *
+ * When the producer buffer first reaches capacity, \c Push stages it and
+ * immediately calls \c StepperInterface::async. Same-stream ordering ensures
+ * that the primary-copy completes before the stepping kernels use it. The
+ * Stepper retains the staged host storage until the copy completes, while
+ * Geant4 can continue filling the second buffer.
+ *
+ * At most one step and one additional producer buffer can be pending. If the
+ * producer buffer fills while a step is in flight, \c Push applies
+ * backpressure by consuming the previous result with \c
+ * StepperInterface::get. It then stages the new buffer and immediately
+ * launches the next step. Thus the first full buffer starts device work; the
+ * second full buffer is the first point that must wait for device progress.
+ * Calls to \c stage_primaries and \c async can still block on synchronization
+ * internal to the current Stepper implementation.
+ *
+ * \par Event completion
+ *
+ * At event end, \c Flush consumes an in-flight result, stages and launches any
+ * partially filled producer buffer, and synchronously steps until no tracks or
+ * initializers remain. Hit processing and Geant4 track reconstruction are kept
+ * alive across the asynchronous work and cleared only after this drain
+ * completes. A flush with only rejected primaries still reports and clears
+ * their loss accounting.
+ *
+ * Host mode has the same buffering interface but no asynchronous overlap: a
+ * full producer buffer calls \c Flush and is transported to completion before
+ * \c Push returns.
+ *
+ * \internal
+ *
+ * LocalTransporter accounting follows the Stepper primary lifecycle:
+ *
+ * | State | Stepper state | Local accounting |
+ * | ----- | ------------- | ---------------- |
+ * | Producer | Primaries accepted by \c push_primary | \c buffered_accum_ |
+ * | Staged | H2D copy queued, not submitted | \c staged_accum_ |
+ * | In flight | Step result is valid | \c in_flight_accum_ |
+ * | Complete | Step result consumed | Added to \c run_accum_ |
+ *
+ * \c GetBufferSize returns accepted primaries in the producer, staged, and
+ * in-flight phases. It does not count rejected primaries, active Celeritas
+ * tracks, or generated secondaries.
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
