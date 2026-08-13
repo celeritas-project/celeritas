@@ -9,16 +9,21 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
-# Redundant with cmake prefix but useful if this is being used for other env
-export CUDAARCHS=70
-# Set C++ compiler
-export CXX=/usr/bin/c++
-export CC=/usr/bin/cc
-
-export CUDAFLAGS="-Werror all-warnings -Wno-deprecated-gpu-targets"
-
-export CUDA_HOME=/auto/projects/celeritas/opt/ubuntu24.04/x86_64_v3/cuda/12.9.1/nnvx55h
-export CUDACXX=${CUDA_HOME}/bin/nvcc
+export CXX=/usr/bin/g++-13
+export CC=/usr/bin/gcc-13
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?
+
+export CUDAARCHS=70
+export CUDAFLAGS="-Werror all-warnings -Wno-deprecated-gpu-targets"
+export CUDA_HOME=${CELER_SPACK_OPT}/cuda/12.9.1/pmicvvf
+export CUDACXX=${CUDA_HOME}/bin/nvcc
+
+if ! [ -d "${CUDA_HOME}" ]; then
+  celerlog warning "CUDA_HOME=${CUDA_HOME} is not a directory"
+fi
+if ! [ -x "${CUDACXX}" ]; then
+  celerlog error "CUDACXX=${CUDACXX} is not an executable"
+  return 1
+fi

@@ -12,13 +12,13 @@
 #include <nlohmann/json.hpp>
 
 #include "corecel/Assert.hh"
-#include "corecel/AssertIO.json.hh"  // IWYU pragma keep
+#include "corecel/AssertIO.json.hh"  // IWYU pragma: keep
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma keep
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "CliUtils.hh"

@@ -85,9 +85,10 @@ auto DuneCryoTest::make_input() const -> Input
     result.problem.limits.step_iters = 8;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
-        cap.tracks = 4096;
-        cap.primaries = 8 * cap.tracks;
-        cap.generators = 512 * cap.tracks;
+        auto ntracks = 4096_sz;
+        cap.tracks = ntracks;
+        cap.primaries = 8 * ntracks;
+        cap.generators = 512 * ntracks;
         return cap;
     }();
     result.problem.num_streams = 1;

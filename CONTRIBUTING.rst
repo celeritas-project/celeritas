@@ -71,8 +71,10 @@ backported) releases that incorporate your contribution. By contributing, you
 acknowledge the attribution and authorship policy laid out in :ref:`authorship`.
 
 .. note:: To uniquely link your contribution for the next release, you must add
-   your ORCID to :file:`scripts/release/users.json` to your first PR.
-   (Otherwise, only your GitHub-derived name will show on the record.) If you
+   your GitHub username and ORCID to :file:`scripts/release/contributors.jsonl`
+   to your first PR.
+   (Otherwise, only your GitHub-derived name will show on the record.)
+   If you
    want the release to be automatically propagated to your ORCID account, you
    must sign up for and connect it to OpenAIRE_.
 
