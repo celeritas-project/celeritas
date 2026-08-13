@@ -3,16 +3,20 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/global/Stepper.hh
+//! \sa Stepper.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <array>
 #include <memory>
 #include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"
+#include "corecel/sys/DeviceEvent.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/phys/Primary.hh"
@@ -75,6 +79,22 @@ struct StepperResult
  * This allows higher-level classes not to care whether the stepper operates on
  * host or device.
  *
+ * A stepper initially has no asynchronous result, so \c valid returns false.
+ * Calling \c async, with or without primaries, starts one step and makes the
+ * result valid. No other step can be started until \c get returns the result
+ * and restores the initial state. The \c ready function queries completion
+ * without blocking, \c wait blocks without consuming the result, and \c get
+ * waits if necessary before consuming it. All three require a valid result.
+ * A valid result can be ready: \c valid describes whether the result can be
+ * retrieved, rather than whether device execution is still underway.
+ *
+ * Host steps execute synchronously and are immediately ready. The deprecated
+ * call operators preserve synchronous behavior by calling \c async followed
+ * by \c get.
+ *
+ * Before destroying a device Stepper, the caller must ensure that any valid
+ * asynchronous operation has completed by calling \c wait or \c get.
+ *
  * \note This class and its daughter may be removed soon to facilitate step
  * gathering.
  */
@@ -96,10 +116,28 @@ class StepperInterface
     // Warm up before stepping
     virtual void warm_up() = 0;
 
-    // Transport existing states
+    // Start asynchronous transport of existing states
+    virtual void async() = 0;
+
+    // Start asynchronous transport with new primaries
+    virtual void async(SpanConstPrimary primaries) = 0;
+
+    //! Whether an asynchronous step result can be retrieved
+    virtual bool valid() const noexcept = 0;
+
+    // Whether the asynchronous step has completed
+    virtual bool ready() const = 0;
+
+    // Wait for the asynchronous step to complete
+    virtual void wait() const = 0;
+
+    // Wait for and return the asynchronous step result
+    virtual StepperResult get() = 0;
+
+    //! \deprecated Transport existing states
     virtual StepperResult operator()() = 0;
 
-    // Transport existing states and these new primaries
+    //! \deprecated Transport existing states and these new primaries
     virtual StepperResult operator()(SpanConstPrimary primaries) = 0;
 
     // Kill all tracks in flight to debug "stuck" tracks
@@ -129,17 +167,60 @@ class StepperInterface
  * \note This is likely to be removed and refactored since we're changing how
  * primaries are created and how multithread state ownership is managed.
  *
+ * Device steps have separate start and result phases. Calling \c async
+ * enqueues the action sequence, a counter snapshot, and a completion event on
+ * the state stream. Diagnostic action or step timing can still synchronize the
+ * stream. Other synchronization within the action sequence is being removed
+ * separately.
+ *
  * \code
-   Stepper<MemSpace::host> step(input);
+   Stepper<MemSpace::device> step(input);
 
-   // Transport primaries for the initial step
-   StepperResult alive_tracks = step(my_primaries);
-   while (alive_tracks)
+   // Start the initial step and later retrieve its result
+   step.async(my_primaries);
+   while (step.valid())
    {
-       // Transport secondaries
-       alive_tracks = step();
+       // Optional: do host work or poll step.ready() before waiting
+       step.wait();
+       StepperResult result = step.get();
+       if (result)
+       {
+           step.async();
+       }
    }
    \endcode
+ *
+ * \internal
+ *
+ * \par Asynchronous state
+ *
+ * The \c valid_ flag tracks whether a result can be consumed, whereas
+ * \c step_done_ tracks completion of device work. Their states after successful
+ * calls are:
+ *
+ * | Lifecycle point | \c valid_ | CPU \c step_done_ | GPU \c step_done_ |
+ * | --------------- | -------------- | ------------------ | ------------------ |
+ * | Construction or after \c get | false | Null | Allocated and ready |
+ * | After \c async | true | Null and ready | Recorded; pending or ready |
+ * | After \c ready returns false | true | Not possible | Recorded and pending |
+ * | After \c ready is true or \c wait | true | Null/ready | Recorded/ready |
+ *
+ * A host step executes synchronously, so its null event is always ready. A
+ * device event is allocated once and re-recorded after each counter snapshot.
+ * Calling \c get first waits for completion and then clears \c valid_;
+ * it does not reset or replace the event.
+ *
+ * The expected state transitions are
+ * \code
+ *   no result -- async([primaries]) --> valid result
+ *   valid result -- ready() or wait() --> valid result
+ *   valid result -- get() --> no result
+ * \endcode
+ * Calling \c ready or \c wait repeatedly with a valid result is allowed. The
+ * next \c async call is allowed only after \c get consumes the previous result.
+ * While a result is valid, calls to \c warm_up, \c reset_state, \c reseed, and
+ * \c kill_active are rejected. The synchronous call operators perform \c async
+ * followed immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface
@@ -162,6 +243,24 @@ class Stepper final : public StepperInterface
     // Warm up before stepping
     void warm_up() final;
 
+    // Start asynchronous transport of existing states
+    void async() final;
+
+    // Start asynchronous transport with new primaries
+    void async(SpanConstPrimary primaries) final;
+
+    //! Whether an asynchronous step result can be retrieved
+    bool valid() const noexcept final { return valid_; }
+
+    // Whether the asynchronous step has completed
+    bool ready() const final;
+
+    // Wait for the asynchronous step to complete
+    void wait() const final;
+
+    // Wait for and return the asynchronous step result
+    StepperResult get() final;
+
     // Transport existing states
     StepperResult operator()() final;
 
@@ -183,8 +282,8 @@ class Stepper final : public StepperInterface
     //! Get the core state interface for diagnostic output
     CoreStateInterface const& state() const final { return *state_; }
 
-    //! Reset the core state counters and data so it can be reused
-    void reset_state() { state_->reset(); }
+    // Reset the core state counters and data so it can be reused
+    void reset_state();
 
     //! Reset the num_generated state counter to zero
     void set_generated();
@@ -193,6 +292,11 @@ class Stepper final : public StepperInterface
     SPState sp_state() final { return state_; }
 
   private:
+    using PinnedVecCounters
+        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
+    using CounterStorage
+        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
+
     // Params data
     std::shared_ptr<CoreParams const> params_;
     // Call sequence
@@ -201,6 +305,12 @@ class Stepper final : public StepperInterface
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
+    // Preallocated result from the most recently started step
+    CounterStorage result_counters_;
+    // Completion of device work and the result-counter copy
+    DeviceEvent step_done_{nullptr};
+    // Whether an asynchronous step result can be retrieved
+    bool valid_{false};
 };
 
 //---------------------------------------------------------------------------//
