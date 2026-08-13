@@ -32,7 +32,7 @@ struct SetGeneratedExecutor
 {
     //// FUNCTIONS ////
 
-    // Initialize the num_generated counter to zero
+    // Clear the num_generated, num_cut, and num_errored counters
     CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
@@ -40,13 +40,15 @@ struct SetGeneratedExecutor
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the num_generated counter to zero.
+ * Clear the num_generated, num_cut, and num_errored counters.
  */
 CELER_FORCEINLINE_FUNCTION void SetGeneratedExecutor::operator()(
     CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
     track.counters().num_generated = 0;
+    track.counters().num_cut = 0;
+    track.counters().num_errored = 0;
 }
 
 //---------------------------------------------------------------------------//

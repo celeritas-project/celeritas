@@ -189,6 +189,7 @@ void partition_initializers(
 {
     ScopedProfiling profile_this{"partition-initializers"};
     // Partition the indices based on the track initializer charge
+    auto& stream = device().stream(stream_id);
     auto counters = device_pointer_cast(init.counters.data());
     auto cpucntrs = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     size_type count = min(cpucntrs.num_vacancies, cpucntrs.num_initializers);
@@ -199,15 +200,14 @@ void partition_initializers(
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
                    + cpucntrs.num_initializers - count;
 #if CELER_USE_THRUST
-    auto* start = device_pointer_cast(init.indices.data());
-    auto* end = start + count;
+    auto start = device_pointer_cast(init.indices.data());
+    auto end = start + count;
     thrust::stable_partition(
         thrust_execute_on(stream_id),
         start,
         end,
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 #else
-    auto& stream = device().stream(stream_id);
     // CUB doesn't have a partition function that allows the user to specify
     // both an iterator for the values to use for selection and a function to
     // operate on that iterator. (This should change in the future.) So,

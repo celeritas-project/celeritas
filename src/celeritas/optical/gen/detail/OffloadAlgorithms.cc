@@ -69,6 +69,7 @@ void count_num_photons(
     size_type size,
     StreamId)
 {
+    CELER_EXPECT(params);
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
         start + offset, start + size, 0_sz, AccumNumPhotons{});

@@ -8,9 +8,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
+#include "corecel/math/Algorithms.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "celeritas/Types.hh"
-
-#include "../TrackInitData.hh"
+#include "celeritas/global/CoreTrackView.hh"
 
 namespace celeritas
 {
@@ -28,13 +29,13 @@ struct UpdateNumActiveExecutor
 
     //// FUNCTIONS ////
 
-    // Update state counters based on the number of primaries
+    // Update state counters based on the number of vacancies and initializers
     CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Update number of active trackes based on the number of vacancies.
+ * Update number of active tracks based on the number of vacancies.
  */
 CELER_FORCEINLINE_FUNCTION void UpdateNumActiveExecutor::operator()(
     CoreTrackView& track)

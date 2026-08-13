@@ -82,6 +82,7 @@ void count_num_photons(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"count-num-photons"};
+    CELER_EXPECT(params);
     auto& stream = device().stream(stream_id);
     auto start = thrust::device_pointer_cast(buffer.data().get());
 #if CELER_CUB_HAS_TRANSFORM_REDUCE || CELER_HIPCUB_HAS_TRANSFORM_REDUCE
@@ -123,7 +124,7 @@ void count_num_photons(
     CELER_DEVICE_API_CALL(PeekAtLastError());
 #else
     size_type count = thrust::transform_reduce(
-        thrust_execute_on(stream),
+        thrust_execute_on(stream_id),
         start + offset,
         start + size,
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
