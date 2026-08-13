@@ -155,7 +155,7 @@ void Stepper<M>::warm_up()
 
 //---------------------------------------------------------------------------//
 /*!
- * Start asynchronous transport of already-initialized states.
+ * Start a step with existing states and any staged primary batch.
  *
  * A single transport step is simply a loop over a topologically sorted DAG
  * of kernels. The step result must be retrieved with \c get before another
@@ -205,7 +205,10 @@ void Stepper<M>::async()
 
 //---------------------------------------------------------------------------//
 /*!
- * Start asynchronous transport with new primaries.
+ * Copy new primaries into owned storage and start a step with them.
+ *
+ * The input is copied into the producer buffer before its host-to-device copy
+ * is enqueued, so it can be released when this function returns.
  */
 template<MemSpace M>
 void Stepper<M>::async(SpanConstPrimary primaries)
@@ -220,6 +223,9 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 //---------------------------------------------------------------------------//
 /*!
  * Add a primary to the producer buffer.
+ *
+ * The producer buffer can be filled while a step result is valid or another
+ * primary batch is staged. Its fixed capacity is reserved at construction.
  */
 template<MemSpace M>
 void Stepper<M>::push_primary(Primary primary)
@@ -239,6 +245,8 @@ void Stepper<M>::push_primary(Primary primary)
  * still synchronize internally while updating counters; a future non-blocking
  * stepper interface should build on this staging split without assuming this
  * function is fully asynchronous.
+ * Reusing the source of a previously submitted batch waits only for its copy
+ * event, not for completion of the previous step.
  *
  * \pre No primaries are currently staged.
  */
@@ -288,7 +296,9 @@ void Stepper<M>::stage_primaries()
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy user-provided primaries into the producer buffer and stage them.
+ * Copy user-provided primaries into owned storage and stage them.
+ *
+ * The caller's span can be released when this function returns.
  */
 template<MemSpace M>
 void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
@@ -311,7 +321,10 @@ void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Access the primaries staged for the next step.
+ * Access the unsubmitted primaries staged for the next step.
+ *
+ * Submitted source storage is retained internally until its copy completes,
+ * but is not exposed by this accessor.
  */
 template<MemSpace M>
 auto Stepper<M>::staged_primaries() const noexcept -> SpanConstPrimary
