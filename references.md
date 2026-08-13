@@ -96,6 +96,7 @@ These publications are extracted from the Celeritas team's Zotero database.
 
 ## Software implementations
 
+- J. Apostolakis, S. Diederichs, A. Gheata, J. González Caminero, S. Hageboeck, *et al*. "AdePT - Enabling GPU electromagnetic transport with Geant4". *EPJ Web of Conferences*, 2025. [10.1051/epjconf/202533701081](https://doi.org/10.1051/epjconf/202533701081)
 - NEXT Collaboration, I. Parmaksiz, K. Mistry, E. Church, C. Adams, *et al*. "Performance of an Optical TPC Geant4 Simulation with Opticks GPU-Accelerated Photon Propagation". Jul 2025. [10.48550/arXiv.2502.13215](https://doi.org/10.48550/arXiv.2502.13215)
 - A. Borbely. "Power efficiency gains from GPU optimised workloads: Geant4 based detector simulations with Celeritas". Dec 2024. [indico.cern.ch](https://indico.cern.ch/event/1450885/contributions/6252612/attachments/2985924/5258935/WLCG%20sustainability%20workshop.pdf)
 - C. Lee, S. Ye. "A GPU-accelerated Monte Carlo code, RT<sup>2</sup> for coupled transport of photon, electron/positron, and neutron". *Physics in Medicine & Biology*, Sep 2024. [10.1088/1361-6560/ad694f](https://doi.org/10.1088/1361-6560/ad694f)
@@ -141,8 +142,8 @@ These publications are extracted from the Celeritas team's Zotero database.
 - K. Pedro. "Integration and Performance of New Technologies in the CMS Simulation". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024502020](https://doi.org/10.1051/epjconf/202024502020)
 - A. Valassi, M. Alef, J. Barbet, O. Datskova, R. De Maria, *et al*. "Using HEP experiment workflows for the benchmarking and accounting of WLCG computing resources". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024507035](https://doi.org/10.1051/epjconf/202024507035)
 - M. Bandieramonte, R. M. Bianchi, J. Boudreau, C. Doglioni, D. Kim, *et al*. "FullSimLight: ATLAS standalone Geant4 simulation". *EPJ Web of Conferences*, 2020. [10.1051/epjconf/202024502029](https://doi.org/10.1051/epjconf/202024502029)
-- V. Artigues, K. Kormann, M. Rampp, K. Reuter. "Evaluation of performance portability frameworks for the implementation of a particle‐in‐cell code". *Concurrency and Computation: Practice and Experience*, Jun 2020. [10.1002/cpe.5640](https://doi.org/10.1002/cpe.5640)
 - R. Brun, F. Rademakers, P. Canal, A. Naumann, O. Couet, *et al*. "root-project/root: v6.18/02". Zenodo, Jun 2020. [10.5281/zenodo.3895860](https://doi.org/10.5281/zenodo.3895860)
+- V. Artigues, K. Kormann, M. Rampp, K. Reuter. "Evaluation of performance portability frameworks for the implementation of a particle‐in‐cell code". *Concurrency and Computation: Practice and Experience*, Jun 2020. [10.1002/cpe.5640](https://doi.org/10.1002/cpe.5640)
 - F. Sanglard. "A history of NVidia Stream Multiprocessor". May 2020. [fabiensanglard.net](https://fabiensanglard.net/cuda/)
 - M. Lund, T. Jevremovic. "Enhanced GEANT4 Monte Carlo simulations of the space radiation effects on the International Space Station and Apollo missions using high-performance computing environment". *Acta Astronautica*, Dec 2019. [10.1016/j.actaastro.2019.09.018](https://doi.org/10.1016/j.actaastro.2019.09.018)
 - The HEP Software Foundation, J. Albrecht, A. A. Alves, G. Amadio, G. Andronico, *et al*. "A Roadmap for HEP Software and Computing R&D for the 2020s". *Computing and Software for Big Science*, Dec 2019. [10.1007/s41781-018-0018-8](https://doi.org/10.1007/s41781-018-0018-8)
