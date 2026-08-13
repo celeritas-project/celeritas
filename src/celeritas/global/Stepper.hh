@@ -134,6 +134,21 @@ class StepperInterface
     // Wait for and return the asynchronous step result
     virtual StepperResult get() = 0;
 
+    //! Maximum number of primaries in either host buffer
+    virtual size_type primary_capacity() const noexcept = 0;
+
+    //! Number of primaries in the producer buffer
+    virtual size_type num_buffered_primaries() const noexcept = 0;
+
+    // Add a primary to the producer buffer
+    virtual void push_primary(Primary primary) = 0;
+
+    // Stage the producer buffer for future transport
+    virtual void stage_primaries() = 0;
+
+    //! Access the primaries staged for the next step
+    virtual SpanConstPrimary staged_primaries() const noexcept = 0;
+
     //! \deprecated Transport existing states
     virtual StepperResult operator()() = 0;
 
@@ -213,7 +228,22 @@ class StepperInterface
  * A host step executes synchronously, so its null event is always ready. A
  * device event is allocated once and re-recorded after each counter snapshot.
  * Calling \c get first waits for completion and then clears \c valid_;
- * it does not reset or replace the event.
+ * it does not reset or replace the event. Primary buffering has an independent
+ * state, tracked by \c primary_phase_ and \c primary_copy_done_:
+ *
+ * | Primary phase | Producer buffer | Staged buffer | Copy event |
+ * | ------------- | --------------- | ------------- | ---------- |
+ * | \c empty | May be filling | Empty | Null/ready or allocated/ready |
+ * | \c staged | May be filling | Next step input | Recorded after H2D copy |
+ * | \c submitted | May be filling | Previous step source | Pending or ready |
+ *
+ * Calling \c stage_primaries changes \c empty to \c staged. Calling \c async
+ * changes \c staged to \c submitted after the actions have been enqueued. A
+ * later \c stage_primaries call may reclaim a submitted source after waiting
+ * only for its copy event, then stage the producer buffer. Calling \c get also
+ * reclaims a submitted source, but leaves a next \c staged batch unchanged.
+ * Host copies complete synchronously, so \c primary_copy_done_ is null and
+ * reclaiming the source does not wait.
  *
  * The expected state transitions are
  * \code
@@ -223,9 +253,11 @@ class StepperInterface
  * \endcode
  * Calling \c ready or \c wait repeatedly with a valid result is allowed. The
  * next \c async call is allowed only after \c get consumes the previous result.
- * While a result is valid, calls to \c warm_up, \c reset_state, \c reseed, and
- * \c kill_active are rejected. The synchronous call operators perform \c async
- * followed immediately by \c get.
+ * Primaries may be pushed and staged while a result is valid, but they cannot
+ * be submitted until that result is consumed. Calls to \c warm_up, \c
+ * reset_state, \c reseed, and \c kill_active are rejected while a result or
+ * queued primary batch exists. The synchronous call operators perform \c
+ * async followed immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface
@@ -264,6 +296,27 @@ class Stepper final : public StepperInterface
     // Wait for and return the asynchronous step result
     StepperResult get() final;
 
+    //! Maximum number of primaries in either host buffer
+    size_type primary_capacity() const noexcept final
+    {
+        return primary_capacity_;
+    }
+
+    //! Number of primaries in the producer buffer
+    size_type num_buffered_primaries() const noexcept final
+    {
+        return primary_buffer_.size();
+    }
+
+    // Add a primary to the producer buffer
+    void push_primary(Primary primary) final;
+
+    // Stage the producer buffer for future transport
+    void stage_primaries() final;
+
+    //! Access the primaries staged for the next step
+    SpanConstPrimary staged_primaries() const noexcept final;
+
     // Transport existing states
     StepperResult operator()() final;
 
@@ -296,6 +349,16 @@ class Stepper final : public StepperInterface
     SPState sp_state() final { return state_; }
 
   private:
+    enum class PrimaryPhase
+    {
+        empty,
+        staged,
+        submitted
+    };
+
+    using VecPrimary = std::vector<Primary>;
+    using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
+    using PrimaryStorage = MemSpaceCond_t<M, VecPrimary, PinnedVecPrimary>;
     using PinnedVecCounters
         = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
     using CounterStorage
@@ -309,12 +372,28 @@ class Stepper final : public StepperInterface
     std::shared_ptr<ExtendFromPrimariesAction const> primaries_action_;
     // State data
     std::shared_ptr<CoreState<M>> state_;
+    // Maximum number of primaries in each host buffer
+    size_type primary_capacity_{};
+    // Primaries being accumulated by the producer
+    PrimaryStorage primary_buffer_;
+    // Host source for a staged or submitted primary copy
+    PrimaryStorage staged_primaries_;
+    // Completion of the staged-primary H2D copy
+    DeviceEvent primary_copy_done_{nullptr};
+    // Logical state of staged_primaries_
+    PrimaryPhase primary_phase_{PrimaryPhase::empty};
     // Preallocated result from the most recently started step
     CounterStorage result_counters_;
     // Completion of device work and the result-counter copy
     DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
     bool valid_{false};
+
+    // Whether an operation would conflict with queued primaries
+    bool has_queued_primaries() const noexcept;
+
+    // Release a submitted primary source after its copy completes
+    void reclaim_submitted_primaries();
 };
 
 //---------------------------------------------------------------------------//

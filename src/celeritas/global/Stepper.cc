@@ -91,6 +91,13 @@ Stepper<M>::Stepper(Input input)
     CELER_VALIDATE(primaries_action_,
                    << "primary generator was not added to the stepping loop");
 
+    primary_capacity_ = params_->sizes().primaries / params_->sizes().streams;
+    CELER_VALIDATE(
+        primary_capacity_ > 0,
+        << "primary capacity is smaller than the number of streams");
+    primary_buffer_.reserve(primary_capacity_);
+    staged_primaries_.reserve(primary_capacity_);
+
     size_type const track_slots = (input.num_track_slots == 0
                                        ? params_->tracks_per_stream()
                                        : input.num_track_slots);
@@ -105,6 +112,7 @@ Stepper<M>::Stepper(Input input)
     {
         // Allocate reusable asynchronous state before stepping begins
         result_counters_.resize(1);
+        primary_copy_done_ = DeviceEvent{celeritas::device()};
         step_done_ = DeviceEvent{celeritas::device()};
     }
 
@@ -133,6 +141,8 @@ template<MemSpace M>
 void Stepper<M>::warm_up()
 {
     CELER_VALIDATE(!valid_, << "cannot warm up with a pending step");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot warm up with queued primaries");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
                    << "cannot warm up when state has active tracks");
 
@@ -162,6 +172,8 @@ void Stepper<M>::async()
     CELER_VALIDATE(
         !valid_,
         << "cannot start a step before the current step has been consumed");
+    CELER_VALIDATE(primary_buffer_.empty(),
+                   << "cannot start a step with unstaged primaries");
 
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
@@ -170,6 +182,10 @@ void Stepper<M>::async()
     counters.num_errored = 0;
     state_->sync_put_counters(counters);
     actions_->step(*params_, *state_);
+    if (primary_phase_ == PrimaryPhase::staged)
+    {
+        primary_phase_ = PrimaryPhase::submitted;
+    }
 
     if constexpr (M == MemSpace::device)
     {
@@ -203,7 +219,20 @@ void Stepper<M>::async(SpanConstPrimary primaries)
 
 //---------------------------------------------------------------------------//
 /*!
- * Stage primaries for transport.
+ * Add a primary to the producer buffer.
+ */
+template<MemSpace M>
+void Stepper<M>::push_primary(Primary primary)
+{
+    CELER_VALIDATE(primary_buffer_.size() < primary_capacity_,
+                   << "primary buffer capacity of " << primary_capacity_
+                   << " exceeded");
+    primary_buffer_.push_back(std::move(primary));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Stage the producer buffer for transport.
  *
  * This validates and inserts primaries into the stepper state but does not
  * execute transport actions. In device mode the current implementation may
@@ -214,8 +243,16 @@ void Stepper<M>::async(SpanConstPrimary primaries)
  * \pre No primaries are currently staged.
  */
 template<MemSpace M>
-void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
+void Stepper<M>::stage_primaries()
 {
+    CELER_VALIDATE(!primary_buffer_.empty(),
+                   << "cannot stage an empty primary buffer");
+    CELER_VALIDATE(primary_phase_ != PrimaryPhase::staged,
+                   << "cannot stage primaries while another batch is staged");
+
+    this->reclaim_submitted_primaries();
+
+    auto primaries = make_span(primary_buffer_);
     CELER_EXPECT(!primaries.empty());
     CELER_EXPECT(primaries_action_);
 
@@ -239,6 +276,51 @@ void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
     counters.num_pending = primaries.size();
     state_->sync_put_counters(counters);
     primaries_action_->insert(*params_, *state_, primaries);
+    if constexpr (M == MemSpace::device)
+    {
+        primary_copy_done_.record(
+            celeritas::device().stream(state_->stream_id()));
+    }
+
+    primary_buffer_.swap(staged_primaries_);
+    primary_phase_ = PrimaryPhase::staged;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy user-provided primaries into the producer buffer and stage them.
+ */
+template<MemSpace M>
+void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
+{
+    CELER_EXPECT(!primaries.empty());
+    CELER_VALIDATE(primary_buffer_.empty(),
+                   << "cannot stage external primaries while the primary "
+                      "buffer is not empty");
+    CELER_VALIDATE(primary_phase_ != PrimaryPhase::staged,
+                   << "cannot stage primaries while another batch is staged");
+    CELER_VALIDATE(primaries.size() <= primary_capacity_,
+                   << "primary buffer capacity of " << primary_capacity_
+                   << " is insufficient for " << primaries.size()
+                   << " primaries");
+
+    primary_buffer_.insert(
+        primary_buffer_.end(), primaries.begin(), primaries.end());
+    this->stage_primaries();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the primaries staged for the next step.
+ */
+template<MemSpace M>
+auto Stepper<M>::staged_primaries() const noexcept -> SpanConstPrimary
+{
+    if (primary_phase_ != PrimaryPhase::staged)
+    {
+        return {};
+    }
+    return make_span(staged_primaries_);
 }
 
 //---------------------------------------------------------------------------//
@@ -278,6 +360,7 @@ auto Stepper<M>::get() -> result_type
     this->wait();
     auto result = make_stepper_result(result_counters_.front());
     valid_ = false;
+    this->reclaim_submitted_primaries();
     return result;
 }
 
@@ -319,6 +402,8 @@ void Stepper<M>::kill_active()
 {
     CELER_VALIDATE(
         !valid_, << "cannot kill active tracks while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot kill active tracks with queued primaries");
     CELER_LOG_LOCAL(error) << "Killing "
                            << state_->sync_get_counters().num_active
                            << " active tracks";
@@ -339,6 +424,8 @@ void Stepper<M>::reseed(UniqueEventId event_id)
 {
     CELER_VALIDATE(!valid_,
                    << "cannot reseed while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot reseed with queued primaries");
     ScopedProfiling profile_this{"reseed"};
     reseed_rng(get_ref<M>(*params_->rng()),
                state_->ref().rng,
@@ -357,7 +444,34 @@ void Stepper<M>::reset_state()
     CELER_VALIDATE(
         !valid_,
         << "cannot reset state while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot reset state with queued primaries");
     state_->reset();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether an operation would conflict with queued primaries.
+ */
+template<MemSpace M>
+bool Stepper<M>::has_queued_primaries() const noexcept
+{
+    return !primary_buffer_.empty() || primary_phase_ == PrimaryPhase::staged;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Release a submitted primary source after its copy completes.
+ */
+template<MemSpace M>
+void Stepper<M>::reclaim_submitted_primaries()
+{
+    if (primary_phase_ == PrimaryPhase::submitted)
+    {
+        primary_copy_done_.sync();
+        staged_primaries_.clear();
+        primary_phase_ = PrimaryPhase::empty;
+    }
 }
 
 //---------------------------------------------------------------------------//

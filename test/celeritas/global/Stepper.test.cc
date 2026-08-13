@@ -115,6 +115,54 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         EXPECT_EQ(0, counters.num_pending);
     }
 
+    template<MemSpace M>
+    void run_buffered_pipeline()
+    {
+        size_type const num_primaries = 32;
+        size_type const num_tracks = 64;
+
+        Stepper<M> expected_step(this->make_stepper_input(num_tracks));
+        auto first = this->make_primaries(num_primaries);
+        auto second = this->make_primaries(num_primaries);
+        auto const expected_first = expected_step(make_span(first));
+        auto const expected_second = expected_step(make_span(second));
+
+        Stepper<M> step(this->make_stepper_input(num_tracks));
+        EXPECT_GE(step.primary_capacity(), num_primaries);
+        EXPECT_EQ(0, step.num_buffered_primaries());
+        EXPECT_TRUE(step.staged_primaries().empty());
+
+        for (auto primary : first)
+        {
+            step.push_primary(std::move(primary));
+        }
+        EXPECT_EQ(num_primaries, step.num_buffered_primaries());
+        step.stage_primaries();
+        EXPECT_EQ(0, step.num_buffered_primaries());
+        ASSERT_EQ(num_primaries, step.staged_primaries().size());
+        auto const* first_data = step.staged_primaries().data();
+
+        step.async();
+        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.staged_primaries().empty());
+
+        for (auto primary : second)
+        {
+            step.push_primary(std::move(primary));
+        }
+        step.stage_primaries();
+        ASSERT_EQ(num_primaries, step.staged_primaries().size());
+        EXPECT_NE(first_data, step.staged_primaries().data());
+
+        expect_stepper_eq(expected_first, step.get());
+        EXPECT_FALSE(step.valid());
+        EXPECT_EQ(num_primaries, step.staged_primaries().size());
+
+        step.async();
+        expect_stepper_eq(expected_second, step.get());
+        EXPECT_TRUE(step.staged_primaries().empty());
+    }
+
     size_type max_steps_{0};
 };
 
@@ -309,6 +357,41 @@ TEST_F(SimpleComptonTest, fail_stage_primaries_twice)
 TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(stage_primaries_device))
 {
     this->run_staged_first_step<MemSpace::device>();
+}
+
+TEST_F(SimpleComptonTest, buffered_pipeline_host)
+{
+    this->run_buffered_pipeline<MemSpace::host>();
+}
+
+TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(buffered_pipeline_device))
+{
+    this->run_buffered_pipeline<MemSpace::device>();
+}
+
+TEST_F(SimpleComptonTest, fail_queued_primary_operations)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(64));
+    auto primaries = this->make_primaries(1);
+
+    EXPECT_THROW(step.stage_primaries(), RuntimeError);
+    step.push_primary(primaries.front());
+    EXPECT_THROW(step.async(), RuntimeError);
+    EXPECT_THROW(step.warm_up(), RuntimeError);
+    EXPECT_THROW(step.reset_state(), RuntimeError);
+    EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.kill_active(), RuntimeError);
+
+    step.stage_primaries();
+    EXPECT_THROW(step.stage_primaries(), RuntimeError);
+    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+    EXPECT_THROW(step.warm_up(), RuntimeError);
+    EXPECT_THROW(step.reset_state(), RuntimeError);
+    EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.kill_active(), RuntimeError);
+
+    step.async();
+    static_cast<void>(step.get());
 }
 
 TEST_F(SimpleComptonTest, async_lifecycle_host)
