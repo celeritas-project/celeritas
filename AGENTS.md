@@ -81,16 +81,6 @@ Object files and tests may have different paths and test names than you expect (
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
 
-### Ownership reviews
-
-- When a PR introduces a new buffering or concurrency mechanism and the user
-  explicitly permits rescoping, choose ownership based on the long-term
-  architecture rather than preserving a temporary caller-side implementation.
-- When reviewing an asynchronous producer/staging pipeline, trace the action
-  taken at every buffer transition. In particular, verify that filling the
-  first buffer starts consumer work immediately; staging alone is not progress
-  if the consumer remains idle until a second buffer fills.
-
 ### Params/States Pattern
 Celeritas separates immutable setup from mutable runtime data:
 - **Params**: Shared problem data (physics tables, geometry) - build once
