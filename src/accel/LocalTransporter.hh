@@ -77,9 +77,9 @@ struct StepperResult;
  * This admission check reserves space for the incoming primaries; secondaries
  * generated during the next step remain subject to the existing initializer
  * capacity validation.
- * Before accepting each subsequent track, \c Push polls a pending step only
- * when another batch is already staged. If that step is ready, its result is
- * consumed and the staged batch is launched immediately, allowing device
+ * Before accepting each subsequent track, \c Push polls a pending step. If it
+ * is ready, its result is consumed and another step is launched whenever
+ * existing transport remains or another batch is staged. This allows device
  * transport to progress while Geant4 continues producing primaries.
  *
  * \par Event completion
@@ -191,7 +191,7 @@ class LocalTransporter final : public TrackOffloadInterface
     void stage_buffered_primaries();
     void launch_step();
     StepperResult complete_step();
-    void launch_staged_if_ready();
+    void advance_if_ready();
     StepperResult advance_transport();
     void wait_for_initializer_capacity();
     void drain_transport();

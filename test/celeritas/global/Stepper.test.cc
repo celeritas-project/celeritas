@@ -182,6 +182,8 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
             step.push_primary(std::move(primary));
         }
 
+        step.wait();
+        EXPECT_TRUE(step.ready());
         auto result = step.get();
         ASSERT_TRUE(result);
         for (size_type step_iters = 0; result; ++step_iters)

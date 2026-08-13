@@ -339,25 +339,30 @@ auto LocalTransporter::complete_step() -> StepperResult
 
 //---------------------------------------------------------------------------//
 /*!
- * Poll a predecessor and launch its staged successor without blocking.
+ * Advance ready transport without blocking.
  */
-void LocalTransporter::launch_staged_if_ready()
+void LocalTransporter::advance_if_ready()
 {
     CELER_EXPECT(*this);
 
-    if (step_->staged_primaries().empty())
+    if (!step_->valid())
+    {
+        if (!step_->staged_primaries().empty())
+        {
+            this->launch_step();
+        }
+        return;
+    }
+    if (!step_->ready())
     {
         return;
     }
-    if (step_->valid())
+
+    auto result = this->complete_step();
+    if (result || !step_->staged_primaries().empty())
     {
-        if (!step_->ready())
-        {
-            return;
-        }
-        static_cast<void>(this->complete_step());
+        this->launch_step();
     }
-    this->launch_step();
 }
 
 //---------------------------------------------------------------------------//
@@ -450,7 +455,7 @@ void LocalTransporter::Push(G4Track& g4track)
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
-    this->launch_staged_if_ready();
+    this->advance_if_ready();
 
     // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the

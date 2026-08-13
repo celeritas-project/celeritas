@@ -51,6 +51,10 @@ attachments>
 ```
 
 **Common failure modes:**
+- Tying asynchronous progress to availability of newly staged input. Poll any
+  pending step at producer entry points and launch a continuation whenever its
+  completed result still has queued or alive work, whether or not a successor
+  input batch exists.
 - Driving asynchronous progress only at buffer-capacity boundaries. On every
   producer entry point, poll any pending completion and immediately submit
   already staged work when its predecessor is ready, before accepting more
