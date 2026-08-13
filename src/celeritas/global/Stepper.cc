@@ -320,7 +320,8 @@ void Stepper<M>::stage_primaries()
 /*!
  * Copy user-provided primaries into owned storage and stage them.
  *
- * The caller's span can be released when this function returns.
+ * The caller's span can be released when this function returns. If staging
+ * fails, the copied input is discarded so the caller can correct it and retry.
  */
 template<MemSpace M>
 void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
@@ -338,7 +339,15 @@ void Stepper<M>::stage_primaries(SpanConstPrimary primaries)
 
     primary_buffer_.insert(
         primary_buffer_.end(), primaries.begin(), primaries.end());
-    this->stage_primaries();
+    try
+    {
+        this->stage_primaries();
+    }
+    catch (...)
+    {
+        primary_buffer_.clear();
+        throw;
+    }
 }
 
 //---------------------------------------------------------------------------//

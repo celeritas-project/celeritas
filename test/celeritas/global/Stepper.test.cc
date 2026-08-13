@@ -30,6 +30,7 @@
 #include "celeritas/phys/Primary.hh"
 #include "celeritas/track/SimParams.hh"
 #include "celeritas/track/SimTrackView.hh"
+#include "celeritas/track/TrackInitParams.hh"
 
 #include "DummyAction.hh"
 #include "StepperTestBase.hh"
@@ -392,6 +393,22 @@ TEST_F(SimpleComptonTest, fail_stage_primaries_twice)
     step.stage_primaries(make_span(primaries));
 
     EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+}
+
+TEST_F(SimpleComptonTest, recover_from_invalid_external_primaries)
+{
+    Stepper<MemSpace::host> step(this->make_stepper_input(64));
+    auto primaries = this->make_primaries(1);
+    primaries.front().event_id = EventId{this->init()->max_events()};
+
+    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+    EXPECT_EQ(0, step.num_buffered_primaries());
+    EXPECT_TRUE(step.staged_primaries().empty());
+
+    primaries.front().event_id = EventId{0};
+    EXPECT_NO_THROW(step.stage_primaries(make_span(primaries)));
+    EXPECT_EQ(1, step.staged_primaries().size());
+    static_cast<void>(step());
 }
 
 TEST_F(SimpleComptonTest, primary_capacity_override)
