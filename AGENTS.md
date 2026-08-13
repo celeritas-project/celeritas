@@ -51,22 +51,6 @@ attachments>
 ```
 
 **Common failure modes:**
-- Assuming a launch consumed staged input because it was present before the
-  call. For every queued-input launch, verify the callee's post-launch phase,
-  the pending-input counters, and the corresponding ownership/accounting move
-  before accepting the transition.
-- Tying asynchronous progress to availability of newly staged input. Poll any
-  pending step at producer entry points and launch a continuation whenever its
-  completed result still has queued or alive work, whether or not a successor
-  input batch exists.
-- Driving asynchronous progress only at buffer-capacity boundaries. On every
-  producer entry point, poll any pending completion and immediately submit
-  already staged work when its predecessor is ready, before accepting more
-  producer input.
-- Solving asynchronous backpressure by draining all downstream work without
-  checking occupancy. At each bounded handoff, compute the earliest safe
-  admission point and refill as soon as capacity permits; active tail work is
-  not a reason to delay admission once queue capacity is available.
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 - Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 
