@@ -34,6 +34,7 @@ class OpticalCollector;
 class ParticleParams;
 class SharedParams;
 class StepperInterface;
+struct StepperResult;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -49,10 +50,11 @@ class StepperInterface;
  * Stepper owns two fixed-capacity host primary buffers. LocalTransporter
  * validates and converts Geant4 tracks, pushes them into the producer buffer,
  * and keeps the corresponding Geant4 accounting. In device mode, a full
- * producer buffer is staged so Stepper can queue the H2D copy while Geant4
- * continues filling the other buffer. Transport later consumes the staged
- * buffer and, at event end, any remaining producer-buffer contents. Host mode
- * transports the producer buffer synchronously.
+ * producer buffer is staged and launched so GPU transport can overlap with
+ * Geant4 filling the other buffer. Filling that buffer consumes the previous
+ * step result before launching the next batch. Event-end transport consumes
+ * any remaining producer-buffer contents and drains all active tracks. Host
+ * mode transports the producer buffer synchronously.
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
@@ -76,7 +78,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int) final;
 
-    // Transport all locally buffered and staged tracks to completion
+    // Transport all queued and in-flight tracks to completion
     void Flush() final;
 
     // Clear local data and return to an invalid state
@@ -85,7 +87,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
 
-    // Number of locally buffered and staged tracks
+    // Number of buffered, staged, and in-flight primaries
     size_type GetBufferSize() const final;
 
     // Get accumulated action times
@@ -112,9 +114,12 @@ class LocalTransporter final : public TrackOffloadInterface
 
     struct BufferAccum
     {
+        size_type primaries{0};
         double energy{0};  // MeV
         double lost_energy{0};  // MeV
         std::size_t lost_primaries{0};
+
+        bool empty() const { return primaries == 0 && lost_primaries == 0; }
     };
 
     struct RunAccum
@@ -130,7 +135,8 @@ class LocalTransporter final : public TrackOffloadInterface
     //// HELPER FUNCTIONS ////
 
     void stage_buffered_primaries();
-    void flush(bool include_buffered);
+    void launch_step();
+    StepperResult complete_step();
 
     //// DATA ////
 
@@ -144,6 +150,8 @@ class LocalTransporter final : public TrackOffloadInterface
     std::shared_ptr<StepperInterface> step_;
     BufferAccum buffered_accum_;
     BufferAccum staged_accum_;
+    BufferAccum in_flight_accum_;
+    size_type step_iters_{0};
 
     // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;

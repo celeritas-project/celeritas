@@ -168,7 +168,7 @@ celeritas_add_integration_tests(
 # Test that we can safely flush and restore primaries multiple times per event
 celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
-  OFFLOAD cpu
+  OFFLOAD cpu gpu
   RMTYPE serial mt
 )
 
