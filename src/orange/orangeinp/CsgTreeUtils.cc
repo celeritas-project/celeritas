@@ -36,8 +36,8 @@ namespace orangeinp
  *
  * This operation is at worst O((number of nodes) * (depth of graph)).
  */
-std::vector<NodeId>
-replace_and_simplify(CsgTree* tree, NodeId repl_key, Node repl_value)
+std::vector<NodeId> replace_and_simplify(
+    CsgTree* tree, NodeId repl_key, Node repl_value)
 {
     CELER_EXPECT(tree);
     CELER_EXPECT(repl_key < tree->size());

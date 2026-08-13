@@ -40,8 +40,8 @@ CELER_FUNCTION ReflectivityApplier(F&&) -> ReflectivityApplier<F>;
  * Apply sampled reflectivity result to the track.
  */
 template<class F>
-CELER_FUNCTION void
-ReflectivityApplier<F>::operator()(CoreTrackView const& track) const
+CELER_FUNCTION void ReflectivityApplier<F>::operator()(
+    CoreTrackView const& track) const
 {
     // Sample reflectivity and set it
     auto action = this->sample_reflectivity(track);

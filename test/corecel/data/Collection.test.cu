@@ -79,8 +79,8 @@ void col_cuda_test(CTestInput input)
 
 //! Test that we can copy inside .cu code
 template<Ownership W, MemSpace M>
-MockStateData<Ownership::value, MemSpace::device>
-copy_to_device_test(MockStateData<W, M>& inp)
+MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
+    MockStateData<W, M>& inp)
 {
     MockStateData<Ownership::value, MemSpace::device> result;
     result = inp;

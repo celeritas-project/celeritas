@@ -85,8 +85,8 @@ class SurfaceSimplifierTest : public ::celeritas::test::Test
 
     //! Check that one surface simplifies to another
     template<class S, class T>
-    void
-    check_simplifies_to(S const& s, T const& t, Sense new_sense = Sense::inside)
+    void check_simplifies_to(
+        S const& s, T const& t, Sense new_sense = Sense::inside)
     {
         SCOPED_TRACE(s);
 
@@ -208,7 +208,8 @@ TEST_F(PlaneTest, simplifies_with_sense_flip)
     this->check_simplifies_to(
         Plane{{1 / sqrt_three, -1 / sqrt_three, -1 / sqrt_three},
               -2 * sqrt_three},
-        Plane{{-1 / sqrt_three, 1 / sqrt_three, 1 / sqrt_three}, 2 * sqrt_three},
+        Plane{{-1 / sqrt_three, 1 / sqrt_three, 1 / sqrt_three},
+              2 * sqrt_three},
         Sense::outside);
 }
 
@@ -229,8 +230,9 @@ TEST_F(PlaneTest, first_pass_normalization)
 {
     // First pass should normalize
     Real3 n = make_unit_vector(Real3{-1, 0, 1e-7});
-    this->check_simplifies_to(
-        Plane{n, {5.0, 0, 0}}, Plane{{1, 0, -1e-7}, {5, 0, 0}}, Sense::outside);
+    this->check_simplifies_to(Plane{n, {5.0, 0, 0}},
+                              Plane{{1, 0, -1e-7}, {5, 0, 0}},
+                              Sense::outside);
 }
 
 //---------------------------------------------------------------------------//

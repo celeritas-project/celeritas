@@ -36,8 +36,8 @@ class DDMucfInteractorTest : public MucfInteractorHostTestBase
     }
 
     // Detailed validation of the interaction result
-    void
-    validate_interaction(Interaction const& interaction, Channel channel) const
+    void validate_interaction(Interaction const& interaction,
+                              Channel channel) const
     {
         EXPECT_LT(channel, Channel::size_);
 

@@ -9,14 +9,8 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
-# From modules/rocmmod
-export ROCM_PATH="/opt/rocm-7.2.0"
-export HIP_PATH="${ROCM_PATH}"
-export PATH="${ROCM_PATH}/lib/llvm/bin:$PATH"
-export MANPATH="${ROCM_PATH}/share/man:${ROCM_PATH}/lib/llvm/share/man1:$MANPATH"
-export CMAKE_PREFIX_PATH="${ROCM_PATH}:${CMAKE_PREFIX_PATH}"
-export CC="${ROCM_PATH}/lib/llvm/bin/amdclang"
-export CXX="${ROCM_PATH}/lib/llvm/bin/amdclang++"
+export CXX=/usr/bin/g++-13
+export CC=/usr/bin/gcc-13
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?

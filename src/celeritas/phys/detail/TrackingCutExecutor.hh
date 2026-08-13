@@ -46,8 +46,8 @@ struct TrackingCutExecutor
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-TrackingCutExecutor::operator()(celeritas::CoreTrackView& track)
+CELER_FUNCTION void TrackingCutExecutor::operator()(
+    celeritas::CoreTrackView& track)
 {
     using Energy = ParticleTrackView::Energy;
 

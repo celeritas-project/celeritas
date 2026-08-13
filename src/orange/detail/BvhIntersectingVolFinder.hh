@@ -67,14 +67,15 @@ class BvhIntersectingVolFinder
 
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
-    inline CELER_FUNCTION bool
-    visit_bbox(FastBBox const& bbox, Ray ray, real_type min_dist) const;
+    inline CELER_FUNCTION bool visit_bbox(
+        FastBBox const& bbox, Ray ray, real_type min_dist) const;
 
     // Calculate the current min intersection, which may/may not be on this
     // leaf
     template<class F>
-    inline CELER_FUNCTION Intersection visit_leaf(
-        BvhNodeId leaf_node_id, Intersection intersection, F&& visit_vol) const;
+    inline CELER_FUNCTION Intersection visit_leaf(BvhNodeId leaf_node_id,
+                                                  Intersection intersection,
+                                                  F&& visit_vol) const;
 
     // Calculate the current min intersection, which may/may not be in inf_vols
     template<class F>
@@ -88,8 +89,7 @@ class BvhIntersectingVolFinder
 /*!
  * Construct from vector a of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhIntersectingVolFinder::BvhIntersectingVolFinder(
+CELER_FUNCTION BvhIntersectingVolFinder::BvhIntersectingVolFinder(
     BvhTreeRecord const& tree, BvhIntersectingVolFinder::Storage const& storage)
     : view_(tree, storage)
 {
@@ -109,11 +109,10 @@ BvhIntersectingVolFinder::BvhIntersectingVolFinder(
  * lambda capture.
  */
 template<class F>
-CELER_FUNCTION auto
-BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
-                                     F&& visit_vol,
-                                     real_type max_search_dist) const
-    -> Intersection
+CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
+    BvhIntersectingVolFinder::Ray ray,
+    F&& visit_vol,
+    real_type max_search_dist) const -> Intersection
 {
     using Side = BvhInternalNode::Side;
 
@@ -123,7 +122,9 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
     using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
     BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
-    static_assert(stack.capacity() == max_bvh_depth);
+    // This local var is necessary for gcc 8.5 compilation
+    constexpr auto capacity = stack.capacity();
+    static_assert(capacity == max_bvh_depth);
     stack.push(BvhNodeId{0});
 
     while (!stack.empty())
@@ -172,8 +173,7 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
 /*!
  * Determine if the intersection with an edge/vol bbox is less than min_dist.
  */
-CELER_FUNCTION
-bool BvhIntersectingVolFinder::visit_bbox(
+CELER_FUNCTION bool BvhIntersectingVolFinder::visit_bbox(
     FastBBox const& bbox, Ray ray, real_type min_dist) const
 {
     return intersects_segment(bbox, ray.pos, ray.dir, min_dist);

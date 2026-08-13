@@ -24,7 +24,8 @@ The ``PDFullSimCeler`` module enables replacing the map-based method for
 generating the scintillation-to-detector response with full Monte Carlo optical
 tracking.
 
-Once Celeritas has been installed (see :ref:`build_ups`), load the
+Once Celeritas has been installed (see :ref:`fnal_spack` and :ref:`build_ups`),
+load the
 module/library/FHiCL paths provided by Celeritas in its install directory (or
 build directory if doing development):
 

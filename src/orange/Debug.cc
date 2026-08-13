@@ -15,8 +15,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-std::ostream&
-operator<<(std::ostream& os, StreamableOrangeTrack const& track_wrap)
+std::ostream& operator<<(std::ostream& os,
+                         StreamableOrangeTrack const& track_wrap)
 {
     nlohmann::json j = track_wrap.track;
     os << j.dump();

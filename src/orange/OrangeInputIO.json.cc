@@ -118,9 +118,9 @@ void from_json(nlohmann::json const& j, VolumeInput& value)
                 value.zorder = ZOrder::exterior;
             }
             char c = to_char(value.zorder);
-            CELER_VALIDATE(
-                to_zorder(c) != ZOrder::invalid,
-                << "invalid zorder " << static_cast<int>(value.zorder));
+            CELER_VALIDATE(to_zorder(c) != ZOrder::invalid,
+                           << "invalid zorder "
+                           << static_cast<int>(value.zorder));
         }
     }
     else
@@ -280,9 +280,9 @@ void from_json(nlohmann::json const& j, UnitInput& value)
         {
             // SCALE serialized translations
             auto translations = iter->get<std::vector<real_type>>();
-            CELER_VALIDATE(
-                3 * parent_vols.size() == translations.size(),
-                << "field 'translations' is not 3x length of '" << key << "'");
+            CELER_VALIDATE(3 * parent_vols.size() == translations.size(),
+                           << "field 'translations' is not 3x length of '"
+                           << key << "'");
             // Convert translations
             for (auto i : range(parent_vols.size()))
             {
@@ -503,9 +503,9 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     CELER_VALIDATE(j.contains("_format"),
                    << "invalid ORANGE JSON input: no '_format' found");
     auto const& fmt = j.at("_format").get<std::string>();
-    CELER_VALIDATE(
-        fmt == "orange" || fmt == "ORANGE" || fmt == "SCALE ORANGE",
-        << "invalid ORANGE JSON input: unknown format '" << fmt << "'");
+    CELER_VALIDATE(fmt == "orange" || fmt == "ORANGE" || fmt == "SCALE ORANGE",
+                   << "invalid ORANGE JSON input: unknown format '" << fmt
+                   << "'");
     std::string version{"<unknown>"};
     if (auto iter = j.find("_version"); iter != j.end())
     {

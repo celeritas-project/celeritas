@@ -100,8 +100,8 @@ class UrbanLargeAngleDistribution
 /*!
  * Construct with mean values.
  */
-CELER_FUNCTION
-UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(real_type tau)
+CELER_FUNCTION UrbanLargeAngleDistribution::UrbanLargeAngleDistribution(
+    real_type tau)
 {
     using namespace celeritas::literals;
 

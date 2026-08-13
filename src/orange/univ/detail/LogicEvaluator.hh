@@ -40,7 +40,8 @@ class LogicEvaluator
     inline CELER_FUNCTION bool operator()(SpanConstSense values) const;
 
     // Evaluate a logical expression, with on-the-fly sense evaluation
-    template<class F, std::enable_if_t<std::is_invocable_v<F, FaceId>, bool> = true>
+    template<class F,
+             std::enable_if_t<std::is_invocable_v<F, FaceId>, bool> = true>
     inline CELER_FUNCTION bool operator()(F&& eval_sense) const;
 
   private:

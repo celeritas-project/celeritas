@@ -129,8 +129,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  *   physical distance travelled.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto
-FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+    real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
     result_type result;
@@ -344,7 +344,8 @@ CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
  * Distance to bump or to consider a "zero" movement.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() const
+CELER_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 {
     return advance_.minimum_step();
 }

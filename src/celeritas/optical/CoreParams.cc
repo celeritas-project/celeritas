@@ -54,8 +54,8 @@ namespace
 //---------------------------------------------------------------------------//
 //!@{
 template<MemSpace M>
-CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
+CoreParamsData<Ownership::const_reference, M> build_params_refs(
+    CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -177,8 +177,9 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // TODO: Is there a better place to build this?
     if (input_.optical_detector)
     {
-        input_.action_reg->insert(std::make_shared<DetectorAction>(
-            input_.action_reg->next_id(), input_.optical_detector.callback));
+        DetectorAction::make_and_insert(input_.action_reg,
+                                        input_.aux_reg,
+                                        input_.optical_detector.callback);
     }
 
     // Save maximum number of streams

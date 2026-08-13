@@ -39,8 +39,8 @@ inline S<Ownership::reference, M> make_ref(S<Ownership::value, M>& states)
  * Construct a reference object pointing to params data.
  */
 template<template<Ownership, MemSpace> class P, MemSpace M>
-inline P<Ownership::const_reference, M>
-make_ref(P<Ownership::value, M> const& params)
+inline P<Ownership::const_reference, M> make_ref(
+    P<Ownership::value, M> const& params)
 {
     P<Ownership::const_reference, M> result;
     result = params;

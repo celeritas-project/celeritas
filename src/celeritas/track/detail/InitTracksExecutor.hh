@@ -88,10 +88,12 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             if (params->init.track_order == TrackOrder::init_charge
                 && IsNeutral{params}(init))
             {
-                // Get the vacancy from the front of the track state
+                // Get the vacancy from the front of the
+                // track state
                 return data.vacancies[TrackSlotId(index_before(num_init, tid))];
             }
-            // Get the vacancy from the back of the track state
+            // Get the vacancy from the back of the track
+            // state
             return data.vacancies[TrackSlotId(
                 index_before(counters->num_vacancies, tid))];
         }()};

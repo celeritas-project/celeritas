@@ -473,6 +473,7 @@ celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/GroupVelocityCalculator.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)

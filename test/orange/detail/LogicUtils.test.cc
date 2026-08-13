@@ -23,8 +23,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-OrangeInput
-make_input_with_logic(std::vector<logic_int> logic, LogicNotation notation)
+OrangeInput make_input_with_logic(std::vector<logic_int> logic,
+                                  LogicNotation notation)
 {
     OrangeInput input;
     UnitInput unit;

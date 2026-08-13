@@ -61,8 +61,8 @@ class MuonicAtomSpinSelector
 /*!
  * Construct with muonic atom.
  */
-CELER_FUNCTION
-MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
+CELER_FUNCTION MuonicAtomSpinSelector::MuonicAtomSpinSelector(
+    MucfMuonicAtom atom)
     : atom_(atom)
 {
     CELER_EXPECT(atom_ < MucfMuonicAtom::size_);
@@ -73,8 +73,8 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
  * Select a muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  */
 template<class Engine>
-CELER_FUNCTION units::HalfSpinInt
-MuonicAtomSpinSelector::operator()(Engine& rng)
+CELER_FUNCTION units::HalfSpinInt MuonicAtomSpinSelector::operator()(
+    Engine& rng)
 {
     switch (atom_)
     {

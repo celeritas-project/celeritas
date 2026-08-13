@@ -37,12 +37,12 @@ class OutputInterfaceAdapter final : public OutputInterface
 
   public:
     // DANGEROUS helper function
-    static inline SPThis
-    from_const_ref(Category cat, std::string label, T const& obj);
+    static inline SPThis from_const_ref(
+        Category cat, std::string label, T const& obj);
 
     // Construct by capturing an object
-    static inline SPThis
-    from_rvalue_ref(Category cat, std::string label, T&& obj);
+    static inline SPThis from_rvalue_ref(
+        Category cat, std::string label, T&& obj);
 
     // Construct from category, label, and shared pointer
     inline OutputInterfaceAdapter(

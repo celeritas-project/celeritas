@@ -67,8 +67,8 @@ class UniformGrid
 /*!
  * Construct with data.
  */
-CELER_FUNCTION
-UniformGrid::UniformGrid(UniformGridData const& data) : data_(data)
+CELER_FUNCTION UniformGrid::UniformGrid(UniformGridData const& data)
+    : data_(data)
 {
     CELER_EXPECT(data_);
 }

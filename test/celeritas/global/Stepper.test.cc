@@ -41,6 +41,22 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+void expect_stepper_eq(StepperResult const& expected,
+                       StepperResult const& actual)
+{
+    EXPECT_EQ(expected.generated, actual.generated);
+    EXPECT_EQ(expected.queued, actual.queued);
+    EXPECT_EQ(expected.active, actual.active);
+    EXPECT_EQ(expected.alive, actual.alive);
+    EXPECT_EQ(expected.cut, actual.cut);
+    EXPECT_EQ(expected.errored, actual.errored);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TEST HARNESS
@@ -128,13 +144,19 @@ class StepperOrderTest : public SimpleComptonTest
         }
     }
 
-    DummyState const&
-    get_dummy_state(CoreStateInterface const& core_state) const
+    DummyState const& get_dummy_state(
+        CoreStateInterface const& core_state) const
     {
         return get<DummyState>(core_state.aux(), dummy_params_->aux_id());
     }
 
     std::shared_ptr<DummyParams> dummy_params_;
+};
+
+class AsyncStepperTest : public SimpleComptonTest
+{
+  public:
+    void SetUp() { this->disable_status_checker(); }
 };
 
 #define BadGeometryTest TEST_IF_CELERITAS_ORANGE(BadGeometryTest)
@@ -289,6 +311,85 @@ TEST_F(SimpleComptonTest, TEST_IF_CELER_DEVICE(stage_primaries_device))
     this->run_staged_first_step<MemSpace::device>();
 }
 
+TEST_F(SimpleComptonTest, async_lifecycle_host)
+{
+    size_type const num_primaries = 32;
+    size_type const num_tracks = 64;
+
+    Stepper<MemSpace::host> expected_step(this->make_stepper_input(num_tracks));
+    Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
+    auto primaries = this->make_primaries(num_primaries);
+
+    EXPECT_FALSE(step.valid());
+    EXPECT_THROW(step.ready(), RuntimeError);
+    EXPECT_THROW(step.wait(), RuntimeError);
+    EXPECT_THROW(step.get(), RuntimeError);
+
+    auto expected_result = expected_step(make_span(primaries));
+    step.async(make_span(primaries));
+    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.ready());
+    step.wait();
+    EXPECT_TRUE(step.valid());
+    auto result = step.get();
+    expect_stepper_eq(expected_result, result);
+    EXPECT_FALSE(step.valid());
+
+    expected_result = expected_step();
+    step.async();
+    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.ready());
+    EXPECT_NO_THROW(step.wait());
+    EXPECT_TRUE(step.valid());
+    EXPECT_THROW(step.async(), RuntimeError);
+    EXPECT_THROW(step.async(make_span(primaries)), RuntimeError);
+    EXPECT_THROW(step.warm_up(), RuntimeError);
+    EXPECT_THROW(step.reset_state(), RuntimeError);
+    EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.kill_active(), RuntimeError);
+    EXPECT_THROW(step(make_span(primaries)), RuntimeError);
+
+    result = step.get();
+    expect_stepper_eq(expected_result, result);
+    EXPECT_FALSE(step.valid());
+    EXPECT_THROW(step.ready(), RuntimeError);
+    EXPECT_THROW(step.wait(), RuntimeError);
+    EXPECT_THROW(step.get(), RuntimeError);
+}
+
+TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
+{
+    size_type const num_primaries = 32;
+    size_type const num_tracks = 64;
+
+    Stepper<MemSpace::device> expected_step(
+        this->make_stepper_input(num_tracks));
+    Stepper<MemSpace::device> step(this->make_stepper_input(num_tracks));
+    auto primaries = this->make_primaries(num_primaries);
+    auto expected_result = expected_step(make_span(primaries));
+    step.async(make_span(primaries));
+    EXPECT_TRUE(step.valid());
+    step.wait();
+    EXPECT_TRUE(step.valid());
+    auto result = step.get();
+    expect_stepper_eq(expected_result, result);
+    EXPECT_FALSE(step.valid());
+
+    for (int i = 0; i < 2; ++i)
+    {
+        expected_result = expected_step();
+        step.async();
+        EXPECT_TRUE(step.valid());
+        EXPECT_NO_THROW(static_cast<void>(step.ready()));
+        step.wait();
+        EXPECT_TRUE(step.valid());
+
+        result = step.get();
+        expect_stepper_eq(expected_result, result);
+        EXPECT_FALSE(step.valid());
+    }
+}
+
 TEST_F(SimpleComptonTest, reseed)
 {
     constexpr auto M = MemSpace::host;
@@ -386,8 +487,8 @@ TEST_F(SimpleComptonTest, max_steps)
     ASSERT_EQ(4, scoped_log.messages().size());
     EXPECT_EQ("Track {62} exceeded maximum step count",
               scoped_log.messages()[0]);
-    EXPECT_TRUE(
-        scoped_log.messages()[2].find("\"num_steps\":2") != std::string::npos);
+    EXPECT_TRUE(scoped_log.messages()[2].find("\"num_steps\":2")
+                != std::string::npos);
 }
 
 //---------------------------------------------------------------------------//

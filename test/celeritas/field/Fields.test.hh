@@ -28,14 +28,14 @@ void field_test(inp::CartMapField&, Span<real_type>&, Array<size_type, 3>&);
 void rzfield_test(RZMapFieldInput const&, Span<Real3 const>, Span<real_type>);
 
 #if !CELER_USE_DEVICE
-inline void
-field_test(inp::CartMapField&, Span<real_type>&, Array<size_type, 3>&)
+inline void field_test(
+    inp::CartMapField&, Span<real_type>&, Array<size_type, 3>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline void
-rzfield_test(RZMapFieldInput const&, Span<Real3 const>, Span<real_type>)
+inline void rzfield_test(
+    RZMapFieldInput const&, Span<Real3 const>, Span<real_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

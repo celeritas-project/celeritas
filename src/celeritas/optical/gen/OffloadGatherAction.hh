@@ -53,8 +53,8 @@ class OffloadGatherAction final : public CoreStepActionInterface,
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<OffloadGatherAction>
-    make_and_insert(CoreParams const&);
+    static std::shared_ptr<OffloadGatherAction> make_and_insert(
+        CoreParams const&);
 
     // Construct with action ID and storage
     OffloadGatherAction(ActionId id, AuxId aux_id);

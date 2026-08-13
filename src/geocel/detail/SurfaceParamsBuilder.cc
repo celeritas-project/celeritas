@@ -118,8 +118,8 @@ SurfaceId SurfaceInputInserter::operator()(inp::Surface::Boundary const& vol_id)
 /*!
  * Process an interface surface.
  */
-SurfaceId
-SurfaceInputInserter::operator()(inp::Surface::Interface const& interface)
+SurfaceId SurfaceInputInserter::operator()(
+    inp::Surface::Interface const& interface)
 {
     CELER_EXPECT(interface.first < volumes_.num_volume_instances());
     CELER_EXPECT(interface.second < volumes_.num_volume_instances());
@@ -195,8 +195,8 @@ VolumeId VolumeSurfaceRecordBuilder::operator()(VolumeSurfaceData const& data)
         record.interface_post = {post_start, volume_instance_ids_.size_id()};
         record.surface = {surf_start, surface_ids_.size_id()};
 
-        CELER_ASSERT(
-            record.interface_pre.size() == record.interface_post.size());
+        CELER_ASSERT(record.interface_pre.size()
+                     == record.interface_post.size());
         CELER_ASSERT(record.interface_pre.size() == record.surface.size());
     }
 
