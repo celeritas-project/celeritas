@@ -55,7 +55,8 @@ class OffloadAction final : public CoreStepActionInterface
 
         explicit operator bool() const
         {
-            return pre_step_id && gen_id && optical_id && material && shared;
+            return pre_step_id && gen_id && optical_id && material && shared
+                   && optical_params;
         }
     };
 
