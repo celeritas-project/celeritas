@@ -50,7 +50,7 @@ class PrimaryGeneratorAction final : public GeneratorBase
                                                                    Input&&);
 
     // Construct with IDs and distributions
-    PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, Input);
+    PrimaryGeneratorAction(ActionId, AuxId, GeneratorId, CoreParams&, Input);
 
     // Set the number of pending tracks
     void insert(CoreStateBase&) const;
@@ -76,9 +76,9 @@ class PrimaryGeneratorAction final : public GeneratorBase
 
     PrimaryDistributionData data_;
     ParamsDataStore<DistributionParamsData> params_;
-    // Core params isn't passed to insert(), so save a pointer so
-    // update_pending() can be called later
-    static CoreParams* core_params_;
+    // Core params isn't passed to insert(); save a pointer to
+    // pass to GeneratorBase->update_pending()
+    CoreParams* core_params_;
 
     //// HELPER FUNCTIONS ////
 

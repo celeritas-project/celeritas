@@ -45,7 +45,7 @@ class DirectGeneratorAction final : public GeneratorBase
     static std::shared_ptr<DirectGeneratorAction> make_and_insert(CoreParams&);
 
     // Construct with action ID and data IDs
-    DirectGeneratorAction(ActionId, AuxId, GeneratorId);
+    DirectGeneratorAction(ActionId, AuxId, GeneratorId, CoreParams&);
 
     // Add user-provided host initializer data
     void insert(CoreStateBase&, SpanConstData) const;
@@ -64,7 +64,7 @@ class DirectGeneratorAction final : public GeneratorBase
 
     // Core params isn't passed to insert(), so save a pointer so
     // update_pending() can be called later
-    static CoreParams* params_;
+    CoreParams* params_;
 
     //// HELPER FUNCTIONS ////
 

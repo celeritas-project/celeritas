@@ -25,8 +25,6 @@ namespace celeritas
 {
 namespace optical
 {
-CoreParams* DirectGeneratorAction::params_ = nullptr;  // Set in
-                                                       // make_and_insert()
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -57,11 +55,10 @@ std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<DirectGeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id());
+        actions.next_id(), aux.next_id(), gen.next_id(), params);
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
-    params_ = &params;
     return result;
 }
 
@@ -70,13 +67,15 @@ std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
  * Construct with action and data IDs.
  */
 DirectGeneratorAction::DirectGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id)
+    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "generate-direct",
                     "directly generate optical photon primaries")
 {
+    params_ = &params;
+    CELER_EXPECT(params_);
 }
 
 //---------------------------------------------------------------------------//

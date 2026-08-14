@@ -29,7 +29,6 @@ namespace celeritas
 {
 namespace optical
 {
-CoreParams* PrimaryGeneratorAction::core_params_ = nullptr;
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -41,13 +40,15 @@ PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
-    auto result = std::make_shared<PrimaryGeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
+    auto result = std::make_shared<PrimaryGeneratorAction>(actions.next_id(),
+                                                           aux.next_id(),
+                                                           gen.next_id(),
+                                                           params,
+                                                           std::move(input));
 
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
-    core_params_ = &params;
     return result;
 }
 
@@ -56,7 +57,7 @@ PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
  * Construct with IDs and distribution.
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id, Input inp)
+    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params, Input inp)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
@@ -72,8 +73,10 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
     data_.shape = std::visit(insert, inp.shape);
 
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
+    core_params_ = &params;
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
+    CELER_ENSURE(core_params_);
 }
 
 //---------------------------------------------------------------------------//
