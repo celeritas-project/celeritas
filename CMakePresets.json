@@ -11,6 +11,7 @@
         "Celeritas_CGV_CACHE": "",
         "BUILD_TESTING": {"type": "BOOL", "value": "ON"},
         "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
+        "CELERITAS_USE_DD4hep":  {"type": "BOOL", "value": "OFF"},
         "CMAKE_CXX_COMPILER_LAUNCHER": {"type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
         "CMAKE_C_COMPILER_LAUNCHER": {"type": "STRING", "value": "$env{CCACHE_PROGRAM}"},
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"

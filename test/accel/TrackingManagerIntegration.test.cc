@@ -148,9 +148,8 @@ class TMITestBase : virtual public IntegrationTestBase
         }
     }
 
-    std::function<void()> check_during_run_;
-
     std::mutex mutex_;
+    std::function<void()> check_during_run_;
     std::map<StreamId, int> num_local_events_;
 };
 
@@ -202,7 +201,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
         static std::recursive_mutex exc_mutex;
-        std::lock_guard scoped_lock{exc_mutex};
+        std::scoped_lock lock{exc_mutex};
 
         static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
         std::smatch match;
@@ -514,8 +513,7 @@ class LarSphereOptical : public LarSphere
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;
@@ -524,6 +522,7 @@ class LarSphereOptical : public LarSphere
   private:
     std::vector<CounterTrackingAction*> tracking_;
     std::vector<real_type> detector_x_positions_;
+    std::mutex mutex_;
 };
 
 //---------------------------------------------------------------------------//
@@ -544,6 +543,9 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
     // Optical detector hit callback
     result.optical->detectors.callback
         = [this](Span<optical::DetectorHit const> hits) {
+              std::scoped_lock lock{mutex_};
+              detector_x_positions_.reserve(
+                  detector_x_positions_.size() + hits.size());
               for (auto const& hit : hits)
               {
                   detector_x_positions_.push_back(hit.position[0]);
@@ -656,8 +658,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;
