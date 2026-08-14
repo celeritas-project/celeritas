@@ -14,6 +14,17 @@
 #include "../BoundingBoxUtils.hh"
 #include "../univ/detail/Types.hh"
 
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#    if __GNUC__ < 9
+// We are using GCC (not Clang, not ICC)
+#        define CELER_GCC8_BUGGY_CONSTEXPR 1
+#    else
+#        define CELER_GCC8_BUGGY_CONSTEXPR 0
+#    endif
+#else
+#    define CELER_GCC8_BUGGY_CONSTEXPR 0
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -122,9 +133,10 @@ CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
     using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
     BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
-    // This local var is necessary for gcc 8.5 compilation
-    constexpr auto capacity = stack.capacity();
-    static_assert(capacity == max_bvh_depth);
+#if !CELER_GCC8_BUGGY_CONSTEXPR
+    // This static_assert does not compile with gcc 8.5
+    static_assert(stack.capacity() == max_bvh_depth);
+#endif
     stack.push(BvhNodeId{0});
 
     while (!stack.empty())
