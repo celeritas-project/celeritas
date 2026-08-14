@@ -304,7 +304,17 @@ void Stepper<M>::stage_primaries()
                    << " primaries are already pending");
     counters.num_pending = primaries.size();
     state_->sync_put_counters(counters);
-    primaries_action_->insert(*params_, *state_, primaries);
+    try
+    {
+        primaries_action_->insert(*params_, *state_, primaries);
+    }
+    catch (...)
+    {
+        // Leave the Stepper ready to accept a corrected primary batch.
+        counters.num_pending = 0;
+        state_->sync_put_counters(counters);
+        throw;
+    }
     if constexpr (M == MemSpace::device)
     {
         primary_copy_done_.record(

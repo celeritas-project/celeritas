@@ -411,6 +411,25 @@ TEST_F(SimpleComptonTest, recover_from_invalid_external_primaries)
     static_cast<void>(step());
 }
 
+TEST_F(SimpleComptonTest, recover_from_initializer_capacity_failure)
+{
+    size_type const init_capacity = this->init()->capacity();
+    auto input = this->make_stepper_input(64);
+    input.primary_capacity = init_capacity + 1;
+    Stepper<MemSpace::host> step(std::move(input));
+    auto primaries = this->make_primaries(init_capacity + 1);
+
+    EXPECT_THROW(step.stage_primaries(make_span(primaries)), RuntimeError);
+    EXPECT_EQ(0, step.num_buffered_primaries());
+    EXPECT_TRUE(step.staged_primaries().empty());
+    EXPECT_EQ(0, step.state().sync_get_counters().num_pending);
+
+    EXPECT_NO_THROW(step.stage_primaries(make_span(primaries).first(1)));
+    EXPECT_EQ(1, step.staged_primaries().size());
+    EXPECT_EQ(1, step.state().sync_get_counters().num_pending);
+    static_cast<void>(step());
+}
+
 TEST_F(SimpleComptonTest, primary_capacity_override)
 {
     auto input = this->make_stepper_input(64);
