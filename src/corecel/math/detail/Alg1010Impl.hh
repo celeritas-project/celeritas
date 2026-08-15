@@ -37,23 +37,23 @@ struct Complex
 
     inline CELER_FUNCTION Complex() : Complex(0.0, 0.0) {}
 
-    inline CELER_FUNCTION Complex sqrt() const
+    CELER_FUNCTION friend Complex sqrt(Complex const& c)
     {
-        real_type a = this->real, b = this->imag;
-        real_type absv = this->abs();
+        real_type a = c.real, b = c.imag;
+        real_type absv = abs(c);
         return Complex{
             std::sqrt(static_cast<real_type>(0.5) * (absv + a)),
             copysignr(std::sqrt(static_cast<real_type>(0.5) * (absv - a)), b)};
     }
 
-    inline CELER_FUNCTION real_type abs() const
+    CELER_FUNCTION friend real_type abs(Complex const& c)
     {
-        return hypot<real_type>(this->real, this->imag);
+        return hypot<real_type>(c.real, c.imag);
     }
 
-    inline CELER_FUNCTION Complex conj() const
+    CELER_FUNCTION friend Complex conj(Complex const& c)
     {
-        return Complex{this->real, -this->imag};
+        return Complex{c.real, -c.imag};
     }
 
     inline CELER_FUNCTION Complex operator+(Complex const& other) const
@@ -90,7 +90,7 @@ struct Complex
     {
         Complex d = divisor_complex;
         real_type d2 = d.real * d.real + d.imag * d.imag;
-        Complex c = d.conj();
+        Complex c = conj(d);
         return ((*this) * c) / d2;
     }
 

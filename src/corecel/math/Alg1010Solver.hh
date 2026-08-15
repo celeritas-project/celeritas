@@ -361,16 +361,15 @@ CELER_FUNCTION real_type Alg1010Solver::calc_err_abcd_cmplx(Real4 abcd,
 {
     /* Eqs. (68) and (69) in the manuscript for complex alpha1 (aq), beta1
      * (bq), alpha2 (cq) and beta2 (dq) */
-    auto cabs = [](cmplx_type comp) { return comp.abs(); };
     auto [a, b, c, d] = abcd;
     auto [aq, bq, cq, dq] = abcd_q;
 
-    real_type sum = (d == 0) ? cabs(bq * dq) : cabs((bq * dq - d) / d);
-    sum += (c == 0) ? cabs(bq * cq + aq * dq)
-                    : cabs(((bq * cq + aq * dq) - c) / c);
-    sum += (b == 0) ? cabs(bq + aq * cq + dq)
-                    : cabs(((bq + aq * cq + dq) - b) / b);
-    sum += (a == 0) ? cabs(aq + cq) : cabs(((aq + cq) - a) / a);
+    real_type sum = (d == 0) ? abs(bq * dq) : abs((bq * dq - d) / d);
+    sum += (c == 0) ? abs(bq * cq + aq * dq)
+                    : abs(((bq * cq + aq * dq) - c) / c);
+    sum += (b == 0) ? abs(bq + aq * cq + dq)
+                    : abs(((bq + aq * cq + dq) - b) / b);
+    sum += (a == 0) ? abs(aq + cq) : abs(((aq + cq) - a) / a);
     return sum;
 }
 
@@ -685,8 +684,8 @@ CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
         real_type gamma = std::sqrt(d2);
         acx = cmplx_type(l1, gamma);
         bcx = cmplx_type(l3, gamma * l2);
-        ccx = acx.conj();
-        dcx = bcx.conj();
+        ccx = conj(acx);
+        dcx = conj(bcx);
         realcase[0] = 0;
     }
     else
@@ -732,7 +731,7 @@ CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
             acx1 = l1;
             bcx1 = cmplx_type(0., std::sqrt(d3)) + l3;
             ccx1 = l1;
-            dcx1 = bcx1.conj();
+            dcx1 = conj(bcx1);
             err1 = Alg1010Solver::calc_err_abcd_cmplx(
                 abcd, {acx1, bcx1, ccx1, dcx1});
         }
@@ -783,29 +782,29 @@ CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
             /* calculate the roots as roots of p1(x) and p2(x) (see end of
              * sec. 2.1)
              */
-            auto zx1 = acx * -0.5 + cdiskr.sqrt();
-            auto zx2 = acx * -0.5 - cdiskr.sqrt();
-            auto zxmax = (zx1.abs() > zx2.abs()) ? zx1 : zx2;
+            auto zx1 = acx * -0.5 + sqrt(cdiskr);
+            auto zx2 = acx * -0.5 - sqrt(cdiskr);
+            auto zxmax = (abs(zx1) > abs(zx2)) ? zx1 : zx2;
             auto zxmin = bcx / zxmax;
             roots[0] = zxmin;
-            roots[1] = zxmin.conj();
+            roots[1] = conj(zxmin);
             roots[2] = zxmax;
-            roots[3] = zxmax.conj();
+            roots[3] = conj(zxmax);
         }
         else
         {  // d2 ~ 0
             /* never gets here! */
-            auto cdiskr = (acx * acx - bcx * 4.0).sqrt();
+            auto cdiskr = sqrt(acx * acx - bcx * 4.0);
             auto zx1 = (acx + cdiskr) * -0.5;
             auto zx2 = (acx - cdiskr) * -0.5;
-            auto zxmax = (zx1.abs() > zx2.abs()) ? zx1 : zx2;
+            auto zxmax = (abs(zx1) > abs(zx2)) ? zx1 : zx2;
             auto zxmin = bcx / zxmax;
             roots[0] = zxmax;
             roots[1] = zxmin;
-            cdiskr = (ccx * ccx - dcx * 4.0).sqrt();
+            cdiskr = sqrt(ccx * ccx - dcx * 4.0);
             zx1 = (ccx + cdiskr) * -0.5;
             zx2 = (ccx - cdiskr) * -0.5;
-            zxmax = (zx1.abs() > zx2.abs()) ? zx1 : zx2;
+            zxmax = (abs(zx1) > abs(zx2)) ? zx1 : zx2;
             zxmin = dcx / zxmax;
             roots[2] = zxmax;
             roots[3] = zxmin;
