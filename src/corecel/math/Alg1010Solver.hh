@@ -73,11 +73,8 @@ class Alg1010Solver
     //!@}
 
   public:
-    // Construct with given tolerance
-    inline CELER_FUNCTION Alg1010Solver(real_type tolerance);
-
-    //! Construct with default tolerance equal to ORANGE tolerance.
-    inline CELER_FUNCTION Alg1010Solver() : Alg1010Solver{default_tol_} {}
+    // Construct
+    inline CELER_FUNCTION Alg1010Solver();
 
     // Base solver, including complex and negative roots
     inline CELER_FUNCTION Comp4 unfiltered_roots(Real5 const& abcde) const;
@@ -89,22 +86,11 @@ class Alg1010Solver
     inline CELER_FUNCTION result_type operator()(Real4 const& abcd) const;
 
   private:
-    //// TYPES ////
-
     //// STATIC DATA ////
-
-    //! Default tolerance for quadric solve, taken from Orange `Tolerance`.
-    static constexpr real_type default_tol_
-        = (std::is_same_v<real_type, double> ? 1e-5 : 5e-2f);
 
     //! No positive real solution (aka "no intersection")
     static constexpr real_type no_solution_
         = NumericLimits<real_type>::infinity();
-
-    //// DATA ////
-
-    // Soft zero for biquadratic and degenerate cubic detection
-    SoftZero<real_type> const soft_zero_;
 
     //// HELPER FUNCTIONS ////
 
@@ -138,10 +124,7 @@ class Alg1010Solver
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-CELER_FUNCTION Alg1010Solver::Alg1010Solver(real_type tolerance)
-    : soft_zero_{tolerance}
-{
-}
+CELER_FUNCTION Alg1010Solver::Alg1010Solver() {}
 
 CELER_FUNCTION real_type
 Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
@@ -819,8 +802,8 @@ CELER_FUNCTION auto Alg1010Solver::operator()(Real5 const& coeff) const
     {
         cmplx_type new_root = raw_roots[i];
 
-        if (soft_zero_(new_root.imag) && new_root.real != no_solution_
-            && new_root.real > 0 && !soft_zero_(new_root.real))
+        if (new_root.imag == 0 && new_root.real != no_solution_
+            && new_root.real > 0)
         {
             real_roots[ri] = new_root.real;
             ri += 1;
