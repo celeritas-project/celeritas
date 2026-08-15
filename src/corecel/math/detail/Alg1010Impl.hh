@@ -10,7 +10,9 @@
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 
-namespace celeritas::detail
+namespace celeritas
+{
+namespace detail
 {
 
 inline CELER_FUNCTION real_type copysignr(real_type x, real_type y)
@@ -131,4 +133,5 @@ inline CELER_FUNCTION Complex operator*(real_type left, Complex const& right)
     return right * left;
 }
 
-}  // namespace celeritas::detail
+}  // namespace detail
+}  // namespace celeritas
