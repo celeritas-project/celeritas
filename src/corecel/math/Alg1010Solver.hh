@@ -132,50 +132,48 @@ Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(real_type b,
 {
     /* find analytically the dominant root of a depressed cubic x^3+b*x+c
      * where coefficients b and c are large (see sec. 2.2 in the manuscript) */
-    real_type Q = -b / 3.0;
-    real_type R = 0.5 * c;
-    if (R == 0)
+    real_type q = -b / 3.0;
+    real_type r = 0.5 * c;
+    if (r == 0)
     {
         return (b <= 0) ? std::sqrt(-b) : 0;
     }
 
-    real_type KK;
-    if (std::fabs(Q) < std::fabs(R))
+    real_type kk;
+    if (std::fabs(q) < std::fabs(r))
     {
-        real_type QR = Q / R;
-        real_type QRSQ = ipow<2>(QR);
-        KK = 1.0 - Q * QRSQ;
+        kk = 1.0 - q * ipow<2>(q / r);
     }
     else
     {
-        real_type RQ = R / Q;
-        KK = detail::copysignr(1.0, Q) * (ipow<2>(RQ) / Q - 1.0);
+        kk = detail::copysignr(1.0, q) * (ipow<2>(r / q) / q - 1.0);
     }
 
-    if (KK < 0.0)
+    if (kk < 0.0)
     {
-        real_type sqrtQ = std::sqrt(Q);
-        real_type theta = std::acos((R / std::fabs(Q)) / sqrtQ);
+        real_type sqrt_q = std::sqrt(q);
+        real_type theta = std::acos((r / std::fabs(q)) / sqrt_q);
         if (2.0 * theta < constants::pi)
-            return -2.0 * sqrtQ * std::cos(theta / 3.0);
+            return -2.0 * sqrt_q * std::cos(theta / 3.0);
         else
-            return -2.0 * sqrtQ * std::cos((theta + 2.0 * constants::pi) / 3.0);
+            return -2.0 * sqrt_q
+                   * std::cos((theta + 2.0 * constants::pi) / 3.0);
     }
     else
     {
-        real_type A;
-        if (std::fabs(Q) < std::fabs(R))
-            A = -detail::copysignr(1.0, R)
-                * cbrt(std::fabs(R) * (1.0 + std::sqrt(KK)));
+        real_type phi_a;
+        if (std::fabs(q) < std::fabs(r))
+            phi_a = -detail::copysignr(1.0, r)
+                    * cbrt(std::fabs(r) * (1.0 + std::sqrt(kk)));
         else
         {
-            A = -detail::copysignr(1.0, R)
-                * cbrt(
-                    std::fabs(R)
-                    + std::sqrt(std::fabs(Q)) * std::fabs(Q) * std::sqrt(KK));
+            phi_a = -detail::copysignr(1.0, r)
+                    * cbrt(std::fabs(r)
+                           + std::sqrt(std::fabs(q)) * std::fabs(q)
+                                 * std::sqrt(kk));
         }
-        real_type B = (A == 0.0) ? 0.0 : Q / A;
-        return A + B;
+        real_type phi_b = (phi_a == 0.0) ? 0.0 : q / phi_a;
+        return phi_a + phi_b;
     }
 }
 
@@ -184,29 +182,31 @@ CELER_FUNCTION real_type Alg1010Solver::solve_cubic_analytic_depressed(
 {
     /* find analytically the dominant root of a depressed cubic x^3+b*x+c
      * (see sec. 2.2 in the manuscript) */
-    real_type Q = -b / 3.0;
-    real_type R = 0.5 * c;
-    if (std::fabs(Q) > 1e102 || std::fabs(R) > 1e154)
+    real_type q = -b / 3.0;
+    real_type r = 0.5 * c;
+    if (std::fabs(q) > 1e102 || std::fabs(r) > 1e154)
     {
         return Alg1010Solver::solve_cubic_analytic_depressed_handle_inf(b, c);
     }
-    real_type Q3 = ipow<3>(Q);
-    real_type R2 = ipow<2>(R);
-    if (R2 < Q3)
+    real_type q3 = ipow<3>(q);
+    real_type r2 = ipow<2>(r);
+    if (r2 < q3)
     {
-        real_type theta = std::acos(R / std::sqrt(Q3));
-        real_type sqrtQ = -2.0 * std::sqrt(Q);
+        real_type theta = std::acos(r / std::sqrt(q3));
+        real_type sqrt_4q = -2.0 * std::sqrt(q);
         if (2.0 * theta < constants::pi)
-            return sqrtQ * std::cos(theta / 3.0);
+            return sqrt_4q * std::cos(theta / 3.0);
         else
-            return sqrtQ * std::cos((theta + 2.0 * constants::pi) / 3.0);
+            return sqrt_4q * std::cos((theta + 2.0 * constants::pi) / 3.0);
     }
     else
     {
-        real_type A = -detail::copysignr(1.0, R)
-                      * std::pow(std::fabs(R) + std::sqrt(R2 - Q3), 1.0 / 3.0);
-        real_type B = (A == 0.0) ? 0.0 : Q / A;
-        return A + B; /* this is always largest root even if A=B */
+        real_type phi_a
+            = -detail::copysignr(1.0, r)
+              * std::pow(std::fabs(r) + std::sqrt(r2 - q3), 1.0 / 3.0);
+        real_type phi_b = (phi_a == 0.0) ? 0.0 : q / phi_a;
+        return phi_a
+               + phi_b; /* this is always largest root even if phi_a=phi_b */
     }
 }
 
