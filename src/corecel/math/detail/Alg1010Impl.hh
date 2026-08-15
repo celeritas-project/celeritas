@@ -14,6 +14,16 @@ namespace celeritas
 {
 namespace detail
 {
+// pow(DBL_MAX,1.0/3.0)/1.618034;
+static constexpr real_type cubic_rescale_fact_
+    = std::is_same_v<real_type, double> ? 3.488062113727083e+102
+                                        : 4.3147817163436147e+12;
+// pow(DBL_MAX,1.0/4.0)/1.618034;
+static constexpr real_type quart_rescale_fact_
+    = std::is_same_v<real_type, double> ? 7.156344627944542e+76
+                                        : 2.654435711486902e+9;
+static constexpr real_type macheps_
+    = celeritas::numeric_limits<real_type>::epsilon();
 
 inline CELER_FUNCTION real_type copysignr(real_type x, real_type y)
 {

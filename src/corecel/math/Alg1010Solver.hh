@@ -73,17 +73,6 @@ class Alg1010Solver
     //!@}
 
   public:
-    // pow(DBL_MAX,1.0/3.0)/1.618034;
-    static constexpr real_type CUBIC_RESCAL_FACT
-        = std::is_same_v<real_type, double> ? 3.488062113727083e+102
-                                            : 4.3147817163436147e+12;
-    // pow(DBL_MAX,1.0/4.0)/1.618034;
-    static constexpr real_type QUART_RESCAL_FACT
-        = std::is_same_v<real_type, double> ? 7.156344627944542e+76
-                                            : 2.654435711486902e+9;
-    static constexpr real_type MACHEPS
-        = celeritas::numeric_limits<real_type>::epsilon();
-
     // Construct with given tolerance
     inline CELER_FUNCTION Alg1010Solver(real_type tolerance);
 
@@ -277,7 +266,7 @@ CELER_FUNCTION real_type Alg1010Solver::calc_phi0(Real4 const& abcd,
         {
             // try harder: rescale also the depressed cubic if quartic has been
             // already rescaled
-            real_type rfact = Alg1010Solver::CUBIC_RESCAL_FACT;
+            real_type rfact = detail::cubic_rescale_fact_;
             real_type rfactsq = ipow<2>(rfact);
             real_type ggss = gg / rfactsq;
             real_type hhss = hh / rfactsq;
@@ -311,7 +300,7 @@ CELER_FUNCTION real_type Alg1010Solver::calc_phi0(Real4 const& abcd,
     if (std::fabs(h) > maxtt)
         maxtt = std::fabs(h);
 
-    if (std::fabs(f) > Alg1010Solver::MACHEPS * maxtt)
+    if (std::fabs(f) > detail::macheps_ * maxtt)
     {
         for (int iter = 0; iter < 8; iter++)
         {
@@ -523,7 +512,7 @@ CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
     real_type rfact = 1.0;
     if (std::isnan(phi0) || std::isinf(phi0))
     {
-        rfact = Alg1010Solver::QUART_RESCAL_FACT;
+        rfact = detail::quart_rescale_fact_;
         a /= rfact;
         real_type rfactsq = ipow<2>(rfact);
         b /= rfactsq;
@@ -694,7 +683,7 @@ CELER_FUNCTION auto Alg1010Solver::unfiltered_roots(Real5 const& coeff) const
      * is better) */
     if (realcase[0] == -1
         || (std::fabs(d2)
-            <= Alg1010Solver::MACHEPS
+            <= detail::macheps_
                    * (std::fabs(2. * b / 3.) + std::fabs(phi0) + ipow<2>(l1))))
     {
         Real4 abcd{a, b, c, d};
