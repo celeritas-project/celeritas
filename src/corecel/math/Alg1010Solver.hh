@@ -279,9 +279,7 @@ CELER_FUNCTION real_type Alg1010Solver::calc_phi0(Real4 const& abcd,
     real_type xxx = x * xsq;
     real_type gx = g * x;
     real_type f = x * (xsq + g) + h;
-    real_type maxtt = max(std::fabs(xxx), std::fabs(gx));
-    if (std::fabs(h) > maxtt)
-        maxtt = std::fabs(h);
+    real_type maxtt = max(std::fabs(h), max(std::fabs(xxx), std::fabs(gx)));
 
     if (std::fabs(f) > detail::macheps_ * maxtt)
     {
