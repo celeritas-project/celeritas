@@ -317,7 +317,7 @@ Array<real_type, 8> full_split(Comp4 const& comp_roots)
     return {x.real, x.imag, y.real, y.imag, z.real, z.imag, w.real, w.imag};
 }
 /*
- * Harness for ODM tests
+ * Harness for tests based on Orellano & De Michele (ODM)
  */
 class ODMTest : public testing::Test
 {
