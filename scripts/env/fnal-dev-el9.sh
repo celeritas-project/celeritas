@@ -35,7 +35,7 @@ _setup_larsoft_celer() {
     celerlog debug "Activating spack environment"
     spack env activate "${CELER_SPACK_ENV}"
   fi
-  # Load celeritas plugin
+  # Check for celeritas plugin (user must load themselves)
   if [ -z "${CELERITAS_DIR}" ]; then
     celerlog warning "Celeritas not loaded"
     celerlog info "Run: eval \$(\${CELERITAS_DIR}/bin/larceler-env)"

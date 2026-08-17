@@ -152,11 +152,12 @@ Generating analysis files from the optical simulation
 
 .. note::
 
-   - ``art`` stores the module labels as part of the object naming
-   convention inside an ``art::Event`` object. If unsure about what label
-   to use while trying to load an object type in ``PDSimAna``, you can
-   view it directly on ROOT. E.g., for ``SimEnergyDeposits`` objects, the
-   ``IonAndScint`` label is shown as part of the branch name:
+   The ``art`` workflow stores the module labels as part of the object naming
+   convention inside an ``art::Event`` object.
+   If unsure about what label to use while trying to load an object type in
+   ``PDSimAna``, you can view it directly on ROOT.
+   E.g., for ``SimEnergyDeposits`` objects, the ``IonAndScint`` label is shown
+   as part of the branch name:
 
    .. code:: none
 
