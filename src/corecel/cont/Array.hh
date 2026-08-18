@@ -198,7 +198,7 @@ class Array
 // Note: this differs from std::array, which deduces from T rather than the
 // common type
 template<class T, class... Us>
-CELER_FUNCTION Array(T, Us...)
+CELER_CTAD_FUNCTION Array(T, Us...)
     -> Array<std::common_type_t<T, Us...>, 1 + sizeof...(Us)>;
 
 //---------------------------------------------------------------------------//
