@@ -81,7 +81,8 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class SubstepperT, class GTV>
-CELER_FUNCTION FieldPropagator(SubstepperT&&, ParticleTrackView const&, GTV&&)
+CELER_CTAD_FUNCTION FieldPropagator(
+    SubstepperT&&, ParticleTrackView const&, GTV&&)
     -> FieldPropagator<SubstepperT, GTV>;
 
 //---------------------------------------------------------------------------//

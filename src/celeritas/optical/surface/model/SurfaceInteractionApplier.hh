@@ -33,7 +33,8 @@ struct SurfaceInteractionApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION SurfaceInteractionApplier(F&&) -> SurfaceInteractionApplier<F>;
+CELER_CTAD_FUNCTION SurfaceInteractionApplier(F&&)
+    -> SurfaceInteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

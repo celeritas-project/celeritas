@@ -183,12 +183,12 @@ struct IsSurfaceModelEqual
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION TrackSlotExecutor(
+CELER_CTAD_FUNCTION TrackSlotExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, T&&)
     -> TrackSlotExecutor<T>;
 
 template<class C, class T>
-CELER_FUNCTION ConditionalTrackSlotExecutor(
+CELER_CTAD_FUNCTION ConditionalTrackSlotExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, C&&, T&&)
     -> ConditionalTrackSlotExecutor<C, T>;
 
