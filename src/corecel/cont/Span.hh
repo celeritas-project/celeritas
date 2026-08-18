@@ -311,24 +311,24 @@ class Span
 
 // Deduction guide for pointer and size
 template<class T>
-CELER_FUNCTION Span(T*, std::size_t) -> Span<T>;
+CELER_CTAD_FUNCTION Span(T*, std::size_t) -> Span<T>;
 
 // Deduction guide for two iterators
 template<class Iter>
-CELER_FUNCTION Span(Iter, Iter)
+CELER_CTAD_FUNCTION Span(Iter, Iter)
     -> Span<typename std::iterator_traits<Iter>::value_type>;
 
 // Deduction guide for C array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(T (&)[N]) -> Span<T, N>;
+CELER_CTAD_FUNCTION Span(T (&)[N]) -> Span<T, N>;
 
 // Deduction guide for mutable Array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(Array<T, N>&) -> Span<T, N>;
+CELER_CTAD_FUNCTION Span(Array<T, N>&) -> Span<T, N>;
 
 // Deduction guide for const Array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(Array<T, N> const&) -> Span<T const, N>;
+CELER_CTAD_FUNCTION Span(Array<T, N> const&) -> Span<T const, N>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

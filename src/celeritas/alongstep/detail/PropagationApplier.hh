@@ -39,7 +39,7 @@ struct PropagationApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class TP>
-CELER_FUNCTION PropagationApplier(TP&&) -> PropagationApplier<TP>;
+CELER_CTAD_FUNCTION PropagationApplier(TP&&) -> PropagationApplier<TP>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
