@@ -22,7 +22,6 @@
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
 
