@@ -97,8 +97,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 
 # Save dependency versions as strings
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
-set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG LArSoft ROOT Thrust VecGeom)
+foreach(_pkg CLHEP covfie CUDA HepMC3 hip hiprand hipcub roctracer Geant4 G4VG LArSoft ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "${${_pkg}_VERSION_STRING}")
@@ -122,7 +121,7 @@ endif()
 
 # Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep CUDA HIP Geant4 VecGeom HepMC3)
+foreach(_dep covfie CUDA hip Geant4 VecGeom HepMC3)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS
@@ -346,6 +345,9 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
+  if(roctracer_FOUND)
+    list(APPEND PRIVATE_DEPS roctracer::roctx)
+  endif()
   # Build some files as HIP due to rocThrust
   set_source_files_properties(
     sys/Stream.cc
