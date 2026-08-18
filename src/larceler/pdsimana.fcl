@@ -16,8 +16,6 @@ PDSimAna:
     NumChannels: 480
     MinTime: 10.0 # Minimum time for histogram binning [ns]
     MaxTime: 50e3 # Maximum time for histogram binning [ns]
-
-    # TODO: Possibly add runtime histogram definitions
 }
 
 END_PROLOG

@@ -233,7 +233,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         if (!lite.empty())
         {
             // Only insert BTRs if optical hits were encountered (for
-            // consistency with PDFastSimPar
+            // consistency with PDFastSimPar)
             btrs.emplace_back(make_obtr(std::move(*btr_helpers_[channel_id])));
             CELER_ENSURE(btrs.back().OpDetNum()
                          == static_cast<int>(channel_id));
