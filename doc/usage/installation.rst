@@ -493,6 +493,11 @@ the Spack environment and then load the Celeritas environment variables::
    $ spack env activate ${CELER_SPACK_ENV}
    $ eval $(install/bin/larceler-env)
 
+With the current Spack-distributed LArSoft, most jobs may also require manually
+setting the environment variables ``FHICL_FILE_PATH`` to search the current
+working directory for included files.
+If using a nonstandard GDML file, ``FW_SEARCH_PATH`` must also be updated.
+
 .. _build_ups:
 
 UPS
