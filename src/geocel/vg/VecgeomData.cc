@@ -41,16 +41,14 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
     resize(&data->dir, size);
     resize(&data->state, size);
     resize(&data->next_state, size);
-    if constexpr (M == MemSpace::device)
+    if constexpr (M == MemSpace::device && CELER_VGNAV == CELER_VGNAV_TUPLE)
     {
-#if CELER_VGNAV == CELER_VGNAV_TUPLE
         using AllStates = AllItems<VgOpaqueNavPath, MemSpace::device>;
         detail::init_navstate_device(data->state[AllStates{}], StreamId{});
         detail::init_navstate_device(data->next_state[AllStates{}], StreamId{});
-#endif
     }
 
-    CELER_ENSURE(data);
+    CELER_ENSURE(*data);
 }
 
 //---------------------------------------------------------------------------//

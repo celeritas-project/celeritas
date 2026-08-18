@@ -219,14 +219,9 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     : params_(params)
     , state_(states)
     , tid_(tid)
-#if CELER_VGNAV == CELER_VGNAV_PATH
     // Nav path holds direct references to state with unused "last state"
     , vgstate_{states.state[tid]}
     , vgnext_{states.next_state[tid]}
-#else
-    , vgstate_{states.state[tid], states.boundary[tid]}
-    , vgnext_{states.next_state[tid], states.next_boundary[tid]}
-#endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 {
@@ -638,7 +633,8 @@ CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 /*!
  * If not using the surface model, return a bumped position.
  */
-CELER_FUNCTION VgReal3 VecgeomTrackView::make_bumped_pos(vg_real_type bump) const
+CELER_FUNCTION VgReal3 VecgeomTrackView::make_bumped_pos(
+    vg_real_type bump) const
 {
     CELER_EXPECT(bump >= 0);
     VgReal3 bumped_pos;

@@ -139,7 +139,6 @@ struct VecgeomStateData
     // Logical volumetric state
     VgStateItems state;
     VgStateItems next_state;
-    StateItems<VgBoundary> boundary;
 
     //// METHODS ////
 
@@ -150,8 +149,7 @@ struct VecgeomStateData
         return pos.size() > 0
             && dir.size() == pos.size()
             && state.size() == pos.size()
-            && next_state.size() == pos.size()
-            && boundary.size() ==pos.size();
+            && next_state.size() == pos.size();
         // clang-format on
     }
 
@@ -166,7 +164,6 @@ struct VecgeomStateData
         pos = other.pos;
         dir = other.dir;
         state = other.state;
-        boundary = other.boundary;
         next_state = other.next_state;
         return *this;
     }
