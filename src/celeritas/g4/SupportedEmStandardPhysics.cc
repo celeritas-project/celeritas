@@ -9,15 +9,22 @@
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4BuilderType.hh>
+#include <G4CascadeInterface.hh>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
 #include <G4ElectroVDNuclearModel.hh>
 #include <G4Electron.hh>
 #include <G4ElectronNuclearProcess.hh>
 #include <G4EmParameters.hh>
+#include <G4ExcitedStringDecay.hh>
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
+#include <G4GammaNuclearXS.hh>
+#include <G4GammaParticipants.hh>
+#include <G4GeneratorPrecompoundInterface.hh>
+#include <G4HadronInelasticProcess.hh>
+#include <G4HadronicParameters.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -37,7 +44,10 @@
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
+#include <G4QGSMFragmentation.hh>
+#include <G4QGSModel.hh>
 #include <G4RayleighScattering.hh>
+#include <G4TheoFSGenerator.hh>
 #include <G4UrbanMscModel.hh>
 #include <G4Version.hh>
 #include <G4WentzelVIModel.hh>
@@ -299,12 +309,36 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
         ph.RegisterProcess(ggproc.release(), gamma);
     }
-    else if (options_.gamma_nuclear)
+
+    if (options_.gamma_nuclear)
     {
-        CELER_LOG(debug) << "Using gamma-nuclear from G4GammaGeneralProcess";
-        ggproc = std::make_unique<G4GammaGeneralProcess>();
-        auto gamma_nuclear = ggproc->GetGammaNuclear();
-        ph.RegisterProcess(gamma_nuclear, gamma);
+        CELER_LOG(debug) << "Using gamma-nuclear with "
+                            "Bertini (G4CascadeInterface) and G4QGSModel";
+
+        auto gamma_nuclear = std::make_unique<G4HadronInelasticProcess>(
+            "photonNuclear", gamma);
+        gamma_nuclear->AddDataSet(new G4GammaNuclearXS());
+
+        auto qgs_model = std::make_unique<G4QGSModel<G4GammaParticipants>>();
+        qgs_model->SetFragmentationModel(
+            new G4ExcitedStringDecay(new G4QGSMFragmentation()));
+
+        auto gn_model = std::make_unique<G4TheoFSGenerator>();
+        gn_model->SetTransport(new G4GeneratorPrecompoundInterface());
+        gn_model->SetHighEnergyGenerator(qgs_model.release());
+
+        // Bertini cascade for moderate energies
+        auto cascade = std::make_unique<G4CascadeInterface>();
+        auto* params = G4HadronicParameters::Instance();
+
+        cascade->SetMaxEnergy(params->GetMaxEnergyTransitionFTF_Cascade());
+        gamma_nuclear->RegisterMe(cascade.release());
+
+        gn_model->SetMinEnergy(params->GetMinEnergyTransitionFTF_Cascade());
+        gn_model->SetMaxEnergy(params->GetMaxEnergy());
+        gamma_nuclear->RegisterMe(gn_model.release());
+
+        ph.RegisterProcess(gamma_nuclear.release(), gamma);
     }
 }
 
