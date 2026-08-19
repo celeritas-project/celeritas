@@ -11,7 +11,9 @@
 #include <G4BuilderType.hh>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
+#include <G4ElectroVDNuclearModel.hh>
 #include <G4Electron.hh>
+#include <G4ElectronNuclearProcess.hh>
 #include <G4EmParameters.hh>
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
@@ -31,6 +33,7 @@
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
 #include <G4Positron.hh>
+#include <G4PositronNuclearProcess.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
@@ -296,6 +299,13 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
         ph.RegisterProcess(ggproc.release(), gamma);
     }
+    else if (options_.gamma_nuclear)
+    {
+        CELER_LOG(debug) << "Using gamma-nuclear from G4GammaGeneralProcess";
+        ggproc = std::make_unique<G4GammaGeneralProcess>();
+        auto gamma_nuclear = ggproc->GetGammaNuclear();
+        ph.RegisterProcess(gamma_nuclear, gamma);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -331,6 +341,29 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         ph.RegisterProcess(ionization.release(), p);
 
         CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
+    }
+
+    if (options_.electro_nuclear)
+    {
+        // electro-nuclear: G4ElectroVDNuclearModel
+        auto eModel = std::make_shared<G4ElectroVDNuclearModel>();
+
+        if (p == G4Electron::Electron())
+        {
+            auto enuc = std::make_unique<G4ElectronNuclearProcess>();
+            enuc->RegisterMe(eModel.get());
+            ph.RegisterProcess(enuc.release(), p);
+            CELER_LOG(debug)
+                << "Using electron-nuclear with G4ElectroVDNuclearModel";
+        }
+        if (p == G4Positron::Positron())
+        {
+            auto pnuc = std::make_unique<G4PositronNuclearProcess>();
+            pnuc->RegisterMe(eModel.get());
+            ph.RegisterProcess(pnuc.release(), p);
+            CELER_LOG(debug)
+                << "Using positron-nuclear with G4ElectroVDNuclearModel";
+        }
     }
 
     if (options_.brems != BremsModelSelection::none)
