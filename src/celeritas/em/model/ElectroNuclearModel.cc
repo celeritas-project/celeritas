@@ -9,9 +9,12 @@
 #include "corecel/Types.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/em/executor/ElectroNuclearExecutor.hh"
 #include "celeritas/g4/EmExtraPhysicsHelper.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
@@ -27,7 +30,7 @@ namespace celeritas
 ElectroNuclearModel::ElectroNuclearModel(ActionId id,
                                          ParticleParams const& particles,
                                          MaterialParams const& materials)
-    : StaticConcreteAction(id, "electro-nuclear", "interact by electro-nuclear")
+    : StaticConcreteAction(id, "electro_nuclear", "interact by electro-nuclear")
 {
     CELER_EXPECT(id);
 
@@ -94,9 +97,15 @@ auto ElectroNuclearModel::micro_xs(Applicability) const -> XsTable
 /*!
  * Apply the interaction kernel.
  */
-void ElectroNuclearModel::step(CoreParams const&, CoreStateHost&) const
+void ElectroNuclearModel::step(CoreParams const& params,
+                               CoreStateHost& state) const
 {
-    CELER_NOT_IMPLEMENTED("Electro-nuclear inelastic interaction");
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{ElectroNuclearExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
