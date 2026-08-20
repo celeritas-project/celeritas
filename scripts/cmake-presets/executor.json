@@ -82,6 +82,21 @@
       }
     },
     {
+      "name": "mpi",
+      "displayName": "Executor build with MPI",
+      "inherits": [".ccache", ".base", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-mpi/.spack-env/view"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD":    {"type": "STRING",   "value": "17"},
+        "CELERITAS_USE_covfie":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_HepMC3":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_Geant4":  {"type": "BOOL",   "value": "OFF"},
+        "CELERITAS_USE_MPI":     {"type": "BOOL",   "value": "ON"}
+      }
+    },
+    {
       "name": "base",
       "displayName": "Executor default options",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
