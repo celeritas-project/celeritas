@@ -12,10 +12,14 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/OpenmpOutput.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/sys/Openmp.hh"
 
 #include "celeritas_test.hh"
@@ -125,6 +129,24 @@ TEST_F(OutputRegistryTest, minimal)
     EXPECT_JSON_EQ(
         R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
         this->to_string(reg));
+
+    // Test persistent output filename
+    reg.output_filename("-");
+    EXPECT_EQ("-", reg.output_filename());
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::info};
+        std::string s;
+        {
+            ScopedStreamRedirect ssr{&std::cout};
+            reg.output();
+            s = ssr.str();
+        }
+
+        EXPECT_JSON_EQ(this->to_string(reg), s);
+        static char const* const expected_log_messages[]
+            = {"Saving 4 entries of output to <stdout>"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
 }
 
 TEST_F(OutputRegistryTest, build_output)
