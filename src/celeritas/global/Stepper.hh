@@ -170,7 +170,7 @@ class StepperInterface
     virtual size_type num_buffered_primaries() const noexcept = 0;
 
     // Add a primary to the producer buffer; a prior result may remain valid
-    virtual void push_primary(Primary primary) = 0;
+    virtual void push_primary(Primary const& primary) = 0;
 
     // Stage the nonempty producer buffer for the next step
     virtual void stage_primaries() = 0;
@@ -367,7 +367,7 @@ class Stepper final : public StepperInterface
     }
 
     // Add a primary to the producer buffer; a prior result may remain valid
-    void push_primary(Primary primary) final;
+    void push_primary(Primary const& primary) final;
 
     // Stage the nonempty producer buffer for the next step
     void stage_primaries() final;

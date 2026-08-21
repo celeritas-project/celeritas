@@ -42,6 +42,7 @@
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/global/PrimaryCapacity.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/io/OffloadWriter.hh"
@@ -52,8 +53,6 @@
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
-
-#include "detail/PrimaryCapacity.hh"
 
 namespace celeritas
 {

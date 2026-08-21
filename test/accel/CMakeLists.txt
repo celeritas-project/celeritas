@@ -56,7 +56,6 @@ celeritas_add_test(HepMC3PrimaryGenerator.test.cc
 # Fields
 celeritas_add_test(CartMapMagneticField.test.cc ${_needs_covfie})
 celeritas_add_test(CylMapMagneticField.test.cc)
-celeritas_add_test(detail/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # INTEGRATION TESTS

@@ -251,7 +251,7 @@ size_type Stepper<M>::initializer_capacity() const noexcept
  * primary batch is staged. Its fixed capacity is reserved at construction.
  */
 template<MemSpace M>
-void Stepper<M>::push_primary(Primary primary)
+void Stepper<M>::push_primary(Primary const& primary)
 {
     CELER_VALIDATE(primary_buffer_.size() < primary_capacity_,
                    << "primary buffer capacity of " << primary_capacity_
@@ -282,8 +282,7 @@ void Stepper<M>::stage_primaries()
     this->reclaim_submitted_primaries();
 
     auto primaries = make_span(primary_buffer_);
-    CELER_EXPECT(!primaries.empty());
-    CELER_EXPECT(primaries_action_);
+    CELER_ASSERT(!primaries.empty());
 
     // Check that events are consistent with our 'max events'
     auto max_id
@@ -310,7 +309,8 @@ void Stepper<M>::stage_primaries()
     }
     catch (...)
     {
-        // Leave the Stepper ready to accept a corrected primary batch.
+        // Insertion can fail when the batch plus queued initializers exceeds
+        // initializer capacity. Allow retrying with a smaller batch.
         counters.num_pending = 0;
         state_->sync_put_counters(counters);
         throw;
