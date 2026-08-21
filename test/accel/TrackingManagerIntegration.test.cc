@@ -917,6 +917,49 @@ TEST_F(TestEm3, run)
 }
 
 //---------------------------------------------------------------------------//
+class TestEm3Rayleigh : public TestEm3IntegrationMixin, public TMITestBase
+{
+  public:
+    PhysicsInput make_physics_input() const final
+    {
+        auto result = PhysicsInput::deactivated();
+        result.rayleigh_scattering = true;
+        return result;
+    }
+
+    PrimaryInput make_primary_input() const final
+    {
+        auto result = TestEm3IntegrationMixin::make_primary_input();
+        result.pdg = {pdg::gamma()};
+        result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
+        return result;
+    }
+
+    SetupOptions make_setup_options() final
+    {
+        auto opts = TMITestBase::make_setup_options();
+        opts.max_num_tracks = 1;
+        opts.initializer_capacity = 1;
+        opts.secondary_stack_factor = 2;
+        opts.auto_flush = 1;
+        return opts;
+    }
+};
+
+/*!
+ * Allow primary admission when secondary capacity exceeds initializer capacity.
+ */
+TEST_F(TestEm3Rayleigh, run_small_capacity)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    ASSERT_FALSE(this->HasFatalFailure());
+    rm.BeamOn(1);
+}
+
+//---------------------------------------------------------------------------//
 // WATERSPHERE
 //---------------------------------------------------------------------------//
 class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
