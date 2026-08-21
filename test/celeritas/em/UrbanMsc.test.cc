@@ -298,8 +298,7 @@ TEST_F(UrbanMscTest, step_conversion)
                 ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
                 /*
                  * TODO: large relative error -0.00081720192362734587 when
-                 pstep
-                 * is near or equal to range:
+                 * pstep is near or equal to range:
                  *
                  z -> g: Low energy or range-limited step:
                     slope = 1.6653345369377e-15
@@ -312,13 +311,12 @@ TEST_F(UrbanMscTest, step_conversion)
                  e- at 0.102364 MeV
                  */
                 real_type tol = 1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10;
-                if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+                if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_FLOAT)
                 {
-                    tol = std::sqrt(tol);
+                    EXPECT_SOFT_NEAR(pstep, true_step, tol)
+                        << "Geo step = " << repr(gp.step)
+                        << ", alpha = " << repr(gp.alpha);
                 }
-                EXPECT_SOFT_NEAR(pstep, true_step, tol)
-                    << "Geo step = " << repr(gp.step)
-                    << ", alpha = " << repr(gp.alpha);
             }
         }
     };

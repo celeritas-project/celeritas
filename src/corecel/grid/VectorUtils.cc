@@ -52,7 +52,7 @@ std::vector<double> linspace(double start, double stop, size_type n)
 
 //---------------------------------------------------------------------------//
 /*!
- * Return logarithmically spaced numbers over a given interval.
+ * Return \em n logarithmically spaced numbers over a given interval.
  *
  * This is a geometric progression of values, where the ratio between each
  * neighbor is constant.

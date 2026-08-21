@@ -52,6 +52,8 @@ metadata about the tracks that caused the hit.
 
 .. doxygenclass:: celeritas::PDFullSimCeler
 
+.. doxygenclass:: celeritas::LarStandaloneRunner
+
 Note that this module differs substantially from direct Geant4 integration: it
 operates independently from the Geant4 run manager as a "postprocessing" step
 in a module after LArG4 runs.
@@ -65,7 +67,6 @@ Its configuration options are input via the FHiCL interface:
 
 Those options are used during execution time to set up and run a Celeritas
 optical physics problem.
-
 
 GeoSimExporter
 ^^^^^^^^^^^^^^

@@ -68,7 +68,8 @@ template<class T>
 T calc_log_delta(Span<T const> grid)
 {
     CELER_EXPECT(grid.size() > 1);
-    return fastpow(grid.back() / grid.front(), T(1) / (grid.size() - 1));
+    return fastpow(grid.back() / grid.front(),
+                   T(1) / static_cast<T>(grid.size() - 1));
 }
 
 //---------------------------------------------------------------------------//

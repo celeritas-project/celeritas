@@ -10,12 +10,10 @@
 #include "corecel/Types.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/Interaction.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/SimTrackView.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
-#include "celeritas/phys/InteractionUtils.hh"
 
 namespace celeritas
 {
@@ -30,6 +28,11 @@ namespace optical
  *
  * \todo See if initializing the first photon directly in this track slot
  * improves performance
+ * \todo This is shoehorned into the \c Interactor paradigm: replace with
+ * \c WlsOffloadSampler that samples a new \c WlsDistribution . (If we replace
+ * the multiple WLS models with a single WLS model, similar to how
+ * scintillation has multiple time and energy spectra, this could also sample
+ * the spectrum ID.)
  */
 class WavelengthShiftInteractor
 {
@@ -86,12 +89,22 @@ CELER_FUNCTION WavelengthShiftInteractor::WavelengthShiftInteractor(
     CELER_EXPECT(distribution_id_ < data_.distributions.size());
     CELER_EXPECT(!data_.distributions[distribution_id_]);
 
-    distribution_.type = shared.type;
-    distribution_.energy = particle.energy();
-    distribution_.time = sim.time();
-    distribution_.position = pos;
-    distribution_.primary = sim.primary_id();
-    distribution_.material = mat_id;
+    if (particle.energy() <= emission_threshold_)
+    {
+        // If the incident particle energy is below the lower bound of the
+        // emitted energy sampling grid, don't emit any photons
+        sample_num_photons_ = PoissonDistribution<>{0};
+        distribution_.num_photons = 0;
+    }
+    else
+    {
+        distribution_.type = shared.type;
+        distribution_.energy = particle.energy();
+        distribution_.time = sim.time();
+        distribution_.position = pos;
+        distribution_.primary = sim.primary_id();
+        distribution_.material = mat_id;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -105,20 +118,10 @@ CELER_FUNCTION Interaction WavelengthShiftInteractor::operator()(Engine& rng)
 {
     Interaction result = Interaction::from_absorption();
 
-    if (distribution_.energy <= emission_threshold_)
-    {
-        // If the incident particle energy is below the lower bound of the
-        // emitted energy sampling grid, don't emit any photons
-        distribution_.num_photons = 0;
-    }
-    else
-    {
-        // Sample the number of photons generated from WLS.
-        distribution_.num_photons = sample_num_photons_(rng);
-    }
-    CELER_ASSERT(distribution_ || distribution_.num_photons == 0);
+    // Sample the number of photons generated from WLS
+    distribution_.num_photons = sample_num_photons_(rng);
     data_.distributions[distribution_id_] = distribution_;
-
+    CELER_ENSURE(distribution_ || distribution_.num_photons == 0);
     return result;
 }
 

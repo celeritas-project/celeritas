@@ -54,20 +54,17 @@ class NormalDistribution
     // Construct with mean and standard deviation
     inline CELER_FUNCTION NormalDistribution(real_type mean, real_type stddev);
 
-    //! Construct with unit deviation
-    explicit CELER_FUNCTION NormalDistribution(real_type mean)
-        : NormalDistribution{mean, 1}
-    {
-    }
-
     // Construct from record
     explicit CELER_FUNCTION NormalDistribution(RecordT const& record)
         : NormalDistribution(record.mean, record.stddev)
     {
     }
 
+    //! Construct with unit deviation
+    explicit CELER_CEF NormalDistribution(real_type mean) : mean_{mean} {}
+
     //! Construct with unit deviation and zero mean
-    CELER_FUNCTION NormalDistribution() : NormalDistribution{0, 1} {}
+    CELER_CEF NormalDistribution() = default;
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -75,8 +72,8 @@ class NormalDistribution
 
   private:
     // Distribution properties
-    real_type mean_;
-    real_type stddev_;
+    real_type mean_{0};
+    real_type stddev_{1};
 
     // Intermediate samples
     real_type spare_{};
