@@ -594,7 +594,7 @@ void LocalTransporter::Push(G4Track& g4track)
      */
     track.event_id = EventId{0};
 
-    step_->push_primary(std::move(track));
+    step_->push_primary(track);
     ++buffered_accum_.primaries;
     buffered_accum_.energy += gtv.energy().value();
     if (step_->num_buffered_primaries() == step_->primary_capacity())

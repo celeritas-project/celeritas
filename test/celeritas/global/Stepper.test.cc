@@ -135,7 +135,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
 
         for (auto primary : first)
         {
-            step.push_primary(std::move(primary));
+            step.push_primary(primary);
         }
         EXPECT_EQ(num_primaries, step.num_buffered_primaries());
         step.stage_primaries();
@@ -149,7 +149,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
 
         for (auto primary : second)
         {
-            step.push_primary(std::move(primary));
+            step.push_primary(primary);
         }
         step.stage_primaries();
         ASSERT_EQ(num_primaries, step.staged_primaries().size());
@@ -180,7 +180,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.async(make_span(first));
         for (auto primary : second)
         {
-            step.push_primary(std::move(primary));
+            step.push_primary(primary);
         }
 
         step.wait();
