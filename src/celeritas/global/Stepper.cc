@@ -256,7 +256,7 @@ void Stepper<M>::push_primary(Primary const& primary)
     CELER_VALIDATE(primary_buffer_.size() < primary_capacity_,
                    << "primary buffer capacity of " << primary_capacity_
                    << " exceeded");
-    primary_buffer_.push_back(std::move(primary));
+    primary_buffer_.push_back(primary);
 }
 
 //---------------------------------------------------------------------------//
