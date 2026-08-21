@@ -368,6 +368,12 @@ auto LocalTransporter::complete_step() -> StepperResult
     CELER_EXPECT(step_->valid());
 
     auto result = step_->get();
+    if (hit_processor_)
+    {
+        // Device step data can be copied only after its producing step has
+        // completed and before another step overwrites the shared scratch data.
+        hit_processor_->process_pending_steps();
+    }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
     run_accum_.steps += result.active;

@@ -91,6 +91,15 @@ class HitProcessor
     // Process device-generated hits
     void operator()(StepStateDeviceRef const&);
 
+    // Copy and process device-generated hits after their step completes
+    void process_pending_steps();
+
+    //! Whether device-generated hit data is pending
+    bool has_pending_steps() const noexcept
+    {
+        return static_cast<bool>(pending_device_steps_);
+    }
+
     // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
 
@@ -121,6 +130,9 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
+    //! Device step data awaiting transfer after step completion
+    StepStateDeviceRef pending_device_steps_;
+
     //! Shared step object
     std::shared_ptr<G4Step> step_;
 
@@ -138,6 +150,9 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_{0};
+
+    // Process hits already copied into temporary CPU storage
+    void process_local_steps();
 };
 
 //---------------------------------------------------------------------------//
@@ -169,6 +184,7 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
 size_type HitProcessor::exchange_hits()
 {
     using namespace celeritas::literals;
+    CELER_EXPECT(!this->has_pending_steps());
     return std::exchange(num_hits_, 0_sz);
 }
 
