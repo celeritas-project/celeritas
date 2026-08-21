@@ -161,8 +161,8 @@ class OrangeTrackView
     //// PRIVATE STATE MUTATORS ////
 
     inline CELER_FUNCTION void univ_level(UnivLevelId);
-    inline CELER_FUNCTION void
-    surface(UnivLevelId ulev_id, detail::OnLocalSurface surf);
+    inline CELER_FUNCTION void surface(UnivLevelId ulev_id,
+                                       detail::OnLocalSurface surf);
     inline CELER_FUNCTION void geo_status(GeoStatus);
 
     inline CELER_FUNCTION void next_step(real_type dist);
@@ -181,8 +181,8 @@ class OrangeTrackView
     //// HELPER FUNCTIONS ////
 
     // Initialize the state from a parent state and new direction
-    inline CELER_FUNCTION OrangeTrackView&
-    operator=(DetailedInitializer const& init);
+    inline CELER_FUNCTION OrangeTrackView& operator=(
+        DetailedInitializer const& init);
 
     // Iterate over universe levels to find the next step
     inline CELER_FUNCTION Propagation find_next_step_impl(
@@ -191,8 +191,8 @@ class OrangeTrackView
     // Create local distance
     inline CELER_FUNCTION detail::TempNextFace make_temp_next() const;
 
-    inline CELER_FUNCTION detail::LocalState
-    make_local_state(UnivLevelId ulev_id) const;
+    inline CELER_FUNCTION detail::LocalState make_local_state(
+        UnivLevelId ulev_id) const;
 
     // Whether the next distance-to-boundary has been found
     inline CELER_FUNCTION bool has_next_step() const;
@@ -230,8 +230,7 @@ class OrangeTrackView
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION
-OrangeTrackView::OrangeTrackView(
+CELER_FUNCTION OrangeTrackView::OrangeTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
@@ -248,8 +247,8 @@ OrangeTrackView::OrangeTrackView(
  * starting location and direction. Secondaries will initialize their states
  * from a copy of the parent.
  */
-CELER_FUNCTION OrangeTrackView&
-OrangeTrackView::operator=(Initializer_t const& init)
+CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
+    Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
@@ -345,8 +344,8 @@ OrangeTrackView::operator=(Initializer_t const& init)
 /*!
  * Construct the state from a direction and a copy of the parent state.
  */
-CELER_FUNCTION
-OrangeTrackView& OrangeTrackView::operator=(DetailedInitializer const& init)
+CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
+    DetailedInitializer const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
 
@@ -547,8 +546,8 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
  * volumes have higher level IDs. Note that Geant4 uses the \em reverse
  * nomenclature.
  */
-CELER_FUNCTION void
-OrangeTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+CELER_FUNCTION void OrangeTrackView::volume_instance_id(
+    Span<VolumeInstanceId> levels) const
 {
     this->foreach_volume_path(
         [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
@@ -1096,8 +1095,8 @@ CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa() const -> LSA
  * cross_boundary locally updates the univ_level before committing the
  * change.
  */
-CELER_FORCEINLINE_FUNCTION auto
-OrangeTrackView::make_lsa(UnivLevelId ulev_id) const -> LSA
+CELER_FORCEINLINE_FUNCTION auto OrangeTrackView::make_lsa(
+    UnivLevelId ulev_id) const -> LSA
 {
     return LSA(params_.scalars, &states_, track_slot_, ulev_id);
 }
@@ -1112,8 +1111,8 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::univ_level(UnivLevelId ulev_id)
 }
 
 //! Assign the surface on the current universe level
-CELER_FORCEINLINE_FUNCTION void
-OrangeTrackView::surface(UnivLevelId ulev_id, detail::OnLocalSurface surf)
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::surface(
+    UnivLevelId ulev_id, detail::OnLocalSurface surf)
 {
     states_.surface_univ_level[track_slot_] = ulev_id;
     states_.surf[track_slot_] = surf.id();
@@ -1133,8 +1132,8 @@ CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_step(real_type dist)
 }
 
 //! The next surface to be encountered
-CELER_FORCEINLINE_FUNCTION void
-OrangeTrackView::next_surf(UnivLevelId ulev_id, detail::OnLocalSurface s)
+CELER_FORCEINLINE_FUNCTION void OrangeTrackView::next_surf(
+    UnivLevelId ulev_id, detail::OnLocalSurface s)
 {
     states_.next_univ_level[track_slot_] = ulev_id;
     states_.next_surf[track_slot_] = s.id();
@@ -1206,8 +1205,8 @@ CELER_FUNCTION detail::TempNextFace OrangeTrackView::make_temp_next() const
 /*!
  * Create a local state.
  */
-CELER_FUNCTION detail::LocalState
-OrangeTrackView::make_local_state(UnivLevelId ulev_id) const
+CELER_FUNCTION detail::LocalState OrangeTrackView::make_local_state(
+    UnivLevelId ulev_id) const
 {
     detail::LocalState local;
 

@@ -167,7 +167,8 @@ void SplineDerivCalculator::calc_final_coeffs(
  * Calculate the first and last values of the second derivative.
  */
 template<class GA>
-void SplineDerivCalculator::calc_boundaries(GA const& grid, VecReal& deriv) const
+void SplineDerivCalculator::calc_boundaries(GA const& grid,
+                                            VecReal& deriv) const
 {
     CELER_EXPECT(deriv.size() == grid.size());
 

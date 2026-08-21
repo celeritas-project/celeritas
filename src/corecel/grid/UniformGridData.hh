@@ -41,8 +41,8 @@ struct UniformGridData
     //// HELPER FUNCTIONS ////
 
     // Construct on host from front/back
-    inline static UniformGridData
-    from_bounds(EnumArray<Bound, double> bounds, size_type size);
+    inline static UniformGridData from_bounds(EnumArray<Bound, double> bounds,
+                                              size_type size);
 };
 
 //---------------------------------------------------------------------------//
@@ -78,8 +78,8 @@ struct UniformGridRecord
 /*!
  * Construct from min/max and number of grid points.
  */
-UniformGridData
-UniformGridData::from_bounds(EnumArray<Bound, double> bounds, size_type size)
+UniformGridData UniformGridData::from_bounds(EnumArray<Bound, double> bounds,
+                                             size_type size)
 {
     CELER_EXPECT(size >= 2);
     CELER_EXPECT(bounds[Bound::lo] < bounds[Bound::hi]);
@@ -87,7 +87,8 @@ UniformGridData::from_bounds(EnumArray<Bound, double> bounds, size_type size)
     result.size = size;
     result.front = bounds[Bound::lo];
     result.back = bounds[Bound::hi];
-    result.delta = (bounds[Bound::hi] - bounds[Bound::lo]) / (size - 1);
+    result.delta = (bounds[Bound::hi] - bounds[Bound::lo])
+                   / static_cast<double>(size - 1);
     CELER_ENSURE(result);
     return result;
 }

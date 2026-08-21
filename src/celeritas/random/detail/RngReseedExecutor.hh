@@ -28,8 +28,8 @@ class RngReseedExecutor
 
   public:
     // Construct with state and event ID
-    inline CELER_FUNCTION
-    RngReseedExecutor(ParamsCRef const&, StateRef const&, UniqueEventId id);
+    inline CELER_FUNCTION RngReseedExecutor(
+        ParamsCRef const&, StateRef const&, UniqueEventId id);
 
     // Initialize the given track slot
     inline CELER_FUNCTION void operator()(TrackSlotId tid) const;

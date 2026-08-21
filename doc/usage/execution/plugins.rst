@@ -24,7 +24,8 @@ The ``PDFullSimCeler`` module enables replacing the map-based method for
 generating the scintillation-to-detector response with full Monte Carlo optical
 tracking.
 
-Once Celeritas has been installed (see :ref:`build_ups`), load the
+Once Celeritas has been installed (see :ref:`fnal_spack` and :ref:`build_ups`),
+load the
 module/library/FHiCL paths provided by Celeritas in its install directory (or
 build directory if doing development):
 
@@ -51,6 +52,8 @@ metadata about the tracks that caused the hit.
 
 .. doxygenclass:: celeritas::PDFullSimCeler
 
+.. doxygenclass:: celeritas::LarStandaloneRunner
+
 Note that this module differs substantially from direct Geant4 integration: it
 operates independently from the Geant4 run manager as a "postprocessing" step
 in a module after LArG4 runs.
@@ -64,7 +67,6 @@ Its configuration options are input via the FHiCL interface:
 
 Those options are used during execution time to set up and run a Celeritas
 optical physics problem.
-
 
 GeoSimExporter
 ^^^^^^^^^^^^^^

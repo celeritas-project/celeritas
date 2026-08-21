@@ -30,6 +30,7 @@ namespace test
  * You can use the \c CELER_LOG_SCOPED environment variable to print the
  * captured log messages as they are written.
  *
+ * \par Example:
  * \code
     ScopedLogStorer scoped_log_{&celeritas::world_logger()};
     CELER_LOG(info) << "captured";

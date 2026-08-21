@@ -60,8 +60,8 @@ MatterState to_matter_state(ImportMaterialState state)
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.geo_materials.empty());
     CELER_EXPECT(!data.phys_materials.empty());
@@ -120,9 +120,9 @@ MaterialParams::from_import(ImportData const& data)
         ImportPhysMaterial const& phys_mat = data.phys_materials[mat_idx];
 
         auto geo_mat_idx = phys_mat.geo_material_id;
-        CELER_VALIDATE(
-            geo_mat_idx < data.geo_materials.size(),
-            << "geo material id " << geo_mat_idx << " is out of range");
+        CELER_VALIDATE(geo_mat_idx < data.geo_materials.size(),
+                       << "geo material id " << geo_mat_idx
+                       << " is out of range");
         auto const& geo_mat = data.geo_materials[geo_mat_idx];
 
         MaterialParams::MaterialInput material_params;
@@ -427,8 +427,8 @@ ItemRange<MatElementComponent> MaterialParams::extend_elcomponents(
     real_type norm = 0;
     for (auto i : range(inp.elements_fractions.size()))
     {
-        CELER_EXPECT(
-            inp.elements_fractions[i].first < host_data->elements.size());
+        CELER_EXPECT(inp.elements_fractions[i].first
+                     < host_data->elements.size());
         CELER_EXPECT(inp.elements_fractions[i].second >= 0);
         // Store number fraction
         components[i].element = inp.elements_fractions[i].first;

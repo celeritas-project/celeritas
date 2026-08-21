@@ -47,14 +47,14 @@ class DielectricInteractor
 
   public:
     // Construct interactor from track data
-    inline CELER_FUNCTION
-    DielectricInteractor(ParticleTrackView const& particle,
-                         Real3 const& inc_direction,
-                         SurfacePhysicsTrackView const& surface_physics,
-                         MaterialView const& pre_material,
-                         MaterialView const& post_material,
-                         ReflectionModeSampler reflection_calc,
-                         DielectricInterface dielectric_interface);
+    inline CELER_FUNCTION DielectricInteractor(
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        SurfacePhysicsTrackView const& surface_physics,
+        MaterialView const& pre_material,
+        MaterialView const& post_material,
+        ReflectionModeSampler reflection_calc,
+        DielectricInterface dielectric_interface);
 
     // Sample the dielectric interaction
     template<class Engine>
@@ -93,8 +93,8 @@ CELER_FUNCTION SurfaceInteraction DielectricInteractor::Executor::operator()(
     }
 
     auto rng = track.rng();
-    auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
-                            .internal_surface_id();
+    auto sub_model_id
+        = s_phys.interface(SurfacePhysicsOrder::interaction).internal_surface_id();
     CELER_ASSERT(sub_model_id < dielectric_data.interface.size());
 
     return DielectricInteractor{

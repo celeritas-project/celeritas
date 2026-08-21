@@ -79,13 +79,13 @@ class SBEnergySampler
 /*!
  * Construct from incident particle and energy.
  */
-CELER_FUNCTION
-SBEnergySampler::SBEnergySampler(SBTable const& differential_xs,
-                                 ParticleTrackView const& particle,
-                                 Energy gamma_cutoff,
-                                 MaterialView const& material,
-                                 ElementComponentId elcomp_id,
-                                 bool is_electron)
+CELER_FUNCTION SBEnergySampler::SBEnergySampler(
+    SBTable const& differential_xs,
+    ParticleTrackView const& particle,
+    Energy gamma_cutoff,
+    MaterialView const& material,
+    ElementComponentId elcomp_id,
+    bool is_electron)
     : differential_xs_(differential_xs)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , gamma_cutoff_(gamma_cutoff)

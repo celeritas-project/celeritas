@@ -52,8 +52,8 @@ inline CELER_FUNCTION Real3 calc_exiting_direction(Momentum inc_momentum,
 class ExitingDirectionSampler
 {
   public:
-    CELER_FUNCTION
-    ExitingDirectionSampler(real_type costheta, Real3 const& direction)
+    CELER_FUNCTION ExitingDirectionSampler(real_type costheta,
+                                           Real3 const& direction)
         : cos_theta_(costheta)
         , dir_(direction)
         , sample_phi_(0, real_type(2 * constants::pi))
@@ -79,8 +79,8 @@ class ExitingDirectionSampler
 class TransversePolarizationSampler
 {
   public:
-    explicit CELER_FUNCTION
-    TransversePolarizationSampler(Real3 const& direction)
+    explicit CELER_FUNCTION TransversePolarizationSampler(
+        Real3 const& direction)
         : dir_(direction)
     {
     }

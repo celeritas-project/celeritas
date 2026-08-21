@@ -35,11 +35,11 @@ class ChipsNeutronElasticInteractor
 {
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    ChipsNeutronElasticInteractor(NeutronElasticRef const& shared,
-                                  ParticleTrackView const& particle,
-                                  Real3 const& inc_direction,
-                                  IsotopeView const& target);
+    inline CELER_FUNCTION ChipsNeutronElasticInteractor(
+        NeutronElasticRef const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        IsotopeView const& target);
 
     // Sample an interaction with the given RNG
     template<class Engine>

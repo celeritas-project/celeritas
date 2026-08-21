@@ -64,15 +64,14 @@ class MollerEnergyDistribution
 /*!
  * Construct with data from MollerBhabhaInteractor.
  */
-CELER_FUNCTION
-MollerEnergyDistribution::MollerEnergyDistribution(
+CELER_FUNCTION MollerEnergyDistribution::MollerEnergyDistribution(
     Mass electron_mass, Energy min_valid_energy, Energy inc_energy)
     : min_energy_fraction_(
           value_as<Energy>(min_valid_energy) / value_as<Energy>(inc_energy))
     , gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(electron_mass))
 {
-    CELER_EXPECT(
-        electron_mass > zero_quantity() && inc_energy > zero_quantity());
+    CELER_EXPECT(electron_mass > zero_quantity()
+                 && inc_energy > zero_quantity());
 }
 
 //---------------------------------------------------------------------------//

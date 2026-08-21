@@ -9,9 +9,9 @@
 #include <cmath>
 #include <type_traits>
 
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/data/DistributionData.hh"
 
 #include "GenerateCanonical.hh"
 
@@ -43,6 +43,7 @@ class UniformRealDistribution
     //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
+    using RecordT = UniformRealDistributionRecord;
     //!@}
 
   public:
@@ -108,9 +109,8 @@ UniformRealDistribution<RealType>::UniformRealDistribution(real_type a,
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-UniformRealDistribution<RealType>::operator()(Generator& rng) const
-    -> result_type
+CELER_FUNCTION auto UniformRealDistribution<RealType>::operator()(
+    Generator& rng) const -> result_type
 {
     return std::fma(delta_, generate_canonical<RealType>(rng), a_);
 }

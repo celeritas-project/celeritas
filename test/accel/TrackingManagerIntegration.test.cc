@@ -148,9 +148,8 @@ class TMITestBase : virtual public IntegrationTestBase
         }
     }
 
-    std::function<void()> check_during_run_;
-
     std::mutex mutex_;
+    std::function<void()> check_during_run_;
     std::map<StreamId, int> num_local_events_;
 };
 
@@ -185,9 +184,8 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
 
         // Check the weight is consistent with our modification at
         // begin-of-event
-        auto event_id = G4EventManager::GetEventManager()
-                            ->GetConstCurrentEvent()
-                            ->GetEventID();
+        auto event_id
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
@@ -203,7 +201,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
         static std::recursive_mutex exc_mutex;
-        std::lock_guard scoped_lock{exc_mutex};
+        std::scoped_lock lock{exc_mutex};
 
         static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
         std::smatch match;
@@ -275,15 +273,16 @@ TEST_F(LarSphere, state_dep)
     static std::map<StreamId, std::vector<std::string>> stream_state
         = {{StreamId{0}, {}}};
     // Record a change for the local stream ID
-    static auto record_state_change = [](StreamId sid, GeantStateChange change) {
-        if (change != GeantStateChange::unknown)
-        {
-            static std::mutex mu;
-            std::scoped_lock lock{mu};
-            stream_state[sid].emplace_back(to_cstring(change));
-        }
-        CELER_LOG_LOCAL(debug) << sid << ": " << change;
-    };
+    static auto record_state_change
+        = [](StreamId sid, GeantStateChange change) {
+              if (change != GeantStateChange::unknown)
+              {
+                  static std::mutex mu;
+                  std::scoped_lock lock{mu};
+                  stream_state[sid].emplace_back(to_cstring(change));
+              }
+              CELER_LOG_LOCAL(debug) << sid << ": " << change;
+          };
     // Record a testing event for all stream IDs from the test harness
     static auto record_test_event = [](std::string const& s) {
         for (auto& kv : stream_state)
@@ -514,8 +513,7 @@ class LarSphereOptical : public LarSphere
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;
@@ -525,6 +523,7 @@ class LarSphereOptical : public LarSphere
     std::vector<CounterTrackingAction*> tracking_;
     std::vector<real_type> detector_x_positions_;
     std::vector<real_type> step_lengths_;
+    std::mutex mutex_;
 };
 
 //---------------------------------------------------------------------------//
@@ -545,6 +544,10 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
     // Optical detector hit callback
     result.optical->detectors.callback
         = [this](Span<optical::DetectorHit const> hits) {
+              std::scoped_lock lock{mutex_};
+              detector_x_positions_.reserve(
+                  detector_x_positions_.size() + hits.size());
+              step_lengths_.reserve(step_lengths_.size() + hits.size());
               for (auto const& hit : hits)
               {
                   detector_x_positions_.push_back(hit.position[0]);
@@ -659,8 +662,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;

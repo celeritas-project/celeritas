@@ -32,8 +32,8 @@ namespace celeritas
  * \endcode
  */
 template<template<class EquationT> class IntegratorT, class FieldT>
-CELER_FUNCTION decltype(auto)
-make_mag_field_integrator(FieldT&& field, units::ElementaryCharge charge)
+CELER_FUNCTION decltype(auto) make_mag_field_integrator(
+    FieldT&& field, units::ElementaryCharge charge)
 {
     using Equation_t = MagFieldEquation<FieldT>;
     return IntegratorT<Equation_t>{
@@ -56,11 +56,11 @@ make_mag_field_integrator(FieldT&& field, units::ElementaryCharge charge)
  * \endcode
  */
 template<class IntegratorT, class GTV>
-CELER_FUNCTION decltype(auto)
-make_field_propagator(IntegratorT&& integrate,
-                      FieldDriverOptions const& options,
-                      ParticleTrackView const& particle,
-                      GTV&& geometry)
+CELER_FUNCTION decltype(auto) make_field_propagator(
+    IntegratorT&& integrate,
+    FieldDriverOptions const& options,
+    ParticleTrackView const& particle,
+    GTV&& geometry)
 {
     return FieldPropagator{
         FieldSubstepper{options, ::celeritas::forward<IntegratorT>(integrate)},
@@ -84,11 +84,11 @@ make_field_propagator(IntegratorT&& integrate,
  * \endcode
  */
 template<template<class EquationT> class IntegratorT, class FieldT, class GTV>
-CELER_FUNCTION decltype(auto)
-make_mag_field_propagator(FieldT&& field,
-                          FieldDriverOptions const& options,
-                          ParticleTrackView const& particle,
-                          GTV&& geometry)
+CELER_FUNCTION decltype(auto) make_mag_field_propagator(
+    FieldT&& field,
+    FieldDriverOptions const& options,
+    ParticleTrackView const& particle,
+    GTV&& geometry)
 {
     return make_field_propagator(
         make_mag_field_integrator<IntegratorT>(

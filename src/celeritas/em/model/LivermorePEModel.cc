@@ -38,8 +38,9 @@ LivermorePEModel::LivermorePEModel(ActionId id,
                                    ParticleParams const& particles,
                                    MaterialParams const& materials,
                                    Input const& input)
-    : StaticConcreteAction(
-          id, "photoel-livermore", "interact by Livermore photoelectric effect")
+    : StaticConcreteAction(id,
+                           "photoel-livermore",
+                           "interact by Livermore photoelectric effect")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(input);
@@ -106,7 +107,8 @@ auto LivermorePEModel::micro_xs(Applicability) const -> XsTable
 /*!
  * Interact with host data.
  */
-void LivermorePEModel::step(CoreParams const& params, CoreStateHost& state) const
+void LivermorePEModel::step(CoreParams const& params,
+                            CoreStateHost& state) const
 {
     auto execute = make_action_track_executor(
         params.ptr<MemSpace::native>(),

@@ -63,11 +63,11 @@ class MuDecayInteractor
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    MuDecayInteractor(MuDecayData const& shared,
-                      ParticleTrackView const& particle,
-                      Real3 const& inc_direction,
-                      StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION MuDecayInteractor(
+        MuDecayData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -119,11 +119,11 @@ class MuDecayInteractor
  * MeV instead of the expected 105.7 MeV (muon mass), which is achieved by
  * using the physics manual definition.
  */
-CELER_FUNCTION
-MuDecayInteractor::MuDecayInteractor(MuDecayData const& shared,
-                                     ParticleTrackView const& particle,
-                                     Real3 const& inc_direction,
-                                     StackAllocator<Secondary>& allocate)
+CELER_FUNCTION MuDecayInteractor::MuDecayInteractor(
+    MuDecayData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(particle.energy())
     , allocate_(allocate)

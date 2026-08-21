@@ -19,7 +19,8 @@ namespace optical
 /*!
  * Launch the detector action on device.
  */
-void DetectorAction::step(CoreParams const& params, CoreStateDevice& state) const
+void DetectorAction::step(CoreParams const& params,
+                          CoreStateDevice& state) const
 {
     TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
                               state.ptr(),

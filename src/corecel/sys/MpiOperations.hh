@@ -56,8 +56,8 @@ inline void allreduce(MpiCommunicator const& comm,
 //---------------------------------------------------------------------------//
 // All-to-all reduction on the data, in place
 template<class T, std::size_t N>
-inline void
-allreduce(MpiCommunicator const& comm, Operation op, Span<T, N> data);
+inline void allreduce(
+    MpiCommunicator const& comm, Operation op, Span<T, N> data);
 
 //---------------------------------------------------------------------------//
 // Perform reduction on a fundamental scalar and return the result

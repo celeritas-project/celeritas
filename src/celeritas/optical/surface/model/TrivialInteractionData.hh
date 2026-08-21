@@ -34,8 +34,8 @@ struct TrivialInteractionData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    TrivialInteractionData<W, M>&
-    operator=(TrivialInteractionData<W2, M2> const& other)
+    TrivialInteractionData<W, M>& operator=(
+        TrivialInteractionData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         modes = other.modes;

@@ -30,8 +30,8 @@ std::vector<double> geomspace(double start, double stop, size_type n);
 //---------------------------------------------------------------------------//
 //! Return logarithmically spaced numbers over a specific interval
 //! \deprecated Remove in v1.0; replaced by geomspace
-[[deprecated]] inline std::vector<double>
-logspace(double start, double stop, size_type n)
+[[deprecated]] inline std::vector<double> logspace(
+    double start, double stop, size_type n)
 {
     return geomspace(start, stop, n);
 }
@@ -68,7 +68,8 @@ template<class T>
 T calc_log_delta(Span<T const> grid)
 {
     CELER_EXPECT(grid.size() > 1);
-    return fastpow(grid.back() / grid.front(), T(1) / (grid.size() - 1));
+    return fastpow(grid.back() / grid.front(),
+                   T(1) / static_cast<T>(grid.size() - 1));
 }
 
 //---------------------------------------------------------------------------//

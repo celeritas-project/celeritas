@@ -63,8 +63,8 @@ __global__ void sa_test_kernel(SATestInput const input, SATestOutput* output)
     }
 }
 
-__global__ void
-sa_post_test_kernel(SATestInput const input, SATestOutput* output)
+__global__ void sa_post_test_kernel(SATestInput const input,
+                                    SATestOutput* output)
 {
     auto thread_id = KernelParamCalculator::thread_id();
 

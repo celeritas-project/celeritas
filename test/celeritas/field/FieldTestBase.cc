@@ -14,8 +14,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 //! Create a particle view with the given type and energy
-ParticleTrackView
-FieldTestBase::make_particle_view(PDGNumber pdg, MevEnergy energy)
+ParticleTrackView FieldTestBase::make_particle_view(PDGNumber pdg,
+                                                    MevEnergy energy)
 {
     CELER_EXPECT(pdg && energy > zero_quantity());
     ParticleId pid = this->particle()->find(pdg);

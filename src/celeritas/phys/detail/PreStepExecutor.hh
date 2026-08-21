@@ -36,13 +36,13 @@ namespace detail
  */
 struct PreStepExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-PreStepExecutor::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void PreStepExecutor::operator()(
+    celeritas::CoreTrackView const& track)
 {
     if (track.thread_id() == ThreadId{0})
     {

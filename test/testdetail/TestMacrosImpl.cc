@@ -6,14 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "TestMacrosImpl.hh"
 
-#include <cstdio>
 #include <cstring>
-#include <string>
-
-#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
-#include "corecel/io/ColorUtils.hh"
 
 #include "JsonComparer.hh"
 
@@ -50,14 +45,13 @@ int num_digits(unsigned long val)
  *
  * where too long means > digits digits.
  */
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc)
+char const* trunc_string(int digits, char const* str, char const* trunc)
 {
     CELER_EXPECT(str && trunc);
     CELER_EXPECT(digits > 0);
-    CELER_EXPECT(std::strlen(trunc) <= digits);
+    CELER_EXPECT(std::strlen(trunc) <= static_cast<std::size_t>(digits));
 
-    if (std::strlen(str) > digits)
+    if (std::strlen(str) > static_cast<std::size_t>(digits))
     {
         return trunc;
     }
@@ -68,8 +62,10 @@ trunc_string(unsigned int digits, char const* str, char const* trunc)
 /*!
  * Compare two JSON objects.
  */
-::testing::AssertionResult IsJsonEq(
-    char const*, char const*, std::string_view expected, std::string_view actual)
+::testing::AssertionResult IsJsonEq(char const*,
+                                    char const*,
+                                    std::string_view expected,
+                                    std::string_view actual)
 {
     JsonComparer compare{};
     auto result = compare(expected, actual);

@@ -271,7 +271,8 @@ void InteractorHostBase::resize_secondaries(int count)
 /*!
  * Check for energy and momentum conservation in the interaction.
  */
-void InteractorHostBase::check_conservation(Interaction const& interaction) const
+void InteractorHostBase::check_conservation(
+    Interaction const& interaction) const
 {
     ASSERT_NE(interaction.action, Action::failed);
 

@@ -48,8 +48,8 @@ EnclosedAzi::EnclosedAzi(Turn start, Turn stop) : start_{start}, stop_{stop}
         start_ = eumod(start_, Turn{1});
         stop_ = stop_ + (start_ - orig_start);
     }
-    CELER_ENSURE(
-        start_ >= Turn{0} && stop_ > start_ && stop_ - start_ <= Turn{1});
+    CELER_ENSURE(start_ >= Turn{0} && stop_ > start_
+                 && stop_ - start_ <= Turn{1});
 }
 
 //---------------------------------------------------------------------------//

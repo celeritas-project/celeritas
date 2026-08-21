@@ -52,8 +52,8 @@ class ZHelixIntegrator
     }
 
     // Adaptive step size control
-    CELER_FUNCTION auto
-    operator()(real_type step, OdeState const& beg_state) const -> result_type;
+    CELER_FUNCTION auto operator()(
+        real_type step, OdeState const& beg_state) const -> result_type;
 
   private:
     //// DATA ////
@@ -92,7 +92,8 @@ class ZHelixIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
+CELER_CTAD_FUNCTION ZHelixIntegrator(EquationT&&)
+    -> ZHelixIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

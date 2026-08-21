@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
@@ -36,6 +35,16 @@ template<class T>
 struct DeltaDistributionRecord
 {
     T value{};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for sampling a value from a uniform distribution.
+ */
+struct UniformRealDistributionRecord
+{
+    real_type lower{};
+    real_type upper{};
 };
 
 //---------------------------------------------------------------------------//
@@ -112,8 +121,8 @@ struct DistributionParamsData
 
     //! Assign from another memory/ownership specialization
     template<Ownership W2, MemSpace M2>
-    DistributionParamsData&
-    operator=(DistributionParamsData<W2, M2> const& other)
+    DistributionParamsData& operator=(
+        DistributionParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 

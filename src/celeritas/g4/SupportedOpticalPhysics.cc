@@ -80,8 +80,8 @@ class ObservingUniquePtr
 };
 
 #if G4VERSION_NUMBER >= 1070
-G4OpticalProcessIndex
-optical_process_type_to_geant_index(OpticalProcessType value)
+G4OpticalProcessIndex optical_process_type_to_geant_index(
+    OpticalProcessType value)
 {
     switch (value)
     {

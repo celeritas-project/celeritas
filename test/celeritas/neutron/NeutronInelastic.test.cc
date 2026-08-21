@@ -51,8 +51,12 @@ class NeutronInelasticTest : public NeutronTestBase
         // Build the model with the default material
         this->set_material("HeCu");
         CascadeOptions options;
-        model_ = std::make_shared<NeutronInelasticModel>(
-            ActionId{0}, particles, *this->material_params(), options, xs_reader);
+        model_
+            = std::make_shared<NeutronInelasticModel>(ActionId{0},
+                                                      particles,
+                                                      *this->material_params(),
+                                                      options,
+                                                      xs_reader);
     }
 
   protected:

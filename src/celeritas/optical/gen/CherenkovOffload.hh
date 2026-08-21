@@ -40,36 +40,36 @@ class CherenkovOffload
 {
   public:
     // Construct directly
-    inline CELER_FUNCTION
-    CherenkovOffload(units::ElementaryCharge charge,
-                     real_type step_length,
-                     OffloadPreStepData const& pre_step,
-                     optical::MaterialView const& pre_mat,
-                     units::LightSpeed post_speed,
-                     real_type post_time,
-                     Real3 const& post_pos,
-                     NativeCRef<CherenkovData> const& shared);
+    inline CELER_FUNCTION CherenkovOffload(
+        units::ElementaryCharge charge,
+        real_type step_length,
+        OffloadPreStepData const& pre_step,
+        optical::MaterialView const& pre_mat,
+        units::LightSpeed post_speed,
+        real_type post_time,
+        Real3 const& post_pos,
+        NativeCRef<CherenkovData> const& shared);
 
     // Construct from Celeritas views
-    inline CELER_FUNCTION
-    CherenkovOffload(OffloadPreStepData const& pre_step,
-                     optical::MaterialView const& pre_mat,
-                     ParticleTrackView const& post_particle,
-                     SimTrackView const& post_sim,
-                     Real3 const& post_pos,
-                     NativeCRef<CherenkovData> const& shared);
+    inline CELER_FUNCTION CherenkovOffload(
+        OffloadPreStepData const& pre_step,
+        optical::MaterialView const& pre_mat,
+        ParticleTrackView const& post_particle,
+        SimTrackView const& post_sim,
+        Real3 const& post_pos,
+        NativeCRef<CherenkovData> const& shared);
 
     // Gather the input data needed to sample Cherenkov photons
     template<class Generator>
-    inline CELER_FUNCTION optical::GeneratorDistributionData
-    operator()(Generator& rng);
+    inline CELER_FUNCTION optical::GeneratorDistributionData operator()(
+        Generator& rng);
 
   private:
     units::ElementaryCharge charge_;
     real_type step_length_;
     OffloadPreStepData const& pre_step_;
     optical::GeneratorStepData post_step_;
-    real_type num_photons_per_len_;
+    PoissonDistribution<real_type> sample_num_photons_{0};
 };
 
 //---------------------------------------------------------------------------//
@@ -78,15 +78,15 @@ class CherenkovOffload
 /*!
  * Construct directly from data.
  */
-CELER_FUNCTION
-CherenkovOffload::CherenkovOffload(units::ElementaryCharge charge,
-                                   real_type step_length,
-                                   OffloadPreStepData const& pre_step,
-                                   optical::MaterialView const& pre_mat,
-                                   units::LightSpeed post_speed,
-                                   real_type post_time,
-                                   Real3 const& post_pos,
-                                   NativeCRef<CherenkovData> const& shared)
+CELER_FUNCTION CherenkovOffload::CherenkovOffload(
+    units::ElementaryCharge charge,
+    real_type step_length,
+    OffloadPreStepData const& pre_step,
+    optical::MaterialView const& pre_mat,
+    units::LightSpeed post_speed,
+    real_type post_time,
+    Real3 const& post_pos,
+    NativeCRef<CherenkovData> const& shared)
     : charge_{charge}
     , step_length_(step_length)
     , pre_step_(pre_step)
@@ -98,24 +98,25 @@ CherenkovOffload::CherenkovOffload(units::ElementaryCharge charge,
 
     using namespace celeritas::literals;
 
-    units::LightSpeed beta(
+    // NOTE: this uses the average beta, not the average number of photons
+    units::LightSpeed avg_beta(
         0.5_r * (pre_step_.speed.value() + post_step_.speed.value()));
-
     CherenkovDndxCalculator calculate_dndx(pre_mat, shared, charge_);
-    num_photons_per_len_ = calculate_dndx(beta);
+    sample_num_photons_
+        = PoissonDistribution{calculate_dndx(avg_beta) * step_length_};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with optical material, Cherenkov, and step information.
  */
-CELER_FUNCTION
-CherenkovOffload::CherenkovOffload(OffloadPreStepData const& pre_step,
-                                   optical::MaterialView const& pre_mat,
-                                   ParticleTrackView const& post_particle,
-                                   SimTrackView const& post_sim,
-                                   Real3 const& post_pos,
-                                   NativeCRef<CherenkovData> const& shared)
+CELER_FUNCTION CherenkovOffload::CherenkovOffload(
+    OffloadPreStepData const& pre_step,
+    optical::MaterialView const& pre_mat,
+    ParticleTrackView const& post_particle,
+    SimTrackView const& post_sim,
+    Real3 const& post_pos,
+    NativeCRef<CherenkovData> const& shared)
     : CherenkovOffload{post_particle.charge(),
                        post_sim.step_length(),
                        pre_step,
@@ -134,17 +135,11 @@ CherenkovOffload::CherenkovOffload(OffloadPreStepData const& pre_step,
  * If no photons are sampled an empty object is returned.
  */
 template<class Generator>
-CELER_FUNCTION optical::GeneratorDistributionData
-CherenkovOffload::operator()(Generator& rng)
+CELER_FUNCTION optical::GeneratorDistributionData CherenkovOffload::operator()(
+    Generator& rng)
 {
-    if (num_photons_per_len_ == 0)
-    {
-        return {};
-    }
-
     optical::GeneratorDistributionData data;
-    data.num_photons = PoissonDistribution<real_type>(
-        num_photons_per_len_ * step_length_)(rng);
+    data.num_photons = sample_num_photons_(rng);
     if (data.num_photons > 0)
     {
         data.type = GeneratorType::cherenkov;

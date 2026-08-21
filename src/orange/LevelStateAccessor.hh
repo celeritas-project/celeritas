@@ -35,8 +35,8 @@ class LevelStateAccessor
                                              UnivLevelId ulev_id);
 
     // Copy data from another LSA
-    inline CELER_FUNCTION LevelStateAccessor&
-    operator=(LevelStateAccessor const& other);
+    inline CELER_FUNCTION LevelStateAccessor& operator=(
+        LevelStateAccessor const& other);
 
     // Default construct
     LevelStateAccessor(LevelStateAccessor const&) = default;
@@ -88,11 +88,11 @@ class LevelStateAccessor
 /*!
  * Construct from states and indices.
  */
-CELER_FUNCTION
-LevelStateAccessor::LevelStateAccessor(OrangeParamsScalars const& scalars,
-                                       StateRef const* states,
-                                       TrackSlotId tid,
-                                       UnivLevelId ulev_id)
+CELER_FUNCTION LevelStateAccessor::LevelStateAccessor(
+    OrangeParamsScalars const& scalars,
+    StateRef const* states,
+    TrackSlotId tid,
+    UnivLevelId ulev_id)
     : s_(*states), index_(tid.get() * scalars.num_univ_levels + ulev_id.get())
 {
     CELER_EXPECT(ulev_id < scalars.num_univ_levels);
@@ -102,8 +102,8 @@ LevelStateAccessor::LevelStateAccessor(OrangeParamsScalars const& scalars,
 /*!
  * Copy data from another LSA.
  */
-CELER_FIF LevelStateAccessor&
-LevelStateAccessor::operator=(LevelStateAccessor const& other)
+CELER_FIF LevelStateAccessor& LevelStateAccessor::operator=(
+    LevelStateAccessor const& other)
 {
     CELER_EXPECT(index_ != other.index_);
 

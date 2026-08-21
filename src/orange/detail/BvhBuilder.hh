@@ -66,8 +66,8 @@ class BvhBuilder
     BvhBuilder(Storage* storage, Input inp);
 
     // Create BVH Nodes
-    BvhTreeRecord
-    operator()(VecBBox&& bboxes, SetLocalVolId const& implicit_vol_id);
+    BvhTreeRecord operator()(VecBBox&& bboxes,
+                             SetLocalVolId const& implicit_vol_id);
 
   private:
     /// TYPES ///

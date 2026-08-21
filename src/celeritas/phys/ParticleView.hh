@@ -55,8 +55,8 @@ class ParticleView
 /*!
  * Construct from "static" particle definitions.
  */
-CELER_FUNCTION
-ParticleView::ParticleView(ParticleParamsRef const& params, ParticleId id)
+CELER_FUNCTION ParticleView::ParticleView(ParticleParamsRef const& params,
+                                          ParticleId id)
     : params_(params), particle_(id)
 {
     CELER_EXPECT(particle_ < params_.size());

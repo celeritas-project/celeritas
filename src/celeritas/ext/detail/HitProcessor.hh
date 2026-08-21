@@ -107,8 +107,7 @@ class HitProcessor
     inline size_type exchange_hits();
 
     //! Access local Geant4 track metadata reconstruction
-    std::shared_ptr<GeantTrackReconstruction> const&
-    track_reconstruction() const
+    std::shared_ptr<GeantTrackReconstruction> const& track_reconstruction() const
     {
         return track_reconstruction_;
     }

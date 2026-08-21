@@ -211,8 +211,7 @@ TEST_F(CherenkovWaterTest, dndx)
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -345,9 +344,8 @@ TEST_F(CherenkovWaterTest, generator)
 
         // Displacement distribution binning
         int num_bins = 16;
-        auto ri_grid = material->get(material_id)
-                           .make_refractive_index_calculator()
-                           .grid();
+        auto ri_grid
+            = material->get(material_id).make_refractive_index_calculator().grid();
 
         Histogram costheta_hist(num_bins, {-1, 1});
         Histogram energy_hist(num_bins, {ri_grid.front(), ri_grid.back()});
@@ -436,13 +434,11 @@ TEST_F(CherenkovWaterTest, generator)
 
         // clang-format off
         static size_type const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52451, 10508, 0};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52173, 10417, 0};
         static size_type const expected_energy_dist[]
-            = {3690, 3774, 3698, 3752, 3684, 3658, 3768, 3831,
-               3921, 4029, 4025, 3941, 4134, 4286, 4307, 4461};
+            = {3656, 3730, 3680, 3743, 3656, 3628, 3737, 3826, 3897, 3996, 4017, 3937, 4120, 4248, 4283, 4436,};
         static size_type const expected_displacement_dist[]
-            = {3909, 4064, 3802, 3920, 4001, 3904, 3891, 3955,
-               3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
+            = {3869, 4048, 3777, 3886, 3970, 3898, 3862, 3944, 3965, 3893, 3899, 3863, 3937, 3911, 3997, 3871,};
         // clang-format on
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -454,11 +450,11 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
-            EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
-            EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.73054872533349, avg_costheta);
+            EXPECT_SOFT_EQ(4.0511824907988e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.50048096873882, avg_displacement);
+            EXPECT_SOFT_EQ(977.96875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(10.607125738936, avg_engine_samples);
         }
     }
 
@@ -480,11 +476,11 @@ TEST_F(CherenkovWaterTest, generator)
         Real3 pos = {sim.step_length(), 0, 0};
 
         static size_type const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 997};
         static size_type const expected_energy_dist[]
-            = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
+            = {0, 0, 0, 0, 5, 15, 30, 28, 52, 58, 78, 96, 125, 138, 165, 207};
         static size_type const expected_displacement_dist[] = {
-            123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
+            121, 124, 94, 98, 80, 91, 80, 59, 59, 56, 33, 32, 37, 17, 14, 2};
 
         sample(pre_step, particle, sim, pos, num_samples);
 
@@ -493,11 +489,11 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-            EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-            EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.95082959158701, avg_costheta);
+            EXPECT_SOFT_EQ(5.5682878790974e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.050055328486844, avg_displacement);
+            EXPECT_SOFT_EQ(15.578125, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.135406218656, avg_engine_samples);
         }
     }
 
@@ -520,11 +516,11 @@ TEST_F(CherenkovWaterTest, generator)
 
         // clang-format off
         static size_type const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8460, 1580, 0};
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8462, 1600, 0,};
         static size_type const expected_energy_dist[]
-            = {598, 547, 543, 591, 631, 588, 628, 623, 611, 610, 642, 669, 659, 715, 678, 707};
+            = {602, 562, 541, 601, 621, 589, 631, 629, 612, 624, 642, 660, 662, 713, 673, 700,};
         static size_type const expected_displacement_dist[]
-            = {638, 591, 606, 592, 645, 627, 668, 625, 615, 617, 599, 639, 641, 683, 641, 613};
+            = {639, 573, 610, 588, 637, 631, 684, 624, 607, 620, 606, 653, 640, 677, 645, 628,};
         // clang-format on
 
         sample(pre_step, particle, sim, end_pos, 1024);
@@ -534,11 +530,11 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.73040912893585, avg_costheta);
-            EXPECT_SOFT_EQ(4.0689501840068e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.0050358710662084, avg_displacement);
-            EXPECT_SOFT_EQ(156.875, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(12.835458167331, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.73051761032358, avg_costheta);
+            EXPECT_SOFT_EQ(4.0604281068754e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.0050524167828547, avg_displacement);
+            EXPECT_SOFT_EQ(157.21875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(12.829656131982, avg_engine_samples);
         }
     }
 
@@ -563,8 +559,8 @@ TEST_F(CherenkovWaterTest, generator)
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.203125, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(31.692307692308, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.296875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.894736842105, avg_engine_samples);
         }
     }
 }
@@ -607,8 +603,7 @@ TEST_F(CherenkovAirTest, dndx)
     for (real_type beta : betas)
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

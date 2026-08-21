@@ -120,9 +120,9 @@ if(DEFINED CELERITAS_SINCOSPI_PREFIX)
   )
 endif()
 
-# Save dependency versions as hex
+# Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep Geant4 VecGeom HepMC3)
+foreach(_dep CUDA HIP Geant4 VecGeom HepMC3)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS

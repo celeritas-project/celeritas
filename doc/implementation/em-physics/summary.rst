@@ -2,7 +2,7 @@
 .. SPDX-License-Identifier: CC-BY-4.0
 
 Summary
-=======
+=========
 
 The implemented physics models are meant to match the defaults constructed in
 ``G4EmStandardPhysics``.  Known differences are:
