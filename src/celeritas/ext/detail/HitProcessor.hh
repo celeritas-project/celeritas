@@ -48,11 +48,17 @@ namespace detail
  * thread-local object allocators for the navigation state and tracks mean this
  * class \b must be destroyed on the same thread on which it was created.
  *
- * Call operator:
- * - Loop over detector steps
- * - Update step attributes based on hit selection for the detector (TODO:
- *   selection is global for now)
- * - Call the local detector (based on detector ID from map) with the step
+ * Host step data is copied and processed immediately by the call operator.
+ * For device step data, the call operator retains a reference to the gathered
+ * step state without copying it. After the producing step is complete, the
+ * caller must call \c process_pending_steps before launching another step that
+ * can overwrite the shared step state. Only one device step can be pending.
+ * Processing currently copies the selected detector data synchronously to
+ * pinned host storage, then:
+ * - loops over detector steps;
+ * - updates step attributes based on the hit selection (TODO: selection is
+ *   global for now); and
+ * - calls the local detector selected by detector ID with the step.
  *
  * Compare to Geant4 updating step/track info:
  * - \c G4VParticleChange::UpdateStepInfo
@@ -88,7 +94,7 @@ class HitProcessor
     // Process CPU-generated hits
     void operator()(StepStateHostRef const&);
 
-    // Process device-generated hits
+    // Save device-generated hits for processing after step completion
     void operator()(StepStateDeviceRef const&);
 
     // Copy and process device-generated hits after their step completes

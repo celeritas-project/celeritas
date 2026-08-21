@@ -370,8 +370,9 @@ auto LocalTransporter::complete_step() -> StepperResult
     auto result = step_->get();
     if (hit_processor_)
     {
-        // Device step data can be copied only after its producing step has
-        // completed and before another step overwrites the shared scratch data.
+        // copy_steps currently synchronizes, so defer the transfer and host
+        // processing until the result is ready. A future transfer can be
+        // enqueued during async, but must complete before scratch is reused.
         hit_processor_->process_pending_steps();
     }
     ++step_iters_;
