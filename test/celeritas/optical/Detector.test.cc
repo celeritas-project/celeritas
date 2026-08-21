@@ -101,7 +101,6 @@ struct SimpleScores
     std::vector<size_type> volume_instance_ids;
     std::vector<size_type> volume_unique_instance_ids;
     std::vector<size_type> num_steps;
-    std::vector<size_type> track_slots;
     std::vector<real_type> path_lengths;
 };
 
@@ -124,7 +123,6 @@ struct SimpleScorer
             scores.volume_unique_instance_ids.push_back(
                 hit.unique_instance.unchecked_get());
             scores.num_steps.push_back(hit.num_steps);
-            scores.track_slots.push_back(hit.track_slot.unchecked_get());
             scores.path_lengths.push_back(hit.path_length);
         }
     }
@@ -261,8 +259,6 @@ TEST_F(DetectorTest, simple)
     static size_type const expected_num_steps[] = {1, 1, 1, 1, 1, 1, 1};
     static real_type const expected_path_lengths[] = {
         box_size, box_size, box_size, box_size, box_size, box_size, box_size};
-    static size_type const expected_track_slots[]
-        = {4089, 4090, 4091, 4092, 4093, 4094, 4095};
 
     if (reference_configuration)
     {
@@ -276,7 +272,6 @@ TEST_F(DetectorTest, simple)
         EXPECT_VEC_EQ(expected_volume_unique_instance_ids,
                       scores.volume_unique_instance_ids);
         EXPECT_VEC_EQ(expected_num_steps, scores.num_steps);
-        EXPECT_VEC_EQ(expected_track_slots, scores.track_slots);
         EXPECT_VEC_SOFT_EQ(expected_path_lengths, scores.path_lengths);
     }
 }

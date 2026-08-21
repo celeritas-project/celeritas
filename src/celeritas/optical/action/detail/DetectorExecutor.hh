@@ -93,7 +93,6 @@ CELER_FUNCTION void DetectorExecutor::operator()(
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
     hit.num_steps = sim.num_steps();
-    hit.track_slot = track.track_slot_id();
     hit.path_length = sim.step_length();
 
     // Construct unique instance ID from geometry volume path

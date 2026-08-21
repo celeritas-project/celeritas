@@ -31,7 +31,6 @@ struct DetectorHit
     VolumeInstanceId volume_instance;
     VolumeUniqueInstanceId unique_instance;
     size_type num_steps{};
-    TrackSlotId track_slot{};
     real_type path_length{};
 
     //! An actual hit has a valid detector
