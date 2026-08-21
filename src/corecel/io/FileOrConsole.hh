@@ -11,7 +11,6 @@
 #include <string>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 
 namespace celeritas
 {

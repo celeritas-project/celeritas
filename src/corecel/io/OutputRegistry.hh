@@ -37,6 +37,12 @@ class OutputRegistry
     //!@}
 
   public:
+    // Set persistent filename for writing to with `output`
+    void output_filename(std::string s);
+
+    // Filename for no-argument "output" call
+    std::string const& output_filename() const { return output_filename_; }
+
     // Add an interface for writing
     void insert(SPConstInterface);
 
@@ -46,11 +52,17 @@ class OutputRegistry
     // Dump all outputs as JSON to the given stream
     void output(std::ostream* os) const;
 
+    // Write output to persistent filename
+    void output() const;
+
     // Whether no output has been registered
     bool empty() const;
 
   private:
     using Category = OutputInterface::Category;
+
+    // Output filename ("-" for stdout)
+    std::string output_filename_ = "-";
 
     // Interfaces by category
     EnumArray<Category, std::map<std::string, SPConstInterface>> interfaces_;

@@ -15,6 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
@@ -32,6 +33,15 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Set persistent filename for writing to with `output`.
+ */
+void OutputRegistry::output_filename(std::string s)
+{
+    output_filename_ = std::move(s);
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Add an interface for writing.
@@ -101,6 +111,26 @@ void OutputRegistry::output(std::ostream* os) const
     JsonPimpl json_wrap;
     this->output(&json_wrap);
     *os << json_wrap.obj.dump();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to the persistent filename.
+ */
+void OutputRegistry::output() const
+{
+    if (output_filename_.empty())
+    {
+        CELER_LOG(debug) << "No output filename provided: suppressing "
+                         << interfaces_.size() << " entries";
+        return;
+    }
+
+    // Save output
+    FileOrStdout ostream{output_filename_};
+    CELER_LOG(info) << "Saving " << interfaces_.size()
+                    << " entries of output to " << ostream.filename();
+    this->output(&static_cast<std::ostream&>(ostream));
 }
 
 //---------------------------------------------------------------------------//
