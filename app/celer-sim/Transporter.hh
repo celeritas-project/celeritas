@@ -45,6 +45,7 @@ struct TransporterInput
     size_type max_steps{};
     bool store_track_counts{};  //!< Store track counts at each step
     size_type log_progress{};  //!< CELER_LOG progress every N events
+    size_type primary_capacity{};  //!< Maximum primaries accepted per call
 
     StreamId stream_id{0};
 
@@ -53,7 +54,8 @@ struct TransporterInput
     //! True if all params are assigned
     explicit operator bool() const
     {
-        return params && actions && max_steps > 0 && log_progress > 0;
+        return params && actions && max_steps > 0 && log_progress > 0
+               && primary_capacity > 0;
     }
 };
 

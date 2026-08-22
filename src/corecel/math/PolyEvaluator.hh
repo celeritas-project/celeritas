@@ -97,12 +97,13 @@ class PolyEvaluator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<typename T, std::size_t N>
-CELER_FUNCTION PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
+CELER_CTAD_FUNCTION PolyEvaluator(Array<T, N> const&)
+    -> PolyEvaluator<T, N - 1>;
 
 template<typename... Ts,
          std::enable_if_t<std::is_arithmetic_v<std::common_type_t<Ts...>>, bool>
          = true>
-CELER_FUNCTION PolyEvaluator(Ts&&...)
+CELER_CTAD_FUNCTION PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//

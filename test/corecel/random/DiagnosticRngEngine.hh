@@ -15,7 +15,7 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
- * Diagnostic wrapper that counts the number of calls to operator().
+ * RNG wrapper that counts the number of calls to operator().
  *
  * This wraps a low-level pseudorandom generator's call function. It can be
  * used to determine the efficiency of rejection algorithms without changing

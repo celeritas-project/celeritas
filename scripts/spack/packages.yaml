@@ -28,6 +28,9 @@ packages:
       - "20:"
   nlohmann-json:
     require: "@3.7.0:"
+  openmpi:
+    variants:
+      - ~fortran
   py-identify: # needed by py-pre-commit
     require: "@2.6:"
   python:

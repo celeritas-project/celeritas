@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/Collection.hh"
@@ -36,6 +35,16 @@ template<class T>
 struct DeltaDistributionRecord
 {
     T value{};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Data for sampling a value from a uniform distribution.
+ */
+struct UniformRealDistributionRecord
+{
+    real_type lower{};
+    real_type upper{};
 };
 
 //---------------------------------------------------------------------------//

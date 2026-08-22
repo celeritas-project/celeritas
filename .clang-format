@@ -16,6 +16,7 @@ AttributeMacros:
   - CELER_CONSTEXPR_FUNCTION
   - CELER_FIF
   - CELER_CEF
+  - CELER_CTAD_FUNCTION
 BinPackArguments: false
 BinPackParameters: OnePerLine
 BraceWrapping:

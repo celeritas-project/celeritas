@@ -38,7 +38,6 @@ _apptainer_fnal() {
   # END_DOC_APPTAINER
 }
 alias apptainer-fnal=_apptainer_fnal
-# END APPTAINER SCRIPT
 
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C

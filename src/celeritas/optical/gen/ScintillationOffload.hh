@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/distribution/RoundedNonnegDistribution.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -63,17 +64,15 @@ class ScintillationOffload
 
   private:
     units::ElementaryCharge charge_;
-    real_type step_length_;
+    real_type step_length_{};
     OffloadPreStepData const& pre_step_;
     optical::GeneratorStepData post_step_;
     NativeCRef<ScintillationData> const& shared_;
-    real_type continuous_edep_fraction_;
+    real_type continuous_edep_fraction_{};
     real_type mean_num_photons_{0};
 
-    static CELER_CONSTEXPR_FUNCTION real_type poisson_threshold()
-    {
-        return 10;
-    }
+    // Use scaled gaussian above this average lambda
+    static constexpr real_type poisson_threshold = 10;
 };
 
 //---------------------------------------------------------------------------//
@@ -111,6 +110,7 @@ CELER_FUNCTION ScintillationOffload::ScintillationOffload(
     //! \todo Use visible energy deposition when Birks law is implemented
     if (spectrum)
     {
+        // This material is a scintillator
         mean_num_photons_ = spectrum.yield_per_energy
                             * energy_deposition.value();
     }
@@ -128,20 +128,24 @@ ScintillationOffload::operator()(Generator& rng)
 {
     // Material-only sampling
     optical::GeneratorDistributionData result;
-    if (mean_num_photons_ > poisson_threshold())
+    if (mean_num_photons_ > poisson_threshold)
     {
         using namespace celeritas::literals;
 
         real_type sigma = shared_.resolution_scale[pre_step_.material]
                           * std::sqrt(mean_num_photons_);
-        result.num_photons = static_cast<size_type>(clamp_to_nonneg(
-            NormalDistribution<real_type>(mean_num_photons_, sigma)(rng)
-            + 0.5_r));
+        result.num_photons
+            = RoundedNonnegDistribution<NormalDistribution<real_type>>(
+                mean_num_photons_, sigma)(rng);
     }
     else if (mean_num_photons_ > 0)
     {
-        result.num_photons = static_cast<size_type>(
-            PoissonDistribution<real_type>(mean_num_photons_)(rng));
+        result.num_photons
+            = PoissonDistributionKnuth<real_type>(mean_num_photons_)(rng);
+    }
+    else
+    {
+        result.num_photons = 0;
     }
 
     if (result.num_photons > 0)

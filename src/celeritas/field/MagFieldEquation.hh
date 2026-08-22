@@ -73,7 +73,7 @@ class MagFieldEquation
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class FieldT>
-CELER_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
+CELER_CTAD_FUNCTION MagFieldEquation(FieldT&&, units::ElementaryCharge)
     -> MagFieldEquation<FieldT>;
 
 //---------------------------------------------------------------------------//
