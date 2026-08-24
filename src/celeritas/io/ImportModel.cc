@@ -39,13 +39,13 @@ char const* to_cstring(ImportModelClass value)
         "bethe_heitler",
         "bethe_heitler_lpm",
         "livermore_rayleigh",
-        "electro_nuclear",
-        "gamma_nuclear",
         "mu_bethe_bloch",
         "mu_brems",
         "mu_pair_prod",
         "fluo_photoelectric",
         "goudsmit_saunderson",
+        "electro_nuclear",
+        "gamma_nuclear",
     };
     return to_cstring_impl(value);
 }
@@ -76,13 +76,13 @@ char const* to_geant_name(ImportModelClass value)
         "BetheHeitler",
         "BetheHeitlerLPM",
         "LivermoreRayleigh",
-        "G4ElectroVDNuclearModel",
-        "BertiniCascade",
         "MuBetheBloch",
         "MuBrem",
         "muPairProd",
         "PhotoElectric",
         "GoudsmitSaunderson",
+        "G4ElectroVDNuclearModel",
+        "BertiniCascade",
     };
     return to_name_impl(value);
 }

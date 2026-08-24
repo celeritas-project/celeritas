@@ -47,13 +47,13 @@ enum class ImportModelClass
     bethe_heitler,
     bethe_heitler_lpm,
     livermore_rayleigh,
-    electro_nuclear,
-    gamma_nuclear,
     mu_bethe_bloch,
     mu_brems,
     mu_pair_prod,
     fluo_photoelectric,
     goudsmit_saunderson,
+    electro_nuclear,
+    gamma_nuclear,
     size_
 };
 
