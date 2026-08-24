@@ -20,10 +20,8 @@
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
-#include <G4GammaNuclearXS.hh>
 #include <G4GammaParticipants.hh>
 #include <G4GeneratorPrecompoundInterface.hh>
-#include <G4HadronInelasticProcess.hh>
 #include <G4HadronicParameters.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
@@ -55,6 +53,12 @@
 #include <G4eIonisation.hh>
 #include <G4eMultipleScattering.hh>
 #include <G4eplusAnnihilation.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include <G4GammaNuclearXS.hh>
+#    include <G4HadronInelasticProcess.hh>
+#else
+#    include <G4PhotoNuclearProcess.hh>
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -315,9 +319,13 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         CELER_LOG(debug) << "Using gamma-nuclear with "
                             "Bertini (G4CascadeInterface) and G4QGSModel";
 
+#if G4VERSION_NUMBER >= 1100
         auto gamma_nuclear = std::make_unique<G4HadronInelasticProcess>(
             "photonNuclear", gamma);
         gamma_nuclear->AddDataSet(new G4GammaNuclearXS());
+#else
+        auto gamma_nuclear = std::make_unique<G4PhotoNuclearProcess>();
+#endif
 
         auto qgs_model = std::make_unique<G4QGSModel<G4GammaParticipants>>();
         qgs_model->SetFragmentationModel(
