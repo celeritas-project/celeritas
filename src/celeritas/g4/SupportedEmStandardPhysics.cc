@@ -339,11 +339,13 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         auto cascade = std::make_unique<G4CascadeInterface>();
         auto* params = G4HadronicParameters::Instance();
 
+#if G4VERSION_NUMBER >= 1060
         cascade->SetMaxEnergy(params->GetMaxEnergyTransitionFTF_Cascade());
-        gamma_nuclear->RegisterMe(cascade.release());
-
         gn_model->SetMinEnergy(params->GetMinEnergyTransitionFTF_Cascade());
+#endif
         gn_model->SetMaxEnergy(params->GetMaxEnergy());
+
+        gamma_nuclear->RegisterMe(cascade.release());
         gamma_nuclear->RegisterMe(gn_model.release());
 
         ph.RegisterProcess(gamma_nuclear.release(), gamma);
