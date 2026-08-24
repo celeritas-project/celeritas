@@ -8,6 +8,15 @@ CeleritasUtils
 
 Miscellaneous utility functions.
 
+.. command:: celeritas_remove_unsupported_cuda_arch
+
+  Convert a version number to a C-formatted hexadecimal string::
+
+    celeritas_remove_unsupported_cuda_arch(<var> <minimum>)
+
+  The code will remove unsupported versions of CUDA from CMAKE_CUDA_ARCHITECTURES
+  and set the output variable (which may be empty if no provided versions are supported).
+
 .. command:: celeritas_version_to_hex
 
   Convert a version number to a C-formatted hexadecimal string::
@@ -60,7 +69,35 @@ Miscellaneous utility functions.
 include_guard(GLOBAL)
 
 #-----------------------------------------------------------------------------#
+function(celeritas_remove_unsupported_cuda_arch var min_version)
+  set(_result)
+  if(NOT CMAKE_CUDA_ARCHITECTURES)
+    # empty or off
+    set(${var} "${CMAKE_CUDA_ARCHITECTURES}" PARENT_SCOPE)
+    return()
+  endif()
+  foreach(_arch IN LISTS CMAKE_CUDA_ARCHITECTURES)
+    # Preserve CMake meta-values
+    if(_arch STREQUAL "all" OR _arch STREQUAL "all-major" OR _arch STREQUAL "native")
+      list(APPEND _result "${_arch}")
+      continue()
+    endif()
 
+    # Strip optional CMake architecture suffix (e.g. "80-real", "90-virtual")
+    string(REGEX REPLACE "-.*$" "" _arch_num "${_arch}")
+    if(_arch_num MATCHES "^[0-9]+$")
+      if(_arch_num GREATER_EQUAL min_version)
+        list(APPEND _result "${_arch}")
+      endif()
+    else()
+      message(AUTHOR_WARNING "Unknown CUDA architecture entry '${_arch}'")
+    endif()
+  endforeach()
+
+  set(${var} "${_result}" PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
 function(celeritas_version_to_hex var version)
   if(NOT DEFINED "${version}_MAJOR" AND DEFINED "${version}")
     # Split version into components
