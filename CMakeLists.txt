@@ -434,16 +434,17 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
-  # Check that architectures are 6.0 or grater
-  celeritas_remove_unsupported_cuda_arch(_allowed_arch 60)
-  if(NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES)
+  # Check that architectures meet the minimum requirement (Atomics.hh)
+  set(_celer_min_cuda 60)
+  celeritas_remove_unsupported_cuda_arch(_allowed_arch ${_celer_min_cuda})
+  if(NOT _allowed_arch OR NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES)
     if(NOT _allowed_arch)
-      message(WARNING "None of CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES} is valid")
-      set(_allowed_arch "OFF")
+      message(SEND_ERROR "None of CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES} is valid")
+      set(_allowed_arch "${_celer_min_cuda}")
     endif()
     # Likely building with CUDA 12.x but without
     celeritas_error_incompatible_option(
-      "Celeritas cannot compile for CUDA compute versions less than 6.0"
+      "Celeritas cannot compile for CUDA compute versions less than ${_celer_min_cuda}"
       CMAKE_CUDA_ARCHITECTURES
       "${_allowed_arch}"
     )
