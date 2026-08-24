@@ -8,14 +8,15 @@ CeleritasUtils
 
 Miscellaneous utility functions.
 
-.. command:: celeritas_remove_unsupported_cuda_arch
+.. command:: celeritas_filter_minimum_cuda_arch
 
-  Convert a version number to a C-formatted hexadecimal string::
+  Check CUDA compute architecture compatibility::
 
-    celeritas_remove_unsupported_cuda_arch(<var> <minimum>)
+    celeritas_filter_minimum_cuda_arch(<var> <minimum>)
 
-  The code will remove unsupported versions of CUDA from CMAKE_CUDA_ARCHITECTURES
-  and set the output variable (which may be empty if no provided versions are supported).
+  The code will copy versions from CMAKE_CUDA_ARCHITECTURES that meet the minimum
+  compute variable to the output variable. The result may be empty if no provided
+  versions are supported.
 
 .. command:: celeritas_version_to_hex
 
@@ -69,13 +70,8 @@ Miscellaneous utility functions.
 include_guard(GLOBAL)
 
 #-----------------------------------------------------------------------------#
-function(celeritas_remove_unsupported_cuda_arch var min_version)
+function(celeritas_filter_minimum_cuda_arch var min_version)
   set(_result)
-  if(NOT CMAKE_CUDA_ARCHITECTURES)
-    # empty or off
-    set(${var} "${CMAKE_CUDA_ARCHITECTURES}" PARENT_SCOPE)
-    return()
-  endif()
   foreach(_arch IN LISTS CMAKE_CUDA_ARCHITECTURES)
     # Preserve CMake meta-values
     if(_arch STREQUAL "all" OR _arch STREQUAL "all-major" OR _arch STREQUAL "native")
