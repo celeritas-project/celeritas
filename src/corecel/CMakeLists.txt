@@ -215,7 +215,7 @@ list(APPEND SOURCES
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
-  io/LogHandlers.cc
+  io/Logger.cc
   io/LoggerTypes.cc
   io/OpenmpOutput.cc
   io/OutputInterface.cc
@@ -268,7 +268,7 @@ list(APPEND PRIVATE_DEPS corecel_openmp_obj)
 # All these classes depend on MPI if available
 celeritas_add_object_library(corecel_mpi_obj
   Assert.cc
-  io/Logger.cc
+  io/LogHandlers.cc
   sys/Device.cc
   sys/MpiCommunicator.cc
   sys/ScopedMpiInit.cc
