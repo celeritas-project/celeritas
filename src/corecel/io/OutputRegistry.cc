@@ -35,11 +35,79 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Set persistent filename for writing to with `output`.
+ * Open a persistent file to write with `output`.
+ *
+ * This signature defaults to overwriting a file \em or streaming to stdout.
  */
-void OutputRegistry::output_filename(std::string s)
+void OutputRegistry::open(std::string s)
 {
-    output_filename_ = std::move(s);
+    auto m = (s == "-" ? OpenMode::app : OpenMode::trunc);
+    return this->open(std::move(s), m);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Open a persistent file to write with `output`.
+ *
+ * \note This class is not MPI-aware, so \c only open on the main process.
+ */
+void OutputRegistry::open(std::string s, OpenMode om)
+{
+    CELER_VALIDATE(!s.empty(),
+                   << "cannot open an empty filename for writing output");
+    this->close();
+    FileOrStdout::Mode m = [&] {
+        switch (om)
+        {
+            case OpenMode::app:
+                return std::ios::app;
+            case OpenMode::trunc:
+                return std::ios::trunc;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }();
+    outf_.reset(new FileOrStdout{std::move(s), m});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get persistent output filename (debug error if not open).
+ */
+std::string const& OutputRegistry::output_filename() const
+{
+    CELER_EXPECT(this->is_open());
+    return outf_->filename();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to the persistent filename.
+ */
+void OutputRegistry::output() const
+{
+    if (!this->is_open())
+    {
+        CELER_LOG(debug) << "No output filename provided: suppressing "
+                         << interfaces_.size() << " entries";
+        return;
+    }
+
+    // Save a line of output, then add a newline and flush.
+    CELER_LOG(info) << "Appending " << interfaces_.size()
+                    << " output entries to " << outf_->filename();
+    *outf_ << *this << std::endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to a JSON object that's written to the given stream.
+ */
+void OutputRegistry::output(std::ostream* os) const
+{
+    JsonPimpl json_wrap;
+    this->output(&json_wrap);
+    *os << json_wrap.obj.dump();
 }
 
 //---------------------------------------------------------------------------//
@@ -104,37 +172,6 @@ void OutputRegistry::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Output all classes to a JSON object that's written to the given stream.
- */
-void OutputRegistry::output(std::ostream* os) const
-{
-    JsonPimpl json_wrap;
-    this->output(&json_wrap);
-    *os << json_wrap.obj.dump();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Output all classes to the persistent filename.
- */
-void OutputRegistry::output() const
-{
-    if (output_filename_.empty())
-    {
-        CELER_LOG(debug) << "No output filename provided: suppressing "
-                         << interfaces_.size() << " entries";
-        return;
-    }
-
-    // Save output
-    FileOrStdout ostream{output_filename_};
-    CELER_LOG(info) << "Saving " << interfaces_.size()
-                    << " entries of output to " << ostream.filename();
-    this->output(&static_cast<std::ostream&>(ostream));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Whether no output has been registered.
  */
 bool OutputRegistry::empty() const
@@ -142,6 +179,12 @@ bool OutputRegistry::empty() const
     return std::all_of(interfaces_.begin(),
                        interfaces_.end(),
                        [](auto const& m) { return m.empty(); });
+}
+
+//! PIMPL deleter for FileOrStdout
+void OutputRegistry::FOSDeleter::operator()(FileOrStdout* p) const
+{
+    delete p;
 }
 
 //---------------------------------------------------------------------------//
