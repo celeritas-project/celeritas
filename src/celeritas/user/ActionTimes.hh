@@ -67,8 +67,11 @@ class ActionTimes : public AuxParamsInterface
     // Access the state (mutable)
     ActionTimesState& state(AuxStateVec&) const;
 
-    // Create a map of action label tp accumulated time
+    // Create a map of action label to accumulated time
     MapStrDbl get_action_times(AuxStateVec const&) const;
+
+    // Clear accumulated times
+    void clear_action_times(AuxStateVec&) const;
 
   private:
     AuxId aux_id_;

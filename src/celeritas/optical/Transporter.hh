@@ -68,9 +68,13 @@ class Transporter
 
     // Get the accumulated action times
     MapStrDbl get_action_times(AuxStateVec const&) const;
+    // Get and reset the accumulated action times
+    MapStrDbl exchange_action_times(AuxStateVec&) const;
 
     // Get the recorded step times
     VecDbl get_step_times(AuxStateVec const&) const;
+    // Get and reset the recorded step times
+    VecDbl exchange_step_times(AuxStateVec&) const;
 
   private:
     //// TYPES ////
