@@ -44,11 +44,6 @@ CELER_FORCEINLINE auto make_obtr(sim::OBTRHelper&& helper)
 {
     return sim::OpDetBacktrackerRecord(helper);
 }
-
-//! Starting index of a track ID from LArSoft that has a negative value
-constexpr auto neg_trackid_offset{
-    std::numeric_limits<PrimaryId::size_type>::max() / 2u};
-
 }  // namespace
 
 //---------------------------------------------------------------------------//
