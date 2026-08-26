@@ -122,7 +122,8 @@ install(FILES ${_fcl_files}
 #-----------------------------------------------------------------------------#
 
 if(APPLE)
-  set(CELER_LDVAR DYLD_LIBRARY_PATH)
+  message(WARNING "larceler linking is untested on macOS")
+  set(CELER_LDVAR DYLD_FALLBACK_LIBRARY_PATH)
 else()
   set(CELER_LDVAR LD_LIBRARY_PATH)
 endif()
