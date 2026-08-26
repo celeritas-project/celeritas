@@ -168,6 +168,11 @@ TEST_F(OutputRegistryTest, minimal)
             = {"Appending 4 output entries to <stdout>"};
         EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     }
+
+    // Clearing just removes already-written diagnostics
+    reg.clear();
+    EXPECT_TRUE(reg.empty());
+    EXPECT_TRUE(reg.is_open());
 }
 
 TEST_F(OutputRegistryTest, persistent_output)

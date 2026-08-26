@@ -71,8 +71,6 @@ class OutputRegistry
     // Append a line of JSON output to the persistent output file
     void output() const;
 
-    // Get output filename if open
-
     //! Whether a persistent file is open
     bool is_open() const { return static_cast<bool>(outf_); }
 
@@ -89,6 +87,9 @@ class OutputRegistry
 
     // Whether no output has been registered
     bool empty() const;
+
+    // Clear all output interfaces
+    void clear();
 
     //! Output to a stream
     friend std::ostream& operator<<(std::ostream& os, OutputRegistry const& reg)
