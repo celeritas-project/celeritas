@@ -2,67 +2,45 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celer-optical/SimulationResult.json.hh
+//! \file larceler/detail/LarRunnerDiagnostics.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <string>
 #include <unordered_map>
-#include <nlohmann/json.hpp>
+#include <vector>
 
-#include "corecel/io/JsonUtils.json.hh"
-#include "celeritas/phys/GeneratorCountersIO.json.hh"
+#include "celeritas/phys/GeneratorCounters.hh"
 
 namespace celeritas
 {
-namespace app
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Timing results.
- *
- * \todo Add warmup time
+ * Timing results for a single event.
  */
-struct TimingResult
+struct LarTiming
 {
     using MapStrDouble = std::unordered_map<std::string, double>;
 
-    double total{};  //!< Total transport time, not including initialization
     double setup{};  //!< One-time initialization cost
+    double run{};  //!< Total transport time (no initialization)
+    double teardown{};  //!< Time to convert hits/btrs to lardataobj
     MapStrDouble actions{};  //!< Accumulated action times
     std::vector<double> steps{};  //!< Step times
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Results from transporting all tracks.
+ * Results from transporting all tracks in an event.
  */
-struct SimulationResult
+struct LarRunnerDiagnostics
 {
-    TimingResult time{};
+    LarTiming time{};
     CounterAccumStats counters{};
 };
 
 //---------------------------------------------------------------------------//
-
-void to_json(nlohmann::json& j, TimingResult const& v)
-{
-    j = {
-        CELER_JSON_PAIR(v, total),
-        CELER_JSON_PAIR(v, setup),
-        CELER_JSON_PAIR(v, actions),
-        CELER_JSON_PAIR(v, steps),
-    };
-}
-
-void to_json(nlohmann::json& j, SimulationResult const& v)
-{
-    j = {
-        CELER_JSON_PAIR(v, time),
-        CELER_JSON_PAIR(v, counters),
-    };
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace app
+}  // namespace detail
 }  // namespace celeritas
