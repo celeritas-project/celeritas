@@ -142,31 +142,34 @@ void Runner::insert(SpanConstGenDist data)
 /*!
  * Generate optical photons and transport to completion.
  */
-auto Runner::operator()() const -> Result
+auto Runner::operator()() -> Result
 {
     ScopedProfiling profile_this{"run"};
     (*loaded_.problem.transporter)(*state_);
 
     Result result;
-    result.counters = this->get_counters();
-    result.action_times = this->get_action_times();
-    result.step_times = this->get_step_times();
+    result.counters = this->exchange_counters();
+    result.action_times = this->exchange_action_times();
+    result.step_times = this->exchange_step_times();
 
     return result;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get accumulated track counters.
+ * Get and reset accumulated track counters.
+ *
+ * \sa OpticalCollector::exchange_counters
  */
-CounterAccumStats Runner::get_counters() const
+CounterAccumStats Runner::exchange_counters()
 {
     CounterAccumStats counters = state_->accum();
     for (auto gen_id : range(GeneratorId(this->params()->gen_reg()->size())))
     {
-        auto const gen = this->params()->gen_reg()->at(gen_id);
+        auto const& gen = this->params()->gen_reg()->at(gen_id);
         CELER_ASSERT(gen);
-        counters.generators.push_back(gen->counters(*state_->aux()).accum);
+        counters.generators.push_back(
+            std::exchange(gen->counters(*state_->aux()).accum, {}));
     }
     return counters;
 }
@@ -175,18 +178,18 @@ CounterAccumStats Runner::get_counters() const
 /*!
  * Get accumulated wall times for each action.
  */
-ActionTimes::MapStrDbl Runner::get_action_times() const
+ActionTimes::MapStrDbl Runner::exchange_action_times()
 {
-    return loaded_.problem.transporter->get_action_times(*state_->aux());
+    return loaded_.problem.transporter->exchange_action_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the wall time for each step iteration.
+ * Get and reset the wall time for each step iteration.
  */
-StepTimes::VecDbl Runner::get_step_times() const
+StepTimes::VecDbl Runner::exchange_step_times()
 {
-    return loaded_.problem.transporter->get_step_times(*state_->aux());
+    return loaded_.problem.transporter->exchange_step_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//
