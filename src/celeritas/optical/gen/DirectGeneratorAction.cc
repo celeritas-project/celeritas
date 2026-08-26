@@ -73,8 +73,9 @@ DirectGeneratorAction::DirectGeneratorAction(
                     gen_id,
                     "generate-direct",
                     "directly generate optical photon primaries")
+    , params_(&params)
+
 {
-    params_ = &params;
     CELER_EXPECT(params_);
 }
 

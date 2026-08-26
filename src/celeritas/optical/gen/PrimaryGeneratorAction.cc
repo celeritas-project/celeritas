@@ -63,6 +63,8 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
                     gen_id,
                     "primary-generate",
                     "generate optical photon primaries")
+    , core_params_(&params)
+
 {
     HostVal<DistributionParamsData> host_params;
     DistributionInserter insert(host_params);
@@ -73,7 +75,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
     data_.shape = std::visit(insert, inp.shape);
 
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
-    core_params_ = &params;
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
     CELER_ENSURE(core_params_);
