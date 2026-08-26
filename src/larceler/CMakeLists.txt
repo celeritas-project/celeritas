@@ -6,6 +6,7 @@
 # NOTE: the library should *not* contain any `art` dependencies
 set(SOURCES)
 set(PRIVATE_DEPS
+  nlohmann_json::nlohmann_json
   lardataobj::Simulation
   Celeritas::geocel
   Celeritas::celeritas
@@ -33,12 +34,14 @@ celeritas_target_link_libraries(larceler
 #-----------------------------------------------------------------------------#
 
 # Add an `art` plugin: separate the tool definition from the ART instantiation
+set(_celer_art_modules)
 macro(celeritas_add_art_module basename)
   set(tgt_ "${basename}_module")
   celeritas_add_src_library(${tgt_} MODULE
     "${basename}.cc"
     "${basename}_module.cc"
   )
+  list(APPEND _celer_art_modules ${tgt_})
 endmacro()
 
 celeritas_add_art_module(PDFullSimCeler)
@@ -109,7 +112,9 @@ foreach(_fcl IN LISTS _fcl_files)
 endforeach()
 
 add_custom_target(larceler_fcl ALL DEPENDS ${_fcl_outputs})
-add_dependencies(larceler larceler_fcl)
+foreach(_tgt IN LISTS _celer_art_modules)
+  add_dependencies(${_tgt} larceler_fcl)
+endforeach()
 
 # Install to $PREFIX/fcl
 install(FILES ${_fcl_files}
