@@ -181,6 +181,23 @@ bool OutputRegistry::empty() const
                        [](auto const& m) { return m.empty(); });
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Clear output interfaces.
+ *
+ * This is useful when printing to a persistent file in JSONL format: the first
+ * write includes all the problem setup metadata, and subsequent writes can
+ * just include the results (which are presumably added by whoever calls
+ * "clear" after).
+ */
+void OutputRegistry::clear()
+{
+    for (auto& i : interfaces_)
+    {
+        i.clear();
+    }
+}
+
 //! PIMPL deleter for FileOrStdout
 void OutputRegistry::FOSDeleter::operator()(FileOrStdout* p) const
 {
