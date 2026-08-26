@@ -141,6 +141,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     RunResult ref;
     ref.num_hits = {273, 269, 15, 4};
     EXPECT_REF_EQ(ref, result);
+
+    auto const& sim_channel = raw_result.sim_photons.at(3);
+    EXPECT_EQ(3, sim_channel.OpChannel);
+    EXPECT_GT(sim_channel.DetectedPhotons.size(), 0);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
