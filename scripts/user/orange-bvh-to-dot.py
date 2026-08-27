@@ -163,17 +163,10 @@ def run(args):
         data = json.load(f)
 
     if "internal" in data:
-        print("Loading app output")
+        print("Assuming app output was given rather than ORANGE output")
         orange = data["internal"]["orange"]
-    elif "orange_stats" in data:
-        print("Loading output from celer-geo")
-        orange = data["orange_stats"]
-    elif data.get("_label") == "orange":
-        print("Loading direct OrangeParamsOutput")
-        orange = data
     else:
-        print("Unknown bvh container: keys are", ", ".join(data))
-        raise SystemExit(1)
+        orange = data["orange_stats"]
 
     bvh_data = orange["bvh_metadata"]
 
@@ -182,7 +175,6 @@ def run(args):
     elif args.all:
         uids = list(range(len(bvh_data["structure"])))
     else:
-        print("missing universe/all argument: available universes are:")
         write_diagnostic(sys.stdout, bvh_data)
         return
 
@@ -207,7 +199,6 @@ def main():
         nargs="+",
         type=int,
         default=None,
-        metavar="UID",
         help="Universe ID(s) to export as DOT",
     )
     mode.add_argument(
@@ -220,7 +211,6 @@ def main():
         "-o",
         "--output",
         default=Path.cwd(),
-        metavar="DIR",
         help="Output directory (default: current directory)",
     )
 
