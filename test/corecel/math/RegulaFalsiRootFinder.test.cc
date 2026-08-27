@@ -7,12 +7,13 @@
 #include "corecel/math/RegulaFalsiRootFinder.hh"
 
 #include <cmath>
-#include <functional>
+#include <limits>
+
+#include "corecel/Config.hh"
 
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "orange/OrangeTypes.hh"
 
 #include "DiagnosticRealFunc.hh"
 #include "celeritas_test.hh"
@@ -37,6 +38,9 @@ TEST(RegulaFalsi, root_two)
     EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
     EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
     EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
+    // Swapping left and right is OK
+    EXPECT_SOFT_EQ(2.0, find_root(2.25, 1.75));
+    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
 }
 
 // Solve: x^2 - x - 1 = 0
@@ -46,7 +50,7 @@ TEST(RegulaFalsi, golden_ratio)
     RegulaFalsiRootFinder find_root{f, tol};
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
-    EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
+    EXPECT_EQ(if_double_else(11, 7), f.exchange_count());
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
     EXPECT_EQ(if_double_else(12, 7), f.exchange_count());
 }
@@ -65,6 +69,46 @@ TEST(RegulaFalsi, trigometric)
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
     EXPECT_EQ(3, f.exchange_count());
     EXPECT_SOFT_EQ(pi * 2.5, find_root(2 * pi, 3 * pi));
+    EXPECT_EQ(3, f.exchange_count());
+}
+
+constexpr real_type large = 1 / std::numeric_limits<real_type>::epsilon();
+
+TEST(RegulaFalsi, large_linear)
+{
+    DiagnosticRealFunc f{[&](real_type t) { return t - large; }};
+    RegulaFalsiRootFinder find_root{f, tol};
+
+    EXPECT_SOFT_EQ(large, find_root(large * 0.6_r, large * 1.05_r));
+    EXPECT_EQ(3, f.exchange_count());
+    EXPECT_SOFT_EQ(large, find_root(0, large * large));
+    EXPECT_EQ(3, f.exchange_count());
+}
+
+TEST(RegulaFalsi, large_sq)
+{
+    DiagnosticRealFunc f{
+        [&](real_type t) { return ipow<2>(t) - ipow<2>(large); }};
+    RegulaFalsiRootFinder find_root{f, tol};
+
+    EXPECT_SOFT_EQ(large, find_root(large * 0.6, large * 1.05));
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(12, f.exchange_count());
+    }
+}
+
+TEST(RegulaFalsi, huge_linear)
+{
+    real_type const sqrt_huge
+        = std::sqrt(std::numeric_limits<real_type>::max()) / 2;
+
+    DiagnosticRealFunc f{[&](real_type t) { return t - sqrt_huge; }};
+    RegulaFalsiRootFinder find_root{f, tol};
+
+    EXPECT_SOFT_EQ(sqrt_huge, find_root(sqrt_huge * 0.6_r, sqrt_huge * 1.05_r));
+    EXPECT_EQ(3, f.exchange_count());
+    EXPECT_SOFT_EQ(sqrt_huge, find_root(0, 2 * sqrt_huge));
     EXPECT_EQ(3, f.exchange_count());
 }
 

@@ -12,6 +12,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
 
 namespace celeritas
 {
@@ -108,7 +109,8 @@ real_type DiagnosticRealFunc<F>::operator()(real_type v)
     // Log the result
     if (count_ < 20)
     {
-        CELER_LOG(debug) << count_ << ": f(" << v << ") -> " << result;
+        CELER_LOG(debug) << count_ << ": f(" << repr(v) << ") -> "
+                         << repr(result);
     }
     else if (count_ == 20)
     {
