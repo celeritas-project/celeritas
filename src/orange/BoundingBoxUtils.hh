@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <iosfwd>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
