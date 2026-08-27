@@ -646,37 +646,22 @@ CELER_FUNCTION auto SimpleUnitTracker::complex_intersect(
 CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
     LocalState const& state, real_type max_distance) const -> Intersection
 {
-    auto msg = CELER_LOG(info);
-    msg << "background_intersect: " << repr(max_distance) << " from "
-        << repr(state.pos) << " along " << repr(state.dir) << " in "
-        << state.volume;
-    if (state.surface)
-    {
-        msg << " " << to_cstring(state.surface.sense()) << ' '
-            << state.surface.id();
-    }
-    msg << " -> ";
     // Functor for calculating the distance to intersection, starting outside
     // the given volume.
-    auto calc_local_intersection
+    auto is_intersecting
         = [this, &state](LocalVolumeId vol_id,
                          real_type cur_max_dist) -> Intersection {
-        auto msg = CELER_LOG(info);
-
         VolumeView vol = this->make_local_volume(vol_id);
-        auto face = state.surface ? vol.find_face(state.surface.id())
-                                  : FaceId{};
 
         // No volume is "simple" because we are starting from the outside
         constexpr bool is_simple = false;
-        detail::CalcIntersections calc_intersections{cur_max_dist,
-                                                     state.pos,
-                                                     state.dir,
-                                                     face,
-                                                     is_simple,
-                                                     state.temp_next};
-        msg << " * checked intersection with " << vol_id << " face " << face
-            << " up to " << repr(cur_max_dist) << " -> ";
+        detail::CalcIntersections calc_intersections{
+            cur_max_dist,
+            state.pos,
+            state.dir,
+            state.surface ? vol.find_face(state.surface.id()) : FaceId{},
+            is_simple,
+            state.temp_next};
 
         LocalSurfaceVisitor visit_surface(params_, unit_record_.surfaces);
         for (LocalSurfaceId surface : vol.faces())
@@ -688,7 +673,6 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
         if (num_isect == 0)
         {
             // No intersection in this unit
-            msg << "no hits";
             return {};
         }
 
@@ -703,51 +687,15 @@ CELER_FUNCTION auto SimpleUnitTracker::background_intersect(
         // Call complex_intersect with a target sense of "inside," because we
         // are seeking a surface for which crossing will result in entering the
         // volume
-        auto result = this->complex_intersect(
+        return this->complex_intersect(
             state, vol, num_isect, Sense::inside, cur_max_dist);
-        if (result.surface)
-        {
-            msg << repr(result.distance) << " to "
-                << to_cstring(result.surface.sense()) << result.surface.id();
-        }
-        else
-        {
-            msg << "miss";
-        }
-        return result;
     };
-    Intersection result;
-#if 1
+
     detail::BvhIntersectingVolFinder find_intersection{unit_record_.bvh_tree,
                                                        params_.bvh_tree_data};
 
-    result = find_intersection(
-        {state.pos, state.dir}, calc_local_intersection, max_distance);
-#else
-    for (auto lv_id :
-         range(id_cast<LocalVolumeId>(unit_record_.volumes.size())))
-    {
-        if (lv_id == state.volume)
-            continue;
-        auto new_result
-            = calc_local_intersection(lv_id, result.distance * 1.001);
-        if (new_result.distance < result.distance)
-        {
-            result = new_result;
-        }
-    }
-#endif
-    if (result)
-    {
-        msg << repr(result.distance) << ": "
-            << to_cstring(result.surface.sense()) << result.surface.id();
-    }
-    else
-    {
-        msg << "MISS";
-    }
-
-    return result;
+    return find_intersection(
+        {state.pos, state.dir}, is_intersecting, max_distance);
 }
 
 //---------------------------------------------------------------------------//

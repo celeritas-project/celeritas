@@ -8,8 +8,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Array.hh"
-#include "corecel/io/Logger.hh"
-#include "corecel/io/Repr.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
@@ -156,7 +154,6 @@ class CalcIntersections
             if (on_surface == SurfaceState::on)
             {
                 // On surface so cannot reintersect
-                CELER_LOG(info) << "  - skipping face " << face_idx_;
                 ++face_idx_;
                 return;
             }
@@ -178,8 +175,6 @@ class CalcIntersections
                 {
                     isect_[isect_idx_] = isect_idx_;
                 }
-                CELER_LOG(info)
-                    << "  - hit face " << face_idx_ << "@" << repr(dist);
                 ++isect_idx_;
             }
         }

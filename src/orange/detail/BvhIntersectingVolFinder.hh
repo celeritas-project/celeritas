@@ -7,7 +7,6 @@
 #pragma once
 
 #include "corecel/cont/IdStack.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "orange/OrangeTypes.hh"
 
@@ -189,12 +188,7 @@ CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
 CELER_FUNCTION bool BvhIntersectingVolFinder::visit_bbox(
     FastBBox const& bbox, Ray ray, real_type min_dist) const
 {
-    auto msg = CELER_LOG(info);
-    msg << "   ~ check " << bbox << " up to " << min_dist << ": ";
-
-    bool result = intersects_segment(bbox, ray.pos, ray.dir, min_dist);
-    msg << (result ? "hit" : "miss");
-    return result;
+    return intersects_segment(bbox, ray.pos, ray.dir, min_dist);
 }
 
 //---------------------------------------------------------------------------//
