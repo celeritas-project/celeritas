@@ -76,14 +76,11 @@ CELER_FUNCTION BisectionRootFinder<F>::BisectionRootFinder(F&& func,
 //---------------------------------------------------------------------------//
 /*!
  * Solve for a root between the two points.
- *
- * The two points are allowed to be out of order.
  */
 template<class F>
 CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
                                                             real_type right)
 {
-    CELER_EXPECT(left < right || right < left);
     using namespace celeritas::literals;
 
     // Initialize Iteration parameters
@@ -91,14 +88,12 @@ CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
     real_type f_root = 1;
     real_type root = 0;
     int remaining_iters = max_iters_;
-    real_type const abs_tol = std::fmax(std::fabs(left), std::fabs(right))
-                              * tol_;
 
     // Iterate on root
     do
     {
         // Estimate root and update value
-        root = 0.5_r * left + 0.5_r * right;
+        root = 0.5_r * (left + right);
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root
@@ -111,7 +106,7 @@ CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
         {
             right = root;
         }
-    } while (std::fabs(f_root) > abs_tol && --remaining_iters > 0);
+    } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
     return root;

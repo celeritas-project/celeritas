@@ -7,14 +7,15 @@
 #pragma once
 
 #include <cmath>
+#include <type_traits>
+
+#include "corecel/Config.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 
 #include "Algorithms.hh"
-
-#include "detail/SoftEqualTraits.hh"
 
 namespace celeritas
 {
@@ -27,25 +28,15 @@ namespace celeritas
  * x' = \frac{x_l * f(x_r) - x_r * f(x_l)}{f(x_r) f(x_l)}
  * \f]
  *
- * The value of \em f at the root is calculated compared to values of
+ * Then value of \em f at the root is calculated compared to values of
  * \em f at the bounds. The root is then used to update the bounds based on
  * the sign of \f$ f(x') \f$ and whether it matches the sign of \f$ f(x_l) \f$
  * or \f$ f(x_r) \f$ .
- *
- * The construction tolerance \c tol is relative, based on the scale of the
- * left/right points.
- *
- * \note The root's location and the function's value should be less than
- * \c sqrt(numeric_limits::max) for the solver to be well-behaved. Any function
- * return value of \c inf will result in a solution failure.
  */
 template<class F>
 class RegulaFalsiRootFinder
 {
   public:
-    // Construct with function using default tolerance
-    explicit inline CELER_FUNCTION RegulaFalsiRootFinder(F&& func);
-
     // Construct with function to solve and solution tolerance
     inline CELER_FUNCTION RegulaFalsiRootFinder(F&& func, real_type tol);
 
@@ -72,7 +63,7 @@ CELER_CTAD_FUNCTION RegulaFalsiRootFinder(F&&, Args...)
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
- * Construct from function and absolute tolerance.
+ * Construct from function.
  */
 template<class F>
 CELER_FUNCTION RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func,
@@ -84,28 +75,13 @@ CELER_FUNCTION RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func,
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct from function using default tight tolerance.
- */
-template<class F>
-CELER_FUNCTION RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func)
-    : RegulaFalsiRootFinder{celeritas::forward<F>(func),
-                            detail::SoftEqualTraits<real_type>::rel_prec()}
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Solve for a root between the two points.
  */
 template<class F>
 CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
                                                               real_type right)
 {
-    CELER_EXPECT(left < right || right < left);
-    real_type const abs_tol = std::fmax(std::fabs(left), std::fabs(right))
-                              * tol_;
-
-    // Initialize iteration parameters
+    // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_right = func_(right);
     real_type f_root = 1;
@@ -130,7 +106,7 @@ CELER_FUNCTION real_type RegulaFalsiRootFinder<F>::operator()(real_type left,
             right = root;
             f_right = f_root;
         }
-    } while (std::fabs(f_root) > abs_tol && --remaining_iters > 0);
+    } while (std::fabs(f_root) > tol_ && --remaining_iters > 0);
 
     CELER_ENSURE(remaining_iters > 0);
     return root;

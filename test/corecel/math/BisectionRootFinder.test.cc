@@ -36,9 +36,6 @@ TEST(Bisection, root_two)
 
     EXPECT_SOFT_EQ(2.0, find_root(1.75, 2.25));
     EXPECT_SOFT_EQ(-2.0, find_root(-2.25, -1.75));
-
-    // Swapping left and right is OK
-    EXPECT_SOFT_EQ(2.0, find_root(2.25, 1.75));
 }
 
 // Solve: x^2 - x - 1 = 0
@@ -50,7 +47,7 @@ TEST(Bisection, golden_ratio)
 
     EXPECT_SOFT_EQ(1.618033988749, find_root(1.5, 1.75));
     EXPECT_SOFT_EQ(-0.6180339887498, find_root(-0.75, -0.5));
-    EXPECT_EQ(if_double_else(71, 36), f.exchange_count());
+    EXPECT_EQ(if_double_else(78, 32), f.exchange_count());
 }
 
 // Solve first 3 roots: cos(x) = 0
@@ -64,15 +61,6 @@ TEST(Bisection, trigometric)
     EXPECT_SOFT_EQ(pi * 0.5, find_root(0, pi));
     EXPECT_SOFT_EQ(pi * 1.5, find_root(pi, 2 * pi));
     EXPECT_SOFT_EQ(pi * 2.5, find_root(2 * pi, 3 * pi));
-}
-
-TEST(Bisection, huge_linear)
-{
-    constexpr real_type root = std::numeric_limits<real_type>::max() / 2;
-    DiagnosticRealFunc f{[&](real_type t) { return t - root; }};
-    BisectionRootFinder find_root{f, tol};
-
-    EXPECT_SOFT_EQ(root, find_root(root * 0.8_r, root * 1.05_r));
 }
 
 /*!
@@ -100,7 +88,7 @@ TEST(Bisection, exponential_intersect)
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 1.5));
     EXPECT_EQ(2, f.exchange_count());
     EXPECT_SOFT_EQ(1.0, find_root(0.5, 2.0));
-    EXPECT_EQ(if_double_else(40, 20), f.exchange_count());
+    EXPECT_EQ(if_double_else(41, 21), f.exchange_count());
 }
 
 //---------------------------------------------------------------------------//
