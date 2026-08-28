@@ -74,8 +74,9 @@ if(Geant4_VERSION VERSION_LESS 11.0)
 endif()
 
 # Set default number of threads allowed for mt/task jobs
-set(CELERITASTEST_G4NT "2" CACHE INTERNAL
+set(CELERITASTEST_G4NT "2" CACHE STRING
   "Default number of processes to use in CeleritasG4Tests")
+mark_as_advanced(CELERITASTEST_G4NT)
 
 # Set up a single G4 ctest with correct environment variables and labels.
 # Extra arguments are passed to set_tests_properties.
