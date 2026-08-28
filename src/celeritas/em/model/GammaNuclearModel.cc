@@ -31,7 +31,7 @@ GammaNuclearModel::GammaNuclearModel(ActionId id,
                                      ParticleParams const& particles,
                                      MaterialParams const& materials,
                                      ReadData load_data)
-    : StaticConcreteAction(id, "gamma_nuclear", "interact by gamma-nuclear")
+    : StaticConcreteAction(id, "gamma-nuclear", "interact by gamma-nuclear")
 {
     CELER_EXPECT(id);
     CELER_EXPECT(load_data);
