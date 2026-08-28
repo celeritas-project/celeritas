@@ -314,9 +314,6 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
     Array<T, 3> hw;  // Half-widths of bounding box
     Array<T, 3> bbm;  // Midpoint of the bbox relative to pos
     Array<T, 3> hseg;  // Segment midpoint relative to pos
-    Array<T, 3> sep;  // Separation distance with tolerance
-
-    constexpr T tol = 1 + 2 * numeric_limits<T>::epsilon();
 
     for (auto ax : range(Axis::size_))
     {
@@ -326,18 +323,18 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
         auto i = to_int(ax);
         hw[i] = (upper - lower) / 2;
         hseg[i] = dir[i] * (distance / 2);
-        sep[i] = std::fabs(hseg[i]) * tol;
         bbm[i] = (lower + upper) / 2 - pos[i];
     }
 
     // Whether a separable axis was found orthogonal to the faces
-    auto found_sep_ortho_axis
-        = [&](int i) { return std::fabs(hseg[i] - bbm[i]) > hw[i] + sep[i]; };
+    auto found_sep_ortho_axis = [&](int i) {
+        return std::fabs(hseg[i] - bbm[i]) > hw[i] + std::fabs(hseg[i]);
+    };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
         return std::fabs(bbm[k] * hseg[j] - bbm[j] * hseg[k])
-               > (hw[k] * sep[j] + hw[j] * sep[k]);
+               > (hw[k] * std::fabs(hseg[j]) + hw[j] * std::fabs(hseg[k]));
     };
 
     constexpr auto x = to_int(Axis::x);
