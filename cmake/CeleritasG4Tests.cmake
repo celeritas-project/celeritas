@@ -21,6 +21,7 @@ run manager.
   celeritas_g4_add_tests(
     <target>
     [NAME string]        # test name (default: target)
+    [WRAP executable]    # call this executable by prepending to COMMAND list
     [ARGS arg [...]]     # passed to command line
     [LABELS label [...]] # tagged in CTestFile
     [RMTYPE [serial] [mt] [task]] # run manager
@@ -117,7 +118,7 @@ function(celeritas_g4_set_tests_properties test_names label_list offload rmtype)
 endfunction()
 
 function(celeritas_g4_add_tests target)
-  cmake_parse_arguments(PARSE "DISABLE;WILL_FAIL" "NAME" "ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
+  cmake_parse_arguments(PARSE "DISABLE;WILL_FAIL" "NAME" "WRAP;ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
   if(PARSE_UNPARSED_ARGUMENTS)
     message(SEND_ERROR "Unknown keywords given to celeritas_g4_add_tests(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
@@ -150,12 +151,18 @@ function(celeritas_g4_add_tests target)
       endif()
 
       set(_test_name "${PARSE_NAME}:${_offload}:${_rmtype}")
-      add_test(NAME "${_test_name}" COMMAND "$<TARGET_FILE:${target}>" ${PARSE_ARGS})
+      add_test(NAME "${_test_name}" COMMAND ${PARSE_WRAP} "$<TARGET_FILE:${target}>" ${PARSE_ARGS})
       celeritas_g4_set_tests_properties(
         "${_test_name}"
         "${PARSE_LABELS}" "${_offload}" "${_rmtype}"
         ${_args}
       )
+      if(PARSE_WRAP)
+        set_property(TEST "${_test_name}"
+          APPEND PROPERTY ENVIRONMENT
+            "CELER_TEST_NAME=${_test_name}"
+        )
+      endif()
     endforeach()
   endforeach()
 endfunction()
