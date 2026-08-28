@@ -30,7 +30,7 @@ namespace celeritas
 ElectroNuclearModel::ElectroNuclearModel(ActionId id,
                                          ParticleParams const& particles,
                                          MaterialParams const& materials)
-    : StaticConcreteAction(id, "electro_nuclear", "interact by electro-nuclear")
+    : StaticConcreteAction(id, "electro-nuclear", "interact by electro-nuclear")
 {
     CELER_EXPECT(id);
 
