@@ -52,6 +52,8 @@ enum class ImportModelClass
     mu_pair_prod,
     fluo_photoelectric,
     goudsmit_saunderson,
+    electro_nuclear,
+    gamma_nuclear,
     size_
 };
 
