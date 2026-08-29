@@ -93,9 +93,9 @@ char const* to_geant_name(ImportProcessClass value)
         "muIoni",  // mu_ioni,
         "muBrems",  // mu_brems,
         "muPairProd",  // mu_pair_prod,
-        "ElectroNuclearProc",  // electro_nuclear,
+        "electronNuclear",  // electro_nuclear,
         "GammaGeneralProc",  // gamma_general,
-        "GammaNuclearProc",  // gamma_nuclear,
+        "photonNuclear",  // gamma_nuclear,
         "neutronElasticProc",  // neutron_elastic,
     };
     return to_name_impl(value);
