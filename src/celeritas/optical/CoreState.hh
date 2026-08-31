@@ -9,6 +9,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
 #include "corecel/data/AuxStateVec.hh"
+#include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/params/RngParamsFwd.hh"

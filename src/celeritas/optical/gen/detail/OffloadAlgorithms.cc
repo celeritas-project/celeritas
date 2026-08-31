@@ -11,6 +11,10 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/TrackExecutor.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
+
+#include "UpdatePendingExecutor.hh"
 
 using namespace celeritas::literals;
 
@@ -54,18 +58,28 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const& buffer,
 
 //---------------------------------------------------------------------------//
 /*!
- * Count the number of optical photons in the distributions.
+ * Count the number of optical photons in the distributions and add these to
+ * the number of pending tracks.
  */
-size_type count_num_photons(
+void count_num_photons(
+    SPConstOpticalParams params,
+    optical::CoreState<MemSpace::host>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
     size_type offset,
     size_type size,
     StreamId)
 {
+    CELER_EXPECT(params);
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
         start + offset, start + size, 0_sz, AccumNumPhotons{});
-    return count;
+    // Update the number of pending optical photons
+    auto execute_thread = make_single_track_executor(
+        params->ptr<MemSpace::native>(),
+        state.ptr(),
+        optical::detail::UpdatePendingExecutor{count});
+    launch_action(1, execute_thread);
+    return;
 }
 
 //---------------------------------------------------------------------------//

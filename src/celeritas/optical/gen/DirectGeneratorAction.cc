@@ -49,13 +49,13 @@ auto make_state(StreamId stream, size_type size)
  * Construct and add to core params.
  */
 std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
-    CoreParams const& params)
+    CoreParams& params)
 {
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<DirectGeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id());
+        actions.next_id(), aux.next_id(), gen.next_id(), params);
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
@@ -67,13 +67,16 @@ std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
  * Construct with action and data IDs.
  */
 DirectGeneratorAction::DirectGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id)
+    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "generate-direct",
                     "directly generate optical photon primaries")
+    , params_(&params)
+
 {
+    CELER_EXPECT(params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -143,9 +146,7 @@ void DirectGeneratorAction::insert_impl(CoreState<M>& state,
     // Update counters and copy distributions to aux state storage
     aux_state.counters.buffer_size = data.size();
     aux_state.counters.num_pending = data.size();
-    auto counters = state.sync_get_counters();
-    counters.num_pending += data.size();
-    state.sync_put_counters(counters);
+    this->update_pending(*params_, state, data.size());
     Copier<TrackInitializer, M> copy_to_aux{aux_state.initializers(),
                                             state.stream_id()};
 
@@ -184,9 +185,10 @@ void DirectGeneratorAction::step_impl(CoreParams const& params,
         = get<DirectGeneratorState<M>>(*state.aux(), this->aux_id());
     auto& counters = aux_state.counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
@@ -213,20 +215,18 @@ void DirectGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<DirectGeneratorState<MemSpace::native>>(
         *state.aux(), this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::DirectGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
-    launch_action(num_gen, execute);
+    launch_action(aux_state.counters.num_pending, execute);
 }
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void DirectGeneratorAction::generate(CoreParams const&, CoreStateDevice&) const
 {
-    CELER_NOT_IMPLEMENTED("device");
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 #endif
 

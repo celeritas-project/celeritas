@@ -15,10 +15,12 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "TrackInitParams.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
+#include "detail/UpdateCountersExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -102,12 +104,14 @@ void ExtendFromPrimariesAction::insert(CoreParams const& params,
                                        CoreStateInterface& state,
                                        Span<Primary const> host_primaries) const
 {
-    size_type num_initializers = state.sync_get_counters().num_initializers;
     size_type init_capacity = params.init()->capacity();
 
-    CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
+    // To avoid synchronization, defer the check for whether there is space for
+    // all host primaries and num_initializers until the process_primaries
+    // executor, but keep a more basic check here to ensure insert_impl doesn't
+    // increase the storage space beyond the init capacity.
+    CELER_VALIDATE(host_primaries.size() <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
                    << ") for primaries (" << host_primaries.size() << ")");
 
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
@@ -182,19 +186,10 @@ template<MemSpace M>
 void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
-    auto& primaries = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-    auto counters = state.sync_get_counters();
-
-    // Create track initializers from primaries
-    counters.num_initializers += primaries.count;
-    state.sync_put_counters(counters);
-    this->process_primaries(params, state, primaries);
-
-    // Mark that the primaries have been processed
-    counters.num_generated += primaries.count;
-    counters.num_pending = 0;
-    primaries.count = 0;
-    state.sync_put_counters(counters);
+    auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    this->process_primaries(params, state, pstate);
+    this->update_counters(params, state, pstate.count);
+    pstate.count = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -208,8 +203,24 @@ void ExtendFromPrimariesAction::process_primaries(
 {
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), primaries};
+        params.ptr<MemSpace::native>(), state.ptr(), primaries, pstate.count};
     return launch_action(*this, primaries.size(), params, state, execute);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update state counters based on the number of
+ * primary particles.
+ */
+void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
+                                                CoreStateHost& state,
+                                                size_type num_primaries) const
+{
+    auto execute_thread = make_single_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdateCountersExecutor{num_primaries});
+    launch_core(1, "update-counters", params, state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -218,6 +229,12 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,
     CoreStateDevice&,
     PrimaryStateData<MemSpace::device> const&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void ExtendFromPrimariesAction::update_counters(
+    CoreParams const&, CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

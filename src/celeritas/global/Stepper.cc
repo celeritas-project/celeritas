@@ -18,13 +18,16 @@
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionLauncher.hh"
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
+#include "detail/SetGeneratedExecutor.hh"
 
 namespace celeritas
 {
@@ -183,11 +186,8 @@ void Stepper<M>::async()
         << "cannot start a step before the current step has been consumed");
 
     ScopedProfiling profile_this{"step"};
-    auto counters = state_->sync_get_counters();
-    counters.num_generated = 0;
-    counters.num_cut = 0;
-    counters.num_errored = 0;
-    state_->sync_put_counters(counters);
+    // Initialize the num_generated counter to zero
+    this->set_generated();
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
     {
@@ -531,6 +531,31 @@ void Stepper<M>::reclaim_submitted_primaries()
         primary_phase_ = PrimaryPhase::empty;
     }
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set the num_pending counter to the number of generated primaries.
+ */
+template<>
+void Stepper<MemSpace::host>::set_generated()
+{
+    auto execute_thread
+        = make_single_track_executor(params_->ptr<MemSpace::native>(),
+                                     state_->ptr(),
+                                     detail::SetGeneratedExecutor{});
+    launch_core(1, "set-generated", *params_, *state_, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+// DEVICE-DISABLED IMPLEMENTATION
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<>
+void Stepper<MemSpace::device>::set_generated()
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

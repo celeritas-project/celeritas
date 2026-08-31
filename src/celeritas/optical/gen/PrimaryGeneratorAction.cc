@@ -33,15 +33,18 @@ namespace optical
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
-    CoreParams const& params, Input&& input)
+std::shared_ptr<PrimaryGeneratorAction>
+PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
-    auto result = std::make_shared<PrimaryGeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
+    auto result = std::make_shared<PrimaryGeneratorAction>(actions.next_id(),
+                                                           aux.next_id(),
+                                                           gen.next_id(),
+                                                           params,
+                                                           std::move(input));
 
     actions.insert(result);
     aux.insert(result);
@@ -54,12 +57,14 @@ std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
  * Construct with IDs and distribution.
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id, Input inp)
+    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params, Input inp)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "primary-generate",
                     "generate optical photon primaries")
+    , core_params_(&params)
+
 {
     HostVal<DistributionParamsData> host_params;
     DistributionInserter insert(host_params);
@@ -70,9 +75,9 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
     data_.shape = std::visit(insert, inp.shape);
 
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
-
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
+    CELER_ENSURE(core_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -133,9 +138,7 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
 
     auto& aux_state = this->counters(*state.aux());
     aux_state.counters.num_pending = data_.num_photons;
-    auto counters = state.sync_get_counters();
-    counters.num_pending += data_.num_photons;
-    state.sync_put_counters(counters);
+    this->update_pending(*core_params_, state, data_.num_photons);
 }
 
 //---------------------------------------------------------------------------//
@@ -150,9 +153,10 @@ void PrimaryGeneratorAction::step_impl(CoreParams const& params,
 
     auto const& counters = this->counters(*state.aux()).counters;
 
-    if (state.sync_get_counters().num_vacancies > 0 && counters.num_pending > 0)
+    if (counters.num_pending > 0)
     {
-        // Generate the optical photons from the distribution data
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
     }
 
@@ -170,13 +174,11 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
     CELER_EXPECT(state.aux());
 
     auto const& aux_state = this->counters(*state.aux());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, params_.host_ref()};
-    launch_action(num_gen, execute);
+    launch_action(aux_state.counters.num_pending, execute);
 }
 
 //---------------------------------------------------------------------------//

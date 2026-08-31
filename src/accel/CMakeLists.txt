@@ -50,6 +50,7 @@ list(APPEND SOURCES
 )
 
 celeritas_polysource(ExceptionConverter)
+celeritas_polysource(LocalOpticalGenOffload)
 
 if(Geant4_VERSION VERSION_GREATER_EQUAL 11.0)
   list(APPEND SOURCES

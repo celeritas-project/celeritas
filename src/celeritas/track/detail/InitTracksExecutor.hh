@@ -45,7 +45,6 @@ struct InitTracksExecutor
 
     ParamsPtr params;
     StatePtr state;
-    size_type num_init{};
 
     //// FUNCTIONS ////
 
@@ -63,48 +62,54 @@ struct InitTracksExecutor
  */
 CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
 {
-    CELER_EXPECT(tid < num_init);
+    CELER_EXPECT(params);
+    CELER_EXPECT(state);
 
     auto const& data = state->init;
     auto* counters = state->init.counters.data().get();
-    // Get the track initializer from the back of the vector. Since new
-    // initializers are pushed to the back of the vector, these will be the
-    // most recently added and therefore the ones that still might have a
-    // parent they can copy the geometry state from.
-    TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
-        if (params->init.track_order == TrackOrder::init_charge)
-        {
-            // Get the index into the track initializer or parent track slot ID
-            // array from the sorted indices
-            return data.indices[TrackSlotId(index_before(num_init, tid))]
-                   + counters->num_initializers - num_init;
-        }
-        return index_before(counters->num_initializers, tid);
-    }())];
-
-    // View to the new track to be initialized
-    CoreTrackView vacancy{
-        *params, *state, [&] {
-            if (params->init.track_order == TrackOrder::init_charge
-                && IsNeutral{params}(init))
-            {
-                // Get the vacancy from the front of the
-                // track state
-                return data.vacancies[TrackSlotId(index_before(num_init, tid))];
-            }
-            // Get the vacancy from the back of the track
-            // state
-            return data.vacancies[TrackSlotId(
-                index_before(counters->num_vacancies, tid))];
-        }()};
-
-    // Clear parent IDs if new primaries were added this step
-    if (counters->num_generated)
+    size_type num_init
+        = min(counters->num_vacancies, counters->num_initializers);
+    CELER_EXPECT(num_init <= state->size());
+    if (tid < num_init)
     {
-        init.geo.parent = {};
-    }
+        // Get the track initializer from the back of the vector. Since new
+        // initializers are pushed to the back of the vector, these will be the
+        // most recently added and therefore the ones that still might have a
+        // parent they can copy the geometry state from.
+        TrackInitializer& init = data.initializers[ItemId<TrackInitializer>([&] {
+            if (params->init.track_order == TrackOrder::init_charge)
+            {
+                // Get the index into the track initializer or parent track
+                // slot ID array from the sorted indices
+                return data.indices[TrackSlotId(index_before(num_init, tid))]
+                       + counters->num_initializers - num_init;
+            }
+            return index_before(counters->num_initializers, tid);
+        }())];
 
-    vacancy = init;
+        // View to the new track to be initialized
+        CoreTrackView vacancy{
+            *params, *state, [&] {
+                if (params->init.track_order == TrackOrder::init_charge
+                    && IsNeutral{params}(init))
+                {
+                    // Get the vacancy from the front of the track state
+                    return data.vacancies[TrackSlotId(
+                        index_before(num_init, tid))];
+                }
+                // Get the vacancy from the back of the track state
+                return data.vacancies[TrackSlotId(
+                    index_before(counters->num_vacancies, tid))];
+            }()};
+
+        // Clear parent IDs if new primaries were added this step
+        if (counters->num_generated)
+        {
+            init.geo.parent = {};
+        }
+
+        vacancy = init;
+    }
 }
 
 //---------------------------------------------------------------------------//
