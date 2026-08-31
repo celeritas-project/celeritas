@@ -14,6 +14,21 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Write the operand to the contained stream.
+ */
+struct GenericToStream
+{
+    std::ostream& os;
+
+    template<class T>
+    void operator()(T&& obj) const
+    {
+        this->os << std::forward<T>(obj);
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Return as a string any object that has an ostream operator.
  */
 template<class T>
