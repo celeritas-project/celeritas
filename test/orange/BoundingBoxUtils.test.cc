@@ -11,6 +11,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
@@ -291,6 +292,35 @@ TEST_F(IntersectsSegmentTest, basic)
         // Already inside: always true
         pos = transform.transform_up(Real3{0.5, 0.6, 0.7});
         EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1_r));
+    }
+}
+
+TEST_F(IntersectsSegmentTest, TEST_IF_CELERITAS_DEBUG(errors))
+{
+    // Null bboxes have false positives and shouldn't be part of BVH or testing
+    Real3 plus_x{1, 0, 0};
+    constexpr BBox null_bbox;
+    EXPECT_THROW(intersects_segment(null_bbox, Real3{0, 0, 0}, plus_x, 0.2_r),
+                 DebugError);
+
+    // No zero distances
+    BBox regular_box{{0, 0, 0}, {1, 1, 1}};
+    EXPECT_THROW(intersects_segment(regular_box, Real3{0, 0, 0}, plus_x, 0_r),
+                 DebugError);
+}
+
+TEST_F(IntersectsSegmentTest, degenerate)
+{
+    Real3 plus_x{1, 0, 0};
+    {
+        auto inf_bbox = BBox::from_infinite();
+        constexpr real_type infr = std::numeric_limits<real_type>::infinity();
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{0, 0, 0}, plus_x, 0.2_r));
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{-0.01_r, 0, 0}, plus_x, 1_r));
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{-0.01_r, 0, 0}, plus_x, infr));
     }
 }
 

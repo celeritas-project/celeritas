@@ -300,9 +300,6 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
  * \warning Large segment lengths are allowed to support degenerate cases, but
  * they may result in false positives (and result in slowing down a BVH
  * search).
- *
- * \note Infinite bounding boxes are \em not supported, but they should never
- * be generated due to the construction implementation.
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -310,6 +307,7 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
                                               Array<T, 3> const& dir,
                                               T distance)
 {
+    CELER_EXPECT(bbox);
     CELER_EXPECT(distance > 0);
     Array<T, 3> hw;  // Half-widths of bounding box
     Array<T, 3> bbm;  // Midpoint of the bbox relative to pos
