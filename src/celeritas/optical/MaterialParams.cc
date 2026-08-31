@@ -11,7 +11,6 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
-#include "corecel/grid/DerivativeGridCalculator.hh"
 #include "corecel/grid/NonuniformGridData.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/io/Logger.hh"
@@ -22,6 +21,8 @@
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
+
+#include "GroupVelocityGridBuilder.hh"
 
 namespace celeritas
 {
@@ -97,8 +98,9 @@ MaterialParams::MaterialParams(Input const& inp)
 
     HostVal<MaterialParamsData> data;
     NonuniformGridInserter insert_grid(&data.reals, &data.refractive_index);
-    NonuniformGridInserter insert_derivative_grid(
-        &data.reals, &data.refractive_index_derivative);
+    NonuniformGridInserter insert_group_velocity(&data.reals,
+                                                 &data.group_velocity);
+
     for (auto opt_mat_idx : range(inp.properties.size()))
     {
         auto const& mat = inp.properties[opt_mat_idx];
@@ -123,14 +125,17 @@ MaterialParams::MaterialParams(Input const& inp)
                                   "for optical material "
                                << opt_mat_idx;
         }
-        insert_grid(ri);
+        auto const rindex_id = insert_grid(ri);
 
-        // Add refractive index derivative grid
-        insert_derivative_grid(construct_derivative_grid(ri));
+        NonuniformGridCalculator rindex_calc{data.refractive_index[rindex_id],
+                                             make_ref(data.reals)};
+
+        // Add group velocity grid use the rindex grid to interpolate the
+        // refractive index and to evaluate its derivative
+        insert_group_velocity(GroupVelocityGridBuilder{rindex_calc}(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
-    CELER_ASSERT(data.refractive_index_derivative.size()
-                 == inp.properties.size());
+    CELER_ASSERT(data.group_velocity.size() == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {

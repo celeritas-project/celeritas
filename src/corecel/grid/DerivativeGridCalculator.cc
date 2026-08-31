@@ -13,14 +13,10 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct the derivative grid of an imported grid.
+ * Construct the derivative grid using interval slopes.
  *
- * Since grid are piecewise functions, the left-derivatives and
- * right-derivatives might not agree at a grid point. A single derivative
- * is stored at each point by taking the harmonic mean of the adjacent interval
- * slopes. This reduces the influence of a comparatively
- * large slope while incorporating both one-sided derivatives.
- * The endpoints use the one-sided slopes of their nearest intervals.
+ * Interior values are placed at the arithmetic mean of each interval's
+ * endpoints. The first and last values use their nearest interval slope.
  *
  * \todo Currently only linearly interpolated grids are supported since they
  * are necessary for calculating group velocity from refractive index.
@@ -32,9 +28,10 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
                    << to_cstring(grid.interpolation.type)
                    << " derivative calculation is not supported on a "
                       "non-linear grid");
-    CELER_VALIDATE(is_monotonic_increasing(make_span(grid.x)),
-                   << "input grid has coincident x values; harmonic-mean "
-                      "derivative is undefined across a zero-width interval");
+    CELER_VALIDATE(
+        is_monotonic_increasing(make_span(grid.x)),
+        << "input grid points must be strictly increasing for derivative "
+           "calculation");
 
     inp::Grid result;
     result.interpolation = grid.interpolation;
@@ -50,14 +47,16 @@ inp::Grid construct_derivative_grid(inp::Grid const& grid)
 
     // One-sided derivatives at endpoints
     result.y.front() = derivative(0);
-    result.y.back() = derivative(n - 2);
+
+    // Interior points use the preceding interval slope at its midpoint
     for (size_type i = 1; i + 1 < n; ++i)
     {
-        double const s_left = derivative(i - 1);
-        double const s_right = derivative(i);
-
-        result.y[i] = 2 * s_left * s_right / (s_left + s_right);
+        result.x[i] = real_type(0.5) * (grid.x[i - 1] + grid.x[i]);
+        result.y[i] = derivative(i - 1);
     }
+
+    // Last point uses the final interval
+    result.y.back() = derivative(n - 2);
 
     CELER_ASSERT(result.x.size() == result.y.size());
     // Ensure epsilon neighborhoods don't overlap

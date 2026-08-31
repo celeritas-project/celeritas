@@ -239,12 +239,12 @@ TEST_F(DetectorTest, simple)
     // At every interior point, one adjacent slope is zero, causing the
     // harmonic-mean derivative to be zero.
     static double const expected_times[] = {
-        1.16665 * flight_time,
+        1.49995 * flight_time,
         1.3333 * flight_time,
-        1.66665 * flight_time,
-        2 * flight_time,
-        2 * flight_time,
-        2 * flight_time,
+        3.66675 * flight_time,
+        3.27665 * flight_time,
+        2.96158 * flight_time,
+        2.70178 * flight_time,
         flight_time,
     };
 
