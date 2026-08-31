@@ -51,6 +51,11 @@ def setup_physics(kernel):
     celer_phys.InitCapacity = 245760
     # Celeritas does not support single scattering
     celer_phys.IgnoreProcesses = ["CoulombScat"]
+    # Optionally use a covfie magnetic field map instead of the DD4hep
+    # ConstantField. FieldMapType can be "cartesian" for BxByBz maps or "rz"
+    # for BrBz maps.
+    # celer_phys.FieldMapFile = "path/to/field-map.covfie"
+    # celer_phys.FieldMapType = "cartesian"
     phys.adopt(celer_phys)
     phys.dump()
     return None
