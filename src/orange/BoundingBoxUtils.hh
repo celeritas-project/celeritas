@@ -271,19 +271,20 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 /*!
  * Check if a line segment \em may intersect a bounding box.
  *
- * The line segment is defined from \c pos in direction \c dir with length \c
- * distance . If the position is already inside the bounding box, the result is
+ * The line segment is defined from \c pos in direction \c dir with length
+ * \c distance.
+ * If the position is already inside the bounding box, the result is
  * always true.
  *
  * This uses a separating-axis test (see \citet{ericson-collision-2004,
- * https://www.taylorfrancis.com/books/9780080474144} ). It translates the
- * coordinate system to the center of the bbox and tests six axes
- * (see Fig. 5.23, Table 5.1 in reference):
- * - The AABB face normals
- * - The cross products between the direction vector and face normals
+ * https://www.taylorfrancis.com/books/9780080474144} ).
+ * It translates the coordinate system to the center of the bbox and tests six
+ * axes (see Fig. 5.23, Table 5.1 in reference):
+ * - the AABB face normals, and
+ * - the cross products between the direction vector and face normals .
  *
  * Modifications have been made from the original algorithm for robustness and
- * GPU performance:
+ * GPU performance.
  * - Manual unrolling and unconditional evaluation of the off-axis tests lead
  *   to a 10% speedup in the along-step kernel and enable automatic
  *   vectorization when compiled with clang for aarch64.
