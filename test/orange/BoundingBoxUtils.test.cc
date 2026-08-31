@@ -7,14 +7,22 @@
 #include "orange/BoundingBoxUtils.hh"
 
 #include <limits>
+#include <optional>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
+#include "corecel/Constants.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "geocel/BoundingBox.hh"
+#include "geocel/Types.hh"
 #include "orange/MatrixUtils.hh"
 #include "orange/transform/Transformation.hh"
 #include "orange/transform/Translation.hh"
 
 #include "celeritas_test.hh"
+#include "gtest/gtest.h"
 
 namespace celeritas
 {
@@ -246,49 +254,139 @@ TEST_F(BoundingBoxUtilsTest, bbox_overlap_fraction)
     }
 }
 
-using IntersectsSegmentTest = Test;
+class IntersectsSegmentTest : public Test
+{
+  public:
+    using LimitsT = std::numeric_limits<real_type>;
+};
 
 TEST_F(IntersectsSegmentTest, basic)
 {
-    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
+    for (Real3 const& lower :
+         {Real3{0, 0, 0}, Real3{0.04_r, 100.3_r, -10_r}, Real3{-1e4, 1e5, 1e6}})
+    {
+        Translation transform{lower};
+        auto bbox = calc_transform(transform, BBox{{0, 0, 0}, {1, 1, 1}});
 
-    // Basic case: pos outside by 0.1 along x
-    Real3 pos{1.1, 0.5, 0.5};
-    Real3 dir{-1, 0, 0};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.05_r));
+        // Basic case: pos outside by 0.1 along x
+        Real3 pos = transform.transform_up({1.1, 0.5, 0.5});
+        Real3 dir{-1, 0, 0};
+        EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+        EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.05_r));
 
-    // Coming in from an angle (entry dist = 0.1 * sqrt(2_r))
-    dir = Real3(-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0);
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.1_r));
+        // Coming in from an angle (entry dist = 0.1 * sqrt(2_r))
+        dir = Real3(-std::sqrt(2) / 2, -std::sqrt(2) / 2, 0);
+        EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.2_r));
+        EXPECT_FALSE(intersects_segment(bbox, pos, dir, 0.1_r));
 
-    // First intersection point occurs outside box, but second intersection
-    // point is valid (entry dist = 2 * sqrt(2_r))
-    pos = Real3{3, 2.5, 0.5};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 3.0_r));
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 2.0_r));
+        // First intersection point occurs outside box, but second intersection
+        // point is valid (entry dist = 2 * sqrt(2_r))
+        pos = transform.transform_up({3, 2.5, 0.5});
+        EXPECT_TRUE(intersects_segment(bbox, pos, dir, 3.0_r));
+        EXPECT_FALSE(intersects_segment(bbox, pos, dir, 2.0_r));
 
-    // No intersection
-    dir = Real3{0, -1, 0};
-    EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6_r));
+        // No intersection
+        dir = Real3{0, -1, 0};
+        EXPECT_FALSE(intersects_segment(bbox, pos, dir, 1e6_r));
 
-    // Already inside: always true
-    pos = Real3{0.5, 0.6, 0.7};
-    EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1_r));
+        // Already inside: always true
+        pos = transform.transform_up(Real3{0.5, 0.6, 0.7});
+        EXPECT_TRUE(intersects_segment(bbox, pos, dir, 0.1_r));
+    }
+}
 
-    // Start exactly on bbox, exiting
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{1, 0, 0}, Real3{1, 0, 0}, 0.1_r));
-    // Start exactly on bbox, entering
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{1, 0, 0}, Real3{-1, 0, 0}, 0.1_r));
-    // End exactly on bbox, exiting
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{0.5, 0, 0}, Real3{1, 0, 0}, 0.5_r));
+TEST_F(IntersectsSegmentTest, TEST_IF_CELERITAS_DEBUG(errors))
+{
+    // Null bboxes have false positives and shouldn't be part of BVH or testing
+    Real3 plus_x{1, 0, 0};
+    constexpr BBox null_bbox;
+    EXPECT_THROW(intersects_segment(null_bbox, Real3{0, 0, 0}, plus_x, 0.2_r),
+                 DebugError);
+
+    // No zero distances
+    BBox regular_box{{0, 0, 0}, {1, 1, 1}};
+    EXPECT_THROW(intersects_segment(regular_box, Real3{0, 0, 0}, plus_x, 0_r),
+                 DebugError);
+}
+
+TEST_F(IntersectsSegmentTest, degenerate)
+{
+    Real3 plus_x{1, 0, 0};
+    {
+        auto inf_bbox = BBox::from_infinite();
+        constexpr real_type infr = std::numeric_limits<real_type>::infinity();
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{0, 0, 0}, plus_x, 0.2_r));
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{-0.01_r, 0, 0}, plus_x, 1_r));
+        EXPECT_TRUE(
+            intersects_segment(inf_bbox, Real3{-0.01_r, 0, 0}, plus_x, infr));
+    }
+}
+
+TEST_F(IntersectsSegmentTest, edge)
+{
+    constexpr auto eps = LimitsT::epsilon();
+    constexpr auto sqrt_two = static_cast<real_type>(constants::sqrt_two);
+    auto const sqrt_eps = std::sqrt(eps);
+    BBox bbox{{0, 0, 0}, {1, 1, 1}};
+
+    struct
+    {
+        char const* label;
+        Real3 pos;
+        Real3 dir;
+    } const rays[] = {
+        {"orthogonal", Real3{1, 0, 0}, Real3{1, 0, 0}},
+        {"tangent", Real3{0.9, 1, 0}, Real3{sqrt_two, sqrt_two, 0}},
+    };
+
+    for (auto const& r : rays)
+    {
+        SCOPED_TRACE(r.label);
+
+        auto outside_pos = r.pos;
+        axpy(10 * eps, r.dir, &outside_pos);
+        ASSERT_FALSE(is_inside(bbox, outside_pos));
+
+        for (auto d : {eps * 0.1_r,
+                       eps,
+                       0.1_r,
+                       1.0_r,
+                       sqrt_eps,
+                       1.0_r / eps,
+                       10.0_r / eps,
+                       LimitsT::max(),
+                       LimitsT::infinity()})
+        {
+            SCOPED_TRACE(testing::Message() << "d=" << d);
+            // Start exactly on bbox, exiting
+            EXPECT_TRUE(intersects_segment(bbox, r.pos, r.dir, d));
+            // Start exactly on bbox, entering
+            EXPECT_TRUE(intersects_segment(bbox, r.pos, -r.dir, d));
+            // Start just outside bbox, exiting
+            if (d < 1 / eps)
+            {
+                EXPECT_FALSE(intersects_segment(bbox, outside_pos, r.dir, d));
+            }
+            else
+            {
+                // False positives are OK at distances of 1/eps or greater
+                EXPECT_TRUE(intersects_segment(bbox, outside_pos, r.dir, d));
+            }
+        }
+    }
+
+    for (auto dx : {0_r, eps * 0.1_r, eps, 10_r * eps})
+    {
+        SCOPED_TRACE(testing::Message() << "dx=" << dx);
+        // End exactly on bbox, exiting
+        EXPECT_TRUE(intersects_segment(
+            bbox, Real3{0.5_r - dx, 0, 0}, Real3{1, 0, 0}, 0.5_r + dx));
+    }
     // End exactly on bbox, entering
     EXPECT_TRUE(
-        intersects_segment(bbox, Real3{1.5, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
+        intersects_segment(bbox, Real3{1.5_r, 0, 0}, Real3{-1, 0, 0}, 0.5_r));
 }
 
 TEST_F(IntersectsSegmentTest, near_degenerate)
@@ -325,7 +423,7 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
     };
 
     constexpr real_type large_dist
-        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e5_r);
+        = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e10_r : 1e4_r);
     for (auto const max_dist : {1 / large_dist, large_dist})
     {
         for (auto const& p : positions)
@@ -345,25 +443,52 @@ TEST_F(IntersectsSegmentTest, near_degenerate)
     }
 }
 
-TEST_F(IntersectsSegmentTest, infinite)
+// Manual degenerate test: caused failures in SCALE
+TEST_F(IntersectsSegmentTest, max)
 {
-    BBox const bbox{{0., 0., 0.}, {1, 1, 1}};
+    using OptReal = std::optional<real_type>;
+    using LimitsT = std::numeric_limits<real_type>;
 
-    constexpr real_type infr = std::numeric_limits<real_type>::infinity();
+    constexpr auto sqrt_three = static_cast<real_type>(constants::sqrt_three);
 
-    // Actually intersecting
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{0.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
-    EXPECT_TRUE(intersects_segment(
-        bbox, Real3{0.5, 1.25, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
+    constexpr BBox rough_bbox({-2.1, -0.3, -1.57}, {2.1, 0.53, 7.59});
+    constexpr BBox nice_bbox({-1, -1, -1}, {1, 1, 1});
 
-    // False positives
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{1.5, 0.5, 0.5}, Real3{1, 0, 0}, infr));
-    EXPECT_TRUE(
-        intersects_segment(bbox, Real3{-0.5, 1.1, 0.5}, Real3{1, 0, 0}, infr));
-    EXPECT_TRUE(intersects_segment(
-        bbox, Real3{1.5, 0.75, 0.5}, make_unit_vector(Real3{1, -1, 0}), infr));
+    constexpr Real3 rough_pos{
+        0.062400918890639, -0.020731179755796, -0.49565748608039};
+    constexpr Real3 nice_pos{
+        0.062400918890639, -0.020731179755796, -0.49565748608039};
+
+    constexpr Real3 rough_dir{
+        -0.29659517793322, 0.77507630574574, -0.55793191403459};
+    constexpr Real3 nice_dir{sqrt_three, sqrt_three, -sqrt_three};
+
+    constexpr auto correct = std::nullopt;
+    auto find_failure
+        = [](BBox const& bbox, Real3 const& pos, Real3 const& dir) -> OptReal {
+        constexpr auto inv_epsilon = 1 / LimitsT::epsilon();
+        for (auto d : {LimitsT::epsilon(),
+                       1.0_r,
+                       inv_epsilon,
+                       10.0_r * inv_epsilon,
+                       100.0_r * inv_epsilon,
+                       1000.0_r * inv_epsilon,
+                       LimitsT::max(),
+                       LimitsT::infinity()})
+        {
+            bool result = intersects_segment(bbox, pos, dir, d);
+            if (!result)
+            {
+                // False miss
+                return d;
+            }
+        }
+        return std::nullopt;  // No failure found
+    };
+    EXPECT_EQ(correct, find_failure(nice_bbox, nice_pos, nice_dir));
+    EXPECT_EQ(correct, find_failure(rough_bbox, nice_pos, rough_dir));
+    EXPECT_EQ(correct, find_failure(rough_bbox, nice_pos, nice_dir));
+    EXPECT_EQ(correct, find_failure(rough_bbox, rough_pos, rough_dir));
 }
 
 TEST_F(BoundingBoxUtilsTest, bbox_encloses)

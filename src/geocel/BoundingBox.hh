@@ -71,11 +71,11 @@ class BoundingBox
     CELER_CONSTEXPR_FUNCTION BoundingBox() noexcept;
 
     // Construct from upper and lower points
-    inline CELER_FUNCTION BoundingBox(
+    CELER_CONSTEXPR_FUNCTION BoundingBox(
         Real3 const& lower, Real3 const& upper) noexcept(!CELERITAS_DEBUG);
 
     // Construct from lo/hi extents (transposed layout)
-    inline CELER_FUNCTION BoundingBox(Extents3 const& extents) noexcept(
+    CELER_CONSTEXPR_FUNCTION BoundingBox(Extents3 const& extents) noexcept(
         !CELERITAS_DEBUG);
 
     //// ACCESSORS ////
@@ -283,7 +283,7 @@ CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox() noexcept
  * at a single point) but upper must not be less than lower.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>::BoundingBox(
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox(
     Real3 const& lo, Real3 const& hi) noexcept(!CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, Points{lo, hi}}
 {
@@ -295,8 +295,8 @@ CELER_FUNCTION BoundingBox<T>::BoundingBox(
  * Create a non-null bounding box from lo/hi extents.
  */
 template<class T>
-CELER_FUNCTION BoundingBox<T>::BoundingBox(Extents3 const& extents) noexcept(
-    !CELERITAS_DEBUG)
+CELER_CONSTEXPR_FUNCTION BoundingBox<T>::BoundingBox(
+    Extents3 const& extents) noexcept(!CELERITAS_DEBUG)
     : BoundingBox{std::true_type{}, extents}
 {
     CELER_EXPECT(*this);
