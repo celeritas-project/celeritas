@@ -51,6 +51,7 @@ jobs:
           preset: ${{env.CMAKE_PRESET}}
           key: ccache-ultralite-ubuntu
           ccache-max-size: 100Mi
+          debug: true
 
       ### TEST ###
 

@@ -5,77 +5,77 @@
 # Restore a ccache directory, build, and save the cache on success.
 #-----------------------------------------------------------------------------#
 
-name: 'Build with ccache'
-description: 'Restore ccache, build a preset, show statistics, and save on success'
+name: "Build with ccache"
+description: "Restore ccache, build a preset, show statistics, and save on success"
 inputs:
   preset:
-    description: 'CMake build preset to execute'
+    description: "CMake build preset to execute"
     required: true
   key:
-    description: 'Cache key prefix, without the github.run_id suffix'
+    description: "Cache key prefix, without the github.run_id suffix"
     required: true
   ccache-dir:
-    description: 'Directory to use for ccache'
+    description: "Directory to use for ccache"
     required: false
     default: ${{github.workspace}}/.ccache
   ccache-max-size:
-    description: 'Maximum size of the ccache directory'
+    description: "Maximum size of the ccache directory"
     required: true
-  debug:
-    description: 'Enable and upload ccache debug logs'
+  ccache-debug:
+    description: "Enable and upload ccache debug logs"
     required: false
-    default: 'false'
+    default: "false"
 outputs:
   build-outcome:
     description: "Outcome of the build step ('success' or 'failure')"
     value: ${{steps.build.outcome}}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Restore ccache
       uses: actions/cache/restore@v5
       with:
-        path: ${{inputs.ccache-dir}}
-        key: ${{inputs.key}}-${{github.run_id}}
-        restore-keys: ${{inputs.key}}
+        path: ${{ inputs.ccache-dir }}
+        key: ${{ inputs.key }}-${{ github.run_id }}
+        restore-keys: ${{ inputs.key }}
+
+    - name: Configure ccache environment
+      shell: bash
+      run: |
+        {
+          echo "CCACHE_DIR=${{ inputs.ccache-dir }}"
+          echo "CCACHE_MAXSIZE=${{ inputs.ccache-max-size }}"
+          echo "CCACHE_DEBUG=${{ inputs.ccache-debug == 'true' && '1' || '' }}"
+          echo "CCACHE_DEBUGDIR=${{ inputs.ccache-dir }}/debug"
+        } >> "$GITHUB_ENV"
+
     - name: Zero ccache stats
       shell: bash
       run: ccache -z
-      env:
-        CCACHE_DIR: ${{inputs.ccache-dir}}
-        CCACHE_MAXSIZE: ${{inputs.ccache-max-size}}
-        CCACHE_DEBUG: ${{inputs.debug == 'true' && '1' || ''}}
-        CCACHE_DEBUGDIR: ${{inputs.ccache-dir}}/debug
+
     - name: Build
       id: build
       shell: bash
-      run: cmake --build --preset=${{inputs.preset}}
-      env:
-        CCACHE_DIR: ${{inputs.ccache-dir}}
-        CCACHE_MAXSIZE: ${{inputs.ccache-max-size}}
-        CCACHE_DEBUG: ${{inputs.debug == 'true' && '1' || ''}}
-        CCACHE_DEBUGDIR: ${{inputs.ccache-dir}}/debug
+      run: cmake --build --preset=${{ inputs.preset }}
+
     - name: Show ccache stats
-      if: ${{!cancelled()}}
+      if: ${{ !cancelled() }}
       shell: bash
       run: ccache -s
-      env:
-        CCACHE_DIR: ${{inputs.ccache-dir}}
-        CCACHE_MAXSIZE: ${{inputs.ccache-max-size}}
-        CCACHE_DEBUG: ${{inputs.debug == 'true' && '1' || ''}}
-        CCACHE_DEBUGDIR: ${{inputs.ccache-dir}}/debug
+
     - name: Save ccache
-      if: ${{always() && steps.build.outcome == 'success'}}
+      if: ${{ always() && steps.build.outcome == 'success' }}
       uses: actions/cache/save@v5
       with:
-        path: ${{inputs.ccache-dir}}
-        key: ${{inputs.key}}-${{github.run_id}}
+        path: ${{ inputs.ccache-dir }}
+        key: ${{ inputs.key }}-${{ github.run_id }}
+
     - name: Upload ccache debug
-      if: ${{inputs.debug == 'true' && !cancelled()}}
+      if: ${{ inputs.debug == 'true' && !cancelled() }}
       uses: actions/upload-artifact@v7
       with:
-        path: ${{inputs.ccache-dir}}/debug
-        name: debug-ccache-${{github.job}}-${{github.run_id}}
+        path: ${{ inputs.ccache-dir }}/debug
+        name: debug-ccache-${{ github.job }}-${{ github.run_id }}
         overwrite: true
         retention-days: 7
