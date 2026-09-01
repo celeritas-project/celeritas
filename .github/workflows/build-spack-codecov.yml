@@ -1,0 +1,118 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build with coverage instrumentation using Spack and upload results to Codecov.
+#-----------------------------------------------------------------------------#
+
+name: build-spack-codecov
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+
+concurrency:
+  group: build-spack-codecov-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+
+jobs:
+  codecov:
+    name: codecov-vecgeom
+    env:
+      CCACHE_DIR: "${{github.workspace}}/.ccache"
+      CCACHE_MAXSIZE: "300Mi"
+      CMAKE_PRESET: ndebug-vecgeom-codecov
+      CC: "clang-18"
+      CXX: "clang++-18"
+      LLVM_COV: "llvm-cov-18"
+      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
+      CXXSTD: 20
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    steps:
+      - name: Set up Spack environment
+        uses: ./.github/actions/spack-setup
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          geometry: vecgeom
+          geant: "11.3"
+          cxxstd: ${{env.CXXSTD}}
+          add-root: 'true'
+
+      ### BUILD ###
+
+      - name: Restore ccache
+        uses: ./.github/actions/ccache-restore
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{github.run_id}}
+          restore-keys: |
+            ccache-${{env.CMAKE_PRESET}}
+      - name: Build all
+        id: build
+        working-directory: build
+        run: |
+          ccache -z
+          echo "::group::Build verbosely"
+          ninja -v -k0
+          echo "::endgroup::"
+          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
+      - name: Show ccache stats
+        if: ${{!cancelled()}}
+        run: |
+          ccache -s
+      - name: Save ccache
+        uses: ./.github/actions/ccache-save
+        with:
+          path: ${{env.CCACHE_DIR}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{github.run_id}}
+          build-outcome: ${{steps.build.outcome}}
+
+      ### TEST ###
+
+      - name: Regenerate ROOT test data
+        working-directory: build
+        run: |
+          ninja -v -k0 update-root-test-data
+      - name: Run unit tests
+        id: unittest
+        # Increase timeout for code coverage
+        uses: ./.github/actions/run-ctest
+        with:
+          preset: spack-unit
+          artifact-name: test-results-spack-${{env.CMAKE_PRESET}}
+          extra-args: --timeout 60
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        run: |
+          ctest --preset=spack-app
+      - name: Generate and upload coverage report
+        uses: ./.github/actions/generate-coverage
+        if: >-
+          ${{
+            !cancelled()
+            && steps.unittest.outcome == 'success'
+            && steps.apptest.outcome == 'success'
+          }}
+        with:
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          gcov_executable: ${{env.GCOV}}
+
+      ### INSTALL ###
+
+      - name: Install and check
+        id: install
+        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        uses: ./.github/actions/install-and-check
+        with:
+          binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
+      - name: Build examples
+        run: |
+          . ${SPACK_VIEW}/rc
+          export G4VERSION_NUMBER=$(echo "11.3" | awk '{printf "%.0f", $1 * 100}')
+          ./scripts/ci/test-examples.sh
+
+# vim: set nowrap tw=100:

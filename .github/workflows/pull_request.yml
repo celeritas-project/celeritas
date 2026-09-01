@@ -61,8 +61,14 @@ jobs:
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
+  build-spack-tidy:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-tidy.yml
+  build-spack-codecov:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-codecov.yml
     secrets:
-      codecov_token: ${{ secrets.CODECOV_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
@@ -70,6 +76,8 @@ jobs:
     needs:
     - build-docker
     - build-spack
+    - build-spack-tidy
+    - build-spack-codecov
     runs-on: ubuntu-24.04
     steps:
     - name: Decide whether the needed jobs succeeded or failed

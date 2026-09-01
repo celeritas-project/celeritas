@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        special: [null]
+        special: [""]
         geometry: ["orange", "vecgeom"]
         buildtype: ["debug", "ndebug"]
         image: ["rocky-cuda", "ubuntu-rocm"]
@@ -81,15 +81,19 @@ jobs:
 
       ### CONFIGURE ###
 
-      - name: Configure Celeritas
+      - name: Trust checked-out repo
         run: |
           git config --global --add safe.directory ${PWD}
-          ln -fs scripts/cmake-presets/ci-${{matrix.image}}.json CMakeUserPresets.json
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          presets-file: ci-${{matrix.image}}.json
 
       ### BUILD ###
 
       - name: Build Celeritas
+        id: build
         working-directory: build
         run: |
           echo "::group::Build verbosely"
@@ -101,21 +105,10 @@ jobs:
 
       - name: Test Celeritas
         id: test
-        run: |
-          ctest --preset=base
-      - name: Upload test results
-        if: >-
-          ${{
-            always()
-            && (steps.test.outcome == 'success'
-                || steps.test.outcome == 'failure')
-          }}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/run-ctest
         with:
-          name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
+          preset: base
+          artifact-name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
       - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage
         if: >-
@@ -130,33 +123,17 @@ jobs:
 
       ### INSTALL ###
 
-      - name: Install Celeritas
+      - name: Install and check
         id: install
+        uses: ./.github/actions/install-and-check
         if: >-
           ${{
             !cancelled()
             && steps.build.outcome == 'success'
             && matrix.special != 'codecov'
           }}
-        working-directory: build
-        run: |
-          echo "::group::Install"
-          cmake --install .
-          echo "::endgroup::"
-          cmake --build . --target clean
-      - name: Check installation
-        if: >-
-          ${{
-            !cancelled()
-            && steps.install.outcome == 'success'
-          }}
-        working-directory: install
-        run: |
-          for exe in orange-update celer-export-geant \
-            celer-sim celer-g4; do
-            test -x "bin/${exe}"
-          done
-          ./bin/celer-sim --config
+        with:
+          binaries: orange-update celer-export-geant celer-sim celer-g4
       - name: Build examples
         # TODO: rocm+ndebug fails to propagate HIP library link
         if: >-

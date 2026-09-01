@@ -1,0 +1,34 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Restore a ccache directory before the build step.
+#
+# Pair with the 'ccache-save' action, called *after* the build step and gated on
+# its outcome. These are intentionally two separate actions (rather than one) since
+# the caller's build step must run between the restore and the save.
+#-----------------------------------------------------------------------------#
+
+name: 'Restore ccache directory'
+description: 'Restore a ccache directory from the GitHub Actions cache'
+inputs:
+  path:
+    description: 'ccache directory to restore'
+    required: true
+  key:
+    description: 'Unique cache key for this run (should include github.run_id)'
+    required: true
+  restore-keys:
+    description: 'Fallback restore key prefix'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Restore ccache
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{inputs.path}}
+        key: ${{inputs.key}}
+        restore-keys: ${{inputs.restore-keys}}

@@ -1,0 +1,71 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Run clang-tidy on changed files (or, on a schedule, the whole build) using Spack.
+#-----------------------------------------------------------------------------#
+
+name: build-spack-tidy
+on:
+  workflow_dispatch:
+  workflow_call:
+
+concurrency:
+  group: build-spack-tidy-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+
+jobs:
+  tidy:
+    name: tidy-vecgeom
+    env:
+      CMAKE_PRESET: reldeb-vecgeom-tidy
+      CLANG_TIDY: "clang-tidy-18"
+      CC: "clang-18"
+      CXX: "clang++-18"
+      CXXSTD: 20
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    steps:
+      - name: Set up Spack environment
+        uses: ./.github/actions/spack-setup
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          geometry: vecgeom
+          geant: "11.2"
+          cxxstd: ${{env.CXXSTD}}
+          add-root: 'true'
+          fetch-depth: '0' # need full history to diff against the base branch
+
+      ### BUILD ###
+
+      - name: Build with clang-tidy
+        id: tidy
+        env:
+          BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
+        run: |
+          if ${{github.event_name == 'schedule'}}; then
+            echo "Full clang-tidy check on scheduled run."
+            ninja -Cbuild -k0
+            exit $?
+          fi
+          BASE=$(git merge-base origin/${BASE_REF} HEAD)
+          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
+          set +e
+          CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES")
+
+          # Get list of files from compile_commands.json and filter CC_FILES
+          COMPILED_FILES=$(jq -r '.[].file' build/compile_commands.json)
+          CC_FILES=$(echo "$CC_FILES" | while read -r file; do
+            if echo "$COMPILED_FILES" | grep -qE "^.*/${file}$"; then
+              echo "$file"
+            fi
+          done)
+          set -e
+          if [ -z "$CC_FILES" ]; then
+            echo "No files to run clang-tidy on."
+            exit 0
+          fi
+          echo "Running clang-tidy on: $CC_FILES"
+          ${{env.CLANG_TIDY}} -p build $CC_FILES
+          exit $?
+
+# vim: set nowrap tw=100:

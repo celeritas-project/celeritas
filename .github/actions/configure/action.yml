@@ -1,0 +1,45 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Point CMakeUserPresets.json at a CI presets file and configure Celeritas.
+#-----------------------------------------------------------------------------#
+
+name: 'Configure Celeritas'
+description: 'Symlink/copy the CI CMakeUserPresets.json and run cmake --preset'
+inputs:
+  preset:
+    description: 'CMake preset name'
+    required: true
+  presets-file:
+    description: 'Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json'
+    required: true
+  extra-args:
+    description: 'Additional arguments to pass to cmake'
+    required: false
+    default: ''
+  version-string:
+    description: 'Value for -DCeleritas_VERSION_STRING'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Show cmake version
+      shell: bash
+      run: cmake --version
+    - name: Symlink CMakeUserPresets.json (non-Windows)
+      if: ${{runner.os != 'Windows'}}
+      shell: bash
+      run: ln -fs scripts/cmake-presets/${{inputs.presets-file}} CMakeUserPresets.json
+    - name: Copy CMakeUserPresets.json (Windows)
+      if: ${{runner.os == 'Windows'}}
+      shell: pwsh
+      run: Copy-Item scripts/cmake-presets/${{inputs.presets-file}} -Destination CMakeUserPresets.json
+    - name: Configure Celeritas
+      shell: bash
+      run: |
+        cmake --preset=${{inputs.preset}} --log-level=VERBOSE \
+          ${{inputs.extra-args}} \
+          -DCeleritas_VERSION_STRING="${{inputs.version-string}}"

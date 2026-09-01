@@ -27,9 +27,13 @@ jobs:
     secrets: inherit
   build-spack:
     uses: ./.github/workflows/build-spack.yml
+  build-spack-tidy:
+    uses: ./.github/workflows/build-spack-tidy.yml
+  build-spack-codecov:
+    uses: ./.github/workflows/build-spack-codecov.yml
     secrets: inherit
   all:
-    needs: [build-fast, build-docker, build-spack]
+    needs: [build-fast, build-docker, build-spack, build-spack-tidy, build-spack-codecov]
     runs-on: ubuntu-24.04
     steps:
     - name: Success
