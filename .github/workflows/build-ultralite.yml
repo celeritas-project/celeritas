@@ -11,7 +11,7 @@ on:
   workflow_call:
 
 concurrency:
-  group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
@@ -34,7 +34,7 @@ jobs:
           sudo apt-get -q -y install \
             ccache nlohmann-json3-dev libpng-dev
 
-      ### CONFIGURE ###
+      ### BUILD ###
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
@@ -45,8 +45,6 @@ jobs:
             ${{github.event.pull_request
               && format('pr.{0}', github.event.pull_request.number)
               || github.ref_name}}
-
-      ### BUILD ###
 
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore
@@ -117,7 +115,7 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      ### CONFIGURE ###
+      ### BUILD ###
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
@@ -130,8 +128,6 @@ jobs:
               && format('-pr.{0}', github.event.pull_request.number)
               || format('-{0}', github.ref_name)
             }}
-
-      ### BUILD ###
 
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore

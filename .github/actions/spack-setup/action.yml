@@ -15,13 +15,6 @@
 name: 'Set up Spack environment'
 description: 'Check out Celeritas + Spack, concretize/install deps, activate, and configure'
 inputs:
-  preset:
-    description: 'CMake preset name'
-    required: true
-  presets-file:
-    description: 'Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json'
-    required: false
-    default: 'ci-ubuntu-github.json'
   geometry:
     description: "Geometry package to add ('vecgeom', 'vecgeom2', or empty)"
     required: false
@@ -41,10 +34,6 @@ inputs:
     description: 'git fetch-depth for the Celeritas checkout'
     required: false
     default: '383'
-  version-string:
-    description: 'Value for -DCeleritas_VERSION_STRING'
-    required: false
-    default: ''
 
 runs:
   using: 'composite'
@@ -71,7 +60,7 @@ runs:
     - name: Initialize spack environment
       shell: bash
       run: |
-        echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
+        #echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
         sed -e 's/cxxstd=default/cxxstd=${{inputs.cxxstd}}/' \
           scripts/ci/spack.yaml > spack.yaml
         if [ "${{inputs.geometry}}" = "vecgeom" ]; then
@@ -134,9 +123,3 @@ runs:
         echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
         echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
         spack env activate . --sh > "${SPACK_VIEW}/rc"
-    - name: Configure Celeritas
-      uses: ./.github/actions/configure
-      with:
-        preset: ${{inputs.preset}}
-        presets-file: ${{inputs.presets-file}}
-        version-string: ${{inputs.version-string}}

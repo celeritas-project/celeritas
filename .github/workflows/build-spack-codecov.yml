@@ -14,7 +14,8 @@ on:
         required: true
 
 concurrency:
-  group: build-spack-codecov-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
 
 jobs:
   codecov:
@@ -38,9 +39,15 @@ jobs:
           geometry: vecgeom
           geant: "11.3"
           cxxstd: ${{env.CXXSTD}}
-          add-root: 'true'
+          add-root: "true"
 
       ### BUILD ###
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          presets-file: 'ci-ubuntu-github.json'
 
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore
@@ -49,6 +56,7 @@ jobs:
           key: ccache-${{env.CMAKE_PRESET}}-${{github.run_id}}
           restore-keys: |
             ccache-${{env.CMAKE_PRESET}}
+
       - name: Build all
         id: build
         working-directory: build
@@ -57,7 +65,7 @@ jobs:
           echo "::group::Build verbosely"
           ninja -v -k0
           echo "::endgroup::"
-          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
+          # echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
@@ -75,6 +83,7 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
+
       - name: Run unit tests
         id: unittest
         # Increase timeout for code coverage
@@ -83,11 +92,13 @@ jobs:
           preset: spack-unit
           artifact-name: test-results-spack-${{env.CMAKE_PRESET}}
           extra-args: --timeout 60
+
       - name: Run app tests
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
         run: |
           ctest --preset=spack-app
+
       - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage
         if: >-

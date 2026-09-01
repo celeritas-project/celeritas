@@ -15,7 +15,8 @@ on:
   workflow_call:
 
 concurrency:
-  group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
 
 jobs:
   spack:
@@ -81,7 +82,6 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/spack-setup
         with:
-          preset: ${{env.CMAKE_PRESET}}
           geometry: ${{matrix.geometry}}
           geant: ${{matrix.geant}}
           cxxstd: ${{env.CXXSTD}}
@@ -100,6 +100,12 @@ jobs:
 
       ### BUILD ###
 
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          presets-file: 'ci-ubuntu-github.json'
+
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore
         with:
@@ -115,7 +121,7 @@ jobs:
           echo "::group::Build verbosely"
           ninja -v -k0
           echo "::endgroup::"
-          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
+          # echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |

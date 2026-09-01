@@ -11,7 +11,7 @@ on:
   workflow_call:
 
 concurrency:
-  group: build-fast-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 jobs:
@@ -79,7 +79,7 @@ jobs:
           $CC --version | head -1
           $CXX --version | head -1
 
-      ### CONFIGURE ###
+      ### BUILD ###
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
@@ -94,8 +94,6 @@ jobs:
               && format('-pr.{0}', github.event.pull_request.number)
               || format('-{0}', github.ref_name)
             }}
-
-      ### BUILD ###
 
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore
@@ -135,7 +133,7 @@ jobs:
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
         run: |
-          ctest --preset=${CMAKE_PRESET}-app
+          ctest --preset=${{env.CMAKE_PRESET}}-app
 
       ### INSTALL ###
 
@@ -164,6 +162,9 @@ jobs:
           choco install ninja ccache
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
+
+      ### BUILD ###
+
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
@@ -175,8 +176,6 @@ jobs:
               && format('-pr.{0}', github.event.pull_request.number)
               || format('-{0}', github.ref_name)
             }}
-
-      ### BUILD ###
 
       - name: Restore ccache
         uses: ./.github/actions/ccache-restore
@@ -191,7 +190,9 @@ jobs:
       - name: Build
         id: build
         run: |
-          cmake --build --preset=$Env:CMAKE_PRESET
+          echo "::group::Build verbosely"
+          cmake --build --preset=${{env.CMAKE_PRESET}} --verbose
+          echo "::endgroup::"
       - name: Show ccache stats
         if: ${{!cancelled()}}
         run: |
@@ -215,7 +216,7 @@ jobs:
         id: apptest
         if: ${{!cancelled() && steps.build.outcome == 'success'}}
         run: |
-          ctest --preset=$Env:CMAKE_PRESET-app
+          ctest --preset=${{env.CMAKE_PRESET}}-app
 
       ### INSTALL ###
 

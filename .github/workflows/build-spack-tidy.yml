@@ -11,7 +11,8 @@ on:
   workflow_call:
 
 concurrency:
-  group: build-spack-tidy-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
 
 jobs:
   tidy:
@@ -37,7 +38,13 @@ jobs:
 
       ### BUILD ###
 
-      - name: Build with clang-tidy
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CMAKE_PRESET}}
+          presets-file: 'ci-ubuntu-github.json'
+
+      - name: Build changed files with clang-tidy
         id: tidy
         env:
           BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
