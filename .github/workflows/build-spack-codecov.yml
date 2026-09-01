@@ -21,8 +21,6 @@ jobs:
   codecov:
     name: codecov-vecgeom
     env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "300Mi"
       CMAKE_PRESET: ndebug-vecgeom-codecov
       CC: "clang-18"
       CXX: "clang++-18"
@@ -49,33 +47,13 @@ jobs:
           preset: ${{env.CMAKE_PRESET}}
           presets-file: 'ci-ubuntu-github.json'
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}
-
       - name: Build all
         id: build
-        working-directory: build
-        run: |
-          ccache -z
-          echo "::group::Build verbosely"
-          ninja -v -k0
-          echo "::endgroup::"
-          # echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-${{env.CMAKE_PRESET}}
+          ccache-max-size: 300Mi
 
       ### TEST ###
 
@@ -95,7 +73,7 @@ jobs:
 
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         run: |
           ctest --preset=spack-app
 

@@ -18,8 +18,6 @@ jobs:
   linux:
     name: ultralite-ubuntu
     env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "100Mi"
       CMAKE_PRESET: ultralite
     runs-on: ubuntu-24.04
     steps:
@@ -46,39 +44,13 @@ jobs:
               && format('pr.{0}', github.event.pull_request.number)
               || github.ref_name}}
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-ubuntu-${{github.run_id}}
-          restore-keys: |
-            ccache-ultralite-ubuntu
-      - name: Zero ccache stats
-        run: |
-          ccache -z
       - name: Build
         id: build
-        working-directory: build
-        run: |
-          ninja
-      - name: Show ccache stats
-        if: ${{always() && !cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-ubuntu-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
-      - name: Upload ccache debug
-        if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v7
-        with:
-          path: ${{env.CCACHE_DEBUGDIR}}
-          name: debug-ccache-ubuntu-${{github.job}}
-          overwrite: true
-          retention-days: 7
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-ultralite-ubuntu
+          ccache-max-size: 100Mi
 
       ### TEST ###
 
@@ -99,8 +71,6 @@ jobs:
   windows:
     name: ultralite-windows
     env:
-      CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "50Mi"
       CMAKE_PRESET: ultralite
     runs-on: windows-latest
     steps:
@@ -129,38 +99,13 @@ jobs:
               || format('-{0}', github.ref_name)
             }}
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-windows-${{github.run_id}}
-          restore-keys: |
-            ccache-ultralite-windows
-      - name: Zero ccache stats
-        run: |
-          ccache -z
       - name: Build all
         id: build
-        run: |
-          cmake --build --preset=$Env:CMAKE_PRESET
-      - name: Show ccache stats
-        if: ${{always() && !cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-windows-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
-      - name: Upload ccache debug
-        if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v7
-        with:
-          path: ${{env.CCACHE_DEBUGDIR}}
-          name: debug-ccache-windows-${{github.run_id}}
-          overwrite: true
-          retention-days: 7
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-ultralite-windows
+          ccache-max-size: 50Mi
 
       ### TEST ###
 

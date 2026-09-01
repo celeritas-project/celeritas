@@ -48,8 +48,6 @@ jobs:
             version: 22
     env:
       GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "200Mi"
       CMAKE_PRESET: fast
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
@@ -95,31 +93,13 @@ jobs:
               || format('-{0}', github.ref_name)
             }}
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.GHA_JOB_NAME}}
-      - name: Zero ccache stats
-        run: |
-          ccache -z
       - name: Build
         id: build
-        working-directory: build
-        run: |
-          ninja
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-${{env.GHA_JOB_NAME}}
+          ccache-max-size: 200Mi
 
       ### TEST ###
 
@@ -131,7 +111,7 @@ jobs:
           artifact-name: test-results-fast-${{env.GHA_JOB_NAME}}
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         run: |
           ctest --preset=${{env.CMAKE_PRESET}}-app
 
@@ -147,8 +127,6 @@ jobs:
       run:
         shell: pwsh
     env:
-      CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "200Mi"
       CMAKE_PRESET: fast
     runs-on: windows-latest
     steps:
@@ -177,32 +155,13 @@ jobs:
               || format('-{0}', github.ref_name)
             }}
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-fast-windows-${{github.run_id}}
-          restore-keys: |
-            ccache-fast-windows
-      - name: Zero ccache stats
-        run: |
-          ccache -z
       - name: Build
         id: build
-        run: |
-          echo "::group::Build verbosely"
-          cmake --build --preset=${{env.CMAKE_PRESET}} --verbose
-          echo "::endgroup::"
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-fast-windows-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-fast-windows
+          ccache-max-size: 200Mi
 
       ### TEST ###
 
@@ -214,7 +173,7 @@ jobs:
           artifact-name: test-results-fast-windows
       - name: Run app tests
         id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         run: |
           ctest --preset=${{env.CMAKE_PRESET}}-app
 

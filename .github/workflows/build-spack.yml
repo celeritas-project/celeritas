@@ -64,8 +64,6 @@ jobs:
             special: ""
             geant: "11.3"
     env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi"
       CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
@@ -106,32 +104,13 @@ jobs:
           preset: ${{env.CMAKE_PRESET}}
           presets-file: 'ci-ubuntu-github.json'
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
       - name: Build all
         id: build
-        working-directory: build
-        run: |
-          ccache -z
-          echo "::group::Build verbosely"
-          ninja -v -k0
-          echo "::endgroup::"
-          # echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
+          preset: ${{env.CMAKE_PRESET}}
+          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          ccache-max-size: ${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi
 
       ### TEST ###
 
@@ -164,7 +143,7 @@ jobs:
         if: >-
           ${{
             !cancelled()
-            && steps.build.outcome == 'success'
+            && steps.build.outputs.build-outcome == 'success'
           }}
         run: |
           ctest --preset=spack-app
@@ -176,7 +155,7 @@ jobs:
         if: >-
           ${{
             !cancelled()
-            && steps.build.outcome == 'success'
+            && steps.build.outputs.build-outcome == 'success'
             && matrix.special != 'asanlite'
           }}
         env:
@@ -186,7 +165,7 @@ jobs:
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
       - name: Install and check
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
