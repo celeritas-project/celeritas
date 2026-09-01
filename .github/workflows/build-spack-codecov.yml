@@ -101,18 +101,4 @@ jobs:
           fail_ci_if_error: true
           gcov_executable: ${{env.GCOV}}
 
-      ### INSTALL ###
-
-      - name: Install and check
-        id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        uses: ./.github/actions/install-and-check
-        with:
-          binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build examples
-        run: |
-          . ${SPACK_VIEW}/rc
-          export G4VERSION_NUMBER=$(echo "11.3" | awk '{printf "%.0f", $1 * 100}')
-          ./scripts/ci/test-examples.sh
-
 # vim: set nowrap tw=100:

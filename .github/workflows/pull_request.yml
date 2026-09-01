@@ -51,33 +51,41 @@ jobs:
     steps:
     - name: Success
       run: "true"
+  build-spack:
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack.yml
   build-docker:
+    # Since docker builds aren't cached and are large, don't run on draft
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-docker.yml
+  build-spack-tidy:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-tidy.yml
+  build-spack-codecov:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-codecov.yml
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  build-docker-codecov:
     # Since docker builds aren't cached and are large, don't run on draft
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
     secrets:
       codecov_token: ${{ secrets.CODECOV_TOKEN }}
-  build-spack:
-    needs: [all-prechecks]
-    uses: ./.github/workflows/build-spack.yml
-  build-spack-tidy:
-    needs: [all-prechecks]
-    uses: ./.github/workflows/build-spack-tidy.yml
-  build-spack-codecov:
-    needs: [all-prechecks]
-    uses: ./.github/workflows/build-spack-codecov.yml
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
     if: ${{always()}}
     needs:
-    - build-docker
     - build-spack
+    - build-docker
     - build-spack-tidy
     - build-spack-codecov
+    - build-docker-codecov
     runs-on: ubuntu-24.04
     steps:
     - name: Decide whether the needed jobs succeeded or failed
