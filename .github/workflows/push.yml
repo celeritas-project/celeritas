@@ -24,14 +24,20 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-docker:
     uses: ./.github/workflows/build-docker.yml
-    secrets: inherit
   build-spack:
     uses: ./.github/workflows/build-spack.yml
+  build-spack-asan:
+    uses: ./.github/workflows/build-spack-asan.yml
+  build-spack-tidy:
+    uses: ./.github/workflows/build-spack-tidy.yml
+  build-docker-codecov:
+    uses: ./.github/workflows/build-docker-codecov.yml
+    secrets: inherit
   build-spack-codecov:
     uses: ./.github/workflows/build-spack-codecov.yml
     secrets: inherit
   all:
-    needs: [build-fast, build-docker, build-spack, build-spack-tidy, build-spack-codecov]
+    needs: [build-fast, build-docker, build-spack, build-spack-asan, build-spack-tidy, build-spack-codecov]
     runs-on: ubuntu-24.04
     steps:
     - name: Success

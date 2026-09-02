@@ -4,9 +4,8 @@
 #-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
 #
-# NOTE: the 'tidy' and 'codecov' special cases live in build-spack-tidy.yml and
-# build-spack-codecov.yml, since their post-build steps diverge significantly from
-# the rest of the matrix.
+# NOTE: the 'tidy', 'codecov', and 'asan' special cases live in build-spack-{X}.yml
+# since their post-build steps diverge significantly from the rest of the matrix.
 #-----------------------------------------------------------------------------#
 
 name: build-spack
@@ -48,10 +47,6 @@ jobs:
             special: "static"
             geant: "11.3"
           - build_type: "reldeb"
-            geometry: "orange"
-            special: "asanlite"
-            geant: ""
-          - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
@@ -85,7 +80,6 @@ jobs:
           cxxstd: ${{env.CXXSTD}}
           add-root: >-
             ${{(matrix.special != 'minimal'
-                && matrix.special != 'asanlite'
                 && matrix.special != 'static'
                 && env.CXXSTD == '20')
                && 'true' || 'false'}}
@@ -139,12 +133,10 @@ jobs:
               || (matrix.geant && fromJSON(matrix.geant) < 11) && '^accel/'
              }}
       - name: Test basic downstream compilation against build dir
-        # TODO: ASAN requires flags downstream
         if: >-
           ${{
             !cancelled()
             && steps.build.outputs.build-outcome == 'success'
-            && matrix.special != 'asanlite'
           }}
         env:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
@@ -166,7 +158,6 @@ jobs:
         if: >-
           ${{
             steps.install.outcome == 'success'
-            && matrix.special != 'asanlite'
           }}
         run: |
           . ${SPACK_VIEW}/rc

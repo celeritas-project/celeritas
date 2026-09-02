@@ -59,6 +59,10 @@ jobs:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
+  build-spack-asan:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-asan.yml
   build-spack-tidy:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
@@ -83,6 +87,7 @@ jobs:
     needs:
     - build-spack
     - build-docker
+    - build-spack-asan
     - build-spack-tidy
     - build-spack-codecov
     - build-docker-codecov
