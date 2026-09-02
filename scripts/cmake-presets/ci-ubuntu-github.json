@@ -279,6 +279,10 @@
     {
       "name": "doc",
       "inherits": "base"
+    },
+    {
+      "name": "ultralite",
+      "inherits": "base"
     }
   ],
   "testPresets": [

@@ -11,8 +11,8 @@ inputs:
   preset:
     description: "CMake build preset to execute"
     required: true
-  key:
-    description: "Cache key prefix, without the github.run_id suffix"
+  name:
+    description: "Cache key component, without the github.run_id suffix or ccache prefix"
     required: true
   ccache-dir:
     description: "Directory to use for ccache"
@@ -37,8 +37,8 @@ runs:
       uses: actions/cache/restore@v5
       with:
         path: ${{ inputs.ccache-dir }}
-        key: ${{ inputs.key }}-${{ github.run_id }}
-        restore-keys: ${{ inputs.key }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
+        restore-keys: ccache-${{ inputs.name }}
 
     - name: Configure ccache environment
       shell: bash
@@ -69,13 +69,14 @@ runs:
       uses: actions/cache/save@v5
       with:
         path: ${{ inputs.ccache-dir }}
-        key: ${{ inputs.key }}-${{ github.run_id }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
 
     - name: Upload ccache debug
-      if: ${{ inputs.debug == 'true' && !cancelled() }}
+      if: ${{ inputs.ccache-debug == 'true' && !cancelled() }}
       uses: actions/upload-artifact@v7
       with:
         path: ${{ inputs.ccache-dir }}/debug
         name: debug-ccache-${{ github.job }}-${{ github.run_id }}
         overwrite: true
+        if-no-files-found: error
         retention-days: 7

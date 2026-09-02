@@ -10,8 +10,8 @@
 
 name: build-spack
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -104,7 +104,7 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
+          name: ${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
           ccache-max-size: ${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi
 
       ### TEST ###

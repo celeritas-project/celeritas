@@ -7,7 +7,7 @@
 
 name: build-spack-codecov
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
   workflow_call:
     secrets:
       CODECOV_TOKEN:
@@ -52,7 +52,7 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-${{env.CELER_CMAKE_PRESET}}
+          name: ${{env.CELER_CMAKE_PRESET}}
           ccache-max-size: 300Mi
 
       ### TEST ###

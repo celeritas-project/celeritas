@@ -7,8 +7,8 @@
 
 name: build-ultralite
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -47,9 +47,9 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-ultralite-ubuntu
+          name: ultralite-ubuntu
           ccache-max-size: 100Mi
-          debug: true
+          ccache-debug: true
 
       - name: Test
         id: test
@@ -94,7 +94,7 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-ultralite-windows
+          name: ultralite-windows
           ccache-max-size: 50Mi
 
       - name: Test

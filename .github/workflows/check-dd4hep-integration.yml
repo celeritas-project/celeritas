@@ -8,8 +8,8 @@
 name: Check dd4hep integration
 
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}

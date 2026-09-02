@@ -7,8 +7,8 @@
 
 name: build-fast
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -99,7 +99,7 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-fast-${{env.CELER_JOB_NAME}}
+          name: fast-${{env.CELER_JOB_NAME}}
           ccache-max-size: 200Mi
 
       - name: Test
@@ -143,7 +143,7 @@ jobs:
         uses: ./.github/actions/ccache-build
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          key: ccache-fast-windows
+          name: fast-windows
           ccache-max-size: 200Mi
 
       - name: Test
