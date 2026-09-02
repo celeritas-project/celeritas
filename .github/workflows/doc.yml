@@ -16,7 +16,7 @@ concurrency:
 
 env:
   CMAKE_PRESET: doc
-  CELER_UPLOAD_DOC:  >-
+  CELER_UPLOAD_DOC: >-
     ${{  github.ref_name == 'develop'
       || contains(github.ref_name, 'backports/')
       || contains(github.head_ref, 'release-')
@@ -32,9 +32,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-            sudo apt-get -y update
-            sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen nlohmann-json3-dev
+          sudo apt-get -y update
+          sudo apt-get -y install \
+              cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
         uses: actions/checkout@v6
         with:
@@ -75,9 +75,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-            sudo apt-get -y update
-            sudo apt-get -y install \
-                cmake graphviz ninja-build doxygen nlohmann-json3-dev
+          sudo apt-get -y update
+          sudo apt-get -y install \
+              cmake graphviz ninja-build doxygen nlohmann-json3-dev
       - name: Check out Celeritas
         uses: actions/checkout@v6
         with:
@@ -90,8 +90,8 @@ jobs:
           python-version-file: .python-version
       - name: Install Python packages
         run: |
-            pip install --upgrade pip
-            pip install -r scripts/ci/doc-requirements.txt
+          pip install --upgrade pip
+          pip install -r scripts/ci/doc-requirements.txt
       - name: Configure celeritas
         run: |
           ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
@@ -114,5 +114,6 @@ jobs:
           if-no-files-found: error
           overwrite: true
           retention-days: 7 # user docs might need review
+
 
 # vim: set nowrap tw=100:
