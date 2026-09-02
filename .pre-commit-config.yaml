@@ -33,6 +33,16 @@ repos:
     rev: v0.15.13 # 14 May 2026 (immutable)
     hooks:
       - id: ruff-format
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: prettier
+        args: [--write]
+        language: node
+        types_or: [yaml, json, css]
+        additional_dependencies:
+          - prettier@3.9.6
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell
