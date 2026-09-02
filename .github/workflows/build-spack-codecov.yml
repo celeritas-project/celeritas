@@ -21,7 +21,7 @@ jobs:
   spack:
     name: codecov-vecgeom
     env:
-      CMAKE_PRESET: ndebug-vecgeom-codecov
+      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
       CC: "clang-18"
       CXX: "clang++-18"
       LLVM_COV: "llvm-cov-18"
@@ -33,7 +33,7 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/spack-setup
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           geometry: vecgeom
           geant: "11.3"
           cxxstd: ${{env.CXXSTD}}
@@ -44,15 +44,15 @@ jobs:
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: 'ci-ubuntu-github.json'
 
       - name: Build all
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          key: ccache-${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          key: ccache-${{env.CELER_CMAKE_PRESET}}
           ccache-max-size: 300Mi
 
       ### TEST ###
@@ -68,7 +68,7 @@ jobs:
         uses: ./.github/actions/run-ctest
         with:
           preset: spack-unit
-          artifact-name: test-results-spack-${{env.CMAKE_PRESET}}
+          name: spack-${{env.CELER_CMAKE_PRESET}}
           extra-args: --timeout 60
 
       - name: Run app tests

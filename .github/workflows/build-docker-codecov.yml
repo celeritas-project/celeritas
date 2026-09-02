@@ -37,7 +37,7 @@ jobs:
 
     env:
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
-      CMAKE_PRESET: >-
+      CELER_CMAKE_PRESET: >-
         ${{format('{0}-{1}-codecov',
                 matrix.buildtype,
                 matrix.geometry)}}
@@ -70,7 +70,7 @@ jobs:
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-${{matrix.image}}.json
 
       - name: Build Celeritas
@@ -88,7 +88,7 @@ jobs:
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          artifact-name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
+          name: ${{matrix.image}}-${{env.CELER_CMAKE_PRESET}}
       - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage
         if: >-

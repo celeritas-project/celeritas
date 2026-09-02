@@ -79,9 +79,9 @@
       }
     },
     {
-      "name": "doc",
-      "inherits": [".nogtest", "tool-system"],
-      "displayName": "FINAL: build only documentation",
+      "name": ".doc",
+      "inherits": [".nogtest"],
+      "displayName": "CONFIG: build only documentation",
       "cacheVariables": {
         "BUILD_TESTING": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_BUILD_APPS": {"type": "BOOL", "value": "OFF"},
@@ -90,6 +90,27 @@
         "CELERITAS_DOXYGEN_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
         "CELERITAS_USE_covfie": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_PNG": {"type": "BOOL", "value": "OFF"}
+      }
+    },
+    {
+      "name": "doc-check",
+      "inherits": [".doc", "tool-system"],
+      "displayName": "FINAL: build docs for testing as part of a pull request",
+      "cacheVariables": {
+        "DOXYGEN_WARN_AS_ERROR": "YES",
+        "DOXYGEN_HAVE_DOT": "NO",
+        "DOXYGEN_QUIET": "NO",
+        "CELERITAS_SPHINX_ARGS": "-W;--keep-going"
+      }
+    },
+    {
+      "name": "doc-publish",
+      "inherits": [".doc", "tool-system"],
+      "displayName": "FINAL: build docs after new develop is pushed",
+      "cacheVariables": {
+        "DOXYGEN_WARN_AS_ERROR": "YES",
+        "DOXYGEN_HAVE_DOT": "NO",
+        "DOXYGEN_QUIET": "NO"
       }
     },
     {

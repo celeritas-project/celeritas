@@ -18,13 +18,11 @@ jobs:
   linux:
     name: ultralite-ubuntu
     env:
-      CMAKE_PRESET: ultralite
+      CELER_CMAKE_PRESET: ultralite
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v6
-
-      ### ENVIRONMENT ###
 
       - name: Install dependencies
         run: |
@@ -32,52 +30,47 @@ jobs:
           sudo apt-get -q -y install \
             ccache nlohmann-json3-dev libpng-dev
 
-      ### BUILD ###
-
       - name: Configure
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
           version-string: >-
-            ${{github.event.pull_request
-              && format('pr.{0}', github.event.pull_request.number)
-              || github.ref_name}}
+            ${{
+              github.event.pull_request
+              && format('-pr.{0}', github.event.pull_request.number)
+              || format('-{0}', github.ref_name)
+            }}
 
       - name: Build
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           key: ccache-ultralite-ubuntu
           ccache-max-size: 100Mi
           debug: true
-
-      ### TEST ###
 
       - name: Test
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          artifact-name: test-results-ultralite-ubuntu
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ultralite-ubuntu
 
-      ### INSTALL ###
-
-      - name: Install and check
+      - name: Install
         uses: ./.github/actions/install-and-check
         with:
-          clean-build: 'false'
+          clean-build: "false"
+
   windows:
     name: ultralite-windows
     env:
-      CMAKE_PRESET: ultralite
+      CELER_CMAKE_PRESET: ultralite
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v6
-
-      ### ENVIRONMENT ###
 
       - name: Install dependencies
         run: |
@@ -85,12 +78,10 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      ### BUILD ###
-
       - name: Configure
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-windows-github.json
           version-string: >-
             ${{
@@ -102,17 +93,20 @@ jobs:
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           key: ccache-ultralite-windows
           ccache-max-size: 50Mi
-
-      ### TEST ###
 
       - name: Test
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          artifact-name: test-results-ultralite-windows
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ultralite-windows
+
+      - name: Install
+        uses: ./.github/actions/install-and-check
+        with:
+          clean-build: "false"
 
 # vim: set nowrap tw=100:

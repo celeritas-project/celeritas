@@ -42,8 +42,6 @@ jobs:
     needs:
     - build-fast
     - build-spack
-    - build-spack-tidy
-    - build-spack-codecov
     - build-ultralite
     runs-on: ubuntu-24.04
     steps:

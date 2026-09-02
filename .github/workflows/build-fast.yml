@@ -14,6 +14,14 @@ concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
+env:
+  CELER_VERSION_STRING: >-
+    ${{
+       github.event.pull_request
+       && format('-pr.{0}', github.event.pull_request.number)
+       || format('-{0}', github.ref_name)
+     }}
+
 jobs:
   linux:
     name: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
@@ -47,8 +55,8 @@ jobs:
             compiler: clang
             version: 22
     env:
-      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
-      CMAKE_PRESET: fast
+      CELER_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
+      CELER_CMAKE_PRESET: fast
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     runs-on: >-
@@ -77,63 +85,46 @@ jobs:
           $CC --version | head -1
           $CXX --version | head -1
 
-      ### BUILD ###
-
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
           extra-args: >-
             ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0}', matrix.cxxstd) || ''}}
-          version-string: >-
-            ${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}
+          version-string: ${{env.CELER_VERSION_STRING}}
 
       - name: Build
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          key: ccache-${{env.GHA_JOB_NAME}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          key: ccache-fast-${{env.CELER_JOB_NAME}}
           ccache-max-size: 200Mi
 
-      ### TEST ###
-
-      - name: Run unit tests
-        id: unittest
+      - name: Test
+        id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: ${{env.CMAKE_PRESET}}-unit
-          artifact-name: test-results-fast-${{env.GHA_JOB_NAME}}
-      - name: Run app tests
-        id: apptest
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          split-app: true
+          name: fast-${{env.CELER_JOB_NAME}}
+
+      - name: Install
         if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
-        run: |
-          ctest --preset=${{env.CMAKE_PRESET}}-app
-
-      ### INSTALL ###
-
-      - name: Install and check
         uses: ./.github/actions/install-and-check
-        with:
-          clean-build: 'false'
 
   windows:
     defaults:
       run:
         shell: pwsh
     env:
-      CMAKE_PRESET: fast
+      CELER_CMAKE_PRESET: fast
+      CELER_JOB_NAME: windows
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v6
-
-      ### ENVIRONMENT ###
 
       - name: Install dependencies
         run: |
@@ -141,43 +132,30 @@ jobs:
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
 
-      ### BUILD ###
-
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-windows-github.json
-          version-string: >-
-            ${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}
-
+          version-string: ${{env.CELER_VERSION_STRING}}
       - name: Build
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           key: ccache-fast-windows
           ccache-max-size: 200Mi
 
-      ### TEST ###
-
-      - name: Run unit tests
-        id: unittest
+      - name: Test
+        id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           split-app: true
-          artifact-name: test-results-fast-windows
+          name: fast-${{env.CELER_JOB_NAME}}
 
-      ### INSTALL ###
-
-      - name: Install and check
+      - name: Install
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         uses: ./.github/actions/install-and-check
-        with:
-          clean-build: 'false'
 
 # vim: set nowrap tw=100:

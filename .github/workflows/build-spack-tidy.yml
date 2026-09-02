@@ -18,7 +18,7 @@ jobs:
   tidy:
     name: tidy-vecgeom
     env:
-      CMAKE_PRESET: reldeb-vecgeom-tidy
+      CELER_CMAKE_PRESET: reldeb-vecgeom-tidy
       CLANG_TIDY: "clang-tidy-18"
       CC: "clang-18"
       CXX: "clang++-18"
@@ -29,7 +29,7 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/spack-setup
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           geometry: vecgeom
           geant: "11.2"
           cxxstd: ${{env.CXXSTD}}
@@ -41,7 +41,7 @@ jobs:
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: 'ci-ubuntu-github.json'
 
       - name: Build changed files with clang-tidy

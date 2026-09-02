@@ -11,18 +11,18 @@ inputs:
   preset:
     description: "ctest preset name"
     required: false
-    default: base
-  artifact-name:
-    description: "Name for the uploaded test-results artifact"
+    default: "base"
+  name:
+    description: "Suffix for the uploaded test-results artifact"
     required: true
   strict:
     description: "Enable exact comparisons in unit tests (Test::strict_testing)"
     required: false
-    default: false
+    default: "false"
   split-app:
     description: "Test {preset}-unit and {preset}-app separately"
     required: false
-    default: false
+    default: "false"
   filter-unit:
     description: "Run only unit tests that match this regex, or 'none' to skip"
     required: false
@@ -56,7 +56,8 @@ runs:
       uses: actions/upload-artifact@v7
       if: ${{ always() }}
       with:
-        name: ${{inputs.artifact-name}}
+        # NOTE: these must be compatible with pull_request_completed.yml
+        name: test-results-${{inputs.name}}
         path: "test-output/**/*.xml"
         if-no-files-found: error
         retention-days: 1

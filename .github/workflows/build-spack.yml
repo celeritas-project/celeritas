@@ -59,7 +59,7 @@ jobs:
             special: ""
             geant: "11.3"
     env:
-      CMAKE_PRESET: >-
+      CELER_CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
                   matrix.geometry,
@@ -96,15 +96,15 @@ jobs:
         id: configure
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
 
       - name: Build all
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          key: ccache-${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
           ccache-max-size: ${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi
 
       ### TEST ###
@@ -125,7 +125,7 @@ jobs:
         uses: ./.github/actions/run-ctest
         with:
           split-app: true
-          artifact-name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          name: spack-${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
           strict: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
           filter-unit: >-
             ${{
@@ -146,7 +146,7 @@ jobs:
 
       ### INSTALL ###
 
-      - name: Install and check
+      - name: Install
         id: install
         if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         uses: ./.github/actions/install-and-check

@@ -23,7 +23,7 @@ jobs:
             geometry: "orange"
             special: "asanlite"
     env:
-      CMAKE_PRESET: reldeb-orange-asanlite
+      CELER_CMAKE_PRESET: reldeb-orange-asanlite
       CC: "clang-18"
       CXX: "clang++-18"
     runs-on: ubuntu-24.04
@@ -40,27 +40,23 @@ jobs:
         id: configure
         uses: ./.github/actions/configure
         with:
-          preset: ${{env.CMAKE_PRESET}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
 
       - name: Build all
         id: build
         uses: ./.github/actions/ccache-build
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          ccache-max-size: ${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          key: ccache-${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
+          ccache-max-size: 500Mi
 
       - name: Run tests
         id: test
         uses: ./.github/actions/run-ctest
         with:
           split-app: true
-          artifact-name: test-results-spack-${{env.CMAKE_PRESET}}
+          name: spack-${{env.CELER_CMAKE_PRESET}}
           strict: false
-
-      - name: Install
-        id: install
-        uses: ./.github/actions/install-and-check
 
 # vim: set nowrap tw=100:

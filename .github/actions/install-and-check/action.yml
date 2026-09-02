@@ -5,7 +5,7 @@
 # Install Celeritas from an existing build directory and sanity-check the result.
 #-----------------------------------------------------------------------------#
 
-name: 'Install and check Celeritas'
+name: 'Install and do basic verification of binaries'
 description: 'cmake --install, optionally clean the build, and check the installed binaries'
 inputs:
   binaries:
