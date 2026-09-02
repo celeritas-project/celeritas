@@ -45,7 +45,7 @@ jobs:
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          presets-file: 'ci-ubuntu-github.json'
+          presets-file: "ci-ubuntu-github.json"
 
       - name: Build all
         id: build

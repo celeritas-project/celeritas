@@ -12,31 +12,31 @@
 # - Environment versions at scripts/ci/spack.yaml
 #-----------------------------------------------------------------------------#
 
-name: 'Set up Spack environment'
-description: 'Check out Celeritas + Spack, concretize/install deps, activate, and configure'
+name: "Set up Spack environment"
+description: "Check out Celeritas + Spack, concretize/install deps, activate, and configure"
 inputs:
   geometry:
     description: "Geometry package to add ('vecgeom', 'vecgeom2', or empty)"
     required: false
-    default: ''
+    default: ""
   geant:
-    description: 'Geant4 version to add (empty to omit Geant4 entirely)'
+    description: "Geant4 version to add (empty to omit Geant4 entirely)"
     required: false
-    default: ''
+    default: ""
   cxxstd:
-    description: 'C++ standard to concretize Spack with'
+    description: "C++ standard to concretize Spack with"
     required: true
   add-root:
     description: "Whether to add the 'root' Spack package"
     required: false
-    default: 'true'
+    default: "true"
   fetch-depth:
-    description: 'git fetch-depth for the Celeritas checkout'
+    description: "git fetch-depth for the Celeritas checkout"
     required: false
-    default: '383'
+    default: "383"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Set Spack environment variables
       shell: bash

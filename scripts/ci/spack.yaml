@@ -4,15 +4,15 @@
 spack:
   view: /opt/spack-view
   specs:
-  - "ccache@4.10:"
-  - cli11 +pic ~ipo
-  - "cmake ^curl tls=openssl"
-  - covfie
-  - googletest
-  - hepmc3
-  - libpng
-  - ninja
-  - nlohmann-json
+    - "ccache@4.10:"
+    - cli11 +pic ~ipo
+    - "cmake ^curl tls=openssl"
+    - covfie
+    - googletest
+    - hepmc3
+    - libpng
+    - ninja
+    - nlohmann-json
   config:
     deprecated: True
     install_tree:
@@ -28,9 +28,9 @@ spack:
       variants: ~aqua ~davix ~examples ~opengl ~x ~tbb cxxstd=20
     all:
       require:
-      - "target=zen2 %clang@18" # FIXME: genericize on next rebuild
-      - any_of: [+ipo, '@:']
-      - any_of: [build_system=cmake, '@:']
-      - any_of: [build_type=Release, '@:']
-      - any_of: [generator=ninja, '@:']
-      - any_of: [cxxstd=default, '@:'] # replaced by build-spack.yaml
+        - "target=zen2 %clang@18" # FIXME: genericize on next rebuild
+        - any_of: [+ipo, "@:"]
+        - any_of: [build_system=cmake, "@:"]
+        - any_of: [build_type=Release, "@:"]
+        - any_of: [generator=ninja, "@:"]
+        - any_of: [cxxstd=default, "@:"] # replaced by build-spack.yaml

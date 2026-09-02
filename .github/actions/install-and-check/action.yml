@@ -5,20 +5,20 @@
 # Install Celeritas from an existing build directory and sanity-check the result.
 #-----------------------------------------------------------------------------#
 
-name: 'Install and do basic verification of binaries'
-description: 'cmake --install, optionally clean the build, and check the installed binaries'
+name: "Install and do basic verification of binaries"
+description: "cmake --install, optionally clean the build, and check the installed binaries"
 inputs:
   binaries:
-    description: 'Space-separated list of bin/ executables to check for'
+    description: "Space-separated list of bin/ executables to check for"
     required: false
-    default: ''
+    default: ""
   clean-build:
-    description: 'Clean the build directory after installing'
+    description: "Clean the build directory after installing"
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install
       id: install
