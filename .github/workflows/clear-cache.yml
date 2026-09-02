@@ -8,24 +8,24 @@ on:
   workflow_dispatch:
     inputs:
       initial_delay:
-        description: 'Initial backoff delay in seconds'
+        description: "Initial backoff delay in seconds"
         required: false
         default: 30
         type: number
       max_retries:
-        description: 'Maximum number of retries per cache entry'
+        description: "Maximum number of retries per cache entry"
         required: false
         default: 5
         type: number
   workflow_call:
     inputs:
       initial_delay:
-        description: 'Initial backoff delay in seconds'
+        description: "Initial backoff delay in seconds"
         required: false
         default: 30
         type: number
       max_retries:
-        description: 'Maximum number of retries per cache entry'
+        description: "Maximum number of retries per cache entry"
         required: false
         default: 5
         type: number

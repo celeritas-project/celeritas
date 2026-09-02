@@ -6,26 +6,26 @@
 # Assumes all cmake preset files set binaryDir="${sourceDir}/build"
 #-----------------------------------------------------------------------------#
 
-name: 'Configure Celeritas'
-description: 'Symlink/copy the CI CMakeUserPresets.json and run cmake --preset'
+name: "Configure Celeritas"
+description: "Symlink/copy the CI CMakeUserPresets.json and run cmake --preset"
 inputs:
   preset:
-    description: 'CMake preset name'
+    description: "CMake preset name"
     required: true
   presets-file:
-    description: 'Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json'
+    description: "Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json"
     required: true
   extra-args:
-    description: 'Additional arguments to pass to cmake'
+    description: "Additional arguments to pass to cmake"
     required: false
-    default: ''
+    default: ""
   version-string:
-    description: 'Value for -DCeleritas_VERSION_STRING'
+    description: "Value for -DCeleritas_VERSION_STRING"
     required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Copy CMakeUserPresets.json
       shell: bash
