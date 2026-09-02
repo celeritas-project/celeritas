@@ -30,10 +30,6 @@ inputs:
     description: "Whether to add the 'root' Spack package"
     required: false
     default: "true"
-  fetch-depth:
-    description: "git fetch-depth for the Celeritas checkout"
-    required: false
-    default: "383"
 
 runs:
   using: "composite"
@@ -44,11 +40,6 @@ runs:
         echo "SPACK_REF=760ccc43172ac3bf0d9a07b156f7b1f44c743677" >> "$GITHUB_ENV" # ci @ 11 Oct 2025
         echo "SPACK_VIEW=/opt/spack-view" >> "$GITHUB_ENV"
         echo "SPACK_BUILDCACHE=celer-buildcache" >> "$GITHUB_ENV" # see spack.yaml
-    - name: Check out Celeritas
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: ${{inputs.fetch-depth}}
-        fetch-tags: true # to get version information
     - name: Check out Spack
       uses: spack/setup-spack@b01309596568e0f36df3e38124601ed3327871ed
       with:

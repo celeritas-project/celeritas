@@ -56,7 +56,7 @@ jobs:
       # NOTE: checkout must occur *after* setting up environment for git tags to work
       # NOTE: depth must be enough to include the previous tag
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 383
           fetch-tags: true

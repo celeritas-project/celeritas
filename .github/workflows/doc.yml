@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 383
           fetch-tags: true
@@ -70,7 +70,7 @@ jobs:
       CELER_UPLOAD_DIR: build/doc/html
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 383
           fetch-tags: true

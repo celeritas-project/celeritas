@@ -26,6 +26,12 @@ jobs:
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 383
+          fetch-tags: true # to get version information
+
       - name: Set up Spack environment
         uses: ./.github/actions/spack-setup
         with:
@@ -35,8 +41,6 @@ jobs:
           cxxstd: ${{env.CXXSTD}}
           add-root: "true"
           fetch-depth: "0" # need full history to diff against the base branch
-
-      ### BUILD ###
 
       - name: Configure Celeritas
         uses: ./.github/actions/configure
