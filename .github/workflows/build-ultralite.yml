@@ -34,7 +34,7 @@ jobs:
 
       ### BUILD ###
 
-      - name: Configure Celeritas
+      - name: Configure
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CMAKE_PRESET}}
@@ -55,7 +55,7 @@ jobs:
 
       ### TEST ###
 
-      - name: Run tests
+      - name: Test
         id: test
         uses: ./.github/actions/run-ctest
         with:
@@ -67,7 +67,6 @@ jobs:
       - name: Install and check
         uses: ./.github/actions/install-and-check
         with:
-          check-version: 'true'
           clean-build: 'false'
   windows:
     name: ultralite-windows
@@ -88,7 +87,7 @@ jobs:
 
       ### BUILD ###
 
-      - name: Configure Celeritas
+      - name: Configure
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CMAKE_PRESET}}
@@ -99,8 +98,7 @@ jobs:
               && format('-pr.{0}', github.event.pull_request.number)
               || format('-{0}', github.ref_name)
             }}
-
-      - name: Build all
+      - name: Build
         id: build
         uses: ./.github/actions/ccache-build
         with:
@@ -110,7 +108,7 @@ jobs:
 
       ### TEST ###
 
-      - name: Test all
+      - name: Test
         id: test
         uses: ./.github/actions/run-ctest
         with:

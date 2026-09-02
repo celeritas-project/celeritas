@@ -5,39 +5,56 @@
 # Run ctest and upload the JUnit test results as an artifact.
 #-----------------------------------------------------------------------------#
 
-name: 'Run ctest'
-description: 'Run ctest with a preset and upload test-output as an artifact'
+name: "Run ctest"
+description: "Run ctest with a preset and upload test-output as an artifact"
 inputs:
   preset:
-    description: 'ctest preset name'
-    required: true
-  artifact-name:
-    description: 'Name for the uploaded test-results artifact'
-    required: true
-  extra-args:
-    description: 'Additional arguments to pass to ctest'
+    description: "ctest preset name"
     required: false
-    default: ''
+    default: base
+  artifact-name:
+    description: "Name for the uploaded test-results artifact"
+    required: true
+  strict:
+    description: "Enable exact comparisons in unit tests (Test::strict_testing)"
+    required: false
+    default: false
+  split-app:
+    description: "Test {preset}-unit and {preset}-app separately"
+    required: false
+    default: false
+  filter-unit:
+    description: "Run only unit tests that match this regex, or 'none' to skip"
+    required: false
+    default: ""
 outputs:
   outcome:
     description: "Outcome of the ctest step ('success' or 'failure')"
-    value: ${{steps.test.outcome}}
+    value: ${{steps.all.outcome || (steps.unit.outcome && steps.app.outcome)}}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Run ctest
-      id: test
+    - name: Run unit tests
+      id: unit
+      if: ${{ inputs.split-app && inputs.filter-unit != "none"}}
       shell: bash
-      run: ctest --preset=${{inputs.preset}} ${{inputs.extra-args}}
-    - name: Upload test results
+      run: |
+        ctest --preset=${{inputs.preset}}-unit \
+          ${{inputs.filter-unit && format('-R "{0}", inputs.filter-unit) || ''}}
+    - name: Run app tests
+      id: app
+      if: ${{ !cancelled() && inputs.split-app }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}-app
+    - name: Run all tests
+      id: all
+      if: ${{ !inputs.split-app }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}
+    - name: Upload test results for pull_request_completed
       uses: actions/upload-artifact@v7
-      if: >-
-        ${{
-          always()
-          && (steps.test.outcome == 'success'
-              || steps.test.outcome == 'failure')
-        }}
+      if: ${{ always() }}
       with:
         name: ${{inputs.artifact-name}}
         path: "test-output/**/*.xml"

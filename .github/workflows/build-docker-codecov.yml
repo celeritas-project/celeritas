@@ -20,7 +20,7 @@ concurrency:
 jobs:
   # TODO: since we don't build on GPU systems with cuda/rocm docker,
   # none of the tests actually run on device
-  gpu:
+  docker:
     name: >-
       ${{format('codecov-{2}-{3}-{4}',
                 matrix.geometry,
@@ -36,7 +36,6 @@ jobs:
             image: "rocky-cuda"
 
     env:
-      CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}-codecov',
@@ -89,7 +88,6 @@ jobs:
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: base
           artifact-name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
       - name: Generate and upload coverage report
         uses: ./.github/actions/generate-coverage

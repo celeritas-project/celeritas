@@ -184,7 +184,7 @@
     {
       "name": "ndebug-orange-static",
       "description": "FINAL: static libraries and perfetto, no tests",
-      "inherits": ["type-ndebug", "tool-spack"],
+      "inherits": [".nogtest", "type-ndebug", "tool-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": {"type": "BOOL", "value": "OFF"},
         "CELERITAS_USE_Perfetto":{"type": "BOOL", "value": "ON"},

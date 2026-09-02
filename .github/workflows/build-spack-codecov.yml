@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  codecov:
+  spack:
     name: codecov-vecgeom
     env:
       CMAKE_PRESET: ndebug-vecgeom-codecov

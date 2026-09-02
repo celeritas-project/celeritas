@@ -169,13 +169,9 @@ jobs:
         id: unittest
         uses: ./.github/actions/run-ctest
         with:
-          preset: ${{env.CMAKE_PRESET}}-unit
+          preset: ${{env.CMAKE_PRESET}}
+          split-app: true
           artifact-name: test-results-fast-windows
-      - name: Run app tests
-        id: apptest
-        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
-        run: |
-          ctest --preset=${{env.CMAKE_PRESET}}-app
 
       ### INSTALL ###
 

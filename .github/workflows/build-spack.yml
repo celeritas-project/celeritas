@@ -73,7 +73,7 @@ jobs:
       CC: "clang-18"
       CXX: "clang++-18"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
-                 && 17 || 20}}
+        && 17 || 20}}
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
@@ -99,10 +99,11 @@ jobs:
       ### BUILD ###
 
       - name: Configure Celeritas
+        id: configure
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CMAKE_PRESET}}
-          presets-file: 'ci-ubuntu-github.json'
+          presets-file: "ci-ubuntu-github.json"
 
       - name: Build all
         id: build
@@ -124,33 +125,20 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
-      - name: Set test strictness
-        # Note this is ignored for non-primary geometry implementations
-        if: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
-        run: echo "CELER_TEST_STRICT=1" >> "$GITHUB_ENV"
-      - name: Run unit tests
-        id: unittest
+      - name: Run tests
+        id: test
         if: ${{matrix.special != 'static'}}
         uses: ./.github/actions/run-ctest
         with:
-          preset: spack-unit
+          split-app: true
           artifact-name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          extra-args: >-
-            ${{matrix.geant && fromJSON(matrix.geant) < 11
-                && '-R "^accel/"' || ''}}
-      - name: Run app tests
-        id: apptest
-        if: >-
-          ${{
-            !cancelled()
-            && steps.build.outputs.build-outcome == 'success'
-          }}
-        run: |
-          ctest --preset=spack-app
-
-      ### INSTALL ###
-
-      - name: Check using build directory as install
+          strict: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
+          filter-unit: >-
+            ${{
+              matrix.special == 'static' && 'none'
+              || (matrix.geant && fromJSON(matrix.geant) < 11) && '^accel/'
+             }}
+      - name: Test basic downstream compilation against build dir
         # TODO: ASAN requires flags downstream
         if: >-
           ${{
@@ -159,20 +147,22 @@ jobs:
             && matrix.special != 'asanlite'
           }}
         env:
-          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
+
+      ### INSTALL ###
+
       - name: Install and check
         id: install
         if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build examples
+      - name: Build and run examples
         env:
           CELER_DISABLE_G4_EXAMPLES: ${{(!matrix.geant) && '1' || ''}}
-        # `asanlite` requires downstream flags that don't propagate
         if: >-
           ${{
             steps.install.outcome == 'success'

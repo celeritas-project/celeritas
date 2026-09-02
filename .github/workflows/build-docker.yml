@@ -40,7 +40,6 @@ jobs:
             image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
 
     env:
-      CELER_TEST_STRICT: 0 # TODO: enable with Geant4 v11.3
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
       CMAKE_PRESET: >-
         ${{format('{0}-{1}',
@@ -91,7 +90,6 @@ jobs:
         id: test
         uses: ./.github/actions/run-ctest
         with:
-          preset: base
           artifact-name: test-results-${{matrix.image}}-${{env.CMAKE_PRESET}}
 
       - name: Install and check
