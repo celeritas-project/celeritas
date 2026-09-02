@@ -22,7 +22,7 @@ jobs:
   # none of the tests actually run on device
   docker:
     name: >-
-      ${{format('codecov-{2}-{3}-{4}',
+      ${{format('codecov-{0}-{1}-{2}',
                 matrix.geometry,
                 matrix.buildtype,
                 matrix.image)}}
@@ -80,7 +80,6 @@ jobs:
           echo "::group::Build verbosely"
           ninja -v -k0
           echo "::endgroup::"
-          # echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
 
       ### TEST ###
 

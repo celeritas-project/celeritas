@@ -31,9 +31,11 @@ jobs:
   build-spack-tidy:
     uses: ./.github/workflows/build-spack-tidy.yml
   build-docker-codecov:
+    if: github.repository_owner == 'celeritas-project'
     uses: ./.github/workflows/build-docker-codecov.yml
     secrets: inherit
   build-spack-codecov:
+    if: github.repository_owner == 'celeritas-project'
     uses: ./.github/workflows/build-spack-codecov.yml
     secrets: inherit
   all:
