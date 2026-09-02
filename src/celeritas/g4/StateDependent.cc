@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "StateDependent.hh"
 
+#include <utility>
 #include <G4StateManager.hh>
 #include <G4VStateDependent.hh>
 
@@ -22,15 +23,16 @@ namespace celeritas
  * Construct with a stream ID and state-change callback.
  *
  * \note The base class performs the actual registration.
- * \note We also store a pointer to the thread-local manager that this
- * is registered with, in case we want to deregister in a thread other than
- * the one we were created with. (This might be dangerous... but so is assuming
- * we're destroyed on the same thread we're constructed in.)
+ * \note We also store a pointer to the thread-local manager that registered
+ * this object so terminal notifications can deregister from the same manager.
  */
-StateDependent::StateDependent(LocalGeantStateChangeFunc cb)
+StateDependent::StateDependent(
+    LocalGeantStateChangeFunc cb, Mode mode, LifecycleRole lifecycle_role)
     : local_stream_{geant_stream()}
     , cb_{std::move(cb)}
     , manager_{G4StateManager::GetStateManager()}
+    , mode_{mode}
+    , lifecycle_role_{lifecycle_role}
 {
     CELER_EXPECT(cb_);
     CELER_EXPECT(manager_);
@@ -41,7 +43,7 @@ StateDependent::StateDependent(LocalGeantStateChangeFunc cb)
 
 //---------------------------------------------------------------------------//
 /*!
- * Dispatch a state transition notification to the user callback.
+ * Handle a Geant4 state transition notification.
  */
 G4bool StateDependent::Notify(G4ApplicationState state)
 {
@@ -60,7 +62,10 @@ G4bool StateDependent::Notify(G4ApplicationState state)
             if (prev == G4State_PreInit)
             {
                 // First initialization: do an extra call
-                this->cb_(local_stream_, GeantStateChange::initialize);
+                if (mode_ == Mode::raw)
+                {
+                    this->cb_(local_stream_, GeantStateChange::initialize);
+                }
                 change = GeantStateChange::begin_init;
             }
             else if (prev == G4State_Idle)
@@ -127,9 +132,70 @@ G4bool StateDependent::Notify(G4ApplicationState state)
         manager_->DeregisterDependent(this);
     }
 
-    this->cb_(local_stream_, change);
+    if (mode_ == Mode::lifecycle)
+    {
+        this->dispatch_lifecycle_change(change);
+    }
+    else
+    {
+        this->cb_(local_stream_, change);
+    }
     constexpr bool success{true};
     return success;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Dispatch a filtered Celeritas lifecycle change.
+ *
+ * This suppresses Geant4 run-manager ordering details from automatic offload
+ * lifecycle callbacks: the MT manager thread never emits end-run, workers do
+ * not emit end-program, and duplicate begin/end run transitions on a local
+ * state monitor are collapsed.
+ */
+void StateDependent::dispatch_lifecycle_change(GeantStateChange change)
+{
+    // A null stream is the MT manager thread; serial and worker callbacks have
+    // a concrete local stream ID.
+    bool const is_manager = !local_stream_;
+    bool const owns_end_program = lifecycle_role_ == LifecycleRole::global;
+
+    switch (change)
+    {
+        case GeantStateChange::begin_run:
+            if (!active_run_)
+            {
+                cb_(local_stream_, change);
+                active_run_ = true;
+            }
+            break;
+        case GeantStateChange::end_run:
+            // The MT manager owns shared state that must live until
+            // end_program. Only serial/worker monitors emit end_run lifecycle
+            // events, and only after they emitted begin_run.
+            if (active_run_ && !is_manager)
+            {
+                cb_(local_stream_, change);
+                active_run_ = false;
+            }
+            break;
+        case GeantStateChange::end_program:
+            // Global monitors own terminal shared cleanup. Local monitors
+            // finalize at end_run and must not emit a shared cleanup event,
+            // but terminal teardown must still close any active local run.
+            if (owns_end_program)
+            {
+                cb_(local_stream_, change);
+            }
+            else if (active_run_ && !is_manager)
+            {
+                cb_(local_stream_, GeantStateChange::end_run);
+            }
+            active_run_ = false;
+            break;
+        default:
+            break;
+    }
 }
 
 //---------------------------------------------------------------------------//

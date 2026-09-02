@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
 #include <memory>
 
 #include "corecel/sys/Stopwatch.hh"
+#include "celeritas/g4/StateDependent.hh"
 
 #include "../LocalOpticalGenOffload.hh"
 #include "../LocalOpticalTrackOffload.hh"
@@ -78,11 +80,25 @@ class IntegrationSingleton
 
     //// HELPERS ////
 
-    // Initialize shared params and thread-local transporter
+    // Initialize shared params if needed and this thread's local transporter
     bool initialize_offload();
 
-    // Destroy local transporter and shared params
+    // Finalize active local transporter and master-owned shared params
     void finalize_offload();
+
+    //! Whether Geant4 state hooks own begin/end run lifecycle management
+    bool auto_hooks_active() const { return auto_hooks_active_; }
+
+    // Register master-thread Geant4 state hook for automatic lifecycle updates
+    void register_auto_hooks();
+
+    using VerifyCallback = std::function<void(StreamId)>;
+
+    // Set callback for run-time setup verification (invoked on begin_run)
+    void set_verify_callback(VerifyCallback cb);
+
+    // Drive offload init/finalize from Geant4 state transitions
+    void on_state_change(StreamId stream_id, GeantStateChange change);
 
   private:
     //// TYPES ////
@@ -95,9 +111,12 @@ class IntegrationSingleton
     SharedParams params_;
     std::unique_ptr<ScopedMpiInit> scoped_mpi_;
     std::unique_ptr<SetupOptionsMessenger> messenger_;
+    std::unique_ptr<StateDependent> master_state_dependent_;
     Stopwatch get_time_;
     bool have_created_logger_{false};
     bool failed_setup_{false};
+    bool auto_hooks_active_{false};
+    VerifyCallback verify_callback_;
 
     //// PRIVATE MEMBER FUNCTIONS ////
 
@@ -112,10 +131,13 @@ class IntegrationSingleton
     // Initialize worker thread implementation
     void initialize_worker_impl();
     // Initialize local transporter implementation
-    void initialize_local_impl();
-
+    bool initialize_local_impl();
     // Finalize local transporter implementation
-    void finalize_local_impl();
+    bool finalize_local_impl();
+    // Finalize local transporter if this thread owns it
+    void finalize_local_offload();
+    // Finalize shared params if this thread owns them
+    void finalize_shared_offload();
     // Finalize shared params implementation
     void finalize_shared_impl();
 };
