@@ -9,11 +9,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [
-        "full",
-        ".cuda",
-        ".spack-base"
-      ],
+      "inherits": ["full", ".cuda", ".spack-base"],
       "binaryDir": "/scratch/$env{USER}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
@@ -63,18 +59,12 @@
     {
       "name": "release",
       "displayName": "Build with full optimizations (VecGeom)",
-      "inherits": [
-        ".base",
-        ".ndebug"
-      ]
+      "inherits": [".base", ".ndebug"]
     },
     {
       "name": "reldeb",
       "displayName": "Build with optimizations, but enable host debugging (VecGeom)",
-      "inherits": [
-        ".base",
-        ".reldeb"
-      ],
+      "inherits": [".base", ".reldeb"],
       "cacheVariables": {
         "CELERITAS_DEVICE_DEBUG": {
           "type": "BOOL",
@@ -85,10 +75,7 @@
     {
       "name": "release-orange-trackslot-xorwow",
       "displayName": "Build with full optimizations (ORANGE, trackslot reseeding, XorWow RNG)",
-      "inherits": [
-        ".orange",
-        "release"
-      ],
+      "inherits": [".orange", "release"],
       "cacheVariables": {
         "CELERITAS_CORE_RNG": "xorwow",
         "CELERITAS_RESEED": "trackslot"
@@ -97,10 +84,7 @@
     {
       "name": "release-orange-track-xorwow",
       "displayName": "Build with full optimizations (ORANGE, track reseeding, XorWow RNG)",
-      "inherits": [
-        ".orange",
-        "release"
-      ],
+      "inherits": [".orange", "release"],
       "cacheVariables": {
         "CELERITAS_CORE_RNG": "xorwow",
         "CELERITAS_RESEED": "track"
@@ -109,10 +93,7 @@
     {
       "name": "release-orange-trackslot-ranlux",
       "displayName": "Build with full optimizations (ORANGE, trackslot reseeding, Ranlux++ RNG)",
-      "inherits": [
-        ".orange",
-        "release"
-      ],
+      "inherits": [".orange", "release"],
       "cacheVariables": {
         "CELERITAS_CORE_RNG": "ranluxpp",
         "CELERITAS_RESEED": "trackslot"
@@ -121,10 +102,7 @@
     {
       "name": "release-orange-track-ranlux",
       "displayName": "Build with full optimizations (ORANGE, track reseeding, Ranlux++ RNG)",
-      "inherits": [
-        ".orange",
-        "release"
-      ],
+      "inherits": [".orange", "release"],
       "cacheVariables": {
         "CELERITAS_CORE_RNG": "ranluxpp",
         "CELERITAS_RESEED": "track"
@@ -133,27 +111,17 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": [
-        ".orange",
-        "release"
-      ]
+      "inherits": [".orange", "release"]
     },
     {
       "name": "reldeb-orange",
       "displayName": "Build with optimizations, but enable host debugging (ORANGE)",
-      "inherits": [
-        ".orange",
-        "reldeb"
-      ]
+      "inherits": [".orange", "reldeb"]
     },
     {
       "name": "debug-orange",
       "displayName": "Build without optimization, enabling full host debugging (ORANGE)",
-      "inherits": [
-        ".orange",
-        ".base",
-        ".debug"
-      ],
+      "inherits": [".orange", ".base", ".debug"],
       "cacheVariables": {
         "CELERITAS_DEVICE_DEBUG": {
           "type": "BOOL",
@@ -164,9 +132,7 @@
     {
       "name": "release-vecgeom2",
       "displayName": "Build with full optimizations (VecGeom 2)",
-      "inherits": [
-        "release"
-      ],
+      "inherits": ["release"],
       "environment": {
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vg2/.spack-env/view"
       }
@@ -177,9 +143,7 @@
       "name": ".base",
       "configurePreset": ".base",
       "jobs": 48,
-      "nativeToolOptions": [
-        "-k0"
-      ]
+      "nativeToolOptions": ["-k0"]
     },
     {
       "name": "release",

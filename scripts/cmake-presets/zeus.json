@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
   "configurePresets": [
     {
       "name": ".base",
@@ -9,25 +9,25 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DOCS": {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HepMC3":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_HIP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_MPI":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
+        "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_HIP": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wno-psabi -pedantic -pedantic-errors",
         "CMAKE_CUDA_FLAGS": "-Xcompiler -Wno-psabi",
-        "CMAKE_CUDA_ARCHITECTURES": {"type": "STRING", "value": "80"},
-        "CMAKE_CXX_STANDARD": {"type": "STRING", "value": "17"},
-        "CMAKE_CXX_EXTENSIONS": {"type": "BOOL", "value": "OFF"},
+        "CMAKE_CUDA_ARCHITECTURES": { "type": "STRING", "value": "80" },
+        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
+        "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}",
         "CMAKE_CXX_COMPILER": "$env{CXX}",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=cascadelake -mtune=cascadelake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"}
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" }
       }
     },
     {
@@ -42,7 +42,7 @@
       "inherits": [".debug", ".base"],
       "binaryDir": "${sourceDir}/build-novg",
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -50,7 +50,7 @@
       "displayName": "Zeus release with debug symbols and Orange",
       "inherits": [".reldeb", ".base"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -63,8 +63,8 @@
       "displayName": "Zeus release with Orange",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"}
+        "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -72,7 +72,7 @@
       "displayName": "Zeus release",
       "inherits": [".ndebug", ".base"],
       "cacheVariables": {
-        "BUILD_SHARED_LIBS":{"type": "BOOL",   "value": "ON"}
+        "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" }
       }
     }
   ],
@@ -83,23 +83,43 @@
       "jobs": 8,
       "nativeToolOptions": ["-k0"]
     },
-    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
-    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+    { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
+    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    {
+      "name": "ndebug-novg",
+      "configurePreset": "ndebug-novg",
+      "inherits": "base"
+    },
+    { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
+    {
+      "name": "reldeb-novg",
+      "configurePreset": "reldeb-novg",
+      "inherits": "base"
+    }
   ],
   "testPresets": [
     {
       "name": "base",
       "configurePreset": "base",
-      "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 8}
+      "output": { "outputOnFailure": true },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 8
+      }
     },
-    {"name": "base-novg", "configurePreset": "base-novg", "inherits": "base"},
-    {"name": "ndebug", "configurePreset": "ndebug", "inherits": "base"},
-    {"name": "ndebug-novg", "configurePreset": "ndebug-novg", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"},
-    {"name": "reldeb-novg", "configurePreset": "reldeb-novg", "inherits": "base"}
+    { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
+    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    {
+      "name": "ndebug-novg",
+      "configurePreset": "ndebug-novg",
+      "inherits": "base"
+    },
+    { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
+    {
+      "name": "reldeb-novg",
+      "configurePreset": "reldeb-novg",
+      "inherits": "base"
+    }
   ]
 }
