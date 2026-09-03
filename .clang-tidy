@@ -39,7 +39,7 @@ Checks: |
   -bugprone-macro-parentheses
   -bugprone-narrowing-conversions
   -bugprone-sizeof-expression
-WarningsAsErrors: '*'
+WarningsAsErrors: "*"
 CheckOptions:
   cppcoreguidelines-macro-usage.CheckCapsOnly: true
   cppcoreguidelines-avoid-do-while.IgnoreMacros: true
@@ -54,8 +54,8 @@ CheckOptions:
     G__DICTIONARY;
     G__ROOT;
     __TheDictionaryInitializer
-HeaderFileExtensions:         ['hh']
-ImplementationFileExtensions: ['cc']
+HeaderFileExtensions: ["hh"]
+ImplementationFileExtensions: ["cc"]
 HeaderFilterRegex: '(app|src/(accel|celeritas|corecel|orange|geocel))/.*\.hh$'
 FormatStyle: file
 ...

@@ -8,36 +8,35 @@
 # appropriate coverage flags and running tests.
 #-----------------------------------------------------------------------------#
 
-name: 'Generate Coverage Report'
-description: 'Generates coverage report using gcovr and uploads to Codecov'
+name: "Generate Coverage Report"
+description: "Generates coverage report using gcovr and uploads to Codecov"
 inputs:
   codecov_token:
-    description: 'Codecov token'
+    description: "Codecov token"
     required: true
   working_directory:
-    description: 'Working directory for coverage generation'
+    description: "Working directory for coverage generation"
     required: false
-    default: '.'
+    default: "."
   codecov_name:
-    description: 'Name for the codecov upload'
+    description: "Name for the codecov upload"
     required: false
-    default: 'codecov-umbrella'
+    default: "codecov-umbrella"
   fail_ci_if_error:
-    description: 'Fail CI if codecov upload fails'
+    description: "Fail CI if codecov upload fails"
     required: false
     default: true
   gcov_executable:
-    description: 'Path to gcov executable (if using llvm, set to llvm-gcov)'
+    description: "Path to gcov executable (if using llvm, set to llvm-gcov)"
     required: false
-    default: 'gcov'
+    default: "gcov"
   gcovr_config:
-    description: 'Path to gcovr config file'
+    description: "Path to gcovr config file"
     required: false
-    default: 'scripts/ci/gcovr.cfg'
-
+    default: "scripts/ci/gcovr.cfg"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install dependencies
       shell: bash
