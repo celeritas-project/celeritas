@@ -425,7 +425,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT "$ENV{CUDAARCHS}")
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "
@@ -434,6 +434,20 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
+  # Check that architectures meet the minimum requirement (Atomics.hh)
+  set(_celer_min_cuda 60)
+  celeritas_filter_minimum_cuda_arch(_allowed_arch ${_celer_min_cuda})
+  if(NOT _allowed_arch OR (NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES))
+    if(NOT _allowed_arch)
+      message(SEND_ERROR "None of CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES} is valid")
+      set(_allowed_arch "${_celer_min_cuda}")
+    endif()
+    celeritas_error_incompatible_option(
+      "Celeritas cannot compile for CUDA compute versions less than ${_celer_min_cuda}"
+      CMAKE_CUDA_ARCHITECTURES
+      "${_allowed_arch}"
+    )
+  endif()
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
