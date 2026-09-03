@@ -531,6 +531,68 @@ TYPED_TEST(TrackInitTest, extend_from_secondaries)
     }
 }
 
+TYPED_TEST(TrackInitTest, geo_parents)
+{
+    size_type const num_tracks = 8;
+    this->build_states(num_tracks);
+
+    // Fill all track slots with primaries
+    auto primaries = this->make_primaries(num_tracks);
+    this->extend_from_primaries(make_span(primaries));
+    this->init_tracks();
+
+    // Kill four tracks and produce four secondaries. Two secondaries are
+    // initialized immediately and two are buffered with geometry parent IDs
+    std::vector<bool> const alive
+        = {true, false, false, true, true, false, false, true};
+    MockInteractAction interact{
+        ActionId{1}, std::vector<size_type>{1, 1, 2, 0, 0, 0, 0, 0}, alive};
+
+    interact.step(*this->core(), this->state());
+    ExtendFromSecondariesAction{ActionId{2}}.step(*this->core(), this->state());
+
+    {
+        auto result = RunResult::from_state(this->state());
+
+        EXPECT_EQ(2, this->state().sync_get_counters().num_initializers);
+        EXPECT_EQ(2, this->state().sync_get_counters().num_vacancies);
+
+        // Two secondaries expect to be initialized in the next step so have
+        // valid IDs for their parent geometry state
+        static int const expected_geo_parent_ids[] = {0, 2};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+    }
+
+    // Insert enough primaries to fill all current vacancies
+    primaries = this->make_primaries(2);
+    this->extend_from_primaries(make_span(primaries));
+
+    {
+        auto result = RunResult::from_state(this->state());
+
+        EXPECT_EQ(4, this->state().sync_get_counters().num_initializers);
+
+        // Adding primaries can delay the initialization of existing
+        // initializers, so their geometry parent IDs should be invalidated
+        static int const expected_geo_parent_ids[] = {-1, -1, -1, -1};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+    }
+
+    // New primaries are initialized first, leaving the original secondaries
+    // buffered for a later step
+    this->init_tracks();
+
+    {
+        auto result = RunResult::from_state(this->state());
+
+        EXPECT_EQ(2, this->state().sync_get_counters().num_initializers);
+
+        // The parent IDs for the deferred secondaries should have been cleared
+        static int const expected_geo_parent_ids[] = {-1, -1};
+        EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
