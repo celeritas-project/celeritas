@@ -11,6 +11,8 @@
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
 
+#include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -431,6 +433,55 @@ TEST_F(SimpleCmsTest, no_touchable)
         static real_type const expected_post_dir[] = {0, 0, -1, 0, 0, -1};
         EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
+{
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    auto const dso = this->make_dso();
+
+    HostVal<StepParamsData> params;
+    params.selection = selection_;
+    std::vector<DetectorId> detector_map{DetectorId{0}};
+    make_builder(&params.detector)
+        .insert_back(detector_map.begin(), detector_map.end());
+
+    StepStateData<Ownership::value, MemSpace::host> host_states;
+    resize(&host_states, make_const_ref(params), StreamId{0}, dso.size());
+    for (auto i : range(dso.size()))
+    {
+        TrackSlotId const tid{i};
+        host_states.data.track_id[tid] = dso.track_id[i];
+        host_states.data.detector_id[tid] = dso.detector_id[i];
+        host_states.data.energy_deposition[tid] = dso.energy_deposition[i];
+        host_states.data.step_length[tid] = dso.step_length[i];
+        host_states.data.points[StepPoint::pre].time[tid]
+            = dso.points[StepPoint::pre].time[i];
+    }
+
+    celeritas::device().create_streams(1);
+    StepStateData<Ownership::value, MemSpace::device> device_states;
+    resize(&device_states, make_const_ref(params), StreamId{0}, dso.size());
+    device_states.data = host_states.data;
+
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_TRUE(this->get_hits("si_tracker").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("em_calorimeter").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("had_calorimeter").energy_deposition.empty());
+
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    EXPECT_EQ(1, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("had_calorimeter").energy_deposition.size());
 }
 
 //---------------------------------------------------------------------------//
