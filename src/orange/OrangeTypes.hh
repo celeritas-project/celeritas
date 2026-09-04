@@ -395,6 +395,9 @@ char const* to_cstring(SurfaceType);
 // Get a string corresponding to a transform type
 char const* to_cstring(TransformType);
 
+// Get a string corresponding to a universe type
+char const* to_cstring(UnivType);
+
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)
 {
