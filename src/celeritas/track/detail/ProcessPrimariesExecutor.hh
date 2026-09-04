@@ -54,9 +54,30 @@ struct ProcessPrimariesExecutor
  */
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
-    CELER_EXPECT(tid < primaries.size());
-    auto* counters = state->init.counters.data().get();
-    CELER_EXPECT(primaries.size() <= counters->num_initializers + tid.get());
+    CELER_EXPECT(tid < primaries.size() || tid < state->size());
+
+    size_type num_initializers
+        = state->init.counters.data().get()->num_initializers;
+
+    // Only state.size() threads participate in this grid-stride loop.
+    // Additional threads may be launched to process a larger set of primaries:
+    // allowing them into the loop would cause overlapping writes to the same
+    // initializers.
+    if (tid < state->size())
+    {
+        for (size_type i = tid.get(); i < num_initializers; i += state->size())
+        {
+            // New primaries can delay existing initializers, so invalidate
+            // geometry parent IDs that assume initialization in the next step
+            state->init.initializers[ItemId<TrackInitializer>(i)].geo.parent
+                = {};
+        }
+    }
+
+    if (!(tid < primaries.size()))
+    {
+        return;
+    }
 
     Primary const& primary = primaries[tid.unchecked_get()];
 
@@ -83,7 +104,7 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     }
 
     // Store the initializer
-    size_type idx = counters->num_initializers - primaries.size() + tid.get();
+    size_type idx = num_initializers + tid.get();
     state->init.initializers[ItemId<TrackInitializer>(idx)] = ti;
 }
 
