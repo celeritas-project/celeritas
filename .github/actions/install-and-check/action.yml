@@ -1,0 +1,49 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Install Celeritas from an existing build directory and sanity-check the result.
+#-----------------------------------------------------------------------------#
+
+name: "Install and do basic verification of binaries"
+description: "cmake --install, optionally clean the build, and check the installed binaries"
+inputs:
+  binaries:
+    description: "Space-separated list of bin/ executables to check for"
+    required: false
+    default: ""
+  clean-build:
+    description: "Clean the build directory after installing"
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install
+      id: install
+      shell: bash
+      working-directory: build
+      run: |
+        echo "::group::Install"
+        cmake --install .
+        echo "::endgroup::"
+    - name: Clean build
+      if: ${{inputs.clean-build == 'true'}}
+      shell: bash
+      working-directory: build
+      run: cmake --build . --target clean
+    - name: Check binaries
+      shell: bash
+      if: ${{ inputs.binaries }}
+      working-directory: install
+      run: |
+        for exe in ${{inputs.binaries}}; do
+          test -x "bin/${exe}"
+        done
+    - name: Print version and config
+      shell: bash
+      working-directory: install
+      run: |
+        ./bin/celer-sim --version
+        ./bin/celer-sim --config

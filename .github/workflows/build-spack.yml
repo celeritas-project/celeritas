@@ -4,26 +4,18 @@
 #-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
 #
-# NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
-# - Spack version
-# - Any required spack patches
-# - Github runner versions
-# - Environment versions at scripts/ci/spack.yaml
+# NOTE: the 'tidy', 'codecov', and 'asan' special cases live in build-spack-{X}.yml
+# since their post-build steps diverge significantly from the rest of the matrix.
 #-----------------------------------------------------------------------------#
 
 name: build-spack
 on:
-  workflow_dispatch:
-  workflow_call:
-    secrets:
-      CODECOV_TOKEN:
-        required: false
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
-  group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
-
-env:
-  SPACK_REF: 760ccc43172ac3bf0d9a07b156f7b1f44c743677 # ci @ 11 Oct 2025
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
 
 jobs:
   spack:
@@ -55,10 +47,6 @@ jobs:
             special: "static"
             geant: "11.3"
           - build_type: "reldeb"
-            geometry: "orange"
-            special: "asanlite"
-            geant: ""
-          - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
@@ -70,188 +58,60 @@ jobs:
             geometry: "geant4"
             special: ""
             geant: "11.3"
-          - build_type: "reldeb"
-            geometry: "vecgeom"
-            special: "tidy"
-            geant: "11.2"
-          - build_type: "ndebug"
-            geometry: "vecgeom"
-            special: "codecov"
-            geant: "11.3"
     env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi"
-      CMAKE_PRESET: >-
+      CELER_CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
                   matrix.geometry,
                   matrix.special && '-' || '',
                   matrix.special)}}
-      SPACK_VIEW: "/opt/spack-view"
-      SPACK_BUILDCACHE: "celer-buildcache" # see spack.yaml
       CC: "clang-18"
       CXX: "clang++-18"
-      CLANG_TIDY: "clang-tidy-18"
-      LLVM_COV: "llvm-cov-18"
-      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
         && 17 || 20}}
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          fetch-depth: ${{format('{0}', matrix.special != 'tidy' && 383 || 0)}}
+          fetch-depth: 383
           fetch-tags: true # to get version information
 
-      ### ENVIRONMENT ###
-
-      - name: Check out Spack
-        uses: spack/setup-spack@b01309596568e0f36df3e38124601ed3327871ed
+      - name: Set up Spack environment
+        uses: ./.github/actions/spack-setup
         with:
-          repository: celeritas-project/spack
-          ref: ${{env.SPACK_REF}}
-          buildcache: true
-          color: true
-          path: spack-src
-      - name: Initialize spack environment
+          geometry: ${{matrix.geometry}}
+          geant: ${{matrix.geant}}
+          cxxstd: ${{env.CXXSTD}}
+          add-root: >-
+            ${{(matrix.special != 'minimal'
+                && matrix.special != 'static'
+                && env.CXXSTD == '20')
+               && 'true' || 'false'}}
+      - name: Verify Geant4 environment override
+        if: ${{matrix.geant == '11.0'}}
         run: |
-          echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
-          sed -e 's/cxxstd=default/cxxstd=${{env.CXXSTD}}/' \
-            scripts/ci/spack.yaml > spack.yaml
-          if ${{matrix.geometry == 'vecgeom'}}; then
-            spack -e . add vecgeom@1.2.11:1+gdml
-          elif ${{matrix.geometry == 'vecgeom2'}}; then
-            spack -e . add vecgeom@2.0.0-rc.7+gdml
-          fi
-          if ${{(matrix.special != 'minimal')
-                && (matrix.special != 'asanlite')
-                && (matrix.special != 'static')
-                && (env.CXXSTD == '20')}}; then
-            spack -e . add root
-          fi
-          if ${{matrix.geant != ''}}; then
-            spack -e . add geant4@${{matrix.geant}}
-          fi
-          if ${{(matrix.geometry == 'vecgeom'
-               || matrix.geometry == 'vecgeom2')
-                && matrix.geant != ''}}; then
-            spack -e . add g4vg@1.0.5
-          fi
-          echo "::group::Find compilers"
-          spack -vd -e . compiler find --mixed-toolchain
-          echo "::endgroup::"
-          # Add the spack ref so that updating spack will reconcretize
-          echo "# Concretized with ${{env.SPACK_REF}}" >> spack.yaml
-      - name: Cache concretization
-        uses: actions/cache@v5
-        with:
-          path: spack.lock
-          key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
-          restore-keys: |
-            lock-${{hashFiles('spack.yaml')}}
-      - name: Concretize
-        id: concretize
-        run: |
-          spack -e . -v concretize || (
-            ERR=$?
-            cat spack.yaml
-            exit $ERR
-          )
-      - name: Install dependencies
-        id: installdeps
-        run: |
-          spack -e . env depfile -o Makefile
-          make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
-      - name: Save Spack installation to build cache
-        env:
-          GITHUB_ACTOR: ${{github.actor}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          # TODO: avoid pushing in the future so that we don't overwrite the spack prefix stuff
-          spack -e . mirror set --push --oci-username-variable GITHUB_ACTOR --oci-password-variable GITHUB_TOKEN ${SPACK_BUILDCACHE}
-          spack -e . buildcache push -j $(($(nproc) + 1)) --base-image ubuntu:22.04 --unsigned --update-index ${SPACK_BUILDCACHE}
-        if: ${{github.event_name == 'push' && !cancelled()}}
-      - name: Activate environment
-        run: |
-          test -d "${SPACK_VIEW}"
-          echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
-          echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
-          spack env activate . --sh > "${SPACK_VIEW}/rc"
-
-      ### CONFIGURE ###
-
-      - name: Configure Celeritas
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          if ${{matrix.geant == '11.0'}}; then
-            # Test overriding of Geant4 environment variables
-            . ${SPACK_VIEW}/rc
-            test -n "${G4LEDATA}"
-          fi
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE
+          # Test overriding of Geant4 environment variables
+          . ${SPACK_VIEW}/rc
+          test -n "${G4LEDATA}"
 
       ### BUILD ###
 
-      - name: Restore ccache
-        uses: actions/cache/restore@v5
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-      - name: Build with clang-tidy
-        id: tidy
-        if: ${{matrix.special == 'tidy'}}
-        env:
-          BASE_REF: "${{format('{0}', github.base_ref || 'develop')}}"
-        run: |
-          if ${{github.event_name == 'schedule'}}; then
-            echo "Full clang-tidy check on scheduled run."
-            ninja -Cbuild -k0
-            exit $?
-          fi
-          BASE=$(git merge-base origin/${BASE_REF} HEAD)
-          ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE" HEAD)
-          set +e
-          CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES")
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
 
-          # Get list of files from compile_commands.json and filter CC_FILES
-          COMPILED_FILES=$(jq -r '.[].file' build/compile_commands.json)
-          CC_FILES=$(echo "$CC_FILES" | while read -r file; do
-            if echo "$COMPILED_FILES" | grep -qE "^.*/${file}$"; then
-              echo "$file"
-            fi
-          done)
-          set -e
-          if [ -z "$CC_FILES" ]; then
-            echo "No files to run clang-tidy on."
-            exit 0
-          fi
-          echo "Running clang-tidy on: $CC_FILES"
-          ${{env.CLANG_TIDY}} -p build $CC_FILES
-          exit $?
       - name: Build all
         id: build
-        if: ${{matrix.special != 'tidy'}}
-        working-directory: build
-        run: |
-          ccache -z
-          echo "::group::Build verbosely"
-          ninja -v -k0
-          echo "::endgroup::"
-          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
-      - name: Show ccache stats
-        if: ${{!cancelled() && steps.installdeps.outcome == 'success'}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v5
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
+          ccache-max-size: ${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi
 
       ### TEST ###
 
@@ -265,120 +125,45 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
-      - name: Run unit tests
-        id: unittest
-        if: >-
-          ${{
-            matrix.special != 'tidy'
-            && matrix.special != 'static'
-          }}
-        run: |
-          if ${{matrix.geant == '11.3'
-                && matrix.geometry != 'vecgeom2'}}; then
-            # Note this is ignored for non-primary geometry implementations
-            export CELER_TEST_STRICT=1
-          fi
-          # Increase timeout for code coverage
-          # Only run integration-level tests for old Geant4
-          ctest --preset=spack-unit ${{
-            matrix.special == 'codecov'
-            && '--timeout 60'
-            || ''
-          }} ${{
-            matrix.geant && fromJSON(matrix.geant) < 11
-            && '-R "^accel/"'
-            || ''
-          }}
-      - name: Run app tests
-        id: apptest
+      - name: Run tests
+        id: test
+        if: ${{matrix.special != 'static'}}
+        uses: ./.github/actions/run-ctest
+        with:
+          split-app: true
+          name: spack-${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
+          strict: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
+          filter-unit: >-
+            ${{
+              matrix.special == 'static' && 'none'
+              || (matrix.geant && fromJSON(matrix.geant) < 11) && '^accel/'
+             }}
+      - name: Test basic downstream compilation against build dir
         if: >-
           ${{
             !cancelled()
-            && matrix.special != 'tidy'
-            && steps.build.outcome == 'success'
-          }}
-        run: |
-          ctest --preset=spack-app
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: >- # not skipped, new geant4, not experimental vecgeom
-          ${{
-            always()
-            && (steps.unittest.outcome == 'success'
-                || steps.unittest.outcome == 'failure')
-          }}
-        with:
-          name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
-      - name: Generate and upload coverage report
-        uses: ./.github/actions/generate-coverage
-        if: >-
-          ${{
-            matrix.special == 'codecov'
-            && !cancelled()
-            && steps.unittest.outcome == 'success'
-            && steps.apptest.outcome == 'success'
-          }}
-        with:
-          codecov_token: ${{secrets.CODECOV_TOKEN}}
-          fail_ci_if_error: true
-          gcov_executable: ${{env.GCOV}}
-
-      ### INSTALL ###
-
-      - name: Check using build directory as install
-        # TODO: ASAN requires flags downstream
-        if: >-
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
-            && matrix.special != 'asanlite'
-            && matrix.special != 'codecov'
-            && matrix.special != 'tidy'
+            && steps.build.outputs.build-outcome == 'success'
           }}
         env:
-          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
         run: |
           . ${SPACK_VIEW}/rc
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
+
+      ### INSTALL ###
+
       - name: Install
         id: install
-        if: >-
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
-            && matrix.special != 'tidy'
-            && matrix.special != 'codecov'
-          }}
-        working-directory: build
-        run: |
-          echo "::group::Install"
-          cmake --install .
-          echo "::endgroup::"
-          ninja clean
-      - name: Check installation
-        if: >-
-          ${{
-            !cancelled()
-            && steps.install.outcome == 'success'
-          }}
-        working-directory: install
-        run: |
-          for exe in orange-update celer-geo celer-export-geant \
-            celer-sim celer-g4; do
-            test -x "bin/${exe}"
-          done
-          ./bin/celer-sim --config
-      - name: Build examples
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
+        uses: ./.github/actions/install-and-check
+        with:
+          binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
+      - name: Build and run examples
         env:
           CELER_DISABLE_G4_EXAMPLES: ${{(!matrix.geant) && '1' || ''}}
-        # `asanlite` requires downstream flags that don't propagate
         if: >-
           ${{
             steps.install.outcome == 'success'
-            && matrix.special != 'asanlite'
           }}
         run: |
           . ${SPACK_VIEW}/rc

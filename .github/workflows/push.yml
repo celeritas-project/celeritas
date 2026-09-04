@@ -15,7 +15,7 @@ on:
 
 concurrency:
   group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-ultralite:
@@ -24,12 +24,30 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-docker:
     uses: ./.github/workflows/build-docker.yml
-    secrets: inherit
   build-spack:
     uses: ./.github/workflows/build-spack.yml
+  build-spack-asan:
+    uses: ./.github/workflows/build-spack-asan.yml
+  build-spack-tidy:
+    uses: ./.github/workflows/build-spack-tidy.yml
+  build-docker-codecov:
+    if: github.repository_owner == 'celeritas-project'
+    uses: ./.github/workflows/build-docker-codecov.yml
+    secrets: inherit
+  build-spack-codecov:
+    if: github.repository_owner == 'celeritas-project'
+    uses: ./.github/workflows/build-spack-codecov.yml
     secrets: inherit
   all:
-    needs: [build-fast, build-docker, build-spack]
+    needs:
+      [
+        build-fast,
+        build-docker,
+        build-spack,
+        build-spack-asan,
+        build-spack-tidy,
+        build-spack-codecov,
+      ]
     runs-on: ubuntu-24.04
     steps:
       - name: Success

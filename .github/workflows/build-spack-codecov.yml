@@ -1,0 +1,99 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build with coverage instrumentation using Spack and upload results to Codecov.
+#-----------------------------------------------------------------------------#
+
+name: build-spack-codecov
+on:
+  workflow_dispatch: {}
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  spack:
+    name: codecov-vecgeom
+    env:
+      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
+      CC: "clang-18"
+      CXX: "clang++-18"
+      LLVM_COV: "llvm-cov-18"
+      GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
+      CXXSTD: 20
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 383
+          fetch-tags: true # to get version information
+
+      - name: Set up Spack environment
+        uses: ./.github/actions/spack-setup
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          geometry: vecgeom
+          geant: "11.3"
+          cxxstd: ${{env.CXXSTD}}
+          add-root: "true"
+
+      ### BUILD ###
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
+
+      - name: Build all
+        id: build
+        uses: ./.github/actions/ccache-build
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ${{env.CELER_CMAKE_PRESET}}
+          ccache-max-size: 300Mi
+
+      ### TEST ###
+
+      - name: Regenerate ROOT test data
+        working-directory: build
+        run: |
+          ninja -v -k0 update-root-test-data
+
+      - name: Run unit tests
+        id: unittest
+        # Increase timeout for code coverage
+        uses: ./.github/actions/run-ctest
+        with:
+          preset: spack-unit
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          extra-args: --timeout 60
+
+      - name: Run app tests
+        id: apptest
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
+        run: |
+          ctest --preset=spack-app
+
+      - name: Generate and upload coverage report
+        uses: ./.github/actions/generate-coverage
+        if: >-
+          ${{
+            !cancelled()
+            && steps.unittest.outcome == 'success'
+            && steps.apptest.outcome == 'success'
+          }}
+        with:
+          codecov_token: ${{secrets.CODECOV_TOKEN}}
+          fail_ci_if_error: true
+          gcov_executable: ${{env.GCOV}}
+
+# vim: set nowrap tw=100:

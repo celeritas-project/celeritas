@@ -7,15 +7,16 @@
 
 name: doc
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: doc-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
 
 env:
-  CMAKE_PRESET: doc
+  # Turn warnings into errors only for PRs, and disable expensive graphs for PRs also
+  CELER_CMAKE_PRESET: ${{ format('doc-{0}', github.workflow == 'pull_request' && '-check' || '-publish' }}
   CELER_UPLOAD_DOC: >-
     ${{  github.ref_name == 'develop'
       || contains(github.ref_name, 'backports/')
@@ -30,33 +31,28 @@ jobs:
       CELER_UPLOAD_DIR: build/doc/doxygen-html
     runs-on: ubuntu-24.04
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 383
+          fetch-tags: true
       - name: Install dependencies
         run: |
           sudo apt-get -y update
           sudo apt-get -y install \
               cmake graphviz ninja-build doxygen nlohmann-json3-dev
-      - name: Check out Celeritas
-        uses: actions/checkout@v6
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
         with:
-          fetch-depth: 383
-          fetch-tags: true
-      - name: Set source date
-        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
-      - name: Configure celeritas
-        # Turn warnings into errors only for PRs
-        # Disable expensive graphs for PRs also
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          mkdir build && cd build
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
-            ${{ github.workflow == 'pull_request'
-             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DDOXYGEN_HAVE_DOT="NO" -DDOXYGEN_QUIET="NO"'
-             || ''}} \
-            ..
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+
       - name: Build documentation
         run: |
-          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
+          cmake --build --preset=${CELER_CMAKE_PRESET} --target ${CELER_TARGET}
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
+
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v7
@@ -73,18 +69,16 @@ jobs:
       CELER_TARGET: doc
       CELER_UPLOAD_DIR: build/doc/html
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 383
+          fetch-tags: true
       - name: Install dependencies
         run: |
           sudo apt-get -y update
           sudo apt-get -y install \
               cmake graphviz ninja-build doxygen nlohmann-json3-dev
-      - name: Check out Celeritas
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 383
-          fetch-tags: true
-      - name: Set source date
-        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> $GITHUB_ENV
       - uses: actions/setup-python@v6
         with:
           python-version-file: .python-version
@@ -92,19 +86,17 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r scripts/ci/doc-requirements.txt
-      - name: Configure celeritas
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          mkdir build && cd build
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
-            ${{ github.workflow == 'pull_request'
-             && '-DDOXYGEN_WARN_AS_ERROR="YES" -DCELERITAS_SPHINX_ARGS="-W;--keep-going"'
-             || ''}} \
-            ..
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
       - name: Build documentation
         run: |
-          cmake --build --preset=${CMAKE_PRESET} --target ${CELER_TARGET}
+          cmake --build --preset=${CELER_CMAKE_PRESET} --target ${CELER_TARGET}
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
+
       - name: Upload artifacts
         if: ${{env.CELER_UPLOAD_DOC}}
         uses: actions/upload-artifact@v7

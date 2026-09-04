@@ -1,0 +1,61 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Point CMakeUserPresets.json at a CI presets file and configure Celeritas.
+# Assumes all cmake preset files set binaryDir="${sourceDir}/build"
+#-----------------------------------------------------------------------------#
+
+name: "Configure Celeritas"
+description: "Symlink/copy the CI CMakeUserPresets.json and run cmake --preset"
+inputs:
+  preset:
+    description: "CMake preset name"
+    required: true
+  presets-file:
+    description: "Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json"
+    required: true
+  extra-args:
+    description: "Additional arguments to pass to cmake"
+    required: false
+    default: ""
+  version-string:
+    description: "Value for -DCeleritas_VERSION_STRING"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Copy CMakeUserPresets.json
+      shell: bash
+      run: cp "scripts/cmake-presets/${{inputs.presets-file}}" CMakeUserPresets.json
+    - name: Set reproducible source date
+      shell: bash
+      run: |
+        REF=${{ github.event.pull_request && github.head_ref || github.ref_name }}
+        SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct ${REF})
+        echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+        echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" >> $GITHUB_ENV
+    - name: Configure Celeritas
+      id: configure
+      shell: bash
+      run: |
+        cmake --preset=${{inputs.preset}} --log-level=VERBOSE \
+          ${{inputs.extra-args}} \
+          -DCeleritas_VERSION_STRING="${{inputs.version-string}}"
+    - name: Print debug diagnostics on failure
+      if: ${{ failure() && steps.configure.outcome == 'failure' }}
+      shell: bash
+      run: |
+        which cmake
+        cmake --version
+        cmake --list-presets
+        echo "CELER_JOB_NAME=$CELER_JOB_NAME"
+    - name: Upload CMakeCache.txt on configure failure
+      if: ${{ failure() && steps.configure.outcome == 'failure' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: CMakeCache.txt-${{env.CELER_JOB_NAME}}
+        path: build/CMakeCache.txt
+        if-no-files-found: ignore

@@ -79,9 +79,9 @@
       }
     },
     {
-      "name": "doc",
-      "inherits": [".nogtest", "tool-system"],
-      "displayName": "FINAL: build only documentation",
+      "name": ".doc",
+      "inherits": [".nogtest"],
+      "displayName": "CONFIG: build only documentation",
       "cacheVariables": {
         "BUILD_TESTING": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
@@ -90,6 +90,27 @@
         "CELERITAS_DOXYGEN_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_PNG": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "doc-check",
+      "inherits": [".doc", "tool-system"],
+      "displayName": "FINAL: build docs for testing as part of a pull request",
+      "cacheVariables": {
+        "DOXYGEN_WARN_AS_ERROR": "YES",
+        "DOXYGEN_HAVE_DOT": "NO",
+        "DOXYGEN_QUIET": "NO",
+        "CELERITAS_SPHINX_ARGS": "-W;--keep-going"
+      }
+    },
+    {
+      "name": "doc-publish",
+      "inherits": [".doc", "tool-system"],
+      "displayName": "FINAL: build docs after new develop is pushed",
+      "cacheVariables": {
+        "DOXYGEN_WARN_AS_ERROR": "YES",
+        "DOXYGEN_HAVE_DOT": "NO",
+        "DOXYGEN_QUIET": "NO"
       }
     },
     {
@@ -184,7 +205,7 @@
     {
       "name": "ndebug-orange-static",
       "description": "FINAL: static libraries and perfetto, no tests",
-      "inherits": ["type-ndebug", "tool-spack"],
+      "inherits": [".nogtest", "type-ndebug", "tool-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "ON" },
@@ -224,7 +245,19 @@
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
+        "CELERITAS_C_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CELERITAS_CXX_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CELERITAS_LINK_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-omit-frame-pointer"
       }
     },
     {
@@ -245,6 +278,10 @@
     },
     {
       "name": "doc",
+      "inherits": "base"
+    },
+    {
+      "name": "ultralite",
       "inherits": "base"
     }
   ],

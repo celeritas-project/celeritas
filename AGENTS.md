@@ -1,58 +1,22 @@
 # Celeritas AI Agent Instructions
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
-## Mandatory Behaviors
-These three behaviors apply unconditionally, every session. Read them before starting any task.
+## Committing
 
-### Before any modification — verify code state
-
-**Avoid mixing user changes with assistant changes**. Before calling any file-editing tool for the first time in a session — including when transitioning from analysis to applying edits — check the repository for uncommitted changes and commit with `git commit -a --no-verify -m "WIP: user changes"` if so. Alert the user if this happens.
-
-### After any user correction — update this file
-
-**When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
-1. Identify the root cause: *at what decision point* did the existing instruction fail to trigger the right behavior?
-2. Edit AGENTS.md so the corrected behavior is a concrete, checkable step at that decision point — not vague prose buried elsewhere.
-3. Include the AGENTS.md change in the current or next commit.
-
-Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
-
-### After any completed task — commit
-Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
-
-**Pre-commit checklist — execute in order:**
-1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
+1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there.
 2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
 3. **Compile**: confirm the build still succeeds.
 
-Inline `-m` strings break with multi-line messages in the shell. Instead,
-write the commit message to `<build>/commit_msg.txt` (gitignored) and use
-the helper script. Use `create_file` to write it (never exists after a
-successful commit):
-
-```bash
-# Write message to file first, then commit (script handles add/format/rm)
-scripts/dev/agent-commit.sh <build>/commit_msg.txt "<agentic-tool>" "<model-name>"
-```
-
-The script runs `git add -A`, `pre-commit run`, `git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)"`, and `rm <build>/commit_msg.txt`. Pass
-`--no-verify` as an extra argument only if pre-commit is already known to
-pass.
-
-The commit message format for `build/commit_msg.txt`:
-
+Commit using  `git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)"`, formatting the message as:
 ```
 <Imperative-mood subject, no tags>
 
 <Body summarizes changes>
 
-Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
-attachments>
+<for each user prompt since the last commit>
+Prompt: <verbatim user prompt in plain text, no metadata or attachments>
+</for>
 ```
-
-**Common failure modes:**
-- Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
-- Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
 
 ## File Organization
 

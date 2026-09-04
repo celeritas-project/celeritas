@@ -8,8 +8,8 @@
 name: Check dd4hep integration
 
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
   group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
@@ -24,7 +24,7 @@ jobs:
         shell: bash -l -o pipefail {0}
     steps:
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Configure
         run: |
           eic-info

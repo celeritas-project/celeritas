@@ -7,12 +7,20 @@
 
 name: build-fast
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
-  group: build-fast-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
   cancel-in-progress: true
+
+env:
+  CELER_VERSION_STRING: >-
+    ${{
+       github.event.pull_request
+       && format('-pr.{0}', github.event.pull_request.number)
+       || format('-{0}', github.ref_name)
+     }}
 
 jobs:
   linux:
@@ -47,10 +55,8 @@ jobs:
             compiler: clang
             version: 22
     env:
-      GHA_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "200Mi"
-      CMAKE_PRESET: fast
+      CELER_JOB_NAME: "${{matrix.runner}}-${{matrix.compiler}}-${{matrix.version}}${{matrix.cxxstd && format('-c++{0}', matrix.cxxstd) || ''}}"
+      CELER_CMAKE_PRESET: fast
       CC: ${{matrix.compiler}}-${{matrix.version}}
       CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
     runs-on: >-
@@ -62,7 +68,7 @@ jobs:
       }}
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       ### ENVIRONMENT ###
 
@@ -79,176 +85,77 @@ jobs:
           $CC --version | head -1
           $CXX --version | head -1
 
-      ### CONFIGURE ###
-
       - name: Configure Celeritas
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          cmake --version
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
-            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0} ', matrix.cxxstd) || ''}} \
-            -DCeleritas_VERSION_STRING="${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}"
-
-      ### BUILD ###
-
-      - name: Restore ccache
-        uses: actions/cache/restore@v5
+        uses: ./.github/actions/configure
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.GHA_JOB_NAME}}
-      - name: Zero ccache stats
-        run: |
-          ccache -z
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+          extra-args: >-
+            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0}', matrix.cxxstd) || ''}}
+          version-string: ${{env.CELER_VERSION_STRING}}
+
       - name: Build
         id: build
-        working-directory: build
-        run: |
-          ninja
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v5
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.GHA_JOB_NAME}}-${{github.run_id}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: fast-${{env.CELER_JOB_NAME}}
+          ccache-max-size: 200Mi
 
-      ### TEST ###
-
-      - name: Run unit tests
-        id: unittest
-        run: |
-          ctest --preset=${CMAKE_PRESET}-unit
-      - name: Run app tests
-        id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        run: |
-          ctest --preset=${CMAKE_PRESET}-app
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: >-
-          ${{
-            always()
-            && (steps.unittest.outcome == 'success'
-                || steps.unittest.outcome == 'failure')
-          }}
+      - name: Test
+        id: test
+        uses: ./.github/actions/run-ctest
         with:
-          name: test-results-fast-${{env.GHA_JOB_NAME}}
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
-
-      ### INSTALL ###
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          split-app: true
+          name: fast-${{env.CELER_JOB_NAME}}
 
       - name: Install
-        working-directory: build
-        run: |
-          ninja install
-      - name: Check installation
-        working-directory: install
-        run: |
-          ./bin/celer-sim --config
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
+        uses: ./.github/actions/install-and-check
 
   windows:
     defaults:
       run:
         shell: pwsh
     env:
-      CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "200Mi"
-      CMAKE_PRESET: fast
+      CELER_CMAKE_PRESET: fast
+      CELER_JOB_NAME: windows
     runs-on: windows-latest
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
-
-      ### ENVIRONMENT ###
+        uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
           choco install ninja ccache
       - name: Set up MSVC
         uses: ilammy/msvc-dev-cmd@v1
+
       - name: Configure Celeritas
-        run: |
-          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
-          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
-            -DCeleritas_VERSION_STRING="${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}"
-
-      ### BUILD ###
-
-      - name: Restore ccache
-        uses: actions/cache/restore@v5
+        uses: ./.github/actions/configure
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-fast-windows-${{github.run_id}}
-          restore-keys: |
-            ccache-fast-windows
-      - name: Zero ccache stats
-        run: |
-          ccache -z
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-windows-github.json
+          version-string: ${{env.CELER_VERSION_STRING}}
       - name: Build
         id: build
-        run: |
-          cmake --version
-          cmake --build --preset=$Env:CMAKE_PRESET
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v5
+        uses: ./.github/actions/ccache-build
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-fast-windows-${{github.run_id}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: fast-windows
+          ccache-max-size: 200Mi
 
-      ### TEST ###
-
-      - name: Run unit tests
-        id: unittest
-        run: |
-          ctest --preset=$Env:CMAKE_PRESET-unit
-      - name: Run app tests
-        id: apptest
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
-        run: |
-          ctest --preset=$Env:CMAKE_PRESET-app
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: >-
-          ${{
-            always()
-            && (steps.unittest.outcome == 'success'
-                || steps.unittest.outcome == 'failure')
-          }}
+      - name: Test
+        id: test
+        uses: ./.github/actions/run-ctest
         with:
-          name: test-results-fast-windows
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
-
-      ### INSTALL ###
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          split-app: true
+          name: fast-${{env.CELER_JOB_NAME}}
 
       - name: Install
-        working-directory: build
-        run: |
-          cmake --install .
-      - name: Check installation
-        working-directory: install
-        run: |
-          ./bin/celer-sim --config
+        if: ${{!cancelled() && steps.build.outputs.build-outcome == 'success'}}
+        uses: ./.github/actions/install-and-check
 
 # vim: set nowrap tw=100:

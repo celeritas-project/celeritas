@@ -1,0 +1,82 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Restore a ccache directory, build, and save the cache on success.
+#-----------------------------------------------------------------------------#
+
+name: "Build with ccache"
+description: "Restore ccache, build a preset, show statistics, and save on success"
+inputs:
+  preset:
+    description: "CMake build preset to execute"
+    required: true
+  name:
+    description: "Cache key component, without the github.run_id suffix or ccache prefix"
+    required: true
+  ccache-dir:
+    description: "Directory to use for ccache"
+    required: false
+    default: ${{github.workspace}}/.ccache
+  ccache-max-size:
+    description: "Maximum size of the ccache directory"
+    required: true
+  ccache-debug:
+    description: "Enable and upload ccache debug logs"
+    required: false
+    default: "false"
+outputs:
+  build-outcome:
+    description: "Outcome of the build step ('success' or 'failure')"
+    value: ${{steps.build.outcome}}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Restore ccache
+      uses: actions/cache/restore@v5
+      with:
+        path: ${{ inputs.ccache-dir }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
+        restore-keys: ccache-${{ inputs.name }}
+
+    - name: Configure ccache environment
+      shell: bash
+      run: |
+        {
+          echo "CCACHE_DIR=${{ inputs.ccache-dir }}"
+          echo "CCACHE_MAXSIZE=${{ inputs.ccache-max-size }}"
+          echo "CCACHE_DEBUG=${{ inputs.ccache-debug == 'true' && '1' || '' }}"
+          echo "CCACHE_DEBUGDIR=${{ inputs.ccache-dir }}/debug"
+        } >> "$GITHUB_ENV"
+
+    - name: Zero ccache stats
+      shell: bash
+      run: ccache -z
+
+    - name: Build
+      id: build
+      shell: bash
+      run: cmake --build --preset=${{ inputs.preset }} --verbose
+
+    - name: Show ccache stats
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: ccache -s
+
+    - name: Save ccache
+      if: ${{ always() && steps.build.outcome == 'success' }}
+      uses: actions/cache/save@v5
+      with:
+        path: ${{ inputs.ccache-dir }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
+
+    - name: Upload ccache debug
+      if: ${{ inputs.ccache-debug == 'true' && !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ inputs.ccache-dir }}/debug
+        name: debug-ccache-${{ github.job }}-${{ github.run_id }}
+        overwrite: true
+        if-no-files-found: error
+        retention-days: 7

@@ -30,7 +30,7 @@ jobs:
     needs: build-docs
     steps:
       - name: Check out Celeritas doc base
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: doc/gh-pages-base
       - uses: actions/setup-python@v5

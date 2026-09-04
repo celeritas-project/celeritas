@@ -1,0 +1,68 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+
+name: build-spack
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+concurrency:
+  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  cancel-in-progress: true
+
+jobs:
+  spack:
+    name: reldeb-orange-asanlite
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build_type: "reldeb"
+            geometry: "orange"
+            special: "asanlite"
+    env:
+      CELER_CMAKE_PRESET: reldeb-orange-asanlite
+      CC: "clang-18"
+      CXX: "clang++-18"
+    runs-on: ubuntu-24.04
+    continue-on-error: false
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 383
+          fetch-tags: true # to get version information
+
+      - name: Set up Spack environment
+        uses: ./.github/actions/spack-setup
+        with:
+          geometry: orange
+          cxxstd: 20
+          add-root: false
+
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
+
+      - name: Build all
+        id: build
+        uses: ./.github/actions/ccache-build
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ${{env.CELER_CMAKE_PRESET}}-${{matrix.geant}}
+          ccache-max-size: 500Mi
+
+      - name: Run tests
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          split-app: true
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          strict: false
+
+# vim: set nowrap tw=100:

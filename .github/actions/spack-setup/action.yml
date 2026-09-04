@@ -1,0 +1,116 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Bootstrap a Spack environment, build/install dependencies, activate it, and
+# configure Celeritas against it.
+#
+# NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
+# - Spack version
+# - Any required spack patches
+# - Github runner versions
+# - Environment versions at scripts/ci/spack.yaml
+#-----------------------------------------------------------------------------#
+
+name: "Set up Spack environment"
+description: "Check out Celeritas + Spack, concretize/install deps, activate, and configure"
+inputs:
+  geometry:
+    description: "Geometry package to add ('vecgeom', 'vecgeom2', or empty)"
+    required: false
+    default: ""
+  geant:
+    description: "Geant4 version to add (empty to omit Geant4 entirely)"
+    required: false
+    default: ""
+  cxxstd:
+    description: "C++ standard to concretize Spack with"
+    required: true
+  add-root:
+    description: "Whether to add the 'root' Spack package"
+    required: false
+    default: "true"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set Spack environment variables
+      shell: bash
+      run: |
+        echo "SPACK_REF=760ccc43172ac3bf0d9a07b156f7b1f44c743677" >> "$GITHUB_ENV" # ci @ 11 Oct 2025
+        echo "SPACK_VIEW=/opt/spack-view" >> "$GITHUB_ENV"
+        echo "SPACK_BUILDCACHE=celer-buildcache" >> "$GITHUB_ENV" # see spack.yaml
+    - name: Check out Spack
+      uses: spack/setup-spack@b01309596568e0f36df3e38124601ed3327871ed
+      with:
+        repository: celeritas-project/spack
+        ref: ${{env.SPACK_REF}}
+        buildcache: true
+        color: true
+        path: spack-src
+    - name: Initialize spack environment
+      shell: bash
+      run: |
+        #echo "::notice title=spack-arch::Spack architecture is $(spack arch)"
+        sed -e 's/cxxstd=default/cxxstd=${{inputs.cxxstd}}/' \
+          scripts/ci/spack.yaml > spack.yaml
+        if [ "${{inputs.geometry}}" = "vecgeom" ]; then
+          spack -e . add vecgeom@1.2.11:1+gdml
+        elif [ "${{inputs.geometry}}" = "vecgeom2" ]; then
+          spack -e . add vecgeom@2.0.0-rc.7+gdml
+        fi
+        if [ "${{inputs.add-root}}" = "true" ]; then
+          spack -e . add root
+        fi
+        if [ -n "${{inputs.geant}}" ]; then
+          spack -e . add geant4@${{inputs.geant}}
+        fi
+        if { [ "${{inputs.geometry}}" = "vecgeom" ] \
+             || [ "${{inputs.geometry}}" = "vecgeom2" ]; } \
+           && [ -n "${{inputs.geant}}" ]; then
+          spack -e . add g4vg@1.0.5
+        fi
+        echo "::group::Find compilers"
+        spack -vd -e . compiler find --mixed-toolchain
+        echo "::endgroup::"
+        # Add the spack ref so that updating spack will reconcretize
+        echo "# Concretized with ${SPACK_REF}" >> spack.yaml
+    - name: Cache concretization
+      uses: actions/cache@v5
+      with:
+        path: spack.lock
+        key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+        restore-keys: |
+          lock-${{hashFiles('spack.yaml')}}
+    - name: Concretize
+      id: concretize
+      shell: bash
+      run: |
+        spack -e . -v concretize || (
+          ERR=$?
+          cat spack.yaml
+          exit $ERR
+        )
+    - name: Install dependencies
+      id: installdeps
+      shell: bash
+      run: |
+        spack -e . env depfile -o Makefile
+        make -Orecurse -j $(($(nproc) + 1)) SPACK_INSTALL_FLAGS=--no-check-signature
+    - name: Save Spack installation to build cache
+      shell: bash
+      env:
+        GITHUB_ACTOR: ${{github.actor}}
+        GITHUB_TOKEN: ${{github.token}}
+      run: |
+        # TODO: avoid pushing in the future so that we don't overwrite the spack prefix stuff
+        spack -e . mirror set --push --oci-username-variable GITHUB_ACTOR --oci-password-variable GITHUB_TOKEN ${SPACK_BUILDCACHE}
+        spack -e . buildcache push -j $(($(nproc) + 1)) --base-image ubuntu:22.04 --unsigned --update-index ${SPACK_BUILDCACHE}
+      if: ${{github.event_name == 'push' && !cancelled()}}
+    - name: Activate environment
+      shell: bash
+      run: |
+        test -d "${SPACK_VIEW}"
+        echo "${SPACK_VIEW}/bin" >> $GITHUB_PATH
+        echo "CMAKE_PREFIX_PATH=${SPACK_VIEW}:${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
+        spack env activate . --sh > "${SPACK_VIEW}/rc"
