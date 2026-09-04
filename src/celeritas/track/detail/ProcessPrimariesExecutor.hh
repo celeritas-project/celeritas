@@ -59,12 +59,16 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     size_type num_initializers
         = state->init.counters.data().get()->num_initializers;
 
-    // New primaries can delay existing initializers, so invalidate geometry
-    // parent IDs that assume initialization in the next step
+    // Only state.size() threads participate in this grid-stride loop.
+    // Additional threads may be launched to process a larger set of primaries:
+    // allowing them into the loop would cause overlapping writes to the same
+    // initializers.
     if (tid < state->size())
     {
         for (size_type i = tid.get(); i < num_initializers; i += state->size())
         {
+            // New primaries can delay existing initializers, so invalidate
+            // geometry parent IDs that assume initialization in the next step
             state->init.initializers[ItemId<TrackInitializer>(i)].geo.parent
                 = {};
         }
