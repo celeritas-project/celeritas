@@ -37,6 +37,32 @@ namespace celeritas
 {
 namespace test
 {
+namespace
+{
+// Count callback invocations, including steps with no active tracks.
+class CountingStepInterface final : public StepInterface
+{
+  public:
+    Filters filters() const final { return {}; }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.points[StepPoint::pre].time = true;
+        result.energy_deposition = true;
+        return result;
+    }
+
+    void process_steps(HostStepState) final { ++num_steps_; }
+    void process_steps(DeviceStepState) final { ++num_steps_; }
+
+    size_type num_steps() const { return num_steps_; }
+
+  private:
+    size_type num_steps_{};
+};
+}  // namespace
+
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
 //---------------------------------------------------------------------------//
@@ -71,6 +97,46 @@ class KnMctruthTest : public KnSimpleLoopTestBase, public MctruthTestBase
 class KnCaloTest : public KnSimpleLoopTestBase, public CaloTestBase
 {
     VecString get_detector_names() const final { return {"inner"}; }
+};
+
+class KnWarmupTest : public KnSimpleLoopTestBase
+{
+  protected:
+    template<MemSpace M>
+    void run()
+    {
+        auto callback = std::make_shared<CountingStepInterface>();
+        auto collector
+            = StepCollector::make_and_insert(*this->core(), {callback});
+
+        StepperInput step_inp;
+        step_inp.params = this->core();
+        step_inp.stream_id = StreamId{0};
+        step_inp.num_track_slots = 2;
+        step_inp.actions = std::make_shared<ActionSequence>(
+            *this->action_reg(), ActionSequence::Options{});
+        Stepper<M> step(step_inp);
+
+        // Warmup has no step result to consume or associated hit processing.
+        for (int i = 0; i < 2; ++i)
+        {
+            step.warm_up();
+            EXPECT_FALSE(step.valid());
+            EXPECT_EQ(0, callback->num_steps());
+        }
+
+        // Ordinary empty steps must still invoke callbacks.
+        step.async();
+        EXPECT_FALSE(step.get());
+        EXPECT_EQ(1, callback->num_steps());
+
+        auto primaries = this->make_primaries(2);
+        step.async(make_span(primaries));
+        auto result = step.get();
+        EXPECT_EQ(2, result.generated);
+        EXPECT_EQ(2, result.active);
+        EXPECT_EQ(2, callback->num_steps());
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -219,6 +285,20 @@ TEST_F(KnSimpleLoopTestBase, multiple_interfaces)
     }
 
     EXPECT_EQ(4, mctruth->steps().size());
+}
+
+//---------------------------------------------------------------------------//
+// WARMUP
+//---------------------------------------------------------------------------//
+
+TEST_F(KnWarmupTest, host)
+{
+    this->run<MemSpace::host>();
+}
+
+TEST_F(KnWarmupTest, TEST_IF_CELER_DEVICE(device))
+{
+    this->run<MemSpace::device>();
 }
 
 //---------------------------------------------------------------------------//
