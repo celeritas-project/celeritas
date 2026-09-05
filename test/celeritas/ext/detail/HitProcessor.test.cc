@@ -444,6 +444,9 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     selection_.points[StepPoint::pre].time = true;
 
     HitProcessor process_hits = this->make_hit_processor();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    process_hits.process_pending_steps();
+    EXPECT_EQ(0, process_hits.exchange_hits());
     auto const dso = this->make_dso();
 
     HostVal<StepParamsData> params;
@@ -476,12 +479,60 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     EXPECT_TRUE(this->get_hits("em_calorimeter").energy_deposition.empty());
     EXPECT_TRUE(this->get_hits("had_calorimeter").energy_deposition.empty());
 
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(process_hits(make_ref(device_states)), DebugError);
+        EXPECT_THROW(process_hits.exchange_hits(), DebugError);
+        EXPECT_TRUE(process_hits.has_pending_steps());
+    }
+
     process_hits.process_pending_steps();
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(3, process_hits.exchange_hits());
     EXPECT_EQ(1, this->get_hits("si_tracker").energy_deposition.size());
     EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
     EXPECT_EQ(1, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Reuse the same state with different data to catch replay of stale hits.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.energy_deposition[TrackSlotId{i}]
+            = 2 * dso.energy_deposition[i];
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    static double const expected_si_edep[] = {0.1, 0.2};
+    EXPECT_VEC_SOFT_EQ(expected_si_edep,
+                       this->get_hits("si_tracker").energy_deposition);
+    static double const expected_em_edep[] = {0.2, 0.4};
+    EXPECT_VEC_SOFT_EQ(expected_em_edep,
+                       this->get_hits("em_calorimeter").energy_deposition);
+    static double const expected_had_edep[] = {0.3, 0.6};
+    EXPECT_VEC_SOFT_EQ(expected_had_edep,
+                       this->get_hits("had_calorimeter").energy_deposition);
+    EXPECT_TRUE(this->get_hits("world").energy_deposition.empty());
+
+    // An empty batch must clear the previous output, not deliver it again.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = {};
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    process_hits.process_pending_steps();
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    EXPECT_EQ(2, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("had_calorimeter").energy_deposition.size());
 }
 
 //---------------------------------------------------------------------------//
