@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
   "configurePresets": [
     {
       "name": "base",
@@ -9,14 +9,14 @@
       "generator": "Ninja",
       "inherits": [".debug", "default"],
       "cacheVariables": {
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_CUDA":    {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_Geant4":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_ROOT":    {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL",   "value": "ON"},
+        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" },
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -Werror -Wno-error=deprecated -pedantic -fdiagnostics-color=always"
       }
     }
@@ -31,8 +31,8 @@
   "testPresets": [
     {
       "name": "base",
-      "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false}
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
     }
   ]
 }

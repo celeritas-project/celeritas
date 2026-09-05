@@ -6,8 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "GammaNuclearModel.hh"
 
+#include "celeritas/em/executor/GammaNuclearExecutor.hh"
+#include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/phys/InteractionApplier.hh"
 
 namespace celeritas
 {
@@ -15,9 +19,16 @@ namespace celeritas
 /*!
  * Interact with device data.
  */
-void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
+void GammaNuclearModel::step(CoreParams const& params,
+                             CoreStateDevice& state) const
 {
-    CELER_NOT_IMPLEMENTED("Gamma-nuclear interaction");
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{GammaNuclearExecutor{this->device_ref()}});
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

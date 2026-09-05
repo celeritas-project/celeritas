@@ -46,10 +46,9 @@ jobs:
             --random.enableEventSeed
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
-        if:
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
+        if: ${{
+          !cancelled()
+          && steps.build.outcome == 'success'
           }}
         with:
           name: simulation-artifacts

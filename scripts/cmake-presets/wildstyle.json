@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "cmakeMinimumRequired": {"major": 3, "minor": 21, "patch": 0},
+  "cmakeMinimumRequired": { "major": 3, "minor": 21, "patch": 0 },
   "configurePresets": [
     {
       "name": ".base",
@@ -9,13 +9,13 @@
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILD_DOCS":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_MPI":     {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_PNG":     {"type": "BOOL", "value": "ON"},
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_PNG": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
         "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/clang++",
         "CMAKE_CXX_STANDARD": "20",
@@ -23,7 +23,7 @@
         "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-inline -fno-omit-frame-pointer -mfma",
         "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG -march=skylake-avx512 -mtune=skylake-avx512",
         "CMAKE_CUDA_FLAGS": "-Werror all-warnings  -Wno-deprecated-gpu-targets",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": {"type": "BOOL", "value": "ON"},
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-${presetName}"
       }
     },
@@ -34,7 +34,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -42,8 +42,8 @@
       "displayName": "wildstyle: build with C++17",
       "inherits": [".debug", ".base"],
       "cacheVariables": {
-        "CELERITAS_USE_covfie":  {"type": "BOOL", "value": "OFF"},
-        "CELERITAS_USE_OpenMP":  {"type": "BOOL", "value": "OFF"},
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_STANDARD": "17"
       },
       "environment": {
@@ -57,7 +57,7 @@
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_UNITS": "CLHEP",
-        "CELERITAS_USE_CUDA":  {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -67,7 +67,7 @@
       "cacheVariables": {
         "CELERITAS_REAL_TYPE": "float",
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations -fdiagnostics-color=always -Wno-narrowing",
-        "CELERITAS_USE_OpenMP": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -75,8 +75,8 @@
       "displayName": "wildstyle: debug with VecGeom",
       "inherits": [".debug", ".base"],
       "cacheVariables": {
-        "CELERITAS_USE_VecGeom": {"type": "BOOL", "value": "ON"},
-        "CELERITAS_BUILTIN_G4VG": {"type": "BOOL", "value": "OFF"}
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILTIN_G4VG": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -120,19 +120,31 @@
       "jobs": 32,
       "nativeToolOptions": ["-k0"]
     },
-    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
-    {"name": "reldeb-vecgeom", "configurePreset": "reldeb-vecgeom", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"}
+    { "name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base" },
+    {
+      "name": "reldeb-vecgeom",
+      "configurePreset": "reldeb-vecgeom",
+      "inherits": "base"
+    },
+    { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" }
   ],
   "testPresets": [
     {
       "name": "base",
       "configurePreset": "base",
-      "output": {"outputOnFailure": true},
-      "execution": {"noTestsAction": "error", "stopOnFailure": false, "jobs": 32}
+      "output": { "outputOnFailure": true },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": false,
+        "jobs": 32
+      }
     },
-    {"name": "reldeb-vecgeom", "configurePreset": "reldeb-vecgeom", "inherits": "base"},
-    {"name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base"},
-    {"name": "reldeb", "configurePreset": "reldeb", "inherits": "base"}
+    {
+      "name": "reldeb-vecgeom",
+      "configurePreset": "reldeb-vecgeom",
+      "inherits": "base"
+    },
+    { "name": "vecgeom", "configurePreset": "vecgeom", "inherits": "base" },
+    { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" }
   ]
 }
