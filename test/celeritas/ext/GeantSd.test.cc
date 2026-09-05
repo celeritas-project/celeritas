@@ -203,11 +203,13 @@ void SimpleCmsTest::test_step_lifecycle()
     primary.position = from_cm(Real3{0, 150, 10});
     primary.direction = {0, 0, 1};
     primary.event_id = EventId{0};
+    PrimaryId primary_id{0};
     for (real_type energy : {1.0_r, 2.0_r})
     {
         // Drain two showers through the same step state and hit buffers.
         auto const previous_hits = consumed_hits;
         primary.energy = units::MevEnergy{energy};
+        primary.primary_id = primary_id++;
         step.async({&primary, 1});
         auto result = complete_step();
         EXPECT_EQ(1, result.generated);

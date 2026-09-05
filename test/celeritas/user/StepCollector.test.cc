@@ -85,6 +85,7 @@ class KnSimpleLoopTestBase : public SimpleTestBase,
         for (auto i : range(count))
         {
             result[i].event_id = EventId{i};
+            result[i].primary_id = PrimaryId{i};
         }
         return result;
     }
