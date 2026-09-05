@@ -17,6 +17,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
@@ -152,6 +153,11 @@ void SimpleCmsTest::test_step_lifecycle()
     input.num_track_slots = 16;
     input.actions = std::make_shared<ActionSequence>(
         *this->action_reg(), ActionSequence::Options{});
+    if constexpr (M == MemSpace::device)
+    {
+        // Core state construction already uses the assigned device stream.
+        device().create_streams(1);
+    }
     Stepper<M> step(input);
 
     for (int i = 0; i < 2; ++i)

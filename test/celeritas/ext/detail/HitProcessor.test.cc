@@ -436,6 +436,25 @@ TEST_F(SimpleCmsTest, no_touchable)
 }
 
 //---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, pre_step_only)
+{
+    // An unselected post-step point can be null even when a hit is valid.
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    process_hits(this->make_dso());
+
+    auto const& result = this->get_hits("si_tracker");
+    ASSERT_EQ(1, result.energy_deposition.size());
+    EXPECT_SOFT_EQ(0.1, result.energy_deposition.front());
+    ASSERT_EQ(1, result.pre_time.size());
+    EXPECT_SOFT_EQ(0.5, result.pre_time.front());
+    EXPECT_EQ(result.post_energy.size(), result.post_time.size());
+}
+
+//---------------------------------------------------------------------------//
 TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
 {
     selection_ = {};

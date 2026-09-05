@@ -11,6 +11,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/TestEm15Base.hh"
@@ -116,6 +117,11 @@ class KnWarmupTest : public KnSimpleLoopTestBase
         step_inp.num_track_slots = 2;
         step_inp.actions = std::make_shared<ActionSequence>(
             *this->action_reg(), ActionSequence::Options{});
+        if constexpr (M == MemSpace::device)
+        {
+            // Core state construction already uses the assigned device stream.
+            device().create_streams(1);
+        }
         Stepper<M> step(step_inp);
 
         // Warmup has no step result to consume or associated hit processing.
