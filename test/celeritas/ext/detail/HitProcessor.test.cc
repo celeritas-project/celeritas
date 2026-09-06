@@ -448,9 +448,9 @@ TEST_F(SimpleCmsTest, pre_step_only)
 
     auto const& result = this->get_hits("si_tracker");
     ASSERT_EQ(1, result.energy_deposition.size());
-    EXPECT_SOFT_EQ(0.1, result.energy_deposition.front());
+    EXPECT_SOFT_EQ(0.1_r, result.energy_deposition.front());
     ASSERT_EQ(1, result.pre_time.size());
-    EXPECT_SOFT_EQ(0.5, result.pre_time.front());
+    EXPECT_SOFT_EQ(0.5_r, result.pre_time.front());
     EXPECT_EQ(result.post_energy.size(), result.post_time.size());
 }
 
@@ -525,13 +525,13 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     process_hits.process_pending_steps();
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(3, process_hits.exchange_hits());
-    static double const expected_si_edep[] = {0.1, 0.2};
+    static real_type const expected_si_edep[] = {0.1, 0.2};
     EXPECT_VEC_SOFT_EQ(expected_si_edep,
                        this->get_hits("si_tracker").energy_deposition);
-    static double const expected_em_edep[] = {0.2, 0.4};
+    static real_type const expected_em_edep[] = {0.2, 0.4};
     EXPECT_VEC_SOFT_EQ(expected_em_edep,
                        this->get_hits("em_calorimeter").energy_deposition);
-    static double const expected_had_edep[] = {0.3, 0.6};
+    static real_type const expected_had_edep[] = {0.3, 0.6};
     EXPECT_VEC_SOFT_EQ(expected_had_edep,
                        this->get_hits("had_calorimeter").energy_deposition);
     EXPECT_TRUE(this->get_hits("world").energy_deposition.empty());
