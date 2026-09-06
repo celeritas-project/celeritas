@@ -35,7 +35,7 @@ jobs:
         build_type: ["reldeb"]
         geometry: ["vecgeom"]
         special: [""]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3", "11.4"]
         include:
           - build_type: "reldeb"
             geometry: "orange"
