@@ -6,6 +6,9 @@
 #-----------------------------------------------------------------------------#
 
 name: push
+# Run name renders as `{branch}: {head commit subject}`
+run-name: >-
+  ${{github.ref_name}}: ${{github.event.head_commit.message}}
 
 on:
   push:
@@ -14,7 +17,7 @@ on:
       - backports/**
 
 concurrency:
-  group: push-${{github.ref}}-${{github.run_number}}-${{github.workflow}}
+  group: push-${{github.ref_name}}-${{github.run_number}}
   cancel-in-progress: true
 
 jobs:
@@ -24,26 +27,12 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-docker:
     uses: ./.github/workflows/build-docker.yml
-    secrets: inherit
   build-spack:
     uses: ./.github/workflows/build-spack.yml
-  build-spack-tidy:
-    uses: ./.github/workflows/build-spack-tidy.yml
-  build-spack-codecov:
-    uses: ./.github/workflows/build-spack-codecov.yml
+  build-spack-extra:
+    uses: ./.github/workflows/build-spack-extra.yml
+  build-codecov:
+    uses: ./.github/workflows/build-codecov.yml
     secrets: inherit
-  all:
-    needs:
-      [
-        build-fast,
-        build-docker,
-        build-spack,
-        build-spack-tidy,
-        build-spack-codecov,
-      ]
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Success
-        run: "true"
 
 # vim: set nowrap tw=100:

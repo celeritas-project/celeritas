@@ -10,30 +10,27 @@ on:
   push:
     branches:
       - develop
-  workflow_dispatch:
-  workflow_call:
-    secrets:
-      CODECOV_TOKEN:
-        required: true
+  workflow_dispatch: {}
+  workflow_call: {}
 
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: pages
+  group: deploy-pages-${{github.event.number || github.ref_name}}
   cancel-in-progress: false
 
 jobs:
-  build-docs:
-    uses: ./.github/workflows/doc.yml
-  build-site:
+  docs:
+    uses: ./.github/workflows/build-docs.yml
+  site:
     runs-on: ubuntu-24.04
-    needs: build-docs
+    needs: docs
     steps:
       - name: Check out Celeritas doc base
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: doc/gh-pages-base
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
       - name: Install Python packages
@@ -52,8 +49,9 @@ jobs:
           python scripts/generate-pubs.py -g $ZOTERO_GROUP
           echo "DIFF_COUNT=$(git diff -- publications.md | wc -l)" >> $GITHUB_OUTPUT
       - name: Push updated publications
-        if: ${{steps.update.outcome != 'failure'
-          && fromJSON(steps.update.outputs.DIFF_COUNT) > 0}}
+        if: >-
+          ${{ steps.update.outcome != 'failure'
+              && fromJSON(steps.update.outputs.DIFF_COUNT) > 0 }}
         continue-on-error: true
         run: |
           git config --global user.name "Github Actions"
@@ -61,9 +59,9 @@ jobs:
           git commit -am "Update publications"
           git push
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       - name: Download doc and user artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
       - name: Rename artifacts
         run: |
           mv doc-dev dev
@@ -74,7 +72,7 @@ jobs:
         uses: actions/upload-pages-artifact@v5
   deploy:
     runs-on: ubuntu-24.04
-    needs: build-site
+    needs: site
     permissions:
       contents: read
       deployments: write
