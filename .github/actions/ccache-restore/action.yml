@@ -9,22 +9,22 @@
 # the caller's build step must run between the restore and the save.
 #-----------------------------------------------------------------------------#
 
-name: 'Restore ccache directory'
-description: 'Restore a ccache directory from the GitHub Actions cache'
+name: "Restore ccache directory"
+description: "Restore a ccache directory from the GitHub Actions cache"
 inputs:
   path:
-    description: 'ccache directory to restore'
+    description: "ccache directory to restore"
     required: true
   key:
-    description: 'Unique cache key for this run (should include github.run_id)'
+    description: "Unique cache key for this run (should include github.run_id)"
     required: true
   restore-keys:
-    description: 'Fallback restore key prefix'
+    description: "Fallback restore key prefix"
     required: false
-    default: ''
+    default: ""
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Restore ccache
       uses: actions/cache/restore@v5

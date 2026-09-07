@@ -142,7 +142,7 @@ jobs:
       - name: Install and check
         uses: ./.github/actions/install-and-check
         with:
-          clean-build: 'false'
+          clean-build: "false"
 
   windows:
     defaults:
@@ -222,6 +222,6 @@ jobs:
       - name: Install and check
         uses: ./.github/actions/install-and-check
         with:
-          clean-build: 'false'
+          clean-build: "false"
 
 # vim: set nowrap tw=100:

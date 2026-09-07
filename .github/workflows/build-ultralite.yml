@@ -96,8 +96,8 @@ jobs:
       - name: Install and check
         uses: ./.github/actions/install-and-check
         with:
-          check-version: 'true'
-          clean-build: 'false'
+          check-version: "true"
+          clean-build: "false"
   windows:
     name: ultralite-windows
     env:

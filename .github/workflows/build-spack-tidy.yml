@@ -32,8 +32,8 @@ jobs:
           geometry: vecgeom
           geant: "11.2"
           cxxstd: ${{env.CXXSTD}}
-          add-root: 'true'
-          fetch-depth: '0' # need full history to diff against the base branch
+          add-root: "true"
+          fetch-depth: "0" # need full history to diff against the base branch
 
       ### BUILD ###
 

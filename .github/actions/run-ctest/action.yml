@@ -5,26 +5,26 @@
 # Run ctest and upload the JUnit test results as an artifact.
 #-----------------------------------------------------------------------------#
 
-name: 'Run ctest'
-description: 'Run ctest with a preset and upload test-output as an artifact'
+name: "Run ctest"
+description: "Run ctest with a preset and upload test-output as an artifact"
 inputs:
   preset:
-    description: 'ctest preset name'
+    description: "ctest preset name"
     required: true
   artifact-name:
-    description: 'Name for the uploaded test-results artifact'
+    description: "Name for the uploaded test-results artifact"
     required: true
   extra-args:
-    description: 'Additional arguments to pass to ctest'
+    description: "Additional arguments to pass to ctest"
     required: false
-    default: ''
+    default: ""
 outputs:
   outcome:
     description: "Outcome of the ctest step ('success' or 'failure')"
     value: ${{steps.test.outcome}}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Run ctest
       id: test

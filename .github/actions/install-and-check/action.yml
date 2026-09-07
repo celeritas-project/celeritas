@@ -5,28 +5,28 @@
 # Install Celeritas from an existing build directory and sanity-check the result.
 #-----------------------------------------------------------------------------#
 
-name: 'Install and check Celeritas'
-description: 'cmake --install, optionally clean the build, and check the installed binaries'
+name: "Install and check Celeritas"
+description: "cmake --install, optionally clean the build, and check the installed binaries"
 inputs:
   binaries:
-    description: 'Space-separated list of bin/ executables to check for'
+    description: "Space-separated list of bin/ executables to check for"
     required: false
-    default: 'celer-sim'
+    default: "celer-sim"
   check-config:
     description: "Run 'celer-sim --config' after install"
     required: false
-    default: 'true'
+    default: "true"
   check-version:
     description: "Run 'celer-sim --version' after install"
     required: false
-    default: 'false'
+    default: "false"
   clean-build:
-    description: 'Clean the build directory after installing'
+    description: "Clean the build directory after installing"
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Install
       id: install

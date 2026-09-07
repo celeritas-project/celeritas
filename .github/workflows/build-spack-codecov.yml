@@ -38,7 +38,7 @@ jobs:
           geometry: vecgeom
           geant: "11.3"
           cxxstd: ${{env.CXXSTD}}
-          add-root: 'true'
+          add-root: "true"
 
       ### BUILD ###
 

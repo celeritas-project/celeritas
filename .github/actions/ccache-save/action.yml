@@ -7,14 +7,14 @@
 # Pair with the 'ccache-restore' action, called *before* the build step.
 #-----------------------------------------------------------------------------#
 
-name: 'Save ccache directory'
-description: 'Save a ccache directory to the GitHub Actions cache, gated on build success'
+name: "Save ccache directory"
+description: "Save a ccache directory to the GitHub Actions cache, gated on build success"
 inputs:
   path:
-    description: 'ccache directory to save'
+    description: "ccache directory to save"
     required: true
   key:
-    description: 'Unique cache key for this run (should include github.run_id)'
+    description: "Unique cache key for this run (should include github.run_id)"
     required: true
   build-outcome:
     description: >-
@@ -23,7 +23,7 @@ inputs:
     required: true
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Save ccache
       if: ${{always() && inputs.build-outcome == 'success'}}
