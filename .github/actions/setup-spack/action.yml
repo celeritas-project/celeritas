@@ -35,7 +35,7 @@ runs:
           echo "CELER_SPACK_VIEW=/opt/view"
           echo "CELER_SPACK_OPT=/opt/spack"
           echo "CELER_BASE_IMAGE=ubuntu:24.04"
-          echo "CELER_BUILDCACHE=sethrj"
+          echo "CELER_BUILDCACHE=celeritas"
           echo "SPACK_PACKAGES=$GITHUB_WORKSPACE/spack-pkg"
           echo "SPACK_ROOT=$SPACK_ROOT"
           echo "SPACK_COLOR=always"

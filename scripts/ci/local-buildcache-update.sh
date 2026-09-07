@@ -14,7 +14,7 @@ if [ -z "${GITHUB_TOKEN}" ]; then
 fi
 
 CELER_BASE_IMAGE=ubuntu:24.04
-CELER_BUILDCACHE=sethrj
+CELER_BUILDCACHE=celeritas
 
 export CELER_SPACK_VIEW=false
 CELER_SPACK_OPT=/scratch/celeritas/opt
@@ -51,7 +51,7 @@ echo "$matrix" | while read -r line; do
   shift
 
   # Create temporary directory
-  envdir="$WORK_DIR/temp-spack-${CXXSTD}-$(echo "$*" | tr ' @' '--')"
+  envdir="$WORK_DIR/temp-spack-cxx${CXXSTD}-$(echo "$*" | tr ' @' '--')"
   if [ -d $envdir ]; then
     echo "Skipping existing env: $line"
     continue
