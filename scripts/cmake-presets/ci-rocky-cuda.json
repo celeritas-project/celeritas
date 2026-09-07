@@ -88,25 +88,7 @@
       "configurePreset": "base",
       "nativeToolOptions": ["-k0"],
       "verbose": true,
-      "jobs": 16
-    },
-    {
-      "name": "debug-orange",
-      "configurePreset": "debug-orange",
-      "inherits": "base"
-    },
-    {
-      "name": "ndebug-orange",
-      "configurePreset": "ndebug-orange",
-      "inherits": "base",
-      "targets": ["all", "install"]
-    },
-    {
-      "name": "ndebug-vecgeom",
-      "configurePreset": "ndebug-vecgeom",
-      "inherits": "base",
-      "jobs": 8,
-      "targets": ["app/all", "install"]
+      "jobs": 4
     }
   ],
   "testPresets": [
@@ -125,21 +107,6 @@
         "outputOnFailure": true,
         "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/all.xml"
       }
-    },
-    {
-      "name": "debug-orange",
-      "configurePreset": "debug-orange",
-      "inherits": "base"
-    },
-    {
-      "name": "ndebug-orange",
-      "configurePreset": "ndebug-orange",
-      "inherits": "base"
-    },
-    {
-      "name": "ndebug-vecgeom",
-      "configurePreset": "ndebug-vecgeom",
-      "inherits": "base"
     }
   ]
 }

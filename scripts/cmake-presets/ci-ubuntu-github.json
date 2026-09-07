@@ -44,6 +44,7 @@
       "inherits": ["base", ".spack-base"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
+        "CMAKE_CXX_STANDARD": "$env{CXXSTD}",
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
@@ -167,8 +168,7 @@
       "inherits": [".nogtest", ".vecgeom", "type-reldeb", "tool-spack"],
       "cacheVariables": {
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_SCAN_FOR_MODULES": { "type": "BOOL", "value": "OFF" },
         "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
         "CMAKE_CXX_CLANG_TIDY": { "type": "PATH", "value": "$env{CLANG_TIDY}" }
@@ -192,6 +192,7 @@
       "description": "FINAL: VecGeom and code coverage",
       "inherits": [".vecgeom", ".gcov", "type-reldeb", "tool-spack"],
       "cacheVariables": {
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "ON" },
         "CMAKE_CXX_FLAGS": null
       }
     },
@@ -208,7 +209,7 @@
     {
       "name": "ndebug-orange-static",
       "description": "FINAL: static libraries and perfetto, no tests",
-      "inherits": ["type-ndebug", "tool-spack"],
+      "inherits": [".nogtest", "type-ndebug", "tool-spack"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "ON" },
@@ -248,7 +249,19 @@
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fsanitize=address -fno-omit-frame-pointer"
+        "CELERITAS_C_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CELERITAS_CXX_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CELERITAS_LINK_FLAGS": {
+          "type": "STRING",
+          "value": "-fsanitize=address"
+        },
+        "CMAKE_CXX_FLAGS_RELWITHDEBINFO": "-O2 -g -DNDEBUG -fno-omit-frame-pointer"
       }
     },
     {
@@ -268,7 +281,20 @@
       "verbose": true
     },
     {
+      "name": "spack",
+      "configurePreset": "tool-spack",
+      "inherits": "base"
+    },
+    {
       "name": "doc",
+      "inherits": "base"
+    },
+    {
+      "name": "fast",
+      "inherits": "base"
+    },
+    {
+      "name": "ultralite",
       "inherits": "base"
     }
   ],
@@ -323,6 +349,20 @@
       "name": "spack-app",
       "configurePreset": "tool-spack",
       "inherits": [".app", ".base"]
+    },
+    {
+      "name": "spack-codecov-unit",
+      "inherits": ["spack-unit"],
+      "execution": {
+        "timeout": 60
+      }
+    },
+    {
+      "name": "spack-codecov-app",
+      "inherits": ["spack-app"],
+      "execution": {
+        "timeout": 60
+      }
     },
     {
       "name": "fast-unit",
