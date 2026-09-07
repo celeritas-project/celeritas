@@ -10,36 +10,68 @@ description: "Run ctest with a preset and upload test-output as an artifact"
 inputs:
   preset:
     description: "ctest preset name"
+    required: false
+    default: "base"
+  name:
+    description: "Suffix for the uploaded test-results artifact"
     required: true
-  artifact-name:
-    description: "Name for the uploaded test-results artifact"
-    required: true
-  extra-args:
-    description: "Additional arguments to pass to ctest"
+  strict:
+    description: "Enable exact comparisons in unit tests (Test::strict_testing)"
+    required: false
+    default: "false"
+  split-app:
+    description: "Test {preset}-unit and {preset}-app separately"
+    required: false
+    default: "false"
+  filter-unit:
+    description: "Run only unit tests that match this regex, or 'none' to skip"
     required: false
     default: ""
 outputs:
   outcome:
     description: "Outcome of the ctest step ('success' or 'failure')"
-    value: ${{steps.test.outcome}}
+    value: >-
+      ${{
+        (
+          steps.all.outcome == 'success'
+          || (steps.unit.outcome == 'success' && steps.app.outcome == 'success')
+        ) && 'success' || 'failure'
+      }}
 
 runs:
   using: "composite"
   steps:
-    - name: Run ctest
-      id: test
+    - name: Set up test environment
       shell: bash
-      run: ctest --preset=${{inputs.preset}} ${{inputs.extra-args}}
-    - name: Upload test results
+      run: |
+        {
+          echo "CELER_TEST_STRICT=${{ fromJSON(inputs.strict) && '1' || '0' }}"
+        } >> "$GITHUB_ENV"
+    - name: Run unit tests
+      id: unit
+      if: ${{ fromJSON(inputs.split-app) && inputs.filter-unit != 'none' }}
+      shell: bash
+      run: |
+        ctest --preset=${{inputs.preset}}-unit \
+          ${{(inputs.filter-unit != '' && inputs.filter-unit != 'false')
+              && format('-R "{0}"', inputs.filter-unit) || ''}}
+    - name: Run app tests
+      id: app
+      if: ${{ !cancelled() && fromJSON(inputs.split-app) }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}-app
+    - name: Run all tests
+      id: all
+      if: ${{ !fromJSON(inputs.split-app) }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}
+    - name: Upload test results for pull_request_completed
+      id: upload
       uses: actions/upload-artifact@v7
-      if: >-
-        ${{
-          always()
-          && (steps.test.outcome == 'success'
-              || steps.test.outcome == 'failure')
-        }}
+      if: ${{ !cancelled() }}
       with:
-        name: ${{inputs.artifact-name}}
+        # NOTE: these must be compatible with pull_request_completed.yml
+        name: test-results-${{inputs.name}}
         path: "test-output/**/*.xml"
         if-no-files-found: error
         retention-days: 1

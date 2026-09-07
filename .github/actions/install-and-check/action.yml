@@ -5,21 +5,13 @@
 # Install Celeritas from an existing build directory and sanity-check the result.
 #-----------------------------------------------------------------------------#
 
-name: "Install and check Celeritas"
+name: "Install and do basic verification of binaries"
 description: "cmake --install, optionally clean the build, and check the installed binaries"
 inputs:
   binaries:
     description: "Space-separated list of bin/ executables to check for"
     required: false
-    default: "celer-sim"
-  check-config:
-    description: "Run 'celer-sim --config' after install"
-    required: false
-    default: "true"
-  check-version:
-    description: "Run 'celer-sim --version' after install"
-    required: false
-    default: "false"
+    default: ""
   clean-build:
     description: "Clean the build directory after installing"
     required: false
@@ -33,24 +25,23 @@ runs:
       shell: bash
       working-directory: build
       run: |
-        echo "::group::Install"
         cmake --install .
-        echo "::endgroup::"
     - name: Clean build
-      if: ${{inputs.clean-build == 'true'}}
+      if: ${{ fromJSON(inputs.clean-build) }}
       shell: bash
       working-directory: build
       run: cmake --build . --target clean
-    - name: Check installation
+    - name: Check binaries
       shell: bash
+      if: ${{ inputs.binaries }}
       working-directory: install
       run: |
         for exe in ${{inputs.binaries}}; do
           test -x "bin/${exe}"
         done
-        if [ "${{inputs.check-version}}" = "true" ]; then
-          ./bin/celer-sim --version
-        fi
-        if [ "${{inputs.check-config}}" = "true" ]; then
-          ./bin/celer-sim --config
-        fi
+    - name: Print version and config
+      shell: bash
+      working-directory: install
+      run: |
+        ./bin/celer-sim --version
+        ./bin/celer-sim --config
