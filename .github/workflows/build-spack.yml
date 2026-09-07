@@ -4,28 +4,30 @@
 #-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
 #
-# NOTE: the 'tidy' and 'codecov' special cases live in build-spack-tidy.yml and
-# build-spack-codecov.yml, since their post-build steps diverge significantly from
-# the rest of the matrix.
+# NOTE: the 'tidy', 'codecov', and 'asan' special cases live in build-spack-{X}.yml
+# since their post-build steps diverge significantly from the rest of the matrix.
 #-----------------------------------------------------------------------------#
 
 name: build-spack
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
-  group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-spack-${{github.event.number || github.ref_name}}
+  cancel-in-progress: true
 
 jobs:
   spack:
     name: >-
-      ${{format('{0}{1}{2}{3}{4}',
-                matrix.special,
-                matrix.special && '-' || '',
-                matrix.geometry,
-                matrix.geant && '-g4@' || '',
-                matrix.geant)}}
+      ${{format(
+        '{0}{1}{2}{3}{4}',
+        matrix.special,
+        matrix.special && '-' || '',
+        matrix.geometry,
+        matrix.geant && '-g4@' || '',
+        matrix.geant
+      )}}
     strategy:
       fail-fast: false
       matrix:
@@ -47,10 +49,6 @@ jobs:
             special: "static"
             geant: "11.3"
           - build_type: "reldeb"
-            geometry: "orange"
-            special: "asanlite"
-            geant: ""
-          - build_type: "reldeb"
             geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
@@ -63,69 +61,69 @@ jobs:
             special: ""
             geant: "11.3"
     env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "${{matrix.build_type == 'reldeb' && '500' || '300'}}Mi"
-      CMAKE_PRESET: >-
+      CELER_CMAKE_PRESET: >-
         ${{format('{0}-{1}{2}{3}',
                   matrix.build_type,
                   matrix.geometry,
                   matrix.special && '-' || '',
                   matrix.special)}}
+      CELER_RUN_NAME: >-
+        ${{format('spack-{0}{1}{2}{3}{4}',
+                  matrix.special,
+                  matrix.special && '-' || '',
+                  matrix.geometry,
+                  matrix.geant && '-g4@' || '',
+                  matrix.geant)}}
       CC: "clang-18"
       CXX: "clang++-18"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
         && 17 || 20}}
     runs-on: ubuntu-24.04
-    continue-on-error: false
     steps:
-      - name: Set up Spack environment
-        uses: ./.github/actions/spack-setup
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
         with:
-          preset: ${{env.CMAKE_PRESET}}
-          geometry: ${{matrix.geometry}}
-          geant: ${{matrix.geant}}
+          fetch-tags: true # to get version information
+
+      - name: Set up Spack environment
+        uses: ./.github/actions/setup-spack
+        with:
           cxxstd: ${{env.CXXSTD}}
-          add-root: >-
+          add: >-
             ${{(matrix.special != 'minimal'
-                && matrix.special != 'asanlite'
                 && matrix.special != 'static'
                 && env.CXXSTD == '20')
-               && 'true' || 'false'}}
-      - name: Verify Geant4 environment override
-        if: ${{matrix.geant == '11.0'}}
-        run: |
-          # Test overriding of Geant4 environment variables
-          . ${SPACK_VIEW}/rc
-          test -n "${G4LEDATA}"
+               && 'root' || ''
+            }}
+            ${{matrix.geant
+               && format('geant4@{0}', matrix.geant) || ''
+            }}
+            ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
+               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.0.0-rc.7'
+               || ''
+            }}
+            ${{(matrix.geometry == 'vecgeom'
+                || matrix.geometry == 'vecgeom2')
+               && matrix.geant
+               && 'g4vg' || ''
+            }}
 
       ### BUILD ###
 
-      - name: Restore ccache
-        uses: ./.github/actions/ccache-restore
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          restore-keys: |
-            ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
+
       - name: Build all
         id: build
-        working-directory: build
-        run: |
-          ccache -z
-          echo "::group::Build verbosely"
-          ninja -v -k0
-          echo "::endgroup::"
-          echo "::notice title=build-size::Build size is $(du -hs . | awk '{print $1}')"
-      - name: Show ccache stats
-        if: ${{!cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        uses: ./.github/actions/ccache-save
+        uses: ./.github/actions/build-cached
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-${{env.CMAKE_PRESET}}-${{matrix.geant}}-${{github.run_id}}
-          build-outcome: ${{steps.build.outcome}}
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack
+          ccache-max-size: ${{matrix.build_type == 'reldeb' && '512Mi' || '320'}}Mi
 
       ### TEST ###
 
@@ -139,63 +137,41 @@ jobs:
         working-directory: build
         run: |
           ninja -v -k0 update-root-test-data
-      - name: Set test strictness
-        # Note this is ignored for non-primary geometry implementations
-        if: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
-        run: echo "CELER_TEST_STRICT=1" >> "$GITHUB_ENV"
-      - name: Run unit tests
-        id: unittest
+      - name: Run tests
+        id: test
         if: ${{matrix.special != 'static'}}
         uses: ./.github/actions/run-ctest
         with:
-          preset: spack-unit
-          artifact-name: test-results-spack-${{env.CMAKE_PRESET}}-${{matrix.geant}}
-          extra-args: >-
-            ${{matrix.geant && fromJSON(matrix.geant) < 11
-                && '-R "^accel/"' || ''}}
-      - name: Run app tests
-        id: apptest
-        if: >-
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
-          }}
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack
+          split-app: true
+          strict: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
+          filter-unit: >-
+            ${{
+              matrix.special == 'static' && 'none'
+              || (matrix.geant && fromJSON(matrix.geant) < 11) && '^accel/'
+             }}
+      - name: Test basic downstream compilation against build dir
+        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        env:
+          CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
         run: |
-          ctest --preset=spack-app
+          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
 
       ### INSTALL ###
 
-      - name: Check using build directory as install
-        # TODO: ASAN requires flags downstream
-        if: >-
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
-            && matrix.special != 'asanlite'
-          }}
-        env:
-          CELER_DISABLE_G4_EXAMPLES: 1 # Only run minimal example
-        run: |
-          . ${SPACK_VIEW}/rc
-          CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
-      - name: Install and check
+      - name: Install
         id: install
-        if: ${{!cancelled() && steps.build.outcome == 'success'}}
+        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build examples
+      - name: Build and run examples
         env:
           CELER_DISABLE_G4_EXAMPLES: ${{(!matrix.geant) && '1' || ''}}
-        # `asanlite` requires downstream flags that don't propagate
-        if: >-
-          ${{
-            steps.install.outcome == 'success'
-            && matrix.special != 'asanlite'
-          }}
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
-          . ${SPACK_VIEW}/rc
           export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
-          ./scripts/ci/test-examples.sh
+          "${{github.workspace}}/scripts/ci/test-examples.sh"
 
 # vim: set nowrap tw=100:

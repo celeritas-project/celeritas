@@ -180,7 +180,7 @@ To install these dependencies for basic use with an Nvidia GPU:
 
 The dependency requirements for Celeritas are:
 
-.. literalinclude:: ../../scripts/spack/packages.yaml
+.. literalinclude:: ../../scripts/spack/reqs-celer.yaml
    :language: yaml
 
 and the full list of packages used by Celeritas is:
