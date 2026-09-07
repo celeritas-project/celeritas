@@ -1,0 +1,121 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build and upload code coverage
+#-----------------------------------------------------------------------------#
+
+name: build-codecov
+on:
+  workflow_dispatch:
+  workflow_call:
+    secrets:
+      CODECOV_TOKEN:
+        required: true
+
+concurrency:
+  group: build-codecov-${{github.event.number || github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  spack:
+    name: spack-vecgeom
+    env:
+      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
+      LLVM_COV: "llvm-cov-18"
+      CC: "clang-18"
+      CXX: "clang++-18"
+      CXXSTD: 20
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true # to get version information
+      - name: Set up Spack environment
+        uses: ./.github/actions/setup-spack
+        with:
+          add: vecgeom@1.2.11 geant4@11.3 g4vg root py-gcovr
+          cxxstd: ${{env.CXXSTD}}
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
+      - name: Build all
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          preset: spack
+          ccache-max-size: 512Mi
+      - name: Run tests
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          preset: spack-codecov
+          split-app: true
+      - name: Generate and upload coverage report
+        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        uses: ./.github/actions/process-coverage
+        with:
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          token: ${{secrets.CODECOV_TOKEN}}
+          gcov-exe: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
+
+  docker:
+    name: docker-vecgeom-cuda
+    env:
+      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
+      CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
+    runs-on: ubuntu-24.04
+    container:
+      image: docker.io/celeritas/ci-rocky-cuda12:2024-12-29
+    steps:
+      - name: Set up environment
+        run: |
+          . /etc/profile
+          echo "/opt/view/bin" >> $GITHUB_PATH
+          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
+      # NOTE: checkout must occur *after* setting up environment for git tags to work
+      # NOTE: depth must be enough to include the previous tag
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+      - name: Trust checked-out repo
+        run: |
+          git config --global --add safe.directory ${PWD}
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-rocky-cuda.json
+      - name: Build Celeritas
+        id: build
+        working-directory: build
+        run: |
+          ninja -v -k0
+
+      - name: Test Celeritas
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          name: rocky-cuda-${{env.CELER_CMAKE_PRESET}}
+      - name: Install coverage dependencies
+        id: cov-install
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+        shell: bash
+        run: |
+          dnf -y install lcov
+          pip install gcovr
+      - name: Generate and upload coverage report
+        if: ${{ !cancelled() && steps.cov-install.outcome == 'success' }}
+        uses: ./.github/actions/process-coverage
+        with:
+          name: spack-${{env.CELER_CMAKE_PRESET}}
+          token: ${{secrets.CODECOV_TOKEN}}
+
+# vim: set nowrap tw=100:
