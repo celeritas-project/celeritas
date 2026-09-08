@@ -15,67 +15,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  linux:
-    name: ultralite-ubuntu
+  ultralite:
+    name: ultralite-${{matrix.platform}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu
+          - platform: windows
     env:
       CELER_CMAKE_PRESET: ultralite
-    runs-on: ubuntu-24.04
+    runs-on: >-
+      ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
+        || matrix.platform == 'windows' && 'windows-2025'
+      }}
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
 
-      - name: Install dependencies
+      - name: Install dependencies (Ubuntu)
+        if: ${{matrix.platform == 'ubuntu'}}
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
             ccache nlohmann-json3-dev libpng-dev
-
-      - name: Configure
-        uses: $/.github/actions/configure
-        with:
-          preset: ${{env.CELER_CMAKE_PRESET}}
-          presets-file: ci-ubuntu-github.json
-          version-string: >-
-            ${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}
-
-      - name: Build
-        id: build
-        uses: $/.github/actions/build-cached
-        with:
-          name: ultralite-ubuntu
-          preset: ${{env.CELER_CMAKE_PRESET}}
-          ccache-max-size: 128Mi
-          ccache-debug: 1
-
-      - name: Test
-        id: test
-        uses: $/.github/actions/run-ctest
-        with:
-          name: ultralite-ubuntu
-          preset: ${{env.CELER_CMAKE_PRESET}}
-
-      - name: Install
-        uses: $/.github/actions/install-and-check
-        with:
-          clean-build: "false"
-
-  windows:
-    name: ultralite-windows
-    env:
-      CELER_CMAKE_PRESET: ultralite
-    runs-on: windows-latest
-    steps:
-      - name: Check out Celeritas
-        uses: actions/checkout@v7
-
-      - name: Install dependencies
+      - name: Install dependencies (Windows)
+        if: ${{matrix.platform == 'windows'}}
         run: |
           choco install ninja ccache
       - name: Set up MSVC
+        if: ${{matrix.platform == 'windows'}}
         uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0, 22 July 2026
         with:
           arch: x64
@@ -84,26 +53,28 @@ jobs:
         uses: $/.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
-          presets-file: ci-windows-github.json
+          presets-file: ci-${{matrix.platform}}-github.json
           version-string: >-
             ${{
               github.event.pull_request
               && format('-pr.{0}', github.event.pull_request.number)
               || format('-{0}', github.ref_name)
             }}
+
       - name: Build
         id: build
         uses: $/.github/actions/build-cached
         with:
-          name: ultralite-windows
+          name: ultralite-${{matrix.platform}}
           preset: ${{env.CELER_CMAKE_PRESET}}
-          ccache-max-size: 64Mi
+          ccache-max-size: 128Mi
+          ccache-debug: ${{matrix.platform == 'ubuntu' && '1' || '0'}}
 
       - name: Test
         id: test
         uses: $/.github/actions/run-ctest
         with:
-          name: ultralite-windows
+          name: ultralite-${{matrix.platform}}
           preset: ${{env.CELER_CMAKE_PRESET}}
 
       - name: Install
