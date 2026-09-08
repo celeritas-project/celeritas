@@ -89,10 +89,5 @@ printf "%s" "$matrix" | while read -r line; do
   spack -e . buildcache push \
     --base-image $CELER_BASE_IMAGE \
     $CELER_BUILDCACHE
-  update_index=true
-done
-
-if $update_index; then
-  # Should be inside a valid environment
   spack -e . buildcache update-index $CELER_BUILDCACHE
-fi
+done

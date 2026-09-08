@@ -60,7 +60,7 @@ runs:
       run: |
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if [ "${{github.event_name}}" == "pull_request" ]; then
+        if [ "${{github.event_name}}" = "pull_request" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
