@@ -27,61 +27,57 @@ jobs:
     name: >-
       ${{format(
         '{0}-{1}-{2}{3}{4}',
-        matrix.runner,
-        matrix.compiler,
-        matrix.version,
+        matrix.runner      ==  'ubuntu-22.04'     && 'jammy'
+          || matrix.runner ==  'ubuntu-24.04'     && 'noble'
+          || matrix.runner ==  'ubuntu-24.04-arm' && 'noble-arm'
+          || matrix.runner ==  'ubuntu-26.04'     && 'resolute'
+          || matrix.runner ==  'ubuntu-26.04-arm' && 'resolute-arm'
+        matrix.compiler[0],
+        matrix.compiler[1],
         matrix.cxxstd && '-c++' || '',
         matrix.cxxstd
       )}}
     strategy:
       matrix:
         include:
-          - runner: jammy
-            compiler: gcc
-            version: 12
-          - runner: jammy
-            compiler: clang
-            version: 15
+          - runner: ubuntu-22.04
+            compiler: [gcc, 12]
+          - runner: ubuntu-22.04
+            compiler: [clang, 15]
             cxxstd: 20
-          - runner: noble
-            compiler: gcc
-            version: 14
-          - runner: noble
-            compiler: clang
-            version: 18
+          - runner: ubuntu-24.04
+            compiler: [gcc, 14]
+          - runner: ubuntu-24.04
+            compiler: [clang, 18]
             cxxstd: 20
-          - runner: resolute
-            compiler: gcc
-            version: 15
-          - runner: resolute
-            compiler: clang
-            version: 22
-          - runner: resolute-arm
-            compiler: gcc
-            version: 15
-          - runner: resolute-arm
-            compiler: clang
-            version: 22
+          - runner: ubuntu-26.04
+            compiler: [gcc, 15]
+          - runner: ubuntu-26.04
+            compiler: [clang, 22]
+          - runner: ubuntu-26.04-arm
+            compiler: [gcc, 15]
+          - runner: ubuntu-26.04-arm
+            compiler: [clang, 22]
     env:
       CELER_JOB_NAME: >-
         ${{format(
           '{0}-{1}-{2}{3}{4}',
           matrix.runner,
-          matrix.compiler,
-          matrix.version,
+          matrix.compiler[0],
+          matrix.compiler[1],
           matrix.cxxstd && '-c++' || '',
           matrix.cxxstd
         )}}
       CELER_CMAKE_PRESET: fast
-      CC: ${{matrix.compiler}}-${{matrix.version}}
-      CXX: ${{matrix.compiler == 'gcc' && 'g++' || 'clang++'}}-${{matrix.version}}
-    runs-on: >-
-      ${{  matrix.runner == 'jammy' && 'ubuntu-22.04'
-        || matrix.runner == 'noble' && 'ubuntu-24.04'
-        || matrix.runner == 'noble-arm' && 'ubuntu-24.04-arm'
-        || matrix.runner == 'resolute' && 'ubuntu-26.04'
-        || matrix.runner == 'resolute-arm' && 'ubuntu-26.04-arm'
-      }}
+      CC: ${{format('{0}-{1}', matrix.compiler[0], matrix.compiler[1])}}
+      CXX: >-
+        ${{format(
+          '{0}-{1}'
+          (matrix.compiler[0] == 'gcc' && 'g++'
+           || matrix.compiler[0] == 'clang' && 'clang++'),
+          matrix.compiler[1]
+        )}}
+    runs-on: ${{matrix.runner}}
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
@@ -94,8 +90,8 @@ jobs:
           sudo apt-get -q -y install \
             ccache \
             nlohmann-json3-dev libgtest-dev libhepmc3-dev libpng-dev \
-            ${{matrix.compiler}}-${{matrix.version}} \
-            ${{matrix.compiler == 'gcc' && format('g++-{0}', matrix.version) || ''}}
+            ${{format('{0}-{1}', matrix.compiler[0], matrix.compiler[1])}} \
+            ${{matrix.compiler[0] == 'gcc' && format('g++-{0}', matrix.compiler[1]) || ''}}
           echo "Installed toolchain:"
           ld --version | head -1
           $CC --version | head -1
