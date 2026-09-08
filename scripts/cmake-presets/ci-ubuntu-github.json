@@ -57,7 +57,7 @@
       "cacheVariables": {
         "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILTIN_CLI11": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_BUILTIN_GTest": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILTIN_GTest": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILTIN_covfie": { "type": "BOOL", "value": "ON" }
       }
     },
