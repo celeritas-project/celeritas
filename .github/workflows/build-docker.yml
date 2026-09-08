@@ -105,11 +105,16 @@ jobs:
         run: |
           . /etc/profile
           # Get Geant4 version number for use by script
+          test -f /opt/view/include/Geant4/G4Version.hh || {
+            echo "Missing G4Version.hh"
+            exit 1
+          }
           export G4VERSION_NUMBER=$(
             grep -E '^\s*#define\s+G4VERSION_NUMBER' \
               /opt/view/include/Geant4/G4Version.hh \
               | awk '{print $3}'
           )
-          "${{github.workspace}}/scripts/ci/test-examples.sh"
+          # NOTE: since this is inside docker, it's not in github.workspace
+          "./scripts/ci/test-examples.sh"
 
 # vim: set nowrap tw=100:
