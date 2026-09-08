@@ -85,6 +85,7 @@
       "displayName": "CONFIG: build only documentation",
       "cacheVariables": {
         "BUILD_TESTING": { "type": "BOOL", "value": "OFF" },
+        "CMAKE_CXX_STANDARD": null,
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },

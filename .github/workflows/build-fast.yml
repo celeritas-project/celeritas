@@ -130,6 +130,7 @@ jobs:
         shell: pwsh
     env:
       CELER_JOB_NAME: windows
+      CXXSTD: 17
     runs-on: windows-2025
     steps:
       - name: Check out Celeritas
