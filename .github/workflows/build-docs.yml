@@ -17,11 +17,6 @@ concurrency:
 env:
   # Turn warnings into errors only for PRs, and disable expensive graphs for PRs also
   CELER_CMAKE_PRESET: ${{ format('doc-{0}', github.workflow == 'pull_request' && 'check' || 'publish') }}
-  # Only upload artifacts for pushes or PRs that target documentation
-  CELER_UPLOAD_DOC: >-
-    ${{  github.workflow != 'pull_request'
-      || contains(github.event.pull_request.labels.*.name, 'documentation')
-    }}
 
 jobs:
   docs:
@@ -68,7 +63,11 @@ jobs:
           find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
 
       - name: Upload artifacts
-        if: ${{env.CELER_UPLOAD_DOC}}
+        if: >-
+          ${{
+             github.workflow = 'pull_request'
+             || contains(github.event.pull_request.labels.*.name, 'documentation')
+          }}
         uses: actions/upload-artifact@v7
         with:
           path: ${{env.CELER_UPLOAD_DIR}}

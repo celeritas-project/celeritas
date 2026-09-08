@@ -24,18 +24,24 @@ inputs:
     required: false
     default: "false"
   filter-unit:
+    # Empty or false values cause filtering to be omitted
     description: "Run only unit tests that match this regex, or 'none' to skip"
     required: false
     default: ""
 outputs:
   outcome:
-    description: "Outcome of the ctest step ('success' or 'failure')"
+    description: "Outcome of the ctest step ('success', 'failure', 'cancelled', 'skipped')"
+    # No app splitting -> outcome from 'all' step
+    # Disable unit tests -> outcome from 'app' step
+    # Either unit or app fails -> failure
+    # Otherwise steps.app.outcome (which happens second so should catch success, failure, cancel)
+    # *note*: test upload result is always ignored
     value: >-
-      ${{
-        (
-          steps.all.outcome == 'success'
-          || (steps.unit.outcome == 'success' && steps.app.outcome == 'success')
-        ) && 'success' || 'failure'
+      ${{(
+          !fromJSON(inputs.split-app) && steps.all.outcome
+          || inputs.filter-unit == 'none' && steps.app.outcome
+          || steps.unit.outcome == 'failure' && steps.unit.outcome
+          || steps.app.outcome
       }}
 
 runs:

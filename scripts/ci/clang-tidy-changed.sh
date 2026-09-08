@@ -26,7 +26,7 @@ fi
 log info "Fetching base commit ${BASE_SHA} from ${REMOTE}"
 git fetch --depth 1 "${REMOTE}" "${BASE_SHA}"
 
-ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE_SHA" "$HEAD_SHA")
+ALL_FILES=$(git diff --name-only --diff-filter=ACM "$BASE_SHA"..."$HEAD_SHA")
 CC_FILES=$(grep -E '^(src|app)/.*\.cc$' - <<< "$ALL_FILES") || {
   log info "No *.cc files have changed."
   exit 0

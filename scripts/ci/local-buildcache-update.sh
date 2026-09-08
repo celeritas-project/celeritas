@@ -8,7 +8,7 @@
 
 set -e
 
-if [ -z "${GITHUB_TOKEN}" ]; then
+if [ -z "${GITHUB_USER}" || -z "${GITHUB_TOKEN}" ]; then
   echo "error: GITHUB_USER and GITHUB_TOKEN must be set (see scripts/spack/reqs-ci.yaml)"
   exit 1
 fi

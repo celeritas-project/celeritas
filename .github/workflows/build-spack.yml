@@ -123,7 +123,7 @@ jobs:
         with:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
-          ccache-max-size: ${{matrix.build_type == 'reldeb' && '512Mi' || '320'}}Mi
+          ccache-max-size: ${{format('{0}Mi', matrix.build_type == 'reldeb' && 512 || 320)}}
 
       ### TEST ###
 
