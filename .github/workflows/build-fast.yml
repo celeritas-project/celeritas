@@ -32,7 +32,7 @@ jobs:
           || matrix.runner ==  'ubuntu-24.04'     && 'noble'
           || matrix.runner ==  'ubuntu-24.04-arm' && 'noble-arm'
           || matrix.runner ==  'ubuntu-26.04'     && 'resolute'
-          || matrix.runner ==  'ubuntu-26.04-arm' && 'resolute-arm'
+          || matrix.runner ==  'ubuntu-26.04-arm' && 'resolute-arm',
         matrix.compiler[0],
         matrix.compiler[1],
         matrix.cxxstd || 17
