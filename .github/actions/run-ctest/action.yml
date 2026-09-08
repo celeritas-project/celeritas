@@ -37,7 +37,7 @@ outputs:
     # Otherwise steps.app.outcome (which happens second so should catch success, failure, cancel)
     # *note*: test upload result is always ignored
     value: >-
-      ${{(
+      ${{
           !fromJSON(inputs.split-app) && steps.all.outcome
           || inputs.filter-unit == 'none' && steps.app.outcome
           || steps.unit.outcome == 'failure' && steps.unit.outcome
