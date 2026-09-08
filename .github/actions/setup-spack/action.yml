@@ -58,11 +58,9 @@ runs:
         CXXSTD: ${{inputs.cxxstd}}
       # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
-        echo "NOTE: workflow=${{github.workflow}}, event=${{github.event_name}}"
-
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if [ "${{github.workflow}}" != "push" ]; then
+        if [ "${{github.event_name}}" == "pull_request" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
@@ -110,7 +108,7 @@ runs:
     - name: Install dependencies
       shell: sh
       run: |
-        spack -e . install -p 8 --use-buildcache=${{ github.workflow == 'pull_request' && 'only' || 'auto' }}
+        spack -e . install -p 8 --use-buildcache=${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
     - name: List installed dependencies
       if: ${{runner.debug}}
       shell: sh
@@ -118,7 +116,7 @@ runs:
         spack -e . find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && github.workflow != 'pull_request' }}
+      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}

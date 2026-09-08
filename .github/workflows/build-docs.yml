@@ -12,12 +12,12 @@ on:
 
 # NOTE: cancel in progress unless it's part of a push-to-develop deployment
 concurrency:
-  group: build-docs-${{github.workflow}}-${{github.workflow == 'pull_request' && github.event.number || github.ref_name}}
-  cancel-in-progress: ${{github.workflow == 'push'}}
+  group: build-docs-${{github.event_name}}-${{github.event_name == 'pull_request' && github.event.number || github.ref_name}}
+  cancel-in-progress: ${{github.event_name != 'pull_request'}}
 
 env:
   # Turn warnings into errors only for PRs, and disable expensive graphs for PRs also
-  CELER_CMAKE_PRESET: ${{ format('doc-{0}', github.workflow == 'pull_request' && 'check' || 'publish') }}
+  CELER_CMAKE_PRESET: ${{ format('doc-{0}', github.event_name == 'pull_request' && 'check' || 'publish') }}
 
 jobs:
   docs:
@@ -66,7 +66,7 @@ jobs:
       - name: Upload artifacts
         if: >-
           ${{
-             github.workflow == 'pull_request'
+             github.event_name == 'pull_request'
              || contains(github.event.pull_request.labels.*.name, 'documentation')
           }}
         uses: actions/upload-artifact@v7

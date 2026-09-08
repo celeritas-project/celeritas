@@ -78,14 +78,14 @@ jobs:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
       - name: Build changed files with clang-tidy
-        if: ${{github.workflow == 'pull_request'}}
+        if: ${{github.event_name == 'pull_request'}}
         run: |
           "${{github.workspace}}/scripts/ci/clang-tidy-changed.sh" \
             "origin" \
             "${{ github.event.pull_request.base.sha }}"
       # NOTE: this was not previously used on develop so will be disabled
       - name: Build all files with clang-tidy
-        if: ${{github.workflow != 'pull_request'}}
+        if: ${{github.event_name != 'pull_request'}}
         run: cmake --build --preset=spack
 
 # vim: set nowrap tw=100:
