@@ -16,7 +16,7 @@ concurrency:
 
 env:
   CELER_CMAKE_PRESET: ultralite
-  CXXSTD: 17
+  CXXSTD: 20
   CELER_VERSION_STRING: >-
     ${{
       github.event.pull_request

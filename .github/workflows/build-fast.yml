@@ -35,25 +35,28 @@ jobs:
           || matrix.runner ==  'ubuntu-26.04-arm' && 'resolute-arm',
         matrix.compiler[0],
         matrix.compiler[1],
-        matrix.cxxstd || 17
+        matrix.cxxstd || 20
       )}}
     strategy:
       matrix:
         include:
           - runner: ubuntu-22.04
             compiler: [gcc, 12]
+            cxxstd: 17
           - runner: ubuntu-22.04
             compiler: [clang, 15]
-            cxxstd: 20
+            cxxstd: 17
           - runner: ubuntu-24.04
             compiler: [gcc, 14]
+            cxxstd: 17
           - runner: ubuntu-24.04
             compiler: [clang, 18]
-            cxxstd: 20
           - runner: ubuntu-26.04
             compiler: [gcc, 15]
+            cxxstd: 23
           - runner: ubuntu-26.04
             compiler: [clang, 22]
+            cxxstd: 23
           - runner: ubuntu-26.04-arm
             compiler: [gcc, 15]
           - runner: ubuntu-26.04-arm
@@ -65,7 +68,7 @@ jobs:
           matrix.runner,
           matrix.compiler[0],
           matrix.compiler[1],
-          matrix.cxxstd || 17
+          matrix.cxxstd || 20
         )}}
       CC: ${{format('{0}-{1}', matrix.compiler[0], matrix.compiler[1])}}
       CXX: >-
@@ -75,7 +78,7 @@ jobs:
            || matrix.compiler[0] == 'clang' && 'clang++'),
           matrix.compiler[1]
         )}}
-      CXXSTD: ${{matrix.cxxstd || 17}}
+      CXXSTD: ${{matrix.cxxstd || 20}}
     runs-on: ${{matrix.runner}}
     steps:
       - name: Check out Celeritas
@@ -129,7 +132,7 @@ jobs:
         shell: pwsh
     env:
       CELER_JOB_NAME: windows
-      CXXSTD: 17
+      CXXSTD: 20
     runs-on: windows-2025
     steps:
       - name: Check out Celeritas
