@@ -4,8 +4,9 @@
 #-----------------------------------------------------------------------------#
 # Build directly on the GitHub runner with caching
 #
-# NOTE: the 'tidy', 'codecov', and 'asan' special cases live in build-spack-{X}.yml
-# since their post-build steps diverge significantly from the rest of the matrix.
+# NOTE: the 'tidy' and 'asan' special cases live in the `build-spack-extra.yml`
+# workflow (and `codecov` is in `build-codecov`), since their post-build steps
+# diverge significantly from the rest of the matrix.
 #-----------------------------------------------------------------------------#
 
 name: build-spack

@@ -7,11 +7,27 @@
 #-----------------------------------------------------------------------------#
 
 set -e
+log() {
+  printf "%s: %s\n" "$1" "$2" >&2
+}
 
 if [ -z "${GITHUB_USER}" || -z "${GITHUB_TOKEN}" ]; then
-  echo "error: GITHUB_USER and GITHUB_TOKEN must be set (see scripts/spack/reqs-ci.yaml)"
+  log error "GITHUB_USER and GITHUB_TOKEN must be set (see scripts/spack/reqs-ci.yaml)"
   exit 1
 fi
+
+if ! command -v spack 2>/dev/null; then
+  log error "spack not found"
+  exit 1
+fi
+
+OS=$(spack arch --operating-system)
+EXPECTED_OS="ubuntu24.04"
+if [ "${OS}" != "${EXPECTED_OS}" ]; then
+  log error "Current OS is ${OS} but needs to be ${EXPECTED_OS}"
+  exit 1
+fi
+
 
 CELER_BASE_IMAGE=ubuntu:24.04
 CELER_BUILDCACHE=celeritas
@@ -30,6 +46,9 @@ update_index=false
 
 # Each line is: CXXSTD, followed by the spack packages to add, based on the
 # matrix (and its "include" entries) from .github/workflows/build-spack.yml
+# (missing concretization will require running the build-spack workflows
+# on something *other* than a PR, and missing packages will cause a PR to fail
+# due to the `--use-buildcache` option in `setup-spack/action.yaml`)
 matrix="
 CXXSTD=20 vecgeom@2.1.0 geant4@11.4 g4vg root
 CXXSTD=20 vecgeom@2.0.0-rc.7 geant4@11.3 g4vg root
@@ -43,7 +62,7 @@ CXXSTD=17 vecgeom@1.2.11 geant4@10.6 g4vg
 CXXSTD=17 vecgeom@1.2.11 geant4@10.5 g4vg
 "
 
-echo "$matrix" | while read -r line; do
+printf "%s" "$matrix" | while read -r line; do
   [ -z "$line" ] && continue
   # Pop and export CXXSTD
   set -- $line
@@ -53,7 +72,7 @@ echo "$matrix" | while read -r line; do
   # Create temporary directory
   envdir="$WORK_DIR/temp-spack-cxx${CXXSTD}-$(echo "$*" | tr ' @' '--')"
   if [ -d $envdir ]; then
-    echo "Skipping existing env: $line"
+    log info "Skipping existing env: $line"
     continue
   fi
   mkdir -p "$envdir"
@@ -62,11 +81,11 @@ echo "$matrix" | while read -r line; do
   # Create environment
   "${SCRIPT_DIR}/setup-spack-ci-env.sh" "$@"
   # Install and push
-  echo "Concretizing $envdir..."
+  log status "Concretizing $envdir..."
   spack -e . -v concretize --non-defaults --fresh
-  echo "Installing  $envdir..."
+  log status "Installing  $envdir..."
   spack -e . install
-  echo "Pushing  $envdir..."
+  log status "Pushing  $envdir..."
   spack -e . buildcache push \
     --base-image $CELER_BASE_IMAGE \
     $CELER_BUILDCACHE

@@ -5,11 +5,8 @@
 # Bootstrap a Spack environment, build/install dependencies, activate it, and
 # configure Celeritas against it.
 #
-# NOTE: sync spack versions with https://github.com/celeritas-project/spack-gha-buildcache
-# - Spack version
-# - Any required spack patches
-# - Github runner versions
-# - Environment versions at scripts/ci/spack.yaml
+# NOTE: run `update-spack-buildcache-local` on a non-github machine to setup
+# the spack buildcache.
 #-----------------------------------------------------------------------------#
 
 name: "Set up Spack environment"
@@ -61,9 +58,11 @@ runs:
         CXXSTD: ${{inputs.cxxstd}}
       # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
+        echo "NOTE: workflow=${{github.workflow}}, event=${{github.event_name}}"
+
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if [ "${{github.event_name}}" != "push" ]; then
+        if [ "${{github.workflow}}" != "push" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
@@ -111,7 +110,7 @@ runs:
     - name: Install dependencies
       shell: sh
       run: |
-        spack -e . install -p 8 --use-buildcache=${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
+        spack -e . install -p 8 --use-buildcache=${{ github.workflow == 'pull_request' && 'only' || 'auto' }}
     - name: List installed dependencies
       if: ${{runner.debug}}
       shell: sh
@@ -119,7 +118,7 @@ runs:
         spack -e . find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && github.event_name == 'push' }}
+      if: ${{ !cancelled() && github.workflow != 'pull_request' }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
