@@ -43,11 +43,11 @@ jobs:
           name: event-file
           path: ${{github.event_path}}
   build-fast:
-    uses: ./.github/workflows/build-fast.yml
+    uses: $/.github/workflows/build-fast.yml
   build-ultralite:
-    uses: ./.github/workflows/build-ultralite.yml
+    uses: $/.github/workflows/build-ultralite.yml
   build-docs:
-    uses: ./.github/workflows/build-docs.yml
+    uses: $/.github/workflows/build-docs.yml
   all-prechecks:
     needs:
       - build-fast
@@ -59,22 +59,22 @@ jobs:
         run: "true"
   build-spack:
     needs: [all-prechecks]
-    uses: ./.github/workflows/build-spack.yml
+    uses: $/.github/workflows/build-spack.yml
 
   # Since docker builds aren't cached and are large, don't run on draft
   # Also avoid coverage checks until ready (those are also expensive)
   build-spack-extra:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
-    uses: ./.github/workflows/build-spack-extra.yml
+    uses: $/.github/workflows/build-spack-extra.yml
   build-docker:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
-    uses: ./.github/workflows/build-docker.yml
+    uses: $/.github/workflows/build-docker.yml
   build-codecov:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
-    uses: ./.github/workflows/build-codecov.yml
+    uses: $/.github/workflows/build-codecov.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:

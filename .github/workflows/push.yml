@@ -22,17 +22,17 @@ concurrency:
 
 jobs:
   build-ultralite:
-    uses: ./.github/workflows/build-ultralite.yml
+    uses: $/.github/workflows/build-ultralite.yml
   build-fast:
-    uses: ./.github/workflows/build-fast.yml
+    uses: $/.github/workflows/build-fast.yml
   build-docker:
-    uses: ./.github/workflows/build-docker.yml
+    uses: $/.github/workflows/build-docker.yml
   build-spack:
-    uses: ./.github/workflows/build-spack.yml
+    uses: $/.github/workflows/build-spack.yml
   build-spack-extra:
-    uses: ./.github/workflows/build-spack-extra.yml
+    uses: $/.github/workflows/build-spack-extra.yml
   build-codecov:
-    uses: ./.github/workflows/build-codecov.yml
+    uses: $/.github/workflows/build-codecov.yml
     secrets: inherit
 
 # vim: set nowrap tw=100:

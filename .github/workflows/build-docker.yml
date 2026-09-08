@@ -71,7 +71,7 @@ jobs:
           git config --global --add safe.directory ${PWD}
 
       - name: Configure Celeritas
-        uses: ./.github/actions/configure
+        uses: $/.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-${{matrix.image}}.json
@@ -84,13 +84,13 @@ jobs:
 
       - name: Test Celeritas
         id: test
-        uses: ./.github/actions/run-ctest
+        uses: $/.github/actions/run-ctest
         with:
           name: ${{matrix.image}}-${{env.CELER_CMAKE_PRESET}}
 
       - name: Install
         id: install
-        uses: ./.github/actions/install-and-check
+        uses: $/.github/actions/install-and-check
         if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         with:
           binaries: orange-update celer-export-geant celer-sim celer-g4

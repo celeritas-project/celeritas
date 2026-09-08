@@ -13,27 +13,27 @@ on:
 
 jobs:
   clear-cache:
-    uses: ./.github/workflows/clear-cache.yml
+    uses: $/.github/workflows/clear-cache.yml
   build-ultralite:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
-    uses: ./.github/workflows/build-ultralite.yml
+    uses: $/.github/workflows/build-ultralite.yml
   build-fast:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
-    uses: ./.github/workflows/build-fast.yml
+    uses: $/.github/workflows/build-fast.yml
   build-spack:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
-    uses: ./.github/workflows/build-spack.yml
+    uses: $/.github/workflows/build-spack.yml
   build-spack-extra:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
-    uses: ./.github/workflows/build-spack-extra.yml
+    uses: $/.github/workflows/build-spack-extra.yml
   build-codecov:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
-    uses: ./.github/workflows/build-codecov.yml
+    uses: $/.github/workflows/build-codecov.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
