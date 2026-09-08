@@ -62,7 +62,7 @@ jobs:
     env:
       CELER_JOB_NAME: >-
         ${{format(
-          '{0}-{1}-{2}-c++{4}',
+          '{0}-{1}-{2}-c++{3}',
           matrix.runner,
           matrix.compiler[0],
           matrix.compiler[1],
@@ -71,7 +71,7 @@ jobs:
       CC: ${{format('{0}-{1}', matrix.compiler[0], matrix.compiler[1])}}
       CXX: >-
         ${{format(
-          '{0}-{1}'
+          '{0}-{1}',
           (matrix.compiler[0] == 'gcc' && 'g++'
            || matrix.compiler[0] == 'clang' && 'clang++'),
           matrix.compiler[1]
