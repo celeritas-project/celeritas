@@ -11,8 +11,9 @@
  * utilities are meant for "kernel" code. Multiple independent events
  * must \em not use these functions to simultaneously modify shared data.
  *
- * \warning Some atomics are unsupported with a compute target less than 6.0,
- * which has been removed from CUDA support for years.
+ * \warning Instantiating double-precision atomics is not supported when using
+ * a compute target less than 6.0, which has been removed from CUDA support for
+ * years.
  *
  * ---------------------------------------------------------------------------*/
 #pragma once

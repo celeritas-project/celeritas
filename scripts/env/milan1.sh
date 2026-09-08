@@ -9,7 +9,6 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
-export CUDAARCHS=OFF
 export CELER_DISABLE_DEVICE=1
 export CXX=/usr/bin/g++-13
 export CC=/usr/bin/gcc-13

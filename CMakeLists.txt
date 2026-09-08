@@ -439,7 +439,7 @@ if(CELERITAS_USE_CUDA)
   celeritas_filter_minimum_cuda_arch(_allowed_arch ${_celer_min_cuda})
   if(NOT _allowed_arch OR (NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES))
     if(NOT _allowed_arch)
-      message(SEND_ERROR "None of CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES} is valid")
+      message(SEND_ERROR "No specified CUDA architecture is valid: CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}")
       set(_allowed_arch "${_celer_min_cuda}")
     endif()
     celeritas_error_incompatible_option(
