@@ -36,32 +36,32 @@ jobs:
         with:
           fetch-tags: true # to get version information
       - name: Set up Spack environment
-        uses: $/.github/actions/setup-spack
+        uses: ./.github/actions/setup-spack
         with:
           add: vecgeom@1.2.11 geant4@11.3 g4vg root py-gcovr
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
-        uses: $/.github/actions/configure
+        uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
       - name: Build all
         id: build
-        uses: $/.github/actions/build-cached
+        uses: ./.github/actions/build-cached
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
           ccache-max-size: 512Mi
       - name: Run tests
         id: test
-        uses: $/.github/actions/run-ctest
+        uses: ./.github/actions/run-ctest
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack-codecov
           split-app: true
       - name: Generate and upload coverage report
         if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
-        uses: $/.github/actions/process-coverage
+        uses: ./.github/actions/process-coverage
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           token: ${{secrets.CODECOV_TOKEN}}
@@ -92,7 +92,7 @@ jobs:
           git config --global --add safe.directory ${PWD}
 
       - name: Configure Celeritas
-        uses: $/.github/actions/configure
+        uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-rocky-cuda.json
@@ -104,7 +104,7 @@ jobs:
 
       - name: Test Celeritas
         id: test
-        uses: $/.github/actions/run-ctest
+        uses: ./.github/actions/run-ctest
         with:
           name: rocky-cuda-${{env.CELER_CMAKE_PRESET}}
       - name: Install coverage dependencies
@@ -116,7 +116,7 @@ jobs:
           pip install gcovr
       - name: Generate and upload coverage report
         if: ${{ !cancelled() && steps.cov-install.outcome == 'success' }}
-        uses: $/.github/actions/process-coverage
+        uses: ./.github/actions/process-coverage
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           token: ${{secrets.CODECOV_TOKEN}}

@@ -31,25 +31,25 @@ jobs:
         with:
           fetch-tags: true # to get version information
       - name: Set up Spack environment
-        uses: $/.github/actions/setup-spack
+        uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         id: configure
-        uses: $/.github/actions/configure
+        uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
       - name: Build all
         id: build
-        uses: $/.github/actions/build-cached
+        uses: ./.github/actions/build-cached
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
           ccache-max-size: 512Mi
       - name: Run tests
         id: test
-        uses: $/.github/actions/run-ctest
+        uses: ./.github/actions/run-ctest
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
@@ -68,12 +68,12 @@ jobs:
         with:
           fetch-tags: true # to get version information
       - name: Set up Spack environment
-        uses: $/.github/actions/setup-spack
+        uses: ./.github/actions/setup-spack
         with:
           add: "geant4@11.2 vecgeom@1.2.11:1 g4vg"
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
-        uses: $/.github/actions/configure
+        uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"

@@ -53,7 +53,7 @@ jobs:
           pip install -r scripts/ci/doc-requirements.txt
 
       - name: Configure Celeritas
-        uses: $/.github/actions/configure
+        uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
