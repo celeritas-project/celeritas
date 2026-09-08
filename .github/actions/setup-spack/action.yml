@@ -102,7 +102,7 @@ runs:
     - name: Upload spack config and lockfile
       id: upload
       uses: actions/upload-artifact@v7
-      if: ${{ !cancelled() }}
+      if: ${{runner.debug && !cancelled() }}
       with:
         name: spack-${{hashFiles('spack.yaml')}}-${{github.run_id}}
         path: "spack.*"
