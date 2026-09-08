@@ -31,7 +31,7 @@
       }
     },
     {
-      "name": "ndebug-orange-float",
+      "name": "release-orange-float",
       "description": "Build with single-precision arithmetic and HIP/ROCm",
       "inherits": [".ndebug", "base"],
       "cacheVariables": {
@@ -39,7 +39,7 @@
       }
     },
     {
-      "name": "ndebug-orange",
+      "name": "release-orange",
       "description": "Build with HIP/ROCm for AMD",
       "inherits": [".ndebug", "base"]
     }

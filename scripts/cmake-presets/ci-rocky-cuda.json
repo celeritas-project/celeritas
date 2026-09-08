@@ -73,7 +73,7 @@
       }
     },
     {
-      "name": "ndebug-vecgeom-codecov",
+      "name": "vecgeom-codecov",
       "description": "Build with code coverage with vecgeom (no CUDA, no assertions)",
       "inherits": [".gcov", ".ndebug", ".vecgeom", "base"],
       "cacheVariables": {

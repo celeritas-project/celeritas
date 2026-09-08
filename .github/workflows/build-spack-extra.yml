@@ -21,9 +21,9 @@ env:
 
 jobs:
   asan:
-    name: reldeb-orange-asanlite
+    name: orange-asanlite
     env:
-      CELER_CMAKE_PRESET: reldeb-orange-asanlite
+      CELER_CMAKE_PRESET: orange-asanlite
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
@@ -59,7 +59,7 @@ jobs:
   tidy:
     name: tidy-vecgeom
     env:
-      CELER_CMAKE_PRESET: reldeb-vecgeom-tidy
+      CELER_CMAKE_PRESET: vecgeom-tidy
       CLANG_TIDY: "clang-tidy-18"
     runs-on: ubuntu-24.04
     steps:

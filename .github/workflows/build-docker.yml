@@ -29,7 +29,7 @@ jobs:
       fail-fast: false
       matrix:
         geometry: ["orange", "vecgeom"]
-        buildtype: ["debug", "ndebug"]
+        buildtype: ["debug", "release"]
         image: ["rocky-cuda", "ubuntu-rocm"]
         exclude:
           - geometry: "vecgeom"
@@ -96,11 +96,11 @@ jobs:
           binaries: orange-update celer-export-geant celer-sim celer-g4
 
       - name: Build examples
-        # TODO: rocm+ndebug fails to propagate HIP library link
+        # TODO: rocm+release fails to propagate HIP library link
         if: >-
           ${{
             steps.install.outcome == 'success'
-            && !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'ndebug')
+            && !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'release')
           }}
         run: |
           . /etc/profile
