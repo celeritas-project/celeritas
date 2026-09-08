@@ -16,7 +16,7 @@ on:
 # Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
 # However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: deploy-pages-${{github.event.number || github.ref_name}}
+  group: deploy-pages-${{github.workflow}}-${{github.workflow == 'pull_request' && github.event.number || github.ref_name}}
   cancel-in-progress: false
 
 jobs:
