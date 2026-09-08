@@ -14,6 +14,16 @@ concurrency:
   group: build-ultralite-${{github.event.number || github.ref_name}}
   cancel-in-progress: true
 
+env:
+  CELER_CMAKE_PRESET: ultralite
+  CXXSTD: 17
+  CELER_VERSION_STRING: >-
+    ${{
+      github.event.pull_request
+      && format('-pr.{0}', github.event.pull_request.number)
+      || format('-{0}', github.ref_name)
+    }}
+
 jobs:
   ultralite:
     name: ultralite-${{matrix.platform}}
@@ -23,9 +33,6 @@ jobs:
         include:
           - platform: ubuntu
           - platform: windows
-    env:
-      CELER_CMAKE_PRESET: ultralite
-      CXXSTD: 17
     runs-on: >-
       ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
         || matrix.platform == 'windows' && 'windows-2025'
@@ -55,12 +62,7 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-${{matrix.platform}}-github.json
-          version-string: >-
-            ${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}
+          version-string: ${{env.CELER_VERSION_STRING}}
 
       - name: Build
         id: build
