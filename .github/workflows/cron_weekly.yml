@@ -14,14 +14,14 @@ on:
 jobs:
   clear-cache:
     uses: ./.github/workflows/clear-cache.yml
-  build-fast:
-    if: github.repository == 'celeritas-project/celeritas'
-    needs: [clear-cache]
-    uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-ultralite.yml
+  build-fast:
+    if: github.repository == 'celeritas-project/celeritas'
+    needs: [clear-cache]
+    uses: ./.github/workflows/build-fast.yml
   build-spack:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
@@ -30,15 +30,21 @@ jobs:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack-extra.yml
+  build-codecov:
+    if: github.repository == 'celeritas-project/celeritas'
+    needs: [clear-cache]
+    uses: ./.github/workflows/build-codecov.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   all:
     if: ${{!cancelled()}}
     needs:
+      - build-ultralite
       - build-fast
       - build-spack
-      - build-ultralite
+      - build-spack-extra
+      - build-codecov
     runs-on: ubuntu-24.04
     steps:
       - name: Check that all jobs succeeded
