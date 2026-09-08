@@ -25,6 +25,7 @@ jobs:
           - platform: windows
     env:
       CELER_CMAKE_PRESET: ultralite
+      CXXSTD: 17
     runs-on: >-
       ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
         || matrix.platform == 'windows' && 'windows-2025'

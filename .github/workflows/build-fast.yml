@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  CELER_CMAKE_PRESET: fast
   CELER_VERSION_STRING: >-
     ${{
        github.event.pull_request
@@ -26,7 +27,7 @@ jobs:
   linux:
     name: >-
       ${{format(
-        '{0}-{1}-{2}{3}{4}',
+        '{0}-{1}-{2}-c++{3}',
         matrix.runner      ==  'ubuntu-22.04'     && 'jammy'
           || matrix.runner ==  'ubuntu-24.04'     && 'noble'
           || matrix.runner ==  'ubuntu-24.04-arm' && 'noble-arm'
@@ -34,8 +35,7 @@ jobs:
           || matrix.runner ==  'ubuntu-26.04-arm' && 'resolute-arm'
         matrix.compiler[0],
         matrix.compiler[1],
-        matrix.cxxstd && '-c++' || '',
-        matrix.cxxstd
+        matrix.cxxstd || 17
       )}}
     strategy:
       matrix:
@@ -54,6 +54,7 @@ jobs:
             compiler: [gcc, 15]
           - runner: ubuntu-26.04
             compiler: [clang, 22]
+            cxxstd: 20
           - runner: ubuntu-26.04-arm
             compiler: [gcc, 15]
           - runner: ubuntu-26.04-arm
@@ -61,14 +62,12 @@ jobs:
     env:
       CELER_JOB_NAME: >-
         ${{format(
-          '{0}-{1}-{2}{3}{4}',
+          '{0}-{1}-{2}-c++{4}',
           matrix.runner,
           matrix.compiler[0],
           matrix.compiler[1],
-          matrix.cxxstd && '-c++' || '',
-          matrix.cxxstd
+          matrix.cxxstd || 17
         )}}
-      CELER_CMAKE_PRESET: fast
       CC: ${{format('{0}-{1}', matrix.compiler[0], matrix.compiler[1])}}
       CXX: >-
         ${{format(
@@ -77,6 +76,7 @@ jobs:
            || matrix.compiler[0] == 'clang' && 'clang++'),
           matrix.compiler[1]
         )}}
+      CXXSTD: ${{matrix.cxxstd || 17}}
     runs-on: ${{matrix.runner}}
     steps:
       - name: Check out Celeritas
@@ -102,8 +102,6 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
-          extra-args: >-
-            ${{matrix.cxxstd && format('-DCMAKE_CXX_STANDARD={0}', matrix.cxxstd) || ''}}
           version-string: ${{env.CELER_VERSION_STRING}}
 
       - name: Build
@@ -131,7 +129,6 @@ jobs:
       run:
         shell: pwsh
     env:
-      CELER_CMAKE_PRESET: fast
       CELER_JOB_NAME: windows
     runs-on: windows-2025
     steps:

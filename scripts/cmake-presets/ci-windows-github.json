@@ -29,7 +29,7 @@
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_FLAGS": "/W2 /WX",
-        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_STANDARD": "$env{CXXSTD}",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "CMAKE_TLS_VERIFY": { "type": "BOOL", "value": "OFF" }
       }

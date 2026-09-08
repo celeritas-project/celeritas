@@ -15,10 +15,6 @@ inputs:
   presets-file:
     description: "Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json"
     required: true
-  extra-args:
-    description: "Additional arguments to pass to cmake"
-    required: false
-    default: ""
   version-string:
     description: "Value for -DCeleritas_VERSION_STRING"
     required: false

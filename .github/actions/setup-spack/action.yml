@@ -57,7 +57,9 @@ runs:
 
     - name: Initialize spack environment
       shell: sh
-      # NOTE: padding CANNOT be disabled if pushing to buildcache
+      env:
+        CXXSTD: ${{inputs.cxxstd}}
+      # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
