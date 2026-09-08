@@ -61,8 +61,7 @@ jobs:
     needs: [all-prechecks]
     uses: $/.github/workflows/build-spack.yml
 
-  # Since docker builds aren't cached and are large, don't run on draft
-  # Also avoid coverage checks until ready (those are also expensive)
+  # Defer large jobs while the PR is in draft state
   build-spack-extra:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
