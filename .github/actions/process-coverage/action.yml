@@ -27,7 +27,7 @@ runs:
   steps:
     - name: Generate coverage report
       shell: sh
-      # NOTE: config file must be relative path
+      # NOTE: config file *must* be relative path (due to os.relpath # shenanigans)
       run: |
         gcovr \
           --config=scripts/ci/gcovr.cfg \
@@ -45,3 +45,5 @@ runs:
         files: cobertura-cov.xml
         verbose: true
         gcov_executable: ${{inputs.gcov-exe}}
+
+# vim: set nowrap tw=100:

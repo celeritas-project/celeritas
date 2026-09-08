@@ -10,8 +10,11 @@ on:
   workflow_dispatch:
   workflow_call:
     secrets:
+      # The codecov token is only used when pushing to protected branches
+      # (main/develop), since secrets are *not* passed from the main
+      # celeritas project to the PR run on the fork.
       CODECOV_TOKEN:
-        required: true
+        required: false
 
 concurrency:
   group: build-codecov-${{github.event.number || github.ref_name}}
