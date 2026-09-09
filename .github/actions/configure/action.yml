@@ -1,0 +1,65 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Point CMakeUserPresets.json at a CI presets file and configure Celeritas.
+# Assumes all cmake preset files set binaryDir="${sourceDir}/build"
+#-----------------------------------------------------------------------------#
+
+name: "Configure Celeritas"
+description: "Symlink/copy the CI CMakeUserPresets.json and run cmake --preset"
+inputs:
+  preset:
+    description: "CMake preset name"
+    required: true
+  presets-file:
+    description: "Filename under scripts/cmake-presets/ to use as CMakeUserPresets.json"
+    required: true
+  version-string:
+    description: "Value for -DCeleritas_VERSION_STRING"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Copy CMakeUserPresets.json
+      shell: bash
+      run: cp "scripts/cmake-presets/${{inputs.presets-file}}" CMakeUserPresets.json
+    - name: Set reproducible source date
+      shell: bash
+      run: |
+        REF=${{ github.sha }}
+        SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct ${REF})
+        echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}"
+        echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH}" >> $GITHUB_ENV
+    - name: Extend repo history to get version
+      if: ${{!inputs.version-string}}
+      shell: bash
+      # FIXME: this is based on v0.7.0-dev-508-gef97adf8e plus lots of commits
+      # reduce after the next release
+      run: |
+        git fetch --deepen 600
+
+    - name: Configure Celeritas
+      id: configure
+      shell: bash
+      run: |
+        cmake --preset=${{inputs.preset}} --log-level=VERBOSE \
+          ${{inputs.extra-args}} \
+          -DCeleritas_VERSION_STRING="${{inputs.version-string}}"
+    - name: Print debug diagnostics on failure
+      if: ${{ failure() || runner.debug }}
+      shell: bash
+      run: |
+        which -a cmake
+        cmake --version
+        cmake --list-presets
+        echo "CELER_JOB_NAME=$CELER_JOB_NAME"
+    - name: Upload CMakeCache.txt on configure failure
+      if: ${{ (failure() || runner.debug) && steps.configure.outcome != 'skipped' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: CMakeCache.txt-${{env.CELER_JOB_NAME}}
+        path: build/CMakeCache.txt
+        if-no-files-found: error
