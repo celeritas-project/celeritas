@@ -1,0 +1,49 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Generate and upload code coverage reports.
+#
+# This *must* be run from inside an existing build after compiling with
+# appropriate coverage flags and running tests.
+#-----------------------------------------------------------------------------#
+
+name: "Generate and upload coverage report"
+description: "Generates coverage report using gcovr and uploads to Codecov"
+inputs:
+  token:
+    description: "Codecov token"
+    required: true
+  name:
+    description: "Name for the codecov upload"
+    required: true
+  gcov-exe:
+    description: "Path to gcov executable (if using llvm, set to llvm-gcov)"
+    required: false
+    default: "gcov"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate coverage report
+      shell: sh
+      # NOTE: config file *must* be relative path (due to os.relpath # shenanigans)
+      run: |
+        gcovr \
+          --config=scripts/ci/gcovr.cfg \
+          --gcov-executable=${{inputs.gcov-exe}} \
+          -j $(($(nproc) + 1)) \
+          --output=cobertura-cov.xml --cobertura-pretty \
+          --merge-mode-functions=merge-use-line-min
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v7.0.0 # immutable, 6 June 2026
+      with:
+        token: ${{inputs.token }}
+        fail_ci_if_error: false
+        name: ${{inputs.name}}
+        files: cobertura-cov.xml
+        verbose: true
+        gcov_executable: ${{inputs.gcov-exe}}
+
+# vim: set nowrap tw=100:

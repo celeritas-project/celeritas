@@ -135,7 +135,7 @@ TEST_F(BoundingBoxTest, is_inside)
     EXPECT_FALSE(is_inside(degenerate, Real3{1.000001, 0, 0}));
 
     BBox super_degenerate{{1, 1, 1}, {1, 1, 1}};
-    EXPECT_TRUE(is_inside(degenerate, Real3{1, 1, 1}));
+    EXPECT_TRUE(is_inside(super_degenerate, Real3{1, 1, 1}));
 }
 
 TEST_F(BoundingBoxTest, ldg)

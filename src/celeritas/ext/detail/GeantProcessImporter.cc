@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4HadronicProcess.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Physics2DVector.hh>
@@ -309,6 +310,16 @@ ImportProcess GeantProcessImporter::operator()(
 
     CELER_ENSURE(result && all_are_assigned(result.models));
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Initialize an imported hadronic process.
+ */
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4HadronicProcess const& process)
+{
+    return init_process(particle, process);
 }
 
 //---------------------------------------------------------------------------//

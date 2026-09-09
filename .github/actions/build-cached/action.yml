@@ -1,0 +1,89 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Restore a ccache directory, build, and save the cache on success.
+#-----------------------------------------------------------------------------#
+
+name: "Build with ccache"
+description: "Restore ccache, build a preset, show statistics, and save on success"
+inputs:
+  preset:
+    description: "CMake build preset to execute"
+    required: true
+  name:
+    description: "Cache key component, without the github.run_id suffix or ccache prefix"
+    required: true
+  ccache-dir:
+    description: "Directory to use for ccache"
+    required: false
+    default: "${{runner.temp}}/ccache"
+  ccache-max-size:
+    description: "Maximum size of the ccache directory"
+    required: true
+  ccache-debug:
+    description: "Run ccache with this debug level (zero for NODEBUG)"
+    required: false
+    default: "0"
+  ccache-debug-dir:
+    description: "Save ccache debug logs to this directory when ccache-debug"
+    required: false
+    default: "${{runner.temp}}/ccache-debug"
+outputs:
+  build-outcome:
+    description: "Outcome of the build step ('success', 'failure', 'cancelled', 'skipped')"
+    value: ${{steps.build.outcome}}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Configure ccache environment
+      shell: bash
+      # github.workspace uses backslashes on Windows, so a naive
+      # "${{github.workspace}}/.ccache" mixes separators and gets mangled
+      run: |
+        {
+          echo "CCACHE_DIR=$(tr '\\' '/' <<< '${{ inputs.ccache-dir }}')"
+          echo "CCACHE_MAXSIZE=${{ inputs.ccache-max-size }}"
+          echo "CCACHE_DEBUG=${{ fromJSON(inputs.ccache-debug) > 0 && '1' || '' }}"
+          echo "CCACHE_DEBUGLEVEL=${{ inputs.ccache-debug }}"
+          echo "CCACHE_DEBUGDIR=$(tr '\\' '/' <<< '${{ inputs.ccache-debug-dir }}')"
+        } >> "$GITHUB_ENV"
+
+    - name: Restore ccache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
+        restore-keys: ccache-${{ inputs.name }}
+
+    - name: Zero ccache stats
+      shell: bash
+      run: |
+        which -a ccache
+        ccache -z
+    - name: Build
+      id: build
+      shell: bash
+      run: cmake --build --preset=${{ inputs.preset }}
+    - name: Show ccache stats
+      if: ${{ !cancelled() && steps.build.outcome != 'skipped' }}
+      shell: bash
+      run: ccache -s
+
+    - name: Save ccache
+      if: ${{ steps.build.outcome == 'success' }}
+      uses: actions/cache/save@v6
+      with:
+        upload-chunk-size: 67108864 # 64MB
+        path: ${{ env.CCACHE_DIR }}
+        key: ccache-${{ inputs.name }}-${{ github.run_id }}
+    - name: Upload ccache debug
+      if: ${{ !cancelled()  && fromJSON(inputs.ccache-debug) > 0 }}
+      uses: actions/upload-artifact@v7
+      with:
+        path: ${{ env.CCACHE_DEBUGDIR }}
+        name: debug-ccache-${{ inputs.name }}-${{ github.run_id }}
+        overwrite: false
+        if-no-files-found: error
+        retention-days: 7

@@ -1,0 +1,143 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Bootstrap a Spack environment, build/install dependencies, activate it, and
+# configure Celeritas against it.
+#
+# NOTE: run `update-spack-buildcache-local` on a non-github machine to setup
+# the spack buildcache.
+#-----------------------------------------------------------------------------#
+
+name: "Set up Spack environment"
+description: "Check out Celeritas + Spack, concretize/install deps, activate, and configure"
+inputs:
+  cxxstd:
+    description: "C++ standard to concretize Spack with"
+    required: true
+  add:
+    description: "Space-separated list of additional spack packages to add"
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set environment variables
+      shell: sh
+      run: |
+        SPACK_ROOT="$GITHUB_WORKSPACE/spack-src"
+        echo "$SPACK_ROOT/bin" >> "$GITHUB_PATH"
+        {
+          echo "CELER_SPACK_VIEW=/opt/view"
+          echo "CELER_SPACK_OPT=/opt/spack"
+          echo "CELER_BASE_IMAGE=ubuntu:24.04"
+          echo "CELER_BUILDCACHE=celeritas"
+          echo "SPACK_PACKAGES=$GITHUB_WORKSPACE/spack-pkg"
+          echo "SPACK_ROOT=$SPACK_ROOT"
+          echo "SPACK_COLOR=always"
+          echo "SPACK_DISABLE_LOCAL_CONFIG=1"
+        } >> "$GITHUB_ENV"
+
+    - name: Checkout Spack
+      uses: actions/checkout@v7
+      with:
+        repository: spack/spack
+        path: ${{env.SPACK_ROOT}}
+        ref: c3426684351723f819abca7335fafd99ffe7c1ef
+    - name: Checkout Spack packages
+      uses: actions/checkout@v7
+      with:
+        repository: celeritas-project/spack-packages
+        path: ${{env.SPACK_PACKAGES}}
+        ref: 2c1c9409a3828d9d3a3985fd0ae200bd8bd82117 # ci, 9 September 2026
+
+    - name: Initialize spack environment
+      shell: sh
+      env:
+        CXXSTD: ${{inputs.cxxstd}}
+      # NOTE: padding MUST NOT be disabled if pushing to buildcache
+      run: |
+        "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
+
+        if [ "${{github.event_name}}" = "pull_request" ]; then
+          echo "Disabling install prefix padding"
+          spack -e . config add "config:install_tree:padded_length:False"
+        fi
+        spack -e . config get --json > spack.config.json
+    - name: Dump spack config blame
+      if: ${{runner.debug}}
+      shell: sh
+      run: |
+        spack -e . config blame
+
+    - name: Restore cached lockfile
+      id: restore
+      uses: actions/cache/restore@v6
+      with:
+        path: spack.lock
+        key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+        restore-keys: lock-${{hashFiles('spack.yaml')}}
+    - name: Concretize
+      if: ${{ !steps.restore.outputs.cache-matched-key }}
+      id: concretize
+      shell: sh
+      run: |
+        spack arch --generic
+        spack -e . -v concretize || {
+          ERR=$?
+          cat spack.yaml
+          exit $ERR
+        }
+    - name: Cache lockfile
+      if: ${{ steps.concretize.outcome == 'success' }}
+      uses: actions/cache/save@v6
+      with:
+        path: spack.lock
+        key: lock-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+
+    - name: Upload spack config and lockfile
+      id: upload
+      uses: actions/upload-artifact@v7
+      if: ${{runner.debug && !cancelled() }}
+      with:
+        name: spack-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+        path: "spack.*"
+        retention-days: 1
+
+    - name: Install dependencies
+      shell: sh
+      run: |
+        spack -e . install -p 8 --use-buildcache=${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
+    - name: List installed dependencies
+      if: ${{runner.debug}}
+      shell: sh
+      run: |
+        spack -e . find -lv
+    - name: Push Spack installation to buildcache
+      id: push-buildcache
+      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      shell: sh
+      env:
+        GITHUB_USER: ${{github.actor}}
+        GITHUB_TOKEN: ${{github.token}}
+      # NOTE: build-only specs that had dependents available through the
+      # buildcache may not be locally available: so allow missing
+      run: |
+        spack -e . buildcache push \
+          --base-image $CELER_BASE_IMAGE --update-index \
+          --allow-missing \
+          $CELER_BUILDCACHE
+
+    - name: Update environment and create rc file
+      shell: sh
+      # NOTE: the env transformation might be sensitive to spack version changes
+      run: |
+        echo "$CELER_SPACK_VIEW/bin" >> "$GITHUB_PATH"
+        spack env activate --sh . > "${CELER_SPACK_VIEW}/rc"
+        grep '^export ' "${CELER_SPACK_VIEW}/rc" \
+          | grep -v '^export PATH=' \
+          | sed 's/^export \(.*\);\s*$/\1/' >> "$GITHUB_ENV"
+        echo "::group::Dump ${CELER_SPACK_VIEW}/rc"
+        cat "${CELER_SPACK_VIEW}/rc"
+        echo "::endgroup::"

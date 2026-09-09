@@ -98,12 +98,6 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
                 index_before(counters->num_vacancies, tid))];
         }()};
 
-    // Clear parent IDs if new primaries were added this step
-    if (counters->num_generated)
-    {
-        init.geo.parent = {};
-    }
-
     vacancy = init;
 }
 

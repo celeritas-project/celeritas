@@ -12,7 +12,10 @@ Acceleration structures
 ^^^^^^^^^^^^^^^^^^^^^^^
 
 Celeritas uses a bounding volume hierarchy to accelerate volume
-intersections.
+intersections. Bounding box intersections in the hierarchy use a highly
+optimized testing function.
+
+.. doxygenfunction:: celeritas::intersects_segment
 
 Tracking
 ^^^^^^^^
