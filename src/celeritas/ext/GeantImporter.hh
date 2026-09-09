@@ -122,8 +122,9 @@ inline GeantImporter::GeantImporter()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantImporter::GeantImporter(GeantSetup&&)
+inline GeantImporter::GeantImporter(GeantSetup&& setup)
 {
+    static_cast<void>(std::move(setup));
     CELER_NOT_CONFIGURED("Geant4");
 }
 
