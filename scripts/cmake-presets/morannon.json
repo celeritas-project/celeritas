@@ -22,9 +22,9 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "With vecgeom in optimized mode and CLHEP units",
-      "inherits": [".ndebug"],
+      "inherits": [".release"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_UNITS": "CLHEP",
@@ -40,7 +40,7 @@
       "nativeToolOptions": ["-k0"]
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "dev" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "dev" }
+    { "name": "release", "configurePreset": "release", "inherits": "dev" }
   ],
   "testPresets": [
     {
@@ -54,6 +54,6 @@
       }
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "dev" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "dev" }
+    { "name": "release", "configurePreset": "release", "inherits": "dev" }
   ]
 }

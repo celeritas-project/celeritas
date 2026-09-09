@@ -20,7 +20,7 @@ Preset CMake variables:
 ```
 
 The main `CMakePresets.json` provides not only a handful of user-accessible
-presets (default, full, minimal) but also a set of hidden presets (`.ndebug`,
+presets (default, full, minimal) but also a set of hidden presets (`.release`,
 `.cuda-volta`, `.spack-base`) useful for inheriting in user presets. Make sure
 to put the overrides *before* the base definition in the `inherits` list.
 

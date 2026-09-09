@@ -38,9 +38,9 @@
       }
     },
     {
-      "name": ".ndebug-lineinfo",
+      "name": ".release-lineinfo",
       "hidden": true,
-      "description": ".ndebug but without overwriting CMAKE_CXX_FLAGS_RELEASE to allow -lineinfo",
+      "description": ".release but without overwriting CMAKE_CXX_FLAGS_RELEASE to allow -lineinfo",
       "cacheVariables": {
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },
         "CMAKE_BUILD_TYPE": { "type": "STRING", "value": "Release" }
@@ -110,14 +110,14 @@
       "inherits": [".novg", ".reldeb", ".base"]
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Bede GH200 optimised build (vecgeom)",
-      "inherits": [".vg", ".ndebug-lineinfo", ".base"]
+      "inherits": [".vg", ".release-lineinfo", ".base"]
     },
     {
-      "name": "ndebug-novg",
+      "name": "release-novg",
       "displayName": "Bede GH200 optimised build (orange)",
-      "inherits": [".novg", ".ndebug-lineinfo", ".base"]
+      "inherits": [".novg", ".release-lineinfo", ".base"]
     }
   ],
   "buildPresets": [
@@ -139,10 +139,10 @@
       "configurePreset": "gpudebug-novg",
       "inherits": ".base"
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": ".base" },
+    { "name": "release", "configurePreset": "release", "inherits": ".base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": ".base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": ".base" },
@@ -175,10 +175,10 @@
       "configurePreset": "gpudebug-novg",
       "inherits": ".base"
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": ".base" },
+    { "name": "release", "configurePreset": "release", "inherits": ".base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": ".base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": ".base" },
