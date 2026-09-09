@@ -71,7 +71,7 @@ SetupOptions::AlongStepFactory make_covfie_along_step(
                    << "' was set but Celeritas was built without covfie "
                       "support");
 
-    if (map_type == "cartesian" || map_type == "xyz" || map_type == "BxByBz")
+    if (map_type == "cartesian")
     {
         CELER_LOG(info) << "Using Cartesian covfie field map '" << filename
                         << "'";
@@ -82,7 +82,7 @@ SetupOptions::AlongStepFactory make_covfie_along_step(
         };
         return CartMapFieldAlongStepFactory(std::move(make_field_input));
     }
-    else if (map_type == "rz" || map_type == "BrBz")
+    else if (map_type == "rz")
     {
         CELER_LOG(info) << "Using RZ covfie field map '" << filename << "'";
         auto make_field_input = [filename, driver_options] {
