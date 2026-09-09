@@ -38,6 +38,7 @@ namespace celeritas
  * | Coulomb scattering           | G4eCoulombScatteringModel    |
  * | Multiple scattering (low E)  | G4UrbanMscModel              |
  * | Multiple scattering (high E) | G4WentzelVIModel             |
+ * | Electro nuclear              | G4ElectroVDNuclearModel      |
  *
  * Gamma processes:
  *
@@ -47,6 +48,7 @@ namespace celeritas
  * | Photoelectric effect | G4LivermorePhotoElectricModel |
  * | Rayleigh scattering  | G4LivermoreRayleighModel      |
  * | Gamma conversion     | G4PairProductionRelModel      |
+ * | Gamma nuclear        | QGSP/Bertini/LEND
  *
  * If the \c gamma_general option is enabled, we create a single unified
  * \c G4GammaGeneralProcess process, which embeds these other processes and

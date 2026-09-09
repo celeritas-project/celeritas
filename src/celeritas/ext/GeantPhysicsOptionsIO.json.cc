@@ -123,10 +123,12 @@ void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
     GPO_LOAD_OPTION(rayleigh_scattering);
     GPO_LOAD_OPTION(gamma_conversion);
     GPO_LOAD_OPTION(gamma_general);
+    GPO_LOAD_OPTION(gamma_nuclear);
 
     GPO_LOAD_OPTION(coulomb_scattering);
     GPO_LOAD_OPTION(ionization);
     GPO_LOAD_OPTION(annihilation);
+    GPO_LOAD_OPTION(electro_nuclear);
     GPO_LOAD_OPTION(brems);
     GPO_LOAD_OPTION(seltzer_berger_limit);
     GPO_LOAD_OPTION(msc);
@@ -178,10 +180,12 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, rayleigh_scattering),
         CELER_JSON_PAIR(inp, gamma_conversion),
         CELER_JSON_PAIR(inp, gamma_general),
+        CELER_JSON_PAIR(inp, gamma_nuclear),
 
         CELER_JSON_PAIR(inp, coulomb_scattering),
         CELER_JSON_PAIR(inp, ionization),
         CELER_JSON_PAIR(inp, annihilation),
+        CELER_JSON_PAIR(inp, electro_nuclear),
         CELER_JSON_PAIR(inp, brems),
         CELER_JSON_PAIR(inp, seltzer_berger_limit),
         CELER_JSON_PAIR(inp, msc),

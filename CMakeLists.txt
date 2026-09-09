@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18...4.1)
+cmake_minimum_required(VERSION 3.18...4.4)
 
 # Fallback version in case of shallow clone: update when tagging "-dev"
 set(Celeritas_VERSION 0.7)
