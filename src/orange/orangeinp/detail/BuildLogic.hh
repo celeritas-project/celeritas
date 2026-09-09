@@ -77,10 +77,12 @@ class BaseLogicBuilder
                   "unsupported: add enum logic conversion for different-sized "
                   "face and surface ints");
 
-  public:
+  private:
     // Construct with optional mapping pointer
     BaseLogicBuilder(
         CsgTree const& tree, VecLogic& logic, VecSurface const* vs = nullptr);
+
+  public:
     //! Build from a node ID
     void operator()(NodeId const& n);
 
@@ -104,6 +106,7 @@ class BaseLogicBuilder
     VecLogic& logic_;
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_{nullptr};
+    friend VisitorImpl;
 };
 
 //---------------------------------------------------------------------------//
