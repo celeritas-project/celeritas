@@ -27,8 +27,8 @@ namespace optical
  * the normal direction points opposite the incident track direction. This
  * function makes checks for this condition explicit in the code.
  */
-inline CELER_FUNCTION bool
-is_entering_surface(Real3 const& dir, Real3 const& normal)
+inline CELER_FUNCTION bool is_entering_surface(Real3 const& dir,
+                                               Real3 const& normal)
 {
     return dot_product(dir, normal) < 0;
 }

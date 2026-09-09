@@ -61,8 +61,9 @@ TEST_F(OrientedBoundingZoneTest, basic)
     transforms_ref_ = transforms_;
     reals_ref_ = reals_;
 
-    OrientedBoundingZoneRecord obz_record{
-        {inner_hw, outer_hw}, {inner_offset_id, outer_offset_id}, transform_id};
+    OrientedBoundingZoneRecord obz_record{{inner_hw, outer_hw},
+                                          {inner_offset_id, outer_offset_id},
+                                          transform_id};
 
     OrientedBoundingZone::StoragePointers sp{&transforms_ref_, &reals_ref_};
 
@@ -79,8 +80,9 @@ TEST_F(OrientedBoundingZoneTest, basic)
 
     EXPECT_SOFT_NEAR(0.1, obz.calc_safety_outside({10.1, 20.1, 32.2}), 1.e-5);
 
-    EXPECT_SOFT_NEAR(
-        std::hypot(1, 0.2), obz.calc_safety_outside({10.1, 17.1, 32.3}), 1.e-5);
+    EXPECT_SOFT_NEAR(std::hypot(1, 0.2),
+                     obz.calc_safety_outside({10.1, 17.1, 32.3}),
+                     1.e-5);
 
     EXPECT_SOFT_NEAR(std::hypot(0.2, 1, 0.2),
                      obz.calc_safety_outside({12.3, 17.1, 32.3}),

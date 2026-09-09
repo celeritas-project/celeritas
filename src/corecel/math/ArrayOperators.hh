@@ -81,8 +81,8 @@ CELER_DEFINE_ARRAY_ARITHM(/)
 
 //! Left-multiply by scalar
 template<class T, std::size_t N, class T2 = std::remove_cv_t<T>>
-CELER_CONSTEXPR_FUNCTION Array<T, N>
-operator*(T2 const& y, Array<T, N> const& x)
+CELER_CONSTEXPR_FUNCTION Array<T, N> operator*(T2 const& y,
+                                               Array<T, N> const& x)
 {
     return x * y;
 }

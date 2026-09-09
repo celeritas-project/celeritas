@@ -117,8 +117,7 @@ class CoreTrackView
  *
  * For optical tracks, the value of the track slot is the same as the track ID.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(
+CELER_FUNCTION CoreTrackView::CoreTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : params_(params), states_(states), track_slot_id_(track_slot)
 {
@@ -129,8 +128,8 @@ CoreTrackView::CoreTrackView(
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     // Initialiize the sim state
     this->sim() = SimTrackView::Initializer{init.primary, init.time};
@@ -189,8 +188,8 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
 /*!
  * Return a material view using an existing geo track view.
  */
-CELER_FUNCTION auto
-CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
+CELER_FUNCTION auto CoreTrackView::material_record(
+    GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.impl_volume_id()};

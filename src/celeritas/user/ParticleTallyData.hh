@@ -35,8 +35,8 @@ struct ParticleTallyParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    ParticleTallyParamsData&
-    operator=(ParticleTallyParamsData<W2, M2> const& other)
+    ParticleTallyParamsData& operator=(
+        ParticleTallyParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         num_bins = other.num_bins;

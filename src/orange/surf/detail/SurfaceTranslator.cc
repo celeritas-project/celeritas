@@ -36,8 +36,8 @@ namespace
  * Construct a translated axis-aligned plane.
  */
 template<Axis T>
-PlaneAligned<T>
-SurfaceTranslator::operator()(PlaneAligned<T> const& other) const
+PlaneAligned<T> SurfaceTranslator::operator()(
+    PlaneAligned<T> const& other) const
 {
     real_type origin = tr_.translation()[to_int(T)];
     return PlaneAligned<T>{other.position() + origin};
@@ -91,9 +91,9 @@ ORANGE_INSTANTIATE_OP(CylAligned, CylAligned);
  */
 Plane SurfaceTranslator::operator()(Plane const& other) const
 {
-    return Plane{
-        other.normal(),
-        other.displacement() + dot_product(tr_.translation(), other.normal())};
+    return Plane{other.normal(),
+                 other.displacement()
+                     + dot_product(tr_.translation(), other.normal())};
 }
 
 //---------------------------------------------------------------------------//

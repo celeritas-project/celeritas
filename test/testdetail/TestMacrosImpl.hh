@@ -31,8 +31,7 @@ namespace testdetail
 int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc);
+char const* trunc_string(int digits, char const* str, char const* trunc);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -136,12 +135,12 @@ constexpr bool can_soft_equiv()
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
 template<class BinaryOp>
-::testing::AssertionResult
-IsSoftEquivImpl(typename BinaryOp::value_type expected,
-                char const* expected_expr,
-                typename BinaryOp::value_type actual,
-                char const* actual_expr,
-                BinaryOp comp)
+::testing::AssertionResult IsSoftEquivImpl(
+    typename BinaryOp::value_type expected,
+    char const* expected_expr,
+    typename BinaryOp::value_type actual,
+    char const* actual_expr,
+    BinaryOp comp)
 {
     if (comp(expected, actual))
     {
@@ -356,19 +355,19 @@ using ScalarValueTypeT = typename ScalarValueType<T>::type;
  * Compare a range of values.
  */
 template<class Iter1, class Iter2, class BinaryOp>
-::testing::AssertionResult
-IsRangeEqImpl(Iter1 e_iter,
-              Iter1 e_end,
-              char const* expected_expr,
-              Iter2 a_iter,
-              Iter2 a_end,
-              char const* actual_expr,
-              typename FVIT<Iter1, Iter2>::Vec_t& failures,
-              BinaryOp comp)
+::testing::AssertionResult IsRangeEqImpl(
+    Iter1 e_iter,
+    Iter1 e_end,
+    char const* expected_expr,
+    Iter2 a_iter,
+    Iter2 a_end,
+    char const* actual_expr,
+    typename FVIT<Iter1, Iter2>::Vec_t& failures,
+    BinaryOp comp)
 {
     using size_type = std::size_t;
-    size_type expected_size = std::distance(e_iter, e_end);
-    size_type actual_size = std::distance(a_iter, a_end);
+    auto expected_size = std::distance(e_iter, e_end);
+    auto actual_size = std::distance(a_iter, a_end);
 
     // First, check that the sizes are equal
     if (expected_size != actual_size)
@@ -402,10 +401,17 @@ IsRangeEqImpl(Iter1 e_iter,
     result << "Values in: " << actual_expr << "\n Expected: " << expected_expr
            << '\n'
            << failures.size() << " of " << expected_size << " elements differ";
-    if (failures.size() > 40)
+    // Chop out the middle failures so we can see the beginning/end but not be
+    // overwhelmed for large outputs. When truncation happens, trunc_size is
+    // always 20, but it's written with `min` to avoid a dozen different false
+    // positives from GCC range checking when the expression is consteval.
+    auto const trunc_size = std::min<std::size_t>(failures.size(), 20);
+    if (failures.size() > 2 * trunc_size)
     {
-        result << " (truncating by removing all but the first and last 20)";
-        failures.erase(failures.begin() + 20, failures.end() - 20);
+        failures.erase(failures.begin() + trunc_size,
+                       failures.end() - trunc_size);
+        result << " (truncating by removing all but the first and last "
+               << trunc_size << ")";
     }
     result << '\n';
     return result;
@@ -425,8 +431,8 @@ template<class ContainerE, class ContainerA, class BinaryOp>
                                               char const* actual_expr,
                                               BinaryOp comp)
 {
-    if constexpr (
-        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));
@@ -620,8 +626,8 @@ template<class ContainerE, class ContainerA>
                                    ContainerE const& expected,
                                    ContainerA const& actual)
 {
-    if constexpr (
-        IsNestedContainer_v<ContainerE> && IsNestedContainer_v<ContainerA>)
+    if constexpr (IsNestedContainer_v<ContainerE>
+                  && IsNestedContainer_v<ContainerA>)
     {
         // Handle nested containers recursively
         auto exp_size = std::distance(std::begin(expected), std::end(expected));

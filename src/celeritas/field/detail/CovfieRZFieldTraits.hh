@@ -71,8 +71,8 @@ struct CovfieRZFieldTraits<MemSpace::device>
     using transformed_t = covfie::backend::affine<clamped_t>;
     using field_t = covfie::field<transformed_t>;
 
-    CELER_FUNCTION static Array<real_type, 2>
-    to_array(field_t::output_t const& vec)
+    CELER_FUNCTION static Array<real_type, 2> to_array(
+        field_t::output_t const& vec)
     {
         return {vec[0], vec[1]};
     }

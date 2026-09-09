@@ -21,18 +21,18 @@ class DistributionVisitor
 {
   public:
     // Construct with a reference to distribution data
-    explicit inline CELER_FUNCTION
-    DistributionVisitor(NativeCRef<DistributionParamsData> const&);
+    explicit inline CELER_FUNCTION DistributionVisitor(
+        NativeCRef<DistributionParamsData> const&);
 
     // Apply a functor to a 1D dietribution
     template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, OnedDistributionId id);
+    CELER_CONSTEXPR_FUNCTION decltype(auto) operator()(F&& func,
+                                                       OnedDistributionId id);
 
     // Apply a functor to a 3D dietribution
     template<class F>
-    CELER_CONSTEXPR_FUNCTION decltype(auto)
-    operator()(F&& func, ThreedDistributionId id);
+    CELER_CONSTEXPR_FUNCTION decltype(auto) operator()(
+        F&& func, ThreedDistributionId id);
 
   private:
     //// TYPES ////
@@ -63,8 +63,8 @@ CELER_FUNCTION DistributionVisitor::DistributionVisitor(
  * Expand a macro to a switch statement over all 1D distribution types.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, OnedDistributionId id)
+CELER_CONSTEXPR_FUNCTION decltype(auto) DistributionVisitor::operator()(
+    F&& func, OnedDistributionId id)
 {
     CELER_EXPECT(id < params_.oned_types.size());
 
@@ -93,8 +93,8 @@ DistributionVisitor::operator()(F&& func, OnedDistributionId id)
  * Expand a macro to a switch statement over all 3D distribution types.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
+CELER_CONSTEXPR_FUNCTION decltype(auto) DistributionVisitor::operator()(
+    F&& func, ThreedDistributionId id)
 {
     CELER_EXPECT(id < params_.threed_types.size());
 
@@ -125,8 +125,8 @@ DistributionVisitor::operator()(F&& func, ThreedDistributionId id)
  * Helper function for sampling from a distribution.
  */
 template<class Visitor, class Dist, class Engine>
-CELER_FUNCTION decltype(auto)
-sample_with(Visitor&& visit, Dist&& dist, Engine& rng)
+CELER_FUNCTION decltype(auto) sample_with(
+    Visitor&& visit, Dist&& dist, Engine& rng)
 {
     return celeritas::forward<Visitor>(visit)(
         [&rng](auto&& d) -> decltype(auto) { return d(rng); },

@@ -68,12 +68,12 @@ class InteractorHostBase
     //!@}
 
     // Helper to make dummy ImportProcess
-    ImportProcess
-    make_import_process(PDGNumber particle,
-                        PDGNumber secondary,
-                        ImportProcessClass ipc,
-                        std::vector<ImportModelClass> models,
-                        std::vector<Array<double, 2>> model_limits) const;
+    ImportProcess make_import_process(
+        PDGNumber particle,
+        PDGNumber secondary,
+        ImportProcessClass ipc,
+        std::vector<ImportModelClass> models,
+        std::vector<Array<double, 2>> model_limits) const;
 
     //!@{
     //! Set and get material properties

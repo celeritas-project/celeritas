@@ -86,8 +86,8 @@ class MucfMaterialInserter
                                       real_type const temperature);
 
     // Get interpolator for given cycle type and spin
-    InterpolatorHelper const&
-    interpolator(inp::CycleTableType type, units::HalfSpinInt spin) const;
+    InterpolatorHelper const& interpolator(inp::CycleTableType type,
+                                           units::HalfSpinInt spin) const;
 };
 
 //---------------------------------------------------------------------------//

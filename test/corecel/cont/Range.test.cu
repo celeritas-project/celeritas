@@ -20,8 +20,8 @@ namespace celeritas
 {
 namespace test
 {
-__global__ void
-rangedev_test_kernel(int a, int* x, int* y, int* z, unsigned int n)
+__global__ void rangedev_test_kernel(
+    int a, int* x, int* y, int* z, unsigned int n)
 {
     // grid stride loop
     for (auto i : range(blockIdx.x * blockDim.x + threadIdx.x, n)

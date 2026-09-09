@@ -283,8 +283,8 @@ std::string RevolvedPolygon::make_region_ext(RevolvedPolygon::SubIndex si) const
 /*!
  * Make a label extension for a subregion within a region.
  */
-std::string
-RevolvedPolygon::make_subregion_ext(RevolvedPolygon::SubIndex si) const
+std::string RevolvedPolygon::make_subregion_ext(
+    RevolvedPolygon::SubIndex si) const
 {
     return this->make_region_ext(si) + "." + std::to_string(si.subregion);
 }

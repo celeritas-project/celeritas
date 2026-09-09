@@ -39,8 +39,8 @@ class MagneticField : public G4MagneticField
     inline explicit MagneticField(SPConstParams params);
 
     // Calculate values of the magnetic field vector
-    inline void
-    GetFieldValue(G4double const xyzt[4], G4double* field) const override;
+    inline void GetFieldValue(G4double const xyzt[4],
+                              G4double* field) const override;
 
   private:
     SPConstParams params_;

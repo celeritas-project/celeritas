@@ -83,9 +83,10 @@ Transformation::Properties Transformation::calc_properties() const
 
     Properties result;
     result.reflects = det < 0;
-    result.scales = !std::all_of(rot_.begin(), rot_.end(), [](Real3 const& row) {
-        return is_soft_unit_vector(row);
-    });
+    result.scales
+        = !std::all_of(rot_.begin(), rot_.end(), [](Real3 const& row) {
+              return is_soft_unit_vector(row);
+          });
     CELER_ENSURE(soft_equal(std::fabs(det), 1_r) || result.scales);
     return result;
 }

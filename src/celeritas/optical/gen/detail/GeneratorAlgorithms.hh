@@ -62,11 +62,11 @@ size_type inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<class T>
-inline size_type
-inclusive_scan_photons(ItemsRef<T, MemSpace::device> const&,
-                       ItemsRef<size_type, MemSpace::device> const&,
-                       size_type,
-                       StreamId)
+inline size_type inclusive_scan_photons(
+    ItemsRef<T, MemSpace::device> const&,
+    ItemsRef<size_type, MemSpace::device> const&,
+    size_type,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

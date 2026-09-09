@@ -94,12 +94,12 @@ class SBEnergyDistHelper
  * The incident energy *must* be within the bounds of the SB table data, so the
  * Model's applicability must be consistent with the table data.
  */
-CELER_FUNCTION
-SBEnergyDistHelper::SBEnergyDistHelper(SBDXsec const& differential_xs,
-                                       Energy inc_energy,
-                                       ElementId element,
-                                       EnergySq density_correction,
-                                       Energy min_gamma_energy)
+CELER_FUNCTION SBEnergyDistHelper::SBEnergyDistHelper(
+    SBDXsec const& differential_xs,
+    Energy inc_energy,
+    ElementId element,
+    EnergySq density_correction,
+    Energy min_gamma_energy)
     : calc_xs_{this->make_xs_calc(differential_xs, inc_energy.value(), element)}
     , max_xs_{this->calc_max_xs(differential_xs, element)}
     , inv_inc_energy_(1 / inc_energy.value())
@@ -149,10 +149,10 @@ CELER_FUNCTION TwodSubgridCalculator SBEnergyDistHelper::make_xs_calc(
     CELER_ASSERT(inc_energy >= std::exp(xs_params.reals[grid.x.front()])
                  && inc_energy < std::exp(xs_params.reals[grid.x.back()]));
 
-    static_assert(
-        std::is_same<Energy::unit_type, units::Mev>::value
-            && std::is_same<SBElementTableData::EnergyUnits, units::LogMev>::value,
-        "Inconsistent energy units");
+    static_assert(std::is_same<Energy::unit_type, units::Mev>::value
+                      && std::is_same<SBElementTableData::EnergyUnits,
+                                      units::LogMev>::value,
+                  "Inconsistent energy units");
     return TwodGridCalculator(grid, xs_params.reals)(std::log(inc_energy));
 }
 

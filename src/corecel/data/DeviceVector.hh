@@ -277,8 +277,8 @@ ObserverPtr<T, MemSpace::device> make_observer(DeviceVector<T>& vec) noexcept
 //---------------------------------------------------------------------------//
 //! Create an observer pointer from a pointer in the native memspace.
 template<class T>
-ObserverPtr<T const, MemSpace::device>
-make_observer(DeviceVector<T> const& vec) noexcept
+ObserverPtr<T const, MemSpace::device> make_observer(
+    DeviceVector<T> const& vec) noexcept
 {
     return ObserverPtr<T const, MemSpace::device>{vec.data()};
 }

@@ -35,8 +35,8 @@ namespace
  *
  * Return user or default list accordingly.
  */
-SetupOptions::VecG4PD
-validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
+SetupOptions::VecG4PD validate_and_return_offloaded(
+    std::optional<SetupOptions::VecG4PD> const& user)
 {
     if (!user)
     {
@@ -46,12 +46,12 @@ validate_and_return_offloaded(std::optional<SetupOptions::VecG4PD> const& user)
 
     auto const& supported = SharedParams::supported_offload_particles();
     auto find = [&supported](G4ParticleDefinition* user) -> bool {
-        return std::any_of(
-            supported.begin(),
-            supported.end(),
-            [&user](G4ParticleDefinition* p) {
-                return (p->GetPDGEncoding() == user->GetPDGEncoding());
-            });
+        return std::any_of(supported.begin(),
+                           supported.end(),
+                           [&user](G4ParticleDefinition* p) {
+                               return (p->GetPDGEncoding()
+                                       == user->GetPDGEncoding());
+                           });
     };
 
     for (auto const& pd : *user)

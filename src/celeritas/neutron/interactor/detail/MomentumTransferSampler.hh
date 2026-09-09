@@ -43,10 +43,10 @@ class MomentumTransferSampler
 
   public:
     // Construct with shared and target data, and the neutron momentum
-    inline CELER_FUNCTION
-    MomentumTransferSampler(NeutronElasticRef const& shared,
-                            IsotopeView const& target,
-                            Momentum neutron_p);
+    inline CELER_FUNCTION MomentumTransferSampler(
+        NeutronElasticRef const& shared,
+        IsotopeView const& target,
+        Momentum neutron_p);
 
     // Sample the momentum transfer
     template<class Engine>
@@ -118,8 +118,7 @@ class MomentumTransferSampler
  * \note The incident neutron momentum, and neutron and nucleus masses are
  *  converted to the GeV value .
  */
-CELER_FUNCTION
-MomentumTransferSampler::MomentumTransferSampler(
+CELER_FUNCTION MomentumTransferSampler::MomentumTransferSampler(
     NeutronElasticRef const& shared,
     IsotopeView const& target,
     Momentum neutron_p)
@@ -178,15 +177,15 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
         constexpr real_type one_fifth{0.2};
         constexpr real_type one_seventh = 1.0_r / 7.0_r;
 
-        real_type const r[4] = {
-            -std::expm1(
-                -max_q_sq_ * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
-            -std::expm1(
-                -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
-                * par_q_sq_.slope[1]),
-            -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
-                        * par_q_sq_.slope[2]),
-            -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
+        real_type const r[4]
+            = {-std::expm1(-max_q_sq_
+                           * (par_q_sq_.slope[0] + max_q_sq_ * par_q_sq_.ss)),
+               -std::expm1(
+                   -(heavy_target_ ? ipow<5>(max_q_sq_) : ipow<3>(max_q_sq_))
+                   * par_q_sq_.slope[1]),
+               -std::expm1(-(heavy_target_ ? ipow<7>(max_q_sq_) : max_q_sq_)
+                           * par_q_sq_.slope[2]),
+               -std::expm1(-max_q_sq_ * par_q_sq_.slope[3])};
 
         real_type mi[6] = {};
         for (auto i : range(4))
@@ -252,7 +251,8 @@ CELER_FUNCTION auto MomentumTransferSampler::operator()(Engine& rng)
  * collision angle is 90 degree in the center of mass system, is currently
  * excluded, but may be supported if there is a user case.
  */
-CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) const
+CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(
+    Momentum p) const
 {
     // Momentum and mass square of the incident neutron
     real_type target_mass = value_as<Mass>(target_mass_);
@@ -273,9 +273,8 @@ CELER_FUNCTION real_type MomentumTransferSampler::calc_max_q_sq(Momentum p) cons
  * \param neutron_p the neutron momentum in the lab frame (value in clhep::GeV
  * unit).
  */
-CELER_FUNCTION
-auto MomentumTransferSampler::calc_par_q_sq(Momentum neutron_p) const
-    -> ExchangeParameters
+CELER_FUNCTION auto MomentumTransferSampler::calc_par_q_sq(
+    Momentum neutron_p) const -> ExchangeParameters
 {
     // ExchangeParameters
     real_type p = value_as<units::MevMomentum>(neutron_p) * this->to_gev();

@@ -56,10 +56,10 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
   public:
     // Construct with imported data, materials
-    static std::shared_ptr<MaterialParams>
-    from_import(ImportData const& data,
-                ::celeritas::GeoMaterialParams const& geo_mat,
-                ::celeritas::MaterialParams const& mat);
+    static std::shared_ptr<MaterialParams> from_import(
+        ImportData const& data,
+        ::celeritas::GeoMaterialParams const& geo_mat,
+        ::celeritas::MaterialParams const& mat);
 
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);

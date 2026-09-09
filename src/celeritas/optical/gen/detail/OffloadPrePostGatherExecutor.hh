@@ -24,8 +24,8 @@ namespace detail
  */
 struct OffloadPrePostGatherExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeRef<OffloadPrePostStateData> const state;
 };
@@ -36,8 +36,8 @@ struct OffloadPrePostGatherExecutor
 /*!
  * Gather post-along-step data needed for scintillation optical distributions.
  */
-CELER_FUNCTION void
-OffloadPrePostGatherExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void OffloadPrePostGatherExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(track.track_slot_id() < state.step.size());

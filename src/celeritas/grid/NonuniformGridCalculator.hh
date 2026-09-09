@@ -97,8 +97,7 @@ CELER_FUNCTION NonuniformGridCalculator NonuniformGridCalculator::from_inverse(
 /*!
  * Construct from grid data and backend storage.
  */
-CELER_FUNCTION
-NonuniformGridCalculator::NonuniformGridCalculator(
+CELER_FUNCTION NonuniformGridCalculator::NonuniformGridCalculator(
     NonuniformGridRecord const& grid, Storage const& reals)
     : NonuniformGridCalculator{reals, grid.grid, grid.value, grid.derivative}
 {
@@ -190,8 +189,7 @@ NonuniformGridCalculator::make_inverse() const
 /*!
  * Construct from grid data and backend storage.
  */
-CELER_FUNCTION
-NonuniformGridCalculator::NonuniformGridCalculator(
+CELER_FUNCTION NonuniformGridCalculator::NonuniformGridCalculator(
     Storage const& reals, RealIds x_grid, RealIds y_grid, RealIds deriv)
     : x_grid_{x_grid, reals}, y_offset_{y_grid}, deriv_offset_(deriv)
 {

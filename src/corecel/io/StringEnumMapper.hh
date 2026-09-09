@@ -51,8 +51,8 @@ class StringEnumMapper
 
   public:
     // Construct from a "to_cstring" function pointer
-    static inline StringEnumMapper<T>
-    from_cstring_func(EnumCStringFuncPtr, char const* desc = nullptr);
+    static inline StringEnumMapper<T> from_cstring_func(
+        EnumCStringFuncPtr, char const* desc = nullptr);
 
     // Construct with a function that takes an enum and returns a stringlike
     template<class U>
@@ -75,8 +75,8 @@ class StringEnumMapper
  * Construct using a \c to_cstring function.
  */
 template<class T>
-StringEnumMapper<T>
-StringEnumMapper<T>::from_cstring_func(EnumCStringFuncPtr fp, char const* desc)
+StringEnumMapper<T> StringEnumMapper<T>::from_cstring_func(
+    EnumCStringFuncPtr fp, char const* desc)
 {
     CELER_EXPECT(fp);
     return StringEnumMapper<T>{fp, desc};

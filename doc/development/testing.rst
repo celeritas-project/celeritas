@@ -20,8 +20,58 @@ functions to better isolate conditionals from each other.
 
 .. _cyclomatic complexity: https://en.wikipedia.org/wiki/Cyclomatic_complexity
 
-Running CTest
--------------
+Writing unit tests
+------------------
+
+`Google test`_ is very well documented, and because so much testing code exists
+in AI training data, tools like ChatGPT and Copilot are very good at writing a
+first pass at test code.
+
+Celeritas defines a base class test harness with some utility functions:
+
+.. doxygenclass:: celeritas::test::Test
+
+Testing real numbers and JSON data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Celeritas defines special test macros that simplify testing with floating-point data (and vectors thereof):
+
+.. doxygendefine:: EXPECT_VEC_EQ
+.. doxygendefine:: EXPECT_REAL_EQ
+.. doxygendefine:: EXPECT_SOFT_EQ
+.. doxygendefine:: EXPECT_SOFT_NEAR
+.. doxygendefine:: EXPECT_VEC_SOFT_EQ
+.. doxygendefine:: EXPECT_VEC_NEAR
+.. doxygendefine:: EXPECT_REF_EQ
+.. doxygendefine:: EXPECT_JSON_EQ
+
+Expected data can be printed with another macro:
+
+.. doxygendefine:: PRINT_EXPECTED
+
+For more details on the test harnesses, especially the hierarchy used for
+setting up physics problems for testing, see the ``celeritas::test`` namespace
+in the Doxygen developer documentation.
+
+Testing random number distributions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::test::DiagnosticRngEngine
+
+.. doxygenclass:: celeritas::test::Histogram
+
+.. doxygenclass:: celeritas::test::HistogramSampler
+
+Testing strings and logger output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: celeritas::test::ScopedLogStorer
+
+.. doxygenclass:: celeritas::test::StringSimplifier
+
+
+Running unit tests
+------------------
 
 When configured with ``CELERITAS_BUILD_TESTS`` (see :ref:`configuration`),
 CTest_ will be automatically configured. Running through CTest sets special
@@ -34,34 +84,8 @@ and prints only test failures.
 
 .. _CTest: https://cmake.org/cmake/help/latest/manual/ctest.1.html
 
-Using GoogleTest
-----------------
-
-`Google test`_ is very well documented, and because so much testing code exists
-in AI training data, tools like ChatGPT and Copilot are very good at writing a
-first pass at test code.
-Celeritas defines a base class test harness with some utility functions:
-
-.. doxygenclass:: celeritas::test::Test
-
-as well as several macros that simplify testing with floating-point data (and
-vectors thereof):
-
-.. doxygendefine:: EXPECT_VEC_EQ
-.. doxygendefine:: EXPECT_REAL_EQ
-.. doxygendefine:: EXPECT_SOFT_EQ
-.. doxygendefine:: EXPECT_SOFT_NEAR
-.. doxygendefine:: EXPECT_VEC_SOFT_EQ
-.. doxygendefine:: EXPECT_VEC_NEAR
-.. doxygendefine:: EXPECT_JSON_EQ
-.. doxygendefine:: PRINT_EXPECTED
-
-For more details on the test harnesses, especially the hierarchy used for
-setting up physics problems for testing, see the ``celeritas::test`` namespace
-in the Doxygen developer documentation.
-
-You can run most tests manually from the build directory and filter so that
-only a subset of tests run::
+You can *also* run most tests manually from the build directory and filter so
+that only a subset of tests run::
 
    $ ./test/celeritas/global_Stepper --gtest_filter=SimpleComptonTest.host
 

@@ -82,8 +82,8 @@ class VecgeomTrackView
         ParamsRef const& data, StateRef const& stateview, TrackSlotId tid);
 
     // Initialize the state
-    inline CELER_FUNCTION VecgeomTrackView&
-    operator=(Initializer_t const& init);
+    inline CELER_FUNCTION VecgeomTrackView& operator=(
+        Initializer_t const& init);
 
     //// STATIC ACCESSORS ////
 
@@ -105,8 +105,8 @@ class VecgeomTrackView
     // Get the depth in the geometry hierarchy
     inline CELER_FUNCTION VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
-    inline CELER_FUNCTION void
-    volume_instance_id(Span<VolumeInstanceId> levels) const;
+    inline CELER_FUNCTION void volume_instance_id(
+        Span<VolumeInstanceId> levels) const;
     // Visit every volume instance in the track's path, including world
     template<class F>
     inline CELER_FUNCTION void foreach_volume_path(F&& visit) const;
@@ -206,8 +206,7 @@ class VecgeomTrackView
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION
-VecgeomTrackView::VecgeomTrackView(
+CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params)
     , state_(states)
@@ -237,8 +236,8 @@ VecgeomTrackView::VecgeomTrackView(
  * Otherwise, the state is initialized from a starting location and direction,
  * which is expensive.
  */
-CELER_FUNCTION VecgeomTrackView&
-VecgeomTrackView::operator=(Initializer_t const& init)
+CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
+    Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
     failed_ = false;
@@ -329,8 +328,8 @@ CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
 /*!
  * Get the volume instance ID at each volume level.
  */
-CELER_FUNCTION void
-VecgeomTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
+CELER_FUNCTION void VecgeomTrackView::volume_instance_id(
+    Span<VolumeInstanceId> levels) const
 {
     this->foreach_volume_path(
         [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {

@@ -90,8 +90,8 @@ class VolumePathFinder
  * from the world's first child down to the node identified by \c uid, and
  * returns a sub-span of the scratch buffer containing exactly those entries.
  */
-CELER_FUNCTION auto
-VolumePathFinder::operator()(VolumeUniqueInstanceId uid) const -> SpanVI
+CELER_FUNCTION auto VolumePathFinder::operator()(
+    VolumeUniqueInstanceId uid) const -> SpanVI
 {
     CELER_EXPECT(uid < params_.scalars.num_unique_instances);
     using size_type = VolumeUniqueInstanceId::size_type;

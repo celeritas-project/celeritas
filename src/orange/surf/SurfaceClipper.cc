@@ -24,8 +24,8 @@ namespace
 constexpr auto sqrt_half = constants::sqrt_two / 2;
 constexpr auto sqrt_third = constants::sqrt_three / 2;
 
-CELER_FORCEINLINE void
-shrink_if_nonnull(BBox* bbox, Bound bnd, Axis axis, real_type position)
+CELER_FORCEINLINE void shrink_if_nonnull(
+    BBox* bbox, Bound bnd, Axis axis, real_type position)
 {
     if (bbox)
     {

@@ -145,8 +145,8 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + D_2 \rightleftharpoons 2HD \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -169,8 +169,8 @@ EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + T_2 \rightleftharpoons 2HT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -193,8 +193,8 @@ EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ D_2 + T_2 \rightleftharpoons 2DT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 

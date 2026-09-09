@@ -31,8 +31,9 @@ class TabulatedElementSelector
     //!@{
     //! \name Type aliases
     using Energy = RealQuantity<XsGridRecord::EnergyUnits>;
-    using GridValues
-        = Collection<UniformGridRecord, Ownership::const_reference, MemSpace::native>;
+    using GridValues = Collection<UniformGridRecord,
+                                  Ownership::const_reference,
+                                  MemSpace::native>;
     using GridIdValues
         = Collection<UniformGridId, Ownership::const_reference, MemSpace::native>;
     using Values
@@ -65,12 +66,12 @@ class TabulatedElementSelector
 /*!
  * Construct with xs CDF data for a particular model and material.
  */
-CELER_FUNCTION
-TabulatedElementSelector::TabulatedElementSelector(UniformTable const& table,
-                                                   GridValues const& grids,
-                                                   GridIdValues const& ids,
-                                                   Values const& reals,
-                                                   Energy energy)
+CELER_FUNCTION TabulatedElementSelector::TabulatedElementSelector(
+    UniformTable const& table,
+    GridValues const& grids,
+    GridIdValues const& ids,
+    Values const& reals,
+    Energy energy)
     : table_(table), grids_(grids), ids_(ids), reals_(reals), energy_(energy)
 {
     CELER_EXPECT(table);

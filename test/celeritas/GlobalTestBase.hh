@@ -182,8 +182,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
-    void
-    insert_primaries(CoreStateInterface& state, SpanConstPrimary primaries);
+    void insert_primaries(CoreStateInterface& state,
+                          SpanConstPrimary primaries);
 
     //// OUTPUT ////
 

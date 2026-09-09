@@ -28,23 +28,23 @@ spack:
   packages:
     rocrand:
       externals:
-      - spec: rocrand@7.1.0
-        prefix: /opt/rocm
+        - spec: rocrand@7.1.0
+          prefix: /opt/rocm
     hiprand:
       externals:
-      - spec: hiprand@7.1.0
-        prefix: /opt/rocm
+        - spec: hiprand@7.1.0
+          prefix: /opt/rocm
     rocthrust:
       externals:
-      - spec: rocthrust@7.1.0
-        prefix: /opt/rocm
+        - spec: rocthrust@7.1.0
+          prefix: /opt/rocm
     hipcub:
       externals:
-      - spec: hipcub@7.1.0
-        prefix: /opt/rocm
+        - spec: hipcub@7.1.0
+          prefix: /opt/rocm
     all:
       target:
-      - x86_64_v3
+        - x86_64_v3
       # MI250x, see https://llvm.org/docs/AMDGPUUsage.html
       #variants: +rocm amdgpu_target=gfx90a cxxstd=17
       variants: cxxstd=17

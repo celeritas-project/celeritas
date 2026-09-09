@@ -71,8 +71,7 @@ class ImageLineView
 /*!
  * Construct with image data and thread ID.
  */
-CELER_FUNCTION
-ImageLineView::ImageLineView(
+CELER_FUNCTION ImageLineView::ImageLineView(
     ParamsRef const& params, StateRef const& state, size_type row_index)
     : scalars_{params.scalars}, state_{state}, row_index_{row_index}
 {

@@ -66,8 +66,8 @@ ORANGE_SURFACE_TRAITS(inv, Involute);
  * is a SurfaceTypeTraits instance.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-visit_surface_type(F&& func, SurfaceType st)
+CELER_CONSTEXPR_FUNCTION decltype(auto) visit_surface_type(F&& func,
+                                                           SurfaceType st)
 {
 #define ORANGE_ST_VISIT_CASE(TYPE) \
     case SurfaceType::TYPE: \

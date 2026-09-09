@@ -76,20 +76,20 @@ class VecgeomParams final : public GeoParamsInterface,
     //! \todo Move these to a "model" abstraction
 
     // Build by loading a GDML file (best available method)
-    static std::shared_ptr<VecgeomParams>
-    from_gdml(std::string const& filename);
+    static std::shared_ptr<VecgeomParams> from_gdml(
+        std::string const& filename);
 
     // Build by loading a GDML file through Geant4
-    static std::shared_ptr<VecgeomParams>
-    from_gdml_g4(std::string const& filename);
+    static std::shared_ptr<VecgeomParams> from_gdml_g4(
+        std::string const& filename);
 
     // Build by loading a GDML file through VecGeom VGDML
-    static std::shared_ptr<VecgeomParams>
-    from_gdml_vg(std::string const& filename);
+    static std::shared_ptr<VecgeomParams> from_gdml_vg(
+        std::string const& filename);
 
     // Build from a Geant4 geometry
-    static std::shared_ptr<VecgeomParams>
-    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+    static std::shared_ptr<VecgeomParams> from_geant(
+        std::shared_ptr<GeantGeoParams const> const& geo);
 
     //!@}
 

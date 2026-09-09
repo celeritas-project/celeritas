@@ -51,8 +51,8 @@ auto make_state(StreamId stream, size_type size)
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<GeneratorAction>
-GeneratorAction::make_and_insert(CoreParams const& params, size_type capacity)
+std::shared_ptr<GeneratorAction> GeneratorAction::make_and_insert(
+    CoreParams const& params, size_type capacity)
 {
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();

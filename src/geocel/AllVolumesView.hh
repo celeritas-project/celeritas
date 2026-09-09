@@ -62,8 +62,8 @@ class AllVolumesView
     inline CELER_FUNCTION VolumeId volume_id(VolumeInstanceId vi_id) const;
 
     // Get the precomputed unique-instance offset for a volume instance
-    inline CELER_FUNCTION VolumeUniqueInstanceId::size_type
-    offset(VolumeInstanceId vi_id) const;
+    inline CELER_FUNCTION VolumeUniqueInstanceId::size_type offset(
+        VolumeInstanceId vi_id) const;
 
     // Construct a view for the given volume
     inline CELER_FUNCTION VolumeView volume(VolumeId vol_id) const;
@@ -81,8 +81,11 @@ class AllVolumesView
 /*!
  * Construct with shared params data.
  */
-CELER_FORCEINLINE_FUNCTION
-AllVolumesView::AllVolumesView(ParamsRef const& params) : params_(params) {}
+CELER_FORCEINLINE_FUNCTION AllVolumesView::AllVolumesView(
+    ParamsRef const& params)
+    : params_(params)
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -156,8 +159,8 @@ CELER_FUNCTION VolumeId AllVolumesView::volume_id(VolumeInstanceId vi_id) const
 /*!
  * Get the precomputed unique-instance offset for a volume instance.
  */
-CELER_FUNCTION VolumeUniqueInstanceId::size_type
-AllVolumesView::offset(VolumeInstanceId vi_id) const
+CELER_FUNCTION VolumeUniqueInstanceId::size_type AllVolumesView::offset(
+    VolumeInstanceId vi_id) const
 {
     CELER_EXPECT(vi_id < params_.unique_instance_offsets.size());
     return params_.unique_instance_offsets[vi_id];

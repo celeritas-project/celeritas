@@ -93,8 +93,9 @@ class ElementSelector
  * Construct with material, xs calculator, and storage.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION ElementSelector::ElementSelector(
-    MaterialView const& material, MicroXsCalc&& calc_micro_xs, SpanReal storage)
+CELER_FUNCTION ElementSelector::ElementSelector(MaterialView const& material,
+                                                MicroXsCalc&& calc_micro_xs,
+                                                SpanReal storage)
     : select_component_{{material.elements(), storage.data()},
                         id_cast<ElementComponentId>(material.num_elements()),
                         value_as<MicroXs>(ElementSelector::store_and_calc_xs(
@@ -112,10 +113,10 @@ CELER_FUNCTION ElementSelector::ElementSelector(
  * This is called by the constructor.
  */
 template<class MicroXsCalc>
-CELER_FUNCTION auto
-ElementSelector::store_and_calc_xs(Span<MatElementComponent const> elements,
-                                   MicroXsCalc&& calc_micro_xs,
-                                   SpanReal storage) -> MicroXs
+CELER_FUNCTION auto ElementSelector::store_and_calc_xs(
+    Span<MatElementComponent const> elements,
+    MicroXsCalc&& calc_micro_xs,
+    SpanReal storage) -> MicroXs
 {
     CELER_EXPECT(storage.size() >= elements.size());
     real_type total_xs{0};

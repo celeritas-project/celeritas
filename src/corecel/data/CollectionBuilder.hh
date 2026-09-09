@@ -196,8 +196,8 @@ void CollectionBuilder<T, M, I>::resize(std::size_t count)
  * (Will not be needed under C++17's template argument deduction).
  */
 template<class T, MemSpace M, class I>
-CollectionBuilder<T, M, I>
-make_builder(Collection<T, Ownership::value, M, I>* collection)
+CollectionBuilder<T, M, I> make_builder(
+    Collection<T, Ownership::value, M, I>* collection)
 {
     CELER_EXPECT(collection);
     return CollectionBuilder<T, M, I>(collection);

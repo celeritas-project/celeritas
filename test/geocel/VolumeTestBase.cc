@@ -55,13 +55,14 @@ std::shared_ptr<VolumeParams> ComplexVolumeTestBase::build_volumes() const
     Volumes in;
 
     // Helper to create volumes
-    auto add_volume = [&in](std::string label, std::vector<VolInstId> children) {
-        Volume v;
-        v.label = std::move(label);
-        v.material = id_cast<GeoMatId>(in.volumes.size());
-        v.children = std::move(children);
-        in.volumes.push_back(v);
-    };
+    auto add_volume
+        = [&in](std::string label, std::vector<VolInstId> children) {
+              Volume v;
+              v.label = std::move(label);
+              v.material = id_cast<GeoMatId>(in.volumes.size());
+              v.children = std::move(children);
+              in.volumes.push_back(v);
+          };
     auto add_instance = [&in](VolumeId vol_id) {
         VolumeInstance vi;
         vi.label = std::to_string(in.volume_instances.size());

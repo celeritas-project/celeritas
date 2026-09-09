@@ -72,8 +72,8 @@ class LabelIdMultiMap
 
     // Construct from a vector of items that each have a .label member
     template<class T>
-    static inline LabelIdMultiMap
-    from_labeled_items(std::string type_label, std::vector<T> const& items);
+    static inline LabelIdMultiMap from_labeled_items(
+        std::string type_label, std::vector<T> const& items);
 
     // Access the range of IDs corresponding to a name
     inline SpanConstIdT find_all(std::string const& name) const;

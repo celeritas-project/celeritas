@@ -39,8 +39,8 @@ namespace celeritas
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<ActionDiagnostic>
-ActionDiagnostic::make_and_insert(CoreParams const& core)
+std::shared_ptr<ActionDiagnostic> ActionDiagnostic::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     OutputRegistry& out = *core.output_reg();
@@ -93,7 +93,8 @@ void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
+void ActionDiagnostic::step(CoreParams const& params,
+                            CoreStateHost& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),

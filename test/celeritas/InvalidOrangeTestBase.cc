@@ -35,8 +35,8 @@ SPConstObject make_sph(std::string&& label, real_type radius)
     return std::make_shared<SphereShape>(std::move(label), Sphere{radius});
 }
 
-SPConstObject
-make_sph(std::string&& label, real_type radius, Real3 const& trans)
+SPConstObject make_sph(
+    std::string&& label, real_type radius, Real3 const& trans)
 {
     return std::make_shared<orangeinp::Transformed>(
         make_sph(std::move(label), radius), Translation{trans});

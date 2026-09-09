@@ -37,16 +37,16 @@ size_type remove_if_invalid(
 
 //---------------------------------------------------------------------------//
 // Count the number of optical photons in the distributions.
-size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
-size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
+size_type count_num_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+    size_type,
+    size_type,
+    StreamId);
+size_type count_num_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -59,11 +59,11 @@ inline size_type remove_if_invalid(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline size_type
-count_num_photons(ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
-                  size_type,
-                  size_type,
-                  StreamId)
+inline size_type count_num_photons(
+    ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
+    size_type,
+    size_type,
+    StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

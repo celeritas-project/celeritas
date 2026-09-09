@@ -130,8 +130,7 @@ class CoreTrackView
 /*!
  * Construct with comprehensive param/state data and thread.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(
+CELER_FUNCTION CoreTrackView::CoreTrackView(
     ParamsRef const& params, StateRef const& states, ThreadId thread)
     : states_(states), params_(params), thread_id_(thread)
 {
@@ -150,8 +149,7 @@ CoreTrackView::CoreTrackView(
  * This signature is used for creating a view of a \em second track in a kernel
  * for initialization.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(
+CELER_FUNCTION CoreTrackView::CoreTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : states_(states), params_(params), track_slot_id_(track_slot)
 {
@@ -162,8 +160,8 @@ CoreTrackView::CoreTrackView(
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     CELER_EXPECT(init);
 

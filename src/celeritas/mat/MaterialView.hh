@@ -37,8 +37,8 @@ class MaterialView
 
   public:
     // Construct from params and material ID
-    inline CELER_FUNCTION
-    MaterialView(MaterialParamsRef const& params, MatId id);
+    inline CELER_FUNCTION MaterialView(MaterialParamsRef const& params,
+                                       MatId id);
 
     //// MATERIAL DATA ////
 
@@ -112,8 +112,8 @@ class MaterialView
 /*!
  * Construct from dynamic and static particle properties.
  */
-CELER_FUNCTION
-MaterialView::MaterialView(MaterialParamsRef const& params, MatId id)
+CELER_FUNCTION MaterialView::MaterialView(MaterialParamsRef const& params,
+                                          MatId id)
     : params_(params), material_(id)
 {
     CELER_EXPECT(id < params.materials.size());

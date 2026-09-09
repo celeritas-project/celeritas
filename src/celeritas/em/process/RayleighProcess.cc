@@ -25,8 +25,10 @@ RayleighProcess::RayleighProcess(SPConstParticles particles,
                                  SPConstImported process_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
-    , imported_(
-          process_data, particles_, ImportProcessClass::rayleigh, {pdg::gamma()})
+    , imported_(process_data,
+                particles_,
+                ImportProcessClass::rayleigh,
+                {pdg::gamma()})
 {
     CELER_EXPECT(particles_);
     CELER_EXPECT(materials_);

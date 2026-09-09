@@ -53,10 +53,10 @@ class WentzelOKVIParams final : public ParamsDataInterface<WentzelOKVIData>
 
   public:
     // Construct if Wentzel VI or Coulomb is present, else return nullptr
-    static std::shared_ptr<WentzelOKVIParams>
-    from_import(ImportData const& data,
-                SPConstMaterials materials,
-                SPConstParticles particles);
+    static std::shared_ptr<WentzelOKVIParams> from_import(
+        ImportData const& data,
+        SPConstMaterials materials,
+        SPConstParticles particles);
 
     // Construct from material data and options
     WentzelOKVIParams(SPConstMaterials materials,

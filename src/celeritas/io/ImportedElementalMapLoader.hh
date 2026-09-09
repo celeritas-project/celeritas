@@ -35,8 +35,8 @@ struct ImportedElementalMapLoader
  * Helper function to construct an ImportedElementalMapLoader.
  */
 template<class T>
-inline ImportedElementalMapLoader<T>
-make_imported_element_loader(std::map<int, T> const& data)
+inline ImportedElementalMapLoader<T> make_imported_element_loader(
+    std::map<int, T> const& data)
 {
     return {data};
 }

@@ -53,15 +53,15 @@ inline CELER_FUNCTION Array<T, N> gemv(matrix::TransposePolicy,
 //!@{
 //! Apply a matrix or its transpose to an array, without scaling or addition
 template<class T, std::size_t N>
-inline CELER_FUNCTION Array<T, N>
-gemv(SquareMatrix<T, N> const& a, Array<T, N> const& x)
+inline CELER_FUNCTION Array<T, N> gemv(SquareMatrix<T, N> const& a,
+                                       Array<T, N> const& x)
 {
     return gemv(T{1}, a, x, T{0}, x);
 }
 
 template<class T, std::size_t N>
-inline CELER_FUNCTION Array<T, N>
-gemv(matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
+inline CELER_FUNCTION Array<T, N> gemv(
+    matrix::TransposePolicy, SquareMatrix<T, N> const& a, Array<T, N> const& x)
 {
     return gemv(matrix::transpose, T{1}, a, x, T{0}, x);
 }
@@ -81,8 +81,8 @@ T trace(SquareMatrix<T, 3> const& mat);
 
 // Perform a matrix-matrix multiply
 template<class T, std::size_t N>
-SquareMatrix<T, N>
-gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b);
+SquareMatrix<T, N> gemm(SquareMatrix<T, N> const& a,
+                        SquareMatrix<T, N> const& b);
 
 // Perform a matrix-matrix multiply with A transposed
 template<class T, std::size_t N>

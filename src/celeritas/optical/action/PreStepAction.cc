@@ -34,8 +34,9 @@ PreStepAction::PreStepAction(ActionId aid)
  */
 void PreStepAction::step(CoreParams const& params, CoreStateHost& state) const
 {
-    TrackSlotExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), detail::PreStepExecutor{}};
+    TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
+                              state.ptr(),
+                              detail::PreStepExecutor{}};
     return launch_action(state, execute);
 }
 

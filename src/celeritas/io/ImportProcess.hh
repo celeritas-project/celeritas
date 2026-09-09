@@ -106,7 +106,8 @@ struct ImportProcess
     explicit operator bool() const
     {
         return particle_pdg != 0 && process_type != ImportProcessType::size_
-               && process_class != ImportProcessClass::size_ && !models.empty();
+               && process_class != ImportProcessClass::size_
+               && !models.empty();
     }
 };
 

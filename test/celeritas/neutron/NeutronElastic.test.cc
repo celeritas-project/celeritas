@@ -225,10 +225,9 @@ TEST_F(NeutronElasticTest, extended)
     // Set the target isotope : Cu63
     ElementComponentId el_id{1};
     IsotopeComponentId iso_id{0};
-    IsotopeView const isotope_he4 = this->material_track()
-                                        .material_record()
-                                        .element_record(el_id)
-                                        .isotope_record(iso_id);
+    IsotopeView const isotope_he4
+        = this->material_track().material_record().element_record(el_id).isotope_record(
+            iso_id);
     // Sample interaction
     NeutronElasticRef shared = model_->host_ref();
     RandomEngine& rng_engine = this->rng();
@@ -284,10 +283,9 @@ TEST_F(NeutronElasticTest, stress_test)
     // Set the target isotope : Cu65
     ElementComponentId el_id{1};
     IsotopeComponentId iso_id{1};
-    IsotopeView const isotope = this->material_track()
-                                    .material_record()
-                                    .element_record(el_id)
-                                    .isotope_record(iso_id);
+    IsotopeView const isotope
+        = this->material_track().material_record().element_record(el_id).isotope_record(
+            iso_id);
 
     // Sample interaction
     NeutronElasticRef shared = model_->host_ref();

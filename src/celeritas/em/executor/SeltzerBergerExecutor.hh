@@ -44,8 +44,13 @@ CELER_FUNCTION Interaction SeltzerBergerExecutor::operator()(
     auto allocate_secondaries = track.physics_step().make_secondary_allocator();
     auto const& dir = track.geometry().dir();
 
-    SeltzerBergerInteractor interact(
-        params, particle, dir, cutoff, allocate_secondaries, material, elcomp_id);
+    SeltzerBergerInteractor interact(params,
+                                     particle,
+                                     dir,
+                                     cutoff,
+                                     allocate_secondaries,
+                                     material,
+                                     elcomp_id);
 
     auto rng = track.rng();
     return interact(rng);

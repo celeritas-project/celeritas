@@ -288,8 +288,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return this->make_step_view(tid);
     }
 
-    ParticleProcessId
-    find_ppid(PhysicsTrackView const& track, char const* label) const
+    ParticleProcessId find_ppid(PhysicsTrackView const& track,
+                                char const* label) const
     {
         auto iter = process_names.find(label);
         CELER_VALIDATE(iter != process_names.end(),
@@ -750,7 +750,8 @@ TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
+        StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
+            temp_inits;
 
         auto init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;

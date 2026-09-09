@@ -83,8 +83,8 @@ class GeantVolumeInstanceMapper
 
 //---------------------------------------------------------------------------//
 #if !CELERITAS_USE_GEANT4 && !defined(__DOXYGEN__)
-inline VolumeInstanceId
-GeantVolumeInstanceMapper::geant_to_id(G4PV const&) const
+inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
+    G4PV const&) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

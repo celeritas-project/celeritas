@@ -45,9 +45,9 @@ class WavelengthShiftGenerator
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    WavelengthShiftGenerator(NativeCRef<WavelengthShiftData> const& shared,
-                             WlsDistributionData const& distribution);
+    inline CELER_FUNCTION WavelengthShiftGenerator(
+        NativeCRef<WavelengthShiftData> const& shared,
+        WlsDistributionData const& distribution);
 
     // Sample a WLS photon
     template<class Engine>
@@ -72,8 +72,7 @@ class WavelengthShiftGenerator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-WavelengthShiftGenerator::WavelengthShiftGenerator(
+CELER_FUNCTION WavelengthShiftGenerator::WavelengthShiftGenerator(
     NativeCRef<WavelengthShiftData> const& shared,
     WlsDistributionData const& distribution)
     : distribution_(distribution)

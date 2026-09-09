@@ -37,7 +37,7 @@ struct InteractionApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
+CELER_CTAD_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -49,8 +49,8 @@ CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
  * ID.
  */
 template<class F>
-CELER_FUNCTION void
-InteractionApplier<F>::operator()(CoreTrackView const& track)
+CELER_FUNCTION void InteractionApplier<F>::operator()(
+    CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 

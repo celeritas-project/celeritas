@@ -301,9 +301,9 @@ CutCylinder::CutCylinder(real_type radius,
     CELER_VALIDATE(bot_normal_[Z] < 0,
                    << "bottom cutting plane normal is not pointing down: "
                    << bot_normal_[Z]);
-    CELER_VALIDATE(
-        top_normal_[Z] > 0,
-        << "top cutting plane normal is not pointing up: " << top_normal_[Z]);
+    CELER_VALIDATE(top_normal_[Z] > 0,
+                   << "top cutting plane normal is not pointing up: "
+                   << top_normal_[Z]);
     CELER_VALIDATE(is_soft_unit_vector(bot_normal_),
                    << "bottom cutting plane normal is not a unit vector");
     CELER_VALIDATE(is_soft_unit_vector(top_normal_),

@@ -48,13 +48,13 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
-    inline CELER_FUNCTION
-    WentzelHelper(ParticleTrackView const& particle,
-                  MaterialView const& material,
-                  AtomicNumber target_z,
-                  NativeCRef<WentzelOKVIData> const& wentzel,
-                  CoulombIds const& ids,
-                  Energy cutoff);
+    inline CELER_FUNCTION WentzelHelper(
+        ParticleTrackView const& particle,
+        MaterialView const& material,
+        AtomicNumber target_z,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        CoulombIds const& ids,
+        Energy cutoff);
 
     //! Get the target atomic number
     CELER_FUNCTION AtomicNumber atomic_number() const { return target_z_; }
@@ -135,13 +135,13 @@ class WentzelHelper
 /*!
  * Construct from particle and material properties.
  */
-CELER_FUNCTION
-WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
-                             MaterialView const& material,
-                             AtomicNumber target_z,
-                             NativeCRef<WentzelOKVIData> const& wentzel,
-                             CoulombIds const& ids,
-                             Energy cutoff)
+CELER_FUNCTION WentzelHelper::WentzelHelper(
+    ParticleTrackView const& particle,
+    MaterialView const& material,
+    AtomicNumber target_z,
+    NativeCRef<WentzelOKVIData> const& wentzel,
+    CoulombIds const& ids,
+    Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)

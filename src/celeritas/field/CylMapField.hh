@@ -47,8 +47,7 @@ class CylMapField
     inline CELER_FUNCTION explicit CylMapField(ParamsRef const& shared);
 
     // Evaluate the magnetic field value for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
+    CELER_FUNCTION inline Real3 operator()(Real3 const& pos) const;
 
   private:
     // Shared constant field map
@@ -65,8 +64,7 @@ class CylMapField
 /*!
  * Construct with the shared magnetic field map data.
  */
-CELER_FUNCTION
-CylMapField::CylMapField(ParamsRef const& params)
+CELER_FUNCTION CylMapField::CylMapField(ParamsRef const& params)
     : params_{params}
     , grid_r_{params_.grids.axes[CylAxis::r], params_.grids.storage}
     , grid_phi_{params_.grids.axes[CylAxis::phi], params_.grids.storage}

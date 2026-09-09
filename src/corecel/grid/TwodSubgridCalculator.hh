@@ -72,8 +72,7 @@ class TwodSubgridCalculator
  * location could be extended to allow a fractional value of 1 to support
  * interpolating on the highest value of the x grid.
  */
-CELER_FUNCTION
-TwodSubgridCalculator::TwodSubgridCalculator(
+CELER_FUNCTION TwodSubgridCalculator::TwodSubgridCalculator(
     TwodGridData const& grids, Values const& storage, InterpT x_loc)
     : grids_{grids}, storage_(storage), x_loc_(x_loc)
 {

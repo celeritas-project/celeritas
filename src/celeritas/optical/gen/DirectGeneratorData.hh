@@ -42,8 +42,8 @@ struct DirectGeneratorStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    DirectGeneratorStateData<W, M>&
-    operator=(DirectGeneratorStateData<W2, M2>& other)
+    DirectGeneratorStateData<W, M>& operator=(
+        DirectGeneratorStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         initializers = other.initializers;

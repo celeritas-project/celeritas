@@ -41,8 +41,8 @@ class TwodGridCalculator
 
   public:
     // Construct with grid data and backend values
-    inline CELER_FUNCTION
-    TwodGridCalculator(TwodGridData const& grid, Values const& storage);
+    inline CELER_FUNCTION TwodGridCalculator(TwodGridData const& grid,
+                                             Values const& storage);
 
     // Calculate the value at the given x, y coordinates
     inline CELER_FUNCTION real_type operator()(Point const& xy) const;

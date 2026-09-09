@@ -41,12 +41,13 @@ class GeantMaterialPropertyGetter
     explicit operator bool() const { return mpt_ != nullptr; }
 
     // Get scalar property
-    inline bool
-    operator()(double& dst, std::string const& name, ImportUnits q) const;
+    inline bool operator()(
+        double& dst, std::string const& name, ImportUnits q) const;
 
     // Get physics vector property
-    inline bool operator()(
-        inp::Grid& dst, std::string const& name, Array<ImportUnits, 2> q) const;
+    inline bool operator()(inp::Grid& dst,
+                           std::string const& name,
+                           Array<ImportUnits, 2> q) const;
 
     //! Get the string label
     char const* c_str() const
@@ -61,8 +62,8 @@ class GeantMaterialPropertyGetter
 };
 
 // Write a description of the properties being queried
-inline std::ostream&
-operator<<(std::ostream&, GeantMaterialPropertyGetter const&);
+inline std::ostream& operator<<(std::ostream&,
+                                GeantMaterialPropertyGetter const&);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

@@ -19,7 +19,6 @@ on:
       CODECOV_TOKEN:
         required: false
 
-
 concurrency:
   group: build-spack-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
 
@@ -96,7 +95,7 @@ jobs:
       LLVM_COV: "llvm-cov-18"
       GCOV: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
       CXXSTD: ${{(matrix.geant == '10.5' || matrix.geant == '10.6')
-                 && 17 || 20}}
+        && 17 || 20}}
     runs-on: ubuntu-24.04
     continue-on-error: false
     steps:

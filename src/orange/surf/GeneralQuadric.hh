@@ -67,7 +67,8 @@ class GeneralQuadric
 
     // Construct from raw data
     template<class R>
-    explicit inline CELER_FUNCTION GeneralQuadric(Span<R, StorageSpan::extent>);
+    explicit inline
+        CELER_FUNCTION GeneralQuadric(Span<R, StorageSpan::extent>);
 
     // Promote from a simple quadric
     explicit GeneralQuadric(SimpleQuadric const& other) noexcept(

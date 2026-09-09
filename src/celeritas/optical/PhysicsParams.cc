@@ -162,7 +162,8 @@ auto PhysicsParams::build_models(inp::OpticalBulkPhysics const& input,
 /*!
  * Build MFP tables for each model in the host data.
  */
-void PhysicsParams::build_mfps(MaterialParams const& mats, HostValue& data) const
+void PhysicsParams::build_mfps(MaterialParams const& mats,
+                               HostValue& data) const
 {
     for (auto const& model : models_)
     {

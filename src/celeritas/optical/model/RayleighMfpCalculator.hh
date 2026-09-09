@@ -67,10 +67,10 @@ class RayleighMfpCalculator
 
   public:
     // Construct from material and Rayleigh properties
-    inline CELER_FUNCTION
-    RayleighMfpCalculator(MaterialView const& material,
-                          inp::OpticalRayleighAnalytic const& rayleigh,
-                          ::celeritas::MaterialView const& core_material);
+    inline CELER_FUNCTION RayleighMfpCalculator(
+        MaterialView const& material,
+        inp::OpticalRayleighAnalytic const& rayleigh,
+        ::celeritas::MaterialView const& core_material);
 
     // Calculate the MFP for the given energy
     inline CELER_FUNCTION real_type operator()(Energy) const;

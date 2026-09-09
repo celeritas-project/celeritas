@@ -38,8 +38,8 @@ class StepTimes : public AuxParamsInterface
 
   public:
     // Construct and add to the aux registry
-    static std::shared_ptr<StepTimes>
-    make_and_insert(SPAuxParamsRegistry const&, std::string label);
+    static std::shared_ptr<StepTimes> make_and_insert(
+        SPAuxParamsRegistry const&, std::string label);
 
     // Construct from ID and label
     StepTimes(AuxId, std::string label);

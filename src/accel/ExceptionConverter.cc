@@ -176,8 +176,8 @@ void ExceptionConverter::operator()(std::exception_ptr eptr)
  *
  * See ExceptionConverter.cu for the CUDA implementation of this.
  */
-inline void
-ExceptionConverter::convert_device_exceptions(std::exception_ptr eptr) const
+inline void ExceptionConverter::convert_device_exceptions(
+    std::exception_ptr eptr) const
 {
     std::rethrow_exception(eptr);
 }

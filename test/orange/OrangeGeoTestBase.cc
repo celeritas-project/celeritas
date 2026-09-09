@@ -269,8 +269,8 @@ ImplVolumeId OrangeGeoTestBase::find_volume(std::string const& label) const
 /*!
  * Surface name (or sentinel if no surface).
  */
-std::string
-OrangeGeoTestBase::id_to_label(UnivId uid, LocalSurfaceId surfid) const
+std::string OrangeGeoTestBase::id_to_label(UnivId uid,
+                                           LocalSurfaceId surfid) const
 {
     if (!surfid)
         return "[none]";
@@ -292,8 +292,8 @@ std::string OrangeGeoTestBase::id_to_label(LocalSurfaceId surfid) const
 /*!
  * Volume name (or sentinel if no volume).
  */
-std::string
-OrangeGeoTestBase::id_to_label(UnivId uid, LocalVolumeId vol_id) const
+std::string OrangeGeoTestBase::id_to_label(UnivId uid,
+                                           LocalVolumeId vol_id) const
 {
     if (!vol_id)
         return "[none]";

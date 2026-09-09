@@ -237,8 +237,8 @@ void cmd_volumes(Runner* runner, nlohmann::json const&)
     put_json_line(*geo->volumes());
 }
 
-CmdFuncPtr
-get_cmd_funcptr(nlohmann::json const& input, std::string_view cmd_str)
+CmdFuncPtr get_cmd_funcptr(nlohmann::json const& input,
+                           std::string_view cmd_str)
 {
     auto iter = input.find("_cmd");
     if (iter == input.end())

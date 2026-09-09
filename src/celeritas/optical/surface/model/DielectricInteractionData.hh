@@ -105,8 +105,8 @@ struct UnifiedReflectionData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    UnifiedReflectionData<W, M>&
-    operator=(UnifiedReflectionData<W2, M2> const& other)
+    UnifiedReflectionData<W, M>& operator=(
+        UnifiedReflectionData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         for (auto mode : range(ReflectionMode::size_))

@@ -67,11 +67,11 @@ void UserActionIntegration::PreUserTrackingAction(G4Track* track)
         if (mode == SharedParams::Mode::enabled)
         {
             // Celeritas is transporting this track
-            CELER_TRY_HANDLE(detail::IntegrationSingleton::instance()
-                                 .local_track_offload()
-                                 .Push(*track),
-                             ExceptionConverter("celer.track.push",
-                                                &singleton.shared_params()));
+            CELER_TRY_HANDLE(
+                detail::IntegrationSingleton::instance().local_track_offload().Push(
+                    *track),
+                ExceptionConverter("celer.track.push",
+                                   &singleton.shared_params()));
         }
 
         // Either "pushed" or we're in kill_offload mode

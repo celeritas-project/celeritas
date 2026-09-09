@@ -82,8 +82,8 @@ struct SeltzerBergerTableData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SeltzerBergerTableData&
-    operator=(SeltzerBergerTableData<W2, M2> const& other)
+    SeltzerBergerTableData& operator=(
+        SeltzerBergerTableData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         reals = other.reals;

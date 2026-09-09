@@ -103,16 +103,19 @@ struct RZMapFieldParams::Impl
             host.max_z = static_cast<field_real_type>(inp.max_z);
             return host;
         }()}
-        , host_ref_{
-              {host_.options, host_.min_r, host_.max_r, host_.min_z, host_.max_z},
-              *host_.field}
+        , host_ref_{{host_.options,
+                     host_.min_r,
+                     host_.max_r,
+                     host_.min_z,
+                     host_.max_z},
+                    *host_.field}
     {
         if (celeritas::device())
         {
             device_ = host_;
             device_ref_ = device_;
-            CELER_ENSURE(
-                static_cast<bool>(device_) && static_cast<bool>(device_ref_));
+            CELER_ENSURE(static_cast<bool>(device_)
+                         && static_cast<bool>(device_ref_));
         }
         CELER_ENSURE(static_cast<bool>(host_) && static_cast<bool>(host_ref_));
     }

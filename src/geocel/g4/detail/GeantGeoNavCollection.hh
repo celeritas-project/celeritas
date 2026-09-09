@@ -39,8 +39,8 @@ struct GeantGeoNavCollection
     explicit CELER_FUNCTION operator bool() const { return false; }
     CELER_FUNCTION TrackSlotId::size_type size() const { return 0; }
     template<Ownership W2, MemSpace M2>
-    CELER_FUNCTION GeantGeoNavCollection&
-    operator=(GeantGeoNavCollection<W2, M2>&)
+    CELER_FUNCTION GeantGeoNavCollection& operator=(
+        GeantGeoNavCollection<W2, M2>&)
     {
         return *this;
     }
@@ -120,8 +120,8 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     GeantGeoNavCollection(GeantGeoNavCollection const&) = default;
 
     // Obtain reference from host memory
-    GeantGeoNavCollection&
-    operator=(GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
+    GeantGeoNavCollection& operator=(
+        GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
     // Default assignment
     GeantGeoNavCollection& operator=(GeantGeoNavCollection const&) = default;
 

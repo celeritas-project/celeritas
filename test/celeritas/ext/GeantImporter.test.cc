@@ -101,8 +101,8 @@ class GeantImporterTest : public GeantTestBase
         return selection_;
     }
 
-    ImportProcess const&
-    find_process(PDGNumber pdg, ImportProcessClass ipc) const
+    ImportProcess const& find_process(PDGNumber pdg,
+                                      ImportProcessClass ipc) const
     {
         auto const& processes = this->imported_data().processes;
         auto result = std::find_if(processes.begin(),
@@ -118,8 +118,8 @@ class GeantImporterTest : public GeantTestBase
         return *result;
     }
 
-    ImportMscModel const&
-    find_msc_model(PDGNumber pdg, ImportModelClass imc) const
+    ImportMscModel const& find_msc_model(PDGNumber pdg,
+                                         ImportModelClass imc) const
     {
         auto const& models = this->imported_data().msc_models;
         auto result = std::find_if(
@@ -269,7 +269,7 @@ class FourSteelSlabsEmStandard : public GeantImporterTest
             nlohmann::json out = opts;
             out.erase("_version");
             EXPECT_JSON_EQ(
-                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"mucf_physics":false,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
+                R"json({"_format":"geant-physics","_units":"cgs","angle_limit_factor":1.0,"annihilation":true,"apply_cuts":false,"brems":"all","compton_scattering":true,"coulomb_scattering":false,"default_cutoff":0.1,"electro_nuclear":false,"eloss_fluctuation":true,"em_bins_per_decade":7,"form_factor":"exponential","gamma_conversion":true,"gamma_general":false,"gamma_nuclear":false,"integral_approach":true,"ionization":true,"linear_loss_limit":0.01,"lowest_electron_energy":[0.001,"MeV"],"lowest_muhad_energy":[0.001,"MeV"],"lpm":true,"max_energy":[100000000.0,"MeV"],"min_energy":[0.0001,"MeV"],"msc":"urban","msc_displaced":true,"msc_lambda_limit":0.1,"msc_muhad_displaced":false,"msc_muhad_range_factor":0.2,"msc_muhad_step_algorithm":"minimal","msc_range_factor":0.04,"msc_safety_factor":0.6,"msc_step_algorithm":"safety","msc_theta_limit":3.141592653589793,"mucf_physics":false,"muon":{"bremsstrahlung":true,"coulomb":false,"ionization":true,"msc":"none","pair_production":true},"optical":null,"photoelectric":true,"rayleigh_scattering":true,"relaxation":"all","seltzer_berger_limit":[1000.0,"MeV"],"verbose":true})json",
                 std::string(out.dump()));
         }
         return opts;
@@ -2015,18 +2015,17 @@ TEST_F(Solids, physics)
 TEST_F(OpticalSurfaces, surfaces)
 {
     auto specular_spike = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::specular_spike];
+        return di.reflection.reflection_grids
+            [optical::ReflectionMode::specular_spike];
     };
 
     auto specular_lobe = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::specular_lobe];
+        return di.reflection.reflection_grids
+            [optical::ReflectionMode::specular_lobe];
     };
 
     auto backscatter = [](inp::DielectricInteraction const& di) {
-        return di.reflection
-            .reflection_grids[optical::ReflectionMode::backscatter];
+        return di.reflection.reflection_grids[optical::ReflectionMode::backscatter];
     };
 
     auto&& osp = this->imported_data().optical_physics.surfaces;

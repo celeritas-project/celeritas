@@ -52,7 +52,8 @@ class SphereCentered
 
     // Construct from raw data
     template<class R>
-    explicit inline CELER_FUNCTION SphereCentered(Span<R, StorageSpan::extent>);
+    explicit inline
+        CELER_FUNCTION SphereCentered(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 

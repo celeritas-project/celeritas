@@ -40,8 +40,8 @@ class BoundingZoneTest : public ::celeritas::test::Test
     };
 
   protected:
-    static BoundingZone
-    make_bz(Real3 center, real_type outer_hw, real_type inner_hw = -1)
+    static BoundingZone make_bz(
+        Real3 center, real_type outer_hw, real_type inner_hw = -1)
     {
         CELER_EXPECT(outer_hw >= 0);
         CELER_EXPECT(outer_hw >= inner_hw);

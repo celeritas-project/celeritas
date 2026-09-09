@@ -24,10 +24,10 @@ namespace celeritas
 /*!
  * Construct if Wentzel VI or Coulomb is present, else return nullptr.
  */
-std::shared_ptr<WentzelOKVIParams>
-WentzelOKVIParams::from_import(ImportData const& data,
-                               SPConstMaterials materials,
-                               SPConstParticles particles)
+std::shared_ptr<WentzelOKVIParams> WentzelOKVIParams::from_import(
+    ImportData const& data,
+    SPConstMaterials materials,
+    SPConstParticles particles)
 {
     CELER_EXPECT(materials);
 
@@ -132,8 +132,8 @@ void WentzelOKVIParams::build_data(HostVal<WentzelOKVIData>& host_data,
         prefactors.push_back(value_as<InvMomSq>(
             ExpNuclearFormFactor{iso_view.atomic_mass_number()}.prefactor()));
     }
-    CELER_ENSURE(
-        host_data.nuclear_form_prefactor.size() == materials.num_isotopes());
+    CELER_ENSURE(host_data.nuclear_form_prefactor.size()
+                 == materials.num_isotopes());
 
     // Build material data
     if (host_data.params.is_combined)
@@ -762,9 +762,9 @@ auto WentzelOKVIParams::get_electron_mott_coeffs(AtomicNumber z) -> CoeffMat
              {2.33936e+01, 8.92345e+01, -6.96034e+01, 1.86068e+02, 2.09119e+02, -5.39313e+02},
              {-8.93007e+00, -4.51728e+01, 1.61962e+01, -5.71780e+01, -1.03415e+02, 1.58410e+02}}}};
     // clang-format on
-    static_assert(
-        std::size(electron_mott_coeffs) == MottElementData::num_elements,
-        "wrong number of Mott coefficient elements");
+    static_assert(std::size(electron_mott_coeffs)
+                      == MottElementData::num_elements,
+                  "wrong number of Mott coefficient elements");
 
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},
@@ -1381,9 +1381,9 @@ auto WentzelOKVIParams::get_positron_mott_coeffs(AtomicNumber z) -> CoeffMat
              {1.31073e-02, -7.13217e-02, -4.17369e-01, -2.36640e-01, 9.40258e-01, 1.00169e+00},
              {1.28237e-03, 3.92889e-02, 4.27449e-02, -4.28876e-01, -1.13208e+00, -7.80735e-01}}}};
     // clang-format on
-    static_assert(
-        std::size(positron_mott_coeffs) == MottElementData::num_elements,
-        "wrong number of Mott coefficient elements");
+    static_assert(std::size(positron_mott_coeffs)
+                      == MottElementData::num_elements,
+                  "wrong number of Mott coefficient elements");
 
     int index = z.unchecked_get() - 1;
     CELER_VALIDATE(index >= 0 && index < int{MottElementData::num_elements},

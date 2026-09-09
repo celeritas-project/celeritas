@@ -34,8 +34,8 @@ BetheBlochModel::BetheBlochModel(ActionId id,
     : StaticConcreteAction(
           id, "ioni-bethe-bloch", "interact by ionization (Bethe-Bloch)")
     , applicability_(applicability)
-    , data_(detail::MuHadIonizationBuilder(particles, this->label())(
-          applicability_))
+    , data_(detail::MuHadIonizationBuilder(particles,
+                                           this->label())(applicability_))
 {
     CELER_EXPECT(id);
     CELER_ENSURE(data_);
@@ -71,8 +71,9 @@ void BetheBlochModel::step(CoreParams const& params, CoreStateHost& state) const
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
-            this->host_ref()}});
+        InteractionApplier{
+            MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+                this->host_ref()}});
     return launch_action(*this, params, state, execute);
 }
 

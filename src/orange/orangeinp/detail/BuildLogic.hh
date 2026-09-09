@@ -227,8 +227,9 @@ class DynamicBuildLogicPolicy
 
   public:
     // Construct with optional mapping
-    DynamicBuildLogicPolicy(
-        LogicNotation notation, CsgTree const& tree, VecSurface const* mapping);
+    DynamicBuildLogicPolicy(LogicNotation notation,
+                            CsgTree const& tree,
+                            VecSurface const* mapping);
 
     // Create a visitor for building logic
     Builder operator()(VecLogic& logic) const;
@@ -246,12 +247,12 @@ class DynamicBuildLogicPolicy
 extern template class BaseLogicBuilder<PostfixLogicBuilder>;
 extern template class BaseLogicBuilder<InfixLogicBuilder>;
 
-extern template BuildLogicResult
-build_logic(PostfixBuildLogicPolicy const&, NodeId);
-extern template BuildLogicResult
-build_logic(InfixBuildLogicPolicy const&, NodeId);
-extern template BuildLogicResult
-build_logic(DynamicBuildLogicPolicy const&, NodeId);
+extern template BuildLogicResult build_logic(PostfixBuildLogicPolicy const&,
+                                             NodeId);
+extern template BuildLogicResult build_logic(InfixBuildLogicPolicy const&,
+                                             NodeId);
+extern template BuildLogicResult build_logic(DynamicBuildLogicPolicy const&,
+                                             NodeId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -845,10 +845,10 @@ void FourLevelsGeoTest::test_locate_point() const
             = test_->geometry_interface()->find_volume_instance_at(
                 from_cm(point));
 
-        auto volume_label = volume_instance
-                                ? test_->volumes()->volume_instance_labels().at(
-                                      volume_instance)
-                                : "[INVALID]";
+        auto volume_label
+            = volume_instance ? test_->volumes()->volume_instance_labels().at(
+                                    volume_instance)
+                              : "[INVALID]";
 
         // Get expected volume label from test chassis
         auto expected_volume_label

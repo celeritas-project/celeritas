@@ -63,8 +63,8 @@ class IntersectRegionTest : public ::celeritas::test::Test
                     VariantTransform const& vt);
 
     //! Test with default name
-    TestResult
-    test(IntersectRegionInterface const& r, VariantTransform const& vt)
+    TestResult test(IntersectRegionInterface const& r,
+                    VariantTransform const& vt)
     {
         return this->test("cr", r, vt);
     }

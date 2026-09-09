@@ -90,8 +90,8 @@ class GridAccessor
     std::vector<GridView> operator()(ItemRange<Grid> grid_ids) const;
 
     // Retrieve a span of reals built on the storage
-    Span<real_type const>
-    operator()(ItemRange<real_type> const& real_ids) const;
+    Span<real_type const> operator()(
+        ItemRange<real_type> const& real_ids) const;
 
     // Construct an MFP builder with the underlying collections
     MfpBuilder create_mfp_builder();

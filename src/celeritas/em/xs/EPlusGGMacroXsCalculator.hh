@@ -63,8 +63,7 @@ class EPlusGGMacroXsCalculator
 /*!
  * Construct with material.
  */
-CELER_FUNCTION
-EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(
+CELER_FUNCTION EPlusGGMacroXsCalculator::EPlusGGMacroXsCalculator(
     EPlusGGData const& shared, MaterialView const& material)
     : electron_mass_(value_as<units::MevMass>(shared.electron_mass))
     , electron_density_(material.electron_density())

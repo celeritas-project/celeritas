@@ -54,8 +54,7 @@ class NeutronInelasticInteractor
 /*!
  * Construct with shared and state data, and a target nucleus.
  */
-CELER_FUNCTION
-NeutronInelasticInteractor::NeutronInelasticInteractor(
+CELER_FUNCTION NeutronInelasticInteractor::NeutronInelasticInteractor(
     NeutronInelasticRef const& shared, ParticleTrackView const& particle)
     : shared_(shared)
 {

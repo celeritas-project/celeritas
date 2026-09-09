@@ -39,16 +39,16 @@ class LazyGeantGeoManager
     virtual std::string_view gdml_basename() const = 0;
 
     // Implementation builds Geant4 geometry on request using GDML by default
-    [[nodiscard]] virtual SPConstGeantGeo
-    build_geant_geo(std::string const& filename) const;
+    [[nodiscard]] virtual SPConstGeantGeo build_geant_geo(
+        std::string const& filename) const;
 
     // Implementation builds from Geant4 on request
-    [[nodiscard]] virtual SPConstGeoI
-    build_geo_from_geant(SPConstGeantGeo const&) const = 0;
+    [[nodiscard]] virtual SPConstGeoI build_geo_from_geant(
+        SPConstGeantGeo const&) const = 0;
 
     // Backup method when Geant4 is disabled
-    [[nodiscard]] virtual SPConstGeoI
-    build_geo_from_gdml(std::string const& filename) const;
+    [[nodiscard]] virtual SPConstGeoI build_geo_from_gdml(
+        std::string const& filename) const;
 
     //// ACCESSORS ////
 

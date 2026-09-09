@@ -87,10 +87,10 @@ std::string CaloTestBase::output() const
 }
 
 //---------------------------------------------------------------------------//
-template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::device>(size_type, size_type);
-template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::host>(size_type, size_type);
+template CaloTestBase::RunResult CaloTestBase::run<MemSpace::device>(
+    size_type, size_type);
+template CaloTestBase::RunResult CaloTestBase::run<MemSpace::host>(size_type,
+                                                                   size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

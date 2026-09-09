@@ -53,9 +53,9 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
                    << "invalid field parameter (max_z=" << inp.grid_z.back()
                    << " <= min_z= " << inp.grid_z.front() << ")");
 
-    CELER_VALIDATE(
-        inp.grid_r.front() >= 0,
-        << "invalid field parameter (min_r=" << inp.grid_r.front() << ")");
+    CELER_VALIDATE(inp.grid_r.front() >= 0,
+                   << "invalid field parameter (min_r=" << inp.grid_r.front()
+                   << ")");
     CELER_VALIDATE(soft_zero(inp.grid_phi.front().value()),
                    << "Phi grid must be a complete circle (grid_phi min="
                    << inp.grid_phi.front().value() << "): should be 0");

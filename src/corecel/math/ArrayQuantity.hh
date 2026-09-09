@@ -33,8 +33,8 @@ namespace celeritas
  * \endcode
  */
 template<class Q, class... Args>
-CELER_CONSTEXPR_FUNCTION Array<Q, sizeof...(Args)>
-make_quantity_array(Args const&... args) noexcept
+CELER_CONSTEXPR_FUNCTION Array<Q, sizeof...(Args)> make_quantity_array(
+    Args const&... args) noexcept
 {
     static_assert(is_quantity_v<Q>);
     return {Q{args}...};
@@ -51,8 +51,8 @@ make_quantity_array(Args const&... args) noexcept
  * \endcode
  */
 template<class Q, std::size_t N>
-CELER_CONSTEXPR_FUNCTION Array<Q, N>
-make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
+CELER_CONSTEXPR_FUNCTION Array<Q, N> make_quantity_array(
+    Array<typename Q::value_type, N> const& arr) noexcept
 {
     static_assert(is_quantity_v<Q>);
     Array<Q, N> result;
@@ -70,8 +70,8 @@ make_quantity_array(Array<typename Q::value_type, N> const& arr) noexcept
  * This applies native_value_from element-wise to each component.
  */
 template<class UnitT, class ValueT, std::size_t N>
-CELER_CONSTEXPR_FUNCTION auto
-native_value_from(Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
+CELER_CONSTEXPR_FUNCTION auto native_value_from(
+    Array<Quantity<UnitT, ValueT>, N> const& quant) noexcept
 {
     using common_type = typename Quantity<UnitT, ValueT>::common_type;
     Array<common_type, N> result;
@@ -127,8 +127,8 @@ CELER_CONSTEXPR_FUNCTION auto value_as(Array<Q, N> const& quant) noexcept
  * therefore preferred by partial ordering for Quantity element types.
  */
 template<class UnitT, class ValueT, std::size_t N>
-std::ostream&
-operator<<(std::ostream& os, Array<Quantity<UnitT, ValueT>, N> const& q)
+std::ostream& operator<<(std::ostream& os,
+                         Array<Quantity<UnitT, ValueT>, N> const& q)
 {
     os << value_as<Quantity<UnitT, ValueT>>(q) << " [" << UnitT::label() << ']';
     return os;

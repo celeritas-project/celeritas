@@ -16,7 +16,8 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-void SlotDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
+void SlotDiagnostic::step(CoreParams const& params,
+                          CoreStateDevice& state) const
 {
     // Allocate temporary device memory
     DeviceVector<int> device_buffer(state.size(), state.stream_id());

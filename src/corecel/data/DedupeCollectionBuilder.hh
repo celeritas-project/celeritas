@@ -175,8 +175,8 @@ auto DedupeCollectionBuilder<T, I>::push_back(T const& el) -> ItemIdT
  * By default, this uses the std::hash specialization in \c HashUtils.
  */
 template<class T, class I>
-std::size_t
-DedupeCollectionBuilder<T, I>::HashRange::operator()(ItemRangeT r) const
+std::size_t DedupeCollectionBuilder<T, I>::HashRange::operator()(
+    ItemRangeT r) const
 {
     CELER_EXPECT(*r.end() <= storage->size());
 

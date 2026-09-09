@@ -33,8 +33,8 @@ namespace optical
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<PrimaryGeneratorAction>
-PrimaryGeneratorAction::make_and_insert(CoreParams const& params, Input&& input)
+std::shared_ptr<PrimaryGeneratorAction> PrimaryGeneratorAction::make_and_insert(
+    CoreParams const& params, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *params.action_reg();

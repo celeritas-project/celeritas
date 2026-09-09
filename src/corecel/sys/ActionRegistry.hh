@@ -56,7 +56,8 @@ class ActionRegistry
     ActionId next_id() const { return ActionId(actions_.size()); }
 
     //! Register a mutable action
-    template<class T, std::enable_if_t<detail::is_mutable_action_v<T>, bool> = true>
+    template<class T,
+             std::enable_if_t<detail::is_mutable_action_v<T>, bool> = true>
     void insert(std::shared_ptr<T> action)
     {
         return this->insert_mutable_impl(std::move(action));

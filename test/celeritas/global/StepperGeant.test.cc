@@ -45,10 +45,10 @@ namespace test
 class TestEm3StepperTestBase : public TestEm3Base, public StepperTestBase
 {
   public:
-    std::vector<Primary>
-    make_primaries_with_energy(PDGNumber particle,
-                               size_type count,
-                               celeritas::units::MevEnergy energy) const
+    std::vector<Primary> make_primaries_with_energy(
+        PDGNumber particle,
+        size_type count,
+        celeritas::units::MevEnergy energy) const
     {
         Primary p;
         p.particle_id = this->particle()->find(particle);

@@ -41,8 +41,8 @@ struct UniformFieldParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    UniformFieldParamsData&
-    operator=(UniformFieldParamsData<W2, M2> const& other)
+    UniformFieldParamsData& operator=(
+        UniformFieldParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         field = other.field;

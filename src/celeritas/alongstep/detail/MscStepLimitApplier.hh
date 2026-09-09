@@ -33,15 +33,15 @@ struct MscStepLimitApplier
 //---------------------------------------------------------------------------//
 
 template<class MH>
-CELER_FUNCTION MscStepLimitApplier(MH&&) -> MscStepLimitApplier<MH>;
+CELER_CTAD_FUNCTION MscStepLimitApplier(MH&&) -> MscStepLimitApplier<MH>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
 template<class MH>
-CELER_FUNCTION void
-MscStepLimitApplier<MH>::operator()(CoreTrackView const& track)
+CELER_FUNCTION void MscStepLimitApplier<MH>::operator()(
+    CoreTrackView const& track)
 {
     if (msc.is_applicable(track, track.sim().step_length()))
     {

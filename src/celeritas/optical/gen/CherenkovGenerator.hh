@@ -48,10 +48,10 @@ class CherenkovGenerator
 {
   public:
     // Construct from optical materials and distribution parameters
-    inline CELER_FUNCTION
-    CherenkovGenerator(MaterialView const& material,
-                       NativeCRef<CherenkovData> const& shared,
-                       GeneratorDistributionData const& dist);
+    inline CELER_FUNCTION CherenkovGenerator(
+        MaterialView const& material,
+        NativeCRef<CherenkovData> const& shared,
+        GeneratorDistributionData const& dist);
 
     // Sample a Cherenkov photon from the distribution
     template<class Generator>
@@ -85,10 +85,10 @@ class CherenkovGenerator
 /*!
  * Construct from optical materials and distribution parameters.
  */
-CELER_FUNCTION
-CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
-                                       NativeCRef<CherenkovData> const& shared,
-                                       GeneratorDistributionData const& dist)
+CELER_FUNCTION CherenkovGenerator::CherenkovGenerator(
+    MaterialView const& material,
+    NativeCRef<CherenkovData> const& shared,
+    GeneratorDistributionData const& dist)
     : dist_(dist)
     , calc_refractive_index_(material.make_refractive_index_calculator())
     , sample_phi_(0, real_type(2 * constants::pi))
@@ -128,8 +128,8 @@ CherenkovGenerator::CherenkovGenerator(MaterialView const& material,
     delta_num_photons_ = dndx_post - dndx_pre_;
     delta_speed_ = post_step.speed - pre_step.speed;
 
-    if (CELER_UNLIKELY(
-            delta_pos_[0] == 0 && delta_pos_[1] == 0 && delta_pos_[2] == 0))
+    if (CELER_UNLIKELY(delta_pos_[0] == 0 && delta_pos_[1] == 0
+                       && delta_pos_[2] == 0))
     {
         // See GeneratorAction::insert, which detects and warns about this
         delta_pos_ = {dist_.step_length, 0, 0};

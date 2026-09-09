@@ -139,6 +139,9 @@ auto ScintSpectrumInserter::operator()(inp::ScintillationMaterial const& mat)
     spectrum.yield_per_energy = total_yield;
     spectrum.components = {begin_components, scint_records_.size_id()};
     spectrum.yield_pdf = reals_.insert_back(yield_pdf.begin(), yield_pdf.end());
+    CELER_ASSERT(total_yield > 0);
+    CELER_ASSERT(!spectrum.components.empty());
+    CELER_ASSERT(spectrum.components.size() == spectrum.yield_pdf.size());
 
     CELER_ENSURE(spectrum.components.size() == mat.components.size());
     return spectra_.push_back(std::move(spectrum));

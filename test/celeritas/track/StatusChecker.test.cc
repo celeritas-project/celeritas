@@ -104,8 +104,8 @@ class StatusCheckerTest : public SimpleTestBase
     }
 
     template<MemSpace M>
-    void
-    check_throw(ActionId id, CoreState<M>& state, std::string_view match) const
+    void check_throw(
+        ActionId id, CoreState<M>& state, std::string_view match) const
     {
         CELER_EXPECT(id);
 
@@ -227,10 +227,10 @@ TEST_F(StatusCheckerTest, TEST_IF_CELER_DEVICE(device))
         GTEST_SKIP() << "HIP debug calls 'abort' rather than asserting";
     }
 
-    EXPECT_THROW(
-        status_checker_->step(
-            this->find_action("scat-klein-nishina"), *this->core(), state),
-        RuntimeError);
+    EXPECT_THROW(status_checker_->step(this->find_action("scat-klein-nishina"),
+                                       *this->core(),
+                                       state),
+                 RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

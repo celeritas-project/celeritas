@@ -59,8 +59,8 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
                          int max_steps);
 
     // Track until exiting the geometry (default test tol)
-    TrackingResult
-    track(Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
+    TrackingResult track(
+        Real3 const& pos_cm, Real3 const& dir, int max_steps = 50);
 
     // Obtain the "touchable history" at a point
     VolumeStackResult volume_stack(Real3 const& pos_cm);
@@ -98,8 +98,8 @@ class GenericGeoTestInterface : public LazyGeantGeoManager
     //// UTILITIES ////
 
     // Construct an initializer with correct scaling/normalization
-    GeoTrackInitializer
-    make_initializer(Real3 const& pos_unit, Real3 const& dir) const;
+    GeoTrackInitializer make_initializer(Real3 const& pos_unit,
+                                         Real3 const& dir) const;
     //! Get the name of the current volume
     std::string volume_name(GeoTrackView const& geo) const;
     //! Get the stack of volume instances

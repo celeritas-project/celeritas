@@ -54,10 +54,10 @@ class BetheBlochEnergyDistribution
 
   public:
     // Construct with incident and exiting particle data
-    inline CELER_FUNCTION
-    BetheBlochEnergyDistribution(ParticleTrackView const& particle,
-                                 Energy electron_cutoff,
-                                 Mass electron_mass);
+    inline CELER_FUNCTION BetheBlochEnergyDistribution(
+        ParticleTrackView const& particle,
+        Energy electron_cutoff,
+        Mass electron_mass);
 
     // Sample the exiting energy
     template<class Engine>
@@ -86,8 +86,7 @@ class BetheBlochEnergyDistribution
 /*!
  * Construct with incident and exiting particle data.
  */
-CELER_FUNCTION
-BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
+CELER_FUNCTION BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
     ParticleTrackView const& particle,
     Energy electron_cutoff,
     Mass electron_mass)

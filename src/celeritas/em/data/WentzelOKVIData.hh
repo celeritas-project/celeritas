@@ -109,7 +109,8 @@ struct WentzelOKVIData
     //! Check if the data is initialized
     explicit CELER_FUNCTION operator bool() const
     {
-        return params && electron_mass > zero_quantity() && !mott_coeffs.empty()
+        return params && electron_mass > zero_quantity()
+               && !mott_coeffs.empty()
                && params.is_combined == !inv_mass_cbrt_sq.empty();
     }
 

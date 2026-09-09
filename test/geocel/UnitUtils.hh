@@ -47,8 +47,8 @@ CELER_CONSTEXPR_FUNCTION Array<real_type, 3> to_cm(Array<real_type, 3> const& v)
 
 //---------------------------------------------------------------------------//
 //! Convert an array *from* centimeters to the native system
-CELER_CONSTEXPR_FUNCTION Array<real_type, 3>
-from_cm(Array<real_type, 3> const& v)
+CELER_CONSTEXPR_FUNCTION Array<real_type, 3> from_cm(
+    Array<real_type, 3> const& v)
 {
     return {from_cm(v[0]), from_cm(v[1]), from_cm(v[2])};
 }

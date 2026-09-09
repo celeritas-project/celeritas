@@ -25,8 +25,8 @@ struct RunResult
 {
     std::vector<int> num_hits;
 
-    static RunResult
-    from_btr(std::vector<sim::OpDetBacktrackerRecord> const& records);
+    static RunResult from_btr(
+        std::vector<sim::OpDetBacktrackerRecord> const& records);
 
     void print_expected() const;
 };

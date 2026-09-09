@@ -50,8 +50,8 @@ SeltzerBergerReader::SeltzerBergerReader(std::string path)
  *
  * Standard data files encompass Z = [1, 100].
  */
-SeltzerBergerReader::result_type
-SeltzerBergerReader::operator()(AtomicNumber atomic_number) const
+SeltzerBergerReader::result_type SeltzerBergerReader::operator()(
+    AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number);
 

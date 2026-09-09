@@ -39,8 +39,8 @@ using difference_type_t =
  */
 template<typename Integral>
 CELER_CONSTEXPR_FUNCTION
-    std::enable_if_t<std::is_integral<Integral>::value, Integral>
-    half_positive(Integral value)
+std::enable_if_t<std::is_integral<Integral>::value, Integral>
+half_positive(Integral value)
 {
     return static_cast<Integral>(
         static_cast<std::make_unsigned_t<Integral>>(value) / 2);
@@ -265,8 +265,8 @@ CELER_FORCEINLINE_FUNCTION void pop_heap(RandomAccessIt first,
  * Convert the given range to a heap.
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-make_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void make_heap(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
 
@@ -290,8 +290,8 @@ make_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
  * that overload operator comma" (bd7c7b55511a4b4b50b77559a44eff6d350224c4).
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-sort_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void sort_heap(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
 
@@ -343,8 +343,8 @@ CELER_FUNCTION void partial_sort(RandomAccessIt first,
  * libc++.
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-heapsort_impl(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void heapsort_impl(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     ::celeritas::detail::partial_sort<Compare>(first, last, last, comp);
 }

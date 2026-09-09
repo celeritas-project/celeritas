@@ -68,8 +68,8 @@ T trace(SquareMatrix<T, 3> const& mat)
  * \warning This implementation is limited and slow.
  */
 template<class T, std::size_t N>
-SquareMatrix<T, N>
-gemm(SquareMatrix<T, N> const& a, SquareMatrix<T, N> const& b)
+SquareMatrix<T, N> gemm(SquareMatrix<T, N> const& a,
+                        SquareMatrix<T, N> const& b)
 {
     SquareMatrix<T, N> result;
     for (std::size_t i = 0; i != N; ++i)
@@ -374,12 +374,12 @@ template void orthonormalize(SquareMatrix<float, 3>*);
 template void orthonormalize(SquareMatrix<double, 3>*);
 
 // GEMM
-template SquareMatrix<int, 3>
-gemm(SquareMatrix<int, 3> const&, SquareMatrix<int, 3> const&);
-template SquareMatrix<float, 3>
-gemm(SquareMatrix<float, 3> const&, SquareMatrix<float, 3> const&);
-template SquareMatrix<double, 3>
-gemm(SquareMatrix<double, 3> const&, SquareMatrix<double, 3> const&);
+template SquareMatrix<int, 3> gemm(SquareMatrix<int, 3> const&,
+                                   SquareMatrix<int, 3> const&);
+template SquareMatrix<float, 3> gemm(SquareMatrix<float, 3> const&,
+                                     SquareMatrix<float, 3> const&);
+template SquareMatrix<double, 3> gemm(SquareMatrix<double, 3> const&,
+                                      SquareMatrix<double, 3> const&);
 
 // GEMM transpose
 template SquareMatrix<int, 3> gemm(matrix::TransposePolicy,
@@ -393,8 +393,8 @@ template SquareMatrix<double, 3> gemm(matrix::TransposePolicy,
                                       SquareMatrix<double, 3> const&);
 
 // 4x4 real GEMM and transpose
-template SquareMatrix<real_type, 4>
-gemm(SquareMatrix<real_type, 4> const&, SquareMatrix<real_type, 4> const&);
+template SquareMatrix<real_type, 4> gemm(SquareMatrix<real_type, 4> const&,
+                                         SquareMatrix<real_type, 4> const&);
 template SquareMatrix<real_type, 4> gemm(matrix::TransposePolicy,
                                          SquareMatrix<real_type, 4> const&,
                                          SquareMatrix<real_type, 4> const&);

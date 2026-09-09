@@ -102,10 +102,10 @@ class RevolutionFieldSubstepperTest : public FieldSubstepperTest
 //---------------------------------------------------------------------------//
 
 template<template<class EquationT> class IntegratorT, class FieldT>
-CELER_FUNCTION decltype(auto)
-make_mag_field_substepper(FieldT&& field,
-                          FieldDriverOptions const& options,
-                          units::ElementaryCharge charge)
+CELER_FUNCTION decltype(auto) make_mag_field_substepper(
+    FieldT&& field,
+    FieldDriverOptions const& options,
+    units::ElementaryCharge charge)
 {
     using Substepper_t = FieldSubstepper<IntegratorT<MagFieldEquation<FieldT>>>;
     return Substepper_t{options,

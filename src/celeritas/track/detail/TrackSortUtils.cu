@@ -62,11 +62,11 @@ void partition_impl(TrackSlots const& track_slots, F&& func, StreamId stream_id)
  * to ids[tid] instead of ids[tacks_slots[tid]].
  */
 template<class Id>
-__global__ void
-reorder_ids_kernel(ObserverPtr<TrackSlotId::size_type const> track_slots,
-                   ObserverPtr<Id const> ids,
-                   ObserverPtr<typename Id::size_type> ids_out,
-                   size_type size)
+__global__ void reorder_ids_kernel(
+    ObserverPtr<TrackSlotId::size_type const> track_slots,
+    ObserverPtr<Id const> ids,
+    ObserverPtr<typename Id::size_type> ids_out,
+    size_type size)
 {
     if (ThreadId tid = celeritas::KernelParamCalculator::thread_id();
         tid < size)
@@ -106,11 +106,11 @@ void sort_impl(TrackSlots const& track_slots,
  * Calculate thread boundaries based on action ID.
  * \pre actions are sorted
  */
-__global__ void
-tracks_per_action_kernel(ObserverPtr<ActionId const> actions,
-                         ObserverPtr<TrackSlotId::size_type const> track_slots,
-                         Span<ThreadId> offsets,
-                         size_type size)
+__global__ void tracks_per_action_kernel(
+    ObserverPtr<ActionId const> actions,
+    ObserverPtr<TrackSlotId::size_type const> track_slots,
+    Span<ThreadId> offsets,
+    size_type size)
 {
     ThreadId tid = celeritas::KernelParamCalculator::thread_id();
     ActionAccessor get_action{actions, track_slots};

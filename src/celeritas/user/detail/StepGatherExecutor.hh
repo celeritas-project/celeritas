@@ -26,8 +26,8 @@ struct StepGatherExecutor
     NativeCRef<StepParamsData> const params;
     NativeRef<StepStateData> const state;
 
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     inline CELER_FUNCTION void fill(celeritas::CoreTrackView const& track);
 };
@@ -39,8 +39,8 @@ struct StepGatherExecutor
  * Decide whether to fill data and fill key attributes if inactive.
  */
 template<StepPoint P>
-CELER_FUNCTION void
-StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void StepGatherExecutor<P>::operator()(
+    celeritas::CoreTrackView const& track)
 {
     CELER_EXPECT(params && state);
 
@@ -112,8 +112,8 @@ StepGatherExecutor<P>::operator()(celeritas::CoreTrackView const& track)
  * Gather step data on device based on the user selection.
  */
 template<StepPoint P>
-CELER_FUNCTION void
-StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void StepGatherExecutor<P>::fill(
+    celeritas::CoreTrackView const& track)
 {
 #define SGL_SET_IF_SELECTED(ATTR, VALUE) \
     do \
@@ -145,9 +145,9 @@ StepGatherExecutor<P>::fill(celeritas::CoreTrackView const& track)
 
         SGL_SET_IF_SELECTED(points[P].pos, geo.pos());
         SGL_SET_IF_SELECTED(points[P].dir, geo.dir());
-        SGL_SET_IF_SELECTED(
-            points[P].volume_id,
-            geo.is_outside() ? ImplVolumeId{} : geo.impl_volume_id());
+        SGL_SET_IF_SELECTED(points[P].volume_id,
+                            geo.is_outside() ? ImplVolumeId{}
+                                             : geo.impl_volume_id());
 
         if (this->params.selection.points[P].volume_instance_ids)
         {

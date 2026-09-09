@@ -39,8 +39,8 @@ inline CELER_FUNCTION real_type calc_momentum(units::MevEnergy const energy,
  * Calculate kinetic energy given a particle's momentum and mass via
  * \f$ K = \sqrt{p^2 - m^2} - m\f$ .
  */
-inline CELER_FUNCTION units::MevEnergy
-calc_kinetic_energy(Real3 const& momentum_vec, units::MevMass const mass)
+inline CELER_FUNCTION units::MevEnergy calc_kinetic_energy(
+    Real3 const& momentum_vec, units::MevMass const mass)
 {
     real_type momentum_mag = norm(momentum_vec);
     return units::MevEnergy{std::sqrt(ipow<2>(momentum_mag)

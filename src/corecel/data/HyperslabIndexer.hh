@@ -36,8 +36,8 @@ class HyperslabIndexer
 
   public:
     // Construct with an array denoting the size of each dimension
-    explicit inline CELER_FUNCTION
-    HyperslabIndexer(Array<size_type, N> const& dims);
+    explicit inline CELER_FUNCTION HyperslabIndexer(
+        Array<size_type, N> const& dims);
 
     //// METHODS ////
 
@@ -73,8 +73,8 @@ class HyperslabInverseIndexer
 
   public:
     // Construct with an array denoting the size of each dimension
-    explicit inline CELER_FUNCTION
-    HyperslabInverseIndexer(Array<size_type, N> const& dims);
+    explicit inline CELER_FUNCTION HyperslabInverseIndexer(
+        Array<size_type, N> const& dims);
 
     //// METHODS ////
 

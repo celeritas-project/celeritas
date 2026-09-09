@@ -72,9 +72,8 @@ class VolumeSurfaceSelector
 /*!
  * Construct with pre-volume IDs.
  */
-CELER_FUNCTION
-VolumeSurfaceSelector::VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
-                                             VolumeInstanceId pre_volume_inst)
+CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
+    VolumeSurfaceView pre_surface, VolumeInstanceId pre_volume_inst)
     : pre_surface_(std::move(pre_surface)), pre_volume_inst_(pre_volume_inst)
 {
     CELER_EXPECT(pre_volume_inst_);

@@ -83,8 +83,8 @@ char const* RootFileManager::filename() const
  * To expand this class to write multiple root files (one per thread), add a
  * `tid` input parameter and call `tfile_[tid].get()`.
  */
-UPRootTreeWritable
-RootFileManager::make_tree(char const* name, char const* title)
+UPRootTreeWritable RootFileManager::make_tree(char const* name,
+                                              char const* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
 

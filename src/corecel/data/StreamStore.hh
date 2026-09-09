@@ -78,8 +78,8 @@ class StreamStore
     // Get references to the state data for a given stream, allocating if
     // necessary.
     template<MemSpace M>
-    inline S<Ownership::reference, M>&
-    state(StreamId stream_id, size_type size);
+    inline S<Ownership::reference, M>& state(StreamId stream_id,
+                                             size_type size);
 
     //! Get a pointer to the state data, null if not allocated
     template<MemSpace M>
@@ -195,8 +195,8 @@ P<Ownership::const_reference, M> const& StreamStore<P, S>::params() const
 template<template<Ownership, MemSpace> class P,
          template<Ownership, MemSpace> class S>
 template<MemSpace M>
-S<Ownership::reference, M>&
-StreamStore<P, S>::state(StreamId stream_id, size_type size)
+S<Ownership::reference, M>& StreamStore<P, S>::state(StreamId stream_id,
+                                                     size_type size)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(stream_id < num_streams_);

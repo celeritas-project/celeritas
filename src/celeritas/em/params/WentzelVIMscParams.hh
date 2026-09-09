@@ -35,8 +35,8 @@ class WentzelVIMscParams final : public ParamsDataInterface<WentzelVIMscData>
 
   public:
     // Construct if MSC process data is present, else return nullptr
-    static std::shared_ptr<WentzelVIMscParams>
-    from_import(ParticleParams const& particles, ImportData const& data);
+    static std::shared_ptr<WentzelVIMscParams> from_import(
+        ParticleParams const& particles, ImportData const& data);
 
     // Construct from process data
     WentzelVIMscParams(ParticleParams const& particles,

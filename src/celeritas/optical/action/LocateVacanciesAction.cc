@@ -39,7 +39,8 @@ void LocateVacanciesAction::step(CoreParams const&, CoreStateHost& state) const
 /*!
  * Execute the action with device data.
  */
-void LocateVacanciesAction::step(CoreParams const&, CoreStateDevice& state) const
+void LocateVacanciesAction::step(CoreParams const&,
+                                 CoreStateDevice& state) const
 {
     return this->step_impl(state);
 }

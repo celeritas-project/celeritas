@@ -83,8 +83,8 @@ template<class T, std::size_t N>
  * \pre x, y, and dst must not overlap.
  */
 template<class T>
-inline CELER_FUNCTION void
-cross_product(Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
+inline CELER_FUNCTION void cross_product(
+    Span<T const, 3> x, Span<T const, 3> y, Span<T, 3> dst)
 {
     detail::store_array(
         cross_product(detail::load_array(x), detail::load_array(y)), dst);
@@ -127,8 +127,8 @@ inline CELER_FUNCTION void make_unit_vector(Span<T const, N> v, Span<T, N> dst)
  * \pre x, y, and dst must not overlap.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION void
-make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
+inline CELER_FUNCTION void make_orthogonal(
+    Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
 {
     detail::store_array(
         make_orthogonal(detail::load_array(x), detail::load_array(y)), dst);
@@ -139,8 +139,8 @@ make_orthogonal(Span<T const, N> x, Span<T const, N> y, Span<T, N> dst)
  * Check whether two unit vector spans are approximately orthogonal.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION bool is_soft_orthogonal(Span<T const, N> x,
+                                              Span<T const, N> y)
 {
     return is_soft_orthogonal(detail::load_array(x), detail::load_array(y));
 }
@@ -152,8 +152,8 @@ is_soft_orthogonal(Span<T const, N> x, Span<T const, N> y)
  * \pre Spans must represent normalized vectors.
  */
 template<class T, std::size_t N>
-inline CELER_FUNCTION bool
-is_soft_collinear(Span<T const, N> x, Span<T const, N> y)
+inline CELER_FUNCTION bool is_soft_collinear(Span<T const, N> x,
+                                             Span<T const, N> y)
 {
     return is_soft_collinear(detail::load_array(x), detail::load_array(y));
 }
@@ -190,8 +190,8 @@ inline CELER_FUNCTION void from_spherical(T costheta, T phi, Span<T, 3> dst)
  * \sa celeritas::rotate in ArrayUtils.hh for the full description.
  */
 template<class T>
-inline CELER_FUNCTION void
-rotate(Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst)
+inline CELER_FUNCTION void rotate(
+    Span<T const, 3> dir, Span<T const, 3> rot, Span<T, 3> dst)
 {
     detail::store_array(
         rotate(detail::load_array(dir), detail::load_array(rot)), dst);

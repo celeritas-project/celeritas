@@ -32,8 +32,8 @@ class QuadricConeConverter
 
     // Try converting to a cone with this orientation
     template<Axis T>
-    std::optional<ConeAligned<T>>
-    operator()(AxisTag<T>, SimpleQuadric const& sq) const;
+    std::optional<ConeAligned<T>> operator()(AxisTag<T>,
+                                             SimpleQuadric const& sq) const;
 
   private:
     SoftEqual<> soft_equal_;
@@ -80,8 +80,8 @@ QuadricConeConverter::QuadricConeConverter(real_type tol) : soft_equal_{tol} {}
  * \endverbatim
  */
 template<Axis T>
-std::optional<ConeAligned<T>>
-QuadricConeConverter::operator()(AxisTag<T>, SimpleQuadric const& sq) const
+std::optional<ConeAligned<T>> QuadricConeConverter::operator()(
+    AxisTag<T>, SimpleQuadric const& sq) const
 {
     // Other coordinate system
     constexpr auto U = ConeAligned<T>::u_axis();

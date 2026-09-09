@@ -103,10 +103,10 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
                    << "z coordinates must be nondecreasing");
 
     // Validate scaling factors
-    CELER_VALIDATE(
-        std::all_of(
-            scaling_.begin(), scaling_.end(), [](auto& s) { return s >= 0; }),
-        << "scaling factor must be nonnegative");
+    CELER_VALIDATE(std::all_of(scaling_.begin(),
+                               scaling_.end(),
+                               [](auto& s) { return s >= 0; }),
+                   << "scaling factor must be nonnegative");
 }
 
 //---------------------------------------------------------------------------//

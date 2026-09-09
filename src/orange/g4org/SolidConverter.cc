@@ -364,9 +364,9 @@ auto SolidConverter::convert_impl(arg_type solid_base) -> result_type
         = type_to_converter.find(std::type_index(typeid(solid_base)));
 
     result_type result = nullptr;
-    CELER_VALIDATE(
-        func_iter != type_to_converter.end(),
-        << "unsupported solid type " << TypeDemangler<G4VSolid>{}(solid_base));
+    CELER_VALIDATE(func_iter != type_to_converter.end(),
+                   << "unsupported solid type "
+                   << TypeDemangler<G4VSolid>{}(solid_base));
 
     // Call our corresponding member function to convert the solid
     ConvertFuncPtr fp = func_iter->second;

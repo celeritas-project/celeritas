@@ -321,7 +321,8 @@ TEST_F(TestTrackPartitionEm3Stepper,
         Collection<TrackSlotId::size_type, Ownership::value, MemSpace::host, ThreadId>
             track_slots;
         track_slots = state_ref.track_slots;
-        StateCollection<TrackStatus, Ownership::value, MemSpace::host> track_status;
+        StateCollection<TrackStatus, Ownership::value, MemSpace::host>
+            track_status;
         track_status = state_ref.sim.status;
 
         // check for partitioned tracks

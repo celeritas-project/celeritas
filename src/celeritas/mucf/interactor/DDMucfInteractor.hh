@@ -46,10 +46,10 @@ class DDMucfInteractor
     };
 
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    DDMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                     Channel channel,
-                     StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION DDMucfInteractor(
+        NativeCRef<DTMixMucfData> const& data,
+        Channel channel,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -100,10 +100,10 @@ class DDMucfInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-DDMucfInteractor::DDMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                                   Channel channel,
-                                   StackAllocator<Secondary>& allocate)
+CELER_FUNCTION DDMucfInteractor::DDMucfInteractor(
+    NativeCRef<DTMixMucfData> const& data,
+    Channel channel,
+    StackAllocator<Secondary>& allocate)
     : data_(data), channel_(channel), allocate_(allocate)
 {
     CELER_EXPECT(data_);
@@ -136,8 +136,10 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
     {
         case Channel::helium3_muon_neutron: {
             // Neutron: random direction with known energy
-            sec[neutron_idx] = detail::sample_mucf_secondary(
-                data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
+            sec[neutron_idx]
+                = detail::sample_mucf_secondary(data_.particle_ids.neutron,
+                                                this->neutron_kinetic_energy(),
+                                                rng);
 
             // Muon: random direction with energy sampled from its CDF
             sec[muon_idx] = detail::sample_mucf_muon(
@@ -158,8 +160,10 @@ CELER_FUNCTION Interaction DDMucfInteractor::operator()(Engine& rng)
 
         case Channel::muonichelium3_neutron: {
             // Neutron: random direction with known energy
-            sec[neutron_idx] = detail::sample_mucf_secondary(
-                data_.particle_ids.neutron, this->neutron_kinetic_energy(), rng);
+            sec[neutron_idx]
+                = detail::sample_mucf_secondary(data_.particle_ids.neutron,
+                                                this->neutron_kinetic_energy(),
+                                                rng);
 
             // Muonic helium-3: momentum conservation
             sec[muonic_he3].particle_id = data_.particle_ids.muonic_he3;

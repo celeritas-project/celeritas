@@ -35,8 +35,8 @@ struct CherenkovPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-constexpr bool
-operator==(CherenkovPhysicsOptions const& a, CherenkovPhysicsOptions const& b)
+constexpr bool operator==(CherenkovPhysicsOptions const& a,
+                          CherenkovPhysicsOptions const& b)
 {
     // clang-format off
     return a.stack_photons == b.stack_photons
@@ -102,8 +102,8 @@ struct BoundaryPhysicsOptions
 };
 
 //! Equality operator, mainly for test harness
-constexpr bool
-operator==(BoundaryPhysicsOptions const& a, BoundaryPhysicsOptions const& b)
+constexpr bool operator==(BoundaryPhysicsOptions const& a,
+                          BoundaryPhysicsOptions const& b)
 {
     return a.invoke_sd == b.invoke_sd;
 }

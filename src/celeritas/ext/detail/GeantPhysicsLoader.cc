@@ -486,7 +486,8 @@ size_type GeantPhysicsLoader::op_rayleigh(G4VProcess const&)
 
         // Check for optional scale factor
         double scale_factor;
-        if (get_property(scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
+        if (get_property(
+                scale_factor, "RS_SCALE_FACTOR", ImportUnits::unitless))
         {
             analytic.scale_factor = scale_factor;
         }
@@ -569,8 +570,9 @@ size_type GeantPhysicsLoader::op_wls2(G4VProcess const&)
             get_property(model_mat.mean_num_photons,
                          "WLSMEANNUMBERPHOTONS2",
                          ImportUnits::unitless);
-            get_property(
-                model_mat.time_constant, "WLSTIMECONSTANT2", ImportUnits::time);
+            get_property(model_mat.time_constant,
+                         "WLSTIMECONSTANT2",
+                         ImportUnits::time);
             get_property(model_mat.component,
                          "WLSCOMPONENT2",
                          {ImportUnits::mev, ImportUnits::unitless});

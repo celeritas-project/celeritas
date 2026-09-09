@@ -60,8 +60,8 @@ class Transformer
     inline Transformation operator()(G4RotationMatrix const& g4rm) const;
 
     // Convert a translation + rotation
-    inline Transformation
-    operator()(G4ThreeVector const& t, G4RotationMatrix const& g4rm) const;
+    inline Transformation operator()(G4ThreeVector const& t,
+                                     G4RotationMatrix const& g4rm) const;
 
     // Convert a more general transform (includes reflection)
     inline Transformation operator()(G4Transform3D const& g4tr) const;
@@ -70,8 +70,8 @@ class Transformer
     inline VariantTransform variant(G4AffineTransform const& at) const;
 
     // Construct dynamically
-    inline VariantTransform
-    variant(G4ThreeVector const& t, G4RotationMatrix const* rot) const;
+    inline VariantTransform variant(G4ThreeVector const& t,
+                                    G4RotationMatrix const* rot) const;
 
   private:
     //// DATA ////

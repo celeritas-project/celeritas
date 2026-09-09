@@ -50,12 +50,12 @@ class MollerBhabhaInteractor
 
   public:
     //! Construct with shared and state data
-    inline CELER_FUNCTION
-    MollerBhabhaInteractor(MollerBhabhaData const& shared,
-                           ParticleTrackView const& particle,
-                           CutoffView const& cutoffs,
-                           Real3 const& inc_direction,
-                           StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION MollerBhabhaInteractor(
+        MollerBhabhaData const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>

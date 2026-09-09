@@ -35,8 +35,8 @@ class SafetyCalculator
 
   public:
     // Construct with geo track view
-    inline CELER_FUNCTION
-    SafetyCalculator(GTV&&, ParamsRef const&, real_type max_distance);
+    inline CELER_FUNCTION SafetyCalculator(
+        GTV&&, ParamsRef const&, real_type max_distance);
 
     // Calculate safety at an x, y index
     inline CELER_FUNCTION real_type operator()(size_type x, size_type y);
@@ -53,8 +53,8 @@ class SafetyCalculator
 //---------------------------------------------------------------------------//
 
 template<class GTV>
-CELER_FUNCTION
-SafetyCalculator(GTV&&, NativeCRef<ImageParamsData> const&, real_type)
+CELER_CTAD_FUNCTION SafetyCalculator(
+    GTV&&, NativeCRef<ImageParamsData> const&, real_type)
     -> SafetyCalculator<GTV>;
 
 //---------------------------------------------------------------------------//

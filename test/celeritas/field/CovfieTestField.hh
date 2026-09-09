@@ -30,8 +30,8 @@ void write_rz_covfie(std::string const& path, std::size_t nr, std::size_t nz);
 
 #else
 
-inline void
-write_cart_covfie(std::string const&, std::size_t, std::size_t, std::size_t)
+inline void write_cart_covfie(
+    std::string const&, std::size_t, std::size_t, std::size_t)
 {
     CELER_NOT_CONFIGURED("covfie");
 }

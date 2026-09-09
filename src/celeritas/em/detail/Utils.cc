@@ -59,8 +59,8 @@ size_type MaxSecondariesCalculator::operator()()
  * Helper function for calculating the maximum possible number of secondaries
  * when the initial vacancy is in the given subshell.
  */
-size_type
-MaxSecondariesCalculator::calc(SubshellId vacancy_shell, size_type count)
+size_type MaxSecondariesCalculator::calc(SubshellId vacancy_shell,
+                                         size_type count)
 {
     // No transitions for this subshell, so no secondaries produced
     if (!vacancy_shell || vacancy_shell.get() >= shells_.size())

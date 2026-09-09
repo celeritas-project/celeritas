@@ -52,8 +52,8 @@ class SlotDiagnostic final : public CoreStepActionInterface,
 {
   public:
     // Construct and add to core params
-    static std::shared_ptr<SlotDiagnostic>
-    make_and_insert(CoreParams const& core, std::string filename_base);
+    static std::shared_ptr<SlotDiagnostic> make_and_insert(
+        CoreParams const& core, std::string filename_base);
 
     // Construct with IDs and filename base
     SlotDiagnostic(ActionId action_id,

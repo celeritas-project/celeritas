@@ -134,9 +134,9 @@ InitializedValue<T, Finalizer>::operator=(InitializedValue const& other) noexcep
 //---------------------------------------------------------------------------//
 //! Clear other value on move assign
 template<class T, class Finalizer>
-InitializedValue<T, Finalizer>&
-InitializedValue<T, Finalizer>::operator=(InitializedValue&& other) noexcept(
-    noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>)
+InitializedValue<T, Finalizer>& InitializedValue<T, Finalizer>::operator=(
+    InitializedValue&& other) noexcept(noexcept_finalize_
+                                       && std::is_nothrow_move_assignable_v<T>)
 {
     if (value_ != T{})
     {

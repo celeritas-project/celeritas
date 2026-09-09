@@ -141,10 +141,10 @@ void JoinObjects<Op>::output(JsonPimpl* j) const
  * This just takes the intersection the first object and the negated second:
  * \verbatim A - B <=> A & ~B \endverbatim
  */
-std::shared_ptr<AllObjects const>
-make_subtraction(std::string&& label,
-                 SPConstObject const& minuend,
-                 SPConstObject const& subtrahend)
+std::shared_ptr<AllObjects const> make_subtraction(
+    std::string&& label,
+    SPConstObject const& minuend,
+    SPConstObject const& subtrahend)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(minuend && subtrahend);
@@ -163,8 +163,8 @@ make_subtraction(std::string&& label,
  * their negations. It is the KENO/SCALE \cite{kenovi} way for defining media,
  * boundaries, etc. It must not be empty.
  */
-std::shared_ptr<AllObjects const>
-make_rdv(std::string&& label, VecSenseObj&& inp)
+std::shared_ptr<AllObjects const> make_rdv(std::string&& label,
+                                           VecSenseObj&& inp)
 {
     CELER_EXPECT(!label.empty());
     CELER_EXPECT(!inp.empty());

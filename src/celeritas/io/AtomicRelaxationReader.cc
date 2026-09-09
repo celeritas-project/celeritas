@@ -54,8 +54,8 @@ AtomicRelaxationReader::AtomicRelaxationReader(std::string fluor_path,
 /*!
  * Read the data for the given element.
  */
-AtomicRelaxationReader::result_type
-AtomicRelaxationReader::operator()(AtomicNumber atomic_number) const
+AtomicRelaxationReader::result_type AtomicRelaxationReader::operator()(
+    AtomicNumber atomic_number) const
 {
     CELER_EXPECT(atomic_number && atomic_number < AtomicNumber{101});
 

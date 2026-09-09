@@ -41,8 +41,8 @@ class RectArrayTracker
 
   public:
     // Construct with parameters (unit definitions and this one's ID)
-    inline CELER_FUNCTION
-    RectArrayTracker(ParamsRef const& params, RectArrayId rid);
+    inline CELER_FUNCTION RectArrayTracker(ParamsRef const& params,
+                                           RectArrayId rid);
 
     //// ACCESSORS ////
 
@@ -124,8 +124,8 @@ class RectArrayTracker
 /*!
  * Construct with reference to persistent parameter data.
  */
-CELER_FUNCTION
-RectArrayTracker::RectArrayTracker(ParamsRef const& params, RectArrayId rid)
+CELER_FUNCTION RectArrayTracker::RectArrayTracker(ParamsRef const& params,
+                                                  RectArrayId rid)
     : params_(params), record_(params.rect_arrays[rid])
 {
     CELER_EXPECT(params_);
@@ -209,8 +209,8 @@ CELER_FUNCTION auto RectArrayTracker::cross_boundary(
  * \deprecated Provide a physically reasonable upper bound to the distance
  * to reduce search cost and avoid a redundant method.
  */
-CELER_FORCEINLINE_FUNCTION auto
-RectArrayTracker::intersect(LocalState const& state) const -> Intersection
+CELER_FORCEINLINE_FUNCTION auto RectArrayTracker::intersect(
+    LocalState const& state) const -> Intersection
 {
     return this->intersect(state, NumericLimits<real_type>::max());
 }
@@ -289,8 +289,8 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
         }
     }
 
-    CELER_ENSURE(
-        min_dist >= 0 && min_dist < numeric_limits<real_type>::infinity());
+    CELER_ENSURE(min_dist >= 0
+                 && min_dist < numeric_limits<real_type>::infinity());
     return min_dist;
 }
 
@@ -298,8 +298,8 @@ CELER_FUNCTION real_type RectArrayTracker::safety(Real3 const& pos,
 /*!
  * Calculate the local surface normal.
  */
-CELER_FUNCTION auto
-RectArrayTracker::normal(Real3 const&, LocalSurfaceId surf) const -> Real3
+CELER_FUNCTION auto RectArrayTracker::normal(
+    Real3 const&, LocalSurfaceId surf) const -> Real3
 {
     CELER_EXPECT(surf && surf.get() < this->num_surfaces());
     size_type ax = this->find_surface_axis_idx(surf);

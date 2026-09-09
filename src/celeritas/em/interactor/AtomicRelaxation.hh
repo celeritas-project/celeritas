@@ -93,13 +93,13 @@ class AtomicRelaxation
  * AtomicRelaxationHelper -- it is only "true" if a distribution can be
  * emitted.
  */
-CELER_FUNCTION
-AtomicRelaxation::AtomicRelaxation(AtomicRelaxParamsRef const& shared,
-                                   CutoffView const& cutoffs,
-                                   ElementId el_id,
-                                   SubshellId shell_id,
-                                   Span<Secondary> secondaries,
-                                   Span<SubshellId> vacancies)
+CELER_FUNCTION AtomicRelaxation::AtomicRelaxation(
+    AtomicRelaxParamsRef const& shared,
+    CutoffView const& cutoffs,
+    ElementId el_id,
+    SubshellId shell_id,
+    Span<Secondary> secondaries,
+    Span<SubshellId> vacancies)
     : shared_(shared)
     , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma))
     , electron_cutoff_(cutoffs.energy(shared_.ids.electron))
@@ -118,8 +118,8 @@ AtomicRelaxation::AtomicRelaxation(AtomicRelaxParamsRef const& shared,
  * Simulate atomic relaxation with an initial vacancy in the given shell ID
  */
 template<class Engine>
-CELER_FUNCTION AtomicRelaxation::result_type
-AtomicRelaxation::operator()(Engine& rng)
+CELER_FUNCTION AtomicRelaxation::result_type AtomicRelaxation::operator()(
+    Engine& rng)
 {
     using namespace celeritas::literals;
 

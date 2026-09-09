@@ -63,10 +63,10 @@ class MscTestBase : public RootTestBase
     ParticleTrackView make_par_view(PDGNumber pdg, MevEnergy energy) const;
 
     // Access physics track data
-    PhysicsTrackView
-    make_phys_view(ParticleTrackView const& par,
-                   std::string const& matname,
-                   HostCRef<PhysicsParamsData> const& host_ref) const;
+    PhysicsTrackView make_phys_view(
+        ParticleTrackView const& par,
+        std::string const& matname,
+        HostCRef<PhysicsParamsData> const& host_ref) const;
 
     // Access geometry track data
     GeoTrackView make_geo_view(real_type r) const;

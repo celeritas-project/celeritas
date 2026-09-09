@@ -56,8 +56,9 @@ struct JsonComparer::Impl
     // Recursively test for equality
     void operator()(json& expected, json& actual);
 
-    void add_failure(
-        std::string&& what, std::string&& expected, std::string&& actual) const;
+    void add_failure(std::string&& what,
+                     std::string&& expected,
+                     std::string&& actual) const;
 };
 
 //---------------------------------------------------------------------------//

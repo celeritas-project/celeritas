@@ -25,8 +25,8 @@ namespace setup
 // Resolve core state capacity values
 CoreSizes capacity(inp::CoreStateCapacity const& c, size_type num_streams);
 // Resolve optical state capacity values
-OpticalSizes
-capacity(inp::OpticalStateCapacity const& c, size_type num_streams);
+OpticalSizes capacity(inp::OpticalStateCapacity const& c,
+                      size_type num_streams);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

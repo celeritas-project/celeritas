@@ -87,8 +87,8 @@ struct CylMapFieldParamsData
     }
 
     //! Check if the given position is within the field map bounds
-    inline CELER_FUNCTION bool
-    valid(real_type r, Turn_t<real_type> phi, real_type z) const
+    inline CELER_FUNCTION bool valid(
+        real_type r, Turn_t<real_type> phi, real_type z) const
     {
         CELER_EXPECT(grids);
         return (

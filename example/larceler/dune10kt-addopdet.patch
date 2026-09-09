@@ -8,7 +8,7 @@
  -->
  
  <define>
-@@ -93004,1922 +93005,2882 @@
+@@ -92982,1922 +92983,2882 @@
      </volume>
     <volume name="volOpDetSensitive_0-0-0">
       <materialref ref="LAr"/>

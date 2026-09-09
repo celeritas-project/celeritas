@@ -126,8 +126,8 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
     inline VolumeId volume(VolumeInstanceId vi_id) const;
 
     // Get the raw unique-instance offset for a volume instance
-    inline VolumeUniqueInstanceId::size_type
-    offset(VolumeInstanceId vi_id) const;
+    inline VolumeUniqueInstanceId::size_type offset(
+        VolumeInstanceId vi_id) const;
 
     //!@{
     //! \deprecated Use \c get instead

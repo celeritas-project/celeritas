@@ -58,8 +58,8 @@ struct StreamableActionException
     CheckedGeoTrackView const& geo;
     std::exception const& e;
 
-    [[maybe_unused]] friend std::ostream&
-    operator<<(std::ostream& os, StreamableActionException const& sae)
+    [[maybe_unused]] friend std::ostream& operator<<(
+        std::ostream& os, StreamableActionException const& sae)
     {
         os << "Caught exception during '" << sae.action
            << "': " << sae.e.what() << ": " << sae.geo;
@@ -329,8 +329,8 @@ std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 }
 
 //---------------------------------------------------------------------------//
-std::string
-GenericGeoTestInterface::unique_volume_name(GeoTrackView const& geo) const
+std::string GenericGeoTestInterface::unique_volume_name(
+    GeoTrackView const& geo) const
 {
     return ::celeritas::test::unique_volume_name(geo,
                                                  *this->get_test_volumes());

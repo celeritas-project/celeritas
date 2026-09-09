@@ -61,8 +61,8 @@ struct ProcessSecondariesExecutor
  * slots, so ThreadId should be equal to TrackSlotId. No remapping should be
  * done.
  */
-CELER_FUNCTION void
-ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
+    TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());
 

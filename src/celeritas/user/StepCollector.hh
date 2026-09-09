@@ -59,8 +59,8 @@ class StepCollector
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<StepCollector>
-    make_and_insert(CoreParams const& core, VecInterface callbacks);
+    static std::shared_ptr<StepCollector> make_and_insert(
+        CoreParams const& core, VecInterface callbacks);
 
     // Construct with options and register pre/post-step actions
     StepCollector(SPConstCoreGeo geo,

@@ -54,9 +54,9 @@ class TrackInitParams final : public ParamsDataInterface<TrackInitParamsData>
 
     // Reset track counters in single-event mode
     template<MemSpace M>
-    inline void
-    reset_track_ids(StreamId stream,
-                    TrackInitStateData<Ownership::reference, M>* state) const;
+    inline void reset_track_ids(
+        StreamId stream,
+        TrackInitStateData<Ownership::reference, M>* state) const;
 
   private:
     // Host/device storage and reference

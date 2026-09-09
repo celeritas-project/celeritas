@@ -32,8 +32,8 @@ namespace
 /*!
  * Calculate number of physics surfaces as defined by interstitial materials.
  */
-PhysSurfaceId::size_type
-num_phys_surfaces(std::vector<std::vector<OptMatId>> const& materials)
+PhysSurfaceId::size_type num_phys_surfaces(
+    std::vector<std::vector<OptMatId>> const& materials)
 {
     PhysSurfaceId::size_type num = 0;
     for (auto const& mats : materials)

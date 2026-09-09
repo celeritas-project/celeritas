@@ -43,10 +43,10 @@ class DTMucfInteractor
     };
 
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                     Channel channel,
-                     StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION DTMucfInteractor(
+        NativeCRef<DTMixMucfData> const& data,
+        Channel channel,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -84,10 +84,10 @@ class DTMucfInteractor
 /*!
  * Construct with shared data and channel selection.
  */
-CELER_FUNCTION
-DTMucfInteractor::DTMucfInteractor(NativeCRef<DTMixMucfData> const& data,
-                                   Channel const channel,
-                                   StackAllocator<Secondary>& allocate)
+CELER_FUNCTION DTMucfInteractor::DTMucfInteractor(
+    NativeCRef<DTMixMucfData> const& data,
+    Channel const channel,
+    StackAllocator<Secondary>& allocate)
     : data_(data), channel_(channel), allocate_(allocate)
 {
     CELER_EXPECT(data_);

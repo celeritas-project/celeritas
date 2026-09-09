@@ -105,8 +105,8 @@ struct SurfacePhysicsParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SurfacePhysicsParamsData<W, M>&
-    operator=(SurfacePhysicsParamsData<W2, M2> const& other)
+    SurfacePhysicsParamsData<W, M>& operator=(
+        SurfacePhysicsParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         scalars = other.scalars;
@@ -168,8 +168,8 @@ struct SurfacePhysicsStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    SurfacePhysicsStateData<W, M>&
-    operator=(SurfacePhysicsStateData<W2, M2>& other)
+    SurfacePhysicsStateData<W, M>& operator=(
+        SurfacePhysicsStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         surface = other.surface;
@@ -190,8 +190,8 @@ struct SurfacePhysicsStateData
  * Resize the state in host code.
  */
 template<MemSpace M>
-inline void
-resize(SurfacePhysicsStateData<Ownership::value, M>* state, size_type size)
+inline void resize(SurfacePhysicsStateData<Ownership::value, M>* state,
+                   size_type size)
 {
     CELER_EXPECT(state);
     CELER_EXPECT(size > 0);

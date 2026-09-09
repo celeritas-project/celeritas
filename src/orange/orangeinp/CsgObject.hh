@@ -107,14 +107,14 @@ using VecSenseObj = std::vector<std::pair<Sense, SPConstObject>>;
 //---------------------------------------------------------------------------//
 
 // Make a new object that is the second object subtracted from the first
-std::shared_ptr<AllObjects const>
-make_subtraction(std::string&& label,
-                 SPConstObject const& minuend,
-                 SPConstObject const& subtrahend);
+std::shared_ptr<AllObjects const> make_subtraction(
+    std::string&& label,
+    SPConstObject const& minuend,
+    SPConstObject const& subtrahend);
 
 // Make a combination of possibly negated objects
-std::shared_ptr<AllObjects const>
-make_rdv(std::string&& label, VecSenseObj&& rdv);
+std::shared_ptr<AllObjects const> make_rdv(std::string&& label,
+                                           VecSenseObj&& rdv);
 
 //---------------------------------------------------------------------------//
 }  // namespace orangeinp

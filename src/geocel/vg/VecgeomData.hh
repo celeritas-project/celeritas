@@ -186,15 +186,15 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
             HostCRef<VecgeomParamsData> const& params,
             size_type size);
 
-extern template void
-resize<MemSpace::host>(VecgeomStateData<Ownership::value, MemSpace::host>*,
-                       HostCRef<VecgeomParamsData> const&,
-                       size_type);
+extern template void resize<MemSpace::host>(
+    VecgeomStateData<Ownership::value, MemSpace::host>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
-extern template void
-resize<MemSpace::device>(VecgeomStateData<Ownership::value, MemSpace::device>*,
-                         HostCRef<VecgeomParamsData> const&,
-                         size_type);
+extern template void resize<MemSpace::device>(
+    VecgeomStateData<Ownership::value, MemSpace::device>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

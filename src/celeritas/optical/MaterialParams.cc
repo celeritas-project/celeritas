@@ -33,10 +33,10 @@ namespace optical
  *
  * TODO: use logical volumes or geo materials or something!!
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data,
-                            ::celeritas::GeoMaterialParams const& geo_mat,
-                            ::celeritas::MaterialParams const& mat)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data,
+    ::celeritas::GeoMaterialParams const& geo_mat,
+    ::celeritas::MaterialParams const& mat)
 {
     CELER_EXPECT(!data.optical_materials.empty());
     CELER_EXPECT(geo_mat.num_volumes() > 0);
@@ -129,8 +129,8 @@ MaterialParams::MaterialParams(Input const& inp)
         insert_derivative_grid(construct_derivative_grid(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
-    CELER_ASSERT(
-        data.refractive_index_derivative.size() == inp.properties.size());
+    CELER_ASSERT(data.refractive_index_derivative.size()
+                 == inp.properties.size());
 
     for (auto optmat : inp.volume_to_mat)
     {

@@ -42,8 +42,8 @@ class DirectGeneratorAction final : public GeneratorBase
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<DirectGeneratorAction>
-    make_and_insert(CoreParams const&);
+    static std::shared_ptr<DirectGeneratorAction> make_and_insert(
+        CoreParams const&);
 
     // Construct with action ID and data IDs
     DirectGeneratorAction(ActionId, AuxId, GeneratorId);

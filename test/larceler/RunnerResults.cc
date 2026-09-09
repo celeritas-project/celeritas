@@ -22,8 +22,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 
-RunResult
-RunResult::from_btr(std::vector<sim::OpDetBacktrackerRecord> const& response)
+RunResult RunResult::from_btr(
+    std::vector<sim::OpDetBacktrackerRecord> const& response)
 {
     RunResult result;
     for (auto i : range(response.size()))

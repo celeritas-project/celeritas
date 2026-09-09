@@ -49,7 +49,9 @@ namespace celeritas
  * \endcode
  *
  */
-template<class T, std::size_t Extent = dynamic_extent, class S = ::celeritas::size_type>
+template<class T,
+         std::size_t Extent = dynamic_extent,
+         class S = ::celeritas::size_type>
 class IdStack
 {
     static_assert(is_opaque_id_v<T>,

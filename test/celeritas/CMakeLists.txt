@@ -370,6 +370,7 @@ celeritas_add_test(global/StepperGeant.test.cc
   GPU NT 4
   FILTER ${_stepper_filter}
 )
+celeritas_add_test(global/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Grid

@@ -67,14 +67,14 @@ class WentzelDistribution
 
   public:
     // Construct with state and model data
-    inline CELER_FUNCTION
-    WentzelDistribution(NativeCRef<WentzelOKVIData> const& wentzel,
-                        WentzelHelper const& helper,
-                        ParticleTrackView const& particle,
-                        IsotopeView const& target,
-                        ElementId el_id,
-                        real_type cos_thetamin,
-                        real_type cos_thetamax);
+    inline CELER_FUNCTION WentzelDistribution(
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        WentzelHelper const& helper,
+        ParticleTrackView const& particle,
+        IsotopeView const& target,
+        ElementId el_id,
+        real_type cos_thetamin,
+        real_type cos_thetamax);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -141,8 +141,7 @@ class WentzelDistribution
 /*!
  * Construct with state and model data.
  */
-CELER_FUNCTION
-WentzelDistribution::WentzelDistribution(
+CELER_FUNCTION WentzelDistribution::WentzelDistribution(
     NativeCRef<WentzelOKVIData> const& wentzel,
     WentzelHelper const& helper,
     ParticleTrackView const& particle,

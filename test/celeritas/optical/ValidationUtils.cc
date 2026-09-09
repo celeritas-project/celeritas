@@ -28,8 +28,8 @@ GridAccessor::GridAccessor(Items<real_type>* reals, Items<Grid>* grids)
 /*!
  * Retrieve a span of reals built on the storage.
  */
-Span<real_type const>
-GridAccessor::operator()(ItemRange<real_type> const& real_ids) const
+Span<real_type const> GridAccessor::operator()(
+    ItemRange<real_type> const& real_ids) const
 {
     CELER_EXPECT(real_ids.front() < real_ids.back());
     CELER_EXPECT(real_ids.back() < reals_->size());

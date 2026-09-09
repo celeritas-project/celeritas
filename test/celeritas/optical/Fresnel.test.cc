@@ -70,8 +70,8 @@ struct CoordinateAxes
         return std::sin(inc_angle) * s_hat - std::cos(inc_angle) * n_hat;
     }
 
-    Real3
-    make_polarization(real_type inc_angle, LinearPolarization const& pol) const
+    Real3 make_polarization(real_type inc_angle,
+                            LinearPolarization const& pol) const
     {
         return make_unit_vector(pol.t_e * p_hat
                                 + pol.t_m
@@ -79,8 +79,8 @@ struct CoordinateAxes
                                          + std::sin(inc_angle) * n_hat));
     }
 
-    real_type
-    calc_reflectivity(real_type angle, LinearPolarization const& pol) const
+    real_type calc_reflectivity(real_type angle,
+                                LinearPolarization const& pol) const
     {
         return FresnelCalculator{this->make_direction(angle),
                                  this->make_polarization(angle, pol),
@@ -89,8 +89,8 @@ struct CoordinateAxes
             .calc_reflectivity();
     }
 
-    SurfaceInteraction
-    calc_refraction(real_type angle, LinearPolarization const& pol) const
+    SurfaceInteraction calc_refraction(real_type angle,
+                                       LinearPolarization const& pol) const
     {
         return FresnelCalculator{this->make_direction(angle),
                                  this->make_polarization(angle, pol),

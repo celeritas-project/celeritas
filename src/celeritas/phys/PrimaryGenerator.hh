@@ -56,8 +56,8 @@ class PrimaryGenerator : public EventReaderInterface
 
   public:
     // Construct from user input (deprecated)
-    static PrimaryGenerator
-    from_options(SPConstParticles, PrimaryGeneratorOptions const&);
+    static PrimaryGenerator from_options(SPConstParticles,
+                                         PrimaryGeneratorOptions const&);
 
     // Construct from shared particle data and new input
     PrimaryGenerator(Input const&, ParticleParams const& particles);

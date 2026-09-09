@@ -32,8 +32,8 @@ using CoreStepActionInterface = StepActionInterface<CoreParams, CoreState>;
 /*!
  * Whether the TrackOrder will sort tracks by actions at the given step order.
  */
-inline constexpr bool
-is_action_sorted(StepActionOrder aorder, TrackOrder torder)
+inline constexpr bool is_action_sorted(StepActionOrder aorder,
+                                       TrackOrder torder)
 {
     // CAUTION: check that this matches \c SortTracksAction::SortTracksAction
     return (aorder == StepActionOrder::post

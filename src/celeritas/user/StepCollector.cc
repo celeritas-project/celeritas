@@ -27,8 +27,8 @@ namespace celeritas
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepCollector>
-StepCollector::make_and_insert(CoreParams const& core, VecInterface callbacks)
+std::shared_ptr<StepCollector> StepCollector::make_and_insert(
+    CoreParams const& core, VecInterface callbacks)
 {
     return std::make_shared<StepCollector>(core.geometry(),
                                            core.volume(),

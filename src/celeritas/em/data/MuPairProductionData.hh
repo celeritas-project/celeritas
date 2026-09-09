@@ -71,8 +71,8 @@ struct MuPairProductionTableData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    MuPairProductionTableData&
-    operator=(MuPairProductionTableData<W2, M2> const& other)
+    MuPairProductionTableData& operator=(
+        MuPairProductionTableData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         reals = other.reals;

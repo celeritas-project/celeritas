@@ -20,8 +20,8 @@ ActionInterface::~ActionInterface() noexcept = default;
 /*!
  * Construct a concrete action from a label and ID.
  */
-ConcreteAction::ConcreteAction(ActionId id, std::string label) noexcept(
-    !CELERITAS_DEBUG)
+ConcreteAction::ConcreteAction(ActionId id,
+                               std::string label) noexcept(!CELERITAS_DEBUG)
     : ConcreteAction{id, std::move(label), {}}
 {
 }

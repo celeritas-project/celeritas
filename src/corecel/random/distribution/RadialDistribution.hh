@@ -54,8 +54,8 @@ class RadialDistribution
  * Construct with defaults.
  */
 template<class RealType>
-CELER_FUNCTION
-RadialDistribution<RealType>::RadialDistribution(real_type radius)
+CELER_FUNCTION RadialDistribution<RealType>::RadialDistribution(
+    real_type radius)
     : radius_(radius)
 {
     CELER_EXPECT(radius_ > 0);

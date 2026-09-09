@@ -94,8 +94,8 @@ CELER_FORCEINLINE_FUNCTION T exchange(T& dst, U&& src)
 template<class T = void>
 struct Less
 {
-    CELER_CONSTEXPR_FUNCTION auto
-    operator()(T const& lhs, T const& rhs) const noexcept -> decltype(auto)
+    CELER_CONSTEXPR_FUNCTION auto operator()(
+        T const& lhs, T const& rhs) const noexcept -> decltype(auto)
     {
         return lhs < rhs;
     }
@@ -373,8 +373,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt partition(
  * from CUDA code.
  */
 template<class RandomAccessIt, class Compare>
-CELER_FORCEINLINE_FUNCTION void
-sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FORCEINLINE_FUNCTION void sort(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::heapsort_impl<CompareRef>(first, last, comp);
@@ -516,8 +516,8 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
  \endcode
  */
 template<class T>
-inline CELER_FUNCTION std::enable_if_t<std::is_floating_point_v<T>, T>
-fastpow(T a, T b)
+inline CELER_FUNCTION std::enable_if_t<std::is_floating_point_v<T>, T> fastpow(
+    T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
