@@ -5,8 +5,8 @@
 # Bootstrap a Spack environment, build/install dependencies, activate it, and
 # configure Celeritas against it.
 #
-# NOTE: run `update-spack-buildcache-local` on a non-github machine to setup
-# the spack buildcache.
+# NOTE: run scripts/ci/update-spack-buildcache-local.sh
+# on a non-github machine to setup the spack buildcache.
 #-----------------------------------------------------------------------------#
 
 name: "Set up Spack environment"
