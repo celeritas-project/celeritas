@@ -46,7 +46,7 @@ jobs:
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache nlohmann-json3-dev libpng-dev libgtest-dev libcli11-dev
+            ccache nlohmann-json3-dev libpng-dev libgtest-dev
       - name: Install dependencies (Windows)
         if: ${{matrix.platform == 'windows'}}
         run: |
