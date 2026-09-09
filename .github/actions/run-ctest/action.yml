@@ -1,0 +1,83 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Run ctest and upload the JUnit test results as an artifact.
+#-----------------------------------------------------------------------------#
+
+name: "Run ctest"
+description: "Run ctest with a preset and upload test-output as an artifact"
+inputs:
+  preset:
+    description: "ctest preset name"
+    required: false
+    default: "base"
+  name:
+    description: "Suffix for the uploaded test-results artifact"
+    required: true
+  strict:
+    description: "Enable exact comparisons in unit tests (Test::strict_testing)"
+    required: false
+    default: "false"
+  split-app:
+    description: "Test {preset}-unit and {preset}-app separately"
+    required: false
+    default: "false"
+  filter-unit:
+    # Empty or false values cause filtering to be omitted
+    description: "Run only unit tests that match this regex, or 'none' to skip"
+    required: false
+    default: ""
+outputs:
+  outcome:
+    description: "Outcome of the ctest step ('success', 'failure', 'cancelled', 'skipped')"
+    # No app splitting -> outcome from 'all' step
+    # Disable unit tests -> outcome from 'app' step
+    # Either unit or app fails -> failure
+    # Otherwise steps.app.outcome (which happens second so should catch success, failure, cancel)
+    # *note*: test upload result is always ignored
+    value: >-
+      ${{
+          !fromJSON(inputs.split-app) && steps.all.outcome
+          || inputs.filter-unit == 'none' && steps.app.outcome
+          || steps.unit.outcome == 'failure' && steps.unit.outcome
+          || steps.app.outcome
+      }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up test environment
+      shell: bash
+      run: |
+        {
+          echo "CELER_TEST_STRICT=${{ fromJSON(inputs.strict) && '1' || '0' }}"
+        } >> "$GITHUB_ENV"
+    - name: Run unit tests
+      id: unit
+      if: ${{ fromJSON(inputs.split-app) && inputs.filter-unit != 'none' }}
+      shell: bash
+      run: |
+        ctest --preset=${{inputs.preset}}-unit \
+          ${{(inputs.filter-unit != '' && inputs.filter-unit != 'false')
+              && format('-R "{0}"', inputs.filter-unit) || ''}}
+    - name: Run app tests
+      id: app
+      if: ${{ !cancelled() && fromJSON(inputs.split-app) }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}-app
+    - name: Run all tests
+      id: all
+      if: ${{ !fromJSON(inputs.split-app) }}
+      shell: bash
+      run: ctest --preset=${{inputs.preset}}
+    - name: Upload test results for pull_request_completed
+      id: upload
+      uses: actions/upload-artifact@v7
+      if: ${{ !cancelled() }}
+      with:
+        # NOTE: these must be compatible with pull_request_completed.yml
+        name: test-results-${{inputs.name}}
+        path: "test-output/**/*.xml"
+        if-no-files-found: error
+        retention-days: 1

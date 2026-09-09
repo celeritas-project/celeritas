@@ -6,9 +6,9 @@
 #-----------------------------------------------------------------------------#
 
 name: pull_request
+# Run name renders as `#{PR number}: {PR title}`
 run-name: >-
-  ${{github.event.pull_request.title}}
-  (#${{github.event.number}})
+  #${{github.event.number}}: ${{github.event.pull_request.title}}
 
 on:
   pull_request:
@@ -24,8 +24,10 @@ on:
       - "!scripts/ci"
       - "!scripts/build.sh"
 
+# Only allow one PR action per PR, and cancel old ones when a new one (e.g. new commit)
+# is triggered
 concurrency:
-  group: pr-${{github.ref}}-${{github.event.number}}-${{github.workflow}}
+  group: pr-${{github.event.number}}
   cancel-in-progress: true
 
 jobs:
@@ -33,8 +35,9 @@ jobs:
     name: "Save job metadata"
     runs-on: ubuntu-24.04
     steps:
-      # Event file is needed for EnricoMi/publish-unit-test-result-action
+      # Event file is needed for pull_request_completed.report-tests
       - name: Upload event file
+        id: upload
         uses: actions/upload-artifact@v7
         with:
           name: event-file
@@ -43,37 +46,47 @@ jobs:
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
-  doc:
-    uses: ./.github/workflows/doc.yml
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
   all-prechecks:
-    needs: [build-fast, build-ultralite, doc]
+    needs:
+      - build-fast
+      - build-ultralite
+      - build-docs
     runs-on: ubuntu-24.04
     steps:
       - name: Success
         run: "true"
-  build-docker:
-    # Since docker builds aren't cached and are large, don't run on draft
-    if: ${{github.event.pull_request.draft == false}}
-    needs: [all-prechecks]
-    uses: ./.github/workflows/build-docker.yml
-    secrets:
-      codecov_token: ${{ secrets.CODECOV_TOKEN }}
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
-    secrets:
-      codecov_token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Defer large jobs while the PR is in draft state
+  build-spack-extra:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-spack-extra.yml
+  build-docker:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-docker.yml
+  build-codecov:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-codecov.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
   all:
-    if: ${{always()}}
+    if: ${{!cancelled()}}
     needs:
-      - build-docker
       - build-spack
+      - build-spack-extra
+      - build-docker
+      - build-codecov
     runs-on: ubuntu-24.04
     steps:
       - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@release/v1
+        uses: re-actors/alls-green@v1.3.0 # immutable, 21 Aug 2026
         with:
           jobs: ${{toJSON(needs)}}
 
