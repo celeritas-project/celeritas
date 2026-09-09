@@ -245,6 +245,8 @@ SetupOptions CelerPhysics::make_options()
     }
     else
     {
+        CELER_LOG(info)
+            << "No FieldMapFile given: loading from DD4hep field overlays";
         opts.make_along_step = make_uniform_along_step(
             context()->detectorDescription(), driver_options);
     }
