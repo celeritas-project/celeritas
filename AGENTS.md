@@ -17,6 +17,12 @@ These three behaviors apply unconditionally, every session. Read them before sta
 
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
+### Versioned tool options
+
+Before adding an option to a CI tool, check its `-h` output for the exact
+version configured by the workflow. Do not assume options from a newer local
+version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
+
 ### After any completed task — commit
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
