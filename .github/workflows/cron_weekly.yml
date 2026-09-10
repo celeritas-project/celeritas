@@ -30,6 +30,10 @@ jobs:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack-extra.yml
+  build-regression:
+    if: github.repository == 'celeritas-project/celeritas'
+    needs: [clear-cache]
+    uses: ./.github/workflows/build-regression.yml
   build-codecov:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
