@@ -18,7 +18,7 @@ BASE_SHA="$2"
 HEAD_SHA="HEAD"
 
 if [ $# -ne 2 ]; then
-  log usage "CLANG_TIDY=path $0 remote base_sha"
+  log usage "CLANG_TIDY=path CLANG_TIDY_DIFF=otherpath $0 remote base_sha"
   exit 1
 fi
 
