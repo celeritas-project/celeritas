@@ -88,6 +88,11 @@ class Environment
     std::unordered_map<key_type, mapped_type> vars_;
     VecKVRef ordered_;
 
+    static void clang_tidy_error(key_type&& value)
+    {
+        static_cast<void>(value);
+    }
+
     mapped_type const& load_from_getenv(key_type const&);
 };
 
