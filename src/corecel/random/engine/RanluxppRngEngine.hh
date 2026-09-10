@@ -100,6 +100,9 @@ class RanluxppRngEngine
     // Initialize a state for a new spawned RNG.
     inline CELER_FUNCTION RngStateInitializer_t branch();
 
+    // Force the state to produce the next block of random bits
+    inline CELER_FUNCTION void advance() { this->advance(*state_); }
+
   private:
     /// IMPLEMENTATION ///
 
