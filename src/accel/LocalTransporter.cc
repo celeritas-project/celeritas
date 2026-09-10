@@ -317,11 +317,6 @@ void LocalTransporter::launch_step()
     {
         CELER_ASSERT(staged_accum_.primaries == staged_primaries.size());
 
-        if (run_accum_.flushes == 0)
-        {
-            CELER_LOG_LOCAL(status)
-                << R"(Executing the first Celeritas stepping loop)";
-        }
         if (celeritas::device())
         {
             CELER_LOG_LOCAL(debug)
