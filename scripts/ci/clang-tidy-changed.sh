@@ -48,9 +48,14 @@ trap 'rm -f "$diff_file"' 0
 
 git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" > "$diff_file"
 
-python3 -W ignore::SyntaxWarning "$CLANG_TIDY_DIFF" \
-  -clang-tidy-binary "$CLANG_TIDY" \
-  -p 1 \
-  -path "$BUILD_DIR" \
-  -regex '^(src|app|test)/.*\.(cc|hh)$' \
-  < "$diff_file"
+if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
+  log info "Header changed: running clang-tidy on all compiled sources"
+  run-clang-tidy -clang-tidy-binary "$CLANG_TIDY" -p "$BUILD_DIR"
+else
+  python3 -W ignore::SyntaxWarning "$CLANG_TIDY_DIFF" \
+    -clang-tidy-binary "$CLANG_TIDY" \
+    -p 1 \
+    -path "$BUILD_DIR" \
+    -regex '^(src|app|test)/.*\.cc$' \
+    < "$diff_file"
+fi
