@@ -6,7 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/BVH.h>
+#include <VecGeom/base/Config.h>
+
+#if defined(VECGEOM_NAVIGATION_INDEXED_BVH)
+#    include <VecGeom/base/IndexedBVH.h>
+#else
+#    include <VecGeom/base/BVH.h>
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Span.hh"
@@ -18,7 +24,9 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-#if VECGEOM_VERSION >= 0x020000
+#if defined(VECGEOM_NAVIGATION_INDEXED_BVH)
+using CudaBVH_t = vecgeom::cuda::IndexedBVH<vgbvh_real_type>;
+#elif VECGEOM_VERSION >= 0x020000
 using CudaBVH_t = vecgeom::cuda::BVH<vgbvh_real_type>;
 #else
 using CudaBVH_t = vecgeom::cuda::BVH;
