@@ -76,18 +76,38 @@ jobs:
     uses: ./.github/workflows/build-codecov.yml
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
+  # - When running in draft mode, or if the job was cancelled,
+  #   this check is skipped so that the commit doesn't have an 'X' next to it
+  # - Otherwise this check fails if any required job did not succeed
+
   all:
-    if: ${{!cancelled()}}
+    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
     needs:
       - build-spack
       - build-spack-extra
       - build-docker
       - build-codecov
     runs-on: ubuntu-24.04
+    outputs:
+      unsuccessful: ${{ steps.check.outputs.unsuccessful }}
     steps:
-      - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@v1.3.0 # immutable, 21 Aug 2026
+      - name: Check failures
+        id: check
+        uses: actions/github-script@v9
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         with:
-          jobs: ${{toJSON(needs)}}
+          script: |
+            const needs = JSON.parse(process.env.NEEDS);
+            core.debug(`needs: ${JSON.stringify(needs)}`);
+
+            const unsuccessful = Object.entries(needs)
+              .filter(([, job]) => job.result !== 'success')
+              .map(([name]) => name);
+
+            core.setOutput('unsuccessful', unsuccessful.join(','));
+            if (unsuccessful.length) {
+              core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
+            }
 
 # vim: set nowrap tw=100:
