@@ -19,8 +19,12 @@ inputs:
     description: "Space-separated list of additional spack packages to add"
     required: false
     default: ""
+  add-dependent:
+    description: "Packages to build in a separate environment using the cached core specs"
+    required: false
+    default: ""
   push-buildcache:
-    description: "Publish installed dependencies to the shared buildcache"
+    description: "Publish the core environment to the shared buildcache (excludes add-dependent)"
     required: false
     default: "false"
 
@@ -34,6 +38,7 @@ runs:
         echo "$SPACK_ROOT/bin" >> "$GITHUB_PATH"
         {
           echo "CELER_SPACK_VIEW=/opt/view"
+          echo "CELER_SPACK_ENV=$GITHUB_WORKSPACE"
           echo "CELER_SPACK_OPT=/opt/spack"
           echo "CELER_BASE_IMAGE=ubuntu:24.04"
           echo "CELER_BUILDCACHE=celeritas"
@@ -133,12 +138,31 @@ runs:
           --allow-missing \
           $CELER_BUILDCACHE
 
+    # Keep moving dependencies out of the core manifest and its lockfile cache.
+    # Included concrete roots constrain the dependent solve with unify: true.
+    - name: Build dependent Spack environment
+      if: ${{inputs.add-dependent != ''}}
+      shell: sh
+      run: |
+        dependent_env="$GITHUB_WORKSPACE/spack-dependent"
+        dependent_view="${CELER_SPACK_VIEW}-dependent"
+        sh "$GITHUB_WORKSPACE/scripts/ci/setup-spack-dependent-env.sh" \
+          "$CELER_SPACK_ENV" "$dependent_env" "$dependent_view" \
+          ${{inputs.add-dependent}}
+        spack -e "$dependent_env" config get --json > "$dependent_env/spack.config.json"
+        spack -e "$dependent_env" concretize
+        spack -e "$dependent_env" install -p 8 --use-buildcache=auto
+        {
+          echo "CELER_SPACK_ENV=$dependent_env"
+          echo "CELER_SPACK_VIEW=$dependent_view"
+        } >> "$GITHUB_ENV"
+
     - name: Update environment and create rc file
       shell: sh
       # NOTE: the env transformation might be sensitive to spack version changes
       run: |
         echo "$CELER_SPACK_VIEW/bin" >> "$GITHUB_PATH"
-        spack env activate --sh . > "${CELER_SPACK_VIEW}/rc"
+        spack env activate --sh "$CELER_SPACK_ENV" > "${CELER_SPACK_VIEW}/rc"
         grep '^export ' "${CELER_SPACK_VIEW}/rc" \
           | grep -v '^export PATH=' \
           | sed 's/^export \(.*\);\s*$/\1/' >> "$GITHUB_ENV"

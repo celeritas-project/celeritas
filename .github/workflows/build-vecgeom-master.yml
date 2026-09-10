@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: build-vecgeom-master-${{github.ref_name}}
@@ -59,15 +60,16 @@ jobs:
             "$(git rev-parse HEAD)" "$vecgeom_sha" | tee revisions.txt
           cat revisions.txt >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Set up Spack environment
+      - name: Set up core and VecGeom Spack environments
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
-          # The SHA changes spack.yaml and its lockfile cache key before restore.
-          add: >-
-            geant4@11.3 g4vg
+          # Stable roots have a lockfile cache independent of the VecGeom SHA.
+          add: geant4@11.3
+          add-dependent: >-
+            g4vg
             vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
-          push-buildcache: "false"
+          push-buildcache: ${{github.repository == 'celeritas-project/celeritas' && github.event_name != 'pull_request'}}
 
       - name: Configure Celeritas
         id: configure
@@ -103,6 +105,9 @@ jobs:
             spack.yaml
             spack.lock
             spack.config.json
+            spack-dependent/spack.yaml
+            spack-dependent/spack.lock
+            spack-dependent/spack.config.json
             build/CMakeCache.txt
             build/CMakeFiles/CMakeConfigureLog.yaml
             build/Testing/Temporary/LastTest.log
