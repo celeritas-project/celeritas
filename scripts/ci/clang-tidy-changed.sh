@@ -64,6 +64,28 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
       return value
     }
 
+    /^[0-9]+ warnings generated\.$/ {
+      generated[$1] = 1
+      next
+    }
+
+    /^Suppressed [0-9]+ warnings \([0-9]+ in / {
+      split($0, fields, " ")
+      generated_count = fields[4]
+      sub(/^\(/, "", generated_count)
+      if (generated[generated_count]) {
+        delete generated[generated_count]
+        sub(/^Suppressed /, generated_count " warnings generated; ")
+        sub(/ warnings \(/, " suppressed (", $0)
+      }
+      print
+      next
+    }
+
+    /^Use -header-filter=\.\* to display errors from all non-system headers\./ {
+      next
+    }
+
     {
       print
     }
