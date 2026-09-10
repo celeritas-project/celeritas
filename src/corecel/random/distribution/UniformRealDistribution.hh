@@ -9,9 +9,9 @@
 #include <cmath>
 #include <type_traits>
 
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
+#include "corecel/random/data/DistributionData.hh"
 
 #include "GenerateCanonical.hh"
 
@@ -43,6 +43,7 @@ class UniformRealDistribution
     //! \name Type aliases
     using real_type = RealType;
     using result_type = real_type;
+    using RecordT = UniformRealDistributionRecord;
     //!@}
 
   public:

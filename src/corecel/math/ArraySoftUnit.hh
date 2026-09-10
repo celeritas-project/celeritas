@@ -69,7 +69,7 @@ class ArraySoftUnit
 // TEMPLATE DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION ArraySoftUnit(T) -> ArraySoftUnit<T>;
+CELER_CTAD_FUNCTION ArraySoftUnit(T) -> ArraySoftUnit<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

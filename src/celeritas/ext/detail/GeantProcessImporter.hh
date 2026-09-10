@@ -22,6 +22,7 @@ class G4VEmProcess;
 class G4VEmModel;
 class G4VEnergyLossProcess;
 class G4VMultipleScattering;
+class G4HadronicProcess;
 class G4ParticleDefinition;
 class G4PhysicsTable;
 class G4PhysicsVector;
@@ -82,6 +83,8 @@ class GeantProcessImporter
                              G4VEmProcess const& process);
     ImportProcess operator()(G4ParticleDefinition const& particle,
                              G4VEnergyLossProcess const& process);
+    ImportProcess operator()(G4ParticleDefinition const& particle,
+                             G4HadronicProcess const& process);
     std::vector<ImportMscModel> operator()(
         G4ParticleDefinition const& particle,
         G4VMultipleScattering const& process);

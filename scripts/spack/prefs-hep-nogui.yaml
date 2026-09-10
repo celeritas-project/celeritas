@@ -1,0 +1,30 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Variants and preferences for building Celeritas when it might be used
+# alongside other HEP software packages including DD4HEP and Allpix^2.
+#-----------------------------------------------------------------------------#
+packages:
+  dd4hep:
+    variants:
+      - ~utilityapps ~ddeve
+  hepmc3:
+    variants: # allpix2 requires ROOT IO
+      - +rootio
+  llvm:
+    variants:
+      - +lldb +python
+  root:
+    variants:
+      # These are "default starting values", not required:
+      # - we prefer not having GUI for a lighter build
+      # - we generally don't use TBB threading
+      # - examples aren't needed
+      # - edm4hep requires root7
+      # - allpix requires geom, math
+      - >-
+        ~aqua ~opengl ~x ~webgui
+        ~davix ~examples ~tbb
+        +root7
+        +geom +math

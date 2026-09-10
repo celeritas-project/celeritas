@@ -192,8 +192,7 @@ class Span
              std::enable_if_t<detail::is_array_convertible_v<U, T>
                                   && (E2 == Extent || Extent == dynamic_extent),
                               bool> = true>
-    CELER_CONSTEXPR_FUNCTION Span(Span<U, E2> const& other) noexcept(
-        ndebug_or_dyn)
+    CELER_CONSTEXPR_FUNCTION Span(Span<U, E2> other) noexcept(ndebug_or_dyn)
         : s_(other.data(), other.size())
     {
     }
@@ -208,7 +207,7 @@ class Span
              std::enable_if_t<detail::is_array_convertible_v<U, T>
                                   && Extent != dynamic_extent && E2 == dynamic_extent,
                               bool> = true>
-    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> const& other) noexcept(
+    CELER_CONSTEXPR_FUNCTION explicit Span(Span<U, E2> other) noexcept(
         ndebug_or_dyn)
         : s_(other.data(), other.size())
     {
@@ -311,24 +310,24 @@ class Span
 
 // Deduction guide for pointer and size
 template<class T>
-CELER_FUNCTION Span(T*, std::size_t) -> Span<T>;
+CELER_CTAD_FUNCTION Span(T*, std::size_t) -> Span<T>;
 
 // Deduction guide for two iterators
 template<class Iter>
-CELER_FUNCTION Span(Iter, Iter)
+CELER_CTAD_FUNCTION Span(Iter, Iter)
     -> Span<typename std::iterator_traits<Iter>::value_type>;
 
 // Deduction guide for C array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(T (&)[N]) -> Span<T, N>;
+CELER_CTAD_FUNCTION Span(T (&)[N]) -> Span<T, N>;
 
 // Deduction guide for mutable Array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(Array<T, N>&) -> Span<T, N>;
+CELER_CTAD_FUNCTION Span(Array<T, N>&) -> Span<T, N>;
 
 // Deduction guide for const Array
 template<class T, std::size_t N>
-CELER_FUNCTION Span(Array<T, N> const&) -> Span<T const, N>;
+CELER_CTAD_FUNCTION Span(Array<T, N> const&) -> Span<T const, N>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

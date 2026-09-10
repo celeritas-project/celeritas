@@ -1,19 +1,21 @@
 //---------------------------------------------------------------------------//
 // Configuration file for the PDSimAna module
+// See also: https://github.com/DUNE/duneopdet/blob/develop/duneopdet/OpticalDetector/Ana/OpDetAnalyzer.fcl
 //---------------------------------------------------------------------------//
 
 BEGIN_PROLOG
 
 # Module labels:
 # - "PDFastSim" : default LArSoft jobs that include PDFastSimPAR
-# - "OpticalSim": example/larceler/*optical*.fcl jobs
+# - "PDSim": example/larceler/*optical*.fcl jobs
 PDSimAna:
 {
     module_type: PDSimAna
-    SimulationLabel: "IonAndScint" # SimEnergyDeposit
-    ModuleLabel: "OpticalSim" # OpdetBacktrackerRecord
-
-    # TODO: Possibly add runtime histogram definitions
+    SimulationLabel: "IonAndScint" # module label for SimEnergyDeposit
+    PDModuleLabel: "PDSim" # module label for photon sim with BTRs and SimPhotonsLite
+    NumChannels: 480
+    MinTime: 10.0 # Minimum time for histogram binning [ns]
+    MaxTime: 50e3 # Maximum time for histogram binning [ns]
 }
 
 END_PROLOG

@@ -37,6 +37,8 @@ class CelerPhysics final : public dd4hep::sim::Geant4PhysicsList
     int max_num_tracks_{0};
     int init_capacity_{0};
     std::vector<std::string> ignore_processes_;
+    std::string field_map_file_;
+    std::string field_map_type_{"cartesian"};
 
     // Make options for Celeritas tracking manager
     SetupOptions make_options();

@@ -74,7 +74,7 @@ class Raytracer
 //---------------------------------------------------------------------------//
 
 template<class GTV, class F>
-CELER_FUNCTION Raytracer(GTV&&, F&&, ImageLineView const&)
+CELER_CTAD_FUNCTION Raytracer(GTV&&, F&&, ImageLineView const&)
     -> Raytracer<GTV, F>;
 
 //---------------------------------------------------------------------------//

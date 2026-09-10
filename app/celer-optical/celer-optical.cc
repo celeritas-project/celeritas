@@ -74,7 +74,7 @@ void run(std::shared_ptr<OutputRegistry>& output,
 
     // Start profiling
     TracingSession tracing_session{input.problem.perfetto_file};
-    SimulationResult result;
+    auto result = std::make_shared<SimulationResult>();
 
     // Set up optical problem
     Stopwatch get_setup_time;
@@ -109,23 +109,21 @@ void run(std::shared_ptr<OutputRegistry>& output,
                    },
                },
                generator);
-    result.time.setup = get_setup_time();
+    result->time.setup = get_setup_time();
 
     //! \todo Optical loop warmup
 
     Stopwatch get_transport_time;
     auto run_result = run();
-    result.time.total = get_transport_time();
-    result.time.actions = std::move(run_result.action_times);
-    result.time.steps = std::move(run_result.step_times);
-    result.counters = std::move(run_result.counters);
+    result->time.total = get_transport_time();
+    result->time.actions = std::move(run_result.action_times);
+    result->time.steps = std::move(run_result.step_times);
+    result->counters = std::move(run_result.counters);
 
     // Add simulation result to output
     output->insert(
         std::make_shared<celeritas::OutputInterfaceAdapter<SimulationResult>>(
-            OutputInterface::Category::result,
-            "*",
-            std::make_shared<SimulationResult>(result)));
+            OutputInterface::Category::result, "*", result));
 }
 
 void print_config()

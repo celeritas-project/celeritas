@@ -160,7 +160,7 @@ class ObserverPtr
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION ObserverPtr(T*) -> ObserverPtr<T>;
+CELER_CTAD_FUNCTION ObserverPtr(T*) -> ObserverPtr<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS

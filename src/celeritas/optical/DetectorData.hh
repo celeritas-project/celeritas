@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {

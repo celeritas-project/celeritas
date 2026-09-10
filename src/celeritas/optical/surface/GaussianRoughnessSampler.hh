@@ -73,7 +73,7 @@ class GaussianRoughnessSampler
 CELER_FUNCTION GaussianRoughnessSampler::GaussianRoughnessSampler(
     Real3 const& normal, real_type sigma_alpha)
     : normal_(normal)
-    , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
+    , sample_alpha_(-constants::pi / 2, constants::pi / 2, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
     , reject_(f_max_)
 {

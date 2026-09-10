@@ -9,9 +9,8 @@ if ! command -v load_system_env >/dev/null 2>&1; then
   return 1
 fi
 
-# Use same C++ compiler as milan0/2
-export CXX=/usr/bin/c++
-export CC=/usr/bin/cc
+export CXX=/usr/bin/g++-13
+export CC=/usr/bin/gcc-13
 
 # Dispatch common loading to the 'excl' system
 load_system_env excl || return $?

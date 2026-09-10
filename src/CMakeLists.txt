@@ -48,6 +48,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     celer_silence_flag(CXX nonnull)
     # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107852
     celer_silence_flag(CXX array-bounds)
+    # see https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105651 : Ubuntu GCC 12.3
+    celer_silence_flag(CXX restrict)
+    # EL9 GCC 12.5
+    celer_silence_flag(CXX stringop-overread)
   endif()
   if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 13)
     # GCC 13 and 14 have *lots* of false positives, and not just on our project

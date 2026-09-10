@@ -89,7 +89,7 @@ struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
+CELER_CTAD_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

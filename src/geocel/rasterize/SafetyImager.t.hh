@@ -41,8 +41,9 @@ void SafetyImager<G>::operator()(ImageParams const& image, std::string filename)
     out << nlohmann::json(image).dump() << std::endl;
 
     auto const& scalars = image.scalars();
-    real_type max_distance = celeritas::max(scalars.dims[0], scalars.dims[1])
-                             * scalars.pixel_width;
+    auto max_distance = static_cast<real_type>(
+                            celeritas::max(scalars.dims[0], scalars.dims[1]))
+                        * scalars.pixel_width;
 
     detail::SafetyCalculator calc_safety{
         GeoTrackView{geo_->host_ref(), host_state_.ref(), TrackSlotId{0}},

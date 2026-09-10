@@ -21,6 +21,7 @@
 #include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/optical/action/DetectorAction.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
