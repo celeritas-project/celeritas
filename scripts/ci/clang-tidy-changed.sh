@@ -13,7 +13,6 @@ log() {
 }
 
 BUILD_DIR="$PWD/build"
-CLANG_TIDY_DIFF="$(dirname "$CLANG_TIDY")/../share/clang/clang-tidy-diff.py"
 REMOTE="$1"
 BASE_SHA="$2"
 HEAD_SHA="HEAD"
@@ -25,6 +24,11 @@ fi
 
 if [ -z "$CLANG_TIDY" ]; then
   log error "CLANG_TIDY not defined"
+  exit 1
+fi
+
+if [ -z "$CLANG_TIDY_DIFF" ]; then
+  log error "CLANG_TIDY_DIFF not defined"
   exit 1
 fi
 

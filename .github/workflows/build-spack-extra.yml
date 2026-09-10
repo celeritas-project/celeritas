@@ -61,6 +61,7 @@ jobs:
     env:
       CELER_CMAKE_PRESET: reldeb-vecgeom-tidy
       CLANG_TIDY: "clang-tidy-18"
+      CLANG_TIDY_DIFF: "/usr/lib/llvm-18/share/clang/clang-tidy-diff.py"
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas
