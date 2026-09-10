@@ -52,6 +52,10 @@ struct GeneratorStepData
  * step to the total energy deposition over the step (including the local
  * deposition at the discrete interaction point).
  *
+ * \c component_id optionally specifies the component for the scintillation
+ * emission. If it is provided, all photons will be generated from this
+ * component; otherwise, the component will be sampled using the yield.
+ *
  * If the material is not provided, it will be determined during
  * initialization.
  */
@@ -64,6 +68,7 @@ struct GeneratorDistributionData
     units::ElementaryCharge charge;
     OptMatId material;
     real_type continuous_edep_fraction{};
+    ScintComponentId component_id;
     EnumArray<StepPoint, GeneratorStepData> points;
 
     //! Check whether the data are assigned
