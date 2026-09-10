@@ -115,13 +115,19 @@ class Stream:
             self.stream.close()
 
 
+LINE_RE = re.compile(
+    "("
+    r"(?:\.?\.?/|/)?"  # leading dots or slash
+    r"(?:[^\s:@]+/)*"  # optional interior components
+    r"[^@\s:]+\.[^@\s:]+"  # final path component with extension
+    ")"  # end path group
+    r"(:\d+)?",  # optional line number
+)
+
+
 def normalize_line(line: str) -> str:
     """Remove run-dependent output from the line."""
-    line = re.sub(
-        r"(?P<path>(?:\.?\.?/|/)?(?:[^\s:@]+/)*[^@\s:]+\.[^@\s:]+)(?::\d+)?",
-        lambda match: str(Path(match.group("path")).name),
-        line,
-    )
+    line = LINE_RE.sub(lambda match: Path(match.group(1)).name, line)
     line = re.sub(r"0x[a-f0-9]+", "0x0000", line)
     line = re.sub(r"\bversion \S+", "version [suppressed]", line)
     line = re.sub(
@@ -135,7 +141,7 @@ def strip_ansi(line: str) -> str:
 
 
 def make_run_command(
-    harness: Harness, exe: Path, args: list[str], child_env: dict[str, str]
+    exe: Path, args: list[str], child_env: dict[str, str]
 ) -> list[str]:
     """Construct a shell-like command with current environment variables and the executable+args.
 
@@ -146,11 +152,7 @@ def make_run_command(
     for key in sorted(include_keys):
         val = shlex.quote(normalize_line(child_env[key]))
         lines.append(f"{key}={val} \\")
-    lines.append(
-        " ".join(
-            shlex.quote(a) for a in [str(exe.relative_to(harness.build_dir))] + args
-        )
-    )
+    lines.append(" ".join(shlex.quote(a) for a in [str(exe)] + args))
     return lines
 
 
@@ -208,8 +210,11 @@ def run(
 ):
     child_env = dict(os.environ)
     child_env.update(LAUNCH_ENV_UPDATES)
-    cmd_text = make_run_command(harness, exe, args, child_env)
+    cmd_text = make_run_command(exe.relative_to(harness.build_dir), args, child_env)
 
+    # For improved reproducibility (executables that echo $0 and don't have a path suffix)
+    # launch with the relative directory
+    exe = exe.relative_to(Path.cwd())
     print(
         "Running",
         shlex.quote(str(exe)),
@@ -217,7 +222,7 @@ def run(
         file=sys.stderr,
     )
     process = subprocess.Popen(
-        [str(exe)] + args,
+        ["./" + str(exe)] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
