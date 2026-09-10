@@ -43,9 +43,14 @@ git fetch --depth 1 "${REMOTE}" "${BASE_SHA}"
 log info "Using clang-tidy: $CLANG_TIDY"
 # TODO: Remove the warning ignore when upgrading to LLVM 20 or newer, whose driver has
 # invalid escapes.
-git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" \
-  | python3 -W ignore::SyntaxWarning "$CLANG_TIDY_DIFF" \
-      -clang-tidy-binary "$CLANG_TIDY" \
-      -p 1 \
-      -path "$BUILD_DIR" \
-      -regex '^(src|app|test)/.*\.(cc|hh)$'
+diff_file=$(mktemp)
+trap 'rm -f "$diff_file"' 0
+
+git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" > "$diff_file"
+
+python3 -W ignore::SyntaxWarning "$CLANG_TIDY_DIFF" \
+  -clang-tidy-binary "$CLANG_TIDY" \
+  -p 1 \
+  -path "$BUILD_DIR" \
+  -regex '^(src|app|test)/.*\.(cc|hh)$' \
+  < "$diff_file"
