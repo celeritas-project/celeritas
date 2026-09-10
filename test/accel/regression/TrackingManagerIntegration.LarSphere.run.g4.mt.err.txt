@@ -141,6 +141,7 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
@@ -159,6 +160,7 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
@@ -186,4 +188,5 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }

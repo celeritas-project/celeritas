@@ -115,6 +115,7 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }
 debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 debug@TrackingManagerIntegration.test.cc: {0}: begin_event
@@ -146,6 +147,7 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }
 debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 debug@TrackingManagerIntegration.test.cc: {0}: begin_event
@@ -190,4 +192,5 @@ debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }

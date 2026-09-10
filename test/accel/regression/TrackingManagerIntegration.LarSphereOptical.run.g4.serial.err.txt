@@ -107,4 +107,5 @@ debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
+  CELER_PROFILE_DEVICE: '0',
 }

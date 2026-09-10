@@ -191,6 +191,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -221,6 +222,7 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -265,6 +267,7 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
