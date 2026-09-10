@@ -44,6 +44,8 @@ char const* to_cstring(ImportModelClass value)
         "mu_pair_prod",
         "fluo_photoelectric",
         "goudsmit_saunderson",
+        "electro_nuclear",
+        "gamma_nuclear",
     };
     return to_cstring_impl(value);
 }
@@ -79,6 +81,8 @@ char const* to_geant_name(ImportModelClass value)
         "muPairProd",
         "PhotoElectric",
         "GoudsmitSaunderson",
+        "G4ElectroVDNuclearModel",
+        "BertiniCascade",
     };
     return to_name_impl(value);
 }
