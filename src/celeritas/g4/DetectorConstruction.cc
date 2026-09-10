@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 #include <G4LogicalVolume.hh>
 #include <G4SDManager.hh>
 #include <G4VPhysicalVolume.hh>
@@ -18,7 +20,6 @@
 #include "corecel/io/StreamableLazy.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
-#include "geocel/g4/Convert.hh"
 
 namespace celeritas
 {
@@ -107,15 +108,16 @@ void DetectorConstruction::build_worker_sd() const
 
     foreach_detector(detectors_, [&](MapDetCIter start, MapDetCIter stop) {
         // Lazily print the volume names (only if warning or debug are printed)
-        auto vol_names = StreamableLazy{[start, stop] {
-            std::vector<std::string> sorted_vol_names;
+        // Note that the vector is in a higher scope to avoid use-after-free
+        std::vector<std::string> sorted_vol_names;
+        auto vol_names = StreamableLazy{[start, stop, &sorted_vol_names] {
             for (auto iter = start; iter != stop; ++iter)
             {
+                CELER_ASSERT(iter->second);
                 sorted_vol_names.push_back(iter->second->GetName());
             }
             std::sort(sorted_vol_names.begin(), sorted_vol_names.end());
-            return to_string(
-                join(sorted_vol_names.begin(), sorted_vol_names.end(), ", "));
+            return join(sorted_vol_names.begin(), sorted_vol_names.end(), ", ");
         }};
 
         auto const& sd_name = start->first;

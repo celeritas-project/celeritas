@@ -5,7 +5,7 @@
 # Build and run only integration regression tests.
 # - Run automatically as part of PRs, push-to-develop, cron cache reset
 # - Run manually via workflow_dispatch (button in https://github.com/celeritas-project/celeritas/actions)
-# - If run manually or as part of "deubg" run it will *always*
+# - Regression files for failed tests (or *all* tests if workflow_dispatch) will be uploaded as an artifact
 #-----------------------------------------------------------------------------#
 
 name: build-regression

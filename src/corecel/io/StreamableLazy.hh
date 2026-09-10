@@ -7,6 +7,9 @@
 #pragma once
 
 #include <ostream>
+#include <string>
+
+#include "StreamUtils.hh"
 
 namespace celeritas
 {

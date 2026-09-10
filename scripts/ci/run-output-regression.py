@@ -37,7 +37,7 @@ class Harness:
 
     - Actual files (failures or force-regen) are written to "$BUILD/regression/{subdir}/{name}"
       where subdir/name are based on the ctest name
-    - Expected files live in "$CMAKE_CURRENT_SOURCE_DIR/{sudiregression/
+    - Expected files live in "$SOURCE/test/{subdir}/regression/
     """
 
     def __init__(self, source_dir: Path, build_dir: Path):
