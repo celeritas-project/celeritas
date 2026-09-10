@@ -49,14 +49,21 @@ endif()
 # "ndebug-vecgeom-regression" preset in ci-ubuntu-github.json,
 # launched by .github/workflows/build-regression.yml), you can wrap the
 # googletest call in a script that dumps or compares the output.
+# For convenience, you can set the variable to "regression" to compare or "regression-update"
+# to force an update.
 set(CELERITASTEST_ACCEL_WRAPPER "" CACHE STRING
   "Arguments to add before calls to accel integration test executables"
 )
-if(CELERITASTEST_ACCEL_WRAPPER STREQUAL "regression")
+if(CELERITASTEST_ACCEL_WRAPPER MATCHES "^regression(-update)?$")
+  set(_force)
+  if(CMAKE_MATCH_1)
+    set(_force "--force")
+  endif()
   set(CELERITASTEST_ACCEL_WRAPPER
     "${PROJECT_SOURCE_DIR}/scripts/ci/run-output-regression.py"
     "--source-dir" "${PROJECT_SOURCE_DIR}" # Relative to Celeritas
     "--build-dir" "${CMAKE_BINARY_DIR}" # In top-level build directory
+    ${_force}
     "--"
   )
 endif()

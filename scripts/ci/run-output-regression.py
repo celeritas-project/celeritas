@@ -7,7 +7,6 @@ import difflib
 import os
 import re
 import shlex
-import shutil
 import subprocess
 import sys
 import threading
@@ -23,6 +22,7 @@ LAUNCH_ENV_UPDATES: dict[str, str] = {
     "CELER_LOG_LOCAL": "debug",
     "CELER_LOG_SCOPED": "debug",
     "CELER_ENABLE_PROFILING": "0",
+    "CELER_PROFILE_DEVICE": "0",
     "CELER_STRIP_SOURCEDIR": "1",
     "GTEST_COLOR": "1",
 }
@@ -92,18 +92,21 @@ class OutputReference:
 
 
 class Stream:
-    def __init__(self, name: str, stream: IO[str]):
+    def __init__(self, name: str, stream: IO[str], verbose: bool = True):
         self.name = name.replace("std", "")
         self.stream = stream
         self.output: list[str] = []
+        self.verbose = verbose
 
     def capture_stream(self) -> None:
         prefix = self.name[0].upper() + ">"
         append = self.output.append
+        verbose = self.verbose
         try:
             for i, line in enumerate(iter(self.stream.readline, "")):
                 cleaned = normalize_line(line.rstrip())
-                print(prefix, cleaned, file=sys.stderr)
+                if verbose:
+                    print(prefix, cleaned, file=sys.stderr)
                 append(strip_ansi(cleaned))
                 if not line:
                     # EOF
@@ -169,33 +172,37 @@ def print_diff(output: OutputReference) -> None:
         sys.stdout.write(line + "\n")
 
 
-def compare_output(output: OutputReference) -> bool:
-    expected_path = output.expected
-    actual_path = output.actual
-    if not expected_path.exists():
-        write_text(expected_path, output.actual_lines)
-        actual_dir = actual_path.parent
-        if not actual_dir.exists():
-            print("Creating parent directory for actual output")
-            actual_dir.mkdir(parents=True)
-        shutil.copy(expected_path, actual_path)
-        print(f"wrote missing reference output: {expected_path}")
-        print(f"copied missing output to combined 'actual' dir: {actual_path}")
-        return False
-    if output.expected_lines != output.actual_lines:
+def compare_output(output: OutputReference, force_regen: bool) -> bool:
+    success = output.expected_lines == output.actual_lines
+
+    what = "matching"
+    if success:
+        print(f"{output.name} matches {output.expected} contents")
+    elif output.expected_lines:
+        what = "failed"
+        # Expected output exists but is different
         print(f"FAILED: diff for {output.name}:")
         print_diff(output)
-        write_text(actual_path, output.actual_lines)
-        return False
+    else:
+        what = "missing"
 
-    print(f"{output.name} matches {expected_path} contents")
-    return True
+    if force_regen or not success:
+        print(f"Writing {what} output to: {output.actual}")
+        write_text(output.actual, output.actual_lines)
+
+    if (force_regen and not success) or not output.expected_lines:
+        write_text(output.expected, output.actual_lines)
+        print(f"Writing {what} output to source dir: {output.expected}")
+
+    return success
 
 
 def run(
     harness: Harness,
     exe: Path,
     args: list[str],
+    *,
+    quiet: bool,
     force_regen: bool,
     timeout: Optional[float],
 ):
@@ -218,7 +225,10 @@ def run(
         env=child_env,
     )
 
-    streams = {k: Stream(k, getattr(process, k)) for k in ["stdout", "stderr"]}
+    streams = {
+        k: Stream(k, getattr(process, k), verbose=not quiet)
+        for k in ["stdout", "stderr"]
+    }
     threads = [threading.Thread(target=s.capture_stream) for s in streams.values()]
     for t in threads:
         t.start()
@@ -227,27 +237,21 @@ def run(
         t.join()
     if returncode:
         print(f"error: {exe} returned {returncode}")
-        return returncode
+
+    if not harness.actual_dir.exists():
+        print("Creating parent directory for actual output")
+        harness.actual_dir.mkdir(parents=True)
 
     outputs = [
         OutputReference(name=k, actual_lines=cmd_text + s.output, harness=harness)
         for k, s in streams.items()
     ]
-
     success = True
-    if force_regen:
-        harness.actual_dir.mkdir(parents=True, exist_ok=True)
-        for output in outputs:
-            print(
-                f"overwriting {output.expected} with {output.name} and copying to {output.actual}"
-            )
-            write_text(output.expected, output.actual_lines)
-            shutil.copy(output.expected, output.actual)
-    else:
-        for output in outputs:
-            success = compare_output(output) and success
-
-    return returncode if success else 1
+    for output in outputs:
+        success = compare_output(output, force_regen=force_regen) and success
+    if not success and returncode == 0:
+        returncode = 1
+    return returncode
 
 
 def main(argv: Sequence[str]) -> int:
@@ -266,6 +270,11 @@ def main(argv: Sequence[str]) -> int:
         type=Path,
         default=None,
         help=f"project build directory (failed/newly generated output lives in build/{REGRESSION}/subdir",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="do not echo stdout/err to console during run",
     )
     parser.add_argument(
         "--force-regen",
@@ -316,6 +325,7 @@ def main(argv: Sequence[str]) -> int:
         harness,
         executable,
         args.command[1:],
+        quiet=args.quiet,
         force_regen=args.force_regen,
         timeout=args.timeout,
     )

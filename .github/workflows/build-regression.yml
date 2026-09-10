@@ -49,7 +49,7 @@ jobs:
             -DCELERITASTEST_ACCEL_WRAPPER:STRING="${{format(
               '{0}/scripts/ci/run-output-regression.py;--source-dir={0};--build-dir={0}/build;{1}--',
               github.workspace,
-              github.event_name == 'workflow_dispatch' && '--force-regen;' || ''
+              github.event_name == 'workflow_dispatch' && '--quiet;--force-regen;' || ''
             )}}"
 
       - name: Build all
@@ -73,7 +73,7 @@ jobs:
         # Files should exist if the tests failed *or* if running the "force" option was given
         if: >-
           ${{ !cancelled()
-             && (steps.test.outputs.outcome == 'failed'
+             && (steps.test.outputs.outcome == 'failure'
                  || (steps.test.outputs.outcome == 'success' && github.event_name == 'workflow_dispatch')
                 )
           }}
