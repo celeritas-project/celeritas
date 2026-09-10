@@ -40,12 +40,6 @@ fi
 log status "Creating environment"
 $SPACK env create . "${CELER_SOURCE_DIR}/scripts/spack/env-ci-base.yaml"
 
-# Select external packages and compiler requirements for the runner.
-ubuntu_version=${CELER_SPACK_UBUNTU_VERSION:-24.04}
-toolchain=${CELER_SPACK_TOOLCHAIN:-clang}
-$SPACK -e . config add "include:${CELER_SOURCE_DIR}/scripts/spack/ext-ubuntu${ubuntu_version%%.*}.yaml"
-$SPACK -e . config add "packages:all:require:['%${toolchain}_toolchain']"
-
 # Configure install prefix
 if [ -n "${CELER_SPACK_OPT}" ]; then
   log info "Setting spack install prefix to ${CELER_SPACK_OPT}"

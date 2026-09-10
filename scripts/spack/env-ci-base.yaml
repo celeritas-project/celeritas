@@ -12,7 +12,7 @@ spack:
     - reqs-celer.yaml
     - reqs-ci.yaml
     - prefs-hep-nogui.yaml
-    # Runner externals and toolchain are added by setup-spack-ci-env.sh.
+    - ext-ubuntu24.yaml
 
   specs:
     # Base packages

@@ -15,14 +15,6 @@ inputs:
   cxxstd:
     description: "C++ standard to concretize Spack with"
     required: true
-  ubuntu-version:
-    description: "Ubuntu release used by the runner and dependency base image"
-    required: false
-    default: "24.04"
-  toolchain:
-    description: "Compiler family for the Spack toolchain (clang or gcc)"
-    required: false
-    default: "clang"
   add:
     description: "Space-separated list of additional spack packages to add"
     required: false
@@ -43,7 +35,7 @@ runs:
         {
           echo "CELER_SPACK_VIEW=/opt/view"
           echo "CELER_SPACK_OPT=/opt/spack"
-          echo "CELER_BASE_IMAGE=ubuntu:${{inputs.ubuntu-version}}"
+          echo "CELER_BASE_IMAGE=ubuntu:24.04"
           echo "CELER_BUILDCACHE=celeritas"
           echo "SPACK_PACKAGES=$GITHUB_WORKSPACE/spack-pkg"
           echo "SPACK_ROOT=$SPACK_ROOT"
@@ -68,8 +60,6 @@ runs:
       shell: sh
       env:
         CXXSTD: ${{inputs.cxxstd}}
-        CELER_SPACK_UBUNTU_VERSION: ${{inputs.ubuntu-version}}
-        CELER_SPACK_TOOLCHAIN: ${{inputs.toolchain}}
       # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
