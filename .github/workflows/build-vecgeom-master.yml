@@ -9,8 +9,20 @@
 
 name: build-vecgeom-master
 on:
-  workflow_dispatch: {}
-  workflow_call: {}
+  workflow_dispatch:
+    inputs:
+      vecgeom-sha:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
+  workflow_call:
+    inputs:
+      vecgeom-sha:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
 
 permissions:
   contents: read
@@ -41,18 +53,18 @@ jobs:
         with:
           fetch-tags: true
 
-      - name: Show compiler versions
-        run: |
-          "$CC" --version
-          "$CXX" --version
-
-      - name: Resolve VecGeom master
+      - name: Select VecGeom revision
         id: vecgeom
+        env:
+          VECGEOM_SHA: ${{inputs.vecgeom-sha}}
         run: |
-          vecgeom_sha=$(git ls-remote --exit-code \
-            https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
+          vecgeom_sha="$VECGEOM_SHA"
+          if [[ "$vecgeom_sha" == "latest" ]]; then
+            vecgeom_sha=$(git ls-remote --exit-code \
+              https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
+          fi
           if [[ ! "$vecgeom_sha" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::Failed to resolve VecGeom master to a commit"
+            echo "::error::VecGeom revision must resolve to a full commit SHA"
             exit 1
           fi
           echo "sha=$vecgeom_sha" >> "$GITHUB_OUTPUT"
@@ -78,12 +90,13 @@ jobs:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
 
-      - name: Build all
+      - name: Build VecGeom tests
         id: build
         uses: ./.github/actions/build-cached
         with:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
+          targets: geocel_vg_Vecgeom
           ccache-max-size: 512Mi
 
       - name: Run VecGeom tests
@@ -113,6 +126,6 @@ jobs:
             build/Testing/Temporary/LastTest.log
             test-output/
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 1
 
 # vim: set nowrap tw=100:

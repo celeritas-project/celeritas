@@ -69,7 +69,7 @@ runs:
       run: |
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if [ "${{inputs.push-buildcache}}" = "false" ]; then
+        if ! "${{inputs.push-buildcache}}"; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
@@ -146,9 +146,15 @@ runs:
       run: |
         dependent_env="$GITHUB_WORKSPACE/spack-dependent"
         dependent_view="${CELER_SPACK_VIEW}-dependent"
-        sh "$GITHUB_WORKSPACE/scripts/ci/setup-spack-dependent-env.sh" \
-          "$CELER_SPACK_ENV" "$dependent_env" "$dependent_view" \
-          ${{inputs.add-dependent}}
+        spack env create -d "$dependent_env" "$CELER_SPACK_ENV/spack.yaml" \
+          --with-view "$dependent_view"
+        spack -e "$dependent_env" config add "include:$CELER_SPACK_ENV/spack.lock"
+        # Only new packages belong in the abstract spec list: the core lockfile
+        # already supplies the exact specs for the included roots.
+        spack -e "$dependent_env" remove --all
+        spack -e "$dependent_env" config add "concretizer:unify:true"
+        spack -e "$dependent_env" config add "config:install_tree:padded_length:False"
+        spack -e "$dependent_env" add ${{inputs.add-dependent}}
         spack -e "$dependent_env" config get --json > "$dependent_env/spack.config.json"
         spack -e "$dependent_env" concretize
         spack -e "$dependent_env" install -p 8 --use-buildcache=auto
