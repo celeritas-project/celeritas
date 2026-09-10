@@ -2,44 +2,54 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0 , 9 Aug 2025
     hooks:
-    - id: check-added-large-files
-      args: ['--maxkb=100']
-      exclude: "example/larceler/dune10kt-addopdet.patch"
-    - id: check-case-conflict
-    - id: check-merge-conflict
-    - id: check-shebang-scripts-are-executable
-    - id: end-of-file-fixer
-      exclude: '\.(diff|patch)$'
-    - id: trailing-whitespace
-      exclude: '\.(diff|patch)$'
-    # Type-specific checks
-    - id: check-json
-    - id: check-yaml
+      - id: check-added-large-files
+        args: ["--maxkb=100"]
+        exclude: "example/larceler/dune10kt-addopdet.patch"
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: end-of-file-fixer
+        exclude: '\.(diff|patch)$'
+      - id: trailing-whitespace
+        exclude: '\.(diff|patch)$'
+      # Type-specific checks
+      - id: check-json
+      - id: check-yaml
 
   # Type-specific character fixes and formatting
   - repo: https://github.com/sethrj/fix-non-ascii
     rev: v1.0.0 # 18 May 2026 (immutable)
     hooks:
-    - id: fix-non-ascii
-      files: '\.(cc|hh|cu|cmake)$|CMakeLists\.txt$'
+      - id: fix-non-ascii
+        files: '\.(cc|hh|cu|cmake)$|CMakeLists\.txt$'
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: dd18dad857d6133e90bbe478f4f2f22ec0030269 # v22.1.5, 18 May 2026
     hooks:
-    - id: clang-format
-      types_or: [file]
-      files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
+      - id: clang-format
+        types_or: [file]
+        files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.13 # 14 May 2026 (immutable)
     hooks:
-    - id: ruff-format
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: prettier
+        args: [--write]
+        language: node
+        types_or: [yaml, json, css]
+        additional_dependencies:
+          - prettier@3.9.6
 
   # Spell checking
   - repo: https://github.com/codespell-project/codespell
     rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a # v2.4.2, 5 Mar 2026
     hooks:
-    - id: codespell
-      exclude: '\.(diff|patch|jsonl)$'
+      - id: codespell
+        exclude: '\.(diff|patch|jsonl)$'
 
   # TODO: licensing
   # see https://github.com/celeritas-project/celeritas/issues/1763

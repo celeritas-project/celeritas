@@ -1,0 +1,61 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# This file is copied into the top-level directory of Celeritas during
+# individual CI build jobs. It's then modified to add packages to the
+# environment in `.github/actions/setup-spack/action.yml`.
+#-----------------------------------------------------------------------------#
+
+mirrors:
+  celeritas:
+    url: oci://ghcr.io/celeritas-project/spack-buildcache
+    binary: true
+    signed: false
+    autopush: false
+    access_pair:
+      id_variable: GITHUB_USER
+      secret_variable: GITHUB_TOKEN
+
+  # TODO: delete
+  sethrj:
+    url: oci://ghcr.io/sethrj/spack-buildcache
+    binary: true
+    signed: false
+    autopush: false
+    access_pair:
+      id_variable: GITHUB_USER
+      secret_variable: GITHUB_TOKEN
+
+config:
+  deprecated: True # needed for old vecgeom rc7
+  install_tree:
+    # NOTE: use padded_length when pushing to buildcache, but it can be
+    # avoided when installing as part of CI
+    padded_length: 128
+    projections:
+      all: "{name}/{version}/{hash:7}"
+
+concretizer:
+  unify: true
+  targets:
+    granularity: generic
+    host_compatible: true
+
+packages:
+  geant4:
+    variants:
+      - generator=ninja
+  # TODO: use ninja with g4vg: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND
+  covfie:
+    variants:
+      - generator=ninja
+  root:
+    variants:
+      - generator=ninja
+  vecgeom:
+    variants:
+      - generator=ninja
+  python:
+    version:
+      - "3.14" # spack installation July 2026

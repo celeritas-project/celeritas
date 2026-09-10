@@ -11,6 +11,7 @@
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -203,8 +204,12 @@ void ExtendFromPrimariesAction::process_primaries(
 {
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute{
-        params.ptr<MemSpace::native>(), state.ptr(), primaries, pstate.count};
-    return launch_action(*this, primaries.size(), params, state, execute);
+        params.ptr<MemSpace::native>(), state.ptr(), primaries};
+    if (!primaries.empty())
+    {
+        auto num_threads = max<size_type>(primaries.size(), state.size());
+        return launch_action(*this, num_threads, params, state, execute);
+    }
 }
 
 //---------------------------------------------------------------------------//

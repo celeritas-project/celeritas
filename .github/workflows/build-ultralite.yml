@@ -7,196 +7,82 @@
 
 name: build-ultralite
 on:
-  workflow_dispatch:
-  workflow_call:
+  workflow_dispatch: {}
+  workflow_call: {}
 
 concurrency:
-  group: build-ultralite-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
+  group: build-ultralite-${{github.event.number || github.ref_name}}
   cancel-in-progress: true
 
+env:
+  CELER_CMAKE_PRESET: ultralite
+  CXXSTD: 17
+  CELER_VERSION_STRING: >-
+    ${{
+      github.event.pull_request
+      && format('-pr.{0}', github.event.pull_request.number)
+      || format('-{0}', github.ref_name)
+    }}
+
 jobs:
-  linux:
-    name: ultralite-ubuntu
-    env:
-      CCACHE_DIR: "${{github.workspace}}/.ccache"
-      CCACHE_MAXSIZE: "100Mi"
-      CMAKE_PRESET: ultralite
-    runs-on: ubuntu-24.04
+  ultralite:
+    name: ultralite-${{matrix.platform}}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu
+          - platform: windows
+    runs-on: >-
+      ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
+        || matrix.platform == 'windows' && 'windows-2025'
+      }}
     steps:
       - name: Check out Celeritas
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
-      ### ENVIRONMENT ###
-
-      - name: Install dependencies
+      - name: Install dependencies (Ubuntu)
+        if: ${{matrix.platform == 'ubuntu'}}
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
             ccache nlohmann-json3-dev libpng-dev
-
-      ### CONFIGURE ###
-
-      - name: Configure Celeritas
-        run: |
-          ln -fs scripts/cmake-presets/ci-ubuntu-github.json CMakeUserPresets.json
-          cmake --version
-          cmake --preset=${CMAKE_PRESET} --log-level=VERBOSE \
-            -DCeleritas_VERSION_STRING="${{github.event.pull_request
-              && format('pr.{0}', github.event.pull_request.number)
-              || github.ref_name}}"
-
-      ### BUILD ###
-
-      - name: Cache ccache
-        uses: actions/cache@v5
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-ubuntu-${{github.run_id}}
-          restore-keys: |
-            ccache-ultralite-ubuntu
-      - name: Zero ccache stats
-        run: |
-          ccache -z
-      - name: Build
-        id: build
-        working-directory: build
-        run: |
-          ninja
-      - name: Show ccache stats
-        if: ${{always() && !cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v5
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-ubuntu-${{github.run_id}}
-      - name: Upload ccache debug
-        if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v7
-        with:
-          path: ${{env.CCACHE_DEBUGDIR}}
-          name: debug-ccache-ubuntu-${{github.job}}
-          overwrite: true
-          retention-days: 7
-
-      ### TEST ###
-
-      - name: Run tests
-        id: test
-        run: |
-          ctest --preset=${CMAKE_PRESET}
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: >-
-          ${{
-            always()
-            && (steps.test.outcome == 'success'
-                || steps.test.outcome == 'failure')
-          }}
-        with:
-          name: test-results-ultralite-ubuntu
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
-
-      ### INSTALL ###
-
-      - name: Install
-        working-directory: build
-        run: |
-          ninja install
-      - name: Check installation
-        working-directory: install
-        run: |
-          ./bin/celer-sim --version
-          ./bin/celer-sim --config
-  windows:
-    name: ultralite-windows
-    env:
-      CCACHE_DIR: "${{github.workspace}}\\.ccache"
-      CCACHE_MAXSIZE: "50Mi"
-      CMAKE_PRESET: ultralite
-    runs-on: windows-latest
-    steps:
-      - name: Check out Celeritas
-        uses: actions/checkout@v6
-
-      ### ENVIRONMENT ###
-
-      - name: Install dependencies
+      - name: Install dependencies (Windows)
+        if: ${{matrix.platform == 'windows'}}
         run: |
           choco install ninja ccache
       - name: Set up MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      ### CONFIGURE ###
-
-      - name: Configure Celeritas
-        shell: pwsh
-        run: |
-          Copy-Item scripts/cmake-presets/ci-windows-github.json -Destination CMakeUserPresets.json
-          cmake --version
-          cmake --preset=$Env:CMAKE_PRESET --log-level=VERBOSE `
-            -DCeleritas_VERSION_STRING="${{
-              github.event.pull_request
-              && format('-pr.{0}', github.event.pull_request.number)
-              || format('-{0}', github.ref_name)
-            }}"
-
-      ### BUILD ###
-
-      - name: Restore ccache
-        uses: actions/cache/restore@v5
+        if: ${{matrix.platform == 'windows'}}
+        uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0, 22 July 2026
         with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-windows-${{github.run_id}}
-          restore-keys: |
-            ccache-ultralite-windows
-      - name: Zero ccache stats
-        run: |
-          ccache -z
-      - name: Build all
-        run: |
-          cmake --build --preset=$Env:CMAKE_PRESET
-      - name: Show ccache stats
-        if: ${{always() && !cancelled()}}
-        run: |
-          ccache -s
-      - name: Save ccache
-        if: ${{always() && steps.build.outcome == 'success'}}
-        uses: actions/cache/save@v5
-        with:
-          path: ${{env.CCACHE_DIR}}
-          key: ccache-ultralite-windows-${{github.run_id}}
-      - name: Upload ccache debug
-        if: ${{env.CCACHE_DEBUG && !cancelled()}}
-        uses: actions/upload-artifact@v7
-        with:
-          path: ${{env.CCACHE_DEBUGDIR}}
-          name: debug-ccache-windows-${{github.run_id}}
-          overwrite: true
-          retention-days: 7
+          arch: x64
 
-      ### TEST ###
+      - name: Configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-${{matrix.platform}}-github.json
+          version-string: ${{env.CELER_VERSION_STRING}}
 
-      - name: Test all
+      - name: Build
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: ultralite-${{matrix.platform}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          ccache-max-size: 128Mi
+          ccache-debug: ${{matrix.platform == 'ubuntu' && '1' || '0'}}
+
+      - name: Test
         id: test
-        run: |
-          ctest --preset=$Env:CMAKE_PRESET
-      - name: Upload test results
-        uses: actions/upload-artifact@v7
-        if: >-
-          ${{
-            always()
-            && (steps.test.outcome == 'success'
-                || steps.test.outcome == 'failure')
-          }}
+        uses: ./.github/actions/run-ctest
         with:
-          name: test-results-ultralite-windows
-          path: "test-output/**/*.xml"
-          if-no-files-found: error
-          retention-days: 1
+          name: ultralite-${{matrix.platform}}
+          preset: ${{env.CELER_CMAKE_PRESET}}
+
+      - name: Install
+        uses: ./.github/actions/install-and-check
+        with:
+          clean-build: "false"
 
 # vim: set nowrap tw=100:

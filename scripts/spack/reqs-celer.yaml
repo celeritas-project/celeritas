@@ -11,8 +11,6 @@ packages:
   dd4hep:
     require:
       - "@1.33:"
-    variants:
-      - ~utilityapps ~ddeve
   g4vg:
     require: "@1.0.3:"
   geant4:
@@ -21,16 +19,8 @@ packages:
       - "11.3"
   googletest:
     require: "@1.10:"
-  llvm: # for lldb-dap compatibility
-    variants:
-      - +python
-    version:
-      - "20:"
   nlohmann-json:
     require: "@3.7.0:"
-  openmpi:
-    variants:
-      - ~fortran
   py-identify: # needed by py-pre-commit
     require: "@2.6:"
   python:
@@ -38,10 +28,6 @@ packages:
   root:
     require:
       - "@6.28:"
-    variants:
-      # These are "default starting values", not required
-      # using it rather than `prefer` prevents `all:prefer:` from being overwritten
-      - ~aqua ~davix ~examples ~opengl ~x ~tbb ~webgui +root7
   vecgeom:
     require:
       - "@1.2.10:"
