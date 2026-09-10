@@ -71,6 +71,7 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     CELER_EXPECT(status.size() == init.vacancies.size());
 
     ScopedProfiling profile_this{"copy-if-vacant"};
+    auto& stream = device().stream(stream_id);
     auto start = thrust::make_transform_iterator(
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto result = device_pointer_cast(init.vacancies.data());
@@ -94,7 +95,6 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
     stream.sync();
     return;
 #else
-    auto& stream = device().stream(stream_id);
 #    if CELER_CUB_HAS_FLAGGEDIF
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel

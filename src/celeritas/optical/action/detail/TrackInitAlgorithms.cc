@@ -15,8 +15,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Compact the \c TrackSlotIds of the inactive tracks.
- *
- * \return Number of vacant track slots
  */
 void copy_if_vacant(TrackStatusRef<MemSpace::host> const& status,
                     TrackInitRef<MemSpace::host> const& init,

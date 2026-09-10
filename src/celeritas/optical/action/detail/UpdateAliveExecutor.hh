@@ -46,9 +46,9 @@ CELER_FORCEINLINE_FUNCTION void UpdateAliveExecutor::operator()(
     CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
+    CELER_EXPECT(state_size >= track.counters().num_vacancies);
 
     track.counters().num_alive = state_size - track.counters().num_vacancies;
-    CELER_ASSERT(state_size >= track.counters().num_vacancies);
 }
 
 //---------------------------------------------------------------------------//
