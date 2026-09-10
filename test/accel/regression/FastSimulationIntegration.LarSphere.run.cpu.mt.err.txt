@@ -1,7 +1,7 @@
 test/accel/FastSimulationIntegration --gtest_filter=LarSphere.run
 Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
-PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
 PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
 status: Creating run manager
 ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
 info: Created run manager type G4MTRunManager
@@ -17,6 +17,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 1)
 [M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
 [M] status@FastSimulationIntegration.test.cc: Run initialization
+[M!] debug@DetectorConstruction.cc: Loading detector geometry
 [M] info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at lar-sphere.gdml
 [M] debug@ScopedProfiling.cc: Disabling unavailable performance profiling
 [M] debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
