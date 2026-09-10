@@ -1,0 +1,184 @@
+test/accel/FastSimulationIntegration --gtest_filter=TestEm3.run
+Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
+PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'testem3'
+status: Creating run manager
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+info: Created run manager type G4RunManager
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 0)
+status: Setting run manager initialization
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+IntegrationTestBase.cc: debug: Creating default EM-only physics list
+SupportedEmStandardPhysics.cc: debug: Setting EM parameters
+SupportedEmStandardPhysics.cc: debug: Constructing default EM particles: gamma, e+, e-
+SupportedEmStandardPhysics.cc: debug: Constructing: proton
+IntegrationTestBase.cc: debug: ActionInitialization::Build
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 1)
+PrimaryGenerator.cc: debug: Created primary generator with 2 events and 1 primaries per event
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 1)
+debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+status@FastSimulationIntegration.test.cc: Run initialization
+debug@DetectorConstruction.cc: Loading detector geometry
+info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at testem3.gdml
+debug@ScopedProfiling.cc: Disabling unavailable performance profiling
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+debug@DetectorConstruction.cc: Found 1 detectors
+debug@GeantGeoParams.cc: GeantGeoParams constructed with a non-navigation world: given 'world_PV'@0x0000; navigation world is unset
+debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+debug@DetectorConstruction.cc: Constructing sensitive detectors
+info@DetectorConstruction.cc: Constructed SensDet='lAr' and attached to 1 volumes
+debug@DetectorConstruction.cc: Attached 'lAr' to 'lar'
+debug@SupportedEmStandardPhysics.cc: Constructing processes
+debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+status@FastSimulationIntegration.test.cc: Beam on (first run)
+debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.1 to 1000 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.1 to 1000 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+debug@IntegrationSingleton.cc: Initializing shared params
+info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
+debug@System.cc: Celeritas environment variables: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+}
+status@GeantImporter.cc: Transferring data from Geant4
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug@GeantImporter.cc: Loaded 3 particles
+warning@GeantImporter.cc: Optical materials were requested but none are present
+debug@GeantImporter.cc: Loaded 11 isotopes
+debug@GeantImporter.cc: Loaded 4 elements
+debug@GeantImporter.cc: Loaded 3 geo materials
+debug@GeantImporter.cc: Loaded 4 physics materials
+debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
+debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
+debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e+ (-11)
+debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e+ (-11)
+debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e- (11)
+debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e- (11)
+debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e- (11)
+debug@GeantProcessImporter.cc: Loading process 'compt' for particle gamma (22)
+debug@GeantProcessImporter.cc: Loading process 'phot' for particle gamma (22)
+debug@GeantProcessImporter.cc: Loading process 'Rayl' for particle gamma (22)
+debug@GeantProcessImporter.cc: Loading process 'conv' for particle gamma (22)
+debug@GeantImporter.cc: Loaded 9 EM processes
+debug@GeantImporter.cc: Loaded 2 MSC models
+debug@GeantImporter.cc: Loaded 5 of 5 volumes
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+debug@GeantGeoParams.cc: Loaded 1 detectors in a total of 1 logical volumes
+debug@GeantGeoParams.cc: Loaded 2 regions out of 3 Geant4 regions and created 0 new regions
+debug@SetupOptions.cc: No magnetic field
+status@Problem.cc: Initializing problem
+status@PhysicalVolumeConverter.cc: Converting Geant4 geometry elements to ORANGE input
+status@InputBuilder.cc: Constructing ORANGE surfaces and runtime data
+debug@UnitProto.cc: Building 'layer': 0 daughters and 3 materials...
+debug@UnitProto.cc: - Merged 'Absorber1@px','Absorber2@mx' into 'Absorber2'
+debug@UnitProto.cc: - Logic simplification hard-coded 16 nodes of 20 CSG nodes
+debug@UnitProto.cc: - Eliminated 6 of 7 surfaces
+debug@UnitProto.cc: Building 'world': 50 daughters and 2 materials...
+debug@UnitProto.cc: - Logic simplification hard-coded 2 nodes and pruned 3 unused nodes of 176 CSG nodes
+debug@UnitProto.cc: - Eliminated 0 of 61 surfaces
+debug@OrangeParams.cc: Merging runtime data
+debug@OrangeParams.cc: Allocating labels for 2 universes with 57 impl volumes and 62 impl surfaces
+debug@Model.cc: No surfaces are defined
+warning@Problem.cc: Geometry contains surfaces that are incompatible with the current ORANGE simple safety algorithm: multiple scattering may result in arbitrarily small steps without displacement
+debug@GeoMaterialParams.cc: Building geometry->physics map using VolumeParams (5 volumes) and import data (5 volumes)
+debug@GeoMaterialParams.cc: Filling geometry->physics map using canonical volumes
+status@CoreParams.cc: Celeritas core setup complete
+debug@SensDetInserter.cc: Mapped sensitive detector "lAr" on logical volume "lar"@0x0000 (ID=1) to volume ID 1
+debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+debug@SharedParams.cc: Setting number of streams to 1
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "em3-run-cpu-serial.out.json"
+debug@IntegrationSingleton.cc: Constructing local state
+debug@HitProcessor.cc: Setting up thread-local hit processor for 1 sensitive detectors
+debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 1024
+status@CoreState.cc: Celeritas core state initialization complete
+debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
+debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 0
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+status@LocalTransporter.cc: Executing the first Celeritas stepping loop
+debug@LocalTransporter.cc: Reconstituted 70 hits for event 0
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 1
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@LocalTransporter.cc: Reconstituted 58 hits for event 1
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+debug@IntegrationSingleton.cc: Destroying local state
+info@LocalTransporter.cc: Finalizing Celeritas after 1345 steps from 2 flushes with 2 offloaded tracks over 2 events, generating 128 hits
+debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+status@IntegrationSingleton.cc: Finalizing Celeritas
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "em3-run-cpu-serial.out.json"
+debug@SharedParams.cc: Resetting shared parameters
+debug@CoreState.cc: Deallocating host core state (stream 0)
+debug@PersistentSP.hh: Clearing persistent run manager 'testem3'
+debug@IntegrationTestBase.cc: Tearing down action initialization
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+  CELER_DISABLE_SIGNALS: '0',
+}

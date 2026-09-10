@@ -1,0 +1,32 @@
+test/accel/TrackingManagerIntegration --gtest_filter=TestEm3Rayleigh.run_small_capacity
+Celeritas version [suppressed]
+Note: Google Test filter = TestEm3Rayleigh.run_small_capacity
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TestEm3Rayleigh
+[ RUN      ] TestEm3Rayleigh.run_small_capacity
+Environment variable "G4RUN_MANAGER_TYPE" enabled with value == Serial. Overriding G4RunManager type...
+
+**************************************************************
+ Geant4 version [suppressed] geant4-11-03-patch-02 [MT]   (25-April-2025)
+                       Copyright : Geant4 Collaboration
+                      References : NIM A 506 (2003), 250-303
+                                 : IEEE-TNS 53 (2006), 270-278
+                                 : NIM A 835 (2016), 186-225
+                             WWW : http:geant4.org
+**************************************************************
+
+G4GDML: Reading testem3.gdml'...
+G4GDML: Reading materials...
+G4GDML: Reading solids...
+G4GDML: Reading structure...
+G4GDML: Reading userinfo...
+G4GDML: Reading setup...
+G4GDML: Reading testem3.gdml' done!
+[       OK ] TestEm3Rayleigh.run_small_capacity (time suppressed)
+[----------] 1 test from TestEm3Rayleigh (time suppressed)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (time suppressed)
+[  PASSED  ] 1 test.
+TrackingManagerIntegration: tests PASSED
