@@ -1,0 +1,64 @@
+toolchains:
+  ubuntu_clang:
+    - spec: "%c=llvm@18"
+      when: "%c"
+    - spec: "%cxx=llvm@18"
+      when: "%cxx"
+    - spec: "%fortran=gcc@13"
+      when: "%fortran"
+
+packages:
+  all:
+    target: [x86_64_v3]
+    require:
+      - "target=x86_64_v3"
+      - "%ubuntu_clang"
+  bash:
+    buildable: false
+    externals:
+      - spec: bash@5.2.21
+        prefix: /usr
+  gcc:
+    buildable: false
+    externals:
+      - spec: gcc@13.3.0 languages:='c,c++,fortran'
+        prefix: /usr
+        extra_attributes:
+          compilers:
+            c: /usr/bin/gcc-13
+            cxx: /usr/bin/g++-13
+            fortran: /usr/bin/gfortran-13
+  llvm:
+    externals:
+      - spec: llvm@18.1.3+clang~flang~lld~lldb
+        prefix: /usr
+        extra_attributes:
+          compilers:
+            c: /usr/bin/clang-18
+            cxx: /usr/bin/clang++-18
+    buildable: false
+  m4:
+    externals:
+      - spec: m4@1.4.19
+        prefix: /usr
+    buildable: false
+  perl:
+    externals:
+      - spec: perl@5.38.2~cpanm+opcode+open+shared+threads
+        prefix: /usr
+    buildable: false
+  autoconf:
+    externals:
+      - spec: autoconf@2.71
+        prefix: /usr
+    buildable: false
+  git:
+    externals:
+      - spec: git@2.43.0~tcltk
+        prefix: /usr
+    buildable: false
+  gmake:
+    externals:
+      - spec: gmake@4.3
+        prefix: /usr
+    buildable: false

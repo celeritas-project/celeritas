@@ -1,0 +1,80 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build and upload documentation
+#-----------------------------------------------------------------------------#
+
+name: build-docs
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+# NOTE: cancel in progress only if it's a PR
+concurrency:
+  group: build-docs-${{github.event_name}}-${{github.event_name == 'pull_request' && github.event.number || github.ref_name}}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+env:
+  # Turn warnings into errors only for PRs, and disable expensive graphs for PRs also
+  CELER_CMAKE_PRESET: ${{ format('doc-{0}', github.event_name == 'pull_request' && 'check' || 'publish') }}
+
+jobs:
+  docs:
+    name: ${{matrix.target}}
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        target: ["user", "dev"]
+    env:
+      CELER_TARGET: ${{ matrix.target == 'dev' && 'doxygen' || 'doc' }}
+      CELER_UPLOAD_DIR: ${{ matrix.target == 'dev' && 'build/doc/doxygen-html' || 'build/doc/html' }}
+      CELER_RETENTION_DAYS: ${{ matrix.target == 'dev' && '1' || '7' }}
+      CELER_DOC_NAME: doc-${{ matrix.target }}
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+      - name: Install dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install \
+              cmake graphviz ninja-build doxygen nlohmann-json3-dev
+      - name: Setup Python
+        if: ${{ matrix.target == 'user' }}
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Install Python packages
+        if: ${{ matrix.target == 'user' }}
+        run: |
+          pip install --upgrade pip
+          pip install -r scripts/ci/doc-requirements.txt
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+
+      - name: Build documentation
+        run: |
+          cmake --build --preset=doc --target ${CELER_TARGET}
+          find ${CELER_UPLOAD_DIR} -name '*.md5' -exec rm {} +
+
+      - name: Upload artifacts
+        if: >-
+          ${{
+             github.event_name != 'pull_request'
+             || contains(github.event.pull_request.labels.*.name, 'documentation')
+          }}
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{env.CELER_UPLOAD_DIR}}
+          name: ${{env.CELER_DOC_NAME}}
+          if-no-files-found: error
+          overwrite: true
+          retention-days: ${{env.CELER_RETENTION_DAYS}}
+
+# vim: set nowrap tw=100:

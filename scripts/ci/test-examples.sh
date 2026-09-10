@@ -16,10 +16,10 @@ if [ -z "${CMAKE_PRESET}" ]; then
 fi
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
-test -d "${CELER_INSTALL_DIR}" || (
+test -d "${CELER_INSTALL_DIR}" || {
   echo "CELER_INSTALL_DIR=${CELER_INSTALL_DIR} is not a directory"
   exit 1
-)
+}
 
 build_local() {
   git clean -fxd .
