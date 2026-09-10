@@ -47,6 +47,10 @@ std::string to_string(OutputInterface const& output)
 //---------------------------------------------------------------------------//
 /*!
  * Stream the JSON representation of a single output.
+ *
+ * This uses the underlying nljson output routine, so you can use
+ * \c std::setw to enable pretty-printing. The default is to print to
+ * a single line.
  */
 std::ostream& operator<<(std::ostream& os, OutputInterface const& output)
 {

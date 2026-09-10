@@ -34,7 +34,7 @@ class LarStandaloneRunnerTestBase : public ::celeritas::test::Test
     using VecReal3 = std::vector<Real3>;
 
     //! Construct input
-    virtual Input make_input() const = 0;
+    virtual Input make_input() = 0;
 
     //! Map of larsoft detector ID to actual
     virtual VecReal3 make_detector_point_map() const = 0;
@@ -71,13 +71,14 @@ void LarStandaloneRunnerTestBase::SetUp()
 class DuneCryoTest : public LarStandaloneRunnerTestBase
 {
     //! Construct input
-    Input make_input() const override;
+    Input make_input() override;
     VecReal3 make_detector_point_map() const override;
 };
 
-auto DuneCryoTest::make_input() const -> Input
+auto DuneCryoTest::make_input() -> Input
 {
     Input result;
+    result.problem.output_file = this->make_unique_filename("out.jsonl");
     result.problem.model.geometry
         = this->test_data_path("geocel", "dune-cryostat.gdml");
     result.detectors = {"PhotonDetector"};
@@ -141,6 +142,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     RunResult ref;
     ref.num_hits = {273, 269, 15, 4};
     EXPECT_REF_EQ(ref, result);
+
+    auto const& sim_channel = raw_result.sim_photons.at(3);
+    EXPECT_EQ(3, sim_channel.OpChannel);
+    EXPECT_GT(sim_channel.DetectedPhotons.size(), 0);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)

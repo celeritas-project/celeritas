@@ -311,7 +311,7 @@ int main(int argc, char* argv[])
     }
 
     // Save output
-    celeritas::FileOrStdout ostream{output_filename};
+    celeritas::FileOrStdout ostream{output_filename, std::ios::out};
     CELER_LOG(status) << "Saving output to " << ostream.filename();
     if (!output)
     {

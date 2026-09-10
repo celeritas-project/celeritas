@@ -104,7 +104,7 @@ std::string Test::make_unique_filename(std::string_view ext)
     std::ostringstream os;
     os << case_name << '-' << test_name;
 
-    if (filename_counter_)
+    if (filename_counter_ > 0)
     {
         os << '-' << filename_counter_;
     }

@@ -15,6 +15,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/FileOrConsole.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
@@ -32,6 +33,83 @@
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Open a persistent file to write with `output`.
+ *
+ * This signature defaults to overwriting a file \em or streaming to stdout.
+ */
+void OutputRegistry::open(std::string s)
+{
+    auto m = (s == "-" ? OpenMode::app : OpenMode::trunc);
+    return this->open(std::move(s), m);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Open a persistent file to write with `output`.
+ *
+ * \note This class is not MPI-aware, so \c only open on the main process.
+ */
+void OutputRegistry::open(std::string s, OpenMode om)
+{
+    CELER_VALIDATE(!s.empty(),
+                   << "cannot open an empty filename for writing output");
+    this->close();
+    FileOrStdout::Mode m = [&] {
+        switch (om)
+        {
+            case OpenMode::app:
+                return std::ios::app;
+            case OpenMode::trunc:
+                return std::ios::trunc;
+            default:
+                CELER_ASSERT_UNREACHABLE();
+        }
+    }();
+    outf_.reset(new FileOrStdout{std::move(s), m});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get persistent output filename (debug error if not open).
+ */
+std::string const& OutputRegistry::output_filename() const
+{
+    CELER_EXPECT(this->is_open());
+    return outf_->filename();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to the persistent filename.
+ */
+void OutputRegistry::output() const
+{
+    if (!this->is_open())
+    {
+        CELER_LOG(debug) << "No output filename provided: suppressing "
+                         << interfaces_.size() << " entries";
+        return;
+    }
+
+    // Save a line of output, then add a newline and flush.
+    CELER_LOG(info) << "Appending " << interfaces_.size()
+                    << " output entries to " << outf_->filename();
+    *outf_ << *this << std::endl;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Output all classes to a JSON object that's written to the given stream.
+ */
+void OutputRegistry::output(std::ostream* os) const
+{
+    JsonPimpl json_wrap;
+    this->output(&json_wrap);
+    *os << json_wrap.obj.dump();
+}
+
 //---------------------------------------------------------------------------//
 /*!
  * Add an interface for writing.
@@ -94,17 +172,6 @@ void OutputRegistry::output(JsonPimpl* j) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Output all classes to a JSON object that's written to the given stream.
- */
-void OutputRegistry::output(std::ostream* os) const
-{
-    JsonPimpl json_wrap;
-    this->output(&json_wrap);
-    *os << json_wrap.obj.dump();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Whether no output has been registered.
  */
 bool OutputRegistry::empty() const
@@ -112,6 +179,29 @@ bool OutputRegistry::empty() const
     return std::all_of(interfaces_.begin(),
                        interfaces_.end(),
                        [](auto const& m) { return m.empty(); });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear output interfaces.
+ *
+ * This is useful when printing to a persistent file in JSONL format: the first
+ * write includes all the problem setup metadata, and subsequent writes can
+ * just include the results (which are presumably added by whoever calls
+ * "clear" after).
+ */
+void OutputRegistry::clear()
+{
+    for (auto& i : interfaces_)
+    {
+        i.clear();
+    }
+}
+
+//! PIMPL deleter for FileOrStdout
+void OutputRegistry::FOSDeleter::operator()(FileOrStdout* p) const
+{
+    delete p;
 }
 
 //---------------------------------------------------------------------------//
