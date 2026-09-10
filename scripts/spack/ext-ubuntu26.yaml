@@ -1,12 +1,12 @@
 toolchains:
-  ubuntu_clang:
+  clang_toolchain:
     - spec: "%c=llvm@22"
       when: "%c"
     - spec: "%cxx=llvm@22"
       when: "%cxx"
     - spec: "%fortran=gcc@15"
       when: "%fortran"
-  ubuntu_gcc:
+  gcc_toolchain:
     - spec: "%c=gcc@15"
       when: "%c"
     - spec: "%cxx=gcc@15"

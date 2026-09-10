@@ -3,14 +3,12 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 # Check compatibility with upstream VecGeom independently of required PR jobs.
-# Scheduled runs use the default Celeritas branch (develop); manual runs use the
-# selected ref. Follow the setup/build/test/artifact pattern of build-regression.
+# cron_daily schedules this on develop; manual runs use the selected ref.
+# Follow the setup/build/test/artifact pattern of build-regression.
 #-----------------------------------------------------------------------------#
 
 name: build-vecgeom-master
 on:
-  schedule:
-    - cron: "33 07 * * *" # Daily at 07:33 UTC
   workflow_dispatch: {}
   workflow_call: {}
 
@@ -23,7 +21,6 @@ concurrency:
 
 jobs:
   vecgeom-master:
-    if: ${{ github.event_name != 'schedule' || github.repository == 'celeritas-project/celeritas' }}
     name: vecgeom-master-${{matrix.compiler}}
     runs-on: ubuntu-26.04
     timeout-minutes: 120
@@ -34,11 +31,11 @@ jobs:
           - compiler: gcc15
             cc: gcc-15
             cxx: g++-15
-            toolchain: ubuntu_gcc
+            toolchain: gcc
           - compiler: clang22
             cc: clang-22
             cxx: clang++-22
-            toolchain: ubuntu_clang
+            toolchain: clang
     defaults:
       run:
         shell: bash

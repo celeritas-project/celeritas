@@ -40,6 +40,7 @@ jobs:
         with:
           add: vecgeom@1.2.11 geant4@11.3 g4vg root py-gcovr
           cxxstd: ${{env.CXXSTD}}
+          push-buildcache: ${{github.event_name != 'pull_request'}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:

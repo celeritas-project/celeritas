@@ -90,6 +90,7 @@ jobs:
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
+          push-buildcache: ${{github.event_name != 'pull_request'}}
           add: >-
             ${{(matrix.special != 'minimal'
                 && matrix.special != 'static'

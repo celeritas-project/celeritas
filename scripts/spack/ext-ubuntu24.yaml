@@ -1,5 +1,5 @@
 toolchains:
-  ubuntu_clang:
+  clang_toolchain:
     - spec: "%c=llvm@18"
       when: "%c"
     - spec: "%cxx=llvm@18"

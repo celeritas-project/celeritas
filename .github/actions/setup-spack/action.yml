@@ -20,9 +20,9 @@ inputs:
     required: false
     default: "24.04"
   toolchain:
-    description: "Spack toolchain from the selected Ubuntu external packages"
+    description: "Compiler family for the Spack toolchain (clang or gcc)"
     required: false
-    default: "ubuntu_clang"
+    default: "clang"
   add:
     description: "Space-separated list of additional spack packages to add"
     required: false
@@ -30,7 +30,7 @@ inputs:
   push-buildcache:
     description: "Publish installed dependencies to the shared buildcache"
     required: false
-    default: "true"
+    default: "false"
 
 runs:
   using: "composite"
@@ -74,7 +74,7 @@ runs:
       run: |
         "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if [ "${{github.event_name}}" = "pull_request" ]; then
+        if [ "${{inputs.push-buildcache}}" = "false" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
@@ -130,7 +130,7 @@ runs:
         spack -e . find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && github.event_name != 'pull_request' && fromJSON(inputs.push-buildcache) }}
+      if: ${{ !cancelled() && fromJSON(inputs.push-buildcache) }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
