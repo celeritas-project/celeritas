@@ -30,7 +30,7 @@ inputs:
     required: false
     default: "${{runner.temp}}/ccache-debug"
 outputs:
-  build-outcome:
+  outcome:
     description: "Outcome of the build step ('success', 'failure', 'cancelled', 'skipped')"
     value: ${{steps.build.outcome}}
 

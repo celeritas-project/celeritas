@@ -120,7 +120,7 @@ jobs:
           name: fast-${{env.CELER_JOB_NAME}}
 
       - name: Install
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         uses: ./.github/actions/install-and-check
 
   windows:
@@ -166,7 +166,7 @@ jobs:
           name: fast-${{env.CELER_JOB_NAME}}
 
       - name: Install
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         uses: ./.github/actions/install-and-check
 
 # vim: set nowrap tw=100:

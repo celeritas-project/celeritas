@@ -2,7 +2,7 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Build directly on the GitHub runner with caching
+# Build with a spack-based toolchain.
 #
 # NOTE: the 'tidy' and 'asan' special cases live in the `build-spack-extra.yml`
 # workflow (and `codecov` is in `build-codecov`), since their post-build steps
@@ -153,7 +153,7 @@ jobs:
               || (matrix.geant && fromJSON(matrix.geant) < 11) && '^accel/'
              }}
       - name: Test basic downstream compilation against build dir
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         env:
           CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
         run: |
@@ -163,7 +163,7 @@ jobs:
 
       - name: Install
         id: install
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
