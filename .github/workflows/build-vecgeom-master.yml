@@ -1,0 +1,109 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check compatibility with upstream VecGeom independently of required PR jobs.
+# Scheduled runs use the default Celeritas branch (develop); manual runs use the
+# selected ref. Follow the setup/build/test/artifact pattern of build-regression.
+#-----------------------------------------------------------------------------#
+
+name: build-vecgeom-master
+on:
+  schedule:
+    - cron: "33 07 * * *" # Daily at 07:33 UTC
+  workflow_dispatch: {}
+  workflow_call: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-vecgeom-master-${{github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  vecgeom-master:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'celeritas-project/celeritas' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    env:
+      CELER_CMAKE_PRESET: reldeb-vecgeom2
+      CELER_RUN_NAME: vecgeom-master-g4@11.3
+      CC: clang-18
+      CXX: clang++-18
+      CXXSTD: 20
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+
+      - name: Resolve VecGeom master
+        id: vecgeom
+        run: |
+          vecgeom_sha=$(git ls-remote --exit-code \
+            https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
+          if [[ ! "$vecgeom_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Failed to resolve VecGeom master to a commit"
+            exit 1
+          fi
+          echo "sha=$vecgeom_sha" >> "$GITHUB_OUTPUT"
+          printf 'Celeritas: %s\nVecGeom: %s\n' \
+            "$(git rev-parse HEAD)" "$vecgeom_sha" | tee revisions.txt
+          cat revisions.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up Spack environment
+        uses: ./.github/actions/setup-spack
+        with:
+          cxxstd: ${{env.CXXSTD}}
+          # The SHA changes spack.yaml and its lockfile cache key before restore.
+          add: >-
+            geant4@11.3 g4vg
+            vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
+          push-buildcache: "false"
+
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+
+      - name: Build all
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.sha}}
+          preset: spack
+          ccache-max-size: 512Mi
+
+      - name: Run VecGeom tests
+        id: test
+        env:
+          CELER_TEST_STRICT: 0
+        run: |
+          mkdir -p test-output/ctest
+          ctest --preset=spack-unit -R '^geocel/vg/Vecgeom:' \
+            --output-junit "$GITHUB_WORKSPACE/test-output/ctest/vecgeom-master.xml"
+
+      - name: Upload build and test diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.sha || 'unresolved'}}
+          path: |
+            revisions.txt
+            spack.yaml
+            spack.lock
+            spack.config.json
+            build/CMakeCache.txt
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/Testing/Temporary/LastTest.log
+            test-output/
+          if-no-files-found: warn
+          retention-days: 7
+
+# vim: set nowrap tw=100:

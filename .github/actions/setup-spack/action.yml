@@ -19,6 +19,10 @@ inputs:
     description: "Space-separated list of additional spack packages to add"
     required: false
     default: ""
+  push-buildcache:
+    description: "Publish installed dependencies to the shared buildcache"
+    required: false
+    default: "true"
 
 runs:
   using: "composite"
@@ -116,7 +120,7 @@ runs:
         spack -e . find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      if: ${{ !cancelled() && github.event_name != 'pull_request' && fromJSON(inputs.push-buildcache) }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
