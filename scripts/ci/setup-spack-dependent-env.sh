@@ -20,7 +20,8 @@ dependent_view=$3
 shift 3
 
 spack env create -d "$dependent_env" "$core_env/spack.yaml" \
-  --with-view "$dependent_view" --include-concrete "$core_env"
+  --with-view "$dependent_view"
+spack -e "$dependent_env" config add "include:$core_env/spack.lock"
 # The included roots already carry the exact core specs. Only the new packages
 # belong in this environment's abstract spec list.
 spack -e "$dependent_env" remove --all
