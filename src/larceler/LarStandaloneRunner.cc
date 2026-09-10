@@ -222,6 +222,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     {
         CELER_LOG(warning) << "No energy deposition resulted in photons: "
                               "skipping optical transport";
+        *diagnostics_ = {};
+        output_->output();
         return {};
     }
 

@@ -38,6 +38,10 @@ class FileOrStdin
 //---------------------------------------------------------------------------//
 /*!
  * Construct an output to a new file, or stdout if the filename is "-".
+ *
+ * \note This \em appends to the file by default to be consistent across
+ * console/file, compatible with NDJSON/JSONL-style record output.
+ * Construct with the \c std::ios::out mode to clobber an existing file.
  */
 class FileOrStdout
 {
@@ -85,6 +89,8 @@ FileOrStdin::FileOrStdin(std::string filename) : filename_{std::move(filename)}
 //---------------------------------------------------------------------------//
 /*!
  * Construct with filename in "append" mode.
+ *
+ * This gives consistent behavior between output files and the console.
  */
 FileOrStdout::FileOrStdout(std::string filename)
     : FileOrStdout{std::move(filename), std::ios::app | std::ios::out}
