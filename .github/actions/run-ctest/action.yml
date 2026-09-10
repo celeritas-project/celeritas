@@ -63,7 +63,7 @@ runs:
               && format('-R "{0}"', inputs.filter-unit) || ''}}
     - name: Run app tests
       id: app
-      if: ${{ !cancelled() && fromJSON(inputs.split-app) }}
+      if: ${{ !cancelled() && fromJSON(inputs.split-app) }} # run even if unit tests fail
       shell: bash
       run: ctest --preset=${{inputs.preset}}-app
     - name: Run all tests
