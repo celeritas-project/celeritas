@@ -8,6 +8,7 @@
 
 #include "celeritas/Constants.hh"
 #include "celeritas/Quantities.hh"
+#include "celeritas/grid/NonuniformGridCalculator.hh"
 #include "celeritas/optical/MaterialView.hh"
 
 namespace celeritas
@@ -18,8 +19,10 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Calculate the group velocity of an optical photon based on the refractive
- * index.
+ * Interpolate the optical-photon group velocity.
+ *
+ * Group velocity is precomputed from refractive-index data during optical
+ * material construction.
  */
 class GroupVelocityCalculator
 {
@@ -37,8 +40,7 @@ class GroupVelocityCalculator
     inline CELER_FUNCTION real_type operator()(Energy) const;
 
   private:
-    NonuniformGridCalculator r_index_calc_;
-    NonuniformGridCalculator r_index_deriv_calc_;
+    NonuniformGridCalculator group_velocity_calc_;
 };
 
 //---------------------------------------------------------------------------//
@@ -49,33 +51,19 @@ class GroupVelocityCalculator
  */
 CELER_FUNCTION GroupVelocityCalculator::GroupVelocityCalculator(
     MaterialView const& material)
-    : r_index_calc_(material.make_refractive_index_calculator())
-    , r_index_deriv_calc_(
-          material.make_refractive_index_derivative_calculator())
+    : group_velocity_calc_(material.make_group_velocity_calculator())
 {
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Calculate group velocity for the given energy.
+ * Interpolate the group velocity using the precomputed group-velocity grid.
  */
 CELER_FUNCTION real_type GroupVelocityCalculator::operator()(
     Energy energy) const
 {
-    // Clamp photon energy to the refractive-index grid endpoints
-    real_type const bounded_energy = clamp(value_as<Energy>(energy),
-                                           r_index_calc_.grid().front(),
-                                           r_index_calc_.grid().back());
-
-    real_type r_index = r_index_calc_((bounded_energy));
-    real_type r_index_deriv = r_index_deriv_calc_(bounded_energy);
-
-    real_type group_vel = constants::c_light
-                          / (r_index + bounded_energy * r_index_deriv);
-
-    CELER_ENSURE(group_vel > 0);
-    CELER_ENSURE(group_vel <= constants::c_light);
-
+    real_type const group_vel = group_velocity_calc_(value_as<Energy>(energy));
+    CELER_ENSURE(group_vel > 0 && group_vel <= constants::c_light);
     return group_vel;
 }
 

@@ -123,6 +123,8 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+
+  optical/GroupVelocityGridBuilder.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorDataIO.json.cc
