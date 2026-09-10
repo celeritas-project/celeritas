@@ -48,6 +48,4 @@ git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" \
       -clang-tidy-binary "$CLANG_TIDY" \
       -p 1 \
       -path "$BUILD_DIR" \
-      -extra-arg=-isysroot \
-      -extra-arg=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
       -regex '^(src|app|test)/.*\.(cc|hh)$'
