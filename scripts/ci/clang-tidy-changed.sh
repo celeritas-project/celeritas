@@ -46,5 +46,4 @@ git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" \
       -clang-tidy-binary "$CLANG_TIDY" \
       -p 1 \
       -path "$BUILD_DIR" \
-      -regex '^(src|app|test)/.*\.(cc|hh)$' \
-      -only-check-in-db
+      -regex '^(src|app|test)/.*\.(cc|hh)$'
