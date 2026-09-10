@@ -9,6 +9,7 @@
 #include <G4Threading.hh>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "accel/LocalTransporter.hh"
 
 #include "ExceptionConverter.hh"
@@ -19,6 +20,28 @@ using celeritas::detail::IntegrationSingleton;
 
 namespace celeritas
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+/*!
+ * Warn once when auto hooks make user run actions redundant.
+ */
+void warn_auto_hooks_skip()
+{
+    static bool warned{false};
+    if (!warned)
+    {
+        CELER_LOG(warning)
+            << "TrackingManagerIntegration auto hooks are active: remove "
+               "manual Celeritas BeginOfRunAction and EndOfRunAction calls "
+               "from user run actions";
+        warned = true;
+    }
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
 //---------------------------------------------------------------------------//
 //!@{
 //! \name User integration points
@@ -44,6 +67,14 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
 
+    // TrackingManagerIntegration can be driven by Geant4 StateDependent
+    // callbacks; avoid duplicating initialization from user run actions.
+    if (this->use_auto_hooks() && singleton.auto_hooks_active())
+    {
+        warn_auto_hooks_skip();
+        return;
+    }
+
     // Initialize shared params and local transporter
     bool enable_offload = singleton.initialize_offload();
 
@@ -61,6 +92,14 @@ void IntegrationBase::BeginOfRunAction(G4Run const*)
 void IntegrationBase::EndOfRunAction(G4Run const*)
 {
     auto& singleton = IntegrationSingleton::instance();
+
+    // TrackingManagerIntegration can be driven by Geant4 StateDependent
+    // callbacks; avoid duplicating finalization from user run actions.
+    if (this->use_auto_hooks() && singleton.auto_hooks_active())
+    {
+        warn_auto_hooks_skip();
+        return;
+    }
 
     singleton.finalize_offload();
 }
@@ -138,6 +177,15 @@ CoreStateInterface& IntegrationBase::GetState()
 IntegrationBase::IntegrationBase()
 {
     IntegrationSingleton::instance();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the concrete integration is driven by Geant4 state hooks.
+ */
+bool IntegrationBase::use_auto_hooks() const
+{
+    return false;
 }
 
 //---------------------------------------------------------------------------//

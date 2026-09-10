@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "TrackingManagerConstructor.hh"
 
+#include <memory>
 #include <G4BuilderType.hh>
 #include <G4Version.hh>
 
@@ -16,6 +17,7 @@
 
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "celeritas/g4/StateDependent.hh"
 
 #include "SharedParams.hh"
 #include "TrackingManagerIntegration.hh"
@@ -68,6 +70,7 @@ TrackingManagerConstructor::TrackingManagerConstructor(
           })
 {
     CELER_EXPECT(tmi == &TrackingManagerIntegration::Instance());
+    from_tracking_manager_integration_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -102,9 +105,46 @@ void TrackingManagerConstructor::ConstructProcess()
         return;
     }
 
+    TrackOffloadInterface* transporter{nullptr};
+    auto& is = detail::IntegrationSingleton::instance();
+
+    if (from_tracking_manager_integration_ && !is.auto_hooks_active())
+    {
+        // This constructor path relies on StateDependent begin/end run
+        // callbacks to initialize shared and thread-local offload state.
+        // Without the master hook, installing tracking managers would let
+        // tracks reach an uninitialized transporter.
+        CELER_LOG_LOCAL(info) << "StateDependent not registered - "
+                                 "auto_hooks_active_ is false";
+        return;
+    }
+
+    if (from_tracking_manager_integration_)
+    {
+        if (!is.setup_options() && G4Threading::IsMultithreadedApplication())
+        {
+            // Worker construction can run during MT setup before user options
+            // are installed. Wait until options exist before registering a
+            // worker lifecycle hook that could initialize local offload.
+            return;
+        }
+
+        // Register a per-worker StateDependent before any local offload access
+        // so begin/end run transitions drive thread-local offload setup.
+        static G4ThreadLocal std::unique_ptr<StateDependent> state_dep;
+        if (G4Threading::IsWorkerThread() && !state_dep)
+        {
+            state_dep = std::make_unique<StateDependent>(
+                [&is](StreamId sid, GeantStateChange change) {
+                    is.on_state_change(sid, change);
+                },
+                StateDependent::Mode::lifecycle,
+                StateDependent::LifecycleRole::local);
+        }
+    }
+
     CELER_LOG_LOCAL(debug) << "Activating tracking manager";
 
-    TrackOffloadInterface* transporter{nullptr};
     CELER_TRY_HANDLE(
         {
             // Note that error checking occurs here to provide better error
