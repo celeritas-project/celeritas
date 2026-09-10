@@ -134,16 +134,12 @@ def strip_ansi(line: str) -> str:
 def make_run_command(
     harness: Harness, exe: Path, args: list[str], child_env: dict[str, str]
 ) -> list[str]:
-    """Construct a shell-like command with environment variables and the executable+args.
+    """Construct a shell-like command with current environment variables and the executable+args.
 
-    Note that because paths (including G4 data paths) are normalized, the output is likely not
-    going to be a working command.
+    Note that it's assumed that most environment variable that affect execution will be output during the google test. This avoids the need to filter out CI- and spack-related environment.
     """
     lines = []
-    include_keys = {key for key in child_env if key.startswith(("CELER_", "G4"))}
-    include_keys.discard("CELER_HOSTNAME")
-    include_keys.discard("CELER_SOURCE_DIR")
-    include_keys.discard("CELER_SPACK_ENV")
+    include_keys = [key for key in child_env if key.startswith("G4_")]
     for key in sorted(include_keys):
         val = shlex.quote(normalize_line(child_env[key]))
         lines.append(f"{key}={val} \\")
