@@ -24,22 +24,41 @@ concurrency:
 jobs:
   vecgeom-master:
     if: ${{ github.event_name != 'schedule' || github.repository == 'celeritas-project/celeritas' }}
-    runs-on: ubuntu-24.04
+    name: vecgeom-master-${{matrix.compiler}}
+    runs-on: ubuntu-26.04
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: gcc15
+            cc: gcc-15
+            cxx: g++-15
+            toolchain: ubuntu_gcc
+          - compiler: clang22
+            cc: clang-22
+            cxx: clang++-22
+            toolchain: ubuntu_clang
     defaults:
       run:
         shell: bash
     env:
       CELER_CMAKE_PRESET: reldeb-vecgeom2
-      CELER_RUN_NAME: vecgeom-master-g4@11.3
-      CC: clang-18
-      CXX: clang++-18
+      CELER_RUN_NAME: ubuntu26-${{matrix.compiler}}-vecgeom-master-g4@11.3
+      CELER_JOB_NAME: vecgeom-master-${{matrix.compiler}}
+      CC: ${{matrix.cc}}
+      CXX: ${{matrix.cxx}}
       CXXSTD: 20
     steps:
       - name: Check out Celeritas
         uses: actions/checkout@v7
         with:
           fetch-tags: true
+
+      - name: Show compiler versions
+        run: |
+          "$CC" --version
+          "$CXX" --version
 
       - name: Resolve VecGeom master
         id: vecgeom
@@ -59,6 +78,8 @@ jobs:
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
+          ubuntu-version: "26.04"
+          toolchain: ${{matrix.toolchain}}
           # The SHA changes spack.yaml and its lockfile cache key before restore.
           add: >-
             geant4@11.3 g4vg
