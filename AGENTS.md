@@ -23,6 +23,14 @@ Before adding an option to a CI tool, check its `-h` output for the exact
 version configured by the workflow. Do not assume options from a newer local
 version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
 
+### Header clang-tidy checks
+
+Before passing changed headers to `clang-tidy-diff.py`, map each header to
+translation units that include it and run clang-tidy using those translation
+units' compilation database commands. Do not invoke clang-tidy directly on a
+header, since headers are not compilation database entries and lack the target
+include paths and preprocessor definitions.
+
 ### After any completed task — commit
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
