@@ -208,7 +208,8 @@ auto Environment::load_from_getenv(key_type const& key) -> mapped_type const&
 
     // Insert value and ordering. Note that since the elements are never
     // erased, pointers to the keys are guaranteed to always be valid.
-    auto [iter, inserted] = vars_.emplace(key, std::move(value));
+    std::string const& value_ref = value;
+    auto [iter, inserted] = vars_.emplace(key, std::move(value_ref));
     CELER_ASSERT(inserted);
     ordered_.push_back(std::ref(*iter));
 
