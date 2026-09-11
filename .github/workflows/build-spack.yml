@@ -31,7 +31,7 @@ jobs:
       fail-fast: false
       matrix:
         geometry: ["vecgeom"]
-        geant: ["11.3", "11.4"]
+        geant: ["11.3"]
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(
