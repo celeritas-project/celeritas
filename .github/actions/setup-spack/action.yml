@@ -16,7 +16,7 @@ inputs:
     description: "C++ standard to concretize Spack with"
     required: true
   env-file:
-    description: "Base environment file to use (optional, relative to scripts/spack/)"
+    description: "Base environment file to use (optionally relative to scripts/spack/)"
     required: false
   add:
     description: "Space-separated list of additional spack packages to add"

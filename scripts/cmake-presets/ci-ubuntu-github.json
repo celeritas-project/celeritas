@@ -196,6 +196,18 @@
       }
     },
     {
+      "name": "orange-ancient",
+      "description": "FINAL: minimal GCC8 build for SCALE integration",
+      "inherits": ["tool-spack"],
+      "cacheVariables": {
+        "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
       "name": "orange-asanlite",
       "description": "FINAL: address sanitizer flags and debug symbols",
       "inherits": ["tool-spack"],
