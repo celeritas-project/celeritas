@@ -1,0 +1,54 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# This file is copied into the top-level directory of Celeritas during individual
+# CI build jobs. It's then modified to add packages to the environment
+# in `.github/actions/setup-spack/action.yml`.
+#-----------------------------------------------------------------------------#
+
+spack:
+  include:
+    - reqs-celer.yaml
+    - reqs-ci.yaml
+    - prefs-hep-nogui.yaml
+    - ext-ubuntu24.yaml
+
+  concretizer:
+    reuse: false
+    unify: true
+    targets:
+      granularity: generic
+      host_compatible: true
+    duplicates:
+      strategy: full # necessary for multi-compiler groups
+
+  specs:
+    - group: tools
+      specs:
+        - gcc@=8.5.0
+        - cmake
+        - ccache
+        - ninja
+        - git
+
+    - group: libs
+      needs: [tools]
+      specs:
+        - cli11 %gcc@=8.5.0
+        - nlohmann-json %gcc@=8.5.0
+        - googletest %gcc@=8.5.0
+      override:
+        packages:
+          c:
+            require: []
+          cxx:
+            require: []
+
+  packages:
+    all:
+      prefer:
+        - "cxxstd=17"
+    gcc:
+      buildable: True
+      variants: ["build_type=Release"]
