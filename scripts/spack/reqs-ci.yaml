@@ -17,16 +17,6 @@ mirrors:
       id_variable: GITHUB_USER
       secret_variable: GITHUB_TOKEN
 
-  # TODO: delete
-  sethrj:
-    url: oci://ghcr.io/sethrj/spack-buildcache
-    binary: true
-    signed: false
-    autopush: false
-    access_pair:
-      id_variable: GITHUB_USER
-      secret_variable: GITHUB_TOKEN
-
 config:
   deprecated: True # needed for old vecgeom rc7
   install_tree:
