@@ -15,6 +15,9 @@ inputs:
   cxxstd:
     description: "C++ standard to concretize Spack with"
     required: true
+  env-file:
+    description: "Base environment file to use (optional, relative to scripts/spack/)"
+    required: false
   add:
     description: "Space-separated list of additional spack packages to add"
     required: false
@@ -65,9 +68,11 @@ runs:
       shell: sh
       env:
         CXXSTD: ${{inputs.cxxstd}}
+        SPACK_ENV_FILE: ${{inputs.env-file}}
+        CELER_SOURCE_DIR: ${{github.workspace}}
       # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
-        "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
+        "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
         if ! "${{inputs.push-buildcache}}"; then
           echo "Disabling install prefix padding"

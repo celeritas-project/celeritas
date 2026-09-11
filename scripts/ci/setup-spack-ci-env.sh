@@ -26,6 +26,20 @@ if [ -n "$SPACK_ENV" ]; then
   exit 1
 fi
 
+if [ -z "$SPACK_ENV_FILE" ]; then
+  SPACK_ENV_FILE="env-ci-base.yaml"
+  log info "Using default SPACK_ENV_FILE: env-ci-base.yaml"
+fi
+if ! [ -e "${SPACK_ENV_FILE}" ]; then
+  # Assume it lives in the spack env directory
+  SPACK_ENV_FILE="${CELER_SOURCE_DIR}/scripts/spack/${SPACK_ENV_FILE}"
+fi
+if ! [ -f "${SPACK_ENV_FILE}" ]; then
+  log error "Environment file ${SPACK_ENV_FILE} does not exist"
+  exit 1
+fi
+
+
 # Configure separate packages repository *first*: otherwise the
 # environment creation will do a lengthy unnecessary checkout
 if [ -n "${SPACK_PACKAGES}" ]; then
@@ -37,8 +51,8 @@ else
 fi
 
 # Create environment in current working directory
-log status "Creating environment"
-$SPACK env create . "${CELER_SOURCE_DIR}/scripts/spack/env-ci-base.yaml"
+log status "Creating environment from ${SPACK_ENV_FILE}"
+$SPACK env create . "${SPACK_ENV_FILE}"
 
 # Configure install prefix
 if [ -n "${CELER_SPACK_OPT}" ]; then
