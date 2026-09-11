@@ -122,7 +122,7 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     sim::SimEnergyDeposit sed(
         /* numPhotons = */ 4096,
         /* numElectrons = */ static_cast<int>(edep * 100),
-        /* scintYieldRatio = */ 1.0,
+        /* scintYieldRatio = */ 0.8,
         /* edep = */ 0.1,  // [MeV]
         /* startPos = */ geo::Point_t{5, -712, -540.0},  // [cm]
         /* endPos = */ geo::Point_t{5, -712, -480},  // [cm]
@@ -139,13 +139,13 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     auto raw_result = run({sed, sed2});
     auto result = RunResult::from_btr(raw_result.backtrack);
     RunResult ref;
-    ref.num_hits = {274, 267, 15, 4};
+    ref.num_hits = {274, 273, 11, 4};
     EXPECT_REF_EQ(ref, result);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
     result = RunResult::from_btr(run({sed2, sed}).backtrack);
-    ref.num_hits = {237, 265, 16, 5};
+    ref.num_hits = {260, 262, 14, 5};
     EXPECT_REF_EQ(ref, result);
 }
 
