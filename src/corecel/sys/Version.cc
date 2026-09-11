@@ -20,11 +20,13 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Construct from a string "1.2.3".
+ *
+ * Ignore prerelease and build metadata suffixes introduced by '-' or '+'.
  */
 Version Version::from_string(std::string_view sv)
 {
     static std::regex const version_regex{
-        R"re(^(\d+)(?:\.(\d+)(?:\.(\d+)(?:\.\d+)*)?)?(?:-.*)?)re"};
+        R"re(^(\d+)(?:\.(\d+)(?:\.(\d+)(?:\.\d+)*)?)?(?:[-+].*)?)re"};
     std::match_results<std::string_view::iterator> version_match;
     bool matched
         = std::regex_match(sv.begin(), sv.end(), version_match, version_regex);

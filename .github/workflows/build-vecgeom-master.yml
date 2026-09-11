@@ -1,0 +1,131 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check compatibility with upstream VecGeom independently of required PR jobs.
+# cron_daily schedules this on develop; manual runs use the selected ref.
+# Follow the setup/build/test/artifact pattern of build-regression.
+#-----------------------------------------------------------------------------#
+
+name: build-vecgeom-master
+on:
+  workflow_dispatch:
+    inputs:
+      vecgeom-sha:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
+  workflow_call:
+    inputs:
+      vecgeom-sha:
+        description: "VecGeom commit SHA, or latest for the current master"
+        type: string
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: build-vecgeom-master-${{github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  vecgeom-master:
+    name: vecgeom-master-clang18
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: bash
+    env:
+      CELER_CMAKE_PRESET: reldeb-vecgeom2
+      CELER_RUN_NAME: ubuntu24-clang18-vecgeom-master-g4@11.3
+      CELER_JOB_NAME: vecgeom-master-clang18
+      CC: clang-18
+      CXX: clang++-18
+      CXXSTD: 20
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+
+      - name: Select VecGeom revision
+        id: vecgeom
+        env:
+          VECGEOM_SHA: ${{inputs.vecgeom-sha}}
+        run: |
+          vecgeom_sha="$VECGEOM_SHA"
+          if [[ "$vecgeom_sha" == "latest" ]]; then
+            vecgeom_sha=$(git ls-remote --exit-code \
+              https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
+          fi
+          if [[ ! "$vecgeom_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::VecGeom revision must resolve to a full commit SHA"
+            exit 1
+          fi
+          echo "sha=$vecgeom_sha" >> "$GITHUB_OUTPUT"
+          printf 'Celeritas: %s\nVecGeom: %s\n' \
+            "$(git rev-parse HEAD)" "$vecgeom_sha" | tee revisions.txt
+          cat revisions.txt >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up core and VecGeom Spack environments
+        uses: ./.github/actions/setup-spack
+        with:
+          cxxstd: ${{env.CXXSTD}}
+          # Stable roots have a lockfile cache independent of the VecGeom SHA.
+          add: geant4@11.3
+          add-dependent: >-
+            g4vg
+            vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
+          push-buildcache: ${{github.repository == 'celeritas-project/celeritas' && github.event_name != 'pull_request'}}
+
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+
+      - name: Build VecGeom tests
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack
+          targets: geocel_vg_Vecgeom
+          ccache-max-size: 512Mi
+
+      - name: Run VecGeom tests
+        id: test
+        env:
+          CELER_TEST_STRICT: 0
+        run: |
+          mkdir -p test-output/ctest
+          ctest --preset=spack-unit -R '^geocel/vg/Vecgeom:' \
+            --output-junit "$GITHUB_WORKSPACE/test-output/ctest/vecgeom-master.xml"
+
+      - name: Upload build and test diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.sha || 'unresolved'}}
+          path: |
+            revisions.txt
+            spack.yaml
+            spack.lock
+            spack.config.json
+            spack-dependent/spack.yaml
+            spack-dependent/spack.lock
+            spack-dependent/spack.config.json
+            build/CMakeCache.txt
+            build/CMakeFiles/CMakeConfigureLog.yaml
+            build/Testing/Temporary/LastTest.log
+            test-output/
+          if-no-files-found: warn
+          retention-days: 1
+
+# vim: set nowrap tw=100:
