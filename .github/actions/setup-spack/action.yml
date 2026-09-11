@@ -93,7 +93,7 @@ runs:
       id: concretize
       shell: sh
       run: |
-        spack arch --generic
+        spack arch
         spack -e . -v concretize || {
           ERR=$?
           cat spack.yaml
@@ -109,9 +109,9 @@ runs:
     - name: Upload spack config and lockfile
       id: upload
       uses: actions/upload-artifact@v7
-      if: ${{runner.debug && !cancelled() }}
+      if: ${{ !steps.restore.outputs.cache-matched-key }}
       with:
-        name: spack-${{hashFiles('spack.yaml')}}-${{github.run_id}}
+        name: spack-${{hashFiles('spack.config.json')}}-${{github.run_id}}
         path: "spack.*"
         retention-days: 1
 
