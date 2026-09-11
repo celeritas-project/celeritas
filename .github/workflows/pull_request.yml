@@ -54,6 +54,7 @@ jobs:
     steps:
       - name: Success
         run: "true"
+
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
@@ -72,19 +73,25 @@ jobs:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-codecov.yml
 
-  # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
-  # - When running in draft mode, or if the job was cancelled,
-  #   this check is skipped so that the commit doesn't have an 'X' next to it
-  # - Otherwise this check fails if any required job did not succeed
+  all-expensive:
+    needs:
+      - build-spack-extra
+      - build-docker
+      - build-codecov
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Success
+        run: "true"
 
+  # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
+  # - When running in draft mode, this check is skipped
+  # - Otherwise this check fails if any required job did not succeed
   all:
     if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
       - all-prechecks
       - build-spack
-      - build-spack-extra
-      - build-docker
-      - build-codecov
+      - all-expensive
     runs-on: ubuntu-24.04
     outputs:
       unsuccessful: ${{ steps.check.outputs.unsuccessful }}
@@ -97,7 +104,7 @@ jobs:
         with:
           script: |
             const needs = JSON.parse(process.env.NEEDS);
-            core.debug(`needs: ${JSON.stringify(needs)}`);
+            core.notice(`needs: ${JSON.stringify(needs)}`); // REVERTME: core.debug
 
             const unsuccessful = Object.entries(needs)
               .filter(([, job]) => job.result !== 'success')
