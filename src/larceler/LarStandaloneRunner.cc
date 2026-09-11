@@ -113,7 +113,6 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     -> result_type
 {
     CELER_EXPECT(!sim_energy_deposits.empty());
-    CELER_EXPECT(lite_hits_.empty());
 
     // Allocate BTR helpers
     btr_helpers_.clear();
