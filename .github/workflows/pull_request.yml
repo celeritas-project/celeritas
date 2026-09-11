@@ -78,8 +78,9 @@ jobs:
   # - Otherwise this check fails if any required job did not succeed
 
   all:
-    if: ${{ !cancelled() && github.event.pull_request.draft == false }}
+    if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
+      - all-prechecks
       - build-spack
       - build-spack-extra
       - build-docker
