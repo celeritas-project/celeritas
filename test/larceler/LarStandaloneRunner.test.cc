@@ -13,6 +13,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "celeritas/inp/StandaloneInput.hh"
+#include "celeritas/io/OpticalDistributionReader.hh"
 #include "celeritas/phys/PDGNumber.hh"
 
 #include "PersistentSP.hh"
@@ -34,7 +35,7 @@ class LarStandaloneRunnerTestBase : public ::celeritas::test::Test
     using VecReal3 = std::vector<Real3>;
 
     //! Construct input
-    virtual Input make_input() const = 0;
+    virtual Input make_input() = 0;
 
     //! Map of larsoft detector ID to actual
     virtual VecReal3 make_detector_point_map() const = 0;
@@ -70,12 +71,18 @@ void LarStandaloneRunnerTestBase::SetUp()
 
 class DuneCryoTest : public LarStandaloneRunnerTestBase
 {
+  protected:
     //! Construct input
-    Input make_input() const override;
+    Input make_input() override;
     VecReal3 make_detector_point_map() const override;
+    static std::string& offload_file()
+    {
+        static std::string result;
+        return result;
+    }
 };
 
-auto DuneCryoTest::make_input() const -> Input
+auto DuneCryoTest::make_input() -> Input
 {
     Input result;
     result.problem.model.geometry
@@ -93,6 +100,8 @@ auto DuneCryoTest::make_input() const -> Input
     }();
     result.problem.num_streams = 1;
     result.problem.generator = inp::OpticalOffloadGenerator{};
+    this->offload_file() = this->make_unique_filename(".jsonl");
+    result.problem.offload_file = this->offload_file();
     result.geant_setup.cherenkov = std::nullopt;
     return result;
 }
@@ -118,19 +127,23 @@ TEST_F(DuneCryoTest, two_sim_edeps)
      * - Time unit is ns (LarsoftTime)
      * - "original" track ID is always same as actual
      */
-    real_type edep{0.1};  // MeV
-    sim::SimEnergyDeposit sed(
-        /* numPhotons = */ 4096,
-        /* numElectrons = */ static_cast<int>(edep * 100),
-        /* scintYieldRatio = */ 0.8,
-        /* edep = */ 0.1,  // [MeV]
-        /* startPos = */ geo::Point_t{5, -712, -540.0},  // [cm]
-        /* endPos = */ geo::Point_t{5, -712, -480},  // [cm]
-        /* startTime = */ 1.0,  // [ns]
-        /* endTime = */ 10.0,  // [ns]
-        /* trackID = */ 123456789,
-        /* pdgCode = */ pdg::electron().get(),
-        /* origTrackID = */ 123456789);
+    auto make_sed = [](int num_photons, double yield_ratio, int track_id) {
+        real_type edep{0.1};  // MeV
+        return sim::SimEnergyDeposit(
+            /* numPhotons = */ num_photons,
+            /* numElectrons = */ static_cast<int>(edep * 100),
+            /* scintYieldRatio = */ yield_ratio,
+            /* edep = */ edep,
+            /* startPos = */ geo::Point_t{5, -712, -540.0},  // [cm]
+            /* endPos = */ geo::Point_t{5, -712, -480},  // [cm]
+            /* startTime = */ 1.0,  // [ns]
+            /* endTime = */ 10.0,  // [ns]
+            /* trackID = */ track_id,
+            /* pdgCode = */ pdg::electron().get(),
+            /* origTrackID = */ track_id);
+    };
+
+    auto sed = make_sed(4096, 0.8, 123456789);
     // Make another deposit from energy deposited by a nameless offspring
     // [i.e., no MC truth stored] of Geant4 track ID 1
     sim::SimEnergyDeposit sed2{sed};
@@ -147,6 +160,37 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     result = RunResult::from_btr(run({sed2, sed}).backtrack);
     ref.num_hits = {260, 262, 14, 5};
     EXPECT_REF_EQ(ref, result);
+
+    // Run again with varying scintillation yield ratios
+    run({make_sed(10, 0.25, 1), make_sed(10, 1.0, 2), make_sed(10, 0.0, 3)});
+
+    // Read distributions written to the offload file
+    auto distributions = OpticalDistributionReader(this->offload_file())();
+    EXPECT_EQ(12, distributions.size());
+
+    std::vector<size_type> num_photons;
+    std::vector<size_type> components;
+    std::vector<size_type> primaries;
+
+    for (auto const& d : distributions)
+    {
+        num_photons.push_back(d.num_photons);
+        ASSERT_TRUE(d.component_id);
+        components.push_back(d.component_id.get());
+        ASSERT_TRUE(d.primary);
+        primaries.push_back(d.primary.get());
+    }
+
+    static unsigned int const expected_num_photons[] = {
+        3277u, 819u, 3277u, 819u, 3277u, 819u, 3277u, 819u, 3u, 7u, 10u, 10u};
+    static unsigned int const expected_components[]
+        = {0u, 1u, 0u, 1u, 0u, 1u, 0u, 1u, 0u, 1u, 0u, 1u};
+    static unsigned int const expected_primaries[]
+        = {0u, 0u, 1u, 1u, 0u, 0u, 1u, 1u, 0u, 0u, 1u, 2u};
+
+    EXPECT_VEC_EQ(expected_num_photons, num_photons);
+    EXPECT_VEC_EQ(expected_components, components);
+    EXPECT_VEC_EQ(expected_primaries, primaries);
 }
 
 TEST_F(DuneCryoTest, zero_photons)
