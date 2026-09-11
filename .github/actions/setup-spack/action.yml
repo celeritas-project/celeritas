@@ -26,10 +26,6 @@ inputs:
     description: "Packages to build in a separate environment using the cached core specs"
     required: false
     default: ""
-  push-buildcache:
-    description: "Publish the core environment to the shared buildcache (excludes add-dependent)"
-    required: false
-    default: "false"
 
 runs:
   using: "composite"
@@ -74,7 +70,7 @@ runs:
       run: |
         "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if ! "${{inputs.push-buildcache}}"; then
+        if [ "${{github.event_name}}" = "pull_request" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
@@ -130,7 +126,7 @@ runs:
         spack -e . find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && fromJSON(inputs.push-buildcache) }}
+      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
