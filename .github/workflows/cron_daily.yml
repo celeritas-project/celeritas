@@ -10,8 +10,6 @@ name: cron_daily
 on:
   schedule:
     - cron: "33 07 * * *" # Daily at 07:33 UTC
-  push:
-    branches: [vecgeom-master-cron]
 
 permissions:
   contents: read
@@ -19,7 +17,7 @@ permissions:
 
 jobs:
   build-vecgeom-master:
-    if: github.event_name != 'schedule' || github.repository == 'celeritas-project/celeritas'
+    if: github.repository == 'celeritas-project/celeritas'
     uses: ./.github/workflows/build-vecgeom-master.yml
 
 # vim: set nowrap tw=100:
