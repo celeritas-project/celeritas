@@ -90,10 +90,10 @@ runs:
       uses: actions/cache/restore@v6
       with:
         path: spack.lock
-        key: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}-${{github.run_id}}
-        restore-keys: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}
+        key: lock-${{hashFiles('spack.config.json')}}-${{github.run_id}}
+        restore-keys: lock-${{hashFiles('spack.config.json')}}
     - name: Concretize
-      if: ${{ !steps.restore.outputs.cache-matched-key }}
+      if: ${{ !steps.restore.outputs.cache-matched-key }} # skip if another run provided the same hash
       id: concretize
       shell: sh
       run: |
@@ -108,7 +108,7 @@ runs:
       uses: actions/cache/save@v6
       with:
         path: spack.lock
-        key: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}-${{github.run_id}}
+        key: lock-${{hashFiles('spack.config.json')}}-${{github.run_id}}
 
     - name: Upload spack config and lockfile
       id: upload
