@@ -31,7 +31,21 @@ jobs:
       fail-fast: false
       matrix:
         geometry: ["vecgeom"]
-        geant: ["11.3"]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        include:
+          - geometry: "orange"
+            special: "float"
+            geant: "11.3"
+          - geometry: "orange"
+            special: "static"
+            geant: "11.3"
+          - geometry: "vecgeom"
+            special: "clhep"
+            geant: "11.3"
+          - geometry: "vecgeom2"
+            geant: "11.3"
+          - geometry: "geant4"
+            geant: "11.3"
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(

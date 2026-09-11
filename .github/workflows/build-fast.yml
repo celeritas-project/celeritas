@@ -40,6 +40,25 @@ jobs:
     strategy:
       matrix:
         include:
+          - runner: ubuntu-22.04
+            compiler: [gcc, 12]
+            cxxstd: 17
+          - runner: ubuntu-22.04
+            compiler: [clang, 15]
+            cxxstd: 17
+          - runner: ubuntu-24.04
+            compiler: [gcc, 14]
+            cxxstd: 17
+          - runner: ubuntu-24.04
+            compiler: [clang, 18]
+          - runner: ubuntu-26.04
+            compiler: [gcc, 15]
+            cxxstd: 23
+          - runner: ubuntu-26.04
+            compiler: [clang, 22]
+            cxxstd: 23
+          - runner: ubuntu-26.04-arm
+            compiler: [gcc, 15]
           - runner: ubuntu-26.04-arm
             compiler: [clang, 22]
     env:
@@ -93,6 +112,52 @@ jobs:
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           name: fast-${{env.CELER_JOB_NAME}}
+          ccache-max-size: 192Mi
+
+      - name: Test
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          split-app: true
+          name: fast-${{env.CELER_JOB_NAME}}
+
+      - name: Install
+        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        uses: ./.github/actions/install-and-check
+
+  windows:
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      CELER_JOB_NAME: windows
+      CXXSTD: 20
+    runs-on: windows-2025
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+
+      - name: Install dependencies
+        run: |
+          choco install ninja ccache
+      - name: Set up MSVC
+        uses: TheMrMilchmann/setup-msvc-dev@368ef7d1ee4d1171b31d4a7f67f4d954f903f5a9 # v4.1.0, 22 July 2026
+        with:
+          arch: x64
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-windows-github.json
+          version-string: ${{env.CELER_VERSION_STRING}}
+      - name: Build
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: fast-windows
           ccache-max-size: 192Mi
 
       - name: Test
