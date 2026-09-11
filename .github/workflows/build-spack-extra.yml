@@ -34,6 +34,7 @@ jobs:
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
+          push-buildcache: ${{github.event_name != 'pull_request'}}
       - name: Configure Celeritas
         id: configure
         uses: ./.github/actions/configure
@@ -72,6 +73,7 @@ jobs:
         with:
           add: "geant4@11.2 vecgeom@1.2.11:1 g4vg"
           cxxstd: ${{env.CXXSTD}}
+          push-buildcache: ${{github.event_name != 'pull_request'}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:

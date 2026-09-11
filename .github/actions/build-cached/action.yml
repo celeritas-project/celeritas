@@ -11,6 +11,10 @@ inputs:
   preset:
     description: "CMake build preset to execute"
     required: true
+  targets:
+    description: "Optional CMake build targets to execute"
+    required: false
+    default: ""
   name:
     description: "Cache key component, without the github.run_id suffix or ccache prefix"
     required: true
@@ -65,7 +69,7 @@ runs:
     - name: Build
       id: build
       shell: bash
-      run: cmake --build --preset=${{ inputs.preset }}
+      run: cmake --build --preset=${{ inputs.preset }} ${{ inputs.targets && '--target' || '' }} ${{ inputs.targets }}
     - name: Show ccache stats
       if: ${{ !cancelled() && steps.build.outcome != 'skipped' }}
       shell: bash

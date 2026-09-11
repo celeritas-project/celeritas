@@ -1,0 +1,23 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Check compatibility with upstream dependencies every day
+#-----------------------------------------------------------------------------#
+
+name: cron_daily
+
+on:
+  schedule:
+    - cron: "33 07 * * *" # Daily at 07:33 UTC
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-vecgeom-master:
+    if: github.repository == 'celeritas-project/celeritas'
+    uses: ./.github/workflows/build-vecgeom-master.yml
+
+# vim: set nowrap tw=100:
