@@ -48,11 +48,17 @@ namespace detail
  * thread-local object allocators for the navigation state and tracks mean this
  * class \b must be destroyed on the same thread on which it was created.
  *
- * Call operator:
- * - Loop over detector steps
- * - Update step attributes based on hit selection for the detector (TODO:
- *   selection is global for now)
- * - Call the local detector (based on detector ID from map) with the step
+ * Host step data is copied and processed immediately by the call operator.
+ * For device step data, the call operator retains a reference to the gathered
+ * step state without copying it. After the producing step is complete, the
+ * caller must call \c process_pending_steps before launching another step that
+ * can overwrite the shared step state. Only one device step can be pending.
+ * Processing currently copies the selected detector data synchronously to
+ * pinned host storage, then:
+ * - loops over detector steps;
+ * - updates step attributes based on the hit selection (TODO: selection is
+ *   global for now); and
+ * - calls the local detector selected by detector ID with the step.
  *
  * Compare to Geant4 updating step/track info:
  * - \c G4VParticleChange::UpdateStepInfo
@@ -88,8 +94,17 @@ class HitProcessor
     // Process CPU-generated hits
     void operator()(StepStateHostRef const&);
 
-    // Process device-generated hits
+    // Save device-generated hits for processing after step completion
     void operator()(StepStateDeviceRef const&);
+
+    // Copy and process device-generated hits after their step completes
+    void process_pending_steps();
+
+    //! Whether device-generated hit data is pending
+    bool has_pending_steps() const noexcept
+    {
+        return static_cast<bool>(pending_device_steps_);
+    }
 
     // Generate and call hits from a detector output (for testing)
     void operator()(DetectorStepOutput const& out) const;
@@ -121,6 +136,9 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
+    //! Device step data awaiting transfer after step completion
+    StepStateDeviceRef pending_device_steps_;
+
     //! Shared step object
     std::shared_ptr<G4Step> step_;
 
@@ -138,6 +156,9 @@ class HitProcessor
 
     //! Accumulated number of hits
     size_type num_hits_{0};
+
+    // Process hits already copied into temporary CPU storage
+    void process_local_steps();
 };
 
 //---------------------------------------------------------------------------//
@@ -169,6 +190,7 @@ G4VSensitiveDetector* HitProcessor::detector(DetectorId did) const
 size_type HitProcessor::exchange_hits()
 {
     using namespace celeritas::literals;
+    CELER_EXPECT(!this->has_pending_steps());
     return std::exchange(num_hits_, 0_sz);
 }
 

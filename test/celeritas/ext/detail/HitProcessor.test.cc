@@ -11,6 +11,8 @@
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
 
+#include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/SimpleCmsTestBase.hh"
@@ -431,6 +433,125 @@ TEST_F(SimpleCmsTest, no_touchable)
         static real_type const expected_post_dir[] = {0, 0, -1, 0, 0, -1};
         EXPECT_VEC_SOFT_EQ(expected_post_dir, result.post_dir);
     }
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, pre_step_only)
+{
+    // An unselected post-step point can be null even when a hit is valid.
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    process_hits(this->make_dso());
+
+    auto const& result = this->get_hits("si_tracker");
+    ASSERT_EQ(1, result.energy_deposition.size());
+    EXPECT_SOFT_EQ(0.1_r, result.energy_deposition.front());
+    ASSERT_EQ(1, result.pre_time.size());
+    EXPECT_SOFT_EQ(0.5_r, result.pre_time.front());
+    EXPECT_EQ(result.post_energy.size(), result.post_time.size());
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
+{
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    HitProcessor process_hits = this->make_hit_processor();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    process_hits.process_pending_steps();
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    auto const dso = this->make_dso();
+
+    HostVal<StepParamsData> params;
+    params.selection = selection_;
+    std::vector<DetectorId> detector_map{DetectorId{0}};
+    make_builder(&params.detector)
+        .insert_back(detector_map.begin(), detector_map.end());
+
+    StepStateData<Ownership::value, MemSpace::host> host_states;
+    resize(&host_states, make_const_ref(params), StreamId{0}, dso.size());
+    for (auto i : range(dso.size()))
+    {
+        TrackSlotId const tid{i};
+        host_states.data.track_id[tid] = dso.track_id[i];
+        host_states.data.detector_id[tid] = dso.detector_id[i];
+        host_states.data.energy_deposition[tid] = dso.energy_deposition[i];
+        host_states.data.step_length[tid] = dso.step_length[i];
+        host_states.data.points[StepPoint::pre].time[tid]
+            = dso.points[StepPoint::pre].time[i];
+    }
+
+    celeritas::device().create_streams(1);
+    StepStateData<Ownership::value, MemSpace::device> device_states;
+    resize(&device_states, make_const_ref(params), StreamId{0}, dso.size());
+    device_states.data = host_states.data;
+
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_TRUE(this->get_hits("si_tracker").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("em_calorimeter").energy_deposition.empty());
+    EXPECT_TRUE(this->get_hits("had_calorimeter").energy_deposition.empty());
+
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(process_hits(make_ref(device_states)), DebugError);
+        EXPECT_THROW(process_hits.exchange_hits(), DebugError);
+        EXPECT_TRUE(process_hits.has_pending_steps());
+    }
+
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    EXPECT_EQ(1, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(1, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Reuse the same state with different data to catch replay of stale hits.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.energy_deposition[TrackSlotId{i}]
+            = 2 * dso.energy_deposition[i];
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    static real_type const expected_si_edep[] = {0.1, 0.2};
+    EXPECT_VEC_SOFT_EQ(expected_si_edep,
+                       this->get_hits("si_tracker").energy_deposition);
+    static real_type const expected_em_edep[] = {0.2, 0.4};
+    EXPECT_VEC_SOFT_EQ(expected_em_edep,
+                       this->get_hits("em_calorimeter").energy_deposition);
+    static real_type const expected_had_edep[] = {0.3, 0.6};
+    EXPECT_VEC_SOFT_EQ(expected_had_edep,
+                       this->get_hits("had_calorimeter").energy_deposition);
+    EXPECT_TRUE(this->get_hits("world").energy_deposition.empty());
+
+    // An empty batch must clear the previous output, not deliver it again.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = {};
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    EXPECT_TRUE(process_hits.has_pending_steps());
+    process_hits.process_pending_steps();
+    EXPECT_FALSE(process_hits.has_pending_steps());
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    process_hits.process_pending_steps();
+    EXPECT_EQ(0, process_hits.exchange_hits());
+    EXPECT_EQ(2, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(2, this->get_hits("had_calorimeter").energy_deposition.size());
 }
 
 //---------------------------------------------------------------------------//
