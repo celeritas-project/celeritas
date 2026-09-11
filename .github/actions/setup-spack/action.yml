@@ -127,6 +127,7 @@ runs:
     - name: Push Spack installation to buildcache
       id: push-buildcache
       if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      continue-on-error: ${{ github.repository != 'celeritas-project/celeritas' }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
