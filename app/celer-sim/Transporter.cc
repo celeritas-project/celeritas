@@ -71,6 +71,7 @@ Transporter<M>::Transporter(TransporterInput inp)
     step_input.params = inp.params;
     step_input.stream_id = inp.stream_id;
     step_input.actions = inp.actions;
+    step_input.primary_capacity = inp.primary_capacity;
     stepper_ = std::make_shared<Stepper<M>>(std::move(step_input));
 }
 

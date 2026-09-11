@@ -98,7 +98,8 @@ void GeantScintillationLoader::load_one(GeantOpticalMatHelper const& helper)
     }
     if (!deprecated_components.empty())
     {
-        // TODO: could check whether YIELDRATIO is given (2 components) and
+        // TODO: could check whether YIELDRATIO is given (legacy [G410 and
+        // earlier] case with 2 components: fraction of *fast* component) and
         // fill in scintillation data accordingly
         CELER_LOG(warning)
             << "Ignoring deprecated scintillation component properties";

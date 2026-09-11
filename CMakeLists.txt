@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18...4.1)
+cmake_minimum_required(VERSION 3.18...4.4)
 
 # Fallback version in case of shallow clone: update when tagging "-dev"
 set(Celeritas_VERSION 0.7)
@@ -425,7 +425,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT "$ENV{CUDAARCHS}")
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "
@@ -434,6 +434,20 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
+  # Check that architectures meet the minimum requirement (Atomics.hh)
+  set(_celer_min_cuda 60)
+  celeritas_filter_minimum_cuda_arch(_allowed_arch ${_celer_min_cuda})
+  if(NOT _allowed_arch OR (NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES))
+    if(NOT _allowed_arch)
+      message(SEND_ERROR "No specified CUDA architecture is valid: CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}")
+      set(_allowed_arch "${_celer_min_cuda}")
+    endif()
+    celeritas_error_incompatible_option(
+      "Celeritas cannot compile for CUDA compute versions less than ${_celer_min_cuda}"
+      CMAKE_CUDA_ARCHITECTURES
+      "${_allowed_arch}"
+    )
+  endif()
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
@@ -762,6 +776,13 @@ endif()
 
 if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
+else()
+  # Replacement for running celer-config
+  add_custom_target("get-config"
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+    VERBATIM
+  )
 endif()
 
 #----------------------------------------------------------------------------#

@@ -403,6 +403,8 @@ G4RunManager& IntegrationTestBase::run_manager()
 #endif
         };
         CELER_ENSURE(rm);
+        CELER_LOG(info) << "Created run manager type "
+                        << TypeDemangler<G4RunManager>{}(*rm);
         return rm;
     });
 

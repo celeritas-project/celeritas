@@ -31,7 +31,7 @@ struct ReflectivityApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION ReflectivityApplier(F&&) -> ReflectivityApplier<F>;
+CELER_CTAD_FUNCTION ReflectivityApplier(F&&) -> ReflectivityApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

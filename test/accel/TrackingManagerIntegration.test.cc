@@ -148,9 +148,8 @@ class TMITestBase : virtual public IntegrationTestBase
         }
     }
 
-    std::function<void()> check_during_run_;
-
     std::mutex mutex_;
+    std::function<void()> check_during_run_;
     std::map<StreamId, int> num_local_events_;
 };
 
@@ -202,7 +201,7 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
 
         static std::recursive_mutex exc_mutex;
-        std::lock_guard scoped_lock{exc_mutex};
+        std::scoped_lock lock{exc_mutex};
 
         static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
         std::smatch match;
@@ -514,8 +513,7 @@ class LarSphereOptical : public LarSphere
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;
@@ -524,6 +522,8 @@ class LarSphereOptical : public LarSphere
   private:
     std::vector<CounterTrackingAction*> tracking_;
     std::vector<real_type> detector_x_positions_;
+    std::vector<real_type> step_lengths_;
+    std::mutex mutex_;
 };
 
 //---------------------------------------------------------------------------//
@@ -544,9 +544,14 @@ auto LarSphereOptical::make_setup_options() -> SetupOptions
     // Optical detector hit callback
     result.optical->detectors.callback
         = [this](Span<optical::DetectorHit const> hits) {
+              std::scoped_lock lock{mutex_};
+              detector_x_positions_.reserve(
+                  detector_x_positions_.size() + hits.size());
+              step_lengths_.reserve(step_lengths_.size() + hits.size());
               for (auto const& hit : hits)
               {
                   detector_x_positions_.push_back(hit.position[0]);
+                  step_lengths_.push_back(hit.path_length);
               }
           };
     return result;
@@ -589,6 +594,7 @@ void LarSphereOptical::EndOfRunAction(G4Run const* run)
             EXPECT_GT(accum_stats.step_iters, 0);
             EXPECT_GT(accum_stats.flushes, 0);
             EXPECT_GT(detector_x_positions_.size(), 0);
+            EXPECT_GT(step_lengths_.size(), 0);
             auto& aux_state = local_transporter.GetState().aux();
             auto counts = optical_collector->buffer_counts(aux_state);
             EXPECT_EQ(0, counts.buffer_size);  //!< Pending generators
@@ -656,8 +662,7 @@ class OpNoviceOptical : public OpNoviceIntegrationMixin, public TMITestBase
         {
             // Store the raw pointer in the tracking_ vector using a static
             // mutex
-            static std::mutex mutex;
-            std::lock_guard<std::mutex> lock(mutex);
+            std::scoped_lock lock{mutex_};
             tracking_.push_back(result.get());
         }
         return result;
@@ -913,6 +918,49 @@ TEST_F(TestEm3, run)
 
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(2);
+}
+
+//---------------------------------------------------------------------------//
+class TestEm3Rayleigh : public TestEm3IntegrationMixin, public TMITestBase
+{
+  public:
+    PhysicsInput make_physics_input() const final
+    {
+        auto result = PhysicsInput::deactivated();
+        result.rayleigh_scattering = true;
+        return result;
+    }
+
+    PrimaryInput make_primary_input() const final
+    {
+        auto result = TestEm3IntegrationMixin::make_primary_input();
+        result.pdg = {pdg::gamma()};
+        result.energy = inp::MonoenergeticDistribution{1};  // [MeV]
+        return result;
+    }
+
+    SetupOptions make_setup_options() final
+    {
+        auto opts = TMITestBase::make_setup_options();
+        opts.max_num_tracks = 1;
+        opts.initializer_capacity = 1;
+        opts.secondary_stack_factor = 2;
+        opts.auto_flush = 1;
+        return opts;
+    }
+};
+
+/*!
+ * Allow primary admission when secondary capacity exceeds initializer capacity.
+ */
+TEST_F(TestEm3Rayleigh, run_small_capacity)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    ASSERT_FALSE(this->HasFatalFailure());
+    rm.BeamOn(1);
 }
 
 //---------------------------------------------------------------------------//

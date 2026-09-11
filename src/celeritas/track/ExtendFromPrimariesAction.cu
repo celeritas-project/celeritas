@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "ExtendFromPrimariesAction.hh"
 
+#include "corecel/math/Algorithms.hh"
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
@@ -29,7 +30,8 @@ void ExtendFromPrimariesAction::process_primaries(
     static ActionLauncher<decltype(execute_thread)> const launch_kernel(*this);
     if (!primaries.empty())
     {
-        launch_kernel(primaries.size(), state.stream_id(), execute_thread);
+        auto num_threads = max<size_type>(primaries.size(), state.size());
+        launch_kernel(num_threads, state.stream_id(), execute_thread);
     }
 }
 

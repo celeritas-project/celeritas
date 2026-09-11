@@ -1,0 +1,36 @@
+packages:
+  all:
+    prefer:
+      - "cxxstd=20"
+  cli11:
+    require: "@2.4:"
+  cmake:
+    require: "@3.21:"
+  covfie:
+    require: "@0.13:"
+  dd4hep:
+    require:
+      - "@1.33:"
+  g4vg:
+    require: "@1.0.3:"
+  geant4:
+    require: "@10.5:"
+    version:
+      - "11.3"
+  googletest:
+    require: "@1.10:"
+  nlohmann-json:
+    require: "@3.7.0:"
+  py-identify: # needed by py-pre-commit
+    require: "@2.6:"
+  python:
+    require: "@3.9:"
+  root:
+    require:
+      - "@6.28:"
+  vecgeom:
+    require:
+      - "@1.2.10:"
+      - +gdml
+    version:
+      - "1"

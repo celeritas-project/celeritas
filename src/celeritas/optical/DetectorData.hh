@@ -6,9 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "geocel/Types.hh"
 #include "celeritas/Quantities.hh"
-#include "celeritas/optical/Types.hh"
 
 namespace celeritas
 {
@@ -29,6 +30,8 @@ struct DetectorHit
     Real3 position{};
     VolumeInstanceId volume_instance;
     VolumeUniqueInstanceId unique_instance;
+    size_type num_steps{};
+    real_type path_length{};
 
     //! An actual hit has a valid detector
     explicit CELER_CONSTEXPR_FUNCTION operator bool() const

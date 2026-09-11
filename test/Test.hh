@@ -23,6 +23,10 @@ namespace celeritas
  * By being a sub-namspace, no \c using declarations are needed to access
  * Celeritas functionality, and no symbol conflicts with main Celeritas code
  * will accidentally occur.
+ *
+ * Tests of the \c detail (or other) namespace functionality should be nested
+ * in a separate namespace \c celeritas::detail::test . They will have to
+ * explicitly use \c celeritas::test::Test to access the \c Test class.
  */
 namespace test
 {
@@ -32,16 +36,24 @@ namespace test
  *
  * The test harness is constructed and destroyed once per subtest. It contains
  * helper functions and data commonly needed in Celeritas tests.
+ *
+ * - \c make_unique_filename : construct a filename unique to the given test
+ *   suite and function, which will prevent files from stepping on each other
+ *   when running tests in parallel
+ * - \c test_data_path : get the path to a test file at
+ *   `{source}/test/{subdir}/data/{filename}` . It verifies that the path is an
+ *   existing file before passing it to the code to be tested.
+ * - \c inf , \c inff:  double- and single-precision infinities
  */
 class Test : public ::testing::Test
 {
   public:
     Test() = default;
 
-    // Generate test-unique filename
+    //! Generate test-unique filename
     virtual std::string make_unique_filename(std::string_view ext);
 
-    // Make a unique filename with no extension
+    //! Make a unique filename with no extension
     std::string make_unique_filename()
     {
         return this->make_unique_filename({});

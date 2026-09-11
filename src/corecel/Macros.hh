@@ -61,6 +61,25 @@
 #endif
 
 /*!
+ * \def CELER_CTAD_FUNCTION
+ *
+ * Compatibility function for older versions of Clang/ROCm that require
+ * host/device decorators for Class Template Argument Deduction (CTAD) guides.
+ * This bug exists in HIP/Clang versions prior to Clang 22 (ROCm 6.3): see
+ * https://github.com/ROCm/ROCm/issues/5646 and LLVM fix
+ * https://github.com/llvm/llvm-project/pull/168711 .
+ *
+ * This is only required for device-compatible classes and can be removed when
+ * older versions of Clang are no longer supported (maybe in 2031, five years
+ * after the fix). Most use cases will probably go away when we require C++20.
+ */
+#if defined(__HIP__) && defined(__clang__) && (__clang_major__ < 22)
+#    define CELER_CTAD_FUNCTION __host__ __device__
+#else
+#    define CELER_CTAD_FUNCTION
+#endif
+
+/*!
  * \def CELER_FORCEINLINE_FUNCTION
  *
  * Like CELER_FUNCTION but forces inlining. Compiler optimizers usually can

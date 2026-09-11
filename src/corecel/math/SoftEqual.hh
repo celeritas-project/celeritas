@@ -190,11 +190,11 @@ class SoftZero
 // TEMPLATE DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION SoftEqual(T) -> SoftEqual<T>;
+CELER_CTAD_FUNCTION SoftEqual(T) -> SoftEqual<T>;
 template<class T>
-CELER_FUNCTION SoftEqual(T, T) -> SoftEqual<T>;
+CELER_CTAD_FUNCTION SoftEqual(T, T) -> SoftEqual<T>;
 template<class F>
-CELER_FUNCTION EqualOr(F&&) -> EqualOr<F>;
+CELER_CTAD_FUNCTION EqualOr(F&&) -> EqualOr<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
