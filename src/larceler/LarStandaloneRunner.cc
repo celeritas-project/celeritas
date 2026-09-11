@@ -113,7 +113,6 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     -> result_type
 {
     CELER_EXPECT(!sim_energy_deposits.empty());
-    CELER_EXPECT(lite_hits_.empty());
 
     // Allocate BTR helpers
     btr_helpers_.clear();
@@ -130,7 +129,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
 
     // Convert SimEnergyDep input and save metadata for BTRs
     std::vector<celeritas::optical::GeneratorDistributionData> gdd;
-    gdd.reserve(sim_energy_deposits.size());
+    gdd.reserve(2 * sim_energy_deposits.size());
     step_md_.clear();
     step_md_.reserve(sim_energy_deposits.size());
     size_type num_skipped{0};
@@ -146,11 +145,8 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         }
 
         // Convert LArSoft sim edeps to Celeritas generator distribution data
-        // TODO: use individual fast/slow spectra by multiplying with the
-        // edep's ScintYieldRatio() (fraction fast spectrum)
         celeritas::optical::GeneratorDistributionData data;
         data.type = GeneratorType::scintillation;
-        data.num_photons = edepi.NumPhotons();
         data.step_length = convert_from_larsoft<LarsoftLen>(edepi.StepLength());
         // Assume continuous energy loss along the step
         //! \todo For neutral particles, set this to 0 (LED at post-step point)
@@ -164,8 +160,26 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
         data.points[StepPoint::post].pos
             = convert_from_larsoft<LarsoftLen>(edepi.End());
         data.primary = id_cast<PrimaryId>(step_md_.size());
-        CELER_ASSERT(data);
-        gdd.push_back(data);
+
+        auto insert_component
+            = [&gdd, &data](size_type num_photons, ScintComponentId comp_id) {
+                  if (num_photons > 0)
+                  {
+                      data.num_photons = num_photons;
+                      data.component_id = comp_id;
+                      CELER_ASSERT(data);
+                      gdd.push_back(data);
+                  }
+              };
+
+        // Calculate the number of slow component photons from the total to
+        // preserve the exact number of photons: LArSoft rounds the fast and
+        // slow counts independently
+        size_type num_fast = edepi.NumFPhotons();
+        size_type num_slow = edepi.NumPhotons() - num_fast;
+
+        insert_component(num_fast, ScintComponentId{0});
+        insert_component(num_slow, ScintComponentId{1});
 
         step_md_.push_back([&edepi] {
             StepMetadata md;
@@ -209,6 +223,7 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     auto const& gen = result.counters.generators.front();
     CELER_LOG(debug) << "Transported " << gen.num_generated
                      << " optical photons from " << gen.buffer_size
+                     << " generator distributions and " << step_md_.size()
                      << " sim energy deposits with a total of "
                      << result.counters.steps << " steps over "
                      << result.counters.step_iters << " step iterations in "
