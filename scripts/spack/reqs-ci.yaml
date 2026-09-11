@@ -43,6 +43,11 @@ concretizer:
     host_compatible: true
 
 packages:
+  all:
+    prefer:
+      - "cxxstd=20"
+  hdf5:
+    prefer: [~cxx] # override cxxstd preference
   geant4:
     variants:
       - generator=ninja
@@ -59,3 +64,8 @@ packages:
   python:
     version:
       - "3.14" # spack installation July 2026
+  # Use LLVM@18 for CI
+  c:
+    require: "llvm@18"
+  cxx:
+    require: "llvm@18"
