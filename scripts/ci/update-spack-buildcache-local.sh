@@ -11,7 +11,7 @@ log() {
   printf "%s: %s\n" "$1" "$2" >&2
 }
 
-if [ -z "${GITHUB_USER}" || -z "${GITHUB_TOKEN}" ]; then
+if [ -z "${GITHUB_USER}" ] || [ -z "${GITHUB_TOKEN}" ]; then
   log error "GITHUB_USER and GITHUB_TOKEN must be set (see scripts/spack/reqs-ci.yaml)"
   exit 1
 fi
