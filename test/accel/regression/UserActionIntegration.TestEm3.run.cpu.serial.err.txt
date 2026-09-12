@@ -56,6 +56,7 @@ GeantBremsstrahlungProcess.cc: debug: Using G4SeltzerBergerModel from 0.1 to 100
 GeantBremsstrahlungProcess.cc: debug: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 GeantBremsstrahlungProcess.cc: debug: Using G4SeltzerBergerModel from 0.1 to 1000 MeV
 GeantBremsstrahlungProcess.cc: debug: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+IntegrationTestBase.cc: warning: REVERTME: add a warning
 IntegrationTestBase.cc: debug: RunAction::BeginOfRunAction
 IntegrationSingleton.cc: debug: Initializing shared params
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4

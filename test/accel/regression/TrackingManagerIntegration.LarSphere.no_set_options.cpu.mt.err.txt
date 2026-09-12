@@ -78,6 +78,7 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
 G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
 G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
 [M] status@TrackingManagerIntegration.test.cc: Run two events
+[M] warning@IntegrationTestBase.cc: REVERTME: add a warning
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
 [M!] debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
@@ -96,6 +97,7 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '0',
 }
+G4WT0 > [W] warning@IntegrationTestBase.cc: REVERTME: add a warning
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [1/1] debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {

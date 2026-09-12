@@ -46,6 +46,7 @@ debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -156,6 +157,7 @@ status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
 debug@CoreState.cc: Deallocating host core state (stream 0)
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU

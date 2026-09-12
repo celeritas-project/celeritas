@@ -46,6 +46,7 @@ debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@SharedParams.cc: Killing Geant4 tracks supported by Celeritas offloading
@@ -78,6 +79,7 @@ debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run

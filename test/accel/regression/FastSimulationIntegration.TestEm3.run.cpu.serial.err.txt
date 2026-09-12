@@ -47,6 +47,7 @@ debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.1 to 1000
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.1 to 1000 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU

@@ -67,6 +67,7 @@ G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with 
 G4WT0 > [1/1] debug@TrackingManagerConstructor.cc: Activating tracking manager
 G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
 [M] status@TrackingManagerIntegration.test.cc: Beam on (first run)
+[M] warning@IntegrationTestBase.cc: REVERTME: add a warning
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
 [M] info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -164,6 +165,7 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for gamma
 G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
 G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
 G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
+G4WT0 > [W] warning@IntegrationTestBase.cc: REVERTME: add a warning
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
@@ -219,6 +221,7 @@ G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M] debug@SharedParams.cc: Resetting shared parameters
 [M] debug@CoreState.cc: Deallocating host core state (stream 0)
 [M] status@TrackingManagerIntegration.test.cc: Beam on (second run)
+[M] warning@IntegrationTestBase.cc: REVERTME: add a warning
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
 [M] info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -318,6 +321,7 @@ G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',
 }
+G4WT0 > [W] warning@IntegrationTestBase.cc: REVERTME: add a warning
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state

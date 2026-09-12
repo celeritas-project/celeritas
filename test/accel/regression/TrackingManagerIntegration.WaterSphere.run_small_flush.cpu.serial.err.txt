@@ -55,6 +55,7 @@ debug: Preparing physics table for gamma
 debug: Building physics table for gamma
 debug: Building physics table for e-
 debug: Building physics table for e+
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -165,6 +166,7 @@ status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "watersphere-run-small-flush-1-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
 debug@CoreState.cc: Deallocating host core state (stream 0)
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU

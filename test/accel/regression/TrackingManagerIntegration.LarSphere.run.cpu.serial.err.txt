@@ -55,6 +55,7 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -167,6 +168,7 @@ info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-seria
 debug@SharedParams.cc: Resetting shared parameters
 debug@CoreState.cc: Deallocating host core state (stream 0)
 status@TrackingManagerIntegration.test.cc: Beam on (second run)
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU

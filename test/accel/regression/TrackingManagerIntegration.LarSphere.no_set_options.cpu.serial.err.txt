@@ -56,6 +56,7 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed

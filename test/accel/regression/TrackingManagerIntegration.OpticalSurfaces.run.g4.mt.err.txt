@@ -89,6 +89,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M] status@TrackingManagerIntegration.test.cc: Run two events
+[M] warning@IntegrationTestBase.cc: REVERTME: add a warning
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
 [M] debug@SharedParams.cc: Constructing output registry for no-offload run
@@ -108,6 +109,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
 }
+G4WT0 > [W] warning@IntegrationTestBase.cc: REVERTME: add a warning
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Skipping state construction since Celeritas is completely disabled

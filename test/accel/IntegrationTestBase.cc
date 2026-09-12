@@ -99,6 +99,7 @@ class RunAction final : public G4UserRunAction
     void BeginOfRunAction(G4Run const* run) final
     {
         CELER_EXPECT(run);
+        CELER_LOG(warning) << "REVERTME: add a warning";
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
 

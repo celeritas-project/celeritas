@@ -56,6 +56,7 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run
@@ -89,6 +90,7 @@ status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
 status@TrackingManagerIntegration.test.cc: Beam on (second run)
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run

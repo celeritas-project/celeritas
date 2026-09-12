@@ -61,6 +61,7 @@ debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 debug@TrackingManagerIntegration.test.cc: {0}: end_init
 debug@TrackingManagerIntegration.test.cc: {0}: begin_run
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run
@@ -98,6 +99,7 @@ status@TrackingManagerIntegration.test.cc: Beam on (second run)
 debug@TrackingManagerIntegration.test.cc: {0}: begin_init
 debug@TrackingManagerIntegration.test.cc: {0}: end_init
 debug@TrackingManagerIntegration.test.cc: {0}: begin_run
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run
@@ -130,6 +132,7 @@ debug@TrackingManagerIntegration.test.cc: {0}: end_run
 debug@TrackingManagerIntegration.test.cc: {0}: begin_init
 debug@TrackingManagerIntegration.test.cc: {0}: end_init
 debug@TrackingManagerIntegration.test.cc: {0}: begin_run
+warning@IntegrationTestBase.cc: REVERTME: add a warning
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run
