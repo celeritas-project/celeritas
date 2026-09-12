@@ -43,33 +43,39 @@ WORK_DIR=$PWD
 SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
 export CELER_SOURCE_DIR=$(cd $SCRIPT_DIR/../.. && pwd)
 
-# Each line is: CXXSTD, followed by the spack packages to add, based on the
-# matrix (and its "include" entries) from .github/workflows/build-spack.yml
+# Each line is: CXXSTD, env-ci-{WHAT}.yaml, additional spack packages to add
+# This should correspond to the matrix (and its "include" entries) from
+# .github/workflows/build-spack.yml and other spack-based builds
 # (missing concretization will require running the build-spack workflows
 # on something *other* than a PR, and missing packages will cause a PR to fail
 # due to the `--use-buildcache` option in `setup-spack/action.yaml`)
 matrix="
-CXXSTD=20 vecgeom@2.1.0 geant4@11.4 g4vg root dd4hep
-CXXSTD=20 vecgeom@2.0.0-rc.7 geant4@11.3 g4vg root
-CXXSTD=20 vecgeom@1.2.11 geant4@11.4 g4vg root py-gcovr
-CXXSTD=20 vecgeom@1.2.11 geant4@11.3 g4vg root
-CXXSTD=20 vecgeom@1.2.11 geant4@11.2 g4vg root
-CXXSTD=20 vecgeom@1.2.11 geant4@11.1 g4vg root
-CXXSTD=20 vecgeom@1.2.11 geant4@11.0 g4vg root
-CXXSTD=20 vecgeom@1.2.11 geant4@10.7 g4vg root
-CXXSTD=17 vecgeom@1.2.11 geant4@10.6 g4vg
-CXXSTD=17 vecgeom@1.2.11 geant4@10.5 g4vg
+20 base vecgeom@2.1.0 geant4@11.4 g4vg root dd4hep
+20 base vecgeom@2.0.0-rc.7 geant4@11.3 g4vg root
+20 base vecgeom@1.2.11 geant4@11.4 g4vg root py-gcovr
+20 base vecgeom@1.2.11 geant4@11.3 g4vg root
+20 base vecgeom@1.2.11 geant4@11.2 g4vg root
+20 base vecgeom@1.2.11 geant4@11.1 g4vg root
+20 base vecgeom@1.2.11 geant4@11.0 g4vg root
+20 base vecgeom@1.2.11 geant4@10.7 g4vg root
+17 base vecgeom@1.2.11 geant4@10.6 g4vg
+17 base vecgeom@1.2.11 geant4@10.5 g4vg
+17 ancient
 "
 
 printf "%s" "$matrix" | while read -r line; do
   [ -z "$line" ] && continue
-  # Pop and export CXXSTD
+  # Convert line into arguments
   set -- $line
-  export "$1"
-  shift
+  cxxstd=$1
+  envbase=$2
+  shift 2
 
   # Create temporary directory
-  envdir="$WORK_DIR/temp-spack-cxx${CXXSTD}-$(echo "$*" | tr ' @' '--')"
+  envdir="$WORK_DIR/temp-spack-${envbase}-cxx${cxxstd}"
+  if [ $# -ne 0 ]; then
+    envdir="${envdir}-$(echo "$*" | tr ' @' '--')"
+  fi
   if [ -d $envdir ]; then
     log info "Skipping existing env: $line"
     continue
@@ -78,13 +84,15 @@ printf "%s" "$matrix" | while read -r line; do
   cd "$envdir"
 
   # Create environment
-  "${SCRIPT_DIR}/setup-spack-ci-env.sh" "$@"
+  SPACK_ENV_FILE="env-ci-${envbase}.yaml" \
+  CXXSTD=${cxxstd} \
+    "${SCRIPT_DIR}/setup-spack-ci-env.sh" "$@"
   # Install and push
-  log status "Concretizing $envdir..."
+  log status "Concretizing $envdir"
   spack -e . -v concretize --non-defaults --fresh
-  log status "Installing  $envdir..."
+  log status "Installing $envdir"
   spack -e . install
-  log status "Pushing  $envdir..."
+  log status "Pushing $envdir"
   spack -e . buildcache push \
     --base-image $CELER_BASE_IMAGE \
     --update-index \
