@@ -14,47 +14,62 @@ import os
 import re
 import sys
 from collections.abc import Sequence
+from enum import StrEnum
 from pathlib import Path
-from typing import Optional
 
 from github import Github
+
+
+class RegressionStatus(StrEnum):
+    failure = "failure"
+    changed = "changed"
+    success = "success"
+
 
 BOT_MARKER = "<!-- celeritas-regression-bot -->"
 STATUS_MARKER_RE = re.compile(r"<!-- celeritas-regression-status: (\w+) -->")
 
-TITLES = {
-    "failure": "\u26d4\ufe0f Regression tests failed",
-    "changed": "\u26a0\ufe0f Regression data changed",
-    "success": "\u2705 Regression tests passed",
+STATUS_STR = {
+    RegressionStatus.failure: "⛔️ Regression tests failed",
+    RegressionStatus.changed: "⚠️ Regression data changed",
+    RegressionStatus.success: "✅ Regression tests passed",
 }
 
 
 def find_bot_comment(pull_request):
     for comment in pull_request.get_issue_comments():
-        if BOT_MARKER in comment.body:
+        if comment.body.startswith(BOT_MARKER):
             return comment
     return None
 
 
-def previous_status(comment) -> Optional[str]:
+def previous_status(comment) -> RegressionStatus | None:
     if comment is None:
         return None
     match = STATUS_MARKER_RE.search(comment.body)
-    return match.group(1) if match else None
+    if match is None:
+        return None
+    try:
+        return RegressionStatus(match.group(1))
+    except ValueError:
+        return None
 
 
 def build_body(
     *,
-    status: str,
+    status: RegressionStatus,
     body_text: str,
-    prior_status: Optional[str],
+    prior_status: RegressionStatus | None,
     artifact_url: str,
 ) -> str:
-    parts = [TITLES.get(status, status)]
-    if status == "success" and prior_status in ("failure", "changed"):
+    parts = [BOT_MARKER, "# Regression test", STATUS_STR.get(status, status.value)]
+    if status == RegressionStatus.success and prior_status in (
+        RegressionStatus.failure,
+        RegressionStatus.changed,
+    ):
         parts.append("Previously reported regression issues are now resolved.")
     parts.append(body_text.strip())
-    if status == "failure" and artifact_url:
+    if status == RegressionStatus.failure and artifact_url:
         parts.append(
             "Download the patch to update the expected regression output:\n"
             f"[regression-update.patch]({artifact_url})\n"
@@ -62,8 +77,7 @@ def build_body(
             "git am regression-update.patch\n"
             "```"
         )
-    parts.append(BOT_MARKER)
-    parts.append(f"<!-- celeritas-regression-status: {status} -->")
+    parts.append(f"<!-- celeritas-regression-status: {status.value} -->")
     return "\n\n".join(parts)
 
 
@@ -80,6 +94,8 @@ def main(argv: Sequence[str]) -> int:
         # Already logged as a workflow warning by process-regression.py
         return 0
 
+    status = RegressionStatus(args.status)
+
     gh = Github(os.environ["GITHUB_TOKEN"])
     github_repo = gh.get_repo(args.repo)
     pull_request = github_repo.get_pull(args.pr_number)
@@ -87,12 +103,12 @@ def main(argv: Sequence[str]) -> int:
     existing = find_bot_comment(pull_request)
     prior_status = previous_status(existing)
 
-    if existing is None and args.status == "success":
+    if existing is None and status == RegressionStatus.success:
         # Nothing to report and nothing to clean up
         return 0
 
     body = build_body(
-        status=args.status,
+        status=status,
         body_text=args.comment_body_file.read_text(),
         prior_status=prior_status,
         artifact_url=args.artifact_url,

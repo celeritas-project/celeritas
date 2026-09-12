@@ -62,6 +62,10 @@ jobs:
     env:
       ARTIFACTS_DIR: artifacts
     steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Download Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1, 11 Mar 2026
         with:
@@ -76,52 +80,16 @@ jobs:
         # workflow_run's pull_requests list is empty for PRs from forks
         run: |
           echo "number=$(jq -r '.pull_request.number' "$ARTIFACTS_DIR/event-file/event.json")" >> "$GITHUB_OUTPUT"
-      - name: Check out pull request head
-        uses: actions/checkout@v7
-        with:
-          ref: refs/pull/${{steps.pr-info.outputs.number}}/head
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version-file: .python-version
-      - name: Install Python packages
-        run: |
-          pip install --upgrade pip
-          pip install -r scripts/ci/regression-requirements.txt
-      - name: Analyze regression results
-        id: analyze
+      # NOTE: no 'ref' override -- this checks out the trusted base branch (see NOTE at top of
+      # file), since everything run below (this action, scripts/ci/*.py) must never come from the
+      # PR being tested. See .github/actions/process-regression/action.yml for details.
+      - name: Process regression results
         if: ${{!cancelled()}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          python3 scripts/ci/process-regression.py \
-            --artifacts-dir "$ARTIFACTS_DIR" \
-            --repo "${{github.repository}}" \
-            --pr-number "${{steps.pr-info.outputs.number}}" \
-            --actions-run-url "${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}" \
-            --comment-body-file regression-comment.md \
-            --patch-dir regression-patch
-      # Only a real upload-artifact step (not the Python script) can produce a patch download URL
-      - name: Upload regression-update patch
-        id: upload
-        if: ${{!cancelled() && steps.analyze.outputs.has-patch == 'true'}}
-        uses: actions/upload-artifact@v7
+        uses: ./.github/actions/process-regression
         with:
-          name: regression-patch-${{github.run_id}}
-          path: regression-patch/*
-          if-no-files-found: error
-          retention-days: 14
-      - name: Post regression comment
-        if: ${{!cancelled() && steps.analyze.outcome == 'success'}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-        run: |
-          python3 scripts/ci/post-regression-comment.py \
-            --repo "${{github.repository}}" \
-            --pr-number "${{steps.pr-info.outputs.number}}" \
-            --status "${{steps.analyze.outputs.status}}" \
-            --comment-body-file regression-comment.md \
-            --artifact-url "${{steps.upload.outputs.artifact-url}}"
+          pr-number: ${{steps.pr-info.outputs.number}}
+          artifacts-dir: ${{env.ARTIFACTS_DIR}}
+          actions-run-url: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
 
 # vim: set nowrap tw=100:
