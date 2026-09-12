@@ -237,15 +237,21 @@ def run(
     threads = [threading.Thread(target=s.capture_stream) for s in streams.values()]
     for t in threads:
         t.start()
-    returncode = process.wait(timeout=timeout)
-    for t in threads:
-        t.join()
+    try:
+        returncode = process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(f"error: {exe} timed out after {timeout} seconds")
+        process.kill()
+        returncode = process.wait()
+    finally:
+        for t in threads:
+            t.join()
     if returncode:
         print(f"error: {exe} returned {returncode}")
 
     if not harness.actual_dir.exists():
         print("Creating parent directory for actual output")
-        harness.actual_dir.mkdir(parents=True)
+        harness.actual_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = [
         OutputReference(name=k, actual_lines=cmd_text + s.output, harness=harness)
