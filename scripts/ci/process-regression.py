@@ -16,15 +16,22 @@ workflow's ``report-regression`` job:
 
 Splitting the two is necessary because only a real ``actions/upload-artifact``
 step can produce the patch download URL referenced by the comment.
+
+.. important::
+   This script itself must only ever be checked out from the trusted base
+   branch (never from the PR being tested). The PR's commit (``--pr-ref``) is
+   only ever read as inert data (``git diff``/``git worktree``) — it is never
+   checked out as the working tree HEAD and nothing from it is executed.
 """
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional
 
 from github import Github
 
@@ -43,6 +50,7 @@ def run_git(repo_root: Path, *args: str, check: bool = True) -> str:
         ["git", "-C", str(repo_root), *args],
         capture_output=True,
         text=True,
+        check=False,
     )
     if check and result.returncode != 0:
         raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr}")
@@ -53,13 +61,8 @@ def find_result_dirs(artifacts_dir: Path, prefix: str) -> list[Path]:
     return sorted(p for p in artifacts_dir.glob(f"{prefix}-*") if p.is_dir())
 
 
-def resolve_merge_base(repo_root: Path, base_ref: str) -> str:
-    try:
-        run_git(repo_root, "rev-parse", "--verify", base_ref)
-    except RuntimeError:
-        branch = base_ref.rpartition("/")[2]
-        run_git(repo_root, "fetch", "origin", f"{branch}:refs/remotes/origin/{branch}")
-    return run_git(repo_root, "merge-base", base_ref, "HEAD").strip()
+def resolve_merge_base(repo_root: Path, base_ref: str, pr_ref: str) -> str:
+    return run_git(repo_root, "merge-base", base_ref, pr_ref).strip()
 
 
 def get_commit_identity(github_repo, pr_number: int) -> tuple[str, str]:
@@ -73,74 +76,92 @@ def get_commit_identity(github_repo, pr_number: int) -> tuple[str, str]:
 def build_patch(
     *,
     repo_root: Path,
+    pr_ref: str,
     failure_dirs: list[Path],
     patch_dir: Path,
     author_name: str,
     author_email: str,
 ) -> list[str]:
-    """Copy new baselines into test/, commit, and format-patch. Returns updated file list."""
+    """Materialize the PR commit in a scratch worktree, update baselines, and format-patch.
+
+    The worktree is only ever read from and written to by this function (never executed),
+    so materializing the untrusted PR commit here is safe.
+    """
     updated: list[str] = []
     for result_dir in failure_dirs:
         for subdir in sorted(p for p in result_dir.iterdir() if p.is_dir()):
-            dest_dir = repo_root / TEST / subdir.name / REGRESSION
-            dest_dir.mkdir(parents=True, exist_ok=True)
             for src_file in sorted(subdir.glob("*")):
-                dest_file = dest_dir / src_file.name
-                dest_file.write_bytes(src_file.read_bytes())
-                updated.append(str(dest_file.relative_to(repo_root)))
+                updated.append(
+                    str(Path(TEST) / subdir.name / REGRESSION / src_file.name)
+                )
 
     if not updated:
         return updated
 
-    run_git(repo_root, "add", "--", *updated)
-    author = f"{author_name} <{author_email}>"
-    run_git(
-        repo_root,
-        "-c",
-        f"user.name={author_name}",
-        "-c",
-        f"user.email={author_email}",
-        "commit",
-        f"--author={author}",
-        "-m",
-        "Update regression baselines from CI",
-    )
-    patch_dir.mkdir(parents=True, exist_ok=True)
-    run_git(repo_root, "format-patch", "-1", "HEAD", "-o", str(patch_dir))
+    with tempfile.TemporaryDirectory() as worktree_str:
+        worktree = Path(worktree_str)
+        run_git(repo_root, "worktree", "add", "--detach", str(worktree), pr_ref)
+        try:
+            for result_dir in failure_dirs:
+                for subdir in sorted(p for p in result_dir.iterdir() if p.is_dir()):
+                    dest_dir = worktree / TEST / subdir.name / REGRESSION
+                    dest_dir.mkdir(parents=True, exist_ok=True)
+                    for src_file in sorted(subdir.glob("*")):
+                        (dest_dir / src_file.name).write_bytes(src_file.read_bytes())
+
+            run_git(worktree, "add", "--", *updated)
+            author = f"{author_name} <{author_email}>"
+            run_git(
+                worktree,
+                "-c",
+                f"user.name={author_name}",
+                "-c",
+                f"user.email={author_email}",
+                "commit",
+                f"--author={author}",
+                "-m",
+                "Update regression baselines from CI",
+            )
+            patch_dir.mkdir(parents=True, exist_ok=True)
+            run_git(
+                worktree, "format-patch", "-1", "HEAD", "-o", str(patch_dir.resolve())
+            )
+        finally:
+            run_git(
+                repo_root, "worktree", "remove", "--force", str(worktree), check=False
+            )
     return updated
 
 
-def build_diff(repo_root: Path, merge_base: str, pathspec: str) -> tuple[str, str]:
+def build_diff(
+    repo_root: Path, merge_base: str, pr_ref: str, pathspec: str
+) -> tuple[str, str]:
     stat = run_git(
-        repo_root, "diff", "--stat", f"{merge_base}..HEAD", "--", pathspec
+        repo_root, "diff", "--stat", f"{merge_base}..{pr_ref}", "--", pathspec
     ).strip()
-    diff = run_git(repo_root, "diff", f"{merge_base}..HEAD", "--", pathspec)
+    diff = run_git(repo_root, "diff", f"{merge_base}..{pr_ref}", "--", pathspec)
     return stat, diff
 
 
-def write_comment_body(
-    path: Path,
+def make_comment_body(
     *,
     status: str,
     updated_files: list[str],
     diff_stat: str,
     diff_text: str,
     actions_run_url: str,
-) -> None:
-    lines: list[str]
+) -> str:
     if status == STATUS_FAILURE:
-        lines = [
-            "The following regression baselines differ from the recorded expected output:",
-            "",
-            *(f"- `{f}`" for f in updated_files),
-            "",
-            "If these changes are expected, apply the attached patch to update them. "
-            "If not, this indicates a regression in the physics output that should be "
-            "investigated before merging.",
-            "",
-            f"[View the failing test output in the GitHub Actions run]({actions_run_url})",
-        ]
-    elif status == STATUS_CHANGED:
+        updated = "\n".join(f"- `{f}`" for f in updated_files)
+        return f"""The following regression baselines differ from the recorded expected output:
+
+{updated}
+
+If these changes are expected, apply the attached patch to update them. If not, this indicates a regression in the physics output that should be investigated before merging.
+
+[View the failing test output in the GitHub Actions run]({actions_run_url})
+"""
+    if status == STATUS_CHANGED:
         truncated = diff_text
         note = ""
         if len(truncated) > MAX_DIFF_CHARS:
@@ -149,37 +170,22 @@ def write_comment_body(
                 f"\n_(diff truncated to {MAX_DIFF_CHARS} characters; "
                 f"see the [Actions run]({actions_run_url}) for the full diff)_\n"
             )
-        lines = [
-            "Changes to regression baselines under `test/**/regression/*` were detected "
-            "compared to `develop`. These files are marked `linguist-generated`, so GitHub "
-            "hides them from the default diff view \u2014 please review below to confirm "
-            "the change is intended.",
-            "",
-            "```",
-            diff_stat,
-            "```",
-            note,
-            "<details><summary>Diff</summary>",
-            "",
-            "```diff",
-            truncated,
-            "```",
-            "</details>",
-            "",
-            f"[View the GitHub Actions run]({actions_run_url})",
-        ]
-    else:
-        lines = ["Regression tests passed and regression data matches `develop`."]
+        return f"""Changes to regression baselines under `test/**/regression/*` were detected compared to `develop`. These files are marked `linguist-generated`, so GitHub hides them from the default diff view — please review below to confirm the change is intended.
 
-    path.write_text("\n".join(lines) + "\n")
+```
+{diff_stat}
+```
+{note}<details><summary>Diff</summary>
 
+```diff
+{truncated}
+```
+</details>
 
-def write_output(github_output: Optional[str], **kwargs: str) -> None:
-    if not github_output:
-        return
-    with open(github_output, "a") as f:
-        for key, value in kwargs.items():
-            f.write(f"{key}={value}\n")
+[View the GitHub Actions run]({actions_run_url})
+"""
+
+    return "Regression tests passed and regression data matches `develop`.\n"
 
 
 def main(argv: Sequence[str]) -> int:
@@ -188,7 +194,16 @@ def main(argv: Sequence[str]) -> int:
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--repo", required=True, help="owner/name")
     parser.add_argument("--pr-number", type=int, required=True)
-    parser.add_argument("--base-ref", default="origin/develop")
+    parser.add_argument(
+        "--pr-ref",
+        required=True,
+        help="local ref/sha for the (untrusted) PR head commit, fetched as inert data only",
+    )
+    parser.add_argument(
+        "--base-ref",
+        default="HEAD",
+        help="trusted base ref to diff against (default: the checked-out base branch)",
+    )
     parser.add_argument("--actions-run-url", required=True)
     parser.add_argument("--comment-body-file", type=Path, required=True)
     parser.add_argument("--patch-dir", type=Path, required=True)
@@ -211,15 +226,16 @@ def main(argv: Sequence[str]) -> int:
         author_name, author_email = get_commit_identity(github_repo, args.pr_number)
         updated_files = build_patch(
             repo_root=repo_root,
+            pr_ref=args.pr_ref,
             failure_dirs=failure_dirs,
             patch_dir=args.patch_dir,
             author_name=author_name,
             author_email=author_email,
         )
     else:
-        merge_base = resolve_merge_base(repo_root, args.base_ref)
+        merge_base = resolve_merge_base(repo_root, args.base_ref, args.pr_ref)
         pathspec = f"{TEST}/**/{REGRESSION}/*"
-        diff_stat, diff_text = build_diff(repo_root, merge_base, pathspec)
+        diff_stat, diff_text = build_diff(repo_root, merge_base, args.pr_ref, pathspec)
         if diff_text.strip():
             status = STATUS_CHANGED
         elif not test_result_dirs:
@@ -227,22 +243,26 @@ def main(argv: Sequence[str]) -> int:
         else:
             status = STATUS_SUCCESS
 
-    write_comment_body(
-        args.comment_body_file,
-        status=status,
-        updated_files=updated_files,
-        diff_stat=diff_stat,
-        diff_text=diff_text,
-        actions_run_url=args.actions_run_url,
+    args.comment_body_file.write_text(
+        make_comment_body(
+            status=status,
+            updated_files=updated_files,
+            diff_stat=diff_stat,
+            diff_text=diff_text,
+            actions_run_url=args.actions_run_url,
+        )
     )
 
-    has_patch = bool(updated_files)
-    write_output(
-        github_output,
-        status=status,
-        **{"has-patch": "true" if has_patch else "false"},
-        **{"patch-dir": str(args.patch_dir) if has_patch else ""},
-    )
+    if github_output is not None:
+        with open(github_output, "a") as f:
+            f.writelines(
+                f"{k}={v}\n"
+                for (k, v) in [
+                    ("status", status),
+                    ("updated-files", json.dumps(updated_files)),
+                    ("patch-dir", str(args.patch_dir) if updated_files else ""),
+                ]
+            )
 
     if status == STATUS_CANCELLED:
         print("::warning::Regression tests were cancelled or did not report results")
