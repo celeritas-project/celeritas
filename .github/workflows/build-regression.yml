@@ -79,35 +79,10 @@ jobs:
           }}
         uses: actions/upload-artifact@v7
         with:
-          name: regression-${{ env.CELER_RUN_NAME }}
+          # NOTE: file name is used by pull_request_completed.yml
+          name: regression-results-${{ env.CELER_RUN_NAME }}
           path: ${{ github.workspace }}/build/regression/*
           if-no-files-found: error
           retention-days: 3
-
-      - name: Comment on PR with regression artifact link
-        if: ${{ !cancelled() && github.event_name == 'pull_request' && steps.upload.outcome == 'success' }}
-        uses: actions/github-script@v9
-        env:
-          ARTIFACT_NAME: regression-${{ env.CELER_RUN_NAME }}
-          ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id }}
-          ARTIFACT_URL: ${{ steps.upload.outputs.artifact-url }}
-          ACTIONS_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        with:
-          script: |
-            const artifactName = process.env.ARTIFACT_NAME;
-            const artifactId = process.env.ARTIFACT_ID;
-            const artifactUrl = process.env.ARTIFACT_URL;
-            const actionsRunUrl = process.env.ACTIONS_RUN_URL;
-            await github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: `⛔️ Regression tests failed 😞
-
-              1. View the detailed failure diff in the [GitHub Actions run](${actionsRunUrl})
-              2. If the changes are expected, please update your PR with these files: [${artifactName}-${artifactId}](${artifactUrl})
-              3. Sorry for the hassle! This step will be automated in the future.
-              `
-            });
 
 # vim: set nowrap tw=100:

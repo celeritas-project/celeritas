@@ -76,7 +76,7 @@ runs:
       uses: actions/upload-artifact@v7
       if: ${{ !cancelled() }}
       with:
-        # NOTE: these must be compatible with pull_request_completed.yml
+        # NOTE: file name is used by pull_request_completed.yml
         name: test-results-${{inputs.name}}
         path: "test-output/**/*.xml"
         if-no-files-found: error
