@@ -34,8 +34,6 @@ void WlsGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<WlsGeneratorState<MemSpace::native>>(*state.aux(),
                                                                this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::WlsGeneratorExecutor execute{
@@ -46,7 +44,7 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         aux_state.store.ref(),
         aux_state.counters.buffer_size};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    launch(num_gen, state.stream_id(), execute);
+    launch(aux_state.counters.num_pending, state.stream_id(), execute);
 }
 
 //---------------------------------------------------------------------------//

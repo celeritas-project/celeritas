@@ -14,6 +14,7 @@
 #include "celeritas/global/ActionInterface.hh"
 
 #include "GeneratorData.hh"
+#include "../CoreParams.hh"
 
 #include "detail/OffloadGatherTraits.hh"
 #include "detail/OffloadTraits.hh"
@@ -37,6 +38,7 @@ class OffloadAction final : public CoreStepActionInterface
     //! \name Type aliases
     using TraitsT = detail::OffloadTraits<G>;
     using SPConstParams = std::shared_ptr<typename TraitsT::Params const>;
+    using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
     using SPConstMaterial = std::shared_ptr<optical::MaterialParams const>;
     //!@}
 
@@ -49,10 +51,12 @@ class OffloadAction final : public CoreStepActionInterface
         AuxId optical_id;
         SPConstMaterial material;
         SPConstParams shared;
+        SPConstOpticalParams optical_params;
 
         explicit operator bool() const
         {
-            return pre_step_id && gen_id && optical_id && material && shared;
+            return pre_step_id && gen_id && optical_id && material && shared
+                   && optical_params;
         }
     };
 
@@ -90,6 +94,12 @@ class OffloadAction final : public CoreStepActionInterface
 
     //! Access shared data used by this offload physics
     SPConstParams const& params() const { return data_.shared; }
+
+    //! Access optical params
+    SPConstOpticalParams const& optical_params() const
+    {
+        return data_.optical_params;
+    }
 
   private:
     //// TYPES ////

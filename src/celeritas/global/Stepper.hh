@@ -315,6 +315,8 @@ class Stepper final : public StepperInterface
     //!@{
     //! \name Type aliases
     using StateRef = CoreStateData<Ownership::reference, M>;
+    using CoreStateHost = CoreState<MemSpace::host>;
+    using CoreStateDevice = CoreState<MemSpace::device>;
     //!@}
 
   public:
@@ -402,6 +404,9 @@ class Stepper final : public StepperInterface
     // Reset the core state counters and data so it can be reused
     void reset_state();
 
+    //! Reset the num_generated state counter to zero
+    void set_generated();
+
     //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
     SPState sp_state() final { return state_; }
 
@@ -452,6 +457,15 @@ class Stepper final : public StepperInterface
     // Release a submitted primary source after its copy completes
     void reclaim_submitted_primaries();
 };
+
+//---------------------------------------------------------------------------//
+// SPECIALIZATION
+//---------------------------------------------------------------------------//
+template<>
+void Stepper<MemSpace::host>::set_generated();
+
+template<>
+void Stepper<MemSpace::device>::set_generated();
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

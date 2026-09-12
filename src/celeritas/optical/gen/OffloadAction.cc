@@ -15,6 +15,7 @@
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/MaterialParams.hh"  // IWYU pragma: keep
 
@@ -108,13 +109,16 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
         buffer, start, start + core_state.size(), core_state.stream_id());
 
     // Count the number of optical photons that would be generated from the
-    // distributions created in this step
+    // distributions created in this step and update the number of pending
+    // tracks counter accordingly.
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
-    auto counters = optical_state.sync_get_counters();
-    counters.num_pending += detail::count_num_photons(
-        buffer, start, buffer_size, core_state.stream_id());
-    optical_state.sync_put_counters(counters);
+    detail::count_num_photons(this->optical_params(),
+                              optical_state,
+                              buffer,
+                              start,
+                              buffer_size,
+                              core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//

@@ -15,17 +15,15 @@ namespace detail
 //---------------------------------------------------------------------------//
 /*!
  * Compact the \c TrackSlotIds of the inactive tracks.
- *
- * \return Number of vacant track slots
  */
-size_type copy_if_vacant(TrackStatusRef<MemSpace::host> const& status,
-                         TrackSlotRef<MemSpace::host> const& vacancies,
-                         StreamId)
+void copy_if_vacant(TrackStatusRef<MemSpace::host> const& status,
+                    TrackInitRef<MemSpace::host> const& init,
+                    StreamId)
 {
-    CELER_EXPECT(status.size() == vacancies.size());
+    CELER_EXPECT(status.size() == init.vacancies.size());
 
     auto* data = status.data().get();
-    auto* result = vacancies.data().get();
+    auto* result = init.vacancies.data().get();
 
     size_type tid = 0;
     auto* const stop = data + status.size();
@@ -37,7 +35,10 @@ size_type copy_if_vacant(TrackStatusRef<MemSpace::host> const& status,
         }
         ++tid;
     }
-    return result - vacancies.data().get();
+
+    auto counters = init.counters.data().get();
+    counters->num_vacancies = result - init.vacancies.data().get();
+    return;
 }
 
 //---------------------------------------------------------------------------//

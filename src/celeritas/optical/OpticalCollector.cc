@@ -71,6 +71,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.optical_params->cherenkov();
+        oa_inp.optical_params = inp.optical_params;
         cherenkov_offload_ = OffloadAction<GT::cherenkov>::make_and_insert(
             core, std::move(oa_inp));
     }
@@ -89,6 +90,7 @@ OpticalCollector::OpticalCollector(CoreParams const& core, Input&& inp)
         oa_inp.optical_id = launch_->aux_id();
         oa_inp.material = inp.optical_params->material();
         oa_inp.shared = inp.optical_params->scintillation();
+        oa_inp.optical_params = inp.optical_params;
         scint_offload_ = OffloadAction<GT::scintillation>::make_and_insert(
             core, std::move(oa_inp));
     }

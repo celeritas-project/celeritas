@@ -47,7 +47,7 @@ void remove_if_alive(
  * The input size is one greater than the number of track slots so that the
  * final element will be the total accumulated value.
  */
-size_type exclusive_scan_counts(
+void exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&
         counts,
     StreamId)
@@ -55,7 +55,7 @@ size_type exclusive_scan_counts(
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
 #ifdef __cpp_lib_parallel_algorithm
-    auto* stop = std::exclusive_scan(data, data + counts.size(), data, 0_sz);
+    std::exclusive_scan(data, data + counts.size(), data, 0_sz);
 #else
     // Standard library shipped with GCC 8.5 does not include exclusive_scan
     // (I guess it's *too* exclusive)
@@ -68,8 +68,7 @@ size_type exclusive_scan_counts(
         acc += current;
     }
 #endif
-    // Return the final value
-    return *(stop - 1);
+    return;
 }
 
 //---------------------------------------------------------------------------//
@@ -82,13 +81,15 @@ size_type exclusive_scan_counts(
 void partition_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
-    size_type count,
     StreamId)
 {
     // Partition the indices based on the track initializer charge
+    auto* counters = init.counters.data().get();
+    auto count = std::min(counters->num_vacancies, counters->num_initializers);
+    if (count == 0)
+        return;
     auto* start = init.indices.data().get();
     auto* end = start + count;
-    auto* counters = init.counters.data().get();
     auto* stencil = init.initializers.data().get() + counters->num_initializers
                     - count;
     std::stable_partition(
