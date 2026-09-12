@@ -83,6 +83,7 @@ jobs:
     if: ${{!cancelled()}}
     needs:
       - build-spack
+      - build-regression
       - build-spack-extra
       - build-docker
       - build-codecov
