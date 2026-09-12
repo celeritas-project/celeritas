@@ -34,6 +34,7 @@ runs:
       id: vars
       shell: sh
       run: |
+        SPACK_ROOT=$GITHUB_WORKSPACE/spack-src
         {
           # These can be overridden by dependent build
           echo "CELER_SPACK_ENV=$GITHUB_WORKSPACE"
@@ -41,7 +42,7 @@ runs:
           # Used by spack
           echo "SPACK_COLOR=always"
           echo "SPACK_DISABLE_LOCAL_CONFIG=1"
-          echo "SPACK_ROOT=$GITHUB_WORKSPACE/spack-src"
+          echo "SPACK_ROOT=$SPACK_ROOT"
         } >> "$GITHUB_ENV"
         {
           echo "BASE_IMAGE=ubuntu:24.04"
