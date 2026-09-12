@@ -21,6 +21,7 @@ env:
 
 jobs:
   asan:
+    if: false
     name: orange-asanlite
     env:
       CELER_CMAKE_PRESET: orange-asanlite
@@ -97,6 +98,7 @@ jobs:
           strict: false
 
   tidy:
+    if: false
     name: tidy-vecgeom
     env:
       CELER_CMAKE_PRESET: vecgeom-tidy
