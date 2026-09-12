@@ -19,7 +19,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Create track initializers from primary particles.
+ * Update state counters based on the number of primaries.
  */
 struct UpdateCountersExecutor
 {
