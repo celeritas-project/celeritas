@@ -51,6 +51,7 @@ jobs:
     if: false
     uses: ./.github/workflows/build-docs.yml
   all-prechecks:
+    # This job will skip if any dependent skips
     needs:
       - build-fast
       - build-ultralite
@@ -66,7 +67,7 @@ jobs:
 
   # Defer large jobs while the PR is in draft state
   build-spack-extra:
-    if: ${{github.event.pull_request.draft == false}}
+    if: ${{always()}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack-extra.yml
   build-docker:
@@ -79,6 +80,7 @@ jobs:
     uses: ./.github/workflows/build-codecov.yml
 
   all-expensive:
+    # This job will be skipped automatically for draft PRs
     needs:
       - build-spack-extra
       - build-docker
@@ -89,8 +91,8 @@ jobs:
         run: "true"
 
   # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
-  # - When running in draft mode, this check is skipped
-  # - Otherwise this check fails if any required job did not succeed
+  # - When running in draft mode, this check is skipped since dependent jobs are skipped
+  # - Otherwise this check always runs and will mark as failure if any required job did not succeed
   all:
     if: ${{ always() && github.event.pull_request.draft == false }}
     needs:
