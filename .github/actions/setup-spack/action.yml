@@ -87,6 +87,10 @@ runs:
           echo "CONFIG_DUMP=$PWD/spack.config.json"a
           echo "STAGE_DIR=$(spack -e . location -S)"
         } >> "$GITHUB_OUTPUT"
+        {
+          echo "### Spack configuration"
+          spack -e . debug
+        } >> "$GITHUB_STEP_SUMMARY"
 
     - name: Dump spack config blame
       if: ${{runner.debug}}
@@ -97,10 +101,9 @@ runs:
 
     - name: Restore cached lockfile
       id: restore
-      working-directory: ${{env.CELER_SPACK_ENV}}
       uses: actions/cache/restore@v6
       with:
-        path: spack.lock
+        path: ${{env.CELER_SPACK_ENV}}/spack.lock
         key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
         restore-keys: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
     - name: Concretize
@@ -109,18 +112,12 @@ runs:
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
-        spack arch
-        spack -e . -v concretize || {
-          ERR=$?
-          cat spack.yaml
-          exit $ERR
-        }
+        spack -e . -v concretize
     - name: Cache lockfile
       if: ${{ steps.concretize.outcome == 'success' }}
-      working-directory: ${{env.CELER_SPACK_ENV}}
       uses: actions/cache/save@v6
       with:
-        path: spack.lock
+        path: ${{env.CELER_SPACK_ENV}}/spack.lock
         key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
     - name: Install dependencies
       id: install
@@ -130,6 +127,11 @@ runs:
         USE_BUILDCACHE: ${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
       run: |
         spack -e . install -p 8 --use-buildcache="$USE_BUILDCACHE"
+        {
+          echo '```'
+          spack -e . find
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Upload spack config and lockfile
       if: >-
         ${{ !cancelled()
@@ -137,18 +139,17 @@ runs:
                || steps.concretize.outcome == 'failure'
                || steps.install.outcome == 'failure')
         }}
-      working-directory: ${{env.CELER_SPACK_ENV}}
       uses: actions/upload-artifact@v7
       with:
         name: spack-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
-        path: "spack.*"
+        path: "${{env.CELER_SPACK_ENV}}/spack.*"
         retention-days: 1
     - name: Upload logs
       if: ${{ !cancelled() && steps.install.outcome == 'failure' }}
       uses: actions/upload-artifact@v7
       with:
         name: spack-logs-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
-        path: ${{steps.init.outputs.STAGE_DIR}}/*.log
+        path: "${{steps.init.outputs.STAGE_DIR}}/*.log"
     - name: List installed dependencies
       if: ${{runner.debug || steps.install.outcome == 'failure'}}
       shell: sh
