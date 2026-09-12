@@ -52,13 +52,13 @@ runs:
       with:
         repository: spack/spack
         path: ${{env.SPACK_ROOT}}
-        ref: c3426684351723f819abca7335fafd99ffe7c1ef
+        ref: c3426684351723f819abca7335fafd99ffe7c1ef # upstream/develop, 12 September 2026
     - name: Checkout Spack packages
       uses: actions/checkout@v7
       with:
         repository: celeritas-project/spack-packages
         path: ${{env.SPACK_PACKAGES}}
-        ref: 2c1c9409a3828d9d3a3985fd0ae200bd8bd82117 # ci, 9 September 2026
+        ref: 3f034e3f7f3e0e64f94a4761a8c2ba0e8931bc84 # upstream/develop, 12 September 2026
 
     - name: Initialize spack environment
       shell: sh

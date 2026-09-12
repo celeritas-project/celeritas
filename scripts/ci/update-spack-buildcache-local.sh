@@ -28,6 +28,7 @@ if [ "${OS}" != "${EXPECTED_OS}" ]; then
   exit 1
 fi
 
+spack debug report
 
 CELER_BASE_IMAGE=ubuntu:24.04
 CELER_BUILDCACHE=celeritas
@@ -42,15 +43,13 @@ WORK_DIR=$PWD
 SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
 export CELER_SOURCE_DIR=$(cd $SCRIPT_DIR/../.. && pwd)
 
-update_index=false
-
 # Each line is: CXXSTD, followed by the spack packages to add, based on the
 # matrix (and its "include" entries) from .github/workflows/build-spack.yml
 # (missing concretization will require running the build-spack workflows
 # on something *other* than a PR, and missing packages will cause a PR to fail
 # due to the `--use-buildcache` option in `setup-spack/action.yaml`)
 matrix="
-CXXSTD=20 vecgeom@2.1.0 geant4@11.4 g4vg root
+CXXSTD=20 vecgeom@2.1.0 geant4@11.4 g4vg root dd4hep
 CXXSTD=20 vecgeom@2.0.0-rc.7 geant4@11.3 g4vg root
 CXXSTD=20 vecgeom@1.2.11 geant4@11.4 g4vg root py-gcovr
 CXXSTD=20 vecgeom@1.2.11 geant4@11.3 g4vg root
@@ -88,6 +87,7 @@ printf "%s" "$matrix" | while read -r line; do
   log status "Pushing  $envdir..."
   spack -e . buildcache push \
     --base-image $CELER_BASE_IMAGE \
+    --update-index \
+    --allow-missing \
     $CELER_BUILDCACHE
-  spack -e . buildcache update-index $CELER_BUILDCACHE
 done
