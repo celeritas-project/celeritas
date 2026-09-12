@@ -65,6 +65,7 @@ jobs:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
   build-regression:
+    if: ${{!cancelled()}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-regression.yml
 
