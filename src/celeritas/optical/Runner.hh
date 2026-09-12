@@ -96,8 +96,6 @@ class Runner
 
     //// HELPER FUNCTIONS ////
 
-    Result run() const;
-
     // Update the num_pending state counter
     void update_pending(CoreState<MemSpace::host>&, size_type) const;
     void update_pending(CoreState<MemSpace::device>&, size_type) const;
