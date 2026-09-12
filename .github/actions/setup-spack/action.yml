@@ -90,9 +90,8 @@ runs:
         } >> "$GITHUB_OUTPUT"
         {
           echo "### Spack configuration"
-          spack -e . debug
+          spack -e . debug report
         } >> "$GITHUB_STEP_SUMMARY"
-
     - name: Dump spack config blame
       if: ${{runner.debug}}
       shell: sh
