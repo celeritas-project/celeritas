@@ -1,5 +1,5 @@
 test/accel/UserActionIntegration --gtest_filter=LarSphere.run
-Celeritas version [suppressed]
+Celeritas version 10.345
 Note: Google Test filter = LarSphere.run
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
