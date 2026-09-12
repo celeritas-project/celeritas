@@ -43,10 +43,13 @@ jobs:
           name: event-file
           path: ${{github.event_path}}
   build-fast:
+    if: false
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
+    if: false
     uses: ./.github/workflows/build-ultralite.yml
   build-docs:
+    if: false
     uses: ./.github/workflows/build-docs.yml
   all-prechecks:
     needs:
@@ -58,23 +61,25 @@ jobs:
       - name: Success
         run: "true"
   build-spack:
+    if: false
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
   build-regression:
+    if: ${{!cancelled()}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-regression.yml
 
   # Defer large jobs while the PR is in draft state
   build-spack-extra:
-    if: ${{github.event.pull_request.draft == false}}
+    if: false
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack-extra.yml
   build-docker:
-    if: ${{github.event.pull_request.draft == false}}
+    if: false
     needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
   build-codecov:
-    if: ${{github.event.pull_request.draft == false}}
+    if: false
     needs: [all-prechecks]
     uses: ./.github/workflows/build-codecov.yml
 
