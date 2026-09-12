@@ -36,25 +36,27 @@ packages:
   all:
     prefer:
       - "cxxstd=20"
+  covfie:
+    variants:
+      - generator=ninja
   hdf5:
     prefer: [~cxx] # override cxxstd preference
   geant4:
     variants:
       - generator=ninja
-  # TODO: use ninja with g4vg: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND
-  covfie:
+  g4vg:
     variants:
       - generator=ninja
+  python:
+    version:
+      - "3.14" # spack installation July 2026
   root:
     variants:
       - generator=ninja
   vecgeom:
     variants:
       - generator=ninja
-  python:
-    version:
-      - "3.14" # spack installation July 2026
-  # Use LLVM@18 for CI
+  # Compilers
   c:
     require: "llvm@18"
   cxx:
