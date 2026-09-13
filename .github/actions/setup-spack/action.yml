@@ -56,14 +56,14 @@ runs:
       with:
         repository: spack/spack
         path: ${{env.SPACK_ROOT}}
-        ref: c3426684351723f819abca7335fafd99ffe7c1ef # upstream/develop, 12 September 2026
+        ref: 307d3b0a68316341401d311c1ef6442ed2f13868 # upstream/develop, 12 September 2026
     - name: Checkout Spack packages
       id: checkout-spack-pkg
       uses: actions/checkout@v7
       with:
-        repository: celeritas-project/spack-packages
+        repository: spack/spack-packages
         path: ${{steps.vars.outputs.SPACK_PKG_REPO}}
-        ref: 3f034e3f7f3e0e64f94a4761a8c2ba0e8931bc84 # upstream/develop, 12 September 2026
+        ref: 36f29b9d21554f5a6cf443ef13cb4c391b609b96 # upstream/develop, 12 September 2026
 
     - name: Initialize spack environment
       id: init
@@ -112,7 +112,10 @@ runs:
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
-        spack -e . -v concretize
+        # Fetch buildcache contents to print as part of concretization
+        spack buildcache list
+        # NOTE that 'fresh' may try to reuse compilers
+        spack -e . -v concretize --fresh --non-defaults
     - name: Cache lockfile
       if: ${{ steps.concretize.outcome == 'success' }}
       uses: actions/cache/save@v6
@@ -126,6 +129,7 @@ runs:
       env:
         USE_BUILDCACHE: ${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
       run: |
+        spack buildcache list
         spack -e . install -p 8 --use-buildcache="$USE_BUILDCACHE"
         {
           echo '```'
