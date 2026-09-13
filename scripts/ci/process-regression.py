@@ -27,42 +27,21 @@ step can produce the patch download URL referenced by the comment.
 import argparse
 import json
 import os
-import subprocess
 import sys
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
-from github import Github
+import github as gh
+from _regression_utils import LogLevel, Status, log, run_git
 
 REGRESSION = "regression"
 TEST = "test"
 MAX_DIFF_CHARS = 40_000
 
-STATUS_FAILURE = "failure"
-STATUS_CHANGED = "changed"
-STATUS_CANCELLED = "cancelled"
-STATUS_SUCCESS = "success"
-
-
-def run_git(repo_root: Path, *args: str, check: bool = True) -> str:
-    result = subprocess.run(
-        ["git", "-C", str(repo_root), *args],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    if check and result.returncode != 0:
-        raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr}")
-    return result.stdout
-
 
 def find_result_dirs(artifacts_dir: Path, prefix: str) -> list[Path]:
     return sorted(p for p in artifacts_dir.glob(f"{prefix}-*") if p.is_dir())
-
-
-def resolve_merge_base(repo_root: Path, base_ref: str, pr_ref: str) -> str:
-    return run_git(repo_root, "merge-base", base_ref, pr_ref).strip()
 
 
 def get_commit_identity(github_repo, pr_number: int) -> tuple[str, str]:
@@ -96,6 +75,7 @@ def build_patch(
                 )
 
     if not updated:
+        log(LogLevel.DEBUG, "No regression output changes were found")
         return updated
 
     with tempfile.TemporaryDirectory() as worktree_str:
@@ -126,21 +106,14 @@ def build_patch(
             run_git(
                 worktree, "format-patch", "-1", "HEAD", "-o", str(patch_dir.resolve())
             )
+        except Exception as e:
+            log(LogLevel.ERROR, f"Failure during patch build: {e}")
+            raise
         finally:
             run_git(
                 repo_root, "worktree", "remove", "--force", str(worktree), check=False
             )
     return updated
-
-
-def build_diff(
-    repo_root: Path, merge_base: str, pr_ref: str, pathspec: str
-) -> tuple[str, str]:
-    stat = run_git(
-        repo_root, "diff", "--stat", f"{merge_base}..{pr_ref}", "--", pathspec
-    ).strip()
-    diff = run_git(repo_root, "diff", f"{merge_base}..{pr_ref}", "--", pathspec)
-    return stat, diff
 
 
 def make_comment_body(
@@ -151,17 +124,18 @@ def make_comment_body(
     diff_text: str,
     actions_run_url: str,
 ) -> str:
-    if status == STATUS_FAILURE:
+    if status == Status.FAILURE:
         updated = "\n".join(f"- `{f}`" for f in updated_files)
-        return f"""The following regression baselines differ from the recorded expected output:
-
+        return f"""\
+The following regression baselines differ from the recorded expected output:
 {updated}
 
-If these changes are expected, apply the attached patch to update them. If not, this indicates a regression in the physics output that should be investigated before merging.
+If these changes are expected, apply the attached patch to update them.
+If not, this indicates a regression in the physics output that should be investigated before merging.
 
 [View the failing test output in the GitHub Actions run]({actions_run_url})
 """
-    if status == STATUS_CHANGED:
+    if status == Status.CHANGED:
         truncated = diff_text
         note = ""
         if len(truncated) > MAX_DIFF_CHARS:
@@ -170,7 +144,10 @@ If these changes are expected, apply the attached patch to update them. If not, 
                 f"\n_(diff truncated to {MAX_DIFF_CHARS} characters; "
                 f"see the [Actions run]({actions_run_url}) for the full diff)_\n"
             )
-        return f"""Changes to regression baselines under `test/**/regression/*` were detected compared to `develop`. These files are marked `linguist-generated`, so GitHub hides them from the default diff view — please review below to confirm the change is intended.
+        return f"""\
+Changes to regression baselines under `test/**/regression/*` were detected compared to `develop`.
+These files are marked `linguist-generated`, so GitHub hides them from the default diff view:
+**please review below** to confirm the change is intended.
 
 ```
 {diff_stat}
@@ -185,6 +162,7 @@ If these changes are expected, apply the attached patch to update them. If not, 
 [View the GitHub Actions run]({actions_run_url})
 """
 
+    assert status == Status.SUCCESS
     return "Regression tests passed and regression data matches `develop`.\n"
 
 
@@ -220,9 +198,10 @@ def main(argv: Sequence[str]) -> int:
     diff_text = ""
 
     if failure_dirs:
-        status = STATUS_FAILURE
-        gh = Github(os.environ["GITHUB_TOKEN"])
-        github_repo = gh.get_repo(args.repo)
+        log(LogLevel.DEBUG, "Found regression failures")
+        status = Status.FAILURE
+        api = gh.Github(auth=gh.Auth.Token(os.environ["GITHUB_TOKEN"]))
+        github_repo = api.get_repo(args.repo)
         author_name, author_email = get_commit_identity(github_repo, args.pr_number)
         updated_files = build_patch(
             repo_root=repo_root,
@@ -233,15 +212,26 @@ def main(argv: Sequence[str]) -> int:
             author_email=author_email,
         )
     else:
-        merge_base = resolve_merge_base(repo_root, args.base_ref, args.pr_ref)
+        log(LogLevel.DEBUG, "Comparing against merge base")
+        pr_ref = args.pr_ref
+        merge_base = run_git(repo_root, "merge-base", args.base_ref, pr_ref).strip()
         pathspec = f"{TEST}/**/{REGRESSION}/*"
-        diff_stat, diff_text = build_diff(repo_root, merge_base, args.pr_ref, pathspec)
+        diff_stat = run_git(
+            repo_root, "diff", "--stat", f"{merge_base}..{pr_ref}", "--", pathspec
+        ).strip()
+        log(
+            LogLevel.DEBUG,
+            "Diff: " + ("<no change>" if not diff_stat else diff_stat.splitlines()[-1]),
+        )
+        diff_stat = run_git(
+            repo_root, "diff", f"{merge_base}..{pr_ref}", "--", pathspec
+        )
         if diff_text.strip():
-            status = STATUS_CHANGED
+            status = Status.CHANGED
         elif not test_result_dirs:
-            status = STATUS_CANCELLED
+            status = Status.CANCELLED
         else:
-            status = STATUS_SUCCESS
+            status = Status.SUCCESS
 
     args.comment_body_file.write_text(
         make_comment_body(
@@ -253,19 +243,27 @@ def main(argv: Sequence[str]) -> int:
         )
     )
 
-    if github_output is not None:
-        with open(github_output, "a") as f:
-            f.writelines(
-                f"{k}={v}\n"
-                for (k, v) in [
-                    ("status", status),
-                    ("updated-files", json.dumps(updated_files)),
-                    ("patch-dir", str(args.patch_dir) if updated_files else ""),
-                ]
-            )
+    updates = [
+        f"{k}={v}\n"
+        for (k, v) in [
+            ("status", status),
+            ("updated-files", json.dumps(updated_files)),
+            ("patch-dir", str(args.patch_dir) if updated_files else ""),
+        ]
+    ]
+    for line in updates:
+        log(LogLevel.NOTICE, line.rstrip())
 
-    if status == STATUS_CANCELLED:
-        print("::warning::Regression tests were cancelled or did not report results")
+    if github_output is not None:
+        log(LogLevel.DEBUG, f"Writing git output to {github_output!r}")
+        with open(github_output, "a") as f:
+            f.writelines(updates)
+
+    if status == Status.CANCELLED:
+        log(
+            LogLevel.WARNING,
+            "Regression tests were cancelled or did not report results",
+        )
 
     return 0
 
