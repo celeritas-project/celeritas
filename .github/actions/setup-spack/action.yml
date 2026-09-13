@@ -85,7 +85,7 @@ runs:
         fi
         spack -e . config get --json > spack.config.json
         {
-          echo "CONFIG_DUMP=$PWD/spack.config.json"a
+          echo "CONFIG_DUMP=$PWD/spack.config.json"
           echo "STAGE_DIR=$(spack -e . location -S)"
         } >> "$GITHUB_OUTPUT"
         {
