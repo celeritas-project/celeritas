@@ -1,1 +1,2 @@
 /.* export-ignore
+/test/accel/regression/*.txt linguist-generated
