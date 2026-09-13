@@ -16,7 +16,7 @@ if [ -z "${GITHUB_USER}" ] || [ -z "${GITHUB_TOKEN}" ]; then
   exit 1
 fi
 
-if ! command -v spack 2>/dev/null; then
+if ! command -v spack >/dev/null 2>&1; then
   log error "spack not found"
   exit 1
 fi
@@ -34,9 +34,11 @@ CELER_BASE_IMAGE=ubuntu:24.04
 CELER_BUILDCACHE=celeritas
 
 export CELER_SPACK_VIEW=false
-CELER_SPACK_OPT=/scratch/celeritas/opt
+CELER_SPACK_OPT=/scratch/celeritas/opt-ci
 if [ -d "$CELER_SPACK_OPT" ]; then
   export CELER_SPACK_OPT
+else
+  log warning "CELER_SPACK_OPT=${CELER_SPACK_OPT} does not exist"
 fi
 
 WORK_DIR=$PWD
