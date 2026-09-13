@@ -62,7 +62,7 @@
     {
       "name": "larsoft",
       "displayName": "deployment: target DUNE analysis with LArSoft",
-      "inherits": [".primary", ".ndebug"],
+      "inherits": [".primary", ".release"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
@@ -82,7 +82,7 @@
     {
       "name": "lhc",
       "displayName": "deployment: target LHC framework integration",
-      "inherits": [".primary", ".ndebug"],
+      "inherits": [".primary", ".release"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
@@ -171,7 +171,7 @@
       }
     },
     {
-      "name": ".ndebug",
+      "name": ".release",
       "hidden": true,
       "description": "Build with optimizations and without debug assertions",
       "cacheVariables": {

@@ -5,8 +5,8 @@
 # Bootstrap a Spack environment, build/install dependencies, activate it, and
 # configure Celeritas against it.
 #
-# NOTE: run `update-spack-buildcache-local` on a non-github machine to setup
-# the spack buildcache.
+# NOTE: run scripts/ci/update-spack-buildcache-local.sh
+# on a non-github machine to setup the spack buildcache.
 #-----------------------------------------------------------------------------#
 
 name: "Set up Spack environment"
@@ -15,6 +15,9 @@ inputs:
   cxxstd:
     description: "C++ standard to concretize Spack with"
     required: true
+  env-file:
+    description: "Base environment file to use (optionally relative to scripts/spack/)"
+    required: false
   add:
     description: "Space-separated list of additional spack packages to add"
     required: false
@@ -23,60 +26,76 @@ inputs:
     description: "Packages to build in a separate environment using the cached core specs"
     required: false
     default: ""
-  push-buildcache:
-    description: "Publish the core environment to the shared buildcache (excludes add-dependent)"
-    required: false
-    default: "false"
 
 runs:
   using: "composite"
   steps:
-    - name: Set environment variables
+    - name: Set environment and local variables
+      id: vars
       shell: sh
       run: |
-        SPACK_ROOT="$GITHUB_WORKSPACE/spack-src"
-        echo "$SPACK_ROOT/bin" >> "$GITHUB_PATH"
+        SPACK_ROOT=$GITHUB_WORKSPACE/spack-src
         {
-          echo "CELER_SPACK_VIEW=/opt/view"
+          # These can be overridden by dependent build
           echo "CELER_SPACK_ENV=$GITHUB_WORKSPACE"
-          echo "CELER_SPACK_OPT=/opt/spack"
-          echo "CELER_BASE_IMAGE=ubuntu:24.04"
-          echo "CELER_BUILDCACHE=celeritas"
-          echo "SPACK_PACKAGES=$GITHUB_WORKSPACE/spack-pkg"
-          echo "SPACK_ROOT=$SPACK_ROOT"
+          echo "CELER_SPACK_VIEW=/opt/view"
+          # Used by spack
           echo "SPACK_COLOR=always"
           echo "SPACK_DISABLE_LOCAL_CONFIG=1"
+          echo "SPACK_ROOT=$SPACK_ROOT"
         } >> "$GITHUB_ENV"
-
+        {
+          echo "BASE_IMAGE=ubuntu:24.04"
+          echo "BUILDCACHE=celeritas"
+          echo "SPACK_PKG_REPO=$GITHUB_WORKSPACE/spack-pkg"
+        } >> "$GITHUB_OUTPUT"
+        echo "$SPACK_ROOT/bin" >> "$GITHUB_PATH"
     - name: Checkout Spack
+      id: checkout-spack
       uses: actions/checkout@v7
       with:
         repository: spack/spack
         path: ${{env.SPACK_ROOT}}
-        ref: c3426684351723f819abca7335fafd99ffe7c1ef
+        ref: 307d3b0a68316341401d311c1ef6442ed2f13868 # upstream/develop, 12 September 2026
     - name: Checkout Spack packages
+      id: checkout-spack-pkg
       uses: actions/checkout@v7
       with:
-        repository: celeritas-project/spack-packages
-        path: ${{env.SPACK_PACKAGES}}
-        ref: 2c1c9409a3828d9d3a3985fd0ae200bd8bd82117 # ci, 9 September 2026
+        repository: spack/spack-packages
+        path: ${{steps.vars.outputs.SPACK_PKG_REPO}}
+        ref: 36f29b9d21554f5a6cf443ef13cb4c391b609b96 # upstream/develop, 12 September 2026
 
     - name: Initialize spack environment
+      id: init
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
       env:
         CXXSTD: ${{inputs.cxxstd}}
+        SPACK_ENV_FILE: ${{inputs.env-file}}
+        CELER_SOURCE_DIR: "${{github.workspace}}"
+        CELER_SPACK_OPT: "/opt/spack"
+        SPACK_PACKAGES_REPO: "${{steps.vars.outputs.SPACK_PKG_REPO}}"
       # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
-        "${{github.workspace}}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
+        "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
-        if ! "${{inputs.push-buildcache}}"; then
+        if [ "${{github.event_name}}" = "pull_request" ]; then
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
         spack -e . config get --json > spack.config.json
+        {
+          echo "CONFIG_DUMP=$PWD/spack.config.json"a
+          echo "STAGE_DIR=$(spack -e . location -S)"
+        } >> "$GITHUB_OUTPUT"
+        {
+          echo "### Spack configuration"
+          spack -e . debug report
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Dump spack config blame
       if: ${{runner.debug}}
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
         spack -e . config blame
 
@@ -84,59 +103,79 @@ runs:
       id: restore
       uses: actions/cache/restore@v6
       with:
-        path: spack.lock
-        key: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}-${{github.run_id}}
-        restore-keys: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}
+        path: ${{env.CELER_SPACK_ENV}}/spack.lock
+        key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
+        restore-keys: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
     - name: Concretize
-      if: ${{ !steps.restore.outputs.cache-matched-key }}
+      if: ${{ !steps.restore.outputs.cache-matched-key }} # skip if another run provided the same hash
       id: concretize
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
-        spack arch --generic
-        spack -e . -v concretize || {
-          ERR=$?
-          cat spack.yaml
-          exit $ERR
-        }
+        # Fetch buildcache contents to print as part of concretization
+        spack buildcache list
+        # NOTE that 'fresh' may try to reuse compilers
+        spack -e . -v concretize --fresh --non-defaults
     - name: Cache lockfile
       if: ${{ steps.concretize.outcome == 'success' }}
       uses: actions/cache/save@v6
       with:
-        path: spack.lock
-        key: lock-${{hashFiles('spack.yaml', 'scripts/spack/*.yaml')}}-${{github.run_id}}
-
-    - name: Upload spack config and lockfile
-      id: upload
-      uses: actions/upload-artifact@v7
-      if: ${{runner.debug && !cancelled() }}
-      with:
-        name: spack-${{hashFiles('spack.yaml')}}-${{github.run_id}}
-        path: "spack.*"
-        retention-days: 1
-
+        path: ${{env.CELER_SPACK_ENV}}/spack.lock
+        key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
     - name: Install dependencies
+      id: install
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
+      env:
+        USE_BUILDCACHE: ${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
       run: |
-        spack -e . install -p 8 --use-buildcache=${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
+        spack buildcache list
+        spack -e . install -p 8 --use-buildcache="$USE_BUILDCACHE"
+        {
+          echo '```'
+          spack -e . find
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+    - name: Upload spack config and lockfile
+      if: >-
+        ${{ !cancelled()
+           && (!steps.restore.outputs.cache-matched-key
+               || steps.concretize.outcome == 'failure'
+               || steps.install.outcome == 'failure')
+        }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: spack-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
+        path: "${{env.CELER_SPACK_ENV}}/spack.*"
+        retention-days: 1
+    - name: Upload logs
+      if: ${{ !cancelled() && steps.install.outcome == 'failure' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: spack-logs-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
+        path: "${{steps.init.outputs.STAGE_DIR}}/*.log"
     - name: List installed dependencies
-      if: ${{runner.debug}}
+      if: ${{runner.debug || steps.install.outcome == 'failure'}}
       shell: sh
       run: |
-        spack -e . find -lv
+        spack -e $CELER_SPACK_ENV find -lv
     - name: Push Spack installation to buildcache
       id: push-buildcache
-      if: ${{ !cancelled() && fromJSON(inputs.push-buildcache) }}
+      if: ${{ !cancelled() && github.event_name != 'pull_request' }}
+      continue-on-error: ${{ github.repository != 'celeritas-project/celeritas' }}
       shell: sh
       env:
         GITHUB_USER: ${{github.actor}}
         GITHUB_TOKEN: ${{github.token}}
+        BUILDCACHE: ${{steps.vars.outputs.BUILDCACHE}}
+        BASE_IMAGE: ${{steps.vars.outputs.BASE_IMAGE}}
       # NOTE: build-only specs that had dependents available through the
-      # buildcache may not be locally available: so allow missing
+      # buildcache may not be locally available: so we must allow missing
       run: |
-        spack -e . buildcache push \
-          --base-image $CELER_BASE_IMAGE --update-index \
+        spack -e $CELER_SPACK_ENV buildcache push \
+          --base-image $BASE_IMAGE --update-index \
           --allow-missing \
-          $CELER_BUILDCACHE
+          $BUILDCACHE
 
     # Keep moving dependencies out of the core manifest and its lockfile cache.
     # Included concrete roots constrain the dependent solve with unify: true.
@@ -146,9 +185,9 @@ runs:
       run: |
         dependent_env="$GITHUB_WORKSPACE/spack-dependent"
         dependent_view="${CELER_SPACK_VIEW}-dependent"
-        spack env create -d "$dependent_env" "$CELER_SPACK_ENV/spack.yaml" \
+        spack env create -d "$dependent_env" "${CELER_SPACK_ENV}/spack.yaml" \
           --with-view "$dependent_view"
-        spack -e "$dependent_env" config add "include:$CELER_SPACK_ENV/spack.lock"
+        spack -e "$dependent_env" config add "include:${CELER_SPACK_ENV}/spack.lock"
         # Only new packages belong in the abstract spec list: the core lockfile
         # already supplies the exact specs for the included roots.
         spack -e "$dependent_env" remove --all

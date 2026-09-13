@@ -81,7 +81,6 @@ jobs:
           add-dependent: >-
             g4vg
             vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
-          push-buildcache: ${{github.repository == 'celeritas-project/celeritas' && github.event_name != 'pull_request'}}
 
       - name: Configure Celeritas
         id: configure

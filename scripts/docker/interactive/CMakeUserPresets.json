@@ -76,14 +76,14 @@
       "inherits": [".profile", "reldeb-novg"]
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Vecgeom release",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".release", ".base"]
     },
     {
-      "name": "ndebug-novg",
+      "name": "release-novg",
       "displayName": "ORANGE release",
-      "inherits": [".no-vg", ".ndebug", ".base"]
+      "inherits": [".no-vg", ".release", ".base"]
     }
   ],
   "buildPresets": [
@@ -94,10 +94,10 @@
       "nativeToolOptions": ["-k0"]
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
@@ -129,10 +129,10 @@
       }
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },

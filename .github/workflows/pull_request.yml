@@ -43,12 +43,15 @@ jobs:
           name: event-file
           path: ${{github.event_path}}
   build-fast:
+    if: false
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
   build-docs:
+    if: false
     uses: ./.github/workflows/build-docs.yml
   all-prechecks:
+    # This job will skip if any dependent skips
     needs:
       - build-fast
       - build-ultralite
@@ -57,13 +60,14 @@ jobs:
     steps:
       - name: Success
         run: "true"
+
   build-spack:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack.yml
 
   # Defer large jobs while the PR is in draft state
   build-spack-extra:
-    if: ${{github.event.pull_request.draft == false}}
+    if: ${{always()}}
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack-extra.yml
   build-docker:
@@ -75,19 +79,47 @@ jobs:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-codecov.yml
 
-  # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
-  all:
-    if: ${{!cancelled()}}
+  all-expensive:
+    # This job will be skipped automatically for draft PRs
     needs:
-      - build-spack
       - build-spack-extra
       - build-docker
       - build-codecov
     runs-on: ubuntu-24.04
     steps:
-      - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@v1.3.0 # immutable, 21 Aug 2026
+      - name: Success
+        run: "true"
+
+  # Specifying a dependent job allows us to select a single "requires" check in the project GitHub settings
+  # - When running in draft mode, this check is skipped since dependent jobs are skipped
+  # - Otherwise this check always runs and will mark as failure if any required job did not succeed
+  all:
+    if: ${{ always() && github.event.pull_request.draft == false }}
+    needs:
+      - all-prechecks
+      - build-spack
+      - all-expensive
+    runs-on: ubuntu-24.04
+    outputs:
+      unsuccessful: ${{ steps.check.outputs.unsuccessful }}
+    steps:
+      - name: Check failures
+        id: check
+        uses: actions/github-script@v9
+        env:
+          NEEDS: ${{ toJSON(needs) }}
         with:
-          jobs: ${{toJSON(needs)}}
+          script: |
+            const needs = JSON.parse(process.env.NEEDS);
+            core.notice(`needs: ${JSON.stringify(needs)}`); // REVERTME: core.debug
+
+            const unsuccessful = Object.entries(needs)
+              .filter(([, job]) => job.result !== 'success')
+              .map(([name]) => name);
+
+            core.setOutput('unsuccessful', unsuccessful.join(','));
+            if (unsuccessful.length) {
+              core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
+            }
 
 # vim: set nowrap tw=100:
