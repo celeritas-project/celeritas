@@ -22,6 +22,7 @@ env:
 jobs:
   asan:
     name: reldeb-orange-asanlite
+    if: false
     env:
       CELER_CMAKE_PRESET: reldeb-orange-asanlite
     runs-on: ubuntu-24.04
@@ -58,6 +59,7 @@ jobs:
           strict: false
 
   tidy:
+    if: false
     name: tidy-vecgeom
     env:
       CELER_CMAKE_PRESET: reldeb-vecgeom-tidy

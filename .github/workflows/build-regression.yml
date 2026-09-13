@@ -1,0 +1,88 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build and run only integration regression tests.
+# - Run automatically as part of PRs, push-to-develop, cron cache reset
+# - Run manually via workflow_dispatch (button in https://github.com/celeritas-project/celeritas/actions)
+# - Regression files for failed tests (or *all* tests if workflow_dispatch) will be uploaded as an artifact
+#-----------------------------------------------------------------------------#
+
+name: build-regression
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+concurrency:
+  group: build-regression-${{github.event.number || github.ref_name}}
+  cancel-in-progress: true
+
+jobs:
+  accel:
+    env:
+      CELER_CMAKE_PRESET: "ndebug-orange-regression"
+      CELER_RUN_NAME: "regression-orange-g4@11.3"
+      CC: "clang-18"
+      CXX: "clang++-18"
+      CXXSTD: 20
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-tags: true # to get version information
+      - name: Set up Spack environment
+        uses: ./.github/actions/setup-spack
+        with:
+          cxxstd: 20
+          add: geant4@11.3
+
+      - name: Configure Celeritas
+        id: configure
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: "ci-ubuntu-github.json"
+          # NOTE: this wraps calls to accel integration tests with the 'run-output-regression' script,
+          # and forces the files to update (and an artifact to be generated) if calling directly from GHA
+          args: >-
+            -DCELERITASTEST_ACCEL_WRAPPER:STRING="${{format(
+              '{0}/scripts/ci/run-output-regression.py;--source-dir={0};--build-dir={0}/build;{1}--',
+              github.workspace,
+              github.event_name == 'workflow_dispatch' && '--quiet;--force-regen;' || ''
+            )}}"
+
+      - name: Build all
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack
+          targets: test_accel_integration
+          ccache-max-size: 128Mi
+
+      - name: Run regression tests
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          name: ${{env.CELER_RUN_NAME}}
+          preset: spack-regression
+
+      - name: Upload regression output
+        id: upload
+        # Files should exist if the tests failed *or* if running the "force" option was given
+        if: >-
+          ${{ !cancelled()
+             && (steps.test.outputs.outcome == 'failure'
+                 || (steps.test.outputs.outcome == 'success' && github.event_name == 'workflow_dispatch')
+                )
+          }}
+        uses: actions/upload-artifact@v7
+        with:
+          # NOTE: file name is used by pull_request_completed.yml
+          name: regression-results-${{ env.CELER_RUN_NAME }}
+          path: ${{ github.workspace }}/build/regression/*
+          if-no-files-found: error
+          retention-days: 3
+
+# vim: set nowrap tw=100:

@@ -1,0 +1,126 @@
+test/accel/UserActionIntegration --gtest_filter=LarSphere.run
+Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
+PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
+status: Creating run manager
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+info: Created run manager type G4RunManager
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 0)
+status: Setting run manager initialization
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+IntegrationTestBase.cc: debug: Creating default EM-only physics list
+SupportedEmStandardPhysics.cc: debug: Setting EM parameters
+SupportedEmStandardPhysics.cc: debug: Constructing default EM particles: gamma, e+, e-
+SupportedEmStandardPhysics.cc: debug: Constructing: proton
+IntegrationTestBase.cc: debug: ActionInitialization::Build
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 1)
+PrimaryGenerator.cc: debug: Created primary generator with 4 events and 10 primaries per event
+IntegrationTestBase.cc: debug: Setting track action of type celeritas::test::UAITrackingAction
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 1)
+debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@DetectorConstruction.cc: Loading detector geometry
+info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at lar-sphere.gdml
+debug@ScopedProfiling.cc: Disabling unavailable performance profiling
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+debug@DetectorConstruction.cc: Found 2 detectors
+debug@GeantGeoParams.cc: GeantGeoParams constructed with a non-navigation world: given 'world_PV'@0x0000; navigation world is unset
+debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+debug@DetectorConstruction.cc: Constructing sensitive detectors
+info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
+debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
+debug@SupportedEmStandardPhysics.cc: Constructing processes
+debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+warning@IntegrationTestBase.cc: REVERTME: add a warning
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+debug@IntegrationSingleton.cc: Initializing shared params
+info@SharedParams.cc: Killing Geant4 tracks supported by Celeritas offloading
+debug@SharedParams.cc: Constructing output registry for no-offload run
+debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
+debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'ko',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '1',
+  CELER_DISABLE: '0',
+}
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 1
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 2
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+status@IntegrationSingleton.cc: Finalizing Celeritas
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
+debug@SharedParams.cc: Resetting shared parameters
+warning@IntegrationTestBase.cc: REVERTME: add a warning
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+debug@IntegrationSingleton.cc: Initializing shared params
+debug@SharedParams.cc: Constructing output registry for no-offload run
+debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
+debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'ko',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '1',
+  CELER_DISABLE: '0',
+  CELER_PROFILE_DEVICE: '0',
+}
+debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+status@IntegrationSingleton.cc: Finalizing Celeritas
+info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
+debug@SharedParams.cc: Resetting shared parameters
+debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+debug@IntegrationTestBase.cc: Tearing down action initialization
+debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'ko',
+  G4RUN_MANAGER_TYPE: 'Serial',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '1',
+  CELER_DISABLE: '0',
+  CELER_PROFILE_DEVICE: '0',
+}

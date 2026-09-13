@@ -12,7 +12,6 @@
 #include <G4Step.hh>
 #include <G4StepPoint.hh>
 
-#include "corecel/math/ArrayUtils.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/UnitUtils.hh"
 #include "accel/LocalOpticalGenOffload.hh"

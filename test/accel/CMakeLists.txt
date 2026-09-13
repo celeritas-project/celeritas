@@ -44,6 +44,38 @@ if(NOT (CELERITAS_CORE_GEO STREQUAL "Geant4"))
   list(APPEND _optical_rm_type "mt")
 endif()
 
+
+# When CELERITASTEST_ACCEL_WRAPPER is enabled (see the
+# "ndebug-vecgeom-regression" preset in ci-ubuntu-github.json,
+# launched by .github/workflows/build-regression.yml), you can wrap the
+# googletest call in a script that dumps or compares the output.
+# For convenience, you can set the variable to "regression" to compare or "regression-update"
+# to force an update.
+set(CELERITASTEST_ACCEL_WRAPPER "" CACHE STRING
+  "Arguments to add before calls to accel integration test executables"
+)
+if(CELERITASTEST_ACCEL_WRAPPER MATCHES "^regression(-update)?$")
+  set(_force)
+  if(CMAKE_MATCH_1)
+    set(_force "--force")
+  endif()
+  set(CELERITASTEST_ACCEL_WRAPPER
+    "${PROJECT_SOURCE_DIR}/scripts/ci/run-output-regression.py"
+    "--source-dir" "${PROJECT_SOURCE_DIR}" # Relative to Celeritas
+    "--build-dir" "${CMAKE_BINARY_DIR}" # In top-level build directory
+    ${_force}
+    "--"
+  )
+endif()
+if(CELERITASTEST_ACCEL_WRAPPER)
+  # Note that for regression tests, you should always set G4 threading to 1:
+  # otherwise results will not reproduce
+  message(VERBOSE "Using wrapper script for accel integration tests "
+    "with CELERITASTEST_G4NT=${CELERITASTEST_G4NT}: "
+    "${CELERITASTEST_ACCEL_WRAPPER}"
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # TESTS
 #-----------------------------------------------------------------------------#
@@ -61,12 +93,17 @@ celeritas_add_test(CylMapMagneticField.test.cc)
 # INTEGRATION TESTS
 #-----------------------------------------------------------------------------#
 
+add_custom_target(test_accel_integration
+  COMMENT "Build accel integration test executables"
+)
+
 function(celeritas_add_integration_tests basename suite test)
   set(_target "${CELERITASTEST_DIR}_${basename}")
   set(_name "${CELERITASTEST_DIR}/${basename}")
 
   if(NOT TARGET "${_target}")
-    add_executable(${_target} "${basename}.test.cc")
+    add_executable("${_target}" "${basename}.test.cc")
+    add_dependencies(test_accel_integration "${_target}")
     set_property(TARGET ${_target}
       PROPERTY OUTPUT_NAME "${basename}"
     )
@@ -87,8 +124,9 @@ function(celeritas_add_integration_tests basename suite test)
 
   celeritas_g4_add_tests(${_target}
     NAME "${_name}:${suite}.${test}"
+    WRAP "${CELERITASTEST_ACCEL_WRAPPER}"
     ARGS "--gtest_filter=${suite}.${test}"
-    LABELS unit
+    LABELS unit integration
     ${ARGN}
     ${fail_if_unsupported}
   )

@@ -29,6 +29,7 @@ author = " and ".join(all_authors)
 copyright = "{:%Y}, UT–Battelle/ORNL and Celeritas team".format(build_date)
 
 try:
+    # NOTE: CMAKE_CURRENT_BINARY_DIR is set by celeritas_get_pyenv
     build_dir = Path(os.environ["CMAKE_CURRENT_BINARY_DIR"])
     with open(build_dir / "config.json", "r") as f:
         celer_config = json.load(f)

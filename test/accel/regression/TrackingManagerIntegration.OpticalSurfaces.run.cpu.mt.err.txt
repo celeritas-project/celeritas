@@ -1,0 +1,282 @@
+test/accel/TrackingManagerIntegration --gtest_filter=OpticalSurfaces.run
+Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
+PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'optical-surfaces'
+status: Creating run manager
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+info: Created run manager type G4MTRunManager
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 0)
+status: Setting run manager initialization
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+IntegrationTestBase.cc: debug: Creating default EM-only physics list
+SupportedEmStandardPhysics.cc: debug: Setting EM parameters
+[M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+[M] debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
+[M] debug@SupportedEmStandardPhysics.cc: Constructing: proton
+[M!] debug@IntegrationTestBase.cc: ActionInitialization::BuildForMaster
+[M!] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+[M] status@TrackingManagerIntegration.test.cc: Run initialization
+[M!] debug@DetectorConstruction.cc: Loading detector geometry
+[M] info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at optical-surfaces.gdml
+[M] debug@ScopedProfiling.cc: Disabling unavailable performance profiling
+[M] debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+[M!] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+[M] warning@DetectorConstruction.cc: Detector setup is provided, but no SDs were found in the GDML file
+[M] debug@GeantGeoParams.cc: GeantGeoParams constructed with a non-navigation world: given 'world_PV'@0x0000; navigation world is unset
+[M] debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+[M!] debug@SupportedEmStandardPhysics.cc: Constructing processes
+[M] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+[M] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+[M] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+[M] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+[M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+[M] debug@SupportedOpticalPhysics.cc: Added optical absorption process
+[M] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
+[M] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
+[M] debug@SupportedOpticalPhysics.cc: Added optical boundary process
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+[M!] debug@TrackingManagerConstructor.cc: Activating tracking manager
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
+G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 1 primaries per event
+G4WT0 > [1/1] debug@SupportedEmStandardPhysics.cc: Constructing processes
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical absorption process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical boundary process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+G4WT0 > [1/1] debug@TrackingManagerConstructor.cc: Activating tracking manager
+G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e+
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e-
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
+[M] status@TrackingManagerIntegration.test.cc: Run two events
+[M] warning@IntegrationTestBase.cc: REVERTME: add a warning
+[M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+[M] debug@IntegrationSingleton.cc: Initializing shared params
+[M] info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
+[M] debug@System.cc: Celeritas environment variables: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+}
+[M] status@GeantImporter.cc: Transferring data from Geant4
+[M!] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+[M] debug@GeantImporter.cc: Loaded 4 particles
+[M] debug@GeantImporter.cc: Loaded 3 optical materials
+[M] debug@GeantImporter.cc: Loaded 12 isotopes
+[M] debug@GeantImporter.cc: Loaded 5 elements
+[M] debug@GeantImporter.cc: Loaded 4 geo materials
+[M] debug@GeantImporter.cc: Loaded 3 physics materials
+[M] debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e+ (-11)
+[M] error@GeantPhysicsLoader.cc: Scintillation process was defined with no scintillating materials
+[M] warning@GeantPhysicsLoader.cc: Loaded no model data from process G4Scintillation("Scintillation")
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process G4Cerenkov("Cerenkov")
+[M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e- (11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e- (11)
+[M] debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e- (11)
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Scintillation"
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Cerenkov"
+[M] debug@GeantProcessImporter.cc: Loading process 'compt' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'phot' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'Rayl' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'conv' for particle gamma (22)
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Scintillation"
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process G4OpAbsorption("OpAbsorption")
+[M] warning@GeantPhysicsLoader.cc: Loaded no model data from process G4OpRayleigh("OpRayleigh")
+[M] warning@GeantPhysicsLoader.cc: Loaded no model data from process G4OpMieHG("OpMieHG")
+[M] debug@GeantSurfacePhysicsLoader.cc: Inserted glisur surface 'sphere_surf' (id=0)
+[M] debug@GeantSurfacePhysicsLoader.cc: Inserted glisur surface 'tube2_surf' (id=1)
+[M] debug@GeantSurfacePhysicsLoader.cc: Inserted unified surface 'lomid_surf' (id=2)
+[M] debug@GeantSurfacePhysicsLoader.cc: Inserted glisur surface 'midlo_surf' (id=3)
+[M] debug@GeantSurfacePhysicsLoader.cc: Inserted glisur surface 'midhi_surf' (id=4)
+[M] debug@GeantPhysicsLoader.cc: Loaded 6 model data from process G4OpBoundaryProcess("OpBoundary")
+[M] debug@GeantImporter.cc: Loaded 9 EM processes
+[M] debug@GeantImporter.cc: Loaded 2 MSC models
+[M] debug@GeantImporter.cc: Loaded 5 of 5 volumes
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+[M] debug@GeantGeoParams.cc: No volumes contained sensitive detectors
+[M] debug@GeantGeoParams.cc: Loaded 1 regions out of 2 Geant4 regions and created 0 new regions
+[M] debug@SetupOptions.cc: No magnetic field
+[M] status@Problem.cc: Initializing problem
+[M] status@PhysicalVolumeConverter.cc: Converting Geant4 geometry elements to ORANGE input
+[M] status@InputBuilder.cc: Constructing ORANGE surfaces and runtime data
+[M] debug@UnitProto.cc: Building 'world': 0 daughters and 5 materials...
+[M] debug@UnitProto.cc: - Logic simplification hard-coded 2 nodes of 22 CSG nodes
+[M] debug@UnitProto.cc: - Eliminated 0 of 9 surfaces
+[M] debug@OrangeParams.cc: Merging runtime data
+[M] debug@OrangeParams.cc: Allocating labels for 1 universes with 7 impl volumes and 9 impl surfaces
+[M] debug@GeoMaterialParams.cc: Building geometry->physics map using VolumeParams (5 volumes) and import data (5 volumes)
+[M] debug@GeoMaterialParams.cc: Filling geometry->physics map using canonical volumes
+[M] status@CoreParams.cc: Celeritas core setup complete
+[M] info@MaterialParams.cc: Constructed 3 optical materials with 2 present in the geometry
+[M] warning@MfpBuilder.hh: MFP grid contains one or more nonpositive values: replacing with epsilon=2.22045e-16
+[M] status@CoreParams.cc: Celeritas optical setup complete
+[M] debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+[M] warning@SharedParams.cc: Mismatch between ParticlesParams (size 4) and user-defined offload list (size 3). Geant4 data import is not properly defined.
+[M] debug@SharedParams.cc: Setting number of streams to 1
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "opticalsurfaces-run-cpu-mt.out.json"
+[M] debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
+G4WT0 > [W] warning@IntegrationTestBase.cc: REVERTME: add a warning
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
+G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
+G4WT0 > [1/1] debug@AuxStateVec.cc: Allocating 6 aux state classes for host on stream {0} with state size 1024
+G4WT0 > [W] info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
+G4WT0 > [W] status@CoreState.cc: Celeritas core state initialization complete
+G4WT0 > [W] debug@TrackingManagerIntegration.cc: Verifying tracking managers
+G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 0
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] status@LocalTransporter.cc: Executing the first Celeritas stepping loop
+G4WT0 > [1/1] status@Transporter.cc: Transporting on host
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 1 primaries for event 1
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] status@Transporter.cc: Transporting on host
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+G4WT0 > [1/1] info@TrackingManagerIntegration.test.cc: Ran 20929 over 2 step iterations from 2 flushes in 2 events
+G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
+G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 222 steps and 20929 optical steps (over 2 step iterations) from 2 flushes with 2 offloaded tracks over 2 events, generating 0 hits
+G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+[M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+[M] status@IntegrationSingleton.cc: Finalizing Celeritas
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "opticalsurfaces-run-cpu-mt.out.json"
+[M] debug@SharedParams.cc: Resetting shared parameters
+[M] debug@CoreState.cc: Deallocating host core state (stream 0)
+[M] debug@PersistentSP.hh: Clearing persistent run manager 'optical-surfaces'
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M!] debug@IntegrationTestBase.cc: Tearing down action initialization
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M] debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  CELER_OFFLOAD: 'cpu',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  CELER_PROFILE_DEVICE: '0',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+  CELER_DISABLE_SIGNALS: '0',
+}

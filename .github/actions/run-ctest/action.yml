@@ -63,7 +63,7 @@ runs:
               && format('-R "{0}"', inputs.filter-unit) || ''}}
     - name: Run app tests
       id: app
-      if: ${{ !cancelled() && fromJSON(inputs.split-app) }}
+      if: ${{ !cancelled() && fromJSON(inputs.split-app) }} # run even if unit tests fail
       shell: bash
       run: ctest --preset=${{inputs.preset}}-app
     - name: Run all tests
@@ -76,7 +76,7 @@ runs:
       uses: actions/upload-artifact@v7
       if: ${{ !cancelled() }}
       with:
-        # NOTE: these must be compatible with pull_request_completed.yml
+        # NOTE: file name is used by pull_request_completed.yml
         name: test-results-${{inputs.name}}
         path: "test-output/**/*.xml"
         if-no-files-found: error

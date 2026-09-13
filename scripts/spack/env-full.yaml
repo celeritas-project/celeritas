@@ -33,6 +33,7 @@ spack:
     - gh
     # CI
     - py-gcovr
+    - py-pygithub
   view: true
   concretizer:
     unify: true

@@ -34,7 +34,7 @@ inputs:
     required: false
     default: "${{runner.temp}}/ccache-debug"
 outputs:
-  build-outcome:
+  outcome:
     description: "Outcome of the build step ('success', 'failure', 'cancelled', 'skipped')"
     value: ${{steps.build.outcome}}
 
@@ -71,12 +71,12 @@ runs:
       shell: bash
       run: cmake --build --preset=${{ inputs.preset }} ${{ inputs.targets && '--target' || '' }} ${{ inputs.targets }}
     - name: Show ccache stats
-      if: ${{ !cancelled() && steps.build.outcome != 'skipped' }}
+      if: ${{ !failure() && steps.build.outcome != 'skipped' }}
       shell: bash
       run: ccache -s
 
     - name: Save ccache
-      if: ${{ steps.build.outcome == 'success' }}
+      if: ${{ !failure() && steps.build.outcome != 'skipped' }} # Allow interrupted builds
       uses: actions/cache/save@v6
       with:
         upload-chunk-size: 67108864 # 64MB

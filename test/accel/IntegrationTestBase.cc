@@ -99,8 +99,12 @@ class RunAction final : public G4UserRunAction
     void BeginOfRunAction(G4Run const* run) final
     {
         CELER_EXPECT(run);
+        CELER_LOG(warning) << "REVERTME: add a warning";
         CELER_LOG_LOCAL(debug) << "RunAction::BeginOfRunAction";
         CELER_TRY_HANDLE(test_->BeginOfRunAction(run), this->handle_exception);
+
+        CELER_LOG(debug) << "Environment variables after setup: "
+                         << ::celeritas::environment();
     }
 
     void EndOfRunAction(G4Run const* run) final

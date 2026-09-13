@@ -20,6 +20,7 @@ on:
 permissions:
   actions: read
   checks: write
+  contents: read
   pull-requests: write
 
 jobs:
@@ -55,5 +56,40 @@ jobs:
         with:
           commit: ${{github.event.workflow_run.head_sha}}
           report_paths: "${{env.ARTIFACTS_DIR}}/**/*.xml"
+
+  report-regression:
+    runs-on: ubuntu-24.04
+    env:
+      ARTIFACTS_DIR: artifacts
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Download Artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1, 11 Mar 2026
+        with:
+          pattern: "+(event-file|regression-results-*|test-results-regression-*)"
+          merge-multiple: false
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          run-id: ${{github.event.workflow_run.id}}
+          path: ${{env.ARTIFACTS_DIR}}
+      - name: Extract pull request info
+        id: pr-info
+        # event.json is the original 'pull_request' event payload, needed since
+        # workflow_run's pull_requests list is empty for PRs from forks
+        run: |
+          echo "number=$(jq -r '.pull_request.number' "$ARTIFACTS_DIR/event-file/event.json")" >> "$GITHUB_OUTPUT"
+      # NOTE: no 'ref' override -- this checks out the trusted base branch (see NOTE at top of
+      # file), since everything run below (this action, scripts/ci/*.py) must never come from the
+      # PR being tested. See .github/actions/process-regression/action.yml for details.
+      - name: Process regression results
+        if: ${{!cancelled()}}
+        uses: ./.github/actions/process-regression
+        with:
+          pr-number: ${{steps.pr-info.outputs.number}}
+          artifacts-dir: ${{env.ARTIFACTS_DIR}}
+          actions-run-url: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+          github-token: ${{secrets.GITHUB_TOKEN}}
 
 # vim: set nowrap tw=100:

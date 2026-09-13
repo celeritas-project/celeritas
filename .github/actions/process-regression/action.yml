@@ -1,0 +1,87 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Analyze regression test artifacts from a pull_request run and post/update a
+# single status comment on the PR.
+#
+# SECURITY: the calling job *must* check out this repository at a trusted ref
+# (e.g. the default branch) before using this action: everything executed here
+# (this action, scripts/ci/*.py) comes from that trusted checkout. The PR's
+# own commit (`pr-number`) is only ever fetched as an inert git ref and read
+# via `git diff`/`git worktree` by process-regression.py -- it is never
+# checked out as the working tree HEAD and nothing from it is executed.
+#-----------------------------------------------------------------------------#
+
+name: "Process regression results"
+description: "Classify regression artifacts and post/update a PR comment"
+inputs:
+  pr-number:
+    description: "Pull request number to comment on"
+    required: true
+  artifacts-dir:
+    description: "Directory containing downloaded regression-results-*/test-results-regression-* artifacts"
+    required: true
+  actions-run-url:
+    description: "URL of the GitHub Actions run, for linking from the comment"
+    required: true
+  github-token:
+    description: "Token with pull-requests:write permission"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Fetch pull request head (data only, not checked out)
+      shell: bash
+      run: git fetch origin "refs/pull/${{inputs.pr-number}}/head:refs/heads/pr-head"
+
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version-file: .python-version
+    - name: Install Python packages
+      shell: bash
+      run: |
+        pip install --upgrade pip
+        pip install -r scripts/ci/regression-requirements.txt
+
+    - name: Analyze regression results
+      id: analyze
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{inputs.github-token}}
+      run: |
+        python3 scripts/ci/process-regression.py \
+          --artifacts-dir "${{inputs.artifacts-dir}}" \
+          --repo "${{github.repository}}" \
+          --pr-number "${{inputs.pr-number}}" \
+          --pr-ref refs/heads/pr-head \
+          --actions-run-url "${{inputs.actions-run-url}}" \
+          --comment-body-file regression-comment.md \
+          --patch-dir regression-patch
+
+    # Only a real upload-artifact step (not the Python script) can produce a patch download URL
+    - name: Upload regression-update patch
+      id: upload
+      if: ${{steps.analyze.outputs.updated-files != '[]'}}
+      uses: actions/upload-artifact@v7
+      with:
+        name: regression-patch-${{github.run_id}}
+        path: regression-patch/*
+        retention-days: 14
+
+    - name: Post regression comment
+      shell: bash
+      if: ${{!cancelled()}}
+      env:
+        GITHUB_TOKEN: ${{inputs.github-token}}
+      run: |
+        python3 scripts/ci/post-regression-comment.py \
+          --repo "${{github.repository}}" \
+          --pr-number "${{inputs.pr-number}}" \
+          --status "${{steps.analyze.outputs.status}}" \
+          --comment-body-file regression-comment.md \
+          --artifact-url "${{steps.upload.outputs.artifact-url}}"
+
+# vim: set nowrap tw=100:
