@@ -64,12 +64,11 @@ runs:
     # Only a real upload-artifact step (not the Python script) can produce a patch download URL
     - name: Upload regression-update patch
       id: upload
-      if: ${{fromJSON(steps.analyze.outputs.updated-files)}}
+      if: ${{steps.analyze.outputs.updated-files != '[]'}}
       uses: actions/upload-artifact@v7
       with:
         name: regression-patch-${{github.run_id}}
         path: regression-patch/*
-        if-no-files-found: error
         retention-days: 14
 
     - name: Post regression comment
