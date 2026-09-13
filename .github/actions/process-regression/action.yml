@@ -74,6 +74,7 @@ runs:
 
     - name: Post regression comment
       shell: bash
+      if: ${{!cancelled()}}
       env:
         GITHUB_TOKEN: ${{inputs.github-token}}
       run: |
