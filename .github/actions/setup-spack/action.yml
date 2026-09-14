@@ -88,7 +88,7 @@ runs:
         {
           spack -e . config get --json
           printf '{"repos": {"core": "%s", "builtin": "%s"}}\n' \
-            "$(git -C "$SPACK_ROOT" rev-parse HEAD)"
+            "$(git -C "$SPACK_ROOT" rev-parse HEAD)" \
             "$(git -C "$SPACK_PACKAGES_REPO" rev-parse HEAD)"
         } > spack.config.jsonl
 
