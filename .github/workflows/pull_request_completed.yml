@@ -16,6 +16,12 @@ on:
     workflows: ["pull_request"]
     types:
       - completed
+  workflow_dispatch:
+    inputs:
+      workflow_run_id:
+        description: "Run ID from workflow to test"
+        required: true
+        type: number
 
 permissions:
   actions: read
@@ -25,6 +31,7 @@ permissions:
 
 jobs:
   report-tests:
+    if: ${{ github.event_name == 'workflow_run' }}
     runs-on: ubuntu-24.04
     env:
       ARTIFACTS_DIR: artifacts
@@ -39,7 +46,7 @@ jobs:
           pattern: "+(event-file|test-results-*)"
           merge-multiple: false
           github-token: ${{secrets.GITHUB_TOKEN}}
-          run-id: ${{github.event.workflow_run.id}}
+          run-id: ${{inputs.workflow_run_id || github.event.workflow_run.id}}
           path: ${{env.ARTIFACTS_DIR}}
       - name: Publish PR comment
         uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0, 15 June 2026
@@ -69,17 +76,28 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1, 11 Mar 2026
         with:
-          pattern: "+(event-file|regression-results-*|test-results-regression-*)"
+          # NOTE: must be consistent with
+          pattern: "+(event-file|*regression-*)"
           merge-multiple: false
           github-token: ${{secrets.GITHUB_TOKEN}}
-          run-id: ${{github.event.workflow_run.id}}
+          run-id: ${{inputs.workflow_run_id || github.event.workflow_run.id}}
           path: ${{env.ARTIFACTS_DIR}}
       - name: Extract pull request info
         id: pr-info
         # event.json is the original 'pull_request' event payload, needed since
         # workflow_run's pull_requests list is empty for PRs from forks
         run: |
-          echo "number=$(jq -r '.pull_request.number' "$ARTIFACTS_DIR/event-file/event.json")" >> "$GITHUB_OUTPUT"
+          event_file="$ARTIFACTS_DIR/event-file/event.json"
+          if [ ! -f "$event_file" ]; then
+            echo "Missing event file: $event_file" >&2
+            exit 1
+          fi
+          {
+            echo "number=$(jq -r '.pull_request.number' "$event_file")"
+            author_id="$(jq -r '.pull_request.user.id' "$event_file")"
+            author_login="$(jq -r '.pull_request.user.login' "$event_file")"
+            echo "author=$author_login <$author_id+author_login@users.noreply.github.com>"
+          } >> "$GITHUB_OUTPUT"
       # NOTE: no 'ref' override -- this checks out the trusted base branch (see NOTE at top of
       # file), since everything run below (this action, scripts/ci/*.py) must never come from the
       # PR being tested. See .github/actions/process-regression/action.yml for details.
@@ -88,6 +106,7 @@ jobs:
         uses: ./.github/actions/process-regression
         with:
           pr-number: ${{steps.pr-info.outputs.number}}
+          author: ${{steps.pr-info.outputs.author}}
           artifacts-dir: ${{env.ARTIFACTS_DIR}}
           actions-run-url: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
           github-token: ${{secrets.GITHUB_TOKEN}}

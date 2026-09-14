@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Analyze downloaded regression artifacts and prepare a PR comment.
 
+The comment is generated to stdout or, optionally, to an output file.
+
 This is the first of two scripts used by the ``pull_request_completed``
 workflow's ``report-regression`` job:
 
@@ -30,37 +32,35 @@ import os
 import sys
 import tempfile
 from collections.abc import Sequence
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import textwrap
 
-import github as gh
 from _regression_utils import LogLevel, Status, log, run_git
 
-REGRESSION = "regression"
-TEST = "test"
-MAX_DIFF_CHARS = 40_000
+# See build-regression.yml for artifact names and CMakeLists/run-output-regression for subdir names
+REGRESSION_OUTPUT_ARTIFACT = "regression-output"
+TEST_OUTPUT_ARTIFACT = "test-results-regression"
+REGRESSION_SUBDIR = "regression"
+TEST_SUBDIR = "test"
+MAX_DIFF_CHARS = 10_000
 
 
 def find_result_dirs(artifacts_dir: Path, prefix: str) -> list[Path]:
-    return sorted(p for p in artifacts_dir.glob(f"{prefix}-*") if p.is_dir())
+    result = sorted(p for p in artifacts_dir.glob(f"{prefix}-*") if p.is_dir())
+    count = len(result)
+    log(LogLevel.DEBUG, f"Found {count} results in {artifacts_dir} matching {prefix}")
+    return result
 
 
-def get_commit_identity(github_repo, pr_number: int) -> tuple[str, str]:
-    """Return (name, email) for the PR author, using their GitHub profile."""
-    author = github_repo.get_pull(pr_number).user
-    name = author.name or author.login
-    email = author.email or f"{author.id}+{author.login}@users.noreply.github.com"
-    return name, email
-
-
-def build_patch(
+def process_failures(
     *,
+    failure_dirs: list[Path],
+    author: str,
     repo_root: Path,
     pr_ref: str,
-    failure_dirs: list[Path],
     patch_dir: Path,
-    author_name: str,
-    author_email: str,
-) -> list[str]:
+    actions_run_url: str,
+) -> tuple[Status, str | None, dict[str, str]]:
     """Materialize the PR commit in a scratch worktree, update baselines, and format-patch.
 
     The worktree is only ever read from and written to by this function (never executed),
@@ -71,12 +71,19 @@ def build_patch(
         for subdir in sorted(p for p in result_dir.iterdir() if p.is_dir()):
             for src_file in sorted(subdir.glob("*")):
                 updated.append(
-                    str(Path(TEST) / subdir.name / REGRESSION / src_file.name)
+                    str(
+                        Path(TEST_SUBDIR)
+                        / subdir.name
+                        / REGRESSION_SUBDIR
+                        / src_file.name
+                    )
                 )
 
     if not updated:
-        log(LogLevel.DEBUG, "No regression output changes were found")
-        return updated
+        log(LogLevel.ERROR, "No regression output changes were found")
+        return (Status.CANCELLED, None, {})
+
+    patch_dir = patch_dir.resolve()
 
     with tempfile.TemporaryDirectory() as worktree_str:
         worktree = Path(worktree_str)
@@ -84,28 +91,25 @@ def build_patch(
         try:
             for result_dir in failure_dirs:
                 for subdir in sorted(p for p in result_dir.iterdir() if p.is_dir()):
-                    dest_dir = worktree / TEST / subdir.name / REGRESSION
+                    dest_dir = worktree / TEST_SUBDIR / subdir.name / REGRESSION_SUBDIR
                     dest_dir.mkdir(parents=True, exist_ok=True)
                     for src_file in sorted(subdir.glob("*")):
                         (dest_dir / src_file.name).write_bytes(src_file.read_bytes())
 
             run_git(worktree, "add", "--", *updated)
-            author = f"{author_name} <{author_email}>"
             run_git(
                 worktree,
                 "-c",
-                f"user.name={author_name}",
+                "user.name=Github Action",
                 "-c",
-                f"user.email={author_email}",
+                "user.email=celeritas-project@users.noreply.github.com",
                 "commit",
                 f"--author={author}",
                 "-m",
                 "Update regression baselines from CI",
             )
             patch_dir.mkdir(parents=True, exist_ok=True)
-            run_git(
-                worktree, "format-patch", "-1", "HEAD", "-o", str(patch_dir.resolve())
-            )
+            run_git(worktree, "format-patch", "-1", "HEAD", "-o", str(patch_dir))
         except Exception as e:
             log(LogLevel.ERROR, f"Failure during patch build: {e}")
             raise
@@ -113,151 +117,180 @@ def build_patch(
             run_git(
                 repo_root, "worktree", "remove", "--force", str(worktree), check=False
             )
-    return updated
-
-
-def make_comment_body(
-    *,
-    status: str,
-    updated_files: list[str],
-    diff_stat: str,
-    diff_text: str,
-    actions_run_url: str,
-) -> str:
-    if status == Status.FAILURE:
-        updated = "\n".join(f"- `{f}`" for f in updated_files)
-        return f"""\
+    updated_list = "\n".join(f"- `{f}`" for f in updated)
+    out_text = f"""\
 The following regression baselines differ from the recorded expected output:
-{updated}
+{updated_list}
 
 If these changes are expected, apply the attached patch to update them.
 If not, this indicates a regression in the physics output that should be investigated before merging.
 
 [View the failing test output in the GitHub Actions run]({actions_run_url})
 """
-    if status == Status.CHANGED:
-        truncated = diff_text
-        note = ""
-        if len(truncated) > MAX_DIFF_CHARS:
-            truncated = truncated[:MAX_DIFF_CHARS]
-            note = (
-                f"\n_(diff truncated to {MAX_DIFF_CHARS} characters; "
-                f"see the [Actions run]({actions_run_url}) for the full diff)_\n"
-            )
-        return f"""\
-Changes to regression baselines under `test/**/regression/*` were detected compared to `develop`.
-These files are marked `linguist-generated`, so GitHub hides them from the default diff view:
-**please review below** to confirm the change is intended.
+    return (Status.FAILURE, out_text, {"patched-files": json.dumps(updated_list)})
 
-```
-{diff_stat}
-```
-{note}<details><summary>Diff</summary>
 
-```diff
-{truncated}
-```
-</details>
+def process_diff(
+    repo_root: Path, ref_range: str, *, actions_run_url: str
+) -> tuple[Status, str | None, dict[str, str]]:
+    changed_files = [
+        path
+        for path in run_git(repo_root, "diff", "--name-only", ref_range).splitlines()
+        if PurePosixPath(path).match(f"{TEST_SUBDIR}/**/{REGRESSION_SUBDIR}/*")
+    ]
+    if not changed_files:
+        log(LogLevel.DEBUG, "No diff result")
+        return (
+            Status.SUCCESS,
+            "Regression tests passed and regression data matches `develop`.\n",
+            {},
+        )
 
-[View the GitHub Actions run]({actions_run_url})
-"""
+    log(LogLevel.NOTICE, f"{len(changed_files)} files were changed")
 
-    assert status == Status.SUCCESS
-    return "Regression tests passed and regression data matches `develop`.\n"
+    diff_stat = run_git(
+        repo_root, "diff", "--stat=100", ref_range, "--", *changed_files
+    ).strip()
+    log(
+        LogLevel.DEBUG,
+        "Diff: " + diff_stat.splitlines()[-1],
+    )
+
+    diff_text = run_git(repo_root, "diff", ref_range, "--", *changed_files)
+
+    truncated_note = ""
+    if len(diff_text) > MAX_DIFF_CHARS:
+        diff_text = diff_text[:MAX_DIFF_CHARS]
+        truncated_note = (
+            f"_(diff truncated to {MAX_DIFF_CHARS} characters; "
+            f"see the [Actions run]({actions_run_url}) for the full diff)_\n"
+        )
+    comment = textwrap.dedent(f"""\
+    Changes to regression baselines under `test/**/regression/*` were detected compared to `develop`.
+
+    ```
+    {diff_stat}
+    ```
+
+    [View the GitHub Actions run]({actions_run_url})
+    """)
+    return (Status.CHANGED, comment, {})
 
 
 def main(argv: Sequence[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--artifacts-dir", type=Path, required=True)
-    parser.add_argument("--repo-root", type=Path, default=Path("."))
-    parser.add_argument("--repo", required=True, help="owner/name")
-    parser.add_argument("--pr-number", type=int, required=True)
+    parser.add_argument(
+        "--artifacts-dir",
+        type=Path,
+        required=True,
+        metavar="DIR",
+        help="Directory containing regression artifacts",
+    )
+    parser.add_argument(
+        "--repo-root",
+        type=Path,
+        default=Path("."),
+        metavar="DIR",
+        help="Repository root directory",
+    )
+    parser.add_argument(
+        "--author",
+        required=True,
+        metavar="USER <EMAIL>",
+        help="Git author for generating patch",
+    )
     parser.add_argument(
         "--pr-ref",
         required=True,
+        metavar="REF",
         help="local ref/sha for the (untrusted) PR head commit, fetched as inert data only",
     )
     parser.add_argument(
         "--base-ref",
         default="HEAD",
+        metavar="REF",
         help="trusted base ref to diff against (default: the checked-out base branch)",
     )
-    parser.add_argument("--actions-run-url", required=True)
-    parser.add_argument("--comment-body-file", type=Path, required=True)
-    parser.add_argument("--patch-dir", type=Path, required=True)
+    parser.add_argument(
+        "--actions-run-url",
+        required=True,
+        metavar="URL",
+        help="GitHub Actions run URL for linked diagnostics",
+    )
+    parser.add_argument(
+        "--patch-dir",
+        type=Path,
+        required=True,
+        metavar="DIR",
+        help="Parent to write patch in case of failure",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        nargs="?",
+        metavar="FILE",
+        help="Path to write the comment (default stdout)",
+    )
     args = parser.parse_args(argv)
-
     repo_root = args.repo_root.resolve()
-    github_output = os.environ.get("GITHUB_OUTPUT")
 
-    failure_dirs = find_result_dirs(args.artifacts_dir, "regression-results")
-    test_result_dirs = find_result_dirs(args.artifacts_dir, "test-results-regression")
+    # Output variables: default to cancelled
+    gha_output: dict[str, str] = {}
+    comment: str | None = None
+    status: Status = Status.CANCELLED
 
-    updated_files: list[str] = []
-    diff_stat = ""
-    diff_text = ""
+    artifacts_dir = Path(args.artifacts_dir)
+    log(LogLevel.DEBUG, f"Artifacts dir contents for {artifacts_dir}:")
+    for entry in sorted(artifacts_dir.iterdir()):
+        kind = "dir" if entry.is_dir() else "file"
+        log(LogLevel.DEBUG, f"  - {entry.name} ({kind})")
 
-    if failure_dirs:
+    if failure_dirs := find_result_dirs(args.artifacts_dir, REGRESSION_OUTPUT_ARTIFACT):
+        # Diffs were generated by the build-regression run
         log(LogLevel.DEBUG, "Found regression failures")
-        status = Status.FAILURE
-        api = gh.Github(auth=gh.Auth.Token(os.environ["GITHUB_TOKEN"]))
-        github_repo = api.get_repo(args.repo)
-        author_name, author_email = get_commit_identity(github_repo, args.pr_number)
-        updated_files = build_patch(
-            repo_root=repo_root,
-            pr_ref=args.pr_ref,
+        status, comment, gha_output = process_failures(
             failure_dirs=failure_dirs,
+            repo_root=repo_root,
+            author=args.author,
+            pr_ref=args.pr_ref,
             patch_dir=args.patch_dir,
-            author_name=author_name,
-            author_email=author_email,
-        )
-    else:
-        log(LogLevel.DEBUG, "Comparing against merge base")
-        pr_ref = args.pr_ref
-        merge_base = run_git(repo_root, "merge-base", args.base_ref, pr_ref).strip()
-        pathspec = f"{TEST}/**/{REGRESSION}/*"
-        diff_stat = run_git(
-            repo_root, "diff", "--stat", f"{merge_base}..{pr_ref}", "--", pathspec
-        ).strip()
-        log(
-            LogLevel.DEBUG,
-            "Diff: " + ("<no change>" if not diff_stat else diff_stat.splitlines()[-1]),
-        )
-        diff_stat = run_git(
-            repo_root, "diff", f"{merge_base}..{pr_ref}", "--", pathspec
-        )
-        if diff_text.strip():
-            status = Status.CHANGED
-        elif not test_result_dirs:
-            status = Status.CANCELLED
-        else:
-            status = Status.SUCCESS
-
-    args.comment_body_file.write_text(
-        make_comment_body(
-            status=status,
-            updated_files=updated_files,
-            diff_stat=diff_stat,
-            diff_text=diff_text,
             actions_run_url=args.actions_run_url,
         )
-    )
+    elif find_result_dirs(args.artifacts_dir, TEST_OUTPUT_ARTIFACT):
+        log(LogLevel.DEBUG, "Found test output")
+        # Tests were actually run (so job wasn't cancelled)
+        merge_base = run_git(
+            repo_root, "merge-base", args.base_ref, args.pr_ref
+        ).strip()
+        log(LogLevel.DEBUG, f"Comparing against merge base {merge_base}")
+        status, comment, gha_output = process_diff(
+            repo_root,
+            f"{merge_base}..{args.pr_ref}",
+            actions_run_url=args.actions_run_url,
+        )
+    else:
+        log(LogLevel.DEBUG, "No artifacts were found: assuming cancellation")
 
-    updates = [
-        f"{k}={v}\n"
-        for (k, v) in [
-            ("status", status),
-            ("updated-files", json.dumps(updated_files)),
-            ("patch-dir", str(args.patch_dir) if updated_files else ""),
-        ]
-    ]
-    for line in updates:
-        log(LogLevel.NOTICE, line.rstrip())
+    gha_output["status"] = str(status)
 
-    if github_output is not None:
-        log(LogLevel.DEBUG, f"Writing git output to {github_output!r}")
-        with open(github_output, "a") as f:
-            f.writelines(updates)
+    if args.output is None:
+        print(comment)
+    else:
+        log(LogLevel.DEBUG, f"Writing comment to {args.output}")
+        args.output.write_text(comment)
+
+    if (gha_filename := os.environ.get("GITHUB_OUTPUT")) is not None:
+        log(LogLevel.DEBUG, f"Writing GHA output to {gha_filename!r}")
+        with open(gha_filename, "a") as f:
+            f.writelines(f"{k}={v}\n" for (k, v) in gha_output.items())
+    elif args.output is not None:
+        log(LogLevel.DEBUG, f"Writing output to {args.output!r}")
+        with open(args.output, "a") as f:
+            f.write(f"<!-- {gha_output!r} -->\n")
+    else:
+        log(LogLevel.DEBUG, "Writing output to stdout")
+        print("Result:", str(gha_output))
 
     if status == Status.CANCELLED:
         log(

@@ -3,6 +3,7 @@
 
 import inspect
 import subprocess
+import sys
 from enum import StrEnum
 from pathlib import Path
 
@@ -38,7 +39,7 @@ def log(level: str | LogLevel, what: str) -> None:
         lineno = caller.f_lineno
 
     msg = str(what).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-    print(f"::{level} file={filename},line={lineno}::{msg}")
+    print(f"::{level} file={filename},line={lineno}::{msg}", file=sys.stderr)
 
 
 def run_git(repo_root: Path, *args: str, check: bool = True) -> str:

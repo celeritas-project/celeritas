@@ -79,8 +79,8 @@ jobs:
           }}
         uses: actions/upload-artifact@v7
         with:
-          # NOTE: file name is used by pull_request_completed.yml
-          name: regression-results-${{ env.CELER_RUN_NAME }}
+          # NOTE: file name is used by pull_request_completed.yml and process-regression.py
+          name: regression-output-${{ env.CELER_RUN_NAME }}
           path: ${{ github.workspace }}/build/regression/*
           if-no-files-found: error
           retention-days: 3
