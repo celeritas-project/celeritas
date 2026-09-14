@@ -117,10 +117,10 @@ runs:
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
-        # Fetch buildcache contents to print as part of concretization
+        # Sanity check mirror and buildcache before concreization
         spack -e . mirror list
-        spack -e . buildcache list --allarch
-        # NOTE that 'fresh' may try to reuse compilers
+        spack -e . buildcache list -a -l cxxstd=$CXXSTD
+        # NOTE that even 'fresh' may try to reuse compilers
         spack -e . -v concretize --fresh --non-defaults
     - name: Cache lockfile
       if: ${{ steps.concretize.outcome == 'success' }}
@@ -135,8 +135,8 @@ runs:
       env:
         USE_BUILDCACHE: ${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
       run: |
-        spack buildcache list
-        spack -e . install -p 8 --use-buildcache="$USE_BUILDCACHE"
+        spack ${{runner.debug && '-vd' || ''}} -e . \
+          install -p 8 --use-buildcache="$USE_BUILDCACHE"
     - name: Upload spack config and lockfile
       if: >-
         ${{ !cancelled()
@@ -163,8 +163,14 @@ runs:
     - name: List installed dependencies
       if: ${{runner.debug || steps.install.outcome == 'failure'}}
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
-        spack -e $CELER_SPACK_ENV find -lv
+        echo "::group::Local and concretized"
+        spack -e . find -lv -c
+        echo "::endgroup::"
+        echo "::group::Buildcache"
+        spack -e . buildcache find --allarch -l
+        echo "::endgroup::"
         {
           spack debug report
           echo '```'
@@ -176,6 +182,7 @@ runs:
       if: ${{ !cancelled() && github.event_name != 'pull_request' }}
       continue-on-error: ${{ github.repository != 'celeritas-project/celeritas' }}
       shell: sh
+      working-directory: ${{env.CELER_SPACK_ENV}}
       env:
         GITHUB_USER: ${{github.actor}}
         GITHUB_TOKEN: ${{github.token}}
@@ -184,7 +191,8 @@ runs:
       # NOTE: build-only specs that had dependents available through the
       # buildcache may not be locally available: so we must allow missing
       run: |
-        spack -e $CELER_SPACK_ENV buildcache push \
+        spack ${{runner.debug && '-vd' || ''}} -e . \
+          buildcache push \
           --base-image $BASE_IMAGE --update-index \
           --allow-missing \
           $BUILDCACHE
