@@ -13,6 +13,7 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
+#include "celeritas/optical/GroupVelocityGridBuilder.hh"
 #include "celeritas/optical/MaterialParams.hh"
 
 #include "celeritas_test.hh"
@@ -109,7 +110,7 @@ TEST_F(GroupVelocityCalculatorTest, host)
            0.004538329814472488,
            0.003770558509394347,
            0.0030546834027453218,
-           0.00239375943059766,
+           0.0024987127429336575,
            0.0020761055113155758};
 
     actual_group_velocity_over_c.reserve(std::size(photon_energy));
@@ -152,8 +153,8 @@ TEST_F(GroupVelocityCalculatorTest, clamp)
         0.021152264045848,
         0.021152264045848,
         0.021152264045848,
-        0.0204645007297438,
-        0.0192199927428051,
+        0.0204638852268708,
+        0.0192221270208556,
     };
 
     actual_group_velocity_over_c.reserve(std::size(photon_energy));
@@ -201,12 +202,12 @@ TEST_F(GroupVelocityCalculatorTest, discontinuous_slope)
            1.0};
 
     // Expected Celeritas values
-    std::vector<real_type> expected_group_velocity_over_c = {0.857155102215746,
+    std::vector<real_type> expected_group_velocity_over_c = {0.666688889629654,
                                                              0.7500187504687618,
-                                                             0.600006000060001,
-                                                             0.5,
-                                                             0.5,
-                                                             0.5,
+                                                             0.272721074521034,
+                                                             0.3051894924466,
+                                                             0.337657910372167,
+                                                             0.370126328297733,
                                                              1.0};
     actual_group_velocity_over_c.reserve(std::size(photon_energy));
 
@@ -220,6 +221,43 @@ TEST_F(GroupVelocityCalculatorTest, discontinuous_slope)
                        actual_group_velocity_over_c);
 }
 
+//---------------------------------------------------------------------------//
+// Verify construction of the group-velocity grid using using the
+// group-velocity grid builder.
+TEST_F(GroupVelocityCalculatorTest, group_velocity_grid_builder)
+{
+    auto rindex = this->make_refractive_index_water_grid();
+    rindex.interpolation.type = InterpolationType::linear;
+
+    // Construct the refractive-index calculator required by the builder.
+    // Keep the original input grid for direct builder evaluation.
+    auto material = this->make_material(rindex);
+    auto rindex_calc
+        = material->get(OptMatId{0}).make_refractive_index_calculator();
+
+    inp::Grid actual_group_velocity
+        = GroupVelocityGridBuilder{rindex_calc}(rindex);
+
+    // Interior points correspond to the midpoint of the preceding interval.
+    static real_type const expected_energy[]
+        = {1e-7, 3e-07, 1e-6, 2e-06, 3e-6, 1e-5};
+
+    EXPECT_VEC_SOFT_EQ(expected_energy, actual_group_velocity.x);
+
+    static real_type const expected_group_velocity_over_c[]
+        = {1, 1, 0.66668888962965, 0.750018750468762, 0.272721074521034, 0.5};
+
+    std::vector<real_type> actual_group_velocity_over_c;
+    actual_group_velocity_over_c.reserve(actual_group_velocity.y.size());
+    for (real_type group_velocity : actual_group_velocity.y)
+    {
+        actual_group_velocity_over_c.push_back(
+            group_velocity / constants::c_light);
+    }
+
+    EXPECT_VEC_SOFT_EQ(expected_group_velocity_over_c,
+                       actual_group_velocity_over_c);
+}
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace optical
