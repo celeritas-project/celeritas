@@ -39,6 +39,7 @@ jobs:
       )}}
     strategy:
       matrix:
+        # NOTE: keep synced with top-level README.md
         include:
           - runner: ubuntu-22.04
             compiler: [gcc, 12]

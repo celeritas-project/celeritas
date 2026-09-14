@@ -28,6 +28,8 @@ if [ "${OS}" != "${EXPECTED_OS}" ]; then
   exit 1
 fi
 
+# Report git sha of spack repo and builtin:
+# these should be kept up-to-date with setup-spack/action.yml
 spack debug report
 
 CELER_BASE_IMAGE=ubuntu:24.04

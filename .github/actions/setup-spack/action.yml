@@ -85,11 +85,17 @@ runs:
         fi
 
         # Dump config file, which encodes the full spack environment settings
-        spack -e . config get --json > spack.config.json
+        {
+          spack -e . config get --json
+          printf '{"repos": {"core": "%s", "builtin": "%s"}}\n' \
+            "$(git -C "$SPACK_ROOT" rev-parse HEAD)"
+            "$(git -C "$SPACK_PACKAGES_REPO" rev-parse HEAD)"
+        } > spack.config.jsonl
+
         # Save variables used later in the action
         {
-          echo "CONFIG_DUMP=$PWD/spack.config.json"
-          echo "STAGE_DIR=$(spack -e . location -S)"
+          echo "config-hash=$(sha256sum spack.config.jsonl | cut -d' ' -f1)"
+          echo "stage-dir=$(spack -e . location -S)"
         } >> "$GITHUB_OUTPUT"
     - name: Dump spack config blame
       if: ${{runner.debug}}
@@ -103,8 +109,8 @@ runs:
       uses: actions/cache/restore@v6
       with:
         path: ${{env.CELER_SPACK_ENV}}/spack.lock
-        key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
-        restore-keys: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
+        key: lock-${{steps.init.outputs.config-hash}}-${{github.run_id}}
+        restore-keys: lock-${{steps.init.outputs.config-hash}}
     - name: Concretize
       if: ${{ !steps.restore.outputs.cache-matched-key }} # skip if another run provided the same hash
       id: concretize
@@ -121,7 +127,7 @@ runs:
       uses: actions/cache/save@v6
       with:
         path: ${{env.CELER_SPACK_ENV}}/spack.lock
-        key: lock-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
+        key: lock-${{steps.init.outputs.config-hash}}-${{github.run_id}}
     - name: Install dependencies
       id: install
       shell: sh
@@ -140,15 +146,20 @@ runs:
         }}
       uses: actions/upload-artifact@v7
       with:
-        name: spack-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}-${{github.run_id}}
+        name: >-
+          ${{format(
+            'spack-{0}-{1}',
+            steps.init.outputs.config-hash,
+            github.job || 'action'
+          )}}
         path: "${{env.CELER_SPACK_ENV}}/spack.*"
         retention-days: 1
     - name: Upload logs
       if: ${{ !cancelled() && steps.install.outcome == 'failure' }}
       uses: actions/upload-artifact@v7
       with:
-        name: spack-logs-${{hashFiles(steps.init.outputs.CONFIG_DUMP)}}
-        path: "${{steps.init.outputs.STAGE_DIR}}/*.log"
+        name: spack-logs-${{steps.init.outputs.config-hash}}
+        path: "${{steps.init.outputs.stage-dir}}/*.log"
     - name: List installed dependencies
       if: ${{runner.debug || steps.install.outcome == 'failure'}}
       shell: sh
@@ -195,7 +206,7 @@ runs:
         spack -e "$dependent_env" config add "concretizer:unify:true"
         spack -e "$dependent_env" config add "config:install_tree:padded_length:False"
         spack -e "$dependent_env" add ${{inputs.add-dependent}}
-        spack -e "$dependent_env" config get --json > "$dependent_env/spack.config.json"
+        spack -e "$dependent_env" config get --json >> "$dependent_env/spack.config.jsonl"
         spack -e "$dependent_env" concretize
         spack -e "$dependent_env" install -p 8 --use-buildcache=auto
         {

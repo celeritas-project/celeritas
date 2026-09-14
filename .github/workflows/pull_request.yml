@@ -107,7 +107,7 @@ jobs:
         with:
           script: |
             const needs = JSON.parse(process.env.NEEDS);
-            core.notice(`needs: ${JSON.stringify(needs)}`); // REVERTME: core.debug
+            core.debug(`needs: ${JSON.stringify(needs)}`);
 
             const unsuccessful = Object.entries(needs)
               .filter(([, job]) => job.result !== 'success')
