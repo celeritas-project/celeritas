@@ -20,7 +20,7 @@ concurrency:
 jobs:
   accel:
     env:
-      CELER_CMAKE_PRESET: "ndebug-orange-regression"
+      CELER_CMAKE_PRESET: "orange-regression"
       CELER_RUN_NAME: "regression-orange-g4@11.3"
       CC: "clang-18"
       CXX: "clang++-18"

@@ -7,19 +7,10 @@
 # environment in `.github/actions/setup-spack/action.yml`.
 #-----------------------------------------------------------------------------#
 
-mirrors:
+# NOTE: use double-colon to override existing mirrors in site/mirrors.yaml
+mirrors::
   celeritas:
     url: oci://ghcr.io/celeritas-project/spack-buildcache
-    binary: true
-    signed: false
-    autopush: false
-    access_pair:
-      id_variable: GITHUB_USER
-      secret_variable: GITHUB_TOKEN
-
-  # TODO: delete
-  sethrj:
-    url: oci://ghcr.io/sethrj/spack-buildcache
     binary: true
     signed: false
     autopush: false
@@ -43,19 +34,31 @@ concretizer:
     host_compatible: true
 
 packages:
-  geant4:
-    variants:
-      - generator=ninja
-  # TODO: use ninja with g4vg: CMAKE_CXX_COMPILER_CLANG_SCAN_DEPS-NOTFOUND
+  all:
+    prefer:
+      - "cxxstd=20"
   covfie:
     variants:
       - generator=ninja
+  hdf5:
+    prefer: [~cxx] # override cxxstd preference
+  geant4:
+    variants:
+      - generator=ninja
+  g4vg:
+    variants:
+      - generator=ninja
+  python:
+    version:
+      - "3.14" # spack installation July 2026
   root:
     variants:
       - generator=ninja
   vecgeom:
     variants:
       - generator=ninja
-  python:
-    version:
-      - "3.14" # spack installation July 2026
+  # Compilers
+  c:
+    require: "llvm@18"
+  cxx:
+    require: "llvm@18"
