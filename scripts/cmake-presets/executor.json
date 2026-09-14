@@ -187,17 +187,17 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "With ORANGE in optimized mode",
-      "inherits": [".ccache", ".ndebug", ".spackbase"],
+      "inherits": [".ccache", ".release", ".spackbase"],
       "cacheVariables": {
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
-      "name": "ndebug-vecgeom",
+      "name": "release-vecgeom",
       "displayName": "With vecgeom, g4 in optimized mode",
-      "inherits": [".ccache", ".spackbase", ".ndebug", "vecgeom"],
+      "inherits": [".ccache", ".spackbase", ".release", "vecgeom"],
       "cacheVariables": {
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },

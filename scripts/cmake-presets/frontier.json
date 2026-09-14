@@ -53,18 +53,18 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Frontier release mode",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".release", ".base"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_INSTALL_PREFIX": "/lustre/orion/world-shared/hep143/celeritas/develop"
       }
     },
     {
-      "name": "ndebug-serial",
+      "name": "release-serial",
       "displayName": "Frontier release mode (no openmp)",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".release", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" },
@@ -79,7 +79,7 @@
       "jobs": 64,
       "nativeToolOptions": ["-k0"]
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" }
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
   ],
   "testPresets": [
     {
@@ -92,6 +92,6 @@
         "jobs": 32
       }
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" }
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
   ]
 }
