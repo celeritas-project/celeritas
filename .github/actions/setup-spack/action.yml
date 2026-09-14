@@ -75,23 +75,22 @@ runs:
         CELER_SOURCE_DIR: "${{github.workspace}}"
         CELER_SPACK_OPT: "/opt/spack"
         SPACK_PACKAGES_REPO: "${{steps.vars.outputs.SPACK_PKG_REPO}}"
-      # NOTE: padding MUST NOT be disabled if pushing to buildcache
       run: |
         "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
         if [ "${{github.event_name}}" = "pull_request" ]; then
+          # NOTE: padding MUST NOT be disabled if pushing to buildcache
           echo "Disabling install prefix padding"
           spack -e . config add "config:install_tree:padded_length:False"
         fi
+
+        # Dump config file, which encodes the full spack environment settings
         spack -e . config get --json > spack.config.json
+        # Save variables used later in the action
         {
           echo "CONFIG_DUMP=$PWD/spack.config.json"
           echo "STAGE_DIR=$(spack -e . location -S)"
         } >> "$GITHUB_OUTPUT"
-        {
-          echo "### Spack configuration"
-          spack -e . debug report
-        } >> "$GITHUB_STEP_SUMMARY"
     - name: Dump spack config blame
       if: ${{runner.debug}}
       shell: sh
@@ -132,11 +131,6 @@ runs:
       run: |
         spack buildcache list
         spack -e . install -p 8 --use-buildcache="$USE_BUILDCACHE"
-        {
-          echo '```'
-          spack -e . find
-          echo '```'
-        } >> "$GITHUB_STEP_SUMMARY"
     - name: Upload spack config and lockfile
       if: >-
         ${{ !cancelled()
@@ -160,6 +154,12 @@ runs:
       shell: sh
       run: |
         spack -e $CELER_SPACK_ENV find -lv
+        {
+          spack debug report
+          echo '```'
+          spack -e . find
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
     - name: Push Spack installation to buildcache
       id: push-buildcache
       if: ${{ !cancelled() && github.event_name != 'pull_request' }}
