@@ -8,7 +8,6 @@
 
 #include <cstddef>
 #include <vector>
-#include <VecGeom/base/BVH.h>
 #include <VecGeom/base/Config.h>
 #include <VecGeom/base/Cuda.h>
 #include <VecGeom/base/Version.h>

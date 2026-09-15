@@ -26,19 +26,33 @@ if [ -n "$SPACK_ENV" ]; then
   exit 1
 fi
 
+if [ -z "$SPACK_ENV_FILE" ]; then
+  SPACK_ENV_FILE="env-ci-base.yaml"
+  log info "Using default SPACK_ENV_FILE: env-ci-base.yaml"
+fi
+if ! [ -e "${SPACK_ENV_FILE}" ]; then
+  # Assume it lives in the spack env directory
+  SPACK_ENV_FILE="${CELER_SOURCE_DIR}/scripts/spack/${SPACK_ENV_FILE}"
+fi
+if ! [ -f "${SPACK_ENV_FILE}" ]; then
+  log error "Environment file ${SPACK_ENV_FILE} does not exist"
+  exit 1
+fi
+
+
 # Configure separate packages repository *first*: otherwise the
 # environment creation will do a lengthy unnecessary checkout
-if [ -n "${SPACK_PACKAGES}" ]; then
-  log info "Using custom builtin spack package repo: ${SPACK_PACKAGES}"
-  $SPACK repo set --destination "${SPACK_PACKAGES}" builtin
+if [ -n "${SPACK_PACKAGES_REPO}" ]; then
+  log info "Using custom builtin spack package repo: ${SPACK_PACKAGES_REPO}"
+  $SPACK repo set --destination "${SPACK_PACKAGES_REPO}" builtin
 else
-  SPACK_PACKAGES=$(spack location -P builtin)
-  log warning "Using default builtin spack repo: ${SPACK_PACKAGES}"
+  SPACK_PACKAGES_REPO=$(spack location -P builtin)
+  log warning "Using default builtin spack repo: ${SPACK_PACKAGES_REPO}"
 fi
 
 # Create environment in current working directory
-log status "Creating environment"
-$SPACK env create . "${CELER_SOURCE_DIR}/scripts/spack/env-ci-base.yaml"
+log status "Creating environment from ${SPACK_ENV_FILE}"
+$SPACK env create . "${SPACK_ENV_FILE}"
 
 # Configure install prefix
 if [ -n "${CELER_SPACK_OPT}" ]; then
@@ -73,5 +87,5 @@ fi
 # Add the spack ref so that updating spack will reconcretize
 cat >> spack.yaml <<EOF
 # spack: $(git -C "${SPACK_ROOT}" log -1 --pretty=%H HEAD)
-# packages: $(git -C "${SPACK_PACKAGES}" log -1 --pretty=%H HEAD)
+# packages: $(git -C "${SPACK_PACKAGES_REPO}" log -1 --pretty=%H HEAD)
 EOF

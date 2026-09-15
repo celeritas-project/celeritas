@@ -93,9 +93,9 @@
       "inherits": [".reldeb", ".base"]
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "wildstyle: everything but VecGeom in release mode",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".release", ".base"]
     },
     {
       "name": "reldeb-single",
@@ -108,9 +108,9 @@
       "inherits": [".reldeb", "vecgeom"]
     },
     {
-      "name": "ndebug-vecgeom",
+      "name": "release-vecgeom",
       "displayName": "wildstyle: everything in release mode",
-      "inherits": [".ndebug", "vecgeom"]
+      "inherits": [".release", "vecgeom"]
     }
   ],
   "buildPresets": [
