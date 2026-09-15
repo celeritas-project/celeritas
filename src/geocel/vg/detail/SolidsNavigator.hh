@@ -48,6 +48,11 @@ class SolidsNavigator
         ScopedVgNavState temp_nav{nav};
         vecgeom::BVHNavigator::LocatePointIn(
             vol, point, temp_nav, top, exclude);
+
+        // Location alone does not establish a crossed boundary. In particular,
+        // do not push a newly initialized track past a nearby surface.
+        VgNavState& located = temp_nav;
+        located.SetBoundaryState(false);
     }
 
     //-----------------------------------------------------------------------//
@@ -60,8 +65,19 @@ class SolidsNavigator
         NavState& out_state)
     {
         ScopedVgNavState temp_out_state{out_state};
+        // VecGeom treats sub-tolerance step limits as boundary crossings.
+        // Query beyond its boundary push, then apply the physics limit here.
+        auto query_limit = vecCore::math::Max(
+            step_limit, 2 * vecgeom::BVHNavigator::kBoundaryPush);
         auto step = vecgeom::BVHNavigator::ComputeStepAndNextVolume(
-            glpos, gldir, step_limit, in_state, temp_out_state);
+            glpos, gldir, query_limit, in_state, temp_out_state);
+        if (step > step_limit)
+        {
+            VgNavState& next = temp_out_state;
+            next = static_cast<VgNavState>(in_state);
+            next.SetBoundaryState(false);
+            return step_limit;
+        }
 
         // Keep VecGeom's last-exited volume until relocation is complete:
         // Celeritas's compact state stores only the path and boundary flag.

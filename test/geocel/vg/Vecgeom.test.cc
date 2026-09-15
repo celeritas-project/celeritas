@@ -204,6 +204,50 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    constexpr real_type tiny_step = 1e-20;
+    auto geo = this->make_geo_track_view({10, 10, 10}, {1, 0, 0});
+    auto const start_volume = geo.volume_id();
+
+    auto next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+    EXPECT_EQ(start_volume, geo.volume_id());
+
+    // A rejected lookahead must not change subsequent boundary navigation
+    next = geo.find_next_step(10);
+    EXPECT_SOFT_EQ(5, next.distance);
+    EXPECT_TRUE(next.boundary);
+    geo.move_to_boundary();
+    geo.cross_boundary();
+    EXPECT_NE(start_volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+
+    // Initialize within VecGeom's surface tolerance, then resolve a real hit
+    constexpr real_type gap = 1e-11;
+    auto const box_volume = geo.volume_id();
+    geo = {{16 - gap, 10, 10}, {1, 0, 0}};
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(box_volume, geo.volume_id());
+
+    next = geo.find_next_step(gap / 2);
+    EXPECT_FALSE(next.boundary);
+    EXPECT_EQ(gap / 2, next.distance);
+
+    next = geo.find_next_step(2 * gap);
+    EXPECT_TRUE(next.boundary);
+    EXPECT_GT(next.distance, gap / 2);
+    EXPECT_LT(next.distance, 2 * gap);
+    geo.move_to_boundary();
+    geo.cross_boundary();
+    EXPECT_NE(box_volume, geo.volume_id());
+}
+
 TEST_F(FourLevelsTest, levels)
 {
     auto const& bbox = this->geometry()->bbox();
@@ -295,6 +339,8 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
                        output.safeties);
     EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 1),
                        output.bounded_safeties);
+    EXPECT_VEC_EQ(std::vector<double>(input.init.size(), real_type{1e-20}),
+                  output.small_steps);
 }
 
 //---------------------------------------------------------------------------//
