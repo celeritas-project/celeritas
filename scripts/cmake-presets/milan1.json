@@ -37,7 +37,7 @@
     {
       "name": "release",
       "displayName": "Build with full optimizations (VecGeom)",
-      "inherits": [".base", ".ndebug"]
+      "inherits": [".base", ".release"]
     },
     {
       "name": "reldeb",

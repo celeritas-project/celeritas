@@ -3,14 +3,6 @@ packages:
     target: [x86_64_v3]
     require:
       - "target=x86_64_v3"
-  # Select providers for language dependencies without adding compiler
-  # dependency constraints to packages reused from a concrete environment.
-  c:
-    require: "llvm@18"
-  cxx:
-    require: "llvm@18"
-  fortran:
-    require: "gcc@13"
   bash:
     buildable: false
     externals:

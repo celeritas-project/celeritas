@@ -41,7 +41,7 @@ jobs:
       run:
         shell: bash
     env:
-      CELER_CMAKE_PRESET: reldeb-vecgeom2
+      CELER_CMAKE_PRESET: vecgeom2
       CELER_RUN_NAME: ubuntu24-clang18-vecgeom-master-g4@11.3
       CELER_JOB_NAME: vecgeom-master-clang18
       CC: clang-18
@@ -81,7 +81,6 @@ jobs:
           add-dependent: >-
             g4vg
             vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
-          push-buildcache: ${{github.repository == 'celeritas-project/celeritas' && github.event_name != 'pull_request'}}
 
       - name: Configure Celeritas
         id: configure

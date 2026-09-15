@@ -1,7 +1,4 @@
 packages:
-  all:
-    prefer:
-      - "cxxstd=20"
   cli11:
     require: "@2.4:"
   cmake:

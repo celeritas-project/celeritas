@@ -61,18 +61,18 @@
       "inherits": [".reldeb", ".base"]
     },
     {
-      "name": "ndebug-novg",
+      "name": "release-novg",
       "displayName": "Perlmutter release mode",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".release", ".base"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Perlmutter release mode",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".release", ".base"],
       "cacheVariables": {
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" }
       }
@@ -86,10 +86,10 @@
       "nativeToolOptions": ["-k0"]
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
@@ -111,10 +111,10 @@
       }
     },
     { "name": "base-novg", "configurePreset": "base-novg", "inherits": "base" },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" },
+    { "name": "release", "configurePreset": "release", "inherits": "base" },
     {
-      "name": "ndebug-novg",
-      "configurePreset": "ndebug-novg",
+      "name": "release-novg",
+      "configurePreset": "release-novg",
       "inherits": "base"
     },
     { "name": "reldeb", "configurePreset": "reldeb", "inherits": "base" },
