@@ -32,6 +32,8 @@ struct VGGTestOutput
 {
     std::vector<int> ids;
     std::vector<double> distances;
+    std::vector<double> safeties;
+    std::vector<double> bounded_safeties;
 };
 
 //---------------------------------------------------------------------------//

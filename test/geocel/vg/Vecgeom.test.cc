@@ -289,6 +289,12 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+
+    // All tracks start at the centers of the innermost spheres (radius 5)
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 5),
+                       output.safeties);
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 1),
+                       output.bounded_safeties);
 }
 
 //---------------------------------------------------------------------------//

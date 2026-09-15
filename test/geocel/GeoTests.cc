@@ -878,7 +878,7 @@ void FourLevelsGeoTest::test_safety() const
         }
     }
 
-    static double const expected_safeties[] = {
+    std::vector<double> expected_safeties = {
         2.9,
         0.9,
         0.1,
@@ -892,6 +892,13 @@ void FourLevelsGeoTest::test_safety() const
         3.1,
     };
     auto tol = test_->tracking_tol();
+    if (test_->geometry_type() == "VecGeom")
+    {
+        // IndexedBVH resolves the diagonal distance to the envelope rather
+        // than its conservative box safety. At {20.1, 20.1, 20.1}, the world
+        // boundary is closer: 24 - 20.1 = 3.9 cm.
+        expected_safeties.back() = 3.9;
+    }
     EXPECT_VEC_NEAR(expected_safeties, safeties, tol.safety);
 
     std::vector<double> expected_lim_safeties = {
