@@ -32,6 +32,11 @@ if [ -z "$CLANG_TIDY_DIFF" ]; then
   exit 1
 fi
 
+if ! CLANG_TIDY_PATH=$(command -v "$CLANG_TIDY"); then
+  log error "clang-tidy not found: $CLANG_TIDY"
+  exit 1
+fi
+
 if [ ! -f "$CLANG_TIDY_DIFF" ]; then
   log error "clang-tidy-diff.py not found: $CLANG_TIDY_DIFF"
   exit 1
@@ -45,15 +50,60 @@ log info "Using clang-tidy: $CLANG_TIDY"
 # invalid escapes.
 diff_file=$(mktemp)
 tidy_status_file=$(mktemp)
-trap 'rm -f "$diff_file" "$tidy_status_file"' 0
+header_file=$(mktemp)
+dependency_file=$(mktemp)
+source_regex_file=$(mktemp)
+trap 'rm -f "$diff_file" "$tidy_status_file" "$header_file" "$dependency_file" "$source_regex_file"' 0
 
 git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" > "$diff_file"
 
 if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
-  log info "Header changed: running clang-tidy on all compiled sources"
+  awk '/^\+\+\+ b\/(src|app|test)\/.*\.hh$/ { sub(/^\+\+\+ b\//, ""); print }' "$diff_file" > "$header_file"
+  tidy_directory=${CLANG_TIDY_PATH%/*}
+  tidy_name=${CLANG_TIDY_PATH##*/}
+  case "$tidy_name" in
+    clang-tidy-*)
+      scanner_suffix=${tidy_name#clang-tidy}
+      ;;
+    clang-tidy)
+      scanner_suffix=
+      ;;
+    *)
+      scanner_suffix=-18
+      ;;
+  esac
+  CLANG_SCAN_DEPS=${CLANG_SCAN_DEPS:-$tidy_directory/clang-scan-deps$scanner_suffix}
+  RUN_CLANG_TIDY=${RUN_CLANG_TIDY:-run-clang-tidy}
+
+  if ! command -v "$CLANG_SCAN_DEPS" >/dev/null 2>&1; then
+    log error "clang dependency scanner not found: $CLANG_SCAN_DEPS"
+    exit 1
+  fi
+  if ! command -v "$RUN_CLANG_TIDY" >/dev/null 2>&1; then
+    log error "run-clang-tidy not found: $RUN_CLANG_TIDY"
+    exit 1
+  fi
+
+  log info "Header changes detected: finding affected source files"
+  "$CLANG_SCAN_DEPS" \
+    -compilation-database "$BUILD_DIR/compile_commands.json" \
+    -format experimental-full \
+    -o "$dependency_file"
+
+    selected_count=$(python3 scripts/ci/clang-tidy-affected-sources.py \
+    "$header_file" "$dependency_file" "$source_regex_file")
+
+  if [ "$selected_count" -eq 0 ]; then
+    log info "No compiled source file includes the changed headers"
+    exit 0
+  fi
+  log info "Running clang-tidy on $selected_count affected source files"
   (
     set +e
-    run-clang-tidy -clang-tidy-binary "$CLANG_TIDY" -p "$BUILD_DIR" 2>&1
+    "$RUN_CLANG_TIDY" \
+      -clang-tidy-binary "$CLANG_TIDY" \
+      -p "$BUILD_DIR" \
+      "$(cat "$source_regex_file")" 2>&1
     tidy_status=$?
     printf '%s\n' "$tidy_status" > "$tidy_status_file"
   ) | awk '
