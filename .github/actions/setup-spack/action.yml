@@ -117,6 +117,8 @@ runs:
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
       run: |
+        # Bootstrap before concretize so that the buildcache state is kept
+        spack bootstrap now
         # Sanity check mirror and buildcache before concreization
         spack -e . mirror list
         spack -e . buildcache list -a -l cxxstd=$CXXSTD
