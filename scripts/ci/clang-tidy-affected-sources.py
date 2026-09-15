@@ -6,11 +6,16 @@ import re
 import sys
 
 
-header_file, dependency_file, regex_file = sys.argv[1:]
+header_file, source_file, dependency_file, regex_file = sys.argv[1:]
 root = os.path.realpath(os.getcwd())
 headers = {
     os.path.realpath(os.path.join(root, line.strip()))
     for line in open(header_file)
+    if line.strip()
+}
+changed_sources = {
+    os.path.realpath(os.path.join(root, line.strip()))
+    for line in open(source_file)
     if line.strip()
 }
 data = json.load(open(dependency_file))
@@ -35,7 +40,8 @@ for unit in data.get("translation-units", []):
                 )
 
 relative_sources = sorted(
-    os.path.relpath(source, root) for source in set(selected_by_header.values())
+    os.path.relpath(source, root)
+    for source in changed_sources | set(selected_by_header.values())
 )
 with open(regex_file, "w") as output:
     if relative_sources:

@@ -51,14 +51,16 @@ log info "Using clang-tidy: $CLANG_TIDY"
 diff_file=$(mktemp)
 tidy_status_file=$(mktemp)
 header_file=$(mktemp)
+source_file=$(mktemp)
 dependency_file=$(mktemp)
 source_regex_file=$(mktemp)
-trap 'rm -f "$diff_file" "$tidy_status_file" "$header_file" "$dependency_file" "$source_regex_file"' 0
+trap 'rm -f "$diff_file" "$tidy_status_file" "$header_file" "$source_file" "$dependency_file" "$source_regex_file"' 0
 
 git diff --diff-filter=ACM -U0 "$BASE_SHA"..."$HEAD_SHA" > "$diff_file"
 
 if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
   awk '/^\+\+\+ b\/(src|app|test)\/.*\.hh$/ { sub(/^\+\+\+ b\//, ""); print }' "$diff_file" > "$header_file"
+  awk '/^\+\+\+ b\/(src|app|test)\/.*\.(cc|cpp|cu)$/ { sub(/^\+\+\+ b\//, ""); print }' "$diff_file" > "$source_file"
   tidy_directory=${CLANG_TIDY_PATH%/*}
   tidy_name=${CLANG_TIDY_PATH##*/}
   case "$tidy_name" in
@@ -89,11 +91,11 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
     -compilation-database "$BUILD_DIR/compile_commands.json" \
     -format experimental-full > "$dependency_file"
 
-    selected_count=$(python3 scripts/ci/clang-tidy-affected-sources.py \
-    "$header_file" "$dependency_file" "$source_regex_file")
+  selected_count=$(python3 scripts/ci/clang-tidy-affected-sources.py \
+    "$header_file" "$source_file" "$dependency_file" "$source_regex_file")
 
   if [ "$selected_count" -eq 0 ]; then
-    log info "No compiled source file includes the changed headers"
+    log info "No source files selected for the changed headers"
     exit 0
   fi
   log info "Running clang-tidy on $selected_count affected source files"
