@@ -14,7 +14,7 @@ headers = {
     if line.strip()
 }
 data = json.load(open(dependency_file))
-selected = set()
+selected_by_header = {}
 
 for unit in data.get("translation-units", []):
     for command in unit.get("commands", []):
@@ -28,13 +28,15 @@ for unit in data.get("translation-units", []):
             os.path.realpath(os.path.join(directory, dependency))
             for dependency in dependencies
         }
-        if (
-            source_path.endswith((".cc", ".cpp", ".cu"))
-            and headers & resolved_dependencies
-        ):
-            selected.add(source_path)
+        if source_path.endswith((".cc", ".cpp", ".cu")):
+            for header in headers & resolved_dependencies:
+                selected_by_header[header] = min(
+                    source_path, selected_by_header.get(header, source_path)
+                )
 
-relative_sources = sorted(os.path.relpath(source, root) for source in selected)
+relative_sources = sorted(
+    os.path.relpath(source, root) for source in set(selected_by_header.values())
+)
 with open(regex_file, "w") as output:
     if relative_sources:
         output.write(
