@@ -17,15 +17,21 @@ data = json.load(open(dependency_file))
 selected = set()
 
 for unit in data.get("translation-units", []):
-    source = unit.get("input-file") or unit.get("input_file")
-    dependencies = []
     for command in unit.get("commands", []):
-        dependencies.extend(command.get("file-deps", command.get("file_deps", [])))
-    if source is None:
-        continue
-    source_path = os.path.realpath(source)
-    if any(os.path.realpath(dep) in headers for dep in dependencies):
-        if source_path.endswith((".cc", ".cpp", ".cu")):
+        source = command.get("input-file") or command.get("input_file")
+        if source is None:
+            continue
+        directory = command.get("directory", root)
+        source_path = os.path.realpath(os.path.join(directory, source))
+        dependencies = command.get("file-deps", command.get("file_deps", []))
+        resolved_dependencies = {
+            os.path.realpath(os.path.join(directory, dependency))
+            for dependency in dependencies
+        }
+        if (
+            source_path.endswith((".cc", ".cpp", ".cu"))
+            and headers & resolved_dependencies
+        ):
             selected.add(source_path)
 
 relative_sources = sorted(os.path.relpath(source, root) for source in selected)

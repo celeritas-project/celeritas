@@ -24,6 +24,9 @@ version configured by the workflow. Do not assume options from a newer local
 version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
 For LLVM 18 `clang-scan-deps`, capture the JSON by redirecting stdout; do not
 pass `-o`, which is unsupported by that version.
+In its `experimental-full` JSON, read `input-file` and `file-deps` from each
+entry in `translation-units[].commands`; they are not translation-unit-level
+fields.
 
 ### Header clang-tidy checks
 
