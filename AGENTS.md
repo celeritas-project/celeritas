@@ -22,6 +22,8 @@ Do **not** just acknowledge the correction and move on. If you skip updating AGE
 Before adding an option to a CI tool, check its `-h` output for the exact
 version configured by the workflow. Do not assume options from a newer local
 version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
+For LLVM 18 `clang-scan-deps`, capture the JSON by redirecting stdout; do not
+pass `-o`, which is unsupported by that version.
 
 ### Header clang-tidy checks
 

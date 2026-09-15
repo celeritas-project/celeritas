@@ -87,8 +87,7 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
   log info "Header changes detected: finding affected source files"
   "$CLANG_SCAN_DEPS" \
     -compilation-database "$BUILD_DIR/compile_commands.json" \
-    -format experimental-full \
-    -o "$dependency_file"
+    -format experimental-full > "$dependency_file"
 
     selected_count=$(python3 scripts/ci/clang-tidy-affected-sources.py \
     "$header_file" "$dependency_file" "$source_regex_file")
