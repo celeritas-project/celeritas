@@ -98,8 +98,6 @@ void verify_fast_processes(Span<G4PD const* const> expected,
             log_fs_failure(p) << "does not have G4ProcessManager attached";
         }
 #else
-        CELER_DISCARD(expected_shared);
-        CELER_DISCARD(expected_local);
         CELER_DISCARD(log_fs_failure);
         CELER_DISCARD(contains_fs_process);
         CELER_ASSERT_UNREACHABLE();
