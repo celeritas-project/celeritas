@@ -27,18 +27,17 @@ namespace celeritas
  */
 bool KernelRegistry::profiling()
 {
-    if constexpr (CELERITAS_USE_CUDA || CELERITAS_USE_HIP)
-    {
-        static bool const result = [] {
-            return getenv_flag("CELER_PROFILE_DEVICE", CELERITAS_DEBUG).value;
-        }();
-        return result;
-    }
-    else
-    {
-        // No GPU support enabled
-        return false;
-    }
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+    // NOTE: using preprocessor macros rather than constexpr since GCC 8.5
+    // fails with "error: void value not ignored as it ought to be"
+    static bool const result = [] {
+        return getenv_flag("CELER_PROFILE_DEVICE", CELERITAS_DEBUG).value;
+    }();
+    return result;
+#else
+    // No GPU support enabled
+    return false;
+#endif
 }
 
 //---------------------------------------------------------------------------//
