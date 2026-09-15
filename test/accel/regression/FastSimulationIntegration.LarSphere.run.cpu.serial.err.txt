@@ -112,6 +112,7 @@ debug@IntegrationSingleton.cc: Constructing local state
 debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive detectors
 debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 1024
 status@CoreState.cc: Celeritas core state initialization complete
+debug@FastSimulationIntegration.cc: Verifying fast simulation particles and processes
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -132,7 +133,6 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
-  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
@@ -181,7 +181,6 @@ debug@System.cc: Celeritas environment variables: {
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
-  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',
@@ -234,6 +233,7 @@ debug@IntegrationSingleton.cc: Constructing local state
 debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive detectors
 debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 1024
 status@CoreState.cc: Celeritas core state initialization complete
+debug@FastSimulationIntegration.cc: Verifying fast simulation particles and processes
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -254,7 +254,6 @@ debug@IntegrationTestBase.cc: Environment variables after setup: {
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
-  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',
@@ -295,7 +294,6 @@ debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
   ORANGE_BVH_DEPTH_LIMIT: '',
   ORANGE_BVH_PART_CANDS: '',
   ORANGE_MAX_FACE_INTERSECT: '',
-  CELER_PROFILE_DEVICE: '0',
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
   CELER_DISABLE_SIGNALS: '0',

@@ -90,6 +90,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
+G4WT0 > [W] debug@FastSimulationIntegration.cc: Verifying fast simulation particles and processes
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -137,11 +138,11 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '1',
   CELER_DISABLE: '0',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
+G4WT0 > [W] debug@FastSimulationIntegration.cc: Verifying fast simulation particles and processes
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -156,7 +157,6 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '1',
   CELER_DISABLE: '0',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
@@ -184,5 +184,4 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '1',
   CELER_DISABLE: '0',
-  CELER_PROFILE_DEVICE: '0',
 }

@@ -179,7 +179,6 @@ G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: end_run
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: begin_init
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: end_init
@@ -201,7 +200,6 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: begin_event
@@ -236,7 +234,6 @@ G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: end_run
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: begin_init
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: end_init
@@ -258,7 +255,6 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
-  CELER_PROFILE_DEVICE: '0',
 }
 G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: begin_event
@@ -309,5 +305,4 @@ G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 excepti
   G4_GEO_VERBOSITY: '',
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '1',
-  CELER_PROFILE_DEVICE: '0',
 }

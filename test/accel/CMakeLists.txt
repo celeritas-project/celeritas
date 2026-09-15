@@ -134,10 +134,17 @@ endfunction()
 
 #-----------------------------------------------------------------------------#
 
-foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration FastSimulationIntegration)
+foreach(_basename IN ITEMS FastSimulationIntegration TrackingManagerIntegration UserActionIntegration)
   # Add every combination of test for LArSphere.run
   celeritas_add_integration_tests(
     ${_basename} LarSphere run
+  )
+
+  # Test OpNovice with optical-friendly run manager types
+  celeritas_add_integration_tests(
+    ${_basename} OpNoviceOptical run
+    OFFLOAD cpu gpu g4
+    RMTYPE ${_optical_rm_type}
   )
 
   # Do TestEm3 only with celeritas cpu/gpu and serial run manager
@@ -147,13 +154,14 @@ foreach(_basename IN ITEMS UserActionIntegration TrackingManagerIntegration Fast
     RMTYPE serial
   )
 
-  # Test OpNovice with optical-friendly run manager types
-  celeritas_add_integration_tests(
-    ${_basename} OpNoviceOptical run
-    OFFLOAD cpu gpu g4
-    RMTYPE ${_optical_rm_type}
-  )
 endforeach()
+
+# Test that Fast Simulation setup fails if particles/regions are not correct
+celeritas_add_integration_tests(
+  FastSimulationIntegration LarSphereSetupFailure run
+  OFFLOAD cpu
+  RMTYPE serial
+)
 
 # Test state dependent output
 celeritas_add_integration_tests(
@@ -182,9 +190,10 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
+
 # Test with optical physics offloading distributions
 celeritas_add_integration_tests(
-  UserActionIntegration LarSphereOpticalOffload run
+  UserActionIntegration LarSphereOpticalTrackOffload run
   OFFLOAD cpu gpu g4
   RMTYPE ${_optical_rm_type}
 )
@@ -196,11 +205,11 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
-# Test with optical physics offloading distributions
+# Test primary admission with a larger secondary stack
 celeritas_add_integration_tests(
-  UserActionIntegration LarSphereOpticalTrackOffload run
-  OFFLOAD cpu gpu g4
-  RMTYPE ${_optical_rm_type}
+  TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
+  OFFLOAD cpu gpu
+  RMTYPE serial
 )
 
 # Test that we can safely flush and restore primaries multiple times per event
@@ -210,11 +219,11 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
-# Test primary admission with a larger secondary stack
+# Test with optical physics offloading distributions
 celeritas_add_integration_tests(
-  TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
-  OFFLOAD cpu gpu
-  RMTYPE serial
+  UserActionIntegration LarSphereOpticalOffload run
+  OFFLOAD cpu gpu g4
+  RMTYPE ${_optical_rm_type}
 )
 
 #-----------------------------------------------------------------------------#
