@@ -59,10 +59,10 @@ void SimpleLoopTestBase::run_impl(size_type num_tracks, size_type num_steps)
     }
 }
 
-template void
-    SimpleLoopTestBase::run_impl<MemSpace::host>(size_type, size_type);
-template void
-    SimpleLoopTestBase::run_impl<MemSpace::device>(size_type, size_type);
+template void SimpleLoopTestBase::run_impl<MemSpace::host>(size_type,
+                                                           size_type);
+template void SimpleLoopTestBase::run_impl<MemSpace::device>(size_type,
+                                                             size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

@@ -11,8 +11,11 @@ ORANGE runtime execution will be described here in greater detail in the future.
 Acceleration structures
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Celeritas uses a bounding interval hierarchy to accelerate volume
-intersections.
+Celeritas uses a bounding volume hierarchy to accelerate volume
+intersections. Bounding box intersections in the hierarchy use a highly
+optimized testing function.
+
+.. doxygenfunction:: celeritas::intersects_segment
 
 Tracking
 ^^^^^^^^

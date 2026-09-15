@@ -40,8 +40,8 @@ class UrbanMsc
     explicit inline CELER_FUNCTION UrbanMsc(ParamsRef const& shared);
 
     // Whether MSC applies to the current track
-    inline CELER_FUNCTION bool
-    is_applicable(CoreTrackView const&, real_type step) const;
+    inline CELER_FUNCTION bool is_applicable(CoreTrackView const&,
+                                             real_type step) const;
 
     // Update the physical and geometric step lengths
     inline CELER_FUNCTION void limit_step(CoreTrackView const&);
@@ -50,7 +50,9 @@ class UrbanMsc
     inline CELER_FUNCTION void apply_step(CoreTrackView const&);
 
   private:
-    ParamsRef const shared_;
+    // NOTE: copy by "value" (pointer addresses) since this is passed as a
+    // kernel argument
+    ParamsRef shared_;
 
     // Whether the step was limited by geometry
     static inline CELER_FUNCTION bool is_geo_limited(CoreTrackView const&);
@@ -71,8 +73,8 @@ CELER_FUNCTION UrbanMsc::UrbanMsc(ParamsRef const& shared) : shared_(shared)
 /*!
  * Whether MSC applies to the current track.
  */
-CELER_FUNCTION bool
-UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
+CELER_FUNCTION bool UrbanMsc::is_applicable(CoreTrackView const& track,
+                                            real_type step) const
 {
     if (step <= shared_.params.geom_limit)
         return false;
@@ -81,7 +83,7 @@ UrbanMsc::is_applicable(CoreTrackView const& track, real_type step) const
         return false;
 
     auto par = track.particle();
-    if (!shared_.pid_to_xs[par.particle_id()])
+    if (!shared_.pid_to_xs[par.particle_id()].get())
         return false;
 
     return par.energy() > shared_.params.low_energy_limit

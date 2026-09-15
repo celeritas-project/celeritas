@@ -67,10 +67,8 @@ class SegmentIntegrator
 
     //! Integrate a function
     template<class T, std::size_t N, std::size_t M>
-    void operator()(Span<T const, N> x,
-                    Span<T const, N> f,
-                    Span<T, M> dst,
-                    T init = {})
+    void operator()(
+        Span<T const, N> x, Span<T const, N> f, Span<T, M> dst, T init = {})
     {
         CELER_EXPECT(x.size() == f.size());
         CELER_EXPECT(x.size() == dst.size());

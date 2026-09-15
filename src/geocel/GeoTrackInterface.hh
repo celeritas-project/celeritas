@@ -6,13 +6,14 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <functional>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArrayUtils.hh"
-#include "corecel/math/NumericLimits.hh"
 
 #include "Types.hh"
 
@@ -83,6 +84,7 @@ class GeoTrackInterface
     using Initializer_t = GeoTrackInitializer;
     using real_type = RealType;
     using Real3 = Array<real_type, 3>;
+    using VolPathVisitor = std::function<void(VolumeLevelId, VolumeInstanceId)>;
     //!@}
 
   public:
@@ -123,6 +125,8 @@ class GeoTrackInterface
     virtual VolumeLevelId volume_level() const = 0;
     //! Get the volume instance ID for all levels
     virtual void volume_instance_id(Span<VolumeInstanceId> levels) const = 0;
+    //! Visit each volume level in the path
+    virtual void foreach_volume_path(VolPathVisitor visit) const = 0;
 
     /*!
      * Whether the track is outside the valid geometry region.
@@ -197,20 +201,6 @@ class GeoTrackInterface
     //!@}
     //!@{
     //! \name Straight-line movement and boundary crossing
-
-    /*!
-     * Find the distance to the next boundary (infinite max).
-     *
-     * Determines the distance to the next boundary (i.e., a different
-     * implementation volume) along the track's current direction.
-     *
-     * \deprecated Provide a physically reasonable upper bound to the distance
-     * to reduce search cost and avoid a redundant method.
-     */
-    Propagation find_next_step()
-    {
-        return this->find_next_step(NumericLimits<real_type>::infinity());
-    }
 
     /*!
      * Find the distance to the next boundary, up to and including a step.

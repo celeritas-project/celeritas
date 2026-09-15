@@ -63,9 +63,10 @@ struct ParticleOptions
     //! Default options for light particles (electrons/positrons)
     static ParticleOptions default_light()
     {
+        using namespace celeritas::literals;
+
         ParticleOptions opts;
-        using namespace celeritas::units::literals;
-        opts.min_range = 1.0_mm;
+        opts.min_range = 1.0_r * units::millimeter;
         opts.max_step_over_range = 0.2;
         opts.lowest_energy = ParticleOptions::Energy{0.001};
         opts.displaced = true;
@@ -78,8 +79,7 @@ struct ParticleOptions
     static ParticleOptions default_heavy()
     {
         ParticleOptions opts;
-        using namespace celeritas::units::literals;
-        opts.min_range = 0.1_mm;
+        opts.min_range = 0.1 * units::millimeter;
         opts.max_step_over_range = 0.2;
         opts.lowest_energy = ParticleOptions::Energy{0.001};
         opts.displaced = false;

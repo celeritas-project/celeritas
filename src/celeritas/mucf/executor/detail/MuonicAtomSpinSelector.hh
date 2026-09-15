@@ -43,13 +43,15 @@ class MuonicAtomSpinSelector
     // Muonic deuterium spin probabilities: 2/3 for spin 3/2; 1/3 for spin 1/2
     constexpr CELER_FUNCTION real_type deuterium_spin_probability()
     {
-        return real_type{2} / real_type{3};
+        using namespace celeritas::literals;
+        return 2_r / 3;
     }
 
     // Muonic tritium spin probabilities: 3/4 for spin 1; 1/4 for spin 0
     constexpr CELER_FUNCTION real_type tritium_spin_probability()
     {
-        return real_type{0.75};
+        using namespace celeritas::literals;
+        return 0.75_r;
     }
 };
 
@@ -59,8 +61,8 @@ class MuonicAtomSpinSelector
 /*!
  * Construct with muonic atom.
  */
-CELER_FUNCTION
-MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
+CELER_FUNCTION MuonicAtomSpinSelector::MuonicAtomSpinSelector(
+    MucfMuonicAtom atom)
     : atom_(atom)
 {
     CELER_EXPECT(atom_ < MucfMuonicAtom::size_);
@@ -71,8 +73,8 @@ MuonicAtomSpinSelector::MuonicAtomSpinSelector(MucfMuonicAtom atom)
  * Select a muonic atom spin, in units of \f$ \frac{\hbar}{2} \f$.
  */
 template<class Engine>
-CELER_FUNCTION units::HalfSpinInt
-MuonicAtomSpinSelector::operator()(Engine& rng)
+CELER_FUNCTION units::HalfSpinInt MuonicAtomSpinSelector::operator()(
+    Engine& rng)
 {
     switch (atom_)
     {

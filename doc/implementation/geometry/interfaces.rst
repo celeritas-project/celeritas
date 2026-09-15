@@ -6,15 +6,33 @@ Interfaces
 
 These classes manage access to geometric information throughout the codebase.
 They work in tandem with :cpp:class:`celeritas::GeantGeoParams` to associate
-volume identifiers with Geant4 runtime data structures.
+Celeritas identifiers with Geant4 runtime data structures.
+
+Volume hierarchy
+----------------
 
 .. doxygenclass:: celeritas::VolumeParams
 
+.. doxygenclass:: celeritas::VolumeView
+
+Conversion between a "navigation path"/"touchable history" and
+:cpp:type:`celeritas::VolumeUniqueInstanceId` can be done on host or device.
+
+.. doxygenvariable:: celeritas::world_unique_instance
+.. doxygenclass:: celeritas::VolumePathAccumulator
+.. doxygenclass:: celeritas::VolumePathFinder
+
+Surfaces and detectors
+----------------------
+
 .. doxygenclass:: celeritas::SurfaceParams
+.. doxygenclass:: celeritas::DetectorParams
+
+
+Implementation volumes
+----------------------
 
 .. doxygenclass:: celeritas::GeoParamsInterface
-
-.. doxygenclass:: celeritas::DetectorParams
 
 A few helper functions can be used to build collections (see
 :ref:`api_data_model`) of ``ImplVolumeId`` for runtime tracking (used
@@ -24,9 +42,8 @@ internally by fields, physics, etc.).
 
 .. doxygenclass:: celeritas::VolumeMapFiller
 
-
-Runtime usage
--------------
+Navigation
+----------
 
 A geometry "track view" is the key class used to access and/or modify a
 geometry state. (See :ref:`api_data_model` for more discussion of views and

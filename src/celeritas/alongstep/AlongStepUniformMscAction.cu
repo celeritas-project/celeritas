@@ -43,7 +43,8 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
     }
     auto field = field_->ref<MemSpace::native>();
     {
-        ScopedProfiling profile_this{"propagate-uniform"};
+        ScopedProfiling profile_this{"propagate"};
+
         auto execute_thread = ConditionalTrackExecutor{
             params.ptr<MemSpace::native>(),
             state.ptr(),
@@ -51,22 +52,23 @@ void AlongStepUniformMscAction::step(CoreParams const& params,
             detail::PropagationApplier{
                 detail::FieldTrackPropagator<UniformField>{field}}};
         static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate");
+            *this, "propagate-uniform");
         launch_kernel(*this, params, state, execute_thread);
+
+        if (!field_->in_all_volumes())
+        {
+            // Propagate tracks in volumes *without* field
+            auto execute_thread = ConditionalTrackExecutor{
+                params.ptr<MemSpace::native>(),
+                state.ptr(),
+                detail::IsAlongStepLinear{this->action_id(), field},
+                detail::PropagationApplier{detail::LinearTrackPropagator{}}};
+            static ActionLauncher<decltype(execute_thread)> const launch_kernel(
+                *this, "propagate-linear");
+            launch_kernel(*this, params, state, execute_thread);
+        }
     }
-    if (!field_->in_all_volumes())
-    {
-        // Launch linear propagation kernel for tracks in volumes without field
-        ScopedProfiling profile_this{"propagate-linear"};
-        auto execute_thread = ConditionalTrackExecutor{
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            detail::IsAlongStepLinear{this->action_id(), field},
-            detail::PropagationApplier{detail::LinearTrackPropagator{}}};
-        static ActionLauncher<decltype(execute_thread)> const launch_kernel(
-            *this, "propagate-linear");
-        launch_kernel(*this, params, state, execute_thread);
-    }
+
     if (this->has_msc())
     {
         detail::launch_apply_msc(

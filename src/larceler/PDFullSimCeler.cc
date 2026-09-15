@@ -13,6 +13,7 @@
 #include <larcorealg/Geometry/OpDetGeo.h>
 #include <lardataobj/Simulation/OpDetBacktrackerRecord.h>
 #include <lardataobj/Simulation/SimEnergyDeposit.h>
+#include <lardataobj/Simulation/SimPhotons.h>
 #include <messagefacility/MessageLogger/MessageLogger.h>
 
 #include "corecel/Assert.hh"
@@ -28,8 +29,8 @@ namespace
 /*!
  * Convert from a FHiCL config input.
  */
-inp::OpticalStandaloneInput
-make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
+inp::OpticalStandaloneInput make_input_from_config(
+    detail::PDFullSimCelerConfig const& cfg)
 {
     inp::OpticalStandaloneInput result;
 
@@ -62,6 +63,7 @@ make_input_from_config(detail::PDFullSimCelerConfig const& cfg)
     result.problem.num_streams = 1;
     result.problem.seed = cfg.Seed();
     result.problem.timers.action = cfg.ActionTimes();
+    result.problem.timers.step = cfg.StepTimes();
     result.problem.output_file = cfg.OutputFile();
 
     return result;
@@ -78,7 +80,8 @@ PDFullSimCeler::PDFullSimCeler(Parameters const& config)
     , runner_inp_{make_input_from_config(config())}
     , sim_tag_{config().SimulationLabel()}
 {
-    // Inform LArSoft we're going to make OpBTR
+    // Inform LArSoft we're going to make OpBTR and SimPhotons
+    produces<std::vector<sim::SimPhotonsLite>>();
     produces<std::vector<sim::OpDetBacktrackerRecord>>();
 }
 
@@ -122,12 +125,17 @@ void PDFullSimCeler::produce(art::Event& e)
     auto edep_handle
         = e.getValidHandle<std::vector<sim::SimEnergyDeposit>>(sim_tag_);
 
+    mf::LogInfo("PDFullSimCeler") << "Transferring " << edep_handle->size()
+                                  << " SimEnergyDeposits to Celeritas";
+
     // Calculate detector response for the input steps
-    using VecBTR = LarStandaloneRunner::VecBTR;
-    VecBTR result = (*runner_)(*edep_handle);
+    auto result = (*runner_)(*edep_handle);
+    CELER_ASSERT(result.backtrack.size() <= result.sim_photons.size());
 
     // Add to event
-    e.put(std::make_unique<VecBTR>(std::move(result)));
+    using LSR = LarStandaloneRunner;
+    e.put(std::make_unique<LSR::VecSPL>(std::move(result.sim_photons)));
+    e.put(std::make_unique<LSR::VecBTR>(std::move(result.backtrack)));
 }
 
 //---------------------------------------------------------------------------//

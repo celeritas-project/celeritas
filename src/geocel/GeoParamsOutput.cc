@@ -42,21 +42,7 @@ void GeoParamsOutput::output(JsonPimpl* j) const
 
     obj["supports_safety"] = geo_->supports_safety();
     obj["bbox"] = geo_->bbox();
-
-    // Save volume names
-    // TODO: move to volume params output?
-    {
-        auto label = json::array();
-
-        auto const& volumes = geo_->impl_volumes();
-        for (auto id : range(ImplVolumeId{volumes.size()}))
-        {
-            label.push_back(volumes.at(id));
-        }
-        obj["volumes"] = {
-            {"label", std::move(label)},
-        };
-    }
+    obj["num_impl_volumes"] = geo_->impl_volumes().size();
 
     j->obj = std::move(obj);
 }

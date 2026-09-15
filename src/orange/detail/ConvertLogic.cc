@@ -170,8 +170,8 @@ class InfixStack
         auto& op_1 = *(infix_.end() - 2);
         VecLogic new_expr;
         constexpr int max_extra_tokens = 5;
-        new_expr.reserve(max_extra_tokens + op_1.expr.size()
-                         + op_2.expr.size());
+        new_expr.reserve(
+            max_extra_tokens + op_1.expr.size() + op_2.expr.size());
         auto opposite = op == logic::lor ? logic::land : logic::lor;
         this->add_sub_expr(new_expr, op_1.expr, opposite == op_1.expr_type);
         new_expr.push_back(op);

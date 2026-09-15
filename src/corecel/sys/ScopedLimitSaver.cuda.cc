@@ -6,10 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "ScopedLimitSaver.hh"
 
-#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/io/Logger.hh"
 
 namespace celeritas
 {

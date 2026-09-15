@@ -1,0 +1,38 @@
+spack:
+  include:
+    - ./reqs-celer.yaml
+  specs:
+    # reqs-celer required for a *truly minimal* build
+    - cli11
+    - cmake
+    - nlohmann-json
+    # ... plus reqs-celer required for *basic* realistic development
+    - geant4
+    - git
+    - googletest
+    - py-pre-commit
+    # ... plus *recommended* options
+    - covfie
+    - g4vg
+    - hepmc3
+    - ninja
+    - vecgeom
+    - root
+    - libpng
+    # documentation
+    - doxygen
+    - py-breathe
+    - py-furo
+    - py-sphinx
+    - py-sphinxcontrib-bibtex
+    # experimental
+    - dd4hep
+    - mpi
+    # R&D
+    - git-lfs
+    - gh
+    # CI
+    - py-gcovr
+  view: true
+  concretizer:
+    unify: true

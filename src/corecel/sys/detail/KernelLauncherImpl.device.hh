@@ -7,7 +7,7 @@
 #pragma once
 
 #include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"
+#include "corecel/DeviceRuntimeApi.hh"  // IWYU pragma: keep
 
 #include "corecel/Macros.hh"
 #include "corecel/cont/Range.hh"
@@ -27,8 +27,8 @@ namespace
  * Celeritas executor kernel implementation.
  */
 template<class F>
-__device__ CELER_FORCEINLINE void
-launch_kernel_impl(Range<ThreadId> const& thread_range, F& execute_thread)
+__device__ CELER_FORCEINLINE void launch_kernel_impl(
+    Range<ThreadId> const& thread_range, F& execute_thread)
 {
     auto tid = celeritas::KernelParamCalculator::thread_id();
     if (!(tid < thread_range.size()))

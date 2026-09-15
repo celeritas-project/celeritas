@@ -16,10 +16,10 @@ if [ -z "${CMAKE_PRESET}" ]; then
 fi
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
-test -d "${CELER_INSTALL_DIR}" || (
+test -d "${CELER_INSTALL_DIR}" || {
   echo "CELER_INSTALL_DIR=${CELER_INSTALL_DIR} is not a directory"
   exit 1
-)
+}
 
 build_local() {
   git clean -fxd .
@@ -40,8 +40,8 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Run Geant4 app examples
-if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
+# Run Geant4 app examples unless DISABLE is set to a non-empty, non-zero value
+if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ] || [ "${CELER_DISABLE_G4_EXAMPLES}" = "0" ]; then
   G4VERSION_STRING="auto"
   if [ -z "${G4VERSION_NUMBER}" ]; then
     # Get the geant4 version 11.2.3, failing if config isn't found

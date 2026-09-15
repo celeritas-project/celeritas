@@ -196,7 +196,7 @@ class CalcIntersections
     FaceId* const face_;
     real_type* const distance_;
     size_type* const isect_;
-    size_type face_idx_{0};
+    FaceId::size_type face_idx_{0};
     size_type isect_idx_{0};
 };
 

@@ -6,15 +6,13 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <string_view>
-#include <type_traits>
+#include <string>
 
 #include "corecel/DeviceRuntimeApi.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "Device.hh"
 #include "KernelParamCalculator.device.hh"
@@ -57,12 +55,12 @@ template<class F>
 class KernelLauncher
 {
     static_assert(
-        Launchable_v<F>,
+        is_launchable_v<F>,
         R"(Launched action must be a trivially copyable function object)");
 
   public:
     // Create a launcher from a label
-    explicit inline KernelLauncher(std::string_view name);
+    explicit inline KernelLauncher(std::string&& name);
 
     // Launch a kernel for a thread range
     inline void operator()(Range<ThreadId> threads,
@@ -74,7 +72,11 @@ class KernelLauncher
                            StreamId stream_id,
                            F const& execute_thread) const;
 
+    //! Name of this kernel
+    std::string const& name() const { return name_; }
+
   private:
+    std::string name_;
     KernelParamCalculator calc_launch_params_;
 };
 
@@ -85,8 +87,9 @@ class KernelLauncher
  * Create a launcher from a label.
  */
 template<class F>
-KernelLauncher<F>::KernelLauncher(std::string_view name)
-    : calc_launch_params_{name, &detail::launch_action_impl<F>}
+KernelLauncher<F>::KernelLauncher(std::string&& name)
+    : name_{std::move(name)}
+    , calc_launch_params_{name_, &detail::launch_action_impl<F>}
 {
 }
 
@@ -95,12 +98,12 @@ KernelLauncher<F>::KernelLauncher(std::string_view name)
  * Launch a kernel for a thread range.
  */
 template<class F>
-void KernelLauncher<F>::operator()(Range<ThreadId> threads,
-                                   StreamId stream_id,
-                                   F const& execute_thread) const
+void KernelLauncher<F>::operator()(
+    Range<ThreadId> threads, StreamId stream_id, F const& execute_thread) const
 {
     if (!threads.empty())
     {
+        ScopedProfiling profile_this_{name_};
         using StreamT = CELER_DEVICE_API_SYMBOL(Stream_t);
         StreamT stream = stream_id
                              ? celeritas::device().stream(stream_id).get()
@@ -124,9 +127,8 @@ void KernelLauncher<F>::operator()(Range<ThreadId> threads,
  * \param execute_thread Call the given functor with the thread ID
  */
 template<class F>
-void KernelLauncher<F>::operator()(size_type num_threads,
-                                   StreamId stream_id,
-                                   F const& execute_thread) const
+void KernelLauncher<F>::operator()(
+    size_type num_threads, StreamId stream_id, F const& execute_thread) const
 {
     (*this)(range(ThreadId{num_threads}), stream_id, execute_thread);
 }

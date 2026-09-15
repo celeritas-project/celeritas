@@ -16,7 +16,7 @@ namespace optical
 {
 namespace test
 {
-constexpr Turn degree{real_type{1} / 360};
+constexpr Turn degree{1_r / 360};
 //---------------------------------------------------------------------------//
 /*!
  * Counters for photon status after a run at a single angle.

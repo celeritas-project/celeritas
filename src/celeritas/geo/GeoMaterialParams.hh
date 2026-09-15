@@ -77,11 +77,11 @@ class GeoMaterialParams final
 
   public:
     // Construct with imported data
-    static std::shared_ptr<GeoMaterialParams>
-    from_import(ImportData const& data,
-                SPConstCoreGeo geo_params,
-                SPConstVolume vol_params,
-                SPConstMaterial material_params);
+    static std::shared_ptr<GeoMaterialParams> from_import(
+        ImportData const& data,
+        SPConstCoreGeo geo_params,
+        SPConstVolume vol_params,
+        SPConstMaterial material_params);
 
     // Construct from geometry and material params
     explicit GeoMaterialParams(Input const&);

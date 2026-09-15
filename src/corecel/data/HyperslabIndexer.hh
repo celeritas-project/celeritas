@@ -25,7 +25,7 @@ namespace celeritas
  * \todo
  * https://github.com/celeritas-project/celeritas/pull/1518#discussion_r1856614365
  */
-template<size_type N>
+template<std::size_t N>
 class HyperslabIndexer
 {
   public:
@@ -36,8 +36,8 @@ class HyperslabIndexer
 
   public:
     // Construct with an array denoting the size of each dimension
-    explicit inline CELER_FUNCTION
-    HyperslabIndexer(Array<size_type, N> const& dims);
+    explicit inline CELER_FUNCTION HyperslabIndexer(
+        Array<size_type, N> const& dims);
 
     //// METHODS ////
 
@@ -62,7 +62,7 @@ class HyperslabIndexer
  * "changes fastest". For example, when indexing into a 3D grid (N=3), index 1
  * will result in coords (i=0, j=0, k=1).
  */
-template<size_type N>
+template<std::size_t N>
 class HyperslabInverseIndexer
 {
   public:
@@ -73,8 +73,8 @@ class HyperslabInverseIndexer
 
   public:
     // Construct with an array denoting the size of each dimension
-    explicit inline CELER_FUNCTION
-    HyperslabInverseIndexer(Array<size_type, N> const& dims);
+    explicit inline CELER_FUNCTION HyperslabInverseIndexer(
+        Array<size_type, N> const& dims);
 
     //// METHODS ////
 
@@ -93,7 +93,7 @@ class HyperslabInverseIndexer
 /*!
  * Construct from array denoting the sizes of each dimension.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION HyperslabIndexer<N>::HyperslabIndexer(Coords const& dims)
     : dims_(dims)
 {
@@ -107,8 +107,9 @@ CELER_FUNCTION HyperslabIndexer<N>::HyperslabIndexer(Coords const& dims)
 /*!
  * Convert N-dimensional coordinates to an index.
  */
-template<size_type N>
-CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Coords const& coords) const
+template<std::size_t N>
+CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(
+    Coords const& coords) const
 {
     CELER_EXPECT(coords[0] < dims_[0]);
     size_type result = coords[0];
@@ -125,7 +126,7 @@ CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Coords const& coords) c
 /*!
  * Convert N-dimensional coordinates to an index.
  */
-template<size_type N>
+template<std::size_t N>
 template<typename... Args>
 CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Args... args) const
 {
@@ -139,7 +140,7 @@ CELER_FUNCTION size_type HyperslabIndexer<N>::operator()(Args... args) const
 /*!
  * Construct from array denoting the sizes of each dimension.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION HyperslabInverseIndexer<N>::HyperslabInverseIndexer(
     Array<size_type, N> const& dims)
     : dims_(dims)
@@ -154,7 +155,7 @@ CELER_FUNCTION HyperslabInverseIndexer<N>::HyperslabInverseIndexer(
 /*!
  * Convert an index into N-dimensional coordinates.
  */
-template<size_type N>
+template<std::size_t N>
 CELER_FUNCTION typename HyperslabInverseIndexer<N>::Coords
 HyperslabInverseIndexer<N>::operator()(size_type index) const
 {

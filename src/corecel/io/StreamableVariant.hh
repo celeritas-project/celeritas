@@ -61,8 +61,8 @@ struct GenericToStream
  * Write a variant object's value to a stream.
  */
 template<class T>
-inline std::ostream&
-operator<<(std::ostream& os, StreamableVariant<T> const& svar)
+inline std::ostream& operator<<(std::ostream& os,
+                                StreamableVariant<T> const& svar)
 {
     CELER_ASSUME(!svar.value.valueless_by_exception());
     std::visit(detail::GenericToStream{os}, svar.value);

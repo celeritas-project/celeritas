@@ -20,35 +20,20 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct GammaNuclearExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
-    GammaNuclearRef params;
+    NativeCRef<GammaNuclearData> params;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Apply the GammaNuclearInteractor to the current track.
  */
-CELER_FUNCTION Interaction
-GammaNuclearExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction GammaNuclearExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
-
-    // Select a target element
-    auto material = track.material().material_record();
-    auto elcomp_id = track.physics_step().element();
-    if (!elcomp_id)
-    {
-        // Sample an element (based on element cross sections on the fly)
-        ElementSelector select_el(
-            material,
-            GammaNuclearMicroXsCalculator{params, particle.energy()},
-            track.material().element_scratch());
-        elcomp_id = select_el(rng);
-        CELER_ASSERT(elcomp_id);
-        track.physics_step().element(elcomp_id);
-    }
 
     // Construct the interactor
     GammaNuclearInteractor interact(params, particle);

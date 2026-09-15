@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/surface/SurfacePhysicsTrackView.hh
+//! \sa celeritas/optical/SurfacePhysics.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -24,9 +25,13 @@ namespace optical
  * Optical surface physics data for a track.
  *
  * Tracks maintain a position while traversing the interstitial materials of an
- * optical surface. This class provides transformations from this position
- * based on the surface orientation and traversal direction to access relevant
- * material and interface data in storage.
+ * optical surface.
+ * This class provides transformations from this position based on the surface
+ * orientation (pre/post volume when the crossing began) and traversal
+ * direction (current state) to access relevant material and interface data in
+ * storage.
+ *
+ * See \c SurfacePhysicsView, \c SurfaceTraversalView .
  */
 class SurfacePhysicsTrackView
 {
@@ -40,7 +45,7 @@ class SurfacePhysicsTrackView
     struct Initializer
     {
         SurfaceId surface{};
-        SubsurfaceDirection orientation;
+        LocalDirection orientation;
         Real3 global_normal{0, 0, 0};
         OptMatId pre_volume_material{};
         OptMatId post_volume_material{};
@@ -48,13 +53,12 @@ class SurfacePhysicsTrackView
 
   public:
     // Create view from surface physics data and state
-    inline CELER_FUNCTION SurfacePhysicsTrackView(SurfaceParamsRef const&,
-                                                  SurfaceStateRef const&,
-                                                  TrackSlotId);
+    inline CELER_FUNCTION SurfacePhysicsTrackView(
+        SurfaceParamsRef const&, SurfaceStateRef const&, TrackSlotId);
 
     // Initialize track state
-    inline CELER_FUNCTION SurfacePhysicsTrackView&
-    operator=(Initializer const&);
+    inline CELER_FUNCTION SurfacePhysicsTrackView& operator=(
+        Initializer const&);
 
     // Reset surface physics state of the track
     inline CELER_FUNCTION void reset();
@@ -69,8 +73,8 @@ class SurfacePhysicsTrackView
     inline CELER_FUNCTION OptMatId next_material() const;
 
     // Get surface physics map for next surface
-    inline CELER_FUNCTION
-        SurfacePhysicsMapView interface(SurfacePhysicsOrder) const;
+    inline CELER_FUNCTION SurfacePhysicsMapView interface(
+        SurfacePhysicsOrder) const;
 
     // Calculate and update traversal direction from track momentum
     inline CELER_FUNCTION void update_traversal_direction(Real3 const&);
@@ -105,7 +109,7 @@ class SurfacePhysicsTrackView
     TrackSlotId const track_id_;
 
     // Get material at the given track position
-    inline CELER_FUNCTION OptMatId material(SurfaceTrackPosition) const;
+    inline CELER_FUNCTION OptMatId material(LocalPositionId) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -114,10 +118,10 @@ class SurfacePhysicsTrackView
 /*!
  * Initialize view from surface physics data and state for a given track.
  */
-CELER_FUNCTION
-SurfacePhysicsTrackView::SurfacePhysicsTrackView(SurfaceParamsRef const& params,
-                                                 SurfaceStateRef const& states,
-                                                 TrackSlotId track)
+CELER_FUNCTION SurfacePhysicsTrackView::SurfacePhysicsTrackView(
+    SurfaceParamsRef const& params,
+    SurfaceStateRef const& states,
+    TrackSlotId track)
     : params_(params), states_(states), track_id_(track)
 {
     CELER_EXPECT(track_id_ < states_.size());
@@ -127,8 +131,8 @@ SurfacePhysicsTrackView::SurfacePhysicsTrackView(SurfaceParamsRef const& params,
 /*!
  * Initialize track state with given initializer data.
  */
-CELER_FUNCTION SurfacePhysicsTrackView&
-SurfacePhysicsTrackView::operator=(Initializer const& init)
+CELER_FUNCTION SurfacePhysicsTrackView& SurfacePhysicsTrackView::operator=(
+    Initializer const& init)
 {
     CELER_EXPECT(init.surface < params_.surfaces.size());
     CELER_EXPECT(is_soft_unit_vector(init.global_normal));
@@ -189,8 +193,8 @@ CELER_FUNCTION OptMatId SurfacePhysicsTrackView::next_material() const
 /*!
  * Get surface physics map for next surface.
  */
-CELER_FUNCTION SurfacePhysicsMapView
-SurfacePhysicsTrackView::interface(SurfacePhysicsOrder step) const
+CELER_FUNCTION SurfacePhysicsMapView SurfacePhysicsTrackView::interface(
+    SurfacePhysicsOrder step) const
 {
     auto traverse = this->traversal();
     return SurfacePhysicsMapView{
@@ -202,8 +206,8 @@ SurfacePhysicsTrackView::interface(SurfacePhysicsOrder step) const
 /*!
  * Calculate and update traversal direction from track momentum.
  */
-CELER_FUNCTION void
-SurfacePhysicsTrackView::update_traversal_direction(Real3 const& dir)
+CELER_FUNCTION void SurfacePhysicsTrackView::update_traversal_direction(
+    Real3 const& dir)
 {
     CELER_EXPECT(is_soft_unit_vector(dir));
     this->traversal().dir(
@@ -262,8 +266,8 @@ SurfacePhysicsTrackView::reflectivity_action() const
 /*!
  * Assign the reflectivity action for this step.
  */
-CELER_FUNCTION void
-SurfacePhysicsTrackView::reflectivity_action(ReflectivityAction action)
+CELER_FUNCTION void SurfacePhysicsTrackView::reflectivity_action(
+    ReflectivityAction action)
 {
     states_.reflectivity_action[track_id_] = action;
 }
@@ -302,11 +306,10 @@ SurfacePhysicsTrackView::scalars() const
 /*!
  * Get material at given track position.
  */
-CELER_FUNCTION OptMatId
-SurfacePhysicsTrackView::material(SurfaceTrackPosition pos) const
+CELER_FUNCTION OptMatId SurfacePhysicsTrackView::material(
+    LocalPositionId pos) const
 {
-    auto pos_range
-        = range(SurfaceTrackPosition{this->traversal().num_positions()});
+    auto pos_range = range(LocalPositionId{this->traversal().num_local_pos()});
     CELER_EXPECT(pos < pos_range.size());
 
     if (pos == pos_range.front())

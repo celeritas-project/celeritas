@@ -58,8 +58,8 @@ class OffloadAction final : public CoreStepActionInterface
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<OffloadAction>
-    make_and_insert(CoreParams const&, Input&&);
+    static std::shared_ptr<OffloadAction> make_and_insert(CoreParams const&,
+                                                          Input&&);
 
     // Construct with action ID, aux IDs, and optical properties
     OffloadAction(ActionId action_id, Input&&);

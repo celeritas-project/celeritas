@@ -18,9 +18,8 @@ namespace test
 {
 //---------------------------------------------------------------------------//
 // Build state data for a stream
-auto DummyParams::create_state(MemSpace m,
-                               StreamId stream_id,
-                               size_type size) const -> UPState
+auto DummyParams::create_state(
+    MemSpace m, StreamId stream_id, size_type size) const -> UPState
 {
     auto result = std::make_unique<DummyState>();
     result->memspace = m;
@@ -31,10 +30,8 @@ auto DummyParams::create_state(MemSpace m,
 
 //---------------------------------------------------------------------------//
 
-DummyAction::DummyAction(ActionId id,
-                         StepActionOrder order,
-                         std::string&& label,
-                         AuxId aux)
+DummyAction::DummyAction(
+    ActionId id, StepActionOrder order, std::string&& label, AuxId aux)
     : ConcreteAction{id, std::move(label)}, order_{order}, aux_id_{aux}
 {
 }

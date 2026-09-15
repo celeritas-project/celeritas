@@ -50,9 +50,8 @@ class FieldPropagator
 
   public:
     // Construct with shared parameters and the field driver
-    inline CELER_FUNCTION FieldPropagator(SubstepperT&& advance,
-                                          ParticleTrackView const& particle,
-                                          GTV&& geo);
+    inline CELER_FUNCTION FieldPropagator(
+        SubstepperT&& advance, ParticleTrackView const& particle, GTV&& geo);
 
     // Move track up to a user-provided distance, or to the next boundary
     inline CELER_FUNCTION result_type operator()(real_type dist);
@@ -82,7 +81,8 @@ class FieldPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class SubstepperT, class GTV>
-CELER_FUNCTION FieldPropagator(SubstepperT&&, ParticleTrackView const&, GTV&&)
+CELER_CTAD_FUNCTION FieldPropagator(
+    SubstepperT&&, ParticleTrackView const&, GTV&&)
     -> FieldPropagator<SubstepperT, GTV>;
 
 //---------------------------------------------------------------------------//
@@ -130,8 +130,8 @@ CELER_FUNCTION FieldPropagator<SubstepperT, GTV>::FieldPropagator(
  *   physical distance travelled.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION auto
-FieldPropagator<SubstepperT, GTV>::operator()(real_type step) -> result_type
+CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
+    real_type step) -> result_type
 {
     CELER_EXPECT(step > 0);
     result_type result;
@@ -345,7 +345,8 @@ CELER_FUNCTION short int FieldPropagator<SubstepperT, GTV>::max_substeps() const
  * Distance to bump or to consider a "zero" movement.
  */
 template<class SubstepperT, class GTV>
-CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() const
+CELER_FUNCTION real_type
+FieldPropagator<SubstepperT, GTV>::minimum_substep() const
 {
     return advance_.minimum_step();
 }
@@ -357,7 +358,9 @@ CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::minimum_substep() co
 template<class SubstepperT, class GTV>
 CELER_FUNCTION real_type FieldPropagator<SubstepperT, GTV>::bump_distance() const
 {
-    return this->delta_intersection() * real_type(0.1);
+    using namespace celeritas::literals;
+
+    return this->delta_intersection() * 0.1_r;
 }
 
 //---------------------------------------------------------------------------//

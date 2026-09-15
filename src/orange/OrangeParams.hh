@@ -56,13 +56,13 @@ class OrangeParams final : public GeoParamsInterface,
     static std::shared_ptr<OrangeParams> from_gdml(std::string const& filename);
 
     // Build from a Geant4 geometry
-    static std::shared_ptr<OrangeParams>
-    from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
-               SPConstVolumes volumes);
+    static std::shared_ptr<OrangeParams> from_geant(
+        std::shared_ptr<GeantGeoParams const> const& geo,
+        SPConstVolumes volumes);
 
     // Build from a Geant4 geometry (no volumes available?)
-    static std::shared_ptr<OrangeParams>
-    from_geant(std::shared_ptr<GeantGeoParams const> const& geo);
+    static std::shared_ptr<OrangeParams> from_geant(
+        std::shared_ptr<GeantGeoParams const> const& geo);
 
     // Build from a JSON input
     static std::shared_ptr<OrangeParams> from_json(std::string const& filename);
@@ -103,6 +103,9 @@ class OrangeParams final : public GeoParamsInterface,
 
     // Get volume metadata
     inline ImplVolumeMap const& impl_volumes() const final;
+
+    // Get structural volume metadata
+    SPConstVolumeParams const& volumes() const final { return volumes_; }
 
     // Get the canonical volume IDs corresponding to an implementation volume
     inline VolumeId volume_id(ImplVolumeId) const final;

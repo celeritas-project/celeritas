@@ -50,3 +50,6 @@ Example classes
   This advanced and experimental class (expect it to break at major version
   changes) demonstrates an efficient GPU-based stepping action that integrates
   with the main Geant4 code.
+
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+.. SPDX-License-Identifier: CC-BY-4.0

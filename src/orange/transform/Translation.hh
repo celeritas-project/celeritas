@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "orange/OrangeTypes.hh"
@@ -27,7 +27,7 @@ class Translation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 3>;
+    using StorageSpan = LdgSpan<real_type const, 3>;
     //@}
 
     //! Transform type identifier
@@ -74,26 +74,22 @@ class Translation
     //! Calculate the inverse during preprocessing
     Translation calc_inverse() const { return Translation{negate(tra_)}; }
 
+    //!@{
+    //! Host-only comparators
+    friend bool operator==(Translation const& a, Translation const& b)
+    {
+        auto a_data = a.data();
+        return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+    }
+    friend bool operator!=(Translation const& a, Translation const& b)
+    {
+        return !(a == b);
+    }
+    //!@}
+
   private:
     Real3 tra_;
 };
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline bool operator==(Translation const& a, Translation const& b)
-{
-    auto a_data = a.data();
-    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
-}
-
-inline bool operator!=(Translation const& a, Translation const& b)
-{
-    return !(a == b);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -109,7 +105,8 @@ CELER_FUNCTION Translation::Translation(StorageSpan s) : tra_{s[0], s[1], s[2]}
 /*!
  * Transform from daughter to parent.
  */
-CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(Real3 const& pos) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(
+    Real3 const& pos) const
 {
     return pos + tra_;
 }
@@ -118,8 +115,8 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_up(Real3 const& pos) con
 /*!
  * Transform from parent to daughter.
  */
-CELER_FORCEINLINE_FUNCTION Real3
-Translation::transform_down(Real3 const& parent_pos) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_down(
+    Real3 const& parent_pos) const
 {
     return parent_pos - tra_;
 }
@@ -128,8 +125,8 @@ Translation::transform_down(Real3 const& parent_pos) const
 /*!
  * Rotate from daughter to parent (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const&
-Translation::rotate_up(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_up(
+    Real3 const& d) const
 {
     return d;
 }
@@ -138,8 +135,8 @@ Translation::rotate_up(Real3 const& d) const
 /*!
  * Rotate from parent to daughter (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const&
-Translation::rotate_down(Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_down(
+    Real3 const& d) const
 {
     return d;
 }

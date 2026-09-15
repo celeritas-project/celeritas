@@ -8,7 +8,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/data/LdgIterator.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "geocel/Types.hh"
 
 #include "VolumeData.hh"
@@ -40,8 +41,8 @@ class VolumeView
 
   public:
     // Construct with shared data and a volume ID
-    explicit inline CELER_FUNCTION
-    VolumeView(ParamsRef const& params, VolumeId vol_id);
+    explicit inline CELER_FUNCTION VolumeView(ParamsRef const& params,
+                                              VolumeId vol_id);
 
     //! Volume being viewed
     CELER_FUNCTION VolumeId volume_id() const { return vol_id_; }
@@ -68,8 +69,7 @@ class VolumeView
 /*!
  * Construct with shared data and a volume ID.
  */
-CELER_FUNCTION
-VolumeView::VolumeView(ParamsRef const& params, VolumeId vol_id)
+CELER_FUNCTION VolumeView::VolumeView(ParamsRef const& params, VolumeId vol_id)
     : params_(params), vol_id_(vol_id)
 {
     CELER_EXPECT(vol_id_ < params_.volumes.size());

@@ -55,10 +55,6 @@ bool is_running_events()
            || !G4Threading::IsMultithreadedApplication();
 }
 
-constexpr bool using_surface_vg = CELERITAS_VECGEOM_SURFACE
-                                  && CELERITAS_CORE_GEO
-                                         == CELERITAS_CORE_GEO_VECGEOM;
-
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -146,9 +142,8 @@ class LarSphere : public LarSphereIntegrationMixin, public FSITestBase
 
         // Check the weight is consistent with our modification at
         // begin-of-event
-        auto event_id = G4EventManager::GetEventManager()
-                            ->GetConstCurrentEvent()
-                            ->GetEventID();
+        auto event_id
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent()->GetEventID();
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
@@ -243,11 +238,6 @@ TEST_F(LarSphere, run)
     {
         GTEST_SKIP() << "Skipping remaining tests since we've already failed";
     }
-    if (using_surface_vg)
-    {
-        GTEST_SKIP() << "VecGeom surface model does not support multiple runs";
-    }
-
     CELER_LOG(status) << "Beam on (second run)";
     rm.BeamOn(1);
 }

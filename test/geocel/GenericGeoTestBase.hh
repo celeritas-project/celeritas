@@ -95,12 +95,12 @@ class GenericGeoTestBase : virtual public Test, public GenericGeoTestInterface
     //// LAZY GEO INTERFACE ////
 
     // Implementation builds from Geant4 on request
-    [[nodiscard]] SPConstGeoI
-    build_geo_from_geant(SPConstGeantGeo const&) const final;
+    [[nodiscard]] SPConstGeoI build_geo_from_geant(
+        SPConstGeantGeo const&) const final;
 
     // Backup method when Geant4 is disabled
-    [[nodiscard]] SPConstGeoI
-    build_geo_from_gdml(std::string const& filename) const final;
+    [[nodiscard]] SPConstGeoI build_geo_from_gdml(
+        std::string const& filename) const final;
 };
 
 //---------------------------------------------------------------------------//

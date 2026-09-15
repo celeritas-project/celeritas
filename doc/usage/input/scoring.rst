@@ -22,6 +22,6 @@ by reconstructing Geant4 hits and calling back to user code.
 Independent scoring
 -------------------
 
-This is used to set up :cpp:class:`celeritas::SimpleCalo`.
+This is used to set up :cpp:class:`celeritas::SimpleCalo`, which accumulates energy deposition in the specified volumes.
 
 .. celerstruct:: inp::SimpleCalo

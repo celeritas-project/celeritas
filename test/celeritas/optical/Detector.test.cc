@@ -10,6 +10,7 @@
 
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
+#include "geocel/VolumePathFinder.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/GeantTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -17,8 +18,10 @@
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/DetectorData.hh"
+#include "celeritas/optical/Runner.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/Types.hh"
+#include "celeritas/optical/action/DetectorAction.hh"
 #include "celeritas/optical/gen/DirectGeneratorAction.hh"
 #include "celeritas/optical/gen/PrimaryGeneratorAction.hh"
 #include "celeritas/optical/surface/SurfacePhysicsParams.hh"
@@ -35,119 +38,50 @@ using namespace ::celeritas::test;
 
 constexpr bool reference_configuration
     = ((CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
-       && !CELERITAS_VECGEOM_SURFACE
        && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW);
 
 //---------------------------------------------------------------------------//
 /*!
  * Test optical detector and scoring.
  *
- * Because detectors are not directly loaded from GDML files, an override is
- * used for loading the detectors into the core parameters. The default optical
- * surface is set to be strictly transmitting to ensure hits are always
- * recorded.
+ * Most physics is disabled to get a simple photon to hit mapping.
  */
-class DetectorTest : public ::celeritas::test::GeantTestBase
+class DetectorTest : public Test
 {
   public:
-    std::string_view gdml_basename() const override { return "optical-box"; }
-
-    GeantPhysicsOptions build_geant_options() const override
+    void SetUp() override
     {
-        auto result = GeantTestBase::build_geant_options();
-        result.optical.emplace();
-        result.optical->scintillation = std::nullopt;
-        result.optical->mie_scattering = false;
-        result.optical->rayleigh_scattering = false;
-        result.optical->wavelength_shifting = std::nullopt;
-        result.optical->wavelength_shifting2 = std::nullopt;
-        return result;
-    }
+        // Set per-process state sizes
+        osi_.problem.capacity = [] {
+            inp::OpticalStateCapacity cap;
+            cap.tracks = 4096;
+            cap.primaries = 8 * *cap.tracks;
+            cap.generators = 2 * *cap.tracks;
+            return cap;
+        }();
 
-    GeantImportDataSelection build_import_data_selection() const override
-    {
-        auto result = GeantTestBase::build_import_data_selection();
-        result.processes |= GeantImportDataSelection::optical;
-        return result;
-    }
+        // Run on a single stream
+        osi_.problem.num_streams = 1;
 
-    GeantSetup::SetString build_sd_names() const override
-    {
-        return {"x-detectors", "y-detectors", "z-detectors"};
-    }
+        // Set optical physics processes
+        osi_.geant_setup = [] {
+            GeantOpticalPhysicsOptions opt;
+            opt.cherenkov = std::nullopt;
+            opt.scintillation = std::nullopt;
+            opt.wavelength_shifting = std::nullopt;
+            opt.wavelength_shifting2 = std::nullopt;
+            opt.rayleigh_scattering = false;
+            opt.mie_scattering = false;
+            // absorption and boundary remain enabled (defaults)
+            return opt;
+        }();
 
-    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
-    {
-        PhysSurfaceId phys_surface{0};
-
-        inp::OpticalSurfacePhysics input;
-        input.materials.push_back({});
-        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
-        input.reflectivity.fresnel.emplace(phys_surface,
-                                           inp::FresnelReflection{});
-        input.interaction.trivial.emplace(phys_surface,
-                                          TrivialInteractionMode::transmit);
-
-        return std::make_shared<SurfacePhysicsParams>(
-            this->optical_action_reg().get(), input);
-    }
-
-    inp::OpticalDetector build_optical_detector_input() override
-    {
-        return detector_input_;
-    }
-
-    void initialize_run()
-    {
-        Transporter::Input inp;
-        inp.params = this->optical_params();
-        transport_ = std::make_shared<Transporter>(std::move(inp));
-
-        size_type num_tracks = 128;
-        state_ = std::make_shared<CoreState<MemSpace::host>>(
-            *this->optical_params(), StreamId{0}, num_tracks);
-        state_->aux() = std::make_shared<AuxStateVec>(
-            *this->core()->aux_reg(), MemSpace::host, StreamId{0}, num_tracks);
+        // Set optical detectors to load from GDML
+        osi_.detectors = {"x-detectors", "y-detectors", "z-detectors"};
     }
 
   protected:
-    std::shared_ptr<CoreState<MemSpace::host>> state_;
-    std::shared_ptr<AuxStateVec> aux_;
-    std::shared_ptr<Transporter> transport_;
-    std::shared_ptr<DetectorParams> detector_;
-
-    inp::OpticalDetector detector_input_;
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * User-defined grid with non-zero efficiency on a surface to test detector
- * hits.
- */
-class SurfaceDetectorTest : public DetectorTest
-{
-  public:
-    SPConstOpticalSurfacePhysics build_optical_surface_physics() override
-    {
-        PhysSurfaceId phys_surface{0};
-
-        inp::OpticalSurfacePhysics input;
-        input.materials.push_back({});
-        input.roughness.polished.emplace(phys_surface, inp::NoRoughness{});
-        input.reflectivity.grid.emplace(phys_surface, [] {
-            inp::GridReflection refl;
-            std::vector<double> xs{1e-6, 2e-5};
-            refl.reflectivity = inp::Grid{xs, {0.0, 0.0}};
-            refl.transmittance = inp::Grid{xs, {0.0, 0.0}};
-            refl.efficiency = inp::Grid{xs, {0.6, 0.6}};
-            return refl;
-        }());
-        input.interaction.trivial.emplace(phys_surface,
-                                          TrivialInteractionMode::transmit);
-
-        return std::make_shared<SurfacePhysicsParams>(
-            this->optical_action_reg().get(), input);
-    }
+    inp::OpticalStandaloneInput osi_;
 };
 
 //---------------------------------------------------------------------------//
@@ -165,6 +99,9 @@ struct SimpleScores
     std::vector<real_type> y_positions;
     std::vector<real_type> z_positions;
     std::vector<size_type> volume_instance_ids;
+    std::vector<size_type> volume_unique_instance_ids;
+    std::vector<size_type> num_steps;
+    std::vector<real_type> path_lengths;
 };
 
 struct SimpleScorer
@@ -183,6 +120,10 @@ struct SimpleScorer
             scores.z_positions.push_back(hit.position[2]);
             scores.volume_instance_ids.push_back(
                 hit.volume_instance.unchecked_get());
+            scores.volume_unique_instance_ids.push_back(
+                hit.unique_instance.unchecked_get());
+            scores.num_steps.push_back(hit.num_steps);
+            scores.path_lengths.push_back(hit.path_length);
         }
     }
 };
@@ -190,7 +131,7 @@ struct SimpleScorer
 TEST_F(DetectorTest, simple)
 {
     SimpleScores scores;
-    detector_input_.callback = SimpleScorer{scores};
+    osi_.problem.detectors.callback = SimpleScorer{scores};
 
     // Manually generate arbitrary photons aimed at different detectors
 
@@ -249,13 +190,17 @@ TEST_F(DetectorTest, simple)
            ImplVolumeId{0}},
     };
 
-    // Run test
+    // Set geometry filename
+    osi_.problem.model.geometry
+        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
 
-    auto generate
-        = DirectGeneratorAction::make_and_insert(*this->optical_params());
-    this->initialize_run();
-    generate->insert(*state_, make_span(inits));
-    (*transport_)(*state_);
+    // Create direct generator input
+    osi_.problem.generator = celeritas::inp::OpticalDirectGenerator{};
+
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    run.insert(make_span(std::as_const(inits)));
+    run();
 
     // Check results
 
@@ -292,11 +237,15 @@ TEST_F(DetectorTest, simple)
         0,
         0,
     };
-    // adjusted by group velocity
+    // Adjust by group velocity: t = (c / v_g) * flight_time. The refractive
+    // index in optical-box-det-tra.gdml alternates between flat and rising
+    // linear intervals, so its slope is discontinuous at the grid points.
+    // At every interior point, one adjacent slope is zero, causing the
+    // harmonic-mean derivative to be zero.
     static double const expected_times[] = {
-        1.49995 * flight_time,
+        1.16665 * flight_time,
         1.3333 * flight_time,
-        3.66675 * flight_time,
+        1.66665 * flight_time,
         2 * flight_time,
         2 * flight_time,
         2 * flight_time,
@@ -305,6 +254,11 @@ TEST_F(DetectorTest, simple)
 
     static size_type const expected_volume_instance_ids[]
         = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_volume_unique_instance_ids[]
+        = {5, 4, 6, 7, 5, 3, 5};
+    static size_type const expected_num_steps[] = {1, 1, 1, 1, 1, 1, 1};
+    static real_type const expected_path_lengths[] = {
+        box_size, box_size, box_size, box_size, box_size, box_size, box_size};
 
     if (reference_configuration)
     {
@@ -315,6 +269,10 @@ TEST_F(DetectorTest, simple)
         EXPECT_VEC_SOFT_EQ(expected_z_positions, scores.z_positions);
         EXPECT_VEC_SOFT_EQ(expected_times, scores.times);
         EXPECT_VEC_EQ(expected_volume_instance_ids, scores.volume_instance_ids);
+        EXPECT_VEC_EQ(expected_volume_unique_instance_ids,
+                      scores.volume_unique_instance_ids);
+        EXPECT_VEC_EQ(expected_num_steps, scores.num_steps);
+        EXPECT_VEC_SOFT_EQ(expected_path_lengths, scores.path_lengths);
     }
 }
 
@@ -347,29 +305,32 @@ TEST_F(DetectorTest, stress)
     // 3 detectors: x, y, z
     std::vector<size_type> hits(3, 0);
     size_type errored = 0;
-    detector_input_.callback = StressScorer{hits, errored};
+    osi_.problem.detectors.callback = StressScorer{hits, errored};
+
+    // Set geometry filename
+    osi_.problem.model.geometry
+        = Test::test_data_path("geocel", "optical-box-det-tra.gdml");
 
     // Isotropically generate photons
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 8192;
+        gen.energy = inp::MonoenergeticDistribution{1e-5};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
 
-    inp::OpticalPrimaryGenerator gen;
-    gen.primaries = 8192;
-    gen.energy = inp::MonoenergeticDistribution{1e-5};
-    gen.angle = inp::IsotropicDistribution{};
-    gen.shape = inp::PointDistribution{{0, 0, 0}};
-
-    // Run test
-
-    auto generate = PrimaryGeneratorAction::make_and_insert(
-        *this->optical_params(), std::move(gen));
-    this->initialize_run();
-    generate->insert(*state_);
-    (*transport_)(*state_);
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
 
     if (reference_configuration)
     {
-        static size_type const expected_hits[] = {2673, 2816, 2703};
+        static size_type const expected_hits[] = {2743, 2716, 2733};
 
         EXPECT_VEC_EQ(expected_hits, hits);
         EXPECT_EQ(errored, 0);
@@ -378,39 +339,38 @@ TEST_F(DetectorTest, stress)
 
 //---------------------------------------------------------------------------//
 // Test surface efficiency propagates hits to detector
-TEST_F(SurfaceDetectorTest, efficiency)
+TEST_F(DetectorTest, efficiency)
 {
     // 3 detectors: x, y, z
     std::vector<size_type> hits(3, 0);
     size_type errored = 0;
-    detector_input_.callback = StressScorer{hits, errored};
+    osi_.problem.detectors.callback = StressScorer{hits, errored};
+
+    // Set geometry filename
+    osi_.problem.model.geometry
+        = Test::test_data_path("geocel", "optical-box-det-eff.gdml");
 
     // Isotropically generate photons
+    osi_.problem.generator = [] {
+        inp::OpticalPrimaryGenerator gen;
+        gen.primaries = 8192;
+        gen.energy = inp::MonoenergeticDistribution{1e-5};
+        gen.angle = inp::IsotropicDistribution{};
+        gen.shape = inp::PointDistribution{{0, 0, 0}};
+        return gen;
+    }();
 
-    inp::OpticalPrimaryGenerator gen;
-    gen.primaries = 8192;
-    gen.energy = inp::MonoenergeticDistribution{1e-5};
-    gen.angle = inp::IsotropicDistribution{};
-    gen.shape = inp::PointDistribution{{0, 0, 0}};
-
-    // Run test
-
-    auto generate = PrimaryGeneratorAction::make_and_insert(
-        *this->optical_params(), std::move(gen));
-    this->initialize_run();
-    generate->insert(*state_);
-    (*transport_)(*state_);
+    // Construct the runner and transport optical primaries
+    optical::Runner run(std::move(osi_));
+    run.insert();
+    run();
 
     // Check results
-
-    if (reference_configuration)
+    if constexpr (reference_configuration)
     {
-        auto total_hits = std::accumulate(hits.begin(), hits.end(), 0);
+        static size_type const expected_hits[] = {2776, 2713, 2703};
 
-        // Expect ~60% of total primaries are detected
-        static size_type const expected_hits = 4894;
-
-        EXPECT_EQ(expected_hits, total_hits);
+        EXPECT_VEC_EQ(expected_hits, hits);
         EXPECT_EQ(errored, 0);
     }
 }

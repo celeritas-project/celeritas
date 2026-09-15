@@ -122,9 +122,8 @@ class TsaiScreeningCalculator
 /*!
  * Construct with gamma and epsilon factors.
  */
-CELER_FUNCTION
-TsaiScreeningCalculator::TsaiScreeningCalculator(Mass gamma_factor,
-                                                 Mass epsilon_factor)
+CELER_FUNCTION TsaiScreeningCalculator::TsaiScreeningCalculator(
+    Mass gamma_factor, Mass epsilon_factor)
     : f_gamma_{gamma_factor.value()}, f_epsilon_{epsilon_factor.value()}
 {
     CELER_EXPECT(epsilon_factor > zero_quantity());

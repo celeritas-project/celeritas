@@ -22,7 +22,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 // TEST HARNESS
 //---------------------------------------------------------------------------//
@@ -400,7 +399,7 @@ class StepLimiterTest : public PhysicsStepUtilsTest
         PhysicsOptions opts;
 
         opts.light.min_range = inf;  // Use analytic range instead of scaled
-        opts.fixed_step_limiter = 1e-3_cm;
+        opts.fixed_step_limiter = 1e-3 * units::centimeter;
         return opts;
     }
 };

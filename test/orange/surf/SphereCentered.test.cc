@@ -21,7 +21,7 @@ class SphereCenteredTest : public Test
   protected:
     using Intersections = SphereCentered::Intersections;
 
-    static constexpr auto sqrt_third = real_type{1} / constants::sqrt_three;
+    static constexpr auto sqrt_third = 1_r / constants::sqrt_three;
     static constexpr Real3 inward{-sqrt_third, -sqrt_third, -sqrt_third};
     static constexpr Real3 outward{sqrt_third, sqrt_third, sqrt_third};
 };

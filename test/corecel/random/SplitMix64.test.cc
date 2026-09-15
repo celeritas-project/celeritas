@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/random/engine/SplitMix64.hh"
 
+#include "corecel/cont/Range.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas

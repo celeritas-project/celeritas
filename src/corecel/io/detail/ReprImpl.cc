@@ -6,12 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "ReprImpl.hh"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 
 #include "corecel/Assert.hh"
-
-#include "../Repr.hh"
 
 namespace celeritas
 {

@@ -25,8 +25,8 @@ namespace detail
  */
 struct CherenkovOffloadExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<celeritas::optical::MaterialParamsData> material;
     NativeCRef<CherenkovData> cherenkov;
@@ -42,8 +42,8 @@ struct CherenkovOffloadExecutor
 /*!
  * Generate optical distribution data.
  */
-CELER_FUNCTION void
-CherenkovOffloadExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void CherenkovOffloadExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(material);
     CELER_EXPECT(cherenkov);

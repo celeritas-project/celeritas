@@ -8,7 +8,7 @@
 
 #include <ios>
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 
 namespace celeritas
 {

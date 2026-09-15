@@ -86,8 +86,8 @@ G4Material const& GeantOpticalMatHelper::material() const
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 //! Write material name and optical id to a stream
-inline std::ostream&
-operator<<(std::ostream& os, GeantOpticalMatHelper const& helper)
+inline std::ostream& operator<<(std::ostream& os,
+                                GeantOpticalMatHelper const& helper)
 {
     os << helper.property_getter()
        << " (optical id=" << helper.opt_mat_id().unchecked_get() << ")";

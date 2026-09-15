@@ -63,8 +63,8 @@ CELER_CONSTEXPR_FUNCTION Sense to_sense(bool s)
  *
  * NaN values are treated as "outside".
  */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense
-real_to_sense(real_type quadric)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION SignedSense real_to_sense(
+    real_type quadric)
 {
     return static_cast<SignedSense>(!(quadric <= 0) - (quadric < 0));
 }

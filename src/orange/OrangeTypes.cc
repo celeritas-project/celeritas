@@ -169,6 +169,7 @@ char const* to_cstring(SurfaceType value)
         "kz",
         "sq",
         "gq",
+        "tor",
         "inv",
         // clang-format on
     };
@@ -185,6 +186,19 @@ char const* to_cstring(TransformType value)
         "no_transformation",
         "translation",
         "transformation",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to a universe type.
+ */
+char const* to_cstring(UnivType value)
+{
+    static EnumStringMapper<UnivType> const to_cstring_impl{
+        "simple",
+        "rect_array",
     };
     return to_cstring_impl(value);
 }

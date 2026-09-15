@@ -9,9 +9,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/sys/ThreadId.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/em/data/AtomicRelaxationData.hh"
 
 #include "AtomicRelaxation.hh"
@@ -53,11 +51,11 @@ class AtomicRelaxationHelper
 {
   public:
     // Construct with the currently interacting element
-    inline CELER_FUNCTION
-    AtomicRelaxationHelper(AtomicRelaxParamsRef const& shared,
-                           AtomicRelaxStateRef const& states,
-                           ElementId el_id,
-                           TrackSlotId tid);
+    inline CELER_FUNCTION AtomicRelaxationHelper(
+        AtomicRelaxParamsRef const& shared,
+        AtomicRelaxStateRef const& states,
+        ElementId el_id,
+        TrackSlotId tid);
 
     // Whether atomic relaxation should be applied
     explicit inline CELER_FUNCTION operator bool() const;
@@ -69,10 +67,10 @@ class AtomicRelaxationHelper
     inline CELER_FUNCTION Span<SubshellId> scratch() const;
 
     // Create the sampling distribution from sampled shell and allocated mem
-    inline CELER_FUNCTION AtomicRelaxation
-    build_distribution(CutoffView const& cutoffs,
-                       SubshellId shell_id,
-                       Span<Secondary> secondaries) const;
+    inline CELER_FUNCTION AtomicRelaxation build_distribution(
+        CutoffView const& cutoffs,
+        SubshellId shell_id,
+        Span<Secondary> secondaries) const;
 
   private:
     AtomicRelaxParamsRef const& shared_;
@@ -87,8 +85,7 @@ class AtomicRelaxationHelper
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-AtomicRelaxationHelper::AtomicRelaxationHelper(
+CELER_FUNCTION AtomicRelaxationHelper::AtomicRelaxationHelper(
     AtomicRelaxParamsRef const& shared,
     AtomicRelaxStateRef const& states,
     ElementId el_id,
@@ -141,10 +138,10 @@ CELER_FUNCTION Span<SubshellId> AtomicRelaxationHelper::scratch() const
 /*!
  * Create the sampling distribution.
  */
-CELER_FUNCTION AtomicRelaxation
-AtomicRelaxationHelper::build_distribution(CutoffView const& cutoffs,
-                                           SubshellId shell_id,
-                                           Span<Secondary> secondaries) const
+CELER_FUNCTION AtomicRelaxation AtomicRelaxationHelper::build_distribution(
+    CutoffView const& cutoffs,
+    SubshellId shell_id,
+    Span<Secondary> secondaries) const
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(secondaries.size() == this->max_secondaries());

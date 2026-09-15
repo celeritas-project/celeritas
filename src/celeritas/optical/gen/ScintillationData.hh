@@ -48,9 +48,10 @@ struct ScintDistributionRecord
 /*!
  * Unnormalized scintillation spectrum as a sum of independent components.
  *
- * \todo The yield and resolution scale should live together (used for sampling
- * the number of photons) and be separated from the normalized spectrum (used
- * during generation, represented as a sum of components).
+ * \todo The yield and resolution scale should live together (used by \c
+ * ScintillationOffload for sampling the number of photons) and be separated
+ * from the normalized spectrum (used during generation by \c
+ * ScintillationGenerator, represented as a sum of components).
  *
  * - \c yield_per_energy is the average number of photons released by a unit of
  *   locally deposited energy.
@@ -64,11 +65,10 @@ struct ScintSpectrumRecord
     ItemRange<real_type> yield_pdf;
     ItemRange<ScintDistributionRecord> components;
 
-    //! Whether all data are assigned and valid
+    //! Whether scintillation is present for this material
     explicit CELER_FUNCTION operator bool() const
     {
-        return yield_per_energy > 0 && !yield_pdf.empty()
-               && yield_pdf.size() == components.size();
+        return yield_per_energy > 0;
     }
 };
 

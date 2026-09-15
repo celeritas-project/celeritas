@@ -8,7 +8,9 @@ if(BUILD_TESTING)
   set(CELER_PYTHON "$<TARGET_FILE:Python::Interpreter>")
 
   if(CELERITAS_USE_OpenMP)
-    set(CELER_OMP_ENV "OMP_NUM_THREADS=4")
+    # Since Celeritas doesn't specify num_threads in its openmp launch parameters,
+    # kernels *should* use 4 threads by default
+    set(CELER_OMP_ENV "OMP_NUM_THREADS=4" "OMP_THREAD_LIMIT=8")
     set(CELER_PROCESSORS PROCESSORS 4)
   else()
     set(CELER_OMP_ENV)

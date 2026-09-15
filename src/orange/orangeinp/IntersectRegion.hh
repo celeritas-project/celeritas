@@ -602,9 +602,8 @@ class Hyperboloid final : public IntersectRegionInterface
 {
   public:
     // Construct with radius at midpoint (min) and end (max), and half-height
-    Hyperboloid(real_type min_radius,
-                real_type max_radius,
-                real_type halfheight);
+    Hyperboloid(
+        real_type min_radius, real_type max_radius, real_type halfheight);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -816,9 +815,8 @@ class Paraboloid final : public IntersectRegionInterface
 {
   public:
     // Construct with lower/upper radii and the half-height
-    Paraboloid(real_type lower_radius,
-               real_type upper_radius,
-               real_type halfheight);
+    Paraboloid(
+        real_type lower_radius, real_type upper_radius, real_type halfheight);
 
     // Build surfaces
     void build(IntersectSurfaceBuilder&) const final;
@@ -1052,6 +1050,42 @@ class Tet final : public IntersectRegionInterface
 
   private:
     ArrReal3 v_;  //!< Four vertices defining the tetrahedron
+};
+
+/*!
+ * A torus centered around the origin, defined by two radii.
+ *
+ * The major radius extends from the origin to the center of the revolved
+ * circle, and the minor radius is that of the revolved circle.
+ *
+ * Uses a special case of the Toroid surface, with equal ellipse radii.
+ */
+class Torus final : public IntersectRegionInterface
+{
+  public:
+    // Construct with radii
+    Torus(real_type major_radius, real_type minor_radius);
+
+    // Build surfaces
+    void build(IntersectSurfaceBuilder&) const final;
+
+    // Output to JSON
+    void output(JsonPimpl*) const final;
+
+    // Whether this encloses another torus
+    bool encloses(Torus const& other) const;
+
+    //// ACCESSORS ////
+
+    //! Major radius (from the origin to the revolved circle)
+    real_type major_radius() const { return r_maj_; }
+
+    //! Minor radius (of the revolved circle)
+    real_type minor_radius() const { return r_min_; }
+
+  private:
+    real_type r_maj_;
+    real_type r_min_;
 };
 
 //---------------------------------------------------------------------------//

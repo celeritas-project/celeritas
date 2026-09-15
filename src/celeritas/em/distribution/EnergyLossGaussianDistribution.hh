@@ -11,7 +11,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
 #include "corecel/random/distribution/TruncatedDistribution.hh"
 
@@ -51,16 +50,16 @@ class EnergyLossGaussianDistribution
 
   public:
     // Construct from distribution parameters
-    inline CELER_FUNCTION
-    EnergyLossGaussianDistribution(Energy mean_loss, Energy bohr_stddev);
+    inline CELER_FUNCTION EnergyLossGaussianDistribution(Energy mean_loss,
+                                                         Energy bohr_stddev);
 
     // Construct from helper distribution parameters
-    inline CELER_FUNCTION
-    EnergyLossGaussianDistribution(Energy mean_loss, EnergySq bohr_var);
+    inline CELER_FUNCTION EnergyLossGaussianDistribution(Energy mean_loss,
+                                                         EnergySq bohr_var);
 
     // Construct from helper-calculated data
-    explicit inline CELER_FUNCTION
-    EnergyLossGaussianDistribution(EnergyLossHelper const& helper);
+    explicit inline CELER_FUNCTION EnergyLossGaussianDistribution(
+        EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>

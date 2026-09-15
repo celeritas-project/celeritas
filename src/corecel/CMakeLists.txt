@@ -78,7 +78,7 @@ else()
   endif()
 endif()
 set(CELERITAS_CONSTANTS "CODATA ${CELERITAS_CODATA}")
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG)
+foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG RESEED)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
@@ -120,9 +120,9 @@ if(DEFINED CELERITAS_SINCOSPI_PREFIX)
   )
 endif()
 
-# Save dependency versions as hex
+# Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep Geant4 VecGeom HepMC3)
+foreach(_dep CUDA HIP Geant4 VecGeom HepMC3)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS
@@ -133,11 +133,7 @@ endforeach()
 # Save VecGeom options as always-on macros to simplify testing
 set(CELERITAS_VECGEOM_CONFIG)
 set(_vecgeom_opts)
-if(DEFINED CELERITAS_VecGeom_SURFACE)
-  # Override/pretend VecGeom has this option
-  set(VecGeom_SURFACE ${CELERITAS_VecGeom_SURFACE})
-endif()
-foreach(_opt SURFACE BVH_SINGLE SINGLE_PRECISION)
+foreach(_opt BVH_SINGLE SINGLE_PRECISION)
   if(NOT DEFINED VecGeom_${_opt})
     set(_val "0 /* not defined */")
   elseif(VecGeom_${_opt})
@@ -212,14 +208,16 @@ list(APPEND SOURCES
   grid/SplineDerivCalculator.cc
   grid/VectorUtils.cc
   inp/DistributionsIO.json.cc
+  inp/GridIO.json.cc
   io/BuildOutput.cc
   io/ColorUtils.cc
   io/ExceptionOutput.cc
   io/JsonUtils.json.cc
   io/Label.cc
   io/LogContextException.cc
-  io/LogHandlers.cc
+  io/Logger.cc
   io/LoggerTypes.cc
+  io/OpenmpOutput.cc
   io/OutputInterface.cc
   io/OutputRegistry.cc
   io/ScopedStreamRedirect.cc
@@ -244,9 +242,6 @@ list(APPEND SOURCES
   sys/Environment.cc
   sys/KernelRegistry.cc
   sys/KernelRegistryIO.json.cc
-  sys/MemRegistry.cc
-  sys/MemRegistryIO.json.cc
-  sys/ScopedMem.cc
   sys/ScopedSignalHandler.cc
   sys/Stream.cc
   sys/TypeDemangler.cc
@@ -259,6 +254,7 @@ list(APPEND SOURCES
 
 # All these classes depend on OpenMP if available
 celeritas_add_object_library(corecel_openmp_obj
+  sys/Openmp.cc
   sys/MultiExceptionHandler.cc
 )
 celeritas_target_link_libraries(corecel_openmp_obj
@@ -272,7 +268,7 @@ list(APPEND PRIVATE_DEPS corecel_openmp_obj)
 # All these classes depend on MPI if available
 celeritas_add_object_library(corecel_mpi_obj
   Assert.cc
-  io/Logger.cc
+  io/LogHandlers.cc
   sys/Device.cc
   sys/MpiCommunicator.cc
   sys/ScopedMpiInit.cc

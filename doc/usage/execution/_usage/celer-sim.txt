@@ -1,8 +1,7 @@
 Run standalone Celeritas
-[Exactly 1 of the following options are required]
 
 
-./celer-sim [OPTIONS] [filename]
+./celer-sim [OPTIONS] [filename] [SUBCOMMANDS]
 
 
 POSITIONALS:
@@ -12,6 +11,12 @@ POSITIONALS:
 OPTIONS:
   -h,     --help              Print this help message and exit
   -v,     --version           Display program version information and exit
-          --config            Show configuration
-          --dump-default      Dump default input
-          --device            Show device information
+          --config            DEPRECATED: use 'config' subcommand instead
+          --dump-default      DEPRECATED: use 'default' subcommand instead
+          --device            DEPRECATED: use 'device' subcommand instead
+
+SUBCOMMANDS:
+  config                      Show configuration
+  default                     Show default input
+  device                      Show device information
+  update                      Convert a deprecated input JSON file

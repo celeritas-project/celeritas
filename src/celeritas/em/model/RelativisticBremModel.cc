@@ -27,6 +27,8 @@
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/ParticleView.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -135,9 +137,8 @@ void RelativisticBremModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Build RelativisticBremData (lpm_table and elem_data).
  */
-void RelativisticBremModel::build_data(HostValue* data,
-                                       MaterialParams const& materials,
-                                       real_type particle_mass)
+void RelativisticBremModel::build_data(
+    HostValue* data, MaterialParams const& materials, real_type particle_mass)
 {
     // Build element data for available elements
     auto num_elements = materials.num_elements();
@@ -157,9 +158,8 @@ void RelativisticBremModel::build_data(HostValue* data,
  *
  * See \c G4eBremsstrahlungRelModel::InitialiseElementData() in Geant4.
  */
-auto RelativisticBremModel::compute_element_data(ElementView const& elem,
-                                                 real_type electron_mass)
-    -> ElementData
+auto RelativisticBremModel::compute_element_data(
+    ElementView const& elem, real_type electron_mass) -> ElementData
 {
     ElementData data;
 
@@ -179,7 +179,7 @@ auto RelativisticBremModel::compute_element_data(ElementView const& elem,
     }
 
     real_type fc = elem.coulomb_correction();
-    real_type invz = real_type(1) / z.unchecked_get();
+    real_type invz = 1.0_r / z.unchecked_get();
 
     data.fz = elem.log_z() / 3 + fc;
     data.factor1 = (ff_el - fc) + ff_inel * invz;

@@ -10,6 +10,9 @@
 #include <random>
 #include <vector>
 
+#include "corecel/random/DiagnosticRngEngine.hh"
+#include "corecel/random/distribution/IsotropicDistribution.hh"
+
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
 
@@ -60,6 +63,46 @@ TEST(InteractionUtilsTest, sample_exiting_direction)
                0.20505130592048,  0.12514344585105,  0.97071781682466,
                0.26726124191242,  0.53452248382485,  0.80178372573727};
         EXPECT_VEC_SOFT_EQ(expected_out_dir, out_dir);
+    }
+}
+
+TEST(InteractionUtilsTest, sample_polarization)
+{
+    DiagnosticRngEngine<std::mt19937> rng;
+
+    std::vector<Real3> direction = {
+        {1, 0, 0},
+        {0, 0, 1},
+        make_unit_vector(Real3{1, 2, 3}),
+        make_unit_vector(Real3{1e-3, -1e-3, 1}),
+    };
+    std::vector<Real3> result;
+    for (auto const& dir : direction)
+    {
+        result.push_back(TransversePolarizationSampler{dir}(rng));
+    }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        static Real3 const expected_result[] = {
+            {0, -0.6285203911562, -0.77779310738837},
+            {0.18099540215833, 0.98348394211474, 0},
+            {-0.96349621318245, 0.13467426584993, 0.2313825604942},
+            {0.99896510069951, -0.045471273756906, -0.0010444363744566},
+        };
+        EXPECT_VEC_SOFT_EQ(expected_result, result);
+        EXPECT_EQ(4, rng.exchange_count() / real_type(direction.size()));
+    }
+
+    size_type num_samples = 10000;
+    for (size_type i = 0; i < num_samples; ++i)
+    {
+        auto dir = IsotropicDistribution{}(rng);
+        auto pol = TransversePolarizationSampler{dir}(rng);
+        EXPECT_TRUE(is_soft_orthogonal(dir, pol));
+    }
+    if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+    {
+        EXPECT_EQ(8, rng.exchange_count() / real_type(num_samples));
     }
 }
 

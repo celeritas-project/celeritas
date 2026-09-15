@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "corecel/cont/Span.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "geocel/Types.hh"
 #include "orange/MatrixUtils.hh"
@@ -61,7 +61,7 @@ class Transformation
   public:
     //@{
     //! \name Type aliases
-    using StorageSpan = Span<real_type const, 12>;
+    using StorageSpan = LdgSpan<real_type const, 12>;
     using Mat3 = SquareMatrixReal3;
     //@}
 
@@ -116,19 +116,19 @@ class Transformation
     //// CALCULATION ////
 
     // Transform from daughter to parent
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_up(Real3 const& pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_up(
+        Real3 const& pos) const;
 
     // Transform from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    transform_down(Real3 const& parent_pos) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 transform_down(
+        Real3 const& parent_pos) const;
 
     // Rotate from daughter to parent
     [[nodiscard]] inline CELER_FUNCTION Real3 rotate_up(Real3 const& dir) const;
 
     // Rotate from parent to daughter
-    [[nodiscard]] inline CELER_FUNCTION Real3
-    rotate_down(Real3 const& parent_dir) const;
+    [[nodiscard]] inline CELER_FUNCTION Real3 rotate_down(
+        Real3 const& parent_dir) const;
 
     // Calculate the inverse during preprocessing
     Transformation calc_inverse() const;
@@ -136,25 +136,23 @@ class Transformation
     // Calculate properties about the matrix
     Properties calc_properties() const;
 
+    //!@{
+    //! Host-only comparators
+    friend bool operator==(Transformation const& a, Transformation const& b)
+    {
+        auto a_data = a.data();
+        return std::equal(a_data.begin(), a_data.end(), b.data().begin());
+    }
+    friend bool operator!=(Transformation const& a, Transformation const& b)
+    {
+        return !(a == b);
+    }
+    //!@}
+
   private:
     Mat3 rot_;
     Real3 tra_;
 };
-
-//---------------------------------------------------------------------------//
-//!@{
-//! Host-only comparators
-inline bool operator==(Transformation const& a, Transformation const& b)
-{
-    auto a_data = a.data();
-    return std::equal(a_data.begin(), a_data.end(), b.data().begin());
-}
-
-inline bool operator!=(Transformation const& a, Transformation const& b)
-{
-    return !(a == b);
-}
-//!@}
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -178,7 +176,8 @@ CELER_FUNCTION Transformation::Transformation(StorageSpan s)
  */
 CELER_FUNCTION Real3 Transformation::transform_up(Real3 const& pos) const
 {
-    return gemv(real_type{1}, rot_, pos, real_type{1}, tra_);
+    using namespace celeritas::literals;
+    return gemv(1_r, rot_, pos, 1_r, tra_);
 }
 
 //---------------------------------------------------------------------------//

@@ -73,6 +73,8 @@ class SurfaceClipper
     // Apply to a surface with unknown type
     void operator()(VariantSurface const& surf) const;
 
+    void operator()(Toroid const&) const;
+
   private:
     BBox* int_{nullptr};
     BBox* ext_{nullptr};

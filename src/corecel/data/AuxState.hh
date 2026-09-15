@@ -78,11 +78,11 @@ class AuxState final : public AuxStateInterface
  */
 template<template<Ownership, MemSpace> class S,
          template<Ownership, MemSpace> class P>
-std::unique_ptr<AuxStateInterface>
-make_aux_state(ParamsDataInterface<P> const& params,
-               MemSpace m,
-               StreamId stream_id,
-               size_type size)
+std::unique_ptr<AuxStateInterface> make_aux_state(
+    ParamsDataInterface<P> const& params,
+    MemSpace m,
+    StreamId stream_id,
+    size_type size)
 {
     if (m == MemSpace::host)
     {
@@ -102,8 +102,8 @@ make_aux_state(ParamsDataInterface<P> const& params,
  * Create an auxiliary state given a runtime memory space.
  */
 template<template<Ownership, MemSpace> class S>
-std::unique_ptr<AuxStateInterface>
-make_aux_state(MemSpace m, StreamId stream_id, size_type size)
+std::unique_ptr<AuxStateInterface> make_aux_state(
+    MemSpace m, StreamId stream_id, size_type size)
 {
     if (m == MemSpace::host)
     {
@@ -127,9 +127,8 @@ make_aux_state(MemSpace m, StreamId stream_id, size_type size)
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<template<Ownership, MemSpace> class P>
-AuxState<S, M>::AuxState(HostCRef<P> const& p,
-                         StreamId stream_id,
-                         size_type size)
+AuxState<S, M>::AuxState(
+    HostCRef<P> const& p, StreamId stream_id, size_type size)
     : store_{p, stream_id, size}
 {
 }

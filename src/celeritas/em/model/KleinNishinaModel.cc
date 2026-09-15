@@ -33,9 +33,10 @@ KleinNishinaModel::KleinNishinaModel(ActionId id,
     data_.ids.electron = particles.find(pdg::electron());
     data_.ids.gamma = particles.find(pdg::gamma());
 
-    CELER_VALIDATE(data_.ids.electron && data_.ids.gamma,
-                   << R"(missing electron and/or gamma particles (required for )"
-                   << this->description() << ")");
+    CELER_VALIDATE(
+        data_.ids.electron && data_.ids.gamma,
+        << R"(missing electron and/or gamma particles (required for )"
+        << this->description() << ")");
     data_.inv_electron_mass = 1
                               / value_as<KleinNishinaData::Mass>(
                                   particles.get(data_.ids.electron).mass());

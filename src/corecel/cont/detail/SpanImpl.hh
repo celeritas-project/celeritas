@@ -14,15 +14,15 @@
 
 namespace celeritas
 {
+namespace detail
+{
 //---------------------------------------------------------------------------//
 template<class T>
-struct LdgValue;
+class LdgWrapper;
+
 template<class T>
 class LdgIterator;
 
-//---------------------------------------------------------------------------//
-namespace detail
-{
 //---------------------------------------------------------------------------//
 /*!
  * Default type aliases for Span.
@@ -31,44 +31,55 @@ template<class T>
 struct SpanTraits
 {
     using element_type = T;
-    using pointer = std::add_pointer_t<element_type>;
-    using const_pointer = std::add_pointer_t<element_type const>;
+    using pointer = std::add_pointer_t<T>;
+    using const_pointer = std::add_pointer_t<std::add_const_t<T>>;
     using iterator = pointer;
     using const_iterator = const_pointer;
-    using reference = std::add_lvalue_reference_t<element_type>;
-    using const_reference = std::add_lvalue_reference_t<element_type const>;
+    using reference = std::add_lvalue_reference_t<T>;
+    using const_reference = std::add_lvalue_reference_t<std::add_const_t<T>>;
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Type aliases when data is read using __ldg.
  *
- * \c LdgValue checks that T is a
- * valid type (const arithmetic or OpaqueId). Since \c LdgIterator returns a
- * copy of the data read, we can't return a reference to the original data, we
- * need to return a copy as well.
+ * \c LdgWrapper checks that \c T, which \em must be const, is a valid type.
+ * Dereferencing the iterator returns an \c LdgWrapper, which implicitly
+ * converts to the value type by calling \c __ldg.
  */
 template<class T>
-struct SpanTraits<LdgValue<T>>
+struct SpanTraits<LdgWrapper<T>>
 {
     static_assert(std::is_const_v<T>);
-    using element_type = typename LdgValue<T>::value_type;  // Always const!
-    using pointer = std::add_pointer_t<element_type const>;
+
+    using element_type = T;  //!< Underlying type
+    using pointer = std::add_pointer_t<T>;
     using const_pointer = pointer;
-    using iterator = LdgIterator<element_type const>;
+    using iterator = LdgIterator<T>;
     using const_iterator = iterator;
-    using reference = std::remove_const_t<element_type>;
-    using const_reference = std::remove_const_t<element_type>;
+    using reference = LdgWrapper<T>;
+    using const_reference = reference;
 };
 
 //---------------------------------------------------------------------------//
 //! Sentinel value for span of dynamic type
-inline constexpr std::size_t dynamic_extent = std::size_t(-1);
+inline constexpr std::size_t dynamic_extent = static_cast<std::size_t>(-1);
+
+//---------------------------------------------------------------------------//
+//! Pointer to a fixed-size array
+template<class T>
+using array_ptr_t = T (*)[];
+
+//---------------------------------------------------------------------------//
+//! Whether one type array is convertible to another
+template<class T, class U>
+inline constexpr bool is_array_convertible_v
+    = std::is_convertible_v<array_ptr_t<T>, array_ptr_t<U>>;
 
 //---------------------------------------------------------------------------//
 //! Calculate the return type for a subspan
-CELER_CONSTEXPR_FUNCTION std::size_t
-subspan_extent(std::size_t extent, std::size_t offset, std::size_t count)
+CELER_CONSTEXPR_FUNCTION std::size_t subspan_extent(
+    std::size_t extent, std::size_t offset, std::size_t count)
 {
     return count != dynamic_extent
                ? count
@@ -77,15 +88,15 @@ subspan_extent(std::size_t extent, std::size_t offset, std::size_t count)
 
 //---------------------------------------------------------------------------//
 //! Calculate the size of a subspan
-CELER_CONSTEXPR_FUNCTION std::size_t
-subspan_size(std::size_t size, std::size_t offset, std::size_t count)
+CELER_CONSTEXPR_FUNCTION std::size_t subspan_size(
+    std::size_t size, std::size_t offset, std::size_t count)
 {
     return count != dynamic_extent ? count : size - offset;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Storage for a Span.
+ * Storage for a fixed-size nonzero Span.
  */
 template<class T, std::size_t Extent>
 struct SpanImpl
@@ -106,15 +117,15 @@ struct SpanImpl
     SpanImpl() = delete;
 
     //! Construct from a dynamic span
-    CELER_FORCEINLINE_FUNCTION
-    SpanImpl(SpanImpl<T, dynamic_extent> const& other) : data(other.data)
+    CELER_FORCEINLINE_FUNCTION SpanImpl(
+        SpanImpl<T, dynamic_extent> const& other)
+        : data(other.data)
     {
         CELER_EXPECT(other.size == Extent);
     }
 
     //! Construct from data and size
-    CELER_FORCEINLINE_FUNCTION
-    SpanImpl(pointer d, std::size_t s) : data(d)
+    CELER_FORCEINLINE_FUNCTION SpanImpl(pointer d, std::size_t s) : data(d)
     {
         CELER_EXPECT(d != nullptr);
         CELER_EXPECT(s == Extent);
@@ -144,8 +155,10 @@ struct SpanImpl<T, 0>
     constexpr SpanImpl() = default;
 
     //! Construct from data (any) and size (must be zero)
-    CELER_FORCEINLINE_FUNCTION
-    SpanImpl(pointer d, std::size_t s) : data(d) { CELER_EXPECT(s == 0); }
+    CELER_FORCEINLINE_FUNCTION SpanImpl(pointer d, std::size_t s) : data(d)
+    {
+        CELER_EXPECT(s == 0);
+    }
 };
 
 //---------------------------------------------------------------------------//
@@ -171,8 +184,8 @@ struct SpanImpl<T, dynamic_extent>
     constexpr SpanImpl() = default;
 
     //! Construct from data and size
-    CELER_FORCEINLINE_FUNCTION
-    SpanImpl(pointer d, std::size_t s) : data(d), size(s)
+    CELER_FORCEINLINE_FUNCTION SpanImpl(pointer d, std::size_t s)
+        : data(d), size(s)
     {
         CELER_EXPECT(d != nullptr || size == 0);
     }

@@ -9,6 +9,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/optical/CoreTrackView.hh"
 #include "celeritas/optical/DetectorData.hh"
+#include "celeritas/optical/SimTrackView.hh"
 
 namespace celeritas
 {
@@ -47,8 +48,8 @@ struct DetectorExecutor
 /*!
  * Copy track hit into the state buffer.
  */
-CELER_FUNCTION void
-DetectorExecutor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION void DetectorExecutor::operator()(
+    CoreTrackView const& track) const
 {
     auto& hit = detector_state_.detector_hits[track.track_slot_id()];
     // Clear the hit if inactive, errored, or not detected
@@ -91,6 +92,15 @@ DetectorExecutor::operator()(CoreTrackView const& track) const
     hit.time = sim.time();
     hit.position = geometry.pos();
     hit.volume_instance = geometry.volume_instance_id();
+    hit.num_steps = sim.num_steps();
+    hit.path_length = sim.step_length();
+
+    // Construct unique instance ID from geometry volume path
+    auto accum = track.volumes().path_accumulator();
+    hit.unique_instance = {};
+    geometry.foreach_volume_path([&](VolumeLevelId, VolumeInstanceId vi) {
+        hit.unique_instance = accum(hit.unique_instance, vi);
+    });
 
     // Kill the track
     sim.status(TrackStatus::killed);

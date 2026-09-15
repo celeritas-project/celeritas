@@ -181,10 +181,10 @@ NodeId StackedExtrudedPolygon::make_levels(
 /*!
  * Extrude a *convex* polygon along the polyline.
  */
-NodeId
-StackedExtrudedPolygon::make_stack(detail::VolumeBuilder& vb,
-                                   VecReal2 const& polygon,
-                                   StackedExtrudedPolygon::SubRegionIndex si) const
+NodeId StackedExtrudedPolygon::make_stack(
+    detail::VolumeBuilder& vb,
+    VecReal2 const& polygon,
+    StackedExtrudedPolygon::SubRegionIndex si) const
 {
     std::vector<NodeId> nodes;
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);

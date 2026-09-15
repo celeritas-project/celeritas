@@ -132,9 +132,8 @@ CELER_FUNCTION InvoluteSolver::InvoluteSolver(
  * {0, beta - a, beta - a - pi, beta - a + pi, beta - a - 2pi, beta - a + 2pi
  * ...} /f] Where \em beta is: \f[ beta = arctan(-v/u) \f]
  */
-CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
-                                               Real3 const& dir,
-                                               SurfaceState on_surface) const
+CELER_FUNCTION auto InvoluteSolver::operator()(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     using constants::pi;
@@ -179,7 +178,8 @@ CELER_FUNCTION auto InvoluteSolver::operator()(Real3 const& pos,
     real_type t_upper = angle - a_;
 
     // Round t_upper to the first positive multiple of pi
-    t_upper += max<real_type>(real_type{0}, -std::floor(t_upper / pi)) * pi;
+    using namespace celeritas::literals;
+    t_upper += max<real_type>(0_r, -std::floor(t_upper / pi)) * pi;
 
     // Slow down factor to increment bounds when a root cannot be found
     int i = 1;

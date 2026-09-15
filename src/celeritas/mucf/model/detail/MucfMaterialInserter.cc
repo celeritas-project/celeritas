@@ -8,6 +8,8 @@
 
 #include "corecel/Assert.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -127,9 +129,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
  *
  * F = 1/2 and F = 3/2 are the reactive spin states for dd fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dd_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
@@ -143,10 +144,10 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
         = this->interpolator(CTT::deuterium_deuterium, HalfSpinInt{3});
 
     MoleculeCycles result;
-    result[0] = real_type{1}
-                / (dd_dens * dd_1_over_2_interpolate(temperature));  // F = 1/2
-    result[1] = real_type{1}
-                / (dd_dens * dd_3_over_2_interpolate(temperature));  // F = 3/2
+    result[0] = 1_r / (dd_dens * dd_1_over_2_interpolate(temperature));  // F =
+                                                                         // 1/2
+    result[1] = 1_r / (dd_dens * dd_3_over_2_interpolate(temperature));  // F =
+                                                                         // 3/2
 
     CELER_ENSURE(result[0] >= 0 && result[1] >= 0);
     return result;
@@ -158,9 +159,8 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
  *
  * F = 0 and F = 1 are the reactive spin states for dt fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dt_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     CELER_EXPECT(temperature > 0);
 
@@ -189,11 +189,11 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
 
     // Interpolate over rates, store final cycle time (1/rate)
     MoleculeCycles result;
-    result[0] = real_type{1}
+    result[0] = 1_r
                 / (hd_dens * hd0_interpolate(temperature)
                    + dd_dens * dd0_interpolate(temperature)
                    + dt_dens * dt0_interpolate(temperature));  // F = 0
-    result[1] = real_type{1}
+    result[1] = 1_r
                 / (hd_dens * hd1_interpolate(temperature)
                    + dd_dens * dd1_interpolate(temperature)
                    + dt_dens * dt1_interpolate(temperature));  // F = 1
@@ -208,9 +208,8 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
  *
  * F = 1/2 is the only reactive spin state for tt fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_tt_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
@@ -221,16 +220,15 @@ MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
         = this->interpolator(CTT::tritium_tritium, HalfSpinInt{1});
 
     MoleculeCycles result;
-    result[0] = real_type{1} / (tt_dens * tt_interpolate(temperature));
+    result[0] = 1_r / (tt_dens * tt_interpolate(temperature));
 
     CELER_ENSURE(result[0] >= 0 && result[1] == 0);
     return result;
 }
 
 //---------------------------------------------------------------------------//
-InterpolatorHelper const&
-MucfMaterialInserter::interpolator(inp::CycleTableType type,
-                                   units::HalfSpinInt spin) const
+InterpolatorHelper const& MucfMaterialInserter::interpolator(
+    inp::CycleTableType type, units::HalfSpinInt spin) const
 {
     auto it = interpolators_.find({type, spin});
     CELER_ASSERT(it != interpolators_.end());

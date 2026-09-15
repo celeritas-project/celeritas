@@ -23,9 +23,8 @@ namespace optical
  * Construct with an action ID.
  */
 DiscreteSelectAction::DiscreteSelectAction(ActionId id)
-    : StaticConcreteAction(id,
-                           "optical-discrete-select",
-                           "select a discrete optical interaction")
+    : StaticConcreteAction(
+          id, "discrete-select", "select a discrete optical interaction")
 {
 }
 

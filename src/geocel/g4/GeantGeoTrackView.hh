@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/g4/GeantGeoTrackView.hh
+//! \sa geocel/g4/GeantGeo.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -16,6 +17,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/cont/Span.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/Types.hh"
@@ -38,7 +40,21 @@ namespace celeritas
  * duplicating the "geant4" position and direction that are also stored under
  * the hood in the heavyweight navigator.
  *
- * For a description of ordering requirements, see: \sa OrangeTrackView .
+ * \internal
+ *
+ * Geant4 thinks about boundaries differently to Celeritas. When we find the
+ * next step, it will internally store the "blocking" volume
+ * (daughter="entering", current volume="exiting") and the normal at that
+ * point. The G4 navigation in practice has three options:
+ *
+ * 1. move within the safety distance, which is calculated as a side effect of
+ *  \c ComputeStep
+ * 2. move to the end-of-step position, call \c SetGeometricallyLimitedStep,
+ *   and update the volume via \c LocateGlobalPointAndUpdateTouchableHandle
+ * 3. move to a position outside the safety and update with \c
+ *   LocateGlobalPointWithinVolume .
+ *
+ * \sa GeoTrackInterface
  */
 class GeantGeoTrackView
 {
@@ -54,20 +70,11 @@ class GeantGeoTrackView
 
   public:
     // Construct from params and state data
-    inline GeantGeoTrackView(ParamsRef const& params,
-                             StateRef const& state,
-                             TrackSlotId tid);
+    inline GeantGeoTrackView(
+        ParamsRef const& params, StateRef const& state, TrackSlotId tid);
 
     // Initialize the state
     inline GeantGeoTrackView& operator=(Initializer_t const& init);
-
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static constexpr real_type extra_push()
-    {
-        return 1e-12 * lengthunits::millimeter;
-    }
 
     //// ACCESSORS ////
 
@@ -85,18 +92,23 @@ class GeantGeoTrackView
     inline VolumeLevelId volume_level() const;
     // Get the volume instance ID for all levels
     inline void volume_instance_id(Span<VolumeInstanceId> levels) const;
+    // Visit every volume instance in the track's path, including world
+    template<class F>
+    inline void foreach_volume_path(F&& visit) const;
 
     // Get the implementation volume ID
     inline ImplVolumeId impl_volume_id() const;
 
+    // Geometry tracking status
+    inline GeoStatus geo_status() const;
     // Whether the track is outside the valid geometry region
     inline bool is_outside() const;
     // Whether the track is exactly on a surface
     inline bool is_on_boundary() const;
-    //! Whether the last operation resulted in an error
-    CELER_FORCEINLINE bool failed() const { return false; }
+    // Whether the last operation resulted in an error
+    inline bool failed() const;
     // Get the normal vector of the current surface
-    inline Real3 normal() const;
+    inline Real3 const& normal() const;
 
     //// OPERATIONS ////
 
@@ -153,6 +165,7 @@ class GeantGeoTrackView
     //! Referenced thread-local data
     Real3& pos_;
     Real3& dir_;
+    Real3& normal_;
     real_type& next_step_;
     real_type& safety_radius_;
     G4TouchableHandle& touch_handle_;
@@ -163,7 +176,6 @@ class GeantGeoTrackView
     G4ThreeVector g4pos_;
     G4ThreeVector g4dir_;  // [mm]
     real_type g4safety_;  // [mm]
-    bool just_crossed_boundary_{false};
 
     //// HELPER FUNCTIONS ////
 
@@ -172,6 +184,12 @@ class GeantGeoTrackView
 
     // Whether any next distance-to-boundary has been found
     inline bool has_next_step() const;
+
+    // Whether the track direction is exiting the current volume
+    inline bool is_dir_exiting() const;
+
+    // Set the geometry tracking status
+    inline void geo_status(GeoStatus);
 
     //! Get a pointer to the current volume; null if outside
     inline G4LogicalVolume const* volume() const;
@@ -183,14 +201,14 @@ class GeantGeoTrackView
 /*!
  * Construct from params and state data.
  */
-GeantGeoTrackView::GeantGeoTrackView(ParamsRef const& params,
-                                     StateRef const& states,
-                                     TrackSlotId tid)
+GeantGeoTrackView::GeantGeoTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_{params}
     , state_(states)
     , tid_(tid)
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
+    , normal_(states.normal[tid])
     , next_step_(states.next_step[tid])
     , safety_radius_(states.safety_radius[tid])
     , touch_handle_(states.nav_state.touch_handle(tid))
@@ -230,6 +248,8 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
                                               g4dir_,
                                               touch_handle_(),
                                               /* relative_search = */ false);
+    this->geo_status(this->is_outside() ? GeoStatus::invalid
+                                        : GeoStatus::interior);
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -260,7 +280,10 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         // Update the touchable and navigator
         touch_handle_ = other.touch_handle_;
         navi_.ResetHierarchyAndLocate(
-            g4pos_, g4dir_, dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+            g4pos_,
+            g4dir_,
+            dynamic_cast<G4TouchableHistory&>(*touch_handle_()));
+        this->geo_status(state_.status[init.parent]);
     }
 
     // Set up the next state and initialize the direction
@@ -315,20 +338,34 @@ VolumeLevelId GeantGeoTrackView::volume_level() const
  */
 void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 {
-    CELER_EXPECT(id_cast<VolumeLevelId>(levels.size())
-                 == this->volume_level() + 1);
+    this->foreach_volume_path(
+        [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
+            CELER_EXPECT(lev < levels.size());
+            CELER_EXPECT(vol_inst);
+            levels[*lev] = vol_inst;
+        });
+}
 
+//---------------------------------------------------------------------------//
+/*!
+ * Apply the function with the volume instance ID and level.
+ *
+ * This can be used to construct a unique volume instance ID or fill a vector
+ * with volume levels. It is performed in local-to-global order.
+ */
+template<class F>
+void GeantGeoTrackView::foreach_volume_path(F&& visit) const
+{
     auto* touch = touch_handle_();
     auto const num_vol_levels
         = id_cast<VolumeLevelId>(touch->GetHistoryDepth());
-    for (auto vl_id : range(id_cast<VolumeLevelId>(levels.size())))
+    for (auto lev : range(num_vol_levels + 1))
     {
         VolumeInstanceId vi_id;
-        if (G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - vl_id))
-        {
-            vi_id = params_.vi_mapper->geant_to_id(*pv);
-        }
-        levels[vl_id.get()] = vi_id;
+        G4VPhysicalVolume* pv = touch->GetVolume(num_vol_levels - lev);
+        CELER_ASSERT(pv);
+        vi_id = params_.vi_mapper->geant_to_id(*pv);
+        visit(lev, vi_id);
     }
 }
 
@@ -339,8 +376,8 @@ void GeantGeoTrackView::volume_instance_id(Span<VolumeInstanceId> levels) const
 ImplVolumeId GeantGeoTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
-    return id_cast<ImplVolumeId>(this->volume()->GetInstanceID()
-                                 - params_.lv_offset);
+    return id_cast<ImplVolumeId>(
+        this->volume()->GetInstanceID() - params_.lv_offset);
 }
 
 //---------------------------------------------------------------------------//
@@ -363,35 +400,61 @@ CELER_FORCEINLINE bool GeantGeoTrackView::is_on_boundary() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether the last operation resulted in an error.
+ */
+CELER_FORCEINLINE_FUNCTION bool GeantGeoTrackView::failed() const
+{
+    return this->geo_status() == GeoStatus::error;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Geometry tracking status.
+ */
+GeoStatus GeantGeoTrackView::geo_status() const
+{
+    return state_.status[tid_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the exit surface normal of the boundary the track has just crossed.
  *
  * This vector is in the global coordinate system.
  */
-auto GeantGeoTrackView::normal() const -> Real3
+auto GeantGeoTrackView::normal() const -> Real3 const&
 {
     CELER_EXPECT(this->is_on_boundary());
-
-    bool valid{false};
-    G4ThreeVector norm = navi_.GetGlobalExitNormal(g4pos_, &valid);
-    CELER_ASSERT(valid);
-
-    Real3 result = to_array(norm);
-    CELER_ENSURE(is_soft_unit_vector(result));
-    return result;
+    return normal_;
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the next geometric boundary.
- *
- * It seems that ComputeStep cannot be called twice in a row without an
- * intermediate call to \c LocateGlobalPointWithinVolume: the safety will be
- * set to zero.
  */
 Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
+
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // On a boundary, headed in: next step is zero
+        return {0, true};
+    }
+
+    if (this->geo_status() == GeoStatus::boundary_out)
+    {
+        if (!this->is_dir_exiting())
+        {
+            // We moved to a boundary but ended up not crossing it. Tell the
+            // navigator to "relocate" to avoid a warning: the current
+            // position is likely outside the last calculated safety, but we
+            // know it's correct because we did it via a straight-line distance
+            // that's valid.
+            navi_.LocateGlobalPointWithinVolume(g4pos_);
+        }
+    }
 
     // Compute the step
     real_type g4step = native_to_geant<ClhepLength>(max_step);
@@ -410,25 +473,29 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     result.distance = native_value_from(ClhepLength{g4step});
     if (result.distance <= max_step)
     {
+        if (CELER_UNLIKELY(result.distance == 0))
+        {
+            CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
+            // Oops, we might be on the inside of a concave object (boundary
+            // direction was incorrect)
+            this->geo_status(GeoStatus::boundary_inc);
+            // On a boundary, headed in: next step is zero
+            return {0, true};
+        }
         result.boundary = true;
-        result.distance
-            = celeritas::max<real_type>(result.distance, this->extra_push());
-        CELER_ENSURE(result.distance > 0);
     }
     else
     {
         // No intersection in range -> G4Navigator returns kInfinity
         result.distance = max_step;
-        CELER_ENSURE(result.distance > 0);
     }
 
     // Save the next step
     next_step_ = result.distance;
 
     CELER_ENSURE(result.distance > 0);
-    CELER_ENSURE(result.distance <= max(max_step, this->extra_push()));
-    CELER_ENSURE(result.boundary || result.distance == max_step
-                 || max_step < this->extra_push());
+    CELER_ENSURE(result.distance <= max_step);
+    CELER_ENSURE(result.boundary || result.distance == max_step);
     CELER_ENSURE(this->has_next_step());
     return result;
 }
@@ -477,8 +544,15 @@ void GeantGeoTrackView::move_to_boundary()
     next_step_ = 0;
     safety_radius_ = 0;
     g4safety_ = 0;
-    navi_.SetGeometricallyLimitedStep();
-    just_crossed_boundary_ = false;
+
+    // Cache the exit normal (valid immediately after ComputeStep hits a
+    // boundary)
+    bool normal_valid{false};
+    G4ThreeVector g4norm = navi_.GetGlobalExitNormal(g4pos_, &normal_valid);
+    CELER_ASSERT(normal_valid);
+    normal_ = to_array(g4norm);
+    CELER_ASSERT(this->is_dir_exiting());
+    this->geo_status(GeoStatus::boundary_inc);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -487,20 +561,33 @@ void GeantGeoTrackView::move_to_boundary()
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position \em must be on the boundary following a move-to-boundary. Two
- * consecutive "cross boundary" calls are NOT ALLOWED!
+ * The position \em must be on the boundary following a move-to-boundary.
  */
 void GeantGeoTrackView::cross_boundary()
 {
     CELER_EXPECT(this->is_on_boundary());
-    CELER_EXPECT(!just_crossed_boundary_);
 
+    if (this->geo_status() == GeoStatus::boundary_out)
+    {
+        // Direction changed while on boundary leading to no change in
+        // volume/surface. This is logically equivalent to a reflection.
+        return;
+    }
+    if (!this->is_dir_exiting())
+    {
+        // Reentering after leaving volume but not moving: we have to search
+        // for the boundary again
+        navi_.ComputeStep(g4pos_, g4dir_, 1e-9, g4safety_);
+    }
+
+    navi_.SetGeometricallyLimitedStep();
     navi_.LocateGlobalPointAndUpdateTouchableHandle(
         g4pos_,
         g4dir_,
         touch_handle_,
         /* relative_search = */ true);
-    just_crossed_boundary_ = true;
+
+    this->geo_status(GeoStatus::boundary_out);
 
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -525,6 +612,7 @@ void GeantGeoTrackView::move_internal(real_type dist)
 
     safety_radius_ = -1;
     g4safety_ = 0;
+    this->geo_status(GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -543,6 +631,7 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 
     safety_radius_ = -1;
     g4safety_ = 0;
+    this->geo_status(GeoStatus::interior);
 }
 
 //---------------------------------------------------------------------------//
@@ -555,6 +644,33 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 void GeantGeoTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
+
+    GeoStatus status{this->geo_status()};
+    if (::celeritas::is_on_boundary(status))
+    {
+        // Changing direction on a boundary may reverse whether the track
+        // will cross the surface; update stored status to match.
+        Real3 const& norm = this->normal();
+
+        // Evaluate whether the direction dotted with the surface normal
+        // changes (i.e. heading from inside to outside or vice versa).
+        auto new_dot = dot_product(norm, newdir);
+        if (CELER_UNLIKELY(new_dot == 0))
+        {
+            CELER_LOG_LOCAL(error)
+                << "track direction cannot change to " << newdir
+                << " which is perpendicular to the current surface normal";
+            this->geo_status(GeoStatus::error);
+            return;
+        }
+        else if ((new_dot > 0) != (dot_product(norm, this->dir()) > 0))
+        {
+            // The boundary crossing direction has changed! Reverse our
+            // plans to change the logical state and move to a new volume.
+            this->geo_status(flip_boundary(this->geo_status()));
+        }
+    }
+
     dir_ = newdir;
     g4dir_ = to_g4vector(newdir);
     next_step_ = 0;
@@ -580,6 +696,26 @@ G4NavigationHistory const* GeantGeoTrackView::nav_history() const
 CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 {
     return next_step_ != 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the track direction is exiting the current volume.
+ *
+ * If the normal direction is \em perpendicular to the direction of travel,
+ * our status should probably be marked as an error (and bump away?)
+ */
+bool GeantGeoTrackView::is_dir_exiting() const
+{
+    CELER_EXPECT(this->is_on_boundary());
+    return dot_product(normal_, dir_) > 0;
+}
+
+//---------------------------------------------------------------------------//
+//! Set the geometry tracking status
+void GeantGeoTrackView::geo_status(GeoStatus gs)
+{
+    state_.status[tid_] = gs;
 }
 
 //---------------------------------------------------------------------------//

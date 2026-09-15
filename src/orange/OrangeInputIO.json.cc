@@ -39,8 +39,8 @@ namespace
 /*!
  * Get the i'th slice of a span of data.
  */
-template<size_type N, class T>
-decltype(auto) slice(Span<T> data, size_type i)
+template<std::size_t N, class T>
+decltype(auto) slice(Span<T> data, std::size_t i)
 {
     CELER_ASSERT(N * (i + 1) <= data.size());
     Array<std::remove_const_t<T>, N> result;
@@ -301,7 +301,7 @@ void from_json(nlohmann::json const& j, UnitInput& value)
             DaughterInput daughter;
             daughter.univ_id = UnivId{daughters[i]};
             daughter.transform = std::move(transforms[i]);
-            value.daughter_map.emplace(LocalVolumeId{parent_vols[i]},
+            value.daughter_map.emplace(id_cast<LocalVolumeId>(parent_vols[i]),
                                        std::move(daughter));
         }
     }
@@ -426,9 +426,9 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
 
-        CELER_VALIDATE(3 * daughters.size() == translations.size(),
-                       << "field 'translations' is not 3x length of "
-                          "'daughters'");
+        CELER_VALIDATE(
+            3 * daughters.size() == translations.size(),
+            << "field 'translations' is not 3x length of 'daughters'");
 
         value.daughters.resize(daughters.size());
 
@@ -553,8 +553,8 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     else
     {
         value.tol = Tolerance<>::from_default();
-        CELER_LOG(debug) << "No input tolerance provided: setting default "
-                            "tolerance";
+        CELER_LOG(debug)
+            << "No input tolerance provided: setting default tolerance";
     }
     CELER_ENSURE(value);
 }

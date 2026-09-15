@@ -20,6 +20,10 @@ class G4Navigator;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+template<Ownership W, MemSpace M>
+struct GeantGeoParamsData;
+
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -35,8 +39,8 @@ struct GeantGeoNavCollection
     explicit CELER_FUNCTION operator bool() const { return false; }
     CELER_FUNCTION TrackSlotId::size_type size() const { return 0; }
     template<Ownership W2, MemSpace M2>
-    CELER_FUNCTION GeantGeoNavCollection&
-    operator=(GeantGeoNavCollection<W2, M2>&)
+    CELER_FUNCTION GeantGeoNavCollection& operator=(
+        GeantGeoNavCollection<W2, M2>&)
     {
         return *this;
     }
@@ -80,7 +84,9 @@ struct GeantGeoNavCollection<Ownership::value, MemSpace::host>
     std::vector<UPNavigator> navigators;
 
     // Resize with a number of states on the given Geant4 thread ID
-    void resize(size_type size, G4VPhysicalVolume* world, StreamId sid);
+    void resize(HostCRef<GeantGeoParamsData> const& params,
+                StreamId sid,
+                size_type size);
 
     //! State size
     CELER_FUNCTION TrackSlotId::size_type size() const
@@ -114,8 +120,8 @@ struct GeantGeoNavCollection<Ownership::reference, MemSpace::host>
     GeantGeoNavCollection(GeantGeoNavCollection const&) = default;
 
     // Obtain reference from host memory
-    GeantGeoNavCollection&
-    operator=(GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
+    GeantGeoNavCollection& operator=(
+        GeantGeoNavCollection<Ownership::value, MemSpace::host>& other);
     // Default assignment
     GeantGeoNavCollection& operator=(GeantGeoNavCollection const&) = default;
 

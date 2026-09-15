@@ -42,7 +42,7 @@ namespace celeritas
    corr = PolyQuad{1.41125, -1.86427e-2, 1.84035e-4)(zeff);
  * \endcode
  */
-template<class T, size_type N>
+template<class T, std::size_t N>
 class PolyEvaluator
 {
   public:
@@ -60,9 +60,9 @@ class PolyEvaluator
         : coeffs_{static_cast<T>(coeffs)...}
     {
         // Protect against leaving off a coefficient, e.g. PolyQuad(1, 2)
-        static_assert(sizeof...(coeffs) == N + 1,
-                      "All coefficients for PolyEvaluator must be explicitly "
-                      "specified");
+        static_assert(
+            sizeof...(coeffs) == N + 1,
+            "All coefficients for PolyEvaluator must be explicitly specified");
     }
 
     //! Construct from an array of data
@@ -96,13 +96,14 @@ class PolyEvaluator
 //---------------------------------------------------------------------------//
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
-template<typename T, size_type N>
-CELER_FUNCTION PolyEvaluator(Array<T, N> const&) -> PolyEvaluator<T, N - 1>;
+template<typename T, std::size_t N>
+CELER_CTAD_FUNCTION PolyEvaluator(Array<T, N> const&)
+    -> PolyEvaluator<T, N - 1>;
 
 template<typename... Ts,
          std::enable_if_t<std::is_arithmetic_v<std::common_type_t<Ts...>>, bool>
          = true>
-CELER_FUNCTION PolyEvaluator(Ts&&...)
+CELER_CTAD_FUNCTION PolyEvaluator(Ts&&...)
     -> PolyEvaluator<typename std::common_type_t<Ts...>, sizeof...(Ts) - 1>;
 
 //---------------------------------------------------------------------------//

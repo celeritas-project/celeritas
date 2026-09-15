@@ -39,17 +39,16 @@ using difference_type_t =
  */
 template<typename Integral>
 CELER_CONSTEXPR_FUNCTION
-    typename std::enable_if<std::is_integral<Integral>::value, Integral>::type
-    half_positive(Integral value)
+std::enable_if_t<std::is_integral<Integral>::value, Integral>
+half_positive(Integral value)
 {
     return static_cast<Integral>(
-        static_cast<typename std::make_unsigned<Integral>::type>(value) / 2);
+        static_cast<std::make_unsigned_t<Integral>>(value) / 2);
 }
 
 template<typename T>
-CELER_CONSTEXPR_FUNCTION
-    typename std::enable_if<!std::is_integral<T>::value, T>::type
-    half_positive(T value)
+CELER_CONSTEXPR_FUNCTION std::enable_if_t<!std::is_integral<T>::value, T>
+half_positive(T value)
 {
     return value / 2;
 }
@@ -60,10 +59,8 @@ CELER_CONSTEXPR_FUNCTION
  * Implementation of binary search lower-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
-                                                ForwardIterator last,
-                                                T const& value_,
-                                                Compare comp)
+CELER_FUNCTION ForwardIterator lower_bound_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -88,10 +85,8 @@ CELER_FUNCTION ForwardIterator lower_bound_impl(ForwardIterator first,
  * Implementation of linear search lower-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator lower_bound_linear_impl(ForwardIterator first,
-                                                       ForwardIterator last,
-                                                       T const& value_,
-                                                       Compare comp)
+CELER_FUNCTION ForwardIterator lower_bound_linear_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     for (ForwardIterator it = first; it != last; ++it)
     {
@@ -109,10 +104,8 @@ CELER_FUNCTION ForwardIterator lower_bound_linear_impl(ForwardIterator first,
  * Implementation of upper-bound assuming iterator arithmetic.
  */
 template<class Compare, class ForwardIterator, class T>
-CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
-                                                ForwardIterator last,
-                                                T const& value_,
-                                                Compare comp)
+CELER_FUNCTION ForwardIterator upper_bound_impl(
+    ForwardIterator first, ForwardIterator last, T const& value_, Compare comp)
 {
     using difference_type = difference_type_t<ForwardIterator>;
 
@@ -144,9 +137,8 @@ CELER_FUNCTION ForwardIterator upper_bound_impl(ForwardIterator first,
  * celeritas tends to use contiguous data).
  */
 template<class Predicate, class BidirectionalIterator>
-CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
-                                                    BidirectionalIterator last,
-                                                    Predicate pred)
+CELER_FUNCTION BidirectionalIterator partition_impl(
+    BidirectionalIterator first, BidirectionalIterator last, Predicate pred)
 {
     while (true)
     {
@@ -175,10 +167,10 @@ CELER_FUNCTION BidirectionalIterator partition_impl(BidirectionalIterator first,
  * Cast a value to an rvalue reference.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept ->
-    typename std::remove_reference<T>::type&&
+CELER_CONSTEXPR_FUNCTION auto trivial_move(T&& v) noexcept
+    -> std::remove_reference_t<T>&&
 {
-    return static_cast<typename std::remove_reference<T>::type&&>(v);
+    return static_cast<std::remove_reference_t<T>&&>(v);
 }
 
 //---------------------------------------------------------------------------//
@@ -273,8 +265,8 @@ CELER_FORCEINLINE_FUNCTION void pop_heap(RandomAccessIt first,
  * Convert the given range to a heap.
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-make_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void make_heap(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
 
@@ -298,8 +290,8 @@ make_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
  * that overload operator comma" (bd7c7b55511a4b4b50b77559a44eff6d350224c4).
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-sort_heap(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void sort_heap(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using difference_type = difference_type_t<RandomAccessIt>;
 
@@ -351,8 +343,8 @@ CELER_FUNCTION void partial_sort(RandomAccessIt first,
  * libc++.
  */
 template<class Compare, class RandomAccessIt>
-CELER_FUNCTION void
-heapsort_impl(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FUNCTION void heapsort_impl(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     ::celeritas::detail::partial_sort<Compare>(first, last, last, comp);
 }

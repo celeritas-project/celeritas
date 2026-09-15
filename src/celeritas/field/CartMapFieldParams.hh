@@ -16,9 +16,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-struct CartMapFieldInput;
 template<Ownership W, MemSpace M>
 struct CartMapFieldParamsData;
+
+namespace inp
+{
+struct CartMapField;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -32,7 +36,7 @@ class CartMapFieldParams final
   public:
     //@{
     //! \name Type aliases
-    using Input = CartMapFieldInput;
+    using Input = inp::CartMapField;
     //@}
 
   public:

@@ -66,10 +66,10 @@ inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 #    if !CELERITAS_USE_GEANT4
     CELER_NOT_CONFIGURED("Geant4");
 #    else
-    CELER_VALIDATE(false,
-                   << "Geant4 version " << cmake::geant4_version
-                   << " is too old for gamma-nuclear cross section "
-                      "calculation");
+    CELER_VALIDATE(
+        false,
+        << "Geant4 version " << cmake::geant4_version
+        << " is too old for gamma-nuclear cross section calculation");
 #    endif
 }
 

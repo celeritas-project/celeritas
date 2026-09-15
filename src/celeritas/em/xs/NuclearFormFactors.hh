@@ -31,8 +31,8 @@ struct NuclearFormFactorTraits
     //! Momentum transfer prefactor: 1 fm / hbar
     static CELER_CONSTEXPR_FUNCTION InvMomentum fm_par_hbar()
     {
-        return native_value_to<InvMomentum>(units::femtometer
-                                            / constants::hbar_planck);
+        return native_value_to<InvMomentum>(
+            units::femtometer / constants::hbar_planck);
     }
 };
 
@@ -65,12 +65,12 @@ class ExpNuclearFormFactor : public NuclearFormFactorTraits
     }
 
     // Construct with atomic mass number
-    explicit inline CELER_FUNCTION
-    ExpNuclearFormFactor(AtomicMassNumber a_mass);
+    explicit inline CELER_FUNCTION ExpNuclearFormFactor(
+        AtomicMassNumber a_mass);
 
     // Construct with precalculated form factor
-    explicit inline CELER_FUNCTION
-    ExpNuclearFormFactor(InvMomentumSq prefactor);
+    explicit inline CELER_FUNCTION ExpNuclearFormFactor(
+        InvMomentumSq prefactor);
 
     // Calculate from square of target momentum
     inline CELER_FUNCTION real_type operator()(MomentumSq target_momsq) const;
@@ -171,21 +171,22 @@ class UUNuclearFormFactor : public NuclearFormFactorTraits
 /*!
  * Construct from atomic mass number.
  */
-CELER_FUNCTION
-ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
+CELER_FUNCTION ExpNuclearFormFactor::ExpNuclearFormFactor(
+    AtomicMassNumber a_mass)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(a_mass);
     real_type nucl_radius_fm = [a_mass] {
         if (CELER_UNLIKELY(a_mass == AtomicMassNumber{1}))
         {
             // Special case for proton radius
-            return real_type{0.85};
+            return 0.85_r;
         }
-        return real_type{1.27}
-               * fastpow(real_type(a_mass.get()), real_type{0.27});
+        return 1.27_r * fastpow(real_type(a_mass.get()), 0.27_r);
     }();
     prefactor_ = ipow<2>(nucl_radius_fm * value_as<InvMomentum>(fm_par_hbar()))
-                 * (real_type{1} / 12);
+                 * (1_r / 12);
     CELER_ENSURE(prefactor_ > 0);
 }
 
@@ -193,8 +194,8 @@ ExpNuclearFormFactor::ExpNuclearFormFactor(AtomicMassNumber a_mass)
 /*!
  * Construct with precalculated form factor.
  */
-CELER_FUNCTION
-ExpNuclearFormFactor::ExpNuclearFormFactor(InvMomentumSq prefactor)
+CELER_FUNCTION ExpNuclearFormFactor::ExpNuclearFormFactor(
+    InvMomentumSq prefactor)
     : prefactor_{prefactor.value()}
 {
     CELER_EXPECT(prefactor_ > 0);
@@ -204,8 +205,8 @@ ExpNuclearFormFactor::ExpNuclearFormFactor(InvMomentumSq prefactor)
 /*!
  * Calculate the exponential folded form factor from the square momentum.
  */
-CELER_FUNCTION real_type
-ExpNuclearFormFactor::operator()(MomentumSq target_momsq) const
+CELER_FUNCTION real_type ExpNuclearFormFactor::operator()(
+    MomentumSq target_momsq) const
 {
     CELER_EXPECT(target_momsq >= zero_quantity());
     return 1 / ipow<2>(1 + prefactor_ * target_momsq.value());
@@ -215,7 +216,8 @@ ExpNuclearFormFactor::operator()(MomentumSq target_momsq) const
 /*!
  * Calculate the exponential folded form factor.
  */
-CELER_FUNCTION real_type ExpNuclearFormFactor::operator()(Momentum target_mom) const
+CELER_FUNCTION real_type ExpNuclearFormFactor::operator()(
+    Momentum target_mom) const
 {
     return (*this)(MomentumSq{ipow<2>(target_mom.value())});
 }
@@ -224,8 +226,8 @@ CELER_FUNCTION real_type ExpNuclearFormFactor::operator()(Momentum target_mom) c
 /*!
  * Calculate the gaussian folded form factor.
  */
-CELER_FUNCTION real_type
-GaussianNuclearFormFactor::operator()(MomentumSq target_momsq) const
+CELER_FUNCTION real_type GaussianNuclearFormFactor::operator()(
+    MomentumSq target_momsq) const
 {
     CELER_EXPECT(target_momsq >= zero_quantity());
     return std::exp(-2 * value_as<InvMomentumSq>(this->prefactor())
@@ -236,8 +238,8 @@ GaussianNuclearFormFactor::operator()(MomentumSq target_momsq) const
 /*!
  * Calculate the gaussian folded form factor by squaring the momentum.
  */
-CELER_FUNCTION real_type
-GaussianNuclearFormFactor::operator()(Momentum target_mom) const
+CELER_FUNCTION real_type GaussianNuclearFormFactor::operator()(
+    Momentum target_mom) const
 {
     return (*this)(MomentumSq{ipow<2>(target_mom.value())});
 }
@@ -248,17 +250,18 @@ GaussianNuclearFormFactor::operator()(Momentum target_mom) const
  */
 CELER_FUNCTION UUNuclearFormFactor::UUNuclearFormFactor(AtomicMassNumber a_mass)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(a_mass);
-    nucl_radius_fm_ = real_type{1.2}
-                      * fastpow(real_type(a_mass.get()), real_type{1} / 3);
+    nucl_radius_fm_ = 1.2_r * fastpow(real_type(a_mass.get()), 1_r / 3);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate the uniform-uniform folded form factor by calculating momentum.
  */
-CELER_FUNCTION real_type
-UUNuclearFormFactor::operator()(MomentumSq target_momsq) const
+CELER_FUNCTION real_type UUNuclearFormFactor::operator()(
+    MomentumSq target_momsq) const
 {
     CELER_EXPECT(target_momsq >= zero_quantity());
     return (*this)(Momentum{std::sqrt(target_momsq.value())});
@@ -268,7 +271,8 @@ UUNuclearFormFactor::operator()(MomentumSq target_momsq) const
 /*!
  * Calculate the uniform-uniform folded form factor.
  */
-CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) const
+CELER_FUNCTION real_type UUNuclearFormFactor::operator()(
+    Momentum target_mom) const
 {
     auto sphere_ff = [&target_mom](real_type r) {
         // x = q R / hbar
@@ -279,9 +283,10 @@ CELER_FUNCTION real_type UUNuclearFormFactor::operator()(Momentum target_mom) co
     };
 
     // Due to catastrophic error for small x, clamp the result to 1
+    using namespace celeritas::literals;
     return min(sphere_ff(nucl_radius_fm_)
                    * sphere_ff(UUNuclearFormFactor::skin_radius_fm()),
-               real_type{1});
+               1_r);
 }
 
 //---------------------------------------------------------------------------//

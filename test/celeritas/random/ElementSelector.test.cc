@@ -97,7 +97,7 @@ class ElementSelectorTest : public Test
 // Return cross section proportional to the element ID offset by 1.
 auto mock_micro_xs(ElementId el_id) -> BarnXs
 {
-    CELER_EXPECT(el_id < 4);
+    CELER_EXPECT(el_id < ElementId{4});
     return BarnXs(static_cast<real_type>(el_id.get() + 1));
 }
 

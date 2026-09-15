@@ -27,9 +27,8 @@ namespace test
 //---------------------------------------------------------------------------//
 // PUBLIC MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto MockTestBase::make_applicability(char const* name,
-                                      real_type lo_energy,
-                                      real_type hi_energy) const
+auto MockTestBase::make_applicability(
+    char const* name, real_type lo_energy, real_type hi_energy) const
     -> Applicability
 {
     CELER_EXPECT(name);
@@ -49,7 +48,7 @@ auto MockTestBase::make_model_callback() const -> ModelCallback
 {
     return [this](ActionId id) {
         CELER_ASSERT(id);
-        interactions_.push_back(ModelId{id - first_model_action_});
+        interactions_.push_back(id_cast<ModelId>(id - first_model_action_));
     };
 }
 

@@ -55,10 +55,10 @@ inline CELER_FUNCTION StepLimit calc_physics_step_limit(
  * and the macroscopic cross sections have been built.
  */
 template<class Engine>
-CELER_FUNCTION ActionId
-select_discrete_interaction(ParticleTrackView const& particle,
-                            PhysicsTrackView const& physics,
-                            Engine& rng)
+CELER_FUNCTION ActionId select_discrete_interaction(
+    ParticleTrackView const& particle,
+    PhysicsTrackView const& physics,
+    Engine& rng)
 {
     CELER_EXPECT(!physics.has_interaction_mfp());
     CELER_EXPECT(physics.macro_xs() > 0);

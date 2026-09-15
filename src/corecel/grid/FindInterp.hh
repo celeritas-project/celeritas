@@ -27,7 +27,7 @@ struct FindInterp
 };
 
 template<class T>
-CELER_FUNCTION FindInterp(size_type, T) -> FindInterp<T>;
+CELER_CTAD_FUNCTION FindInterp(size_type, T) -> FindInterp<T>;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -44,8 +44,8 @@ CELER_FUNCTION FindInterp(size_type, T) -> FindInterp<T>;
  * point and a fraction of zero will result.
  */
 template<class Grid>
-inline CELER_FUNCTION auto
-find_interp(Grid const& grid, typename Grid::value_type value)
+inline CELER_FUNCTION auto find_interp(Grid const& grid,
+                                       typename Grid::value_type value)
 {
     CELER_EXPECT(value >= grid.front() && value < grid.back());
 

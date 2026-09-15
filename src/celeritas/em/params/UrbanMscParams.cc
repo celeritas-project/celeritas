@@ -19,7 +19,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/PolyEvaluator.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportProcess.hh"
@@ -37,10 +36,10 @@ namespace celeritas
 /*!
  * Construct if Urban model is present, or else return nullptr.
  */
-std::shared_ptr<UrbanMscParams>
-UrbanMscParams::from_import(ParticleParams const& particles,
-                            MaterialParams const& materials,
-                            ImportData const& data)
+std::shared_ptr<UrbanMscParams> UrbanMscParams::from_import(
+    ParticleParams const& particles,
+    MaterialParams const& materials,
+    ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::urban_msc))
     {
@@ -60,10 +59,7 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
                                VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
-    using UrbanParMatId = UrbanMscParMatData::UrbanParMatId;
     using UPMT = UrbanParMatType;
-
-    ScopedMem record_mem("UrbanMscParams.construct");
 
     HostVal<UrbanMscData> host_data;
 
@@ -174,8 +170,8 @@ UrbanMscParams::UrbanMscParams(ParticleParams const& particles,
  * Tabulated data based on G4UrbanMscModel::InitialiseModelCache() and
  * documented in section 8.1.5 of the Geant4 10.7 Physics Reference Manual.
  */
-UrbanMscMaterialData
-UrbanMscParams::calc_material_data(MaterialView const& material_view)
+UrbanMscMaterialData UrbanMscParams::calc_material_data(
+    MaterialView const& material_view)
 {
     using PolyQuad = PolyEvaluator<double, 2>;
 

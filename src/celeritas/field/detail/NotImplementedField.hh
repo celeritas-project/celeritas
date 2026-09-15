@@ -10,7 +10,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
-#include "celeritas/field/CartMapFieldData.hh"
 
 namespace celeritas
 {
@@ -18,8 +17,13 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Dummy class for cartesian map magnetic field when no backend is available.
+ * Dummy class for map magnetic fields when no backend is available.
+ *
+ * \tparam ParamsData  The params data template for this field type
+ *                     (e.g. CartMapFieldParamsData, RZMapFieldParamsData).
+ *                     Must be a complete type when this class is instantiated.
  */
+template<template<Ownership, MemSpace> class ParamsData>
 class NotImplementedField
 {
   public:
@@ -27,28 +31,22 @@ class NotImplementedField
     //! \name Type aliases
     using real_type = float;
     using Real3 = Array<celeritas::real_type, 3>;
-    using ParamsRef = NativeCRef<CartMapFieldParamsData>;
+    using ParamsRef = NativeCRef<ParamsData>;
     //!@}
 
   public:
     // Construct with the shared map data
-    inline CELER_FUNCTION explicit NotImplementedField(ParamsRef const&);
+    CELER_FUNCTION explicit NotImplementedField(ParamsRef const&)
+    {
+        CELER_NOT_CONFIGURED("covfie");
+    }
 
     // Evaluate the magnetic field value for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const&) const;
+    CELER_FUNCTION Real3 operator()(Real3 const&) const
+    {
+        CELER_NOT_CONFIGURED("covfie");
+    }
 };
-
-CELER_FUNCTION
-NotImplementedField::NotImplementedField(ParamsRef const&)
-{
-    CELER_NOT_CONFIGURED("covfie");
-}
-
-CELER_FUNCTION auto NotImplementedField::operator()(Real3 const&) const -> Real3
-{
-    CELER_NOT_CONFIGURED("covfie");
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

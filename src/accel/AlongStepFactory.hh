@@ -20,8 +20,6 @@ namespace celeritas
 {
 struct ImportData;
 struct RZMapFieldInput;
-struct CartMapFieldInput;
-struct CylMapFieldInput;
 class CutoffParams;
 class FluctuationParams;
 class GeoMaterialParams;
@@ -32,7 +30,9 @@ class PhysicsParams;
 namespace inp
 {
 struct UniformField;
-}
+struct CartMapField;
+struct CylMapField;
+}  // namespace inp
 
 //---------------------------------------------------------------------------//
 /*!
@@ -156,7 +156,8 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   public:
     //!@{
     //! \name Type aliases
-    using RZMapFieldFunction = std::function<RZMapFieldInput()>;
+    using FieldInput = RZMapFieldInput;
+    using RZMapFieldFunction = std::function<FieldInput()>;
     //!@}
 
   public:
@@ -167,7 +168,7 @@ class RZMapFieldAlongStepFactory final : public AlongStepFactoryInterface
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    RZMapFieldInput get_field() const;
+    FieldInput get_field() const;
 
   private:
     RZMapFieldFunction get_fieldmap_;
@@ -183,7 +184,8 @@ class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   public:
     //!@{
     //! \name Type aliases
-    using CylMapFieldFunction = std::function<CylMapFieldInput()>;
+    using FieldInput = inp::CylMapField;
+    using CylMapFieldFunction = std::function<FieldInput()>;
     //!@}
 
   public:
@@ -194,7 +196,7 @@ class CylMapFieldAlongStepFactory final : public AlongStepFactoryInterface
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    CylMapFieldInput get_field() const;
+    FieldInput get_field() const;
 
   private:
     CylMapFieldFunction get_fieldmap_;
@@ -210,18 +212,19 @@ class CartMapFieldAlongStepFactory final : public AlongStepFactoryInterface
   public:
     //!@{
     //! \name Type aliases
-    using CartMapFieldFunction = std::function<CartMapFieldInput()>;
+    using FieldInput = inp::CartMapField;
+    using CartMapFieldFunction = std::function<FieldInput()>;
     //!@}
 
   public:
-    // Construct with a function to return CartMapFieldInput
+    // Construct with a function to return inp::CartMapField
     explicit CartMapFieldAlongStepFactory(CartMapFieldFunction f);
 
     // Emit an along-step action
     result_type operator()(argument_type input) const final;
 
     // Get the field params (used for converting to celeritas::inp)
-    CartMapFieldInput get_field() const;
+    FieldInput get_field() const;
 
   private:
     CartMapFieldFunction get_fieldmap_;

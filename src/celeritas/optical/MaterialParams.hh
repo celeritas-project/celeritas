@@ -56,10 +56,10 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
 
   public:
     // Construct with imported data, materials
-    static std::shared_ptr<MaterialParams>
-    from_import(ImportData const& data,
-                ::celeritas::GeoMaterialParams const& geo_mat,
-                ::celeritas::MaterialParams const& mat);
+    static std::shared_ptr<MaterialParams> from_import(
+        ImportData const& data,
+        ::celeritas::GeoMaterialParams const& geo_mat,
+        ::celeritas::MaterialParams const& mat);
 
     // Construct with optical property data
     explicit MaterialParams(Input const& inp);
@@ -88,7 +88,7 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
  */
 OptMatId::size_type MaterialParams::num_materials() const
 {
-    return this->host_ref().refractive_index.size();
+    return this->host_ref().size();
 }
 
 //---------------------------------------------------------------------------//

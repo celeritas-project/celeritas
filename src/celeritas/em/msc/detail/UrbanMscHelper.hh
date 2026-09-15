@@ -98,10 +98,9 @@ class UrbanMscHelper
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
-                               ParticleTrackView const& particle,
-                               PhysicsTrackView const& physics)
+CELER_FUNCTION UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
+                                              ParticleTrackView const& particle,
+                                              PhysicsTrackView const& physics)
     : shared_(shared)
     , particle_(particle)
     , physics_(physics)
@@ -177,7 +176,7 @@ CELER_FUNCTION auto UrbanMscHelper::calc_end_energy(real_type step) const
  */
 CELER_FUNCTION UniformGridRecord const& UrbanMscHelper::xs() const
 {
-    auto par_id = shared_.pid_to_xs[particle_.particle_id()];
+    auto par_id = shared_.pid_to_xs[particle_.particle_id()].get();
     CELER_ASSERT(par_id < shared_.num_particles);
 
     size_type idx = physics_.material_id().get() * shared_.num_particles
@@ -193,11 +192,11 @@ CELER_FUNCTION UniformGridRecord const& UrbanMscHelper::xs() const
  */
 CELER_FUNCTION UrbanMscParMatData const& UrbanMscHelper::pmdata() const
 {
-    auto par_id = shared_.pid_to_pmdata[particle_.particle_id()];
-    CELER_ASSERT(par_id < shared_.num_par_mat);
+    UrbanParMatId pm_id{shared_.pid_to_pmdata[particle_.particle_id()]};
+    CELER_ASSERT(pm_id < shared_.num_par_mat);
 
     size_type idx = physics_.material_id().get() * shared_.num_par_mat
-                    + par_id.unchecked_get();
+                    + pm_id.unchecked_get();
     CELER_ASSERT(idx < shared_.par_mat_data.size());
 
     return shared_.par_mat_data[ItemId<UrbanMscParMatData>(idx)];

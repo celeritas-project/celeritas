@@ -64,7 +64,8 @@ void MockInteractAction::step(CoreParams const& params,
  */
 Span<size_type const> MockInteractAction::num_secondaries() const
 {
-    return data_.host_ref().num_secondaries[AllItems<size_type>{}];
+    return remove_ldg_wrapper(
+        data_.host_ref().num_secondaries[AllItems<size_type>{}]);
 }
 
 //---------------------------------------------------------------------------//
@@ -73,7 +74,7 @@ Span<size_type const> MockInteractAction::num_secondaries() const
  */
 Span<char const> MockInteractAction::alive() const
 {
-    return data_.host_ref().alive[AllItems<char>{}];
+    return remove_ldg_wrapper(data_.host_ref().alive[AllItems<char>{}]);
 }
 
 //---------------------------------------------------------------------------//

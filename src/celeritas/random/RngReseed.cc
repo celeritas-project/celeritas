@@ -7,6 +7,7 @@
 #include "RngReseed.hh"
 
 #include "corecel/sys/KernelLauncher.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 
 #include "detail/RngReseedExecutor.hh"
 
@@ -26,6 +27,7 @@ void reseed_rng(HostCRef<RngParamsData> const& params,
                 StreamId,
                 UniqueEventId event_id)
 {
+    ScopedProfiling profile_this_{"rng-reseed"};
     launch_kernel(state.size(),
                   detail::RngReseedExecutor{params, state, event_id});
 }

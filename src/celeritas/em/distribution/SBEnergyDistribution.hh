@@ -108,8 +108,8 @@ class SBEnergyDistribution
 
   public:
     // Construct from data
-    inline CELER_FUNCTION SBEnergyDistribution(SBEnergyDistHelper const& helper,
-                                               XSCorrector scale_xs);
+    inline CELER_FUNCTION SBEnergyDistribution(
+        SBEnergyDistHelper const& helper, XSCorrector scale_xs);
 
     template<class Engine>
     inline CELER_FUNCTION Energy operator()(Engine& rng);
@@ -130,9 +130,8 @@ class SBEnergyDistribution
  * Model's applicability must be consistent with the table data.
  */
 template<class X>
-CELER_FUNCTION
-SBEnergyDistribution<X>::SBEnergyDistribution(SBEnergyDistHelper const& helper,
-                                              X scale_xs)
+CELER_FUNCTION SBEnergyDistribution<X>::SBEnergyDistribution(
+    SBEnergyDistHelper const& helper, X scale_xs)
     : helper_(helper), scale_xs_(::celeritas::move(scale_xs))
 {
 }
@@ -149,6 +148,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
     Energy exit_energy;
     // Calculated cross section used inside rejection sampling
     real_type xs{};
+    RejectionSampler<> reject{helper_.max_xs().value()};
     do
     {
         // Sample scaled energy and subtract correction factor
@@ -157,7 +157,7 @@ CELER_FUNCTION auto SBEnergyDistribution<X>::operator()(Engine& rng) -> Energy
         // Interpolate the differential cross section at the sampled exit
         // energy
         xs = helper_.calc_xs(exit_energy).value() * scale_xs_(exit_energy);
-    } while (RejectionSampler<>(xs, helper_.max_xs().value())(rng));
+    } while (reject(xs, rng));
     return exit_energy;
 }
 

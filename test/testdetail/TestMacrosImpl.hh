@@ -12,17 +12,15 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "corecel/Config.hh"
-
 #include "corecel/Macros.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/math/Constant.hh"
 #include "corecel/math/SoftEqual.hh"
 
 #include "../AssertionHelper.hh"
 
 namespace celeritas
 {
+class Constant;
 namespace testdetail
 {
 //---------------------------------------------------------------------------//
@@ -33,8 +31,7 @@ namespace testdetail
 int num_digits(unsigned long val);
 
 // Return a replacement string if the given string is too long
-char const*
-trunc_string(unsigned int digits, char const* str, char const* trunc);
+char const* trunc_string(int digits, char const* str, char const* trunc);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -118,6 +115,16 @@ constexpr auto make_soft_comparator(CT&& cmp_or_tol)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a default soft comparison function.
+ */
+template<class VT>
+constexpr auto make_soft_comparator()
+{
+    return EqualOr<SoftEqual<VT>>{};
+}
+
+//---------------------------------------------------------------------------//
 //! Whether soft equivalence can be performed on the given types.
 template<class T1, class T2>
 constexpr bool can_soft_equiv()
@@ -128,12 +135,12 @@ constexpr bool can_soft_equiv()
 //---------------------------------------------------------------------------//
 //! Compare a range of values.
 template<class BinaryOp>
-::testing::AssertionResult
-IsSoftEquivImpl(typename BinaryOp::value_type expected,
-                char const* expected_expr,
-                typename BinaryOp::value_type actual,
-                char const* actual_expr,
-                BinaryOp comp)
+::testing::AssertionResult IsSoftEquivImpl(
+    typename BinaryOp::value_type expected,
+    char const* expected_expr,
+    typename BinaryOp::value_type actual,
+    char const* actual_expr,
+    BinaryOp comp)
 {
     if (comp(expected, actual))
     {
@@ -166,27 +173,26 @@ IsSoftEquivImpl(typename BinaryOp::value_type expected,
 /*!
  * Predicate for relative error soft equivalence.
  */
-template<class Value_E, class Value_A>
+template<class ValueE, class ValueA>
 ::testing::AssertionResult IsSoftEquiv(char const* expected_expr,
                                        char const* actual_expr,
-                                       Value_E&& expected,
-                                       Value_A&& actual)
+                                       ValueE&& expected,
+                                       ValueA&& actual)
 {
-    using VE = std::remove_cv_t<std::remove_reference_t<Value_E>>;
-    using VA = std::remove_cv_t<std::remove_reference_t<Value_A>>;
+    using VE = std::remove_cv_t<std::remove_reference_t<ValueE>>;
+    using VA = std::remove_cv_t<std::remove_reference_t<ValueA>>;
 
     static_assert(can_soft_equiv<VE, VA>(),
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<VE, VA>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
+    using Value_t = typename SoftPrecisionType<VE, VA>::type;
 
-    return IsSoftEquivImpl(static_cast<ValueT>(expected),
+    return IsSoftEquivImpl(static_cast<Value_t>(expected),
                            expected_expr,
-                           static_cast<ValueT>(actual),
+                           static_cast<Value_t>(actual),
                            actual_expr,
-                           BinaryOp{});
+                           make_soft_comparator<Value_t>());
 }
 
 //---------------------------------------------------------------------------//
@@ -208,14 +214,14 @@ template<class Value_E, class Value_A, class T>
                   "Invalid types for soft equivalence");
 
     // Construct with automatic or specified tolerances
-    using ValueT = typename SoftPrecisionType<VE, VA>::type;
+    using Value_t = typename SoftPrecisionType<VE, VA>::type;
 
     return IsSoftEquivImpl(
-        static_cast<ValueT>(expected),
+        static_cast<Value_t>(expected),
         expected_expr,
-        static_cast<ValueT>(actual),
+        static_cast<Value_t>(actual),
         actual_expr,
-        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//
@@ -241,13 +247,12 @@ struct TCT
     template<class C>
     using value_type_ = typename ContTraits<C>::value_type;
     template<class C>
-    using nc_value_type_ = typename std::remove_const<value_type_<C>>::type;
+    using nc_value_type_ = std::remove_const_t<value_type_<C>>;
 
     using first_type = nc_value_type_<C1>;
     using second_type = nc_value_type_<C2>;
 
-    using common_type =
-        typename std::common_type<first_type, second_type>::type;
+    using common_type = std::common_type_t<first_type, second_type>;
 
     using VecFailedValue = std::vector<FailedValue<first_type, second_type>>;
 };
@@ -259,7 +264,7 @@ struct FVIT
     template<class I>
     using value_type_ = typename std::iterator_traits<I>::value_type;
     template<class I>
-    using nc_value_type_ = typename std::remove_const<value_type_<I>>::type;
+    using nc_value_type_ = std::remove_const_t<value_type_<I>>;
 
     using first_type = nc_value_type_<Iter1>;
     using second_type = nc_value_type_<Iter2>;
@@ -350,19 +355,19 @@ using ScalarValueTypeT = typename ScalarValueType<T>::type;
  * Compare a range of values.
  */
 template<class Iter1, class Iter2, class BinaryOp>
-::testing::AssertionResult
-IsRangeEqImpl(Iter1 e_iter,
-              Iter1 e_end,
-              char const* expected_expr,
-              Iter2 a_iter,
-              Iter2 a_end,
-              char const* actual_expr,
-              typename FVIT<Iter1, Iter2>::Vec_t& failures,
-              BinaryOp comp)
+::testing::AssertionResult IsRangeEqImpl(
+    Iter1 e_iter,
+    Iter1 e_end,
+    char const* expected_expr,
+    Iter2 a_iter,
+    Iter2 a_end,
+    char const* actual_expr,
+    typename FVIT<Iter1, Iter2>::Vec_t& failures,
+    BinaryOp comp)
 {
     using size_type = std::size_t;
-    size_type expected_size = std::distance(e_iter, e_end);
-    size_type actual_size = std::distance(a_iter, a_end);
+    auto expected_size = std::distance(e_iter, e_end);
+    auto actual_size = std::distance(a_iter, a_end);
 
     // First, check that the sizes are equal
     if (expected_size != actual_size)
@@ -396,10 +401,17 @@ IsRangeEqImpl(Iter1 e_iter,
     result << "Values in: " << actual_expr << "\n Expected: " << expected_expr
            << '\n'
            << failures.size() << " of " << expected_size << " elements differ";
-    if (failures.size() > 40)
+    // Chop out the middle failures so we can see the beginning/end but not be
+    // overwhelmed for large outputs. When truncation happens, trunc_size is
+    // always 20, but it's written with `min` to avoid a dozen different false
+    // positives from GCC range checking when the expression is consteval.
+    auto const trunc_size = std::min<std::size_t>(failures.size(), 20);
+    if (failures.size() > 2 * trunc_size)
     {
-        result << " (truncating by removing all but the first and last 20)";
-        failures.erase(failures.begin() + 20, failures.end() - 20);
+        failures.erase(failures.begin() + trunc_size,
+                       failures.end() - trunc_size);
+        result << " (truncating by removing all but the first and last "
+               << trunc_size << ")";
     }
     result << '\n';
     return result;
@@ -437,7 +449,7 @@ template<class ContainerE, class ContainerA, class BinaryOp>
             return failure;
         }
 
-        for (auto i : range(exp_size))
+        for (int i = 0; i < exp_size; ++i)
         {
             auto result = IsVecSoftEquivImpl(
                 expected[i], expected_expr, actual[i], actual_expr, comp);
@@ -632,7 +644,7 @@ template<class ContainerE, class ContainerA>
             return failure;
         }
 
-        for (auto i : range(exp_size))
+        for (int i = 0; i < exp_size; ++i)
         {
             auto result
                 = IsVecEq(expected_expr, actual_expr, expected[i], actual[i]);
@@ -693,12 +705,15 @@ template<class ContainerE, class ContainerA>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
-    using BinaryOp = EqualOr<SoftEqual<ValueT>>;
+    using Value_t =
+        typename SoftPrecisionType<value_type_E, value_type_A>::type;
 
     // Construct with automatic or specified tolerances
-    return IsVecSoftEquivImpl(
-        expected, expected_expr, actual, actual_expr, BinaryOp());
+    return IsVecSoftEquivImpl(expected,
+                              expected_expr,
+                              actual,
+                              actual_expr,
+                              make_soft_comparator<Value_t>());
 }
 
 //-------------------------------------------------------------------------//
@@ -722,7 +737,8 @@ template<class ContainerE, class ContainerA, class T>
     static_assert(can_soft_equiv<value_type_E, value_type_A>(),
                   "Invalid types for soft equivalence");
 
-    using ValueT = typename SoftPrecisionType<value_type_E, value_type_A>::type;
+    using Value_t =
+        typename SoftPrecisionType<value_type_E, value_type_A>::type;
 
     // Construct with given tolerance
     return IsVecSoftEquivImpl(
@@ -730,7 +746,7 @@ template<class ContainerE, class ContainerA, class T>
         expected_expr,
         actual,
         actual_expr,
-        make_soft_comparator<ValueT>(std::forward<T>(cmp_or_tol)));
+        make_soft_comparator<Value_t>(std::forward<T>(cmp_or_tol)));
 }
 
 //---------------------------------------------------------------------------//

@@ -10,6 +10,7 @@
 #include "corecel/random/distribution/Selector.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "celeritas/optical/CoreTrackView.hh"
 
 #include "GridReflectivityData.hh"
 
@@ -33,8 +34,8 @@ class GridReflectivityCalculator
 
   public:
     // Construct from data, surface, and energy
-    explicit inline CELER_FUNCTION
-    GridReflectivityCalculator(DataRef const&, SubModelId, Energy);
+    explicit inline CELER_FUNCTION GridReflectivityCalculator(
+        DataRef const&, SubModelId, Energy);
 
     // Calculate the probability for the specified reflectivity action
     inline CELER_FUNCTION real_type operator()(ReflectivityAction) const;
@@ -64,8 +65,8 @@ struct GridReflectivityExecutor
     NativeCRef<GridReflectivityData> data;
 
     //! Apply grid reflectivity executor
-    inline CELER_FUNCTION ReflectivityAction
-    operator()(CoreTrackView const& track) const;
+    inline CELER_FUNCTION ReflectivityAction operator()(
+        CoreTrackView const& track) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,10 +75,8 @@ struct GridReflectivityExecutor
 /*!
  * Construct from data, surface, and energy.
  */
-CELER_FUNCTION
-GridReflectivityCalculator::GridReflectivityCalculator(DataRef const& data,
-                                                       SubModelId surface,
-                                                       Energy energy)
+CELER_FUNCTION GridReflectivityCalculator::GridReflectivityCalculator(
+    DataRef const& data, SubModelId surface, Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {
 }
@@ -86,8 +85,8 @@ GridReflectivityCalculator::GridReflectivityCalculator(DataRef const& data,
 /*!
  * Calculate the probability for the specified reflectivity action.
  */
-CELER_FUNCTION real_type
-GridReflectivityCalculator::operator()(ReflectivityAction action) const
+CELER_FUNCTION real_type GridReflectivityCalculator::operator()(
+    ReflectivityAction action) const
 {
     CELER_EXPECT(surface_ < data_.reflectivity[action].size());
     auto grid = data_.reflectivity[action][surface_];
@@ -107,12 +106,14 @@ GridReflectivityCalculator::operator()(ReflectivityAction action) const
 /*!
  * Apply the executor to a track.
  */
-CELER_FUNCTION ReflectivityAction
-GridReflectivityExecutor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION ReflectivityAction GridReflectivityExecutor::operator()(
+    CoreTrackView const& track) const
 {
+    using namespace celeritas::literals;
+
     auto s_phys = track.surface_physics();
-    auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::reflectivity)
-                            .internal_surface_id();
+    auto sub_model_id
+        = s_phys.interface(SurfacePhysicsOrder::reflectivity).internal_surface_id();
 
     auto rng = track.rng();
 
@@ -121,11 +122,11 @@ GridReflectivityExecutor::operator()(CoreTrackView const& track) const
         GridReflectivityCalculator{
             data, sub_model_id, track.particle().energy()},
         ReflectivityAction::size_,
-        real_type{1})(rng);
+        1.0_r)(rng);
 
     if (action == ReflectivityAction::absorb)
     {
-        if (auto e_grid_id = data.efficiency_ids[sub_model_id])
+        if (auto e_grid_id = data.efficiency_ids[sub_model_id].get())
         {
             // If absorbed and has efficiency grid, sample efficiency
             auto const& e_grid = data.efficiency[e_grid_id];

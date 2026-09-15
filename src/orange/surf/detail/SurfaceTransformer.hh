@@ -54,6 +54,8 @@ class SurfaceTransformer
 
     Involute operator()(Involute const&) const;
 
+    Toroid operator()(Toroid const&) const;
+
   private:
     Transformation tr_;
 };

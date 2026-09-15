@@ -9,7 +9,6 @@
 #include <algorithm>
 #include <utility>
 
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -21,9 +20,8 @@ namespace celeritas
 /*!
  * Construct if Wentzel VI model is present, or else return nullptr.
  */
-std::shared_ptr<WentzelVIMscParams>
-WentzelVIMscParams::from_import(ParticleParams const& particles,
-                                ImportData const& data)
+std::shared_ptr<WentzelVIMscParams> WentzelVIMscParams::from_import(
+    ParticleParams const& particles, ImportData const& data)
 {
     if (!has_msc_model(data, ImportModelClass::wentzel_vi_uni))
     {
@@ -41,8 +39,6 @@ WentzelVIMscParams::WentzelVIMscParams(ParticleParams const& particles,
                                        VecImportMscModel const& mdata_vec)
 {
     using units::MevEnergy;
-
-    ScopedMem record_mem("WentzelVIMscParams.construct");
 
     HostVal<WentzelVIMscData> host_data;
 

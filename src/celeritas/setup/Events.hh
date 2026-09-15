@@ -20,9 +20,9 @@ namespace setup
 {
 //---------------------------------------------------------------------------//
 // Load events
-std::vector<std::vector<Primary>>
-events(inp::Events const& inp,
-       std::shared_ptr<ParticleParams const> const& particles);
+std::vector<std::vector<Primary>> events(
+    inp::Events const& inp,
+    std::shared_ptr<ParticleParams const> const& particles);
 
 //---------------------------------------------------------------------------//
 }  // namespace setup

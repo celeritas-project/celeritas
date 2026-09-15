@@ -82,8 +82,8 @@ TEST_F(NuclearFormFactorsTest, uniform_uniform_folded)
 {
     if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_DOUBLE)
     {
-        GTEST_SKIP() << "UU suffers from numerical errors for anything below "
-                        "~2 MeV";
+        GTEST_SKIP()
+            << "UU suffers from numerical errors for anything below ~2 MeV";
     }
     auto result = this->evaluate_all<UUNuclearFormFactor>();
     // clang-format off

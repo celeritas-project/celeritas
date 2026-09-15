@@ -15,8 +15,7 @@
 #include <G4SolidStore.hh>
 #include <G4Version.hh>
 
-#include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/ScopedMem.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 
 #include "ScopedGeantExceptionHandler.hh"
@@ -87,8 +86,6 @@ auto GeantGdmlLoader::operator()(std::string const& filename) const -> Result
             "Geant4 geometry cannot be loaded from a worker thread", internal);
     }
 
-    ScopedMem record_mem("GeantGdmlLoader.load");
-    ScopedTimeLog scoped_time;
     ScopedProfiling profile_this{"geant-gdml-load"};
 
     ScopedGeantLogger scoped_logger;
@@ -146,8 +143,6 @@ void save_gdml(G4VPhysicalVolume const* world, std::string const& out_filename)
     CELER_EXPECT(world);
 
     CELER_LOG(info) << "Writing Geant4 geometry to GDML at " << out_filename;
-    ScopedMem record_mem("save_gdml");
-    ScopedTimeLog scoped_time;
 
     ScopedGeantLogger scoped_logger;
     ScopedGeantExceptionHandler scoped_exceptions;

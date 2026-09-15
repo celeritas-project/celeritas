@@ -93,8 +93,8 @@ GetenvFlagResult getenv_flag(std::string const& key, bool default_val)
 /*!
  * Like \c getenv_flag but calls a function only when a default is needed.
  */
-GetenvFlagResult
-getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
+GetenvFlagResult getenv_flag_lazy(std::string const& key,
+                                  BoolFunc const& get_default_value)
 {
     CELER_EXPECT(get_default_value);
     std::scoped_lock lock_{getenv_mutex()};
@@ -141,8 +141,9 @@ getenv_flag_lazy(std::string const& key, BoolFunc const& get_default_value)
         {
             result.value = true;
         }
-        else if (std::find(std::begin(false_str), std::end(false_str), str_value)
-                 != std::end(false_str))
+        else if (
+            std::find(std::begin(false_str), std::end(false_str), str_value)
+            != std::end(false_str))
         {
             result.value = false;
         }

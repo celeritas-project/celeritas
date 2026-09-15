@@ -35,9 +35,8 @@ class ImageLineView
 
   public:
     // Construct with image data and thread ID
-    inline CELER_FUNCTION ImageLineView(ParamsRef const& params,
-                                        StateRef const& state,
-                                        size_type row_index);
+    inline CELER_FUNCTION ImageLineView(
+        ParamsRef const& params, StateRef const& state, size_type row_index);
 
     // Calculate start position
     inline CELER_FUNCTION Real3 start_pos() const;
@@ -72,10 +71,8 @@ class ImageLineView
 /*!
  * Construct with image data and thread ID.
  */
-CELER_FUNCTION
-ImageLineView::ImageLineView(ParamsRef const& params,
-                             StateRef const& state,
-                             size_type row_index)
+CELER_FUNCTION ImageLineView::ImageLineView(
+    ParamsRef const& params, StateRef const& state, size_type row_index)
     : scalars_{params.scalars}, state_{state}, row_index_{row_index}
 {
     CELER_EXPECT(row_index_ < scalars_.dims[0]);
@@ -87,8 +84,9 @@ ImageLineView::ImageLineView(ParamsRef const& params,
  */
 CELER_FUNCTION auto ImageLineView::start_pos() const -> Real3
 {
-    real_type down_offset = (row_index_ + real_type(0.5))
-                            * scalars_.pixel_width;
+    using namespace celeritas::literals;
+
+    real_type down_offset = (row_index_ + 0.5_r) * scalars_.pixel_width;
     Real3 result = scalars_.origin;
     axpy(down_offset, scalars_.down, &result);
     return result;

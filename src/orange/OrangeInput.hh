@@ -24,7 +24,7 @@
 
 #include "OrangeData.hh"
 #include "OrangeTypes.hh"
-#include "inp/Bih.hh"
+#include "inp/Bvh.hh"
 #include "surf/VariantSurface.hh"
 #include "transform/VariantTransform.hh"
 
@@ -178,11 +178,11 @@ struct RectArrayInput
  */
 struct ConstructionOptions
 {
-    //! Options for Bounding Interval Hierarchy (BIH) construction
-    inp::BIHBuilder bih_options;
+    //! Options for Bounding Volume Hierarchy (BVH) construction
+    inp::BvhBuilder bvh_options;
 
     //! Whether the options are valid
-    explicit operator bool() const { return static_cast<bool>(bih_options); }
+    explicit operator bool() const { return static_cast<bool>(bvh_options); }
 };
 
 //---------------------------------------------------------------------------//

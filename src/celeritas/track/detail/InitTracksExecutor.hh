@@ -66,7 +66,7 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
     CELER_EXPECT(tid < num_init);
 
     auto const& data = state->init;
-    auto counters = state->init.counters.data().get();
+    auto* counters = state->init.counters.data().get();
     // Get the track initializer from the back of the vector. Since new
     // initializers are pushed to the back of the vector, these will be the
     // most recently added and therefore the ones that still might have a
@@ -88,19 +88,15 @@ CELER_FUNCTION void InitTracksExecutor::operator()(ThreadId tid) const
             if (params->init.track_order == TrackOrder::init_charge
                 && IsNeutral{params}(init))
             {
-                // Get the vacancy from the front of the track state
+                // Get the vacancy from the front of the
+                // track state
                 return data.vacancies[TrackSlotId(index_before(num_init, tid))];
             }
-            // Get the vacancy from the back of the track state
+            // Get the vacancy from the back of the track
+            // state
             return data.vacancies[TrackSlotId(
                 index_before(counters->num_vacancies, tid))];
         }()};
-
-    // Clear parent IDs if new primaries were added this step
-    if (counters->num_generated)
-    {
-        init.geo.parent = {};
-    }
 
     vacancy = init;
 }

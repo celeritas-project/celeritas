@@ -27,9 +27,8 @@ namespace detail
  *
  * The unit should have no elements to start with.
  */
-CsgUnitBuilder::CsgUnitBuilder(CsgUnit* u,
-                               Tolerance<> const& tol,
-                               BBox const& extents)
+CsgUnitBuilder::CsgUnitBuilder(
+    CsgUnit* u, Tolerance<> const& tol, BBox const& extents)
     : unit_{u}
     , tol_{tol}
     , bbox_{extents}
@@ -72,9 +71,8 @@ TransformId CsgUnitBuilder::insert_transform(VariantTransform const& vt)
 /*!
  * Set a bounding zone and transform for a node.
  */
-void CsgUnitBuilder::insert_region(NodeId n,
-                                   BoundingZone const& bzone,
-                                   TransformId trans_id)
+void CsgUnitBuilder::insert_region(
+    NodeId n, BoundingZone const& bzone, TransformId trans_id)
 {
     CELER_EXPECT(n < unit_->tree.size());
     CELER_EXPECT(trans_id < unit_->transforms.size());
@@ -108,7 +106,7 @@ LocalVolumeId CsgUnitBuilder::insert_volume(NodeId n)
 {
     CELER_EXPECT(n < unit_->tree.size());
 
-    LocalVolumeId result{static_cast<size_type>(unit_->tree.volumes().size())};
+    auto result = id_cast<LocalVolumeId>(unit_->tree.volumes().size());
 
     unit_->tree.insert_volume(std::move(n));
     unit_->fills.resize(unit_->tree.volumes().size());
@@ -136,9 +134,8 @@ void CsgUnitBuilder::fill_volume(LocalVolumeId v, GeoMatId m)
  * The transform is from the current universe to the daughter. The
  * corresponding shape may have additional transforms as well.
  */
-void CsgUnitBuilder::fill_volume(LocalVolumeId v,
-                                 UnivId u,
-                                 VariantTransform const& transform)
+void CsgUnitBuilder::fill_volume(
+    LocalVolumeId v, UnivId u, VariantTransform const& transform)
 {
     CELER_EXPECT(v < unit_->fills.size());
     CELER_EXPECT(!is_filled(unit_->fills[v.unchecked_get()]));

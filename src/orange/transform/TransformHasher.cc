@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/HashUtils.hh"
 
 namespace celeritas
@@ -20,7 +21,7 @@ namespace celeritas
 template<class T>
 auto TransformHasher::operator()(T const& t) const -> result_type
 {
-    return hash_as_bytes(t.data());
+    return hash_as_bytes(remove_ldg_wrapper(t.data()));
 }
 
 //---------------------------------------------------------------------------//
@@ -49,8 +50,8 @@ auto TransformHasher::operator()(SignedPermutation const& t) const
 /*!
  * Calculate a hash for a variant transform.
  */
-TransformHasher::result_type
-visit(TransformHasher const& th, VariantTransform const& transform)
+TransformHasher::result_type visit(TransformHasher const& th,
+                                   VariantTransform const& transform)
 {
     CELER_ASSUME(!transform.valueless_by_exception());
     return std::visit(th, transform);

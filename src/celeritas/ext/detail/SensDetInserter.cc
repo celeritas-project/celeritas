@@ -24,9 +24,14 @@ namespace detail
  * Construct with references to the inserted data.
  */
 SensDetInserter::SensDetInserter(SetLV const& skip_volumes,
+                                 VolumeParams const* volumes,
+                                 GeantGeoParams const* geant_geo,
                                  MapIdLv* found,
                                  VecLV* missing)
-    : skip_volumes_{skip_volumes}, found_{found}, missing_{missing}
+    : to_vol_id_{volumes, geant_geo}
+    , skip_volumes_{skip_volumes}
+    , found_{found}
+    , missing_{missing}
 {
     CELER_EXPECT(found_);
     CELER_EXPECT(missing_);
@@ -93,8 +98,8 @@ VolumeId SensDetInserter::insert_impl(G4LogicalVolume const* lv)
             // This shouldn't be possible now
             CELER_LOG(error)
                 << "Canonical volume " << id.get()
-                << "\" is mapped to two different volumes with "
-                   "sensitive detectors: "
+                << "\" is mapped to two different volumes with sensitive "
+                   "detectors: "
                 << StreamableLV{lv} << " and " << StreamableLV{iter->second};
         }
         else

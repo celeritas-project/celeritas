@@ -146,9 +146,6 @@ struct VecgeomStateData
     VgStateItems next_state;  // TODO: prev_state
     StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
 
-    // Surface state
-    StateItems<VgSurfaceInt> next_surf;  // Empty unless using surface model
-
     //// METHODS ////
 
     //! True if sizes are consistent and states are assigned
@@ -160,8 +157,7 @@ struct VecgeomStateData
             && state.size() == pos.size()
             && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
             && next_state.size() == pos.size()
-            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
-            && next_surf.size() == (CELERITAS_VECGEOM_SURFACE ? pos.size() : 0);
+            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0);
         // clang-format on
     }
 
@@ -179,7 +175,6 @@ struct VecgeomStateData
         boundary = other.boundary;
         next_state = other.next_state;
         next_boundary = other.next_boundary;
-        next_surf = other.next_surf;
         return *this;
     }
 };
@@ -191,15 +186,15 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
             HostCRef<VecgeomParamsData> const& params,
             size_type size);
 
-extern template void
-resize<MemSpace::host>(VecgeomStateData<Ownership::value, MemSpace::host>*,
-                       HostCRef<VecgeomParamsData> const&,
-                       size_type);
+extern template void resize<MemSpace::host>(
+    VecgeomStateData<Ownership::value, MemSpace::host>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
-extern template void
-resize<MemSpace::device>(VecgeomStateData<Ownership::value, MemSpace::device>*,
-                         HostCRef<VecgeomParamsData> const&,
-                         size_type);
+extern template void resize<MemSpace::device>(
+    VecgeomStateData<Ownership::value, MemSpace::device>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

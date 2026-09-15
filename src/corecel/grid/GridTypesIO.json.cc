@@ -33,4 +33,25 @@ void to_json(nlohmann::json& j, InterpolationType const& value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Read spline boundary condition from JSON.
+ */
+void from_json(nlohmann::json const& j, SplineBoundaryCondition& value)
+{
+    static auto const from_string
+        = StringEnumMapper<SplineBoundaryCondition>::from_cstring_func(
+            to_cstring, "bc");
+    value = from_string(j.get<std::string>());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write spline boundary condition to JSON.
+ */
+void to_json(nlohmann::json& j, SplineBoundaryCondition const& value)
+{
+    j = std::string{to_cstring(value)};
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

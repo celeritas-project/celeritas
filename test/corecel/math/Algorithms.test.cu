@@ -34,13 +34,13 @@ __global__ void alg_test_kernel(AlgorithmTestData data)
     if (tid.get() < inp.pi_frac.size())
     {
         sincospi(inp.pi_frac[tid], &out.sinpi[tid], &out.cospi[tid]);
-        float radians = constants::pi * inp.pi_frac[tid];
+        float radians = constants::pi * static_cast<float>(inp.pi_frac[tid]);
         sincos(radians, &out.sin[tid], &out.cos[tid]);
     }
     if (tid.get() < inp.a.size())
     {
-        out.fastpow[tid] = fastpow(inp.a[tid], inp.b[tid]);
-        out.hypot[tid] = hypot(inp.a[tid], inp.b[tid]);
+        out.fastpow[tid] = fastpow(inp.a[tid].get(), inp.b[tid].get());
+        out.hypot[tid] = hypot(inp.a[tid].get(), inp.b[tid].get());
     }
 }
 }  // namespace

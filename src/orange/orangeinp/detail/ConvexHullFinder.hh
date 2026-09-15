@@ -81,8 +81,8 @@ class ConvexHullFinder
     size_type min_element_idx() const;
 
     // Determine if three points, traversed in order, are counterclockwise
-    bool
-    is_counterclockwise(size_type i_prev, size_type i, size_type i_next) const;
+    bool is_counterclockwise(
+        size_type i_prev, size_type i, size_type i_next) const;
 
     // Determine the next index, with modular indexing
     size_type calc_next(size_type i) const;
@@ -277,9 +277,8 @@ size_type ConvexHullFinder<T>::min_element_idx() const
  * Here, collinear points are considered clockwise.
  */
 template<class T>
-auto ConvexHullFinder<T>::is_counterclockwise(size_type i_prev,
-                                              size_type i,
-                                              size_type i_next) const -> bool
+auto ConvexHullFinder<T>::is_counterclockwise(
+    size_type i_prev, size_type i, size_type i_next) const -> bool
 {
     auto const& a = points_[i_prev];
     auto const& b = points_[i];

@@ -249,7 +249,8 @@ set(DOXYGEN_ALIASES
 # Annotations break breathe parsing
 foreach(_var
   CELER_FUNCTION CELER_FORCEINLINE CELER_FORCEINLINE_FUNCTION CELER_CONSTEXPR_FUNCTION
-  [[maybe_unused]] CFIF_)
+  CELER_FIF CELER_CEF
+  [[maybe_unused]])
   list(APPEND DOXYGEN_PREDEFINED "${_var}=")
 endforeach()
 
@@ -287,6 +288,8 @@ file(GLOB _DOXYGEN_SOURCE
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/*.hh"
   "${PROJECT_SOURCE_DIR}/src/celeritas/optical/surface/model/*.hh"
   "${PROJECT_SOURCE_DIR}/test/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/corecel/*.hh"
+  "${PROJECT_SOURCE_DIR}/test/corecel/random/*.hh"
 )
 
 # IMPORTANT: the target name and USE_STAMP_FILE generate a dependency used by

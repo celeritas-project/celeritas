@@ -77,8 +77,8 @@ class AlongStepTestBase : virtual public GlobalTestBase
     void extend_from_primaries(Span<Primary const> primaries,
                                CoreState<MemSpace::host>* state);
 
-    void
-    execute_action(std::string const& label, CoreState<MemSpace::host>* state);
+    void execute_action(std::string const& label,
+                        CoreState<MemSpace::host>* state);
 
     void execute_action(CoreStepActionInterface const& action,
                         CoreState<MemSpace::host>* state) const;

@@ -27,11 +27,13 @@ celeritas_add_test(Assert.test.cc
   ENVIRONMENT "CELER_COLOR=1;CELER_LOG=debug"
 )
 celeritas_add_test(OpaqueId.test.cc)
+celeritas_add_test(Types.test.cc)
 
 # Cont
 celeritas_add_test(cont/Array.test.cc)
-celeritas_add_test(cont/Bitset.test.cc)
+celeritas_add_test(cont/LdgSpan.test.cc)
 celeritas_add_test(cont/InitializedValue.test.cc)
+celeritas_add_test(cont/IdStack.test.cc)
 celeritas_add_test(cont/Span.test.cc)
 celeritas_add_test(cont/LabelIdMultiMap.test.cc)
 celeritas_add_test(cont/VariantUtils.test.cc)
@@ -46,7 +48,7 @@ celeritas_add_test(data/DeviceVector.test.cc GPU)
 celeritas_add_test(data/Filler.test.cc GPU)
 celeritas_add_device_test(data/ObserverPtr
   LINK_LIBRARIES Celeritas::ExtThrust)
-celeritas_add_test(data/LdgIterator.test.cc)
+celeritas_add_test(data/Ldg.test.cc)
 celeritas_add_test(data/HyperslabIndexer.test.cc)
 celeritas_add_device_test(data/StackAllocator
   LINK_LIBRARIES Celeritas::ExtThrust)
@@ -71,6 +73,7 @@ celeritas_add_test(io/Join.test.cc)
 celeritas_add_test(io/Logger.test.cc
   LINK_LIBRARIES Celeritas::ExtMPI)
 celeritas_add_test(io/OutputRegistry.test.cc
+  ENVIRONMENT "OMP_NUM_THREADS=4;OMP_THREAD_LIMIT=2"
   LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(io/Repr.test.cc)
 celeritas_add_test(io/ScopedStreamRedirect.test.cc)
@@ -82,6 +85,7 @@ celeritas_add_device_test(math/Algorithms)
 celeritas_add_device_test(math/NumericLimits)
 celeritas_add_test(math/ArrayOperators.test.cc)
 celeritas_add_test(math/ArrayUtils.test.cc)
+celeritas_add_test(math/SpanUtils.test.cc)
 celeritas_add_test(math/BisectionRootFinder.test.cc)
 celeritas_add_test(math/Constant.test.cc)
 celeritas_add_test(math/HashUtils.test.cc)
@@ -119,6 +123,7 @@ celeritas_add_test(random/distribution/NormalDistribution.test.cc)
 celeritas_add_test(random/distribution/PoissonDistribution.test.cc)
 celeritas_add_test(random/distribution/PowerDistribution.test.cc)
 celeritas_add_test(random/distribution/RadialDistribution.test.cc)
+celeritas_add_test(random/distribution/RoundedNonnegDistribution.test.cc)
 celeritas_add_test(random/distribution/ReciprocalDistribution.test.cc)
 celeritas_add_test(random/distribution/RejectionSampler.test.cc)
 celeritas_add_test(random/distribution/TruncatedDistribution.test.cc)

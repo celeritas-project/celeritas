@@ -35,16 +35,16 @@ struct ActionDiagnosticCondition
  */
 struct ActionDiagnosticExecutor
 {
-    inline CELER_FUNCTION void
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION void operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<ParticleTallyParamsData> const params;
     NativeRef<ParticleTallyStateData> const state;
 };
 
 //---------------------------------------------------------------------------//
-CELER_FUNCTION void
-ActionDiagnosticExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION void ActionDiagnosticExecutor::operator()(
+    CoreTrackView const& track)
 {
     CELER_EXPECT(params);
     CELER_EXPECT(state);
@@ -59,7 +59,8 @@ ActionDiagnosticExecutor::operator()(CoreTrackView const& track)
     BinId bin{particle.unchecked_get() * params.num_bins
               + action.unchecked_get()};
     CELER_ASSERT(bin < state.counts.size());
-    celeritas::atomic_add(&state.counts[bin], size_type(1));
+    using namespace celeritas::literals;
+    celeritas::atomic_add(&state.counts[bin], 1_sz);
 }
 
 //---------------------------------------------------------------------------//

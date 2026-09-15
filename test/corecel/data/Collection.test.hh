@@ -98,9 +98,8 @@ class MockTrackView
     using ParamsData = NativeCRef<MockParamsData>;
     using StateData = NativeRef<MockStateData>;
 
-    CELER_FUNCTION MockTrackView(ParamsData const& params,
-                                 StateData const& states,
-                                 TrackSlotId tid)
+    CELER_FUNCTION MockTrackView(
+        ParamsData const& params, StateData const& states, TrackSlotId tid)
         : params_(params), states_(states), track_slot_(tid)
     {
         CELER_EXPECT(track_slot_ < states_.size());
@@ -151,11 +150,11 @@ void col_cuda_test(CTestInput);
 
 //! Test that we can copy inside .cu code
 template<Ownership W, MemSpace M>
-MockStateData<Ownership::value, MemSpace::device>
-copy_to_device_test(MockStateData<W, M>&);
+MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
+    MockStateData<W, M>&);
 //! Test that we can make a reference inside of .cu code
-MockStateData<Ownership::reference, MemSpace::device>
-reference_device_test(MockStateData<Ownership::value, MemSpace::device>&);
+MockStateData<Ownership::reference, MemSpace::device> reference_device_test(
+    MockStateData<Ownership::value, MemSpace::device>&);
 
 #if !CELER_USE_DEVICE
 inline void col_cuda_test(CTestInput)
@@ -163,8 +162,8 @@ inline void col_cuda_test(CTestInput)
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 template<Ownership W, MemSpace M>
-inline MockStateData<Ownership::value, MemSpace::device>
-copy_to_device_test(MockStateData<W, M>&)
+inline MockStateData<Ownership::value, MemSpace::device> copy_to_device_test(
+    MockStateData<W, M>&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

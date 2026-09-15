@@ -75,7 +75,7 @@ TEST_F(MuDecayInteractorTest, basic)
 {
     auto const& params = *this->particle_params();
     auto const at_rest = MevEnergy{0};
-    auto const max_lepton_energy = real_type{0.5} * data_.muon_mass.value()
+    auto const max_lepton_energy = 0.5_r * data_.muon_mass.value()
                                    - data_.electron_mass.value();
 
     // Anti-muon decay

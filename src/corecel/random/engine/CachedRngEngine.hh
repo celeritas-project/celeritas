@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstddef>
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
@@ -19,7 +21,7 @@ namespace celeritas
 /*!
  * Store several PRNG engine results and return them.
  */
-template<class Engine, size_type N>
+template<class Engine, std::size_t N>
 class CachedRngEngine
 {
     static_assert(N > 0);
@@ -61,7 +63,7 @@ class CachedRngEngine
 /*!
  * Return an RNG with the given number of calls cached.
  */
-template<size_type N, class Engine>
+template<std::size_t N, class Engine>
 inline CELER_FUNCTION auto cache_rng_count(Engine& e)
 {
     return CachedRngEngine<Engine, N>{e};
@@ -71,7 +73,7 @@ inline CELER_FUNCTION auto cache_rng_count(Engine& e)
 /*!
  * Return an RNG with enough space to return Count of type T.
  */
-template<class T, size_type Count, class Engine>
+template<class T, std::size_t Count, class Engine>
 inline CELER_FUNCTION auto cache_rng_values(Engine& e)
 {
     // Account for the fact that some implementations use 64-bit integers for
@@ -79,7 +81,7 @@ inline CELER_FUNCTION auto cache_rng_values(Engine& e)
     using result_type = typename Engine::result_type;
     static_assert(sizeof(result_type) == 4 || sizeof(result_type) == 8,
                   "only implemented for 32- and 64-bit integers");
-    constexpr size_type bytes_entropy
+    constexpr std::size_t bytes_entropy
         = sizeof(result_type) == 4                           ? 4
           : Engine::max() <= numeric_limits<unsigned>::max() ? sizeof(unsigned)
           : Engine::max() <= numeric_limits<unsigned long long>::max()
@@ -94,7 +96,7 @@ inline CELER_FUNCTION auto cache_rng_values(Engine& e)
 /*!
  * Save values on construction.
  */
-template<class Engine, size_type Bytes>
+template<class Engine, std::size_t Bytes>
 CELER_FUNCTION CachedRngEngine<Engine, Bytes>::CachedRngEngine(Engine& rng)
 {
     for (result_type& entry : stored_)
@@ -107,7 +109,7 @@ CELER_FUNCTION CachedRngEngine<Engine, Bytes>::CachedRngEngine(Engine& rng)
 /*!
  * Return the next pseudorandom number in the sequence.
  */
-template<class Engine, size_type Bytes>
+template<class Engine, std::size_t Bytes>
 CELER_FUNCTION auto CachedRngEngine<Engine, Bytes>::operator()() -> result_type
 {
     CELER_EXPECT(this->remaining() != 0);
@@ -120,7 +122,7 @@ CELER_FUNCTION auto CachedRngEngine<Engine, Bytes>::operator()() -> result_type
 /*!
  * Specialization of GenerateCanonical for cached engine.
  */
-template<class Engine, size_type Bytes, class RealType>
+template<class Engine, std::size_t Bytes, class RealType>
 struct GenerateCanonical<CachedRngEngine<Engine, Bytes>, RealType>
 {
     //!@{

@@ -135,9 +135,9 @@ bool DeviceEvent::ready() const
     {
         return true;
     }
-    CELER_RUNTIME_THROW(CELER_DEVICE_PLATFORM_UPPER_STR,
-                        CELER_DEVICE_API_SYMBOL(GetErrorString)(result),
-                        "EventQuery");
+    CELER_RUNTIME_FAIL(CELER_DEVICE_PLATFORM_UPPER_STR,
+                       CELER_DEVICE_API_SYMBOL(GetErrorString)(result),
+                       "EventQuery");
 #else
     CELER_ASSERT_UNREACHABLE();
 #endif

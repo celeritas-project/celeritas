@@ -9,8 +9,6 @@
 #include <iosfwd>
 #include <nlohmann/json.hpp>
 
-#include "geocel/inp/Model.hh"
-
 #include "VolumeParams.hh"
 
 namespace celeritas

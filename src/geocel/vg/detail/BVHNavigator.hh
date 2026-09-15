@@ -55,12 +55,12 @@ class BVHNavigator
 #endif
 
     //! Update path (which must be reset in advance)
-    CELER_FUNCTION static void
-    LocatePointIn(VgPlacedVol const* vol,
-                  VgReal3 const& point,
-                  NavState& path,
-                  bool top,
-                  VgPlacedVol const* exclude = nullptr)
+    CELER_FUNCTION static void LocatePointIn(
+        VgPlacedVol const* vol,
+        VgReal3 const& point,
+        NavState& path,
+        bool top,
+        VgPlacedVol const* exclude = nullptr)
     {
         if (top)
         {
@@ -106,9 +106,8 @@ class BVHNavigator
     }
 
     // Computes the isotropic safety from the globalpoint.
-    CELER_FUNCTION static double ComputeSafety(VgReal3 const& globalpoint,
-                                               NavState const& state,
-                                               vg_real_type safety)
+    CELER_FUNCTION static double ComputeSafety(
+        VgReal3 const& globalpoint, NavState const& state, vg_real_type safety)
     {
         VgPlacedVol const* pvol = state.Top();
         vecgeom::Transformation3D m;
@@ -135,12 +134,12 @@ class BVHNavigator
     //  - adds the hit daughter volume to out_state if one is hit.
     // However the function does _NOT_ relocate the state to the next volume,
     // that is entering multiple volumes that share a boundary.
-    CELER_FUNCTION static double
-    ComputeStepAndNextVolume(VgReal3 const& globalpoint,
-                             VgReal3 const& globaldir,
-                             vg_real_type step_limit,
-                             NavState const& in_state,
-                             NavState& out_state)
+    CELER_FUNCTION static double ComputeStepAndNextVolume(
+        VgReal3 const& globalpoint,
+        VgReal3 const& globaldir,
+        vg_real_type step_limit,
+        NavState const& in_state,
+        NavState& out_state)
     {
         // If we are on the boundary, push a bit more
         vg_real_type push = in_state.IsOnBoundary() ? kBoundaryPush : 0;
@@ -203,9 +202,8 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
-    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
-                                                    VgReal3 const& globaldir,
-                                                    NavState& state)
+    CELER_FUNCTION static void RelocateToNextVolume(
+        VgReal3 const& globalpoint, VgReal3 const& globaldir, NavState& state)
     {
         // Push the point inside the next volume.
         VgReal3 pushed = globalpoint + kBoundaryPush * globaldir;
@@ -226,10 +224,8 @@ class BVHNavigator
             {
                 state.Pop();
             }
-            CELER_ASSERT(!state.Top()
-                              ->GetLogicalVolume()
-                              ->GetUnplacedVolume()
-                              ->IsAssembly());
+            CELER_ASSERT(
+                !state.Top()->GetLogicalVolume()->GetUnplacedVolume()->IsAssembly());
         }
     }
 
@@ -239,13 +235,13 @@ class BVHNavigator
     // taking step_limit into account. If a volume is hit, the function calls
     // out_state.SetBoundaryState(true) and hitcandidate is set to the hit
     // daughter volume, or kept unchanged if the current volume is left.
-    CELER_FUNCTION static double
-    ComputeStepAndHit(VgReal3 const& localpoint,
-                      VgReal3 const& localdir,
-                      vg_real_type step_limit,
-                      NavState const& in_state,
-                      NavState& out_state,
-                      VgPlacedVol const*& hitcandidate)
+    CELER_FUNCTION static double ComputeStepAndHit(
+        VgReal3 const& localpoint,
+        VgReal3 const& localdir,
+        vg_real_type step_limit,
+        NavState const& in_state,
+        NavState& out_state,
+        VgPlacedVol const*& hitcandidate)
     {
         if (step_limit <= 0)
         {

@@ -11,11 +11,10 @@ example, you don't have to guess whether a symbol is a function or class.)
 
 As a historical note, many of the style conventions in Celeritas derive from
 the `Draco project style`_ of which `Tom Evans`_ was primary author and which
-became the style standard for the GPU-enabled Monte Carlo code `Shift`_.
+became the style standard for the GPU-enabled Monte Carlo code Shift :cite:`hamilton-continuousenergymonte-2019`.
 
 .. _Draco project style: https://github.com/lanl/Draco/wiki/Style-Guide
 .. _Tom Evans: https://github.com/tmdelellis
-.. _Shift: https://doi.org/10.1016/j.anucene.2019.01.012
 
 
 .. _formatting:
@@ -297,3 +296,12 @@ where ``typename`` *doesn't* mean a class: namely,
 Use ``this->`` when calling member functions inside a class to convey that the
 ``this`` pointer is implicitly being passed to the function and to make it
 easier to differentiate from a free function in the current scope.
+
+Use `template friend operators`_ for class comparators.
+This "hidden-friend idiom" enables implicit conversions, such as those needed by
+:cpp:type:`celeritas::LdgSpan`, and exposes those operators only via
+argument-dependent lookup (ADL).
+Relying on ADL shrinks overload sets, speeds up compilation, and avoids
+unintentionally operator matches.
+
+.. _template friend operators : https://en.cppreference.com/w/cpp/language/friend.html#Template_friend_operators

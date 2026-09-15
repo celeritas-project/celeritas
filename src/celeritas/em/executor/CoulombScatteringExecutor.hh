@@ -24,8 +24,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct CoulombScatteringExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     CoulombScatteringData params;
     NativeCRef<WentzelOKVIData> wentzel;
@@ -35,8 +35,8 @@ struct CoulombScatteringExecutor
 /*!
  * Sample Wentzel's model of elastic Coulomb scattering from the current track.
  */
-CELER_FUNCTION Interaction
-CoulombScatteringExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction CoulombScatteringExecutor::operator()(
+    CoreTrackView const& track)
 {
     // Incident particle quantities
     auto particle = track.particle();

@@ -18,16 +18,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Construct from global geometry.
- */
-VolumeIdBuilder::VolumeIdBuilder()
-    : VolumeIdBuilder{global_volumes().lock().get(),
-                      global_geant_geo().lock().get()}
-{
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Map from a string using VolumeParams.
  */
 VolumeId VolumeIdBuilder::operator()(std::string const& s) const

@@ -32,10 +32,10 @@ class UniformZField;
 template<class EquationT>
 class ZHelixIntegrator
 {
+    using Field_t = typename std::remove_reference_t<EquationT>::Field_t;
     static_assert(
-        std::is_same<std::remove_cv_t<std::remove_reference_t<
-                         typename std::remove_reference_t<EquationT>::Field_t>>,
-                     UniformZField>::value,
+        std::is_same_v<std::remove_cv_t<std::remove_reference_t<Field_t>>,
+                       UniformZField>,
         "ZHelix stepper only works with UniformZField");
 
   public:
@@ -52,8 +52,8 @@ class ZHelixIntegrator
     }
 
     // Adaptive step size control
-    CELER_FUNCTION auto
-    operator()(real_type step, OdeState const& beg_state) const -> result_type;
+    CELER_FUNCTION auto operator()(
+        real_type step, OdeState const& beg_state) const -> result_type;
 
   private:
     //// DATA ////
@@ -92,7 +92,8 @@ class ZHelixIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
+CELER_CTAD_FUNCTION ZHelixIntegrator(EquationT&&)
+    -> ZHelixIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -100,10 +101,11 @@ CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
 /*!
  */
 template<class E>
-CELER_FUNCTION auto
-ZHelixIntegrator<E>::operator()(real_type step, OdeState const& beg_state) const
-    -> result_type
+CELER_FUNCTION auto ZHelixIntegrator<E>::operator()(
+    real_type step, OdeState const& beg_state) const -> result_type
 {
+    using namespace celeritas::literals;
+
     result_type result;
 
     // Evaluate the right hand side of the equation
@@ -119,7 +121,7 @@ ZHelixIntegrator<E>::operator()(real_type step, OdeState const& beg_state) const
 
     // State after the half step
     result.mid_state
-        = this->move(real_type(0.5) * step, radius, helicity, beg_state, rhs);
+        = this->move(0.5_r * step, radius, helicity, beg_state, rhs);
 
     // State after the full step
     result.end_state = this->move(step, radius, helicity, beg_state, rhs);

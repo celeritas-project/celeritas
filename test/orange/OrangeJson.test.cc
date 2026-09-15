@@ -12,6 +12,7 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Label.hh"
 #include "corecel/io/OutputInterface.hh"
+#include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 #include "orange/Debug.hh"
@@ -37,14 +38,14 @@ class JsonOrangeTest : public OrangeGeoTestBase
     //! Use multiple track slots to check detailed initialization
     size_type num_track_slots() const override { return 2; }
     //! Length scale is hardcoded into JSON files
-    UnitLength unit_length() const override { return {Constant{1}, "length"}; }
+    UnitLength unit_length() const override { return {1_C, "length"}; }
 
     virtual std::string_view geometry_basename() const = 0;
 
     void SetUp() final
     {
-        this->build_geometry(std::string{this->geometry_basename()}
-                             + ".org.json");
+        this->build_geometry(
+            std::string{this->geometry_basename()} + ".org.json");
     }
 
     std::string surface_name(WrappedGeoTrack const& geo) const
@@ -56,6 +57,12 @@ class JsonOrangeTest : public OrangeGeoTestBase
         // Access OrangeTrackView through WrappedTrackView
         auto impl_surface = geo.track_view().impl_surface_id();
         return this->geometry()->surfaces().at(impl_surface).name;
+    }
+
+    real_type max_step() const
+    {
+        auto const& bbox = this->params().bbox();
+        return distance(bbox.lower(), bbox.upper());
     }
 };
 
@@ -192,8 +199,12 @@ TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
     EXPECT_EQ("orange", out.label());
 
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"num_univ_levels":3,"max_faces":14,"max_intersections":14,"max_csg_levels":0,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bih":{"bboxes":12,"inner_nodes":6,"leaf_nodes":9,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"fast_real3s":0,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"universe_indexer":{"surfaces":4,"volumes":4},"univ_indices":3,"univ_types":3,"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"max_faces":14,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":12,"internal_nodes":5,"leaf_nodes":8,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"univ_indices":3,"univ_types":3,"universe_indexer":{"surfaces":4,"volumes":4},"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix","univ_metadata":{"label":["outer","inner","most_inner"],"num_surfaces":[14,11,0],"num_volumes":[5,5,2],"type":["simple","simple","simple"]}})json",
         to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"translation"],[2,1,"translation"]]},{"daughters":[[1,2,"translation"]]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
 }
 
 TEST_F(UniversesTest, initialize_with_multiple_universes)
@@ -253,12 +264,12 @@ TEST_F(UniversesTest, move_internal_multiple_universes)
 
     // Move internally, then check that the distance to boundary is correct
     geo.move_internal({0.625, -1, 1});
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     // Move again, using other move_internal method
     geo.move_internal(0.1);
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.9, next.distance);
 }
 
@@ -285,7 +296,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -5, 0.75}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -304,7 +315,7 @@ TEST_F(UniversesTest, cross_into_daughter_non_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -318,7 +329,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -3.25, 0.75}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.75, next.distance);
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
@@ -336,7 +347,7 @@ TEST_F(UniversesTest, cross_into_parent_non_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -350,7 +361,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, 1, 1}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -369,7 +380,7 @@ TEST_F(UniversesTest, cross_into_daughter_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -383,7 +394,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{2, -0.5, 1}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -402,7 +413,7 @@ TEST_F(UniversesTest, cross_into_parent_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -415,7 +426,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -4.5, 1}, {0, 1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -434,7 +445,7 @@ TEST_F(UniversesTest, cross_into_daughter_doubly_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -447,7 +458,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     auto geo = this->make_geo_track_view();
     geo = Initializer_t{{0.25, -3.75, 1}, {0, -1, 0}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.25, next.distance);
 
     geo.move_to_boundary();
@@ -466,7 +477,7 @@ TEST_F(UniversesTest, cross_into_parent_doubly_coincident)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(2, next.distance);
 
     geo.move_to_boundary();
@@ -481,7 +492,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     // Initialize in outermost universe
     geo = Initializer_t{{2, -2, 0.7}, {0, 0, -1}};
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     geo.move_to_boundary();
@@ -500,7 +511,7 @@ TEST_F(UniversesTest, cross_between_daughters)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after crossing
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 
     geo.move_to_boundary();
@@ -514,7 +525,7 @@ TEST_F(UniversesTest, reentrant)
 
     // Initialize in innermost universe
     geo = Initializer_t{{0.25, -3.7, 0.7}, {0, 1, 0}};
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.2, next.distance);
 
     // Move to universe boundary
@@ -538,7 +549,7 @@ TEST_F(UniversesTest, reentrant)
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
     // Make sure we can take another step after calling cross_boundary
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
     geo.move_to_boundary();
     EXPECT_EQ("inner_a.my", this->surface_name(geo));
@@ -595,7 +606,7 @@ TEST_F(NestedRectArraysTest, tracking)
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Afill", this->volume_name(geo));
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -613,7 +624,7 @@ TEST_F(NestedRectArraysTest, tracking)
     EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(1, next.distance);
 }
 
@@ -630,7 +641,7 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_VEC_SOFT_EQ(Real3({1, 0, 0}), geo.dir());
     EXPECT_EQ("Bfill", this->volume_name(geo));
 
-    auto next = geo.find_next_step();
+    auto next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(0.5, next.distance);
 
     geo.move_to_boundary();
@@ -648,8 +659,22 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_VEC_SOFT_EQ(Real3({-1, 0, 0}), geo.normal());
     EXPECT_LT(dot_product(geo.normal(), geo.dir()), 0);
 
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     EXPECT_SOFT_EQ(16, next.distance);
+}
+
+TEST_F(NestedRectArraysTest, TEST_IF_CELERITAS_DOUBLE(output))
+{
+    OrangeParamsOutput out(this->geometry());
+    EXPECT_EQ("orange", out.label());
+
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,1,1,1,1],"num_finite_bboxes":[2,1,1,1,1],"num_infinite_bboxes":[1,0,0,0,0]},"scalars":{"max_faces":12,"max_intersections":12,"num_univ_levels":6,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":11,"internal_nodes":0,"leaf_nodes":5,"local_volume_ids":7},"connectivity_records":12,"daughters":11,"local_surface_ids":24,"local_volume_ids":4,"logic_ints":62,"obz_records":0,"real_ids":12,"reals":31,"rect_arrays":2,"simple_units":5,"surface_types":12,"transforms":8,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":19,"volume_instance_ids":19,"volume_records":11},"tracking_logic":"infix","univ_metadata":{"label":["global","parent","parent+","arr","arr+","B","A"],"num_surfaces":[12,0,8,0,8,0,0],"num_volumes":[3,2,4,2,4,2,2],"type":["simple","simple","rect_array","simple","rect_array","simple","simple"]}})json",
+        to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"no_transformation"]]},{"daughters":[[1,2,"no_transformation"]]},{"daughters":[[0,3,"no_transformation"],[1,3,"translation"],[2,3,"translation"],[3,3,"translation"]]},{"daughters":[[1,4,"no_transformation"]]},{"daughters":[[0,5,"no_transformation"],[1,6,"translation"],[2,6,"translation"],[3,5,"translation"]]},{"daughters":[]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
 }
 
 //---------------------------------------------------------------------------//
@@ -684,11 +709,11 @@ TEST_F(Geant4Testem15Test, safety)
 
     // Check safety near edge
     geo.set_dir({0, 1, 0});
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     geo.move_internal(4990.0);
     EXPECT_SOFT_EQ(5.0, geo.find_safety());
     geo.set_dir({-1, 0, 0});
-    next = geo.find_next_step();
+    next = geo.find_next_step(this->max_step());
     geo.move_internal(6.0);
     EXPECT_SOFT_EQ(10.0, geo.find_safety());
 }
@@ -706,7 +731,7 @@ TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
     EXPECT_EQ("orange", out.label());
 
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[1,8,1,1],"num_finite_bboxes":[2,50,1,1],"num_infinite_bboxes":[1,0,0,0]},"scalars":{"max_csg_levels":0,"max_faces":9,"max_intersections":10,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bih":{"bboxes":58,"inner_nodes":49,"leaf_nodes":53,"local_volume_ids":55},"connectivity_records":53,"daughters":51,"fast_real3s":0,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":500,"obz_records":0,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"univ_indices":4,"univ_types":4,"universe_indexer":{"surfaces":5,"volumes":5},"volume_ids":58,"volume_instance_ids":58,"volume_records":58},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,8,1,1],"num_finite_bboxes":[2,50,1,1],"num_infinite_bboxes":[1,0,0,0]},"scalars":{"max_faces":9,"max_intersections":10,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":58,"internal_nodes":49,"leaf_nodes":53,"local_volume_ids":55},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":500,"obz_records":0,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"univ_indices":4,"univ_types":4,"universe_indexer":{"surfaces":5,"volumes":5},"volume_ids":58,"volume_instance_ids":58,"volume_records":58},"tracking_logic":"infix","univ_metadata":{"label":["global","rhombarr","c","d"],"num_surfaces":[9,44,0,0],"num_volumes":[3,51,2,2],"type":["simple","simple","simple","simple"]}})json",
         to_string(out));
 }
 
@@ -723,8 +748,10 @@ TEST_F(HexArrayTest, track_out)
         1.9914318088046, 5.3060674310398, 0.30636846908014, 5.9880767678838};
     EXPECT_VEC_NEAR(
         expected_distances, result.distances, 10 * SoftEqual<>{}.rel());
-    static real_type const expected_hw_safety[] = {
-        0.20109936014143, 0.29549138370648, 0.030952132652541, 0.90113367054536};
+    static real_type const expected_hw_safety[] = {0.20109936014143,
+                                                   0.29549138370648,
+                                                   0.030952132652541,
+                                                   0.90113367054536};
     EXPECT_VEC_SOFT_EQ(expected_hw_safety, result.halfway_safeties);
 }
 
@@ -768,7 +795,7 @@ TEST_F(InputBuilderTest, globalspheres)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[1],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"num_univ_levels":1,"max_faces":2,"max_intersections":4,"max_csg_levels":0,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":3,"inner_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"fast_real3s":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"obz_records":0,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"universe_indexer":{"surfaces":2,"volumes":2},"univ_indices":1,"univ_types":1,"volume_ids":3,"volume_instance_ids":3,"volume_records":3},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":2,"max_intersections":4,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":3,"internal_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"obz_records":0,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":3,"volume_instance_ids":3,"volume_records":3},"tracking_logic":"infix","univ_metadata":{"label":["global"],"num_surfaces":[2],"num_volumes":[3],"type":["simple"]}})json",
         to_string(out));
 }
 
@@ -834,7 +861,7 @@ TEST_F(InputBuilderTest, bgspheres)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"num_univ_levels":1,"max_faces":3,"max_intersections":2,"max_csg_levels":0,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":4,"inner_nodes":1,"leaf_nodes":2,"local_volume_ids":3},"connectivity_records":3,"daughters":0,"fast_real3s":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"obz_records":0,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"universe_indexer":{"surfaces":2,"volumes":2},"univ_indices":1,"univ_types":1,"volume_ids":4,"volume_instance_ids":4,"volume_records":4},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[2],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":3,"max_intersections":2,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":4,"internal_nodes":1,"leaf_nodes":2,"local_volume_ids":3},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"obz_records":0,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":4,"volume_instance_ids":4,"volume_records":4},"tracking_logic":"infix","univ_metadata":{"label":["global"],"num_surfaces":[3],"num_volumes":[4],"type":["simple"]}})json",
         to_string(out));
 }
 
@@ -958,8 +985,12 @@ TEST_F(InputBuilderTest, hierarchy)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[5,0,0,4,2,0,0],"num_finite_bboxes":[6,0,0,4,2,0,0],"num_infinite_bboxes":[1,0,0,0,0,0,0]},"scalars":{"max_csg_levels":0,"max_faces":8,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":24,"inner_nodes":9,"leaf_nodes":16,"local_volume_ids":13},"connectivity_records":13,"daughters":6,"fast_real3s":0,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"obz_records":0,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":24,"volume_instance_ids":24,"volume_records":24},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,0,0,4,2,0,0],"num_finite_bboxes":[6,0,0,4,2,0,0],"num_infinite_bboxes":[1,0,0,0,0,0,0]},"scalars":{"max_faces":8,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":24,"internal_nodes":8,"leaf_nodes":15,"local_volume_ids":13},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"obz_records":0,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":24,"volume_instance_ids":24,"volume_records":24},"tracking_logic":"infix","univ_metadata":{"label":["global","d1","d2","filled_daughter","leafy","d1","d2"],"num_surfaces":[8,0,0,4,1,0,0],"num_volumes":[7,2,2,6,3,2,2],"type":["simple","simple","simple","simple","simple","simple","simple"]}})json",
         to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"translation"],[2,2,"transformation"],[3,3,"translation"],[4,4,"translation"]]},{"daughters":[]},{"daughters":[]},{"daughters":[[1,5,"translation"],[2,6,"transformation"]]},{"daughters":[]},{"daughters":[]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
 }
 
 //---------------------------------------------------------------------------//
@@ -967,7 +998,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
 {
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bih_metadata":{"depth":[2,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_csg_levels":0,"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bih":{"bboxes":6,"inner_nodes":1,"leaf_nodes":3,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"fast_real3s":0,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":6,"internal_nodes":0,"leaf_nodes":2,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix","univ_metadata":{"label":["global","inner"],"num_surfaces":[2,6],"num_volumes":[3,3],"type":["simple","simple"]}})json",
         to_string(out));
 }
 

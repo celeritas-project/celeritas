@@ -17,6 +17,8 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace test
@@ -106,31 +108,34 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
                                    int line)
 {
     msg << ": " << cgtv;
-    throw CheckedGeoError{
-        {RuntimeError::validate_err_str, std::move(msg).str(), cond, file, line}};
+    throw CheckedGeoError{{RuntimeError::validate_err_str,
+                           std::move(msg).str(),
+                           cond,
+                           file,
+                           line}};
 }
 
-#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE)                                \
-    do                                                                       \
-    {                                                                        \
-        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed()))       \
-        {                                                                    \
-            std::ostringstream msg_;                                         \
-            msg_ << "failed during " << WHERE;                               \
+#define CGTV_VALIDATE_NOT_FAILED(CGTV, WHERE) \
+    do \
+    { \
+        if ((CGTV).check_failure() && CELER_UNLIKELY((CGTV).failed())) \
+        { \
+            std::ostringstream msg_; \
+            msg_ << "failed during " << WHERE; \
             throw_cgtv_error(CGTV, std::move(msg_), {}, __FILE__, __LINE__); \
-        }                                                                    \
+        } \
     } while (0)
 
-#define CGTV_VALIDATE(CGTV, COND, WHAT)                            \
-    do                                                             \
-    {                                                              \
-        if (CELER_UNLIKELY(!(COND)))                               \
-        {                                                          \
-            std::ostringstream msg_;                               \
-            msg_ WHAT;                                             \
-            throw_cgtv_error(                                      \
+#define CGTV_VALIDATE(CGTV, COND, WHAT) \
+    do \
+    { \
+        if (CELER_UNLIKELY(!(COND))) \
+        { \
+            std::ostringstream msg_; \
+            msg_ WHAT; \
+            throw_cgtv_error( \
                 CGTV, std::move(msg_), #COND, __FILE__, __LINE__); \
-        }                                                          \
+        } \
     } while (0)
 
 //---------------------------------------------------------------------------//
@@ -160,8 +165,8 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
 /*!
  * Initialize the state.
  */
-CheckedGeoTrackView&
-CheckedGeoTrackView::operator=(GeoTrackInitializer const& init)
+CheckedGeoTrackView& CheckedGeoTrackView::operator=(
+    GeoTrackInitializer const& init)
 {
     CELER_EXPECT(t_);
     CELER_VALIDATE(is_soft_unit_vector(init.dir),
@@ -229,11 +234,20 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 
     real_type result = t_->find_safety(max_safety);
     CGTV_VALIDATE_NOT_FAILED(*this, "find_safety");
+
     CGTV_VALIDATE(*this,
-                  result >= 0 && result <= max_safety,
-                  << "safety " << repr(result) << NativeLength{}
-                  << " is out of bounds: should be in [0, " << max_safety
-                  << ']');
+                  result >= 0,
+                  << "invalid safety result " << repr(result)
+                  << NativeLength{});
+
+    if (result > max_safety)
+    {
+        CELER_LOG_LOCAL(warning)
+            << "Returned safety " << repr(result) << NativeLength{}
+            << " exceeds requested search distance " << repr(max_safety)
+            << NativeLength{};
+    }
+
     return result;
 }
 
@@ -253,11 +267,15 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
                    << "cannot change direction while outside");
 
     bool started_on_boundary = t_->is_on_boundary();
+    ImplVolumeId impl_vol = t_->impl_volume_id();
     t_->set_dir(newdir);
     CGTV_VALIDATE_NOT_FAILED(*this, "set_dir");
     CGTV_VALIDATE(*this,
                   started_on_boundary == t_->is_on_boundary(),
                   << "boundary state changed during set_dir");
+    CGTV_VALIDATE(*this,
+                  impl_vol == t_->impl_volume_id(),
+                  << "volume changed during set_dir");
     next_boundary_.reset();
 }
 
@@ -459,7 +477,7 @@ void CheckedGeoTrackView::cross_boundary()
         CGTV_VALIDATE(
             *this,
             soft_equal(std::fabs(dot_product(*pre_crossing_normal, post_norm)),
-                       real_type{1}),
+                       1_r),
             << "inconsistent surface normal: pre-crossing "
             << *pre_crossing_normal << ", post-crossing " << post_norm);
 

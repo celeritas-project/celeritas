@@ -10,9 +10,13 @@
 #include <regex>
 #include <sstream>
 
+#include "corecel/Config.hh"
+
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/OpenmpOutput.hh"
+#include "corecel/sys/Openmp.hh"
 
 #include "celeritas_test.hh"
 
@@ -130,6 +134,35 @@ TEST_F(OutputRegistryTest, build_output)
     std::string result = this->to_string(reg);
     EXPECT_TRUE(result.find(R"("build_type":)") != std::string::npos)
         << "actual output: " << result;
+}
+
+TEST_F(OutputRegistryTest, openmp_output)
+{
+    OutputRegistry reg;
+    reg.insert(std::make_shared<celeritas::OpenmpOutput>());
+    std::string result = this->to_string(reg);
+    std::string expected;
+    if constexpr (CELERITAS_USE_OPENMP)
+    {
+        expected
+            = R"json({"system":{"openmp":{"max_threads":4,"proc_bind":"false","thread_limit":2}}})json";
+    }
+    else
+    {
+        expected
+            = R"json({"system":{"openmp":{"max_threads":1,"proc_bind":"disabled","thread_limit":1}}})json";
+    }
+    EXPECT_EQ(expected, result) << repr(result);
+
+    // Change max threads via openmp call, overriding test env variable
+    openmp_num_threads(1);
+    result = this->to_string(reg);
+    if constexpr (CELERITAS_USE_OPENMP)
+    {
+        expected
+            = R"json({"system":{"openmp":{"max_threads":1,"proc_bind":"false","thread_limit":2}}})json";
+    }
+    EXPECT_EQ(expected, result) << repr(result);
 }
 
 TEST_F(OutputRegistryTest, exception_output)

@@ -38,9 +38,6 @@ class VolumeIdBuilder
     //!@}
 
   public:
-    // Construct using "global" values (NOT PREFERRED)
-    VolumeIdBuilder();
-
     // Construct using geant4 params and/or volume params
     inline VolumeIdBuilder(VolumeParams const*, GeantGeoParams const*);
 

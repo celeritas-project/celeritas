@@ -31,8 +31,8 @@ class SoftSurfaceEqualTest : public ::celeritas::test::Test
 
     //! Check surfaces with a sphere-like constructor
     template<class S>
-    void
-    check_equality_s(Real3 const& pt, real_type r, Axis skip = Axis::size_) const
+    void check_equality_s(
+        Real3 const& pt, real_type r, Axis skip = Axis::size_) const
     {
         auto ref = S(pt, r);
         EXPECT_TRUE(softeq_(ref, S(pt + eps / 4 * norm(pt), r)));
@@ -238,6 +238,20 @@ TEST_F(SoftSurfaceEqualTest, involute)
         ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + small, cw, 1.0 + small, 2.0}));
     EXPECT_FALSE(softeq_(
         ref_cw, Involute{{1.0, 0.0}, 1.0, 2.0 + large, cw, 1.0 + large, 2.0}));
+}
+
+TEST_F(SoftSurfaceEqualTest, toroid)
+{
+    Toroid ref{{0, 1, 2}, 3, 1, 2};
+
+    EXPECT_TRUE(softeq_(ref, Toroid{{0, 1, 2 + small}, 3, 1, 2}));
+    EXPECT_FALSE(softeq_(ref, Toroid{{0, 1, 2 + large}, 3, 1, 2}));
+    EXPECT_TRUE(softeq_(ref, Toroid{{0, 1, 2}, 3 + small, 1, 2}));
+    EXPECT_FALSE(softeq_(ref, Toroid{{0, 1, 2}, 3 + large, 1, 2}));
+    EXPECT_TRUE(softeq_(ref, Toroid{{0, 1, 2}, 3, 1 + small, 2}));
+    EXPECT_FALSE(softeq_(ref, Toroid{{0, 1, 2}, 3, 1 + large, 2}));
+    EXPECT_TRUE(softeq_(ref, Toroid{{0, 1, 2}, 3, 1, 2 + small}));
+    EXPECT_FALSE(softeq_(ref, Toroid{{0, 1, 2}, 3, 1, 2 + large}));
 }
 
 //---------------------------------------------------------------------------//

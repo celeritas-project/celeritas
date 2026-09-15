@@ -48,10 +48,9 @@ class ParallelListener final : public ::testing::EmptyTestEventListener
     {
         if (comm_.rank() == 0)
         {
-            std::cout << color_code('x') << "Testing "
-                      << "on " << comm_.size() << " process"
-                      << (comm_.size() > 1 ? "es" : "") << color_code(' ')
-                      << std::endl;
+            std::cout << color_code('x') << "Testing on " << comm_.size()
+                      << " process" << (comm_.size() > 1 ? "es" : "")
+                      << color_code(' ') << std::endl;
         }
     }
 

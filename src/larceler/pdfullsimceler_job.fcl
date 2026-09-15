@@ -1,0 +1,30 @@
+//---------------------------------------------------------------------------//
+// Job execution file for the PDFullSimCeler module
+//---------------------------------------------------------------------------//
+#include "services_dune.fcl"
+#include "pdfullsimceler.fcl"
+
+process_name: pdfullsimceler
+
+# Set up message logger threshold
+services.message.destinations.console.type: "cout"
+services.message.destinations.console.threshold: "INFO"
+
+# Set up ROOT output filename and geometry
+services: {
+    Geometry: @local::dune10kt_1x2x6_v1_geo
+}
+
+# Override default GDML
+services.Geometry.GDML: "dune-rice-sd.gdml"
+
+# Set up producer and its execution
+physics:
+{
+    producers:
+    {
+        # Path name becomes the art::Event module label
+        celersim: @local::PDFullSimCeler
+    }
+    end_path: [ celersim ]
+}

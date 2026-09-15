@@ -11,6 +11,8 @@ with device code enabled, but is a 64-bit integer on other 64-bit systems.
 .. doxygentypedef:: celeritas::size_type
 .. doxygentypedef:: celeritas::real_type
 
+.. doxygennamespace:: celeritas::literals
+
 .. _debug_assertions:
 
 Debug assertions

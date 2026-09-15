@@ -24,3 +24,4 @@
 using std::cout;
 using std::endl;
 using namespace std::literals::string_view_literals;
+using namespace celeritas::literals;

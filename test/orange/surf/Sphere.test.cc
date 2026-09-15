@@ -18,7 +18,7 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-constexpr auto sqrt_third = real_type{1} / constants::sqrt_three;
+constexpr auto sqrt_third = 1_r / constants::sqrt_three;
 
 class SphereTest : public Test
 {

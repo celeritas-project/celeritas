@@ -44,9 +44,8 @@ class CoreTrackView
 
   public:
     // Construct directly from a track slot ID
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        TrackSlotId slot);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId slot);
 
     // Initialize the track states
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
@@ -58,7 +57,8 @@ class CoreTrackView
     inline CELER_FUNCTION MaterialView material_record() const;
 
     // Return a material view (using an existing geo view)
-    inline CELER_FUNCTION MaterialView material_record(GeoTrackView const&) const;
+    inline CELER_FUNCTION MaterialView material_record(
+        GeoTrackView const&) const;
 
     // Return a material view for a specific optical material
     inline CELER_FUNCTION MaterialView material_record(OptMatId) const;
@@ -117,10 +117,8 @@ class CoreTrackView
  *
  * For optical tracks, the value of the track slot is the same as the track ID.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             TrackSlotId track_slot)
+CELER_FUNCTION CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : params_(params), states_(states), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());
@@ -130,8 +128,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     // Initialiize the sim state
     this->sim() = SimTrackView::Initializer{init.primary, init.time};
@@ -190,8 +188,8 @@ CELER_FORCEINLINE_FUNCTION auto CoreTrackView::material_record() const
 /*!
  * Return a material view using an existing geo track view.
  */
-CELER_FUNCTION auto
-CoreTrackView::material_record(GeoTrackView const& geo) const -> MaterialView
+CELER_FUNCTION auto CoreTrackView::material_record(
+    GeoTrackView const& geo) const -> MaterialView
 {
     CELER_EXPECT(!geo.is_outside());
     return MaterialView{params_.material, geo.impl_volume_id()};
@@ -336,11 +334,12 @@ CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
  */
 CELER_FUNCTION void CoreTrackView::apply_errored()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.post_step_action(params_.scalars.tracking_cut_action);
-    atomic_add(&this->counters().num_errored, size_type{1});
+    atomic_add(&this->counters().num_errored, 1_sz);
 }
 
 //---------------------------------------------------------------------------//
@@ -349,10 +348,11 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
  */
 CELER_FUNCTION void CoreTrackView::apply_cut()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.post_step_action(params_.scalars.tracking_cut_action);
-    atomic_add(&this->counters().num_cut, size_type{1});
+    atomic_add(&this->counters().num_cut, 1_sz);
 }
 
 //---------------------------------------------------------------------------//

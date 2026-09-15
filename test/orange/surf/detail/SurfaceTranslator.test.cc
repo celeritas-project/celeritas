@@ -163,6 +163,15 @@ TEST_F(SurfaceTranslatorTest, involute)
     }
 }
 
+TEST_F(SurfaceTranslatorTest, toroid)
+{
+    auto tor = translate(Toroid{{0, 1, 2}, 2, 1, 3});
+    EXPECT_VEC_SOFT_EQ((Real3{2, 4, 6}), tor.origin());
+    EXPECT_SOFT_EQ(2.0, tor.major_radius());
+    EXPECT_SOFT_EQ(1.0, tor.ellipse_xy_radius());
+    EXPECT_SOFT_EQ(3.0, tor.ellipse_z_radius());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace detail

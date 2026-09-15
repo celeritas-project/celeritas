@@ -42,8 +42,8 @@ class StatusChecker final
 {
   public:
     // Construct and add to core params
-    static std::shared_ptr<StatusChecker>
-    make_and_insert(CoreParams const& core);
+    static std::shared_ptr<StatusChecker> make_and_insert(
+        CoreParams const& core);
 
     // Construct with IDs
     StatusChecker(ActionId action_id, AuxId aux_id);
@@ -86,8 +86,8 @@ class StatusChecker final
 
     // Execute *manually* with the last action's ID and the state
     template<MemSpace M>
-    void
-    step(ActionId prev_action, CoreParams const&, CoreState<M>& state) const;
+    void step(
+        ActionId prev_action, CoreParams const&, CoreState<M>& state) const;
 
   private:
     template<MemSpace M>

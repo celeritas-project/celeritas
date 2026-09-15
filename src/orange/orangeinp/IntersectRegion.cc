@@ -26,11 +26,14 @@
 #include "orange/surf/PlaneAligned.hh"
 #include "orange/surf/SimpleQuadric.hh"
 #include "orange/surf/SphereCentered.hh"
+#include "orange/surf/Toroid.hh"
 
 #include "IntersectSurfaceBuilder.hh"
 #include "ObjectIO.json.hh"
 
 #include "detail/PolygonUtils.hh"
+
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -93,8 +96,8 @@ CELER_FORCEINLINE_FUNCTION BBox make_radial_bbox(real_type r)
 /*!
  * Replace signed zeros with positive zero.
  */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type
-canonicalize_zero(real_type value)
+[[nodiscard]] CELER_CONSTEXPR_FUNCTION real_type canonicalize_zero(
+    real_type value)
 {
     return value == 0 ? 0 : value;
 }
@@ -206,7 +209,7 @@ void Cone::build(IntersectSurfaceBuilder& insert_surface) const
     if (CELER_UNLIKELY(make_soft_equal(insert_surface)(radii_[0], radii_[1])))
     {
         // Degenerate cone: build a cylinder instead
-        Cylinder cyl{real_type{0.5} * (radii_[0] + radii_[1]), hh_};
+        Cylinder cyl{0.5_r * (radii_[0] + radii_[1]), hh_};
         return cyl.build(insert_surface);
     }
 
@@ -556,9 +559,8 @@ real_type EllipticalCylinder::radius(Axis ax) const
 /*!
  * Construct with lower/upper x- and y-radii and half-height in z.
  */
-EllipticalCone::EllipticalCone(Real2 const& lower_radii,
-                               Real2 const& upper_radii,
-                               real_type halfheight)
+EllipticalCone::EllipticalCone(
+    Real2 const& lower_radii, Real2 const& upper_radii, real_type halfheight)
     : lower_radii_{lower_radii}, upper_radii_{upper_radii}, hh_{halfheight}
 {
     // True if either radius is negative
@@ -601,9 +603,9 @@ EllipticalCone::EllipticalCone(Real2 const& lower_radii,
 
     // Check for elliptical cylinders. Since we have already validated the
     // aspect ratio, we only need to test the x-values here.
-    CELER_VALIDATE(!soft_equal(lower_radii_[X], upper_radii_[X]),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+    CELER_VALIDATE(
+        !soft_equal(lower_radii_[X], upper_radii_[X]),
+        << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -716,10 +718,10 @@ ExtrudedPolygon::ExtrudedPolygon(ExtrudedPolygon::VecReal2 const& polygon,
 
     // After removing collinear points, the polygon should have a *strictly*
     // counterclockwise orientation, which also guarantees it is convex.
-    CELER_VALIDATE(has_orientation(make_span(polygon_),
-                                   detail::Orientation::counterclockwise),
-                   << "polygon must be specified in strictly counterclockwise "
-                      "order");
+    CELER_VALIDATE(
+        has_orientation(make_span(polygon_),
+                        detail::Orientation::counterclockwise),
+        << "polygon must be specified in strictly counterclockwise order");
 }
 
 //---------------------------------------------------------------------------//
@@ -1092,8 +1094,8 @@ void GenPrism::build(IntersectSurfaceBuilder& insert_surface) const
             // Tilt of the edges (linear component)
             Real3 ghi = {myr - myl,
                          mxl - mxr,
-                         canonicalize_zero(txr * myl - txl * myr + tyl * mxr
-                                           - tyr * mxl)};
+                         canonicalize_zero(
+                             txr * myl - txl * myr + tyl * mxr - tyr * mxl)};
             // Cross product of midpoint ("displacement")
             real_type js = canonicalize_zero(mxr * myl - mxl * myr);
 
@@ -1141,9 +1143,8 @@ void GenPrism::output(JsonPimpl* j) const
 /*!
  * Construct with radius at midpoint (min) and end (max), and half-height.
  */
-Hyperboloid::Hyperboloid(real_type min_radius,
-                         real_type max_radius,
-                         real_type halfheight)
+Hyperboloid::Hyperboloid(
+    real_type min_radius, real_type max_radius, real_type halfheight)
     : r_min_{min_radius}, r_max_{max_radius}, hh_{halfheight}
 {
     CELER_VALIDATE(r_min_ > 0,
@@ -1440,9 +1441,8 @@ void Involute::output(JsonPimpl* j) const
 /*!
  * Construct with lower/upper radii and the half-height.
  */
-Paraboloid::Paraboloid(real_type lower_radius,
-                       real_type upper_radius,
-                       real_type halfheight)
+Paraboloid::Paraboloid(
+    real_type lower_radius, real_type upper_radius, real_type halfheight)
     : r_lo_{lower_radius}, r_hi_{upper_radius}, hh_{halfheight}
 {
     // Check for negative radii
@@ -1450,9 +1450,9 @@ Paraboloid::Paraboloid(real_type lower_radius,
     CELER_VALIDATE(r_hi_ >= 0, << "negative upper radius: " << r_hi_);
 
     // Check for cylinders (this throws when both radii are zero)
-    CELER_VALIDATE(!soft_equal(r_lo_, r_hi_),
-                   << "equal and lower and upper radii (use cylinder "
-                      "instead)");
+    CELER_VALIDATE(
+        !soft_equal(r_lo_, r_hi_),
+        << "equal and lower and upper radii (use cylinder instead)");
 
     // Check positivity of half-height
     CELER_VALIDATE(hh_ > 0, << "nonpositive halfheight: " << hh_);
@@ -1519,10 +1519,8 @@ void Paraboloid::output(JsonPimpl* j) const
 /*!
  * Construct with a 3-vector of half-edges and three angles.
  */
-Parallelepiped::Parallelepiped(Real3 const& half_projs,
-                               Turn alpha,
-                               Turn theta,
-                               Turn phi)
+Parallelepiped::Parallelepiped(
+    Real3 const& half_projs, Turn alpha, Turn theta, Turn phi)
     : hpr_{half_projs}, alpha_{alpha}, theta_{theta}, phi_{phi}
 {
     for (auto ax : range(Axis::size_))
@@ -1631,8 +1629,7 @@ void Prism::build(IntersectSurfaceBuilder& insert_surface) const
     // the +x axis. An offset of 1 would produce a shape congruent with an
     // offset of zero, except that every face has an index that's decremented
     // by 1. We prevent this by using fmod.
-    real_type const offset
-        = std::fmod(orientation_ + real_type{0.5}, real_type{1});
+    real_type const offset = std::fmod(orientation_ + 0.5_r, 1_r);
     CELER_ASSERT(offset >= 0 && offset < 1);
 
     // Change of angle in radians per side
@@ -1729,7 +1726,7 @@ Tet::Tet(ArrReal3 const& vertices) : v_{vertices}
 {
     // Check that vertices are not coplanar by computing volume
     SquareMatrixReal3 delta;
-    for (auto i : range(size_type(3)))
+    for (auto i : range(3_sz))
     {
         delta[i] = v_[i + 1] - v_[0];
     }
@@ -1761,7 +1758,7 @@ void Tet::build(IntersectSurfaceBuilder& insert_surface) const
         {2, 0, 3}  // left
     };
 
-    for (auto i : range(size_type(4)))
+    for (auto i : range(4_sz))
     {
         auto const& indices = face_vertices[i];
         insert_surface(
@@ -1801,6 +1798,54 @@ Real3 const& Tet::vertex(size_type i) const
 {
     CELER_EXPECT(i < 4);
     return v_[i];
+}
+
+//---------------------------------------------------------------------------//
+// TORUS
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with radii.
+ */
+using ToroidSurf = ::celeritas::Toroid;
+
+Torus::Torus(real_type major_radius, real_type minor_radius)
+    : r_maj_{major_radius}, r_min_{minor_radius}
+{
+    CELER_VALIDATE(r_maj_ > 0, << "nonpositive major radius: " << r_maj_);
+    CELER_VALIDATE(r_min_ > 0, << "nonpositive minor radius: " << r_min_);
+    CELER_VALIDATE(r_maj_ > r_min_,
+                   << "toroid major radius (" << r_maj_
+                   << ") must be greater than"
+                   << "minor radius (" << r_min_ << ")");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Build surfaces.
+ */
+void Torus::build(IntersectSurfaceBuilder& insert_surface) const
+{
+    insert_surface(Sense::inside,
+                   ToroidSurf{{0, 0, 0}, r_maj_, r_min_, r_min_});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Write output to the given JSON object.
+ */
+void Torus::output(JsonPimpl* j) const
+{
+    save_region_json(j, *this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Returns whether this centered torus encloses another such torus.
+ */
+bool Torus::encloses(Torus const& other) const
+{
+    return std::fabs(this->major_radius() - other.major_radius())
+           < this->minor_radius() - other.minor_radius();
 }
 
 //---------------------------------------------------------------------------//

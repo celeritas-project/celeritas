@@ -61,7 +61,7 @@ set(_test_ext "cms")
 if(NOT CELERITAS_DEBUG)
   set(_events
     "${CELER_APP_DATA_DIR}/ttbarsplit-12evt-1108prim.hepmc3")
-  set(_test_ext "${_label}-large")
+  set(_test_ext "${_test_ext}-large")
 else()
   # Use fewer events for debug
   set(_events
@@ -93,10 +93,6 @@ endif()
 if(Geant4_VERSION VERSION_LESS "10.7")
   # Don't bother: only for old framework support; and printf in the code fouls
   # the JSON parsing
-  set(_props DISABLED true)
-endif()
-if(CELERITAS_CORE_GEO STREQUAL "Geant4")
-  # FIXME: geant4 navigator doesn't work with field navigator
   set(_props DISABLED true)
 endif()
 if(CELERITAS_REAL_TYPE STREQUAL "float")

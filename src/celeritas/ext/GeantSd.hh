@@ -13,7 +13,6 @@
 
 #include "corecel/cont/EnumArray.hh"
 #include "geocel/Types.hh"
-#include "celeritas/geo/GeoFwd.hh"
 #include "celeritas/user/StepInterface.hh"
 
 class G4LogicalVolume;
@@ -131,7 +130,8 @@ class GeantSd final : public StepInterface
 
 #if !CELERITAS_USE_GEANT4
 
-inline GeantSd::GeantSd(ParticleParams const&, Input const&, StreamId::size_type)
+inline GeantSd::GeantSd(
+    ParticleParams const&, Input const&, StreamId::size_type)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

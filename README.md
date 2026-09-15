@@ -8,6 +8,14 @@ requirements of the [HL-LHC upgrade][HLLHC].
 
 # Documentation
 
+See [the quick start guide][quickstart] for common use cases:
+- Loading as a LArSoft plugin
+- Integrating as a library into an existing Geant4 application
+- Executing a Celeritas testing app for profiling on HPC
+- Development
+
+[quickstart]: https://celeritas-project.github.io/celeritas/user/index.html#quick-start-guide
+
 Most of the Celeritas documentation is readable through the codebase through a
 combination of [static RST documentation][doc/index.rst] and Doxygen-markup
 comments in the source code itself.
@@ -50,7 +58,7 @@ To do so, set Spack up its CUDA usage:
 $ spack external find cuda
 # Optionally set the default configuration. Replace "cuda_arch=80"
 # with your target architecture
-$ spack config add packages:all:variants:"cxxstd=17 +cuda cuda_arch=80"
+$ spack config add 'packages:all:variants:["cxxstd=17 +cuda cuda_arch=80"]'
 ```
 and install Celeritas with this configuration:
 ```console
@@ -133,6 +141,69 @@ manual.
 
 [integration]: https://celeritas-project.github.io/celeritas/user/usage/integration.html
 
+# Running a standalone Celeritas app
+
+The `celer-sim` application runs electromagnetic particle transport with
+Celeritas directly from a JSON input file. At minimum, the input must specify a
+GDML geometry and a source of primary particles.
+
+For example, the following input generates 100 10 MeV electrons emitted
+isotropically at the origin:
+
+```json
+{
+ "problem": {
+  "model": {
+   "geometry": "/path/to/geometry.gdml"
+  }
+ },
+ "events": {
+  "generator": {
+   "_type": "primary",
+   "angle": {
+    "_type": "isotropic"
+   },
+   "energy": {
+    "_type": "delta",
+    "value": 10.0
+   },
+   "shape": {
+    "_type": "delta",
+    "value": [0.0, 0.0, 0.0]
+   },
+   "pdg": [11],
+   "num_events": 1,
+   "primaries_per_event": 100
+  }
+ }
+}
+```
+
+Save the input as `input.json` and run:
+
+```console
+$ celer-sim input.json
+```
+
+Celeritas uses Geant4 to load the GDML geometry and construct the corresponding
+material and physics data. Additional input options can be used to configure
+the physics, magnetic field, scoring, diagnostics, and runtime parameters.
+
+More details are provided in the [application documentation][applications], and
+an [extended example][celer-sim-example] demonstrates how to configure
+additional options and interpret the output.
+
+The `celer-optical` application provides a standalone interface for simulating
+optical photon transport without running the full electromagnetic problem
+supported by `celer-sim`. It exposes a subset of the standalone functionality
+focused on optical physics; see the [celer-optical
+example][celer-optical-example] and [documentation][applications] for a
+complete input and invocation.
+
+[applicaations]: https://celeritas-project.github.io/celeritas/user/usage/execution/applications.html
+[celer-sim-example]: https://celeritas-project.github.io/celeritas/user/example/celer-sim.html
+[celer-optical-example]: https://celeritas-project.github.io/celeritas/user/example/celer-optical.html
+
 # Installation for developers
 
 Since Celeritas is still under very active development, you may be installing it
@@ -146,7 +217,7 @@ cards, execute the following steps from within the cloned Celeritas source
 directory:
 ```console
 # Create an environment from celeritas dependencies
-$ spack env create celeritas scripts/spack.yaml
+$ spack env create celeritas scripts/spack/env-devmin.yaml
 $ spack env activate celeritas
 # Set up CUDA/HIP (optional; example here is for Nvidia A100)
 $ spack external find --not-buildable cuda
@@ -176,24 +247,26 @@ Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
 See the configure output from the [GitHub runners][runners] for the full list of combinations.
 - Compilers
-    - GCC 11, 12, 14
-    - Clang 10, 15, 18
+    - GCC 8.5, 12, 14, 15
+    - Clang 15, 18, 22
     - MSVC 19
     - GCC 11.5 + NVCC 12.6
     - ROCm Clang 18
 - Platforms
     - Linux x86_64, ARM
+    - macOS Apple Silicon
     - Windows x86_64
 - C++ standard
-    - C++17 and C++20
+    - C++17, C++20, C++23
 - Dependencies:
     - Geant4 10.5-11.4
-    - VecGeom 1.2.10
+    - VecGeom 1.2.10-2.1
 
 Partial compatibility and correctness is available for an extended range of
 Geant4:
 - 10.5-10.7: no support for tracking manager offload
 - 11.0: no support for fast simulation offload
+- 11.4: see https://github.com/celeritas-project/celeritas/issues/2483
 
 Note also that navigation bugs in Geant4 and VecGeom older than the versions
 listed above *will* cause failures in some geometry-related unit tests. Future

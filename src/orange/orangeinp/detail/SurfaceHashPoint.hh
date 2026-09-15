@@ -82,6 +82,8 @@ struct SurfaceHashPoint
     {
         return std::sqrt(s.zeroth());
     }
+
+    real_type operator()(Toroid const& s) const { return s.major_radius(); }
 };
 
 //---------------------------------------------------------------------------//

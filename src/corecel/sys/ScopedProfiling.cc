@@ -25,11 +25,20 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 /*!
  * Whether profiling is enabled.
+ *
+ * This defaults to ON if CUDA is enabled since (as of CUDA 12.0) there is no
+ * measurable performance impact for NVTX hooks. It defaults to OFF otherwise.
  */
 bool ScopedProfiling::enabled()
 {
     static bool const enabled_ = [] {
-        auto result = celeritas::getenv_flag("CELER_ENABLE_PROFILING", false);
+#if CELERITAS_USE_CUDA
+        constexpr auto get_default_profiling = ScopedProfiling::is_nvtx_enabled;
+#else
+        constexpr auto get_default_profiling = [] { return false; };
+#endif
+        auto result = celeritas::getenv_flag_lazy("CELER_ENABLE_PROFILING",
+                                                  get_default_profiling);
         if (result.value)
         {
             if constexpr (CELERITAS_USE_HIP && !CELERITAS_HAVE_ROCTX)
@@ -40,10 +49,10 @@ bool ScopedProfiling::enabled()
             }
             else if constexpr (!CELER_USE_DEVICE && !CELERITAS_USE_PERFETTO)
             {
-                CELER_LOG(error) << "CELER_ENABLE_PROFILING is set but "
-                                    "Celeritas was compiled without a "
-                                    "profiling backend: code will run but no "
-                                    "profiling will be generated";
+                CELER_LOG(error)
+                    << "CELER_ENABLE_PROFILING is set but Celeritas was "
+                       "compiled without a profiling backend: code will run "
+                       "but no profiling will be generated";
                 return false;
             }
         }

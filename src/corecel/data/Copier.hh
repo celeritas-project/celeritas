@@ -32,7 +32,7 @@ namespace celeritas
 template<class T, MemSpace M>
 class Copier
 {
-    static_assert(TriviallyCopyable_v<T>, "Data is not trivially copyable");
+    static_assert(is_trivially_copyable_v<T>, "Data is not trivially copyable");
 
   public:
     //! Construct with the destination and the class's memspace
@@ -58,7 +58,7 @@ class Copier
 template<class T>
 class ItemCopier
 {
-    static_assert(TriviallyCopyable_v<T>, "Data is not trivially copyable");
+    static_assert(is_trivially_copyable_v<T>, "Data is not trivially copyable");
 
   public:
     //! Default constructor

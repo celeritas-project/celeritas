@@ -197,8 +197,8 @@ class MaterialParams final : public ParamsDataInterface<MaterialParamsData>
     using HostValue = HostVal<MaterialParamsData>;
     void append_element_def(ElementInput const& inp, HostValue*);
     void append_isotope_def(IsotopeInput const& inp, HostValue*);
-    ItemRange<MatElementComponent>
-    extend_elcomponents(MaterialInput const& inp, HostValue*) const;
+    ItemRange<MatElementComponent> extend_elcomponents(
+        MaterialInput const& inp, HostValue*) const;
     void append_material_def(MaterialInput const& inp, HostValue*);
 };
 

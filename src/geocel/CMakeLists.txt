@@ -18,6 +18,7 @@ list(APPEND SOURCES
   SurfaceParams.cc
   Types.cc
   TypesIO.json.cc
+  UniqueVolumeToString.cc
   VolumeParams.cc
   VolumeParamsIO.json.cc
   VolumeIdBuilder.cc

@@ -18,6 +18,7 @@ namespace celeritas
 {
 class AuxStateVec;
 class StepInterface;
+class VolumeParams;
 
 namespace detail
 {
@@ -41,6 +42,7 @@ class StepParams : public AuxParams<StepParamsData, StepStateData>
     // Construct from data IDs and interfaces
     StepParams(AuxId aux_id,
                CoreGeoParams const& geo,
+               VolumeParams const& volume,
                VecInterface const& interfaces);
 
     //!@{

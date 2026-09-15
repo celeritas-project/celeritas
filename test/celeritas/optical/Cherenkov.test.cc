@@ -9,18 +9,17 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/Types.hh"
 #include "corecel/cont/Range.hh"
-#include "corecel/data/CollectionBuilder.hh"
-#include "corecel/data/StateDataStore.hh"
-#include "corecel/grid/VectorUtils.hh"
-#include "corecel/math/Algorithms.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/Quantity.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
-#include "corecel/random/distribution/PoissonDistribution.hh"
+#include "corecel/random/Histogram.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/Constants.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Units.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
 #include "celeritas/optical/MaterialParams.hh"
@@ -30,7 +29,7 @@
 #include "celeritas/optical/gen/CherenkovOffload.hh"
 #include "celeritas/optical/gen/CherenkovParams.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
-#include "celeritas/phys/ParticleParams.hh"
+#include "celeritas/phys/ParticleParams.hh"  //IWYU pragma: keep
 
 #include "OpticalTestBase.hh"
 #include "celeritas_test.hh"
@@ -39,7 +38,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 
 struct InvCentimeter
@@ -117,8 +115,8 @@ Span<real_type const> get_water_refractive_index()
 // Convert a wavelength in [micrometer] to a photon energy in [MeV]
 real_type um_to_mev(real_type wavelength_um)
 {
-    return value_as<units::MevEnergy>(
-        optical::detail::wavelength_to_energy(1e-3_mm * wavelength_um));
+    return value_as<units::MevEnergy>(optical::detail::wavelength_to_energy(
+        1e-3 * units::millimeter * wavelength_um));
 }
 
 //---------------------------------------------------------------------------//
@@ -184,12 +182,12 @@ TEST_F(CherenkovWaterTest, angle_integral)
 
     auto const& energy = params->host_ref().reals[grid.grid];
     EXPECT_EQ(101, energy.size());
-    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front());
-    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back());
+    EXPECT_SOFT_EQ(1.0981771340407463e-6, energy.front().get());
+    EXPECT_SOFT_EQ(6.8123185952307824e-6, energy.back().get());
 
     auto const& angle_integral = params->host_ref().reals[grid.value];
-    EXPECT_EQ(0, angle_integral.front());
-    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back());
+    EXPECT_EQ(0, angle_integral.front().get());
+    EXPECT_SOFT_EQ(3.061762900072668e-06, angle_integral.back().get());
 }
 
 //---------------------------------------------------------------------------//
@@ -213,8 +211,7 @@ TEST_F(CherenkovWaterTest, dndx)
          {0.5, 0.6813, 0.69, 0.71, 0.73, 0.752, 0.756, 0.8, 0.9, 0.999})
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {
@@ -330,17 +327,11 @@ TEST_F(CherenkovWaterTest, generator)
     real_type total_num_photons;
 
     // Distributions
-    int num_bins = 16;
-    std::vector<real_type> costheta_dist(num_bins);
-    std::vector<real_type> energy_dist(num_bins);
-    std::vector<real_type> displacement_dist(num_bins);
+    std::vector<size_type> costheta_dist;
+    std::vector<size_type> energy_dist;
+    std::vector<size_type> displacement_dist;
 
     // Energy distribution binning
-    auto rindex_grid
-        = material->get(material_id).make_refractive_index_calculator().grid();
-    real_type emin = rindex_grid.front();
-    real_type emax = rindex_grid.back();
-    real_type edel = (emax - emin) / num_bins;
 
     auto sample = [&](OffloadPreStepData& pre_step,
                       ParticleTrackView const& particle,
@@ -350,14 +341,15 @@ TEST_F(CherenkovWaterTest, generator)
         // Reset tallies
         rng.reset_count();
         avg_costheta = avg_energy = avg_displacement = total_num_photons = 0;
-        std::fill(costheta_dist.begin(), costheta_dist.end(), 0);
-        std::fill(energy_dist.begin(), energy_dist.end(), 0);
-        std::fill(displacement_dist.begin(), displacement_dist.end(), 0);
 
         // Displacement distribution binning
-        real_type dmin = 0;
-        real_type dmax = sim.step_length();
-        real_type ddel = (dmax - dmin) / num_bins;
+        int num_bins = 16;
+        auto ri_grid
+            = material->get(material_id).make_refractive_index_calculator().grid();
+
+        Histogram costheta_hist(num_bins, {-1, 1});
+        Histogram energy_hist(num_bins, {ri_grid.front(), ri_grid.back()});
+        Histogram displacement_hist(num_bins, {0_r, sim.step_length()});
 
         // Calculate the average number of photons produced per unit length
         CherenkovOffload pre_generate(
@@ -367,7 +359,11 @@ TEST_F(CherenkovWaterTest, generator)
         for (size_type i = 0; i < num_samples; ++i)
         {
             auto const dist = pre_generate(rng);
-            CELER_ASSERT(dist);
+            if (!dist)
+            {
+                // No photons sampled
+                continue;
+            }
 
             // Sample the optical photons
             optical::CherenkovGenerator generate_photon(
@@ -381,27 +377,20 @@ TEST_F(CherenkovWaterTest, generator)
                 {
                     real_type costheta = dot_product(inc_dir, photon.direction);
                     avg_costheta += costheta;
-                    // Remap from [-1,1] to [0,1]
-                    int bin = static_cast<int>((1 + costheta) / 2 * num_bins);
-                    CELER_ASSERT(bin >= 0 && bin < num_bins);
-                    ++costheta_dist[bin];
+                    costheta_hist(costheta);
                 }
                 // Bin photon energy
                 {
                     real_type energy = photon.energy.value();
                     avg_energy += energy;
-                    int bin = static_cast<int>((energy - emin) / edel);
-                    CELER_ASSERT(bin >= 0 && bin < num_bins);
-                    ++energy_dist[bin];
+                    energy_hist(energy);
                 }
                 // Bin photon displacement
                 {
                     real_type displacement
                         = distance(pre_step.pos, photon.position);
                     avg_displacement += displacement;
-                    int bin = static_cast<int>((displacement - dmin) / ddel);
-                    CELER_ASSERT(bin >= 0 && bin < num_bins);
-                    ++displacement_dist[bin];
+                    displacement_hist(displacement);
                 }
 
                 // Photon polarization is perpendicular to the cone angle
@@ -410,6 +399,11 @@ TEST_F(CherenkovWaterTest, generator)
             }
             total_num_photons += dist.num_photons;
         }
+
+        costheta_dist = costheta_hist.counts();
+        energy_dist = energy_hist.counts();
+        displacement_dist = displacement_hist.counts();
+
         avg_costheta /= total_num_photons;
         avg_energy /= total_num_photons;
         avg_displacement /= (from_cm(1) * total_num_photons);
@@ -439,14 +433,12 @@ TEST_F(CherenkovWaterTest, generator)
         Real3 pos = {sim.step_length(), 0, 0};
 
         // clang-format off
-        static double const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52451, 10508, 0};
-        static double const expected_energy_dist[]
-            = {3690, 3774, 3698, 3752, 3684, 3658, 3768, 3831,
-               3921, 4029, 4025, 3941, 4134, 4286, 4307, 4461};
-        static double const expected_displacement_dist[]
-            = {3909, 4064, 3802, 3920, 4001, 3904, 3891, 3955,
-               3999, 3924, 3903, 3900, 3959, 3932, 4023, 3873};
+        static size_type const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 52173, 10417, 0};
+        static size_type const expected_energy_dist[]
+            = {3656, 3730, 3680, 3743, 3656, 3628, 3737, 3826, 3897, 3996, 4017, 3937, 4120, 4248, 4283, 4436,};
+        static size_type const expected_displacement_dist[]
+            = {3869, 4048, 3777, 3886, 3970, 3898, 3862, 3944, 3965, 3893, 3899, 3863, 3937, 3911, 3997, 3871,};
         // clang-format on
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
@@ -458,11 +450,11 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.73055857883146702, avg_costheta);
-            EXPECT_SOFT_EQ(4.0497726102182314e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.50020101984474064, avg_displacement);
-            EXPECT_SOFT_EQ(983.734375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(10.609603075017075, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.73054872533349, avg_costheta);
+            EXPECT_SOFT_EQ(4.0511824907988e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.50048096873882, avg_displacement);
+            EXPECT_SOFT_EQ(977.96875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(10.607125738936, avg_engine_samples);
         }
     }
 
@@ -483,12 +475,12 @@ TEST_F(CherenkovWaterTest, generator)
         auto sim = this->make_sim_track_view(0.15);
         Real3 pos = {sim.step_length(), 0, 0};
 
-        static double const expected_costheta_dist[]
-            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 991};
-        static double const expected_energy_dist[]
-            = {0, 0, 0, 0, 4, 14, 29, 26, 48, 51, 77, 103, 129, 132, 174, 204};
-        static double const expected_displacement_dist[] = {
-            123, 114, 103, 102, 83, 81, 80, 57, 60, 59, 31, 29, 36, 14, 16, 3};
+        static size_type const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 997};
+        static size_type const expected_energy_dist[]
+            = {0, 0, 0, 0, 5, 15, 30, 28, 52, 58, 78, 96, 125, 138, 165, 207};
+        static size_type const expected_displacement_dist[] = {
+            121, 124, 94, 98, 80, 91, 80, 59, 59, 56, 33, 32, 37, 17, 14, 2};
 
         sample(pre_step, particle, sim, pos, num_samples);
 
@@ -497,14 +489,82 @@ TEST_F(CherenkovWaterTest, generator)
             EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
             EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
             EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
-            EXPECT_SOFT_EQ(0.95045221539598979, avg_costheta);
-            EXPECT_SOFT_EQ(5.5902203966702514e-06, avg_energy);
-            EXPECT_SOFT_EQ(0.049715603846029896, avg_displacement);
-            EXPECT_SOFT_EQ(15.484375, total_num_photons / num_samples);
-            EXPECT_SOFT_EQ(25.077699293642784, avg_engine_samples);
+            EXPECT_SOFT_EQ(0.95082959158701, avg_costheta);
+            EXPECT_SOFT_EQ(5.5682878790974e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.050055328486844, avg_displacement);
+            EXPECT_SOFT_EQ(15.578125, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.135406218656, avg_engine_samples);
+        }
+    }
+
+    // 100 MeV e-, nearly along +z
+    {
+        // Pre-step values
+        OffloadPreStepData pre_step;
+        pre_step.pos = {0, 0, 0};
+        pre_step.time = 0;
+        pre_step.material = material_id;
+
+        // Post-step values: 1e-2cm step
+        auto particle
+            = this->make_particle_track_view(Energy(100), pdg::electron());
+        pre_step.speed = units::LightSpeed{
+            0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
+        auto sim = this->make_sim_track_view(1e-2);
+        Real3 end_pos = pre_step.pos;
+        axpy(sim.step_length(), make_unit_vector(Real3{1e-6, 0, 1}), &end_pos);
+
+        // clang-format off
+        static size_type const expected_costheta_dist[]
+            = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8462, 1600, 0,};
+        static size_type const expected_energy_dist[]
+            = {602, 562, 541, 601, 621, 589, 631, 629, 612, 624, 642, 660, 662, 713, 673, 700,};
+        static size_type const expected_displacement_dist[]
+            = {639, 573, 610, 588, 637, 631, 684, 624, 607, 620, 606, 653, 640, 677, 645, 628,};
+        // clang-format on
+
+        sample(pre_step, particle, sim, end_pos, 1024);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_VEC_EQ(expected_costheta_dist, costheta_dist);
+            EXPECT_VEC_EQ(expected_energy_dist, energy_dist);
+            EXPECT_VEC_EQ(expected_displacement_dist, displacement_dist);
+            EXPECT_SOFT_EQ(0.73051761032358, avg_costheta);
+            EXPECT_SOFT_EQ(4.0604281068754e-06, avg_energy);
+            EXPECT_SOFT_EQ(0.0050524167828547, avg_displacement);
+            EXPECT_SOFT_EQ(157.21875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(12.829656131982, avg_engine_samples);
+        }
+    }
+
+    // 10 MeV (post-step) e-: tiny dx relative to position
+    {
+        // Pre-step values
+        OffloadPreStepData pre_step;
+        pre_step.pos = from_cm({0, 0, 1e13});
+        pre_step.time = 0;
+        pre_step.material = material_id;
+
+        // Post-step values: 1e-3cm step
+        auto particle
+            = this->make_particle_track_view(Energy(10), pdg::electron());
+        pre_step.speed = units::LightSpeed{
+            0.5_r + value_as<units::LightSpeed>(particle.speed()) / 2};
+        auto sim = this->make_sim_track_view(1e-4);
+        Real3 end_pos = pre_step.pos;
+        axpy(sim.step_length(), make_unit_vector(Real3{0, 0, 1}), &end_pos);
+
+        sample(pre_step, particle, sim, end_pos, 128);
+
+        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
+        {
+            EXPECT_SOFT_EQ(0.296875, total_num_photons / num_samples);
+            EXPECT_SOFT_EQ(25.894736842105, avg_engine_samples);
         }
     }
 }
+
 class CherenkovAirTest : public CherenkovTest
 {
   public:
@@ -536,17 +596,14 @@ TEST_F(CherenkovAirTest, dndx)
         params->host_ref(),
         this->particle_params()->get(ParticleId{0}).charge());
 
-    std::vector<real_type> betas{real_type{1.0 / 1.2},
-                                 real_type{1.0 / 1.3},
-                                 1 / 1.31,
-                                 real_type{1.0 / 1.4}};
+    std::vector<real_type> betas{
+        1.0_r / 1.2, 1.0_r / 1.3, 1 / 1.31, 1.0_r / 1.4};
 
     std::vector<real_type> dndx;
     for (real_type beta : betas)
     {
         dndx.push_back(
-            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta)))
-                .value());
+            native_value_to<InvCmLength>(calc_dndx(units::LightSpeed(beta))).value());
     }
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
     {

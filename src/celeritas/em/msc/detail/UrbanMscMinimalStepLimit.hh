@@ -6,13 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <cmath>
-
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/NormalDistribution.hh"
-#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/UrbanMscData.hh"
 #include "celeritas/phys/PhysicsTrackView.hh"
@@ -40,12 +37,12 @@ class UrbanMscMinimalStepLimit
 {
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    UrbanMscMinimalStepLimit(NativeCRef<UrbanMscData> const& shared,
-                             UrbanMscHelper const& helper,
-                             PhysicsTrackView* physics,
-                             bool on_boundary,
-                             real_type phys_step);
+    inline CELER_FUNCTION UrbanMscMinimalStepLimit(
+        NativeCRef<UrbanMscData> const& shared,
+        UrbanMscHelper const& helper,
+        PhysicsTrackView* physics,
+        bool on_boundary,
+        real_type phys_step);
 
     // Apply the step limitation algorithm for e-/e+ MSC
     template<class Engine>
@@ -68,8 +65,7 @@ class UrbanMscMinimalStepLimit
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
+CELER_FUNCTION UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
     NativeCRef<UrbanMscData> const& shared,
     UrbanMscHelper const& helper,
     PhysicsTrackView* physics,
@@ -116,6 +112,8 @@ UrbanMscMinimalStepLimit::UrbanMscMinimalStepLimit(
 template<class Engine>
 CELER_FUNCTION real_type UrbanMscMinimalStepLimit::operator()(Engine& rng)
 {
+    using namespace celeritas::literals;
+
     if (max_step_ <= limit_)
     {
         // Skip sampling if the physics step is limiting
@@ -128,8 +126,8 @@ CELER_FUNCTION real_type UrbanMscMinimalStepLimit::operator()(Engine& rng)
     }
 
     // Randomize the limit if this step should be determined by MSC
-    NormalDistribution<real_type> sample_gauss(
-        limit_, real_type(0.1) * (limit_ - limit_min_));
+    NormalDistribution<real_type> sample_gauss(limit_,
+                                               0.1_r * (limit_ - limit_min_));
     real_type sampled_limit = sample_gauss(rng);
 
     // Keep sampled limit between the minimum value and maximum step

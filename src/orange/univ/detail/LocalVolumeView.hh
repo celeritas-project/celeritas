@@ -40,6 +40,8 @@ class LocalVolumeView
     //@{
     //! Type aliases
     using ParamsRef = NativeCRef<OrangeParamsData>;
+    using SpanLocalSurf = LdgSpan<LocalSurfaceId const>;
+    using SpanLogic = LdgSpan<logic_int const>;
     //@}
 
   public:
@@ -60,10 +62,10 @@ class LocalVolumeView
     inline CELER_FUNCTION FaceId find_face(LocalSurfaceId id) const;
 
     // Get all surface IDs for the volume
-    CELER_FORCEINLINE_FUNCTION LdgSpan<LocalSurfaceId const> faces() const;
+    CELER_FORCEINLINE_FUNCTION SpanLocalSurf faces() const;
 
     // Get logic definition
-    CELER_FORCEINLINE_FUNCTION LdgSpan<logic_int const> logic() const;
+    CELER_FORCEINLINE_FUNCTION SpanLogic logic() const;
 
     // Get the number of total intersections
     CELER_FORCEINLINE_FUNCTION logic_int max_intersections() const;
@@ -84,20 +86,20 @@ class LocalVolumeView
     ParamsRef const& params_;
     LocalVolumeRecord const& def_;
 
-    static inline CELER_FUNCTION LocalVolumeRecord const&
-    volume_record(ParamsRef const&,
-                  SimpleUnitRecord const& unit_record,
-                  LocalVolumeId id);
+    static inline CELER_FUNCTION LocalVolumeRecord const& volume_record(
+        ParamsRef const&,
+        SimpleUnitRecord const& unit_record,
+        LocalVolumeId id);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with reference to persistent data.
  */
-CELER_FUNCTION
-LocalVolumeView::LocalVolumeView(ParamsRef const& params,
-                                 SimpleUnitRecord const& unit_record,
-                                 LocalVolumeId id)
+CELER_FUNCTION LocalVolumeView::LocalVolumeView(
+    ParamsRef const& params,
+    SimpleUnitRecord const& unit_record,
+    LocalVolumeId id)
     : params_(params)
     , def_(LocalVolumeView::volume_record(params, unit_record, id))
 {
@@ -167,7 +169,7 @@ CELER_FUNCTION LdgSpan<LocalSurfaceId const> LocalVolumeView::faces() const
 /*!
  * Get logic definition.
  */
-CELER_FUNCTION LdgSpan<logic_int const> LocalVolumeView::logic() const
+CELER_FUNCTION auto LocalVolumeView::logic() const -> SpanLogic
 {
     return params_.logic_ints[def_.logic];
 }
@@ -176,7 +178,7 @@ CELER_FUNCTION LdgSpan<logic_int const> LocalVolumeView::logic() const
 /*!
  * Get the maximum number of surface intersections.
  */
-CELER_FUNCTION logic_int LocalVolumeView::max_intersections() const
+CELER_FUNCTION auto LocalVolumeView::max_intersections() const -> logic_int
 {
     return def_.max_intersections;
 }
@@ -225,10 +227,10 @@ CELER_FUNCTION bool LocalVolumeView::simple_intersection() const
  *
  * This is called during construction.
  */
-inline CELER_FUNCTION LocalVolumeRecord const&
-LocalVolumeView::volume_record(ParamsRef const& params,
-                               SimpleUnitRecord const& unit,
-                               LocalVolumeId local_vol_id)
+inline CELER_FUNCTION LocalVolumeRecord const& LocalVolumeView::volume_record(
+    ParamsRef const& params,
+    SimpleUnitRecord const& unit,
+    LocalVolumeId local_vol_id)
 {
     CELER_EXPECT(local_vol_id < unit.volumes.size());
     return params.volume_records[unit.volumes[local_vol_id]];

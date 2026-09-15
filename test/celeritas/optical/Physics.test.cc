@@ -10,6 +10,7 @@
 
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/ParticleData.hh"
 #include "celeritas/optical/ParticleTrackView.hh"
 #include "celeritas/optical/PhysicsParams.hh"
@@ -45,13 +46,16 @@ class OpticalPhysicsTest : public OpticalMockTestBase
             this->imported_data().optical_physics.bulk,
             this->optical_material(),
             this->material(),
-            this->optical_action_reg());
+            this->optical_action_reg(),
+            this->aux_reg(),
+            this->gen_reg(),
+            /* gen_capacity = */ 16);
     }
 
     void build_import_data(ImportData&) const override;
 
-    PhysicsTrackView
-    make_track_view(OptMatId mat, TrackSlotId slot = TrackSlotId{0})
+    PhysicsTrackView make_track_view(OptMatId mat,
+                                     TrackSlotId slot = TrackSlotId{0})
     {
         CELER_EXPECT(mat < this->num_optical_materials());
         return PhysicsTrackView(this->optical_physics()->host_ref(),
@@ -85,8 +89,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     template<class T>
     OptMatId cycle_material_id(T other_id)
     {
-        return OptMatId((2 * other_id.get() + 3)
-                        % this->num_optical_materials());
+        return OptMatId(
+            (2 * other_id.get() + 3) % this->num_optical_materials());
     }
 
   private:
@@ -191,8 +195,8 @@ TEST_F(OpticalPhysicsTest, physics_params)
     // Check model names
     static std::string_view expected_names[] = {
         "absorption",
-        "optical-mie",
-        "optical-rayleigh",
+        "mie",
+        "rayleigh",
         "wls",
     };
     EXPECT_VEC_EQ(expected_names, model_names);
@@ -297,7 +301,7 @@ TEST_F(OpticalPhysicsTest, calc_step_limits)
 
         auto const& expected_model_xs = expected_model_xs_per_energy[i];
         real_type expected_total_xs = std::accumulate(
-            expected_model_xs.begin(), expected_model_xs.end(), real_type{0});
+            expected_model_xs.begin(), expected_model_xs.end(), 0_r);
 
         StepLimit limits = calc_physics_step_limit(particle, physics);
 

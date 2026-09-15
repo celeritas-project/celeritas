@@ -93,22 +93,20 @@ class FerrariSolver
 
     //// HELPER FUNCTIONS ////
     // Try to place real at given index in list, return next free index
-    inline CELER_FUNCTION int
-    place_root(result_type& roots, real_type new_root, int free_index) const;
+    inline CELER_FUNCTION int place_root(
+        result_type& roots, real_type new_root, int free_index) const;
 
     // Find roots of special reduced quartic which is biquadratic
-    inline CELER_FUNCTION result_type calc_biquadratic_roots(real_type qb,
-                                                             real_type p,
-                                                             real_type r) const;
+    inline CELER_FUNCTION result_type calc_biquadratic_roots(
+        real_type qb, real_type p, real_type r) const;
 
     // Find all roots of normalized cubic (unsorted, dominant first)
-    inline CELER_FUNCTION Real3 real_roots_normalized_cubic(real_type b,
-                                                            real_type c,
-                                                            real_type d) const;
+    inline CELER_FUNCTION Real3 real_roots_normalized_cubic(
+        real_type b, real_type c, real_type d) const;
 
     // Find real quadratic roots
-    inline CELER_FUNCTION Real2
-    real_roots_normalized_quadratic(real_type b, real_type c) const;
+    inline CELER_FUNCTION Real2 real_roots_normalized_quadratic(
+        real_type b, real_type c) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -118,8 +116,10 @@ class FerrariSolver
  * Construct a solver instance with a specified tolerance for degenerate cases,
  * such as the particle starting on the surface.
  */
-CELER_FUNCTION
-FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
+CELER_FUNCTION FerrariSolver::FerrariSolver(real_type tolerance)
+    : soft_zero_{tolerance}
+{
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -133,6 +133,8 @@ FerrariSolver::FerrariSolver(real_type tolerance) : soft_zero_{tolerance} {}
 CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     -> result_type
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(abcde[0] != 0);
     auto [a, b, c, d, e] = abcde;
 
@@ -140,7 +142,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     real_type ba = b / a, ca = c / a, da = d / a, ea = e / a;
 
     constexpr real_type half{0.5};
-    real_type qb = real_type{0.25} * ba;
+    real_type qb = 0.25_r * ba;
 
     // Incomplete quartic
     real_type p = PolyEvaluator{-half * ca, 0, 3}(qb);
@@ -156,7 +158,7 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real5 const& abcde) const
     // One real root of subsidiary cubic
     Real3 z = FerrariSolver::real_roots_normalized_cubic(
         p, r, p * r - half * ipow<2>(q));
-    real_type z0 = z[0];
+    real_type z0 = (z[1] == no_solution_) ? z[0] : max(z[0], max(z[1], z[2]));
 
     real_type s2 = 2 * p + 2 * z0;
     if (s2 >= 0)
@@ -224,9 +226,8 @@ CELER_FUNCTION auto FerrariSolver::operator()(Real4 const& abcd) const
  * If the given value is no_solution_ or is not positive, does not place
  * the root, and returns the same index for the next one.
  */
-CELER_FUNCTION int FerrariSolver::place_root(result_type& roots,
-                                             real_type new_root,
-                                             int free_index) const
+CELER_FUNCTION int FerrariSolver::place_root(
+    result_type& roots, real_type new_root, int free_index) const
 {
     if (!(new_root == no_solution_ || new_root <= 0))
     {
@@ -244,10 +245,8 @@ CELER_FUNCTION int FerrariSolver::place_root(result_type& roots,
  * solved as a quadratic equation: The square roots of each quadratic solution
  * then go on to form potential quartic solutions, for up to four roots.
  */
-CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
-                                                          real_type p,
-                                                          real_type r) const
-    -> result_type
+CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(
+    real_type qb, real_type p, real_type r) const -> result_type
 {
     auto ir = real_roots_normalized_quadratic(-p, -r);
     result_type roots(no_solution_, no_solution_, no_solution_, no_solution_);
@@ -289,13 +288,13 @@ CELER_FUNCTION auto FerrariSolver::calc_biquadratic_roots(real_type qb,
  * \return The real roots of the given cubic equation, with the dominant at
  * index 0.
  */
-CELER_FUNCTION auto
-FerrariSolver::real_roots_normalized_cubic(real_type b,
-                                           real_type c,
-                                           real_type d) const -> Real3
+CELER_FUNCTION auto FerrariSolver::real_roots_normalized_cubic(
+    real_type b, real_type c, real_type d) const -> Real3
 {
-    constexpr real_type half = real_type{0.5};
-    constexpr real_type third = real_type{1} / real_type{3};
+    using namespace celeritas::literals;
+
+    constexpr real_type half = 0.5_r;
+    constexpr real_type third = 1_r / 3;
     real_type third_b = b * third;
 
     // Intermediate values
@@ -314,27 +313,20 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
     else if (discrim <= 0)  // All roots real, calculate with trigomonetry
     {
         real_type theta = std::acos(r / std::sqrt(q3));
-        real_type n2_root_q = real_type{-2} * std::sqrt(q);
-        real_type twth_pi = constants::pi * real_type{2} * third;
+        real_type n2_root_q = -2_r * std::sqrt(q);
+        real_type twth_pi = constants::pi * 2_r * third;
         real_type third_theta = theta * third;
 
         real_type z0 = n2_root_q * std::cos(third_theta) - third_b;
         real_type z1 = n2_root_q * std::cos(third_theta + twth_pi) - third_b;
         real_type z2 = n2_root_q * std::cos(third_theta - twth_pi) - third_b;
 
-        if (real_type{2} * theta < constants::pi)
-        {
-            return Real3(z0, z1, z2);
-        }
-        else
-        {
-            return Real3(z1, z0, z2);
-        }
+        return Real3(z0, z1, z2);
     }
     else  // One real and two complex roots, solve for real root with Cardano
     {
         real_type nr_a = -signum(r)
-                         * std::cbrt(std::abs(r) + std::sqrt(discrim));
+                         * std::cbrt(std::fabs(r) + std::sqrt(discrim));
         real_type nr_b = nr_a == 0 ? 0 : q / nr_a;
         real_type z0 = nr_a + nr_b - third_b;
         return Real3(z0, no_solution_, no_solution_);
@@ -354,9 +346,8 @@ FerrariSolver::real_roots_normalized_cubic(real_type b,
  * \return A pair of roots. If roots are imaginary, returns 2x
  * no_solution_.
  */
-CELER_FUNCTION auto
-FerrariSolver::real_roots_normalized_quadratic(real_type hb, real_type c) const
-    -> Real2
+CELER_FUNCTION auto FerrariSolver::real_roots_normalized_quadratic(
+    real_type hb, real_type c) const -> Real2
 {
     real_type qb2 = ipow<2>(hb);
     if (soft_zero_(qb2 - c))

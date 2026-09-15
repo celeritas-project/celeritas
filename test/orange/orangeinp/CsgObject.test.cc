@@ -46,8 +46,8 @@ class CsgObjectTest : public ObjectTestBase
     }
 
     //! Create a translated object
-    SPConstObject
-    make_translated(SPConstObject const& shape, Real3 const& translation)
+    SPConstObject make_translated(SPConstObject const& shape,
+                                  Real3 const& translation)
     {
         return std::make_shared<Transformed>(shape, Translation{translation});
     }
@@ -334,10 +334,14 @@ TEST_F(CsgObjectTest, subtraction_sep)
     VecReal scaling1 = {1, 1, 1};
     VecReal scaling2 = {2, 2, 2};
 
-    auto inner = std::make_shared<StackedExtrudedPolygon>(
-        "outer", std::move(polygon1), std::move(polyline1), std::move(scaling1));
-    auto outer = std::make_shared<StackedExtrudedPolygon>(
-        "inner", std::move(polygon2), std::move(polyline2), std::move(scaling2));
+    auto inner = std::make_shared<StackedExtrudedPolygon>("outer",
+                                                          std::move(polygon1),
+                                                          std::move(polyline1),
+                                                          std::move(scaling1));
+    auto outer = std::make_shared<StackedExtrudedPolygon>("inner",
+                                                          std::move(polygon2),
+                                                          std::move(polyline2),
+                                                          std::move(scaling2));
 
     auto sub = make_subtraction("hollow_sep", outer, inner);
 

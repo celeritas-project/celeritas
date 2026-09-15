@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "corecel/Assert.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/grid/Interpolator.hh"
 #include "corecel/grid/NonuniformGrid.hh"
@@ -16,7 +17,6 @@
 #include "corecel/grid/UniformGrid.hh"
 #include "corecel/grid/UniformGridData.hh"
 #include "corecel/math/Algorithms.hh"
-#include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 
 namespace celeritas
@@ -62,7 +62,7 @@ class InverseRangeCalculator
   private:
     UniformGrid log_energy_;
     NonuniformGrid<real_type> range_;
-    Span<real_type const> deriv_;
+    LdgSpan<real_type const> deriv_;
 };
 
 //---------------------------------------------------------------------------//
@@ -74,9 +74,8 @@ class InverseRangeCalculator
  * The range is expected to be monotonically increasing with energy.
  * Lower-energy particles have shorter ranges.
  */
-CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(UniformGridRecord const& grid,
-                                               Values const& values)
+CELER_FUNCTION InverseRangeCalculator::InverseRangeCalculator(
+    UniformGridRecord const& grid, Values const& values)
     : log_energy_(grid.grid)
     , range_(grid.value, values)
     , deriv_(values[grid.derivative])

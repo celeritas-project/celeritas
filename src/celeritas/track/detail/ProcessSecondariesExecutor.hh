@@ -16,6 +16,7 @@
 #include "celeritas/global/CoreTrackView.hh"
 #include "celeritas/phys/ParticleData.hh"
 #include "celeritas/phys/Secondary.hh"
+#include "celeritas/track/Utils.hh"
 
 #include "../CoreStateCounters.hh"
 
@@ -60,8 +61,8 @@ struct ProcessSecondariesExecutor
  * slots, so ThreadId should be equal to TrackSlotId. No remapping should be
  * done.
  */
-CELER_FUNCTION void
-ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
+CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
+    TrackSlotId tid) const
 {
     CELER_EXPECT(tid < state->size());
 
@@ -155,8 +156,7 @@ ProcessSecondariesExecutor::operator()(TrackSlotId tid) const
 
                 // Store the track initializer
                 data.initializers[ItemId<TrackInitializer>{
-                    counters.num_initializers - offset}]
-                    = ti;
+                    counters.num_initializers - offset}] = ti;
 
                 --offset;
             }

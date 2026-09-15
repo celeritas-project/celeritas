@@ -55,7 +55,7 @@ class IllinoisRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-CELER_FUNCTION IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
+CELER_CTAD_FUNCTION IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -64,8 +64,8 @@ CELER_FUNCTION IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION
-IllinoisRootFinder<F>::IllinoisRootFinder(F&& func, real_type tol)
+CELER_FUNCTION IllinoisRootFinder<F>::IllinoisRootFinder(F&& func,
+                                                         real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -81,6 +81,8 @@ template<class F>
 CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type xl,
                                                            real_type xr)
 {
+    using namespace celeritas::literals;
+
     //! Enum defining side of approximated root to true root
     enum class Side
     {
@@ -111,7 +113,7 @@ CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type xl,
             fl = fx;
             if (side == Side::left)
             {
-                fr *= real_type(0.5);
+                fr *= 0.5_r;
             }
             side = Side::left;
         }
@@ -121,7 +123,7 @@ CELER_FUNCTION real_type IllinoisRootFinder<F>::operator()(real_type xl,
             fr = fx;
             if (side == Side::right)
             {
-                fl *= real_type(0.5);
+                fl *= 0.5_r;
             }
             side = Side::right;
         }

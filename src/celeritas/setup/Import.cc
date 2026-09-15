@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "corecel/Assert.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/ext/GeantImporter.hh"
 #include "celeritas/ext/RootImporter.hh"
@@ -146,8 +147,8 @@ void physics_from(inp::PhysicsFromGeantFiles const& pfgf, ImportData& imported)
     }
     else if (imported.em_params.auger)
     {
-        CELER_LOG(warning) << "Auger emission is ignored because "
-                              "fluorescent atomic relaxation is disabled";
+        CELER_LOG(warning) << "Auger emission is ignored because fluorescent "
+                              "atomic relaxation is disabled";
     }
 }
 

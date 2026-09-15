@@ -20,7 +20,6 @@
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/detail/Joined.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/io/ImportData.hh"
@@ -301,11 +300,11 @@ VecMat BuildFromImplVolumes::operator()(MapImplMat const& materials) const
  * Note that the import volume index (see GeantImporter.cc) corresponds to the
  * canonical \c VolumeId .
  */
-std::shared_ptr<GeoMaterialParams>
-GeoMaterialParams::from_import(ImportData const& data,
-                               SPConstCoreGeo geo_params,
-                               SPConstVolume vol_params,
-                               SPConstMaterial material_params)
+std::shared_ptr<GeoMaterialParams> GeoMaterialParams::from_import(
+    ImportData const& data,
+    SPConstCoreGeo geo_params,
+    SPConstVolume vol_params,
+    SPConstMaterial material_params)
 {
     GeoMaterialParams::Input input;
 
@@ -378,8 +377,6 @@ GeoMaterialParams::GeoMaterialParams(Input const& input)
 {
     CELER_EXPECT(input.geometry);
     CELER_EXPECT(input.materials);
-
-    ScopedMem record_mem("GeoMaterialParams.construct");
 
     auto const& impl_volumes = input.geometry->impl_volumes();
     VecMat volume_to_mat = std::visit(

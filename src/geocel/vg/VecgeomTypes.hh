@@ -16,11 +16,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 
-#if VECGEOM_VERSION < 0x020000 && CELERITAS_VECGEOM_SURFACE
-#    error \
-        "Unsupported: cannot build with VecGeom surface before merge into 2.0"
-#endif
-
 #ifndef VECGEOM_PRECISION_NAMESPACE
 // VecGeom <= 2.0.0-rc.7 puts navindex, precision in global namespace
 #    define VECGEOM_PRECISION_NAMESPACE
@@ -75,7 +70,7 @@ using vgbvh_real_type = double;
 #if VECGEOM_VERSION >= 0x020000
 // Allow trivial copying of tuple between device/host
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
-struct TriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
 {
 };
 #endif

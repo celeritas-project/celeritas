@@ -48,11 +48,11 @@ void trace_counter_impl(char const* name, T value)
 
     auto attributes = make_base_attributes(name);
 
-#define TC_SET_PAYLOAD(TYPE, NVTX_ENUM, MEMBER)                 \
-    if constexpr (std::is_same_v<T, TYPE>)                      \
-    {                                                           \
+#define TC_SET_PAYLOAD(TYPE, NVTX_ENUM, MEMBER) \
+    if constexpr (std::is_same_v<T, TYPE>) \
+    { \
         attributes.payloadType = NVTX_PAYLOAD_TYPE_##NVTX_ENUM; \
-        attributes.payload.MEMBER = value;                      \
+        attributes.payload.MEMBER = value; \
     }
     // clang-format off
     TC_SET_PAYLOAD(std::uint64_t,      UNSIGNED_INT64, ullValue)

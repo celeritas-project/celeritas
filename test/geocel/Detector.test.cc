@@ -29,8 +29,8 @@ class DetectorTest : public ComplexVolumeTestBase
     }
 
     // Build detector input from volume labels
-    inp::Detectors
-    make_detectors(std::vector<std::pair<std::string, VecStr>> const& det_vols)
+    inp::Detectors make_detectors(
+        std::vector<std::pair<std::string, VecStr>> const& det_vols)
     {
         inp::Detectors result;
         for (auto const& [det_label, vol_names] : det_vols)

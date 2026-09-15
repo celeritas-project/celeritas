@@ -14,7 +14,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/io/ImportData.hh"
 
 #include "PDGNumber.hh"
@@ -29,8 +28,8 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<ParticleParams>
-ParticleParams::from_import(ImportData const& data)
+std::shared_ptr<ParticleParams> ParticleParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.particles.empty());
 
@@ -61,8 +60,6 @@ ParticleParams::from_import(ImportData const& data)
  */
 ParticleParams::ParticleParams(Input const& input)
 {
-    ScopedMem record_mem("ParticleParams.construct");
-
     md_.reserve(input.size());
 
     // Build elements and materials on host.

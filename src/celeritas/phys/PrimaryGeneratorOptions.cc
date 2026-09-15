@@ -17,9 +17,8 @@ namespace
 /*!
  * Validate the number of parameters.
  */
-void check_params_size(char const* sampler,
-                       std::size_t dimension,
-                       DistributionOptions options)
+void check_params_size(
+    char const* sampler, std::size_t dimension, DistributionOptions options)
 {
     CELER_EXPECT(dimension > 0);
     std::size_t required_params = 0;
@@ -131,9 +130,8 @@ char const* to_cstring(DistributionSelection value)
 inp::CorePrimaryGenerator to_input(PrimaryGeneratorOptions const& pgo)
 {
     CELER_VALIDATE(pgo,
-                   << "Invalid PrimaryGeneratorOptions: "
-                   << "ensure all distributions and parameters are correctly "
-                      "set.");
+                   << "Invalid PrimaryGeneratorOptions: ensure all "
+                      "distributions and parameters are correctly set.");
 
     inp::CorePrimaryGenerator result;
 

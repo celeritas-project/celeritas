@@ -33,7 +33,8 @@ struct SurfaceInteractionApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION SurfaceInteractionApplier(F&&) -> SurfaceInteractionApplier<F>;
+CELER_CTAD_FUNCTION SurfaceInteractionApplier(F&&)
+    -> SurfaceInteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -42,8 +43,8 @@ CELER_FUNCTION SurfaceInteractionApplier(F&&) -> SurfaceInteractionApplier<F>;
  * Apply sampled surface interaction to the track.
  */
 template<class F>
-CELER_FUNCTION void
-SurfaceInteractionApplier<F>::operator()(CoreTrackView const& track) const
+CELER_FUNCTION void SurfaceInteractionApplier<F>::operator()(
+    CoreTrackView const& track) const
 {
     // Sample interaction
     SurfaceInteraction result = this->sample_interaction(track);

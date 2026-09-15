@@ -40,8 +40,8 @@ class TransformHasher
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 // Calculate a hash for a variant transform
-TransformHasher::result_type
-visit(TransformHasher const&, VariantTransform const& transform);
+TransformHasher::result_type visit(TransformHasher const&,
+                                   VariantTransform const& transform);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

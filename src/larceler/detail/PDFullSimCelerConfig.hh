@@ -73,6 +73,11 @@ struct PDFullSimCelerConfig
         fhicl::Comment{R"(Accumulate elapsed time in actions)"},
         false};
 
+    fhicl::Atom<bool> StepTimes{
+        fhicl::Name{"StepTimes"},
+        fhicl::Comment{R"(Record elapsed time per step)"},
+        false};
+
     fhicl::Atom<unsigned int> Seed{
         fhicl::Name{"Seed"}, fhicl::Comment{R"(RNG seed)"}, 12345};
 };

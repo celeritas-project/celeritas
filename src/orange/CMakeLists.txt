@@ -22,8 +22,8 @@ list(APPEND SOURCES
   OrangeTypes.cc
   OrangeTypesIO.json.cc
   SafetyImager.cc
-  detail/BIHBuilder.cc
-  detail/BIHPartitioner.cc
+  detail/BvhBuilder.cc
+  detail/BvhPartitioner.cc
   detail/DepthCalculator.cc
   detail/ConvertLogic.cc
   detail/LogicIO.cc

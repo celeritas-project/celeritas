@@ -11,8 +11,6 @@
 #include <vector>
 #include <gtest/gtest.h>
 
-#include "corecel/Config.hh"
-
 #include "corecel/math/SoftEqual.hh"
 
 namespace celeritas

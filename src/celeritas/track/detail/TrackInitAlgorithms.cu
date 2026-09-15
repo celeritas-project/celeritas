@@ -48,6 +48,8 @@
 namespace cub = hipcub;
 #endif
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -142,16 +144,13 @@ size_type exclusive_scan_counts(
         counts,
     StreamId stream_id)
 {
-    ScopedProfiling profile_this{"exclusive-scan-counts"};
+    ScopedProfiling profile_this{"prefix-sum-counts"};
     auto& stream = device().stream(stream_id);
 #if CELER_USE_THRUST
     // Exclusive scan:
     auto data = device_pointer_cast(counts.data());
-    auto stop = thrust::exclusive_scan(thrust_execute_on(stream_id),
-                                       data,
-                                       data + counts.size(),
-                                       data,
-                                       size_type(0));
+    auto stop = thrust::exclusive_scan(
+        thrust_execute_on(stream_id), data, data + counts.size(), data, 0_sz);
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Copy the last element (accumulated total) back to host

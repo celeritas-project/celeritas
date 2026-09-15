@@ -14,17 +14,16 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/CoreTrackData.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/MaterialParams.hh"  // IWYU pragma: keep
 
-#include "CherenkovParams.hh"
-#include "ScintillationParams.hh"
+#include "CherenkovParams.hh"  // IWYU pragma: keep
+#include "ScintillationParams.hh"  // IWYU pragma: keep
 
-#include "detail/CherenkovOffloadExecutor.hh"
+#include "detail/CherenkovOffloadExecutor.hh"  // IWYU pragma: keep
 #include "detail/OffloadAlgorithms.hh"
-#include "detail/ScintOffloadExecutor.hh"
+#include "detail/ScintOffloadExecutor.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -33,8 +32,8 @@ namespace celeritas
  * Construct and add to core params.
  */
 template<GeneratorType G>
-std::shared_ptr<OffloadAction<G>>
-OffloadAction<G>::make_and_insert(CoreParams const& core, Input&& input)
+std::shared_ptr<OffloadAction<G>> OffloadAction<G>::make_and_insert(
+    CoreParams const& core, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *core.action_reg();
@@ -63,7 +62,8 @@ OffloadAction<G>::OffloadAction(ActionId id, Input&& inp)
  * Execute the action with host data.
  */
 template<GeneratorType G>
-void OffloadAction<G>::step(CoreParams const& params, CoreStateHost& state) const
+void OffloadAction<G>::step(CoreParams const& params,
+                            CoreStateHost& state) const
 {
     this->step_impl(params, state);
 }
@@ -184,23 +184,27 @@ void OffloadAction<G>::offload(CoreParams const&, CoreStateDevice&) const
 template class OffloadAction<GeneratorType::cherenkov>;
 template class OffloadAction<GeneratorType::scintillation>;
 
-template typename OffloadAction<GeneratorType::cherenkov>::PreTraitsT::
-    template Data<Ownership::reference, MemSpace::device>&
-    OffloadAction<GeneratorType::cherenkov>::get_pre_step_data(
-        CoreState<MemSpace::device>&) const;
-template typename OffloadAction<GeneratorType::scintillation>::PreTraitsT::
-    template Data<Ownership::reference, MemSpace::device>&
-    OffloadAction<GeneratorType::scintillation>::get_pre_step_data(
-        CoreState<MemSpace::device>&) const;
+template typename OffloadAction<
+    GeneratorType::cherenkov>::PreTraitsT::template Data<Ownership::reference,
+                                                         MemSpace::device>&
+OffloadAction<GeneratorType::cherenkov>::get_pre_step_data(
+    CoreState<MemSpace::device>&) const;
+template typename OffloadAction<
+    GeneratorType::scintillation>::PreTraitsT::template Data<Ownership::reference,
+                                                             MemSpace::device>&
+OffloadAction<GeneratorType::scintillation>::get_pre_step_data(
+    CoreState<MemSpace::device>&) const;
 
-template typename OffloadAction<GeneratorType::cherenkov>::PostTraitsT::
-    template Data<Ownership::reference, MemSpace::device>&
-    OffloadAction<GeneratorType::cherenkov>::get_post_step_data(
-        CoreState<MemSpace::device>&) const;
-template typename OffloadAction<GeneratorType::scintillation>::PostTraitsT::
-    template Data<Ownership::reference, MemSpace::device>&
-    OffloadAction<GeneratorType::scintillation>::get_post_step_data(
-        CoreState<MemSpace::device>&) const;
+template typename OffloadAction<
+    GeneratorType::cherenkov>::PostTraitsT::template Data<Ownership::reference,
+                                                          MemSpace::device>&
+OffloadAction<GeneratorType::cherenkov>::get_post_step_data(
+    CoreState<MemSpace::device>&) const;
+template typename OffloadAction<
+    GeneratorType::scintillation>::PostTraitsT::template Data<Ownership::reference,
+                                                              MemSpace::device>&
+OffloadAction<GeneratorType::scintillation>::get_post_step_data(
+    CoreState<MemSpace::device>&) const;
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

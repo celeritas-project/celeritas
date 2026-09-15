@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Types.hh"
 #include "corecel/cont/InitializedValue.hh"
 #include "corecel/cont/Span.hh"
@@ -39,13 +37,12 @@ namespace celeritas
     myvec.copy_to_host(make_span(hostvec));
    \endcode
  *
- * - TODO: remove stream? it complicates things
- * - TODO: move to detail since this is basically only a backend for Collection
+ * \todo move to detail since this is basically only a backend for Collection
  */
 template<class T>
 class DeviceVector
 {
-    static_assert(TriviallyCopyable_v<T>,
+    static_assert(is_trivially_copyable_v<T>,
                   "DeviceVector element is not trivially copyable");
 
   public:
@@ -280,8 +277,8 @@ ObserverPtr<T, MemSpace::device> make_observer(DeviceVector<T>& vec) noexcept
 //---------------------------------------------------------------------------//
 //! Create an observer pointer from a pointer in the native memspace.
 template<class T>
-ObserverPtr<T const, MemSpace::device>
-make_observer(DeviceVector<T> const& vec) noexcept
+ObserverPtr<T const, MemSpace::device> make_observer(
+    DeviceVector<T> const& vec) noexcept
 {
     return ObserverPtr<T const, MemSpace::device>{vec.data()};
 }

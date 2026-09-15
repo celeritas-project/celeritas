@@ -20,9 +20,9 @@ namespace inp
 
 void to_json(nlohmann::json& j, Model const& v)
 {
-    CELER_VALIDATE(std::holds_alternative<std::string>(v.geometry),
-                   << "JSON serialization for model input only supports GDML "
-                      "filename");
+    CELER_VALIDATE(
+        std::holds_alternative<std::string>(v.geometry),
+        << "JSON serialization for model input only supports GDML filename");
 
     j = nlohmann::json{{"geometry", std::get<std::string>(v.geometry)}};
 }

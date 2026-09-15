@@ -45,14 +45,14 @@ class UniverseIndexer
 
   public:
     // Construct from UniverseIndexerData
-    explicit inline CELER_FUNCTION
-    UniverseIndexer(UniverseIndexerDataRef const& data);
+    explicit inline CELER_FUNCTION UniverseIndexer(
+        UniverseIndexerDataRef const& data);
 
     // Local-to-global
-    inline CELER_FUNCTION ImplSurfaceId
-    global_surface(UnivId uni, LocalSurfaceId surface) const;
-    inline CELER_FUNCTION ImplVolumeId global_volume(UnivId uni,
-                                                     LocalVolumeId volume) const;
+    inline CELER_FUNCTION ImplSurfaceId global_surface(
+        UnivId uni, LocalSurfaceId surface) const;
+    inline CELER_FUNCTION ImplVolumeId global_volume(
+        UnivId uni, LocalVolumeId volume) const;
 
     // Global-to-local
     inline CELER_FUNCTION LocalSurface local_surface(ImplSurfaceId id) const;
@@ -97,55 +97,56 @@ class UniverseIndexer
 /*!
  * Construct from UniverseIndexerData.
  */
-CELER_FUNCTION
-UniverseIndexer::UniverseIndexer(UniverseIndexerDataRef const& data)
+CELER_FUNCTION UniverseIndexer::UniverseIndexer(
+    UniverseIndexerDataRef const& data)
     : data_(data)
 {
+    using namespace celeritas::literals;
     CELER_EXPECT(data_.surfaces.size() == data_.volumes.size());
-    CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0);
-    CELER_EXPECT(data_.volumes[AllVals{}].front() == 0);
+    CELER_EXPECT(data_.surfaces[AllVals{}].front() == 0_sz);
+    CELER_EXPECT(data_.volumes[AllVals{}].front() == 0_sz);
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transform local to global surface ID.
  */
-CELER_FUNCTION ImplSurfaceId
-UniverseIndexer::global_surface(UnivId uni, LocalSurfaceId surf) const
+CELER_FUNCTION ImplSurfaceId UniverseIndexer::global_surface(
+    UnivId uni, LocalSurfaceId surf) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(surf < this->local_size(data_.surfaces, uni));
 
-    return ImplSurfaceId(data_.surfaces[SizeId{uni.unchecked_get()}]
-                         + surf.unchecked_get());
+    return ImplSurfaceId(
+        data_.surfaces[SizeId{uni.unchecked_get()}] + surf.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transform local to global volume ID.
  */
-CELER_FUNCTION ImplVolumeId
-UniverseIndexer::global_volume(UnivId uni, LocalVolumeId volume) const
+CELER_FUNCTION ImplVolumeId UniverseIndexer::global_volume(
+    UnivId uni, LocalVolumeId volume) const
 {
     CELER_EXPECT(uni < this->num_universes());
     CELER_EXPECT(volume < this->local_size(data_.volumes, uni));
 
-    return ImplVolumeId(data_.volumes[SizeId{uni.unchecked_get()}]
-                        + volume.unchecked_get());
+    return ImplVolumeId(
+        data_.volumes[SizeId{uni.unchecked_get()}] + volume.unchecked_get());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Transform global to local surface ID.
  */
-CELER_FUNCTION UniverseIndexer::LocalSurface
-UniverseIndexer::local_surface(ImplSurfaceId id) const
+CELER_FUNCTION UniverseIndexer::LocalSurface UniverseIndexer::local_surface(
+    ImplSurfaceId id) const
 {
     CELER_EXPECT(id < this->num_surfaces());
     auto iter = this->find_local(data_.surfaces, id.unchecked_get());
 
-    UnivId uni(iter - data_.surfaces[AllVals{}].begin());
-    LocalSurfaceId surface((id - *iter).unchecked_get());
+    auto uni = id_cast<UnivId>(iter - data_.surfaces[AllVals{}].begin());
+    auto surface = id_cast<LocalSurfaceId>(id.unchecked_get() - *iter);
     CELER_ENSURE(uni < this->num_universes());
     return {uni, surface};
 }
@@ -154,15 +155,15 @@ UniverseIndexer::local_surface(ImplSurfaceId id) const
 /*!
  * Transform global to local volume ID.
  */
-CELER_FUNCTION UniverseIndexer::LocalVolume
-UniverseIndexer::local_volume(ImplVolumeId id) const
+CELER_FUNCTION UniverseIndexer::LocalVolume UniverseIndexer::local_volume(
+    ImplVolumeId id) const
 {
     CELER_EXPECT(id < this->num_volumes());
     auto iter = this->find_local(data_.volumes, id.unchecked_get());
 
-    UnivId uni(iter - data_.volumes[AllVals{}].begin());
-    LocalVolumeId volume((id - *iter).unchecked_get());
-    CELER_ENSURE(uni.get() < this->num_universes());
+    auto uni = id_cast<UnivId>(iter - data_.volumes[AllVals{}].begin());
+    auto volume = id_cast<LocalVolumeId>(id.unchecked_get() - *iter);
+    CELER_ENSURE(uni < this->num_universes());
     return {uni, volume};
 }
 
@@ -172,8 +173,8 @@ UniverseIndexer::local_volume(ImplVolumeId id) const
 /*!
  * Locate the given ID in the list of offsets.
  */
-CELER_FUNCTION UniverseIndexer::SpanIter
-UniverseIndexer::find_local(DataRef offsets, size_type id)
+CELER_FUNCTION UniverseIndexer::SpanIter UniverseIndexer::find_local(
+    DataRef offsets, size_type id)
 {
     CELER_EXPECT(id < offsets[SizeId{offsets.size() - 1}]);
 

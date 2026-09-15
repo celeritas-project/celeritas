@@ -59,17 +59,17 @@ void resize(CoreStateData<Ownership::value, M>* state,
 }
 
 //---------------------------------------------------------------------------//
-template void
-resize<MemSpace::host>(CoreStateData<Ownership::value, MemSpace::host>*,
-                       HostCRef<CoreParamsData> const&,
-                       StreamId,
-                       size_type);
+template void resize<MemSpace::host>(
+    CoreStateData<Ownership::value, MemSpace::host>*,
+    HostCRef<CoreParamsData> const&,
+    StreamId,
+    size_type);
 
-template void
-resize<MemSpace::device>(CoreStateData<Ownership::value, MemSpace::device>*,
-                         HostCRef<CoreParamsData> const&,
-                         StreamId,
-                         size_type);
+template void resize<MemSpace::device>(
+    CoreStateData<Ownership::value, MemSpace::device>*,
+    HostCRef<CoreParamsData> const&,
+    StreamId,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -16,6 +16,9 @@ namespace inp
 {
 //---------------------------------------------------------------------------//
 
+void to_json(nlohmann::json& j, Problem const&);
+void from_json(nlohmann::json const& j, Problem&);
+
 void to_json(nlohmann::json& j, OpticalProblem const&);
 void from_json(nlohmann::json const& j, OpticalProblem&);
 

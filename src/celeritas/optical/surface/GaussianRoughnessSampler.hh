@@ -50,8 +50,8 @@ class GaussianRoughnessSampler
 {
   public:
     // Construct from sigma_alpha, global normal, and incident direction
-    inline CELER_FUNCTION
-    GaussianRoughnessSampler(Real3 const& normal, real_type sigma_alpha);
+    inline CELER_FUNCTION GaussianRoughnessSampler(Real3 const& normal,
+                                                   real_type sigma_alpha);
 
     // Sample facet normal
     template<class Engine>
@@ -61,6 +61,7 @@ class GaussianRoughnessSampler
     Real3 normal_;
     TruncatedDistribution<NormalDistribution<real_type>> sample_alpha_;
     real_type f_max_;
+    RejectionSampler<real_type> reject_;
 };
 
 //---------------------------------------------------------------------------//
@@ -69,12 +70,12 @@ class GaussianRoughnessSampler
 /*!
  * Construct from sigma_alpha and global normal.
  */
-CELER_FUNCTION
-GaussianRoughnessSampler::GaussianRoughnessSampler(Real3 const& normal,
-                                                   real_type sigma_alpha)
+CELER_FUNCTION GaussianRoughnessSampler::GaussianRoughnessSampler(
+    Real3 const& normal, real_type sigma_alpha)
     : normal_(normal)
-    , sample_alpha_(-0.5 * constants::pi, 0.5 * constants::pi, 0, sigma_alpha)
+    , sample_alpha_(-constants::pi / 2, constants::pi / 2, 0, sigma_alpha)
     , f_max_(fmin(real_type{1}, 4 * sigma_alpha))
+    , reject_(f_max_)
 {
     CELER_EXPECT(sigma_alpha > 0);
     CELER_EXPECT(is_soft_unit_vector(normal_));
@@ -99,7 +100,7 @@ CELER_FUNCTION Real3 GaussianRoughnessSampler::operator()(Engine& rng)
         sincos(alpha, &sin_alpha, &cos_alpha);
 
         // Transform to polar angle using rejection
-    } while (sin_alpha < f_max_ && RejectionSampler{sin_alpha, f_max_}(rng));
+    } while (sin_alpha < f_max_ && reject_(sin_alpha, rng));
 
     // Rotate normal by alpha and then sample azimuthal rotation uniformly
     return ExitingDirectionSampler{cos_alpha, normal_}(rng);

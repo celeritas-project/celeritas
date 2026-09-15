@@ -41,8 +41,8 @@ void ExtendFromSecondariesAction::begin_run(CoreParams const&,
  *
  * This fills the TrackInit \c vacancies and \c secondary_counts arrays.
  */
-void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
-                                               CoreStateDevice& core_state) const
+void ExtendFromSecondariesAction::locate_alive(
+    CoreParams const& core_params, CoreStateDevice& core_state) const
 {
     ScopedProfiling profile_this{"locate-alive"};
     using Executor = detail::LocateAliveExecutor;

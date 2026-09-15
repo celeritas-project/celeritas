@@ -13,7 +13,6 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/random/distribution/BernoulliDistribution.hh"
 #include "corecel/random/distribution/RejectionSampler.hh"
-#include "celeritas/em/interactor/detail/PhysicsConstants.hh"
 #include "celeritas/em/xs/MottRatioCalculator.hh"
 #include "celeritas/em/xs/NuclearFormFactors.hh"
 #include "celeritas/em/xs/WentzelHelper.hh"
@@ -68,14 +67,14 @@ class WentzelDistribution
 
   public:
     // Construct with state and model data
-    inline CELER_FUNCTION
-    WentzelDistribution(NativeCRef<WentzelOKVIData> const& wentzel,
-                        WentzelHelper const& helper,
-                        ParticleTrackView const& particle,
-                        IsotopeView const& target,
-                        ElementId el_id,
-                        real_type cos_thetamin,
-                        real_type cos_thetamax);
+    inline CELER_FUNCTION WentzelDistribution(
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        WentzelHelper const& helper,
+        ParticleTrackView const& particle,
+        IsotopeView const& target,
+        ElementId el_id,
+        real_type cos_thetamin,
+        real_type cos_thetamax);
 
     // Sample the polar scattering angle
     template<class Engine>
@@ -112,7 +111,8 @@ class WentzelDistribution
     //// HELPER FUNCTIONS ////
 
     // Calculates the form factor from the scattered polar angle
-    inline CELER_FUNCTION real_type calculate_form_factor(real_type cos_t) const;
+    inline CELER_FUNCTION real_type calculate_form_factor(
+        real_type cos_t) const;
 
     // Calculate the nuclear form momentum scale
     inline CELER_FUNCTION real_type nuclear_form_momentum_scale() const;
@@ -125,9 +125,8 @@ class WentzelDistribution
 
     // Sample the scattered polar angle
     template<class Engine>
-    inline CELER_FUNCTION real_type sample_costheta(real_type cos_thetamin,
-                                                    real_type cos_thetamax,
-                                                    Engine& rng) const;
+    inline CELER_FUNCTION real_type sample_costheta(
+        real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const;
 
     // Helper function for calculating the flat form factor
     inline static CELER_FUNCTION real_type flat_form_factor(real_type x);
@@ -142,8 +141,7 @@ class WentzelDistribution
 /*!
  * Construct with state and model data.
  */
-CELER_FUNCTION
-WentzelDistribution::WentzelDistribution(
+CELER_FUNCTION WentzelDistribution::WentzelDistribution(
     NativeCRef<WentzelOKVIData> const& wentzel,
     WentzelHelper const& helper,
     ParticleTrackView const& particle,
@@ -196,7 +194,7 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
                                             std::sqrt(particle_.beta_sq()));
         real_type xs = calc_mott_ratio(cos_theta)
                        * ipow<2>(this->calculate_form_factor(cos_theta));
-        if (RejectionSampler(xs, helper_.mott_factor())(rng))
+        if (RejectionSampler<real_type>{helper_.mott_factor()}(xs, rng))
         {
             // Reject scattering event: no change in direction
             cos_theta = 1;
@@ -213,8 +211,8 @@ CELER_FUNCTION real_type WentzelDistribution::operator()(Engine& rng) const
  * https://doi-org.ezproxy.cern.ch/10.1142/9167} section 2.4.2.1, parameterize
  * the charge distribution inside a nucleus.
  */
-CELER_FUNCTION real_type
-WentzelDistribution::calculate_form_factor(real_type cos_t) const
+CELER_FUNCTION real_type WentzelDistribution::calculate_form_factor(
+    real_type cos_t) const
 {
     CELER_EXPECT(cos_t >= -1 && cos_t <= 1);
 
@@ -271,8 +269,8 @@ CELER_FUNCTION real_type WentzelDistribution::flat_form_factor(real_type x)
  */
 CELER_CONSTEXPR_FUNCTION real_type WentzelDistribution::flat_coeff()
 {
-    using namespace celeritas::units::literals;
-    return native_value_to<units::MevMomentum>(2.0_fm / constants::hbar_planck)
+    return native_value_to<units::MevMomentum>(
+               2 * units::femtometer / constants::hbar_planck)
         .value();
 }
 
@@ -295,9 +293,11 @@ template<class Engine>
 CELER_FUNCTION real_type WentzelDistribution::sample_costheta(
     real_type cos_thetamin, real_type cos_thetamax, Engine& rng) const
 {
+    using namespace celeritas::literals;
+
     // Sample scattering angle [fern] eqn 92, where cos(theta) = 1 - 2*mu
-    real_type const mu1 = real_type{0.5} * (1 - cos_thetamin);
-    real_type const mu2 = real_type{0.5} * (1 - cos_thetamax);
+    real_type const mu1 = 0.5_r * (1 - cos_thetamin);
+    real_type const mu2 = 0.5_r * (1 - cos_thetamax);
     real_type const w = generate_canonical(rng) * (mu2 - mu1);
     real_type const sc = helper_.screening_coefficient();
 

@@ -88,8 +88,8 @@ LocalState RectArrayTrackerTest::make_state(Real3 pos, Real3 dir)
 /*!
  * Initialize inside a volume.
  */
-LocalState
-RectArrayTrackerTest::make_state(Real3 pos, Real3 dir, LocalVolumeId vol_id)
+LocalState RectArrayTrackerTest::make_state(
+    Real3 pos, Real3 dir, LocalVolumeId vol_id)
 {
     LocalState state = this->make_state(pos, dir);
     state.volume = vol_id;

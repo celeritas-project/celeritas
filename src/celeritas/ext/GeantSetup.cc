@@ -25,8 +25,6 @@
 
 #include "corecel/io/Logger.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantUtils.hh"
@@ -68,13 +66,11 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(std::string const& gdml_filename,
-                       Options options,
-                       SetString sd_names)
+GeantSetup::GeantSetup(
+    std::string const& gdml_filename, Options options, SetString sd_names)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedProfiling profile_this{"initialize-geant"};
-    ScopedMem record_setup_mem("GeantSetup.construct");
 
     {
         // Run manager writes output that cannot be redirected with
@@ -89,9 +85,9 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
 
         // Guard against segfaults due to bad Geant4 global cleanup
         static int geant_launch_count = 0;
-        CELER_VALIDATE(geant_launch_count == 0,
-                       << "Geant4 cannot be 'run' more than once per "
-                          "execution");
+        CELER_VALIDATE(
+            geant_launch_count == 0,
+            << "Geant4 cannot be 'run' more than once per execution");
         ++geant_launch_count;
 
 #if G4VERSION_NUMBER >= 1100
@@ -134,8 +130,6 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
 
     {
         CELER_LOG(status) << "Building Geant4 physics tables";
-        ScopedMem record_mem("GeantSetup.initialize");
-        ScopedTimeLog scoped_time;
 
         // Suppress Geant4 verbosity when G4ProcessType::fHadronic are enabled
 #if G4VERSION_NUMBER >= 1070

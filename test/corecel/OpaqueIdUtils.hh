@@ -10,8 +10,8 @@
 #include <vector>
 
 #include "corecel/OpaqueId.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Span.hh"
-#include "corecel/data/LdgIterator.hh"
 
 namespace celeritas
 {
@@ -54,7 +54,7 @@ inline auto id_to_int(Span<OpaqueId<I, T> const> vals)
 template<class I, class T>
 inline auto id_to_int(LdgSpan<OpaqueId<I, T> const> vals)
 {
-    return id_to_int(Span<OpaqueId<I, T> const>(vals));
+    return id_to_int(remove_ldg_wrapper(vals));
 }
 
 //---------------------------------------------------------------------------//

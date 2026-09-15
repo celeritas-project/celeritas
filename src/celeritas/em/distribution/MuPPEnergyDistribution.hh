@@ -73,11 +73,11 @@ class MuPPEnergyDistribution
 
   public:
     // Construct from shared and incident particle data
-    inline CELER_FUNCTION
-    MuPPEnergyDistribution(NativeCRef<MuPairProductionData> const& shared,
-                           ParticleTrackView const& particle,
-                           CutoffView const& cutoffs,
-                           ElementView const& element);
+    inline CELER_FUNCTION MuPPEnergyDistribution(
+        NativeCRef<MuPairProductionData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        ElementView const& element);
 
     template<class Engine>
     inline CELER_FUNCTION PairEnergy operator()(Engine& rng);
@@ -141,8 +141,7 @@ class MuPPEnergyDistribution
  *
  * The incident energy *must* be within the bounds of the sampling table data.
  */
-CELER_FUNCTION
-MuPPEnergyDistribution::MuPPEnergyDistribution(
+CELER_FUNCTION MuPPEnergyDistribution::MuPPEnergyDistribution(
     NativeCRef<MuPairProductionData> const& shared,
     ParticleTrackView const& particle,
     CutoffView const& cutoffs,
@@ -190,6 +189,8 @@ template<class Engine>
 CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
     -> PairEnergy
 {
+    using namespace celeritas::literals;
+
     // Sample the energy transfer
     real_type pair_energy
         = inc_energy_ * std::exp(coeff_ * this->sample_scaled_energy(rng));
@@ -204,7 +205,7 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
 
     // Calculate the electron and positron energies
     PairEnergy result;
-    real_type half_energy = pair_energy * real_type(0.5);
+    real_type half_energy = pair_energy * 0.5_r;
     result.electron = Energy((1 - r) * half_energy - electron_mass_);
     result.positron = Energy((1 + r) * half_energy - electron_mass_);
 
@@ -218,8 +219,8 @@ CELER_FUNCTION auto MuPPEnergyDistribution::operator()(Engine& rng)
  * Sample the scaled energy and interpolate in log Z.
  */
 template<class Engine>
-CELER_FUNCTION real_type
-MuPPEnergyDistribution::sample_scaled_energy(Engine& rng) const
+CELER_FUNCTION real_type MuPPEnergyDistribution::sample_scaled_energy(
+    Engine& rng) const
 {
     real_type u = generate_canonical(rng);
     LinearInterpolator<real_type> interp_energy{
@@ -232,8 +233,8 @@ MuPPEnergyDistribution::sample_scaled_energy(Engine& rng) const
 /*!
  * Calculate the scaled energy for a given Z grid and sampled CDF value.
  */
-CELER_FUNCTION real_type
-MuPPEnergyDistribution::calc_scaled_energy(size_type z_idx, real_type u) const
+CELER_FUNCTION real_type MuPPEnergyDistribution::calc_scaled_energy(
+    size_type z_idx, real_type u) const
 {
     CELER_EXPECT(z_idx < table_.grids.size());
     CELER_EXPECT(u >= 0 && u < 1);

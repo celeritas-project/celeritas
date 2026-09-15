@@ -1,0 +1,18 @@
+Run a standalone Celeritas optical simulation
+
+
+./celer-optical [OPTIONS] [filename] [SUBCOMMANDS]
+
+
+POSITIONALS:
+  filename TEXT:(FILE) OR ('-' for stdin/stdout)
+                              Input JSON
+
+OPTIONS:
+  -h,     --help              Print this help message and exit
+  -v,     --version           Display program version information and exit
+
+SUBCOMMANDS:
+  config                      Show configuration
+  default                     Show default input
+  device                      Show device information

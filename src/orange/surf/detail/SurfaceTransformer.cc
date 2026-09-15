@@ -21,6 +21,7 @@
 #include "../SimpleQuadric.hh"
 #include "../Sphere.hh"
 #include "../SphereCentered.hh"
+#include "../Toroid.hh"
 
 namespace celeritas
 {
@@ -29,7 +30,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                     \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT SurfaceTransformer::operator()(IN<Axis::x> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::y> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::z> const&) const
@@ -193,13 +194,15 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
     }();
 
     auto calc_q = [&other] {
+        using namespace celeritas::literals;
+
         constexpr auto X = to_int(Axis::x);
         constexpr auto Y = to_int(Axis::y);
         constexpr auto Z = to_int(Axis::z);
 
         Real3 const second = to_array(other.second());
-        Real3 const cross = to_array(other.cross()) / real_type(2);
-        Real3 const first = to_array(other.first()) / real_type(2);
+        Real3 const cross = to_array(other.cross()) / 2.0_r;
+        Real3 const first = to_array(other.first()) / 2.0_r;
         real_type const zeroth = other.zeroth();
 
         return Mat4{Vec4{zeroth, first[X], first[Y], first[Z]},
@@ -229,6 +232,15 @@ GeneralQuadric SurfaceTransformer::operator()(GeneralQuadric const& other) const
 Involute SurfaceTransformer::operator()(Involute const&) const
 {
     CELER_NOT_IMPLEMENTED("transformed involutes");
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transform a toroid.
+ */
+Toroid SurfaceTransformer::operator()(Toroid const&) const
+{
+    CELER_NOT_IMPLEMENTED("transformed toroids");
 }
 
 //---------------------------------------------------------------------------//

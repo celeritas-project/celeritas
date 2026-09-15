@@ -13,6 +13,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/MultiExceptionHandler.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "ActionInterface.hh"
@@ -35,6 +36,7 @@ void launch_core(size_type num_threads,
                  celeritas::CoreState<MemSpace::host>& state,
                  F&& execute_thread)
 {
+    ScopedProfiling profile_this_{label};
     MultiExceptionHandler capture_exception;
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 #    pragma omp parallel for

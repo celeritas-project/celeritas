@@ -16,5 +16,8 @@ namespace celeritas
 void from_json(nlohmann::json const& j, InterpolationType& value);
 void to_json(nlohmann::json& j, InterpolationType const& value);
 
+void from_json(nlohmann::json const& j, SplineBoundaryCondition& value);
+void to_json(nlohmann::json& j, SplineBoundaryCondition const& value);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

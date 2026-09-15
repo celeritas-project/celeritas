@@ -7,8 +7,9 @@
 #pragma once
 
 #include "corecel/Types.hh"
-#include "celeritas/global/ActionInterface.hh"
-#include "celeritas/optical/Types.hh"
+#include "corecel/sys/ActionInterface.hh"
+
+#include "../OffloadData.hh"
 
 namespace celeritas
 {

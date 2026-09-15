@@ -8,8 +8,7 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
-#include "corecel/data/LdgIterator.hh"
+#include "corecel/cont/LdgSpan.hh"
 #include "corecel/math/Algorithms.hh"
 
 namespace celeritas
@@ -68,8 +67,8 @@ class GridIdFinder
  * __ldg as needed
  */
 template<class K, class V>
-CELER_FUNCTION
-GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid, SpanConstValue value)
+CELER_FUNCTION GridIdFinder<K, V>::GridIdFinder(SpanConstGrid grid,
+                                                SpanConstValue value)
     : grid_(grid), value_(value)
 {
     CELER_EXPECT(grid_.size() == value_.size() + 1);

@@ -43,6 +43,7 @@ class WentzelOKVIParams;
 
 class ActionRegistry;
 class AuxParamsRegistry;
+class GeneratorRegistry;
 class OutputRegistry;
 
 class CoreParams;
@@ -100,6 +101,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     using SPConstWentzelOKVI = SP<WentzelOKVIParams const>;
 
     using SPActionRegistry = SP<ActionRegistry>;
+    using SPGenRegistry = SP<GeneratorRegistry>;
     using SPOutputRegistry = SP<OutputRegistry>;
     using SPUserRegistry = SP<AuxParamsRegistry>;
 
@@ -140,6 +142,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstTrackInit const& init();
     inline SPConstWentzelOKVI const& wentzel();
     inline SPActionRegistry const& action_reg();
+    inline SPGenRegistry const& gen_reg();
     inline SPUserRegistry const& aux_reg();
     inline SPConstCore const& core();
     inline SPConstCherenkov const& cherenkov();
@@ -163,6 +166,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     inline SPConstTrackInit const& init() const;
     inline SPConstWentzelOKVI const& wentzel() const;
     inline SPActionRegistry const& action_reg() const;
+    inline SPGenRegistry const& gen_reg() const;
     inline SPUserRegistry const& aux_reg() const;
     inline SPConstCore const& core() const;
     inline SPConstCherenkov const& cherenkov() const;
@@ -178,8 +182,8 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     optical::CoreParams::Input optical_params_input();
 
     SPConstPrimariesAction const& primaries_action();
-    void
-    insert_primaries(CoreStateInterface& state, SpanConstPrimary primaries);
+    void insert_primaries(CoreStateInterface& state,
+                          SpanConstPrimary primaries);
 
     //// OUTPUT ////
 
@@ -207,8 +211,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     [[nodiscard]] virtual SPConstOpticalPhysics build_optical_physics() = 0;
     [[nodiscard]] virtual SPConstOpticalSim build_optical_sim() = 0;
     [[nodiscard]] virtual SPConstOpticalSurfacePhysics
-    build_optical_surface_physics()
-        = 0;
+    build_optical_surface_physics() = 0;
     [[nodiscard]] virtual SPConstScintillation build_scintillation() = 0;
     [[nodiscard]] virtual inp::OpticalDetector build_optical_detector_input();
 
@@ -230,6 +233,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
   private:
     SPConstRng build_rng() const;
     SPActionRegistry build_action_reg() const;
+    SPGenRegistry build_gen_reg() const;
     SPUserRegistry build_aux_reg() const;
     SPConstCore build_core();
     SPActionRegistry build_optical_action_reg() const;
@@ -243,6 +247,7 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
     SPConstCutoff cutoff_;
     SPConstPhysics physics_;
     SPActionRegistry action_reg_;
+    SPGenRegistry gen_reg_;
     SPUserRegistry aux_reg_;
     SPConstAction along_step_;
     SPConstRng rng_;
@@ -274,34 +279,34 @@ class GlobalTestBase : public Test, public LazyGeantGeoManager
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 
-#define DEF_GTB_ACCESSORS(CLS, NAME)                \
-    auto GlobalTestBase::NAME() -> CLS const&       \
-    {                                               \
-        if (!this->NAME##_)                         \
-        {                                           \
-            this->NAME##_ = this->build_##NAME();   \
-            CELER_ASSERT(this->NAME##_);            \
-        }                                           \
-        return this->NAME##_;                       \
-    }                                               \
+#define DEF_GTB_ACCESSORS(CLS, NAME) \
+    auto GlobalTestBase::NAME() -> CLS const& \
+    { \
+        if (!this->NAME##_) \
+        { \
+            this->NAME##_ = this->build_##NAME(); \
+            CELER_ASSERT(this->NAME##_); \
+        } \
+        return this->NAME##_; \
+    } \
     auto GlobalTestBase::NAME() const -> CLS const& \
-    {                                               \
-        CELER_ASSERT(this->NAME##_);                \
-        return this->NAME##_;                       \
+    { \
+        CELER_ASSERT(this->NAME##_); \
+        return this->NAME##_; \
     }
 
-#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME)       \
-    auto GlobalTestBase::NAME() -> CLS const&       \
-    {                                               \
-        if (!this->NAME##_)                         \
-        {                                           \
-            this->NAME##_ = this->build_##NAME();   \
-        }                                           \
-        return this->NAME##_;                       \
-    }                                               \
+#define DEF_OPTIONAL_GTB_ACCESSORS(CLS, NAME) \
+    auto GlobalTestBase::NAME() -> CLS const& \
+    { \
+        if (!this->NAME##_) \
+        { \
+            this->NAME##_ = this->build_##NAME(); \
+        } \
+        return this->NAME##_; \
+    } \
     auto GlobalTestBase::NAME() const -> CLS const& \
-    {                                               \
-        return this->NAME##_;                       \
+    { \
+        return this->NAME##_; \
     }
 
 DEF_GTB_ACCESSORS(SPConstCoreGeo, geometry)
@@ -315,6 +320,7 @@ DEF_GTB_ACCESSORS(SPConstRng, rng)
 DEF_GTB_ACCESSORS(SPConstSim, sim)
 DEF_GTB_ACCESSORS(SPConstTrackInit, init)
 DEF_GTB_ACCESSORS(SPActionRegistry, action_reg)
+DEF_GTB_ACCESSORS(SPGenRegistry, gen_reg)
 DEF_GTB_ACCESSORS(SPUserRegistry, aux_reg)
 DEF_GTB_ACCESSORS(SPConstCore, core)
 DEF_GTB_ACCESSORS(SPConstCherenkov, cherenkov)

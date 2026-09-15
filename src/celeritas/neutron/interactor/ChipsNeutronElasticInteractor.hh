@@ -35,11 +35,11 @@ class ChipsNeutronElasticInteractor
 {
   public:
     // Construct from shared and state data
-    inline CELER_FUNCTION
-    ChipsNeutronElasticInteractor(NeutronElasticRef const& shared,
-                                  ParticleTrackView const& particle,
-                                  Real3 const& inc_direction,
-                                  IsotopeView const& target);
+    inline CELER_FUNCTION ChipsNeutronElasticInteractor(
+        NeutronElasticRef const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        IsotopeView const& target);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -112,8 +112,11 @@ CELER_FUNCTION ChipsNeutronElasticInteractor::ChipsNeutronElasticInteractor(
  * neutron-nucleus system.
  */
 template<class Engine>
-CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng)
+CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(
+    Engine& rng)
 {
+    using namespace celeritas::literals;
+
     // Scattered neutron with respect to the axis of incident direction
     Interaction result;
 
@@ -127,7 +130,7 @@ CELER_FUNCTION Interaction ChipsNeutronElasticInteractor::operator()(Engine& rng
     // Sample the scattered direction from the invariant momentum transfer
     // squared (\f$ -t = Q^{2} \f$) in the c.m. frame
     real_type cos_theta
-        = 1 - real_type(0.5) * sample_momentum_square_(rng) / ipow<2>(cm_p);
+        = 1 - 0.5_r * sample_momentum_square_(rng) / ipow<2>(cm_p);
     CELER_ASSERT(std::fabs(cos_theta) <= 1);
 
     // Boost to the center of mass (c.m.) frame

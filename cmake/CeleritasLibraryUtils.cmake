@@ -194,6 +194,15 @@ function(celeritas_add_executable target)
   set_target_properties("${target}" PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${CELERITAS_RUNTIME_OUTPUT_DIRECTORY}"
   )
+  if(CELERITAS_CODESIGN_APPS)
+    add_custom_command(TARGET "${target}" POST_BUILD
+      COMMAND "${CODESIGN_EXECUTABLE}"
+        --sign "${CELERITAS_CODESIGN_IDENTITY}"
+        --entitlements "${CELERITAS_CODESIGN_ENTITLEMENTS}"
+        "$<TARGET_FILE:${target}>"
+      COMMENT "Code-signing ${target}"
+    )
+  endif()
 endfunction()
 
 #-----------------------------------------------------------------------------#

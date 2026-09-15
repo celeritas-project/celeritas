@@ -29,10 +29,10 @@ class BoundingBox;
 //---------------------------------------------------------------------------//
 
 //! Real type used for acceleration
-using fast_real_type = float;
+using fast_real_type = real_type;
 
 //! Integer type for volume CSG tree representation
-using logic_int = size_type;
+using logic_int = ImplSurfaceId::size_type;
 
 //! Integer type for canonical volume level
 using vol_level_uint = VolumeLevelId::size_type;
@@ -43,8 +43,8 @@ using AxisTag = std::integral_constant<Axis, T>;
 
 //// ID TYPES ////
 
-//! Identifier for a BIHNode objects
-using BIHNodeId = OpaqueId<struct BIHNode_>;
+//! Identifier for a BvhNode objects
+using BvhNodeId = OpaqueId<struct BvhNode_>;
 
 //! Identifier for a daughter universe
 using DaughterId = OpaqueId<struct Daughter>;
@@ -62,10 +62,10 @@ using FastBBoxId = OpaqueId<FastBBox>;
 using FastReal3 = Array<float, 3>;
 
 //! Local identifier for a surface within a universe
-using LocalSurfaceId = OpaqueId<struct LocalSurface_>;
+using LocalSurfaceId = OpaqueId<struct LocalSurface_, ImplSurfaceId::size_type>;
 
 //! Local identifier for an ImplVolume within a universe
-using LocalVolumeId = OpaqueId<struct LocalVolume_>;
+using LocalVolumeId = OpaqueId<struct LocalVolume_, ImplVolumeId::size_type>;
 
 //! Identifier for an OrientedBoundingZone
 using OrientedBoundingZoneId = OpaqueId<struct OrientedBoundingZoneRecord>;
@@ -144,6 +144,7 @@ enum class SurfaceType : unsigned char
     kz,  //!< Cone parallel to Z axis
     sq,  //!< Simple quadric
     gq,  //!< General quadric
+    tor,  //!< Toroid
     inv,  //!< Involute
     size_  //!< Sentinel value for number of surface types
 };
@@ -361,16 +362,6 @@ extern template struct Tolerance<double>;
 // HELPER FUNCTIONS (HOST/DEVICE)
 //---------------------------------------------------------------------------//
 /*!
- * Change whether a boundary crossing is reentrant or exiting.
- */
-[[nodiscard]] CELER_CONSTEXPR_FUNCTION GeoStatus flip_boundary(GeoStatus orig)
-{
-    return orig == GeoStatus::boundary_inc ? GeoStatus::boundary_out
-                                           : GeoStatus::boundary_inc;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Sentinel value indicating "no intersection".
  *
  * \todo There is probably a better place to put this since it's not a "type".
@@ -403,6 +394,9 @@ char const* to_cstring(SurfaceType);
 
 // Get a string corresponding to a transform type
 char const* to_cstring(TransformType);
+
+// Get a string corresponding to a universe type
+char const* to_cstring(UnivType);
 
 // Get a string corresponding to a surface state
 inline char const* to_cstring(SurfaceState s)

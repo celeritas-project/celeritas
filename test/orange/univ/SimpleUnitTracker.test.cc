@@ -34,7 +34,7 @@ namespace test
 {
 constexpr real_type sqrt_three{constants::sqrt_three};
 constexpr real_type sqrt_two{constants::sqrt_two};
-constexpr real_type sqrt_half = sqrt_two / real_type{2};
+constexpr real_type sqrt_half = sqrt_two / 2_r;
 
 //---------------------------------------------------------------------------//
 // TEST FIXTURES
@@ -78,8 +78,8 @@ class SimpleUnitTrackerTest : public OrangeGeoTestBase
 
   private:
     StateHostValue setup_heuristic_states(size_type num_tracks) const;
-    HeuristicInitResult
-    reduce_heuristic_init(StateHostRef const&, double) const;
+    HeuristicInitResult reduce_heuristic_init(StateHostRef const&,
+                                              double) const;
 };
 
 class DetailTest : public OrangeGeoTestBase
@@ -151,8 +151,8 @@ LocalState SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir)
 /*!
  * Initialize inside a volume.
  */
-LocalState
-SimpleUnitTrackerTest::make_state(Real3 pos, Real3 dir, char const* vol)
+LocalState SimpleUnitTrackerTest::make_state(
+    Real3 pos, Real3 dir, char const* vol)
 {
     LocalState state = this->make_state(pos, dir);
     detail::UniverseIndexer ui(this->host_params().univ_indexer_data);
@@ -238,8 +238,8 @@ auto SimpleUnitTrackerTest::run_heuristic_init_host(size_type num_tracks) const
 /*!
  * Initialize particles randomly and tally their resulting locations.
  */
-auto SimpleUnitTrackerTest::run_heuristic_init_device(size_type num_tracks) const
-    -> HeuristicInitResult
+auto SimpleUnitTrackerTest::run_heuristic_init_device(
+    size_type num_tracks) const -> HeuristicInitResult
 {
     using DStateStore = StateDataStore<OrangeStateData, MemSpace::device>;
     DStateStore states(this->setup_heuristic_states(num_tracks));
@@ -295,9 +295,8 @@ auto SimpleUnitTrackerTest::setup_heuristic_states(size_type num_tracks) const
 /*!
  * Process "heuristic init" test results.
  */
-auto SimpleUnitTrackerTest::reduce_heuristic_init(StateHostRef const& host,
-                                                  double wall_time) const
-    -> HeuristicInitResult
+auto SimpleUnitTrackerTest::reduce_heuristic_init(
+    StateHostRef const& host, double wall_time) const -> HeuristicInitResult
 {
     CELER_EXPECT(host);
     CELER_EXPECT(wall_time > 0);
@@ -623,7 +622,7 @@ TEST_F(TwoVolumeTest, normal)
         for (auto i : range(3))
         {
             expected_normal[i] = pos[i] * invnorm;
-            pos[i] = expected_normal[i] * real_type(1.5);  // radius
+            pos[i] = expected_normal[i] * 1.5_r;  // radius
         }
 
         auto actual_normal = tracker.normal(pos, LocalSurfaceId{0});
@@ -691,7 +690,7 @@ TEST_F(FieldLayersTest, cross_boundary)
         {
             // From background to volume
             auto init = tracker.cross_boundary(
-                this->make_state_crossing({0, real_type{-1.5} + eps, 0},
+                this->make_state_crossing({0, -1.5_r + eps, 0},
                                           {0, -1, 0},
                                           "world.bg",
                                           "layerbox1.py",
@@ -702,12 +701,8 @@ TEST_F(FieldLayersTest, cross_boundary)
         }
         {
             // From volume to background
-            auto init = tracker.cross_boundary(
-                this->make_state_crossing({0, real_type{-2.5} - eps, 0},
-                                          {0, -1, 0},
-                                          "layer1",
-                                          "layerbox1.my",
-                                          '+'));
+            auto init = tracker.cross_boundary(this->make_state_crossing(
+                {0, -2.5_r - eps, 0}, {0, -1, 0}, "layer1", "layerbox1.my", '+'));
             EXPECT_EQ("world.bg", this->id_to_label(init.volume));
             EXPECT_EQ("layerbox1.my", this->id_to_label(init.surface.id()));
             EXPECT_EQ(Sense::inside, init.surface.unchecked_sense());
@@ -830,8 +825,8 @@ TEST_F(FiveVolumesTest, cross_boundary)
     }
     {
         SCOPED_TRACE(
-            "Crossing the boundary from the inside of 'e' but with "
-            "numerical imprecision");
+            "Crossing the boundary from the inside of 'e' but with numerical "
+            "imprecision");
         real_type eps = 1e-10;
         auto init = tracker.cross_boundary(this->make_state_crossing(
             {eps, -0.25, 0}, {1, 0, 0}, "e", "epsilon.s", '-'));

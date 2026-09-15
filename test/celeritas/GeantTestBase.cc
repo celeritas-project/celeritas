@@ -60,6 +60,12 @@ bool GeantTestBase::is_ci_build()
         return false;
     }
     // Check clhep/g4 versions
+    if (std::string_view{cmake::clhep_version}.empty()
+        && !std::string_view{cmake::geant4_version}.empty())
+    {
+        // G4 build with a built-in CLHEP = non-CI build
+        return false;
+    }
     auto clhep = Version::from_string(cmake::clhep_version);
     auto g4 = Version::from_string(cmake::geant4_version);
     return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}

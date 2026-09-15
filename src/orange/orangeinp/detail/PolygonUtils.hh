@@ -78,8 +78,8 @@ inline bool has_orientation(Span<Real2 const> corners, Orientation o)
 /*!
  * Whether the orientation is the same or degenerate if allowed.
  */
-inline bool
-is_same_orientation(Orientation a, Orientation b, bool degen_ok = false)
+inline bool is_same_orientation(
+    Orientation a, Orientation b, bool degen_ok = false)
 {
     if (a == Orientation::collinear || b == Orientation::collinear)
     {
@@ -150,9 +150,8 @@ class SoftOrientation
     }
 
     // Calculate orientation with tolerance for collinearity
-    CELER_FUNCTION Orientation operator()(Real2 const& a,
-                                          Real2 const& b,
-                                          Real2 const& c) const
+    CELER_FUNCTION Orientation operator()(
+        Real2 const& a, Real2 const& b, Real2 const& c) const
     {
         Real2 u{b[0] - a[0], b[1] - a[1]};
         Real2 v{c[0] - a[0], c[1] - a[1]};
@@ -213,8 +212,8 @@ inline bool is_convex(Span<Real2 const> corners, bool degen_ok = false)
  * Points are checked for collinearity dynamically, i.e, if a point is found to
  * be collinear, it is not used for future collinearity checks.
  */
-inline std::vector<Real2>
-filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
+inline std::vector<Real2> filter_collinear_points(
+    std::vector<Real2> const& corners, double abs_tol)
 {
     CELER_EXPECT(corners.size() >= 3);
 
@@ -260,8 +259,8 @@ filter_collinear_points(std::vector<Real2> const& corners, double abs_tol)
  * Calculate the min/max values of a polygon for a given dimension.
  */
 template<class T>
-inline std::pair<T, T>
-find_extrema(Span<Array<T, 2> const> polygon, size_type dim)
+inline std::pair<T, T> find_extrema(Span<Array<T, 2> const> polygon,
+                                    size_type dim)
 {
     CELER_EXPECT(polygon.size() >= 3);
     CELER_EXPECT(dim < 2);
@@ -312,8 +311,8 @@ inline auto find_extrema(T const& polygon, Axis ax)
  *
  * Passing in collinear or coincident points will result in an invalid normal.
  */
-inline Real3
-normal_from_triangle(Real3 const& p0, Real3 const& p1, Real3 const& p2)
+inline Real3 normal_from_triangle(
+    Real3 const& p0, Real3 const& p1, Real3 const& p2)
 {
     return make_unit_vector(cross_product(p1 - p0, p2 - p0));
 }

@@ -69,13 +69,15 @@ class Selector
     //!@{
     //! \name Type aliases
     using arg_type = T;
-    using real_type = typename std::invoke_result<F, arg_type>::type;
+    using real_type = std::invoke_result_t<F, arg_type>;
     //!@}
+
+    static_assert(std::is_floating_point_v<real_type>);
 
   public:
     // Construct with function, size, accumulated value, and normalization
-    inline CELER_FUNCTION
-    Selector(F&& eval, arg_type size, real_type total, SelectorNormalization);
+    inline CELER_FUNCTION Selector(
+        F&& eval, arg_type size, real_type total, SelectorNormalization);
 
     // Sample from the distribution
     template<class Engine>
@@ -100,10 +102,8 @@ class Selector
  * nontrivially less than the given total.
  */
 template<class F, class T>
-CELER_FUNCTION Selector<F, T>::Selector(F&& eval,
-                                        arg_type size,
-                                        real_type total,
-                                        SelectorNormalization norm)
+CELER_FUNCTION Selector<F, T>::Selector(
+    F&& eval, arg_type size, real_type total, SelectorNormalization norm)
     : eval_{celeritas::forward<F>(eval)}, last_{size}, total_{total}
 {
     CELER_EXPECT(last_ != IterT{});
@@ -154,8 +154,8 @@ CELER_FUNCTION T Selector<F, T>::operator()(Engine& rng) const
  * Create a normalized on-the-fly discrete PDF sampler.
  */
 template<class F, class T>
-CELER_FUNCTION Selector<F, T>
-make_selector(F&& func, T size, real_type total = 1)
+CELER_FUNCTION Selector<F, T> make_selector(
+    F&& func, T size, real_type total = 1)
 {
     return {celeritas::forward<F>(func),
             size,
@@ -168,8 +168,8 @@ make_selector(F&& func, T size, real_type total = 1)
  * Create an unnormalized selector that can return \c size if past the end.
  */
 template<class F, class T>
-CELER_FUNCTION Selector<F, T>
-make_unnormalized_selector(F&& func, T size, real_type total)
+CELER_FUNCTION Selector<F, T> make_unnormalized_selector(
+    F&& func, T size, real_type total)
 {
     return {celeritas::forward<F>(func),
             size,

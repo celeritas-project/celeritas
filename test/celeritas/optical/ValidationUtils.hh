@@ -44,7 +44,8 @@ using namespace ::celeritas::test;
  * Converts the arguments supplied in units \c UnitType to native units.
  */
 template<class UnitType, class... Args>
-Array<real_type, sizeof...(Args)> constexpr native_array_from(Args const&... args)
+Array<real_type, sizeof...(Args)> constexpr native_array_from(
+    Args const&... args)
 {
     return Array<real_type, sizeof...(Args)>{
         native_value_from(UnitType(args))...};
@@ -89,8 +90,8 @@ class GridAccessor
     std::vector<GridView> operator()(ItemRange<Grid> grid_ids) const;
 
     // Retrieve a span of reals built on the storage
-    Span<real_type const>
-    operator()(ItemRange<real_type> const& real_ids) const;
+    Span<real_type const> operator()(
+        ItemRange<real_type> const& real_ids) const;
 
     // Construct an MFP builder with the underlying collections
     MfpBuilder create_mfp_builder();

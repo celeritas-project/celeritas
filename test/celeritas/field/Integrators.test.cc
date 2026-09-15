@@ -29,7 +29,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 struct IntegratorTestOutput
 {
     std::vector<real_type> pos_x;
@@ -65,7 +64,8 @@ class IntegratorsTest : public Test
           mom_0 = mass * sqrt(ipow<2>(gamma) - 1) * dir_0
         */
 
-        param.field_value = 1.0_T;  //! field value along z [tesla]
+        param.field_value = 1.0 * units::tesla;  //! field value along z
+                                                 //! [tesla]
         param.radius = 3.8085386036;  //! radius of curvature [cm]
         param.delta_z = 6.7003310629;  //! z-change/revolution [cm]
         param.momentum_y = 10.9610028286;  //! initial momentum_y [MeV/c]
@@ -89,7 +89,7 @@ class IntegratorsTest : public Test
         {
             // Initial state and the expected state after revolutions
             OdeState y;
-            y.pos = {param.radius, 0, i * real_type{1e-6}};
+            y.pos = {param.radius, 0, i * 1e-6_r};
             y.mom = {0, param.momentum_y, param.momentum_z};
 
             OdeState expected_y = y;
@@ -100,8 +100,7 @@ class IntegratorsTest : public Test
             for (int nr : range(param.revolutions))
             {
                 // Travel hstep for num_steps times in the field
-                expected_y.pos[2] = param.delta_z * (nr + 1)
-                                    + i * real_type{1e-6};
+                expected_y.pos[2] = param.delta_z * (nr + 1) + i * 1e-6_r;
                 for ([[maybe_unused]] int j : range(param.nsteps))
                 {
                     FieldIntegration result = integrate(hstep, y);
@@ -128,8 +127,7 @@ class IntegratorsTest : public Test
         {
             real_type error = std::sqrt(output.error[i]);
             EXPECT_SOFT_NEAR(output.pos_x[i], param.radius, error);
-            EXPECT_SOFT_NEAR(
-                output.pos_z[i], zstep + i * real_type{1e-6}, error);
+            EXPECT_SOFT_NEAR(output.pos_z[i], zstep + i * 1e-6_r, error);
             EXPECT_SOFT_NEAR(output.mom_y[i], param.momentum_y, error);
             EXPECT_SOFT_NEAR(output.mom_z[i], param.momentum_z, error);
             EXPECT_LT(output.error[i], param.epsilon);

@@ -22,13 +22,18 @@ namespace celeritas
  * The function should be an executor with the signature
  * \code void(*)(ThreadId) \endcode .
  *
- * Example:
+ *
+ * \par Example
  * \code
  void do_something()
  {
     launch_kernel(num_threads, make_blah_executor(blah));
  }
  * \endcode
+
+ * \todo Rename \c foreach_track_slot and pass \c TrackSlotId ? There's a
+ * 1-to-1 correspondence for CUDA (except when track sorting is enabled) but
+ * not for CPU threads.
  */
 template<class F>
 void launch_kernel(size_type num_threads, F&& execute_thread)

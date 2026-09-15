@@ -62,7 +62,6 @@ list(APPEND SOURCES
   field/FieldDriverOptions.cc
   field/FieldDriverOptionsIO.json.cc
   field/RZMapFieldInputIO.json.cc
-  field/RZMapFieldParams.cc
   field/CylMapFieldParams.cc
   field/UniformFieldParams.cc
   geo/GeoMaterialParams.cc
@@ -84,8 +83,11 @@ list(APPEND SOURCES
   inp/ControlIO.json.cc
   inp/DiagnosticsIO.json.cc
   inp/EventsIO.json.cc
+  inp/FieldIO.json.cc
+  inp/ImportIO.json.cc
   inp/MucfPhysics.cc
   inp/ProblemIO.json.cc
+  inp/ScoringIO.json.cc
   inp/StandaloneInputIO.json.cc
   inp/SystemIO.json.cc
   inp/TrackingIO.json.cc
@@ -102,6 +104,8 @@ list(APPEND SOURCES
   io/JsonEventWriter.cc
   io/LivermorePEReader.cc
   io/NeutronXsReader.cc
+  io/OpticalDistributionReader.cc
+  io/OpticalDistributionWriter.cc
   io/SeltzerBergerReader.cc
   io/detail/ImportDataConverter.cc
   mat/MaterialParams.cc
@@ -121,6 +125,7 @@ list(APPEND SOURCES
   optical/CoreTrackData.cc
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
+  optical/gen/GeneratorDataIO.json.cc
   optical/gen/GeneratorBase.cc
   optical/OpticalCollector.cc
   optical/MaterialParams.cc
@@ -152,6 +157,7 @@ list(APPEND SOURCES
   phys/ProcessBuilder.cc
   phys/SurfaceModel.cc
   phys/SurfacePhysicsMapBuilder.cc
+  setup/Control.cc
   setup/Events.cc
   setup/FrameworkInput.cc
   setup/Import.cc
@@ -169,6 +175,8 @@ list(APPEND SOURCES
   user/SimpleCalo.cc
   user/SimpleCaloData.cc
   user/StepCollector.cc
+  user/StepDiagnosticBase.cc
+  user/StepTimes.cc
   user/detail/StepParams.cc
 )
 
@@ -183,6 +191,7 @@ endif()
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   list(APPEND SOURCES
+    optical/detail/Filler.cu
     track/detail/Filler.cu
     alongstep/detail/AlongStepKernels.cu
   )
@@ -191,9 +200,13 @@ endif()
 if(CELERITAS_USE_covfie)
   set(_celer_covfie_src
     field/CartMapFieldParams.covfie.cc
+    field/LoadCovfieField.covfie.cc
+    field/RZMapFieldParams.covfie.cc
   )
   celeritas_polysource_append(_celer_covfie_src
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(_celer_covfie_src
+    alongstep/AlongStepRZMapFieldMscAction)
   if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
     # NOTE: object libraries do not work properly with RDC builds or HIP
     list(APPEND SOURCES ${_celer_covfie_src})
@@ -218,13 +231,18 @@ if(CELERITAS_USE_covfie)
 else()
   celeritas_polysource_append(SOURCES
     alongstep/AlongStepCartMapFieldMscAction)
+  celeritas_polysource_append(SOURCES
+    alongstep/AlongStepRZMapFieldMscAction)
 endif()
 
 if(CELERITAS_USE_Geant4)
   set(_cg4_sources
     g4/DetectorConstruction.cc
+    g4/GeantOffloadUtils.cc
+    g4/StateDependent.cc
     g4/SupportedEmStandardPhysics.cc
     g4/SupportedOpticalPhysics.cc
+    g4/Threading.cc
     g4/detail/GeantBremsstrahlungProcess.cc
     ext/EmPhysicsList.cc
     ext/FtfpBertPhysicsList.cc
@@ -232,6 +250,8 @@ if(CELERITAS_USE_Geant4)
     ext/GeantSd.cc
     ext/GeantSdOutput.cc
     ext/GeantSetup.cc
+    ext/GeantStepPointView.cc
+    ext/GeantStepView.cc
     ext/GeantTrackReconstruction.cc
     ext/HadronicInteractor.cc
     ext/detail/EmStandardPhysics.cc
@@ -363,7 +383,6 @@ endmacro()
 celeritas_polysource(alongstep/AlongStepGeneralLinearAction)
 celeritas_polysource(alongstep/AlongStepNeutralAction)
 celeritas_polysource(alongstep/AlongStepUniformMscAction)
-celeritas_polysource(alongstep/AlongStepRZMapFieldMscAction)
 celeritas_polysource(alongstep/AlongStepCylMapFieldMscAction)
 celeritas_polysource(em/model/BetheHeitlerModel)
 celeritas_polysource(em/model/BetheBlochModel)
@@ -397,6 +416,7 @@ celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
 celeritas_polysource(optical/action/PreStepAction)
+celeritas_polysource(optical/action/StepDiagnostic)
 celeritas_polysource(optical/action/TrackingCutAction)
 celeritas_polysource(optical/action/detail/TrackInitAlgorithms)
 celeritas_polysource(optical/gen/GeneratorAction)
@@ -404,6 +424,7 @@ celeritas_polysource(optical/gen/OffloadAction)
 celeritas_polysource(optical/gen/OffloadGatherAction)
 celeritas_polysource(optical/gen/PrimaryGeneratorAction)
 celeritas_polysource(optical/gen/DirectGeneratorAction)
+celeritas_polysource(optical/gen/WlsGeneratorAction)
 celeritas_polysource(optical/gen/detail/GeneratorAlgorithms)
 celeritas_polysource(optical/gen/detail/OffloadAlgorithms)
 celeritas_polysource(optical/surface/BoundaryAction)

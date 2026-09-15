@@ -61,24 +61,20 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
         // Path navigator stores the boundary, and surface model uses next_surf
         resize(&data->next_boundary, size);
     }
-    if constexpr (CELERITAS_VECGEOM_SURFACE)
-    {
-        resize(&data->next_surf, size);
-    }
 
     CELER_ENSURE(data);
 }
 
 //---------------------------------------------------------------------------//
-template void
-resize<MemSpace::host>(VecgeomStateData<Ownership::value, MemSpace::host>*,
-                       HostCRef<VecgeomParamsData> const&,
-                       size_type);
+template void resize<MemSpace::host>(
+    VecgeomStateData<Ownership::value, MemSpace::host>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
-template void
-resize<MemSpace::device>(VecgeomStateData<Ownership::value, MemSpace::device>*,
-                         HostCRef<VecgeomParamsData> const&,
-                         size_type);
+template void resize<MemSpace::device>(
+    VecgeomStateData<Ownership::value, MemSpace::device>*,
+    HostCRef<VecgeomParamsData> const&,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -60,8 +60,8 @@ struct GridReflectivityData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    GridReflectivityData<W, M>&
-    operator=(GridReflectivityData<W2, M2> const& other)
+    GridReflectivityData<W, M>& operator=(
+        GridReflectivityData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
 

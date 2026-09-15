@@ -37,8 +37,8 @@ struct FieldTrackPropagator
     //!@}
 
     //! Create propagator, execute propagation, and return result
-    [[nodiscard]] CELER_FUNCTION Propagation
-    operator()(CoreTrackView& track) const;
+    [[nodiscard]] CELER_FUNCTION Propagation operator()(
+        CoreTrackView& track) const;
 
     //// DATA ////
 
@@ -52,8 +52,8 @@ struct FieldTrackPropagator
  * Create propagator, execute propagation, and return result.
  */
 template<class Field>
-inline CELER_FUNCTION Propagation
-FieldTrackPropagator<Field>::operator()(CoreTrackView& track) const
+inline CELER_FUNCTION Propagation FieldTrackPropagator<Field>::operator()(
+    CoreTrackView& track) const
 {
     auto sim = track.sim();
     auto propagator = make_mag_field_propagator<DormandPrinceIntegrator>(

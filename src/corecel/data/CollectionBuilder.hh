@@ -91,10 +91,13 @@ class CollectionBuilder
     StorageT const& storage() const { return col_.storage(); }
     //!@}
 
-    //! Maximum elements in a Collection
+    //! Maximum valid element size in a Collection
     static constexpr std::size_t max_size()
     {
-        return std::numeric_limits<size_type>::max();
+        // This ensures the final \c size_id (i.e., one past the end) remains
+        // valid: e.g., 8-bit uint has nullid_value of 255, maximum valid
+        // ItemIdT{254}, so max size 254
+        return detail::nullid_value<size_type> - 1;
     }
 
     CollectionT& col_;
@@ -138,6 +141,7 @@ auto CollectionBuilder<T, M, I>::insert_back(InputIterator first,
                   "Insertion currently works only for host memory");
     auto start = this->size_id();
     this->storage().insert(this->storage().end(), first, last);
+    CELER_ENSURE(this->size_id());
     return {start, this->size_id()};
 }
 
@@ -164,6 +168,7 @@ auto CollectionBuilder<T, M, I>::push_back(T const& el) -> ItemIdT
                   "Insertion currently works only for host memory");
     auto result = this->size_id();
     this->storage().push_back(el);
+    CELER_ENSURE(this->size_id());
     return result;
 }
 
@@ -191,8 +196,8 @@ void CollectionBuilder<T, M, I>::resize(std::size_t count)
  * (Will not be needed under C++17's template argument deduction).
  */
 template<class T, MemSpace M, class I>
-CollectionBuilder<T, M, I>
-make_builder(Collection<T, Ownership::value, M, I>* collection)
+CollectionBuilder<T, M, I> make_builder(
+    Collection<T, Ownership::value, M, I>* collection)
 {
     CELER_EXPECT(collection);
     return CollectionBuilder<T, M, I>(collection);

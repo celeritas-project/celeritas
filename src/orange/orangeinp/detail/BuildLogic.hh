@@ -79,9 +79,8 @@ class BaseLogicBuilder
 
   public:
     // Construct with optional mapping pointer
-    BaseLogicBuilder(CsgTree const& tree,
-                     VecLogic& logic,
-                     VecSurface const* vs = nullptr);
+    BaseLogicBuilder(
+        CsgTree const& tree, VecLogic& logic, VecSurface const* vs = nullptr);
     //! Build from a node ID
     void operator()(NodeId const& n);
 
@@ -248,12 +247,12 @@ class DynamicBuildLogicPolicy
 extern template class BaseLogicBuilder<PostfixLogicBuilder>;
 extern template class BaseLogicBuilder<InfixLogicBuilder>;
 
-extern template BuildLogicResult
-build_logic(PostfixBuildLogicPolicy const&, NodeId);
-extern template BuildLogicResult
-build_logic(InfixBuildLogicPolicy const&, NodeId);
-extern template BuildLogicResult
-build_logic(DynamicBuildLogicPolicy const&, NodeId);
+extern template BuildLogicResult build_logic(PostfixBuildLogicPolicy const&,
+                                             NodeId);
+extern template BuildLogicResult build_logic(InfixBuildLogicPolicy const&,
+                                             NodeId);
+extern template BuildLogicResult build_logic(DynamicBuildLogicPolicy const&,
+                                             NodeId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

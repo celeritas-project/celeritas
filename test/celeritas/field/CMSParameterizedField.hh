@@ -37,21 +37,17 @@ class CMSParameterizedField
     //!@}
 
   public:
-    CELER_FUNCTION
-    inline CMSParameterizedField() {}
+    CELER_FUNCTION inline CMSParameterizedField() {}
 
     // Return the magnetic field for the given position
-    CELER_FUNCTION
-    inline Real3 operator()(Real3 const& pos) const;
+    CELER_FUNCTION inline Real3 operator()(Real3 const& pos) const;
 
   private:
     // Evaluate the magnetic field for the given r and z
-    CELER_FUNCTION
-    inline Real3 evaluate_field(real_type r, real_type z) const;
+    CELER_FUNCTION inline Real3 evaluate_field(real_type r, real_type z) const;
 
     // Evaluate the parameterized function and its derivatives
-    CELER_FUNCTION
-    inline Real4 evaluate_parameters(real_type x) const;
+    CELER_FUNCTION inline Real4 evaluate_parameters(real_type x) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -62,8 +58,8 @@ class CMSParameterizedField
  * The parameterization is valid only for r < 1.15m and |z| < 2.80m when used
  * with the CMS detector geometry.
  */
-CELER_FUNCTION
-auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
+CELER_FUNCTION auto CMSParameterizedField::operator()(Real3 const& pos) const
+    -> Real3
 {
     using units::tesla;
 
@@ -87,10 +83,10 @@ auto CMSParameterizedField::operator()(Real3 const& pos) const -> Real3
  *
  * \return Field strength in Tesla
  */
-CELER_FUNCTION
-auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
-    -> Real3
+CELER_FUNCTION auto CMSParameterizedField::evaluate_field(
+    real_type r, real_type z) const -> Real3
 {
+    using namespace celeritas::literals;
     using units::meter;
 
     real_type const prm[9] = {4.24326,
@@ -104,7 +100,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
                               1.77436};
 
     real_type ap2 = 4 * ipow<2>(prm[0] / prm[1]);
-    real_type hb0 = real_type(0.5) * prm[2] * std::sqrt(1 + ap2);
+    real_type hb0 = 0.5_r * prm[2] * std::sqrt(1 + ap2);
     real_type hlova = 1 / std::sqrt(ap2);
     real_type ainv = 2 * hlova / prm[1];
     real_type coeff = 1 / ipow<2>(prm[8]);
@@ -123,7 +119,7 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
     Real4 fu = this->evaluate_parameters(u);
     Real4 gv = this->evaluate_parameters(v);
 
-    real_type rat = real_type(0.5) * r * ainv;
+    real_type rat = 0.5_r * r * ainv;
     real_type rat2 = ipow<2>(rat);
 
     Real3 bw;
@@ -144,8 +140,8 @@ auto CMSParameterizedField::evaluate_field(real_type r, real_type z) const
 /*!
  * Evaluate the parameterization function and its 3 derivatives.
  */
-CELER_FUNCTION
-auto CMSParameterizedField::evaluate_parameters(real_type x) const -> Real4
+CELER_FUNCTION auto CMSParameterizedField::evaluate_parameters(
+    real_type x) const -> Real4
 {
     real_type a = 1 / (1 + ipow<2>(x));
     real_type b = std::sqrt(a);

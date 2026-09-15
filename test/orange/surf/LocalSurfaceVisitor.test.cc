@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "orange/surf/LocalSurfaceVisitor.hh"
 
-#include <algorithm>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -14,14 +13,12 @@
 #include <vector>
 
 #include "corecel/cont/Range.hh"
-#include "corecel/data/ParamsDataStore.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/UniformBoxDistribution.hh"
 #include "orange/OrangeData.hh"
 #include "orange/OrangeGeoTestBase.hh"
 #include "orange/OrangeInput.hh"
-#include "orange/OrangeParams.hh"
-#include "orange/surf/SurfaceIO.hh"
+#include "orange/surf/SurfaceIO.hh"  // IWYU pragma: keep
 #include "orange/surf/VariantSurface.hh"
 
 #include "LocalSurfaceVisitor.test.hh"
@@ -177,6 +174,16 @@ TEST_F(SurfaceActionTest, surface_traits_visitor)
             if (CELERITAS_DEBUG)
             {
                 // TODO: see celeritas-project/celeritas#1342
+                EXPECT_THROW(visit_surface_type(get_surface_type, st),
+                             DebugError);
+            }
+            continue;
+        }
+        else if (st == SurfaceType::tor)
+        {
+            if (CELERITAS_DEBUG && !CELERITAS_ORANGE_TORUS)
+            {
+                // TODO: see celeritas-project/celeritas#2427
                 EXPECT_THROW(visit_surface_type(get_surface_type, st),
                              DebugError);
             }

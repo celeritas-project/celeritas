@@ -24,11 +24,11 @@ class Translation;
 template<TransformType S>
 struct TransformTypeTraits;
 
-#define ORANGE_TRANSFORM_TRAITS(ENUM_VALUE, CLS)          \
-    template<>                                            \
+#define ORANGE_TRANSFORM_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
     struct TransformTypeTraits<TransformType::ENUM_VALUE> \
-    {                                                     \
-        using type = CLS;                                 \
+    { \
+        using type = CLS; \
     }
 
 ORANGE_TRANSFORM_TRAITS(no_transformation, NoTransformation);
@@ -45,11 +45,11 @@ ORANGE_TRANSFORM_TRAITS(transformation, Transformation);
  * is a TransformTypeTraits instance.
  */
 template<class F>
-CELER_CONSTEXPR_FUNCTION decltype(auto)
-visit_transform_type(F&& func, TransformType st)
+CELER_CONSTEXPR_FUNCTION decltype(auto) visit_transform_type(F&& func,
+                                                             TransformType st)
 {
-#define ORANGE_TT_VISIT_CASE(TYPE)          \
-    case TransformType::TYPE:               \
+#define ORANGE_TT_VISIT_CASE(TYPE) \
+    case TransformType::TYPE: \
         return celeritas::forward<F>(func)( \
             TransformTypeTraits<TransformType::TYPE>{})
 

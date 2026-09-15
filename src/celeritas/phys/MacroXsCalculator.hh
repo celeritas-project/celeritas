@@ -36,8 +36,8 @@ class MacroXsCalculator
 
   public:
     // Construct with shared and material
-    inline CELER_FUNCTION
-    MacroXsCalculator(ParamsRef const& shared, MaterialView const& material);
+    inline CELER_FUNCTION MacroXsCalculator(ParamsRef const& shared,
+                                            MaterialView const& material);
 
     // Compute the macroscopic cross section on the fly at the given energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -55,9 +55,8 @@ class MacroXsCalculator
  * Construct with shared and material data.
  */
 template<class MicroXsT>
-CELER_FUNCTION
-MacroXsCalculator<MicroXsT>::MacroXsCalculator(ParamsRef const& shared,
-                                               MaterialView const& material)
+CELER_FUNCTION MacroXsCalculator<MicroXsT>::MacroXsCalculator(
+    ParamsRef const& shared, MaterialView const& material)
     : shared_(shared)
     , elements_(material.elements())
     , number_density_(material.number_density())
@@ -70,8 +69,8 @@ MacroXsCalculator<MicroXsT>::MacroXsCalculator(ParamsRef const& shared,
  * Compute the macroscopic cross section on the fly at the given energy.
  */
 template<class MicroXsT>
-CELER_FUNCTION real_type
-MacroXsCalculator<MicroXsT>::operator()(Energy energy) const
+CELER_FUNCTION real_type MacroXsCalculator<MicroXsT>::operator()(
+    Energy energy) const
 {
     real_type result = 0.;
     MicroXsT calc_micro_xs(shared_, energy);

@@ -23,7 +23,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 
 #include "Environment.hh"
 #include "MpiCommunicator.hh"
@@ -31,7 +30,7 @@
 
 #if CELERITAS_USE_CUDA
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
-#elif CELERITAS_USE_HIP       \
+#elif CELERITAS_USE_HIP \
     && (HIP_VERSION_MAJOR > 5 \
         || (HIP_VERSION_MAJOR == 5 && HIP_VERSION_MINOR >= 2))
 #    define CELER_DEVICE_SUPPORTS_MEMPOOL 1
@@ -377,18 +376,17 @@ void activate_device(Device&& device)
         constexpr auto gpu_str = CELERITAS_USE_CUDA  ? "CUDA"
                                  : CELERITAS_USE_HIP ? "HIP"
                                                      : "";
-        CELER_LOG(warning)
-            << "Device '" << device.name() << "' has " << gpu_str
-            << " compute capability of " << device.capability()
-            << ", but Celeritas was compiled with CMAKE_" << gpu_str
-            << "_ARCHITECTURES=\"" << arch
-            << "\": code may mysteriously die at runtime";
+        CELER_LOG(warning) << "Device '" << device.name() << "' has "
+                           << gpu_str << " compute capability of "
+                           << device.capability()
+                           << ", but Celeritas was compiled with CMAKE_"
+                           << gpu_str << "_ARCHITECTURES=\"" << arch
+                           << "\": code may mysteriously die at runtime";
     }
 
     CELER_LOG(debug) << "Initializing '" << device.name() << "', ID "
                      << device.device_id() << " of " << Device::num_devices();
 
-    ScopedTimeLog scoped_time(&self_logger(), 1.0);
     CELER_DEVICE_API_CALL(SetDevice(device.device_id()));
     d = std::move(device);
 

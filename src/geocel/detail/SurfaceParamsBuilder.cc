@@ -118,8 +118,8 @@ SurfaceId SurfaceInputInserter::operator()(inp::Surface::Boundary const& vol_id)
 /*!
  * Process an interface surface.
  */
-SurfaceId
-SurfaceInputInserter::operator()(inp::Surface::Interface const& interface)
+SurfaceId SurfaceInputInserter::operator()(
+    inp::Surface::Interface const& interface)
 {
     CELER_EXPECT(interface.first < volumes_.num_volume_instances());
     CELER_EXPECT(interface.second < volumes_.num_volume_instances());

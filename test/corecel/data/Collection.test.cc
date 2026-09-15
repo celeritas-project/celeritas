@@ -10,6 +10,8 @@
 #include <random>
 #include <type_traits>
 
+#include "corecel/Assert.hh"
+#include "corecel/Types.hh"
 #include "corecel/cont/Array.hh"
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
@@ -17,7 +19,6 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ParamsDataStore.hh"
 #include "corecel/data/Ref.hh"
-#include "corecel/sys/Device.hh"
 
 #include "Collection.test.hh"
 #include "celeritas_test.hh"
@@ -128,29 +129,32 @@ TEST(CollectionBuilder, size_limits)
 
     std::vector<double> dummy(254);
     auto irange = build.insert_back(dummy.begin(), dummy.end());
-    EXPECT_EQ(0, irange.begin()->unchecked_get());
-    EXPECT_EQ(254, irange.end()->unchecked_get());
+    EXPECT_EQ(0, **irange.begin());
+    EXPECT_EQ(254, **irange.end());
+    EXPECT_EQ(IdType{254}, build.size_id());
 
-    // Inserting a 255-element "range" would have caused an exception in debug
-    // because the "final" value `uint8_t(-1) = 255` of OpaqueId is
-    // reserved. Let's say that inserting N-1 elements is "unspecified"
-    // behavior -- but for now it should be OK to insert 255 as long as it's
-    // with a push_back and not a range insertion.
-    build.push_back(123);
-
+    // Inserting a 255-element "range" should be prohibited because the
+    // subsequent `size_id()` is actually nullid.
     if (CELERITAS_DEBUG)
     {
-        // Inserting 256 elements when 255 is the max int *must* raise an error
-        // when debug assertions are enabled.
         EXPECT_THROW(build.push_back(1234.5), DebugError);
+        EXPECT_THROW(build.insert_back(dummy.begin(), dummy.end()), DebugError);
     }
     else
     {
         // With bounds checking disabled, a one-off check when getting a
-        // reference should catch the size failure.
-        build.push_back(12345.6);
+        // reference will catch when the *size* exceeds the maximum, but not
+        // when the next size_id is invalid
+        build.push_back(12.0);
+        EXPECT_EQ(IdType{}, build.size_id());
         Collection<double, Ownership::const_reference, MemSpace::host, IdType>
             host_ref;
+        EXPECT_NO_THROW(host_ref = host_val);
+        // Note that the next size ID has wrapped around (due to uint
+        // arithmetic)
+        build.push_back(13.0);
+        EXPECT_EQ(IdType{0}, build.size_id());
+        // And now making a reference will catch the error
         EXPECT_THROW(host_ref = host_val, RuntimeError);
     }
 }
@@ -258,6 +262,8 @@ class SimpleCollectionTest : public Test
   protected:
     using IntId = ItemId<int>;
     using IntRange = ItemRange<int>;
+    using IntLdgWrapper = detail::LdgWrapper<int const>;
+    using IntLdgSpan = LdgSpan<int const>;
     template<MemSpace M>
     using AllInts = AllItems<int, M>;
 
@@ -285,6 +291,7 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(4, host_val[irange].size());
     EXPECT_EQ(4, host_val[AllInts<host>{}].size());
 
+    // Construct (mutable)
     Ref<host> host_ref(host_val);
     EXPECT_EQ(4, host_ref.size());
     host_ref = {};
@@ -297,6 +304,12 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_ref[IntId{0}]);
     host_ref[irange].back() = 321;
     EXPECT_EQ(321, host_ref[IntId{3}]);
+    {
+        auto data = host_ref.data();
+        EXPECT_TRUE((
+            std::is_same_v<decltype(data), ObserverPtr<int, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
     Ref<host> const& host_ref_cref = host_ref;
     EXPECT_TRUE((std::is_same_v<decltype(host_ref_cref[IntId{0}]), int&>));
@@ -306,16 +319,28 @@ TEST_F(SimpleCollectionTest, accessors)
     EXPECT_EQ(123, host_ref_cref[IntId{0}]);
     EXPECT_EQ(321, host_ref_cref[irange].back());
     EXPECT_EQ(321, host_ref_cref[AllInts<host>{}].back());
+    {
+        auto data = host_ref_cref.data();
+        EXPECT_TRUE((
+            std::is_same_v<decltype(data), ObserverPtr<int, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
-    CRef<host> host_cref{host_val};
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), int const&>));
-    EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), Span<int const>>));
-    EXPECT_TRUE((
-        std::is_same_v<decltype(host_cref[AllInts<host>{}]), Span<int const>>));
+    CRef<host> host_cref{host_ref_cref};
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[IntId{0}]), IntLdgWrapper>));
+    EXPECT_TRUE((std::is_same_v<decltype(host_cref[irange]), IntLdgSpan>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(host_cref[AllInts<host>{}]), IntLdgSpan>));
     EXPECT_EQ(4, host_ref.size());
     EXPECT_EQ(123, host_cref[IntId{0}]);
     EXPECT_EQ(123, host_cref[irange].front());
     EXPECT_EQ(321, host_cref[AllInts<host>{}].back());
+    {
+        auto data = host_cref.data();
+        EXPECT_TRUE((std::is_same_v<decltype(data),
+                                    ObserverPtr<int const, MemSpace::host>>));
+        EXPECT_EQ(123, *data);
+    }
 
     auto host_cref_2 = make_ref(host_val);
     EXPECT_TRUE((std::is_same_v<decltype(host_cref), decltype(host_cref_2)>));
@@ -355,12 +380,14 @@ TEST_F(SimpleCollectionTest, TEST_IF_CELER_DEVICE(algo_device))
     fill(123, &src);
 
     CRef<device> device_cref{src};
-    EXPECT_TRUE((std::is_same_v<decltype(device_cref[IntId{0}]), int>));
+    EXPECT_TRUE(
+        (std::is_same_v<decltype(device_cref[IntId{0}]), IntLdgWrapper>));
     EXPECT_TRUE(
         (std::is_same_v<decltype(device_cref[IntRange{IntId{0}, IntId{2}}]),
-                        LdgSpan<int const>>));
-    EXPECT_TRUE((std::is_same_v<decltype(device_cref[AllInts<device>{}]),
-                                LdgSpan<int const>>));
+                        IntLdgSpan>));
+    EXPECT_TRUE((
+        std::is_same_v<decltype(device_cref[all_items<int, MemSpace::device>]),
+                       IntLdgSpan>));
 
     // Test 'fill_sequence'
     fill_sequence(&src, StreamId{});
@@ -423,6 +450,27 @@ TEST_F(AssignmentTest, host_host)
         temp = host_cref_;
         EXPECT_EQ(4, temp.size());
     }
+}
+
+TEST_F(AssignmentTest, mapped)
+{
+    Value<MemSpace::mapped> mapped_val;
+    if (!celeritas::device().can_map_host_memory())
+    {
+        EXPECT_THROW(mapped_val = host_val_, RuntimeError);
+        GTEST_SKIP() << "Device not enabled or memory mapping unsupported";
+    }
+    mapped_val = host_val_;
+    EXPECT_EQ(4, mapped_val.size());
+    ASSERT_EQ(1, host_val_[IntId{1}]);
+    mapped_val[IntId{1}] = 123;
+    EXPECT_EQ(1, host_val_[IntId{1}]);
+    EXPECT_EQ(123, mapped_val[IntId{1}]);
+
+    Ref<MemSpace::mapped> mapped_ref;
+    mapped_ref = mapped_val;
+    mapped_ref[IntId{2}] = 234;
+    EXPECT_EQ(234, mapped_val[IntId{2}]);
 }
 
 TEST_F(AssignmentTest, TEST_IF_CELER_DEVICE(host_device))

@@ -28,11 +28,13 @@ class ParticleParams;
 class RootFileManager;
 class StepCollector;
 
+namespace inp
+{
+struct StandaloneInput;
+}
+
 namespace app
 {
-//---------------------------------------------------------------------------//
-struct RunnerInput;
-
 //---------------------------------------------------------------------------//
 /*!
  * Manage execution of Celeritas.
@@ -45,14 +47,15 @@ class Runner
   public:
     //!@{
     //! \name Type aliases
-    using Input = RunnerInput;
+    using Input = inp::StandaloneInput;
     using MapStrDouble = std::unordered_map<std::string, double>;
+    using VecVecDouble = std::vector<std::vector<double>>;
     using RunnerResult = TransporterResult;
     //!@}
 
   public:
     // Construct on all threads from a parsed JSON input
-    Runner(RunnerInput const& inp);
+    explicit Runner(Input);
 
     // Warm up by running a single step with no active tracks
     void warm_up();
@@ -71,6 +74,9 @@ class Runner
 
     // Get the accumulated action times
     MapStrDouble get_action_times() const;
+
+    // Get the recorded step times
+    VecVecDouble get_step_times() const;
 
     // Access core params
     CoreParams const& core_params() const { return *core_params_; }

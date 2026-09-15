@@ -104,9 +104,9 @@ TEST_F(ImageTest, inexact)
     auto const& scalars = params->scalars();
     EXPECT_VEC_SOFT_EQ((Real3{6, 2, -1}), scalars.origin);
     EXPECT_VEC_SOFT_EQ((Real3{-1, 0, 0}), scalars.down);
-    EXPECT_SOFT_EQ(real_type{7} / 256, scalars.pixel_width);
+    EXPECT_SOFT_EQ(7_r / 256, scalars.pixel_width);
     EXPECT_VEC_EQ((Size2{256, 192}), scalars.dims);
-    EXPECT_SOFT_EQ(real_type{5}, scalars.max_length);
+    EXPECT_SOFT_EQ(5_r, scalars.max_length);
 }
 
 //---------------------------------------------------------------------------//

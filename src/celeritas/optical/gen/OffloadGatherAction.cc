@@ -56,9 +56,8 @@ OffloadGatherAction<S>::OffloadGatherAction(ActionId action_id, AuxId aux_id)
  * Build state data for a stream.
  */
 template<StepActionOrder S>
-auto OffloadGatherAction<S>::create_state(MemSpace m,
-                                          StreamId id,
-                                          size_type size) const -> UPState
+auto OffloadGatherAction<S>::create_state(
+    MemSpace m, StreamId id, size_type size) const -> UPState
 {
     return make_aux_state<TraitsT::template Data>(m, id, size);
 }

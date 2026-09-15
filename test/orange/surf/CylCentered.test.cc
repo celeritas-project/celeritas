@@ -324,7 +324,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_tangent_intersect))
     {
         for (real_type v : {-1.0, 1.0})
         {
-            Real3 pos{x, real_type{-10 - 100 * coarse_eps} * v, 0};
+            Real3 pos{x, (-10_r - 100 * coarse_eps) * v, 0};
             Real3 dir{0, v, 0};
 
             real_type d;
@@ -399,8 +399,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
                 // Move the solved distance and make sure we're close to the
                 // actual cylinder surface
                 axpy(d, dir, &pos);
-                real_type boundary_error = std::hypot(pos[0], pos[1])
-                                           - real_type(30);
+                real_type boundary_error = std::hypot(pos[0], pos[1]) - 30_r;
 
                 // Calculate relative to the distance traveled and floating
                 // point precision
@@ -432,8 +431,7 @@ TEST_F(CCylZTest, TEST_IF_CELERITAS_DOUBLE(multi_along_intersect))
         inf, inf, inf, inf, inf, inf, inf, inf, inf};
     // clang-format on
 
-    EXPECT_VEC_NEAR(
-        expected_all_first_distances, all_first_distances, real_type{1e-5});
+    EXPECT_VEC_NEAR(expected_all_first_distances, all_first_distances, 1e-5_r);
 }
 
 //---------------------------------------------------------------------------//

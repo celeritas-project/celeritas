@@ -12,7 +12,6 @@
 #include "corecel/Macros.hh"
 
 #include "ScopedStreamRedirect.hh"
-#include "ScopedTimeLog.hh"
 
 namespace celeritas
 {
@@ -20,8 +19,8 @@ namespace celeritas
 /*!
  * At end of scope, print elapsed time and captured cout/cerr.
  *
- * This is designed to prevent other libraries (Geant4,VecGeom) from polluting
- * stdout and breaking JSON reading ability.
+ * This is designed to prevent other libraries (Geant4,VecGeom, HepMC3)
+ * from polluting stdout and breaking JSON reading ability.
  *
  * \code
     {
@@ -29,6 +28,7 @@ namespace celeritas
         vecgeom::DoNoisyAndLongStuff();
     }
    \endcode
+ * \todo Rename ScopedStreamLogger
  */
 class ScopedTimeAndRedirect
 {
@@ -45,7 +45,6 @@ class ScopedTimeAndRedirect
     std::unique_ptr<ScopedStreamRedirect> stdout_;
     std::unique_ptr<ScopedStreamRedirect> stderr_;
     std::string label_;
-    ScopedTimeLog scoped_time_;
 };
 
 //---------------------------------------------------------------------------//

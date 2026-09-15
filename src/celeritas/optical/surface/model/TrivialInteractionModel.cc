@@ -25,7 +25,7 @@ namespace optical
  */
 TrivialInteractionModel::TrivialInteractionModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "interaction-trivial")
+    : SurfaceModel(id, "trivial-interaction")
 {
     HostVal<TrivialInteractionData> data;
     auto build_modes = CollectionBuilder{&data.modes};

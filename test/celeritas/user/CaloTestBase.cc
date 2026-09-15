@@ -36,7 +36,8 @@ void CaloTestBase::SetUp()
     this->geometry();
 
     size_type const num_streams = 1;
-    calo_ = std::make_shared<SimpleCalo>(std::move(labels), num_streams);
+    calo_ = std::make_shared<SimpleCalo>(
+        std::move(labels), num_streams, *this->volume());
 
     StepCollector::VecInterface interfaces = {calo_};
 
@@ -86,10 +87,10 @@ std::string CaloTestBase::output() const
 }
 
 //---------------------------------------------------------------------------//
-template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::device>(size_type, size_type);
-template CaloTestBase::RunResult
-    CaloTestBase::run<MemSpace::host>(size_type, size_type);
+template CaloTestBase::RunResult CaloTestBase::run<MemSpace::device>(
+    size_type, size_type);
+template CaloTestBase::RunResult CaloTestBase::run<MemSpace::host>(size_type,
+                                                                   size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

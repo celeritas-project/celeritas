@@ -65,9 +65,8 @@ BuildLogicResult::VecSurface remap_faces(BuildLogicResult::VecLogic& lgc)
  * surface IDs must be present!
  */
 template<class Impl>
-BaseLogicBuilder<Impl>::BaseLogicBuilder(CsgTree const& tree,
-                                         VecLogic& logic,
-                                         VecSurface const* vs)
+BaseLogicBuilder<Impl>::BaseLogicBuilder(
+    CsgTree const& tree, VecLogic& logic, VecSurface const* vs)
     : logic_{logic}, visit_node_{tree}, mapping_{vs}
 {
     CELER_EXPECT(logic_.empty());
@@ -112,7 +111,7 @@ void BaseLogicBuilder<Impl>::operator()(False const&)
 template<class Impl>
 void BaseLogicBuilder<Impl>::operator()(Surface const& s)
 {
-    CELER_EXPECT(s.id < logic::lbegin);
+    CELER_EXPECT(s.id < static_cast<logic_int>(logic::lbegin));
     // Get index of original surface or remapped
     logic_int sidx = [this, sid = s.id] {
         if (!mapping_)
@@ -247,9 +246,8 @@ BuildLogicResult build_logic(LogicPolicy const& policy, NodeId n)
 /*!
  * Construct with optional mapping.
  */
-DynamicBuildLogicPolicy::DynamicBuildLogicPolicy(LogicNotation notation,
-                                                 CsgTree const& tree,
-                                                 VecSurface const* mapping)
+DynamicBuildLogicPolicy::DynamicBuildLogicPolicy(
+    LogicNotation notation, CsgTree const& tree, VecSurface const* mapping)
     : notation_{notation}, tree_{tree}, mapping_{mapping}
 {
 }

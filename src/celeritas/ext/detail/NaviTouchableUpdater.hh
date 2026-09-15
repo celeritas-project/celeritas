@@ -39,17 +39,12 @@ class NaviTouchableUpdater final : public TouchableUpdaterInterface
 
   public:
     //! Maximum step to try within the current volume [len]
-    static constexpr double max_step()
-    {
-        using namespace celeritas::units::literals;
-        return 1.0_mm;
-    }
+    static constexpr double max_step() { return 1.0 * units::millimeter; }
 
     //! Print diagnostic when the step is greater than this amount [len]
     static constexpr double max_quiet_step()
     {
-        using namespace celeritas::units::literals;
-        return 1e-3_mm;
+        return 1e-3 * units::millimeter;
     }
 
     // Construct from detector LVs

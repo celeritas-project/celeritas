@@ -27,8 +27,8 @@ struct RayleighExecutor
 /*!
  * Sample optical Rayleigh interaction from the current track.
  */
-CELER_FUNCTION Interaction
-RayleighExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction RayleighExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto const& direction = track.geometry().dir();

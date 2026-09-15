@@ -25,11 +25,19 @@ namespace optical
 void WavelengthShiftModel::step(CoreParams const& params,
                                 CoreStateDevice& state) const
 {
+    CELER_EXPECT(state.aux());
+
+    auto& aux_state
+        = get<WlsGeneratorState<MemSpace::native>>(*state.aux(), aux_id_);
+
     auto execute = make_action_thread_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{WavelengthShiftExecutor{this->device_ref()}});
+        InteractionApplier{
+            WavelengthShiftExecutor{this->device_ref(),
+                                    aux_state.store.ref(),
+                                    aux_state.counters.buffer_size}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 }

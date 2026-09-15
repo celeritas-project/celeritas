@@ -20,8 +20,11 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "geocel/VolumeIdBuilder.hh"
+#include "geocel/VolumeParams.hh"
 
 #include "detail/SimpleCaloImpl.hh"
+
+using namespace celeritas::literals;
 
 namespace celeritas
 {
@@ -31,7 +34,8 @@ namespace celeritas
  */
 SimpleCalo::SimpleCalo(std::string output_label,
                        VecLabel labels,
-                       size_type num_streams)
+                       size_type num_streams,
+                       VolumeParams const& volumes)
     : output_label_{std::move(output_label)}, volume_labels_{std::move(labels)}
 {
     CELER_EXPECT(!output_label_.empty());
@@ -39,17 +43,15 @@ SimpleCalo::SimpleCalo(std::string output_label,
     CELER_EXPECT(num_streams > 0);
 
     // Map labels to volume IDs
-    // FIXME: pass volumes and/or geant geo into the constructor
     volume_ids_.resize(volume_labels_.size());
-    VolumeIdBuilder label_to_vol_id;
+    VolumeIdBuilder label_to_vol_id(&volumes, nullptr);
     for (auto i : range(volume_labels_.size()))
     {
         volume_ids_[i] = label_to_vol_id(volume_labels_[i]);
     }
     CELER_VALIDATE(
         std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
-        << "failed to find one or more volumes while "
-           "constructing SimpleCalo");
+        << "failed to find one or more volumes while constructing SimpleCalo");
 
     HostVal<SimpleCaloParamsData> host_params;
     host_params.num_detectors = this->num_detectors();
@@ -172,7 +174,7 @@ auto SimpleCalo::energy_deposition(StreamId stream_id) const
  */
 auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
 {
-    VecReal result(this->num_detectors(), real_type{0});
+    VecReal result(this->num_detectors(), 0_r);
 
     accumulate_over_streams(
         store_, [](auto& state) { return state.energy_deposition; }, &result);
@@ -185,9 +187,8 @@ auto SimpleCalo::calc_total_energy_deposition() const -> VecReal
  */
 void SimpleCalo::clear()
 {
-    apply_to_all_streams(store_, [](auto& state) {
-        fill(real_type(0), &state.energy_deposition);
-    });
+    apply_to_all_streams(
+        store_, [](auto& state) { fill(0.0_r, &state.energy_deposition); });
 }
 
 //---------------------------------------------------------------------------//

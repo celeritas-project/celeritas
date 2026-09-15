@@ -72,11 +72,11 @@ TEST(LogicEvaluatorTest, evaluate)
 
     //// CREATE ////
 
-    LogicEvaluator eval_alpha(make_span(alpha_logic));
-    LogicEvaluator eval_beta(make_span(beta_logic));
-    LogicEvaluator eval_gamma(make_span(gamma_logic));
-    LogicEvaluator eval_delta(make_span(delta_logic));
-    LogicEvaluator eval_everywhere(make_span(everywhere_logic));
+    LogicEvaluator eval_alpha(make_ldg_span(alpha_logic));
+    LogicEvaluator eval_beta(make_ldg_span(beta_logic));
+    LogicEvaluator eval_gamma(make_ldg_span(gamma_logic));
+    LogicEvaluator eval_delta(make_ldg_span(delta_logic));
+    LogicEvaluator eval_everywhere(make_ldg_span(everywhere_logic));
 
     //// EVALUATE ////
 

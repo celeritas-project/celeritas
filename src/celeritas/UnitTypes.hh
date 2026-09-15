@@ -61,7 +61,7 @@ struct ElectronVolt
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
-        return units::megaelectronvolt / Constant(1e6);
+        return units::megaelectronvolt / Constant{1e6};
 #else
         return constants::e_electron * units::volt;
 #endif
@@ -77,7 +77,7 @@ struct Mev
 #if CELERITAS_UNITS == CELERITAS_UNITS_CLHEP
         return units::megaelectronvolt;
 #else
-        return Constant(1e6) * constants::e_electron * units::volt;
+        return Constant{1e6} * constants::e_electron * units::volt;
 #endif
     }
     static char const* label() { return "MeV"; }
@@ -117,7 +117,7 @@ struct Millibarn
 {
     static CELER_CONSTEXPR_FUNCTION Constant value()
     {
-        return Constant(1e-3) * units::barn;
+        return Constant{1e-3} * units::barn;
     }
     static char const* label() { return "mb"; }
 };
@@ -242,11 +242,11 @@ struct ClhepUnitMass
         {
             // Floating point errors make the true expression below difficult
             // to be exactly unity
-            return Constant(1);
+            return Constant{1};
         }
         else
         {
-            return constants::e_electron / coulomb * kilogram * Constant(1e-6);
+            return constants::e_electron / coulomb * kilogram * Constant{1e-6};
         }
     }
     static char const* label() { return "mass_clhep"; }
@@ -347,7 +347,7 @@ template<class F>
 constexpr decltype(auto) visit_unit_system(F&& func, UnitSystem sys)
 {
 #define CELER_US_VISIT_CASE(TYPE) \
-    case UnitSystem::TYPE:        \
+    case UnitSystem::TYPE: \
         return std::forward<F>(func)(UnitSystemTraits<UnitSystem::TYPE>{});
 
     switch (sys)

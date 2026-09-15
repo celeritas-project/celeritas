@@ -32,8 +32,8 @@ class UniformBoxDistribution
 
   public:
     // Constructor
-    inline CELER_FUNCTION
-    UniformBoxDistribution(result_type lower, result_type upper);
+    inline CELER_FUNCTION UniformBoxDistribution(result_type lower,
+                                                 result_type upper);
 
     // Construct with record
     explicit CELER_FUNCTION UniformBoxDistribution(RecordT const& record)
@@ -58,9 +58,8 @@ class UniformBoxDistribution
  * Construct from upper and lower coordinates.
  */
 template<class RealType>
-CELER_FUNCTION
-UniformBoxDistribution<RealType>::UniformBoxDistribution(result_type lower,
-                                                         result_type upper)
+CELER_FUNCTION UniformBoxDistribution<RealType>::UniformBoxDistribution(
+    result_type lower, result_type upper)
     : sample_pos_{UniformRealDist{lower[0], upper[0]},
                   UniformRealDist{lower[1], upper[1]},
                   UniformRealDist{lower[2], upper[2]}}
@@ -76,8 +75,8 @@ UniformBoxDistribution<RealType>::UniformBoxDistribution(result_type lower,
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-UniformBoxDistribution<RealType>::operator()(Generator& rng) -> result_type
+CELER_FUNCTION auto UniformBoxDistribution<RealType>::operator()(Generator& rng)
+    -> result_type
 {
     result_type result;
     for (int i = 0; i < 3; ++i)

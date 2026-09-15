@@ -57,11 +57,6 @@ CheckedGeoTrackView VecgeomTestBase::make_checked_track_view()
 GenericGeoTrackingTolerance VecgeomTestBase::tracking_tol() const
 {
     GenericGeoTrackingTolerance result = Base::tracking_tol();
-
-    if (CELERITAS_VECGEOM_SURFACE)
-    {
-        result.safety = 6e-5;
-    }
     return result;
 }
 

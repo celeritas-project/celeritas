@@ -8,9 +8,9 @@
 
 #include <random>
 
+#include "corecel/cont/Range.hh"
 #include "corecel/random/DiagnosticRngEngine.hh"
 #include "corecel/random/Histogram.hh"
-#include "corecel/random/SequenceEngine.hh"
 #include "corecel/random/distribution/UniformRealDistribution.hh"
 
 #include "celeritas_test.hh"
@@ -39,10 +39,11 @@ struct TargetSampler
     real_type operator()(Engine& rng)
     {
         real_type x;
+        RejectionSampler<double> reject{2.0};
         do
         {
             x = this->sample_domain(rng);
-        } while (RejectionSampler<double>{target_distribution(x), 2.0}(rng));
+        } while (reject(target_distribution(x), rng));
         return x;
     }
 };
@@ -71,13 +72,14 @@ TEST(RejectionSamplerTest, sample)
 TEST(RejectionSamplerTest, TEST_IF_CELERITAS_DEBUG(assertions))
 {
     constexpr auto nan = std::numeric_limits<double>::quiet_NaN();
+    std::mt19937 rng;
 
-    // Sampled value can't exceed max
-    EXPECT_THROW((RejectionSampler<double>{1.0, 0.5}), DebugError);
+    // Max can't be negative
+    EXPECT_THROW((RejectionSampler<double>{-0.5}), DebugError);
     // Can't have nan max
-    EXPECT_THROW((RejectionSampler<double>{0.1, nan}), DebugError);
-    // Can't have nan at all
-    EXPECT_THROW((RejectionSampler<double>{nan, 1.5}), DebugError);
+    EXPECT_THROW((RejectionSampler<double>{nan}), DebugError);
+    // Sampled value can't (significantly) exceed max
+    EXPECT_THROW((RejectionSampler<double>{0.5}(1.0, rng)), DebugError);
 }
 
 //---------------------------------------------------------------------------//

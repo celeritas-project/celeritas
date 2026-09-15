@@ -111,9 +111,10 @@ class VolumeSurfaceRecordBuilder
     //!@}
 
     // Construct with pointers to target collections
-    VolumeSurfaceRecordBuilder(VolumeItems<VolumeSurfaceRecord>* volume_surfaces,
-                               Items<VolumeInstanceId>* volume_instance_ids,
-                               Items<SurfaceId>* surface_ids);
+    VolumeSurfaceRecordBuilder(
+        VolumeItems<VolumeSurfaceRecord>* volume_surfaces,
+        Items<VolumeInstanceId>* volume_instance_ids,
+        Items<SurfaceId>* surface_ids);
 
     // Convert VolumeSurfaceData to VolumeSurfaceRecord
     VolumeId operator()(VolumeSurfaceData const& data);

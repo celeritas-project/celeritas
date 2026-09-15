@@ -13,11 +13,15 @@
 #include "corecel/StringSimplifier.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamUtils.hh"
 #include "corecel/io/StringUtils.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/Types.hh"
+#include "geocel/UniqueVolumeToString.hh"
 #include "geocel/UnitUtils.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
+#include "geocel/VolumePathAccumulator.hh"
 #include "geocel/rasterize/SafetyImager.hh"
 #include "orange/Debug.hh"
 #include "orange/OrangeTypes.hh"
@@ -25,6 +29,7 @@
 #include "OrangeTestBase.hh"
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
+#include "gtest/gtest.h"
 
 namespace celeritas
 {
@@ -124,6 +129,30 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, reentrant)
+{
+    this->impl().test_reentrant();
+}
+
+TEST_F(FourLevelsTest, reentrant_normal)
+{
+    ScopedLogStorer scoped_log_{&self_logger(), LogLevel::warning};
+    this->impl().test_reentrant_normal();
+
+    /*** ADD THE FOLLOWING UNIT TEST CODE ***/
+    static char const* const expected_log_messages[] = {
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    /*** END CODE ***/
+}
+
+TEST_F(FourLevelsTest, DISABLED_safety)
+{
+    this->impl().test_safety();
+}
+
 //---------------------------------------------------------------------------//
 using LarSphereTest
     = GenericGeoParameterizedTest<GeantOrangeTest, LarSphereGeoTest>;
@@ -196,7 +225,8 @@ TEST_F(MultiLevelTest, manual_volumes)
                 [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
                 uid)));
             cur_local_parent.push_back(id_to_int(visit_tracker(
-                [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
+                [lv_id](auto const& t) { return t.local_parent(lv_id); },
+                uid)));
             cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
         }
         local_level.emplace_back(std::move(cur_local_level));
@@ -214,6 +244,63 @@ TEST_F(MultiLevelTest, manual_volumes)
     EXPECT_VEC_EQ(expected_local_level, local_level);
     EXPECT_VEC_EQ(expected_local_parent, local_parent);
     EXPECT_VEC_EQ(expected_volume_names, volume_names);
+}
+
+// Test using VolumePathAccumulator with foreach_volume_path
+TEST_F(MultiLevelTest, unique_instance)
+{
+    auto gtv = this->make_geo_track_view().track_view();
+    VolumePathAccumulator accum{this->volumes()->host_ref()};
+    UniqueVolumeToString to_string_path{this->volumes()};
+    auto max_uid = this->volumes()->num_unique_instances();
+
+    std::vector<std::string> paths;
+
+    for (auto xy : this->impl().get_test_points())
+    {
+        SCOPED_TRACE(::testing::Message{} << "(x,y) = " << xy);
+        gtv = this->make_initializer({xy[0], xy[1], 0}, {0, 0, 1});
+
+        // Accumulate all levels, *including* world
+        VolumeUniqueInstanceId uid;
+        gtv.foreach_volume_path(
+            [&uid, accum](VolumeLevelId, VolumeInstanceId vi_id) {
+                uid = accum(uid, vi_id);
+            });
+
+        if (uid < max_uid)
+        {
+            paths.emplace_back(to_string_path(uid));
+        }
+        else
+        {
+            paths.emplace_back("ERROR@" + stream_to_string(xy));
+        }
+    }
+
+    // See MultiLevelGeoTest::test_volume_stack
+    static char const* const expected_paths[] = {
+        "world_PV",
+        "world_PV/topsph1",
+        "world_PV/topbox1/boxsph1@0",
+        "world_PV/topbox1",
+        "world_PV/topbox1/boxtri@0",
+        "world_PV/topbox1/boxsph2@0",
+        "world_PV/topbox2/boxsph1@0",
+        "world_PV/topbox2",
+        "world_PV/topbox2/boxtri@0",
+        "world_PV/topbox2/boxsph2@0",
+        "world_PV/topbox4/boxtri@1",
+        "world_PV/topbox4/boxsph2@1",
+        "world_PV/topbox4/boxsph1@1",
+        "world_PV/topbox4",
+        "world_PV/topbox3",
+        "world_PV/topbox3/boxsph2@0",
+        "world_PV/topbox3/boxsph1@0",
+        "world_PV/topbox3/boxtri@0",
+    };
+
+    EXPECT_VEC_EQ(expected_paths, paths);
 }
 
 // Test that the reconstructed total levels are correct

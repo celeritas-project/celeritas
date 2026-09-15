@@ -14,8 +14,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 
-#include "NumericLimits.hh"
-
 #include "detail/AlgorithmsImpl.hh"
 
 #if !defined(CELER_DEVICE_SOURCE) && !defined(CELERITAS_SINCOSPI_PREFIX)
@@ -29,8 +27,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 //! Implement perfect forwarding with device-friendly functions.
 template<class T>
-CELER_CONSTEXPR_FUNCTION T&&
-forward(typename std::remove_reference<T>::type& v) noexcept
+CELER_CONSTEXPR_FUNCTION T&& forward(std::remove_reference_t<T>& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -39,7 +36,7 @@ forward(typename std::remove_reference<T>::type& v) noexcept
 template<class T>
 CELER_CONSTEXPR_FUNCTION T&&
 // NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
-forward(typename std::remove_reference<T>::type&& v) noexcept
+forward(std::remove_reference_t<T>&& v) noexcept
 {
     return static_cast<T&&>(v);
 }
@@ -50,10 +47,10 @@ forward(typename std::remove_reference<T>::type&& v) noexcept
  * Cast a value as an rvalue reference to allow move construction.
  */
 template<class T>
-CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept ->
-    typename std::remove_reference<T>::type&&
+CELER_CONSTEXPR_FUNCTION auto move(T&& v) noexcept
+    -> std::remove_reference_t<T>&&
 {
-    return static_cast<typename std::remove_reference<T>::type&&>(v);
+    return static_cast<std::remove_reference_t<T>&&>(v);
 }
 
 //---------------------------------------------------------------------------//
@@ -97,8 +94,8 @@ CELER_FORCEINLINE_FUNCTION T exchange(T& dst, U&& src)
 template<class T = void>
 struct Less
 {
-    CELER_CONSTEXPR_FUNCTION auto
-    operator()(T const& lhs, T const& rhs) const noexcept -> decltype(auto)
+    CELER_CONSTEXPR_FUNCTION auto operator()(
+        T const& lhs, T const& rhs) const noexcept -> decltype(auto)
     {
         return lhs < rhs;
     }
@@ -251,8 +248,8 @@ CELER_CONSTEXPR_FUNCTION T clamp_to_nonneg(T v) noexcept
  * Find the insertion point for a value in a sorted list using a binary search.
  */
 template<class ForwardIt, class T, class Compare>
-CELER_FORCEINLINE_FUNCTION ForwardIt
-lower_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(
+    ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::lower_bound_impl<CompareRef>(
@@ -265,9 +262,8 @@ lower_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
  * Find the insertion point for a value in a sorted list using a binary search.
  */
 template<class ForwardIt, class T>
-CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
-                                                 ForwardIt last,
-                                                 T const& value)
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(
+    ForwardIt first, ForwardIt last, T const& value)
 {
     return ::celeritas::lower_bound(first, last, value, Less<>{});
 }
@@ -278,10 +274,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound(ForwardIt first,
  * Find the insertion point for a value in a sorted list using a linear search.
  */
 template<class ForwardIt, class T, class Compare>
-CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
-                                                        ForwardIt last,
-                                                        T const& value,
-                                                        Compare comp)
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(
+    ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::lower_bound_linear_impl<CompareRef>(
@@ -294,9 +288,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
  * Find the insertion point for a value in a sorted list using a linear search.
  */
 template<class ForwardIt, class T>
-CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
-                                                        ForwardIt last,
-                                                        T const& value)
+CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(
+    ForwardIt first, ForwardIt last, T const& value)
 {
     return ::celeritas::lower_bound_linear(first, last, value, Less<>{});
 }
@@ -307,8 +300,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt lower_bound_linear(ForwardIt first,
  * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T, class Compare>
-CELER_FORCEINLINE_FUNCTION ForwardIt
-upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
+CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(
+    ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::upper_bound_impl<CompareRef>(
@@ -321,9 +314,8 @@ upper_bound(ForwardIt first, ForwardIt last, T const& value, Compare comp)
  * Find the first element which is greater than <value>.
  */
 template<class ForwardIt, class T>
-CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
-                                                 ForwardIt last,
-                                                 T const& value)
+CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(
+    ForwardIt first, ForwardIt last, T const& value)
 {
     return ::celeritas::upper_bound(first, last, value, Less<>{});
 }
@@ -334,8 +326,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt upper_bound(ForwardIt first,
  * Find the given element in a sorted range.
  */
 template<class ForwardIt, class T, class Compare>
-inline CELER_FUNCTION ForwardIt
-find_sorted(ForwardIt first, ForwardIt last, T const& value, Compare comp)
+inline CELER_FUNCTION ForwardIt find_sorted(
+    ForwardIt first, ForwardIt last, T const& value, Compare comp)
 {
     auto iter = ::celeritas::lower_bound(first, last, value, comp);
     if (iter == last || comp(*iter, value) || comp(value, *iter))
@@ -352,9 +344,8 @@ find_sorted(ForwardIt first, ForwardIt last, T const& value, Compare comp)
  * Find the given element in a sorted range.
  */
 template<class ForwardIt, class T>
-CELER_FORCEINLINE_FUNCTION ForwardIt find_sorted(ForwardIt first,
-                                                 ForwardIt last,
-                                                 T const& value)
+CELER_FORCEINLINE_FUNCTION ForwardIt find_sorted(
+    ForwardIt first, ForwardIt last, T const& value)
 {
     return ::celeritas::find_sorted(first, last, value, Less<>{});
 }
@@ -367,9 +358,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt find_sorted(ForwardIt first,
  * This is done by swapping elements until the range is partitioned.
  */
 template<class ForwardIt, class Predicate>
-CELER_FORCEINLINE_FUNCTION ForwardIt partition(ForwardIt first,
-                                               ForwardIt last,
-                                               Predicate pred)
+CELER_FORCEINLINE_FUNCTION ForwardIt partition(
+    ForwardIt first, ForwardIt last, Predicate pred)
 {
     using PredicateRef = std::add_lvalue_reference_t<Predicate>;
     return ::celeritas::detail::partition_impl<PredicateRef>(first, last, pred);
@@ -383,8 +373,8 @@ CELER_FORCEINLINE_FUNCTION ForwardIt partition(ForwardIt first,
  * from CUDA code.
  */
 template<class RandomAccessIt, class Compare>
-CELER_FORCEINLINE_FUNCTION void
-sort(RandomAccessIt first, RandomAccessIt last, Compare comp)
+CELER_FORCEINLINE_FUNCTION void sort(
+    RandomAccessIt first, RandomAccessIt last, Compare comp)
 {
     using CompareRef = std::add_lvalue_reference_t<Compare>;
     return ::celeritas::detail::heapsort_impl<CompareRef>(first, last, comp);
@@ -409,7 +399,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
  * This function is specialized so that floating point types use \c std::fmax
  * for better performance on GPU and ARM.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
     return (b > a) ? b : a;
@@ -417,7 +407,7 @@ CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 
 //!\cond (CELERITAS_DOC_DEV)
 // Note: fmax treats NaN as "missing data"
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
 {
     return std::fmax(a, b);
@@ -431,7 +421,7 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
  * This function is specialized so that floating point types use \c std::fmin
  * for better performance on GPU and ARM.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
     return (b < a) ? b : a;
@@ -439,7 +429,7 @@ CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 
 //!\cond (CELERITAS_DOC_DEV)
 // Note: fmin treats NaN as "missing data"
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
 {
     return std::fmin(a, b);
@@ -451,9 +441,8 @@ CELER_CONSTEXPR_FUNCTION T min(T a, T b) noexcept
  * Return an iterator to the lowest value in the range as defined by Compare.
  */
 template<class ForwardIt, class Compare>
-inline CELER_FUNCTION ForwardIt min_element(ForwardIt iter,
-                                            ForwardIt last,
-                                            Compare comp)
+inline CELER_FUNCTION ForwardIt min_element(
+    ForwardIt iter, ForwardIt last, Compare comp)
 {
     // Avoid incrementing past the end
     if (iter == last)
@@ -526,8 +515,9 @@ CELER_CONSTEXPR_FUNCTION T ipow(T v) noexcept
   assert(9.0 == fastpow(3.0, 2.0));
  \endcode
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline CELER_FUNCTION T fastpow(T a, T b)
+template<class T>
+inline CELER_FUNCTION std::enable_if_t<std::is_floating_point_v<T>, T> fastpow(
+    T a, T b)
 {
     CELER_EXPECT(a > 0 || (a == 0 && b != 0));
     return std::exp(b * std::log(a));
@@ -546,7 +536,7 @@ inline CELER_FUNCTION T fastpow(T a, T b)
  * Because of the single template parameter, it may be easier to use \c
  * std::fma directly in most cases.
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 {
     return std::fma(a, b, y);
@@ -557,7 +547,7 @@ CELER_FORCEINLINE_FUNCTION T fma(T a, T b, T y)
 /*!
  * Provide an FMA-like interface for integers.
  */
-template<class T, std::enable_if_t<!std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T fma(T a, T b, T y)
 {
     return a * b + y;
@@ -670,7 +660,7 @@ CELER_CONSTEXPR_FUNCTION T diffsq(T a, T b)
    eumod(-2, 2) == 0
    \endcode
  */
-template<class T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template<class T, std::enable_if_t<std::is_floating_point_v<T>, bool> = true>
 CELER_CONSTEXPR_FUNCTION T eumod(T num, T denom)
 {
     T r = std::fmod(num, denom);
@@ -845,6 +835,23 @@ CELER_CONSTEXPR_FUNCTION int popcount(T x) noexcept
 #else
     return __builtin_popcountl(x);
 #endif
+}
+
+//---------------------------------------------------------------------------//
+// Other utility functions
+//---------------------------------------------------------------------------//
+//! Return true if all arguments are true, *without* short circuiting
+template<typename... Args>
+CELER_FORCEINLINE_FUNCTION bool logical_all(Args const&... args)
+{
+    return (1 & ... & (args ? 1 : 0));
+}
+
+//! Return true if any argument is true, *without* short circuiting
+template<typename... Args>
+CELER_FORCEINLINE_FUNCTION bool logical_any(Args const&... args)
+{
+    return (0 | ... | (args ? 1 : 0));
 }
 
 //---------------------------------------------------------------------------//

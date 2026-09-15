@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class VolumeParams;
+
 namespace test
 {
 //---------------------------------------------------------------------------//
@@ -42,7 +44,8 @@ class ExampleInstanceCalo final : public StepInterface
 
   public:
     // Construct with labels
-    explicit ExampleInstanceCalo(VecLabel vol_labels);
+    explicit ExampleInstanceCalo(VecLabel vol_labels,
+                                 std::shared_ptr<VolumeParams const> volumes);
 
     // Selection of data required for this interface
     Filters filters() const final;
@@ -64,6 +67,7 @@ class ExampleInstanceCalo final : public StepInterface
 
   private:
     VecLabel det_labels_;
+    std::shared_ptr<VolumeParams const> volumes_;
     std::vector<VolumeId> volume_ids_;
 
     std::map<std::string, real_type> edep_;

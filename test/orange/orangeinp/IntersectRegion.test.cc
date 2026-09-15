@@ -63,8 +63,8 @@ class IntersectRegionTest : public ::celeritas::test::Test
                     VariantTransform const& vt);
 
     //! Test with default name
-    TestResult
-    test(IntersectRegionInterface const& r, VariantTransform const& vt)
+    TestResult test(IntersectRegionInterface const& r,
+                    VariantTransform const& vt)
     {
         return this->test("cr", r, vt);
     }
@@ -820,8 +820,7 @@ class GenPrismTest : public IntersectRegionTest
             auto twist_cosine = pri.calc_twist_cosine(i);
             EXPECT_GT(twist_cosine, 0);
             EXPECT_LT(twist_cosine, 1 + SoftEqual<>{}.abs());
-            real_type twist_angle
-                = std::acos(std::fmin(twist_cosine, real_type(1)));
+            real_type twist_angle = std::acos(std::fmin(twist_cosine, 1_r));
             result.push_back(native_value_to<Turn>(twist_angle).value());
         }
         return result;
@@ -1247,7 +1246,7 @@ TEST_F(GenPrismTest, trap_thetaphi)
 
 TEST_F(GenPrismTest, trap_g4)
 {
-    constexpr Turn degree{real_type{1} / 360};
+    constexpr Turn degree{1_r / 360};
 
     auto pri = GenPrism::from_trap(4,
                                    5 * degree,
@@ -1563,10 +1562,9 @@ TEST_F(GenPrismTest, emec_blade)
 
     if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
-        GTEST_SKIP()
-            << "Tolerance changes with floating point type, "
-               "so the GQ sign is flipped because it's ignored as zero since "
-               "it's below tolerance";
+        GTEST_SKIP() << "Tolerance changes with floating point type, so the "
+                        "GQ sign is flipped because it's ignored as zero "
+                        "since it's below tolerance";
     }
 
     static char const* const expected_surface_strings[] = {
@@ -1668,11 +1666,11 @@ TEST_F(GenPrismTest, variable_twisted)
     };
     for (auto logeps : range(-6, -1))
     {
-        build_prism(std::pow(real_type{10}, static_cast<real_type>(logeps)));
+        build_prism(std::pow(10_r, static_cast<real_type>(logeps)));
     }
     for (auto fraceps : range(0, 5))
     {
-        build_prism(0.1 + real_type{0.025} * fraceps);
+        build_prism(0.1 + 0.025_r * fraceps);
     }
 
     auto const& u = this->unit();
@@ -2652,6 +2650,34 @@ TEST_F(TetTest, soft_degenerate)
     ref.interior = {{-1, 0, 0}, {1, 1, 0}};
     ref.exterior = {{-1, 0, 0}, {1, 1, 0}};
     EXPECT_REF_EQ(ref, result);
+}
+
+//---------------------------------------------------------------------------//
+// TORUS
+//---------------------------------------------------------------------------//
+using TorusTest = IntersectRegionTest;
+
+TEST_F(TorusTest, errors)
+{
+    // Nonpositive radii
+    EXPECT_THROW(Torus(-1, 2), RuntimeError);
+    EXPECT_THROW(Torus(2, -1), RuntimeError);
+    // Degenerate toroid (xy radius > toroid major radius)
+    EXPECT_THROW(Torus(1, 2), RuntimeError);
+}
+
+TEST_F(TorusTest, standard)
+{
+    auto result = this->test(Torus(2, 1));
+
+    static char const expected_node[] = "-0";
+    static char const* expected_surfaces[]
+        = {"Toroid: r=2, a=1, b=1, at o={0,0,0}"};
+
+    EXPECT_EQ(expected_node, result.node);
+    EXPECT_VEC_EQ(expected_surfaces, result.surfaces);
+    EXPECT_VEC_SOFT_EQ((Real3{-3, -3, -1}), result.exterior.lower());
+    EXPECT_VEC_SOFT_EQ((Real3{3, 3, 1}), result.exterior.upper());
 }
 
 //---------------------------------------------------------------------------//

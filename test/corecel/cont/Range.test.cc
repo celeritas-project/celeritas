@@ -327,6 +327,7 @@ TEST(RangeTest, opaque_id)
     {
         Range<MatId> fr;
         EXPECT_EQ(0, fr.size());
+        EXPECT_TRUE((std::is_same_v<decltype(fr.size()), unsigned short int>));
         EXPECT_TRUE(fr.empty());
     }
     {

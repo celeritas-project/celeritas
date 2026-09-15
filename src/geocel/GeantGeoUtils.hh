@@ -80,8 +80,8 @@ G4Field const* geant_field();
 //---------------------------------------------------------------------------//
 // Find Geant4 logical volumes corresponding to a list of names
 // DEPRECATED: Remove in Celeritas 1.0
-std::unordered_set<G4LogicalVolume const*>
-    find_geant_volumes(std::unordered_set<std::string>);
+std::unordered_set<G4LogicalVolume const*> find_geant_volumes(
+    std::unordered_set<std::string>);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -92,8 +92,8 @@ inline void reset_geant_geometry()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline std::unordered_set<G4LogicalVolume const*>
-find_geant_volumes(std::unordered_set<std::string>)
+inline std::unordered_set<G4LogicalVolume const*> find_geant_volumes(
+    std::unordered_set<std::string>)
 {
     CELER_NOT_CONFIGURED("Geant4");
 }

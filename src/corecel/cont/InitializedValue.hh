@@ -56,8 +56,7 @@ class InitializedValue
 
     //! Default copy constructor
     InitializedValue(InitializedValue const&) noexcept(
-        std::is_nothrow_copy_constructible_v<T>)
-        = default;
+        std::is_nothrow_copy_constructible_v<T>) = default;
 
     // Move constructor
     InitializedValue(InitializedValue&& other) noexcept(
@@ -135,9 +134,9 @@ InitializedValue<T, Finalizer>::operator=(InitializedValue const& other) noexcep
 //---------------------------------------------------------------------------//
 //! Clear other value on move assign
 template<class T, class Finalizer>
-InitializedValue<T, Finalizer>&
-InitializedValue<T, Finalizer>::operator=(InitializedValue&& other) noexcept(
-    noexcept_finalize_ && std::is_nothrow_move_assignable_v<T>)
+InitializedValue<T, Finalizer>& InitializedValue<T, Finalizer>::operator=(
+    InitializedValue&& other) noexcept(noexcept_finalize_
+                                       && std::is_nothrow_move_assignable_v<T>)
 {
     if (value_ != T{})
     {

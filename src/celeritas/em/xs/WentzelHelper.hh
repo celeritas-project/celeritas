@@ -48,13 +48,13 @@ class WentzelHelper
 
   public:
     // Construct from particle and material properties
-    inline CELER_FUNCTION
-    WentzelHelper(ParticleTrackView const& particle,
-                  MaterialView const& material,
-                  AtomicNumber target_z,
-                  NativeCRef<WentzelOKVIData> const& wentzel,
-                  CoulombIds const& ids,
-                  Energy cutoff);
+    inline CELER_FUNCTION WentzelHelper(
+        ParticleTrackView const& particle,
+        MaterialView const& material,
+        AtomicNumber target_z,
+        NativeCRef<WentzelOKVIData> const& wentzel,
+        CoulombIds const& ids,
+        Energy cutoff);
 
     //! Get the target atomic number
     CELER_FUNCTION AtomicNumber atomic_number() const { return target_z_; }
@@ -84,12 +84,12 @@ class WentzelHelper
     }
 
     // Calculate the electron cross section for Coulomb scattering
-    inline CELER_FUNCTION real_type
-    calc_xs_electron(real_type cos_thetamin, real_type cos_thetamax) const;
+    inline CELER_FUNCTION real_type calc_xs_electron(
+        real_type cos_thetamin, real_type cos_thetamax) const;
 
     // Calculate the nuclear cross section for Coulomb scattering
-    inline CELER_FUNCTION real_type
-    calc_xs_nuclear(real_type cos_thetamin, real_type cos_thetamax) const;
+    inline CELER_FUNCTION real_type calc_xs_nuclear(
+        real_type cos_thetamin, real_type cos_thetamax) const;
 
   private:
     //// DATA ////
@@ -125,8 +125,8 @@ class WentzelHelper
         NativeCRef<WentzelOKVIData> const& wentzel) const;
 
     // Calculate the common factor in the electron and nuclear cross section
-    inline CELER_FUNCTION real_type calc_xs_factor(real_type cos_thetamin,
-                                                   real_type cos_thetamax) const;
+    inline CELER_FUNCTION real_type calc_xs_factor(
+        real_type cos_thetamin, real_type cos_thetamax) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -135,13 +135,13 @@ class WentzelHelper
 /*!
  * Construct from particle and material properties.
  */
-CELER_FUNCTION
-WentzelHelper::WentzelHelper(ParticleTrackView const& particle,
-                             MaterialView const& material,
-                             AtomicNumber target_z,
-                             NativeCRef<WentzelOKVIData> const& wentzel,
-                             CoulombIds const& ids,
-                             Energy cutoff)
+CELER_FUNCTION WentzelHelper::WentzelHelper(
+    ParticleTrackView const& particle,
+    MaterialView const& material,
+    AtomicNumber target_z,
+    NativeCRef<WentzelOKVIData> const& wentzel,
+    CoulombIds const& ids,
+    Energy cutoff)
     : target_z_(target_z)
     , screening_coefficient_(this->calc_screening_coefficient(particle, ids)
                              * wentzel.params.screening_factor)
@@ -207,9 +207,11 @@ CELER_FUNCTION real_type WentzelHelper::calc_xs_factor(
 CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
     ParticleTrackView const& particle, CoulombIds const& ids) const
 {
+    using namespace celeritas::literals;
+
     // TODO: Reference for just proton correction?
     real_type correction = 1;
-    real_type sq_cbrt_z = fastpow(real_type(target_z_.get()), real_type{2} / 3);
+    real_type sq_cbrt_z = fastpow(real_type(target_z_.get()), 2_r / 3);
     if (target_z_.get() > 1)
     {
         // TODO: tau correction factor and "min" value are of unknown
@@ -229,11 +231,11 @@ CELER_FUNCTION real_type WentzelHelper::calc_screening_coefficient(
         {
             // Muons and hadrons
             factor = ipow<2>(value_as<Charge>(particle.charge()));
-            z_factor += std::exp(-ipow<2>(target_z_.get()) * real_type(0.001));
+            z_factor += std::exp(-ipow<2>(target_z_.get()) * 0.001_r);
         }
-        correction = min(target_z_.get() * real_type{1.13},
-                         real_type{1.13}
-                             + real_type{3.76}
+        correction = min(target_z_.get() * 1.13_r,
+                         1.13_r
+                             + 3.76_r
                                    * ipow<2>(target_z_.get()
                                              * constants::alpha_fine_structure)
                                    * factor / particle.beta_sq())
@@ -300,12 +302,14 @@ CELER_FUNCTION real_type WentzelHelper::calc_kin_factor(
  * This calculates the cosine of the maximum polar angle that the incident
  * particle can scatter off of the target's electrons.
  */
-CELER_FUNCTION real_type
-WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
-                                          CoulombIds const& ids,
-                                          Energy cutoff,
-                                          Mass electron_mass)
+CELER_FUNCTION real_type WentzelHelper::calc_cos_thetamax_electron(
+    ParticleTrackView const& particle,
+    CoulombIds const& ids,
+    Energy cutoff,
+    Mass electron_mass)
 {
+    using namespace celeritas::literals;
+
     real_type result = 0;
     real_type inc_energy = value_as<Energy>(particle.energy());
     real_type mass = value_as<Mass>(particle.mass());
@@ -315,7 +319,7 @@ WentzelHelper::calc_cos_thetamax_electron(ParticleTrackView const& particle,
     {
         // Electrons and positrons
         real_type max_energy = particle.particle_id() == ids.electron
-                                   ? real_type{0.5} * inc_energy
+                                   ? 0.5_r * inc_energy
                                    : inc_energy;
         real_type final_energy = inc_energy
                                  - min(value_as<Energy>(cutoff), max_energy);

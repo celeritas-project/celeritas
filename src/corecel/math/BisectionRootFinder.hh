@@ -56,7 +56,8 @@ class BisectionRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-CELER_FUNCTION BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
+CELER_CTAD_FUNCTION BisectionRootFinder(F&&, Args...)
+    -> BisectionRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -65,8 +66,8 @@ CELER_FUNCTION BisectionRootFinder(F&&, Args...) -> BisectionRootFinder<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION
-BisectionRootFinder<F>::BisectionRootFinder(F&& func, real_type tol)
+CELER_FUNCTION BisectionRootFinder<F>::BisectionRootFinder(F&& func,
+                                                           real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);
@@ -80,6 +81,8 @@ template<class F>
 CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
                                                             real_type right)
 {
+    using namespace celeritas::literals;
+
     // Initialize Iteration parameters
     real_type f_left = func_(left);
     real_type f_root = 1;
@@ -90,7 +93,7 @@ CELER_FUNCTION real_type BisectionRootFinder<F>::operator()(real_type left,
     do
     {
         // Estimate root and update value
-        root = real_type(0.5) * (left + right);
+        root = 0.5_r * (left + right);
         f_root = func_(root);
 
         // Update the bound which produces the same sign as the root

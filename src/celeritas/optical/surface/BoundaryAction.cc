@@ -29,7 +29,7 @@ struct BoundaryActionTraits;
 template<>
 struct BoundaryActionTraits<detail::InitBoundaryExecutor>
 {
-    constexpr static char const* action_name = "optical-boundary-init";
+    constexpr static char const* action_name = "boundary-init";
     constexpr static char const* action_desc
         = "Initialize optical boundary crossing action";
 };
@@ -37,7 +37,7 @@ struct BoundaryActionTraits<detail::InitBoundaryExecutor>
 template<>
 struct BoundaryActionTraits<detail::PostBoundaryExecutor>
 {
-    constexpr static char const* action_name = "optical-boundary-post";
+    constexpr static char const* action_name = "boundary-post";
     constexpr static char const* action_desc
         = "Finalize optical boundary crossing action";
 };

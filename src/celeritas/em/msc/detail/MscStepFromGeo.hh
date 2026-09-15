@@ -98,6 +98,8 @@ CELER_FUNCTION MscStepFromGeo::MscStepFromGeo(MscParameters const& params,
  */
 CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(gstep >= 0 && gstep <= true_step_);
 
     if (gstep < params_.min_step_transform)
@@ -129,7 +131,7 @@ CELER_FUNCTION real_type MscStepFromGeo::operator()(real_type gstep) const
         // ending MFP of zero is correct when the step is the range. Precision
         // loss means this conversion also may result in x > 1, which we guard
         // against.
-        x = min(x, real_type(1));
+        x = min(x, 1.0_r);
         // Near x=1, (1 - (1-x)^(1/w)) suffers from numerical precision loss;
         // the maximum value of the expression should be range_.
         // TODO: we should use the action ID to avoid applying this

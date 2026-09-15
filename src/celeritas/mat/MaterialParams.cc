@@ -17,7 +17,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
@@ -28,6 +27,8 @@
 
 namespace celeritas
 {
+using namespace celeritas::literals;
+
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -59,8 +60,8 @@ MatterState to_matter_state(ImportMaterialState state)
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<MaterialParams>
-MaterialParams::from_import(ImportData const& data)
+std::shared_ptr<MaterialParams> MaterialParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.geo_materials.empty());
     CELER_EXPECT(!data.phys_materials.empty());
@@ -163,8 +164,6 @@ MaterialParams::MaterialParams(Input const& inp)
     CELER_EXPECT(!inp.materials.empty());
     CELER_EXPECT(inp.mat_to_optical.empty()
                  || inp.mat_to_optical.size() == inp.materials.size());
-
-    ScopedMem record_mem("MaterialParams.construct");
 
     // Build input data on host
     HostValue host_data;
@@ -417,9 +416,8 @@ void MaterialParams::append_isotope_def(IsotopeInput const& inp,
  * \todo It's the caller's responsibility to ensure that element IDs
  * aren't duplicated.
  */
-ItemRange<MatElementComponent>
-MaterialParams::extend_elcomponents(MaterialInput const& inp,
-                                    HostValue* host_data) const
+ItemRange<MatElementComponent> MaterialParams::extend_elcomponents(
+    MaterialInput const& inp, HostValue* host_data) const
 {
     CELER_EXPECT(host_data);
     // Allocate material components
@@ -440,7 +438,7 @@ MaterialParams::extend_elcomponents(MaterialInput const& inp,
     }
 
     // Renormalize component fractions that are not unity and log them
-    if (!inp.elements_fractions.empty() && !soft_equal(norm, real_type(1)))
+    if (!inp.elements_fractions.empty() && !soft_equal(norm, 1.0_r))
     {
         CELER_LOG(warning) << "Element component fractions for `" << inp.label
                            << "` should sum to 1 but instead sum to " << norm
@@ -454,7 +452,7 @@ MaterialParams::extend_elcomponents(MaterialInput const& inp,
             comp.fraction *= norm;
             total_fractions += comp.fraction;
         }
-        CELER_ASSERT(soft_equal(total_fractions, real_type(1)));
+        CELER_ASSERT(soft_equal(total_fractions, 1.0_r));
     }
 
     // Sort elements by increasing element ID for improved access

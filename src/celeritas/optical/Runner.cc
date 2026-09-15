@@ -8,9 +8,13 @@
 
 #include <utility>
 
+#include "corecel/io/Logger.hh"
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
+#include "corecel/sys/Openmp.hh"
+#include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
 
 #include "CoreParams.hh"
@@ -29,8 +33,9 @@ Runner::Runner(Input&& osi)
 {
     CELER_VALIDATE(osi.problem.num_streams == 1,
                    << "standalone optical runner expects a single stream");
+
+    ScopedProfiling profile_this{"setup"};
     StreamId stream_id{0};
-    auto num_tracks = osi.problem.capacity.tracks;
 
     // Prepare problem input for json output before it's modified during setup
     auto osi_output = std::make_shared<OutputInterfaceAdapter<Input>>(
@@ -42,12 +47,13 @@ Runner::Runner(Input&& osi)
     // Save the optical transporter and generator
     CELER_ASSERT(loaded_.problem.transporter);
     CELER_ASSERT(loaded_.problem.generator);
-    CELER_ASSERT(stream_id < this->params()->max_streams());
+    CELER_ASSERT(stream_id < this->params()->sizes().streams);
 
     // Add problem input to output registry
     this->params()->output_reg()->insert(osi_output);
 
     // Allocate state data
+    auto num_tracks = this->params()->sizes().tracks;
     auto memspace = celeritas::device() ? MemSpace::device : MemSpace::host;
     if (memspace == MemSpace::device)
     {
@@ -58,6 +64,11 @@ Runner::Runner(Input&& osi)
     {
         state_ = std::make_shared<CoreState<MemSpace::host>>(
             *this->params(), stream_id, num_tracks);
+        if (CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK)
+        {
+            CELER_LOG(status) << "Running track-parallel with "
+                              << openmp_max_threads() << " max threads";
+        }
     }
 
     // Allocate auxiliary data
@@ -70,9 +81,9 @@ Runner::Runner(Input&& osi)
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated with a primary generator.
+ * Set the number of pending tracks for a primary generator.
  */
-auto Runner::operator()() -> Result
+void Runner::insert()
 {
     auto generate
         = std::dynamic_pointer_cast<optical::PrimaryGeneratorAction const>(
@@ -82,15 +93,13 @@ auto Runner::operator()() -> Result
 
     // Set the number of pending tracks
     generate->insert(*state_);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated directly from track initializers.
+ * Insert track initializers.
  */
-auto Runner::operator()(SpanConstTrackInit data) -> Result
+void Runner::insert(SpanConstTrackInit data)
 {
     auto generate
         = std::dynamic_pointer_cast<optical::DirectGeneratorAction const>(
@@ -100,16 +109,15 @@ auto Runner::operator()(SpanConstTrackInit data) -> Result
 
     // Insert track initializers
     generate->insert(*state_, data);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport tracks generated through scintillation or Cherenkov.
+ * Insert distributions for generating through scintillation or Cherenkov.
  */
-auto Runner::operator()(SpanConstGenDist data) -> Result
+void Runner::insert(SpanConstGenDist data)
 {
+    ScopedProfiling profile_this{"insert"};
     auto generate = std::dynamic_pointer_cast<optical::GeneratorAction const>(
         loaded_.problem.generator);
     CELER_VALIDATE(generate,
@@ -128,26 +136,57 @@ auto Runner::operator()(SpanConstGenDist data) -> Result
         counters.num_pending += d.num_photons;
     }
     state_->sync_put_counters(counters);
-
-    return this->run();
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Generate optical photons and transport to completion.
  */
-auto Runner::run() const -> Result
+auto Runner::operator()() const -> Result
 {
+    ScopedProfiling profile_this{"run"};
     (*loaded_.problem.transporter)(*state_);
 
     Result result;
-    result.counters = state_->accum();
-    result.counters.generators.push_back(
-        loaded_.problem.generator->counters(*state_->aux()).accum);
-    result.action_times
-        = loaded_.problem.transporter->get_action_times(*state_->aux());
+    result.counters = this->get_counters();
+    result.action_times = this->get_action_times();
+    result.step_times = this->get_step_times();
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get accumulated track counters.
+ */
+CounterAccumStats Runner::get_counters() const
+{
+    CounterAccumStats counters = state_->accum();
+    for (auto gen_id : range(GeneratorId(this->params()->gen_reg()->size())))
+    {
+        auto const gen = this->params()->gen_reg()->at(gen_id);
+        CELER_ASSERT(gen);
+        counters.generators.push_back(gen->counters(*state_->aux()).accum);
+    }
+    return counters;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get accumulated wall times for each action.
+ */
+ActionTimes::MapStrDbl Runner::get_action_times() const
+{
+    return loaded_.problem.transporter->get_action_times(*state_->aux());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the wall time for each step iteration.
+ */
+StepTimes::VecDbl Runner::get_step_times() const
+{
+    return loaded_.problem.transporter->get_step_times(*state_->aux());
 }
 
 //---------------------------------------------------------------------------//

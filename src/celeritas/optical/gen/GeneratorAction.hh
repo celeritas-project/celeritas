@@ -8,16 +8,13 @@
 
 #include <memory>
 
-#include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/AuxInterface.hh"
-#include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/action/ActionInterface.hh"
 #include "celeritas/phys/GeneratorInterface.hh"
 
 #include "GeneratorBase.hh"
 #include "GeneratorData.hh"
-#include "OffloadData.hh"
 
 namespace celeritas
 {
@@ -47,8 +44,8 @@ class GeneratorAction final : public GeneratorBase
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<GeneratorAction>
-    make_and_insert(CoreParams const&, size_type capacity);
+    static std::shared_ptr<GeneratorAction> make_and_insert(
+        CoreParams const&, size_type capacity);
 
     // Construct with action ID, data IDs, and optical properties
     GeneratorAction(ActionId, AuxId, GeneratorId, size_type capacity);

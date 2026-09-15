@@ -14,9 +14,8 @@ namespace test
 {
 
 // Create and initialize SplitMix64
-celeritas::SplitMix64 makeSplitMix64(unsigned int seed,
-                                     unsigned int event_id,
-                                     unsigned int primary_id)
+celeritas::SplitMix64 makeSplitMix64(
+    unsigned int seed, unsigned int event_id, unsigned int primary_id)
 {
     celeritas::SplitMix64 rng(seed);
     rng.advance();

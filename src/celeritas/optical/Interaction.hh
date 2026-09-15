@@ -7,10 +7,8 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Span.hh"
-#include "geocel/Types.hh"
-
-#include "WavelengthShiftData.hh"
+#include "corecel/Types.hh"
+#include "corecel/cont/Array.hh"  // IWYU pragma: keep
 
 namespace celeritas
 {
@@ -37,7 +35,6 @@ struct Interaction
     Real3 direction;  //!< Post-interaction direction
     Real3 polarization;  //!< Post-interaction polarization
     Action action{Action::scattered};  //!< Flags for interaction result
-    WlsDistributionData distribution;  //!< Data for generating WLS secondaries
 
     //! Return an interaction representing an absorbed process
     static inline CELER_FUNCTION Interaction from_absorption();

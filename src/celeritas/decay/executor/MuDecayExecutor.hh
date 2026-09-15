@@ -16,8 +16,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct MuDecayExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     MuDecayData data;
 };
@@ -26,7 +26,8 @@ struct MuDecayExecutor
 /*!
  * Apply the \c MuDecayInteractor to the current track.
  */
-CELER_FUNCTION Interaction MuDecayExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction MuDecayExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto allocate_secondaries = track.physics_step().make_secondary_allocator();
     auto particle = track.particle();

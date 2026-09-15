@@ -45,7 +45,7 @@ class SurfaceClipperTest : public ::celeritas::test::Test
 void ClipResult::print_expected() const
 {
     cout << "/*** ADD THE FOLLOWING UNIT TEST CODE ***/\n";
-#define CR_PRINT(BOX, BOUND)                                       \
+#define CR_PRINT(BOX, BOUND) \
     cout << "EXPECT_VEC_SOFT_EQ((Real3" << repr(this->BOX.BOUND()) \
          << "), result." #BOX "." #BOUND "());\n"
     CR_PRINT(i, lower);

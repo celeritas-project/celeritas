@@ -32,12 +32,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                       \
-    template SurfaceSimplifier::Optional<OUT<Axis::x>>       \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
+    template SurfaceSimplifier::Optional<OUT<Axis::x>> \
     SurfaceSimplifier::operator()(IN<Axis::x> const&) const; \
-    template SurfaceSimplifier::Optional<OUT<Axis::y>>       \
+    template SurfaceSimplifier::Optional<OUT<Axis::y>> \
     SurfaceSimplifier::operator()(IN<Axis::y> const&) const; \
-    template SurfaceSimplifier::Optional<OUT<Axis::z>>       \
+    template SurfaceSimplifier::Optional<OUT<Axis::z>> \
     SurfaceSimplifier::operator()(IN<Axis::z> const&) const
 
 class ZeroSnapper
@@ -134,10 +134,12 @@ template<Axis T>
 auto SurfaceSimplifier::operator()(PlaneAligned<T> const& p) const
     -> Optional<PlaneAligned<T>>
 {
-    if (p.position() != real_type{0} && SoftZero{tol_}(p.position()))
+    using namespace celeritas::literals;
+
+    if (p.position() != 0_r && SoftZero{tol_}(p.position()))
     {
         // Snap to zero since it's not already zero
-        return PlaneAligned<T>{real_type{0}};
+        return PlaneAligned<T>{0_r};
     }
     // No simplification performed
     return {};
@@ -216,7 +218,7 @@ ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 auto SurfaceSimplifier::operator()(Plane const& p) const
     -> Optional<PlaneX, PlaneY, PlaneZ, Plane>
 {
-    auto signs = SignCounter{tol_}(make_span(p.normal()));
+    auto signs = SignCounter{tol_}(p.normal());
     CELER_ASSERT(signs);
 
     if (signs.should_flip())

@@ -134,12 +134,12 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
     if (CELER_UNLIKELY(!validated_))
     {
         CELER_TRY_HANDLE(
-            CELER_VALIDATE(
-                params_->mode()
-                    == (*transport_ ? SharedParams::Mode::enabled
-                                    : SharedParams::Mode::kill_offload),
-                << "Celeritas was not initialized properly (maybe "
-                   "BeginOfRunAction was not called?)"),
+            CELER_VALIDATE(params_->mode()
+                               == (*transport_
+                                       ? SharedParams::Mode::enabled
+                                       : SharedParams::Mode::kill_offload),
+                           << "Celeritas was not initialized properly (maybe "
+                              "BeginOfRunAction was not called?)"),
             ExceptionConverter("celer.track.validate"));
         validated_ = true;
     }
@@ -164,7 +164,8 @@ void TrackingManager::HandOverOneTrack(G4Track* track)
  * the after the main tracking loop has completed.
  *
  * That is done to allow for models that may add "onload" particles back to
- * Geant4.
+ * Geant4. It *may* be called multiple times per event if tracks are
+ * "onloaded".
  */
 void TrackingManager::FlushEvent()
 {

@@ -52,7 +52,6 @@ void RunnerOutput::output(JsonPimpl* j) const
     auto num_cut = json::array();
     auto num_errored = json::array();
     auto max_queued = json::array();
-    auto step_times = json::array();
     auto optical = json::array();
 
     for (auto const& event : result_.events)
@@ -72,10 +71,6 @@ void RunnerOutput::output(JsonPimpl* j) const
         num_cut.push_back(event.num_cut);
         num_errored.push_back(event.num_errored);
         max_queued.push_back(event.max_queued);
-        if (!event.step_times.empty())
-        {
-            step_times.push_back(event.step_times);
-        }
 
         if (!event.num_optical.generators.empty())
         {
@@ -92,12 +87,6 @@ void RunnerOutput::output(JsonPimpl* j) const
         initializers = nullptr;
     }
 
-    if (step_times.empty())
-    {
-        // Step time output is disabled
-        step_times = nullptr;
-    }
-
     if (optical.empty())
     {
         // No optical loop
@@ -105,7 +94,7 @@ void RunnerOutput::output(JsonPimpl* j) const
     }
 
     auto times = json::object({
-        {"steps", std::move(step_times)},
+        {"steps", result_.step_times},
         {"actions", result_.action_times},
         {"total", result_.total_time},
         {"setup", result_.setup_time},

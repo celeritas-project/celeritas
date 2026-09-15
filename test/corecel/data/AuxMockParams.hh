@@ -33,10 +33,8 @@ class AuxMockParams : public AuxParams<AuxMockParamsData, AuxMockStateData>
 
   public:
     // Construct with properties and IDs
-    AuxMockParams(std::string&& label,
-                  AuxId auxid,
-                  int num_bins,
-                  VecInt const& integers);
+    AuxMockParams(
+        std::string&& label, AuxId auxid, int num_bins, VecInt const& integers);
 
     //!@{
     //! \name Aux interface

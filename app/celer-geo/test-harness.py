@@ -206,6 +206,7 @@ def run_main_test(config: Config, run_celer_geo: CelerGeoDriver) -> int:
     commands = [
         {"geometry_file": str(config.model_path)},
         {"_cmd": "orange_stats"},
+        {"_cmd": "volumes"},
         {
             "_cmd": "trace",
             "image": IMAGES[config.model_path.stem],

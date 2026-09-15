@@ -70,8 +70,8 @@ PTVTestOutput ptv_test(PTVTestInput input)
 {
     thrust::device_vector<ParticleTrackInitializer> init = input.init;
 
-    thrust::device_vector<double> result(init.size()
-                                         * PTVTestOutput::props_per_thread());
+    thrust::device_vector<double> result(
+        init.size() * PTVTestOutput::props_per_thread());
 
     CELER_LAUNCH_KERNEL(ptv_test,
                         init.size(),

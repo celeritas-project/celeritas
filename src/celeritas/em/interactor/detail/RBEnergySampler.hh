@@ -15,7 +15,6 @@
 #include "celeritas/Types.hh"
 #include "celeritas/em/data/RelativisticBremData.hh"
 #include "celeritas/em/xs/RBDiffXsCalculator.hh"
-#include "celeritas/mat/ElementView.hh"
 #include "celeritas/mat/MaterialView.hh"
 #include "celeritas/phys/CutoffView.hh"
 #include "celeritas/phys/ParticleTrackView.hh"
@@ -42,12 +41,12 @@ class RBEnergySampler
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
-                    ParticleTrackView const& particle,
-                    CutoffView const& cutoffs,
-                    MaterialView const& material,
-                    ElementComponentId elcomp_id);
+    inline CELER_FUNCTION RBEnergySampler(
+        NativeCRef<RelativisticBremData> const& shared,
+        ParticleTrackView const& particle,
+        CutoffView const& cutoffs,
+        MaterialView const& material,
+        ElementComponentId elcomp_id);
 
     // Sample the bremsstrahlung photon energy with the given RNG
     template<class Engine>
@@ -70,12 +69,12 @@ class RBEnergySampler
 /*!
  * Construct from incident particle and energy.
  */
-CELER_FUNCTION
-RBEnergySampler::RBEnergySampler(NativeCRef<RelativisticBremData> const& shared,
-                                 ParticleTrackView const& particle,
-                                 CutoffView const& cutoffs,
-                                 MaterialView const& material,
-                                 ElementComponentId elcomp_id)
+CELER_FUNCTION RBEnergySampler::RBEnergySampler(
+    NativeCRef<RelativisticBremData> const& shared,
+    ParticleTrackView const& particle,
+    CutoffView const& cutoffs,
+    MaterialView const& material,
+    ElementComponentId elcomp_id)
     : calc_dxsec_(shared, particle, material, elcomp_id)
     , tmin_sq_(ipow<2>(value_as<Energy>(
           min(cutoffs.energy(shared.ids.gamma), particle.energy()))))
@@ -99,12 +98,13 @@ CELER_FUNCTION auto RBEnergySampler::operator()(Engine& rng) -> Energy
     // Sampled energy and corresponding cross section for rejection
     real_type gamma_energy{0};
     real_type dsigma{0};
+    RejectionSampler<real_type> reject{calc_dxsec_.maximum_value()};
 
     do
     {
         gamma_energy = std::sqrt(sample_exit_esq(rng) - density_corr);
         dsigma = calc_dxsec_(Energy{gamma_energy});
-    } while (RejectionSampler(dsigma, calc_dxsec_.maximum_value())(rng));
+    } while (reject(dsigma, rng));
 
     return Energy{gamma_energy};
 }

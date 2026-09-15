@@ -67,15 +67,14 @@ class MieInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
-                             ParticleTrackView const& particle,
-                             Real3 const& direction,
-                             OptMatId const& mat_id)
+CELER_FUNCTION MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
+                                            ParticleTrackView const& particle,
+                                            Real3 const& direction,
+                                            OptMatId const& mat_id)
     : inc_dir_(direction)
     , inc_pol_(particle.polarization())
     , mie_params_(shared.mie_record[mat_id])
-    , sample_forward_(mie_params_.forward_g)
+    , sample_forward_(mie_params_.forward_ratio)
 {
     CELER_EXPECT(shared);
     CELER_EXPECT(mat_id < shared.mie_record.size());
@@ -91,6 +90,8 @@ MieInteractor::MieInteractor(NativeCRef<MieData> const& shared,
 template<class Engine>
 CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
 {
+    using namespace celeritas::literals;
+
     Interaction result;
     Real3& new_dir = result.direction;
     Real3& new_pol = result.polarization;
@@ -113,7 +114,7 @@ CELER_FUNCTION Interaction MieInteractor::operator()(Engine& rng) const
         real_type costheta = 2 * r * ipow<2>((1 + g) / (1 - g + 2 * g * r))
                                  * (1 - g + g * r)
                              - 1;
-        costheta = celeritas::min(costheta, real_type{1});
+        costheta = celeritas::min(costheta, 1_r);
 
         CELER_ASSERT(costheta >= -1 && costheta <= 1);
 

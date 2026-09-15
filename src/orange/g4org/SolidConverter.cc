@@ -70,6 +70,7 @@
 #include "Scaler.hh"
 #include "Transformer.hh"
 
+using namespace celeritas::literals;
 using namespace celeritas::orangeinp;
 
 namespace celeritas
@@ -90,10 +91,10 @@ auto enclosed_azi_radians(double start_rad, double stop_rad)
     auto start = native_value_to<RealTurn>(start_rad);
     auto stop = native_value_to<RealTurn>(stop_rad);
     auto delta_turn = value_as<RealTurn>(stop - start);
-    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, real_type{1}),
+    CELER_VALIDATE(delta_turn <= 1 || soft_equal(delta_turn, 1_r),
                    << "azimuthal restriction [" << start.value() << ", "
                    << stop.value() << "] [turn] exceeds 1 turn");
-    if (delta_turn >= real_type{1} || soft_equal(delta_turn, real_type{1}))
+    if (delta_turn >= 1_r || soft_equal(delta_turn, 1_r))
     {
         // Avoid roundoff error: return full region
         return EnclosedAzi{};
@@ -254,9 +255,9 @@ auto make_solid(G4VSolid const& solid, CR&& interior, Args&&... args)
  * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
  */
 template<class CR>
-auto make_truncated(G4VSolid const& solid,
-                    CR&& interior,
-                    Truncated::VecPlane&& planes) -> SPConstObject
+auto make_truncated(
+    G4VSolid const& solid, CR&& interior, Truncated::VecPlane&& planes)
+    -> SPConstObject
 {
     if (planes.empty())
     {
@@ -769,8 +770,7 @@ auto SolidConverter::polyhedra(arg_type solid_base) -> result_type
     // there are only two sides, the opening angle must be less than 2pi.
     CELER_VALIDATE(
         num_sides > 2
-            || (azi
-                && azi.stop() - azi.start() < Turn{real_type{0.5} * num_sides}),
+            || (azi && azi.stop() - azi.start() < Turn{0.5_r * num_sides}),
         << "invalid number of sizes for the opening angle");
 
     // Scale input values
@@ -932,24 +932,24 @@ auto SolidConverter::tet(arg_type solid_base) -> result_type
 auto SolidConverter::torus(arg_type solid_base) -> result_type
 {
     auto const& solid = dynamic_cast<G4Torus const&>(solid_base);
-    CELER_LOG(error) << "G4Torus is not fully supported: replacing '"
-                     << solid.GetName() << "' with bounding cylinders";
 
     auto rmax = scale_(solid.GetRmax());
+    auto rmin = scale_(solid.GetRmin());
     auto rtor = scale_(solid.GetRtor());
     CELER_VALIDATE(rtor >= rmax,
                    << "invalid rtor=" << rtor << " < rmax=" << rmax);
+    CELER_VALIDATE(rmax > rmin,
+                   << "invalid rmin=" << rmin << " >= rmax=" << rmax);
+    CELER_VALIDATE(rmax >= 0, << "invalid rmin=" << rmin << " < 0");
 
-    std::optional<Cylinder> inner;
-    if (!soft_equal(rtor, rmax))
+    std::optional<Torus> inner;
+    if (!soft_zero(rmin))
     {
-        inner.emplace(rtor - rmax, rmax);
+        inner.emplace(rtor, rmin);
     }
 
-    return make_solid(solid,
-                      Cylinder{rtor + rmax, rmax},
-                      std::move(inner),
-                      enclosed_azi_from(solid));
+    return make_solid(
+        solid, Torus{rtor, rmax}, std::move(inner), enclosed_azi_from(solid));
 }
 
 //---------------------------------------------------------------------------//

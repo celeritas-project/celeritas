@@ -58,8 +58,8 @@ class XsCalculator
 
   public:
     // Construct from state-independent data
-    inline CELER_FUNCTION
-    XsCalculator(XsGridRecord const& grid, Values const& reals);
+    inline CELER_FUNCTION XsCalculator(XsGridRecord const& grid,
+                                       Values const& reals);
 
     // Find and interpolate from the energy
     inline CELER_FUNCTION real_type operator()(Energy energy) const;
@@ -83,8 +83,8 @@ class XsCalculator
 /*!
  * Construct from cross section data.
  */
-CELER_FUNCTION
-XsCalculator::XsCalculator(XsGridRecord const& grid, Values const& reals)
+CELER_FUNCTION XsCalculator::XsCalculator(XsGridRecord const& grid,
+                                          Values const& reals)
     : data_(grid), reals_(reals)
 {
     CELER_EXPECT(data_);

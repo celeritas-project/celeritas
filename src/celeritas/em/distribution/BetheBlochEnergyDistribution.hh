@@ -54,10 +54,10 @@ class BetheBlochEnergyDistribution
 
   public:
     // Construct with incident and exiting particle data
-    inline CELER_FUNCTION
-    BetheBlochEnergyDistribution(ParticleTrackView const& particle,
-                                 Energy electron_cutoff,
-                                 Mass electron_mass);
+    inline CELER_FUNCTION BetheBlochEnergyDistribution(
+        ParticleTrackView const& particle,
+        Energy electron_cutoff,
+        Mass electron_mass);
 
     // Sample the exiting energy
     template<class Engine>
@@ -86,8 +86,7 @@ class BetheBlochEnergyDistribution
 /*!
  * Construct with incident and exiting particle data.
  */
-CELER_FUNCTION
-BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
+CELER_FUNCTION BetheBlochEnergyDistribution::BetheBlochEnergyDistribution(
     ParticleTrackView const& particle,
     Energy electron_cutoff,
     Mass electron_mass)
@@ -109,6 +108,7 @@ CELER_FUNCTION auto BetheBlochEnergyDistribution::operator()(Engine& rng)
     InverseSquareDistribution sample_energy(value_as<Energy>(min_energy_),
                                             value_as<Energy>(max_energy_));
     real_type energy;
+    RejectionSampler<> reject{};
     do
     {
         // Sample 1/E^2 from Emin to Emax
@@ -116,8 +116,8 @@ CELER_FUNCTION auto BetheBlochEnergyDistribution::operator()(Engine& rng)
         /*!
          * \todo Adjust rejection functions if particle has positive spin
          */
-    } while (RejectionSampler<>(
-        1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy)(rng));
+    } while (
+        reject(1 - (beta_sq_ / value_as<Energy>(max_energy_)) * energy, rng));
 
     /*!
      * \todo For hadrons, suppress high energy delta ray production with the

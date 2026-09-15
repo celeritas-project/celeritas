@@ -23,6 +23,7 @@ namespace app
 struct SimulationResult
 {
     using MapStrDouble = std::unordered_map<std::string, double>;
+    using VecVecDouble = std::vector<std::vector<double>>;
 
     //// DATA ////
 
@@ -30,6 +31,7 @@ struct SimulationResult
     double setup_time{};  //!< One-time initialization cost
     double warmup_time{};  //!< One-time warmup cost
     MapStrDouble action_times{};  //!< Accumulated mean action wall times
+    VecVecDouble step_times{};  //!< Per-stream step times
     std::vector<TransporterResult> events;  //!< Results tallied for each event
     size_type num_streams{};  //!< Number of CPU/OpenMP threads
 };

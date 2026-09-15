@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/DetectorView.hh
+//! \sa DetectorParams.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -39,8 +40,8 @@ class DetectorView
 /*!
  * Construct with shared data.
  */
-CELER_FUNCTION
-DetectorView::DetectorView(ParamsRef const& params) : params_(params)
+CELER_FUNCTION DetectorView::DetectorView(ParamsRef const& params)
+    : params_(params)
 {
     CELER_EXPECT(params_);
 }

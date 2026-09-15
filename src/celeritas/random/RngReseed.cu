@@ -8,6 +8,7 @@
 
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
+#include "corecel/sys/ThreadId.hh"
 
 #include "detail/RngReseedExecutor.hh"
 

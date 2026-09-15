@@ -86,8 +86,8 @@ Transformation TransformTransformer::operator()(Mat3 const& other) const
 /*!
  * Apply a transformation to a transform.
  */
-Transformation
-TransformTransformer::operator()(Transformation const& other) const
+Transformation TransformTransformer::operator()(
+    Transformation const& other) const
 {
     return Transformation{gemm(tr_.rotation(), other.rotation()),
                           tr_.transform_up(other.translation())};

@@ -55,17 +55,17 @@ class EnergyLossUrbanDistribution
 
   public:
     // Construct from particle properties
-    inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(FluctuationRef const& shared,
-                                MaterialTrackView const& cur_mat,
-                                Energy unscaled_mean_loss,
-                                Energy max_energy,
-                                Mass two_mebsgs,
-                                real_type beta_sq);
+    inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        FluctuationRef const& shared,
+        MaterialTrackView const& cur_mat,
+        Energy unscaled_mean_loss,
+        Energy max_energy,
+        Mass two_mebsgs,
+        real_type beta_sq);
 
     // Construct from helper-calculated data
-    explicit inline CELER_FUNCTION
-    EnergyLossUrbanDistribution(EnergyLossHelper const& helper);
+    explicit inline CELER_FUNCTION EnergyLossUrbanDistribution(
+        EnergyLossHelper const& helper);
 
     // Sample energy loss according to the distribution
     template<class Generator>
@@ -90,7 +90,10 @@ class EnergyLossUrbanDistribution
     static CELER_CONSTEXPR_FUNCTION real_type rate() { return 0.56; }
 
     //! Number of collisions above which to use faster sampling from Gaussian
-    static CELER_CONSTEXPR_FUNCTION size_type max_collisions() { return 8; }
+    static CELER_CONSTEXPR_FUNCTION size_type collision_poisson_threshold()
+    {
+        return 8;
+    }
 
     //! Threshold number of excitations used in width correction
     static CELER_CONSTEXPR_FUNCTION real_type exc_thresh() { return 42; }
@@ -116,9 +119,8 @@ class EnergyLossUrbanDistribution
     CELER_FUNCTION real_type sample_ionization_loss(Engine& rng);
 
     template<class Engine>
-    static CELER_FUNCTION real_type sample_fast_urban(real_type mean,
-                                                      real_type stddev,
-                                                      Engine& rng);
+    static CELER_FUNCTION real_type sample_fast_urban(
+        real_type mean, real_type stddev, Engine& rng);
 };
 
 //---------------------------------------------------------------------------//
@@ -136,6 +138,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     real_type beta_sq)
     : max_energy_(max_energy.value())
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(unscaled_mean_loss > zero_quantity());
     CELER_EXPECT(two_mebsgs > zero_quantity());
     CELER_EXPECT(beta_sq > 0);
@@ -146,10 +150,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
     // rescaling the energy levels and number of excitations. The width
     // correction algorithm is discussed (though not in much detail) in PRM
     // section 7.3.3
-    loss_scaling_
-        = real_type(0.5)
-              * min(this->fwhm_min_energy() / max_energy_, real_type(1))
-          + real_type(1);
+    loss_scaling_ = 0.5_r * min(this->fwhm_min_energy() / max_energy_, 1.0_r)
+                    + 1.0_r;
     real_type const mean_loss = unscaled_mean_loss.value() / loss_scaling_;
 
     // Material-dependent data
@@ -194,8 +196,8 @@ CELER_FUNCTION EnergyLossUrbanDistribution::EnergyLossUrbanDistribution(
             real_type scaling = 4;
             if (xs_exc_[0] < this->exc_thresh())
             {
-                scaling = real_type(0.5)
-                          + (scaling - real_type(0.5))
+                scaling = 0.5_r
+                          + (scaling - 0.5_r)
                                 * std::sqrt(xs_exc_[0] / this->exc_thresh());
             }
             binding_energy_[0] *= scaling;
@@ -252,8 +254,8 @@ CELER_FUNCTION auto EnergyLossUrbanDistribution::operator()(Generator& rng)
  * Calculate the energy loss contribution from excitation for the Urban model.
  */
 template<class Engine>
-CELER_FUNCTION real_type
-EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
+CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_excitation_loss(
+    Engine& rng)
 {
     real_type result = 0;
 
@@ -263,7 +265,7 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
 
     for (int i : range(2))
     {
-        if (xs_exc_[i] > this->max_collisions())
+        if (xs_exc_[i] > this->collision_poisson_threshold())
         {
             // When the number of collisions is large, use faster approach
             // of sampling from a Gaussian
@@ -275,12 +277,12 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
             // The loss due to excitation is \f$ \Delta E_{exc} = n_1 E_1 + n_2
             // E_2 \f$, where the number of collisions \f$ n_i \f$ is sampled
             // from a Poisson distribution with mean \f$ \Sigma_i \f$
-            unsigned int n = PoissonDistribution<real_type>(xs_exc_[i])(rng);
+            auto n = PoissonDistributionKnuth<real_type>(xs_exc_[i])(rng);
             if (n > 0)
             {
-                UniformRealDistribution<real_type> sample_fraction(n - 1,
-                                                                   n + 1);
-                result += sample_fraction(rng) * binding_energy_[i];
+                UniformRealDistribution<real_type> sample_smooth(-1, 1);
+                result += (static_cast<real_type>(n) + sample_smooth(rng))
+                          * binding_energy_[i];
             }
         }
     }
@@ -297,8 +299,8 @@ EnergyLossUrbanDistribution::sample_excitation_loss(Engine& rng)
  * Calculate the energy loss contribution from ionization for the Urban model.
  */
 template<class Engine>
-CELER_FUNCTION real_type
-EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
+CELER_FUNCTION real_type EnergyLossUrbanDistribution::sample_ionization_loss(
+    Engine& rng)
 {
     real_type result = 0;
 
@@ -312,15 +314,16 @@ EnergyLossUrbanDistribution::sample_ionization_loss(Engine& rng)
     // Mean number of collisions in the fast simulation interval
     real_type mean_num_coll = 0;
 
-    if (xs_ion_ > this->max_collisions())
+    if (xs_ion_ > this->collision_poisson_threshold())
     {
         // When the number of collisions is large, fast sampling from a
         // Gaussian is used in the lower portion of the energy loss interval.
         // See PHYS332 section 2.4: Fast simulation for \f$ n_3 \ge 16 \f$
 
         // Calculate the maximum value of \f$ \alpha \f$ (Eq. 25)
-        alpha = (xs_ion_ + this->max_collisions()) * energy_ratio
-                / (this->max_collisions() * energy_ratio + xs_ion_);
+        alpha
+            = (xs_ion_ + this->collision_poisson_threshold()) * energy_ratio
+              / (this->collision_poisson_threshold() * energy_ratio + xs_ion_);
 
         // Mean energy loss for a single collision of this type (Eq. 14)
         real_type const mean_loss_coll = alpha * std::log(alpha) / (alpha - 1);

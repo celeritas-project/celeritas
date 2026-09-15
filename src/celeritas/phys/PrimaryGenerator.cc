@@ -125,9 +125,8 @@ std::vector<ParticleId> make_particle_ids(std::vector<PDGNumber> const& pdgs,
  * a few predefined energy, spatial, and angular distributions (that can be
  * extended as needed).
  */
-PrimaryGenerator
-PrimaryGenerator::from_options(SPConstParticles particles,
-                               PrimaryGeneratorOptions const& opts)
+PrimaryGenerator PrimaryGenerator::from_options(
+    SPConstParticles particles, PrimaryGeneratorOptions const& opts)
 {
     CELER_EXPECT(opts);
 

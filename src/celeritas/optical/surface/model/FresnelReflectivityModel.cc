@@ -24,7 +24,7 @@ namespace optical
  */
 FresnelReflectivityModel::FresnelReflectivityModel(
     SurfaceModelId id, std::map<PhysSurfaceId, InputT> const& layer_map)
-    : SurfaceModel(id, "reflectivity-fresnel")
+    : SurfaceModel(id, "fresnel-reflectivity")
 {
     surfaces_.reserve(layer_map.size());
 

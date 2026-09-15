@@ -7,9 +7,8 @@
 #pragma once
 
 #include "corecel/Types.hh"
+#include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
-
-#include "ParticleData.hh"
 
 namespace celeritas
 {
@@ -26,11 +25,11 @@ struct Primary
     Real3 position{0, 0, 0};
     Real3 direction{0, 0, 0};
     real_type time{};
-    EventId event_id;
-
-    // Primary id represents Geant4 unique track id for an event
-    PrimaryId primary_id;
     real_type weight{1.0};
+
+    // Primary and event IDs are used for RNG seeding
+    EventId event_id;
+    PrimaryId primary_id;
 };
 
 //---------------------------------------------------------------------------//

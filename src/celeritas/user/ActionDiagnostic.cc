@@ -31,14 +31,16 @@
 
 #include "detail/ActionDiagnosticExecutor.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<ActionDiagnostic>
-ActionDiagnostic::make_and_insert(CoreParams const& core)
+std::shared_ptr<ActionDiagnostic> ActionDiagnostic::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     OutputRegistry& out = *core.output_reg();
@@ -91,7 +93,8 @@ void ActionDiagnostic::begin_run(CoreParams const& params, CoreStateDevice&)
 /*!
  * Execute action with host data.
  */
-void ActionDiagnostic::step(CoreParams const& params, CoreStateHost& state) const
+void ActionDiagnostic::step(CoreParams const& params,
+                            CoreStateHost& state) const
 {
     auto execute = make_active_track_executor(
         params.ptr<MemSpace::native>(),
@@ -171,8 +174,8 @@ auto ActionDiagnostic::calc_actions() const -> VecVecCount
 {
     if (!store_)
     {
-        CELER_LOG(error) << "Tried to access action counters before executing "
-                            "any actions";
+        CELER_LOG(error)
+            << "Tried to access action counters before executing any actions";
         return {};
     }
 
@@ -213,8 +216,8 @@ void ActionDiagnostic::clear()
 {
     CELER_EXPECT(store_);
 
-    apply_to_all_streams(
-        store_, [](auto& state) { fill(size_type(0), &state.counts); });
+    apply_to_all_streams(store_,
+                         [](auto& state) { fill(0_sz, &state.counts); });
 }
 
 //---------------------------------------------------------------------------//
@@ -239,7 +242,7 @@ void ActionDiagnostic::begin_run_impl(CoreParams const& params)
             HostVal<ParticleTallyParamsData> host_params;
             host_params.num_bins = params.action_reg()->num_actions();
             host_params.num_particles = params.particle()->size();
-            store_ = {std::move(host_params), params.max_streams()};
+            store_ = {std::move(host_params), params.sizes().streams};
         }
     }
     CELER_ENSURE(store_);

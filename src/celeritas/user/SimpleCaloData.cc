@@ -12,6 +12,8 @@
 
 namespace celeritas
 {
+using namespace celeritas::literals;
+
 //---------------------------------------------------------------------------//
 /*!
  * Resize based on the number of detectors.
@@ -24,7 +26,7 @@ void resize(SimpleCaloStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(params);
     resize(&state->energy_deposition, params.num_detectors);
-    fill(real_type(0), &state->energy_deposition);
+    fill(0.0_r, &state->energy_deposition);
     state->num_track_slots = num_track_slots;
     CELER_ENSURE(*state);
 }

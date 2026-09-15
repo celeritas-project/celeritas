@@ -33,7 +33,6 @@ namespace celeritas
 {
 namespace test
 {
-using namespace celeritas::units::literals;
 //---------------------------------------------------------------------------//
 using MevEnergy = units::MevEnergy;
 
@@ -289,8 +288,8 @@ class PhysicsTrackViewHostTest : public PhysicsParamsTest
         return this->make_step_view(tid);
     }
 
-    ParticleProcessId
-    find_ppid(PhysicsTrackView const& track, char const* label) const
+    ParticleProcessId find_ppid(PhysicsTrackView const& track,
+                                char const* label) const
     {
         auto iter = process_names.find(label);
         CELER_VALIDATE(iter != process_names.end(),
@@ -344,19 +343,19 @@ TEST_F(PhysicsTrackViewHostTest, track_view)
     std::vector<real_type> step;
     real_type const eps = std::numeric_limits<real_type>::epsilon();
 
-    for (real_type r : {real_type(0.1) * rho,
-                        real_type(1 - 1000 * eps) * rho,
-                        real_type(1 - 100 * eps) * rho,
-                        real_type(1 + 10 * eps) * rho,
-                        real_type(1 + 100 * eps) * rho,
-                        real_type(1.00000001) * rho,
-                        real_type(1.000001) * rho,
-                        real_type{1.5} * rho,
+    for (real_type r : {0.1_r * rho,
+                        (1.0_r - 1000 * eps) * rho,
+                        (1.0_r - 100 * eps) * rho,
+                        (1.0_r + 10 * eps) * rho,
+                        (1.0_r + 100 * eps) * rho,
+                        1.00000001_r * rho,
+                        1.000001_r * rho,
+                        1.5_r * rho,
                         10 * rho,
                         100 * rho})
     {
         auto s = celer.range_to_step(r);
-        EXPECT_GT(s, real_type(0));
+        EXPECT_GT(s, 0.0_r);
         EXPECT_LE(s, r) << "s - r == " << s - r;
         step.push_back(to_cm(s));
     }
@@ -532,7 +531,7 @@ TEST_F(PhysicsTrackViewHostTest, calc_xs)
 TEST_F(PhysicsTrackViewHostTest, calc_eloss_range)
 {
     // Default range and scaling
-    EXPECT_SOFT_EQ(0.1_cm, params_ref.scalars.light.min_range);
+    EXPECT_SOFT_EQ(0.1 * units::centimeter, params_ref.scalars.light.min_range);
     EXPECT_SOFT_EQ(0.2, params_ref.scalars.light.max_step_over_range);
     std::vector<real_type> eloss;
     std::vector<real_type> range;
@@ -751,7 +750,8 @@ TEST_F(PHYS_DEVICE_TEST, all)
 {
     // Construct initial conditions
     {
-        StateCollection<PhysTestInit, Ownership::value, MemSpace::host> temp_inits;
+        StateCollection<PhysTestInit, Ownership::value, MemSpace::host>
+            temp_inits;
 
         auto init_builder = make_builder(&temp_inits);
         PhysTestInit thread_init;

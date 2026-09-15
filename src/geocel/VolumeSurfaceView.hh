@@ -10,7 +10,6 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/math/Algorithms.hh"
 #include "geocel/Types.hh"
 
 #include "SurfaceData.hh"
@@ -36,8 +35,8 @@ class VolumeSurfaceView
 
   public:
     // Construct from params and pre-step volume ID
-    inline CELER_FUNCTION
-    VolumeSurfaceView(SurfaceParamsRef const& params, VolumeId id);
+    inline CELER_FUNCTION VolumeSurfaceView(SurfaceParamsRef const& params,
+                                            VolumeId id);
 
     // ID of the Volume
     CELER_FORCEINLINE_FUNCTION VolumeId volume_id() const;
@@ -49,8 +48,8 @@ class VolumeSurfaceView
     CELER_FORCEINLINE_FUNCTION bool has_interface() const;
 
     // Find surface ID for a transition to another volume instance
-    inline CELER_FUNCTION SurfaceId
-    find_interface(VolumeInstanceId pre_id, VolumeInstanceId post_id) const;
+    inline CELER_FUNCTION SurfaceId find_interface(
+        VolumeInstanceId pre_id, VolumeInstanceId post_id) const;
 
   private:
     SurfaceParamsRef const& params_;
@@ -67,9 +66,8 @@ class VolumeSurfaceView
 /*!
  * Construct from surface parameters and volume ID.
  */
-CELER_FUNCTION
-VolumeSurfaceView::VolumeSurfaceView(SurfaceParamsRef const& params,
-                                     VolumeId id)
+CELER_FUNCTION VolumeSurfaceView::VolumeSurfaceView(
+    SurfaceParamsRef const& params, VolumeId id)
     : params_(params), volume_(id)
 {
     CELER_EXPECT(id < params.volume_surfaces.size());
@@ -160,7 +158,7 @@ CELER_FUNCTION SurfaceId VolumeSurfaceView::find_interface(
         auto surf_id_offset = record.surface[index];
         CELER_ASSERT(surf_id_offset < params_.surface_ids.size());
         auto result = params_.surface_ids[surf_id_offset];
-        CELER_ENSURE(result);
+        CELER_ENSURE(result.get());
         return result;
     }
     return {};

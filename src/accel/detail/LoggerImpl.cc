@@ -92,9 +92,8 @@ MtSelfWriter::MtSelfWriter(int num_threads) : num_threads_(num_threads)
 /*!
  * Write output with thread ID.
  */
-void MtSelfWriter::operator()(LogProvenance prov,
-                              LogLevel lev,
-                              std::string msg) const
+void MtSelfWriter::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg) const
 {
     auto& cerr = G4cerr;
 

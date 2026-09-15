@@ -6,12 +6,15 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <CLHEP/Units/SystemOfUnits.h>
 #include <G4ParticleDefinition.hh>
 #include <G4Version.hh>
 
 #include "corecel/math/Quantity.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/phys/PDGNumber.hh"
+
+#include "GeantUnits.hh"
 
 namespace celeritas
 {

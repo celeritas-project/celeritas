@@ -38,10 +38,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/io/ScopedTimeAndRedirect.hh"
-#include "corecel/io/ScopedTimeLog.hh"
 #include "corecel/io/StringUtils.hh"
 #include "corecel/sys/Environment.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TracingSession.hh"
@@ -73,7 +71,7 @@ namespace
 void print_usage(std::string_view exec_name)
 {
     // clang-format off
-    std::cerr << "usage: " << exec_name << " {input}.json\n"
+    std::cout << "usage: " << exec_name << " {input}.json\n"
                  "       " << exec_name << " -\n"
                  "       " << exec_name << " [--help|-h]\n"
                  "       " << exec_name << " --version\n"
@@ -191,16 +189,12 @@ void run(std::string_view filename, std::shared_ptr<SharedParams> params)
 
     // Initialize run and process events
     {
-        ScopedMem record_mem("run.initialize");
-        ScopedTimeLog scoped_time;
-        ScopedProfiling profile_this{"celer-g4-setup"};
+        ScopedProfiling profile_this{"setup"};
         CELER_LOG(status) << "Initializing run manager";
         run_manager->Initialize();
     }
     {
-        ScopedMem record_mem("run.beamon");
-        ScopedTimeLog scoped_time;
-        ScopedProfiling profile_this{"celer-g4-run"};
+        ScopedProfiling profile_this{"run"};
         CELER_LOG(status) << "Transporting " << num_events << " events";
         run_manager->BeamOn(num_events);
     }

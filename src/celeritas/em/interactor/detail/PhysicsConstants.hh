@@ -7,12 +7,11 @@
 #pragma once
 
 #include "corecel/Macros.hh"
-#include "corecel/Types.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/Constant.hh"
 #include "corecel/math/UnitUtils.hh"
 #include "celeritas/Constants.hh"
-#include "celeritas/UnitTypes.hh"
+#include "celeritas/Quantities.hh"
 
 namespace celeritas
 {

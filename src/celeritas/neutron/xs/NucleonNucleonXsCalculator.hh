@@ -60,8 +60,8 @@ class NucleonNucleonXsCalculator
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(ParamsRef const& shared)
+CELER_FUNCTION NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(
+    ParamsRef const& shared)
     : shared_(shared)
 {
 }
@@ -79,9 +79,8 @@ NucleonNucleonXsCalculator::NucleonNucleonXsCalculator(ParamsRef const& shared)
  * Below 1 MeV, \f$ SF(E) = slope/E \f$ down to \f$ E = slope/xs_zero \f$ while
  * \f$ SF(E) = xs_zero \f$ if \em E is in [0, slope/xs_zero] MeV.
  */
-CELER_FUNCTION
-auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
-                                            Energy energy) const -> BarnXs
+CELER_FUNCTION auto NucleonNucleonXsCalculator::operator()(
+    ChannelId ch_id, Energy energy) const -> BarnXs
 {
     CELER_EXPECT(ch_id < shared_.nucleon_xs.size());
     real_type result;
@@ -98,9 +97,9 @@ auto NucleonNucleonXsCalculator::operator()(ChannelId ch_id,
         }
         else
         {
+            using namespace celeritas::literals;
             using StepanovFunction = PolyEvaluator<real_type, 2>;
-            result
-                = StepanovFunction(par.coeffs)(real_type{1} / energy.value());
+            result = StepanovFunction(par.coeffs)(1_r / energy.value());
         }
     }
     else

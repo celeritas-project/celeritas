@@ -38,12 +38,12 @@ struct FourVector
 
     // Construct from a particle and direction
     template<class PTV>
-    static inline CELER_FUNCTION FourVector
-    from_particle(PTV const& particle, Real3 const& direction);
+    static inline CELER_FUNCTION FourVector from_particle(
+        PTV const& particle, Real3 const& direction);
 
     // Construct from momentum, rest mass, direction
-    static inline CELER_FUNCTION FourVector
-    from_mass_momentum(Mass m, Momentum p, Real3 const& direction);
+    static inline CELER_FUNCTION FourVector from_mass_momentum(
+        Mass m, Momentum p, Real3 const& direction);
 
     //! In-place addition
     CELER_FUNCTION FourVector& operator+=(FourVector const& v)
@@ -66,9 +66,8 @@ struct FourVector
  * lead to differences across platforms, compilers, and architectures, so for
  * now we use a naive sqrt+ipow.
  */
-CELER_FUNCTION FourVector FourVector::from_mass_momentum(Mass m,
-                                                         Momentum p,
-                                                         Real3 const& direction)
+CELER_FUNCTION FourVector FourVector::from_mass_momentum(
+    Mass m, Momentum p, Real3 const& direction)
 {
     return {p.value() * direction,
             std::sqrt(ipow<2>(p.value()) + ipow<2>(m.value()))};
@@ -103,8 +102,10 @@ inline CELER_FUNCTION FourVector operator+(FourVector const& lhs,
  */
 inline CELER_FUNCTION Real3 boost_vector(FourVector const& p)
 {
+    using namespace celeritas::literals;
+
     CELER_EXPECT(p.energy > 0);
-    return (real_type{1} / p.energy) * p.mom;
+    return (1_r / p.energy) * p.mom;
 }
 
 //---------------------------------------------------------------------------//
@@ -121,11 +122,13 @@ inline CELER_FUNCTION Real3 boost_vector(FourVector const& p)
  */
 inline CELER_FUNCTION void boost(Real3 const& v, FourVector* p)
 {
+    using namespace celeritas::literals;
+
     real_type const v_sq = dot_product(v, v);
-    CELER_EXPECT(v_sq < real_type{1});
+    CELER_EXPECT(v_sq < 1_r);
 
     real_type const vp = dot_product(v, p->mom);
-    real_type const gamma = real_type{1} / std::sqrt(1 - v_sq);
+    real_type const gamma = 1_r / std::sqrt(1 - v_sq);
     real_type const lambda = (v_sq > 0 ? (gamma - 1) * vp / v_sq : 0)
                              + gamma * p->energy;
 

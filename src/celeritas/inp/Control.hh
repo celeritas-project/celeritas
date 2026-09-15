@@ -38,9 +38,9 @@ namespace inp
 struct StateCapacity
 {
     //! Maximum number of primaries that can be buffered before stepping
-    size_type primaries{};
+    std::optional<size_type> primaries{};
     //! Maximum number of track slots to be simultaneously stepped
-    size_type tracks{};
+    std::optional<size_type> tracks{};
 };
 
 //---------------------------------------------------------------------------//
@@ -67,28 +67,27 @@ struct StateCapacity
  * as "per stream" whereas \c celer-sim used "per process".
  *
  * Defaults:
- * - \c secondaries: twice the number of track slots
+ * - \c tracks: 2^20 on GPU, 2^12 on CPU
+ * - \c primaries: equal to the number of track slots
+ * - \c initializers: 8 times the number of track slots
+ * - \c secondaries: 2 times the number of track slots
  * - \c events: single event runs at a time
  */
 struct CoreStateCapacity : StateCapacity
 {
+    //! Default values
+    static constexpr size_type cpu_tracks = 4096;
+    static constexpr size_type gpu_tracks = 1048576;
+    static constexpr size_type primaries_per_track = 1;
+    static constexpr size_type initializers_per_track = 8;
+    static constexpr size_type secondaries_per_track = 2;
+
     //! Maximum number of queued primaries+secondaries
-    size_type initializers{};
+    std::optional<size_type> initializers;
     //! Maximum number of secondaries created per step
     std::optional<size_type> secondaries;
-    //! Maximum number of simultaneous events (zero for one event at a time)
+    //! Maximum number of simultaneous events
     std::optional<size_type> events;
-
-    //! Return default values
-    static CoreStateCapacity from_default(bool use_device)
-    {
-        CoreStateCapacity result;
-        result.tracks = use_device ? 1048576 : 4096;
-        result.primaries = result.tracks;
-        result.initializers = 8 * result.tracks;
-        result.secondaries = 2 * result.tracks;
-        return result;
-    }
 };
 
 //---------------------------------------------------------------------------//
@@ -97,21 +96,22 @@ struct CoreStateCapacity : StateCapacity
  *
  * \note \c generators was previously named \c buffer_capacity. It is required
  * for the offload and direct generators but not the primary generator.
+ *
+ * Defaults:
+ * - \c tracks: 2^20 on GPU, 2^12 on CPU
+ * - \c primaries: 128 times the number of track slots
+ * - \c generators: 2 times the number of track slots
  */
 struct OpticalStateCapacity : StateCapacity
 {
-    //! Maximum number of queued photon-generating steps
-    size_type generators{};
+    //! Default values
+    static constexpr size_type cpu_tracks = 4096;
+    static constexpr size_type gpu_tracks = 1048576;
+    static constexpr size_type primaries_per_track = 128;
+    static constexpr size_type generators_per_track = 2;
 
-    //! Return default values
-    static OpticalStateCapacity from_default(bool use_device)
-    {
-        OpticalStateCapacity result;
-        result.tracks = use_device ? 1048576 : 4096;
-        result.primaries = 128 * result.tracks;
-        result.generators = 2 * result.tracks;
-        return result;
-    }
+    //! Maximum number of queued photon-generating steps
+    std::optional<size_type> generators{};
 };
 
 //---------------------------------------------------------------------------//
@@ -135,6 +135,7 @@ struct DeviceDebug
  * - \c device_debug: absent unless device is enabled
  * - \c optical_capacity: absent unless optical physics is enabled
  * - \c track_order: \c init_charge on GPU, \c none on CPU
+ * - \c warm_up: true on GPU, false on CPU
  */
 struct Control
 {
@@ -154,7 +155,7 @@ struct Control
     std::optional<DeviceDebug> device_debug;
 
     //! Perform a no-op step at the beginning to improve timing measurements
-    bool warm_up{false};
+    std::optional<bool> warm_up{false};
 
     //! Random number generator seed
     unsigned int seed{};

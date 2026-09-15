@@ -32,8 +32,7 @@ class TouchableUpdaterInterface
     virtual bool operator()(DetectorStepOutput const& out,
                             size_type step_index,
                             StepPoint step_point,
-                            GeantTouchableBase* touchable)
-        = 0;
+                            GeantTouchableBase* touchable) = 0;
 
   protected:
     TouchableUpdaterInterface() = default;

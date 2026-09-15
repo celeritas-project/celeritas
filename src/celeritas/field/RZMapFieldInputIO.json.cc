@@ -56,10 +56,9 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
         auto const& ustr = iter->get<std::string>();
         if (ustr == "tesla" || ustr == "T")
         {
-            CELER_LOG(warning)
-                << "Deprecated RZ field input units '" << ustr
-                << "': use SI units for length (m) and field (T) "
-                   "and set units to 'si'";
+            CELER_LOG(warning) << "Deprecated RZ field input units '" << ustr
+                               << "': use SI units for length (m) and field "
+                                  "(T) and set units to 'si'";
             field_units = UnitSystem::si;
         }
         else if (ustr == "gauss" || ustr == Gauss::label() || ustr == "native")
@@ -148,8 +147,8 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
 {
     j = {
-        {"_format", "RZMapField"},
         {"_version", 0},
+        json_type_pair("rzmap"),
         CELER_JSON_PAIR(inp, num_grid_z),
         CELER_JSON_PAIR(inp, num_grid_r),
         CELER_JSON_PAIR(inp, min_z),

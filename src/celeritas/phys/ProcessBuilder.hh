@@ -73,8 +73,8 @@ class ProcessBuilder
 
   public:
     // Get an ordered set of all available processes
-    static std::set<IPC>
-    get_all_process_classes(std::vector<ImportProcess> const& processes);
+    static std::set<IPC> get_all_process_classes(
+        std::vector<ImportProcess> const& processes);
 
     // Construct from imported and shared data and user construction
     ProcessBuilder(ImportData const& data,

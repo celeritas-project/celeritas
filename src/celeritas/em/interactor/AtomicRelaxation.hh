@@ -9,7 +9,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/MiniStack.hh"
+#include "corecel/cont/IdStack.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/random/distribution/IsotropicDistribution.hh"
 #include "corecel/random/distribution/Selector.hh"
@@ -93,13 +93,13 @@ class AtomicRelaxation
  * AtomicRelaxationHelper -- it is only "true" if a distribution can be
  * emitted.
  */
-CELER_FUNCTION
-AtomicRelaxation::AtomicRelaxation(AtomicRelaxParamsRef const& shared,
-                                   CutoffView const& cutoffs,
-                                   ElementId el_id,
-                                   SubshellId shell_id,
-                                   Span<Secondary> secondaries,
-                                   Span<SubshellId> vacancies)
+CELER_FUNCTION AtomicRelaxation::AtomicRelaxation(
+    AtomicRelaxParamsRef const& shared,
+    CutoffView const& cutoffs,
+    ElementId el_id,
+    SubshellId shell_id,
+    Span<Secondary> secondaries,
+    Span<SubshellId> vacancies)
     : shared_(shared)
     , gamma_cutoff_(cutoffs.energy(shared_.ids.gamma))
     , electron_cutoff_(cutoffs.energy(shared_.ids.electron))
@@ -118,12 +118,14 @@ AtomicRelaxation::AtomicRelaxation(AtomicRelaxParamsRef const& shared,
  * Simulate atomic relaxation with an initial vacancy in the given shell ID
  */
 template<class Engine>
-CELER_FUNCTION AtomicRelaxation::result_type
-AtomicRelaxation::operator()(Engine& rng)
+CELER_FUNCTION AtomicRelaxation::result_type AtomicRelaxation::operator()(
+    Engine& rng)
 {
+    using namespace celeritas::literals;
+
     AtomicRelaxElement const& el = shared_.elements[el_id_];
     auto const& shells = shared_.shells[el.shells];
-    MiniStack<SubshellId> vacancies(vacancies_);
+    IdStack<SubshellId> vacancies(vacancies_);
 
     // Push the vacancy created by the primary process onto a stack.
     vacancies.push(shell_id_);
@@ -137,12 +139,17 @@ AtomicRelaxation::operator()(Engine& rng)
     while (!vacancies.empty())
     {
         // Pop the vacancy off the stack and check if it has transition data
-        SubshellId vacancy_id = vacancies.pop();
-        if (vacancy_id.get() >= shells.size())
+        if (!(vacancies.top() < shells.size()))
+        {
+            vacancies.pop();
             continue;
+        }
+
+        // Get the subshell at the top of the stack
+        AtomicRelaxSubshell const& shell = shells[vacancies.top().get()];
+        vacancies.pop();
 
         // Sample a transition using shell probabilities
-        AtomicRelaxSubshell const& shell = shells[vacancy_id.get()];
         auto transitions = shared_.transitions[shell.transitions];
         TransitionId const trans_id = make_unnormalized_selector(
             [&transitions](TransitionId i) {
@@ -150,7 +157,7 @@ AtomicRelaxation::operator()(Engine& rng)
                 return transitions[i.unchecked_get()].probability;
             },
             id_cast<TransitionId>(transitions.size()),
-            real_type{1})(rng);
+            1_r)(rng);
 
         if (trans_id == id_cast<TransitionId>(transitions.size()))
         {

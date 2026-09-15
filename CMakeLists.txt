@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #----------------------------------------------------------------------------#
 
-cmake_minimum_required(VERSION 3.18...4.1)
+cmake_minimum_required(VERSION 3.18...4.4)
 
 # Fallback version in case of shallow clone: update when tagging "-dev"
 set(Celeritas_VERSION 0.7)
@@ -61,6 +61,11 @@ option(CELERITAS_BUILD_APPS "Build Celeritas executables (strongly recommended)"
 option(CELERITAS_BUILD_DOCS "Build Celeritas documentation" OFF)
 option(CELERITAS_BUILD_TESTS "Build Celeritas unit tests" OFF)
 
+cmake_dependent_option(CELERITAS_CODESIGN_APPS
+  "Use Apple codesign to allow debugging with Instruments" "OFF"
+  "CELERITAS_BUILD_APPS;APPLE" OFF
+)
+
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
 
@@ -115,6 +120,10 @@ celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
 celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
 celeritas_force_package(Python ${_needs_python})
+
+# Optional capabilities
+# Enable torus by default for debugging but not optimized until performance consequences are known
+option(CELERITAS_ORANGE_TORUS "Enable runtime ORANGE torus" ${CELERITAS_DEBUG})
 
 #----------------------------------------------------------------------------#
 # PACKAGE-SPECIFIC OPTIONS
@@ -303,7 +312,7 @@ if(CELERITAS_USE_CUDA)
   # Default to setting CUDA C++ standard the same as C++
   celeritas_set_default(CMAKE_CUDA_STANDARD "${CMAKE_CXX_STANDARD}")
   celeritas_set_default(CMAKE_CUDA_EXTENSIONS "${CMAKE_CXX_EXTENSIONS}")
-  if(NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
+  if(CMAKE_CUDA_HOST_COMPILER AND NOT CMAKE_CUDA_HOST_COMPILER STREQUAL CMAKE_CXX_COMPILER)
     # See https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_HOST_COMPILER.html
     message(WARNING "CUDA host compiler mismatch: "
       "CMAKE_CUDA_HOST_COMPILER=${CMAKE_CUDA_HOST_COMPILER} "
@@ -416,7 +425,7 @@ if(CELERITAS_USE_DD4hep)
 endif()
 
 if(CELERITAS_USE_CUDA)
-  if(NOT CMAKE_CUDA_ARCHITECTURES)
+  if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
       "to specify the GPU target device, is not defined, and the default "
       "guess may be suboptimal and cause further issues. "
@@ -425,6 +434,20 @@ if(CELERITAS_USE_CUDA)
   endif()
   enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED QUIET)
+  # Check that architectures meet the minimum requirement (Atomics.hh)
+  set(_celer_min_cuda 60)
+  celeritas_filter_minimum_cuda_arch(_allowed_arch ${_celer_min_cuda})
+  if(NOT _allowed_arch OR (NOT _allowed_arch STREQUAL CMAKE_CUDA_ARCHITECTURES))
+    if(NOT _allowed_arch)
+      message(SEND_ERROR "No specified CUDA architecture is valid: CMAKE_CUDA_ARCHITECTURES=${CMAKE_CUDA_ARCHITECTURES}")
+      set(_allowed_arch "${_celer_min_cuda}")
+    endif()
+    celeritas_error_incompatible_option(
+      "Celeritas cannot compile for CUDA compute versions less than ${_celer_min_cuda}"
+      CMAKE_CUDA_ARCHITECTURES
+      "${_allowed_arch}"
+    )
+  endif()
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
   # NOTE: known broken up to 5.6; unknown after
@@ -623,12 +646,10 @@ if(CELERITAS_USE_VecGeom)
     # Enforce minimum version
     celeritas_find_or_builtin_package(G4VG 1.0.3)
   endif()
+endif()
 
-  # Default to using surface navigation if it's available
-  cmake_dependent_option(CELERITAS_VecGeom_SURFACE
-    "Use VecGeom surface navigation" "ON"
-    "VecGeom_USE_SURF" OFF
-  )
+if(CELERITAS_USE_GTest)
+  celeritas_find_or_builtin_package(GTest 1.10)
 endif()
 
 if(CELERITAS_BUILD_DOCS)
@@ -672,8 +693,22 @@ if(CELERITAS_BUILD_DOCS)
   include(ExternalProject)
 endif()
 
-if(CELERITAS_USE_GTest)
-  celeritas_find_or_builtin_package(GTest 1.10)
+if(CELERITAS_CODESIGN_APPS)
+  find_program(CODESIGN_EXECUTABLE codesign)
+  if(NOT CODESIGN_EXECUTABLE)
+    celeritas_error_incompatible_option(
+      "codesign is required for codesigning but was not found: maybe xcode not installed"
+      CELERITAS_CODESIGN_APPS
+      OFF
+    )
+  endif()
+  set(CELERITAS_CODESIGN_ENTITLEMENTS "${PROJECT_SOURCE_DIR}/cmake/entitlements.plist" CACHE PATH
+    "Entitlements file to use for Celeritas executables"
+  )
+  # NOTE: '-' is "ad hoc" signature
+  set(CELERITAS_CODESIGN_IDENTITY "-" CACHE STRING
+    "Code signing identity used for app building"
+  )
 endif()
 
 #----------------------------------------------------------------------------#
@@ -741,6 +776,13 @@ endif()
 
 if(CELERITAS_BUILD_APPS)
   add_subdirectory(app)
+else()
+  # Replacement for running celer-config
+  add_custom_target("get-config"
+    COMMAND ${CMAKE_COMMAND} -E echo
+      "'get-config' unavailable: rebuild with CELERITAS_BUILD_APPS=ON"
+    VERBATIM
+  )
 endif()
 
 #----------------------------------------------------------------------------#

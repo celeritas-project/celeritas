@@ -98,9 +98,8 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
  * The return value is the square of \c dyerr in
  * \c G4MagIntegratorDriver::AccurateAdvance .
  */
-inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
-                                           real_type step,
-                                           Real3 const& mom)
+inline CELER_FUNCTION real_type rel_err_sq(
+    OdeState const& err_state, real_type step, Real3 const& mom)
 {
     CELER_EXPECT(step > 0);
 
@@ -126,9 +125,8 @@ inline CELER_FUNCTION real_type rel_err_sq(OdeState const& err_state,
  *   d = |\vec{AM}| \sin(\theta) = \frac{\vec{AM} \times \vec{AB}}{|\vec{AB}|}
  * \f]
  */
-inline CELER_FUNCTION real_type distance_chord(Real3 const& beg_pos,
-                                               Real3 const& mid_pos,
-                                               Real3 const& end_pos)
+inline CELER_FUNCTION real_type distance_chord(
+    Real3 const& beg_pos, Real3 const& mid_pos, Real3 const& end_pos)
 {
     Real3 beg_mid;
     Real3 beg_end;

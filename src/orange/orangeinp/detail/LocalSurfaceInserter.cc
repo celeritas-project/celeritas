@@ -156,8 +156,8 @@ LocalSurfaceId LocalSurfaceInserter::operator()(S const& source)
  * (new surface). It will chain merged surfaces so that multiple equivalent
  * ones will point to a single original.
  */
-LocalSurfaceId
-LocalSurfaceInserter::merge_impl(LocalSurfaceId source, LocalSurfaceId target)
+LocalSurfaceId LocalSurfaceInserter::merge_impl(LocalSurfaceId source,
+                                                LocalSurfaceId target)
 {
     CELER_EXPECT(source < surfaces_->size());
     CELER_EXPECT(target < source);
@@ -215,6 +215,7 @@ LSI_INSTANTIATE(ConeAligned<Axis::y>);
 LSI_INSTANTIATE(ConeAligned<Axis::z>);
 LSI_INSTANTIATE(SimpleQuadric);
 LSI_INSTANTIATE(GeneralQuadric);
+LSI_INSTANTIATE(Toroid);
 LSI_INSTANTIATE(Involute);
 
 #undef LSI_INSTANTIATE

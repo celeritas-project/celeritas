@@ -216,8 +216,7 @@ void DetectorConstruction::ConstructSDandField()
 
         // Construct the magnetic field
         G4FieldManager* field_manager
-            = G4TransportationManager::GetTransportationManager()
-                  ->GetFieldManager();
+            = G4TransportationManager::GetTransportationManager()->GetFieldManager();
         field_manager->SetDetectorField(mag_field_.get());
         field_manager->SetChordFinder(chord_finder.release());
         field_manager->SetMinimumEpsilonStep(field_options.epsilon_step);

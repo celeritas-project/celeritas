@@ -9,9 +9,12 @@
 #include "corecel/Types.hh"
 #include "corecel/grid/VectorUtils.hh"
 #include "corecel/math/Quantity.hh"
+#include "celeritas/em/executor/GammaNuclearExecutor.hh"
 #include "celeritas/g4/EmExtraPhysicsHelper.hh"
+#include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/grid/NonuniformGridInserter.hh"
 #include "celeritas/mat/MaterialParams.hh"
 #include "celeritas/phys/InteractionApplier.hh"
@@ -96,9 +99,15 @@ auto GammaNuclearModel::micro_xs(Applicability) const -> XsTable
 /*!
  * Apply the interaction kernel.
  */
-void GammaNuclearModel::step(CoreParams const&, CoreStateHost&) const
+void GammaNuclearModel::step(CoreParams const& params,
+                             CoreStateHost& state) const
 {
-    CELER_NOT_IMPLEMENTED("Gamma-nuclear inelastic interaction");
+    auto execute = make_action_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        this->action_id(),
+        InteractionApplier{GammaNuclearExecutor{this->host_ref()}});
+    return launch_action(*this, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//
@@ -122,8 +131,8 @@ void GammaNuclearModel::step(CoreParams const&, CoreStateDevice&) const
  * the upper limit of the IAEA cross-section data and 150 MeV, as used in
  * G4GammaNuclearXS, is also included in the tabulation.
  */
-inp::Grid
-GammaNuclearModel::calc_chips_xs(AtomicNumber z, double emin, double emax) const
+inp::Grid GammaNuclearModel::calc_chips_xs(
+    AtomicNumber z, double emin, double emax) const
 {
     CELER_EXPECT(z);
 

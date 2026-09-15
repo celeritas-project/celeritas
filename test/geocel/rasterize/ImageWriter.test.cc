@@ -7,6 +7,7 @@
 #include "geocel/rasterize/ImageWriter.hh"
 
 #include "corecel/ScopedLogStorer.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/io/Logger.hh"
 
@@ -69,7 +70,9 @@ class ImageWriterTest : public ::celeritas::test::Test
             {
                 lines_.push_back({});
             }
-            else if (c == '\0') {}
+            else if (c == '\0')
+            {
+            }
             else
             {
                 CELER_ASSERT(!lines_.empty());

@@ -10,6 +10,8 @@
 #include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/CollectionBuilder.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -24,22 +26,22 @@ inline void resize(ParticleTallyStateData<Ownership::value, M>* state,
 {
     CELER_EXPECT(params);
     resize(&state->counts, params.num_bins * params.num_particles);
-    fill(size_type(0), &state->counts);
+    fill(0_sz, &state->counts);
 }
 
 //---------------------------------------------------------------------------//
 // Explicit instantiations
-template void
-resize(ParticleTallyStateData<Ownership::value, MemSpace::host>* state,
-       HostCRef<ParticleTallyParamsData> const& params,
-       StreamId,
-       size_type);
+template void resize(
+    ParticleTallyStateData<Ownership::value, MemSpace::host>* state,
+    HostCRef<ParticleTallyParamsData> const& params,
+    StreamId,
+    size_type);
 
-template void
-resize(ParticleTallyStateData<Ownership::value, MemSpace::device>* state,
-       HostCRef<ParticleTallyParamsData> const& params,
-       StreamId,
-       size_type);
+template void resize(
+    ParticleTallyStateData<Ownership::value, MemSpace::device>* state,
+    HostCRef<ParticleTallyParamsData> const& params,
+    StreamId,
+    size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

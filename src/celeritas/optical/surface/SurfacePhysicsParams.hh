@@ -80,8 +80,6 @@ class SurfacePhysicsParams final
     //!@{
     //! \name Type aliases
     using SPModel = std::shared_ptr<SurfaceModel>;
-    using SurfaceStepModels
-        = EnumArray<SurfacePhysicsOrder, std::vector<SPModel>>;
     //!@}
 
   public:
@@ -120,6 +118,13 @@ class SurfacePhysicsParams final
     }
 
   private:
+    //// TYPES ////
+
+    using SurfaceStepModels
+        = EnumArray<SurfacePhysicsOrder, std::vector<SPModel>>;
+
+    //// DATA ////
+
     // Boundary actions
     std::shared_ptr<InitBoundaryAction> init_boundary_action_;
     std::shared_ptr<SurfaceSteppingAction> surface_stepping_action_;
@@ -129,6 +134,8 @@ class SurfacePhysicsParams final
 
     // Host/device storage
     ParamsDataStore<SurfacePhysicsParamsData> data_;
+
+    //// FUNCTIONS ////
 
     // Build surface data
     void build_surfaces(std::vector<std::vector<OptMatId>> const&,

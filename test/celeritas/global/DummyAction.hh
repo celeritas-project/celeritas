@@ -50,10 +50,8 @@ class DummyParams final : public AuxParamsInterface
 class DummyAction final : public CoreStepActionInterface, public ConcreteAction
 {
   public:
-    DummyAction(ActionId id,
-                StepActionOrder order,
-                std::string&& label,
-                AuxId aux);
+    DummyAction(
+        ActionId id, StepActionOrder order, std::string&& label, AuxId aux);
 
     void step(CoreParams const&, CoreStateHost& state) const final;
     void step(CoreParams const&, CoreStateDevice& state) const final;

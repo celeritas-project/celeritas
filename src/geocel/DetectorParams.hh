@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/DetectorParams.hh
+//! \sa test/geocel/Detector.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 

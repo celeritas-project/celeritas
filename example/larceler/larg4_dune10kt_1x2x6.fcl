@@ -1,0 +1,57 @@
+//---------------------------------------------------------------------------//
+// Job execution for Geant4 and IonAndScint on DUNE 1x2x6 geometry
+//---------------------------------------------------------------------------//
+#include "LArG4_dune.fcl"
+#include "IonAndScint_dune.fcl"
+#include "services_dune.fcl"
+
+process_name: geantionandscint
+
+services:
+{
+    TFileService: { fileName: "g4-hist.root" }
+    TimeTracker: {}
+    MemoryTracker:{}
+    RandomNumberGenerator: {}
+    FileCatalogMetadata: @local::art_file_catalog_mc
+
+    @table::dunefd_1x2x6_simulation_services
+}
+
+# Override detector geometry for consistency
+# This GDML still has "PD" as the type in all arapuca volumes:
+# <auxiliary auxtype="PD" auxvalue="PhotonDetector"/>
+# This avoids setting the arapucas as SDs during the IonAndScint module call
+services.Geometry.GDML: "dune10kt_v6_refactored_1x2x6.gdml"
+services.AuxDetGeometry.GDML: "dune10kt_v6_refactored_1x2x6.gdml"
+services.LArG4Detector.gdmlFileName_: "dune10kt_v6_refactored_1x2x6.gdml"
+
+source:
+{
+    module_type: RootInput
+}
+
+outputs:
+{
+  out:
+  {
+    module_type: RootOutput
+    fileName:    "%ifb-larg4.root"
+    dataTier:    "simulated"
+    compressionLevel: 1
+  }
+}
+
+physics:
+{
+    producers:
+    {
+        largeant:    @local::dunefd_larg4
+        IonAndScint: @local::dunefd_ionandscint
+        rns:         { module_type: "RandomNumberSaver" }
+    }
+    simulate: [ rns, largeant, IonAndScint ]
+    stream:  [ out ]
+    trigger_paths: [ simulate ]
+    end_paths: [ stream ]
+}

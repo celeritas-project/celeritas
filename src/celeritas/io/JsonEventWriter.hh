@@ -7,10 +7,11 @@
 #pragma once
 
 #include <fstream>
+#include <memory>
 #include <string>
 
 #include "corecel/Macros.hh"
-#include "celeritas/phys/Primary.hh"
+#include "celeritas/Types.hh"
 
 #include "EventIOInterface.hh"
 

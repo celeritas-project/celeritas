@@ -21,7 +21,7 @@ Substepper
 Propagator
   Given a maximum physics step, advance the geometry state and momentum along
   the field lines, satisfying constraints (see :ref:`field driver
-  options<api_field_data>`) for the maximum geometry error.
+  options<inp_field>`) for the maximum geometry error.
 
 .. _api_propagation:
 
@@ -46,22 +46,3 @@ Magnetic field types
 .. doxygenclass:: celeritas::RZMapField
 .. doxygenclass:: celeritas::CartMapField
 .. doxygenclass:: celeritas::CylMapField
-
-.. _api_field_data:
-
-Field data input and options
-----------------------------
-
-JSON input for the field setup corresponds to the uniform field input
-:cpp:struct:`celeritas::inp::UniformField` and the rz-map field input:
-
-.. celerstruct:: RZMapFieldInput
-
-as well as fully Cartesian or cylindrical input:
-
-.. celerstruct:: CartMapFieldInput
-.. celerstruct:: CylMapFieldInput
-
-The field driver options are not yet a stable part of the API:
-
-.. celerstruct:: FieldDriverOptions

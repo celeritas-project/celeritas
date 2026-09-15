@@ -183,7 +183,7 @@ TEST_F(SeltzerBergerTest, sb_positron_xs_scaling)
         0.99999599590292, 0.99994914123134, 0.99844428624414, 0.0041293798201,
         0.99999995934326, 0.99999948043882, 0.99998298916928, 0.33428689072689};
     // clang-format on
-    EXPECT_VEC_NEAR(expected_scaling_frac, scaling_frac, real_type{1e-11});
+    EXPECT_VEC_NEAR(expected_scaling_frac, scaling_frac, 1e-11_r);
 }
 
 TEST_F(SeltzerBergerTest, sb_energy_dist)
@@ -207,8 +207,8 @@ TEST_F(SeltzerBergerTest, sb_energy_dist)
         }
 
         avg_exit_frac.push_back(total_exit_energy / (num_samples * inc_energy));
-        avg_engine_samples.push_back(real_type(rng_engine.count())
-                                     / num_samples);
+        avg_engine_samples.push_back(
+            real_type(rng_engine.count()) / num_samples);
     };
 
     // Note: the first point has a very low cross section compared to

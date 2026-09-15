@@ -235,8 +235,9 @@ TEST_F(LivermorePETest, stress_test)
         real_type tot_energy = 0;
 
         // Loop over several incident directions
-        for (Real3 const& inc_dir :
-             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        for (
+            Real3 const& inc_dir :
+            {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
@@ -267,10 +268,10 @@ TEST_F(LivermorePETest, stress_test)
             EXPECT_EQ(num_samples, this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(real_type(rng_engine.count())
-                                     / real_type(num_particles_sampled));
-        avg_num_secondaries.push_back(real_type(num_secondaries)
-                                      / real_type(num_particles_sampled));
+        avg_engine_samples.push_back(
+            real_type(rng_engine.count()) / real_type(num_particles_sampled));
+        avg_num_secondaries.push_back(
+            real_type(num_secondaries) / real_type(num_particles_sampled));
         avg_cosine.push_back(tot_cosine / real_type(num_secondaries));
         avg_energy.push_back(tot_energy / real_type(num_secondaries));
     }
@@ -553,7 +554,7 @@ TEST_F(LivermorePEUtilsTest, one_neighbor)
     for (auto i : range(num_shells))
     {
         std::vector<AtomicRelaxTransition> transitions
-            = {{SubshellId{i + 1}, SubshellId{}, real_type{1}, MevEnergy{1}}};
+            = {{SubshellId{i + 1}, SubshellId{}, 1_r, MevEnergy{1}}};
         shells[i].transitions
             = make_builder(&data.transitions)
                   .insert_back(transitions.begin(), transitions.end());
@@ -589,7 +590,7 @@ TEST_F(LivermorePEUtilsTest, one_per_previous)
         {
             transitions.push_back({SubshellId{j + 1},
                                    SubshellId{j + 1},
-                                   real_type{1} / (num_shells - i),
+                                   1_r / (num_shells - i),
                                    MevEnergy{1}});
         }
         shells[i].transitions

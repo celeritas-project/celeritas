@@ -207,10 +207,10 @@ void HepMC3PrimaryGenerator::GeneratePrimaryVertex(G4Event* g4_event)
         }
     }
 
-    CELER_VALIDATE(g4_event->GetNumberOfPrimaryVertex() > 0,
-                   << "event " << g4_event->GetEventID()
-                   << " did not contain any primaries suitable for "
-                      "simulation");
+    CELER_VALIDATE(
+        g4_event->GetNumberOfPrimaryVertex() > 0,
+        << "event " << g4_event->GetEventID()
+        << " did not contain any primaries suitable for simulation");
 }
 
 //---------------------------------------------------------------------------//

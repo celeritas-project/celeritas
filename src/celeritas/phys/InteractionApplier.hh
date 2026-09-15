@@ -89,7 +89,7 @@ struct InteractionApplier<F, std::enable_if_t<kernel_max_blocks<F>>>
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
+CELER_CTAD_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -101,8 +101,8 @@ CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
  * ID.
  */
 template<class F>
-CELER_FUNCTION void
-InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
+CELER_FUNCTION void InteractionApplierBaseImpl<F>::operator()(
+    celeritas::CoreTrackView const& track)
 {
     Interaction result = this->sample_interaction(track);
 
@@ -169,9 +169,10 @@ InteractionApplierBaseImpl<F>::operator()(celeritas::CoreTrackView const& track)
                 secondary = {};
 
                 // Mark as a cut track
+                using namespace celeritas::literals;
                 atomic_add(
                     &const_cast<CoreTrackView&>(track).counters().num_cut,
-                    size_type{1});
+                    1_sz);
             }
         }
     }

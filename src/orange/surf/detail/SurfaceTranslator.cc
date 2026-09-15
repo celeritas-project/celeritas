@@ -20,11 +20,11 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                      \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT<Axis::x> SurfaceTranslator::operator()(IN<Axis::x> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::y> SurfaceTranslator::operator()(IN<Axis::y> const&) \
-        const;                                                              \
+        const; \
     template OUT<Axis::z> SurfaceTranslator::operator()(IN<Axis::z> const&) \
         const
 
@@ -36,8 +36,8 @@ namespace
  * Construct a translated axis-aligned plane.
  */
 template<Axis T>
-PlaneAligned<T>
-SurfaceTranslator::operator()(PlaneAligned<T> const& other) const
+PlaneAligned<T> SurfaceTranslator::operator()(
+    PlaneAligned<T> const& other) const
 {
     real_type origin = tr_.translation()[to_int(T)];
     return PlaneAligned<T>{other.position() + origin};
@@ -91,9 +91,9 @@ ORANGE_INSTANTIATE_OP(CylAligned, CylAligned);
  */
 Plane SurfaceTranslator::operator()(Plane const& other) const
 {
-    return Plane{
-        other.normal(),
-        other.displacement() + dot_product(tr_.translation(), other.normal())};
+    return Plane{other.normal(),
+                 other.displacement()
+                     + dot_product(tr_.translation(), other.normal())};
 }
 
 //---------------------------------------------------------------------------//
@@ -152,13 +152,15 @@ SimpleQuadric SurfaceTranslator::operator()(SimpleQuadric const& other) const
  */
 GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
 {
+    using namespace celeritas::literals;
+
     constexpr auto X = to_int(Axis::x);
     constexpr auto Y = to_int(Axis::y);
     constexpr auto Z = to_int(Axis::z);
 
     Real3 const second = to_array(other.second());
-    Real3 const cross = to_array(other.cross()) / real_type(2);
-    Real3 const first = to_array(other.first()) / real_type(2);
+    Real3 const cross = to_array(other.cross()) / 2.0_r;
+    Real3 const first = to_array(other.first()) / 2.0_r;
 
     // Nonlinear components of the quadric matrix
     SquareMatrix<real_type, 3> nonl{Real3{second[X], cross[X], cross[Z]},
@@ -166,8 +168,7 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
                                     Real3{cross[Z], cross[Y], second[Z]}};
 
     // Calculate q' = - Q t + q
-    Real3 newfirst
-        = gemv(real_type(-1), nonl, tr_.translation(), real_type(1), first);
+    Real3 newfirst = gemv(-1.0_r, nonl, tr_.translation(), 1.0_r, first);
 
     // Update constant:
     // j' = j - t*(q' + q)
@@ -175,7 +176,7 @@ GeneralQuadric SurfaceTranslator::operator()(GeneralQuadric const& other) const
                           - dot_product(tr_.translation(), newfirst + first);
 
     return GeneralQuadric{
-        second, to_array(other.cross()), real_type(2) * newfirst, newzeroth};
+        second, to_array(other.cross()), 2.0_r * newfirst, newzeroth};
 }
 
 //---------------------------------------------------------------------------//
@@ -194,6 +195,22 @@ Involute SurfaceTranslator::operator()(Involute const& other) const
                   other.tmin(),
                   other.tmax()};
     return invo;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct a translated Toroid.
+ */
+Toroid SurfaceTranslator::operator()(Toroid const& other) const
+{
+    Real3 origin = tr_.transform_up(other.origin());
+
+    Toroid tor{origin,
+               other.major_radius(),
+               other.ellipse_xy_radius(),
+               other.ellipse_z_radius()};
+
+    return tor;
 }
 
 //---------------------------------------------------------------------------//

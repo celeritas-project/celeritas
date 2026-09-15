@@ -425,11 +425,10 @@ TEST_F(ConverterTest, DISABLED_arbitrary)
 {
     verbose_ = true;
     std::string filename = celeritas::getenv("GDML");
-    CELER_VALIDATE(!filename.empty(),
-                   << "Set the 'GDML' environment variable and run this "
-                      "test with "
-                      "--gtest_filter=*arbitrary "
-                      "--gtest_also_run_disabled_tests");
+    CELER_VALIDATE(
+        !filename.empty(),
+        << "Set the 'GDML' environment variable and run this test with "
+           "--gtest_filter=*arbitrary --gtest_also_run_disabled_tests");
 
     this->load_gdml(filename);
     auto convert = this->make_converter(filename);

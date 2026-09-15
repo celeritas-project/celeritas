@@ -30,6 +30,7 @@ struct TimingResult
     double total{};  //!< Total transport time
     double setup{};  //!< One-time initialization cost
     MapStrDouble actions{};  //!< Accumulated action times
+    std::vector<double> steps{};  //!< Step times
 };
 
 //---------------------------------------------------------------------------//
@@ -50,6 +51,7 @@ void to_json(nlohmann::json& j, TimingResult const& v)
         CELER_JSON_PAIR(v, total),
         CELER_JSON_PAIR(v, setup),
         CELER_JSON_PAIR(v, actions),
+        CELER_JSON_PAIR(v, steps),
     };
 }
 

@@ -27,10 +27,23 @@ namespace optical
  * the normal direction points opposite the incident track direction. This
  * function makes checks for this condition explicit in the code.
  */
-inline CELER_FUNCTION bool
-is_entering_surface(Real3 const& dir, Real3 const& normal)
+inline CELER_FUNCTION bool is_entering_surface(Real3 const& dir,
+                                               Real3 const& normal)
 {
     return dot_product(dir, normal) < 0;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the local surface ID given the current local material and direction.
+ */
+inline CELER_FUNCTION LocalSurfaceId local_surf_id(LocalPositionId pos,
+                                                   LocalDirection dir)
+{
+    CELER_EXPECT(
+        pos && (pos > LocalPositionId{0} || dir == LocalDirection::forward));
+    return id_cast<LocalSurfaceId>(
+        static_cast<int>(pos.unchecked_get()) + static_cast<int>(dir) - 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -41,32 +54,29 @@ is_entering_surface(Real3 const& dir, Real3 const& normal)
  * Uses unsigned underflow when moving reverse (dir = -1) while on a
  * pre-surface (pos = 0) to wrap to an invalid position value.
  */
-CELER_FORCEINLINE_FUNCTION SurfaceTrackPosition
-next_subsurface_position(SurfaceTrackPosition pos, SubsurfaceDirection dir)
+inline CELER_FUNCTION LocalPositionId next_local_pos_id(LocalPositionId pos,
+                                                        LocalDirection dir)
 {
     CELER_EXPECT(pos);
-    return SurfaceTrackPosition{
-        pos.unchecked_get()
-        + static_cast<SurfaceTrackPosition::size_type>(to_signed_offset(dir))};
+    return LocalPositionId(pos.unchecked_get() + to_signed_offset(dir));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate subsurface direction from a track's geometry direction.
  */
-inline CELER_FUNCTION SubsurfaceDirection
-calc_subsurface_direction(Real3 const& geo_dir, Real3 const& normal)
+inline CELER_FUNCTION LocalDirection calc_subsurface_direction(
+    Real3 const& geo_dir, Real3 const& normal)
 {
-    return static_cast<SubsurfaceDirection>(
-        is_entering_surface(geo_dir, normal));
+    return static_cast<LocalDirection>(is_entering_surface(geo_dir, normal));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Calculate geometric reflection of an incident vector about a normal.
  */
-[[nodiscard]] inline CELER_FUNCTION Real3
-geometric_reflected_from(Real3 dir, Real3 const& normal)
+[[nodiscard]] inline CELER_FUNCTION Real3 geometric_reflected_from(
+    Real3 dir, Real3 const& normal)
 {
     axpy(-2 * dot_product(dir, normal), normal, &dir);
     return dir;
@@ -100,9 +110,8 @@ class EnteringSurfaceNormalSampler
 {
   public:
     template<class... Args>
-    CELER_FUNCTION EnteringSurfaceNormalSampler(Real3 const& dir,
-                                                Real3 const& normal,
-                                                Args&&... args)
+    CELER_FUNCTION EnteringSurfaceNormalSampler(
+        Real3 const& dir, Real3 const& normal, Args&&... args)
         : dir_{dir}, sample_normal_{normal, celeritas::forward<Args>(args)...}
     {
         CELER_EXPECT(is_entering_surface(normal, dir));

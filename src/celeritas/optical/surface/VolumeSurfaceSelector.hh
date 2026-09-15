@@ -43,7 +43,7 @@ class VolumeSurfaceSelector
     struct OrientedSurface
     {
         SurfaceId surface{};
-        SubsurfaceDirection orientation;
+        LocalDirection orientation;
 
         explicit CELER_FUNCTION operator bool() const
         {
@@ -53,14 +53,13 @@ class VolumeSurfaceSelector
 
   public:
     // Construct with pre-volume IDs
-    inline CELER_FUNCTION
-    VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
-                          VolumeInstanceId pre_volume_inst);
+    inline CELER_FUNCTION VolumeSurfaceSelector(
+        VolumeSurfaceView pre_surface, VolumeInstanceId pre_volume_inst);
 
     // Select surface based on post-volume IDs
-    inline CELER_FUNCTION OrientedSurface
-    operator()(VolumeSurfaceView const& post_volume,
-               VolumeInstanceId post_volume_inst) const;
+    inline CELER_FUNCTION OrientedSurface operator()(
+        VolumeSurfaceView const& post_volume,
+        VolumeInstanceId post_volume_inst) const;
 
   private:
     VolumeSurfaceView pre_surface_;
@@ -73,9 +72,8 @@ class VolumeSurfaceSelector
 /*!
  * Construct with pre-volume IDs.
  */
-CELER_FUNCTION
-VolumeSurfaceSelector::VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
-                                             VolumeInstanceId pre_volume_inst)
+CELER_FUNCTION VolumeSurfaceSelector::VolumeSurfaceSelector(
+    VolumeSurfaceView pre_surface, VolumeInstanceId pre_volume_inst)
     : pre_surface_(std::move(pre_surface)), pre_volume_inst_(pre_volume_inst)
 {
     CELER_EXPECT(pre_volume_inst_);
@@ -87,27 +85,26 @@ VolumeSurfaceSelector::VolumeSurfaceSelector(VolumeSurfaceView pre_surface,
  *
  * Returns an invalid \c SurfaceId if no surface data exists for the volumes.
  */
-CELER_FUNCTION auto
-VolumeSurfaceSelector::operator()(VolumeSurfaceView const& post_surface,
-                                  VolumeInstanceId post_volume_inst) const
-    -> OrientedSurface
+CELER_FUNCTION auto VolumeSurfaceSelector::operator()(
+    VolumeSurfaceView const& post_surface,
+    VolumeInstanceId post_volume_inst) const -> OrientedSurface
 {
     // P0 -> P1 interface surface in forward direction
     if (auto surface_id
         = pre_surface_.find_interface(pre_volume_inst_, post_volume_inst))
     {
-        return {surface_id, SubsurfaceDirection::forward};
+        return {surface_id, LocalDirection::forward};
     }
 
     // L0 boundary surface in forward direction
     if (auto surface_id = pre_surface_.boundary_id())
     {
-        return {surface_id, SubsurfaceDirection::forward};
+        return {surface_id, LocalDirection::forward};
     }
 
     // Return the L1 boundary surface from the opposite direction.
     // If no boundary surface exists, an invalid OrientedSurface is returned.
-    return {post_surface.boundary_id(), SubsurfaceDirection::reverse};
+    return {post_surface.boundary_id(), LocalDirection::reverse};
 }
 
 //---------------------------------------------------------------------------//

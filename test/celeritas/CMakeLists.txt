@@ -26,6 +26,7 @@ else()
     set(_needs_geant4_11 DISABLE)
   endif()
   celeritas_get_g4libs(_g4_geo_lib geometry)
+  celeritas_get_g4libs(_g4_event_lib event)
   celeritas_get_g4libs(_g4_global_libs global)
 endif()
 
@@ -195,6 +196,8 @@ celeritas_add_test(em/WentzelVIMsc.test.cc ${_needs_root}
 if(CELERITAS_USE_Geant4)
   celeritas_add_test(g4/MagneticField.test.cc
     LINK_LIBRARIES ${_g4_geo_lib})
+  celeritas_add_test(g4/StateDependent.test.cc
+    LINK_LIBRARIES ${_g4_event_lib} ${_needs_geant4})
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -248,9 +251,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Field
 
-if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
- AND (CELERITAS_USE_CUDA OR CELERITAS_VecGeom_SURFACE))
-  # VecGeom surface cannot rebuild the geometry
+if(CELERITAS_CORE_GEO STREQUAL "VecGeom" AND CELERITAS_USE_CUDA)
+  # VecGeom cannot rebuild the geometry
   set(_fieldprop_filter
     FILTER
     "-Layers*:SimpleCms*:Cmse*"
@@ -260,7 +262,12 @@ if(CELERITAS_CORE_GEO STREQUAL "VecGeom"
   )
 endif()
 
+set(_field_test_sources)
+if(CELERITAS_USE_covfie)
+  list(APPEND _field_test_sources field/CovfieTestField.covfie.cc)
+endif()
 celeritas_add_device_test(field/Fields
+  SOURCES ${_field_test_sources}
   LINK_LIBRARIES Celeritas::Extcovfie
 )
 celeritas_add_test(field/Integrators.test.cc ${_fixme_cgs})
@@ -290,23 +297,14 @@ if(CELERITAS_USE_Geant4)
   set(_geo_mat_filter
     "-Em3*:MultiLevel*"
     "Em3Test.*"
+    "MultiLevelTest.*"
   )
-  if(NOT CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    # TODO: ORANGE reflection is not implemented
-    list(APPEND _geo_mat_filter
-      "MultiLevelTest.*"
-    )
-  endif()
 elseif(CELERITAS_USE_ROOT)
   set(_geo_mat_filter
     "SimpleCmsTest"
   )
 else()
   set(_geo_mat_filter DISABLE)
-endif()
-
-if(CELERITAS_VecGeom_SURFACE)
-  set(_fails_vgsurf DISABLE)
 endif()
 
 celeritas_add_test(geo/GeoMaterial.test.cc
@@ -326,10 +324,14 @@ if(CELERITAS_USE_Geant4)
     "SimpleCmsAlongStepTest.msc_field"
     "SimpleCmsAlongStepTest.msc_field_finegrid"
     "SimpleCmsFieldVolAlongStepTest.msc_field"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
-    "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
     "LeadBoxAlongStepTest.*"
   )
+  if(CELERITAS_USE_covfie)
+    list(APPEND _along_step_filter
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield"
+      "SimpleCmsRZFieldAlongStepTest.msc_rzfield_finegrid"
+    )
+  endif()
   set(_stepper_filter
     "-TestEm*:LeadBox*"
     "TestEm3Compton.*"
@@ -368,6 +370,7 @@ celeritas_add_test(global/StepperGeant.test.cc
   GPU NT 4
   FILTER ${_stepper_filter}
 )
+celeritas_add_test(global/PrimaryCapacity.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Grid
@@ -390,6 +393,7 @@ celeritas_add_test(grid/XsCalculator.test.cc)
 celeritas_add_test(io/EventIO.test.cc ${_needs_hepmc})
 celeritas_add_test(io/ImportUnits.test.cc)
 celeritas_add_test(io/JsonEventIO.test.cc)
+celeritas_add_test(io/OpticalDistributionIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
 
@@ -464,11 +468,13 @@ celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest direct)
 celeritas_add_standalone_tests(optical/Generator LArSphereGeneratorTest offload)
 celeritas_add_standalone_tests(optical/Generator DuneGeneratorTest offload)
+celeritas_add_standalone_tests(optical/Generator WlsGeneratorTest primary)
 celeritas_add_standalone_tests(optical/Detector DetectorTest simple)
 celeritas_add_standalone_tests(optical/Detector DetectorTest stress)
 
 celeritas_add_test(optical/Absorption.test.cc)
 celeritas_add_test(optical/Cherenkov.test.cc)
+celeritas_add_test(optical/GroupVelocityCalculator.test.cc)
 celeritas_add_test(optical/Mie.test.cc)
 celeritas_add_test(optical/OpticalCollector.test.cc GPU ${_needs_geant4})
 celeritas_add_test(optical/OpticalUtils.test.cc GPU)
@@ -485,7 +491,7 @@ celeritas_add_test(optical/ReflectionFormSampler.test.cc)
 celeritas_add_test(optical/Fresnel.test.cc)
 celeritas_add_test(optical/SurfacePhysicsUtils.test.cc)
 celeritas_add_test(optical/TrivialSurfaceInteractor.test.cc)
-celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4} ${_fails_vgsurf})
+celeritas_add_test(optical/SurfacePhysicsInteractionIntegration.test.cc ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsRoughnessIntegration.test.cc
   ${_needs_geant4})
 celeritas_add_test(optical/SurfacePhysicsReflectivityIntegration.test.cc ${_needs_geant4})

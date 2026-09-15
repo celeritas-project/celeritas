@@ -44,14 +44,12 @@ class CoreTrackView
 
   public:
     // Construct with comprehensive param/state data and thread
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        ThreadId thread);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, ThreadId thread);
 
     // Construct directly from a track slot ID
-    inline CELER_FUNCTION CoreTrackView(ParamsRef const& params,
-                                        StateRef const& states,
-                                        TrackSlotId slot);
+    inline CELER_FUNCTION CoreTrackView(
+        ParamsRef const& params, StateRef const& states, TrackSlotId slot);
 
     // Initialize the track states
     inline CELER_FUNCTION CoreTrackView& operator=(TrackInitializer const&);
@@ -132,10 +130,8 @@ class CoreTrackView
 /*!
  * Construct with comprehensive param/state data and thread.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             ThreadId thread)
+CELER_FUNCTION CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, ThreadId thread)
     : states_(states), params_(params), thread_id_(thread)
 {
     CELER_EXPECT(states_.track_slots.empty()
@@ -153,10 +149,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
  * This signature is used for creating a view of a \em second track in a kernel
  * for initialization.
  */
-CELER_FUNCTION
-CoreTrackView::CoreTrackView(ParamsRef const& params,
-                             StateRef const& states,
-                             TrackSlotId track_slot)
+CELER_FUNCTION CoreTrackView::CoreTrackView(
+    ParamsRef const& params, StateRef const& states, TrackSlotId track_slot)
     : states_(states), params_(params), track_slot_id_(track_slot)
 {
     CELER_EXPECT(track_slot_id_ < states_.size());
@@ -166,8 +160,8 @@ CoreTrackView::CoreTrackView(ParamsRef const& params,
 /*!
  * Initialize the track states.
  */
-CELER_FUNCTION CoreTrackView&
-CoreTrackView::operator=(TrackInitializer const& init)
+CELER_FUNCTION CoreTrackView& CoreTrackView::operator=(
+    TrackInitializer const& init)
 {
     CELER_EXPECT(init);
 
@@ -418,14 +412,14 @@ CELER_FUNCTION AllVolumesView CoreTrackView::volumes() const
  */
 CELER_FUNCTION CoreStateCounters& CoreTrackView::counters()
 {
-    return *states_.init.counters.data().get();
+    return *states_.init.counters.data();
 }
 
 //---------------------------------------------------------------------------//
 //! \cond
 CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
 {
-    return *states_.init.counters.data().get();
+    return *states_.init.counters.data();
 }
 //! \endcond
 
@@ -439,12 +433,13 @@ CELER_FUNCTION CoreStateCounters const& CoreTrackView::counters() const
  */
 CELER_FUNCTION void CoreTrackView::apply_errored()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.status(TrackStatus::errored);
     sim.along_step_action({});
     sim.post_step_action(this->tracking_cut_action());
-    atomic_add(&this->counters().num_errored, size_type{1});
+    atomic_add(&this->counters().num_errored, 1_sz);
 }
 
 //---------------------------------------------------------------------------//
@@ -453,10 +448,11 @@ CELER_FUNCTION void CoreTrackView::apply_errored()
  */
 CELER_FUNCTION void CoreTrackView::apply_cut()
 {
+    using namespace celeritas::literals;
     auto sim = this->sim();
     CELER_EXPECT(is_track_valid(sim.status()));
     sim.post_step_action(this->tracking_cut_action());
-    atomic_add(&this->counters().num_cut, size_type{1});
+    atomic_add(&this->counters().num_cut, 1_sz);
 }
 
 //---------------------------------------------------------------------------//

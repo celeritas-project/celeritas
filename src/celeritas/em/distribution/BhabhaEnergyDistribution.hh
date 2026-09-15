@@ -32,9 +32,8 @@ class BhabhaEnergyDistribution
 
   public:
     // Construct with data from MollerBhabhaInteractor
-    inline CELER_FUNCTION BhabhaEnergyDistribution(Mass electron_mass,
-                                                   Energy min_valid_energy,
-                                                   Energy inc_energy);
+    inline CELER_FUNCTION BhabhaEnergyDistribution(
+        Mass electron_mass, Energy min_valid_energy, Energy inc_energy);
 
     // Sample the exiting energy
     template<class Engine>
@@ -59,8 +58,7 @@ class BhabhaEnergyDistribution
     {
         return 1;
     }
-
-};  // namespace BhabhaEnergyDistribution
+};
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -68,12 +66,10 @@ class BhabhaEnergyDistribution
 /*!
  * Construct with data from MollerBhabhaInteractor.
  */
-CELER_FUNCTION
-BhabhaEnergyDistribution::BhabhaEnergyDistribution(Mass electron_mass,
-                                                   Energy min_valid_energy,
-                                                   Energy inc_energy)
-    : min_energy_fraction_(value_as<Energy>(min_valid_energy)
-                           / value_as<Energy>(inc_energy))
+CELER_FUNCTION BhabhaEnergyDistribution::BhabhaEnergyDistribution(
+    Mass electron_mass, Energy min_valid_energy, Energy inc_energy)
+    : min_energy_fraction_(
+          value_as<Energy>(min_valid_energy) / value_as<Energy>(inc_energy))
     , gamma_(1 + value_as<Energy>(inc_energy) / value_as<Mass>(electron_mass))
 {
     CELER_EXPECT(electron_mass > zero_quantity()
@@ -95,11 +91,11 @@ CELER_FUNCTION real_type BhabhaEnergyDistribution::operator()(Engine& rng)
 
     // Sample epsilon
     real_type epsilon;
+    RejectionSampler<> reject{g_denominator};
     do
     {
         epsilon = 1 / sample_inverse_epsilon(rng);
-    } while (RejectionSampler<>(this->calc_g_fraction(epsilon, epsilon),
-                                g_denominator)(rng));
+    } while (reject(this->calc_g_fraction(epsilon, epsilon), rng));
 
     return epsilon;
 }

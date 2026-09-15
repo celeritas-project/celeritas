@@ -19,7 +19,6 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/ext/GeantUnits.hh"
-#include "celeritas/field/CylMapFieldInput.hh"
 #include "celeritas/field/RZMapFieldInput.hh"
 #include "celeritas/field/UniformFieldData.hh"
 #include "celeritas/inp/Field.hh"
@@ -59,8 +58,8 @@ UniformAlongStepFactory::UniformAlongStepFactory(FieldFunction f,
  * The action will embed the linear propagator if the magnetic field strength
  * is zero (or the accessor is unset).
  */
-auto UniformAlongStepFactory::operator()(AlongStepFactoryInput const& input) const
-    -> result_type
+auto UniformAlongStepFactory::operator()(
+    AlongStepFactoryInput const& input) const -> result_type
 {
     // Get the field strength in tesla (or zero if accessor is undefined)
     auto field = this->get_field();
@@ -201,7 +200,7 @@ auto CylMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
+inp::CylMapField CylMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }
@@ -212,7 +211,8 @@ CylMapFieldInput CylMapFieldAlongStepFactory::get_field() const
  *
  * The action will embed the field propagator with a CartMapField.
  */
-CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(CartMapFieldFunction f)
+CartMapFieldAlongStepFactory::CartMapFieldAlongStepFactory(
+    CartMapFieldFunction f)
     : get_fieldmap_(std::move(f))
 {
     CELER_EXPECT(get_fieldmap_);
@@ -241,7 +241,7 @@ auto CartMapFieldAlongStepFactory::operator()(
 /*!
  * Get the field params (used for converting to celeritas::inp).
  */
-CartMapFieldInput CartMapFieldAlongStepFactory::get_field() const
+inp::CartMapField CartMapFieldAlongStepFactory::get_field() const
 {
     return this->get_fieldmap_();
 }

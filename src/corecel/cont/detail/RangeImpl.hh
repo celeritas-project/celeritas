@@ -8,14 +8,15 @@
 
 #include <iterator>
 #include <type_traits>
-#include <utility>
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
-#include "corecel/OpaqueId.hh"
+#include "corecel/data/Ldg.hh"
 
 namespace celeritas
 {
+template<class TagT, class IndexT>
+class OpaqueId;
 namespace detail
 {
 //---------------------------------------------------------------------------//
@@ -29,7 +30,7 @@ struct RangeTypeTraits
     using difference_type = std::make_signed_t<counter_type>;
 
     template<class U>
-    using common_type = typename std::common_type<T, U>::type;
+    using common_type = std::common_type_t<T, U>;
 
     static CELER_CONSTEXPR_FUNCTION value_type zero() { return {}; }
     static CELER_CONSTEXPR_FUNCTION bool is_valid(value_type) { return true; }
@@ -62,7 +63,7 @@ struct EnumWithSize
 };
 
 template<class T>
-struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
+struct EnumWithSize<T, std::enable_if_t<(T::size_ >= 0)>>
 {
     static CELER_CONSTEXPR_FUNCTION bool is_valid(T value)
     {
@@ -72,10 +73,10 @@ struct EnumWithSize<T, typename std::enable_if<T::size_ >= 0>::type>
 
 //! Specialization for enums with a "size_" member
 template<class T>
-struct RangeTypeTraits<T, typename std::enable_if<std::is_enum<T>::value>::type>
+struct RangeTypeTraits<T, std::enable_if_t<std::is_enum<T>::value>>
 {
     using value_type = T;
-    using counter_type = typename std::underlying_type<T>::type;
+    using counter_type = std::underlying_type_t<T>;
     using difference_type = std::make_signed_t<counter_type>;
     template<class U>
     using common_type = value_type;
@@ -167,12 +168,13 @@ class range_iter
   public:
     //// CONSTRUCTOR ////
 
-    CELER_FORCEINLINE_FUNCTION range_iter(value_type value) : value_(value)
+    constexpr range_iter() = default;
+
+    explicit CELER_CONSTEXPR_FUNCTION range_iter(value_type value)
+        : value_(value)
     {
         CELER_EXPECT(TraitsT::is_valid(value_));
     }
-
-    CELER_CONSTEXPR_FUNCTION range_iter() : value_(TraitsT::zero()) {}
 
     //// ACCESSORS ////
 
@@ -204,7 +206,7 @@ class range_iter
 
     CELER_CONSTEXPR_FUNCTION range_iter operator+(difference_type inc) const
     {
-        return {TraitsT::increment(value_, inc)};
+        return range_iter{TraitsT::increment(value_, inc)};
     }
 
     CELER_CONSTEXPR_FUNCTION range_iter& operator--()
@@ -222,7 +224,7 @@ class range_iter
 
     CELER_CONSTEXPR_FUNCTION range_iter operator-(difference_type inc) const
     {
-        return {TraitsT::decrement(value_, inc)};
+        return range_iter{TraitsT::decrement(value_, inc)};
     }
 
     CELER_CONSTEXPR_FUNCTION bool operator==(range_iter const& other) const
@@ -235,23 +237,30 @@ class range_iter
         return !(*this == other);
     }
 
+    // Subtract two range iterators
+    CELER_CONSTEXPR_FUNCTION friend auto operator-(range_iter a, range_iter b)
+    {
+        using TraitsT = RangeTypeTraits<T>;
+        using DT = typename TraitsT::difference_type;
+        return static_cast<DT>(TraitsT::to_counter(a.value()))
+               - static_cast<DT>(TraitsT::to_counter(b.value()));
+    }
+
     // Access the underlying value
-    CELER_CONSTEXPR_FUNCTION value_type value() const { return value_; }
+    CELER_CEF value_type value() const& { return value_; }
+
+    //! Allow loading via ldg
+    CELER_CONSTEXPR_FUNCTION friend range_iter ldg(
+        range_iter const* ri) noexcept
+    {
+        using ::celeritas::ldg;
+        return range_iter{ldg(&ri->value_)};
+    }
 
   protected:
     // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
-    value_type value_;
+    value_type value_{TraitsT::zero()};
 };
-
-// Subtract two range iterators
-template<class T>
-CELER_CONSTEXPR_FUNCTION auto operator-(range_iter<T> a, range_iter<T> b)
-{
-    using TraitsT = RangeTypeTraits<T>;
-    using DT = typename TraitsT::difference_type;
-    return static_cast<DT>(TraitsT::to_counter(a.value()))
-           - static_cast<DT>(TraitsT::to_counter(b.value()));
-}
 
 //---------------------------------------------------------------------------//
 template<class T>
@@ -262,8 +271,9 @@ class inf_range_iter : public range_iter<T>
   public:
     using TraitsT = typename Base::TraitsT;
 
-    CELER_CONSTEXPR_FUNCTION inf_range_iter(T value = TraitsT::zero())
-        : Base(value)
+    explicit CELER_CONSTEXPR_FUNCTION inf_range_iter(T value) : Base(value) {}
+    explicit CELER_CONSTEXPR_FUNCTION inf_range_iter()
+        : inf_range_iter{TraitsT::zero()}
     {
     }
 
@@ -348,8 +358,8 @@ class inf_step_range_iter : public step_range_iter<T>
     using TraitsT = typename Base::TraitsT;
     using counter_type = typename TraitsT::counter_type;
 
-    CELER_FUNCTION
-    inf_step_range_iter(T current = TraitsT::zero(), counter_type step = {})
+    CELER_FUNCTION inf_step_range_iter(T current = TraitsT::zero(),
+                                       counter_type step = {})
         : Base(current, step)
     {
     }

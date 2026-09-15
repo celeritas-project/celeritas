@@ -12,6 +12,8 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 
+using namespace celeritas::literals;
+
 namespace celeritas
 {
 namespace detail
@@ -23,9 +25,9 @@ namespace
  * Calculate the infinity norm (\f$ ||x^{(k)} - x^{(k-1)} ||_\infty \f$)
  * between two consecutive iterations of an \c EquilibriumArray data.
  */
-real_type
-calc_infinity_norm(EquilibrateDensitiesSolver::EquilibriumArray const& current,
-                   EquilibrateDensitiesSolver::EquilibriumArray const& previous)
+real_type calc_infinity_norm(
+    EquilibrateDensitiesSolver::EquilibriumArray const& current,
+    EquilibrateDensitiesSolver::EquilibriumArray const& previous)
 {
     using MIP = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
 
@@ -58,7 +60,7 @@ EquilibrateDensitiesSolver::EquilibrateDensitiesSolver(
                      + lhd_densities_[Iso::deuterium]
                      + lhd_densities_[Iso::tritium];
     CELER_ENSURE(total_density_ > 0);
-    inv_tot_density_ = real_type{1} / total_density_;
+    inv_tot_density_ = 1_r / total_density_;
 }
 
 //---------------------------------------------------------------------------//
@@ -143,8 +145,8 @@ EquilibrateDensitiesSolver::operator()(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + D_2 \rightleftharpoons 2HD \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -167,8 +169,8 @@ EquilibrateDensitiesSolver::calc_hd_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ H_2 + T_2 \rightleftharpoons 2HT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -191,8 +193,8 @@ EquilibrateDensitiesSolver::calc_ht_equilibrium_constant(real_type temperature)
  * Calculate equilibrium constant for the
  * \f$ D_2 + T_2 \rightleftharpoons 2DT \f$ reaction.
  */
-real_type
-EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(real_type temperature)
+real_type EquilibrateDensitiesSolver::calc_dt_equilibrium_constant(
+    real_type temperature)
 {
     real_type result;
 
@@ -248,11 +250,9 @@ void EquilibrateDensitiesSolver::equilibrate_pair(
     CELER_EXPECT(eq_constant_ab > 0);
 
     // AA + AB / 2
-    real_type const mix_a = input[molecule_aa]
-                            + input[molecule_ab] * real_type{0.5};
+    real_type const mix_a = input[molecule_aa] + input[molecule_ab] * 0.5_r;
     // BB + AB / 2
-    real_type const mix_b = input[molecule_bb]
-                            + input[molecule_ab] * real_type{0.5};
+    real_type const mix_b = input[molecule_bb] + input[molecule_ab] * 0.5_r;
 
     real_type sigma
         = ((mix_a + mix_b)

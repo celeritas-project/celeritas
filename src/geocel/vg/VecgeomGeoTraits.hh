@@ -39,8 +39,8 @@ struct GeoTraits<VecgeomParams>
     //! Geometry track view
     using TrackView = VecgeomTrackView;
 
-    //! Surfaces are available when using frame implementation
-    static constexpr bool has_impl_surface{CELERITAS_VECGEOM_SURFACE};
+    //! Surfaces are not available in VecGeom solid-based navigation
+    static constexpr bool has_impl_surface{false};
     //! VecGeom has "placed volumes"
     static constexpr bool has_impl_volume_instance = true;
 

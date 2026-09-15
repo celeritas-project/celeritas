@@ -52,7 +52,8 @@ class SphereCentered
 
     // Construct from raw data
     template<class R>
-    explicit inline CELER_FUNCTION SphereCentered(Span<R, StorageSpan::extent>);
+    explicit inline
+        CELER_FUNCTION SphereCentered(Span<R, StorageSpan::extent>);
 
     //// ACCESSORS ////
 
@@ -131,13 +132,13 @@ CELER_FUNCTION SignedSense SphereCentered::calc_sense(Real3 const& pos) const
 /*!
  * Calculate all possible straight-line intersections with this surface.
  */
-CELER_FUNCTION auto
-SphereCentered::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CELER_FUNCTION auto SphereCentered::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
-    detail::QuadraticSolver solve_quadric(real_type(1), dot_product(pos, dir));
+    using namespace celeritas::literals;
+
+    detail::QuadraticSolver solve_quadric(1.0_r, dot_product(pos, dir));
     if (on_surface == SurfaceState::off)
     {
         return solve_quadric(dot_product(pos, pos) - radius_sq_);

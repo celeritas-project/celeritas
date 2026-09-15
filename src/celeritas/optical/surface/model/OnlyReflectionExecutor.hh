@@ -29,8 +29,8 @@ struct OnlyReflectionExecutor
 {
     NativeCRef<OnlyReflectionData> data;
 
-    inline CELER_FUNCTION SurfaceInteraction
-    operator()(CoreTrackView const&) const;
+    inline CELER_FUNCTION SurfaceInteraction operator()(
+        CoreTrackView const&) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -39,8 +39,8 @@ struct OnlyReflectionExecutor
 /*!
  * Calculate surface interaction based on the reflection mode.
  */
-CELER_FUNCTION SurfaceInteraction
-OnlyReflectionExecutor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION SurfaceInteraction OnlyReflectionExecutor::operator()(
+    CoreTrackView const& track) const
 {
     auto sub_model_id = track.surface_physics()
                             .interface(SurfacePhysicsOrder::interaction)

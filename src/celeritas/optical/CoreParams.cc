@@ -13,13 +13,12 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ActionRegistryOutput.hh"
-#include "corecel/sys/ScopedMem.hh"
 #include "geocel/DetectorParams.hh"
 #include "geocel/SurfaceParams.hh"
 #include "geocel/VolumeParams.hh"
 #include "celeritas/geo/CoreGeoParams.hh"
 #include "celeritas/mat/MaterialParams.hh"
-#include "celeritas/optical/OpticalSizes.json.hh"
+#include "celeritas/optical/OpticalSizesIO.json.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/track/SimParams.hh"
 
@@ -36,6 +35,14 @@
 #include "gen/ScintillationParams.hh"
 #include "surface/SurfacePhysicsParams.hh"
 
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+#    include "orange/OrangeParams.hh"  // IWYU pragma: keep
+#    include "orange/OrangeParamsOutput.hh"
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+#    include "geocel/vg/VecgeomParams.hh"  // IWYU pragma: keep
+#    include "geocel/vg/VecgeomParamsOutput.hh"
+#endif
+
 namespace celeritas
 {
 namespace optical
@@ -47,8 +54,8 @@ namespace
 //---------------------------------------------------------------------------//
 //!@{
 template<MemSpace M>
-CoreParamsData<Ownership::const_reference, M>
-build_params_refs(CoreParams::Input const& p, CoreScalars const& scalars)
+CoreParamsData<Ownership::const_reference, M> build_params_refs(
+    CoreParams::Input const& p, CoreScalars const& scalars)
 {
     CELER_EXPECT(scalars);
 
@@ -131,20 +138,25 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CP_VALIDATE_INPUT(surface);
     CP_VALIDATE_INPUT(detectors);
     CP_VALIDATE_INPUT(action_reg);
+    CP_VALIDATE_INPUT(aux_reg);
     CP_VALIDATE_INPUT(gen_reg);
-    CP_VALIDATE_INPUT(max_streams);
+    CP_VALIDATE_INPUT(sizes);
 #undef CP_VALIDATE_INPUT
 
     CELER_EXPECT(input_);
 
-    if (!input_.aux_reg)
-    {
-        input_.aux_reg = std::make_shared<AuxParamsRegistry>();
-    }
     if (!input_.output_reg)
     {
         input_.output_reg = std::make_shared<OutputRegistry>();
         insert_system_diagnostics(*input_.output_reg);
+
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE
+        input_.output_reg->insert(
+            std::make_shared<OrangeParamsOutput>(input_.geometry));
+#elif CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
+        input_.output_reg->insert(
+            std::make_shared<VecgeomParamsOutput>(input_.geometry));
+#endif
     }
 
     // Save optical action diagnostic information
@@ -152,17 +164,11 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
         input_.action_reg, "optical-actions"));
 
     // Add optical sizes
-    OpticalSizes sizes;
-    sizes.streams = this->max_streams();
-    sizes.generators = input_.capacity.generators;
-    sizes.tracks = input_.capacity.tracks;
     input_.output_reg->insert(
         OutputInterfaceAdapter<OpticalSizes>::from_rvalue_ref(
             OutputInterface::Category::internal,
             "optical-sizes",
-            std::move(sizes)));
-
-    ScopedMem record_mem("optical::CoreParams.construct");
+            OpticalSizes{this->sizes()}));
 
     // Construct always-on actions and save their IDs
     CoreScalars scalars = build_actions(input_.action_reg.get());
@@ -171,12 +177,13 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     // TODO: Is there a better place to build this?
     if (input_.optical_detector)
     {
-        input_.action_reg->insert(std::make_shared<DetectorAction>(
-            input_.action_reg->next_id(), input_.optical_detector.callback));
+        DetectorAction::make_and_insert(input_.action_reg,
+                                        input_.aux_reg,
+                                        input_.optical_detector.callback);
     }
 
     // Save maximum number of streams
-    scalars.max_streams = input_.max_streams;
+    scalars.max_streams = this->sizes().streams;
 
     // Save host reference
     host_ref_ = build_params_refs<MemSpace::host>(input_, scalars);
@@ -191,7 +198,7 @@ CoreParams::CoreParams(Input&& input) : input_(std::move(input))
     CELER_LOG(status) << "Celeritas optical setup complete";
 
     CELER_ENSURE(host_ref_);
-    CELER_ENSURE(host_ref_.scalars.max_streams == this->max_streams());
+    CELER_ENSURE(host_ref_.scalars.max_streams == this->sizes().streams);
 }
 
 //---------------------------------------------------------------------------//
