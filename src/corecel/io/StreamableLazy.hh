@@ -8,6 +8,8 @@
 
 #include <ostream>
 
+#include "StreamUtils.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
