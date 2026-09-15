@@ -1,11 +1,11 @@
 ---
-Language:        Cpp
+Language: Cpp
 AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
 AlignEscapedNewlines: DontAlign
 AlignTrailingComments:
-  Kind:            Never
+  Kind: Never
 AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Inline
 AlwaysBreakBeforeMultilineStrings: true
@@ -20,70 +20,70 @@ AttributeMacros:
 BinPackArguments: false
 BinPackParameters: OnePerLine
 BraceWrapping:
-  AfterClass:      true
+  AfterClass: true
   AfterControlStatement: Always
-  AfterEnum:       true
-  AfterFunction:   true
-  AfterNamespace:  true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
   AfterObjCDeclaration: true
-  AfterStruct:     true
-  AfterUnion:      true
-  BeforeCatch:     true
-  BeforeElse:      true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: true
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: BeforeComma
 BreakTemplateDeclarations: Yes
-ColumnLimit:     79
-IncludeBlocks:   Regroup
+ColumnLimit: 79
+IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex:           '^<[^/.]+>$'
-    Priority:        1
-    SortPriority:    1
-  - Regex:           '^<.+>$'
-    Priority:        1
-    SortPriority:    2
-  - Regex:           '^"corecel/(Config|Version|DeviceRuntimeApi)\.hh"$'
-    Priority:        2
-    SortPriority:    3
-  - Regex:           '^"celeritas_test_config.h"$'
-    Priority:        2
-    SortPriority:    3
-  - Regex:           '^"corecel/'
-    Priority:        3
-    SortPriority:    5
-  - Regex:           '^"geocel/'
-    Priority:        3
-    SortPriority:    6
-  - Regex:           '^"orange/'
-    Priority:        3
-    SortPriority:    7
-  - Regex:           '^"celeritas/'
-    Priority:        3
-    SortPriority:    8
-  - Regex:           '^"accel/'
-    Priority:        3
-    SortPriority:    9
-  - Regex:           '^"[^/]+"'
-    Priority:        6
-    SortPriority:    11
-  - Regex:           '^"detail/'
-    Priority:        7
-    SortPriority:    13
-  - Regex:           '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
-    Priority:        8
-    SortPriority:    14
-  - Regex:           '.*'
-    Priority:        6
-    SortPriority:    12
+  - Regex: "^<[^/.]+>$"
+    Priority: 1
+    SortPriority: 1
+  - Regex: "^<.+>$"
+    Priority: 1
+    SortPriority: 2
+  - Regex: '^"corecel/(Config|Version|DeviceRuntimeApi)\.hh"$'
+    Priority: 2
+    SortPriority: 3
+  - Regex: '^"celeritas_test_config.h"$'
+    Priority: 2
+    SortPriority: 3
+  - Regex: '^"corecel/'
+    Priority: 3
+    SortPriority: 5
+  - Regex: '^"geocel/'
+    Priority: 3
+    SortPriority: 6
+  - Regex: '^"orange/'
+    Priority: 3
+    SortPriority: 7
+  - Regex: '^"celeritas/'
+    Priority: 3
+    SortPriority: 8
+  - Regex: '^"accel/'
+    Priority: 3
+    SortPriority: 9
+  - Regex: '^"[^/]+"'
+    Priority: 6
+    SortPriority: 11
+  - Regex: '^"detail/'
+    Priority: 7
+    SortPriority: 13
+  - Regex: '"(^gtest/|TestBase|\.test\.hh|celeritas_test\.hh)'
+    Priority: 8
+    SortPriority: 14
+  - Regex: ".*"
+    Priority: 6
+    SortPriority: 12
 IncludeIsMainRegex: '(\.[^.]+)?$'
 IncludeIsMainSourceRegex: '(\.cu|\.t\.hh)$'
 IndentCaseLabels: true
 IndentPPDirectives: AfterHash
-IndentWidth:     4
+IndentWidth: 4
 KeepEmptyLines:
-  AtStartOfBlock:  false
-  AtStartOfFile:   false
+  AtStartOfBlock: false
+  AtStartOfFile: false
 PackConstructorInitializers: NextLine
 PenaltyBreakAssignment: 19
 PenaltyBreakBeforeFirstCallParameter: 20
@@ -102,4 +102,4 @@ QualifierAlignment: Right
 SpaceAfterTemplateKeyword: false
 SpacesBeforeTrailingComments: 2
 SpacesInContainerLiterals: false
-TabWidth:        4
+TabWidth: 4

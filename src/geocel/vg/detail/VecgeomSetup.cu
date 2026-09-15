@@ -13,6 +13,10 @@
 #    include <VecGeom/management/DeviceGlobals.h>
 #endif
 
+#if CELER_VGNAV == CELER_VGNAV_TUPLE
+#    include <VecGeom/navigation/NavStateTuple.h>
+#endif
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/DeviceVector.hh"

@@ -180,7 +180,7 @@ To install these dependencies for basic use with an Nvidia GPU:
 
 The dependency requirements for Celeritas are:
 
-.. literalinclude:: ../../scripts/spack/packages.yaml
+.. literalinclude:: ../../scripts/spack/reqs-celer.yaml
    :language: yaml
 
 and the full list of packages used by Celeritas is:
@@ -492,6 +492,11 @@ the Spack environment and then load the Celeritas environment variables::
    $ . "${SPACK_ROOT}/setup-env.sh"
    $ spack env activate ${CELER_SPACK_ENV}
    $ eval $(install/bin/larceler-env)
+
+With the current Spack-distributed LArSoft, most jobs may also require manually
+setting the environment variables ``FHICL_FILE_PATH`` to search the current
+working directory for included files.
+If using a nonstandard GDML file, ``FW_SEARCH_PATH`` must also be updated.
 
 .. _build_ups:
 

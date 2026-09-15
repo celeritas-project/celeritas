@@ -21,19 +21,27 @@ namespace test
  * - Removes pointers
  * - Removes ANSI escape sequences
  * - Rounds floating points to a given digit of precision
+ *
+ * \par Example:
+ * \code
+ * auto simplify_str = StringSimplifier{3};
+ * EXPECT_EQ("1.23 [s]", simplify_str(exception_msg));
+ * \endcode
  */
 class StringSimplifier
 {
   public:
     // Construct with number of digit of precision
-    inline StringSimplifier(int precision);
-    StringSimplifier() = default;
+    explicit inline StringSimplifier(int precision);
+
+    //! Default to 4 digits of precision
+    StringSimplifier() : StringSimplifier{4} {}
 
     // Simplify
     [[nodiscard]] std::string operator()(std::string const& old) const;
 
   private:
-    int precision_{4};
+    int precision_{};
 
     std::string simplify_sci(std::string s) const;
     std::string simplify_float(std::string s) const;

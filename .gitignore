@@ -26,5 +26,7 @@ Testing
 /CMakeCache.txt
 /CMakeFiles
 /CMakeUserPresets.json
-/scripts/cmake-presets/mac147429.json
+/node_modules/
+/package-lock.json
+/package.json
 /spack.yaml

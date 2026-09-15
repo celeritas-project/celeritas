@@ -192,10 +192,10 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
-    CELER_FUNCTION static void
-    RelocateToNextVolume(VgReal3 const& globalpoint,
-                         VgReal3 const& /* unused: globaldir */,
-                         NavState& state)
+    CELER_FUNCTION static void RelocateToNextVolume(
+        VgReal3 const& globalpoint,
+        VgReal3 const& /* unused: globaldir */,
+        NavState& state)
     {
         // Calculate local point from global point.
         vecgeom::Transformation3D m;

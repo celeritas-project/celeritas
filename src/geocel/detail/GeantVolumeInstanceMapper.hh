@@ -88,8 +88,8 @@ inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(
 {
     CELER_ASSERT_UNREACHABLE();
 }
-inline VolumeInstanceId
-GeantVolumeInstanceMapper::geant_to_id(G4PV const&, int) const
+inline VolumeInstanceId GeantVolumeInstanceMapper::geant_to_id(G4PV const&,
+                                                               int) const
 {
     CELER_ASSERT_UNREACHABLE();
 }

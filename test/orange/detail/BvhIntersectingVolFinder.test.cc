@@ -795,12 +795,8 @@ TEST_F(KebabTest, all)
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
         ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
-        ref.miss_count = {2, 2, 3, 7, 7, 14, 14, 14};
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-        {
-            // Overconservative hits
-            ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
-        }
+        // Overconservative bbox hits (testing unnecessary volumes)
+        ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
         EXPECT_REF_EQ(ref, result) << result;
     }
 }

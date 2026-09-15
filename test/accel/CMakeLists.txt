@@ -168,8 +168,15 @@ celeritas_add_integration_tests(
 # Test that we can safely flush and restore primaries multiple times per event
 celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush
-  OFFLOAD cpu
+  OFFLOAD cpu gpu
   RMTYPE serial mt
+)
+
+# Test primary admission with a larger secondary stack
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
+  OFFLOAD cpu gpu
+  RMTYPE serial
 )
 
 #-----------------------------------------------------------------------------#

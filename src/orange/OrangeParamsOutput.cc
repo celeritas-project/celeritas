@@ -12,13 +12,16 @@
 #include "corecel/cont/LdgSpan.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/LabelIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/Environment.hh"
 #include "geocel/BoundingBoxIO.json.hh"
 #include "orange/OrangeTypes.hh"
 
+#include "OrangeData.hh"
 #include "OrangeInputIO.json.hh"  // IWYU pragma: keep
 #include "OrangeParams.hh"  // IWYU pragma: keep
 #include "OrangeTypesIO.json.hh"  // IWYU pragma: keep
+#include "univ/TrackerVisitor.hh"
 
 #include "detail/BvhData.hh"
 #include "detail/BvhView.hh"
@@ -77,6 +80,46 @@ nlohmann::json make_bvh_structure_json(
     return json::object({
         {"tree", std::move(out)},
         {"inf_vol_ids", std::move(inf_vols)},
+    });
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create JSON representation of the daughter universes embedded in a universe.
+ *
+ * Each daughter consists of a local volume ID, daughter universe ID, and
+ * transform type.
+ */
+nlohmann::json make_univ_structure_json(HostCRef<OrangeParamsData> const& data,
+                                        UnivId uid)
+{
+    using json = nlohmann::json;
+
+    auto daughters = json::array();
+
+    TrackerVisitor visit_tracker{data};
+    visit_tracker(
+        [&](auto const& tracker) {
+            for (auto vol_id : range(LocalVolumeId{tracker.num_volumes()}))
+            {
+                DaughterId daughter_id = tracker.daughter(vol_id);
+                if (!daughter_id)
+                {
+                    continue;
+                }
+                auto const& daughter = data.daughters[daughter_id];
+                auto const& transform = data.transforms[daughter.trans_id];
+                daughters.push_back({
+                    *vol_id,
+                    *daughter.univ_id,
+                    to_cstring(transform.type),
+                });
+            }
+        },
+        uid);
+
+    return json::object({
+        {"daughters", std::move(daughters)},
     });
 }
 
@@ -198,6 +241,49 @@ void OrangeParamsOutput::output(JsonPimpl* j) const
         }
     }
 
+    // Write universe metadata as a struct of arrays
+    {
+        obj["univ_metadata"] = json::object();
+        auto& univ_metadata = obj["univ_metadata"];
+
+        auto insert_array = [&univ_metadata](std::string key) -> json& {
+            univ_metadata[key] = json::array();
+            return univ_metadata[key];
+        };
+
+        auto& type = insert_array("type");
+        auto& label = insert_array("label");
+        auto& num_surfaces = insert_array("num_surfaces");
+        auto& num_volumes = insert_array("num_volumes");
+
+        // Calculate number of surface/volume using universe indexer offsets
+        using SizeId = OpaqueId<size_type>;
+        auto const& uidata = data.univ_indexer_data;
+        auto calc_local_size = [](auto const& offsets, UnivId uid) {
+            CELER_EXPECT(uid && uid.unchecked_get() + 1 < offsets.size());
+            return offsets[SizeId{uid.unchecked_get() + 1}]
+                   - offsets[SizeId{uid.unchecked_get()}];
+        };
+
+        for (auto uid : range(UnivId{data.univ_types.size()}))
+        {
+            type.push_back(to_cstring(data.univ_types[uid]));
+            label.push_back(orange_->universes().at(uid));
+            num_surfaces.push_back(calc_local_size(uidata.surfaces, uid));
+            num_volumes.push_back(calc_local_size(uidata.volumes, uid));
+        }
+
+        // Include structure information if requested by the user
+        if (celeritas::getenv_flag("ORANGE_UNIV_STRUCTURE", false).value)
+        {
+            auto& structure = insert_array("structure");
+            for (auto uid : range(UnivId{data.univ_types.size()}))
+            {
+                structure.push_back(make_univ_structure_json(data, uid));
+            }
+        }
+    }
+
     j->obj = std::move(obj);
 }
 
@@ -209,6 +295,23 @@ std::string dump_bvh_structure(detail::BvhTreeRecord const& tree,
                                NativeCRef<detail::BvhTreeData> const& data)
 {
     return make_bvh_structure_json(tree, data).dump();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Print the universe structure to a JSON string for debugging.
+ *
+ * The result is an array, indexed by universe ID, of the daughters embedded
+ * in each universe.
+ */
+std::string dump_univ_structure(HostCRef<OrangeParamsData> const& data)
+{
+    auto result = nlohmann::json::array();
+    for (auto uid : range(UnivId{data.univ_types.size()}))
+    {
+        result.push_back(make_univ_structure_json(data, uid));
+    }
+    return result.dump();
 }
 
 //---------------------------------------------------------------------------//

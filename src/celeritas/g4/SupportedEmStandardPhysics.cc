@@ -9,13 +9,20 @@
 #include <memory>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4BuilderType.hh>
+#include <G4CascadeInterface.hh>
 #include <G4ComptonScattering.hh>
 #include <G4CoulombScattering.hh>
+#include <G4ElectroVDNuclearModel.hh>
 #include <G4Electron.hh>
+#include <G4ElectronNuclearProcess.hh>
 #include <G4EmParameters.hh>
+#include <G4ExcitedStringDecay.hh>
 #include <G4Gamma.hh>
 #include <G4GammaConversion.hh>
 #include <G4GammaGeneralProcess.hh>
+#include <G4GammaParticipants.hh>
+#include <G4GeneratorPrecompoundInterface.hh>
+#include <G4HadronicParameters.hh>
 #include <G4LivermorePhotoElectricModel.hh>
 #include <G4LossTableManager.hh>
 #include <G4MollerBhabhaModel.hh>
@@ -31,10 +38,14 @@
 #include <G4PhotoElectricEffect.hh>
 #include <G4PhysicsListHelper.hh>
 #include <G4Positron.hh>
+#include <G4PositronNuclearProcess.hh>
 #include <G4ProcessManager.hh>
 #include <G4ProcessType.hh>
 #include <G4Proton.hh>
+#include <G4QGSMFragmentation.hh>
+#include <G4QGSModel.hh>
 #include <G4RayleighScattering.hh>
+#include <G4TheoFSGenerator.hh>
 #include <G4UrbanMscModel.hh>
 #include <G4Version.hh>
 #include <G4WentzelVIModel.hh>
@@ -42,6 +53,12 @@
 #include <G4eIonisation.hh>
 #include <G4eMultipleScattering.hh>
 #include <G4eplusAnnihilation.hh>
+#if G4VERSION_NUMBER >= 1100
+#    include <G4GammaNuclearXS.hh>
+#    include <G4HadronInelasticProcess.hh>
+#else
+#    include <G4PhotoNuclearProcess.hh>
+#endif
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -296,6 +313,43 @@ void SupportedEmStandardPhysics::add_gamma_processes()
         G4LossTableManager::Instance()->SetGammaGeneralProcess(ggproc.get());
         ph.RegisterProcess(ggproc.release(), gamma);
     }
+
+    if (options_.gamma_nuclear)
+    {
+        CELER_LOG(debug) << "Using gamma-nuclear with "
+                            "Bertini (G4CascadeInterface) and G4QGSModel";
+
+#if G4VERSION_NUMBER >= 1100
+        auto gamma_nuclear = std::make_unique<G4HadronInelasticProcess>(
+            "photonNuclear", gamma);
+        gamma_nuclear->AddDataSet(new G4GammaNuclearXS());
+#else
+        auto gamma_nuclear = std::make_unique<G4PhotoNuclearProcess>();
+#endif
+
+        auto qgs_model = std::make_unique<G4QGSModel<G4GammaParticipants>>();
+        qgs_model->SetFragmentationModel(
+            new G4ExcitedStringDecay(new G4QGSMFragmentation()));
+
+        auto gn_model = std::make_unique<G4TheoFSGenerator>();
+        gn_model->SetTransport(new G4GeneratorPrecompoundInterface());
+        gn_model->SetHighEnergyGenerator(qgs_model.release());
+
+        // Bertini cascade for moderate energies
+        auto cascade = std::make_unique<G4CascadeInterface>();
+        auto* params = G4HadronicParameters::Instance();
+
+#if G4VERSION_NUMBER >= 1060
+        cascade->SetMaxEnergy(params->GetMaxEnergyTransitionFTF_Cascade());
+        gn_model->SetMinEnergy(params->GetMinEnergyTransitionFTF_Cascade());
+#endif
+        gn_model->SetMaxEnergy(params->GetMaxEnergy());
+
+        gamma_nuclear->RegisterMe(cascade.release());
+        gamma_nuclear->RegisterMe(gn_model.release());
+
+        ph.RegisterProcess(gamma_nuclear.release(), gamma);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -331,6 +385,29 @@ void SupportedEmStandardPhysics::add_e_processes(G4ParticleDefinition* p)
         ph.RegisterProcess(ionization.release(), p);
 
         CELER_LOG(debug) << "Using ionization with G4MollerBhabhaModel";
+    }
+
+    if (options_.electro_nuclear)
+    {
+        // electro-nuclear: G4ElectroVDNuclearModel
+        auto eModel = std::make_shared<G4ElectroVDNuclearModel>();
+
+        if (p == G4Electron::Electron())
+        {
+            auto enuc = std::make_unique<G4ElectronNuclearProcess>();
+            enuc->RegisterMe(eModel.get());
+            ph.RegisterProcess(enuc.release(), p);
+            CELER_LOG(debug)
+                << "Using electron-nuclear with G4ElectroVDNuclearModel";
+        }
+        if (p == G4Positron::Positron())
+        {
+            auto pnuc = std::make_unique<G4PositronNuclearProcess>();
+            pnuc->RegisterMe(eModel.get());
+            ph.RegisterProcess(pnuc.release(), p);
+            CELER_LOG(debug)
+                << "Using positron-nuclear with G4ElectroVDNuclearModel";
+        }
     }
 
     if (options_.brems != BremsModelSelection::none)

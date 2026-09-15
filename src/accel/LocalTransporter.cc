@@ -6,10 +6,13 @@
 //---------------------------------------------------------------------------//
 #include "LocalTransporter.hh"
 
+#include <algorithm>
 #include <csignal>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
+#include <vector>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4EventManager.hh>
 #include <G4MTRunManager.hh>
@@ -22,7 +25,6 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
@@ -40,12 +42,14 @@
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/global/PrimaryCapacity.hh"
 #include "celeritas/global/Stepper.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/io/OffloadWriter.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
+#include "celeritas/phys/Primary.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -147,10 +151,8 @@ void trace(StepperResult const& track_counts)
  */
 LocalTransporter::LocalTransporter(SetupOptions const& options,
                                    SharedParams& params)
-    : auto_flush_(params.Params()->sizes().primaries
-                  / params.Params()->sizes().streams)
+    : dump_primaries_{params.offload_writer()}
     , max_step_iters_(options.max_step_iters)
-    , dump_primaries_{params.offload_writer()}
 {
     CELER_VALIDATE(params.mode() == SharedParams::Mode::enabled,
                    << "cannot create local transporter when Celeritas "
@@ -240,18 +242,302 @@ void LocalTransporter::InitializeEvent(int id)
 
 //---------------------------------------------------------------------------//
 /*!
- * Convert a Geant4 track to a Celeritas primary and add to buffer.
+ * Stage buffered primaries for transport.
+ *
+ * This overlaps primary staging, including the device H2D copy, with later
+ * Geant4 \c Push calls. It does not start GPU transport: same-stream ordering
+ * guarantees that when stepping begins later, kernels observe the copied
+ * primaries. Only one staged batch is currently supported.
+ */
+void LocalTransporter::stage_buffered_primaries(StepperResult const& prior)
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->num_buffered_primaries() > 0);
+    CELER_EXPECT(buffered_accum_.primaries == step_->num_buffered_primaries());
+    CELER_EXPECT(step_->staged_primaries().empty());
+    CELER_EXPECT(staged_accum_.empty());
+
+    CELER_VALIDATE(step_->num_buffered_primaries()
+                       <= this->available_primary_capacity(prior),
+                   << "primary buffer of size "
+                   << step_->num_buffered_primaries()
+                   << " exceeds available initializer capacity "
+                   << step_->initializer_capacity() << " with " << prior.queued
+                   << " queued and " << prior.alive << " alive tracks");
+
+    step_->stage_primaries();
+    staged_accum_ = std::exchange(buffered_accum_, {});
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate primary capacity after initialization and secondary reservation.
+ *
+ * Primaries and queued initializers are processed before secondaries are
+ * appended. Primaries that fill vacant track slots therefore need no queue
+ * space at the end of the step. Any remaining primaries must leave room for
+ * the secondary stack, capped at the initializer capacity so configurations
+ * with a larger secondary allocation can still admit primaries that fill
+ * vacant track slots.
+ */
+size_type LocalTransporter::available_primary_capacity(
+    StepperResult const& prior) const
+{
+    CELER_EXPECT(*this);
+
+    detail::PrimaryCapacityInput input;
+    input.track_slots = step_->state().size();
+    input.initializer_capacity = step_->initializer_capacity();
+    input.secondary_capacity = step_->secondary_capacity();
+    input.queued = prior.queued;
+    input.alive = prior.alive;
+    return detail::calc_primary_capacity(input);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a step, submitting staged primaries if present.
+ */
+void LocalTransporter::launch_step()
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(!step_->valid());
+    CELER_EXPECT(in_flight_accum_.empty());
+
+    auto const staged_primaries = step_->staged_primaries();
+    bool const has_staged = !staged_primaries.empty();
+    CELER_EXPECT(has_staged || transport_active_);
+    if (has_staged && !transport_active_)
+    {
+        // A batch submitted into an empty state starts a new transport epoch;
+        // adding a batch to active tail tracks continues the existing epoch.
+        step_iters_ = 0;
+    }
+    if (has_staged)
+    {
+        CELER_ASSERT(staged_accum_.primaries == staged_primaries.size());
+
+        if (run_accum_.flushes == 0)
+        {
+            CELER_LOG_LOCAL(status)
+                << R"(Executing the first Celeritas stepping loop)";
+        }
+        if (celeritas::device())
+        {
+            CELER_LOG_LOCAL(debug)
+                << "Transporting " << staged_accum_.primaries << " tracks ("
+                << units::ClhepEnergy{staged_accum_.energy}
+                << " cumulative kinetic energy) from event " << event_id_
+                << " with Celeritas";
+        }
+        if (staged_accum_.lost_primaries > 0)
+        {
+            CELER_LOG_LOCAL(info)
+                << "Lost " << units::ClhepEnergy{staged_accum_.lost_energy}
+                << " cumulative kinetic energy from "
+                << staged_accum_.lost_primaries
+                << " primaries that started outside the geometry in event "
+                << event_id_;
+        }
+        if (dump_primaries_)
+        {
+            std::vector<Primary> dump_buffer(staged_primaries.begin(),
+                                             staged_primaries.end());
+            (*dump_primaries_)(dump_buffer);
+        }
+    }
+
+    step_->async();
+    CELER_ENSURE(step_->valid());
+    CELER_ENSURE(step_->staged_primaries().empty());
+    if (has_staged)
+    {
+        in_flight_accum_ = std::exchange(staged_accum_, {});
+        CELER_ENSURE(staged_accum_.empty());
+        CELER_ENSURE(in_flight_accum_.primaries == staged_primaries.size());
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Consume the result from the current step.
+ */
+auto LocalTransporter::complete_step() -> StepperResult
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->valid());
+
+    auto result = step_->get();
+    ++step_iters_;
+    transport_active_ = static_cast<bool>(result);
+    run_accum_.steps += result.active;
+    trace(result);
+
+    if (transport_active_)
+    {
+        if (step_->staged_primaries().empty())
+        {
+            CELER_VALIDATE_OR_KILL_ACTIVE(
+                step_iters_ < max_step_iters_,
+                << "number of step iterations exceeded the allowed maximum ("
+                << max_step_iters_ << ")",
+                *step_);
+        }
+        else
+        {
+            // kill_active rejects staged input, so abort rather than discard a
+            // successor batch while recovering from excessive iterations.
+            CELER_VALIDATE(
+                step_iters_ < max_step_iters_,
+                << "number of step iterations exceeded the allowed maximum ("
+                << max_step_iters_ << ")");
+        }
+    }
+
+    if (!in_flight_accum_.empty())
+    {
+        ++run_accum_.flushes;
+        run_accum_.primaries += in_flight_accum_.primaries;
+        run_accum_.lost_primaries += in_flight_accum_.lost_primaries;
+        in_flight_accum_ = {};
+    }
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Advance ready transport without blocking.
+ */
+void LocalTransporter::advance_if_ready()
+{
+    CELER_EXPECT(*this);
+
+    if (!step_->valid())
+    {
+        if (!step_->staged_primaries().empty())
+        {
+            // Submit queued input immediately whenever the Stepper is idle.
+            this->launch_step();
+        }
+        return;
+    }
+    if (!step_->ready())
+    {
+        return;
+    }
+
+    // Polling consumes at most one result and refills the stream when needed.
+    auto result = this->complete_step();
+    // Launch staged input even if the preceding transport just became idle.
+    if (result || !step_->staged_primaries().empty())
+    {
+        this->launch_step();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Advance existing transport by one step.
+ */
+auto LocalTransporter::advance_transport() -> StepperResult
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(!step_->valid());
+
+    this->launch_step();
+    return this->complete_step();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Advance transport until the producer buffer fits in the initializer queue.
+ *
+ * Active tracks may remain when this returns. The completed result guarantees
+ * that start-of-step initialization will reduce the existing initializer queue
+ * and producer buffer enough to preserve the maximum usable capacity for
+ * secondaries generated by the next step.
+ */
+auto LocalTransporter::wait_for_initializer_capacity() -> StepperResult
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->num_buffered_primaries() > 0);
+    CELER_EXPECT(step_->staged_primaries().empty());
+
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+
+    // Consume the current result, then advance only as far as needed to admit
+    // the producer while retaining secondary capacity after initialization.
+    auto track_counts = this->complete_step();
+    size_type const init_capacity = step_->initializer_capacity();
+    size_type const secondary_capacity = step_->secondary_capacity();
+    auto primaries_fit = [this](StepperResult const& result) {
+        return step_->num_buffered_primaries()
+               <= this->available_primary_capacity(result);
+    };
+    while (!primaries_fit(track_counts))
+    {
+        CELER_VALIDATE(
+            track_counts,
+            << "primary buffer of size " << step_->num_buffered_primaries()
+            << " exceeds available initializer capacity " << init_capacity
+            << " with " << track_counts.queued << " queued and "
+            << track_counts.alive << " alive tracks while reserving up to "
+            << std::min(secondary_capacity, init_capacity)
+            << " initializers for secondaries");
+
+        // A false result means the queue is already empty: failure above then
+        // avoids looping when the producer cannot fit an empty core state.
+        track_counts = this->advance_transport();
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
+    }
+    return track_counts;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Complete all transport without consuming the producer buffer.
+ */
+void LocalTransporter::drain_transport()
+{
+    CELER_EXPECT(*this);
+    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->staged_primaries().empty());
+
+    /*!
+     * Abort cleanly for interrupt and user-defined (i.e., job manager)
+     * signals.
+     *
+     * \todo The signal handler is \em not thread safe. We may need to set an
+     * atomic/volatile bit so all local transporters abort.
+     */
+    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
+
+    auto track_counts = this->complete_step();
+    while (track_counts)
+    {
+        track_counts = this->advance_transport();
+        CELER_VALIDATE_OR_KILL_ACTIVE(
+            !interrupted(), << "caught interrupt signal", *step_);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a Geant4 track and add it to the Stepper producer buffer.
  */
 void LocalTransporter::Push(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
+    this->advance_if_ready();
 
     // Always check the event ID when pushing the first EM track, since the
     // GeantTrackReconstruction needs to be initialized before we "acquire" the
     // track
-    if (CELER_UNLIKELY(buffer_.empty()))
+    if (CELER_UNLIKELY(step_->num_buffered_primaries() == 0))
     {
         if (CELER_UNLIKELY(!event_manager_))
         {
@@ -283,8 +569,8 @@ void LocalTransporter::Push(G4Track& g4track)
             << " from " << gtv.particle().name() << " at " << gtv.pos()
             << " along " << gtv.dir();
 
-        buffer_accum_.lost_energy += gtv.energy().value();
-        ++buffer_accum_.lost_primaries;
+        buffered_accum_.lost_energy += gtv.energy().value();
+        ++buffered_accum_.lost_primaries;
         return;
     }
 
@@ -308,110 +594,99 @@ void LocalTransporter::Push(G4Track& g4track)
      */
     track.event_id = EventId{0};
 
-    buffer_.push_back(track);
-    buffer_accum_.energy += gtv.energy().value();
-    if (buffer_.size() >= auto_flush_)
+    step_->push_primary(track);
+    ++buffered_accum_.primaries;
+    buffered_accum_.energy += gtv.energy().value();
+    if (step_->num_buffered_primaries() == step_->primary_capacity())
     {
-        this->Flush();
+        if (celeritas::device())
+        {
+            if (!step_->staged_primaries().empty())
+            {
+                // Submit a staged successor before using the full producer as
+                // the next staged batch.
+                if (step_->valid())
+                {
+                    // complete_step stores continuation in transport_active_,
+                    // which launch_step uses after the result is discarded.
+                    static_cast<void>(this->complete_step());
+                }
+                this->launch_step();
+            }
+            StepperResult prior;
+            if (step_->valid())
+            {
+                // Preserve active tracks while making room for this producer
+                // batch and the next step's secondaries.
+                prior = this->wait_for_initializer_capacity();
+            }
+            this->stage_buffered_primaries(prior);
+            this->launch_step();
+        }
+        else
+        {
+            this->Flush();
+        }
     }
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Transport the buffered tracks and all secondaries produced.
+ * Transport all buffered tracks and produced secondaries.
  */
 void LocalTransporter::Flush()
 {
     CELER_EXPECT(*this);
 
+    bool const has_buffered = step_->num_buffered_primaries() > 0;
+    bool const has_staged = !step_->staged_primaries().empty();
+    // Rejected primaries have no Stepper state but still need loss accounting.
+    if (!step_->valid() && !has_staged && !has_buffered
+        && buffered_accum_.lost_primaries == 0)
+    {
+        return;
+    }
+
     ScopedProfiling profile_this("flush");
 
-    if (celeritas::device() && !buffer_.empty())
+    if (!step_->staged_primaries().empty())
     {
-        CELER_LOG_LOCAL(debug)
-            << "Transporting " << buffer_.size() << " tracks ("
-            << units::ClhepEnergy{buffer_accum_.energy}
-            << " cumulative kinetic energy) from event " << event_id_
-            << " with Celeritas";
+        // Preserve an already staged successor by submitting it first.
+        if (step_->valid())
+        {
+            // complete_step stores continuation in transport_active_, which
+            // launch_step uses after the result is discarded.
+            static_cast<void>(this->complete_step());
+        }
+        this->launch_step();
     }
-    if (buffer_accum_.lost_primaries > 0)
+    if (step_->num_buffered_primaries() > 0)
     {
+        // A partial producer follows the same admission rule as a full batch.
+        StepperResult prior;
+        if (step_->valid())
+        {
+            prior = this->wait_for_initializer_capacity();
+        }
+        this->stage_buffered_primaries(prior);
+        this->launch_step();
+    }
+    if (step_->valid())
+    {
+        this->drain_transport();
+    }
+
+    if (buffered_accum_.lost_primaries > 0)
+    {
+        CELER_ASSERT(buffered_accum_.primaries == 0);
         CELER_LOG_LOCAL(info)
-            << "Lost " << units::ClhepEnergy{buffer_accum_.lost_energy}
+            << "Lost " << units::ClhepEnergy{buffered_accum_.lost_energy}
             << " cumulative kinetic energy from "
-            << buffer_accum_.lost_primaries
+            << buffered_accum_.lost_primaries
             << " primaries that started outside the geometry in event "
             << event_id_;
-    }
-
-    if (dump_primaries_)
-    {
-        // Write offload particles if user requested
-        (*dump_primaries_)(buffer_);
-    }
-
-    if (!buffer_.empty())
-    {
-        // Run Celeritas
-        this->flush_impl();
-    }
-    else
-    {
-        run_accum_.lost_primaries += buffer_accum_.lost_primaries;
-        buffer_accum_ = {};
-    }
-
-    // Clear any saved user information but do *not* reset the primary counter
-    track_reconstruction_->clear();
-
-    CELER_ENSURE(buffer_accum_.energy == 0);
-}
-
-void LocalTransporter::flush_impl()
-{
-    CELER_EXPECT(!buffer_.empty());
-    if (run_accum_.steps == 0)
-    {
-        CELER_LOG_LOCAL(status)
-            << R"(Executing the first Celeritas stepping loop)";
-    }
-
-    /*!
-     * Abort cleanly for interrupt and user-defined (i.e., job manager)
-     * signals.
-     *
-     * \todo The signal handler is \em not thread safe. We may need to set an
-     * atomic/volatile bit so all local transporters abort.
-     */
-    ScopedSignalHandler interrupted{SIGINT, SIGUSR2};
-
-    // Copy buffered tracks to device and transport the first step
-    auto track_counts = (*step_)(make_span(buffer_));
-    ++run_accum_.flushes;
-    run_accum_.steps += track_counts.active;
-    run_accum_.primaries += buffer_.size();
-    run_accum_.lost_primaries += buffer_accum_.lost_primaries;
-    trace(track_counts);
-
-    buffer_.clear();
-    buffer_accum_ = {};
-
-    size_type step_iters = 1;
-
-    while (track_counts)
-    {
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            step_iters < max_step_iters_,
-            << "number of step iterations exceeded the allowed maximum ("
-            << max_step_iters_ << ")",
-            *step_);
-
-        track_counts = (*step_)();
-        run_accum_.steps += track_counts.active;
-        ++step_iters;
-        trace(track_counts);
-        CELER_VALIDATE_OR_KILL_ACTIVE(
-            !interrupted(), << "caught interrupt signal", *step_);
+        run_accum_.lost_primaries += buffered_accum_.lost_primaries;
+        buffered_accum_ = {};
     }
 
     if (hit_processor_)
@@ -424,6 +699,23 @@ void LocalTransporter::flush_impl()
             run_accum_.hits += num_hits;
         }
     }
+    track_reconstruction_->clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Number of accepted primaries not yet accounted as transported.
+ */
+size_type LocalTransporter::GetBufferSize() const
+{
+    if (!step_)
+    {
+        return 0;
+    }
+    CELER_ASSERT(buffered_accum_.primaries == step_->num_buffered_primaries());
+    CELER_ASSERT(staged_accum_.primaries == step_->staged_primaries().size());
+    return buffered_accum_.primaries + staged_accum_.primaries
+           + in_flight_accum_.primaries;
 }
 
 //---------------------------------------------------------------------------//
@@ -436,9 +728,14 @@ void LocalTransporter::flush_impl()
 void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
-    CELER_VALIDATE(buffer_.empty(),
-                   << "offloaded tracks (" << buffer_.size()
-                   << " in buffer) were not flushed");
+    auto const buffer_size = this->GetBufferSize();
+    // Submitted-batch accounting may already be clear while active tail tracks
+    // or an unconsumed Stepper result still require transport.
+    CELER_VALIDATE(
+        !step_->valid() && !transport_active_ && buffer_size == 0,
+        << "offloaded tracks were not flushed (" << buffer_size
+        << " primaries buffered" << (step_->valid() ? ", step in flight" : "")
+        << (transport_active_ ? ", transport incomplete" : "") << ")");
 
     std::size_t num_optical_steps{0};
     {

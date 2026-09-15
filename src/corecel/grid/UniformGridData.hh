@@ -87,7 +87,8 @@ UniformGridData UniformGridData::from_bounds(EnumArray<Bound, double> bounds,
     result.size = size;
     result.front = bounds[Bound::lo];
     result.back = bounds[Bound::hi];
-    result.delta = (bounds[Bound::hi] - bounds[Bound::lo]) / (size - 1);
+    result.delta = (bounds[Bound::hi] - bounds[Bound::lo])
+                   / static_cast<double>(size - 1);
     CELER_ENSURE(result);
     return result;
 }

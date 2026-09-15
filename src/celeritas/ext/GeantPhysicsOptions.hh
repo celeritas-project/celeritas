@@ -110,6 +110,8 @@ struct GeantPhysicsOptions
     bool gamma_conversion{true};
     //! Use G4GammaGeneral instead of individual gamma processes
     bool gamma_general{false};
+    //! Enable Gamma nuclear interaction
+    bool gamma_nuclear{false};
     //!@}
 
     //!@{
@@ -121,6 +123,8 @@ struct GeantPhysicsOptions
     bool ionization{true};
     //! Enable positron annihilation
     bool annihilation{true};
+    //! Enable electro nuclear interaction
+    bool electro_nuclear{false};
     //! Enable bremsstrahlung and select a model
     BremsModelSelection brems{BremsModelSelection::all};
     //! Upper limit for the Seltzer-Berger bremsstrahlung model
@@ -208,9 +212,9 @@ struct GeantPhysicsOptions
     bool em() const
     {
         return compton_scattering || photoelectric || rayleigh_scattering
-               || gamma_conversion || gamma_general || coulomb_scattering
-               || ionization || annihilation
-               || brems != BremsModelSelection::none
+               || gamma_conversion || gamma_general || gamma_nuclear
+               || coulomb_scattering || ionization || annihilation
+               || electro_nuclear || brems != BremsModelSelection::none
                || msc != MscModelSelection::none;
     }
 
@@ -224,10 +228,12 @@ struct GeantPhysicsOptions
         opt.rayleigh_scattering = false;
         opt.gamma_conversion = false;
         opt.gamma_general = false;
+        opt.gamma_nuclear = false;
         // Electron/positron
         opt.coulomb_scattering = false;
         opt.ionization = false;
         opt.annihilation = false;
+        opt.electro_nuclear = false;
         opt.brems = BremsModelSelection::none;
         opt.msc = MscModelSelection::none;
         opt.relaxation = RelaxationSelection::none;
@@ -248,10 +254,12 @@ constexpr bool operator==(GeantPhysicsOptions const& a,
         && a.rayleigh_scattering == b.rayleigh_scattering
         && a.gamma_conversion == b.gamma_conversion
         && a.gamma_general == b.gamma_general
+        && a.gamma_nuclear == b.gamma_nuclear
         // Electron and positron
         && a.coulomb_scattering == b.coulomb_scattering
         && a.ionization == b.ionization
         && a.annihilation == b.annihilation
+        && a.electro_nuclear == b.electro_nuclear
         && a.brems == b.brems
         && a.seltzer_berger_limit == b.seltzer_berger_limit
         && a.msc == b.msc

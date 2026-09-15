@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
+#include <G4HadronicProcess.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
 #include <G4Physics2DVector.hh>
@@ -313,6 +314,16 @@ ImportProcess GeantProcessImporter::operator()(
 
 //---------------------------------------------------------------------------//
 /*!
+ * Initialize an imported hadronic process.
+ */
+ImportProcess GeantProcessImporter::operator()(
+    G4ParticleDefinition const& particle, G4HadronicProcess const& process)
+{
+    return init_process(particle, process);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Store multiple scattering XS tables to the process data.
  *
  * Whereas other EM processes combine the model tables into a single process
@@ -384,14 +395,15 @@ inp::UniformGrid import_physics_log_vector(G4PhysicsVector const& pv,
     double const x_scaling = native_value_from_clhep(units[0]);
     double const y_scaling = native_value_from_clhep(units[1]);
     auto size = pv.GetVectorLength();
+    CELER_ASSERT(size > 1);
 
     inp::UniformGrid grid;
     grid.x = {std::log(pv.Energy(0) * x_scaling),
               std::log(pv.Energy(size - 1) * x_scaling)};
     grid.y.resize(size);
 
-    double delta
-        = fastpow(pv.Energy(size - 1) / pv.Energy(0), 1.0 / (size - 1));
+    double delta = fastpow(pv.Energy(size - 1) / pv.Energy(0),
+                           1.0 / static_cast<double>(size - 1));
     for (auto i : range(size))
     {
         // Check that the grid has log spacing
