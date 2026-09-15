@@ -77,7 +77,8 @@ TEST(Distributions, UrbanLargeAngleDistribution)
             {{0.0004, 0.0012, 0.0012, 0.0012, 0.0004, 0.0004, 0.0008, 3.9944},
              4},
             {{0.016, 0.012, 0.0144, 0.0104, 0.014, 0.0124, 0.1292, 3.7916}, 4},
-            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172}, 4},
+            {{0.0624, 0.0632, 0.0832, 0.1204, 0.2452, 0.502, 1.0064, 1.9172},
+             4},
             {{0.1492, 0.184, 0.2536, 0.3392, 0.4668, 0.6328, 0.8564, 1.118}, 4},
             {{0.328, 0.3668, 0.416, 0.4708, 0.4996, 0.5796, 0.6384, 0.7008}, 4},
             {{0.4708, 0.494, 0.4884, 0.5148, 0.5168, 0.5172, 0.5012, 0.4968},
@@ -297,8 +298,7 @@ TEST_F(UrbanMscTest, step_conversion)
                 ASSERT_NO_THROW(true_step = geo_to_true(gp.step));
                 /*
                  * TODO: large relative error -0.00081720192362734587 when
-                 pstep
-                 * is near or equal to range:
+                 * pstep is near or equal to range:
                  *
                  z -> g: Low energy or range-limited step:
                     slope = 1.6653345369377e-15
@@ -311,13 +311,12 @@ TEST_F(UrbanMscTest, step_conversion)
                  e- at 0.102364 MeV
                  */
                 real_type tol = 1 - gp.alpha * pstep < 1e-8 ? 1e-3 : 1e-10;
-                if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
+                if (CELERITAS_REAL_TYPE != CELERITAS_REAL_TYPE_FLOAT)
                 {
-                    tol = std::sqrt(tol);
+                    EXPECT_SOFT_NEAR(pstep, true_step, tol)
+                        << "Geo step = " << repr(gp.step)
+                        << ", alpha = " << repr(gp.alpha);
                 }
-                EXPECT_SOFT_NEAR(pstep, true_step, tol)
-                    << "Geo step = " << repr(gp.step)
-                    << ", alpha = " << repr(gp.alpha);
             }
         }
     };

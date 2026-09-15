@@ -15,7 +15,8 @@ namespace celeritas
 /*!
  * Construct with a reference to mutable host data.
  */
-DistributionInserter::DistributionInserter(HostVal<DistributionParamsData>& data)
+DistributionInserter::DistributionInserter(
+    HostVal<DistributionParamsData>& data)
     : data_(data)
 {
 }
@@ -24,8 +25,8 @@ DistributionInserter::DistributionInserter(HostVal<DistributionParamsData>& data
 /*!
  * Add data for sampling a value from a 1D delta distribution.
  */
-OnedDistributionId
-DistributionInserter::operator()(inp::DeltaDistribution<double> const& d)
+OnedDistributionId DistributionInserter::operator()(
+    inp::DeltaDistribution<double> const& d)
 {
     DeltaDistributionRecord<real_type> record;
     record.value = d.value;
@@ -37,8 +38,8 @@ DistributionInserter::operator()(inp::DeltaDistribution<double> const& d)
 /*!
  * Add data for sampling a value from a normal distribution.
  */
-OnedDistributionId
-DistributionInserter::operator()(inp::NormalDistribution const& d)
+OnedDistributionId DistributionInserter::operator()(
+    inp::NormalDistribution const& d)
 {
     NormalDistributionRecord record;
     record.mean = d.mean;
@@ -80,8 +81,8 @@ ThreedDistributionId DistributionInserter::operator()(
 /*!
  * Add data for sampling a value from an isotropic distribution.
  */
-ThreedDistributionId
-DistributionInserter::operator()(inp::IsotropicDistribution const&)
+ThreedDistributionId DistributionInserter::operator()(
+    inp::IsotropicDistribution const&)
 {
     IsotropicDistributionRecord record;
     auto id = CollectionBuilder{&data_.isotropic}.push_back(record);
@@ -92,8 +93,8 @@ DistributionInserter::operator()(inp::IsotropicDistribution const&)
 /*!
  * Add data for sampling a value from a uniform box distribution.
  */
-ThreedDistributionId
-DistributionInserter::operator()(inp::UniformBoxDistribution const& d)
+ThreedDistributionId DistributionInserter::operator()(
+    inp::UniformBoxDistribution const& d)
 {
     UniformBoxDistributionRecord record;
     record.upper = static_array_cast<real_type>(d.upper);
@@ -106,8 +107,8 @@ DistributionInserter::operator()(inp::UniformBoxDistribution const& d)
 /*!
  * Add a 1D distribution.
  */
-OnedDistributionId
-DistributionInserter::operator()(OnedDistributionType type, size_type idx)
+OnedDistributionId DistributionInserter::operator()(OnedDistributionType type,
+                                                    size_type idx)
 {
     CELER_EXPECT(idx <= data_.oned_indices.size());
 
@@ -122,8 +123,8 @@ DistributionInserter::operator()(OnedDistributionType type, size_type idx)
 /*!
  * Add a 3D distribution.
  */
-ThreedDistributionId
-DistributionInserter::operator()(ThreedDistributionType type, size_type idx)
+ThreedDistributionId DistributionInserter::operator()(
+    ThreedDistributionType type, size_type idx)
 {
     CELER_EXPECT(idx <= data_.threed_indices.size());
 

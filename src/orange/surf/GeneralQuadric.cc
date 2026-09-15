@@ -20,10 +20,8 @@ namespace celeritas
  * preserved to prevent false elimination of second-order terms in surface
  * deduplication.
  */
-GeneralQuadric::GeneralQuadric(Real3 const& abc,
-                               Real3 const& def,
-                               Real3 const& ghi,
-                               real_type j)
+GeneralQuadric::GeneralQuadric(
+    Real3 const& abc, Real3 const& def, Real3 const& ghi, real_type j)
     : a_(abc[0])
     , b_(abc[1])
     , c_(abc[2])

@@ -134,13 +134,13 @@ void RootStepWriter::set_auto_flush(long num_entries)
  */
 void RootStepWriter::process_steps(HostStepState state)
 {
-#define RSW_STORE(ATTR, GETTER)                                               \
-    do                                                                        \
-    {                                                                         \
-        if (selection_.ATTR)                                                  \
-        {                                                                     \
+#define RSW_STORE(ATTR, GETTER) \
+    do \
+    { \
+        if (selection_.ATTR) \
+        { \
             copy_if_selected(state.steps.data.ATTR[tid] GETTER, tstep_.ATTR); \
-        }                                                                     \
+        } \
     } while (0)
 
     CELER_EXPECT(state.steps);
@@ -206,13 +206,13 @@ void RootStepWriter::process_steps(HostStepState state)
  */
 void RootStepWriter::make_tree()
 {
-#define RSW_CREATE_BRANCH(ATTR, BRANCH_NAME)                      \
-    do                                                            \
-    {                                                             \
-        if (this->selection_.ATTR)                                \
-        {                                                         \
+#define RSW_CREATE_BRANCH(ATTR, BRANCH_NAME) \
+    do \
+    { \
+        if (this->selection_.ATTR) \
+        { \
             this->tstep_tree_->Branch(BRANCH_NAME, &tstep_.ATTR); \
-        }                                                         \
+        } \
     } while (0)
 
     tstep_tree_ = root_manager_->make_tree("steps", "steps");

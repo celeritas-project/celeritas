@@ -34,8 +34,8 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-std::unordered_set<VolumeId>
-make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
+std::unordered_set<VolumeId> make_volume_ids(CoreGeoParams const& geo,
+                                             inp::UniformField const& inp)
 {
     using SetVolume = std::unordered_set<VolumeId>;
 
@@ -56,13 +56,13 @@ make_volume_ids(CoreGeoParams const& geo, inp::UniformField const& inp)
                },
                inp.volumes);
     CELER_VALIDATE(std::all_of(result.begin(), result.end(), Identity{}),
-                   << "failed to find one or more volumes while "
-                      "constructing a uniform field");
+                   << "failed to find one or more volumes while constructing "
+                      "a uniform field");
     return result;
 }
 
-HostVal<UniformFieldParamsData>
-validated_field_data(UniformFieldParams::Input const& inp)
+HostVal<UniformFieldParamsData> validated_field_data(
+    UniformFieldParams::Input const& inp)
 {
     if (inp.units != UnitSystem::si)
     {

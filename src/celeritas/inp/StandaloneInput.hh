@@ -67,7 +67,7 @@ struct StandaloneInput
     //! Base problem options and input data
     Problem problem;
     //! Set up Geant4 (if all the data isn't already loaded into Problem)
-    std::optional<GeantSetup> geant_setup;
+    GeantSetup geant_setup;
 
     //! Whether using Geant4 or loading from ROOT
     PhysicsImport physics_import;

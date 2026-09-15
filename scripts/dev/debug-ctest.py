@@ -19,6 +19,7 @@ updated in the future to work for GDB as well.
 ALSO NOTE: the VScode debugger choice ``lldb-dap`` requires an extension to
 work: see
 https://marketplace.visualstudio.com/items?itemName=llvm-vs-code-extensions.lldb-dap
+You may need to set the ``lldb-dap.executable-path`` setting on remote systems.
 """
 
 import argparse

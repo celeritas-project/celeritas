@@ -22,8 +22,8 @@ namespace celeritas
 namespace test
 {
 //---------------------------------------------------------------------------//
-GeantImportVolumeResult
-GeantImportVolumeResult::from_import(GeoParamsInterface const& geom)
+GeantImportVolumeResult GeantImportVolumeResult::from_import(
+    GeoParamsInterface const& geom)
 {
 #if CELERITAS_USE_GEANT4
     using Result = GeantImportVolumeResult;

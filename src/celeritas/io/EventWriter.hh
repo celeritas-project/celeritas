@@ -53,9 +53,8 @@ class EventWriter : public EventWriterInterface
     EventWriter(std::string const& filename, SPConstParticles params);
 
     // Construct with a filename, particle data, and output format
-    EventWriter(std::string const& filename,
-                SPConstParticles params,
-                Format fmt);
+    EventWriter(
+        std::string const& filename, SPConstParticles params, Format fmt);
 
     //! Prevent copying and moving due to file ownership
     CELER_DELETE_COPY_MOVE(EventWriter);

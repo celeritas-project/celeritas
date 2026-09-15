@@ -109,10 +109,10 @@ class CascadeCollider
 /*!
  * Construct from share data and colliding nucleons in the lab frame.
  */
-CELER_FUNCTION
-CascadeCollider::CascadeCollider(NeutronInelasticRef const& shared,
-                                 CascadeParticle const& bullet,
-                                 CascadeParticle const& target)
+CELER_FUNCTION CascadeCollider::CascadeCollider(
+    NeutronInelasticRef const& shared,
+    CascadeParticle const& bullet,
+    CascadeParticle const& target)
     : shared_(shared)
     , bullet_(bullet)
     , target_(target)

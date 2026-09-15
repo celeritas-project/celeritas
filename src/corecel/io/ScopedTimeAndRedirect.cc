@@ -20,9 +20,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 //! Log messages separated by lines
-void log_messages(std::string const& label,
-                  LogLevel level,
-                  std::stringstream& ss)
+void log_messages(
+    std::string const& label, LogLevel level, std::stringstream& ss)
 {
     Logger& celer_log = celeritas::world_logger();
     std::string templine;

@@ -14,6 +14,17 @@
 #include "../BoundingBoxUtils.hh"
 #include "../univ/detail/Types.hh"
 
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#    if __GNUC__ < 9
+// We are using GCC (not Clang, not ICC)
+#        define CELER_GCC8_BUGGY_CONSTEXPR 1
+#    else
+#        define CELER_GCC8_BUGGY_CONSTEXPR 0
+#    endif
+#else
+#    define CELER_GCC8_BUGGY_CONSTEXPR 0
+#endif
+
 namespace celeritas
 {
 namespace detail
@@ -56,8 +67,8 @@ class BvhIntersectingVolFinder
     // Calculate the minimum intersection, with supplied maximum search
     // distance
     template<class F>
-    inline CELER_FUNCTION Intersection
-    operator()(Ray ray, F&& visit_vol, real_type max_search_dist) const;
+    inline CELER_FUNCTION Intersection operator()(
+        Ray ray, F&& visit_vol, real_type max_search_dist) const;
 
   private:
     //// DATA ////
@@ -67,8 +78,8 @@ class BvhIntersectingVolFinder
 
     // Determine if the intersection with an edge/vol bbox is less than
     // min_dist
-    inline CELER_FUNCTION bool
-    visit_bbox(FastBBox const& bbox, Ray ray, real_type min_dist) const;
+    inline CELER_FUNCTION bool visit_bbox(
+        FastBBox const& bbox, Ray ray, real_type min_dist) const;
 
     // Calculate the current min intersection, which may/may not be on this
     // leaf
@@ -79,8 +90,8 @@ class BvhIntersectingVolFinder
 
     // Calculate the current min intersection, which may/may not be in inf_vols
     template<class F>
-    inline CELER_FUNCTION Intersection visit_inf_vols(Intersection intersection,
-                                                      F&& visit_vol) const;
+    inline CELER_FUNCTION Intersection visit_inf_vols(
+        Intersection intersection, F&& visit_vol) const;
 };
 
 //---------------------------------------------------------------------------//
@@ -89,8 +100,7 @@ class BvhIntersectingVolFinder
 /*!
  * Construct from vector a of bounding boxes and storage.
  */
-CELER_FUNCTION
-BvhIntersectingVolFinder::BvhIntersectingVolFinder(
+CELER_FUNCTION BvhIntersectingVolFinder::BvhIntersectingVolFinder(
     BvhTreeRecord const& tree, BvhIntersectingVolFinder::Storage const& storage)
     : view_(tree, storage)
 {
@@ -110,11 +120,10 @@ BvhIntersectingVolFinder::BvhIntersectingVolFinder(
  * lambda capture.
  */
 template<class F>
-CELER_FUNCTION auto
-BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
-                                     F&& visit_vol,
-                                     real_type max_search_dist) const
-    -> Intersection
+CELER_FUNCTION auto BvhIntersectingVolFinder::operator()(
+    BvhIntersectingVolFinder::Ray ray,
+    F&& visit_vol,
+    real_type max_search_dist) const -> Intersection
 {
     using Side = BvhInternalNode::Side;
 
@@ -124,7 +133,10 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
     using StackT = IdStack<BvhNodeId, max_bvh_depth - 1>;
     BvhNodeId stack_spill_[StackT::spill_extent];
     StackT stack{stack_spill_};
+#if !CELER_GCC8_BUGGY_CONSTEXPR
+    // This static_assert does not compile with gcc 8.5
     static_assert(stack.capacity() == max_bvh_depth);
+#endif
     stack.push(BvhNodeId{0});
 
     while (!stack.empty())
@@ -173,10 +185,8 @@ BvhIntersectingVolFinder::operator()(BvhIntersectingVolFinder::Ray ray,
 /*!
  * Determine if the intersection with an edge/vol bbox is less than min_dist.
  */
-CELER_FUNCTION
-bool BvhIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
-                                          Ray ray,
-                                          real_type min_dist) const
+CELER_FUNCTION bool BvhIntersectingVolFinder::visit_bbox(
+    FastBBox const& bbox, Ray ray, real_type min_dist) const
 {
     return intersects_segment(bbox, ray.pos, ray.dir, min_dist);
 }
@@ -186,10 +196,9 @@ bool BvhIntersectingVolFinder::visit_bbox(FastBBox const& bbox,
  * Calculate the current min intersection, which may/may not be on this leaf.
  */
 template<class F>
-CELER_FUNCTION auto
-BvhIntersectingVolFinder::visit_leaf(BvhNodeId leaf_node_id,
-                                     Intersection min_intersection,
-                                     F&& visit_vol) const -> Intersection
+CELER_FUNCTION auto BvhIntersectingVolFinder::visit_leaf(
+    BvhNodeId leaf_node_id, Intersection min_intersection, F&& visit_vol) const
+    -> Intersection
 {
     for (auto id : view_.leaf_vol_ids(leaf_node_id))
     {
@@ -208,9 +217,8 @@ BvhIntersectingVolFinder::visit_leaf(BvhNodeId leaf_node_id,
  * Calculate the current min intersection, which may/may not be in inf_vols.
  */
 template<class F>
-CELER_FUNCTION auto
-BvhIntersectingVolFinder::visit_inf_vols(Intersection min_intersection,
-                                         F&& visit_vol) const -> Intersection
+CELER_FUNCTION auto BvhIntersectingVolFinder::visit_inf_vols(
+    Intersection min_intersection, F&& visit_vol) const -> Intersection
 {
     for (auto id : view_.inf_vol_ids())
     {

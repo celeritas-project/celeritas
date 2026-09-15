@@ -105,19 +105,17 @@ ComponentLabels make_reserved_label_vecs(OrangeInput const& input)
  *
  * This mode is incompatible with having an existing run manager.
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_gdml(std::string const& filename)
+std::shared_ptr<OrangeParams> OrangeParams::from_gdml(
+    std::string const& filename)
 {
     CELER_VALIDATE(celeritas::global_geant_geo().expired(),
-                   << "cannot load Geant4 geometry into ORANGE from a "
-                      "file name: a global Geant4 geometry already "
-                      "exists");
+                   << "cannot load Geant4 geometry into ORANGE from a file "
+                      "name: a global Geant4 geometry already exists");
 
     if (!CELERITAS_USE_GEANT4)
     {
-        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix "
-                              "when Geant4 is disabled: trying "
-                              "`.org.json` instead";
+        CELER_LOG(warning) << "Using ORANGE geometry with GDML suffix when "
+                              "Geant4 is disabled: trying `.org.json` instead";
         CELER_VALIDATE(ends_with(filename, ".gdml"),
                        << "invalid extension for GDML file '" << filename
                        << "'");
@@ -136,9 +134,8 @@ OrangeParams::from_gdml(std::string const& filename)
 /*!
  * Build from a Geant4 world.
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
-                         SPConstVolumes volumes)
+std::shared_ptr<OrangeParams> OrangeParams::from_geant(
+    std::shared_ptr<GeantGeoParams const> const& geo, SPConstVolumes volumes)
 {
     CELER_EXPECT(geo);
     CELER_EXPECT(volumes);
@@ -178,15 +175,15 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo,
 /*!
  * Build from a Geant4 world (no volumes available?).
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
+std::shared_ptr<OrangeParams> OrangeParams::from_geant(
+    std::shared_ptr<GeantGeoParams const> const& geo)
 {
     CELER_EXPECT(geo);
     SPConstVolumes volumes = geo->volumes();
     if (!volumes)
     {
-        CELER_LOG(debug) << "Constructing canonical volumes from "
-                            "GeantGeoParams";
+        CELER_LOG(debug)
+            << "Constructing canonical volumes from GeantGeoParams";
         auto model_input = geo->make_model_input();
         auto const& model_volumes = model_input.volumes;
         if (auto const* sp = std::get_if<SPConstVolumes>(&model_volumes))
@@ -206,8 +203,8 @@ OrangeParams::from_geant(std::shared_ptr<GeantGeoParams const> const& geo)
 /*!
  * Build from a JSON input.
  */
-std::shared_ptr<OrangeParams>
-OrangeParams::from_json(std::string const& filename)
+std::shared_ptr<OrangeParams> OrangeParams::from_json(
+    std::string const& filename)
 {
     CELER_LOG(info) << "Loading ORANGE geometry from JSON at " << filename;
     ScopedProfiling profile_this{"orange-load-json"};
@@ -215,8 +212,8 @@ OrangeParams::from_json(std::string const& filename)
     OrangeInput result;
 
     std::ifstream infile(filename);
-    CELER_VALIDATE(infile,
-                   << "failed to open geometry at '" << filename << '\'');
+    CELER_VALIDATE(
+        infile, << "failed to open geometry at '" << filename << '\'');
     // Use the `from_json` defined in OrangeInputIO.json to read the JSON input
     nlohmann::json::parse(infile).get_to(result);
 
@@ -386,8 +383,8 @@ inp::Model OrangeParams::make_model_input() const
 /*!
  * Get the volume instance containing the global point.
  */
-VolumeInstanceId
-OrangeParams::find_volume_instance_at(Real3 const& global_point) const
+VolumeInstanceId OrangeParams::find_volume_instance_at(
+    Real3 const& global_point) const
 {
     using HostStateStore = StateDataStore<OrangeStateData, MemSpace::host>;
     HostStateStore states(this->host_ref(), 1);

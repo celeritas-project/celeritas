@@ -129,9 +129,8 @@ bool MucfMaterialInserter::operator()(MaterialView const& material)
  *
  * F = 1/2 and F = 3/2 are the reactive spin states for dd fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dd_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
@@ -160,9 +159,8 @@ MucfMaterialInserter::calc_dd_cycle(EquilibriumArray const& eq_dens,
  *
  * F = 0 and F = 1 are the reactive spin states for dt fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_dt_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     CELER_EXPECT(temperature > 0);
 
@@ -210,9 +208,8 @@ MucfMaterialInserter::calc_dt_cycle(EquilibriumArray const& eq_dens,
  *
  * F = 1/2 is the only reactive spin state for tt fusion.
  */
-MucfMaterialInserter::MoleculeCycles
-MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
-                                    real_type const temperature)
+MucfMaterialInserter::MoleculeCycles MucfMaterialInserter::calc_tt_cycle(
+    EquilibriumArray const& eq_dens, real_type const temperature)
 {
     using IsoProt = EquilibrateDensitiesSolver::MucfIsoprotologueMolecule;
     using CTT = inp::CycleTableType;
@@ -230,9 +227,8 @@ MucfMaterialInserter::calc_tt_cycle(EquilibriumArray const& eq_dens,
 }
 
 //---------------------------------------------------------------------------//
-InterpolatorHelper const&
-MucfMaterialInserter::interpolator(inp::CycleTableType type,
-                                   units::HalfSpinInt spin) const
+InterpolatorHelper const& MucfMaterialInserter::interpolator(
+    inp::CycleTableType type, units::HalfSpinInt spin) const
 {
     auto it = interpolators_.find({type, spin});
     CELER_ASSERT(it != interpolators_.end());

@@ -122,8 +122,8 @@ std::string DiagnosticTestBase::step_output() const
 //---------------------------------------------------------------------------//
 template DiagnosticTestBase::RunResult
     DiagnosticTestBase::run<MemSpace::device>(size_type, size_type);
-template DiagnosticTestBase::RunResult
-    DiagnosticTestBase::run<MemSpace::host>(size_type, size_type);
+template DiagnosticTestBase::RunResult DiagnosticTestBase::run<MemSpace::host>(
+    size_type, size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace test

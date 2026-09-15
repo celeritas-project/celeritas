@@ -20,9 +20,8 @@ namespace celeritas
 /*!
  * Simple log handler: write with colors to an ostream reference.
  */
-void StreamLogHandler::operator()(LogProvenance prov,
-                                  LogLevel lev,
-                                  std::string msg) const
+void StreamLogHandler::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg) const
 {
     if (lev < LogLevel::status || lev >= LogLevel::warning)
     {
@@ -43,9 +42,8 @@ void StreamLogHandler::operator()(LogProvenance prov,
 /*!
  * Simple log handler: write with colors to an ostream reference.
  */
-void MutexedStreamLogHandler::operator()(LogProvenance prov,
-                                         LogLevel lev,
-                                         std::string msg) const
+void MutexedStreamLogHandler::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg) const
 {
     std::ostringstream temp_os;
     StreamLogHandler{temp_os}(prov, lev, std::move(msg));
@@ -66,9 +64,8 @@ LocalMpiHandler::LocalMpiHandler(std::ostream& os, MpiCommunicator const& comm)
 }
 
 // Write with processor ID
-void LocalMpiHandler::operator()(LogProvenance prov,
-                                 LogLevel lev,
-                                 std::string msg) const
+void LocalMpiHandler::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg) const
 {
     // Buffer to reduce I/O contention in MPI runner
     std::ostringstream os;

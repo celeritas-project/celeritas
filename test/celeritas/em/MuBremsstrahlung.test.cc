@@ -111,8 +111,8 @@ TEST_F(MuBremsstrahlungTest, dcs)
     for (real_type gamma_energy :
          {1e-3, 5e-3, 1e-2, 5e-2, 0.1, 1.0, 10.0, 1e2, 1e3, 1e4})
     {
-        dcs.push_back(calc_dcs(MevEnergy{gamma_energy})
-                      / ipow<2>(units::centimeter));
+        dcs.push_back(
+            calc_dcs(MevEnergy{gamma_energy}) / ipow<2>(units::centimeter));
     }
 
     // Note: these are "gold" differential cross sections by the photon energy
@@ -249,8 +249,8 @@ TEST_F(MuBremsstrahlungTest, stress_test)
                           this->secondary_allocator().get().size());
                 num_particles_sampled += num_samples;
             }
-            avg_engine_samples.push_back(real_type(rng_engine.count())
-                                         / num_particles_sampled);
+            avg_engine_samples.push_back(
+                real_type(rng_engine.count()) / num_particles_sampled);
             avg_energy.push_back(energy / num_particles_sampled);
             avg_costheta.push_back(costheta / num_particles_sampled);
         }

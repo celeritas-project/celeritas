@@ -191,8 +191,7 @@ std::vector<std::string> transform_strings(CsgUnit const& u)
             }
             else
             {
-                os << " -> "
-                   << "<INVALID>";
+                os << " -> <INVALID>";
             }
         }
         else

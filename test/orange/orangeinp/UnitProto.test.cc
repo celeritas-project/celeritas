@@ -64,8 +64,8 @@ SPConstObject make_sph(std::string&& label, real_type radius)
     return make_shape<Sphere>(std::move(label), radius);
 }
 
-SPConstObject
-make_cyl(std::string&& label, real_type radius, real_type halfheight)
+SPConstObject make_cyl(
+    std::string&& label, real_type radius, real_type halfheight)
 {
     return make_shape<Cylinder>(std::move(label), radius, halfheight);
 }
@@ -118,9 +118,8 @@ void append_daughter(UnitProto::Input& inp,
     inp.daughters.emplace_back(std::move(di));
 }
 
-void append_material(UnitProto::Input& inp,
-                     SPConstObject&& obj,
-                     GeoMatId::size_type m)
+void append_material(
+    UnitProto::Input& inp, SPConstObject&& obj, GeoMatId::size_type m)
 {
     CELER_EXPECT(obj);
     UnitProto::MaterialInput mi;
@@ -965,7 +964,8 @@ TEST_F(InputBuilderTest, involute_fuel)
         append_material(inp, SPConstObject{invo2}, 2);
         append_material(
             inp,
-            make_rdv("clad1", {{Sense::inside, invo1}, {Sense::outside, invo2}}),
+            make_rdv("clad1",
+                     {{Sense::inside, invo1}, {Sense::outside, invo2}}),
             3);
         append_material(inp,
                         make_rdv("rest1",
@@ -981,7 +981,8 @@ TEST_F(InputBuilderTest, involute_fuel)
         append_material(inp, SPConstObject{invo4}, 6);
         append_material(
             inp,
-            make_rdv("clad2", {{Sense::inside, invo3}, {Sense::outside, invo4}}),
+            make_rdv("clad2",
+                     {{Sense::inside, invo3}, {Sense::outside, invo4}}),
             7);
         append_material(inp,
                         make_rdv("rest2",

@@ -55,7 +55,8 @@ using detail::CsgUnit;
 
 BoundingBox<> get_unit_bbox(CsgUnit const& unit)
 {
-    auto find_bz = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
+    auto find_bz
+        = [&r = unit.regions](NodeId n) -> detail::BoundingZone const& {
         CELER_EXPECT(n);
         auto iter = r.find(n);
         CELER_ENSURE(iter != r.end());
@@ -112,8 +113,7 @@ void implicit_parent_boundary(CsgUnit& unit)
         CELER_LOG(debug)
             << "- Some CSG nodes (" << unknowns.size() << " of "
             << orig_tree_size << ", now " << unit.tree.size()
-            << ") could not be logically eliminated from the "
-               "boundary: "
+            << ") could not be logically eliminated from the boundary: "
             << join_stream(
                    unknowns.begin(), unknowns.end(), ", ", write_node_labels);
     }
@@ -359,8 +359,8 @@ void UnitProto::build(ProtoBuilder& pb) const
     // Loop over all volumes to construct
     auto const& unit_volumes = csg_unit.tree.volumes();
     detail::InternalSurfaceFlagger has_internal_surfaces{csg_unit.tree};
-    result.volumes.reserve(unit_volumes.size()
-                           + static_cast<bool>(csg_unit.background));
+    result.volumes.reserve(
+        unit_volumes.size() + static_cast<bool>(csg_unit.background));
 
     // Use user-selected logic to build input: post-processing in OrangeParams
     // will convert to tracking notation if needed
@@ -407,9 +407,9 @@ void UnitProto::build(ProtoBuilder& pb) const
         CELER_ASSERT(vi);
         result.volumes.emplace_back(std::move(vi));
     }
-    CELER_ASSERT(result.volumes.size()
-                 == unit_volumes.size()
-                        + static_cast<bool>(csg_unit.background));
+    CELER_ASSERT(
+        result.volumes.size()
+        == unit_volumes.size() + static_cast<bool>(csg_unit.background));
 
     // Set labels and other attributes.
     // NOTE: this means we're entirely ignoring the "metadata" from the CSG

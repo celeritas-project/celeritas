@@ -80,8 +80,8 @@ CELER_FUNCTION void WlsGeneratorExecutor::operator()(TrackSlotId tid) const
     // Create the view to the new track to be initialized
     CoreTrackView vacancy{
         *params, *state, [&] {
-            // Get the vacancy from the back in case there are more vacancies
-            // than photons to generate
+            // Get the vacancy from the back in case there
+            // are more vacancies than photons to generate
             TrackSlotId idx{
                 index_before(counters->num_vacancies, ThreadId(tid.get()))};
             return state->init.vacancies[idx];

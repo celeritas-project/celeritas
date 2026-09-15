@@ -32,9 +32,8 @@ namespace optical
 /*!
  * Construct the model from input data.
  */
-MieModel::MieModel(ActionId id,
-                   inp::OpticalBulkMie input,
-                   SPConstMaterials const& materials)
+MieModel::MieModel(
+    ActionId id, inp::OpticalBulkMie input, SPConstMaterials const& materials)
     : Model(id, "mie", "interact by optical Mie scattering")
     , input_(std::move(input))
 {

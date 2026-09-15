@@ -225,9 +225,8 @@ TEST_P(EventIOTest, edge_case)
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(EventIO,
-                         EventIOTest,
-                         testing::Values("hepmc3", "hepmc2", "hepevt"));
+INSTANTIATE_TEST_SUITE_P(
+    EventIO, EventIOTest, testing::Values("hepmc3", "hepmc2", "hepevt"));
 
 //---------------------------------------------------------------------------//
 // STANDALONE TEST: HepMC3/examples/BasicExamples/basic_tree.cc

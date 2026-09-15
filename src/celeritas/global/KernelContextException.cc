@@ -21,9 +21,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 template<class V, class S>
-void insert_if_valid(char const* key,
-                     OpaqueId<V, S> const& val,
-                     nlohmann::json* obj)
+void insert_if_valid(
+    char const* key, OpaqueId<V, S> const& val, nlohmann::json* obj)
 {
     if (val)
     {

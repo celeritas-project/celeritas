@@ -20,10 +20,8 @@ namespace test
  * Calculate intersections, sorting so that "no intersection" is at end.
  */
 template<class S>
-typename S::Intersections calc_intersections(S const& surf,
-                                             Real3 const& pos,
-                                             Real3 const& dir,
-                                             SurfaceState on_surface)
+typename S::Intersections calc_intersections(
+    S const& surf, Real3 const& pos, Real3 const& dir, SurfaceState on_surface)
 {
     auto result = surf.calc_intersections(pos, dir, on_surface);
     auto ignored = [](real_type v) { return v == no_intersection() || v <= 0; };

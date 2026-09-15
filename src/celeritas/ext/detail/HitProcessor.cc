@@ -38,10 +38,10 @@
 #include "../GeantStepView.hh"
 
 #define HP_ASSIGN_TRANSFORMED(SELECTION, VIEW, VAR, DATA, TRANSFORM, IDX) \
-    if (SELECTION.VAR)                                                    \
-    {                                                                     \
-        CELER_ASSERT(IDX < DATA.VAR.size());                              \
-        VIEW.VAR(TRANSFORM(DATA.VAR[IDX]));                               \
+    if (SELECTION.VAR) \
+    { \
+        CELER_ASSERT(IDX < DATA.VAR.size()); \
+        VIEW.VAR(TRANSFORM(DATA.VAR[IDX])); \
     }
 
 namespace celeritas
@@ -60,8 +60,8 @@ namespace
  * that would be better done by using "touchables" globally and reconstructing
  * volume instances in post.
  */
-G4StepStatus
-get_step_status(DetectorStepOutput const& out, size_type step_index)
+G4StepStatus get_step_status(DetectorStepOutput const& out,
+                             size_type step_index)
 {
     auto pre = LevelTouchableUpdater::volume_instances(
         out, step_index, StepPoint::pre);
@@ -261,7 +261,7 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
         GeantStepPointView sp_view{*g4sp};
 
 #define HP_ASSIGN_SP(VAR, TRANSFORM) \
-    HP_ASSIGN_TRANSFORMED(           \
+    HP_ASSIGN_TRANSFORMED( \
         ss_.points[sp], sp_view, VAR, out.points[sp], TRANSFORM, i)
 
         HP_ASSIGN_SP(time, native_value_to<GeantStepPointView::Time>);

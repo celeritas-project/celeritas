@@ -627,8 +627,7 @@ TEST(MathTest, TEST_IF_CELER_DEVICE(device))
 
         // Input for testing sincospi
         std::vector<double> pi_frac = {0.123, 0.0, 0.5, 1.0, 1.5};
-        make_builder(&host_input.pi_frac)
-            .insert_back(pi_frac.begin(), pi_frac.end());
+        make_builder(&host_input.pi_frac).insert_back(pi_frac.begin(), pi_frac.end());
 
         // Input for testing fastpow, etc.
         std::vector<double> a = {0.0, 0.0, 1234.0, 123.456, 1000.0, 2.0};

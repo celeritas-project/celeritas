@@ -147,8 +147,8 @@ void NeutronInelasticModel::step(CoreParams const&, CoreStateDevice&) const
 /*!
  * Get the fit parameters for the nucleon-nucleon cross sections below 10 MeV.
  */
-StepanovParameters const&
-NeutronInelasticModel::get_channel_params(ChannelId ch_id)
+StepanovParameters const& NeutronInelasticModel::get_channel_params(
+    ChannelId ch_id)
 {
     static std::vector<StepanovParameters> params
         = {{17.613, 4.00, {0.0069466, 9.0692, -5.0574}},  // neutron-neutron

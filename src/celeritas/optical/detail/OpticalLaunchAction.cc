@@ -10,17 +10,13 @@
 
 #include "corecel/data/AuxParamsRegistry.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/phys/GeneratorRegistry.hh"
 
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
 #include "../Transporter.hh"
-#include "../action/ActionGroups.hh"
-#include "../gen/GeneratorData.hh"
 
 namespace celeritas
 {
@@ -30,8 +26,8 @@ namespace detail
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<OpticalLaunchAction>
-OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
+std::shared_ptr<OpticalLaunchAction> OpticalLaunchAction::make_and_insert(
+    CoreParams const& core, Input&& input)
 {
     CELER_EXPECT(input);
     ActionRegistry& actions = *core.action_reg();
@@ -48,9 +44,8 @@ OpticalLaunchAction::make_and_insert(CoreParams const& core, Input&& input)
 /*!
  * Construct with action ID, generator storage.
  */
-OpticalLaunchAction::OpticalLaunchAction(ActionId action_id,
-                                         AuxId aux_id,
-                                         Input&& input)
+OpticalLaunchAction::OpticalLaunchAction(
+    ActionId action_id, AuxId aux_id, Input&& input)
     : action_id_{action_id}, aux_id_{aux_id}, data_(std::move(input))
 {
     CELER_EXPECT(data_);
@@ -87,8 +82,8 @@ std::string_view OpticalLaunchAction::description() const
 /*!
  * Build state data for a stream.
  */
-auto OpticalLaunchAction::create_state(MemSpace m, StreamId sid, size_type) const
-    -> UPState
+auto OpticalLaunchAction::create_state(
+    MemSpace m, StreamId sid, size_type) const -> UPState
 {
     if (m == MemSpace::host)
     {

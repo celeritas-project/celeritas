@@ -135,7 +135,7 @@ void copy_steps<MemSpace::device>(
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    copy_field(          \
+    copy_field( \
         &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id)
 
     DS_ASSIGN(detector_id);

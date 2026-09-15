@@ -37,7 +37,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
   # checking, initialization checking, ...
   celeritas_target_compile_options(testcel_harness
     PUBLIC
-    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-array-bounds;-Wno-stringop-overflow;-Wno-uninitialized>"
+    "$<$<COMPILE_LANGUAGE:CXX>:-Wno-array-bounds;-Wno-nonnull;-Wno-stringop-overflow;-Wno-uninitialized>"
   )
 endif()
 

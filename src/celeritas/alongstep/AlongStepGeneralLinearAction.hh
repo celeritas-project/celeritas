@@ -42,17 +42,16 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepGeneralLinearAction>
-    from_params(ActionId id,
-                MaterialParams const& materials,
-                ParticleParams const& particles,
-                SPConstMsc const& msc,
-                bool eloss_fluctuation);
+    static std::shared_ptr<AlongStepGeneralLinearAction> from_params(
+        ActionId id,
+        MaterialParams const& materials,
+        ParticleParams const& particles,
+        SPConstMsc const& msc,
+        bool eloss_fluctuation);
 
     // Construct with next action ID, and optional EM energy fluctuation
-    AlongStepGeneralLinearAction(ActionId id,
-                                 SPConstFluctuations fluct,
-                                 SPConstMsc msc);
+    AlongStepGeneralLinearAction(
+        ActionId id, SPConstFluctuations fluct, SPConstMsc msc);
 
     // Default destructor
     ~AlongStepGeneralLinearAction() final;
@@ -100,8 +99,8 @@ class AlongStepGeneralLinearAction final : public CoreStepActionInterface
 //---------------------------------------------------------------------------//
 
 #if !CELER_USE_DEVICE
-inline void
-AlongStepGeneralLinearAction::step(CoreParams const&, CoreStateDevice&) const
+inline void AlongStepGeneralLinearAction::step(CoreParams const&,
+                                               CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

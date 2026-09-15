@@ -28,8 +28,8 @@ namespace celeritas
 /*!
  * Construct with imported data.
  */
-std::shared_ptr<ParticleParams>
-ParticleParams::from_import(ImportData const& data)
+std::shared_ptr<ParticleParams> ParticleParams::from_import(
+    ImportData const& data)
 {
     CELER_EXPECT(!data.particles.empty());
 

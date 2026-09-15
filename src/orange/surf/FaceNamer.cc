@@ -20,11 +20,11 @@ constexpr char to_pm(Sense s)
     return s == Sense::inside ? 'p' : 'm';
 }
 
-#define ORANGE_INSTANTIATE_OP(IN)                                        \
+#define ORANGE_INSTANTIATE_OP(IN) \
     template std::string FaceNamer::Impl::operator()(IN<Axis::x> const&) \
-        const;                                                           \
+        const; \
     template std::string FaceNamer::Impl::operator()(IN<Axis::y> const&) \
-        const;                                                           \
+        const; \
     template std::string FaceNamer::Impl::operator()(IN<Axis::z> const&) const
 
 //---------------------------------------------------------------------------//

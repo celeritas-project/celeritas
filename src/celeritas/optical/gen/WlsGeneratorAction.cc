@@ -167,8 +167,8 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     // during this step
     CELER_VALIDATE(counters.buffer_size + state.size() <= buffer.size(),
                    << "insufficient capacity (" << buffer.size()
-                   << ") for buffered optical WLS distribution data "
-                      "(total capacity requirement of "
+                   << ") for buffered optical WLS distribution data (total "
+                      "capacity requirement of "
                    << counters.buffer_size + state.size() << ")");
 
     // Clear data that tracks might write distributions to in this step, which

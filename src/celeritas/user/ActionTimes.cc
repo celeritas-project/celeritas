@@ -16,10 +16,10 @@ namespace celeritas
 /*!
  * Construct and add to the aux registry.
  */
-std::shared_ptr<ActionTimes>
-ActionTimes::make_and_insert(SPActionRegistry const& actions,
-                             SPAuxParamsRegistry const& aux,
-                             std::string label)
+std::shared_ptr<ActionTimes> ActionTimes::make_and_insert(
+    SPActionRegistry const& actions,
+    SPAuxParamsRegistry const& aux,
+    std::string label)
 {
     auto result = std::make_shared<ActionTimes>(
         aux->next_id(), actions, std::move(label));
@@ -31,9 +31,8 @@ ActionTimes::make_and_insert(SPActionRegistry const& actions,
 /*!
  * Construct from ID, actions and label.
  */
-ActionTimes::ActionTimes(AuxId aux_id,
-                         SPActionRegistry const& action_reg,
-                         std::string label)
+ActionTimes::ActionTimes(
+    AuxId aux_id, SPActionRegistry const& action_reg, std::string label)
     : aux_id_(aux_id), action_reg_(action_reg), label_(std::move(label))
 {
     CELER_EXPECT(aux_id_);

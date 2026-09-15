@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "Runner.hh"
 
+#include <algorithm>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -55,6 +56,15 @@ Runner::Runner(Input si)
         = si.problem.diagnostics.counters.step;
     transporter_input_->actions = std::move(loaded.problem.actions);
     transporter_input_->log_progress = si.problem.diagnostics.log_frequency;
+    CELER_ASSERT(!events_.empty());
+    // Preallocate both Stepper primary buffers to fit every input event.
+    transporter_input_->primary_capacity
+        = std::max_element(events_.begin(),
+                           events_.end(),
+                           [](VecPrimary const& a, VecPrimary const& b) {
+                               return a.size() < b.size();
+                           })
+              ->size();
 
     transporters_.resize(this->num_streams());
 
@@ -109,7 +119,7 @@ auto Runner::operator()() -> RunnerResult
 StreamId::size_type Runner::num_streams() const
 {
     CELER_EXPECT(core_params_);
-    return core_params_->max_streams();
+    return core_params_->sizes().streams;
 }
 
 //---------------------------------------------------------------------------//
@@ -186,9 +196,9 @@ auto Runner::get_transporter(StreamId stream) -> TransporterBase&
 
             if (use_device_)
             {
-                CELER_VALIDATE(device(),
-                               << "CUDA device is unavailable but GPU run was "
-                                  "requested");
+                CELER_VALIDATE(
+                    device(),
+                    << "CUDA device is unavailable but GPU run was requested");
                 return std::make_unique<Transporter<MemSpace::device>>(
                     std::move(local_trans_inp));
             }

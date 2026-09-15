@@ -19,8 +19,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct LivermorePEExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<LivermorePEData> params;
 };
@@ -29,8 +29,8 @@ struct LivermorePEExecutor
 /*!
  * Sample a Livermore photoelectric interaction from the current track.
  */
-CELER_FUNCTION Interaction
-LivermorePEExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction LivermorePEExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto rng = track.rng();

@@ -59,11 +59,8 @@ class MockProcess : public G4VProcess
     {
         return nullptr;
     }
-    G4double AlongStepGetPhysicalInteractionLength(G4Track const&,
-                                                   G4double,
-                                                   G4double,
-                                                   G4double&,
-                                                   G4GPILSelection*) override
+    G4double AlongStepGetPhysicalInteractionLength(
+        G4Track const&, G4double, G4double, G4double&, G4GPILSelection*) override
     {
         return 0.0;
     }
@@ -74,9 +71,8 @@ class MockProcess : public G4VProcess
         return 0.0;
     }
 
-    G4double PostStepGetPhysicalInteractionLength(G4Track const&,
-                                                  G4double,
-                                                  G4ForceCondition*) override
+    G4double PostStepGetPhysicalInteractionLength(
+        G4Track const&, G4double, G4ForceCondition*) override
     {
         return 0.0;
     }

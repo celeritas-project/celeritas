@@ -185,10 +185,8 @@ CELER_FUNCTION SignedSense CylCentered<T>::calc_sense(Real3 const& pos) const
  * Calculate all possible straight-line intersections with this surface.
  */
 template<Axis T>
-CELER_FUNCTION auto
-CylCentered<T>::calc_intersections(Real3 const& pos,
-                                   Real3 const& dir,
-                                   SurfaceState on_surface) const
+CELER_FUNCTION auto CylCentered<T>::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     // 1 - (\omega \dot t)^2 where t is axis of cylinder

@@ -34,9 +34,8 @@ class StepDiagnosticBase : public OutputInterface
 
   public:
     //! Construct with counts
-    StepDiagnosticBase(size_type num_particles,
-                       size_type max_bins,
-                       size_type num_streams);
+    StepDiagnosticBase(
+        size_type num_particles, size_type max_bins, size_type num_streams);
 
     //! Default destructor
     ~StepDiagnosticBase();

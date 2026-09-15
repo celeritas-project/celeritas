@@ -284,8 +284,8 @@ struct SetupOptions
 //---------------------------------------------------------------------------//
 
 // Find volumes by name for SDSetupOptions
-std::unordered_set<G4LogicalVolume const*>
-    FindVolumes(std::unordered_set<std::string>);
+std::unordered_set<G4LogicalVolume const*> FindVolumes(
+    std::unordered_set<std::string>);
 
 // Convert SD options for forward compatibility
 inp::GeantSd to_inp(SDSetupOptions const& so);

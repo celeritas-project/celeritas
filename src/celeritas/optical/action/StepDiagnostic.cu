@@ -21,7 +21,8 @@ namespace optical
 /*!
  * Execute action with device data.
  */
-void StepDiagnostic::step(CoreParams const& params, CoreStateDevice& state) const
+void StepDiagnostic::step(CoreParams const& params,
+                          CoreStateDevice& state) const
 {
     TrackSlotExecutor execute{params.ptr<MemSpace::native>(),
                               state.ptr(),

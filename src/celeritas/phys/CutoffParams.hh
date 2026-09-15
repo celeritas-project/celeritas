@@ -76,10 +76,10 @@ class CutoffParams final : public ParamsDataInterface<CutoffParamsData>
 
   public:
     // Construct with imported data
-    static std::shared_ptr<CutoffParams>
-    from_import(ImportData const& data,
-                SPConstParticles particle_params,
-                SPConstMaterials material_params);
+    static std::shared_ptr<CutoffParams> from_import(
+        ImportData const& data,
+        SPConstParticles particle_params,
+        SPConstMaterials material_params);
 
     // Construct with cutoff input data
     explicit CutoffParams(Input const& input);

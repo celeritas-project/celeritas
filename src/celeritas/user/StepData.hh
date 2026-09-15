@@ -405,13 +405,13 @@ inline void resize(StepPointStateData<Ownership::value, M>* state,
                    size_type size)
 {
     CELER_EXPECT(size > 0);
-#define SD_RESIZE_IF_SELECTED(ATTR)     \
-    do                                  \
-    {                                   \
-        if (selection.ATTR)             \
-        {                               \
+#define SD_RESIZE_IF_SELECTED(ATTR) \
+    do \
+    { \
+        if (selection.ATTR) \
+        { \
             resize(&state->ATTR, size); \
-        }                               \
+        } \
     } while (0)
 
     SD_RESIZE_IF_SELECTED(time);
@@ -446,13 +446,13 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
         resize(&state->points[sp], params.selection.points[sp], params, size);
     }
 
-#define SD_RESIZE_IF_SELECTED(ATTR)     \
-    do                                  \
-    {                                   \
-        if (params.selection.ATTR)      \
-        {                               \
+#define SD_RESIZE_IF_SELECTED(ATTR) \
+    do \
+    { \
+        if (params.selection.ATTR) \
+        { \
             resize(&state->ATTR, size); \
-        }                               \
+        } \
     } while (0)
 
     resize(&state->track_id, size);

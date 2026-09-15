@@ -26,8 +26,8 @@ namespace test
  *
  * \post The given input file exists. (ifstream is used to check this)
  */
-std::string
-Test::test_data_path(std::string_view subdir, std::string_view filename)
+std::string Test::test_data_path(std::string_view subdir,
+                                 std::string_view filename)
 {
     std::ostringstream os;
     os << celeritas_source_dir << "/test/" << subdir << "/data/" << filename;
@@ -68,10 +68,10 @@ std::string Test::make_unique_filename(std::string_view ext)
                 pos = str->rfind(replace);
             }
         }
-        std::transform(
-            str->begin(), str->end(), str->begin(), [](unsigned char c) {
-                return std::tolower(c);
-            });
+        std::transform(str->begin(),
+                       str->end(),
+                       str->begin(),
+                       [](unsigned char c) { return std::tolower(c); });
         if (str->empty())
         {
             *str = "test";

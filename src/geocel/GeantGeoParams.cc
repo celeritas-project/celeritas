@@ -57,9 +57,9 @@ namespace
 /*!
  * Get a reproducible vector of LV instance ID -> label from the given world.
  */
-std::vector<Label>
-make_logical_vol_labels(detail::GeantVolumeInstanceMapper const& vi_mapper,
-                        ImplVolumeId::size_type lv_offset)
+std::vector<Label> make_logical_vol_labels(
+    detail::GeantVolumeInstanceMapper const& vi_mapper,
+    ImplVolumeId::size_type lv_offset)
 {
     std::unordered_set<G4LogicalVolume const*> visited_lv;
     std::unordered_map<std::string, std::vector<G4LogicalVolume const*>> names;
@@ -154,7 +154,8 @@ void append_border_surfaces(GeantGeoParams const& geo,
 {
     // Translate "border" (interface) surfaces
     using G4Surface = G4LogicalBorderSurface;
-    std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*> temp;
+    std::map<std::pair<VolumeInstanceId, VolumeInstanceId>, G4Surface const*>
+        temp;
     auto const* table = G4Surface::GetSurfaceTable();
     CELER_ASSERT(table);
 
@@ -339,8 +340,8 @@ std::vector<inp::Volume> make_inp_volumes(GeantGeoParams const& geo)
 /*!
  * Create volume instance input data.
  */
-std::vector<inp::VolumeInstance>
-make_inp_volume_instances(GeantGeoParams const& geo)
+std::vector<inp::VolumeInstance> make_inp_volume_instances(
+    GeantGeoParams const& geo)
 {
     CELER_ASSERT(geo.host_ref().vi_mapper);
     auto const& vi_mapper = *geo.host_ref().vi_mapper;
@@ -677,8 +678,8 @@ std::shared_ptr<GeantGeoParams> GeantGeoParams::from_tracking_manager()
  * celeritas::DetectorConstruction as part of a Geant4 run manager if
  * thread-local detectors are needed.
  */
-std::shared_ptr<GeantGeoParams>
-GeantGeoParams::from_gdml(std::string const& filename)
+std::shared_ptr<GeantGeoParams> GeantGeoParams::from_gdml(
+    std::string const& filename)
 {
     ScopedGeantLogger logger(celeritas::world_logger());
     ScopedGeantExceptionHandler exception_handler;
@@ -912,8 +913,8 @@ GeoMatId GeantGeoParams::geant_to_id(G4Material const& g4mat) const
 /*!
  * Get the volume instance containing the global point.
  */
-VolumeInstanceId
-GeantGeoParams::find_volume_instance_at(Real3 const& point) const
+VolumeInstanceId GeantGeoParams::find_volume_instance_at(
+    Real3 const& point) const
 {
     // Create G4 Navigator
     auto g4_point = native_to_geant<lengthunits::ClhepLength>(point);
@@ -975,9 +976,9 @@ void GeantGeoParams::build_metadata()
     }();
     if (this->lv_offset() != 0 || this->mat_offset() != 0)
     {
-        CELER_LOG(debug) << "Building after volume stores were cleared: "
-                         << "lv_offset=" << this->lv_offset()
-                         << ", mat_offset=" << this->mat_offset();
+        CELER_LOG(debug)
+            << "Building after volume stores were cleared: lv_offset="
+            << this->lv_offset() << ", mat_offset=" << this->mat_offset();
     }
 
     // Construct volume instance mapper

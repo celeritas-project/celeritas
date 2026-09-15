@@ -89,10 +89,10 @@ void ProblemSetup::operator()(inp::Problem& p) const
     // NOTE: old SetupOptions input *per stream*, but inp::Problem needs
     // *integrated* over streams
     p.control.capacity = [this, num_streams = p.control.num_streams] {
-        auto c = inp::CoreStateCapacity::from_default(
-            celeritas::Device::num_devices());
-
-        // Override default values if capacities were specified
+        size_type default_tracks = celeritas::Device::num_devices()
+                                       ? inp::CoreStateCapacity::gpu_tracks
+                                       : inp::CoreStateCapacity::cpu_tracks;
+        inp::CoreStateCapacity c;
         if (so.max_num_tracks)
         {
             c.tracks = so.max_num_tracks * num_streams;
@@ -107,8 +107,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         }
         if (so.secondary_stack_factor)
         {
-            c.secondaries
-                = static_cast<size_type>(so.secondary_stack_factor * c.tracks);
+            c.secondaries = static_cast<size_type>(
+                so.secondary_stack_factor * c.tracks.value_or(default_tracks));
         }
         return c;
     }();
@@ -186,7 +186,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         CELER_LOG(debug) << "Getting Cyl map field";
         p.field = u->get_field();
     }
-    else if (auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
+    else if (
+        auto* u = so.make_along_step.target<CartMapFieldAlongStepFactory>())
     {
         CELER_LOG(debug) << "Getting covfie cartesian map field";
         p.field = u->get_field();
@@ -267,8 +268,8 @@ void OpticalProblemSetup::operator()(inp::OpticalProblem& p) const
    setup.sd.force_volumes = FindVolumes({"foo", "bar"});
  * \endcode
  */
-std::unordered_set<G4LogicalVolume const*>
-FindVolumes(std::unordered_set<std::string> names)
+std::unordered_set<G4LogicalVolume const*> FindVolumes(
+    std::unordered_set<std::string> names)
 {
     std::unordered_set<G4LogicalVolume const*> result;
     CELER_TRY_HANDLE(result = find_geant_volumes(std::move(names)),

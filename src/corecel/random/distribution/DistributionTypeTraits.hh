@@ -9,7 +9,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumClassUtils.hh"
 #include "corecel/random/Types.hh"
-#include "corecel/random/data/DistributionData.hh"
 
 #include "DeltaDistribution.hh"
 #include "IsotropicDistribution.hh"
@@ -26,13 +25,13 @@ namespace celeritas
 template<OnedDistributionType>
 struct OnedDistributionTypeTraits;
 
-#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS)                           \
-    template<>                                                          \
+#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
     struct OnedDistributionTypeTraits<OnedDistributionType::ENUM_VALUE> \
-        : public EnumToClass<OnedDistributionType,                      \
-                             OnedDistributionType::ENUM_VALUE,          \
-                             CLS>                                       \
-    {                                                                   \
+        : public EnumToClass<OnedDistributionType, \
+                             OnedDistributionType::ENUM_VALUE, \
+                             CLS> \
+    { \
     }
 
 CELER_DISTRIB_TRAITS(delta, DeltaDistribution<real_type>);
@@ -49,13 +48,13 @@ CELER_DISTRIB_TRAITS(truncated_normal,
 template<ThreedDistributionType>
 struct ThreedDistributionTypeTraits;
 
-#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS)                               \
-    template<>                                                              \
+#define CELER_DISTRIB_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
     struct ThreedDistributionTypeTraits<ThreedDistributionType::ENUM_VALUE> \
-        : public EnumToClass<ThreedDistributionType,                        \
-                             ThreedDistributionType::ENUM_VALUE,            \
-                             CLS>                                           \
-    {                                                                       \
+        : public EnumToClass<ThreedDistributionType, \
+                             ThreedDistributionType::ENUM_VALUE, \
+                             CLS> \
+    { \
     }
 
 CELER_DISTRIB_TRAITS(delta, DeltaDistribution<Real3>);

@@ -78,8 +78,8 @@ class VolumePathAccumulator
     }
 
     // Descend one level: add offset[vi]+1 to uid and return the result
-    inline CELER_FUNCTION VolumeUniqueInstanceId
-    operator()(VolumeUniqueInstanceId uid, VolumeInstanceId vi) const;
+    inline CELER_FUNCTION VolumeUniqueInstanceId operator()(
+        VolumeUniqueInstanceId uid, VolumeInstanceId vi) const;
 
   private:
     ParamsRef const& params_;

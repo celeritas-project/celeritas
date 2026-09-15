@@ -69,7 +69,7 @@ class ArraySoftUnit
 // TEMPLATE DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION ArraySoftUnit(T) -> ArraySoftUnit<T>;
+CELER_CTAD_FUNCTION ArraySoftUnit(T) -> ArraySoftUnit<T>;
 
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
@@ -111,8 +111,8 @@ CELER_CONSTEXPR_FUNCTION ArraySoftUnit<T>::ArraySoftUnit()
  */
 template<class T>
 template<std::size_t N>
-CELER_CONSTEXPR_FUNCTION bool
-ArraySoftUnit<T>::operator()(Array<T, N> const& arr) const
+CELER_CONSTEXPR_FUNCTION bool ArraySoftUnit<T>::operator()(
+    Array<T, N> const& arr) const
 {
     using namespace celeritas::literals;
 

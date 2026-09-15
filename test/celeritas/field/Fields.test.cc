@@ -649,8 +649,8 @@ TEST_F(CartMapFieldTest, TEST_IF_CELER_DEVICE(device))
     Array<size_type, 3> n_samples{3, 3, 3};
 
     // FIXME: these should be single-precision for covfie
-    std::vector<real_type> field_values(n_samples[0] * n_samples[1]
-                                        * n_samples[2] * 3);
+    std::vector<real_type> field_values(
+        n_samples[0] * n_samples[1] * n_samples[2] * 3);
 
     auto input = build_cart_map_input();
     auto span = make_span(field_values);

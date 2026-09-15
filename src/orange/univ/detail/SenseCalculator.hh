@@ -69,11 +69,11 @@ class SenseCalculator
 /*!
  * Construct from persistent, current, and temporary data.
  */
-CELER_FUNCTION
-SenseCalculator::SenseCalculator(LocalSurfaceVisitor const& visit,
-                                 LocalVolumeView const& vol,
-                                 Real3 const& pos,
-                                 OnFace& face)
+CELER_FUNCTION SenseCalculator::SenseCalculator(
+    LocalSurfaceVisitor const& visit,
+    LocalVolumeView const& vol,
+    Real3 const& pos,
+    OnFace& face)
     : visit_{visit}, vol_{vol}, pos_{pos}, face_{face}
 {
 }

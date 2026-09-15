@@ -116,12 +116,13 @@ assert counters["num_cut"] > 0
 assert counters["num_errored"] == 0
 
 expected_sizes = {
-    "generators": 1,
+    "primaries": 1,
     "tracks": 8192,
+    "generators": 1,
+    "streams": 1,
 }
 sizes = j["internal"]["optical-sizes"].copy()
-assert sizes.pop("streams") == 1
-assert sizes == expected_sizes
+assert sizes == expected_sizes, sizes
 
 steps = j["result"]["optical-step-diagnostic"]["steps"][0].copy()
 assert len(steps) == 12

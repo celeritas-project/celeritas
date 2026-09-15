@@ -50,10 +50,10 @@ class CherenkovDndxCalculator
 {
   public:
     // Construct from optical materials and Cherenkov angle integrals
-    inline CELER_FUNCTION
-    CherenkovDndxCalculator(optical::MaterialView const& material,
-                            NativeCRef<CherenkovData> const& shared,
-                            units::ElementaryCharge charge);
+    inline CELER_FUNCTION CherenkovDndxCalculator(
+        optical::MaterialView const& material,
+        NativeCRef<CherenkovData> const& shared,
+        units::ElementaryCharge charge);
 
     // Calculate the mean number of Cherenkov photons produced per unit length
     inline CELER_FUNCTION real_type operator()(units::LightSpeed beta);
@@ -75,8 +75,7 @@ class CherenkovDndxCalculator
 /*!
  * Construct from optical materials and Cherenkov angle integrals.
  */
-CELER_FUNCTION
-CherenkovDndxCalculator::CherenkovDndxCalculator(
+CELER_FUNCTION CherenkovDndxCalculator::CherenkovDndxCalculator(
     optical::MaterialView const& material,
     NativeCRef<CherenkovData> const& shared,
     units::ElementaryCharge charge)
@@ -96,8 +95,8 @@ CherenkovDndxCalculator::CherenkovDndxCalculator(
  * coordinates on grid data. In the future we could cache these if the memory
  * lookups result in too much indirection.
  */
-CELER_FUNCTION real_type
-CherenkovDndxCalculator::operator()(units::LightSpeed beta)
+CELER_FUNCTION real_type CherenkovDndxCalculator::operator()(
+    units::LightSpeed beta)
 {
     CELER_EXPECT(beta.value() > 0 && beta.value() <= 1);
 

@@ -76,9 +76,9 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
     }
     else
     {
-        CELER_LOG(warning) << "Primary generator options are missing 'seed': "
-                              "defaulting to "
-                           << opts.seed;
+        CELER_LOG(warning)
+            << "Primary generator options are missing 'seed': defaulting to "
+            << opts.seed;
     }
     std::vector<int> pdg;
     auto&& pdg_input = j.at("pdg");
@@ -144,10 +144,10 @@ void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
 {
     std::vector<int> pdg(opts.pdg.size());
-    std::transform(
-        opts.pdg.begin(), opts.pdg.end(), pdg.begin(), [](PDGNumber p) {
-            return p.unchecked_get();
-        });
+    std::transform(opts.pdg.begin(),
+                   opts.pdg.end(),
+                   pdg.begin(),
+                   [](PDGNumber p) { return p.unchecked_get(); });
 
     j = nlohmann::json{
         {"pdg", pdg},

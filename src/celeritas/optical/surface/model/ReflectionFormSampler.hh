@@ -35,8 +35,8 @@ class ReflectionModeSampler
 
   public:
     // Construct from data, surface, and energy
-    explicit inline CELER_FUNCTION
-    ReflectionModeSampler(DataRef const&, SubModelId, Energy);
+    explicit inline CELER_FUNCTION ReflectionModeSampler(
+        DataRef const&, SubModelId, Energy);
 
     // Calculate probability for a specific reflection mode
     inline CELER_FUNCTION real_type operator()(ReflectionMode) const;
@@ -55,9 +55,9 @@ class ReflectionFormSampler
 {
   public:
     // Construct from a mode sampler and a reflection calculator
-    inline CELER_FUNCTION
-    ReflectionFormSampler(ReflectionModeSampler sample_mode,
-                          ReflectionFormCalculator const& calc_reflection);
+    inline CELER_FUNCTION ReflectionFormSampler(
+        ReflectionModeSampler sample_mode,
+        ReflectionFormCalculator const& calc_reflection);
 
     // Sample a surface interaction
     template<class Engine>
@@ -74,10 +74,8 @@ class ReflectionFormSampler
 /*!
  * Construct from data, surface, and energy.
  */
-CELER_FUNCTION
-ReflectionModeSampler::ReflectionModeSampler(DataRef const& data,
-                                             SubModelId surface,
-                                             Energy energy)
+CELER_FUNCTION ReflectionModeSampler::ReflectionModeSampler(
+    DataRef const& data, SubModelId surface, Energy energy)
     : data_(data), surface_(surface), energy_(energy)
 {
     CELER_EXPECT(surface_ < data_.size());
@@ -91,8 +89,8 @@ ReflectionModeSampler::ReflectionModeSampler(DataRef const& data,
  * are defined as grids in the data. The diffuse Lambertian mode is the
  * remaining probability.
  */
-CELER_FUNCTION real_type
-ReflectionModeSampler::operator()(ReflectionMode mode) const
+CELER_FUNCTION real_type ReflectionModeSampler::operator()(
+    ReflectionMode mode) const
 {
     NonuniformGridCalculator calc{data_.reflection_grids[mode][surface_],
                                   data_.reals};
@@ -119,8 +117,8 @@ CELER_FUNCTION ReflectionFormSampler::ReflectionFormSampler(
  * Sample a surface interaction.
  */
 template<class Engine>
-inline CELER_FUNCTION SurfaceInteraction
-ReflectionFormSampler::operator()(Engine& rng) const
+inline CELER_FUNCTION SurfaceInteraction ReflectionFormSampler::operator()(
+    Engine& rng) const
 {
     switch (sample_mode_(rng))
     {

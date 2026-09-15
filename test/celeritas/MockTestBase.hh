@@ -54,9 +54,8 @@ class MockTestBase : virtual public GlobalTestBase, public OnlyCoreTestBase
     //!@}
 
   public:
-    Applicability make_applicability(char const* name,
-                                     real_type lo_energy,
-                                     real_type hi_energy) const;
+    Applicability make_applicability(
+        char const* name, real_type lo_energy, real_type hi_energy) const;
 
     ModelCallback make_model_callback() const;
 

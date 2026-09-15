@@ -55,8 +55,8 @@ class GammaDistribution
 
   public:
     // Construct with shape and scale parameters
-    explicit inline CELER_FUNCTION
-    GammaDistribution(real_type alpha = 1, real_type beta = 1);
+    explicit inline CELER_FUNCTION GammaDistribution(real_type alpha = 1,
+                                                     real_type beta = 1);
 
     // Sample a random number according to the distribution
     template<class Generator>
@@ -78,8 +78,8 @@ class GammaDistribution
  * Construct from the shape and scale parameters.
  */
 template<class RealType>
-CELER_FUNCTION
-GammaDistribution<RealType>::GammaDistribution(real_type alpha, real_type beta)
+CELER_FUNCTION GammaDistribution<RealType>::GammaDistribution(real_type alpha,
+                                                              real_type beta)
     : alpha_(alpha)
     , beta_(beta)
     , alpha_p_(alpha < 1 ? alpha + 1 : alpha)

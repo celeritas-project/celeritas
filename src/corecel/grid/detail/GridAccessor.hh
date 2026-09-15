@@ -192,8 +192,8 @@ NonuniformGridAccessor::NonuniformGridAccessor(SpanConstReal x_values,
 /*!
  * Construct from a nonuniform grid.
  */
-NonuniformGridAccessor::NonuniformGridAccessor(NonuniformGridRecord const& grid,
-                                               Values const& values)
+NonuniformGridAccessor::NonuniformGridAccessor(
+    NonuniformGridRecord const& grid, Values const& values)
 
     : NonuniformGridAccessor(values[grid.grid], values[grid.value])
 {

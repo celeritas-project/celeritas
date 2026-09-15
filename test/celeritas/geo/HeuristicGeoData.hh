@@ -87,8 +87,8 @@ struct HeuristicGeoParamsData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    HeuristicGeoParamsData&
-    operator=(HeuristicGeoParamsData<W2, M2> const& other)
+    HeuristicGeoParamsData& operator=(
+        HeuristicGeoParamsData<W2, M2> const& other)
     {
         CELER_EXPECT(other);
         geometry = other.geometry;

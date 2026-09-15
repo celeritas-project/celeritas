@@ -302,9 +302,10 @@ class StaticConcreteAction : virtual public ActionInterface
                          std::string_view label) noexcept(!CELERITAS_DEBUG);
 
     // Construct from ID, unique label, and description
-    StaticConcreteAction(ActionId id,
-                         std::string_view label,
-                         std::string_view description) noexcept(!CELERITAS_DEBUG);
+    StaticConcreteAction(
+        ActionId id,
+        std::string_view label,
+        std::string_view description) noexcept(!CELERITAS_DEBUG);
 
     // Default destructor
     ~StaticConcreteAction() override = default;

@@ -60,9 +60,8 @@ EventWriter::EventWriter(std::string const& filename, SPConstParticles params)
 /*!
  * Construct with a filename, particle data, and output format.
  */
-EventWriter::EventWriter(std::string const& filename,
-                         SPConstParticles particles,
-                         Format fmt)
+EventWriter::EventWriter(
+    std::string const& filename, SPConstParticles particles, Format fmt)
     : particles_{particles}, fmt_{fmt}
 {
     CELER_EXPECT(!filename.empty());

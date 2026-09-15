@@ -24,9 +24,8 @@ namespace app
 /*!
  * Construct with Celeritas shared and thread-local data.
  */
-TrackingAction::TrackingAction(SPConstParams params,
-                               SPTransporter transport,
-                               SPDiagnostics diagnostics)
+TrackingAction::TrackingAction(
+    SPConstParams params, SPTransporter transport, SPDiagnostics diagnostics)
     : params_(params), transport_(transport), diagnostics_(diagnostics)
 {
     CELER_EXPECT(params_);

@@ -54,16 +54,16 @@ GeantBremsstrahlungProcess::GeantBremsstrahlungProcess(
         && seltzer_berger_limit > energy_min)
     {
         CELER_LOG(warning)
-            << "Bremmstrahlung without a model at low energies "
-               "is not supported: extending relativistic model down to "
+            << "Bremmstrahlung without a model at low energies is not "
+               "supported: extending relativistic model down to "
             << energy_min << " MeV";
         sb_limit_ = energy_min;
     }
     else if (selection == ModelSelection::seltzer_berger)
     {
         CELER_LOG(warning)
-            << "Using bremmstrahlung without a relativistic "
-               "model may result in failures for high energy tracks";
+            << "Using bremmstrahlung without a relativistic model may result "
+               "in failures for high energy tracks";
     }
 
     SetProcessSubType(G4EmProcessSubType::fBremsstrahlung);

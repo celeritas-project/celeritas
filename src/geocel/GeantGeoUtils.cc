@@ -214,8 +214,8 @@ G4Field const* geant_field()
    auto vols = find_geant_volumes(make_span(labels));
  * \endcode
  */
-std::unordered_set<G4LogicalVolume const*>
-find_geant_volumes(std::unordered_set<std::string> names)
+std::unordered_set<G4LogicalVolume const*> find_geant_volumes(
+    std::unordered_set<std::string> names)
 {
     // Find all names that match the set
     std::unordered_set<G4LogicalVolume const*> result;

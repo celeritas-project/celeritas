@@ -70,13 +70,13 @@ class NoTransformation
 
     //!@{
     //! Host-only comparators
-    friend constexpr bool
-    operator==(NoTransformation const&, NoTransformation const&) noexcept
+    friend constexpr bool operator==(NoTransformation const&,
+                                     NoTransformation const&) noexcept
     {
         return true;
     }
-    friend constexpr bool
-    operator!=(NoTransformation const&, NoTransformation const&) noexcept
+    friend constexpr bool operator!=(NoTransformation const&,
+                                     NoTransformation const&) noexcept
     {
         return false;
     }

@@ -25,7 +25,17 @@ namespace inp
 //! Generate at a single energy value [MeV]
 using MonoenergeticDistribution = DeltaDistribution<double>;
 
-//! Choose an energy distribution for the primary generator
+//---------------------------------------------------------------------------//
+/*!
+ * Choose an energy distribution for the primary generator.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "delta": \c MonoenergeticDistribution
+ * - "normal": \c NormalDistribution
+ * - "truncated": \c TruncatedDistribution<NormalDistribution>>
+ */
 using EnergyDistribution
     = std::variant<MonoenergeticDistribution,
                    NormalDistribution,
@@ -38,7 +48,16 @@ using PointDistribution = DeltaDistribution<Array<double, 3>>;
 // TODO: cylinder shape
 // TODO: shape with volume rejection
 
-//! Choose a spatial distribution for the primary generator
+//---------------------------------------------------------------------------//
+/*!
+ * Choose a spatial distribution for the primary generator.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "delta": \c PointDistribution
+ * - "uniform_box": \c UniformBoxDistribution
+ */
 using ShapeDistribution
     = std::variant<PointDistribution, UniformBoxDistribution>;
 
@@ -46,7 +65,16 @@ using ShapeDistribution
 //! Generate angles in a single direction
 using MonodirectionalDistribution = DeltaDistribution<Array<double, 3>>;
 
-//! Choose an angular distribution for the primary generator
+//---------------------------------------------------------------------------//
+/*!
+ * Choose an angular distribution for the primary generator.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "delta": \c MonodirectionalDistribution
+ * - "isotropic": \c IsotropicDistribution
+ */
 using AngleDistribution
     = std::variant<MonodirectionalDistribution, IsotropicDistribution>;
 
@@ -134,7 +162,17 @@ struct OpticalDirectGenerator
 };
 
 //---------------------------------------------------------------------------//
-//! Mechanism for generating optical photons
+/*!
+ * Mechanism for generating optical photons.
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "em": \c OpticalEmGenerator
+ * - "offload": \c OpticalOffloadGenerator
+ * - "primary": \c OpticalPriimaryGenerator
+ * - "direct": \c OpticalDirectGenerator
+ */
 using OpticalGenerator = std::variant<OpticalEmGenerator,
                                       OpticalOffloadGenerator,
                                       OpticalPrimaryGenerator,
@@ -168,7 +206,16 @@ struct ReadFileEvents
 };
 
 //---------------------------------------------------------------------------//
-//! Mechanism for generating events for tracking
+/*!
+ * Mechanism for generating events for tracking
+ *
+ * In the JSON representation, a ``"_type"`` field selects the variant
+ * alternative using one of the following values:
+ *
+ * - "primary": \c CorePrimaryGenerator
+ * - "sample": \c SampleFileEvents
+ * - "read": \c ReadFileEvents
+ */
 using Generator
     = std::variant<CorePrimaryGenerator, SampleFileEvents, ReadFileEvents>;
 

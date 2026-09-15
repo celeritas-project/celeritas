@@ -92,9 +92,8 @@ class BvhPartitioner
     AxesCenters calc_axes_centers(VecIndices const& indices) const;
 
     // Create a partition object
-    Partition make_partition(VecIndices const& indices,
-                             Axis axis,
-                             real_type position) const;
+    Partition make_partition(
+        VecIndices const& indices, Axis axis, real_type position) const;
 
     // Calculate the cost of partition using a surface area heuristic
     real_type calc_cost(Partition const& partition) const;

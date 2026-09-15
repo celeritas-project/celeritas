@@ -46,13 +46,13 @@ class AlongStepCartMapFieldMscAction final : public CoreStepActionInterface
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepCartMapFieldMscAction>
-    from_params(ActionId id,
-                MaterialParams const& materials,
-                ParticleParams const& particles,
-                Input const& field_input,
-                SPConstMsc const& msc,
-                bool eloss_fluctuation);
+    static std::shared_ptr<AlongStepCartMapFieldMscAction> from_params(
+        ActionId id,
+        MaterialParams const& materials,
+        ParticleParams const& particles,
+        Input const& field_input,
+        SPConstMsc const& msc,
+        bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
     AlongStepCartMapFieldMscAction(ActionId id,

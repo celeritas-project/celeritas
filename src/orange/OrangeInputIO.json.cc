@@ -426,9 +426,9 @@ void from_json(nlohmann::json const& j, RectArrayInput& value)
         auto daughters = j.at("daughters").get<std::vector<size_type>>();
         auto translations = j.at("translations").get<std::vector<real_type>>();
 
-        CELER_VALIDATE(3 * daughters.size() == translations.size(),
-                       << "field 'translations' is not 3x length of "
-                          "'daughters'");
+        CELER_VALIDATE(
+            3 * daughters.size() == translations.size(),
+            << "field 'translations' is not 3x length of 'daughters'");
 
         value.daughters.resize(daughters.size());
 
@@ -553,8 +553,8 @@ void from_json(nlohmann::json const& j, OrangeInput& value)
     else
     {
         value.tol = Tolerance<>::from_default();
-        CELER_LOG(debug) << "No input tolerance provided: setting default "
-                            "tolerance";
+        CELER_LOG(debug)
+            << "No input tolerance provided: setting default tolerance";
     }
     CELER_ENSURE(value);
 }

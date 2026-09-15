@@ -63,9 +63,9 @@ auto read_events(EventReaderInterface& generate, bool merge)
 /*!
  * Load events from a file.
  */
-std::vector<std::vector<Primary>>
-events(inp::Events const& e,
-       std::shared_ptr<ParticleParams const> const& particles)
+std::vector<std::vector<Primary>> events(
+    inp::Events const& e,
+    std::shared_ptr<ParticleParams const> const& particles)
 {
     CELER_EXPECT(particles);
 

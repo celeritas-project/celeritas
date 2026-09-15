@@ -71,8 +71,8 @@ class PhysicsStepView
 
     // Accumulate into local step's energy deposition from particle
     template<class PTV>
-    inline CELER_FUNCTION void
-    deposit_energy_from(Energy deposited, PTV&& particle);
+    inline CELER_FUNCTION void deposit_energy_from(Energy deposited,
+                                                   PTV&& particle);
 
     // Set secondaries during an interaction
     inline CELER_FUNCTION void secondaries(Span<Secondary>);
@@ -105,8 +105,8 @@ class PhysicsStepView
     inline CELER_FUNCTION SecondaryAllocator make_secondary_allocator() const;
 
     // Access atomic relaxation data
-    inline CELER_FUNCTION AtomicRelaxationHelper
-    make_relaxation_helper(ElementId el_id) const;
+    inline CELER_FUNCTION AtomicRelaxationHelper make_relaxation_helper(
+        ElementId el_id) const;
 
   private:
     //// DATA ////
@@ -199,8 +199,8 @@ CELER_FUNCTION void PhysicsStepView::deposit_energy(Energy energy)
  * Deposit energy from the particle.
  */
 template<class PTV>
-inline CELER_FUNCTION void
-PhysicsStepView::deposit_energy_from(Energy deposited, PTV&& particle)
+inline CELER_FUNCTION void PhysicsStepView::deposit_energy_from(
+    Energy deposited, PTV&& particle)
 {
     CELER_EXPECT(deposited > zero_quantity());
     CELER_EXPECT(deposited <= particle.energy());
@@ -283,8 +283,8 @@ CELER_FUNCTION Span<Secondary const> PhysicsStepView::secondaries() const
 /*!
  * Access scratch space for particle-process cross section calculations.
  */
-CELER_FUNCTION real_type&
-PhysicsStepView::per_process_xs(ParticleProcessId ppid)
+CELER_FUNCTION real_type& PhysicsStepView::per_process_xs(
+    ParticleProcessId ppid)
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
     auto idx = track_slot_.get() * params_.scalars.max_particle_processes
@@ -297,8 +297,8 @@ PhysicsStepView::per_process_xs(ParticleProcessId ppid)
 /*!
  * Access scratch space for particle-process cross section calculations.
  */
-CELER_FUNCTION
-real_type PhysicsStepView::per_process_xs(ParticleProcessId ppid) const
+CELER_FUNCTION real_type PhysicsStepView::per_process_xs(
+    ParticleProcessId ppid) const
 {
     CELER_EXPECT(ppid < params_.scalars.max_particle_processes);
     auto idx = track_slot_.get() * params_.scalars.max_particle_processes
@@ -321,9 +321,8 @@ CELER_FUNCTION auto PhysicsStepView::make_secondary_allocator() const
 /*!
  * Make an atomic relaxation helper for the given element.
  */
-CELER_FUNCTION auto
-PhysicsStepView::make_relaxation_helper(ElementId el_id) const
-    -> AtomicRelaxationHelper
+CELER_FUNCTION auto PhysicsStepView::make_relaxation_helper(
+    ElementId el_id) const -> AtomicRelaxationHelper
 {
     CELER_ASSERT(el_id);
     return AtomicRelaxationHelper{

@@ -42,7 +42,7 @@ class LinearPropagator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class GTV>
-CELER_FUNCTION LinearPropagator(GTV&&) -> LinearPropagator<GTV>;
+CELER_CTAD_FUNCTION LinearPropagator(GTV&&) -> LinearPropagator<GTV>;
 
 //---------------------------------------------------------------------------//
 /*!

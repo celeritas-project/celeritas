@@ -40,8 +40,8 @@ void write_objects(detail::ProtoMap const& map, std::string const& filename)
     }
 
     std::ofstream outf(filename);
-    CELER_VALIDATE(outf,
-                   << "failed to open output file at \"" << filename << '"');
+    CELER_VALIDATE(
+        outf, << "failed to open output file at \"" << filename << '"');
     outf << result.dump(0);
 
     CELER_LOG(info) << "Wrote ORANGE protos to " << filename;

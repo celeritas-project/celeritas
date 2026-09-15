@@ -41,20 +41,20 @@ class DielectricInteractor
         NativeCRef<UnifiedReflectionData> unified_data;
 
         // Build and sample interactor for a track
-        inline CELER_FUNCTION SurfaceInteraction
-        operator()(CoreTrackView const&) const;
+        inline CELER_FUNCTION SurfaceInteraction operator()(
+            CoreTrackView const&) const;
     };
 
   public:
     // Construct interactor from track data
-    inline CELER_FUNCTION
-    DielectricInteractor(ParticleTrackView const& particle,
-                         Real3 const& inc_direction,
-                         SurfacePhysicsTrackView const& surface_physics,
-                         MaterialView const& pre_material,
-                         MaterialView const& post_material,
-                         ReflectionModeSampler reflection_calc,
-                         DielectricInterface dielectric_interface);
+    inline CELER_FUNCTION DielectricInteractor(
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        SurfacePhysicsTrackView const& surface_physics,
+        MaterialView const& pre_material,
+        MaterialView const& post_material,
+        ReflectionModeSampler reflection_calc,
+        DielectricInterface dielectric_interface);
 
     // Sample the dielectric interaction
     template<class Engine>
@@ -75,8 +75,8 @@ class DielectricInteractor
 /*!
  * Create an interactor and sample it for the given track.
  */
-CELER_FUNCTION SurfaceInteraction
-DielectricInteractor::Executor::operator()(CoreTrackView const& track) const
+CELER_FUNCTION SurfaceInteraction DielectricInteractor::Executor::operator()(
+    CoreTrackView const& track) const
 {
     auto s_phys = track.surface_physics();
 
@@ -93,8 +93,8 @@ DielectricInteractor::Executor::operator()(CoreTrackView const& track) const
     }
 
     auto rng = track.rng();
-    auto sub_model_id = s_phys.interface(SurfacePhysicsOrder::interaction)
-                            .internal_surface_id();
+    auto sub_model_id
+        = s_phys.interface(SurfacePhysicsOrder::interaction).internal_surface_id();
     CELER_ASSERT(sub_model_id < dielectric_data.interface.size());
 
     return DielectricInteractor{
@@ -138,8 +138,8 @@ CELER_FUNCTION DielectricInteractor::DielectricInteractor(
  * Sample the dielectric interaction.
  */
 template<class Engine>
-CELER_FUNCTION SurfaceInteraction
-DielectricInteractor::operator()(Engine& rng) const
+CELER_FUNCTION SurfaceInteraction DielectricInteractor::operator()(
+    Engine& rng) const
 {
     if (BernoulliDistribution{fresnel_.calc_reflectivity()}(rng))
     {

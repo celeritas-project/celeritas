@@ -10,4 +10,4 @@ pdfullsim: {
   @table::PDFullSimCeler
 }
 
-physics.producers.OpticalSim: @local::pdfullsim
+physics.producers.PDSim: @local::pdfullsim

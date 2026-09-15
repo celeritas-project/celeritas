@@ -51,8 +51,8 @@ class LambertianDistribution
 /*!
  * Construct distribution about a normal.
  */
-CELER_FUNCTION
-LambertianDistribution::LambertianDistribution(Real3 const& normal)
+CELER_FUNCTION LambertianDistribution::LambertianDistribution(
+    Real3 const& normal)
     : normal_(normal)
 {
     CELER_EXPECT(is_soft_unit_vector(normal_));

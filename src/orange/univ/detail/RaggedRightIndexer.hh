@@ -43,8 +43,8 @@ class RaggedRightIndexer
 
   public:
     // Construct from RaggedRightIndexerData
-    explicit inline CELER_FUNCTION
-    RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd);
+    explicit inline CELER_FUNCTION RaggedRightIndexer(
+        RaggedRightIndexerData<N> const& rrd);
 
     //// METHODS ////
 
@@ -83,8 +83,8 @@ class RaggedRightInverseIndexer
 
   public:
     // Construct from RaggedRightIndexerData
-    explicit inline CELER_FUNCTION
-    RaggedRightInverseIndexer(RaggedRightIndexerData<N> const& rrd);
+    explicit inline CELER_FUNCTION RaggedRightInverseIndexer(
+        RaggedRightIndexerData<N> const& rrd);
 
     // Convert a flattened index into ragged indices
     inline CELER_FUNCTION Coords operator()(size_type index) const;
@@ -100,8 +100,8 @@ class RaggedRightInverseIndexer
  * Construct from RaggedRightIndexerData.
  */
 template<std::size_t N>
-CELER_FUNCTION
-RaggedRightIndexer<N>::RaggedRightIndexer(RaggedRightIndexerData<N> const& rrd)
+CELER_FUNCTION RaggedRightIndexer<N>::RaggedRightIndexer(
+    RaggedRightIndexerData<N> const& rrd)
     : rrd_(rrd)
 {
 }

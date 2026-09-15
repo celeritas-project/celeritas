@@ -23,8 +23,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct RayleighExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     NativeCRef<RayleighData> params;
 };
@@ -33,8 +33,8 @@ struct RayleighExecutor
 /*!
  * Sample Rayleigh scattering from the current track.
  */
-CELER_FUNCTION Interaction
-RayleighExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction RayleighExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto material = track.material().material_record();
     auto particle = track.particle();

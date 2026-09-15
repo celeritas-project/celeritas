@@ -57,9 +57,8 @@ class StateDataStore
 
     // Construct from parameters and stream ID
     template<template<Ownership, MemSpace> class P>
-    inline StateDataStore(HostCRef<P> const& p,
-                          StreamId stream_id,
-                          size_type size);
+    inline StateDataStore(
+        HostCRef<P> const& p, StreamId stream_id, size_type size);
 
     // Construct from just parameters
     template<template<Ownership, MemSpace> class P>
@@ -114,9 +113,8 @@ class StateDataStore
  */
 template<template<Ownership, MemSpace> class S, MemSpace M>
 template<template<Ownership, MemSpace> class P>
-StateDataStore<S, M>::StateDataStore(HostCRef<P> const& p,
-                                     StreamId sid,
-                                     size_type size)
+StateDataStore<S, M>::StateDataStore(
+    HostCRef<P> const& p, StreamId sid, size_type size)
 {
     CELER_EXPECT(sid);
     CELER_EXPECT(size > 0);

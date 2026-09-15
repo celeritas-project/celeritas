@@ -148,8 +148,8 @@ CELER_FUNCTION Real3 PlaneAligned<T>::calc_normal() const
  * This is used for intersection, sense, and combined-plane methods.
  */
 template<Axis T>
-CELER_FORCEINLINE_FUNCTION real_type
-PlaneAligned<T>::dot_normal(Real3 const& x) const
+CELER_FORCEINLINE_FUNCTION real_type PlaneAligned<T>::dot_normal(
+    Real3 const& x) const
 {
     return x[to_int(T)];
 }
@@ -169,10 +169,8 @@ CELER_FUNCTION SignedSense PlaneAligned<T>::calc_sense(Real3 const& pos) const
  * Calculate all possible straight-line intersections with this surface.
  */
 template<Axis T>
-CELER_FUNCTION auto
-PlaneAligned<T>::calc_intersections(Real3 const& pos,
-                                    Real3 const& dir,
-                                    SurfaceState on_surface) const
+CELER_FUNCTION auto PlaneAligned<T>::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     real_type const n_pos = this->dot_normal(pos);

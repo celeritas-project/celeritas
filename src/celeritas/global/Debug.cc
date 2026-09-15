@@ -41,10 +41,10 @@ std::ostream& operator<<(std::ostream& os, StreamableTrack const& track_wrap)
 }
 
 //---------------------------------------------------------------------------//
-#define DEFINE_DEBUG_PRINT(TYPE)       \
+#define DEFINE_DEBUG_PRINT(TYPE) \
     void debug_print(TYPE const& view) \
-    {                                  \
-        debug_print_impl(view);        \
+    { \
+        debug_print_impl(view); \
     }
 
 //!@{

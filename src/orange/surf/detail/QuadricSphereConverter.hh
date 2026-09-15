@@ -71,8 +71,8 @@ QuadricSphereConverter::QuadricSphereConverter(real_type tol)
  *
  * All the coefficients should be positive or nearly so.
  */
-std::optional<Sphere>
-QuadricSphereConverter::operator()(SimpleQuadric const& sq) const
+std::optional<Sphere> QuadricSphereConverter::operator()(
+    SimpleQuadric const& sq) const
 {
     CELER_EXPECT(std::all_of(
         sq.second().begin(), sq.second().end(), [this](real_type v) {

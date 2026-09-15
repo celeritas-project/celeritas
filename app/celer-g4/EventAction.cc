@@ -24,9 +24,8 @@ namespace app
 /*!
  * Construct with thread-local Celeritas data.
  */
-EventAction::EventAction(SPConstParams params,
-                         SPTransporter transport,
-                         SPDiagnostics diagnostics)
+EventAction::EventAction(
+    SPConstParams params, SPTransporter transport, SPDiagnostics diagnostics)
     : params_(params)
     , transport_(transport)
     , diagnostics_{std::move(diagnostics)}

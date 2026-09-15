@@ -99,17 +99,16 @@ struct IdToJson
 // Helper macros for writing data to JSON
 
 #define DIO_ASSIGN(NAME, TRANSFORM) j[#NAME] = TRANSFORM(view.NAME())
-#define DIO_ASSIGN_IF(NAME, TRANSFORM, COND)   \
+#define DIO_ASSIGN_IF(NAME, TRANSFORM, COND) \
     if (auto&& temp = view.NAME(); COND(temp)) \
-    {                                          \
-        j[#NAME] = TRANSFORM(temp);            \
+    { \
+        j[#NAME] = TRANSFORM(temp); \
     }
 
 //---------------------------------------------------------------------------//
 // Create JSON from geometry view, using host metadata if possible
-void to_json_impl(nlohmann::json& j,
-                  GeoTrackView const& view,
-                  IdToJson id_to_json)
+void to_json_impl(
+    nlohmann::json& j, GeoTrackView const& view, IdToJson id_to_json)
 {
     DIO_ASSIGN(pos, Labeled{NativeTraits::Length::label()});
     DIO_ASSIGN(dir, passthrough);
@@ -141,9 +140,8 @@ void to_json_impl(nlohmann::json& j,
 
 //---------------------------------------------------------------------------//
 // Create JSON from particle view, using host metadata if possible
-void to_json_impl(nlohmann::json& j,
-                  ParticleTrackView const& view,
-                  IdToJson id_to_json)
+void to_json_impl(
+    nlohmann::json& j, ParticleTrackView const& view, IdToJson id_to_json)
 {
     DIO_ASSIGN(particle_id, id_to_json);
     DIO_ASSIGN(energy, passthrough);
@@ -151,9 +149,8 @@ void to_json_impl(nlohmann::json& j,
 
 //---------------------------------------------------------------------------//
 // Create JSON from sim view, using host metadata if possible
-void to_json_impl(nlohmann::json& j,
-                  SimTrackView const& view,
-                  IdToJson id_to_json)
+void to_json_impl(
+    nlohmann::json& j, SimTrackView const& view, IdToJson id_to_json)
 {
     DIO_ASSIGN(status, to_cstring);
     if (view.status() != TrackStatus::inactive)

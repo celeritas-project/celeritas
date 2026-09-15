@@ -179,8 +179,8 @@ TEST_F(RayleighInteractorTest, stress_test)
             sum_angle += dot_product(result.direction, this->direction());
         }
 
-        average_rng_counts.push_back(real_type(rng_engine.count())
-                                     / real_type(num_samples));
+        average_rng_counts.push_back(
+            real_type(rng_engine.count()) / real_type(num_samples));
         average_angle.push_back(sum_angle / num_samples);
     }
 

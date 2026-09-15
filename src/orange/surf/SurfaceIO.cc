@@ -26,7 +26,7 @@
 
 namespace celeritas
 {
-#define ORANGE_INSTANTIATE_SHAPE_STREAM(SHAPE)                               \
+#define ORANGE_INSTANTIATE_SHAPE_STREAM(SHAPE) \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::x>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::y>&); \
     template std::ostream& operator<<(std::ostream&, const SHAPE<Axis::z>&)

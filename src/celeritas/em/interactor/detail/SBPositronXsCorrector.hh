@@ -86,11 +86,11 @@ class SBPositronXsCorrector
 /*!
  * Construct with positron data and energy range.
  */
-CELER_FUNCTION
-SBPositronXsCorrector::SBPositronXsCorrector(Mass positron_mass,
-                                             ElementView const& el,
-                                             Energy min_gamma_energy,
-                                             Energy inc_energy)
+CELER_FUNCTION SBPositronXsCorrector::SBPositronXsCorrector(
+    Mass positron_mass,
+    ElementView const& el,
+    Energy min_gamma_energy,
+    Energy inc_energy)
     : positron_mass_{positron_mass.value()}
     , alpha_z_{2 * constants::pi * celeritas::constants::alpha_fine_structure
                * el.atomic_number().unchecked_get()}
@@ -138,8 +138,8 @@ CELER_FUNCTION real_type SBPositronXsCorrector::operator()(Energy energy) const
    = 1 / \beta(K)
  * \f]
  */
-CELER_FUNCTION real_type
-SBPositronXsCorrector::calc_invbeta(real_type gamma_energy) const
+CELER_FUNCTION real_type SBPositronXsCorrector::calc_invbeta(
+    real_type gamma_energy) const
 {
     CELER_EXPECT(gamma_energy > 0 && gamma_energy < inc_energy_);
     //! \todo Use local-data ParticleTrackView

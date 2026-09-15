@@ -16,12 +16,12 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(S)                                         \
-    template bool SoftSurfaceEqual::operator()(S<Axis::x> const&,        \
+#define ORANGE_INSTANTIATE_OP(S) \
+    template bool SoftSurfaceEqual::operator()(S<Axis::x> const&, \
                                                S<Axis::x> const&) const; \
-    template bool SoftSurfaceEqual::operator()(S<Axis::y> const&,        \
+    template bool SoftSurfaceEqual::operator()(S<Axis::y> const&, \
                                                S<Axis::y> const&) const; \
-    template bool SoftSurfaceEqual::operator()(S<Axis::z> const&,        \
+    template bool SoftSurfaceEqual::operator()(S<Axis::z> const&, \
                                                S<Axis::z> const&) const
 
 //---------------------------------------------------------------------------//

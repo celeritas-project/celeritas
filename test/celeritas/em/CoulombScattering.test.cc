@@ -123,8 +123,8 @@ class CoulombScatteringTest : public InteractorHostTestBase
         this->set_material("Cu");
     }
 
-    SPWentzel make_wentzel_params(NuclearFormFactorType ff
-                                  = NuclearFormFactorType::exponential)
+    SPWentzel make_wentzel_params(
+        NuclearFormFactorType ff = NuclearFormFactorType::exponential)
     {
         // Default to single scattering
         WentzelOKVIParams::Options options;
@@ -202,8 +202,8 @@ TEST_F(CoulombScatteringTest, helper)
         result.screen_z.push_back(helper.screening_coefficient());
         // Scale the xs factor by 1 / r_e^2 so the values will be large enough
         // for the soft equivalence comparison to catch any differences
-        result.scaled_kin_factor.push_back(helper.kin_factor()
-                                           / ipow<2>(constants::r_electron));
+        result.scaled_kin_factor.push_back(
+            helper.kin_factor() / ipow<2>(constants::r_electron));
         result.cos_thetamax_elec.push_back(helper.cos_thetamax_electron());
         real_type const cos_thetamax_nuc = helper.cos_thetamax_nuclear();
         result.cos_thetamax_nuc.push_back(cos_thetamax_nuc);

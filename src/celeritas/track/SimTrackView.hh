@@ -119,8 +119,8 @@ class SimTrackView
     //// PARAMETER DATA ////
 
     // Particle-dependent parameters for killing looping tracks
-    inline CELER_FUNCTION LoopingThreshold const&
-        looping_threshold(ParticleId) const;
+    inline CELER_FUNCTION LoopingThreshold const& looping_threshold(
+        ParticleId) const;
 
     // Maximum number of steps before killing the track
     inline CELER_FUNCTION size_type max_steps() const;
@@ -137,10 +137,8 @@ class SimTrackView
 /*!
  * Construct from persistent and local data.
  */
-CELER_FUNCTION
-SimTrackView::SimTrackView(SimParamsRef const& params,
-                           SimStateRef const& states,
-                           TrackSlotId tid)
+CELER_FUNCTION SimTrackView::SimTrackView(
+    SimParamsRef const& params, SimStateRef const& states, TrackSlotId tid)
     : params_(params), states_(states), track_slot_(tid)
 {
     CELER_EXPECT(track_slot_ < states_.size());

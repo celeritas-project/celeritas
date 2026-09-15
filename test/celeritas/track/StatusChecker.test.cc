@@ -104,8 +104,8 @@ class StatusCheckerTest : public SimpleTestBase
     }
 
     template<MemSpace M>
-    void
-    check_throw(ActionId id, CoreState<M>& state, std::string_view match) const
+    void check_throw(
+        ActionId id, CoreState<M>& state, std::string_view match) const
     {
         CELER_EXPECT(id);
 

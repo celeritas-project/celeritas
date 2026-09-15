@@ -25,8 +25,8 @@ namespace
 struct AccumNumPhotons
 {
     // Accumulate the number of optical photons from the distribution data
-    size_type
-    operator()(size_type count, GeneratorDistributionData const& data) const
+    size_type operator()(size_type count,
+                         GeneratorDistributionData const& data) const
     {
         return count + data.num_photons;
     }
@@ -72,16 +72,16 @@ size_type count_num_photons(
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template size_type
-remove_if_invalid(ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
-template size_type
-remove_if_invalid(ItemsRef<WlsDistributionData, MemSpace::host> const&,
-                  size_type,
-                  size_type,
-                  StreamId);
+template size_type remove_if_invalid(
+    ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
+    size_type,
+    size_type,
+    StreamId);
+template size_type remove_if_invalid(
+    ItemsRef<WlsDistributionData, MemSpace::host> const&,
+    size_type,
+    size_type,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

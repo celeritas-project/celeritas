@@ -111,7 +111,8 @@ TEST(RanluxImpl, compute_power_modulus)
     EXPECT_EQ(params.advance_state, a_2048_actual)
         << "actual: " << hex_repr(a_2048_actual);
 
-    auto a_32 = detail::compute_power_modulus(a, RanluxppUInt(1) << 5);  // a^2^5
+    auto a_32 = detail::compute_power_modulus(a,
+                                              RanluxppUInt(1) << 5);  // a^2^5
     auto a_1024 = detail::compute_power_modulus(a_32, RanluxppUInt(1) << 5);
     EXPECT_EQ(params.advance_state, detail::compute_power_modulus(a_1024, 2));
 
@@ -123,7 +124,8 @@ TEST(RanluxImpl, compute_power_modulus)
         = detail::compute_power_modulus(a, RanluxppUInt(1) << 50);  // a^2^50
     temp = detail::compute_power_modulus(temp,
                                          RanluxppUInt(1) << 50);  // a^2^100
-    temp = detail::compute_power_modulus(temp, RanluxppUInt(1) << 7);  // a^2^107
+    temp = detail::compute_power_modulus(temp,
+                                         RanluxppUInt(1) << 7);  // a^2^107
     EXPECT_EQ(params.advance_sequence, temp);
 }
 
@@ -405,7 +407,8 @@ TEST_F(RanluxppRngEngineTest, TEST_IF_CELER_DEVICE(device))
     DeviceStore rng_store(params_->host_ref(), StreamId{0}, 1024);
 
     // Copy to host
-    StateCollection<RanluxppRngState, Ownership::value, MemSpace::host> host_state;
+    StateCollection<RanluxppRngState, Ownership::value, MemSpace::host>
+        host_state;
     host_state = rng_store.ref().state;
 
     // Create and initialize states on host

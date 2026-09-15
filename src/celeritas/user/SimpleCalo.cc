@@ -51,8 +51,7 @@ SimpleCalo::SimpleCalo(std::string output_label,
     }
     CELER_VALIDATE(
         std::all_of(volume_ids_.begin(), volume_ids_.end(), Identity{}),
-        << "failed to find one or more volumes while "
-           "constructing SimpleCalo");
+        << "failed to find one or more volumes while constructing SimpleCalo");
 
     HostVal<SimpleCaloParamsData> host_params;
     host_params.num_detectors = this->num_detectors();

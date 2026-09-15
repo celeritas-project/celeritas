@@ -180,13 +180,13 @@ class EnergyLossHelper
 /*!
  * Construct from model parameters, incident particle, and mean energy loss.
  */
-CELER_FUNCTION
-EnergyLossHelper::EnergyLossHelper(FluctuationRef const& shared,
-                                   CutoffView const& cutoffs,
-                                   MaterialTrackView const& material,
-                                   ParticleTrackView const& particle,
-                                   Energy mean_loss,
-                                   real_type step_length)
+CELER_FUNCTION EnergyLossHelper::EnergyLossHelper(
+    FluctuationRef const& shared,
+    CutoffView const& cutoffs,
+    MaterialTrackView const& material,
+    ParticleTrackView const& particle,
+    Energy mean_loss,
+    real_type step_length)
     : shared_(shared)
     , material_(material)
     , mean_loss_(value_as<Energy>(mean_loss))

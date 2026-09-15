@@ -27,8 +27,8 @@ namespace detail
 struct NoMsc
 {
     //! MSC never applies to the current track
-    CELER_FUNCTION bool
-    is_applicable(CoreTrackView const&, real_type step) const
+    CELER_FUNCTION bool is_applicable(CoreTrackView const&,
+                                      real_type step) const
     {
         CELER_ASSERT(step > 0);
         return false;

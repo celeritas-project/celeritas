@@ -47,61 +47,39 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     // Set up system
     setup::system(si.system);
 
-    // Load problem
-    auto& problem = si.problem;
-
-    // Set up Geant4
-    std::optional<GeantSetup> geant_setup;
+    CELER_ASSUME(
+        std::holds_alternative<std::string>(si.problem.model.geometry));
     std::shared_ptr<GeantGeoParams> ggp;
-    if (si.geant_setup)
-    {
-        CELER_ASSUME(
-            std::holds_alternative<std::string>(problem.model.geometry));
-        // Take file name from problem and physics options from the arguments,
-        // and set up Geant4
-        geant_setup.emplace(std::get<std::string>(problem.model.geometry),
-                            *si.geant_setup);
-
-        // Keep the geant4 geometry and set it as global
-        ggp = geant_setup->geo_params();
-        CELER_ASSERT(ggp);
-    }
-    else if (auto* s = std::get_if<std::string>(&problem.model.geometry))
-    {
-        // Load model directly (when loading ROOT physics)
-        ggp = GeantGeoParams::from_gdml(*s);
-    }
-    else if (auto* pv
-             = std::get_if<G4VPhysicalVolume const*>(&problem.model.geometry))
-    {
-        // Load model directly (unused?)
-        ggp = std::make_shared<GeantGeoParams>(*pv, Ownership::reference);
-    }
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
-
-    // Replace model input: load geometry, surfaces, regions from Geant4 world
-    // pointer
-    problem.model = ggp->make_model_input();
 
     // Import physics data from Geant4 or ROOT: see Import.hh
     ImportData imported;
     std::visit(Overload{
-                   [&imported](inp::PhysicsFromFile const& pff) {
+                   [&](inp::PhysicsFromFile const& pff) {
+                       // Load model directly (when loading ROOT physics)
+                       ggp = GeantGeoParams::from_gdml(
+                           std::get<std::string>(si.problem.model.geometry));
+
                        setup::physics_from(pff, imported);
                    },
-                   [&imported, &si](inp::PhysicsFromGeant& pfg) {
+                   [&](inp::PhysicsFromGeant& pfg) {
+                       // Take file name from problem and physics options from
+                       // the arguments, and set up Geant4
+                       GeantSetup geant_setup(
+                           std::get<std::string>(si.problem.model.geometry),
+                           si.geant_setup);
+
+                       // Keep the geant4 geometry and set it as global
+                       ggp = geant_setup.geo_params();
+                       CELER_ASSERT(ggp);
+
                        // Adjust Geant4 data selection based on physics options
-                       CELER_ASSERT(si.geant_setup);
                        GeantImportDataSelection::Flags selection
                            = GeantImportDataSelection::em_basic;
-                       if (si.geant_setup->muon || si.geant_setup->mucf_physics)
+                       if (si.geant_setup.muon || si.geant_setup.mucf_physics)
                        {
                            selection |= GeantImportDataSelection::em_ex;
                        }
-                       if (si.geant_setup->optical)
+                       if (si.geant_setup.optical)
                        {
                            selection |= GeantImportDataSelection::optical;
                        }
@@ -112,14 +90,18 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
                },
                si.physics_import);
 
+    // Replace model input: load geometry, surfaces, regions from Geant4 world
+    // pointer
+    si.problem.model = ggp->make_model_input();
+
     // Load from external Geant4 data files
     setup::physics_from(inp::PhysicsFromGeantFiles{}, imported);
 
     // Copy optical physics from import data
     // (TODO: will be replaced)
-    problem.physics.optical = imported.optical_physics;
+    si.problem.physics.optical = imported.optical_physics;
 
-    auto& ctl = problem.control;
+    auto& ctl = si.problem.control;
 
     // Load number of events, needed to construct core params before loading
     // events
@@ -152,7 +134,7 @@ StandaloneLoaded standalone_input(inp::StandaloneInput& si)
     StandaloneLoaded result;
 
     // Set up core params
-    result.problem = setup::problem(problem, imported);
+    result.problem = setup::problem(si.problem, imported);
 
     // Save geometry if loaded
     result.geant_geo = ggp;

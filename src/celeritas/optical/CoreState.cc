@@ -31,14 +31,13 @@ CoreStateBase::~CoreStateBase() = default;
  * Construct from CoreParams.
  */
 template<MemSpace M>
-CoreState<M>::CoreState(CoreParams const& params,
-                        StreamId stream_id,
-                        size_type num_track_slots)
+CoreState<M>::CoreState(
+    CoreParams const& params, StreamId stream_id, size_type num_track_slots)
 {
-    CELER_VALIDATE(stream_id < params.max_streams(),
+    CELER_VALIDATE(stream_id < params.sizes().streams,
                    << "stream ID " << stream_id.unchecked_get()
                    << " is out of range: max streams is "
-                   << params.max_streams());
+                   << params.sizes().streams);
     CELER_VALIDATE(num_track_slots > 0, << "number of track slots is not set");
 
     ScopedProfiling profile_this{"construct-state"};
@@ -61,7 +60,8 @@ CoreState<M>::CoreState(CoreParams const& params,
         ptr_ = make_observer(&this->ref());
     }
 
-    CELER_LOG(status) << "Initialized Celeritas optical state";
+    CELER_LOG(info) << "Initialized Celeritas optical state with "
+                    << num_track_slots << " track slots";
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
 }

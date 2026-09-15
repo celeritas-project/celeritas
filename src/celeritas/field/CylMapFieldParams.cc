@@ -79,8 +79,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
         HostVal<CylMapFieldParamsData> host;
 
         auto grid = make_builder(&host.grids.storage);
-        grid.reserve(inp.grid_phi.size() + inp.grid_r.size()
-                     + inp.grid_z.size());
+        grid.reserve(
+            inp.grid_phi.size() + inp.grid_r.size() + inp.grid_z.size());
 
         auto r_start = grid.size_id();
         std::transform(
@@ -115,8 +115,8 @@ CylMapFieldParams::CylMapFieldParams(Input const& inp)
 
         auto fieldmap = make_builder(&host.fieldmap);
         fieldmap.reserve(inp.field.size());
-        for (auto i :
-             range(inp.grid_r.size() * inp.grid_phi.size() * inp.grid_z.size()))
+        for (auto i : range(
+                 inp.grid_r.size() * inp.grid_phi.size() * inp.grid_z.size()))
         {
             // Save field vector
             fieldmap.push_back(

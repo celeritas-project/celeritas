@@ -27,56 +27,52 @@ namespace detail
 {
 
 // Compute a + b and set overflow accordingly
-inline CELER_FUNCTION RanluxppUInt add_overflow(RanluxppUInt a,
-                                                RanluxppUInt b,
-                                                unsigned int& overflow);
+inline CELER_FUNCTION RanluxppUInt add_overflow(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& overflow);
 
 // Compute a + b and increment carry if there was an overflow
-inline CELER_FUNCTION RanluxppUInt add_carry(RanluxppUInt a,
-                                             RanluxppUInt b,
-                                             unsigned int& carry);
+inline CELER_FUNCTION RanluxppUInt add_carry(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& carry);
 
 // Compute a - b` and set overflow accordingly
-inline CELER_FUNCTION RanluxppUInt sub_overflow(RanluxppUInt a,
-                                                RanluxppUInt b,
-                                                unsigned int& overflow);
+inline CELER_FUNCTION RanluxppUInt sub_overflow(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& overflow);
 
 // Compute a - b and increment `carry` if there was an overflow
-inline CELER_FUNCTION RanluxppUInt sub_carry(RanluxppUInt a,
-                                             RanluxppUInt b,
-                                             unsigned int& carry);
+inline CELER_FUNCTION RanluxppUInt sub_carry(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& carry);
 
 // Update r = r - (t1 + t2) + (t3 + t2) * b ** 10
-inline CELER_FUNCTION int64_t
-compute_remainder(Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r);
+inline CELER_FUNCTION int64_t compute_remainder(
+    Span<RanluxppUInt const, 9> upper, Span<RanluxppUInt, 9> r);
 
 // Multiply two 576 bit numbers, stored as 9 numbers of 64 bits each
-[[nodiscard]] inline CELER_FUNCTION RanluxppArray18
-multiply_9x9(RanluxppArray9 const& in1, RanluxppArray9 const& in2);
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray18 multiply_9x9(
+    RanluxppArray9 const& in1, RanluxppArray9 const& in2);
 
 // Compute a value congruent to mul modulo m less than 2 ** 576
-[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
-compute_modulus(RanluxppArray18 const& mul);
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_modulus(
+    RanluxppArray18 const& mul);
 
 // Combine multiply9x9 and mod_m with internal temporary storage
 [[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_mod_multiply(
     RanluxppArray9 const& factor1, RanluxppArray9 const& factor2);
 
 // Compute base to the 2^n modulo m
-[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
-compute_power_exp_modulus(RanluxppArray9 base, RanluxppUInt log_n);
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_power_exp_modulus(
+    RanluxppArray9 base, RanluxppUInt log_n);
 
 // Compute base to the n modulo m
-[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
-compute_power_modulus(RanluxppArray9 base, RanluxppUInt n);
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9 compute_power_modulus(
+    RanluxppArray9 base, RanluxppUInt n);
 
 // Convert RANLUX numbers to an LCG state
-[[nodiscard]] inline CELER_FUNCTION RanluxppArray9
-to_lcg(RanluxppNumber const& ranlux);
+[[nodiscard]] inline CELER_FUNCTION RanluxppArray9 to_lcg(
+    RanluxppNumber const& ranlux);
 
 // Convert an LCG state to RANLUX numbers
-[[nodiscard]] inline CELER_FUNCTION RanluxppNumber
-to_ranlux(RanluxppArray9 const& lcg);
+[[nodiscard]] inline CELER_FUNCTION RanluxppNumber to_ranlux(
+    RanluxppArray9 const& lcg);
 
 //---------------------------------------------------------------------------//
 // INLINE FUNCTION DEFINITIONS
@@ -90,9 +86,8 @@ to_ranlux(RanluxppArray9 const& lcg);
  *
  * \return The result of the sum
  */
-CELER_FUNCTION RanluxppUInt add_overflow(RanluxppUInt a,
-                                         RanluxppUInt b,
-                                         unsigned int& overflow)
+CELER_FUNCTION RanluxppUInt add_overflow(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& overflow)
 {
     RanluxppUInt add = a + b;
     overflow = (add < a);
@@ -110,9 +105,8 @@ CELER_FUNCTION RanluxppUInt add_overflow(RanluxppUInt a,
  *
  * \return The result of the sum
  */
-CELER_FUNCTION RanluxppUInt add_carry(RanluxppUInt a,
-                                      RanluxppUInt b,
-                                      unsigned int& carry)
+CELER_FUNCTION RanluxppUInt add_carry(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& carry)
 {
     unsigned int overflow;
     RanluxppUInt add = add_overflow(a, b, overflow);
@@ -133,9 +127,8 @@ CELER_FUNCTION RanluxppUInt add_carry(RanluxppUInt a,
  *
  * \return The result of the subtraction
  */
-CELER_FUNCTION RanluxppUInt sub_overflow(RanluxppUInt a,
-                                         RanluxppUInt b,
-                                         unsigned int& overflow)
+CELER_FUNCTION RanluxppUInt sub_overflow(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& overflow)
 {
     RanluxppUInt sub = a - b;
     overflow = (sub > a);
@@ -153,9 +146,8 @@ CELER_FUNCTION RanluxppUInt sub_overflow(RanluxppUInt a,
  *
  * \return The result of the subtraction
  */
-CELER_FUNCTION RanluxppUInt sub_carry(RanluxppUInt a,
-                                      RanluxppUInt b,
-                                      unsigned int& carry)
+CELER_FUNCTION RanluxppUInt sub_carry(
+    RanluxppUInt a, RanluxppUInt b, unsigned int& carry)
 {
     unsigned int overflow;
     RanluxppUInt sub = sub_overflow(a, b, overflow);

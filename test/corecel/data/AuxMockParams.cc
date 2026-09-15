@@ -14,10 +14,8 @@ namespace test
 /*!
  * Construct with properties.
  */
-AuxMockParams::AuxMockParams(std::string&& label,
-                             AuxId auxid,
-                             int num_bins,
-                             VecInt const& integers)
+AuxMockParams::AuxMockParams(
+    std::string&& label, AuxId auxid, int num_bins, VecInt const& integers)
     : label_{std::move(label)}, aux_id_{auxid}
 {
     CELER_EXPECT(aux_id_);

@@ -73,9 +73,8 @@ class LevelTouchableUpdater final : public TouchableUpdaterInterface
 /*!
  * Get a slice of volume instances from the output.
  */
-auto LevelTouchableUpdater::volume_instances(DetectorStepOutput const& out,
-                                             size_type i,
-                                             StepPoint sp) -> SpanVolInst
+auto LevelTouchableUpdater::volume_instances(
+    DetectorStepOutput const& out, size_type i, StepPoint sp) -> SpanVolInst
 {
     CELER_EXPECT(i < out.size());
     CELER_EXPECT(out.num_volume_levels > 0);

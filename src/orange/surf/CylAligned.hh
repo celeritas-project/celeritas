@@ -216,10 +216,8 @@ CELER_FUNCTION SignedSense CylAligned<T>::calc_sense(Real3 const& pos) const
  * Calculate all possible straight-line intersections with this surface.
  */
 template<Axis T>
-CELER_FUNCTION auto
-CylAligned<T>::calc_intersections(Real3 const& pos,
-                                  Real3 const& dir,
-                                  SurfaceState on_surface) const
+CELER_FUNCTION auto CylAligned<T>::calc_intersections(
+    Real3 const& pos, Real3 const& dir, SurfaceState on_surface) const
     -> Intersections
 {
     // 1 - \omega \dot e

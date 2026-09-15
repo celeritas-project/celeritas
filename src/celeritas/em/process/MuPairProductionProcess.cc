@@ -20,9 +20,8 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-MuPairProductionProcess::MuPairProductionProcess(SPConstParticles particles,
-                                                 SPConstImported process_data,
-                                                 ModelInput input)
+MuPairProductionProcess::MuPairProductionProcess(
+    SPConstParticles particles, SPConstImported process_data, ModelInput input)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,

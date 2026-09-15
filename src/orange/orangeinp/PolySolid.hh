@@ -133,9 +133,8 @@ class PolySolidBase : public ObjectInterface
     EnclosedAzi enclosed_azi() const { return enclosed_; }
 
   protected:
-    PolySolidBase(std::string&& label,
-                  PolySegments&& segments,
-                  EnclosedAzi&& enclosed);
+    PolySolidBase(
+        std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed);
 
     //!@{
     //! Allow construction and assignment only through daughter classes
@@ -156,14 +155,12 @@ class PolyCone final : public PolySolidBase
 {
   public:
     // Return a polycone *or* a simplified version for only a single segment
-    static SPConstObject or_solid(std::string&& label,
-                                  PolySegments&& segments,
-                                  EnclosedAzi&& enclosed);
+    static SPConstObject or_solid(
+        std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed);
 
     // Build with label, axial segments, optional restriction
-    PolyCone(std::string&& label,
-             PolySegments&& segments,
-             EnclosedAzi&& enclosed);
+    PolyCone(
+        std::string&& label, PolySegments&& segments, EnclosedAzi&& enclosed);
 
     // Construct a volume from this object
     NodeId build(VolumeBuilder&) const final;

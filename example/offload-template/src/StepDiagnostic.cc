@@ -7,7 +7,6 @@
 #include "StepDiagnostic.hh"
 
 #include <type_traits>
-#include <vector>
 #include <celeritas/global/ActionInterface.hh>
 #include <celeritas/global/ActionLauncher.hh>
 #include <celeritas/global/CoreParams.hh>
@@ -60,8 +59,8 @@ auto visit_memspace_derived(Base& base, Func&& apply_derived)
 /*!
  * Construct and add to core params.
  */
-std::shared_ptr<StepDiagnostic>
-StepDiagnostic::make_and_insert(CoreParams const& core)
+std::shared_ptr<StepDiagnostic> StepDiagnostic::make_and_insert(
+    CoreParams const& core)
 {
     ActionRegistry& actions = *core.action_reg();
     AuxParamsRegistry& aux = *core.aux_reg();
@@ -99,10 +98,6 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
     // Since the underlying state (and thus the copy methods we have to call)
     // is host/device-dependent, we use a helper lambda
     visit_memspace_derived<CoreState>(state, [&](auto& derived) {
-        // Whether the given state is device/host
-        constexpr MemSpace M
-            = std::remove_reference_t<decltype(derived)>::memspace;
-
         // Get the step data from the core state
         auto& step_state = derived.template aux_data<StepStateData>(aux_id_);
         // Copy it
@@ -131,8 +126,8 @@ StepStatistics StepDiagnostic::GetAndReset(CoreStateInterface& state) const
  * This creates and initializes "thread-local" data for the given stream on
  * host or device.
  */
-auto StepDiagnostic::create_state(MemSpace m, StreamId id, size_type size) const
-    -> UPState
+auto StepDiagnostic::create_state(
+    MemSpace m, StreamId id, size_type size) const -> UPState
 {
     auto result = make_aux_state<StepStateData>(*this, m, id, size);
     CELER_ASSERT(result);

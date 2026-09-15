@@ -24,9 +24,8 @@ namespace celeritas
 /*!
  * Construct process from host data.
  */
-MuIonizationProcess::MuIonizationProcess(SPConstParticles particles,
-                                         SPConstImported process_data,
-                                         Options options)
+MuIonizationProcess::MuIonizationProcess(
+    SPConstParticles particles, SPConstImported process_data, Options options)
     : particles_(std::move(particles))
     , imported_(process_data,
                 particles_,

@@ -29,18 +29,26 @@ struct SampledHistogram
     //! Average number of RNG samples
     double rng_count{};
 
+    // Print expected code to cout
     void print_expected() const;
+
+    // Print to a stream
+    friend std::ostream& operator<<(std::ostream&, SampledHistogram const&);
 };
 
 //---------------------------------------------------------------------------//
 /*!
  * Sample one or more distributions, returning a histogram.
  *
+ * The sampled histogram is a \em density , so it is recommended to make the
+ * sampled width (delta of second parameter) \em and the number of samples
+ * (third parameter) evenly divisible into a power of 10 for prettier printing.
+ *
+ * \par Example:
  * \code
     constexpr size_type num_samples = 1000;
     HistogramSampler calc_histogram(8, {-1, 1}, num_samples);
     std::vector<SampledHistogram> actual;
-
 
     for (real_type inc_e : {0.1, 1.0, 1e2, 1e3, 1e6})
     {
@@ -67,9 +75,8 @@ class HistogramSampler
     //!@}
 
     // Construct with number of samples per operator
-    explicit inline HistogramSampler(size_type num_bins,
-                                     Dbl2 domain,
-                                     size_type num_samples);
+    explicit inline HistogramSampler(
+        size_type num_bins, Dbl2 domain, size_type num_samples);
 
     // Sample one distribution
     template<class DistributionT>
@@ -77,8 +84,8 @@ class HistogramSampler
 
     // Sample one distribution, transforming the result to a single real number
     template<class TransformT, class DistributionT>
-    inline SampledHistogram
-    operator()(TransformT&& transform, DistributionT&& sample_from);
+    inline SampledHistogram operator()(TransformT&& transform,
+                                       DistributionT&& sample_from);
 
   private:
     size_type num_bins_;
@@ -90,8 +97,6 @@ class HistogramSampler
 //---------------------------------------------------------------------------//
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
-
-std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh);
 
 ::testing::AssertionResult IsRefEq(char const* expr1,
                                    char const* expr2,
@@ -124,9 +129,8 @@ void accumulate_n(AccumulatorT&& accumulate,
 /*!
  * Construct with number of samples.
  */
-HistogramSampler::HistogramSampler(size_type num_bins,
-                                   Dbl2 domain,
-                                   size_type num_samples)
+HistogramSampler::HistogramSampler(
+    size_type num_bins, Dbl2 domain, size_type num_samples)
     : num_bins_(num_bins), domain_(domain), num_samples_(num_samples)
 {
     CELER_EXPECT(num_bins_ > 0);

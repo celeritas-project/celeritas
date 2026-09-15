@@ -31,8 +31,8 @@ class SoftSurfaceEqualTest : public ::celeritas::test::Test
 
     //! Check surfaces with a sphere-like constructor
     template<class S>
-    void
-    check_equality_s(Real3 const& pt, real_type r, Axis skip = Axis::size_) const
+    void check_equality_s(
+        Real3 const& pt, real_type r, Axis skip = Axis::size_) const
     {
         auto ref = S(pt, r);
         EXPECT_TRUE(softeq_(ref, S(pt + eps / 4 * norm(pt), r)));

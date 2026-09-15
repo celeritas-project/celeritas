@@ -429,8 +429,8 @@ TEST_F(TestEm3MctruthTest, four_step)
 
         if (this->strict_testing())
         {
-            FAIL() << "Updated step collector results are required for CI "
-                      "tests";
+            FAIL()
+                << "Updated step collector results are required for CI tests";
         }
     }
 }

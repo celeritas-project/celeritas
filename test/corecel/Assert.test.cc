@@ -58,8 +58,8 @@ TEST_F(AssertTest, runtime_error)
     {
         EXPECT_TRUE(std::string{e.what()}.find("configuration error:")
                     != std::string::npos);
-        EXPECT_TRUE(std::string{e.what()}.find("required dependency is "
-                                               "disabled in this build: foo")
+        EXPECT_TRUE(std::string{e.what()}.find(
+                        "required dependency is disabled in this build: foo")
                     != std::string::npos)
             << e.what();
     }

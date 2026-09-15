@@ -198,9 +198,9 @@ celeritas::SetupOptions MakeOptions()
     }
     else
     {
-        CELER_LOG(info) << "Not setting simple offload: older versions of "
-                           "Geant4 may fail on CI due to files stepping on "
-                           "each other";
+        CELER_LOG(info)
+            << "Not setting simple offload: older versions of Geant4 may fail "
+               "on CI due to files stepping on each other";
     }
 
     opts.output_file = "simple-offload.out.json";

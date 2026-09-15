@@ -50,14 +50,14 @@ auto make_set_lv(inp::GeantSd::VariantSetVolume const& sv)
 {
     using InpSD = inp::GeantSd;
     using SetLV = SensDetInserter::SetLV;
-    return std::visit(
-        Overload{[](InpSD::SetVolume const& s) {
-                     return SetLV{s.begin(), s.end()};
-                 },
-                 [](InpSD::SetString const& s) {
-                     return find_geant_volumes({s.begin(), s.end()});
-                 }},
-        sv);
+    return std::visit(Overload{[](InpSD::SetVolume const& s) {
+                                   return SetLV{s.begin(), s.end()};
+                               },
+                               [](InpSD::SetString const& s) {
+                                   return find_geant_volumes(
+                                       {s.begin(), s.end()});
+                               }},
+                      sv);
 }
 
 //---------------------------------------------------------------------------//

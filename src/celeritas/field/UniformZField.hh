@@ -19,12 +19,13 @@ class UniformZField
 {
   public:
     //! Construct with a scalar magnetic field value
-    CELER_FUNCTION
-    explicit UniformZField(real_type value) : value_(value) {}
+    CELER_FUNCTION explicit UniformZField(real_type value) : value_(value) {}
 
     //! Return the field at the given position
-    CELER_FUNCTION
-    Real3 operator()(Real3 const&) const { return {0, 0, value_}; }
+    CELER_FUNCTION Real3 operator()(Real3 const&) const
+    {
+        return {0, 0, value_};
+    }
 
   private:
     real_type value_;

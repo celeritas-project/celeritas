@@ -74,9 +74,8 @@ class InverseRangeCalculator
  * The range is expected to be monotonically increasing with energy.
  * Lower-energy particles have shorter ranges.
  */
-CELER_FUNCTION
-InverseRangeCalculator::InverseRangeCalculator(UniformGridRecord const& grid,
-                                               Values const& values)
+CELER_FUNCTION InverseRangeCalculator::InverseRangeCalculator(
+    UniformGridRecord const& grid, Values const& values)
     : log_energy_(grid.grid)
     , range_(grid.value, values)
     , deriv_(values[grid.derivative])

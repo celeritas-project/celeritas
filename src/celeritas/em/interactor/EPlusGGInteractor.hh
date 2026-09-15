@@ -48,11 +48,11 @@ class EPlusGGInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    EPlusGGInteractor(EPlusGGData const& shared,
-                      ParticleTrackView const& particle,
-                      Real3 const& inc_direction,
-                      StackAllocator<Secondary>& allocate);
+    inline CELER_FUNCTION EPlusGGInteractor(
+        EPlusGGData const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& inc_direction,
+        StackAllocator<Secondary>& allocate);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -75,11 +75,11 @@ class EPlusGGInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-EPlusGGInteractor::EPlusGGInteractor(EPlusGGData const& shared,
-                                     ParticleTrackView const& particle,
-                                     Real3 const& inc_direction,
-                                     StackAllocator<Secondary>& allocate)
+CELER_FUNCTION EPlusGGInteractor::EPlusGGInteractor(
+    EPlusGGData const& shared,
+    ParticleTrackView const& particle,
+    Real3 const& inc_direction,
+    StackAllocator<Secondary>& allocate)
     : shared_(shared)
     , inc_energy_(value_as<Energy>(particle.energy()))
     , inc_direction_(inc_direction)
@@ -140,7 +140,8 @@ CELER_FUNCTION Interaction EPlusGGInteractor::operator()(Engine& rng)
         {
             epsil = sample_eps(rng);
         } while (BernoulliDistribution(
-            epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(rng));
+            epsil - (2 * (tau + 1) * epsil - 1) / (epsil * ipow<2>(tau2)))(
+            rng));
 
         // Scattered Gamma angles
         real_type const cost = (epsil * tau2 - 1)

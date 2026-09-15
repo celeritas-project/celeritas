@@ -32,11 +32,12 @@ namespace optical
 /*!
  * Construct the model from imported data and imported material parameters.
  */
-WavelengthShiftModel::WavelengthShiftModel(ActionId id,
-                                           AuxId aux_id,
-                                           inp::OpticalBulkWavelengthShift input,
-                                           SPConstMaterials const& materials,
-                                           GeneratorType type)
+WavelengthShiftModel::WavelengthShiftModel(
+    ActionId id,
+    AuxId aux_id,
+    inp::OpticalBulkWavelengthShift input,
+    SPConstMaterials const& materials,
+    GeneratorType type)
     : Model(id, to_cstring(type), "interact by WLS")
     , input_(std::move(input))
     , aux_id_(aux_id)

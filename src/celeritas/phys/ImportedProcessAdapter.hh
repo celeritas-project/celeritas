@@ -46,8 +46,8 @@ class ImportedProcesses
 
   public:
     // Construct with imported data
-    static std::shared_ptr<ImportedProcesses>
-    from_import(ImportData const& data, SPConstParticles particle_params);
+    static std::shared_ptr<ImportedProcesses> from_import(
+        ImportData const& data, SPConstParticles particle_params);
 
     // Construct with imported tables
     explicit ImportedProcesses(std::vector<ImportProcess> io);
@@ -143,7 +143,8 @@ auto ImportedProcesses::size() const -> ImportProcessId::size_type
 /*!
  * Whether the given model is present in the process.
  */
-bool ImportedProcessAdapter::has_model(PDGNumber pdg, ImportModelClass imc) const
+bool ImportedProcessAdapter::has_model(PDGNumber pdg,
+                                       ImportModelClass imc) const
 {
     auto const& models
         = imported_->get(imported_->find({pdg, process_class_})).models;
@@ -163,10 +164,10 @@ bool ImportedProcessAdapter::applies_at_rest() const
     bool result = imported_->get(it->second).applies_at_rest;
     while (++it != ids_.end())
     {
-        CELER_VALIDATE(result == imported_->get(it->second).applies_at_rest,
-                       << "process '" << process_class_
-                       << "' applies at rest for some particles but not "
-                          "others");
+        CELER_VALIDATE(
+            result == imported_->get(it->second).applies_at_rest,
+            << "process '" << process_class_
+            << "' applies at rest for some particles but not others");
     }
     return result;
 }

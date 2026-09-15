@@ -49,8 +49,8 @@ class ExponentialDistribution
 
   public:
     // Construct with defaults
-    explicit inline CELER_FUNCTION
-    ExponentialDistribution(real_type lambda = 1);
+    explicit inline CELER_FUNCTION ExponentialDistribution(
+        real_type lambda = 1);
 
     // Sample using the given random number generator
     template<class Generator>
@@ -67,8 +67,8 @@ class ExponentialDistribution
  * Construct from the mean of the exponential distribution.
  */
 template<class RT>
-CELER_FUNCTION
-ExponentialDistribution<RT>::ExponentialDistribution(real_type lambda)
+CELER_FUNCTION ExponentialDistribution<RT>::ExponentialDistribution(
+    real_type lambda)
     : neg_inv_lambda_(real_type{-1} / lambda)
 {
     CELER_EXPECT(lambda > real_type{0});

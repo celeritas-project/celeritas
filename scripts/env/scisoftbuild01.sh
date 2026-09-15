@@ -4,27 +4,18 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
 
-if ! command -v load_system_env >/dev/null 2>&1; then
-  printf "error: expected load_system_env helper function via build.sh or shell\n" >&2
-  return 1
-fi
-
 # Allow running from user rc setup outside of build.sh environment
 if ! command -v celerlog >/dev/null 2>&1; then
   celerlog() {
     printf "%s: %s\n" "$1" "$2" >&2
   }
 fi
-if [ -z "${SYSTEM_NAME}" ]; then
-  SYSTEM_NAME=$(uname -s)
-  celerlog debug "Set SYSTEM_NAME=${SYSTEM_NAME}"
-fi
 
 # Call this helper function on the login node bare metal
 _apptainer_fnal() {
   if ! [ -d "${SCRATCHDIR}" ]; then
     echo "Scratch directory does not exist: run
-  . \${CELERITAS_SOURCE}/scripts/env/scisoftbuild01.sh
+  . \${CELER_SOURCE}/scripts/env/${SYSTEM_NAME:-scisoftbuild01}.sh
 "
     return 1
   fi
@@ -45,9 +36,17 @@ alias apptainer-fnal=_apptainer_fnal
 # Reduce I/O metadata overhead by avoiding language translation lookups
 export LC_ALL=C
 
-# Set default scratch directory
-export SCRATCHDIR="${SCRATCHDIR:-/scratch/$USER}"
-for _d in build install cache; do
+# Set scratchdir: /scratch should exist on scisoftbuild
+if ! [ -d "/scratch" ]; then
+  celerlog error "Scratch directory does not exist at '/'"
+  return 1
+fi
+export SCRATCHDIR="/scratch/$USER"
+if [ -n "${APPTAINER_NAME}" ]; then
+  export SCRATCHDIR="${SCRATCHDIR}/${APPTAINER_NAME%%:*}"
+fi
+
+for _d in cache build install; do
   # Create build/install in higher-performance local-but-persistent dir
   _scratch="$SCRATCHDIR/$_d"
   if ! [ -d "${_scratch}" ]; then
@@ -58,3 +57,16 @@ for _d in build install cache; do
   unset _scratch
 done
 export XDG_CACHE_HOME="${SCRATCHDIR}/cache"
+
+# Prevent Celeritas tests from trying to use nonexistent CUDA device, even though we build with it
+export CELER_DISABLE_DEVICE=1
+
+if [ -z "${APPTAINER_NAME}" ]; then
+  # Check that we're using AlmaLinux 9
+  if grep -q "platform:el9" /etc/os-release ; then
+    celerlog debug "Loading fnal-dev-el9 environment"
+    # NOTE: setting SYSTEM_NAME changes the linked cmake presets inside build.sh
+    SYSTEM_NAME=fnal-dev-el9
+    load_system_env ${SYSTEM_NAME}
+  fi
+fi

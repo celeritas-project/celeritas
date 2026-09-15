@@ -124,13 +124,13 @@ std::ostream& operator<<(std::ostream& os, IntersectResult const& ref)
 {
     ::celeritas::test::AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                          \
-    if (val1.ATTR != val2.ATTR)                                    \
-    {                                                              \
+#define IRE_COMPARE(ATTR) \
+    if (val1.ATTR != val2.ATTR) \
+    { \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR);           \
-    }                                                              \
-    else                                                           \
+                      << " but got " << repr(val2.ATTR); \
+    } \
+    else \
         CELER_DISCARD(int)
 
     if (!testdetail::make_soft_comparator<real_type>()(val1.distance,
@@ -235,8 +235,8 @@ class BvhIntersectingVolFinderTest : public ::celeritas::test::Test
 
     // Get results for a ray across all leaf-size intersectors, with a max
     // search distance
-    IntersectResult
-    get_result(Ray ray, DistMap const& dist_map, real_type max_search_dist)
+    IntersectResult get_result(
+        Ray ray, DistMap const& dist_map, real_type max_search_dist)
     {
         IntersectResult result;
         for (auto& tester : testers_)
@@ -484,8 +484,9 @@ TEST_F(BasicBvhTest, inside_first)
     // Ray starts in V2 and intersects V2
     pos = {2., 2., 50.};
     dir = {0., -1., 0.};
-    dist_map = {
-        {LocalVolumeId{2}, 1.}, {LocalVolumeId{4}, 2.}, {LocalVolumeId{5}, 2.}};
+    dist_map = {{LocalVolumeId{2}, 1.},
+                {LocalVolumeId{4}, 2.},
+                {LocalVolumeId{5}, 2.}};
     {
         IntersectResult ref;
         ref.distance = 1;
@@ -794,12 +795,8 @@ TEST_F(KebabTest, all)
         ref.distance = 2.1;
         ref.intersect_surface = LocalSurfaceId{510ul};
         ref.hit_count = {1, 1, 1, 1, 1, 2, 2, 2};
-        ref.miss_count = {2, 2, 3, 7, 7, 14, 14, 14};
-        if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
-        {
-            // Overconservative hits
-            ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
-        }
+        // Overconservative bbox hits (testing unnecessary volumes)
+        ref.miss_count = {3, 3, 4, 8, 8, 15, 15, 15};
         EXPECT_REF_EQ(ref, result) << result;
     }
 }

@@ -30,7 +30,7 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(OUT, IN)                                     \
+#define ORANGE_INSTANTIATE_OP(OUT, IN) \
     template OUT SurfaceTransformer::operator()(IN<Axis::x> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::y> const&) const; \
     template OUT SurfaceTransformer::operator()(IN<Axis::z> const&) const

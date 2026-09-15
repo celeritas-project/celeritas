@@ -50,8 +50,8 @@ AtomicRelaxationParams::AtomicRelaxationParams(Input const& inp)
     host_data.ids.electron = inp.particles->find(pdg::electron());
     host_data.ids.gamma = inp.particles->find(pdg::gamma());
     CELER_VALIDATE(host_data.ids.electron && host_data.ids.gamma,
-                   << "missing electron and/or gamma particles "
-                      "(required for atomic relaxation)");
+                   << "missing electron and/or gamma particles (required for "
+                      "atomic relaxation)");
 
     // Find the minimum electron and photon cutoff energy for each element over
     // all materials. This is used to calculate the maximum number of

@@ -85,9 +85,8 @@ SelfLogHandler::SelfLogHandler(int num_threads) : num_threads_(num_threads)
 /*!
  * Write a log message.
  */
-void SelfLogHandler::operator()(LogProvenance prov,
-                                LogLevel lev,
-                                std::string msg)
+void SelfLogHandler::operator()(
+    LogProvenance prov, LogLevel lev, std::string msg)
 {
     // Write preamble to a buffer first
     std::ostringstream os;

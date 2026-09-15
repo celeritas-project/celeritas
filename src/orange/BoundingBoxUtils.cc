@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "BoundingBoxUtils.hh"
 
-#include <iostream>
-
 #include "corecel/Assert.hh"
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/NumericLimits.hh"

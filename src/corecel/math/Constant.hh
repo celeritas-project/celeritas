@@ -72,32 +72,32 @@ class Constant
 //! \cond (CELERITAS_DOC_DEV)
 //!@{
 //! Comparison
-#define CELER_DEFINE_CONSTANT_CMP(TOKEN)                                      \
-    template<class T, EnableIfFloating<T> = true>                             \
-    CELER_CEF friend bool operator TOKEN(Constant lhs, T rhs) noexcept        \
-    {                                                                         \
-        return static_cast<T>(lhs.value()) TOKEN rhs;                         \
-    }                                                                         \
-    template<class T, EnableIfFloating<T> = true>                             \
-    CELER_CEF friend bool operator TOKEN(T lhs, Constant rhs) noexcept        \
-    {                                                                         \
-        return lhs TOKEN static_cast<T>(rhs.value());                         \
-    }                                                                         \
-                                                                              \
-    template<class T, EnableIfIntegral<T> = true>                             \
-    CELER_CEF friend bool operator TOKEN(Constant lhs, T rhs) noexcept        \
-    {                                                                         \
-        return lhs.value() TOKEN static_cast<Constant::real_type>(rhs);       \
-    }                                                                         \
-    template<class T, EnableIfIntegral<T> = true>                             \
-    CELER_CEF friend bool operator TOKEN(T lhs, Constant rhs) noexcept        \
-    {                                                                         \
-        return static_cast<Constant::real_type>(lhs) TOKEN rhs.value();       \
-    }                                                                         \
-                                                                              \
+#define CELER_DEFINE_CONSTANT_CMP(TOKEN) \
+    template<class T, EnableIfFloating<T> = true> \
+    CELER_CEF friend bool operator TOKEN(Constant lhs, T rhs) noexcept \
+    { \
+        return static_cast<T>(lhs.value()) TOKEN rhs; \
+    } \
+    template<class T, EnableIfFloating<T> = true> \
+    CELER_CEF friend bool operator TOKEN(T lhs, Constant rhs) noexcept \
+    { \
+        return lhs TOKEN static_cast<T>(rhs.value()); \
+    } \
+\
+    template<class T, EnableIfIntegral<T> = true> \
+    CELER_CEF friend bool operator TOKEN(Constant lhs, T rhs) noexcept \
+    { \
+        return lhs.value() TOKEN static_cast<Constant::real_type>(rhs); \
+    } \
+    template<class T, EnableIfIntegral<T> = true> \
+    CELER_CEF friend bool operator TOKEN(T lhs, Constant rhs) noexcept \
+    { \
+        return static_cast<Constant::real_type>(lhs) TOKEN rhs.value(); \
+    } \
+\
     CELER_CEF friend bool operator TOKEN(Constant lhs, Constant rhs) noexcept \
-    {                                                                         \
-        return lhs.value() TOKEN rhs.value();                                 \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
     }
 
     CELER_DEFINE_CONSTANT_CMP(==)
@@ -112,33 +112,33 @@ class Constant
 
 //!@{
 //! Arithmetic
-#define CELER_DEFINE_CONSTANT_OP(TOKEN)                                    \
-    template<class T, EnableIfFloating<T> = true>                          \
-    CELER_CEF friend T operator TOKEN(Constant lhs, T rhs) noexcept        \
-    {                                                                      \
-        return static_cast<T>(lhs.value()) TOKEN rhs;                      \
-    }                                                                      \
-    template<class T, EnableIfFloating<T> = true>                          \
-    CELER_CEF friend T operator TOKEN(T lhs, Constant rhs) noexcept        \
-    {                                                                      \
-        return lhs TOKEN static_cast<T>(rhs.value());                      \
-    }                                                                      \
-                                                                           \
-    template<class T, EnableIfIntegral<T> = true>                          \
+#define CELER_DEFINE_CONSTANT_OP(TOKEN) \
+    template<class T, EnableIfFloating<T> = true> \
+    CELER_CEF friend T operator TOKEN(Constant lhs, T rhs) noexcept \
+    { \
+        return static_cast<T>(lhs.value()) TOKEN rhs; \
+    } \
+    template<class T, EnableIfFloating<T> = true> \
+    CELER_CEF friend T operator TOKEN(T lhs, Constant rhs) noexcept \
+    { \
+        return lhs TOKEN static_cast<T>(rhs.value()); \
+    } \
+\
+    template<class T, EnableIfIntegral<T> = true> \
     CELER_CEF friend Constant operator TOKEN(Constant lhs, T rhs) noexcept \
-    {                                                                      \
-        return Constant{lhs.value() TOKEN rhs};                            \
-    }                                                                      \
-    template<class T, EnableIfIntegral<T> = true>                          \
+    { \
+        return Constant{lhs.value() TOKEN rhs}; \
+    } \
+    template<class T, EnableIfIntegral<T> = true> \
     CELER_CEF friend Constant operator TOKEN(T lhs, Constant rhs) noexcept \
-    {                                                                      \
-        return Constant{lhs TOKEN rhs.value()};                            \
-    }                                                                      \
-                                                                           \
-    CELER_CEF friend Constant operator TOKEN(Constant lhs,                 \
-                                             Constant rhs) noexcept        \
-    {                                                                      \
-        return Constant{lhs.value() TOKEN rhs.value()};                    \
+    { \
+        return Constant{lhs TOKEN rhs.value()}; \
+    } \
+\
+    CELER_CEF friend Constant operator TOKEN(Constant lhs, \
+                                             Constant rhs) noexcept \
+    { \
+        return Constant{lhs.value() TOKEN rhs.value()}; \
     }
 
     CELER_DEFINE_CONSTANT_OP(*)
@@ -151,11 +151,11 @@ class Constant
 
 //!@{
 //! In-place arithmetic
-#define CELER_DEFINE_CONSTANT_OP(TOKEN)                               \
-    template<class T, EnableIfFloating<T> = true>                     \
+#define CELER_DEFINE_CONSTANT_OP(TOKEN) \
+    template<class T, EnableIfFloating<T> = true> \
     CELER_CEF friend T& operator TOKEN(T& lhs, Constant rhs) noexcept \
-    {                                                                 \
-        return lhs TOKEN static_cast<T>(rhs.value());                 \
+    { \
+        return lhs TOKEN static_cast<T>(rhs.value()); \
     }
 
     CELER_DEFINE_CONSTANT_OP(*=)

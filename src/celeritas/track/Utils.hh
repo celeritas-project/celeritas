@@ -49,10 +49,10 @@ CELER_FORCEINLINE_FUNCTION size_type index_before(size_type size, ThreadId tid)
  * \todo This is nondeterministic; we need to calculate the track ID in a
  * reproducible way.
  */
-inline CELER_FUNCTION TrackId
-make_track_id(NativeCRef<TrackInitParamsData> const&,
-              NativeRef<TrackInitStateData>& state,
-              EventId event)
+inline CELER_FUNCTION TrackId make_track_id(
+    NativeCRef<TrackInitParamsData> const&,
+    NativeRef<TrackInitStateData>& state,
+    EventId event)
 {
     CELER_EXPECT(event < state.track_counters.size());
     auto result

@@ -228,8 +228,8 @@ PDGNumber to_pdg(G4ProductionCutsIndex const& index)
  * Safely switch from G4MscStepLimitType [G4MscStepLimitType.hh] to
  * MscStepLimitAlgorithm.
  */
-MscStepLimitAlgorithm
-to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
+MscStepLimitAlgorithm to_msc_step_algorithm(
+    G4MscStepLimitType const& msc_step_algorithm)
 {
     switch (msc_step_algorithm)
     {
@@ -250,8 +250,8 @@ to_msc_step_algorithm(G4MscStepLimitType const& msc_step_algorithm)
  * Safely switch from G4NuclearFormfactorType [G4NuclearFormfactorType.hh] to
  * NuclearFormFactorType.
  */
-NuclearFormFactorType
-to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
+NuclearFormFactorType to_form_factor_type(
+    G4NuclearFormfactorType const& form_factor_type)
 {
     switch (form_factor_type)
     {
@@ -271,8 +271,8 @@ to_form_factor_type(G4NuclearFormfactorType const& form_factor_type)
 /*!
  * Return a populated \c inp::Particle vector.
  */
-std::vector<inp::Particle>
-import_particles(GeantImporter::DataSelection::Flags particle_flags)
+std::vector<inp::Particle> import_particles(
+    GeantImporter::DataSelection::Flags particle_flags)
 {
     G4ParticleTable::G4PTblDicIterator& particle_iterator
         = *(G4ParticleTable::GetParticleTable()->GetIterator());
@@ -434,8 +434,8 @@ std::vector<ImportElement> import_elements()
  * This returns a vector of optical materials corresponding to an "optical
  * material ID".
  */
-std::vector<ImportOpticalMaterial>
-import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
+std::vector<ImportOpticalMaterial> import_optical_materials(
+    GeoOpticalIdMap const& geo_to_opt)
 {
     if (geo_to_opt.empty())
     {
@@ -481,10 +481,10 @@ import_optical_materials(GeoOpticalIdMap const& geo_to_opt)
         // Most properties are loaded by GeantPhysicsLoader:
         // Scintillation, WLS, WLS2, Mie
 
-        CELER_VALIDATE(optical,
-                       << "failed to load valid optical material data for "
-                          "OptMatId{"
-                       << opt_mat_id.get() << "} = " << material->GetName());
+        CELER_VALIDATE(
+            optical,
+            << "failed to load valid optical material data for OptMatId{"
+            << opt_mat_id.get() << "} = " << material->GetName());
     }
 
     CELER_LOG(debug) << "Loaded " << result.size() << " optical materials";
@@ -565,9 +565,9 @@ std::vector<ImportGeoMaterial> import_geo_materials()
 /*!
  * Return a populated \c ImportPhysMaterial vector.
  */
-std::vector<ImportPhysMaterial>
-import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
-                      GeoOpticalIdMap const& geo_to_opt)
+std::vector<ImportPhysMaterial> import_phys_materials(
+    GeantImporter::DataSelection::Flags particle_flags,
+    GeoOpticalIdMap const& geo_to_opt)
 {
     ParticleFilter include_particle{particle_flags};
     auto const& pct = *G4ProductionCutsTable::GetProductionCutsTable();
@@ -575,8 +575,8 @@ import_phys_materials(GeantImporter::DataSelection::Flags particle_flags,
     std::vector<ImportPhysMaterial> materials;
     materials.resize(pct.GetTableSize());
     CELER_VALIDATE(!materials.empty(),
-                   << "no Geant4 production cuts are defined (you may "
-                      "need to call G4RunManager::RunInitialization)");
+                   << "no Geant4 production cuts are defined (you may need to "
+                      "call G4RunManager::RunInitialization)");
 
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;
@@ -836,8 +836,8 @@ G4Transportation const& find_transportation(G4ParticleDefinition const& p)
 /*!
  * Store particle-dependent transportation parameters.
  */
-ImportTransParameters
-import_trans_parameters(GeantImporter::DataSelection::Flags particle_flags)
+ImportTransParameters import_trans_parameters(
+    GeantImporter::DataSelection::Flags particle_flags)
 {
     ImportTransParameters result;
 

@@ -273,6 +273,8 @@ if [ "$(find_command pre-commit)" != "${OLD_PRE_COMMIT}" ]; then
 fi
 if [ "${CMAKE}" != "${OLD_CMAKE}" ]; then
   log warning "Local environment script uses a different CMake than your \$PATH"
+  log debug "Original: ${OLD_CMAKE}"
+  log debug "Updated : ${CMAKE}"
   needs_env=true
 fi
 if [ "${OLD_XDG_CACHE_HOME}" != "${XDG_CACHE_HOME}" ]; then
@@ -324,7 +326,7 @@ if cmake --build --preset="${CMAKE_PRESET}"; then
     log warning "Celeritas built but some tests failed"
     log info "Ask the Celeritas team whether the failures indicate an actual error"
     log info "Provide the system configuration:"
-    cmake --build-target get-config --preset=${CMAKE_PRESET}
+    cmake --build --preset=${CMAKE_PRESET} --target get-config
   fi
 
   install_precommit_if_git

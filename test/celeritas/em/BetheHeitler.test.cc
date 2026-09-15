@@ -129,8 +129,10 @@ TEST_F(BetheHeitlerInteractorTest, basic)
     // Note: these are "gold" values based on the host RNG.
     double const expected_energy1[] = {
         15.2508794873183, 98.7412722423312, 23.4953328454145, 94.7258588843146};
-    double const expected_energy2[] = {
-        83.7271226204817, 0.236729865468827, 75.4826692623855, 4.25214322348543};
+    double const expected_energy2[] = {83.7271226204817,
+                                       0.236729865468827,
+                                       75.4826692623855,
+                                       4.25214322348543};
     double const expected_angle[] = {0.999969298729478,
                                      0.749593336413488,
                                      0.999747408792083,
@@ -163,8 +165,9 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
         RandomEngine::size_type num_particles_sampled = 0;
 
         // Loop over several incident directions
-        for (Real3 const& inc_dir :
-             {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
+        for (
+            Real3 const& inc_dir :
+            {Real3{0, 0, 1}, Real3{1, 0, 0}, Real3{1e-9, 0, 1}, Real3{1, 1, 1}})
         {
             SCOPED_TRACE("Incident direction: " + to_string(inc_dir));
             this->set_inc_direction(inc_dir);
@@ -193,8 +196,8 @@ TEST_F(BetheHeitlerInteractorTest, stress_test)
                       this->secondary_allocator().get().size());
             num_particles_sampled += num_samples;
         }
-        avg_engine_samples.push_back(double(rng_engine.count())
-                                     / double(num_particles_sampled));
+        avg_engine_samples.push_back(
+            double(rng_engine.count()) / double(num_particles_sampled));
     }
 
     // Gold values for average number of calls to RNG

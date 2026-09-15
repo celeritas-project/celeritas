@@ -27,8 +27,9 @@ void BetheBlochModel::step(CoreParams const& params,
         params.ptr<MemSpace::native>(),
         state.ptr(),
         this->action_id(),
-        InteractionApplier{MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
-            this->device_ref()}});
+        InteractionApplier{
+            MuHadIonizationExecutor<BetheBlochEnergyDistribution>{
+                this->device_ref()}});
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(*this, params, state, execute);
 }

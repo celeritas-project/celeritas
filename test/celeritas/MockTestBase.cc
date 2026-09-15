@@ -27,9 +27,8 @@ namespace test
 //---------------------------------------------------------------------------//
 // PUBLIC MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
-auto MockTestBase::make_applicability(char const* name,
-                                      real_type lo_energy,
-                                      real_type hi_energy) const
+auto MockTestBase::make_applicability(
+    char const* name, real_type lo_energy, real_type hi_energy) const
     -> Applicability
 {
     CELER_EXPECT(name);

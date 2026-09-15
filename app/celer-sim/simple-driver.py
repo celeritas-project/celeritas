@@ -189,7 +189,7 @@ def run_celer_sim(inp: dict, run_name: str) -> dict:
         else:
             out_file = Path(f"{run_name}.out.failed.json")
             out_file.write_text(json.dumps(j, indent=1))
-            print("Failure written to", out_file, file=stderr)
+            print("Failure written to", out_file.absolute(), file=stderr)
         exit(result.returncode)
 
     print("Received {} bytes of data".format(len(result.stdout)), file=stderr)
@@ -204,7 +204,7 @@ def run_celer_sim(inp: dict, run_name: str) -> dict:
 
     out_file = Path(f"{run_name}.out.json")
     out_file.write_text(json.dumps(j, indent=1))
-    print("Results written to", out_file, file=stderr)
+    print("Results written to", out_file.absolute(), file=stderr)
     return j
 
 
@@ -235,9 +235,14 @@ def validate_output(j: dict, inp: dict, use_device: bool) -> None:
             "processes": 1,
             "secondaries": 96,
             "tracks": 32,
+            "primaries": 1,
         }
     if not use_device and "lar" in inp["problem"]["model"]["geometry"]:
-        expected_opt_sizes = {"generators": 8388608, "tracks": 8192}
+        expected_opt_sizes = {
+            "generators": 8388608,
+            "tracks": 8192,
+            "primaries": 8192,
+        }
         assert "optical" in run_output
         cuts = sum(em_step["num_cut"] for em_step in run_output["optical"])
         assert cuts > 0

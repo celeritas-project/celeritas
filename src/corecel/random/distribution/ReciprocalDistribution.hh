@@ -67,8 +67,8 @@ class ReciprocalDistribution
  * \f$ \xi' = 1 - \xi \f$.
  */
 template<class RealType>
-CELER_FUNCTION
-ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a)
+CELER_FUNCTION ReciprocalDistribution<RealType>::ReciprocalDistribution(
+    real_type a)
     : ReciprocalDistribution(1, a)
 {
 }
@@ -83,9 +83,8 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a)
  * optimize better for the constexpr case a=1.
  */
 template<class RealType>
-CELER_FUNCTION
-ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
-                                                         real_type b)
+CELER_FUNCTION ReciprocalDistribution<RealType>::ReciprocalDistribution(
+    real_type a, real_type b)
     : a_(a), logratio_(std::log((1 / a) * b))
 {
     CELER_EXPECT(a > 0);
@@ -98,9 +97,8 @@ ReciprocalDistribution<RealType>::ReciprocalDistribution(real_type a,
  */
 template<class RealType>
 template<class Generator>
-CELER_FUNCTION auto
-ReciprocalDistribution<RealType>::operator()(Generator& rng) const
-    -> result_type
+CELER_FUNCTION auto ReciprocalDistribution<RealType>::operator()(
+    Generator& rng) const -> result_type
 {
     return a_ * std::exp(logratio_ * generate_canonical<RealType>(rng));
 }

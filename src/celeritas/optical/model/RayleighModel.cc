@@ -66,10 +66,10 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
                           auto mat_view = materials_->get(mat);
                           auto core_mat_view = core_materials_->get(
                               mat_view.core_material_id());
-                          CELER_VALIDATE(core_mat_view.temperature() > 0,
-                                         << "calculating Rayleigh MFPs from "
-                                            "material parameters requires "
-                                            "positive temperatures");
+                          CELER_VALIDATE(
+                              core_mat_view.temperature() > 0,
+                              << "calculating Rayleigh MFPs from material "
+                                 "parameters requires positive temperatures");
 
                           RayleighMfpCalculator calc_mfp(
                               mat_view, analytic, core_mat_view);

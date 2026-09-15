@@ -144,8 +144,8 @@ auto SharedParams::GetMode() -> Mode
 
         if (result.value)
         {
-            CELER_LOG(info) << "Killing Geant4 tracks supported by Celeritas "
-                               "offloading";
+            CELER_LOG(info)
+                << "Killing Geant4 tracks supported by Celeritas offloading";
         }
         return result.value;
     }();
@@ -160,7 +160,7 @@ auto SharedParams::GetMode() -> Mode
 
         CELER_LOG(info)
             << "Disabling Celeritas offloading since the 'CELER_DISABLE' "
-            << "environment variable is present and non-empty";
+               "environment variable is present and non-empty";
         return true;
     }();
 
@@ -312,25 +312,25 @@ SharedParams::SharedParams(SetupOptions const& options)
     // Create bounding box from navigator geometry
     bbox_ = loaded_.geo->get_clhep_bbox();
 
-    std::visit(
-        Overload{
-            [&](setup::ProblemLoaded const& p) {
-                // Translate supported particles
-                verify_offload(offload_particles_,
-                               *p.core_params->particle(),
-                               *p.core_params->physics());
+    std::visit(Overload{
+                   [&](setup::ProblemLoaded const& p) {
+                       // Translate supported particles
+                       verify_offload(offload_particles_,
+                                      *p.core_params->particle(),
+                                      *p.core_params->physics());
 
-                // Set streams and output registry from core params
-                output_reg_ = p.core_params->output_reg();
-                this->set_num_streams(p.core_params->max_streams());
-            },
-            [&](setup::OpticalProblemLoaded const& p) {
-                // Set streams and output registry from optical params
-                output_reg_ = p.transporter->params()->output_reg();
-                this->set_num_streams(p.transporter->params()->max_streams());
-            },
-        },
-        loaded_.problem);
+                       // Set streams and output registry from core params
+                       output_reg_ = p.core_params->output_reg();
+                       this->set_num_streams(p.core_params->sizes().streams);
+                   },
+                   [&](setup::OpticalProblemLoaded const& p) {
+                       // Set streams and output registry from optical params
+                       output_reg_ = p.transporter->params()->output_reg();
+                       this->set_num_streams(
+                           p.transporter->params()->sizes().streams);
+                   },
+               },
+               loaded_.problem);
 
     // Add timing output
     timer_ = std::make_shared<TimeOutput>(this->num_streams());
@@ -470,8 +470,8 @@ void SharedParams::try_output() const
     std::string filename = loaded_.output_file;
     if (filename.empty())
     {
-        CELER_LOG(debug) << "Skipping output: SetupOptions::output_file is "
-                            "empty";
+        CELER_LOG(debug)
+            << "Skipping output: SetupOptions::output_file is empty";
         return;
     }
 

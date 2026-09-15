@@ -50,9 +50,8 @@ class GeantSetup
     GeantSetup(std::string const& gdml_filename, Options options);
 
     // Construct from a GDML file and physics options
-    GeantSetup(std::string const& gdml_filename,
-               Options options,
-               SetString sd_names);
+    GeantSetup(
+        std::string const& gdml_filename, Options options, SetString sd_names);
 
     // Default constructor
     GeantSetup() = default;

@@ -23,12 +23,12 @@ class RectArrayTracker;
 template<UnivType U>
 struct UnivTypeTraits;
 
-#define ORANGE_UNIV_TRAITS(ENUM_VALUE, CLS)     \
-    template<>                                  \
+#define ORANGE_UNIV_TRAITS(ENUM_VALUE, CLS) \
+    template<> \
     struct UnivTypeTraits<UnivType::ENUM_VALUE> \
-    {                                           \
-        using record_type = CLS##Record;        \
-        using tracker_type = CLS##Tracker;      \
+    { \
+        using record_type = CLS##Record; \
+        using tracker_type = CLS##Tracker; \
     }
 
 ORANGE_UNIV_TRAITS(simple, SimpleUnit);
@@ -47,7 +47,7 @@ template<class F>
 CELER_CONSTEXPR_FUNCTION decltype(auto) visit_univ_type(F&& func, UnivType ut)
 {
 #define ORANGE_UT_VISIT_CASE(TYPE) \
-    case UnivType::TYPE:           \
+    case UnivType::TYPE: \
         return celeritas::forward<F>(func)(UnivTypeTraits<UnivType::TYPE>{})
 
     switch (ut)

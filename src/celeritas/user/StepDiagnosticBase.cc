@@ -26,9 +26,8 @@ namespace celeritas
 /*!
  * Construct with counts.
  */
-StepDiagnosticBase::StepDiagnosticBase(size_type num_particles,
-                                       size_type max_step_bin,
-                                       size_type num_streams)
+StepDiagnosticBase::StepDiagnosticBase(
+    size_type num_particles, size_type max_step_bin, size_type num_streams)
     : num_streams_(num_streams)
 {
     CELER_EXPECT(num_particles > 0);

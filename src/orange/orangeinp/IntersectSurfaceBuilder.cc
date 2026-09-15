@@ -91,9 +91,8 @@ void IntersectSurfaceBuilder::operator()(Sense sense, S const& surf)
  * The resulting surface *MUST* result in a intersect region.
  */
 template<class S>
-void IntersectSurfaceBuilder::operator()(Sense sense,
-                                         S const& surf,
-                                         std::string&& name)
+void IntersectSurfaceBuilder::operator()(
+    Sense sense, S const& surf, std::string&& name)
 {
     // First, clip the local bounding zone based on the given surface
     RecursiveSimplifier clip_simplified_local(ClipImpl{&state_->local_bzone},
@@ -115,9 +114,8 @@ void IntersectSurfaceBuilder::operator()(Sense sense,
  * \param sense Whether the intersect region is inside/outside this surface
  * \param surf Type-deleted surface
  */
-void IntersectSurfaceBuilder::insert_transformed(Sense sense,
-                                                 VariantSurface const& surf,
-                                                 std::string&& extension)
+void IntersectSurfaceBuilder::insert_transformed(
+    Sense sense, VariantSurface const& surf, std::string&& extension)
 {
     NodeId node_id;
     auto construct_impl = [&](Sense final_sense, auto&& final_surf) {
@@ -225,7 +223,8 @@ void IntersectSurfaceBuilder::grow_interior(BBox const& bbox)
 /*!
  * Apply an intersect surface builder to an unknown type.
  */
-void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
+void visit(
+    IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf)
 {
     std::visit([&csb, sense](auto const& s) { csb(sense, s); }, surf);
 }
@@ -234,9 +233,9 @@ void visit(IntersectSurfaceBuilder& csb, Sense sense, VariantSurface const& surf
 // EXPLICIT INSTANTIATIONS
 //---------------------------------------------------------------------------//
 //! \cond
-#define CSB_INSTANTIATE(SURF)                          \
+#define CSB_INSTANTIATE(SURF) \
     template void IntersectSurfaceBuilder::operator()( \
-        Sense, SURF const&, std::string&&);            \
+        Sense, SURF const&, std::string&&); \
     template void IntersectSurfaceBuilder::operator()(Sense, SURF const&)
 CSB_INSTANTIATE(PlaneAligned<Axis::x>);
 CSB_INSTANTIATE(PlaneAligned<Axis::y>);

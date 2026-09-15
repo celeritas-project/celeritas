@@ -34,9 +34,8 @@ class TrivialInteractor
 {
   public:
     // Construct interactor for a specific mode
-    inline CELER_FUNCTION TrivialInteractor(TrivialInteractionMode mode,
-                                            Real3 const& dir,
-                                            Real3 const& pol);
+    inline CELER_FUNCTION TrivialInteractor(
+        TrivialInteractionMode mode, Real3 const& dir, Real3 const& pol);
 
     // Calculate surface interaction
     inline CELER_FUNCTION SurfaceInteraction operator()() const;
@@ -55,7 +54,8 @@ struct TrivialInteractionExecutor
 {
     NativeCRef<TrivialInteractionData> data;
 
-    CELER_FUNCTION SurfaceInteraction operator()(CoreTrackView const& track) const
+    CELER_FUNCTION SurfaceInteraction operator()(
+        CoreTrackView const& track) const
     {
         auto sub_model_id = track.surface_physics()
                                 .interface(SurfacePhysicsOrder::interaction)
@@ -76,9 +76,8 @@ struct TrivialInteractionExecutor
  * Construct the interactor for the given mode, incident direction, and
  * incident polarization.
  */
-CELER_FUNCTION TrivialInteractor::TrivialInteractor(TrivialInteractionMode mode,
-                                                    Real3 const& dir,
-                                                    Real3 const& pol)
+CELER_FUNCTION TrivialInteractor::TrivialInteractor(
+    TrivialInteractionMode mode, Real3 const& dir, Real3 const& pol)
     : mode_(mode), dir_(dir), pol_(pol)
 {
 }

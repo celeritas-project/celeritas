@@ -16,6 +16,7 @@
 #include "celeritas/geo/GeoFwd.hh"
 
 #include "ActionInterface.hh"
+#include "CoreSizes.hh"
 #include "CoreTrackData.hh"
 
 namespace celeritas
@@ -98,18 +99,15 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
         SPAuxRegistry aux_reg;  //!< Optional, empty default
         SPConstMpiCommunicator mpi_comm;  //!< Optional, world_comm default
 
-        //! Maximum number of simultaneous threads/tasks per process
-        StreamId::size_type max_streams{1};
-
-        //! Number of track slots per stream
-        StreamId::size_type tracks_per_stream{0};
+        //! Per-process state and buffer capacities
+        CoreSizes sizes;
 
         //! True if all params are assigned and valid
         explicit operator bool() const
         {
             return geometry && material && geomaterial && particle && cutoff
                    && physics && rng && sim && volume && surface && init
-                   && action_reg && output_reg && max_streams;
+                   && action_reg && output_reg && sizes;
         }
     };
 
@@ -154,11 +152,17 @@ class CoreParams final : public ParamsDataInterface<CoreParamsData>
     template<MemSpace M>
     inline ConstPtr<M> ptr() const;
 
+    //! Per-process state and buffer capacities
+    CoreSizes const& sizes() const { return input_.sizes; }
+
     //! Maximum number of streams
-    size_type max_streams() const { return input_.max_streams; }
+    size_type max_streams() const { return this->sizes().streams; }
 
     //! Number of track slots per stream
-    size_type tracks_per_stream() const { return input_.tracks_per_stream; }
+    size_type tracks_per_stream() const
+    {
+        return ceil_div(this->sizes().tracks, this->sizes().streams);
+    }
 
   private:
     Input input_;

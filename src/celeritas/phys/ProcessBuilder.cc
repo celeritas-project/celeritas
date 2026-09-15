@@ -77,9 +77,8 @@ ProcessBuilder::ProcessBuilder(ImportData const& data,
 /*!
  * Construct without custom user builders.
  */
-ProcessBuilder::ProcessBuilder(ImportData const& data,
-                               SPConstParticle particle,
-                               SPConstMaterial material)
+ProcessBuilder::ProcessBuilder(
+    ImportData const& data, SPConstParticle particle, SPConstMaterial material)
     : ProcessBuilder(
           data, std::move(particle), std::move(material), UserBuildMap{})
 {

@@ -18,8 +18,8 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 struct MollerBhabhaExecutor
 {
-    inline CELER_FUNCTION Interaction
-    operator()(celeritas::CoreTrackView const& track);
+    inline CELER_FUNCTION Interaction operator()(
+        celeritas::CoreTrackView const& track);
 
     MollerBhabhaData params;
 };
@@ -28,8 +28,8 @@ struct MollerBhabhaExecutor
 /*!
  * Sample Moller-Bhabha ionization from the current track.
  */
-CELER_FUNCTION Interaction
-MollerBhabhaExecutor::operator()(CoreTrackView const& track)
+CELER_FUNCTION Interaction MollerBhabhaExecutor::operator()(
+    CoreTrackView const& track)
 {
     auto particle = track.particle();
     auto cutoff = track.cutoff();

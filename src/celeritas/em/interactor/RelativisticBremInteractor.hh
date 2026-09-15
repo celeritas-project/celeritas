@@ -53,14 +53,14 @@ class RelativisticBremInteractor
 
   public:
     // Construct with shared and state data
-    inline CELER_FUNCTION
-    RelativisticBremInteractor(NativeCRef<RelativisticBremData> const& shared,
-                               ParticleTrackView const& particle,
-                               Real3 const& direction,
-                               CutoffView const& cutoffs,
-                               StackAllocator<Secondary>& allocate,
-                               MaterialView const& material,
-                               ElementComponentId const& elcomp_id);
+    inline CELER_FUNCTION RelativisticBremInteractor(
+        NativeCRef<RelativisticBremData> const& shared,
+        ParticleTrackView const& particle,
+        Real3 const& direction,
+        CutoffView const& cutoffs,
+        StackAllocator<Secondary>& allocate,
+        MaterialView const& material,
+        ElementComponentId const& elcomp_id);
 
     // Sample an interaction with the given RNG
     template<class Engine>
@@ -94,8 +94,7 @@ class RelativisticBremInteractor
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-RelativisticBremInteractor::RelativisticBremInteractor(
+CELER_FUNCTION RelativisticBremInteractor::RelativisticBremInteractor(
     NativeCRef<RelativisticBremData> const& shared,
     ParticleTrackView const& particle,
     Real3 const& direction,

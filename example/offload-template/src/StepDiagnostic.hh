@@ -78,8 +78,8 @@ class StepDiagnostic final : public CoreStepActionInterface,
 {
   public:
     // Construct and add to core params
-    static std::shared_ptr<StepDiagnostic>
-    make_and_insert(CoreParams const& core);
+    static std::shared_ptr<StepDiagnostic> make_and_insert(
+        CoreParams const& core);
 
     // Construct with IDs
     StepDiagnostic(ActionId action_id, AuxId aux_id);

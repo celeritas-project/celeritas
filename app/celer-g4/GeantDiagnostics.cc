@@ -117,8 +117,8 @@ void GeantDiagnostics::Finalize()
     if (meh_ && !meh_->empty())
     {
         auto expiring = std::exchange(*this, GeantDiagnostics{});
-        CELER_LOG(debug) << "Finalizing diagnostics: rethrowing saved "
-                            "exception";
+        CELER_LOG(debug)
+            << "Finalizing diagnostics: rethrowing saved exception";
         log_and_rethrow(std::move(*expiring.meh_));
     }
     CELER_LOG(debug) << "Resetting diagnostics";

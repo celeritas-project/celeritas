@@ -113,11 +113,11 @@ class MuBremsDiffXsCalculator
 /*!
  * Construct with incident particle data and current element.
  */
-CELER_FUNCTION
-MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
-                                                 Energy inc_energy,
-                                                 Mass inc_mass,
-                                                 Mass electron_mass)
+CELER_FUNCTION MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(
+    ElementView const& element,
+    Energy inc_energy,
+    Mass inc_mass,
+    Mass electron_mass)
     : atomic_number_(element.atomic_number().unchecked_get())
     , atomic_mass_(value_as<units::AmuMass>(element.atomic_mass()))
     , inv_cbrt_z_(1 / element.cbrt_z())
@@ -151,8 +151,7 @@ MuBremsDiffXsCalculator::MuBremsDiffXsCalculator(ElementView const& element,
 /*!
  * Compute the differential cross section per atom at the given photon energy.
  */
-CELER_FUNCTION
-real_type MuBremsDiffXsCalculator::operator()(Energy energy)
+CELER_FUNCTION real_type MuBremsDiffXsCalculator::operator()(Energy energy)
 {
     using namespace celeritas::literals;
 

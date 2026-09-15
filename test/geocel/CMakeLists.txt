@@ -78,6 +78,7 @@ celeritas_add_test(BoundingBox.test.cc
 # These tests verify both Params and View
 celeritas_add_test(Detector.test.cc)
 celeritas_add_test(Surface.test.cc)
+celeritas_add_test(Types.test.cc)
 celeritas_add_test(Volume.test.cc)
 
 #-----------------------------------------------------------------------------#

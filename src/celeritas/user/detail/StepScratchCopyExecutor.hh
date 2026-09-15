@@ -57,14 +57,14 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
     TrackSlotId src_id{fast_get(state.valid_id, dst_id)};
     CELER_ASSERT(src_id < state.size());
 
-#define DS_COPY_IF_SELECTED(FIELD)                    \
-    do                                                \
-    {                                                 \
-        if (!state.data.FIELD.empty())                \
-        {                                             \
-            fast_get(state.scratch.FIELD, dst_id)     \
+#define DS_COPY_IF_SELECTED(FIELD) \
+    do \
+    { \
+        if (!state.data.FIELD.empty()) \
+        { \
+            fast_get(state.scratch.FIELD, dst_id) \
                 = fast_get(state.data.FIELD, src_id); \
-        }                                             \
+        } \
     } while (0)
 
     DS_COPY_IF_SELECTED(detector_id);

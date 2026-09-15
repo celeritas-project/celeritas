@@ -40,8 +40,8 @@ class MottRatioCalculator
 
   public:
     // Construct with state data
-    inline CELER_FUNCTION
-    MottRatioCalculator(MottCoeffMatrix const& coeffs, real_type beta);
+    inline CELER_FUNCTION MottRatioCalculator(MottCoeffMatrix const& coeffs,
+                                              real_type beta);
 
     // Ratio of Mott and Rutherford cross sections
     inline CELER_FUNCTION real_type operator()(real_type cos_t) const;
@@ -57,9 +57,8 @@ class MottRatioCalculator
 /*!
  * Construct with state data.
  */
-CELER_FUNCTION
-MottRatioCalculator::MottRatioCalculator(MottCoeffMatrix const& coeffs,
-                                         real_type beta)
+CELER_FUNCTION MottRatioCalculator::MottRatioCalculator(
+    MottCoeffMatrix const& coeffs, real_type beta)
     : coeffs_(coeffs), beta_(beta)
 {
     CELER_EXPECT(0 <= beta_ && beta_ < 1);
@@ -69,8 +68,8 @@ MottRatioCalculator::MottRatioCalculator(MottCoeffMatrix const& coeffs,
 /*!
  * Compute the ratio of Mott to Rutherford cross sections.
  */
-CELER_FUNCTION
-real_type MottRatioCalculator::operator()(real_type cos_theta) const
+CELER_FUNCTION real_type MottRatioCalculator::operator()(
+    real_type cos_theta) const
 {
     CELER_EXPECT(cos_theta >= -1 && cos_theta <= 1);
 

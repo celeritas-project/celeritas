@@ -85,9 +85,10 @@ auto DuneCryoTest::make_input() const -> Input
     result.problem.limits.step_iters = 8;
     result.problem.capacity = [] {
         inp::OpticalStateCapacity cap;
-        cap.tracks = 4096;
-        cap.primaries = 8 * cap.tracks;
-        cap.generators = 512 * cap.tracks;
+        auto ntracks = 4096_sz;
+        cap.tracks = ntracks;
+        cap.primaries = 8 * ntracks;
+        cap.generators = 512 * ntracks;
         return cap;
     }();
     result.problem.num_streams = 1;
@@ -136,14 +137,14 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     sed2.setTrackID(-1);
 
     auto raw_result = run({sed, sed2});
-    auto result = RunResult::from_btr(raw_result);
+    auto result = RunResult::from_btr(raw_result.backtrack);
     RunResult ref;
     ref.num_hits = {273, 269, 15, 4};
     EXPECT_REF_EQ(ref, result);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
-    result = RunResult::from_btr(run({sed2, sed}));
+    result = RunResult::from_btr(run({sed2, sed}).backtrack);
     ref.num_hits = {233, 264, 16, 5};
     EXPECT_REF_EQ(ref, result);
 }
@@ -167,7 +168,7 @@ TEST_F(DuneCryoTest, zero_photons)
 
     // No run should occur, BTRs should be empty
     auto result = run({sed});
-    EXPECT_TRUE(result.empty());
+    EXPECT_TRUE(result.backtrack.empty());
 }
 
 //---------------------------------------------------------------------------//

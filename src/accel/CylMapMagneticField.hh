@@ -18,11 +18,11 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 // Generate field input with user-defined grid and explicit field
-inp::CylMapField
-MakeCylMapFieldInput(G4Field const& field,
-                     std::vector<G4double> const& r_grid,
-                     std::vector<G4double> const& phi_values,  // Radians
-                     std::vector<G4double> const& z_grid);
+inp::CylMapField MakeCylMapFieldInput(
+    G4Field const& field,
+    std::vector<G4double> const& r_grid,
+    std::vector<G4double> const& phi_values,  // Radians
+    std::vector<G4double> const& z_grid);
 
 // Generate field input with user-defined grid from global field
 inp::CylMapField MakeCylMapFieldInput(std::vector<G4double> const& r_grid,

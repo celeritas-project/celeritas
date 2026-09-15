@@ -62,11 +62,11 @@ GridReflectivityModel::GridReflectivityModel(
         CELER_VALIDATE(r_grid,
                        << "a valid reflectivity grid is required for "
                           "user-defined grid reflectivity model");
-        CELER_VALIDATE(std::all_of(r_grid.y.begin(),
-                                   r_grid.y.end(),
-                                   [](double y) { return 0 <= y && y <= 1; }),
-                       << "reflectivity grid should all be with unit interval "
-                          "[0,1]");
+        CELER_VALIDATE(
+            std::all_of(r_grid.y.begin(),
+                        r_grid.y.end(),
+                        [](double y) { return 0 <= y && y <= 1; }),
+            << "reflectivity grid should all be with unit interval [0,1]");
         build_reflectivity(r_grid);
 
         // Build transmittance grid
@@ -74,11 +74,11 @@ GridReflectivityModel::GridReflectivityModel(
         CELER_VALIDATE(t_grid,
                        << "a valid transmittance grid is required for "
                           "user-defined grid reflectivity model");
-        CELER_VALIDATE(std::all_of(t_grid.y.begin(),
-                                   t_grid.y.end(),
-                                   [](double y) { return 0 <= y && y <= 1; }),
-                       << "transmittance grid should all be with unit "
-                          "interval [0,1]");
+        CELER_VALIDATE(
+            std::all_of(t_grid.y.begin(),
+                        t_grid.y.end(),
+                        [](double y) { return 0 <= y && y <= 1; }),
+            << "transmittance grid should all be with unit interval [0,1]");
         build_transmittance(t_grid);
 
         // Optional efficiency grid
@@ -88,8 +88,7 @@ GridReflectivityModel::GridReflectivityModel(
                 std::all_of(e_grid.y.begin(),
                             e_grid.y.end(),
                             [](double y) { return 0 <= y && y <= 1; }),
-                << "efficiency grid should all be with unit interval "
-                   "[0,1]");
+                << "efficiency grid should all be with unit interval [0,1]");
 
             GridId e_grid_id = build_efficiency(e_grid);
             build_efficiency_ids.push_back(e_grid_id);

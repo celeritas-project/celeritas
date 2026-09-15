@@ -100,9 +100,8 @@ class RevolvedPolygon final : public ObjectInterface
     //!@}
 
     // Construct from a polygon
-    RevolvedPolygon(std::string&& label,
-                    VecReal2&& polygon,
-                    EnclosedAzi&& enclosed);
+    RevolvedPolygon(
+        std::string&& label, VecReal2&& polygon, EnclosedAzi&& enclosed);
 
     //// INTERFACE ////
 
@@ -137,14 +136,12 @@ class RevolvedPolygon final : public ObjectInterface
     //// HELPER METHODS ////
 
     // Recursively construct convex regions, subtracting out concavities
-    NodeId make_levels(detail::VolumeBuilder& vb,
-                       VecReal2 const& polygon,
-                       SubIndex si) const;
+    NodeId make_levels(
+        detail::VolumeBuilder& vb, VecReal2 const& polygon, SubIndex si) const;
 
     // Revolve a convex polygon around the \em z axis
-    NodeId make_region(detail::VolumeBuilder& vb,
-                       VecReal2 const& polygon,
-                       SubIndex si) const;
+    NodeId make_region(
+        detail::VolumeBuilder& vb, VecReal2 const& polygon, SubIndex si) const;
 
     // Make a translated cylinder node
     NodeId make_cylinder(detail::VolumeBuilder& vb,

@@ -17,9 +17,8 @@ namespace celeritas
 /*!
  * Construct from host data.
  */
-NeutronInelasticProcess::NeutronInelasticProcess(SPConstParticles particles,
-                                                 SPConstMaterials materials,
-                                                 ReadData load_data)
+NeutronInelasticProcess::NeutronInelasticProcess(
+    SPConstParticles particles, SPConstMaterials materials, ReadData load_data)
     : particles_(std::move(particles))
     , materials_(std::move(materials))
     , load_data_(std::move(load_data))

@@ -16,7 +16,7 @@ namespace celeritas
 namespace
 {
 //---------------------------------------------------------------------------//
-#define ORANGE_INSTANTIATE_OP(IN)                                       \
+#define ORANGE_INSTANTIATE_OP(IN) \
     template void SurfaceClipper::operator()(IN<Axis::x> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::y> const&) const; \
     template void SurfaceClipper::operator()(IN<Axis::z> const&) const
@@ -24,8 +24,8 @@ namespace
 constexpr auto sqrt_half = constants::sqrt_two / 2;
 constexpr auto sqrt_third = constants::sqrt_three / 2;
 
-CELER_FORCEINLINE void
-shrink_if_nonnull(BBox* bbox, Bound bnd, Axis axis, real_type position)
+CELER_FORCEINLINE void shrink_if_nonnull(
+    BBox* bbox, Bound bnd, Axis axis, real_type position)
 {
     if (bbox)
     {

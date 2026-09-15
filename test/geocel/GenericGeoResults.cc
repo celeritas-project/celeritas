@@ -143,22 +143,22 @@ void GenericGeoTrackingResult::print_expected() const
 
     AssertionHelper helper{expr1, expr2};
 
-#define IRE_VEC_EQ(ATTR)                                           \
+#define IRE_VEC_EQ(ATTR) \
     if (auto result = IsVecEq(expr1, #ATTR, val1.ATTR, val2.ATTR); \
-        !static_cast<bool>(result))                                \
-    {                                                              \
-        helper.fail() << result.message();                         \
-    }                                                              \
-    else                                                           \
+        !static_cast<bool>(result)) \
+    { \
+        helper.fail() << result.message(); \
+    } \
+    else \
         (void)sizeof(char)
-#define IRE_VEC_SOFT_EQ(ATTR, TOL)                                       \
-    if (auto result                                                      \
+#define IRE_VEC_SOFT_EQ(ATTR, TOL) \
+    if (auto result \
         = IsVecSoftEquiv(expr1, #ATTR, #TOL, val1.ATTR, val2.ATTR, TOL); \
-        !static_cast<bool>(result))                                      \
-    {                                                                    \
-        helper.fail() << result.message();                               \
-    }                                                                    \
-    else                                                                 \
+        !static_cast<bool>(result)) \
+    { \
+        helper.fail() << result.message(); \
+    } \
+    else \
         (void)sizeof(char)
 
     IRE_VEC_EQ(volumes);
@@ -190,9 +190,8 @@ void GenericGeoTrackingResult::print_expected() const
 /*!
  * Construct a stack result from raw geometry output.
  */
-GenericGeoVolumeStackResult
-GenericGeoVolumeStackResult::from_span(LabelMap const& vol_inst,
-                                       Span<VolumeInstanceId const> inst_ids)
+GenericGeoVolumeStackResult GenericGeoVolumeStackResult::from_span(
+    LabelMap const& vol_inst, Span<VolumeInstanceId const> inst_ids)
 {
     GenericGeoVolumeStackResult result;
     result.volume_instances.resize(inst_ids.size());
@@ -233,13 +232,13 @@ void GenericGeoVolumeStackResult::fail()
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                          \
-    if (val1.ATTR != val2.ATTR)                                    \
-    {                                                              \
+#define IRE_COMPARE(ATTR) \
+    if (val1.ATTR != val2.ATTR) \
+    { \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR);           \
-    }                                                              \
-    else                                                           \
+                      << " but got " << repr(val2.ATTR); \
+    } \
+    else \
         CELER_DISCARD(int)
     IRE_COMPARE(volume_instances);
 #undef IRE_COMPARE
@@ -340,13 +339,13 @@ void GenericGeoModelInp::print_expected() const
 {
     AssertionHelper result{expr1, expr2};
 
-#define IRE_COMPARE(ATTR)                                          \
-    if (val1.ATTR != val2.ATTR)                                    \
-    {                                                              \
+#define IRE_COMPARE(ATTR) \
+    if (val1.ATTR != val2.ATTR) \
+    { \
         result.fail() << "Expected " #ATTR ": " << repr(val1.ATTR) \
-                      << " but got " << repr(val2.ATTR);           \
-    }                                                              \
-    else                                                           \
+                      << " but got " << repr(val2.ATTR); \
+    } \
+    else \
         CELER_DISCARD(int)
 
     IRE_COMPARE(surface.labels);

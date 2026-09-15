@@ -600,9 +600,7 @@ class ArbitraryVecgeomTest : public VecgeomTestBase
         CELER_VALIDATE(
             !filename_.empty(),
             << R"(Set the "GDML" environment variable and run this test with '--gtest_filter=*)"
-            << ::testing::UnitTest::GetInstance()
-                       ->current_test_info()
-                       ->test_suite_name()
+            << ::testing::UnitTest::GetInstance()->current_test_info()->test_suite_name()
             << "*' --gtest_also_run_disabled_tests)");
     }
 

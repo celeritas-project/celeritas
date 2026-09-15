@@ -82,8 +82,8 @@ class SplineInterpolator
  * Construct with left and right values for x, y, and the second derivative.
  */
 template<class T>
-CELER_FUNCTION
-SplineInterpolator<T>::SplineInterpolator(Spline left, Spline right)
+CELER_FUNCTION SplineInterpolator<T>::SplineInterpolator(Spline left,
+                                                         Spline right)
 {
     CELER_EXPECT(left.x < right.x);
 

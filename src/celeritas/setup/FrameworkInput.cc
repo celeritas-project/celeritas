@@ -33,9 +33,9 @@ FrameworkLoaded framework_input(inp::FrameworkInput& fi)
     CELER_LOG(info) << "Activating Celeritas version " << version_string
                     << " on " << (Device::num_devices() > 0 ? "GPU" : "CPU");
 
-    CELER_VALIDATE(!(fi.adjust && fi.adjust_optical),
-                   << "cannot setup both a problem and an optical-only "
-                      "problem");
+    CELER_VALIDATE(
+        !(fi.adjust && fi.adjust_optical),
+        << "cannot setup both a problem and an optical-only problem");
 
     // TODO: How to determine which problem to setup without requiring adjust?
     CELER_EXPECT(fi.adjust || fi.adjust_optical);

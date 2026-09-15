@@ -98,10 +98,9 @@ class UrbanMscHelper
 /*!
  * Construct with shared and state data.
  */
-CELER_FUNCTION
-UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
-                               ParticleTrackView const& particle,
-                               PhysicsTrackView const& physics)
+CELER_FUNCTION UrbanMscHelper::UrbanMscHelper(UrbanMscRef const& shared,
+                                              ParticleTrackView const& particle,
+                                              PhysicsTrackView const& physics)
     : shared_(shared)
     , particle_(particle)
     , physics_(physics)

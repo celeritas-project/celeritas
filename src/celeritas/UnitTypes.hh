@@ -347,7 +347,7 @@ template<class F>
 constexpr decltype(auto) visit_unit_system(F&& func, UnitSystem sys)
 {
 #define CELER_US_VISIT_CASE(TYPE) \
-    case UnitSystem::TYPE:        \
+    case UnitSystem::TYPE: \
         return std::forward<F>(func)(UnitSystemTraits<UnitSystem::TYPE>{});
 
     switch (sys)

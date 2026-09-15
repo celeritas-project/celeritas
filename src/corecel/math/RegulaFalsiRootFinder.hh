@@ -56,7 +56,8 @@ class RegulaFalsiRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-CELER_FUNCTION RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
+CELER_CTAD_FUNCTION RegulaFalsiRootFinder(F&&, Args...)
+    -> RegulaFalsiRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -65,8 +66,8 @@ CELER_FUNCTION RegulaFalsiRootFinder(F&&, Args...) -> RegulaFalsiRootFinder<F>;
  * Construct from function.
  */
 template<class F>
-CELER_FUNCTION
-RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func, real_type tol)
+CELER_FUNCTION RegulaFalsiRootFinder<F>::RegulaFalsiRootFinder(F&& func,
+                                                               real_type tol)
     : func_{celeritas::forward<F>(func)}, tol_{tol}
 {
     CELER_EXPECT(tol_ > 0);

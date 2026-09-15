@@ -255,9 +255,9 @@ auto make_solid(G4VSolid const& solid, CR&& interior, Args&&... args)
  * Construct an ORANGE solid using the G4Solid's name and forwarded arguments.
  */
 template<class CR>
-auto make_truncated(G4VSolid const& solid,
-                    CR&& interior,
-                    Truncated::VecPlane&& planes) -> SPConstObject
+auto make_truncated(
+    G4VSolid const& solid, CR&& interior, Truncated::VecPlane&& planes)
+    -> SPConstObject
 {
     if (planes.empty())
     {

@@ -132,8 +132,8 @@ void DeviceAllocation::DeviceFreeDeleter::operator()(
         }
         if (warn_count == 1)
         {
-            CELER_LOG(debug) << "Suppressing further DeviceFreeDeleter "
-                                "warning messages";
+            CELER_LOG(debug)
+                << "Suppressing further DeviceFreeDeleter warning messages";
         }
         ++warn_count;
     }

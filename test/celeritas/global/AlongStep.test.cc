@@ -66,8 +66,12 @@ class MockAlongStepFieldTest : public MockAlongStepTest
         field_inp.strength = {4, 0, 0};
 
         auto& action_reg = *this->action_reg();
-        auto result = std::make_shared<AlongStepUniformMscAction>(
-            action_reg.next_id(), *this->geometry(), field_inp, nullptr, nullptr);
+        auto result
+            = std::make_shared<AlongStepUniformMscAction>(action_reg.next_id(),
+                                                          *this->geometry(),
+                                                          field_inp,
+                                                          nullptr,
+                                                          nullptr);
         action_reg.insert(result);
         return result;
     }
@@ -715,8 +719,9 @@ TEST_F(SimpleCmsAlongStepTest, msc_field_finegrid)
                          from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
-        inp.direction = {
-            -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        inp.direction = {-0.333769826820287552,
+                         0.641464235110772663,
+                         -0.690739703345700562};
         auto result = this->run(inp, num_tracks);
         if (is_ci_build())
         {
@@ -781,8 +786,9 @@ TEST_F(SimpleCmsRZFieldAlongStepTest, msc_rzfield_finegrid)
                          from_cm(1.34976131122020193e-5)};
         inp.position = {
             59.3935490766840459, -109.988210668881749, -81.7228237502843484};
-        inp.direction = {
-            -0.333769826820287552, 0.641464235110772663, -0.690739703345700562};
+        inp.direction = {-0.333769826820287552,
+                         0.641464235110772663,
+                         -0.690739703345700562};
         ScopedLogStorer scoped_log{&celeritas::self_logger(), LogLevel::error};
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_DEBUG

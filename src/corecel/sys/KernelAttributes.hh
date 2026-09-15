@@ -63,8 +63,8 @@ struct KernelAttributes
  * specified by launch bounds.
  */
 template<class F>
-KernelAttributes
-make_kernel_attributes(F* func, unsigned int threads_per_block = 0)
+KernelAttributes make_kernel_attributes(F* func,
+                                        unsigned int threads_per_block = 0)
 {
     KernelAttributes result;
 #ifdef CELER_DEVICE_SOURCE

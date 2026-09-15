@@ -66,9 +66,8 @@ GeantSetup::GeantSetup(std::string const& gdml_filename, Options options)
 /*!
  * Construct from a GDML file and physics options.
  */
-GeantSetup::GeantSetup(std::string const& gdml_filename,
-                       Options options,
-                       SetString sd_names)
+GeantSetup::GeantSetup(
+    std::string const& gdml_filename, Options options, SetString sd_names)
 {
     CELER_LOG(status) << "Initializing Geant4 run manager";
     ScopedProfiling profile_this{"initialize-geant"};
@@ -86,9 +85,9 @@ GeantSetup::GeantSetup(std::string const& gdml_filename,
 
         // Guard against segfaults due to bad Geant4 global cleanup
         static int geant_launch_count = 0;
-        CELER_VALIDATE(geant_launch_count == 0,
-                       << "Geant4 cannot be 'run' more than once per "
-                          "execution");
+        CELER_VALIDATE(
+            geant_launch_count == 0,
+            << "Geant4 cannot be 'run' more than once per execution");
         ++geant_launch_count;
 
 #if G4VERSION_NUMBER >= 1100

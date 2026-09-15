@@ -35,9 +35,9 @@ bool RootFileManager::use_root()
     static bool const result = [] {
         if (!celeritas::getenv("CELER_DISABLE_ROOT").empty())
         {
-            CELER_LOG(info) << "Disabling ROOT support since the "
-                               "'CELER_DISABLE_ROOT' "
-                               "environment variable is present and non-empty";
+            CELER_LOG(info)
+                << "Disabling ROOT support since the 'CELER_DISABLE_ROOT' "
+                   "environment variable is present and non-empty";
             return false;
         }
 
@@ -83,8 +83,8 @@ char const* RootFileManager::filename() const
  * To expand this class to write multiple root files (one per thread), add a
  * `tid` input parameter and call `tfile_[tid].get()`.
  */
-UPRootTreeWritable
-RootFileManager::make_tree(char const* name, char const* title)
+UPRootTreeWritable RootFileManager::make_tree(char const* name,
+                                              char const* title)
 {
     CELER_EXPECT(tfile_->IsOpen());
 

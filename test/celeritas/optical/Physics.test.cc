@@ -54,8 +54,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
 
     void build_import_data(ImportData&) const override;
 
-    PhysicsTrackView
-    make_track_view(OptMatId mat, TrackSlotId slot = TrackSlotId{0})
+    PhysicsTrackView make_track_view(OptMatId mat,
+                                     TrackSlotId slot = TrackSlotId{0})
     {
         CELER_EXPECT(mat < this->num_optical_materials());
         return PhysicsTrackView(this->optical_physics()->host_ref(),
@@ -89,8 +89,8 @@ class OpticalPhysicsTest : public OpticalMockTestBase
     template<class T>
     OptMatId cycle_material_id(T other_id)
     {
-        return OptMatId((2 * other_id.get() + 3)
-                        % this->num_optical_materials());
+        return OptMatId(
+            (2 * other_id.get() + 3) % this->num_optical_materials());
     }
 
   private:

@@ -77,8 +77,8 @@ std::string char_to_hex_string(unsigned char value);
 void print_simple_type(std::ostream& os, char const* type, char const* name);
 
 template<class T>
-inline void
-print_container_type(std::ostream& os, char const* type, char const* name)
+inline void print_container_type(
+    std::ostream& os, char const* type, char const* name)
 {
     os << type << '<';
     ReprTraits<T>::print_type(os);

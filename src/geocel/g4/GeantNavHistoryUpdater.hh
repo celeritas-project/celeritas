@@ -49,8 +49,8 @@ class GeantNavHistoryUpdater
     }
 
     // Reconstruct into the given nav history
-    void
-    operator()(Span<VolumeInstanceId const> stack, G4NavigationHistory* nav);
+    void operator()(Span<VolumeInstanceId const> stack,
+                    G4NavigationHistory* nav);
 
   private:
     VIMapper const& mapper_;

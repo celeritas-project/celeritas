@@ -77,8 +77,8 @@ void ScopedProfiling::activate(Input const& input) noexcept
 
             if (num_warnings == max_warnings)
             {
-                CELER_LOG(info) << "Suppressing future scoped profiling "
-                                   "warnings";
+                CELER_LOG(info)
+                    << "Suppressing future scoped profiling warnings";
             }
         }
     }

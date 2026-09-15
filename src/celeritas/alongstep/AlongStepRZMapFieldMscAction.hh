@@ -41,13 +41,13 @@ class AlongStepRZMapFieldMscAction final : public CoreStepActionInterface
     //!@}
 
   public:
-    static std::shared_ptr<AlongStepRZMapFieldMscAction>
-    from_params(ActionId id,
-                MaterialParams const& materials,
-                ParticleParams const& particles,
-                RZMapFieldInput const& field_input,
-                SPConstMsc const& msc,
-                bool eloss_fluctuation);
+    static std::shared_ptr<AlongStepRZMapFieldMscAction> from_params(
+        ActionId id,
+        MaterialParams const& materials,
+        ParticleParams const& particles,
+        RZMapFieldInput const& field_input,
+        SPConstMsc const& msc,
+        bool eloss_fluctuation);
 
     // Construct with next action ID and physics properties
     AlongStepRZMapFieldMscAction(ActionId id,

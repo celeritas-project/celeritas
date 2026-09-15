@@ -25,11 +25,11 @@ namespace detail
  * \return Total accumulated value
  */
 template<class T>
-size_type
-inclusive_scan_photons(ItemsRef<T, MemSpace::host> const& buffer,
-                       ItemsRef<size_type, MemSpace::host> const& offsets,
-                       size_type size,
-                       StreamId)
+size_type inclusive_scan_photons(
+    ItemsRef<T, MemSpace::host> const& buffer,
+    ItemsRef<size_type, MemSpace::host> const& offsets,
+    size_type size,
+    StreamId)
 {
     CELER_EXPECT(!buffer.empty());
     CELER_EXPECT(size > 0 && size <= buffer.size());
@@ -59,11 +59,11 @@ template size_type inclusive_scan_photons(
     ItemsRef<size_type, MemSpace::host> const&,
     size_type,
     StreamId);
-template size_type
-inclusive_scan_photons(ItemsRef<WlsDistributionData, MemSpace::host> const&,
-                       ItemsRef<size_type, MemSpace::host> const&,
-                       size_type,
-                       StreamId);
+template size_type inclusive_scan_photons(
+    ItemsRef<WlsDistributionData, MemSpace::host> const&,
+    ItemsRef<size_type, MemSpace::host> const&,
+    size_type,
+    StreamId);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

@@ -225,7 +225,8 @@ TEST_F(MultiLevelTest, manual_volumes)
                 [lv_id](auto const& t) { return t.local_vol_level(lv_id); },
                 uid)));
             cur_local_parent.push_back(id_to_int(visit_tracker(
-                [lv_id](auto const& t) { return t.local_parent(lv_id); }, uid)));
+                [lv_id](auto const& t) { return t.local_parent(lv_id); },
+                uid)));
             cur_volume_names.push_back(impl_volumes.at(global_vol++).name);
         }
         local_level.emplace_back(std::move(cur_local_level));

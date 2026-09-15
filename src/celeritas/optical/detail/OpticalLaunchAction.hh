@@ -67,8 +67,8 @@ class OpticalLaunchAction : public AuxParamsInterface,
 
   public:
     // Construct and add to core params
-    static std::shared_ptr<OpticalLaunchAction>
-    make_and_insert(CoreParams const&, Input&&);
+    static std::shared_ptr<OpticalLaunchAction> make_and_insert(
+        CoreParams const&, Input&&);
 
     // Construct with IDs and optical params
     OpticalLaunchAction(ActionId, AuxId, Input&&);

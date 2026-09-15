@@ -60,10 +60,10 @@ class MuBBEnergyDistribution
 
   public:
     // Construct with incident and exiting particle data
-    inline CELER_FUNCTION
-    MuBBEnergyDistribution(ParticleTrackView const& particle,
-                           Energy electron_cutoff,
-                           Mass electron_mass);
+    inline CELER_FUNCTION MuBBEnergyDistribution(
+        ParticleTrackView const& particle,
+        Energy electron_cutoff,
+        Mass electron_mass);
 
     // Sample the exiting energy
     template<class Engine>
@@ -128,10 +128,10 @@ class MuBBEnergyDistribution
 /*!
  * Construct with incident and exiting particle data.
  */
-CELER_FUNCTION
-MuBBEnergyDistribution::MuBBEnergyDistribution(ParticleTrackView const& particle,
-                                               Energy electron_cutoff,
-                                               Mass electron_mass)
+CELER_FUNCTION MuBBEnergyDistribution::MuBBEnergyDistribution(
+    ParticleTrackView const& particle,
+    Energy electron_cutoff,
+    Mass electron_mass)
     : inc_mass_(value_as<Mass>(particle.mass()))
     , total_energy_(value_as<Energy>(particle.total_energy()))
     , beta_sq_(particle.beta_sq())

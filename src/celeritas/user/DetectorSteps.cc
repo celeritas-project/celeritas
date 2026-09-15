@@ -125,7 +125,7 @@ void copy_steps<MemSpace::host>(
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field(        \
+    assign_field( \
         &(output->FIELD), state.data.FIELD, state.data.detector_id, size)
 
     DS_ASSIGN(detector_id);

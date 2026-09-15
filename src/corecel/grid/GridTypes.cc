@@ -25,4 +25,18 @@ char const* to_cstring(InterpolationType value)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get a string corresponding to the spline boundary condition.
+ */
+char const* to_cstring(SplineBoundaryCondition value)
+{
+    static EnumStringMapper<SplineBoundaryCondition> const to_cstring_impl{
+        "natural",
+        "not_a_knot",
+        "geant",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
