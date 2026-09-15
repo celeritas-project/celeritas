@@ -178,7 +178,7 @@ runs:
         spack -e . find -lv -c
         echo "::endgroup::"
         echo "::group::Buildcache"
-        spack -e . buildcache find --allarch -l
+        spack -e . buildcache list -a -l
         echo "::endgroup::"
         {
           spack debug report
