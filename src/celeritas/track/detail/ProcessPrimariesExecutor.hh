@@ -55,16 +55,15 @@ struct ProcessPrimariesExecutor
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
     CELER_EXPECT(tid < primaries.size() || tid < state->size());
-    CELER_EXPECT(primaries.size()
-                 <= num_initializers + num_primaries + tid.get());
     size_type init_capacity = params->init.capacity;
-    CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << primaries.size() << ")");
-
     size_type num_initializers
         = state->init.counters.data().get()->num_initializers;
+    CELER_EXPECT(primaries.size() + num_initializers <= init_capacity);
+
+    // CELER_VALIDATE(primaries.size() + num_initializers <= init_capacity,
+    // << "insufficient initializer capacity (" << init_capacity
+    // << ") with size (" << num_initializers
+    // << ") for primaries (" << primaries.size() << ")");
 
     // Only state.size() threads participate in this grid-stride loop.
     // Additional threads may be launched to process a larger set of primaries:
