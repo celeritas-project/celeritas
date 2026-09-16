@@ -60,16 +60,20 @@ inline Orientation calc_orientation(celeritas::Array<T, 2> const& a,
  * The input must have at least three ordered vertices and may be nonconvex.
  * The closing edge is included implicitly. A zero signed area returns
  * \c Orientation::collinear.
+ *
+ * Sum signed triangle areas relative to the first vertex to avoid cancellation
+ * from large coordinate offsets. The first and closing edges contribute zero.
  */
 inline Orientation calc_orientation(Span<Real2 const> corners)
 {
     CELER_EXPECT(corners.size() >= 3);
 
+    auto const& origin = corners.front();
     real_type twice_area = 0;
-    for (auto i : range(corners.size()))
+    for (auto i : range<size_type>(1, corners.size() - 1))
     {
-        auto const& a = corners[i];
-        auto const& b = corners[(i + 1) % corners.size()];
+        auto const a = corners[i] - origin;
+        auto const b = corners[i + 1] - origin;
         twice_area += a[0] * b[1] - b[0] * a[1];
     }
     return twice_area < 0   ? Orientation::clockwise

@@ -73,6 +73,38 @@ TEST(PolygonUtilsTest, calc_polygon_orientation_concave)
     EXPECT_EQ(cw, calc_orientation(make_span(corners)));
 }
 
+TEST(PolygonUtilsTest, calc_polygon_orientation_offset)
+{
+    constexpr real_type d = 0.1;
+    for (
+        auto corners :
+        {VecReal2{{0, 0}, {d, 0}, {d, d}, {0, d}},
+         VecReal2{
+             {0, 0}, {d, d}, {2 * d, 0}, {2 * d, 3 * d}, {-d, 3 * d}, {-d, 0}}})
+    {
+        SCOPED_TRACE(corners.size());
+        for (auto& p : corners)
+        {
+            p[0] += 100000;
+            p[1] += 100000;
+        }
+
+        // Check both windings with every vertex as the reference point
+        for (auto expected : {ccw, cw})
+        {
+            SCOPED_TRACE(static_cast<int>(expected));
+            for (auto i : range(corners.size()))
+            {
+                SCOPED_TRACE(i);
+                EXPECT_EQ(expected, calc_orientation(make_span(corners)));
+                std::rotate(
+                    corners.begin(), corners.begin() + 1, corners.end());
+            }
+            std::reverse(corners.begin(), corners.end());
+        }
+    }
+}
+
 TEST(PolygonUtilsTest, calc_polygon_orientation_degenerate)
 {
     Real2 const line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
