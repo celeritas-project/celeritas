@@ -67,6 +67,7 @@
 #include "orange/orangeinp/StackedExtrudedPolygon.hh"
 #include "orange/orangeinp/Transformed.hh"
 #include "orange/orangeinp/Truncated.hh"
+#include "orange/orangeinp/detail/PolygonUtils.hh"
 
 #include "Scaler.hh"
 #include "Transformer.hh"
@@ -584,14 +585,8 @@ auto SolidConverter::genericpolycone(arg_type solid_base) -> result_type
     }
 
     // Use signed area to orient even nonconvex polygons counterclockwise
-    real_type twice_area = 0;
-    for (auto i : range(num_points))
-    {
-        auto const& a = polygon[i];
-        auto const& b = polygon[(i + 1) % num_points];
-        twice_area += a[0] * b[1] - b[0] * a[1];
-    }
-    if (twice_area < 0)
+    if (orangeinp::detail::calc_orientation(make_span(polygon))
+        == orangeinp::detail::Orientation::clockwise)
     {
         std::reverse(polygon.begin(), polygon.end());
     }
