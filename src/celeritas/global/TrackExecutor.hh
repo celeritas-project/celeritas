@@ -140,12 +140,12 @@ class ConditionalTrackExecutor
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_FUNCTION TrackExecutor(
+CELER_CTAD_FUNCTION TrackExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, T&&)
     -> TrackExecutor<T>;
 
 template<class C, class T>
-CELER_FUNCTION ConditionalTrackExecutor(
+CELER_CTAD_FUNCTION ConditionalTrackExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, C&&, T&&)
     -> ConditionalTrackExecutor<C, T>;
 

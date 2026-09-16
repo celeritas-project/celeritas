@@ -8,7 +8,6 @@
 #pragma once
 
 #include <cmath>
-#include <iosfwd>
 
 #include "corecel/Assert.hh"
 #include "corecel/cont/Range.hh"
@@ -270,23 +269,38 @@ inline bool encloses(BoundingBox<T> const& big, BoundingBox<T> const& small)
 
 //---------------------------------------------------------------------------//
 /*!
- * Check if a segment from \c pos in direction \c dir of length \c distance
- * intersects the bounding box.
+ * Check if a line segment \em may intersect a bounding box.
  *
- * If the position is already inside the bounding box, the result is always
- * true. This uses a separating-axis test (see \citet{ericson-collision-2004,
- * https://www.taylorfrancis.com/books/9780080474144} ). It translates the
- * coordinate system to the center of the bbox and tests six axes
- * (see Fig. 5.23, Table 5.1 in reference):
- * - The AABB face normals
- * - The cross products between the direction vector and face normals
+ * The line segment is defined from \c pos in direction \c dir with length
+ * \c distance.
+ * If the position is already inside the bounding box, the result is
+ * always true.
  *
- * Note the manual unrolling of the off-axis test leads to a 10% speedup in the
- * along-step kernel.
- * \warning Infinite segment lengths are allowed to support degenerate cases,
- * but they will result in false positives and a slowdown.
- * \note Infinite bounding boxes are \em not supported, but they should never
- * be generated due to the construction implementation.
+ * This uses a separating-axis test (see \citet{ericson-collision-2004,
+ * https://www.taylorfrancis.com/books/9780080474144} ).
+ * It translates the coordinate system to the center of the bbox and tests six
+ * axes (see Fig. 5.23, Table 5.1 in reference):
+ * - the AABB face normals, and
+ * - the cross products between the direction vector and face normals .
+ *
+ * Modifications have been made from the original algorithm for robustness and
+ * GPU performance.
+ * - Manual unrolling and unconditional evaluation of the off-axis tests lead
+ *   to a 10% speedup in the along-step kernel and enable automatic
+ *   vectorization when compiled with clang for aarch64.
+ * - A relative rather than absolute tolerance is used to support large
+ *   distances.
+ * - Instead of using the midpoint of the line segment
+ *   \f$ m \equiv x + d/2 - c \f$, we operate on the translated midpoint of the
+ *   bbox \f$ c' \equiv c - x \f$ .
+ *   This prevents the distance from being squared before subtraction in the
+ *   cross-product directions, which can lead to machine-dependent catastrophic
+ *   floating point errors for distances on the order of
+ *   \f$ 1/\epsilon_\mathrm{machine} \f$ ).
+
+ * \warning Large segment lengths are allowed to support degenerate cases, but
+ * they may result in false positives (and result in slowing down a BVH
+ * search).
  */
 template<class T>
 inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
@@ -294,36 +308,32 @@ inline CELER_FUNCTION bool intersects_segment(BoundingBox<T> const& bbox,
                                               Array<T, 3> const& dir,
                                               T distance)
 {
+    CELER_EXPECT(bbox);
     CELER_EXPECT(distance > 0);
     Array<T, 3> hw;  // Half-widths of bounding box
-    Array<T, 3> mid;  // Midpoint of the line segment
-    Array<T, 3> hseg;  // Vector from pos to the midpoint of the segment
-    Array<T, 3> abs_hseg;
-
-    T const half_distance = distance / 2;
-    constexpr T eps = numeric_limits<T>::epsilon();
+    Array<T, 3> bbm;  // Midpoint of the bbox relative to pos
+    Array<T, 3> hseg;  // Segment midpoint relative to pos
 
     for (auto ax : range(Axis::size_))
     {
         T const lower = bbox.point(Bound::lo, ax);
         T const upper = bbox.point(Bound::hi, ax);
-        T const center = (lower + upper) / 2;
 
         auto i = to_int(ax);
         hw[i] = (upper - lower) / 2;
-        hseg[i] = dir[i] * half_distance;
-        abs_hseg[i] = std::fabs(hseg[i]) + eps;
-        mid[i] = pos[i] + hseg[i] - center;
+        hseg[i] = dir[i] * (distance / 2);
+        bbm[i] = (lower + upper) / 2 - pos[i];
     }
 
     // Whether a separable axis was found orthogonal to the faces
-    auto found_sep_ortho_axis
-        = [&](int i) { return std::fabs(mid[i]) > hw[i] + abs_hseg[i]; };
+    auto found_sep_ortho_axis = [&](int i) {
+        return std::fabs(hseg[i] - bbm[i]) > hw[i] + std::fabs(hseg[i]);
+    };
 
     // Find a separating axis normal to the j,k faces and dir
     auto found_sep_axis = [&](int j, int k) {
-        return std::fabs(mid[j] * hseg[k] - mid[k] * hseg[j])
-               > hw[j] * abs_hseg[k] + hw[k] * abs_hseg[j];
+        return std::fabs(bbm[k] * hseg[j] - bbm[j] * hseg[k])
+               > (hw[k] * std::fabs(hseg[j]) + hw[j] * std::fabs(hseg[k]));
     };
 
     constexpr auto x = to_int(Axis::x);

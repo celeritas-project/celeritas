@@ -146,7 +146,7 @@ class FieldSubstepper
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class IntegratorT>
-CELER_FUNCTION FieldSubstepper(FieldDriverOptions const&, IntegratorT&&)
+CELER_CTAD_FUNCTION FieldSubstepper(FieldDriverOptions const&, IntegratorT&&)
     -> FieldSubstepper<IntegratorT>;
 
 //---------------------------------------------------------------------------//

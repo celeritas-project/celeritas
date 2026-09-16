@@ -37,7 +37,7 @@ struct InteractionApplier
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class F>
-CELER_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
+CELER_CTAD_FUNCTION InteractionApplier(F&&) -> InteractionApplier<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

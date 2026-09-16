@@ -58,6 +58,8 @@ has a default value but can be overridden with any boolean value.
                                      axis when partitioning a node during BVH
                                      construction
  ORANGE_BVH_STRUCTURE      orange    Include "structure" info in BVH JSON output
+ ORANGE_UNIV_STRUCTURE     orange    Include universe "structure" info in the
+                                     JSON output
  ========================= ========= ==========================================
 
 .. [#pr] See :ref:`profiling`. This should default to 1 when running through

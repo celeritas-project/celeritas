@@ -20,7 +20,7 @@ Preset CMake variables:
 ```
 
 The main `CMakePresets.json` provides not only a handful of user-accessible
-presets (default, full, minimal) but also a set of hidden presets (`.ndebug`,
+presets (default, full, minimal) but also a set of hidden presets (`.release`,
 `.cuda-volta`, `.spack-base`) useful for inheriting in user presets. Make sure
 to put the overrides *before* the base definition in the `inherits` list.
 
@@ -41,5 +41,10 @@ reproducible environments for building Celeritas and running it under CI.
 
 # Spack environments
 
-The `spack` directory has a list of dependency requirements (`packages.yaml`)
-and several environments for different use cases.
+The `spack` directory has a list of dependency requirements and several
+environments for different use cases. The prefixes signify:
+- `env`: spack environment (use `spack env create celeritas filename.yaml`)
+- `reqs`: requirements for correctly building Celeritas (`reqs-celer`) or the
+  cached CI (`reqs-ci`)
+- `prefs`: default variants for associated packages
+- `ext`: external packages and compilers defined for a particular platform

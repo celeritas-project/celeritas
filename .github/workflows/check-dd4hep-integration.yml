@@ -8,12 +8,8 @@
 name: Check dd4hep integration
 
 on:
-  workflow_dispatch:
-  workflow_call:
-
-concurrency:
-  group: build-${{github.ref}}-${{github.event.pull_request.number || github.run_number}}-${{github.workflow}}
-  cancel-in-progress: true
+  workflow_dispatch: {}
+  workflow_call: {}
 
 jobs:
   check-dd4hep-integration:
@@ -24,7 +20,7 @@ jobs:
         shell: bash -l -o pipefail {0}
     steps:
       - name: Check out
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Configure
         run: |
           eic-info
@@ -46,11 +42,7 @@ jobs:
             --random.enableEventSeed
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
-        if:
-          ${{
-            !cancelled()
-            && steps.build.outcome == 'success'
-          }}
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         with:
           name: simulation-artifacts
           path: example/ddceler/output/**

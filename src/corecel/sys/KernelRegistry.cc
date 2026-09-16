@@ -20,15 +20,24 @@ namespace celeritas
 /*!
  * Whether to record potentially expensive kernel profiling information.
  *
- * This is true if \c CELERITAS_DEBUG is set *or* if the \c
+ * In CPU-only builds, this is always false since the file is only ever called
+ * in \c KernelParamCalculator::log_launch as part of a kernel execution.
+ * Otherwise, it is true if \c CELERITAS_DEBUG is set *or* if the \c
  * CELER_PROFILE_DEVICE environment variable exists and is not empty.
  */
 bool KernelRegistry::profiling()
 {
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+    // NOTE: using preprocessor macros rather than constexpr since GCC 8.5
+    // fails with "error: void value not ignored as it ought to be"
     static bool const result = [] {
         return getenv_flag("CELER_PROFILE_DEVICE", CELERITAS_DEBUG).value;
     }();
     return result;
+#else
+    // No GPU support enabled
+    return false;
+#endif
 }
 
 //---------------------------------------------------------------------------//

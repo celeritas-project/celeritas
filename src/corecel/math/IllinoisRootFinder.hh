@@ -55,7 +55,7 @@ class IllinoisRootFinder
 //---------------------------------------------------------------------------//
 
 template<class F, class... Args>
-CELER_FUNCTION IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
+CELER_CTAD_FUNCTION IllinoisRootFinder(F&&, Args...) -> IllinoisRootFinder<F>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

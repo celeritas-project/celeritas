@@ -80,7 +80,7 @@ CELER_FUNCTION UniformGrid::UniformGrid(UniformGridData const& data)
 CELER_FUNCTION auto UniformGrid::operator[](size_type i) const -> value_type
 {
     CELER_EXPECT(i < data_.size);
-    return data_.front + data_.delta * i;
+    return data_.front + data_.delta * static_cast<double>(i);
 }
 
 //---------------------------------------------------------------------------//

@@ -15,6 +15,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/StreamableLazy.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/g4/Convert.hh"
@@ -103,14 +104,21 @@ void DetectorConstruction::build_worker_sd() const
 {
     CELER_LOG_LOCAL(debug) << R"(Constructing sensitive detectors)";
     auto* sd_manager = G4SDManager::GetSDMpointer();
-    auto get_vol_name = [](MapDetectors::value_type const& sdname_vol) {
-        CELER_ASSERT(sdname_vol.second);
-        return sdname_vol.second->GetName();
-    };
 
     foreach_detector(detectors_, [&](MapDetCIter start, MapDetCIter stop) {
+        // Lazily print the volume names (only if warning or debug are printed)
+        auto vol_names = StreamableLazy{[start, stop] {
+            std::vector<std::string> sorted_vol_names;
+            for (auto iter = start; iter != stop; ++iter)
+            {
+                sorted_vol_names.push_back(iter->second->GetName());
+            }
+            std::sort(sorted_vol_names.begin(), sorted_vol_names.end());
+            return to_string(
+                join(sorted_vol_names.begin(), sorted_vol_names.end(), ", "));
+        }};
+
         auto const& sd_name = start->first;
-        auto vol_names = join(start, stop, "', '", get_vol_name);
 
         // Construct an SD based on the name
         UPSD sd = build_worker_sd_(sd_name);

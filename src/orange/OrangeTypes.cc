@@ -192,6 +192,19 @@ char const* to_cstring(TransformType value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a universe type.
+ */
+char const* to_cstring(UnivType value)
+{
+    static EnumStringMapper<UnivType> const to_cstring_impl{
+        "simple",
+        "rect_array",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to a logic notation
  */
 char const* to_cstring(LogicNotation value)

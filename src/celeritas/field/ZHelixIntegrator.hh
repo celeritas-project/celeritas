@@ -92,7 +92,8 @@ class ZHelixIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION ZHelixIntegrator(EquationT&&) -> ZHelixIntegrator<EquationT>;
+CELER_CTAD_FUNCTION ZHelixIntegrator(EquationT&&)
+    -> ZHelixIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

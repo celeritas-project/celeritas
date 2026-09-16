@@ -77,7 +77,7 @@ class RungeKuttaIntegrator
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class EquationT>
-CELER_FUNCTION RungeKuttaIntegrator(EquationT&&)
+CELER_CTAD_FUNCTION RungeKuttaIntegrator(EquationT&&)
     -> RungeKuttaIntegrator<EquationT>;
 
 //---------------------------------------------------------------------------//

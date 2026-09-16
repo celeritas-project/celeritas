@@ -7,10 +7,10 @@
 # Define the target directory
 TARGET_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-cd bin || (
+cd bin || {
   echo "Run from the top level of the build directory"
   exit 1
-)
+}
 
 # Iterate over each executable in the working directory
 for app in *; do

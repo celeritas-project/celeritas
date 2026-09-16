@@ -28,6 +28,7 @@ namespace test
  * overflow bins. All bins are half-open except for the rightmost bin, which
  * will include values equal to the upper domain boundary.
  *
+ * \par Example:
  * To test that all samples are within the domain:
  * \code
      EXPECT_EQ(0, hist.underflow())
@@ -102,7 +103,8 @@ void Histogram::operator()(double value)
     }
     else if (frac < 1.0)
     {
-        auto index = static_cast<size_type>(frac * counts_.size());
+        auto index = static_cast<size_type>(
+            frac * static_cast<double>(counts_.size()));
         CELER_ASSERT(index < counts_.size());
         ++counts_[index];
     }

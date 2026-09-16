@@ -3,18 +3,17 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file accel/LocalTransporter.hh
+//! \sa TrackingManagerIntegration.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/BoundingBox.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
-#include "celeritas/phys/Primary.hh"
 
 #include "TrackOffloadInterface.hh"
 
@@ -36,6 +35,7 @@ class OpticalCollector;
 class ParticleParams;
 class SharedParams;
 class StepperInterface;
+struct StepperResult;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -47,6 +47,76 @@ class StepperInterface;
  * - an event action (to set the event ID and flush offloaded tracks at the end
  *   of the event)
  * - a tracking action (to try offloading every track)
+ *
+ * \par Primary buffering
+ *
+ * Stepper owns two fixed-capacity host primary buffers and the device event
+ * that protects the source of an asynchronous H2D copy. LocalTransporter
+ * validates and converts Geant4 tracks, pushes accepted primaries into the
+ * Stepper producer buffer, and keeps the corresponding Geant4 energy and loss
+ * accounting. Primaries outside the Celeritas geometry are counted as lost but
+ * are not added to either Stepper buffer.
+ *
+ * \par Device execution
+ *
+ * When the producer buffer first reaches capacity, \c Push stages it and
+ * immediately calls \c StepperInterface::async. Same-stream ordering ensures
+ * that the primary-copy completes before the stepping kernels use it. The
+ * Stepper retains the staged host storage until the copy completes, while
+ * Geant4 can continue filling the second buffer.
+ *
+ * At most one step result, one staged batch, and one producer batch can be
+ * pending. Before reusing a full producer buffer, \c Push submits any staged
+ * batch. It then applies backpressure by consuming and advancing the current
+ * result only until start-of-step initialization can consume enough queued
+ * tracks and primaries to preserve room for the secondary stack. Active tail
+ * tracks may remain when a new batch is staged and launched. Calls to \c
+ * stage_primaries and \c async can still block on synchronization internal to
+ * the current Stepper implementation.
+ * Before accepting each subsequent track, \c Push polls a pending step. If it
+ * is ready, its result is consumed and another step is launched whenever
+ * existing transport remains or another batch is staged. This allows device
+ * transport to progress while Geant4 continues producing primaries. A full
+ * producer batch is staged only when it fits alongside queued initializers and
+ * leaves the maximum usable initializer capacity for secondaries after vacant
+ * track slots have been filled.
+ *
+ * \par Event completion
+ *
+ * At event end, \c Flush first submits any staged batch. If a partially filled
+ * producer buffer remains, it advances the current transport until that batch
+ * satisfies the same initializer and secondary-capacity admission rule, then
+ * stages and launches the producer batch. It finally steps all transport
+ * synchronously to completion. Hit processing and Geant4 track reconstruction
+ * are kept alive across the asynchronous work and cleared only after this
+ * drain completes. A flush with only rejected primaries still reports and
+ * clears their loss accounting.
+ *
+ * Host mode has the same buffering interface but no asynchronous overlap: a
+ * full producer buffer calls \c Flush and is transported to completion before
+ * \c Push returns.
+ *
+ * \internal
+ *
+ * LocalTransporter accounting follows the Stepper primary lifecycle:
+ *
+ * | State | Stepper state | Local accounting |
+ * | ----- | ------------- | ---------------- |
+ * | Producer | Primaries accepted by \c push_primary | \c buffered_accum_ |
+ * | Staged | H2D copy queued; actions not submitted | \c staged_accum_ |
+ * | Submitted | Batch submitted by \c async | \c in_flight_accum_ |
+ * | Accounted | First result for batch consumed | Added to \c run_accum_ |
+ *
+ * \c in_flight_accum_ is cleared when the first result for its submitted batch
+ * is consumed, even if the resulting active tracks require additional steps.
+ * \c GetBufferSize returns accepted primaries that have not yet reached this
+ * accounting point. It does not count rejected primaries, active Celeritas
+ * tracks, or generated secondaries. The \c transport_active_ flag records
+ * whether the last consumed result requires another step, while \c valid on
+ * the Stepper records a currently pending result. The step iteration count
+ * spans all overlapping primary batches and resets only after transport
+ * becomes empty. Calling \c Finalize requires both states to be idle, normally
+ * by first calling \c Flush.
  *
  * \warning Due to Geant4 thread-local allocators, this class \em must be
  * finalized or destroyed on the same CPU thread in which is created and used!
@@ -70,7 +140,7 @@ class LocalTransporter final : public TrackOffloadInterface
     // Set the event ID and reseed the Celeritas RNG at the start of an event
     void InitializeEvent(int) final;
 
-    // Transport all buffered tracks to completion
+    // Transport all queued and in-flight tracks to completion
     void Flush() final;
 
     // Clear local data and return to an invalid state
@@ -79,8 +149,8 @@ class LocalTransporter final : public TrackOffloadInterface
     // Whether the class instance is initialized
     bool Initialized() const final { return static_cast<bool>(step_); }
 
-    // Number of buffered tracks
-    size_type GetBufferSize() const final { return buffer_.size(); }
+    // Number of accepted primaries not yet accounted as transported
+    size_type GetBufferSize() const final;
 
     // Get accumulated action times
     MapStrDbl GetActionTime() const final;
@@ -106,9 +176,12 @@ class LocalTransporter final : public TrackOffloadInterface
 
     struct BufferAccum
     {
+        size_type primaries{0};
         double energy{0};  // MeV
         double lost_energy{0};  // MeV
         std::size_t lost_primaries{0};
+
+        bool empty() const { return primaries == 0 && lost_primaries == 0; }
     };
 
     struct RunAccum
@@ -121,14 +194,36 @@ class LocalTransporter final : public TrackOffloadInterface
         std::size_t hits{0};
     };
 
+    //// HELPER FUNCTIONS ////
+
+    void stage_buffered_primaries(StepperResult const&);
+    size_type available_primary_capacity(StepperResult const&) const;
+    void launch_step();
+    StepperResult complete_step();
+    void advance_if_ready();
+    StepperResult advance_transport();
+    StepperResult wait_for_initializer_capacity();
+    void drain_transport();
+
     //// DATA ////
 
+    // Shared problem data and local configuration
     std::shared_ptr<ParticleParams const> particles_;
     BBox bbox_;
+    SPOffloadWriter dump_primaries_;
+    size_type max_step_iters_{};
 
-    // Thread-local data
+    // Thread-local stepper data
     std::shared_ptr<StepperInterface> step_;
-    std::vector<Primary> buffer_;
+    BufferAccum buffered_accum_;
+    BufferAccum staged_accum_;
+    BufferAccum in_flight_accum_;
+    // Completed iterations in the current uninterrupted transport epoch
+    size_type step_iters_{0};
+    // Whether the last consumed result requires another step
+    bool transport_active_{false};
+
+    // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
     std::shared_ptr<OpticalCollector const> optical_;
@@ -137,17 +232,8 @@ class LocalTransporter final : public TrackOffloadInterface
     int event_id_{-1};
     G4EventManager* event_manager_{nullptr};
 
-    size_type auto_flush_{};
-    size_type max_step_iters_{};
-
-    BufferAccum buffer_accum_;
+    // Run summary diagnostics
     RunAccum run_accum_;
-
-    // Shared across threads to write flushed particles
-    SPOffloadWriter dump_primaries_;
-
-    //// HELPER FUNCTIONS ////
-    void flush_impl();
 };
 
 //---------------------------------------------------------------------------//

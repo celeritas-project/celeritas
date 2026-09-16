@@ -159,7 +159,7 @@ struct ElossApplier
 
 // Note: needed for C++17 support
 template<class EC>
-CELER_FUNCTION ElossApplier(EC&&) -> ElossApplier<EC>;
+CELER_CTAD_FUNCTION ElossApplier(EC&&) -> ElossApplier<EC>;
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS

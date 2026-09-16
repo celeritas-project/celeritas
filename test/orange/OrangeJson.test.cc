@@ -199,8 +199,12 @@ TEST_F(UniversesTest, TEST_IF_CELERITAS_DOUBLE(output))
     EXPECT_EQ("orange", out.label());
 
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"max_faces":14,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":12,"internal_nodes":5,"leaf_nodes":8,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"univ_indices":3,"univ_types":3,"universe_indexer":{"surfaces":4,"volumes":4},"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,3,1],"num_finite_bboxes":[4,4,1],"num_infinite_bboxes":[1,0,0]},"scalars":{"max_faces":14,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":12,"internal_nodes":5,"leaf_nodes":8,"local_volume_ids":10},"connectivity_records":25,"daughters":3,"local_surface_ids":55,"local_volume_ids":21,"logic_ints":164,"obz_records":0,"real_ids":25,"reals":24,"rect_arrays":0,"simple_units":3,"surface_types":25,"transforms":3,"univ_indices":3,"univ_types":3,"universe_indexer":{"surfaces":4,"volumes":4},"volume_ids":12,"volume_instance_ids":12,"volume_records":12},"tracking_logic":"infix","univ_metadata":{"label":["outer","inner","most_inner"],"num_surfaces":[14,11,0],"num_volumes":[5,5,2],"type":["simple","simple","simple"]}})json",
         to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"translation"],[2,1,"translation"]]},{"daughters":[[1,2,"translation"]]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
 }
 
 TEST_F(UniversesTest, initialize_with_multiple_universes)
@@ -659,6 +663,20 @@ TEST_F(NestedRectArraysTest, leaving)
     EXPECT_SOFT_EQ(16, next.distance);
 }
 
+TEST_F(NestedRectArraysTest, TEST_IF_CELERITAS_DOUBLE(output))
+{
+    OrangeParamsOutput out(this->geometry());
+    EXPECT_EQ("orange", out.label());
+
+    EXPECT_JSON_EQ(
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,1,1,1,1],"num_finite_bboxes":[2,1,1,1,1],"num_infinite_bboxes":[1,0,0,0,0]},"scalars":{"max_faces":12,"max_intersections":12,"num_univ_levels":6,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":11,"internal_nodes":0,"leaf_nodes":5,"local_volume_ids":7},"connectivity_records":12,"daughters":11,"local_surface_ids":24,"local_volume_ids":4,"logic_ints":62,"obz_records":0,"real_ids":12,"reals":31,"rect_arrays":2,"simple_units":5,"surface_types":12,"transforms":8,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":19,"volume_instance_ids":19,"volume_records":11},"tracking_logic":"infix","univ_metadata":{"label":["global","parent","parent+","arr","arr+","B","A"],"num_surfaces":[12,0,8,0,8,0,0],"num_volumes":[3,2,4,2,4,2,2],"type":["simple","simple","rect_array","simple","rect_array","simple","simple"]}})json",
+        to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"no_transformation"]]},{"daughters":[[1,2,"no_transformation"]]},{"daughters":[[0,3,"no_transformation"],[1,3,"translation"],[2,3,"translation"],[3,3,"translation"]]},{"daughters":[[1,4,"no_transformation"]]},{"daughters":[[0,5,"no_transformation"],[1,6,"translation"],[2,6,"translation"],[3,5,"translation"]]},{"daughters":[]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
+}
+
 //---------------------------------------------------------------------------//
 class Geant4Testem15Test : public JsonOrangeTest
 {
@@ -713,7 +731,7 @@ TEST_F(HexArrayTest, TEST_IF_CELERITAS_DOUBLE(output))
     EXPECT_EQ("orange", out.label());
 
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,8,1,1],"num_finite_bboxes":[2,50,1,1],"num_infinite_bboxes":[1,0,0,0]},"scalars":{"max_faces":9,"max_intersections":10,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":58,"internal_nodes":49,"leaf_nodes":53,"local_volume_ids":55},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":500,"obz_records":0,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"univ_indices":4,"univ_types":4,"universe_indexer":{"surfaces":5,"volumes":5},"volume_ids":58,"volume_instance_ids":58,"volume_records":58},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,8,1,1],"num_finite_bboxes":[2,50,1,1],"num_infinite_bboxes":[1,0,0,0]},"scalars":{"max_faces":9,"max_intersections":10,"num_univ_levels":3,"tol":{"abs":1.5e-08,"rel":1.5e-08}},"sizes":{"bvh":{"bboxes":58,"internal_nodes":49,"leaf_nodes":53,"local_volume_ids":55},"connectivity_records":53,"daughters":51,"local_surface_ids":191,"local_volume_ids":348,"logic_ints":500,"obz_records":0,"real_ids":53,"reals":272,"rect_arrays":0,"simple_units":4,"surface_types":53,"transforms":51,"univ_indices":4,"univ_types":4,"universe_indexer":{"surfaces":5,"volumes":5},"volume_ids":58,"volume_instance_ids":58,"volume_records":58},"tracking_logic":"infix","univ_metadata":{"label":["global","rhombarr","c","d"],"num_surfaces":[9,44,0,0],"num_volumes":[3,51,2,2],"type":["simple","simple","simple","simple"]}})json",
         to_string(out));
 }
 
@@ -777,7 +795,7 @@ TEST_F(InputBuilderTest, globalspheres)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":2,"max_intersections":4,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":3,"internal_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"obz_records":0,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":3,"volume_instance_ids":3,"volume_records":3},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":2,"max_intersections":4,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":3,"internal_nodes":0,"leaf_nodes":1,"local_volume_ids":3},"connectivity_records":2,"daughters":0,"local_surface_ids":4,"local_volume_ids":4,"logic_ints":7,"obz_records":0,"real_ids":2,"reals":2,"rect_arrays":0,"simple_units":1,"surface_types":2,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":3,"volume_instance_ids":3,"volume_records":3},"tracking_logic":"infix","univ_metadata":{"label":["global"],"num_surfaces":[2],"num_volumes":[3],"type":["simple"]}})json",
         to_string(out));
 }
 
@@ -843,7 +861,7 @@ TEST_F(InputBuilderTest, bgspheres)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[2],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":3,"max_intersections":2,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":4,"internal_nodes":1,"leaf_nodes":2,"local_volume_ids":3},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"obz_records":0,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":4,"volume_instance_ids":4,"volume_records":4},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[2],"num_finite_bboxes":[2],"num_infinite_bboxes":[1]},"scalars":{"max_faces":3,"max_intersections":2,"num_univ_levels":1,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":4,"internal_nodes":1,"leaf_nodes":2,"local_volume_ids":3},"connectivity_records":3,"daughters":0,"local_surface_ids":6,"local_volume_ids":3,"logic_ints":5,"obz_records":0,"real_ids":3,"reals":9,"rect_arrays":0,"simple_units":1,"surface_types":3,"transforms":0,"univ_indices":1,"univ_types":1,"universe_indexer":{"surfaces":2,"volumes":2},"volume_ids":4,"volume_instance_ids":4,"volume_records":4},"tracking_logic":"infix","univ_metadata":{"label":["global"],"num_surfaces":[3],"num_volumes":[4],"type":["simple"]}})json",
         to_string(out));
 }
 
@@ -967,8 +985,12 @@ TEST_F(InputBuilderTest, hierarchy)
 
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,0,0,4,2,0,0],"num_finite_bboxes":[6,0,0,4,2,0,0],"num_infinite_bboxes":[1,0,0,0,0,0,0]},"scalars":{"max_faces":8,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":24,"internal_nodes":8,"leaf_nodes":15,"local_volume_ids":13},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"obz_records":0,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":24,"volume_instance_ids":24,"volume_records":24},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[4,0,0,4,2,0,0],"num_finite_bboxes":[6,0,0,4,2,0,0],"num_infinite_bboxes":[1,0,0,0,0,0,0]},"scalars":{"max_faces":8,"max_intersections":14,"num_univ_levels":3,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":24,"internal_nodes":8,"leaf_nodes":15,"local_volume_ids":13},"connectivity_records":13,"daughters":6,"local_surface_ids":20,"local_volume_ids":18,"logic_ints":31,"obz_records":0,"real_ids":13,"reals":46,"rect_arrays":0,"simple_units":7,"surface_types":13,"transforms":6,"univ_indices":7,"univ_types":7,"universe_indexer":{"surfaces":8,"volumes":8},"volume_ids":24,"volume_instance_ids":24,"volume_records":24},"tracking_logic":"infix","univ_metadata":{"label":["global","d1","d2","filled_daughter","leafy","d1","d2"],"num_surfaces":[8,0,0,4,1,0,0],"num_volumes":[7,2,2,6,3,2,2],"type":["simple","simple","simple","simple","simple","simple","simple"]}})json",
         to_string(out));
+
+    EXPECT_JSON_EQ(
+        R"json([{"daughters":[[1,1,"translation"],[2,2,"transformation"],[3,3,"translation"],[4,4,"translation"]]},{"daughters":[]},{"daughters":[]},{"daughters":[[1,5,"translation"],[2,6,"transformation"]]},{"daughters":[]},{"daughters":[]},{"daughters":[]}])json",
+        dump_univ_structure(this->params().host_ref()));
 }
 
 //---------------------------------------------------------------------------//
@@ -976,7 +998,7 @@ TEST_F(InputBuilderTest, incomplete_bb)
 {
     OrangeParamsOutput out(this->geometry());
     EXPECT_JSON_EQ(
-        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":6,"internal_nodes":0,"leaf_nodes":2,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix"})json",
+        R"json({"_category":"internal","_label":"orange","bvh_metadata":{"depth":[1,1],"num_finite_bboxes":[2,2],"num_infinite_bboxes":[1,0]},"scalars":{"max_faces":6,"max_intersections":6,"num_univ_levels":2,"tol":{"abs":1e-05,"rel":1e-05}},"sizes":{"bvh":{"bboxes":6,"internal_nodes":0,"leaf_nodes":2,"local_volume_ids":5},"connectivity_records":8,"daughters":1,"local_surface_ids":10,"local_volume_ids":4,"logic_ints":37,"obz_records":0,"real_ids":8,"reals":26,"rect_arrays":0,"simple_units":2,"surface_types":8,"transforms":1,"univ_indices":2,"univ_types":2,"universe_indexer":{"surfaces":3,"volumes":3},"volume_ids":6,"volume_instance_ids":6,"volume_records":6},"tracking_logic":"infix","univ_metadata":{"label":["global","inner"],"num_surfaces":[2,6],"num_volumes":[3,3],"type":["simple","simple"]}})json",
         to_string(out));
 }
 

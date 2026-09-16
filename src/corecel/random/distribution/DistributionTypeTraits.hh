@@ -9,7 +9,6 @@
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumClassUtils.hh"
 #include "corecel/random/Types.hh"
-#include "corecel/random/data/DistributionData.hh"
 
 #include "DeltaDistribution.hh"
 #include "IsotropicDistribution.hh"
