@@ -55,6 +55,30 @@ inline Orientation calc_orientation(celeritas::Array<T, 2> const& a,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find the orientation of a simple 2D polygon from its signed area.
+ *
+ * The input must have at least three ordered vertices and may be nonconvex.
+ * The closing edge is included implicitly. A zero signed area returns
+ * \c Orientation::collinear.
+ */
+inline Orientation calc_orientation(Span<Real2 const> corners)
+{
+    CELER_EXPECT(corners.size() >= 3);
+
+    real_type twice_area = 0;
+    for (auto i : range(corners.size()))
+    {
+        auto const& a = corners[i];
+        auto const& b = corners[(i + 1) % corners.size()];
+        twice_area += a[0] * b[1] - b[0] * a[1];
+    }
+    return twice_area < 0   ? Orientation::clockwise
+           : twice_area > 0 ? Orientation::counterclockwise
+                            : Orientation::collinear;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Test whether a 2D polygon has the given orientation.
  *
  * The list of input corners must have at least 3 points to be a polygon.

@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/orangeinp/detail/PolygonUtils.hh"
 
+#include <algorithm>
 #include <vector>
 
 #include "corecel/Constants.hh"
@@ -44,6 +45,40 @@ TEST(PolygonUtilsTest, calc_orientation)
     EXPECT_EQ(col, calc_orientation<real_type>({2, 2}, {1, 1}, {0, 0}));
     EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {1, 1}));
     EXPECT_EQ(col, calc_orientation<real_type>({0, 0}, {0, 0}, {0, 0}));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation)
+{
+    // The closing edge contributes to the orientation of this triangle
+    VecReal2 triangle{{1, 2}, {1, 1}, {2, 1}};
+    EXPECT_EQ(ccw, calc_orientation(make_span(triangle)));
+    EXPECT_EQ(calc_orientation(triangle[0], triangle[1], triangle[2]),
+              calc_orientation(make_span(triangle)));
+    std::reverse(triangle.begin(), triangle.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(triangle)));
+
+    VecReal2 square{{-2, -2}, {0, -2}, {0, 0}, {-2, 0}};
+    EXPECT_EQ(ccw, calc_orientation(make_span(square)));
+    std::reverse(square.begin(), square.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(square)));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation_concave)
+{
+    // The first corner turns clockwise, but the polygon is counterclockwise
+    VecReal2 corners{{0, 0}, {1, 1}, {2, 0}, {2, 3}, {-1, 3}, {-1, 0}};
+    EXPECT_EQ(cw, calc_orientation(corners[0], corners[1], corners[2]));
+    EXPECT_EQ(ccw, calc_orientation(make_span(corners)));
+    std::reverse(corners.begin(), corners.end());
+    EXPECT_EQ(cw, calc_orientation(make_span(corners)));
+}
+
+TEST(PolygonUtilsTest, calc_polygon_orientation_degenerate)
+{
+    Real2 const line[] = {{1, 1}, {2, 2}, {3, 3}, {4, 4}};
+    EXPECT_EQ(col, calc_orientation(make_span(line)));
+    Real2 const point[] = {{1, 1}, {1, 1}, {1, 1}};
+    EXPECT_EQ(col, calc_orientation(make_span(point)));
 }
 
 TEST(PolygonUtilsTest, has_orientation)
