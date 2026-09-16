@@ -96,7 +96,7 @@ jobs:
             echo "number=$(jq -r '.pull_request.number' "$event_file")"
             author_id="$(jq -r '.pull_request.user.id' "$event_file")"
             author_login="$(jq -r '.pull_request.user.login' "$event_file")"
-            echo "author=$author_login <$author_id+author_login@users.noreply.github.com>"
+            echo "author=$author_login <$author_id+$author_login@users.noreply.github.com>"
           } >> "$GITHUB_OUTPUT"
       # NOTE: no 'ref' override -- this checks out the trusted base branch (see NOTE at top of
       # file), since everything run below (this action, scripts/ci/*.py) must never come from the
