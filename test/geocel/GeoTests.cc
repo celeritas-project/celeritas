@@ -12,7 +12,10 @@
 #include "corecel/Config.hh"
 
 #if CELERITAS_USE_GEANT4
-#    include <G4GeomConfig.hh>
+// Older Geant4 versions supply USolids macros through compiler definitions
+#    if __has_include(<G4GeomConfig.hh>)
+#        include <G4GeomConfig.hh>
+#    endif
 #endif
 
 #include "corecel/OpaqueIdUtils.hh"
