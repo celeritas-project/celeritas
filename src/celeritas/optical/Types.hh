@@ -25,6 +25,8 @@ using LocalPositionId = OpaqueId<struct LocalMat_, unsigned short int>;
 
 }  // namespace optical
 
+using ScintComponentId = OpaqueId<struct ScintDistributionRecord>;
+
 using ScintSpectrumId = OpaqueId<struct ScintSpectrumRecord>;
 
 //---------------------------------------------------------------------------//
