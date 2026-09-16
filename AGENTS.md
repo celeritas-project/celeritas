@@ -28,6 +28,12 @@ In its `experimental-full` JSON, read `input-file` and `file-deps` from each
 entry in `translation-units[].commands`; they are not translation-unit-level
 fields.
 
+### GitHub Actions annotations
+
+When emitting `::error` or `::warning` workflow commands, use paths relative
+to the repository root in the `file=` property. Escape `%`, CR, LF, `:`, and
+`,` in property values so annotations link to the source location in PR views.
+
 ### Header clang-tidy checks
 
 Before passing changed headers to `clang-tidy-diff.py`, map each header to

@@ -118,6 +118,15 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
     tidy_status=$?
     printf '%s\n' "$tidy_status" > "$tidy_status_file"
   ) | awk '
+    function escape_property(value) {
+      gsub(/%/, "%25", value)
+      gsub(/\r/, "%0D", value)
+      gsub(/\n/, "%0A", value)
+      gsub(/:/, "%3A", value)
+      gsub(/,/, "%2C", value)
+      return value
+    }
+
     function escape_annotation(value) {
       gsub(/%/, "%25", value)
       gsub(/\r/, "%0D", value)
@@ -153,10 +162,12 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
 
     /^[^:]+:[0-9]+:[0-9]+: error: / {
       split($0, diagnostic, ":")
+      file = diagnostic[1]
+      sub("^" ENVIRON["GITHUB_WORKSPACE"] "/", "", file)
       message = $0
       sub(/^[^:]+:[0-9]+:[0-9]+: error: /, "", message)
       print "========== CLANG-TIDY ERROR =========="
-      print "::error file=" diagnostic[1] ",line=" diagnostic[2] ",col=" diagnostic[3] "::" escape_annotation(message)
+      print "::error file=" escape_property(file) ",line=" diagnostic[2] ",col=" diagnostic[3] "::" escape_annotation(message)
       print "======================================="
     }
   '
