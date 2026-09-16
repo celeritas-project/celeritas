@@ -156,19 +156,28 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
       next
     }
 
-    {
-      print
-    }
-
     /^[^:]+:[0-9]+:[0-9]+: error: / {
       split($0, diagnostic, ":")
       file = diagnostic[1]
       sub("^" ENVIRON["GITHUB_WORKSPACE"] "/", "", file)
       message = $0
       sub(/^[^:]+:[0-9]+:[0-9]+: error: /, "", message)
-      print "========== CLANG-TIDY ERROR =========="
-      print "::error file=" escape_property(file) ",line=" diagnostic[2] ",col=" diagnostic[3] "::" escape_annotation(message)
-      print "======================================="
+      key = file SUBSEP diagnostic[2] SUBSEP diagnostic[3] SUBSEP message
+      if (!seen[key]++) {
+        print "::error file=" escape_property(file) ",line=" diagnostic[2] ",col=" diagnostic[3] "::" escape_annotation(message)
+      } else {
+        suppress_context = 2
+      }
+      next
+    }
+
+    suppress_context {
+      --suppress_context
+      next
+    }
+
+    {
+      print
     }
   '
   tidy_status=$(cat "$tidy_status_file")
