@@ -103,6 +103,10 @@ jobs:
       CELER_CMAKE_PRESET: vecgeom-tidy
       CLANG_TIDY: "clang-tidy-18"
       CLANG_TIDY_DIFF: "/usr/lib/llvm-18/share/clang/clang-tidy-diff.py"
+      # The options are either "all" the sources that directly or indirectly
+      # include the header files, or "one" single source file per header file.
+      # The "one" option is faster but may miss some issues.
+      CLANG_TIDY_HEADER_SOURCES: one
     runs-on: ubuntu-24.04
     steps:
       - name: Check out Celeritas

@@ -46,6 +46,15 @@ log info "Fetching base commit ${BASE_SHA} from ${REMOTE}"
 git fetch --depth 1 "${REMOTE}" "${BASE_SHA}"
 
 log info "Using clang-tidy: $CLANG_TIDY"
+CLANG_TIDY_HEADER_SOURCES=${CLANG_TIDY_HEADER_SOURCES:-all}
+case "$CLANG_TIDY_HEADER_SOURCES" in
+  all | one)
+    ;;
+  *)
+    log error "CLANG_TIDY_HEADER_SOURCES must be 'all' or 'one'"
+    exit 1
+    ;;
+esac
 # TODO: Remove the warning ignore when upgrading to LLVM 20 or newer, whose driver has
 # invalid escapes.
 diff_file=$(mktemp)
@@ -92,6 +101,7 @@ if grep -qE '^\+\+\+ b/(src|app|test)/.*\.hh$' "$diff_file"; then
     -format experimental-full > "$dependency_file"
 
   selected_count=$(python3 scripts/ci/clang-tidy-affected-sources.py \
+    "$CLANG_TIDY_HEADER_SOURCES" \
     "$header_file" "$source_file" "$dependency_file" "$source_regex_file")
 
   if [ "$selected_count" -eq 0 ]; then
