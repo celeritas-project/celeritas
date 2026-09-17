@@ -40,8 +40,8 @@ cd "${CELER_SOURCE_DIR}/example/minimal"
 build_local
 ./minimal
 
-# Run Geant4 app examples
-if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ]; then
+# Run Geant4 app examples unless DISABLE is set to a non-empty, non-zero value
+if [ -z "${CELER_DISABLE_G4_EXAMPLES}" ] || [ "${CELER_DISABLE_G4_EXAMPLES}" = "0" ]; then
   G4VERSION_STRING="auto"
   if [ -z "${G4VERSION_NUMBER}" ]; then
     # Get the geant4 version 11.2.3, failing if config isn't found

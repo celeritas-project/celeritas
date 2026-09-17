@@ -1,18 +1,8 @@
-toolchains:
-  ubuntu_clang:
-    - spec: "%c=llvm@18"
-      when: "%c"
-    - spec: "%cxx=llvm@18"
-      when: "%cxx"
-    - spec: "%fortran=gcc@13"
-      when: "%fortran"
-
 packages:
   all:
     target: [x86_64_v3]
     require:
       - "target=x86_64_v3"
-      - "%ubuntu_clang"
   bash:
     buildable: false
     externals:

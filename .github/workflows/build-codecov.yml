@@ -24,7 +24,7 @@ jobs:
   spack:
     name: spack-vecgeom
     env:
-      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
+      CELER_CMAKE_PRESET: vecgeom-codecov
       LLVM_COV: "llvm-cov-18"
       CC: "clang-18"
       CXX: "clang++-18"
@@ -60,7 +60,7 @@ jobs:
           preset: spack-codecov
           split-app: true
       - name: Generate and upload coverage report
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         uses: ./.github/actions/process-coverage
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
@@ -70,7 +70,7 @@ jobs:
   docker:
     name: docker-vecgeom-cuda
     env:
-      CELER_CMAKE_PRESET: ndebug-vecgeom-codecov
+      CELER_CMAKE_PRESET: vecgeom-codecov
       CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
     runs-on: ubuntu-24.04
     container:

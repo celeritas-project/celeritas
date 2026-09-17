@@ -30,26 +30,15 @@ jobs:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack-extra.yml
+  build-regression:
+    if: github.repository == 'celeritas-project/celeritas'
+    needs: [clear-cache]
+    uses: ./.github/workflows/build-regression.yml
   build-codecov:
     if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-codecov.yml
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
-  all:
-    if: ${{!cancelled()}}
-    needs:
-      - build-ultralite
-      - build-fast
-      - build-spack
-      - build-spack-extra
-      - build-codecov
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check that all jobs succeeded
-        uses: re-actors/alls-green@release/v1
-        with:
-          jobs: ${{toJSON(needs)}}
 
 # vim: set nowrap tw=100:
