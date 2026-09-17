@@ -4,7 +4,6 @@
 """Run clang-tidy on source changes and translation units affected by headers."""
 
 import argparse
-import os
 import re
 import shutil
 import subprocess
@@ -54,9 +53,7 @@ def scanner_path(clang_tidy: str) -> str:
     tidy_path = Path(command_path(clang_tidy))
     match = re.fullmatch(r"clang-tidy(-.*)?", tidy_path.name)
     suffix = match.group(1) if match is not None else "-18"
-    return os.environ.get(
-        "CLANG_SCAN_DEPS", str(tidy_path.with_name(f"clang-scan-deps{suffix}"))
-    )
+    return str(tidy_path.with_name(f"clang-scan-deps{suffix}"))
 
 
 def escape_property(value: str) -> str:
@@ -80,7 +77,6 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
     generated: set[str] = set()
     seen: set[tuple[str, str, str, str]] = set()
     suppress_context = 0
-    workspace = Path(os.environ.get("GITHUB_WORKSPACE", repo_root))
 
     for line in lines:
         line = line.rstrip("\n")
@@ -101,7 +97,7 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
             path, line_number, column, message = match.groups()
             try:
                 relative_path = str(
-                    Path(path).resolve().relative_to(workspace.resolve())
+                    Path(path).resolve().relative_to(repo_root.resolve())
                 )
             except ValueError:
                 relative_path = path
@@ -137,13 +133,9 @@ def run(args: argparse.Namespace) -> int:
     """Run clang-tidy for the requested base commit."""
     repo_root = args.repo_root.resolve()
     build_dir = args.build_dir.resolve()
-    clang_tidy = os.environ.get("CLANG_TIDY")
-    clang_tidy_diff = os.environ.get("CLANG_TIDY_DIFF")
-    if not clang_tidy or not clang_tidy_diff:
-        raise RuntimeError("CLANG_TIDY and CLANG_TIDY_DIFF must be defined")
-    if not Path(clang_tidy_diff).is_file():
-        raise RuntimeError(f"clang-tidy-diff.py not found: {clang_tidy_diff}")
-    command_path(clang_tidy)
+    if not args.clang_tidy_diff.is_file():
+        raise RuntimeError(f"clang-tidy-diff.py not found: {args.clang_tidy_diff}")
+    command_path(args.clang_tidy)
 
     log(LogLevel.NOTICE, f"Fetching base commit {args.base_sha} from {args.remote}")
     subprocess.run(
@@ -160,8 +152,8 @@ def run(args: argparse.Namespace) -> int:
     ).stdout
     headers, sources = changed_paths(diff)
     if headers:
-        scanner = command_path(scanner_path(clang_tidy))
-        runner = command_path(os.environ.get("RUN_CLANG_TIDY", "run-clang-tidy"))
+        scanner = command_path(args.clang_scan_deps or scanner_path(args.clang_tidy))
+        runner = command_path(args.run_clang_tidy)
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_dir = Path(temp_dir)
             header_file = temp_dir / "headers.txt"
@@ -213,7 +205,7 @@ def run(args: argparse.Namespace) -> int:
                 [
                     runner,
                     "-clang-tidy-binary",
-                    clang_tidy,
+                    args.clang_tidy,
                     "-p",
                     str(build_dir),
                     regex_file.read_text(),
@@ -221,13 +213,14 @@ def run(args: argparse.Namespace) -> int:
                 repo_root,
             )
 
-    env = dict(os.environ, PYTHONWARNINGS="ignore::SyntaxWarning")
     return subprocess.run(
         [
             sys.executable,
-            clang_tidy_diff,
+            "-W",
+            "ignore::SyntaxWarning",
+            str(args.clang_tidy_diff),
             "-clang-tidy-binary",
-            clang_tidy,
+            args.clang_tidy,
             "-p",
             "1",
             "-path",
@@ -238,7 +231,6 @@ def run(args: argparse.Namespace) -> int:
         cwd=repo_root,
         input=diff,
         text=True,
-        env=env,
     ).returncode
 
 
@@ -248,13 +240,17 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("remote")
     parser.add_argument("base_sha")
+    parser.add_argument("--clang-tidy", required=True)
+    parser.add_argument("--clang-tidy-diff", type=Path, required=True)
+    parser.add_argument("--clang-scan-deps")
+    parser.add_argument("--run-clang-tidy", default="run-clang-tidy")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--build-dir", type=Path, default=Path.cwd() / "build")
     parser.add_argument(
         "--header-sources",
         type=HeaderSources,
         choices=tuple(HeaderSources),
-        default=os.environ.get("CLANG_TIDY_HEADER_SOURCES", HeaderSources.ALL),
+        default=HeaderSources.ALL,
     )
     parser.add_argument(
         "--source-selector",
