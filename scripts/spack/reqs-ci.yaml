@@ -19,7 +19,7 @@ mirrors::
       secret_variable: GITHUB_TOKEN
 
 config:
-  deprecated: True # needed for old vecgeom rc7
+  deprecated: True # allow historical dependency versions in the CI matrix
   install_tree:
     # NOTE: use padded_length when pushing to buildcache, but it can be
     # avoided when installing as part of CI

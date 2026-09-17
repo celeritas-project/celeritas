@@ -74,6 +74,7 @@ jobs:
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: ${{env.CXXSTD}}
+          # VecGeom 2 needs the IndexedBVH implementation added after rc.7.
           add: >-
             ${{(matrix.special != 'static'
                 && env.CXXSTD == '20')
@@ -81,7 +82,7 @@ jobs:
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
-               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.0.0-rc.7'
+               || matrix.geometry == 'vecgeom2' && 'vecgeom@git.7dd3e81e4ef949eb26bf7747d867db8005779928=master'
                || ''
             }}
             ${{(matrix.geometry == 'vecgeom'
