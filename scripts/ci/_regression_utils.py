@@ -23,12 +23,16 @@ class LogLevel(StrEnum):
 
 
 def log(level: str | LogLevel, what: str) -> None:
-    """Emit a GitHub Actions log annotation with caller filename and line number."""
+    """Emit a plain notice or GitHub Actions annotation at the caller location."""
     if not isinstance(level, LogLevel):
         level = LogLevel(level.lower())
 
     if level not in LogLevel:
         raise ValueError(f"unsupported log level: {level!r}")
+
+    if level is LogLevel.NOTICE:
+        print(what, file=sys.stderr)
+        return
 
     frame = inspect.currentframe()
     caller = frame.f_back if frame is not None else None
