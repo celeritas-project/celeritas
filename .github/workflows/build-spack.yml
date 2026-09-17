@@ -80,12 +80,14 @@ jobs:
                && 'root' || ''
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
-            ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11 g4vg' || ''}}
-          # Allow source builds for the IndexedBVH revision and its G4VG adapter.
-          add-dependent: >-
-            ${{matrix.geometry == 'vecgeom2'
-               && 'vecgeom@git.7dd3e81e4ef949eb26bf7747d867db8005779928=master~cuda~surface g4vg'
-               || ''}}
+            ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
+               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
+               || ''
+            }}
+            ${{(matrix.geometry == 'vecgeom'
+                || matrix.geometry == 'vecgeom2')
+               && 'g4vg' || ''
+            }}
 
       ### BUILD ###
 
