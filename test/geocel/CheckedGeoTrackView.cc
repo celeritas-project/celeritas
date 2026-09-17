@@ -8,6 +8,8 @@
 
 #include <optional>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
@@ -17,6 +19,7 @@
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/GeoParamsInterface.hh"
+#include "geocel/UnitLength.hh"
 #include "geocel/VolumeParams.hh"
 
 using namespace celeritas::literals;
@@ -28,6 +31,15 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
+//! Print a label with the native unit length
+struct NativeLength
+{
+    friend std::ostream& operator<<(std::ostream& os, NativeLength const&)
+    {
+        os << " [" << native_unit_length.label << ']';
+        return os;
+    }
+};
 
 struct StreamableUniqueVolName
 {
@@ -67,37 +79,6 @@ std::ostream& operator<<(std::ostream& os, StreamableUniqueVolName const& suvn)
             os << "[INVALID]";
         }
     }
-    return os;
-}
-
-//! Print a length/position as a quantity with units
-template<class T>
-struct StreamableLength
-{
-    T const& native_value;
-    UnitLength const& units;
-};
-
-// Needed for C++17
-template<class T>
-StreamableLength(T const&, UnitLength) -> StreamableLength<T>;
-
-template<class T>
-std::ostream& operator<<(std::ostream& os, StreamableLength<T> const& sl)
-{
-    os << repr(sl.units.from_native(sl.native_value)) << " [" << sl.units.label
-       << ']';
-    return os;
-}
-
-//! Print a length/position as a quantity with units
-struct NativeLength
-{
-};
-
-std::ostream& operator<<(std::ostream& os, NativeLength const&)
-{
-    os << " [" << lengthunits::native_label << ']';
     return os;
 }
 
@@ -448,8 +429,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         real_type new_safety = t_->find_safety();
         if (!(new_safety > 0))
         {
-            auto const& units = this->unit_length();
-            CGTV_LOG(warning)
+            CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
@@ -635,11 +615,15 @@ std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
  */
 std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
 {
-    // Length scale and description
+    // Print high-precision pos/dir with desired units
     auto const& units = geo.unit_length();
+    auto const orig_precision = os.precision();
+    os.precision(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 7 : 14);
+    os << "at " << StreamableLength{geo.pos(), units} << " along " << geo.dir()
+       << ", ";
+    os.precision(orig_precision);
 
-    os << "at " << StreamableLength{geo.pos(), units} << " along "
-       << repr(geo.dir()) << ", ";
+    // Flags and states
     if (geo.failed())
     {
         os << "[FAILED] ";

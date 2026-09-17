@@ -17,7 +17,6 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
-#include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/inp/Model.hh"
 

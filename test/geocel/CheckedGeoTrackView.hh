@@ -12,8 +12,7 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-
-#include "UnitUtils.hh"
+#include "geocel/UnitLength.hh"
 
 namespace celeritas
 {
