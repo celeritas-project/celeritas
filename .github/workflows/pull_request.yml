@@ -35,13 +35,16 @@ jobs:
     name: "Save job metadata"
     runs-on: ubuntu-24.04
     steps:
-      # Event file is needed for pull_request_completed.report-tests
+      # Event file is needed for pull_request_completed to provide the fork's context
       - name: Upload event file
         id: upload
         uses: actions/upload-artifact@v7
         with:
           name: event-file
           path: ${{github.event_path}}
+          if-no-files-found: error
+          retention-days: 1
+
   build-fast:
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
@@ -66,6 +69,11 @@ jobs:
     needs: [all-prechecks]
     uses: ./.github/workflows/build-spack-extra.yml
 
+  # Defer large jobs while the PR is in draft state
+  build-regression:
+    if: ${{github.event.pull_request.draft == false}}
+    needs: [all-prechecks]
+    uses: ./.github/workflows/build-regression.yml
   build-docker:
     if: ${{github.event.pull_request.draft == false}}
     needs: [all-prechecks]
@@ -78,6 +86,7 @@ jobs:
   all-expensive:
     # This job will be skipped automatically for draft PRs
     needs:
+      - build-regression
       - build-docker
       - build-codecov
     runs-on: ubuntu-24.04
