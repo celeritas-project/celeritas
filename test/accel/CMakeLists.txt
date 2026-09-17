@@ -52,8 +52,10 @@ endif()
 # For convenience, you can set the variable to "regression" to compare or "regression-update"
 # to force an update.
 set(CELERITASTEST_ACCEL_WRAPPER "" CACHE STRING
-  "Arguments to add before calls to accel integration test executables"
+  "Arguments to add before calls to accel integration test executables (or 'regression' or 'regression-update')"
 )
+mark_as_advanced(CELERITASTEST_ACCEL_WRAPPER)
+
 if(CELERITASTEST_ACCEL_WRAPPER MATCHES "^regression(-update)?$")
   set(_force)
   if(CMAKE_MATCH_1)
