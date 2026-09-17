@@ -7,13 +7,12 @@
 #include "CheckedGeoTrackView.hh"
 
 #include <optional>
-#include <stdexcept>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
-#include "corecel/math/ArrayOperators.hh"
+#include "corecel/math/ArrayOperators.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
