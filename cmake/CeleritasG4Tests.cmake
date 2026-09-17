@@ -21,16 +21,23 @@ run manager.
   celeritas_g4_add_tests(
     <target>
     [NAME string]        # test name (default: target)
+    [WRAP executable]    # call this executable by prepending to COMMAND list
     [ARGS arg [...]]     # passed to command line
     [LABELS label [...]] # tagged in CTestFile
     [RMTYPE [serial] [mt] [task]] # run manager
-    [OFFLOAD [cpu] [gpu] [g4] [ko]] # offload
+    [OFFLOAD [cpu] [gpu] [g4] [ko]] # offload/disable/kill
     [DISABLE]            # display but don't run
     [WILL_FAIL]          # expect the test to exit with a failure
   )
 
 
   Note that DISABLE silently overrides WILL_FAIL.
+
+Variables
+^^^^^^^^^
+
+``CELERITASTEST_G4NT`` : str
+  Force the G4 run manager to use this number of threads for workers/thread pool (MT and Task modes).
 
 #]=======================================================================]
 
@@ -67,13 +74,16 @@ if(Geant4_VERSION VERSION_LESS 11.0)
   set(_rm_avail_task FALSE)
 endif()
 
-# Set number of threads allowed
-set(_rm_threads 2)
+# Set default number of threads allowed for mt/task jobs
+set(CELERITASTEST_G4NT "2" CACHE STRING
+  "Default number of threads to use in CeleritasG4Tests")
+mark_as_advanced(CELERITASTEST_G4NT)
 
-function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
-  add_test(NAME "${test_name}" COMMAND "$<TARGET_FILE:${target}>" ${args})
+# Set up a single G4 ctest with correct environment variables and labels.
+# Extra arguments are passed to set_tests_properties.
+function(celeritas_g4_set_tests_properties test_names label_list offload rmtype)
   if(NOT DEFINED _rm_${rmtype})
-    message(SEND_ERROR "Invalid run manager type ${rmtype}")
+    message(SEND_ERROR "Invalid run manager type '${rmtype}'")
   endif()
   set(_env
     ${_celer_g4_test_env}
@@ -86,7 +96,7 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
     endif()
   elseif(offload STREQUAL "gpu")
     list(APPEND _extra_props RESOURCE_LOCK gpu)
-    list(APPEND labels gpu)
+    list(APPEND label_list gpu)
   elseif(offload STREQUAL "g4")
     list(APPEND _env "CELER_DISABLE=1")
   elseif(offload STREQUAL "ko")
@@ -95,20 +105,20 @@ function(celeritas_g4_add_one_test test_name target args labels offload rmtype)
     message(SEND_ERROR "Invalid offload type ${offload}")
   endif()
   if(NOT rmtype STREQUAL "serial")
-    list(APPEND _env "G4FORCENUMBEROFTHREADS=${_rm_threads}")
-    list(APPEND _extra_props PROCESSORS ${_rm_threads})
+    list(APPEND _env "G4FORCENUMBEROFTHREADS=${CELERITASTEST_G4NT}")
+    list(APPEND _extra_props PROCESSORS ${CELERITASTEST_G4NT})
   endif()
 
-  set_tests_properties("${test_name}" PROPERTIES
+  set_tests_properties(${test_names} PROPERTIES
     ENVIRONMENT "${_env}"
-    LABELS "${labels}"
+    LABELS "${label_list}"
     ${_extra_props}
     ${ARGN}
   )
 endfunction()
 
 function(celeritas_g4_add_tests target)
-  cmake_parse_arguments(PARSE "DISABLE;WILL_FAIL" "NAME" "ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
+  cmake_parse_arguments(PARSE "DISABLE;WILL_FAIL" "NAME" "WRAP;ARGS;LABELS;RMTYPE;OFFLOAD" ${ARGN})
   if(PARSE_UNPARSED_ARGUMENTS)
     message(SEND_ERROR "Unknown keywords given to celeritas_g4_add_tests(): "
             "\"${PARSE_UNPARSED_ARGUMENTS}\"")
@@ -141,10 +151,18 @@ function(celeritas_g4_add_tests target)
       endif()
 
       set(_test_name "${PARSE_NAME}:${_offload}:${_rmtype}")
-      celeritas_g4_add_one_test(
-        ${_test_name} ${target} "${PARSE_ARGS}" "${PARSE_LABELS}"
-        ${_offload} ${_rmtype} ${_args}
+      add_test(NAME "${_test_name}" COMMAND ${PARSE_WRAP} "$<TARGET_FILE:${target}>" ${PARSE_ARGS})
+      celeritas_g4_set_tests_properties(
+        "${_test_name}"
+        "${PARSE_LABELS}" "${_offload}" "${_rmtype}"
+        ${_args}
       )
+      if(PARSE_WRAP)
+        set_property(TEST "${_test_name}"
+          APPEND PROPERTY ENVIRONMENT
+            "CELER_TEST_NAME=${_test_name}"
+        )
+      endif()
     endforeach()
   endforeach()
 endfunction()

@@ -67,7 +67,7 @@
     {
       "name": ".vecgeom",
       "hidden": true,
-      "description": "CONFIG: options to enable VecGeom on Ubuntu",
+      "description": "CONFIG: options to enable VecGeom",
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" }
       }
@@ -167,6 +167,17 @@
       "cacheVariables": {
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "ON" },
         "CMAKE_CXX_FLAGS": null
+      }
+    },
+    {
+      "name": "orange-regression",
+      "description": "FINAL: ORANGE for integration regression testing",
+      "inherits": ["tool-spack"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_APPS": { "type": "BOOL", "value": "OFF" },
+        "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITASTEST_G4NT": "1"
       }
     },
     {
@@ -312,6 +323,24 @@
       }
     },
     {
+      "name": ".integration",
+      "configurePreset": "base",
+      "execution": {
+        "timeout": 120
+      },
+      "filter": {
+        "include": {
+          "label": "integration"
+        },
+        "exclude": {
+          "label": "gpu"
+        }
+      },
+      "output": {
+        "outputJUnitFile": "$env{GITHUB_WORKSPACE}/test-output/ctest/integration.xml"
+      }
+    },
+    {
       "name": "spack-unit",
       "configurePreset": "tool-spack",
       "inherits": [".unit", ".base"]
@@ -334,6 +363,10 @@
       "execution": {
         "timeout": 60
       }
+    },
+    {
+      "name": "spack-regression",
+      "inherits": [".integration", ".base"]
     },
     {
       "name": "fast-unit",

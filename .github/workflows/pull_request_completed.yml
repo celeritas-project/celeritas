@@ -16,19 +16,27 @@ on:
     workflows: ["pull_request"]
     types:
       - completed
+  # Enable testing via workflow dispatch
+  workflow_dispatch:
+    inputs:
+      workflow_run_id:
+        description: "Run ID from workflow to test"
+        required: true
+        type: number
 
 permissions:
   actions: read
   checks: write
+  contents: read
   pull-requests: write
 
 jobs:
   report-tests:
+    if: ${{ github.event_name == 'workflow_run' }}
     runs-on: ubuntu-24.04
-    env:
-      ARTIFACTS_DIR: artifacts
     steps:
       - name: Download Artifacts
+        id: download
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1, 11 Mar 2026
         with:
           # See:
@@ -38,22 +46,135 @@ jobs:
           pattern: "+(event-file|test-results-*)"
           merge-multiple: false
           github-token: ${{secrets.GITHUB_TOKEN}}
-          run-id: ${{github.event.workflow_run.id}}
-          path: ${{env.ARTIFACTS_DIR}}
+          run-id: ${{inputs.workflow_run_id || github.event.workflow_run.id}}
+          path: ${{runner.temp}}/artifacts
       - name: Publish PR comment
         uses: EnricoMi/publish-unit-test-result-action@d0a4676d0e0b938bc201470d88276b7c74c712b3 # v2.24.0, 15 June 2026
         if: ${{!cancelled()}}
         with:
           check_name: "Test summary"
           commit: ${{github.event.workflow_run.head_sha}}
-          event_file: ${{env.ARTIFACTS_DIR}}/event-file/event.json
+          event_file: "${{steps.download.outputs.download-path}}/event-file/event.json"
           event_name: ${{github.event.workflow_run.event}}
-          files: "${{env.ARTIFACTS_DIR}}/**/*.xml"
+          files: "${{steps.download.outputs.download-path}}/**/*.xml"
       - name: Publish comments on source code
         uses: mikepenz/action-junit-report@d9f48fc87bc235f7e214acf696ca5abc0a986f16 # v6.4.2, 20 June 2026
         if: ${{!cancelled()}}
         with:
           commit: ${{github.event.workflow_run.head_sha}}
-          report_paths: "${{env.ARTIFACTS_DIR}}/**/*.xml"
+          report_paths: "${{steps.download.outputs.download-path}}/**/*.xml"
+
+  report-regression:
+    runs-on: ubuntu-24.04
+    env:
+      COMMENT_BODY_FILE: regression-comment.md
+      REGRESSION_PATCH_DIR: regression-patch
+    steps:
+      - name: Download Artifacts
+        id: download
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1, 11 Mar 2026
+        with:
+          # NOTE: artifact names MUST match:
+          # 1. `pull_request.yml` event
+          # 2. `run-ctest/action.yml` test name
+          # 3. `build-regression.yml` artifact dir
+          pattern: "+(event-file|*regression-*)"
+          merge-multiple: false
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          run-id: ${{inputs.workflow_run_id || github.event.workflow_run.id}}
+          path: ${{runner.temp}}/artifacts # temp dir avoids overwrite from git checkout
+      - name: Process event file
+        id: event
+        uses: actions/github-script@v9
+        env:
+          ARTIFACTS_DIR: ${{steps.download.outputs.download-path}}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const path = require('node:path');
+
+            const eventFile = path.join(process.env.ARTIFACTS_DIR, 'event-file', 'event.json');
+            if (!fs.existsSync(eventFile)) {
+              core.setFailed(`Missing event file: ${eventFile}`);
+              return;
+            }
+
+            const event = JSON.parse(fs.readFileSync(eventFile, 'utf8'));
+            const pull_request = event.pull_request;
+            if (!pull_request) {
+              core.setFailed(`Missing pull_request data in event file: ${eventFile}`);
+              return;
+            }
+
+            const authorId = pull_request.user.id;
+            const authorLogin = pull_request.user.login;
+
+            core.setOutput('event-file', eventFile);
+            core.setOutput('pr-number', Number(pull_request.number));
+            core.setOutput('author', `${authorLogin} <${authorId}+${authorLogin}@users.noreply.github.com>`);
+            core.setOutput('sha', pull_request.head.sha);
+
+      # Note that since this action has celeritas-project write privileges, we must check out the validated
+      # develop branch rather than the PR itself. The PR is fetched at the analyze-regression stage.
+      - name: Check out Celeritas develop
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Install Python packages
+        run: |
+          pip install --upgrade pip
+          pip install -r scripts/ci/regression-requirements.txt
+      - name: Analyze regression results
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          ARTIFACTS_DIR: ${{steps.download.outputs.download-path}}
+          PR_SHA: ${{steps.event.outputs.sha}}
+          PR_AUTHOR: ${{steps.event.outputs.author}}
+          ACTION_URL: >-
+            ${{format(
+              '{0}/{1}/actions/runs/{2}',
+              github.server_url,
+              github.repository,
+              inputs.workflow_run_id || github.event.workflow_run.id
+            )}}
+        run: |
+          git fetch origin "${PR_SHA}:refs/heads/pr-head"
+          python3 scripts/ci/process-regression.py \
+            --artifacts-dir "${ARTIFACTS_DIR}" \
+            --author "${PR_AUTHOR}" \
+            --pr-ref refs/heads/pr-head \
+            --actions-run-url "${ACTION_URL}" \
+            --patch-dir "${REGRESSION_PATCH_DIR}/" \
+            -o "${COMMENT_BODY_FILE}"
+      - name: Upload regression-update patch
+        id: upload
+        if: ${{steps.analyze.outputs.status == 'failure'}}
+        uses: actions/upload-artifact@v7
+        with:
+          name: regression-patch-${{github.run_id}}
+          path: ${{env.REGRESSION_PATCH_DIR}}/*
+          retention-days: 14
+          if-no-files-found: error
+      - name: Post regression comment
+        shell: bash
+        if: ${{!cancelled() && steps.analyze.outputs.status != ''}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          REPO: ${{github.repository}}
+          PR_NUMBER: ${{steps.event.outputs.pr-number}}
+          STATUS: ${{steps.analyze.outputs.status}}
+          ARTIFACT_URL: ${{steps.upload.outputs.artifact-url}}
+        run: |
+          python3 scripts/ci/post-regression-comment.py \
+            --repo "${REPO}" \
+            --pr-number "${PR_NUMBER}" \
+            --status "${STATUS}" \
+            --comment-body-file "${COMMENT_BODY_FILE}" \
+            --artifact-url "${ARTIFACT_URL}"
 
 # vim: set nowrap tw=100:
