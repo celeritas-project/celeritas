@@ -126,7 +126,7 @@ jobs:
       - name: Build changed files with clang-tidy
         if: ${{github.event_name == 'pull_request'}}
         run: |
-          "${{github.workspace}}/scripts/ci/clang-tidy-changed.sh" \
+          python3 "${{github.workspace}}/scripts/ci/clang-tidy-changed.py" \
             "origin" \
             "${{ github.event.pull_request.base.sha }}"
 
