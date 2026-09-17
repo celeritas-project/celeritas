@@ -31,9 +31,9 @@ import json
 import os
 import sys
 import tempfile
+import textwrap
 from collections.abc import Sequence
 from pathlib import Path, PurePosixPath
-import textwrap
 
 from _regression_utils import LogLevel, Status, log, run_git
 
@@ -276,9 +276,11 @@ def main(argv: Sequence[str]) -> int:
 
     if args.output is None:
         print(comment)
-    else:
+    elif comment is not None:
         log(LogLevel.DEBUG, f"Writing comment to {args.output}")
         args.output.write_text(comment)
+    else:
+        log(LogLevel.DEBUG, f"No comment: status is {status}")
 
     if (gha_filename := os.environ.get("GITHUB_OUTPUT")) is not None:
         log(LogLevel.DEBUG, f"Writing GHA output to {gha_filename!r}")
