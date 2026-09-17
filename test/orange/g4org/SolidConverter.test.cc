@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "orange/g4org/SolidConverter.hh"
 
+#include <algorithm>
 #include <initializer_list>
 #include <random>
 #include <G4BooleanSolid.hh>
@@ -430,24 +431,37 @@ TEST_F(SolidConverterTest, generic_polycone)
     std::vector<G4double> z{
         -0.5, 0.5, 0.0, 0.2, 0.1, 0.2, -0.1, 0.7, 0.0, -0.5, -0.5, -0.49};
 
-    // Test 5 points near tricky corners and 2 outside of the azimuthal range
-    this->build_and_test(
-        G4GenericPolycone("testGenericPolycone",
-                          phi_start,
-                          phi_end,
-                          r.size(),
-                          r.data(),
-                          z.data()),
-        R"json({"_type":"revolvedpolygon","enclosed_azi":{"start":0.0,"stop":0.25},"label":"testGenericPolycone","polygon":[[0.034999999999999996,-0.049],[0.04000000000000001,-0.05],[0.13,-0.05],[0.15000000000000002,0.0],[0.12,0.06999999999999999],[0.11000000000000001,-0.010000000000000002],[0.08000000000000002,0.020000000000000004],[0.07500000000000001,0.010000000000000002],[0.06999999999999999,0.020000000000000004],[0.045000000000000005,0.0],[0.0,0.05],[0.03,-0.05]]})json",
+    // Check both input windings, including points inside the polycone
+    for (int winding : range(2))
+    {
+        SCOPED_TRACE(winding);
+        if (winding == 1)
         {
-            {0.01, 0.011, -0.2},
-            {0.39, 0.79, 1.0},
-            {0.79, 0.39, 0.6},
-            {0.81, 0.4, -0.2},
-            {0.89, 1.18, 0.0},
-            {-0.81, 0.4, -0.2},
-            {-0.81, -0.4, -0.2},
-        });
+            std::reverse(r.begin(), r.end());
+            std::reverse(z.begin(), z.end());
+        }
+
+        // Test 5 points near tricky corners and 2 outside of the azimuthal range
+        this->build_and_test(
+            G4GenericPolycone("testGenericPolycone",
+                              phi_start,
+                              phi_end,
+                              r.size(),
+                              r.data(),
+                              z.data()),
+            R"json({"_type":"revolvedpolygon","enclosed_azi":{"start":0.0,"stop":0.25},"label":"testGenericPolycone","polygon":[[0.034999999999999996,-0.049],[0.04000000000000001,-0.05],[0.13,-0.05],[0.15000000000000002,0.0],[0.12,0.06999999999999999],[0.11000000000000001,-0.010000000000000002],[0.08000000000000002,0.020000000000000004],[0.07500000000000001,0.010000000000000002],[0.06999999999999999,0.020000000000000004],[0.045000000000000005,0.0],[0.0,0.05],[0.03,-0.05]]})json",
+            {
+                {0.01, 0.011, -0.2},
+                {0.39, 0.79, 1.0},
+                {0.79, 0.39, 0.6},
+                {0.81, 0.4, -0.2},
+                {0.89, 1.18, 0.0},
+                {-0.81, 0.4, -0.2},
+                {-0.81, -0.4, -0.2},
+                {0.05, 0.05, 0},
+                {0.001, 0.001, 0},
+            });
+    }
 }
 
 TEST_F(SolidConverterTest, generictrap)
@@ -766,6 +780,10 @@ TEST_F(SolidConverterTest, polycone)
                        rmax),
             R"json({"_type":"transformed","daughter":{"_type":"solid","enclosed_azi":{"start":0.9805555555555555,"stop":1.5194444444444444},"excluded":{"_type":"cone","halfheight":13.0,"radii":[105.0,130.5]},"interior":{"_type":"cone","halfheight":13.0,"radii":[106.0,131.5]},"label":"ECT_TS_CentralTube_top"},"transform":{"_type":"translation","data":[0.0,0.0,186.0]}})json");
 
+#if defined(G4GEOM_USE_UPOLYCONE)
+        // USolids normalizes the z planes before conversion
+        EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+#else
         if constexpr (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
             static char const* const expected_log_messages[] = {
@@ -775,6 +793,7 @@ TEST_F(SolidConverterTest, polycone)
         }
         static char const* const expected_log_levels[] = {"warning"};
         EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+#endif
     }
 }
 

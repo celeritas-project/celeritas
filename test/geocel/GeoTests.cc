@@ -11,6 +11,16 @@
 
 #include "corecel/Config.hh"
 
+#if CELERITAS_USE_GEANT4 && CELERITAS_GEANT4_VERSION >= 0x0a0600
+#    include <G4GeomConfig.hh>
+#endif
+
+#if CELERITAS_USE_GEANT4 && defined(G4GEOM_USE_USOLIDS)
+#    define CELERITAS_TEST_GEANT4_USOLIDS 1
+#else
+#    define CELERITAS_TEST_GEANT4_USOLIDS 0
+#endif
+
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -2009,6 +2019,12 @@ void SolidsGeoTest::test_trace() const
             33.481506089183,
         };
 
+        if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+        {
+            // VecGeom's solid safety can be more conservative than native G4
+            ref.halfway_safeties[2] = 36.9728429405546;
+        }
+
         if (test_->geometry_type() == "VecGeom")
         {
             // v1.2.11: unknown differences outside polycone and paraboloid
@@ -2123,6 +2139,18 @@ void SolidsGeoTest::test_trace() const
                 // overestimates safety distance to twisted surfaces
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
+            }
+            if constexpr (CELERITAS_TEST_GEANT4_USOLIDS)
+            {
+                // Geant4 navigation using VecGeom solid safety implementations
+                ref.halfway_safeties[4] = 17.4966506197896;
+                ref.halfway_safeties[5] = 39.0470100365853;
+                ref.halfway_safeties[6] = 17.5;
+                ref.halfway_safeties[7] = 29.8360600858068;
+                ref.halfway_safeties[8] = 29.1115376091068;
+                ref.halfway_safeties[14] = 19.0382940808067;
+                ref.halfway_safeties[15] = 0.5;
+                ref.halfway_safeties[16] = 0.5;
             }
         }
         else if (test_->geometry_type() == "VecGeom")
