@@ -242,8 +242,11 @@ TEST_F(FourLevelsTest, reentrant_normal)
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_reentrant_normal();
 
-    scoped_log_.print_expected();
-    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
+    static char const* const expected_log_messages[] = {
+        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
+    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    static char const* const expected_log_levels[] = {"error"};
+    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 }
 
 TEST_F(FourLevelsTest, safety)

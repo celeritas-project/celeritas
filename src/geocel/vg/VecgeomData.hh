@@ -18,13 +18,6 @@
 
 #include "VecgeomTypes.hh"
 
-#if CELERITAS_VECGEOM_VERSION >= 0x020000 && defined(VECGEOM_ENABLE_CUDA)
-// IWYU errors from navindex/tuple
-#    include <VecGeom/base/Cuda.h>
-#    include <VecGeom/base/Global.h>
-#    include <VecGeom/management/CudaManager.h>
-#endif
-
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include "detail/VecgeomNavCollection.hh"
 #elif CELER_VGNAV == CELER_VGNAV_TUPLE
@@ -37,7 +30,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-inline constexpr VgSurfaceInt vg_null_surface{-1};
 inline constexpr VgNavIndex vg_outside_nav_index{0};
 
 //---------------------------------------------------------------------------//
@@ -128,10 +120,14 @@ struct VecgeomStateData
 
     template<class T>
     using StateItems = StateCollection<T, W, M>;
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using VgStateItems = detail::VecgeomNavCollection<W, M>;
+#if CELERITAS_VECGEOM_VERSION >= 0x020100
+    // Store *full* nav state: prev, cur, boundary for each
+    using VgStateItems = StateItems<VgNavState>;
+#elif CELER_VGNAV != CELER_VGNAV_PATH
+    using VgStateItems = StateItems<VgOpaqueNavPath>;
 #else
-    using VgStateItems = StateItems<VgNavStateImpl>;
+    // DEPRECATED: delete with 1.x
+    using VgStateItems = detail::VecgeomNavCollection<W, M>;
 #endif
 
     //// DATA ////
@@ -142,9 +138,7 @@ struct VecgeomStateData
 
     // Logical volumetric state
     VgStateItems state;
-    StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
-    VgStateItems next_state;  // TODO: prev_state
-    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
+    VgStateItems next_state;
 
     //// METHODS ////
 
@@ -155,9 +149,7 @@ struct VecgeomStateData
         return pos.size() > 0
             && dir.size() == pos.size()
             && state.size() == pos.size()
-            && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
-            && next_state.size() == pos.size()
-            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0);
+            && next_state.size() == pos.size();
         // clang-format on
     }
 
@@ -172,9 +164,7 @@ struct VecgeomStateData
         pos = other.pos;
         dir = other.dir;
         state = other.state;
-        boundary = other.boundary;
         next_state = other.next_state;
-        next_boundary = other.next_boundary;
         return *this;
     }
 };

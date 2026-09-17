@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 
+#include "corecel/io/Logger.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
 
@@ -72,6 +73,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     TrackT const& track_view() const { return *t_; }
     //! Access the underlying track view
     TrackT& track_view() { return *t_; }
+
+    //! Access the underlying logger
+    Logger const& logger() const { return log_; }
+    //! Access the underlying logger
+    Logger& logger() { return log_; }
 
     //! Check volume consistency this far from the boundary
     real_type safety_tol() const { return 1e-4 * unit_length_.value; }
@@ -175,6 +181,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 
   private:
     UPTrack t_;
+    Logger log_;
 
     // Metadata
     SPConstVolumes volumes_;
