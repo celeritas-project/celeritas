@@ -14,12 +14,15 @@
 #include "corecel/sys/Openmp.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/optical/TrackExecutor.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "Transporter.hh"
+#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
@@ -130,12 +133,21 @@ void Runner::insert(SpanConstGenDist data)
      * for some run modes, e.g. offloading distributions through accel where we
      * already know the number of pending tracks.
      */
-    auto counters = state_->sync_get_counters();
+    size_type total_pending(0);
     for (auto const& d : data)
     {
-        counters.num_pending += d.num_photons;
+        total_pending += d.num_photons;
     }
-    state_->sync_put_counters(counters);
+    if (celeritas::device())
+    {
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
+        this->update_pending(*s, total_pending);
+    }
+    else
+    {
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
+        this->update_pending(*s, total_pending);
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -153,6 +165,21 @@ auto Runner::operator()() const -> Result
     result.step_times = this->get_step_times();
 
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update the number of pending optical photons.
+ */
+void Runner::update_pending(CoreState<MemSpace::host>& state,
+                            size_type num_pending) const
+{
+    // Update the number of pending optical photons
+    auto execute_thread = make_single_track_executor(
+        this->params()->ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdatePendingExecutor{num_pending});
+    launch_action(1, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -188,6 +215,14 @@ StepTimes::VecDbl Runner::get_step_times() const
 {
     return loaded_.problem.transporter->get_step_times(*state_->aux());
 }
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+void Runner::update_pending(CoreState<MemSpace::device>&, size_type) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical
