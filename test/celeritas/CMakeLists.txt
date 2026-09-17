@@ -228,10 +228,10 @@ celeritas_add_test(ext/RootImporter.test.cc ${_needs_root})
 celeritas_add_test(ext/RootJsonDumper.test.cc ${_needs_root})
 
 if(CELERITAS_USE_Geant4)
-  celeritas_add_test(ext/GeantSd.test.cc
+  celeritas_add_test(ext/GeantSd.test.cc GPU
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
-  celeritas_add_test(ext/detail/HitProcessor.test.cc
+  celeritas_add_test(ext/detail/HitProcessor.test.cc GPU
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
