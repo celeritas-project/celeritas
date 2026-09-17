@@ -122,7 +122,7 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
     { \
         std::ostringstream msg_; \
         msg_ << "failed during " << WHERE; \
-        msg_ WHAT; \
+        msg_ << "" WHAT; \
         throw_cgtv_error(CGTV, std::move(msg_), {}, __FILE__, __LINE__); \
     } while (0)
 
@@ -135,13 +135,13 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
         } \
     } while (0)
 
-#define CGTV_VALIDATE(CGTV, COND, WHAT) \
+#define CGTV_VALIDATE(CGTV, COND, STREAM_WHAT) \
     do \
     { \
         if (CELER_UNLIKELY(!(COND))) \
         { \
             std::ostringstream msg_; \
-            msg_ WHAT; \
+            msg_ << "" STREAM_WHAT; \
             throw_cgtv_error( \
                 CGTV, std::move(msg_), #COND, __FILE__, __LINE__); \
         } \
