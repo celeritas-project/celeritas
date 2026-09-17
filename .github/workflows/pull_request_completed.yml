@@ -68,7 +68,7 @@ jobs:
   report-regression:
     runs-on: ubuntu-24.04
     env:
-      ARTIFACTS_DIR: artifacts
+      ARTIFACTS_DIR: ${{runner.temp}}/artifacts # temp dir avoids overwrite from git checkout
       COMMENT_BODY_FILE: regression-comment.md
       REGRESSION_PATCH_DIR: regression-patch
     steps:
