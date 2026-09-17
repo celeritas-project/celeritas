@@ -17,11 +17,11 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class RT>
+class GeoTrackInterface;
 class GeoParamsInterface;
 class VolumeParams;
 
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Check validity of safety and volume crossings while navigating on CPU.
@@ -212,6 +212,8 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     std::optional<real_type> next_boundary_;
 };
 
+//---------------------------------------------------------------------------//
+//! Geometry exception thrown by checked assertions
 class CheckedGeoError : public RuntimeError
 {
   public:
@@ -222,24 +224,7 @@ class CheckedGeoError : public RuntimeError
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Get the descriptive, robust volume name based on the geo state
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        VolumeParams const& params);
-
-// Get a robust name using impl volume params
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        GeoParamsInterface const& params);
-
-// Get the descriptive, robust volume instance name based on the geo state
-std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
-                                 VolumeParams const& params);
-
-// Get the descriptive, robust volume instance name based on the geo state
-std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
-                               VolumeParams const& params);
-
 std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

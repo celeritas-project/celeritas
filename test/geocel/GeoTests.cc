@@ -57,7 +57,7 @@ using namespace celeritas::literals;
         { \
             STATEMENT; \
         } \
-        catch (::celeritas::test::CheckedGeoError const& e) \
+        catch (::celeritas::CheckedGeoError const& e) \
         { \
             threw_ = true; \
             if (COND) \

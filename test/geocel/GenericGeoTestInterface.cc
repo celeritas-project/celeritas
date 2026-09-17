@@ -16,11 +16,12 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/CheckedGeoTrackView.hh"
+#include "geocel/GeoInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "geocel/inp/Model.hh"
 
-#include "CheckedGeoTrackView.hh"
 #include "GenericGeoResults.hh"
 #include "PersistentSP.hh"
 #include "TestMacros.hh"
@@ -146,11 +147,11 @@ auto GenericGeoTestInterface::track(Real3 const& pos,
         {
             // Add distance and names
             result.distances.push_back(from_native_length(next.distance));
-            result.volumes.emplace_back(test::volume_name(geo, vols));
+            result.volumes.emplace_back(celeritas::volume_name(geo, vols));
             if (has_vol_inst)
             {
                 result.volume_instances.emplace_back(
-                    test::volume_instance_name(geo, vols));
+                    celeritas::volume_instance_name(geo, vols));
             }
 
             // Move halfway to next boundary
@@ -325,15 +326,14 @@ GeoTrackInitializer GenericGeoTestInterface::make_initializer(
 //---------------------------------------------------------------------------//
 std::string GenericGeoTestInterface::volume_name(GeoTrackView const& geo) const
 {
-    return ::celeritas::test::volume_name(geo, *this->get_test_volumes());
+    return ::celeritas::volume_name(geo, *this->get_test_volumes());
 }
 
 //---------------------------------------------------------------------------//
 std::string GenericGeoTestInterface::unique_volume_name(
     GeoTrackView const& geo) const
 {
-    return ::celeritas::test::unique_volume_name(geo,
-                                                 *this->get_test_volumes());
+    return ::celeritas::unique_volume_name(geo, *this->get_test_volumes());
 }
 
 //---------------------------------------------------------------------------//
