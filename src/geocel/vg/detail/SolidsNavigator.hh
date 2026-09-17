@@ -34,7 +34,11 @@ class SolidsNavigator
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
 
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    using NavState = vecgeom::NavStatePath;
+#else
     using NavState = detail::VgNavStateWrapper;
+#endif
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
@@ -74,7 +78,7 @@ class SolidsNavigator
         if (step > step_limit)
         {
             VgNavState& next = temp_out_state;
-            next = static_cast<VgNavState>(in_state);
+            next = in_state;
             next.SetBoundaryState(false);
             return step_limit;
         }

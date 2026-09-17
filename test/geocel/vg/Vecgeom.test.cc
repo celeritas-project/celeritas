@@ -228,6 +228,11 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
     EXPECT_EQ(tiny_step, next.distance);
     EXPECT_FALSE(next.boundary);
 
+    // A limited step on the previous boundary must preserve the next crossing
+    next = geo.find_next_step(10);
+    EXPECT_SOFT_EQ(1, next.distance);
+    EXPECT_TRUE(next.boundary);
+
     // Initialize within VecGeom's surface tolerance, then resolve a real hit
     constexpr real_type gap = 1e-11;
     auto const box_volume = geo.volume_id();

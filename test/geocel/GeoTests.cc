@@ -902,7 +902,7 @@ void FourLevelsGeoTest::test_safety() const
         3.1,
     };
     auto tol = test_->tracking_tol();
-    if (test_->geometry_type() == "VecGeom")
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
     {
         // IndexedBVH resolves the diagonal distance to the envelope rather
         // than its conservative box safety. At {20.1, 20.1, 20.1}, the world

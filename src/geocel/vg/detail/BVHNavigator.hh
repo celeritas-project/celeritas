@@ -146,7 +146,9 @@ class BVHNavigator
 
         if (step_limit < push)
         {
-            // Ignore small steps on boundary without a change in state
+            // Preserve the path without reporting the previous boundary again
+            in_state.CopyTo(&out_state);
+            out_state.SetBoundaryState(false);
             return step_limit;
         }
         step_limit -= push;
