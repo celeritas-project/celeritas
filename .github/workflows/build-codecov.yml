@@ -60,7 +60,7 @@ jobs:
           preset: spack-codecov
           split-app: true
       - name: Generate and upload coverage report
-        if: ${{ !cancelled() && steps.build.outputs.build-outcome == 'success' }}
+        if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         uses: ./.github/actions/process-coverage
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
