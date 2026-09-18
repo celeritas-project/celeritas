@@ -13,7 +13,7 @@ from collections.abc import Iterable, Sequence
 from pathlib import Path
 
 from _regression_utils import LogLevel, log
-from clang_tidy_affected_sources import SourceSelection, run as select_sources
+from clang_tidy_source_selector import SourceSelection, run as select_sources
 
 SOURCE_PATH_RE = re.compile(r"^(src|app|test)/.*\.(cc|cpp|cu)$")
 HEADER_PATH_RE = re.compile(r"^(src|app|test)/.*\.hh$")
