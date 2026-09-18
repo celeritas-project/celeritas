@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
 debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
@@ -64,7 +65,6 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
 debug@System.cc: Celeritas environment variables: {
@@ -145,6 +145,8 @@ debug@AuxStateVec.cc: Allocating 6 aux state classes for host on stream {0} with
 info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -181,12 +183,14 @@ debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 info@TrackingManagerIntegration.test.cc: Ran 20929 over 2 step iterations from 2 flushes in 2 events
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 222 steps and 20929 optical steps (over 2 step iterations) from 2 flushes with 2 offloaded tracks over 2 events, generating 0 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+debug@PersistentSP.hh: Clearing persistent run manager 'optical-surfaces'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
+debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "opticalsurfaces-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
-debug@PersistentSP.hh: Clearing persistent run manager 'optical-surfaces'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

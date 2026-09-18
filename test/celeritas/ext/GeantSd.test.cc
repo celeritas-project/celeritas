@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantSd.hh"
 
+#include <memory>
 #include <G4LogicalVolume.hh>
 #include <G4LogicalVolumeStore.hh>
 #include <G4NistManager.hh>
@@ -132,6 +133,32 @@ TEST_F(SimpleCmsTest, no_change)
     EXPECT_JSON_EQ(
         R"json({"_category":"internal","_label":"hit-manager","locate_touchable":[true,true],"lv_name":["em_calorimeter","had_calorimeter"],"sd_name":["em_calorimeter","had_calorimeter"],"sd_type":["celeritas::test::SimpleSensitiveDetector","celeritas::test::SimpleSensitiveDetector"],"vol_id":[2,3]})json",
         this->get_diagnostics(man));
+}
+
+TEST_F(SimpleCmsTest, recreate_local_processor)
+{
+    GeantSd man = this->make_hit_manager();
+    std::weak_ptr<GeantSd::HitProcessor> previous = processor_;
+
+    // In production the processor is created only by the LocalTransporter
+    // constructor, and IntegrationSingleton guards against initializing a
+    // live transporter twice: this "duplicate" call exercises a defensive
+    // path only
+    auto duplicate = man.make_local_processor(StreamId{0});
+    EXPECT_EQ(processor_, duplicate);
+
+    processor_.reset();
+    EXPECT_FALSE(previous.expired());
+    duplicate.reset();
+    EXPECT_TRUE(previous.expired());
+
+    // The essential behavior: LocalTransporter::Finalize destroys the
+    // processor at end of run, and the deleter must clear the slot's cached
+    // pointer so the next run recreates the processor instead of returning a
+    // dangling pointer
+    processor_ = man.make_local_processor(StreamId{0});
+    EXPECT_TRUE(processor_);
+    EXPECT_EQ(processor_, man.make_local_processor(StreamId{0}));
 }
 
 TEST_F(SimpleCmsTest, delete_one)

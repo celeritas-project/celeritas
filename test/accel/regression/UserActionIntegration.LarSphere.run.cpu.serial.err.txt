@@ -150,11 +150,11 @@ debug@LocalTransporter.cc: Reconstituted 111 hits for event 2
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 1029 steps from 3 flushes with 30 offloaded tracks over 3 events, generating 317 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
@@ -262,11 +262,11 @@ debug@LocalTransporter.cc: Reconstituted 96 hits for event 0
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 323 steps from 1 flushes with 10 offloaded tracks over 1 events, generating 96 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)

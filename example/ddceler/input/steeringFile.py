@@ -7,7 +7,6 @@ from DDSim.DD4hepSimulation import DD4hepSimulation
 runner = DD4hepSimulation()
 
 # Action configuration
-runner.action.run = "CelerRun"
 runner.action.tracker = "Geant4TrackerAction"
 runner.action.trackerSDTypes = ["tracker"]
 runner.action.calo = "Geant4CalorimeterAction"

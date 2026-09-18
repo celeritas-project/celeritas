@@ -196,8 +196,8 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
 }
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
-G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
 G4WT0 > [W] info@IntegrationSingleton.cc: Optical track offloading enabled
+G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
 G4WT0 > [W] info@CoreState.cc: Initialized Celeritas optical state with 32 track slots
 G4WT0 > [1/1] debug@AuxStateVec.cc: Allocating 1 aux state classes for host on stream {0} with state size 32
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {

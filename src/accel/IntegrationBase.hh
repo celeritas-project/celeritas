@@ -69,6 +69,9 @@ class IntegrationBase
     ~IntegrationBase() = default;
     CELER_DEFAULT_COPY_MOVE(IntegrationBase);
 
+    // Whether this integration is driven by Geant4 state hooks
+    virtual bool use_auto_hooks() const;
+
     //! Verify setup after initialization (called if thread is doing offload)
     virtual void verify_local_setup() = 0;
 };
