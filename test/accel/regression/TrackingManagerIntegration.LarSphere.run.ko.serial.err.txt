@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
 debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
@@ -56,11 +57,12 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@SharedParams.cc: Constructing output registry for no-offload run
 debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -85,15 +87,11 @@ debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 2
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
-status@IntegrationSingleton.cc: Finalizing Celeritas
-info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
-debug@SharedParams.cc: Resetting shared parameters
 status@TrackingManagerIntegration.test.cc: Beam on (second run)
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-debug@IntegrationSingleton.cc: Initializing shared params
-debug@SharedParams.cc: Constructing output registry for no-offload run
+debug@IntegrationSingleton.cc: Shared Celeritas state already initialized
 debug@IntegrationSingleton.cc: Skipping state construction with offload enabled: offload-compatible tracks will be killed immediately
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -112,10 +110,11 @@ debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
 debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ko-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

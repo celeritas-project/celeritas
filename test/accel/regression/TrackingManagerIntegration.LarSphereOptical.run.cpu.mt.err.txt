@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+[M!] debug@StateDependent.cc: Registered state dependent 0x0000 on {}
 [M] debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 [M] debug@SupportedEmStandardPhysics.cc: Constructing: proton
 [M!] debug@IntegrationTestBase.cc: ActionInitialization::BuildForMaster
@@ -58,51 +59,6 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
-G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
-G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
-G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 1 primaries per event
-G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::(anonymous namespace)::CounterTrackingAction
-G4WT0 > [1/1] debug@DetectorConstruction.cc: Constructing sensitive detectors
-G4WT0 > [W] info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
-G4WT0 > [W] debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
-G4WT0 > [1/1] debug@SupportedEmStandardPhysics.cc: Constructing processes
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
-G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical absorption process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical boundary process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
-G4WT0 > [1/1] debug@TrackingManagerConstructor.cc: Activating tracking manager
-G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e+
-G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
-G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e-
-G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
-G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
-[M] status@TrackingManagerIntegration.test.cc: Run two events
-[M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
 [M] info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
 [M] debug@System.cc: Celeritas environment variables: {
@@ -179,6 +135,64 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
 [M] warning@SharedParams.cc: Mismatch between ParticlesParams (size 4) and user-defined offload list (size 3). Geant4 data import is not properly defined.
 [M] debug@SharedParams.cc: Setting number of streams to 1
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereoptical-run-cpu-mt.out.json"
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
+G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 1 primaries per event
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::(anonymous namespace)::CounterTrackingAction
+G4WT0 > [1/1] debug@DetectorConstruction.cc: Constructing sensitive detectors
+G4WT0 > [W] info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
+G4WT0 > [W] debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
+G4WT0 > [1/1] debug@SupportedEmStandardPhysics.cc: Constructing processes
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical absorption process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical boundary process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+G4WT0 > [1/1] debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
+G4WT0 > [1/1] debug@TrackingManagerConstructor.cc: Activating tracking manager
+G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e+
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e-
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
+G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
+G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
+G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
+G4WT0 > [W] debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive detectors
+G4WT0 > [1/1] debug@AuxStateVec.cc: Allocating 9 aux state classes for host on stream {0} with state size 1024
+G4WT0 > [W] info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
+G4WT0 > [W] status@CoreState.cc: Celeritas core state initialization complete
+G4WT0 > [W] debug@TrackingManagerIntegration.cc: Verifying tracking managers
+G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
+G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 0 steps and 0 optical steps (over 0 step iterations) from 0 flushes with 0 offloaded tracks over 0 events, generating 0 hits
+G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
+G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+[M] status@TrackingManagerIntegration.test.cc: Run two events
+[M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+[M] warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -203,7 +217,6 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
   ORANGE_BVH_STRUCTURE: '0',
   ORANGE_UNIV_STRUCTURE: '0',
 }
-G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
 G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
 G4WT0 > [W] debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive detectors
@@ -211,6 +224,7 @@ G4WT0 > [1/1] debug@AuxStateVec.cc: Allocating 9 aux state classes for host on s
 G4WT0 > [W] info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
 G4WT0 > [W] status@CoreState.cc: Celeritas core state initialization complete
 G4WT0 > [W] debug@TrackingManagerIntegration.cc: Verifying tracking managers
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -248,15 +262,17 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [1/1] info@TrackingManagerIntegration.test.cc: Ran 32297 over 19 step iterations from 2 flushes
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
 G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 15 steps and 32297 optical steps (over 19 step iterations) from 2 flushes with 2 offloaded tracks over 2 events, generating 0 hits
+G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] info@TrackingManagerIntegration.test.cc: Geant4 tracked a total of 0 optical photons and 0 electrons
+[M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+G4WT0 > [1/1] debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M!] debug@StateDependent.cc: Deregistering state dependent 0x0000 on {}
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereoptical-run-cpu-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
-[M] debug@CoreState.cc: Deallocating host core state (stream 0)
-[M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
-G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M!] debug@IntegrationTestBase.cc: Tearing down action initialization
 [M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M] debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

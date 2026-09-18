@@ -132,8 +132,8 @@ error@SharedParams.cc: Problem contains Celeritas-specific scintillation represe
 debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
 debug@SharedParams.cc: Setting number of streams to 1
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereopticaltrackoffload-run-cpu-serial.out.json"
-debug@IntegrationSingleton.cc: Constructing local state
 info@IntegrationSingleton.cc: Optical track offloading enabled
+debug@IntegrationSingleton.cc: Constructing local state
 info@CoreState.cc: Initialized Celeritas optical state with 32 track slots
 debug@AuxStateVec.cc: Allocating 1 aux state classes for host on stream {0} with state size 32
 debug@IntegrationTestBase.cc: Environment variables after setup: {

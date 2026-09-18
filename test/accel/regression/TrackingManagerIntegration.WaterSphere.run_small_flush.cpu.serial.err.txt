@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
 debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
@@ -55,7 +56,6 @@ debug: Preparing physics table for gamma
 debug: Building physics table for gamma
 debug: Building physics table for e-
 debug: Building physics table for e+
-debug: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
 debug@System.cc: Celeritas environment variables: {
@@ -122,6 +122,8 @@ debug@HitProcessor.cc: Setting up thread-local hit processor for 1 sensitive det
 debug: Allocating 3 aux state classes for host on stream {0} with state size 8
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug: RunAction::BeginOfRunAction
+warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -159,88 +161,15 @@ debug: EventAction::EndOfEventAction
 debug: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info: Finalizing Celeritas after 5102 steps from 8 flushes with 128 offloaded tracks over 1 events, generating 329 hits
-debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
-status@IntegrationSingleton.cc: Finalizing Celeritas
-info@SharedParams.cc: Wrote Geant4 diagnostic output to "watersphere-run-small-flush-1-cpu-serial.out.json"
-debug@SharedParams.cc: Resetting shared parameters
 debug@CoreState.cc: Deallocating host core state (stream 0)
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-debug@IntegrationSingleton.cc: Initializing shared params
-info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
-debug@System.cc: Celeritas environment variables: {
-  CELER_LOG: 'debug',
-  NO_COLOR: '',
-  GTEST_COLOR: '1',
-  CELER_ENABLE_PROFILING: '0',
-  CELER_LOG_LOCAL: 'debug',
-  CELER_DISABLE_REDIRECT: '0',
-  CELER_STRIP_SOURCEDIR: '1',
-  CELER_OFFLOAD: 'cpu',
-  G4RUN_MANAGER_TYPE: 'Serial',
-  G4_GEO_VERBOSITY: '',
-  CELER_KILL_OFFLOAD: '0',
-  CELER_DISABLE: '0',
-  CELER_LOG_SCOPED: 'debug',
-  CELER_LOG_SCOPED_VERBOSE: '0',
-  G4LEDATA: G4EMLOW8.6.1',
-  ORANGE_FORCE_INPUT: '',
-  G4ORG_OPTIONS: '',
-  ORANGE_BVH_MAX_LEAF_SIZE: '',
-  ORANGE_BVH_DEPTH_LIMIT: '',
-  ORANGE_BVH_PART_CANDS: '',
-  ORANGE_MAX_FACE_INTERSECT: '',
-  ORANGE_BVH_STRUCTURE: '0',
-  ORANGE_UNIV_STRUCTURE: '0',
-  CELER_DISABLE_SIGNALS: '0',
-}
-status@GeantImporter.cc: Transferring data from Geant4
-debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
-debug@GeantImporter.cc: Loaded 3 particles
-debug@GeantImporter.cc: Loaded 1 optical materials
-debug@GeantImporter.cc: Loaded 5 isotopes
-debug@GeantImporter.cc: Loaded 3 elements
-debug@GeantImporter.cc: Loaded 3 geo materials
-debug@GeantImporter.cc: Loaded 3 physics materials
-debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
-debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
-debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e+ (-11)
-debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e+ (-11)
-debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e- (11)
-debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e- (11)
-debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e- (11)
-debug@GeantProcessImporter.cc: Loading process 'compt' for particle gamma (22)
-debug@GeantProcessImporter.cc: Loading process 'phot' for particle gamma (22)
-debug@GeantProcessImporter.cc: Loading process 'Rayl' for particle gamma (22)
-debug@GeantProcessImporter.cc: Loading process 'conv' for particle gamma (22)
-debug@GeantImporter.cc: Loaded 9 EM processes
-debug@GeantImporter.cc: Loaded 2 MSC models
-debug@GeantImporter.cc: Loaded 3 of 3 volumes
-debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
-debug@GeantGeoParams.cc: Loaded 1 detectors in a total of 1 logical volumes
-debug@GeantGeoParams.cc: Loaded 1 regions out of 2 Geant4 regions and created 0 new regions
-debug@SetupOptions.cc: No magnetic field
-status@Problem.cc: Initializing problem
-status@PhysicalVolumeConverter.cc: Converting Geant4 geometry elements to ORANGE input
-status@InputBuilder.cc: Constructing ORANGE surfaces and runtime data
-debug@UnitProto.cc: Building 'world': 0 daughters and 3 materials...
-debug@UnitProto.cc: - Logic simplification hard-coded 2 nodes and pruned 2 unused nodes of 21 CSG nodes
-debug@UnitProto.cc: - Eliminated 0 of 8 surfaces
-debug@OrangeParams.cc: Merging runtime data
-debug@OrangeParams.cc: Allocating labels for 1 universes with 4 impl volumes and 8 impl surfaces
-debug@Model.cc: No surfaces are defined
-warning@Problem.cc: Geometry contains surfaces that are incompatible with the current ORANGE simple safety algorithm: multiple scattering may result in arbitrarily small steps without displacement
-debug@GeoMaterialParams.cc: Building geometry->physics map using VolumeParams (3 volumes) and import data (3 volumes)
-debug@GeoMaterialParams.cc: Filling geometry->physics map using canonical volumes
-status@CoreParams.cc: Celeritas core setup complete
-debug@SensDetInserter.cc: Mapped sensitive detector "detshell" on logical volume "detshell"@0x0000 (ID=1) to volume ID 1
-debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
-debug@SharedParams.cc: Setting number of streams to 1
-info@SharedParams.cc: Wrote Geant4 diagnostic output to "watersphere-run-small-flush-1-cpu-serial.out.json"
+debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+debug@IntegrationSingleton.cc: Shared Celeritas state already initialized
 debug@IntegrationSingleton.cc: Constructing local state
 debug@HitProcessor.cc: Setting up thread-local hit processor for 1 sensitive detectors
 debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 8
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -307,12 +236,14 @@ debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 19668 steps from 32 flushes with 512 offloaded tracks over 4 events, generating 1370 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+debug@PersistentSP.hh: Clearing persistent run manager 'water-sphere'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
+debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "watersphere-run-small-flush-1-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
-debug@PersistentSP.hh: Clearing persistent run manager 'water-sphere'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

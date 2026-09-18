@@ -201,12 +201,12 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
 G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 1029 steps from 3 flushes with 30 offloaded tracks over 3 events, generating 317 hits
+G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
-[M] debug@CoreState.cc: Deallocating host core state (stream 0)
 [M] status@FastSimulationIntegration.test.cc: Beam on (second run)
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 [M] debug@IntegrationSingleton.cc: Initializing shared params
@@ -345,12 +345,12 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
 G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 323 steps from 1 flushes with 10 offloaded tracks over 1 events, generating 96 hits
+G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-cpu-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
-[M] debug@CoreState.cc: Deallocating host core state (stream 0)
 [M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M!] debug@IntegrationTestBase.cc: Tearing down action initialization

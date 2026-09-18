@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+[M!] debug@StateDependent.cc: Registered state dependent 0x0000 on {}
 [M] debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 [M] debug@SupportedEmStandardPhysics.cc: Constructing: proton
 [M!] debug@IntegrationTestBase.cc: ActionInitialization::BuildForMaster
@@ -41,11 +42,15 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 [M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 [M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-[M!] debug@TrackingManagerConstructor.cc: Activating tracking manager
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+[M] debug@IntegrationSingleton.cc: Initializing shared params
+[M!] debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
+[M!] critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global)
+Run is not in progress. AbortRun() ignored.
+[M!] debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
 G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 10 primaries per event
@@ -64,25 +69,13 @@ G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-G4WT0 > [1/1] debug@TrackingManagerConstructor.cc: Activating tracking manager
-G4WT0 > [1/1] error@IntegrationSingleton.cc: cannot access offload before options are set
-G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking managers for e-, e+, gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e+
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for e-
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
-G4WT0 > [1/1] debug@TrackingManager.cc: Preparing physics table for gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for gamma
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e-
-G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
 [M] status@TrackingManagerIntegration.test.cc: Run two events
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-[M] debug@IntegrationSingleton.cc: Initializing shared params
-[M!] debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
-[M!] critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global)
-[M!] debug@IntegrationSingleton.cc: Skipping local initialization due to failure
+[M] warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -97,7 +90,6 @@ G4WT0 > [1/1] debug@TrackingManager.cc: Building physics table for e+
   CELER_DISABLE: '0',
 }
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-G4WT0 > [1/1] debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -111,10 +103,18 @@ G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_KILL_OFFLOAD: '0',
   CELER_DISABLE: '0',
 }
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+G4WT0 > [1/1] error@IntegrationSingleton.cc: cannot access offload before options are set
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 1
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M!] debug@StateDependent.cc: Deregistering state dependent 0x0000 on {}
 [M!] debug@IntegrationTestBase.cc: Tearing down action initialization
 [M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M] debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

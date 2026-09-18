@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+[M!] debug@StateDependent.cc: Registered state dependent 0x0000 on {}
 [M] debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 [M] debug@SupportedEmStandardPhysics.cc: Constructing: proton
 [M!] debug@IntegrationTestBase.cc: ActionInitialization::BuildForMaster
@@ -47,6 +48,9 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+[M] debug@IntegrationSingleton.cc: Initializing shared params
+[M] debug@SharedParams.cc: Constructing output registry for no-offload run
+[M] debug@IntegrationSingleton.cc: Skipping state construction since Celeritas is completely disabled
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
 G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 10 primaries per event
@@ -71,9 +75,7 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-[M] debug@IntegrationSingleton.cc: Initializing shared params
-[M] debug@SharedParams.cc: Constructing output registry for no-offload run
-[M] debug@IntegrationSingleton.cc: Skipping state construction since Celeritas is completely disabled
+[M] warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -90,8 +92,6 @@ G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel
   G4_GEO_VERBOSITY: '',
 }
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
-G4WT0 > [W] debug@IntegrationSingleton.cc: Skipping state construction since Celeritas is completely disabled
 G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -115,11 +115,12 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+[M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M!] debug@StateDependent.cc: Deregistering state dependent 0x0000 on {}
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ui-g4-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
-[M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
-G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M!] debug@IntegrationTestBase.cc: Tearing down action initialization
 [M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M] debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
