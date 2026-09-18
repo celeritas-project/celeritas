@@ -197,7 +197,7 @@ def run_header_tidy(
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
         scan_dependencies(scanner, build_dir, repo_root, dependency_file)
         selected_count = select_sources(
-            mode=args.header_sources,
+            header_source_selection=args.header_source_selection,
             header_file=header_file,
             source_file=source_file,
             dependency_file=dependency_file,
@@ -271,7 +271,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--build-dir", type=Path, default=Path.cwd() / "build")
     parser.add_argument(
-        "--header-sources",
+        "--header-source-selection",
         type=SourceSelection,
         choices=tuple(SourceSelection),
         default=SourceSelection.ALL,

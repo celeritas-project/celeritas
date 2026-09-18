@@ -10,7 +10,11 @@ from clang_tidy_affected_sources import SourceSelection, run
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse arguments and print the count from the source-selection module."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", type=SourceSelection, choices=tuple(SourceSelection))
+    parser.add_argument(
+        "header-source-selection",
+        type=SourceSelection,
+        choices=tuple(SourceSelection),
+    )
     parser.add_argument("header_file", type=Path)
     parser.add_argument("source_file", type=Path)
     parser.add_argument("dependency_file", type=Path)
@@ -19,7 +23,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     print(
         run(
-            mode=args.mode,
+            header_source_selection=args.header_source_selection,
             header_file=args.header_file,
             source_file=args.source_file,
             dependency_file=args.dependency_file,

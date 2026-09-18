@@ -131,6 +131,6 @@ jobs:
             "${{ github.event.pull_request.base.sha }}" \
             --clang-tidy "${CLANG_TIDY}" \
             --clang-tidy-diff "${CLANG_TIDY_DIFF}" \
-            --header-sources "${CLANG_TIDY_HEADER_SOURCES}"
+            --header-source-selection "${CLANG_TIDY_HEADER_SOURCES}"
 
 # vim: set nowrap tw=100:

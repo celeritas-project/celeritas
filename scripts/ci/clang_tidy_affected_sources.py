@@ -26,7 +26,7 @@ def resolve_paths(path_file: Path, root: Path) -> set[Path]:
 
 def run(
     *,
-    mode: SourceSelection,
+    header_source_selection: SourceSelection,
     header_file: Path,
     source_file: Path,
     dependency_file: Path,
@@ -34,8 +34,10 @@ def run(
     root: Path,
 ) -> int:
     """Select source files and write a regex accepted by run-clang-tidy."""
-    if mode not in SourceSelection:
-        raise ValueError(f"unsupported source selection mode: {mode!r}")
+    if header_source_selection not in SourceSelection:
+        raise ValueError(
+            f"unsupported header source selection: {header_source_selection!r}"
+        )
 
     root = root.resolve()
     headers = resolve_paths(header_file, root)
@@ -59,15 +61,15 @@ def run(
                 continue
 
             matching_headers = headers & resolved_dependencies
-            if mode is SourceSelection.ALL and matching_headers:
+            if header_source_selection is SourceSelection.ALL and matching_headers:
                 affected_sources.add(source_path)
-            elif mode is SourceSelection.ONE:
+            elif header_source_selection is SourceSelection.ONE:
                 for header in matching_headers:
                     source_by_header[header] = min(
                         source_path, source_by_header.get(header, source_path)
                     )
 
-    if mode is SourceSelection.ONE:
+    if header_source_selection is SourceSelection.ONE:
         affected_sources = set(source_by_header.values())
 
     relative_sources = sorted(
