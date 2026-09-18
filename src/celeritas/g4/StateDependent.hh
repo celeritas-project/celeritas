@@ -7,6 +7,7 @@
 #pragma once
 
 #include <functional>
+#include <utility>
 #include <G4VStateDependent.hh>
 
 #include "corecel/Macros.hh"
@@ -127,11 +128,16 @@ class StateDependent final : public G4VStateDependent
         local,
     };
 
-    // Construct locally with state-change callback
-    explicit StateDependent(
-        LocalGeantStateChangeFunc cb,
-        Mode mode = Mode::raw,
-        LifecycleRole lifecycle_role = LifecycleRole::global);
+    // Construct locally with state-change callback, dispatch mode, and
+    // lifecycle role
+    StateDependent(
+        LocalGeantStateChangeFunc cb, Mode mode, LifecycleRole lifecycle_role);
+
+    //! Construct locally in raw mode with a state-change callback
+    explicit StateDependent(LocalGeantStateChangeFunc cb)
+        : StateDependent{std::move(cb), Mode::raw, LifecycleRole::global}
+    {
+    }
 
     // Prevent move/copy because the base class registers this object by
     // pointer

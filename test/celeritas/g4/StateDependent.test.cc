@@ -75,7 +75,8 @@ TEST_F(StateDependentTest, lifecycle_global)
 
             lifecycles.emplace_back(to_cstring(change));
         },
-        StateDependent::Mode::lifecycle);
+        StateDependent::Mode::lifecycle,
+        StateDependent::LifecycleRole::global);
 
     static std::string const expected_lifecycles[] = {
         "begin_run",
