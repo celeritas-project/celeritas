@@ -124,83 +124,110 @@ def run_tidy(command: list[str], repo_root: Path) -> int:
     return process.wait()
 
 
-def run(args: argparse.Namespace) -> int:
-    """Run clang-tidy for the requested base commit."""
+def validate_inputs(args: argparse.Namespace) -> tuple[Path, Path]:
+    """Validate filesystem inputs and return resolved repository paths."""
     repo_root = args.repo_root.resolve()
     build_dir = args.build_dir.resolve()
+    if not repo_root.is_dir():
+        raise RuntimeError(f"repository root is not a directory: {repo_root}")
+    if not build_dir.is_dir():
+        raise RuntimeError(f"build directory is not a directory: {build_dir}")
+    if not (build_dir / "compile_commands.json").is_file():
+        raise RuntimeError(f"compilation database not found in: {build_dir}")
     if not args.clang_tidy_diff.is_file():
         raise RuntimeError(f"clang-tidy-diff.py not found: {args.clang_tidy_diff}")
     command_path(args.clang_tidy)
+    return repo_root, build_dir
 
-    log(LogLevel.NOTICE, f"Fetching base commit {args.base_sha} from {args.remote}")
+
+def fetch_diff(remote: str, base_sha: str, repo_root: Path) -> str:
+    """Fetch the base commit and return its diff with the current HEAD."""
+    log(LogLevel.NOTICE, f"Fetching base commit {base_sha} from {remote}")
     subprocess.run(
-        ["git", "fetch", "--depth", "1", args.remote, args.base_sha],
+        ["git", "fetch", "--depth", "1", remote, base_sha],
         cwd=repo_root,
         check=True,
     )
-    diff = subprocess.run(
-        ["git", "diff", "--diff-filter=ACM", "-U0", f"{args.base_sha}...HEAD"],
+    return subprocess.run(
+        ["git", "diff", "--diff-filter=ACM", "-U0", f"{base_sha}...HEAD"],
         cwd=repo_root,
         check=True,
         capture_output=True,
         text=True,
     ).stdout
-    headers, sources = changed_paths(diff)
-    if headers:
-        scanner = command_path(args.clang_scan_deps or scanner_path(args.clang_tidy))
-        runner = command_path(args.run_clang_tidy)
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_dir = Path(temp_dir)
-            header_file = temp_dir / "headers.txt"
-            source_file = temp_dir / "sources.txt"
-            dependency_file = temp_dir / "dependencies.json"
-            regex_file = temp_dir / "sources.regex"
-            header_file.write_text("\n".join(headers) + "\n")
-            source_file.write_text("\n".join(sources) + "\n")
-            log(
-                LogLevel.NOTICE,
-                "Header changes detected: finding affected source files",
-            )
-            with dependency_file.open("w") as output:
-                subprocess.run(
-                    [
-                        scanner,
-                        "-compilation-database",
-                        str(build_dir / "compile_commands.json"),
-                        "-format",
-                        "experimental-full",
-                    ],
-                    cwd=repo_root,
-                    check=True,
-                    stdout=output,
-                )
-            selected_count = select_sources(
-                mode=args.header_sources,
-                header_file=header_file,
-                source_file=source_file,
-                dependency_file=dependency_file,
-                regex_file=regex_file,
-                root=repo_root,
-            )
-            if selected_count == 0:
-                log(LogLevel.NOTICE, "No source files selected for the changed headers")
-                return 0
-            log(
-                LogLevel.NOTICE,
-                f"Running clang-tidy on {selected_count} affected source files",
-            )
-            return run_tidy(
-                [
-                    runner,
-                    "-clang-tidy-binary",
-                    args.clang_tidy,
-                    "-p",
-                    str(build_dir),
-                    regex_file.read_text(),
-                ],
-                repo_root,
-            )
 
+
+def scan_dependencies(
+    scanner: str, build_dir: Path, repo_root: Path, output: Path
+) -> None:
+    """Write LLVM's full compilation dependency data to an output file."""
+    with output.open("w") as dependency_output:
+        subprocess.run(
+            [
+                scanner,
+                "-compilation-database",
+                str(build_dir / "compile_commands.json"),
+                "-format",
+                "experimental-full",
+            ],
+            cwd=repo_root,
+            check=True,
+            stdout=dependency_output,
+        )
+
+
+def run_header_tidy(
+    args: argparse.Namespace,
+    headers: list[str],
+    sources: list[str],
+    repo_root: Path,
+    build_dir: Path,
+) -> int:
+    """Run clang-tidy on compilation units affected by changed headers."""
+    scanner = command_path(args.clang_scan_deps or scanner_path(args.clang_tidy))
+    runner = command_path(args.run_clang_tidy)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = Path(temp_dir)
+        header_file = temp_dir / "headers.txt"
+        source_file = temp_dir / "sources.txt"
+        dependency_file = temp_dir / "dependencies.json"
+        regex_file = temp_dir / "sources.regex"
+        header_file.write_text("\n".join(headers) + "\n")
+        source_file.write_text("\n".join(sources) + "\n")
+        log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
+        scan_dependencies(scanner, build_dir, repo_root, dependency_file)
+        selected_count = select_sources(
+            mode=args.header_sources,
+            header_file=header_file,
+            source_file=source_file,
+            dependency_file=dependency_file,
+            regex_file=regex_file,
+            root=repo_root,
+        )
+        if selected_count == 0:
+            log(LogLevel.NOTICE, "No source files selected for the changed headers")
+            return 0
+        log(
+            LogLevel.NOTICE,
+            f"Running clang-tidy on {selected_count} affected source files",
+        )
+        return run_tidy(
+            [
+                runner,
+                "-clang-tidy-binary",
+                args.clang_tidy,
+                "-p",
+                str(build_dir),
+                regex_file.read_text(),
+            ],
+            repo_root,
+        )
+
+
+def run_source_tidy(
+    args: argparse.Namespace, diff: str, repo_root: Path, build_dir: Path
+) -> int:
+    """Run clang-tidy-diff.py for changed source files only."""
     return subprocess.run(
         [
             sys.executable,
@@ -220,6 +247,16 @@ def run(args: argparse.Namespace) -> int:
         input=diff,
         text=True,
     ).returncode
+
+
+def run(args: argparse.Namespace) -> int:
+    """Run clang-tidy against sources or header-affected translation units."""
+    repo_root, build_dir = validate_inputs(args)
+    diff = fetch_diff(args.remote, args.base_sha, repo_root)
+    headers, sources = changed_paths(diff)
+    if headers:
+        return run_header_tidy(args, headers, sources, repo_root, build_dir)
+    return run_source_tidy(args, diff, repo_root, build_dir)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
