@@ -44,7 +44,7 @@ def run(
     for unit in data.get("translation-units", []):
         for command in unit.get("commands", []):
             source = command.get("input-file") or command.get("input_file")
-            if source is None:
+            if source is None or not source.endswith(SOURCE_EXT):
                 continue
             directory = Path(command.get("directory", root))
             source_path = directory.joinpath(source).resolve()
@@ -52,8 +52,6 @@ def run(
             resolved_dependencies = {
                 directory.joinpath(dependency).resolve() for dependency in dependencies
             }
-            if source_path.suffix not in SOURCE_EXT:
-                continue
 
             matching_headers = headers & resolved_dependencies
             if header_source_selection is SourceSelection.ALL and matching_headers:
