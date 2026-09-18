@@ -939,6 +939,67 @@ void FourLevelsGeoTest::test_safety() const
 }
 
 //---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_small_steps() const
+{
+    auto const tiny_step = from_cm(real_type{1e-20});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({10, 10, 10}, {1, 0, 0});
+    auto const start_volume = geo.volume_id();
+
+    auto next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+    EXPECT_EQ(start_volume, geo.volume_id());
+
+    // A rejected lookahead must not change subsequent boundary navigation
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_EQ(start_volume, geo.volume_id());
+    geo.move_to_boundary();
+    EXPECT_EQ(start_volume, geo.volume_id());
+    geo.cross_boundary();
+    EXPECT_NE(start_volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+
+    // A limited step on the previous boundary must preserve the next crossing
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_SOFT_EQ(1, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Initialize close to a surface, then resolve a real hit
+    constexpr real_type gap = 1e-11;
+    auto const box_volume = geo.volume_id();
+    geo = test_->make_initializer({16 - gap, 10, 10}, {1, 0, 0});
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(box_volume, geo.volume_id());
+
+    next = geo.find_next_step(from_cm(gap / 2));
+    EXPECT_FALSE(next.boundary);
+    EXPECT_EQ(from_cm(gap / 2), next.distance);
+
+    next = geo.find_next_step(from_cm(2 * gap));
+    EXPECT_TRUE(next.boundary);
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Geant4 treats a point within its surface tolerance as on the surface
+        EXPECT_EQ(0, next.distance);
+    }
+    else
+    {
+        EXPECT_GT(to_cm(next.distance), gap / 2);
+    }
+    EXPECT_LT(to_cm(next.distance), 2 * gap);
+    geo.move_to_boundary();
+    geo.cross_boundary();
+    EXPECT_NE(box_volume, geo.volume_id());
+}
+
+//---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_trace() const
 {
     {
@@ -2889,11 +2950,6 @@ void TwoBoxesGeoTest::test_reentrant() const
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    }
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
-    {
-        EXPECT_EQ("world", test_->volume_name(geo));
-        GTEST_SKIP() << "Unexpected vg2 behavior";
     }
     EXPECT_EQ("inner", test_->volume_name(geo));
 

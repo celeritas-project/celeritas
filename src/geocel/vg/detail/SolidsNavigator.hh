@@ -60,7 +60,7 @@ class SolidsNavigator
     }
 
     //-----------------------------------------------------------------------//
-    // Find the next boundary and prepare the fully relocated output state
+    // Find the next boundary and prepare the output state for relocation
     CELER_FUNCTION static vg_real_type ComputeStepAndNextVolume(
         VgReal3 const& glpos,
         VgReal3 const& gldir,
@@ -83,14 +83,6 @@ class SolidsNavigator
             return step_limit;
         }
 
-        // Keep VecGeom's last-exited volume until relocation is complete:
-        // Celeritas's compact state stores only the path and boundary flag.
-        VgNavState& next = temp_out_state;
-        if (next.IsOnBoundary() && !next.IsOutside())
-        {
-            vecgeom::BVHNavigator::RelocateToNextVolume(
-                glpos + step * gldir, gldir, next);
-        }
         return step;
     }
 
@@ -111,9 +103,30 @@ class SolidsNavigator
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
     CELER_FUNCTION static void RelocateToNextVolume(
-        VgReal3 const&, VgReal3 const&, NavState&)
+        VgReal3 const& glpos,
+        VgReal3 const& gldir,
+        [[maybe_unused]] NavState const& in_state,
+        NavState& out_state)
     {
-        // The output state was relocated before discarding temporary metadata
+        ScopedVgNavState temp_out_state{out_state};
+#if CELER_VGNAV != CELER_VGNAV_PATH
+        // The compact state discards VecGeom's last-exited metadata. When
+        // leaving one or more volumes, recover the last popped ancestor so
+        // relocation cannot reenter it at the exact boundary position.
+        VgNavState& next = temp_out_state;
+        if (next.GetLevel() < in_state.GetLevel())
+        {
+            VgNavState exited{in_state};
+            while (exited.GetLevel() > next.GetLevel() + 1)
+            {
+                exited.Pop();
+            }
+            exited.SetLastExited();
+            next.SetLastExited(exited.GetLastExitedState());
+        }
+#endif
+        vecgeom::BVHNavigator::RelocateToNextVolume(
+            glpos, gldir, temp_out_state);
     }
 };
 

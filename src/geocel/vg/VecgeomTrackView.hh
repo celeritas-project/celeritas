@@ -513,8 +513,10 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(
-            to_vgvector(this->pos_), to_vgvector(this->dir_), vgnext_);
+        Navigator::RelocateToNextVolume(to_vgvector(this->pos_),
+                                        to_vgvector(this->dir_),
+                                        vgstate_,
+                                        vgnext_);
     }
 
     vgstate_ = vgnext_;
