@@ -9,6 +9,7 @@
 #include <G4StateManager.hh>
 
 #include "corecel/sys/ThreadId.hh"
+#include "celeritas/ext/GeantSetup.hh"
 
 #include "TestMacros.hh"
 #include "celeritas_test.hh"
@@ -41,6 +42,43 @@ void run_lifecycle()
 class StateDependentTest : public Test
 {
 };
+
+// This test must run first: it observes a genuine Geant4 run manager life
+// cycle starting from the pristine application state, so version- or
+// configuration-dependent changes in Geant4 state transitions are caught
+// here. The subsequent tests drive G4StateManager directly.
+TEST_F(StateDependentTest, genuine_lifecycle)
+{
+    std::vector<std::string> states;
+    StateDependent state_dep{[&states](StreamId sid, GeantStateChange change) {
+        EXPECT_EQ(StreamId{0}, sid);
+
+        states.emplace_back(to_cstring(change));
+    }};
+
+    {
+        GeantSetup setup(this->test_data_path("geocel", "lar-sphere.gdml"),
+                         GeantPhysicsOptions{});
+    }
+    // See TrackingManagerTest for an example testing events as well
+    static std::string const expected_states[] = {
+        "begin_program",
+        "initialize",
+        "begin_init",
+        "internal_init",
+        "internal_init",
+        "internal_init",
+        "end_init",
+        "begin_init",
+        "end_init",
+        "begin_init",
+        "end_init",
+        "begin_run",
+        "end_run",
+        "end_program",
+    };
+    EXPECT_VEC_EQ(expected_states, states);
+}
 
 TEST_F(StateDependentTest, raw)
 {
