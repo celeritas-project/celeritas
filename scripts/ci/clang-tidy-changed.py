@@ -10,10 +10,10 @@ import subprocess
 import sys
 import tempfile
 from collections.abc import Iterable, Sequence
-from enum import StrEnum
 from pathlib import Path
 
 from _regression_utils import LogLevel, log
+from clang_tidy_affected_sources import SourceSelection, run as select_sources
 
 SOURCE_PATH_RE = re.compile(r"^(src|app|test)/.*\.(cc|cpp|cu)$")
 HEADER_PATH_RE = re.compile(r"^(src|app|test)/.*\.hh$")
@@ -21,11 +21,6 @@ DIAGNOSTIC_RE = re.compile(r"^(.*):(\d+):(\d+): error: (.*)$")
 HEADER_FILTER_HINT = (
     "Use -header-filter=.* to display errors from all non-system headers."
 )
-
-
-class HeaderSources(StrEnum):
-    ALL = "all"
-    ONE = "one"
 
 
 def command_path(command: str) -> str:
@@ -179,22 +174,15 @@ def run(args: argparse.Namespace) -> int:
                     check=True,
                     stdout=output,
                 )
-            selected_count = subprocess.run(
-                [
-                    sys.executable,
-                    str(args.source_selector),
-                    args.header_sources,
-                    str(header_file),
-                    str(source_file),
-                    str(dependency_file),
-                    str(regex_file),
-                ],
-                cwd=repo_root,
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout.strip()
-            if selected_count == "0":
+            selected_count = select_sources(
+                mode=args.header_sources,
+                header_file=header_file,
+                source_file=source_file,
+                dependency_file=dependency_file,
+                regex_file=regex_file,
+                root=repo_root,
+            )
+            if selected_count == 0:
                 log(LogLevel.NOTICE, "No source files selected for the changed headers")
                 return 0
             log(
@@ -236,7 +224,6 @@ def run(args: argparse.Namespace) -> int:
 
 def main(argv: Sequence[str] | None = None) -> int:
     """Parse command-line arguments and execute the changed-file clang-tidy check."""
-    script_dir = Path(__file__).resolve().parent
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("remote")
     parser.add_argument("base_sha")
@@ -248,14 +235,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--build-dir", type=Path, default=Path.cwd() / "build")
     parser.add_argument(
         "--header-sources",
-        type=HeaderSources,
-        choices=tuple(HeaderSources),
-        default=HeaderSources.ALL,
-    )
-    parser.add_argument(
-        "--source-selector",
-        type=Path,
-        default=script_dir / "clang-tidy-affected-sources.py",
+        type=SourceSelection,
+        choices=tuple(SourceSelection),
+        default=SourceSelection.ALL,
     )
     args = parser.parse_args(argv)
     return run(args)
