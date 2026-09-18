@@ -60,6 +60,8 @@ def run(
                 affected_sources.add(source_path)
             elif header_source_selection is SourceSelection.ONE:
                 for header in matching_headers:
+                    # If multiple sources depend on the same header,
+                    # pick the one with the lexicographically smallest path.
                     source_by_header[header] = min(
                         source_path, source_by_header.get(header, source_path)
                     )
