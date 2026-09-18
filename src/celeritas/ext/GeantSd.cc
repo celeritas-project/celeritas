@@ -44,6 +44,48 @@ struct GeantSd::ProcessorSlot
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Clear a slot's cached pointers when its hit processor is destroyed.
+ *
+ * The references between the slot and the processor are cyclic and
+ * deliberately non-owning in both directions:
+ * \verbatim
+   GeantSd --(shared)--> ProcessorSlot --(weak + raw cache)--> HitProcessor
+                               ^                                    |
+                               +--(weak, via this deleter)----------+
+
+   LocalTransporter --(shared, with this deleter)--> HitProcessor
+   \endverbatim
+ *
+ * The thread-local transporter shares ownership of the processor, and \c
+ * GeantSd owns the slot. Since the cross references are weak, either side
+ * may be destroyed first:
+ * - when the last local reference to the processor is released (on the
+ *   worker thread that created it), this deleter resets the slot's cached
+ *   pointers so a later \c make_local_processor call recreates the processor
+ *   instead of returning a dangling pointer;
+ * - when the \c GeantSd (and thus the slot) is destroyed first, locking the
+ *   weak pointer fails and only the processor is deleted.
+ */
+struct GeantSd::ProcessorSlotDeleter
+{
+    std::weak_ptr<ProcessorSlot> weak_slot;
+
+    void operator()(HitProcessor* processor) const
+    {
+        if (auto slot = weak_slot.lock())
+        {
+            if (slot->processor == processor)
+            {
+                slot->processor = nullptr;
+                slot->weak_processor.reset();
+            }
+        }
+        delete processor;
+    }
+};
+
+//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -149,21 +191,10 @@ auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 
     slot->processor = nullptr;
 
-    auto weak_slot = std::weak_ptr<ProcessorSlot>{slot};
     SPProcessor result{
         new HitProcessor(
             geant_vols_, particles_, selection_, locate_touchable_),
-        [weak_slot](HitProcessor* processor) {
-            if (auto slot = weak_slot.lock())
-            {
-                if (slot->processor == processor)
-                {
-                    slot->processor = nullptr;
-                    slot->weak_processor.reset();
-                }
-            }
-            delete processor;
-        }};
+        ProcessorSlotDeleter{slot}};
     slot->weak_processor = result;
     slot->processor = result.get();
     return result;

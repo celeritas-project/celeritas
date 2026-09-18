@@ -117,6 +117,7 @@ class GeantSd final : public StepInterface
     StepPointBool locate_touchable_{};
 
     struct ProcessorSlot;
+    struct ProcessorSlotDeleter;
     std::vector<std::shared_ptr<ProcessorSlot>> processor_slots_;
 
     // Construct vecgeom/geant volumes

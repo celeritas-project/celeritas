@@ -140,6 +140,10 @@ TEST_F(SimpleCmsTest, recreate_local_processor)
     GeantSd man = this->make_hit_manager();
     std::weak_ptr<GeantSd::HitProcessor> previous = processor_;
 
+    // In production the processor is created only by the LocalTransporter
+    // constructor, and IntegrationSingleton guards against initializing a
+    // live transporter twice: this "duplicate" call exercises a defensive
+    // path only
     auto duplicate = man.make_local_processor(StreamId{0});
     EXPECT_EQ(processor_, duplicate);
 
@@ -148,6 +152,10 @@ TEST_F(SimpleCmsTest, recreate_local_processor)
     duplicate.reset();
     EXPECT_TRUE(previous.expired());
 
+    // The essential behavior: LocalTransporter::Finalize destroys the
+    // processor at end of run, and the deleter must clear the slot's cached
+    // pointer so the next run recreates the processor instead of returning a
+    // dangling pointer
     processor_ = man.make_local_processor(StreamId{0});
     EXPECT_TRUE(processor_);
     EXPECT_EQ(processor_, man.make_local_processor(StreamId{0}));
