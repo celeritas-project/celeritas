@@ -45,6 +45,7 @@ class IntegrationSingleton
     //!@{
     //! \name Types
     using VecG4PD = SetupOptions::VecG4PD;
+    using VerifyCallback = std::function<void(StreamId)>;
     //!@}
 
   public:
@@ -87,12 +88,13 @@ class IntegrationSingleton
     void finalize_offload();
 
     //! Whether Geant4 state hooks own begin/end run lifecycle management
-    bool auto_hooks_active() const { return auto_hooks_active_; }
+    bool auto_hooks_active() const
+    {
+        return static_cast<bool>(master_state_dependent_);
+    }
 
     // Register master-thread Geant4 state hook for automatic lifecycle updates
     void register_auto_hooks();
-
-    using VerifyCallback = std::function<void(StreamId)>;
 
     // Set callback for run-time setup verification (invoked on begin_run)
     void set_verify_callback(VerifyCallback cb);
@@ -115,7 +117,6 @@ class IntegrationSingleton
     Stopwatch get_time_;
     bool have_created_logger_{false};
     bool failed_setup_{false};
-    bool auto_hooks_active_{false};
     VerifyCallback verify_callback_;
 
     //// PRIVATE MEMBER FUNCTIONS ////

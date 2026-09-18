@@ -114,8 +114,9 @@ void TrackingManagerConstructor::ConstructProcess()
         // callbacks to initialize shared and thread-local offload state.
         // Without the master hook, installing tracking managers would let
         // tracks reach an uninitialized transporter.
-        CELER_LOG_LOCAL(info) << "StateDependent not registered - "
-                                 "auto_hooks_active_ is false";
+        CELER_LOG_LOCAL(debug)
+            << "Using tracking manager integration before auto hooks are "
+               "active: skipping tracking manager construction";
         return;
     }
 

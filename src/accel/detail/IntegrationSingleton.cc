@@ -337,7 +337,7 @@ void IntegrationSingleton::set_verify_callback(VerifyCallback cb)
  */
 void IntegrationSingleton::register_auto_hooks()
 {
-    if (auto_hooks_active_)
+    if (master_state_dependent_)
     {
         return;
     }
@@ -351,7 +351,6 @@ void IntegrationSingleton::register_auto_hooks()
         },
         StateDependent::Mode::lifecycle,
         StateDependent::LifecycleRole::global);
-    auto_hooks_active_ = true;
 }
 
 //---------------------------------------------------------------------------//
