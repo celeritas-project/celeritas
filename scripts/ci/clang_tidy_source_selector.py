@@ -3,7 +3,7 @@
 """Find source files affected by changed headers in clang-scan-deps output."""
 
 import json
-import re
+from collections.abc import Iterable
 from enum import StrEnum
 from pathlib import Path
 
@@ -15,33 +15,28 @@ class SourceSelection(StrEnum):
     ONE = "one"
 
 
-def resolve_paths(path_file: Path, root: Path) -> set[Path]:
-    """Read repository-relative paths and resolve them against the root."""
-    return {
-        root.joinpath(line.strip()).resolve()
-        for line in path_file.read_text().splitlines()
-        if line.strip()
-    }
+def resolve_paths(paths: Iterable[str], root: Path) -> set[Path]:
+    """Resolve repository-relative paths against the root."""
+    return {root.joinpath(path).resolve() for path in paths if path}
 
 
 def run(
     *,
     header_source_selection: SourceSelection,
-    header_file: Path,
-    source_file: Path,
+    headers: list[str],
+    changed_sources: list[str],
     dependency_file: Path,
-    regex_file: Path,
     root: Path,
-) -> int:
-    """Select source files and write a regex accepted by run-clang-tidy."""
+) -> list[str]:
+    """Select repository-relative source paths affected by changed headers."""
     if header_source_selection not in SourceSelection:
         raise ValueError(
             f"unsupported header source selection: {header_source_selection!r}"
         )
 
     root = root.resolve()
-    headers = resolve_paths(header_file, root)
-    changed_sources = resolve_paths(source_file, root)
+    headers = resolve_paths(headers, root)
+    changed_sources = resolve_paths(changed_sources, root)
     data = json.loads(dependency_file.read_text())
     affected_sources: set[Path] = set()
     source_by_header: dict[Path, Path] = {}
@@ -76,10 +71,4 @@ def run(
         source.relative_to(root).as_posix()
         for source in changed_sources | affected_sources
     )
-    if relative_sources:
-        regex_file.write_text(
-            "(?:^|/)(?:" + "|".join(re.escape(path) for path in relative_sources) + ")$"
-        )
-    else:
-        regex_file.write_text("")
-    return len(relative_sources)
+    return relative_sources

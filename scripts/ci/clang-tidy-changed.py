@@ -176,6 +176,11 @@ def scan_dependencies(
         )
 
 
+def source_selector(paths: list[str]) -> str:
+    """Create a run-clang-tidy regex that exactly matches source paths."""
+    return "(?:^|/)(?:" + "|".join(re.escape(path) for path in paths) + ")$"
+
+
 def run_header_tidy(
     args: argparse.Namespace,
     headers: list[str],
@@ -188,28 +193,22 @@ def run_header_tidy(
     runner = command_path(args.run_clang_tidy)
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
-        header_file = temp_dir / "headers.txt"
-        source_file = temp_dir / "sources.txt"
         dependency_file = temp_dir / "dependencies.json"
-        regex_file = temp_dir / "sources.regex"
-        header_file.write_text("\n".join(headers) + "\n")
-        source_file.write_text("\n".join(sources) + "\n")
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
         scan_dependencies(scanner, build_dir, repo_root, dependency_file)
-        selected_count = select_sources(
+        selected_sources = select_sources(
             header_source_selection=args.header_source_selection,
-            header_file=header_file,
-            source_file=source_file,
+            headers=headers,
+            changed_sources=sources,
             dependency_file=dependency_file,
-            regex_file=regex_file,
             root=repo_root,
         )
-        if selected_count == 0:
+        if not selected_sources:
             log(LogLevel.NOTICE, "No source files selected for the changed headers")
             return 0
         log(
             LogLevel.NOTICE,
-            f"Running clang-tidy on {selected_count} affected source files",
+            f"Running clang-tidy on {len(selected_sources)} affected source files",
         )
         return run_tidy(
             [
@@ -218,7 +217,7 @@ def run_header_tidy(
                 args.clang_tidy,
                 "-p",
                 str(build_dir),
-                regex_file.read_text(),
+                source_selector(selected_sources),
             ],
             repo_root,
         )
