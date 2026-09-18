@@ -41,28 +41,32 @@ def run(
     affected_sources: set[Path] = set()
     source_by_header: dict[Path, Path] = {}
 
-    for unit in data.get("translation-units", []):
-        for command in unit.get("commands", []):
-            source = command.get("input-file") or command.get("input_file")
-            if source is None or not source.endswith(SOURCE_EXT):
-                continue
-            directory = Path(command.get("directory", root))
-            source_path = directory.joinpath(source).resolve()
-            dependencies = command.get("file-deps", command.get("file_deps", []))
-            resolved_dependencies = {
-                directory.joinpath(dependency).resolve() for dependency in dependencies
-            }
+    commands = (
+        command
+        for unit in data.get("translation-units", [])
+        for command in unit.get("commands", [])
+    )
+    for command in commands:
+        source = command.get("input-file") or command.get("input_file")
+        if source is None or not source.endswith(SOURCE_EXT):
+            continue
+        directory = Path(command.get("directory", root))
+        source_path = directory.joinpath(source).resolve()
+        dependencies = command.get("file-deps", command.get("file_deps", []))
+        resolved_dependencies = {
+            directory.joinpath(dependency).resolve() for dependency in dependencies
+        }
 
-            matching_headers = headers & resolved_dependencies
-            if header_source_selection is SourceSelection.ALL and matching_headers:
-                affected_sources.add(source_path)
-            elif header_source_selection is SourceSelection.ONE:
-                for header in matching_headers:
-                    # If multiple sources depend on the same header,
-                    # pick the one with the lexicographically smallest path.
-                    source_by_header[header] = min(
-                        source_path, source_by_header.get(header, source_path)
-                    )
+        matching_headers = headers & resolved_dependencies
+        if header_source_selection is SourceSelection.ALL and matching_headers:
+            affected_sources.add(source_path)
+        elif header_source_selection is SourceSelection.ONE:
+            for header in matching_headers:
+                # If multiple sources depend on the same header,
+                # pick the one with the lexicographically smallest path.
+                source_by_header[header] = min(
+                    source_path, source_by_header.get(header, source_path)
+                )
 
     if header_source_selection is SourceSelection.ONE:
         affected_sources = set(source_by_header.values())
