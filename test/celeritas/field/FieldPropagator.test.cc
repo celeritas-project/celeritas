@@ -18,6 +18,7 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/CheckedGeoTrackView.hh"
+#include "geocel/GeoInterface.hh"
 #include "celeritas/Constants.hh"
 #include "celeritas/CoreGeoTestBase.hh"
 #include "celeritas/Quantities.hh"
@@ -543,7 +544,7 @@ TEST_F(TwoBoxesTest, TEST_IF_CELERITAS_DOUBLE(electron_small_step))
 
         auto geo = this->make_checked_track_view();
         EXPECT_EQ("inner", this->volume_name(geo));
-        geo.cross_boundary();
+        EXPECT_NO_THROW(geo.cross_boundary());
         EXPECT_EQ("world", this->volume_name(geo));
     }
     {
@@ -1329,7 +1330,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(vecgeom_failure))
         EXPECT_FALSE(result.looping);
     }
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger()};
+        ScopedLogStorer scoped_log_{&geo.logger()};
         ASSERT_TRUE(geo.is_on_boundary());
         // Simulate MSC making us reentrant
         geo.set_dir({-1.31178657592616127e-01,
@@ -1440,8 +1441,8 @@ TEST_F(CmseTest, coarse)
 
     for (real_type radius : {5, 10, 20, 50})
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
-                                    LogLevel::warning};
+        // Redirect geo logger before making checked track view
+        ScopedLogStorer scoped_log_{&geo_logger(), LogLevel::warning};
         auto geo = this->make_geo_track_view({2 * radius + 0.01_r, 0, -300},
                                              {0, 1, 1});
         // TODO: define a "reentrant" different propagation status: see
@@ -1472,7 +1473,7 @@ TEST_F(CmseTest, coarse)
             }
             catch (CheckedGeoError const& e)
             {
-                CELER_LOG_LOCAL(error) << e.details().what;
+                CELER_LOG_GEO(error) << e.details().what;
                 break;
             }
         }
@@ -1483,6 +1484,7 @@ TEST_F(CmseTest, coarse)
         result.messages.push_back(std::move(scoped_log_).messages());
         if (geo.failed())
         {
+            // Print this message for the user: not part of regression result
             CELER_LOG(error)
                 << "Failed radius = " << radius << " after "
                 << result.num_boundary.back() << " boundary crossings, "

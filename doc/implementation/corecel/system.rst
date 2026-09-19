@@ -98,6 +98,8 @@ These functions and classes are for communicating helpfully with the user.
 
 .. doxygendefine:: CELER_LOG
 .. doxygendefine:: CELER_LOG_LOCAL
+.. doxygendefine:: CELER_LOG_GEO
+
 .. doxygenenum:: celeritas::LogLevel
    :no-link:
 
