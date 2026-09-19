@@ -11,7 +11,6 @@
 #include <string>
 
 #include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
 
 namespace celeritas
 {
@@ -39,12 +38,22 @@ class FileOrStdin
 //---------------------------------------------------------------------------//
 /*!
  * Construct an output to a new file, or stdout if the filename is "-".
+ *
+ * \note This \em appends to the file by default to be consistent across
+ * console/file, compatible with NDJSON/JSONL-style record output.
+ * Construct with the \c std::ios::out mode to clobber an existing file.
  */
 class FileOrStdout
 {
   public:
-    // Construct with a filename
+    using Mode = std::ios::openmode;
+
+  public:
+    // Construct with a filename in "append" mode
     explicit inline FileOrStdout(std::string filename);
+
+    // Construct with a filename with a given ios mode
+    inline FileOrStdout(std::string filename, Mode);
 
     //! Implicitly cast to the opened stream
     operator std::ostream&() { return outf_.is_open() ? outf_ : std::cout; }
@@ -79,21 +88,33 @@ FileOrStdin::FileOrStdin(std::string filename) : filename_{std::move(filename)}
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with filename.
+ * Construct with filename in "append" mode.
+ *
+ * This gives consistent behavior between output files and the console.
  */
 FileOrStdout::FileOrStdout(std::string filename)
+    : FileOrStdout{std::move(filename), std::ios::app | std::ios::out}
+{
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with filename and custom mode.
+ */
+FileOrStdout::FileOrStdout(std::string filename, Mode mode)
     : filename_{std::move(filename)}
 {
     CELER_VALIDATE(!filename_.empty(),
                    << "empty filename is not valid for output");
     if (filename_ == "-")
     {
+        CELER_VALIDATE(!(mode & std::ios::trunc), << "cannot truncate stdout");
         filename_ = "<stdout>";
         return;
     }
 
     // Open the specified file
-    outf_.open(filename_);
+    outf_.open(filename_, mode);
     CELER_VALIDATE(outf_, << "failed to open '" << filename_ << "'");
 }
 

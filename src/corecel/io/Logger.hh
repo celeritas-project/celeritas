@@ -69,8 +69,6 @@
 
 namespace celeritas
 {
-class MpiCommunicator;
-
 //---------------------------------------------------------------------------//
 /*!
  * Create a log message to be printed based on output/verbosity settings.
@@ -84,9 +82,8 @@ class MpiCommunicator;
    world_logger = Logger(my_handler);
  * \endcode
  *
- * When using with MPI, the \c world_logger global objects are different on
- * each process: rank 0 will have a handler that outputs to screen, and the
- * other ranks will have a "null" handler that suppresses all log output.
+ * When using with MPI, set a null handle to \c world_logger on all processes
+ * other than rank 0, or use \c LocalMpiHandler on each process.
  *
  * \todo Replace the back-end with \c spdlog to reduce maintenance
  * burden and improve flexibility.

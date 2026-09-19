@@ -85,6 +85,7 @@ class DuneCryoTest : public LarStandaloneRunnerTestBase
 auto DuneCryoTest::make_input() -> Input
 {
     Input result;
+    result.problem.output_file = this->make_unique_filename("out.jsonl");
     result.problem.model.geometry
         = this->test_data_path("geocel", "dune-cryostat.gdml");
     result.detectors = {"PhotonDetector"};
@@ -154,6 +155,10 @@ TEST_F(DuneCryoTest, two_sim_edeps)
     RunResult ref;
     ref.num_hits = {274, 273, 11, 4};
     EXPECT_REF_EQ(ref, result);
+
+    auto const& sim_channel = raw_result.sim_photons.at(3);
+    EXPECT_EQ(3, sim_channel.OpChannel);
+    EXPECT_GT(sim_channel.DetectedPhotons.size(), 0);
     // auto hits = raw_result.at(3).TrackIDsAndEnergies(10.0, 20.0); // [ns]
 
     // Run again (simulating second event)
