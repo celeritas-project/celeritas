@@ -204,6 +204,11 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
+}
+
 TEST_F(FourLevelsTest, levels)
 {
     auto const& bbox = this->geometry()->bbox();
@@ -289,6 +294,14 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+
+    // All tracks start at the centers of the innermost spheres (radius 5)
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 5),
+                       output.safeties);
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 1),
+                       output.bounded_safeties);
+    EXPECT_VEC_EQ(std::vector<double>(input.init.size(), real_type{1e-20}),
+                  output.small_steps);
 }
 
 //---------------------------------------------------------------------------//
