@@ -215,6 +215,8 @@ GeoStatus CheckedGeoTrackView::geo_status() const
 /*!
  * Calculate the safety distance.
  *
+ * \deprecated Infinite safety should be replaced with manual safety (REMOVE in
+ * v0.8)
  * \return Nonnegative safety value
  */
 real_type CheckedGeoTrackView::find_safety()
