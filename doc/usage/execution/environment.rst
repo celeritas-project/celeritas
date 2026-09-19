@@ -37,8 +37,8 @@ has a default value but can be overridden with any boolean value.
  CELER_PROFILE_DEVICE      corecel   Flag: record kernel launch counts
  CUDA_HEAP_SIZE            geocel    Set ``cudaLimitMallocHeapSize`` (VG)
  CUDA_STACK_SIZE           geocel    Set ``cudaLimitStackSize`` for VecGeom
- G4ORG_OPTIONS             orange    JSON filename for G4-to-ORANGE conversion
  G4VG_COMPARE_VOLUMES      geocel    Check G4VG volume capacity when converting
+ CELER_LOG_GEO             geocel    Set geometry logger verbosity [#lg]_
  HEPMC3_VERBOSE            celeritas HepMC3 debug level integer
  VECGEOM_VERBOSE           celeritas VecGeom CUDA verbosity integer
  CELER_DISABLE             accel     Flag: disable Celeritas offloading entirely
@@ -46,6 +46,7 @@ has a default value but can be overridden with any boolean value.
  CELER_KILL_OFFLOAD        accel     Flag: kill offloaded tracks [#ko]_
  CELER_NONFATAL_FLUSH      accel     Flag: print and continue on failure [#nf]_
  CELER_STRIP_SOURCEDIR     accel     Flag: clean exception output
+ G4ORG_OPTIONS             orange    JSON filename for G4-to-ORANGE conversion
  ORANGE_BVH_MAX_LEAF_SIZE  orange    Set BVH ``max_leaf_size``, i.e., the
                                      maximum number of bboxes that can reside on
                                      a leaf node without triggering a
@@ -122,8 +123,8 @@ related to a particular thread. By default the self logger is mutexed for
 thread safety, and log messages are assembled internally before printing to
 reduce I/O contention.
 
-The levels below can be used with the ``CELER_LOG`` and ``CELER_LOG_LOCAL``
-environment variables to suppress or increase the output.
+The levels below can be used with the ``CELER_LOG`` and related
+environment variables (see :ref:`api_io`) to suppress or increase the output.
 The default is to print diagnostic messages and higher.
 
 .. table:: Logging levels in increasing severity.
