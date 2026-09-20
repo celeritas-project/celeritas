@@ -46,6 +46,8 @@ jobs:
             geant: "11.3"
           - geometry: "geant4"
             geant: "11.3"
+          - geometry: "geant4"
+            geant: "11.3+vecgeom"
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(
