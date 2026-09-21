@@ -330,8 +330,8 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     }
     if (check_zero_distance_ && result.distance == 0)
     {
-        // TODO: replace zero-distance from reentering geometry (ORANGE)
-        // with a different propagation status
+        // TODO: replace zero-distance from reentering geometry (ORANGE,
+        // VecGeom) with a different propagation status
         CELER_LOG_LOCAL(warning)
             << "Returning zero distance should be prohibited: " << *this;
     }
@@ -353,16 +353,26 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 /*!
  * Move within the volume along the current direction.
  *
+ * \pre Boundary must have been found and \em step is less than it
  * \post Not on boundary
  */
 void CheckedGeoTrackView::move_internal(real_type step)
 {
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
-    // TODO: check next_boundary_
+    CELER_VALIDATE(next_boundary_,
+                   << "tried to move before finding next boundary");
+    CELER_VALIDATE(step <= *next_boundary_,
+                   << "internal step " << step << " exceeds safe linear step "
+                   << *next_boundary_ << " by " << (step - *next_boundary_)
+                   << NativeLength{});
 
     t_->move_internal(step);
-    next_boundary_.reset();
+    *next_boundary_ -= step;
+    if (next_boundary_ <= 0)
+    {
+        next_boundary_.reset();
+    }
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !t_->is_on_boundary() && !t_->is_outside(),
@@ -377,12 +387,14 @@ void CheckedGeoTrackView::move_internal(real_type step)
  * The first call to this function will perform additional checking by
  * reinitializing the geometry at the given position.
  *
+ * \pre Inside the geometry
  * \post Not on boundary
  */
 void CheckedGeoTrackView::move_internal(Real3 const& pos)
 {
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
+    // TODO: store and check last found safety
 
     real_type orig_safety = (t_->is_on_boundary() ? 0 : t_->find_safety());
     auto orig_pos = t_->pos();
@@ -416,9 +428,9 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
-                << NativeLength{} << " to " << repr(t_->pos())
-                << NativeLength{} << " (distance: " << distance(orig_pos, pos)
-                << NativeLength{} << ")";
+                << " to " << repr(t_->pos())
+                << " (distance: " << distance(orig_pos, pos) << NativeLength{}
+                << ")";
         }
     }
 }
