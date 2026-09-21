@@ -85,7 +85,7 @@ jobs:
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
-               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
+               || contains(matrix.geometry, 'vecgeom') && 'vecgeom@2.1.0'
                || ''
             }}
             ${{(matrix.geometry == 'vecgeom'
