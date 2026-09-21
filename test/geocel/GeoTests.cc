@@ -11,16 +11,6 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_USE_GEANT4 && CELERITAS_GEANT4_VERSION >= 0x0a0600
-#    include <G4GeomConfig.hh>
-#endif
-
-#if CELERITAS_USE_GEANT4 && defined(G4GEOM_USE_USOLIDS)
-#    define CELERITAS_TEST_GEANT4_USOLIDS 1
-#else
-#    define CELERITAS_TEST_GEANT4_USOLIDS 0
-#endif
-
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -34,7 +24,6 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/detail/LengthUnits.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -979,7 +968,7 @@ void FourLevelsGeoTest::test_small_steps() const
     EXPECT_EQ(box_volume, geo.volume_id());
 
     next = geo.find_next_step(from_cm(gap / 2));
-    if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+    if (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
     {
         // USolids reports the nearby surface even before the requested limit
         // reaches it, since the point is within the surface tolerance.
@@ -2097,7 +2086,7 @@ void SolidsGeoTest::test_trace() const
             33.481506089183,
         };
 
-        if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+        if (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
         {
             // VecGeom's solid safety can be more conservative than native G4
             ref.halfway_safeties[2] = 36.9728429405546;
@@ -2218,7 +2207,7 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
             }
-            if constexpr (CELERITAS_TEST_GEANT4_USOLIDS)
+            if constexpr (CELERITAS_GEANT4_USOLIDS)
             {
                 // Geant4 navigation using VecGeom solid safety implementations
                 ref.halfway_safeties[4] = 17.4966506197896;
