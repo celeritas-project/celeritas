@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/vg/VecgeomTrackView.v2.hh
+//! \file geocel/vg/VecgeomBasicTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -35,7 +35,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Navigate through a VecGeom geometry on a single thread.
+ * Wrap basic navigation functionality from VecGeom.
  *
  * For a description of ordering requirements, see:
  * \sa OrangeTrackView
@@ -69,11 +69,6 @@ class VecgeomTrackView
     // Initialize the state
     inline CELER_FUNCTION VecgeomTrackView& operator=(
         Initializer_t const& init);
-
-    //// STATIC ACCESSORS ////
-
-    //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
 
     //// ACCESSORS ////
 
@@ -278,80 +273,6 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
     CELER_ENSURE(this->pos() == to_array(nav.GetPosition()));
     CELER_ENSURE(!this->has_next_step());
     return *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the volume ID in the current cell.
- */
-CELER_FORCEINLINE_FUNCTION VolumeId VecgeomTrackView::volume_id() const
-{
-    CELER_EXPECT(!this->is_outside());
-    CELER_EXPECT(!params_.volumes.empty());
-
-    return params_.volumes[this->impl_volume_id()];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the physical volume ID in the current cell.
- *
- * If built with Geant4, this is the canonical volume instance ID. If built
- * with VGDML, this is an "implementation" instance ID.
- */
-CELER_FUNCTION VolumeInstanceId VecgeomTrackView::volume_instance_id() const
-{
-    CELER_EXPECT(!this->is_outside());
-
-    auto ipv_id
-        = id_cast<ImplVolInstanceId>(this->make_nav().GetPlacedVolumeId());
-    return params_.volume_instances[ipv_id];
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the depth in the geometry hierarchy.
- */
-CELER_FUNCTION VolumeLevelId VecgeomTrackView::volume_level() const
-{
-    CELER_EXPECT(!this->is_outside());
-    auto result = id_cast<VolumeLevelId>(vgstate_.GetLevel());
-    CELER_ENSURE(result < params_.scalars.num_volume_levels);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the volume instance ID at each volume level.
- */
-CELER_FUNCTION void VecgeomTrackView::volume_instance_id(
-    Span<VolumeInstanceId> levels) const
-{
-    this->foreach_volume_path(
-        [levels](VolumeLevelId lev, VolumeInstanceId vol_inst) {
-            CELER_EXPECT(lev < levels.size());
-            CELER_EXPECT(vol_inst);
-            levels[*lev] = vol_inst;
-        });
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Apply the function with the volume instance ID and level.
- *
- * This can be used to construct a unique volume instance ID or fill a vector
- * with volume levels. It is performed in global-to-local order.
- */
-template<class F>
-CELER_FUNCTION void VecgeomTrackView::foreach_volume_path(F&& visit) const
-{
-    for (auto lev : range(this->volume_level() + 1))
-    {
-        VgPlacedVol const* pv = vgstate_.At(*lev);
-        CELER_ASSERT(pv);
-        auto ipv_id = id_cast<ImplVolInstanceId>(pv->id());
-        visit(lev, params_.volume_instances[ipv_id]);
-    }
 }
 
 //---------------------------------------------------------------------------//
