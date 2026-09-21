@@ -3,15 +3,12 @@
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
 //! \file geocel/vg/detail/SolidsNavigator.hh
+//! \sa geocel/vg/Vecgeom.test.cc
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <VecGeom/base/Config.h>
-#include <VecGeom/base/Cuda.h>
-#include <VecGeom/base/Global.h>
-#include <VecGeom/base/Version.h>
-#include <VecGeom/navigation/GlobalLocator.h>
-#include <VecGeom/navigation/VNavigator.h>
+#include <limits>
+#include <VecGeom/navigation/BVHNavigator.h>
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -26,11 +23,11 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Pointers to device data, obtained from a kernel launch or from runtime.
+ * Adapt VecGeom's solid navigation to Celeritas navigation state.
  *
- * The \c kernel data is copied from inside a kernel to global heap memory, and
- * thence to this result. The \c symbol data is copied via \c
- * cudaMemcpyFromSymbol .
+ * Host and device queries use VecGeom's IndexedBVH-backed BVHNavigator.
+ * The scoped state adapters copy the resulting navigation path back to
+ * Celeritas after each query.
  */
 class SolidsNavigator
 {
@@ -53,23 +50,17 @@ class SolidsNavigator
         VgPlacedVol const* exclude = nullptr)
     {
         ScopedVgNavState temp_nav{nav};
-        if (exclude)
-        {
-            // Exclude the volume from the search
-            vecgeom::GlobalLocator::LocateGlobalPointExclVolume(
-                vol, exclude, point, temp_nav, top);
-        }
-        else
-        {
-            // TODO: eliminate this branch by always using Excl
-            // Locate the point in the volume hierarchy
-            vecgeom::GlobalLocator::LocateGlobalPoint(
-                vol, point, temp_nav, top);
-        }
+        vecgeom::BVHNavigator::LocatePointIn(
+            vol, point, temp_nav, top, exclude);
+
+        // Location alone does not establish a crossed boundary. In particular,
+        // do not push a newly initialized track past a nearby surface.
+        VgNavState& located = temp_nav;
+        located.SetBoundaryState(false);
     }
 
     //-----------------------------------------------------------------------//
-    // FIXME: this *crosses* the volume
+    // Find the next boundary and prepare the output state for relocation
     CELER_FUNCTION static vg_real_type ComputeStepAndNextVolume(
         VgReal3 const& glpos,
         VgReal3 const& gldir,
@@ -77,13 +68,20 @@ class SolidsNavigator
         NavState const& in_state,
         NavState& out_state)
     {
-        auto* curr_volume = in_state.Top()->GetLogicalVolume();
-
-        // simple dispatch implementation
         ScopedVgNavState temp_out_state{out_state};
-        auto* navigator = curr_volume->GetNavigator();
-        real_type step = navigator->ComputeStepAndPropagatedState(
-            glpos, gldir, step_limit, in_state, temp_out_state);
+        // VecGeom treats sub-tolerance step limits as boundary crossings.
+        // Query beyond its boundary push, then apply the physics limit here.
+        auto query_limit = vecCore::math::Max(
+            step_limit, 2 * vecgeom::BVHNavigator::kBoundaryPush);
+        auto step = vecgeom::BVHNavigator::ComputeStepAndNextVolume(
+            glpos, gldir, query_limit, in_state, temp_out_state);
+        if (step > step_limit)
+        {
+            VgNavState& next = temp_out_state;
+            next = in_state;
+            next.SetBoundaryState(false);
+            return step_limit;
+        }
 
         return step;
     }
@@ -95,9 +93,8 @@ class SolidsNavigator
         NavState const& curr,
         vg_real_type safety = std::numeric_limits<vg_real_type>::infinity())
     {
-        auto* navigator = curr.Top()->GetLogicalVolume()->GetNavigator();
         real_type result
-            = navigator->GetSafetyEstimator()->ComputeSafety(glpos, curr);
+            = vecgeom::BVHNavigator::ComputeSafety(glpos, curr, safety);
         result = vecCore::math::Min(result, safety);
 
         return result;
@@ -106,9 +103,30 @@ class SolidsNavigator
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
     CELER_FUNCTION static void RelocateToNextVolume(
-        VgReal3 const&, VgReal3 const&, NavState&)
+        VgReal3 const& glpos,
+        VgReal3 const& gldir,
+        [[maybe_unused]] NavState const& in_state,
+        NavState& out_state)
     {
-        // Relocation is done previously :(
+        ScopedVgNavState temp_out_state{out_state};
+#if CELER_VGNAV != CELER_VGNAV_PATH
+        // The compact state discards VecGeom's last-exited metadata. When
+        // leaving one or more volumes, recover the last popped ancestor so
+        // relocation cannot reenter it at the exact boundary position.
+        VgNavState& next = temp_out_state;
+        if (next.GetLevel() < in_state.GetLevel())
+        {
+            VgNavState exited{in_state};
+            while (exited.GetLevel() > next.GetLevel() + 1)
+            {
+                exited.Pop();
+            }
+            exited.SetLastExited();
+            next.SetLastExited(exited.GetLastExitedState());
+        }
+#endif
+        vecgeom::BVHNavigator::RelocateToNextVolume(
+            glpos, gldir, temp_out_state);
     }
 };
 
