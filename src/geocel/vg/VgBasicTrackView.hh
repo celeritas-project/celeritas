@@ -93,10 +93,6 @@ class VgBasicTrackView
 
     // Get the current volume's ID
     inline CELER_FUNCTION ImplVolumeId impl_volume_id() const;
-    // The current surface ID
-    inline CELER_FUNCTION ImplSurfaceId impl_surface_id() const;
-    // After 'find_next_step', the next straight-line surface
-    inline CELER_FUNCTION ImplSurfaceId next_impl_surface_id() const;
 
     // Get the opaque nav path (index or tuple)
     inline CELER_FUNCTION OpaquePath opaque_path() const;
@@ -159,7 +155,6 @@ class VgBasicTrackView
     //!@}
 
     // Temporary data
-    real_type next_step_{0};
     bool failed_{false};
 
     //// HELPER CLASSES ////
@@ -168,9 +163,6 @@ class VgBasicTrackView
     class LocalNav;
 
     //// HELPER FUNCTIONS ////
-
-    // Whether any next distance-to-boundary has been found
-    inline CELER_FUNCTION bool has_next_step() const;
 
     // Whether the next distance-to-boundary is to a surface
     inline CELER_FUNCTION bool is_next_boundary() const;
@@ -271,7 +263,6 @@ CELER_FUNCTION VgBasicTrackView& VgBasicTrackView::operator=(
 
     CELER_ENSURE(this->dir() == to_array(nav.GetDirection()));
     CELER_ENSURE(this->pos() == to_array(nav.GetPosition()));
-    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -283,24 +274,6 @@ CELER_FORCEINLINE_FUNCTION ImplVolumeId VgBasicTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
     return id_cast<ImplVolumeId>(this->logical_volume().id());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * The current surface frame ID.
- */
-CELER_FUNCTION ImplSurfaceId VgBasicTrackView::impl_surface_id() const
-{
-    return {};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * After 'find_next_step', the next straight-line surface.
- */
-CELER_FUNCTION ImplSurfaceId VgBasicTrackView::next_impl_surface_id() const
-{
-    return {};
 }
 
 //---------------------------------------------------------------------------//
@@ -386,7 +359,6 @@ CELER_FUNCTION Propagation VgBasicTrackView::find_next_step(real_type max_step)
     {
         CELER_ASSERT_UNREACHABLE();
     }
-    next_step_ = result.distance;
 
     CELER_ENSURE(result.distance >= 0 && result.distance <= max_step);
     return result;
@@ -422,15 +394,19 @@ CELER_FUNCTION real_type VgBasicTrackView::find_safety(real_type max_radius)
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary but don't cross yet.
+ *
+ * Note that, unlike the regular move_internal, we allow zero distance in this
+ * case since it results in a change in state (though that \em may allow a
+ * cycle).
  */
-CELER_FUNCTION void VgBasicTrackView::move_to_boundary()
+CELER_FUNCTION void VgBasicTrackView::move_to_boundary(real_type dist)
 {
+    CELER_EXPECT(dist >= 0);
     CELER_EXPECT(!this->is_outside());
-    CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->is_next_boundary());
 
     auto nav = this->make_nav();
-    nav.MoveToBoundary(next_step_);
+    nav.MoveToBoundary(dist);
     pos_ = to_array(nav.GetPosition());
     CELER_ENSURE(this->is_on_boundary());
 }
@@ -460,11 +436,11 @@ CELER_FUNCTION void VgBasicTrackView::cross_boundary()
  */
 CELER_FUNCTION void VgBasicTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(dist > 0 && dist <= next_step_);
-    CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
+    CELER_EXPECT(dist > 0);
+    CELER_EXPECT(!this->is_next_boundary());
 
     auto nav = this->make_nav();
-    nav.MoveInternal(next_step_);
+    nav.MoveInternal(dist);
     pos_ = to_array(nav.GetPosition());
 
     CELER_ENSURE(!this->is_on_boundary());
@@ -499,27 +475,16 @@ CELER_FUNCTION void VgBasicTrackView::set_dir(Real3 const& newdir)
     auto nav = this->make_nav();
     nav.ChangeDirection(to_vgvector(newdir));
     dir_ = to_array(nav.GetDirection());
-    next_step_ = 0;
 }
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Whether a next step has been calculated.
- */
-CELER_FUNCTION bool VgBasicTrackView::has_next_step() const
-{
-    return next_step_ != 0;
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Whether the calculated next step will take track to next boundary.
  */
 CELER_FUNCTION bool VgBasicTrackView::is_next_boundary() const
 {
-    CELER_EXPECT(this->has_next_step() || this->is_on_boundary());
     return vgnext_.IsOnBoundary();
 }
 
