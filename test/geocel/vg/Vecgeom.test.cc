@@ -54,7 +54,7 @@ auto const vecgeom_version
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
-//! Load a geometry using VecGeom's semi-deprecated GDML reader
+//! Load a geometry using VecGeom's testing-only GDML reader
 class VecgeomVgdmlTestBase : public VecgeomTestBase
 {
   public:

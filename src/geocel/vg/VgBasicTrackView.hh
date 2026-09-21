@@ -348,7 +348,7 @@ CELER_FUNCTION Propagation VgBasicTrackView::find_next_step(real_type max_step)
     {
 #if !CELER_DEVICE_COMPILE
         auto msg = CELER_LOG_LOCAL(debug);
-        msg << "Failed to find nexdt step at " << repr(pos_) << ' '
+        msg << "Failed to find next step at " << repr(pos_) << ' '
             << lengthunits::native_label << " along " << repr(dir_);
 #endif
         failed_ = true;
