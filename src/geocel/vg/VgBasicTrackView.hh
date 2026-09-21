@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file geocel/vg/VecgeomBasicTrackView.hh
+//! \file geocel/vg/VgBasicTrackView.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -41,13 +41,13 @@ namespace celeritas
  * \sa OrangeTrackView
  *
  * \code
-    VecgeomTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
+    VgBasicTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
  *
  * The "next distance" is cached as part of `find_next_step`, but it is only
  * used when the immediate next call is `move_to_boundary`.
  */
-class VecgeomTrackView
+class VgBasicTrackView
 {
   public:
     //!@{
@@ -63,11 +63,11 @@ class VecgeomTrackView
 
   public:
     // Construct from persistent and state data
-    inline CELER_FUNCTION VecgeomTrackView(
+    inline CELER_FUNCTION VgBasicTrackView(
         ParamsRef const& data, StateRef const& stateview, TrackSlotId tid);
 
     // Initialize the state
-    inline CELER_FUNCTION VecgeomTrackView& operator=(
+    inline CELER_FUNCTION VgBasicTrackView& operator=(
         Initializer_t const& init);
 
     //// ACCESSORS ////
@@ -190,16 +190,16 @@ class VecgeomTrackView
 // This will be simplified when the upstream NavView supports true Span.
 //---------------------------------------------------------------------------//
 
-struct VecgeomTrackView::LocalNavData
+struct VgBasicTrackView::LocalNavData
 {
     VgReal3 temp_pos;
     VgReal3 temp_dir;
 };
 
-class VecgeomTrackView::LocalNav : public LocalNavData, public vecgeom::NavView
+class VgBasicTrackView::LocalNav : public LocalNavData, public vecgeom::NavView
 {
   public:
-    explicit LocalNav(VecgeomTrackView& vtv)
+    explicit LocalNav(VgBasicTrackView& vtv)
         : LocalNavData{to_vgvector(vtv.pos_), to_vgvector(vtv.dir_)}
         , NavView{vtv.vgstate_, vtv.vgnext_, this->temp_pos, this->temp_dir}
     {
@@ -212,7 +212,7 @@ class VecgeomTrackView::LocalNav : public LocalNavData, public vecgeom::NavView
 /*!
  * Construct from persistent and state data.
  */
-CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
+CELER_FUNCTION VgBasicTrackView::VgBasicTrackView(
     ParamsRef const& params, StateRef const& states, TrackSlotId tid)
     : params_(params)
     , state_(states)
@@ -236,7 +236,7 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
  * Otherwise, the state is initialized from a starting location and direction,
  * which is expensive.
  */
-CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
+CELER_FUNCTION VgBasicTrackView& VgBasicTrackView::operator=(
     Initializer_t const& init)
 {
     CELER_EXPECT(is_soft_unit_vector(init.dir));
@@ -248,7 +248,7 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
     auto nav = this->make_nav();
     if (init.parent)
     {
-        VecgeomTrackView other(params_, state_, init.parent);
+        VgBasicTrackView other(params_, state_, init.parent);
         nav.Initialize(
             vecgeom::FullPath{other.opaque_path(), other.is_on_boundary()},
             nav.temp_pos,
@@ -279,7 +279,7 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
 /*!
  * Get the volume ID in the current cell.
  */
-CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
+CELER_FORCEINLINE_FUNCTION ImplVolumeId VgBasicTrackView::impl_volume_id() const
 {
     CELER_EXPECT(!this->is_outside());
     return id_cast<ImplVolumeId>(this->logical_volume().id());
@@ -289,7 +289,7 @@ CELER_FORCEINLINE_FUNCTION ImplVolumeId VecgeomTrackView::impl_volume_id() const
 /*!
  * The current surface frame ID.
  */
-CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
+CELER_FUNCTION ImplSurfaceId VgBasicTrackView::impl_surface_id() const
 {
     return {};
 }
@@ -298,7 +298,7 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::impl_surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
+CELER_FUNCTION ImplSurfaceId VgBasicTrackView::next_impl_surface_id() const
 {
     return {};
 }
@@ -307,7 +307,7 @@ CELER_FUNCTION ImplSurfaceId VecgeomTrackView::next_impl_surface_id() const
 /*!
  * After 'find_next_step', the next straight-line surface.
  */
-CELER_FORCEINLINE_FUNCTION auto VecgeomTrackView::opaque_path() const
+CELER_FORCEINLINE_FUNCTION auto VgBasicTrackView::opaque_path() const
     -> OpaquePath
 {
     return this->make_nav().GetOpaquePath();
@@ -317,7 +317,7 @@ CELER_FORCEINLINE_FUNCTION auto VecgeomTrackView::opaque_path() const
 /*!
  * Whether the track is outside the valid geometry region.
  */
-CELER_FUNCTION bool VecgeomTrackView::is_outside() const
+CELER_FUNCTION bool VgBasicTrackView::is_outside() const
 {
     return vgstate_.IsOutside();
 }
@@ -326,7 +326,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_outside() const
 /*!
  * Whether the track is on the boundary of a volume.
  */
-CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
+CELER_FUNCTION bool VgBasicTrackView::is_on_boundary() const
 {
     return vgstate_.IsOnBoundary();
 }
@@ -335,7 +335,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 VecgeomTrackView::normal() const
+CELER_FUNCTION Real3 VgBasicTrackView::normal() const
 {
     // FIXME: temporarily return a bogus but valid surface normal
     return this->dir();
@@ -345,7 +345,7 @@ CELER_FUNCTION Real3 VecgeomTrackView::normal() const
 /*!
  * Find the distance to the next geometric boundary.
  */
-CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
+CELER_FUNCTION Propagation VgBasicTrackView::find_next_step(real_type max_step)
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(max_step > 0);
@@ -396,7 +396,7 @@ CELER_FUNCTION Propagation VecgeomTrackView::find_next_step(real_type max_step)
 /*!
  * Find the safety at the current position.
  */
-CELER_FUNCTION real_type VecgeomTrackView::find_safety()
+CELER_FUNCTION real_type VgBasicTrackView::find_safety()
 {
     return this->find_safety(vecgeom::kInfLength);
 }
@@ -408,7 +408,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety()
  * The safety within a step is only needed up to the end of the physics step
  * length.
  */
-CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
+CELER_FUNCTION real_type VgBasicTrackView::find_safety(real_type max_radius)
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!this->is_on_boundary());
@@ -423,7 +423,7 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
 /*!
  * Move to the next boundary but don't cross yet.
  */
-CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
+CELER_FUNCTION void VgBasicTrackView::move_to_boundary()
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->has_next_step());
@@ -441,7 +441,7 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
  *
  * The position *must* be on the boundary following a move-to-boundary.
  */
-CELER_FUNCTION void VecgeomTrackView::cross_boundary()
+CELER_FUNCTION void VgBasicTrackView::cross_boundary()
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
@@ -458,7 +458,7 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
  * The straight-line distance *must* be less than the distance to the
  * boundary.
  */
-CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
+CELER_FUNCTION void VgBasicTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(dist > 0 && dist <= next_step_);
     CELER_EXPECT(dist != next_step_ || !this->is_next_boundary());
@@ -477,7 +477,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(real_type dist)
  * \warning It's up to the caller to make sure that the position is
  * "nearby" and within the same volume.
  */
-CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
+CELER_FUNCTION void VgBasicTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
     auto nav = this->make_nav();
@@ -493,7 +493,7 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
  * This happens after a scattering event or movement inside a magnetic field.
  * It resets the calculated distance-to-boundary.
  */
-CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
+CELER_FUNCTION void VgBasicTrackView::set_dir(Real3 const& newdir)
 {
     CELER_EXPECT(is_soft_unit_vector(newdir));
     auto nav = this->make_nav();
@@ -508,7 +508,7 @@ CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 /*!
  * Whether a next step has been calculated.
  */
-CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
+CELER_FUNCTION bool VgBasicTrackView::has_next_step() const
 {
     return next_step_ != 0;
 }
@@ -517,7 +517,7 @@ CELER_FUNCTION bool VecgeomTrackView::has_next_step() const
 /*!
  * Whether the calculated next step will take track to next boundary.
  */
-CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
+CELER_FUNCTION bool VgBasicTrackView::is_next_boundary() const
 {
     CELER_EXPECT(this->has_next_step() || this->is_on_boundary());
     return vgnext_.IsOnBoundary();
@@ -527,7 +527,7 @@ CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 /*!
  * Get a reference to the current volume.
  */
-CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
+CELER_FUNCTION auto VgBasicTrackView::physical_volume() const
     -> VgPlacedVol const&
 {
     VgPlacedVol const* physvol_ptr = vgstate_.Top();
@@ -539,15 +539,15 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
+CELER_FUNCTION auto VgBasicTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
 }
 
 // Create a temporary navigator
-CELER_FUNCTION auto VecgeomTrackView::make_nav() const -> LocalNav
+CELER_FUNCTION auto VgBasicTrackView::make_nav() const -> LocalNav
 {
-    return LocalNav{const_cast<VecgeomTrackView&>(*this)};
+    return LocalNav{const_cast<VgBasicTrackView&>(*this)};
 }
 
 //---------------------------------------------------------------------------//
