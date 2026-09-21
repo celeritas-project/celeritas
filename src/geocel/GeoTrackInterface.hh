@@ -259,7 +259,7 @@ class GeoTrackInterface
      * Determines the distance to the nearest boundary in any direction (i.e.,
      * the radius of the maximally inscribed sphere).
      *
-     * \c deprecated: use \c find_safety(inf)
+     * \c deprecated: use \c find_safety(inf) (REMOVE in v0.8)
      */
     virtual real_type find_safety() = 0;
 

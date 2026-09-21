@@ -279,6 +279,7 @@ CheckedGeoTrackView GenericGeoTestInterface::make_checked_track_view()
         this->geometry_interface(),
         this->unit_length(),
     };
+    result.logger().level(getenv_loglevel("CELER_LOG_GEO", LogLevel::warning));
     return result;
 }
 
