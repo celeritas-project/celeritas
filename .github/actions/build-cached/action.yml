@@ -55,6 +55,7 @@ runs:
         } >> "$GITHUB_ENV"
 
     - name: Restore ccache
+      id: restore
       uses: actions/cache/restore@v6
       with:
         path: ${{ env.CCACHE_DIR }}
@@ -76,7 +77,15 @@ runs:
       run: ccache -s
 
     - name: Save ccache
-      if: ${{ !failure() && steps.build.outcome != 'skipped' }} # Allow interrupted builds
+      # Allow interrupted builds to save (use !failure not !cancelled)
+      # Cache names must be unique: don't save if there's an exact hit
+      # (maybe from a previously cancelled or errored build,
+      # or if two jobs use the same name)
+      if: >-
+        ${{ !failure()
+           && steps.build.outcome != 'skipped'
+           && !steps.restore.outputs.cache-hit
+         }}
       uses: actions/cache/save@v6
       with:
         upload-chunk-size: 67108864 # 64MB
