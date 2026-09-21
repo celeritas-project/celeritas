@@ -136,7 +136,7 @@ TEST_F(FourLevelsTest, reentrant)
 
 TEST_F(FourLevelsTest, reentrant_normal)
 {
-    ScopedLogStorer scoped_log_{&self_logger(), LogLevel::warning};
+    ScopedLogStorer scoped_log_{&geo_logger(), LogLevel::warning};
     this->impl().test_reentrant_normal();
 
     /*** ADD THE FOLLOWING UNIT TEST CODE ***/

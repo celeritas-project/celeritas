@@ -18,6 +18,7 @@
 #include "corecel/sys/Version.hh"
 #include "geocel/GeantImportVolumeResult.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
+#include "geocel/GeoInterface.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/UnitUtils.hh"
@@ -239,7 +240,7 @@ TEST_F(FourLevelsTest, reentrant)
 
 TEST_F(FourLevelsTest, reentrant_normal)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
+    ScopedLogStorer scoped_log_{&geo_logger()};
     this->impl().test_reentrant_normal();
 
     scoped_log_.print_expected();

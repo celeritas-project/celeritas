@@ -23,6 +23,7 @@
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GenericGeoParameterizedTest.hh"
 #include "geocel/GenericGeoResults.hh"
+#include "geocel/GeoInterface.hh"
 #include "geocel/GeoParamsOutput.hh"
 #include "geocel/GeoTests.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
@@ -95,8 +96,8 @@ class GeantGeoTest : public GeantGeoTestBase
         // Have ScopedGeantExceptionHandler treat tracking errors like runtime
         EXPECT_TRUE(sm->SetNewState(G4ApplicationState::G4State_EventProc));
 
-        // Use *local* logger during tracking
-        logger.emplace(celeritas::self_logger());
+        // Use *geo* logger during tracking
+        logger.emplace(celeritas::geo_logger());
     }
 
     void TearDown() override
@@ -323,7 +324,7 @@ TEST_F(FourLevelsTest, consecutive_compute)
 
 TEST_F(FourLevelsTest, detailed_track)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
+    ScopedLogStorer scoped_log_{&geo_logger()};
     this->impl().test_detailed_tracking();
 
     // "Finding next step up to ... when previous step 4 was already
@@ -344,7 +345,7 @@ TEST_F(FourLevelsTest, reentrant)
 
 TEST_F(FourLevelsTest, reentrant_normal)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
+    ScopedLogStorer scoped_log_{&geo_logger()};
     this->impl().test_reentrant_normal();
 
     static char const* const expected_log_messages[] = {
@@ -356,7 +357,7 @@ TEST_F(FourLevelsTest, reentrant_normal)
 
 TEST_F(FourLevelsTest, safety)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
+    ScopedLogStorer scoped_log_{&geo_logger()};
     this->impl().test_safety();
     // Don't test messages, which are unit system-dependent (they come from the
     // CheckedGeoTrackView)
@@ -640,7 +641,7 @@ TEST_F(SimpleCmsTest, trace)
 
 TEST_F(SimpleCmsTest, detailed_track)
 {
-    ScopedLogStorer scoped_log_{&self_logger()};
+    ScopedLogStorer scoped_log_{&geo_logger()};
     this->impl().test_detailed_tracking();
     EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }

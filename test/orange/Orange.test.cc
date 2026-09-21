@@ -185,7 +185,7 @@ TEST_F(TwoVolumeTest, init_on_boundary)
     auto geo = this->make_geo_track_view();
 
     {
-        ScopedLogStorer scoped_log_{&celeritas::self_logger(), LogLevel::error};
+        ScopedLogStorer scoped_log_{&celeritas::geo_logger(), LogLevel::error};
         geo = Initializer_t{{0, 0, 1.5}, {0, 0, 1}};
 
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)

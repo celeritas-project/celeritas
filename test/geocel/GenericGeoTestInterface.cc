@@ -16,6 +16,7 @@
 #include "corecel/math/ArrayOperators.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/SoftEqual.hh"
+#include "geocel/GeoInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"  // IWYU pragma: keep
@@ -36,7 +37,7 @@ namespace
 void log_ggti_exception(
     LogProvenance where, char const* action, CheckedGeoError const& e)
 {
-    auto& log = self_logger();
+    auto& log = geo_logger();
     auto const& d = e.details();
     auto debug_msg = log({d.file, d.line}, LogLevel::debug);
     debug_msg << "Failed ";
