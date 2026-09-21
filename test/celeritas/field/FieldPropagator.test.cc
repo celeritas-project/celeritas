@@ -1440,9 +1440,12 @@ TEST_F(CmseTest, coarse)
 
     for (real_type radius : {5, 10, 20, 50})
     {
+        // NOTE: scoped log must precede geo track view
+        ScopedLogStorer scoped_log_{&celeritas::self_logger(),
+                                    LogLevel::warning};
         auto geo = this->make_geo_track_view({2 * radius + 0.01_r, 0, -300},
                                              {0, 1, 1});
-        ScopedLogStorer scoped_log_{&geo.logger(), LogLevel::warning};
+
         // TODO: define a "reentrant" different propagation status: see
         // CheckedGeoTrackView, OrangeTrackView
         geo.check_zero_distance(false);
@@ -1482,6 +1485,7 @@ TEST_F(CmseTest, coarse)
         result.messages.push_back(std::move(scoped_log_).messages());
         if (geo.failed())
         {
+            // Print this message for the user: not part of regression result
             CELER_LOG(error)
                 << "Failed radius = " << radius << " after "
                 << result.num_boundary.back() << " boundary crossings, "
