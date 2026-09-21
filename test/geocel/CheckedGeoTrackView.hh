@@ -33,8 +33,8 @@ namespace test
  * - Counts the number of calls to \c find_next_step and \c find_safety
  * - Logs state changes at a debug level, and warns of unexpected conditions
  *
- * The constructor copies the geo logger's target and level by default,
- * which uses the \c CELER_LOG_GEO env variable.
+ * The constructor copies the "local" logger's target and level by default,
+ * with the level overridden by the \c CELER_LOG_GEO env variable.
  *
  * Two flags can alter the error checking:
  * - \c check_normal will validate the normal calculation when on a boundary

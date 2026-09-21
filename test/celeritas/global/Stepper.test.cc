@@ -20,7 +20,6 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "geocel/GeoInterface.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/InvalidOrangeTestBase.hh"
 #include "celeritas/SimpleTestBase.hh"
@@ -283,15 +282,7 @@ class BadGeometryTest : public InvalidOrangeTestBase
         Stepper<M> step(this->make_stepper_input());
 
         auto primary = this->make_primary(point);
-
-        // Combine two loggers temporarily to make output processing easier
-        // using a second "scoped log" to ensure geo logger doesn't get a
-        // dangling pointer to the log object. Both loggers will be restored at
-        // the end of the function.
         ScopedLogStorer scoped_log{&celeritas::self_logger()};
-        ScopedLogStorer scoped_geo_log{&celeritas::geo_logger()};
-        celeritas::geo_logger().handle(std::ref(scoped_log));
-
         CELER_TRY_HANDLE(step({&primary, 1}),
                          LogContextException{this->output_reg().get()});
 

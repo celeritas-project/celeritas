@@ -24,8 +24,8 @@
 #include "detail/Utils.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
-#    include "geocel/GeoInterface.hh"
 #endif
 
 namespace celeritas
@@ -551,7 +551,7 @@ CELER_FUNCTION auto SimpleUnitTracker::complex_intersect(
     {
         if (is_inside(calc_sense) == (target_sense == Sense::inside))
         {
-            CELER_LOG_GEO(warning)
+            CELER_LOG_LOCAL(warning)
                 << "Calculated surface sense at position " << repr(pos)
                 << " already matches target sense";
         }

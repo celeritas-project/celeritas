@@ -4,12 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file geocel/GeoInterface.cc
 //---------------------------------------------------------------------------//
-#include "GeoInterface.hh"
-
-#include <iostream>
-
-#include "corecel/io/LogHandlers.hh"
-
 #include "GeoParamsInterface.hh"
 #include "GeoTrackInterface.hh"
 
@@ -28,23 +22,6 @@ GeoTrackInterface<RealType>::~GeoTrackInterface() = default;
 template class GeoTrackInterface<float>;
 #endif
 template class GeoTrackInterface<double>;
-
-//---------------------------------------------------------------------------//
-/*!
- * Local geometry logger: print on \em every thread, default "error" level.
- *
- * This is to print diagnostics about thread-local geometry issues.
- * Setting the "CELER_LOG_GEO" environment variable to "debug", "info",
- * "error", etc. will change the default log level.
- *
- * \sa CELER_LOG .
- */
-Logger& geo_logger()
-{
-    static Logger logger{StreamLogHandler{std::clog},
-                         getenv_loglevel("CELER_LOG_GEO", LogLevel::error)};
-    return logger;
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

@@ -10,12 +10,12 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
+#include "corecel/io/Logger.hh"
 #include "corecel/io/Repr.hh"
 #include "corecel/math/ArrayOperators.hh"  // IWYU pragma: keep
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "geocel/GeoInterface.hh"
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/VolumeParams.hh"
 
@@ -149,6 +149,15 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
 
 #define CGTV_LOG(LEVEL) \
     this->log_(CELER_CODE_PROVENANCE, ::celeritas::LogLevel::LEVEL)
+//---------------------------------------------------------------------------//
+Logger default_checked_geo_logger()
+{
+    // Default to copying the self logger (including error handler and level)
+    auto result = ::celeritas::self_logger();
+    // Override log level with CELER_LOG_GEO
+    result.level(getenv_loglevel("CELER_LOG_GEO", result.level()));
+    return result;
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -162,7 +171,7 @@ CheckedGeoTrackView::CheckedGeoTrackView(UPTrack track,
                                          SPConstGeoI geo_interface,
                                          UnitLength unit_length)
     : t_{std::move(track)}
-    , log_{::celeritas::geo_logger()}
+    , log_{default_checked_geo_logger()}
     , volumes_{std::move(volumes)}
     , geo_interface_{std::move(geo_interface)}
     , unit_length_(unit_length)

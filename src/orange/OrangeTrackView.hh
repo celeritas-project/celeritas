@@ -27,8 +27,8 @@
 #include "detail/UniverseIndexer.hh"
 
 #if !CELER_DEVICE_COMPILE
+#    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
-#    include "geocel/GeoInterface.hh"
 #endif
 
 namespace celeritas
@@ -292,7 +292,7 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
         if (CELER_UNLIKELY(!tinit.volume || tinit.surface))
         {
 #if !CELER_DEVICE_COMPILE
-            auto msg = CELER_LOG_GEO(error);
+            auto msg = CELER_LOG_LOCAL(error);
             msg << "Failed to initialize geometry state: ";
             if (!tinit.volume)
             {
@@ -859,7 +859,7 @@ CELER_FUNCTION void OrangeTrackView::cross_boundary()
     TrackerVisitor visit_tracker{params_};
     auto fail = [&] {
 #if !CELER_DEVICE_COMPILE
-        CELER_LOG_GEO(error)
+        CELER_LOG_LOCAL(error)
             << "track failed to cross local surface "
             << this->surf().unchecked_get() << " in universe "
             << univ.unchecked_get() << " at local position " << repr(local.pos)
@@ -962,7 +962,7 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         if (CELER_UNLIKELY(new_dot == 0))
         {
 #if !CELER_DEVICE_COMPILE
-            CELER_LOG_GEO(error)
+            CELER_LOG_LOCAL(error)
                 << "track direction cannot change to " << newdir
                 << " which is perpendicular to the current surface normal";
 #endif
