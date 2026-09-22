@@ -11,6 +11,16 @@
 
 #include "corecel/Config.hh"
 
+#if CELERITAS_USE_GEANT4 && CELERITAS_GEANT4_VERSION >= 0x0a0600
+#    include <G4GeomConfig.hh>
+#endif
+
+#if CELERITAS_USE_GEANT4 && defined(G4GEOM_USE_USOLIDS)
+#    define CELERITAS_TEST_GEANT4_USOLIDS 1
+#else
+#    define CELERITAS_TEST_GEANT4_USOLIDS 0
+#endif
+
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -878,7 +888,7 @@ void FourLevelsGeoTest::test_safety() const
         }
     }
 
-    static double const expected_safeties[] = {
+    std::vector<double> expected_safeties = {
         2.9,
         0.9,
         0.1,
@@ -892,6 +902,13 @@ void FourLevelsGeoTest::test_safety() const
         3.1,
     };
     auto tol = test_->tracking_tol();
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
+    {
+        // IndexedBVH resolves the diagonal distance to the envelope rather
+        // than its conservative box safety. At {20.1, 20.1, 20.1}, the world
+        // boundary is closer: 24 - 20.1 = 3.9 cm.
+        expected_safeties.back() = 3.9;
+    }
     EXPECT_VEC_NEAR(expected_safeties, safeties, tol.safety);
 
     std::vector<double> expected_lim_safeties = {
@@ -919,6 +936,77 @@ void FourLevelsGeoTest::test_safety() const
     }
 
     EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, tol.safety);
+}
+
+//---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_small_steps() const
+{
+    auto const tiny_step = from_cm(real_type{1e-20});
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({10, 10, 10}, {1, 0, 0});
+    auto const start_volume = geo.volume_id();
+
+    auto next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+    EXPECT_EQ(start_volume, geo.volume_id());
+
+    // A rejected lookahead must not change subsequent boundary navigation
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_EQ(start_volume, geo.volume_id());
+    geo.move_to_boundary();
+    EXPECT_EQ(start_volume, geo.volume_id());
+    geo.cross_boundary();
+    EXPECT_NE(start_volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+
+    next = geo.find_next_step(tiny_step);
+    EXPECT_EQ(tiny_step, next.distance);
+    EXPECT_FALSE(next.boundary);
+
+    // A limited step on the previous boundary must preserve the next crossing
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_SOFT_EQ(1, to_cm(next.distance));
+    EXPECT_TRUE(next.boundary);
+
+    // Initialize close to a surface, then resolve a real hit
+    constexpr real_type gap = 1e-11;
+    auto const box_volume = geo.volume_id();
+    geo = test_->make_initializer({16 - gap, 10, 10}, {1, 0, 0});
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ(box_volume, geo.volume_id());
+
+    next = geo.find_next_step(from_cm(gap / 2));
+    if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+    {
+        // USolids reports the nearby surface even before the requested limit
+        // reaches it, since the point is within the surface tolerance.
+        EXPECT_TRUE(next.boundary);
+        EXPECT_EQ(0, next.distance);
+    }
+    else
+    {
+        EXPECT_FALSE(next.boundary);
+        EXPECT_EQ(from_cm(gap / 2), next.distance);
+    }
+
+    next = geo.find_next_step(from_cm(2 * gap));
+    EXPECT_TRUE(next.boundary);
+    if (test_->geometry_type() == "Geant4")
+    {
+        // Geant4 treats a point within its surface tolerance as on the surface
+        EXPECT_EQ(0, next.distance);
+    }
+    else
+    {
+        EXPECT_GT(to_cm(next.distance), gap / 2);
+    }
+    EXPECT_LT(to_cm(next.distance), 2 * gap);
+    geo.move_to_boundary();
+    geo.cross_boundary();
+    EXPECT_NE(box_volume, geo.volume_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -2009,6 +2097,12 @@ void SolidsGeoTest::test_trace() const
             33.481506089183,
         };
 
+        if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+        {
+            // VecGeom's solid safety can be more conservative than native G4
+            ref.halfway_safeties[2] = 36.9728429405546;
+        }
+
         if (test_->geometry_type() == "VecGeom")
         {
             // v1.2.11: unknown differences outside polycone and paraboloid
@@ -2123,6 +2217,18 @@ void SolidsGeoTest::test_trace() const
                 // overestimates safety distance to twisted surfaces
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
+            }
+            if constexpr (CELERITAS_TEST_GEANT4_USOLIDS)
+            {
+                // Geant4 navigation using VecGeom solid safety implementations
+                ref.halfway_safeties[4] = 17.4966506197896;
+                ref.halfway_safeties[5] = 39.0470100365853;
+                ref.halfway_safeties[6] = 17.5;
+                ref.halfway_safeties[7] = 29.8360600858068;
+                ref.halfway_safeties[8] = 29.1115376091068;
+                ref.halfway_safeties[14] = 19.0382940808067;
+                ref.halfway_safeties[15] = 0.5;
+                ref.halfway_safeties[16] = 0.5;
             }
         }
         else if (test_->geometry_type() == "VecGeom")
@@ -2854,11 +2960,6 @@ void TwoBoxesGeoTest::test_reentrant() const
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
-    }
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
-    {
-        EXPECT_EQ("world", test_->volume_name(geo));
-        GTEST_SKIP() << "Unexpected vg2 behavior";
     }
     EXPECT_EQ("inner", test_->volume_name(geo));
 

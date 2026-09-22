@@ -5,14 +5,13 @@
 # Check that dd4hep plugin builds and runs on EIC containers
 #-----------------------------------------------------------------------------#
 
-name: Check dd4hep integration
-
+name: check-dd4hep-integration
 on:
   workflow_dispatch: {}
   workflow_call: {}
 
 jobs:
-  check-dd4hep-integration:
+  eic:
     container: ghcr.io/eic/eic_ci:nightly
     runs-on: ubuntu-latest
     defaults:

@@ -1,0 +1,510 @@
+test/accel/UserActionIntegration --gtest_filter=LarSphereOpticalOffload.run
+Device.cc: debug: Disabling GPU support since CUDA and HIP are disabled
+PersistentSP.hh: debug: Registering persistent run manager cleanup
+PersistentSP.hh: debug: Building persistent run manager for key 'lar-sphere'
+status: Creating run manager
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+info: Created run manager type G4MTRunManager
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 0)
+status: Setting run manager initialization
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 0)
+IntegrationTestBase.cc: debug: Creating default EM-only physics list
+SupportedEmStandardPhysics.cc: debug: Setting EM parameters
+SupportedEmStandardPhysics.cc: debug: Constructing default EM particles: gamma, e+, e-
+SupportedEmStandardPhysics.cc: debug: Constructing: proton
+IntegrationTestBase.cc: debug: ActionInitialization::BuildForMaster
+ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (depth 1)
+ScopedGeantExceptionHandler.cc: debug: Destroying scoped G4 exception handler (depth 1)
+[M] debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+[M!] debug@DetectorConstruction.cc: Loading detector geometry
+[M] info@GeantGdmlLoader.cc: Loading Geant4 geometry from GDML at lar-sphere.gdml
+[M] debug@ScopedProfiling.cc: Disabling unavailable performance profiling
+[M] debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
+[M!] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+[M] debug@DetectorConstruction.cc: Found 2 detectors
+[M] debug@GeantGeoParams.cc: GeantGeoParams constructed with a non-navigation world: given 'world_PV'@0x0000; navigation world is unset
+[M] debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+[M!] debug@DetectorConstruction.cc: Constructing sensitive detectors
+[M] info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
+[M] debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
+[M!] debug@SupportedEmStandardPhysics.cc: Constructing processes
+[M] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+[M] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+[M] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+[M] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+[M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+[M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+[M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+[M] debug@SupportedOpticalPhysics.cc: Added optical absorption process
+[M] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
+[M] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
+[M] debug@SupportedOpticalPhysics.cc: Added optical boundary process
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu+
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu-
+[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu+
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu-
+[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+[M] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
+G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 4 events and 10 primaries per event
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::UAITrackingAction
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting step action of type celeritas::test::DistOffloadSteppingAction
+G4WT0 > [1/1] debug@DetectorConstruction.cc: Constructing sensitive detectors
+G4WT0 > [W] info@DetectorConstruction.cc: Constructed SensDet='detshell' and attached to 2 volumes
+G4WT0 > [W] debug@DetectorConstruction.cc: Attached 'detshell' to 'detshell_bot, detshell_top'
+G4WT0 > [1/1] debug@SupportedEmStandardPhysics.cc: Constructing processes
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Compton scattering with G4KleinNishinaCompton
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using photoelectric effect with G4LivermorePhotoElectricModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Rayleigh scattering with G4LivermoreRayleighModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using gamma conversion with G4PairProductionRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihilation
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
+G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical absorption process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical boundary process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
+G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
+[M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+[M] debug@IntegrationSingleton.cc: Initializing shared params
+[M] info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
+[M] debug@System.cc: Celeritas environment variables: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_OFFLOAD: 'cpu',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+}
+[M] status@GeantImporter.cc: Transferring data from Geant4
+[M!] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
+[M] debug@GeantImporter.cc: Loaded 4 particles
+[M] debug@GeantImporter.cc: Loaded 1 optical materials
+[M] debug@GeantImporter.cc: Loaded 9 isotopes
+[M] debug@GeantImporter.cc: Loaded 3 elements
+[M] debug@GeantImporter.cc: Loaded 3 geo materials
+[M] debug@GeantImporter.cc: Loaded 2 physics materials
+[M] debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e+ (-11)
+[M] debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e+ (-11)
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process Scintillation("Scintillation")
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process Cerenkov("Cerenkov")
+[M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e- (11)
+[M] debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e- (11)
+[M] debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e- (11)
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Scintillation"
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Cerenkov"
+[M] debug@GeantProcessImporter.cc: Loading process 'compt' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'phot' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'Rayl' for particle gamma (22)
+[M] debug@GeantProcessImporter.cc: Loading process 'conv' for particle gamma (22)
+[M] debug@GeantPhysicsLoader.cc: Already loaded process "Scintillation"
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process G4OpAbsorption("OpAbsorption")
+[M] warning@GeantPhysicsLoader.cc: Inconsistent Rayleigh input data: compressibility (provided) with optional scale (missing) is ignored in favor of MFP grid
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process G4OpRayleigh("OpRayleigh")
+[M] warning@GeantPhysicsLoader.cc: Loaded no model data from process G4OpMieHG("OpMieHG")
+[M] debug@GeantPhysicsLoader.cc: Loaded 1 model data from process G4OpBoundaryProcess("OpBoundary")
+[M] debug@GeantImporter.cc: Loaded 9 EM processes
+[M] debug@GeantImporter.cc: Loaded 2 MSC models
+[M] debug@GeantImporter.cc: Loaded 5 of 5 volumes
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
+[M] debug@GeantGeoParams.cc: Loaded 1 detectors in a total of 2 logical volumes
+[M] debug@GeantGeoParams.cc: Loaded 1 regions out of 2 Geant4 regions and created 0 new regions
+[M] status@Problem.cc: Initializing problem
+[M] status@PhysicalVolumeConverter.cc: Converting Geant4 geometry elements to ORANGE input
+[M] status@InputBuilder.cc: Constructing ORANGE surfaces and runtime data
+[M] debug@UnitProto.cc: Building 'world': 0 daughters and 5 materials...
+[M] debug@UnitProto.cc: - Logic simplification hard-coded 2 nodes and pruned 3 unused nodes of 19 CSG nodes
+[M] debug@UnitProto.cc: - Eliminated 0 of 4 surfaces
+[M] debug@OrangeParams.cc: Merging runtime data
+[M] debug@OrangeParams.cc: Allocating labels for 1 universes with 6 impl volumes and 4 impl surfaces
+[M] debug@Model.cc: No surfaces are defined
+[M] warning@Problem.cc: Problem contains optical physics without any geometry surface definitions: default physics will be used for all surfaces
+[M] debug@GeoMaterialParams.cc: Building geometry->physics map using VolumeParams (5 volumes) and import data (5 volumes)
+[M] debug@GeoMaterialParams.cc: Filling geometry->physics map using canonical volumes
+[M] info@MaterialParams.cc: Constructed 1 optical materials with 1 present in the geometry
+[M] status@CoreParams.cc: Celeritas optical setup complete
+[M] error@SharedParams.cc: Problem contains Celeritas-specific scintillation representation: results will *not* match Geant4
+[M] debug@GeantGeoParams.cc: Setting celeritas::global_geant_geo
+[M] debug@SharedParams.cc: Setting number of streams to 1
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereopticaloffload-run-cpu-mt.out.json"
+[M] debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_OFFLOAD: 'cpu',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
+G4WT0 > [W] debug@IntegrationSingleton.cc: Initializing worker
+G4WT0 > [W] debug@IntegrationSingleton.cc: Constructing local state
+G4WT0 > [W] info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
+G4WT0 > [1/1] debug@AuxStateVec.cc: Allocating 1 aux state classes for host on stream {0} with state size 32768
+G4WT0 > [W] debug@IntegrationTestBase.cc: Environment variables after setup: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_OFFLOAD: 'cpu',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 0
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 87 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1174 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 45 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 2540 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 1 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 389 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 208 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 225 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 566 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 109 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 687 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 76 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1189 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 74 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1349 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 3 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 503 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 4 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 311 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 263 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 153 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 632 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 92 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1165 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 96 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 909 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 54 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1122 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 1 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 670 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 302 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 67 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 691 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 81 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 947 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 79 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 960 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 69 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1193 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1599 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 276 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 87 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1655 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 55 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1471 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 4 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 872 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 692 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 226 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 97 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 742 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 84 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 815 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 95 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1436 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 15 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 717 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 3 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 340 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 188 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 309 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 505 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 97 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 828 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 87 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1272 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 48 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1175 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 5 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 614 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 294 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 177 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 717 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 102 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 816 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 71 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1945 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 13 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1199 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 258 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 70 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 675 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 109 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 772 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 104 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 996 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 78 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1134 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 12 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 793 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 399 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 410 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 573 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 16 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 107 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 96 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 832 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 72 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 976 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 74 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1302 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 5 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 521 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 324 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 219 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 19 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 695 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 22 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 40 scintillation photons
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+G4WT0 > [1/1] status@Transporter.cc: Transporting on host
+G4WT0 > [1/1] debug@PGPrimaryGeneratorAction.cc: Generated 10 primaries for event 1
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 92 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 837 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 86 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 834 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 79 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1148 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 21 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 765 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 424 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 307 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 72 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 675 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 103 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 836 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 88 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1628 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 27 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 953 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 978 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 3 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 677 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 87 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 737 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 102 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 792 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 82 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1128 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 35 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 723 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 779 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 37 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 73 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 696 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 99 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 766 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 94 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1052 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 59 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1425 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 12 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 546 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 1 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 402 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 89 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 42 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 713 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 85 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 861 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 90 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 882 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 77 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1317 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 8 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1024 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 189 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 39 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 3 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 26 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 696 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 102 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 717 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 110 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 825 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 78 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1086 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 31 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 737 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 3 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 461 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 344 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 35 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 42 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 740 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 112 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 780 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 99 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1064 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 71 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1178 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 19 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 566 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 329 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 1 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 234 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 164 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 655 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 102 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1019 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 95 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1198 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 55 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 934 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 6 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 484 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 2 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 408 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 148 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 90 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 671 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 94 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1000 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 83 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 963 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 64 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1183 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 6 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 519 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 310 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 183 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 6 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 15 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 25 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 664 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 88 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1143 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 72 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 948 scintillation photons
+G4WT0 > [1/1] debug@CherenkovOffload.cc: Offloading 28 Cherenkov photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 1731 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 227 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 128 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 63 scintillation photons
+G4WT0 > [1/1] debug@ScintillationOffload.cc: Offloading 753 scintillation photons
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
+G4WT0 > [1/1] status@Transporter.cc: Transporting on host
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
+G4WT0 > [1/1] info@LocalOpticalGenOffload.cc: Finalizing Celeritas after 161712 optical steps (over 28 step iterations) from 105138 optical photons generated from 240 distributions
+[M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
+[M] info@DistOffloadMixin.cc: Total Geant4 steps: 0 optical, 176 other
+[M] status@IntegrationSingleton.cc: Finalizing Celeritas
+[M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereopticaloffload-run-cpu-mt.out.json"
+[M] debug@SharedParams.cc: Resetting shared parameters
+[M] debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M!] debug@IntegrationTestBase.cc: Tearing down action initialization
+[M!] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
+[M] debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {
+  CELER_LOG: 'debug',
+  NO_COLOR: '',
+  GTEST_COLOR: '1',
+  CELER_ENABLE_PROFILING: '0',
+  CELER_LOG_LOCAL: 'debug',
+  CELER_OFFLOAD: 'cpu',
+  CELER_DISABLE_REDIRECT: '0',
+  CELER_LOG_ALL_LOCAL: '0',
+  CELER_STRIP_SOURCEDIR: '1',
+  G4RUN_MANAGER_TYPE: 'MT',
+  G4_GEO_VERBOSITY: '',
+  CELER_KILL_OFFLOAD: '0',
+  CELER_DISABLE: '0',
+  G4LEDATA: G4EMLOW8.6.1',
+  ORANGE_FORCE_INPUT: '',
+  G4ORG_OPTIONS: '',
+  ORANGE_BVH_MAX_LEAF_SIZE: '',
+  ORANGE_BVH_DEPTH_LIMIT: '',
+  ORANGE_BVH_PART_CANDS: '',
+  ORANGE_MAX_FACE_INTERSECT: '',
+  ORANGE_BVH_STRUCTURE: '0',
+  ORANGE_UNIV_STRUCTURE: '0',
+}
