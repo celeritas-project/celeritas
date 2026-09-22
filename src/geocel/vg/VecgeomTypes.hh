@@ -44,6 +44,7 @@ namespace vecgeom
 #if VECGEOM_VERSION >= 0x020000
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
 struct NavTuple;
+class NavStateTuple;
 #endif
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
@@ -70,6 +71,12 @@ using vgbvh_real_type = double;
 // Allow trivial copying of tuple between device/host
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
 struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+{
+};
+
+// Allow trivial copying of *state* between device/host
+template<>
+struct IsTriviallyCopyable<vecgeom::NavStateTuple> : std::true_type
 {
 };
 #endif

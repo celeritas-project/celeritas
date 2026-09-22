@@ -29,7 +29,8 @@ namespace celeritas
  * libraries, such as rocrand's state types and VecGeom's NavTuple types, are
  * \em essentially trivial, but implement null-op destructors or optimized copy
  * constructors, so we allow specialization through the
- * celeritas::IsTriviallyCopyable class.
+ * \c celeritas::IsTriviallyCopyable class (used in the \c
+ * is_trivially_copyable_v static assertion below).
  *
  * An individual item in a \c Collection<T> can be accessed with \c ItemId<T>,
  * a contiguous subset of items are accessed with \c ItemRange<T>, and the
@@ -490,24 +491,26 @@ inline auto make_const_ref(Collection<T, Ownership::value, M, I> const& c)
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I> const& other)
-{
-    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
-    detail::validate_storage<W2>(this->size(), other.storage().size());
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>::Collection(Collection<T, W2, M2, I>& other)
-{
-    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
-    detail::validate_storage<W2>(this->size(), other.storage().size());
-}
-
-template<class T, Ownership W, MemSpace M, class I>
-template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
+CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
     Collection<T, W2, M2, I> const& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+}
+
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
+    Collection<T, W2, M2, I>& other)
+{
+    detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
+    detail::validate_storage<W2>(this->size(), other.storage().size());
+}
+
+template<class T, Ownership W, MemSpace M, class I>
+template<Ownership W2, MemSpace M2>
+CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
@@ -516,8 +519,8 @@ Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
-    Collection<T, W2, M2, I>& other)
+CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>&
+Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
