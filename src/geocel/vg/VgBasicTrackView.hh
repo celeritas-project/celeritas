@@ -465,7 +465,7 @@ CELER_FUNCTION void VgBasicTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
     auto nav = this->make_nav();
-    nav.MoveToBoundary(next_step_);
+    nav.MoveInternal(to_vgvector(pos));
     pos_ = to_array(nav.GetPosition());
     CELER_ENSURE(!this->is_on_boundary());
 }
