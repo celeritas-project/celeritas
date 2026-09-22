@@ -178,7 +178,8 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
     // Generate optical photons in vacant track slots
     detail::PrimaryGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), data_, params_.host_ref()};
-    launch_action(aux_state.counters.num_pending, execute);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
+    launch_action(num_gen, execute);
 }
 
 //---------------------------------------------------------------------------//

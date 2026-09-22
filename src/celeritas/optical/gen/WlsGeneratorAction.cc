@@ -203,7 +203,8 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         wls2_ ? wls2_->host_ref() : NativeCRef<WavelengthShiftData>{},
         aux_state.store.ref(),
         aux_state.counters.buffer_size};
-    launch_action(aux_state.counters.num_pending, execute);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
+    launch_action(num_gen, execute);
 }
 
 //---------------------------------------------------------------------------//

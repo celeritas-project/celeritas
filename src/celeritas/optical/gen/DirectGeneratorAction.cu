@@ -34,7 +34,8 @@ void DirectGeneratorAction::generate(CoreParams const& params,
     detail::DirectGeneratorExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), aux_state.store.ref()};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    launch(aux_state.counters.num_pending, state.stream_id(), execute);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
+    launch(num_gen, state.stream_id(), execute);
 }
 
 //---------------------------------------------------------------------------//

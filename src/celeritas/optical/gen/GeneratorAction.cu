@@ -40,7 +40,7 @@ void GeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state
         = get<GeneratorState<MemSpace::native>>(*state.aux(), this->aux_id());
-    size_type num_gen = aux_state.counters.num_pending;
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     {
         // Generate optical photons in vacant track slots
         detail::GeneratorExecutor execute{params.ptr<MemSpace::native>(),

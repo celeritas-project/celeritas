@@ -44,7 +44,8 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         aux_state.store.ref(),
         aux_state.counters.buffer_size};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    launch(aux_state.counters.num_pending, state.stream_id(), execute);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
+    launch(num_gen, state.stream_id(), execute);
 }
 
 //---------------------------------------------------------------------------//

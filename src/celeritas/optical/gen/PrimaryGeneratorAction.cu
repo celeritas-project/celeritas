@@ -38,7 +38,8 @@ void PrimaryGeneratorAction::generate(CoreParams const& params,
                                              data_,
                                              params_.device_ref()};
     static ActionLauncher<decltype(execute)> const launch(*this);
-    launch(aux_state.counters.num_pending, state.stream_id(), execute);
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
+    launch(num_gen, state.stream_id(), execute);
 }
 
 //---------------------------------------------------------------------------//
