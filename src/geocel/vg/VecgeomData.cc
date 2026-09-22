@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Resize geometry states.
  *
- * \todo Add stream ID
+ * \todo Add stream ID argument
  */
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,

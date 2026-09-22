@@ -37,15 +37,23 @@ namespace celeritas
 /*!
  * Wrap basic navigation functionality from VecGeom.
  *
- * For a description of ordering requirements, see:
- * \sa OrangeTrackView
+ * This is a transitional interface between the more full-featured
+ * VecgeomTrackView and the new NavView that lives in VecGeom.
+ *
+ * \par Removed
+ *
+ * - Mapping of Geant4 volumes
+ * - Ability to call \c move_to_boundary without providing the distance
+ *   previously calculated (this will later be passed from the main stepping
+ *   loop)
+ * - Assertion checking of the internal movement compared to last found (this
+ *   will rely on CheckedGeoTrackView)
+ *
+ * \par Example
  *
  * \code
     VgBasicTrackView geom(vg_params_ref, vg_state_ref, trackslot_id);
    \endcode
- *
- * The "next distance" is cached as part of `find_next_step`, but it is only
- * used when the immediate next call is `move_to_boundary`.
  */
 class VgBasicTrackView
 {
@@ -54,7 +62,7 @@ class VgBasicTrackView
     //! \name Type aliases
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
-    using StateRef = NativeRef<VecgeomStateData>;
+    using StateRef = NativeRef<FutureVecgeomStateData>;
     using NavView = vecgeom::NavView;
     using OpaquePath = NavView::OpaquePath;
     using real_type = vg_real_type;
@@ -118,7 +126,7 @@ class VgBasicTrackView
     inline CELER_FUNCTION real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline CELER_FUNCTION void move_to_boundary();
+    inline CELER_FUNCTION void move_to_boundary(real_type step);
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
