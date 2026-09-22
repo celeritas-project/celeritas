@@ -318,8 +318,8 @@ CELER_FUNCTION bool VgBasicTrackView::is_on_boundary() const
  */
 CELER_FUNCTION Real3 VgBasicTrackView::normal() const
 {
-    // FIXME: temporarily return a bogus but valid surface normal
-    return this->dir();
+    // TODO: not implemented in navigator yet (as of 2.1)
+    CELER_NOT_IMPLEMENTED("calculating surface normal");
 }
 
 //---------------------------------------------------------------------------//
@@ -458,8 +458,8 @@ CELER_FUNCTION void VgBasicTrackView::move_internal(real_type dist)
 /*!
  * Move within the current volume to a nearby point.
  *
- * \warning It's up to the caller to make sure that the position is
- * "nearby" and within the same volume.
+ * The caller must ensure that the position is "nearby" and within the same
+ * volume.
  */
 CELER_FUNCTION void VgBasicTrackView::move_internal(Real3 const& pos)
 {
