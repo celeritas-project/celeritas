@@ -491,7 +491,7 @@ inline auto make_const_ref(Collection<T, Ownership::value, M, I> const& c)
  */
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
+CELER_FORCEINLINE Collection<T, W, M, I>::Collection(
     Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
@@ -500,7 +500,7 @@ CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
+CELER_FORCEINLINE Collection<T, W, M, I>::Collection(
     Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
@@ -509,8 +509,8 @@ CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>::Collection(
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
+CELER_FORCEINLINE Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
+    Collection<T, W2, M2, I> const& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
@@ -519,8 +519,8 @@ Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I> const& other)
 
 template<class T, Ownership W, MemSpace M, class I>
 template<Ownership W2, MemSpace M2>
-CELER_FORCEINLINE_FUNCTION Collection<T, W, M, I>&
-Collection<T, W, M, I>::operator=(Collection<T, W2, M2, I>& other)
+CELER_FORCEINLINE Collection<T, W, M, I>& Collection<T, W, M, I>::operator=(
+    Collection<T, W2, M2, I>& other)
 {
     detail::copy_collection<T, W2, M2, W, M>(other.raw_span(), &s_);
     detail::validate_storage<W2>(this->size(), other.storage().size());
