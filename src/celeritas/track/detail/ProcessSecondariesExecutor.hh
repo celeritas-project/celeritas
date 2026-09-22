@@ -88,13 +88,14 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
 
     auto& data = state->init;
     auto const& counters = track.counters();
-    CELER_VALIDATE(
-        counters.num_initializers <= data.initializers.size(),
-        << "insufficient capacity (" << data.initializers.size()
-        << ") for track initializers (created " << counters.num_secondaries
-        << " new secondaries for a total capacity requirement of "
-        << counters.num_initializers
-        << "): increase initializer capacity or decrease track slots");
+    CELER_EXPECT(counters.num_initializers <= data.initializers.size());
+    // CELER_VALIDATE(
+    // counters.num_initializers <= data.initializers.size(),
+    // << "insufficient capacity (" << data.initializers.size()
+    // << ") for track initializers (created " << counters.num_secondaries
+    // << " new secondaries for a total capacity requirement of "
+    // << counters.num_initializers
+    // << "): increase initializer capacity or decrease track slots");
 
     // Offset in the vector of track initializers
     CELER_ASSERT(data.secondary_counts[tid] <= counters.num_secondaries);
