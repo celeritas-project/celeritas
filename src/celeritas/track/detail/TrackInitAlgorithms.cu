@@ -78,8 +78,8 @@ void remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
-#if CELER_USE_THRUST
     auto& stream = device().stream(stream_id);
+#if CELER_USE_THRUST
     auto start = device_pointer_cast(init.vacancies.data());
     auto counters = device_pointer_cast(init.counters.data());
     auto host_counters
@@ -95,8 +95,8 @@ void remove_if_alive(
     Copier<CoreStateCounters, MemSpace::device> copy{{counters.get(), 1},
                                                      stream_id};
     copy(MemSpace::host, {&host_counters, 1});
+    stream.sync();
 #else
-    auto& stream = device().stream(stream_id);
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
     size_t temp_storage_bytes = 0;
@@ -124,7 +124,6 @@ void remove_if_alive(
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
 #endif
-    stream.sync();
     return;
 }
 
@@ -189,7 +188,6 @@ void partition_initializers(
 {
     ScopedProfiling profile_this{"partition-initializers"};
     // Partition the indices based on the track initializer charge
-    auto& stream = device().stream(stream_id);
     auto counters = device_pointer_cast(init.counters.data());
     auto cpucntrs = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     size_type count = min(cpucntrs.num_vacancies, cpucntrs.num_initializers);
@@ -208,6 +206,7 @@ void partition_initializers(
         end,
         IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 #else
+    auto& stream = device().stream(stream_id);
     // CUB doesn't have a partition function that allows the user to specify
     // both an iterator for the values to use for selection and a function to
     // operate on that iterator. (This should change in the future.) So,
@@ -264,7 +263,6 @@ void partition_initializers(
     CELER_DISCARD(cub_error_code);
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    stream.sync();
 }
 
 //---------------------------------------------------------------------------//
