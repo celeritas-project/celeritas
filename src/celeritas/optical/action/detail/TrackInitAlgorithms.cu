@@ -85,13 +85,11 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                                IsVacant{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
-    // New size of the vacancy vector
-    auto host_counters
-        = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
-    host_counters.num_vacancies = end - result;
-    Copier<CoreStateCounters, MemSpace::device> copy{{counters.get(), 1},
-                                                     stream_id};
-    copy(MemSpace::host, {&host_counters, 1});
+    // Update the number of vacancies
+    size_type num_vacancies = end - result;
+    Copier<size_type, MemSpace::device> copy{{&(counters->num_vacancies), 1},
+                                             stream_id};
+    copy(MemSpace::host, {&num_vacancies, 1});
     stream.sync();
     return;
 #else
