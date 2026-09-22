@@ -158,8 +158,10 @@ if(CELERITAS_USE_MPI)
     list(APPEND _procs ${MPIEXEC_MAX_NUMPROCS})
   endif()
 endif()
-set(CELERITASTEST_NP_DEFAULT "${_procs}" CACHE INTERNAL
+set(CELERITASTEST_NP_DEFAULT "${_procs}" CACHE STRING
   "Default number of processes to use in CeleritasAddTest")
+mark_as_advanced(CELERITASTEST_NP_DEFAULT)
+
 set(_procs)
 
 if(NOT CELERITAS_USE_MPI)

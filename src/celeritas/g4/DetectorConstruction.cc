@@ -6,7 +6,9 @@
 //---------------------------------------------------------------------------//
 #include "DetectorConstruction.hh"
 
+#include <algorithm>
 #include <memory>
+#include <vector>
 #include <G4LogicalVolume.hh>
 #include <G4SDManager.hh>
 #include <G4VPhysicalVolume.hh>
@@ -18,7 +20,6 @@
 #include "corecel/io/StreamableLazy.hh"
 #include "geocel/GeantGdmlLoader.hh"
 #include "geocel/GeantGeoParams.hh"
-#include "geocel/g4/Convert.hh"
 
 namespace celeritas
 {
