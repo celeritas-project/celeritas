@@ -18,6 +18,11 @@
 #    include <hipcub/device/device_reduce.hpp>
 #else
 #    include <thrust/transform_reduce.h>
+
+#    include "celeritas/optical/TrackExecutor.hh"
+#    include "celeritas/optical/action/ActionLauncher.device.hh"
+
+#    include "UpdatePendingExecutor.hh"
 #endif
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -29,12 +34,6 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
-#if CELER_USE_THRUST
-#    include "celeritas/optical/TrackExecutor.hh"
-#    include "celeritas/optical/action/ActionLauncher.device.hh"
-
-#    include "UpdatePendingExecutor.hh"
-#endif
 
 #if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
