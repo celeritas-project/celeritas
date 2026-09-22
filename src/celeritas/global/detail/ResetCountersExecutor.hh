@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/detail/SetGeneratedExecutor.hh
+//! \file celeritas/global/detail/ResetCountersExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -26,9 +26,9 @@ namespace detail
 // LAUNCHER
 //---------------------------------------------------------------------------//
 /*!
- * Initialize the num_generated counter to zero.
+ * Clear the num_generated, num-cut, and num_errored counters.
  */
-struct SetGeneratedExecutor
+struct ResetCountersExecutor
 {
     //// FUNCTIONS ////
 
@@ -42,7 +42,7 @@ struct SetGeneratedExecutor
 /*!
  * Clear the num_generated, num_cut, and num_errored counters.
  */
-CELER_FORCEINLINE_FUNCTION void SetGeneratedExecutor::operator()(
+CELER_FORCEINLINE_FUNCTION void ResetCountersExecutor::operator()(
     CoreTrackView& track)
 {
     CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel

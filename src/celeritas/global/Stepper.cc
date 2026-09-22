@@ -27,7 +27,7 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
-#include "detail/SetGeneratedExecutor.hh"
+#include "detail/ResetCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -187,7 +187,7 @@ void Stepper<M>::async()
 
     ScopedProfiling profile_this{"step"};
     // Initialize the num_generated counter to zero
-    this->set_generated();
+    this->reset_counters();
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
     {
@@ -537,13 +537,13 @@ void Stepper<M>::reclaim_submitted_primaries()
  * Set the num_pending counter to the number of generated primaries.
  */
 template<>
-void Stepper<MemSpace::host>::set_generated()
+void Stepper<MemSpace::host>::reset_counters()
 {
     auto execute_thread
         = make_single_track_executor(params_->ptr<MemSpace::native>(),
                                      state_->ptr(),
-                                     detail::SetGeneratedExecutor{});
-    launch_core(1, "set-generated", *params_, *state_, execute_thread);
+                                     detail::ResetCountersExecutor{});
+    launch_core(1, "reset-counters", *params_, *state_, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -551,7 +551,7 @@ void Stepper<MemSpace::host>::set_generated()
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
-void Stepper<MemSpace::device>::set_generated()
+void Stepper<MemSpace::device>::reset_counters()
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

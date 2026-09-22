@@ -404,8 +404,8 @@ class Stepper final : public StepperInterface
     // Reset the core state counters and data so it can be reused
     void reset_state();
 
-    //! Reset the num_generated state counter to zero
-    void set_generated();
+    // Reset multiple state counters
+    void reset_counters();
 
     //! Get a shared pointer to the state (TEMPORARY, DO NOT USE)
     SPState sp_state() final { return state_; }
@@ -462,10 +462,10 @@ class Stepper final : public StepperInterface
 // SPECIALIZATION
 //---------------------------------------------------------------------------//
 template<>
-void Stepper<MemSpace::host>::set_generated();
+void Stepper<MemSpace::host>::reset_counters();
 
 template<>
-void Stepper<MemSpace::device>::set_generated();
+void Stepper<MemSpace::device>::reset_counters();
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

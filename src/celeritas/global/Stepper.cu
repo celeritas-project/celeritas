@@ -14,7 +14,7 @@
 #include "CoreParams.hh"
 #include "CoreState.hh"
 
-#include "detail/SetGeneratedExecutor.hh"
+#include "detail/ResetCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -23,14 +23,14 @@ namespace celeritas
  * Set the num_pending counter to the number of generated primaries.
  */
 template<>
-void Stepper<MemSpace::device>::set_generated()
+void Stepper<MemSpace::device>::reset_counters()
 {
     auto execute_thread
         = make_single_track_executor(params_->ptr<MemSpace::native>(),
                                      state_->ptr(),
-                                     detail::SetGeneratedExecutor{});
+                                     detail::ResetCountersExecutor{});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "set-generated");
+        "reset_counters");
     launch_kernel(1, state_->stream_id(), execute_thread);
 }
 
