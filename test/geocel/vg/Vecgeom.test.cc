@@ -54,7 +54,7 @@ auto const vecgeom_version
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
-//! Load a geometry using VecGeom's testing-only GDML reader
+//! Load a geometry using VecGeom's semi-deprecated GDML reader
 class VecgeomVgdmlTestBase : public VecgeomTestBase
 {
   public:
@@ -247,11 +247,8 @@ TEST_F(FourLevelsTest, reentrant_normal)
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_reentrant_normal();
 
-    static char const* const expected_log_messages[] = {
-        R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"error"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    scoped_log_.print_expected();
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, safety)
