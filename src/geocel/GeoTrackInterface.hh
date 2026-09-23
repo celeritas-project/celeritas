@@ -210,7 +210,10 @@ class GeoTrackInterface
      * small distances.
      *
      * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
-     * \post The returned distance is in the range \c (0, max_step] .
+     * \post The returned distance is in the range \c [0, max_step] .
+     * A zero distance must indicate a boundary hit, e.g. within the geometry's
+     * surface tolerance. Call move_to_boundary followed by cross_boundary to
+     * resolve the hit even when no physical displacement is needed.
      */
     virtual Propagation find_next_step(real_type max_step) = 0;
 

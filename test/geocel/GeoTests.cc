@@ -993,7 +993,15 @@ void FourLevelsGeoTest::test_small_steps() const
         EXPECT_GT(to_cm(next.distance), gap / 2);
     }
     EXPECT_LT(to_cm(next.distance), 2 * gap);
+    auto const pos = geo.pos();
     geo.move_to_boundary();
+    if (next.distance == 0)
+    {
+        // A zero-distance hit must replace any previously cached positive step.
+        EXPECT_VEC_EQ(pos, geo.pos());
+    }
+    EXPECT_EQ(box_volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
     geo.cross_boundary();
     EXPECT_NE(box_volume, geo.volume_id());
 }

@@ -342,6 +342,43 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
     this->impl().test_small_steps();
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(zero_step))
+{
+    constexpr real_type gap = 1e-11;  // [cm], inside the surface tolerance
+    auto geo = this->make_geo_track_view({16 - gap, 10, 10}, {1, 0, 0});
+    auto const pos = geo.pos();
+    auto const volume = geo.volume_id();
+    EXPECT_EQ("Shape1", this->volume_name(geo));
+
+    // No positive step has been cached: zero must still be a valid result.
+    for (int i = 0; i < 2; ++i)
+    {
+        auto next = geo.find_next_step(from_cm(2 * gap));
+        ASSERT_TRUE(next.boundary);
+        EXPECT_EQ(0, next.distance);
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(volume, geo.volume_id());
+        EXPECT_VEC_EQ(pos, geo.pos());
+    }
+
+    geo.move_to_boundary();
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ(volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    geo.cross_boundary();
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ("Envelope", this->volume_name(geo));
+    EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+
+    // Continue through the new volume rather than repeatedly hitting zero.
+    auto next = geo.find_next_step(from_cm(10));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(1 + gap, to_cm(next.distance));
+}
+
 TEST_F(FourLevelsTest, reentrant)
 {
     this->impl().test_reentrant();
