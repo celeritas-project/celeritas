@@ -1496,10 +1496,10 @@ TEST_F(CmseTest, coarse)
     }
 
     FieldPropagationResult ref;
-    ref.num_boundary = {134, 105, 60, 40};
-    ref.num_step = {10001, 6464, 3236, 1303};
-    ref.num_intercept = {30419, 19538, 16170, 9956};
-    ref.num_integration = {80659, 58260, 41914, 26114};
+    ref.num_boundary = {134, 101, 60, 40};
+    ref.num_step = {10001, 6462, 3236, 1303};
+    ref.num_intercept = {30419, 19551, 16170, 9956};
+    ref.num_integration = {80659, 58282, 41914, 26114};
     ref.messages.resize(ref.num_boundary.size());
 
     char const* geometry = "unknown";
@@ -1523,16 +1523,8 @@ TEST_F(CmseTest, coarse)
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         geometry = "VecGeom";
-        if (CELERITAS_VECGEOM_VERSION >= 0x020000)
-        {
-            ref.num_boundary[1] = 104;
-            ref.num_step[1] = 6477;
-            ref.num_intercept[1] = 19564;
-            ref.num_integration[1] = 58306;
-        }
-        // Ignore messages about normals etc.
-        ref.messages = {};
-        result.messages = {};
+        ref.messages[1] = {
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
