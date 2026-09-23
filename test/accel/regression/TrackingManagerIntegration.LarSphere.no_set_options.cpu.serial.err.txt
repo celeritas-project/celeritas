@@ -63,7 +63,6 @@ critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.in
 Run is not in progress. AbortRun() ignored.
 debug@IntegrationSingleton.cc: Skipping local initialization due to failure
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

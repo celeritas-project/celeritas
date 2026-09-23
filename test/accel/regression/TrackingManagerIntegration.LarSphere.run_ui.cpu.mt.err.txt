@@ -152,7 +152,6 @@ G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 0 steps from 
 G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-[M] warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

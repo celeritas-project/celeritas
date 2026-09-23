@@ -123,7 +123,6 @@ debug: Allocating 3 aux state classes for host on stream {0} with state size 8
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
 debug: RunAction::BeginOfRunAction
-warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

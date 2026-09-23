@@ -66,7 +66,6 @@ debug@SharedParams.cc: Constructing output registry for no-offload run
 debug@IntegrationSingleton.cc: Skipping state construction since Celeritas is completely disabled
 debug@TrackingManagerIntegration.test.cc: {0}: begin_run
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

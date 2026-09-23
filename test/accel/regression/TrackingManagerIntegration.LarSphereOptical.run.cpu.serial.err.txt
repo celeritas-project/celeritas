@@ -151,7 +151,6 @@ info@CoreState.cc: Initialized Celeritas optical state with 32768 track slots
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
 debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',

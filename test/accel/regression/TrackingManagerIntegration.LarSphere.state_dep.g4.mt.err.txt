@@ -105,7 +105,6 @@ G4WT0 > [1/1] debug@TrackingManagerIntegration.test.cc: {0}: end_run
 [M!] debug@TrackingManagerIntegration.test.cc: {}: end_init
 [M!] debug@TrackingManagerIntegration.test.cc: {}: begin_run
 [M!] debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
-[M] warning@IntegrationBase.cc: TrackingManagerIntegration auto hooks are active: remove manual Celeritas BeginOfRunAction and EndOfRunAction calls from user run actions
 [M] debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
