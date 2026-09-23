@@ -3,21 +3,30 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-#
-# Intelligently set up and run CMake using presets and user-defined environment
-# scripts that live in `scripts/cmake-presets`. This is intended primarily for
-# developers.
-#
-# 1. Determine the system name
-# 2. Source environment file for the system at scripts/env (if available)
-# 3. Symbolically link the CMake user settings from scripts/cmake-presets
-# 4. Search for ccache
-# 5. Forward additional arguments to cmake for configuring
-# 6. Build and test
-#
-#-----------------------------------------------------------------------------#
 
 set -e
+
+_usage() {
+  echo "Usage: $0 PRESET_NAME [CMAKE_ARGS...]"
+  echo "       $0 [-h | --help]"
+  echo "       $0 [-L | --list-presets]"
+}
+
+_help() {
+  echo '
+Intelligently set up and run CMake using presets and user-defined environment
+scripts that live in "scripts/cmake-presets". This is intended primarily for
+developers.
+1. Determine the system name
+2. Source environment file for the system at 'scripts/env' (if available)
+3. Symbolically link the CMake user settings from 'scripts/cmake-presets'
+4. Search for ccache and set CCACHE_PROGRAM if found
+5. Forward additional arguments to CMake for configuring
+6. Configure
+7. Build, if the presets file is configured to do so
+8. Run tests, if the presets file is configured to do so
+'
+}
 
 # Print a colorful message to stderr
 celerlog() {
@@ -225,6 +234,20 @@ EOF
 }
 
 #-----------------------------------------------------------------------------#
+# Load preset argument first and check for help
+
+if [ $# -eq 0 ] ; then
+  _usage
+  exit 1
+fi
+
+if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  _usage
+  _help
+  exit 0
+fi
+
+#-----------------------------------------------------------------------------#
 
 # Determine the source directory from the build script
 export CELER_SOURCE_DIR="$(cd "$(dirname "$0")"/.. && pwd)"
@@ -298,8 +321,9 @@ ln_presets "${SYSTEM_NAME}"
 setup_ccache
 
 # Check arguments and give presets if missing
-if [ $# -eq 0 ] ; then
-  printf '%s\n' "Usage: $0 PRESET [config_args...]" >&2
+CMAKE_PRESET=$1
+shift
+if [ "${CMAKE_PRESET}" = "--list-presets" ] || [ "${CMAKE_PRESET}" = "-L" ]; then
   if [ -z "${CMAKE}" ]; then
     log error "cmake unavailable: cannot call --list-presets"
     exit 1
@@ -311,8 +335,6 @@ if [ $# -eq 0 ] ; then
   fi
   exit 2
 fi
-CMAKE_PRESET=$1
-shift
 
 # Configure, build, and test
 log info "Configuring with --preset=${CMAKE_PRESET} --log-level=VERBOSE $@"

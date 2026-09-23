@@ -979,8 +979,18 @@ void FourLevelsGeoTest::test_small_steps() const
     EXPECT_EQ(box_volume, geo.volume_id());
 
     next = geo.find_next_step(from_cm(gap / 2));
-    EXPECT_FALSE(next.boundary);
-    EXPECT_EQ(from_cm(gap / 2), next.distance);
+    if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+    {
+        // USolids reports the nearby surface even before the requested limit
+        // reaches it, since the point is within the surface tolerance.
+        EXPECT_TRUE(next.boundary);
+        EXPECT_EQ(0, next.distance);
+    }
+    else
+    {
+        EXPECT_FALSE(next.boundary);
+        EXPECT_EQ(from_cm(gap / 2), next.distance);
+    }
 
     next = geo.find_next_step(from_cm(2 * gap));
     EXPECT_TRUE(next.boundary);
