@@ -61,7 +61,7 @@ void check_other_device_pointers();
 
 //---------------------------------------------------------------------------//
 // Default-initialize navigation state because DeviceVector doesn't
-void init_navstate_device(Span<VgNavStateImpl> nav, StreamId);
+void init_navstate_device(Span<VgOpaqueNavPath> nav, StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
@@ -85,7 +85,7 @@ inline void check_other_device_pointers()
 #endif
 
 #if !defined(VECGEOM_ENABLE_CUDA) || CELER_VGNAV != CELER_VGNAV_TUPLE
-inline void init_navstate_device(Span<VgNavStateImpl>, StreamId)
+inline void init_navstate_device(Span<VgOpaqueNavPath>, StreamId)
 {
     // Null-op: not navtuple or CUDA not enabled
 }

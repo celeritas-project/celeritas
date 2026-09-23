@@ -6,7 +6,7 @@ Update .vscode/launch.json to debug a specific CTest test.
 
 Usage::
 
-    set-launch-from-ctest.py [--workspace <dir>] [--build-dir <dir>] <test-name>
+    debug-ctest.py [--workspace <dir>] [--build-dir <dir>] <test-name>
 
 The test name can be a full CTest name (e.g.
 ``accel/UserActionIntegration:LarSphereOpticalOffload.run:g4:mt``) or a

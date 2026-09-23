@@ -44,6 +44,7 @@ namespace vecgeom
 #if VECGEOM_VERSION >= 0x020000
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
 struct NavTuple;
+class NavStateTuple;
 #endif
 VECGEOM_HOST_FORWARD_DECLARE(class LogicalVolume;);
 VECGEOM_DEVICE_FORWARD_DECLARE(class LogicalVolume;);
@@ -57,7 +58,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-using VgSurfaceInt = long;
 using VgPlacedVolumeInt = int;
 using vg_real_type = VECGEOM_PRECISION_NAMESPACE::Precision;
 
@@ -71,6 +71,12 @@ using vgbvh_real_type = double;
 // Allow trivial copying of tuple between device/host
 template<VECGEOM_PRECISION_NAMESPACE::uint MD>
 struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
+{
+};
+
+// Allow trivial copying of *state* between device/host
+template<>
+struct IsTriviallyCopyable<vecgeom::NavStateTuple> : std::true_type
 {
 };
 #endif
@@ -125,12 +131,12 @@ using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
 
 //! Low-level (POD compatible) VecGeom navigation state
 #if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
-using VgNavStateImpl = VgNavIndex;
+using VgOpaqueNavPath = VgNavIndex;
 #elif CELER_VGNAV == CELER_VGNAV_TUPLE
-using VgNavStateImpl = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
+using VgOpaqueNavPath = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
 #elif CELER_VGNAV == CELER_VGNAV_PATH
 // Only used clangd parsing of VgNavStateWrapper
-using VgNavStateImpl = VgNavIndex;
+using VgOpaqueNavPath = VgNavIndex;
 #endif
 
 //! High level VecGeom navigation state
