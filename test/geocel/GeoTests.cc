@@ -262,7 +262,8 @@ void AtlasHgtdGeoTest::test_trace() const
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
         axpy(-1_r, dir, &pos);
 
-        if (test_->geometry_type() == "VecGeom")
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version < Version{2, 0})
         {
             GTEST_SKIP() << "VecGeom fails the tangent trace";
         }
@@ -2066,13 +2067,6 @@ void SolidsGeoTest::test_trace() const
             // v1.2.10: unknown differences outside hyperboloid
             ref.halfway_safeties[1] = 1.99361986757606;
             ref.halfway_safeties[3] = 1.99361986757606;
-
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
         }
         delete_orange_safety(*test_, ref, result);
 
@@ -2159,13 +2153,6 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[12] = 42.8397753718277;
             ref.halfway_safeties[13] = 18.8833925371992;
             ref.halfway_safeties[14] = 42.8430141842906;
-
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
         }
         else if (single_orange)
         {
@@ -2242,9 +2229,9 @@ void SolidsGeoTest::test_trace() const
             9.9503719020999,
             14.882471509386,
             22.434755881362,
-            39.751735748889,
+            39.0470100365853,
             22.438088639235,
-            33.070197064425,
+            29.8360600858068,
             32.739905171863,
             15.672519698479,
             26.80540527207,
@@ -2267,36 +2254,33 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
             }
-            if constexpr (CELERITAS_GEANT4_USOLIDS)
+            else if (geant4_version < Version{11, 4}
+                     && !CELERITAS_GEANT4_USOLIDS)
             {
-                // Geant4 navigation using VecGeom solid safety implementations
-                ref.halfway_safeties[4] = 17.4966506197896;
-                ref.halfway_safeties[5] = 39.0470100365853;
-                ref.halfway_safeties[6] = 17.5;
-                ref.halfway_safeties[7] = 29.8360600858068;
-                ref.halfway_safeties[8] = 29.1115376091068;
-                ref.halfway_safeties[14] = 19.0382940808067;
-                ref.halfway_safeties[15] = 0.5;
-                ref.halfway_safeties[16] = 0.5;
+                ref.halfway_safeties[5] = 39.751735748889;
+                ref.halfway_safeties[7] = 33.070197064425;
             }
         }
-        else if (test_->geometry_type() == "VecGeom")
+        if (test_->geometry_type() == "VecGeom"
+            || (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4"))
         {
-            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
-            // Geant4 v11.3.1
+            // VecGeom-based solids
             ref.halfway_safeties[4] = 17.4966506197896;
-            ref.halfway_safeties[5] = 27.7657728660916;
             ref.halfway_safeties[6] = 17.5;
-            ref.halfway_safeties[7] = 21.8864641598878;
             ref.halfway_safeties[8] = 29.1115376091067;
             ref.halfway_safeties[14] = 19.0382940808067;
             ref.halfway_safeties[15] = 0.5;
 
-            if (vecgeom_version >= Version{2, 0})
+            if (vecgeom_version < Version{2, 0})
             {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
+                // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+                // Geant4 v11.3.1
+                ref.halfway_safeties[5] = 27.7657728660916;
+                ref.halfway_safeties[7] = 21.8864641598878;
+            }
+            else
+            {
+                ref.halfway_safeties[16] = 0.5;
             }
         }
         delete_orange_safety(*test_, ref, result);
@@ -2364,15 +2348,6 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        if (test_->geometry_type() == "VecGeom")
-        {
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
-        }
         delete_orange_safety(*test_, ref, result);
 
         auto tol = test_->tracking_tol();
@@ -3238,11 +3213,6 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0})
-        {
-            GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
