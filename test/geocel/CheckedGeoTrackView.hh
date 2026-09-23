@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 
+#include "corecel/io/Logger.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
 
@@ -26,8 +27,14 @@ namespace test
 /*!
  * Check validity of safety and volume crossings while navigating on CPU.
  *
- * This wraps a \c GeoTrackInterface and adds validation and instrumentation.
- * It counts the number of calls to \c find_next_step and \c find_safety .
+ * This wraps a \c GeoTrackInterface and adds validation, instrumentation,
+ * and logging.
+ * - Validates input arguments and resulting state from the track view
+ * - Counts the number of calls to \c find_next_step and \c find_safety
+ * - Logs state changes at a debug level, and warns of unexpected conditions
+ *
+ * The constructor copies the "local" logger's target and level by default,
+ * with the level overridden by the \c CELER_LOG_GEO env variable.
  *
  * Two flags can alter the error checking:
  * - \c check_normal will validate the normal calculation when on a boundary
@@ -72,6 +79,11 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     TrackT const& track_view() const { return *t_; }
     //! Access the underlying track view
     TrackT& track_view() { return *t_; }
+
+    //! Access the underlying logger
+    Logger const& logger() const { return log_; }
+    //! Access the underlying logger
+    Logger& logger() { return log_; }
 
     //! Check volume consistency this far from the boundary
     real_type safety_tol() const { return 1e-4 * unit_length_.value; }
@@ -175,6 +187,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 
   private:
     UPTrack t_;
+    Logger log_;
 
     // Metadata
     SPConstVolumes volumes_;

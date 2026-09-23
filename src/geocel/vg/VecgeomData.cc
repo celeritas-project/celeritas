@@ -26,7 +26,7 @@ namespace celeritas
 /*!
  * Resize geometry states.
  *
- * \todo Add stream ID
+ * \todo Add stream ID argument
  */
 template<MemSpace M>
 void resize(VecgeomStateData<Ownership::value, M>* data,
@@ -44,7 +44,7 @@ void resize(VecgeomStateData<Ownership::value, M>* data,
     if constexpr (M == MemSpace::device)
     {
 #if CELER_VGNAV == CELER_VGNAV_TUPLE
-        using AllStates = AllItems<VgNavStateImpl, MemSpace::device>;
+        using AllStates = AllItems<VgOpaqueNavPath, MemSpace::device>;
         detail::init_navstate_device(data->state[AllStates{}], StreamId{});
         detail::init_navstate_device(data->next_state[AllStates{}], StreamId{});
 #endif
