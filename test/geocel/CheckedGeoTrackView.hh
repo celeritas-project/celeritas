@@ -208,15 +208,9 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
         size_type safety{0};
     } count_;
 
-    //// Temporary state ////
-
-    //! Check during a move_internal(Real3) that the updated point is within
-    //! the same volume
+    // Temporary state
     bool checked_internal_{false};
-    //! Store the maximum straight-line distance that has been found
-    std::optional<real_type> next_step_;
-    //! Whether the next straight-line distance (if found) is a boundary
-    bool next_is_boundary_{false};
+    std::optional<real_type> next_boundary_;
 };
 
 class CheckedGeoError : public RuntimeError
