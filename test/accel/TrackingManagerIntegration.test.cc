@@ -596,19 +596,32 @@ TEST_F(LegacyTMIHooks, run)
     rm.Initialize();
 
     CELER_LOG(status) << "Beam on (first run)";
-    ScopedLogStorer scoped_log{&celeritas::world_logger()};
-    rm.BeamOn(2);
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        // Check the one-time warning advising removal of the manual calls.
+        // Capture logs only in serial mode: ScopedLogStorer is not thread
+        // safe, and in MT mode worker threads write to the world logger
+        // concurrently.
+        ScopedLogStorer scoped_log{&celeritas::world_logger()};
+        rm.BeamOn(2);
 
-    auto has_msg = [](std::string const& msg) {
-        static auto expected_msg
-            = R"(remove manual Celeritas BeginOfRunAction and EndOfRunAction)";
-        return msg.find(expected_msg) != std::string::npos;
-    };
-    auto const& messages = scoped_log.messages();
-    auto it = std::find_if(messages.begin(), messages.end(), has_msg);
-    EXPECT_TRUE(it != messages.end())
-        << "Expected auto-hooks warning not found in logs:\n"
-        << scoped_log;
+        auto has_msg = [](std::string const& msg) {
+            static auto expected_msg
+                = R"(remove manual Celeritas BeginOfRunAction and EndOfRunAction)";
+            return msg.find(expected_msg) != std::string::npos;
+        };
+        auto const& messages = scoped_log.messages();
+        auto it = std::find_if(messages.begin(), messages.end(), has_msg);
+        EXPECT_TRUE(it != messages.end())
+            << "Expected auto-hooks warning not found in logs:\n"
+            << scoped_log;
+    }
+    else
+    {
+        // In MT mode just check that the manual calls don't break the run;
+        // the warning is checked against the captured log output
+        rm.BeamOn(2);
+    }
 
     if (this->HasFatalFailure())
     {
