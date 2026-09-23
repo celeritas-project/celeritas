@@ -37,6 +37,11 @@ class StepParams;
  * interfacing with the GPU track states at the beginning and/or end of every
  * step.
  *
+ * During \c Stepper::warm_up, the gather kernels execute but the callbacks
+ * are skipped: warmup produces no step result with which to consume deferred
+ * hit data. Ordinary transport steps still invoke the callbacks, including
+ * when no tracks are active.
+ *
  * \todo The step collector serves two purposes: supporting "sensitive
  * detectors" (mapping volume IDs to detector IDs and ignoring unmapped
  * volumes) and supporting unfiltered output for "MC truth" . Right now only
