@@ -119,9 +119,6 @@ class VgBasicTrackView
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
-    // Find the safety at the current position (infinite max)
-    inline CELER_FUNCTION real_type find_safety();
-
     // Find the safety at the current position up to a maximum step distance
     inline CELER_FUNCTION real_type find_safety(real_type max_step);
 
@@ -199,7 +196,7 @@ struct VgBasicTrackView::LocalNavData
 class VgBasicTrackView::LocalNav : public LocalNavData, public vecgeom::NavView
 {
   public:
-    explicit LocalNav(VgBasicTrackView& vtv)
+    explicit CELER_FUNCTION LocalNav(VgBasicTrackView& vtv)
         : LocalNavData{to_vgvector(vtv.pos_), to_vgvector(vtv.dir_)}
         , NavView{vtv.vgstate_, vtv.vgnext_, this->temp_pos, this->temp_dir}
     {
@@ -298,7 +295,7 @@ CELER_FORCEINLINE_FUNCTION auto VgBasicTrackView::opaque_path() const
 /*!
  * Whether the track is outside the valid geometry region.
  */
-CELER_FUNCTION bool VgBasicTrackView::is_outside() const
+CELER_FORCEINLINE_FUNCTION bool VgBasicTrackView::is_outside() const
 {
     return vgstate_.IsOutside();
 }
@@ -307,7 +304,7 @@ CELER_FUNCTION bool VgBasicTrackView::is_outside() const
 /*!
  * Whether the track is on the boundary of a volume.
  */
-CELER_FUNCTION bool VgBasicTrackView::is_on_boundary() const
+CELER_FORCEINLINE_FUNCTION bool VgBasicTrackView::is_on_boundary() const
 {
     return vgstate_.IsOnBoundary();
 }
@@ -316,7 +313,7 @@ CELER_FUNCTION bool VgBasicTrackView::is_on_boundary() const
 /*!
  * Get the surface normal of the boundary the track is currently on.
  */
-CELER_FUNCTION Real3 VgBasicTrackView::normal() const
+CELER_FORCEINLINE_FUNCTION Real3 VgBasicTrackView::normal() const
 {
     // TODO: not implemented in navigator yet (as of 2.1)
     CELER_NOT_IMPLEMENTED("calculating surface normal");
@@ -370,15 +367,6 @@ CELER_FUNCTION Propagation VgBasicTrackView::find_next_step(real_type max_step)
 
     CELER_ENSURE(result.distance >= 0 && result.distance <= max_step);
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Find the safety at the current position.
- */
-CELER_FUNCTION real_type VgBasicTrackView::find_safety()
-{
-    return this->find_safety(vecgeom::kInfLength);
 }
 
 //---------------------------------------------------------------------------//
@@ -445,7 +433,6 @@ CELER_FUNCTION void VgBasicTrackView::cross_boundary()
 CELER_FUNCTION void VgBasicTrackView::move_internal(real_type dist)
 {
     CELER_EXPECT(dist > 0);
-    CELER_EXPECT(!this->is_next_boundary());
 
     auto nav = this->make_nav();
     nav.MoveInternal(dist);
@@ -491,7 +478,7 @@ CELER_FUNCTION void VgBasicTrackView::set_dir(Real3 const& newdir)
 /*!
  * Whether the calculated next step will take track to next boundary.
  */
-CELER_FUNCTION bool VgBasicTrackView::is_next_boundary() const
+CELER_FORCEINLINE_FUNCTION bool VgBasicTrackView::is_next_boundary() const
 {
     return vgnext_.IsOnBoundary();
 }
@@ -512,7 +499,8 @@ CELER_FUNCTION auto VgBasicTrackView::physical_volume() const
 /*!
  * Get a reference to the current volume, or to world volume if outside.
  */
-CELER_FUNCTION auto VgBasicTrackView::logical_volume() const -> VgLogVol const&
+CELER_FORCEINLINE_FUNCTION auto VgBasicTrackView::logical_volume() const
+    -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
 }
