@@ -332,8 +332,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     {
         // TODO: replace zero-distance from reentering geometry (ORANGE)
         // with a different propagation status
-        CELER_LOG_LOCAL(warning)
-            << "Returning zero distance should be prohibited: " << *this;
+        CELER_LOG_LOCAL(info) << "Returning zero distance: " << *this;
     }
     CGTV_VALIDATE(*this,
                   result.distance >= 0 && result.distance <= distance,
