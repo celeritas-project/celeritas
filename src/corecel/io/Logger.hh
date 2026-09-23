@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
+#include "corecel/io/detail/NullLoggerMessage.hh"
 
 #include "LoggerTypes.hh"
 
@@ -62,9 +63,9 @@
 // Allow CELER_LOG to be present (but ignored) in device code
 #if CELER_DEVICE_COMPILE
 #    undef CELER_LOG
-#    define CELER_LOG(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#    define CELER_LOG(LEVEL) ::celeritas::null_log_message()
 #    undef CELER_LOG_LOCAL
-#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::detail::NullLoggerMessage()
+#    define CELER_LOG_LOCAL(LEVEL) ::celeritas::null_log_message()
 #endif
 
 namespace celeritas
@@ -156,11 +157,17 @@ auto Logger::operator()(LogProvenance&& prov, LogLevel lev) const -> Message
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Parallel logger (print only on "main" process)
+// Parallel logger (print only on "main" process using CELER_LOG)
 Logger& world_logger();
 
-// Serial logger (print on *every* process)
+// Serial logger (print on *every* process using CELER_LOG_LOCAL)
 Logger& self_logger();
+
+//! Return a stream-like object that ignores everything (used for device code)
+CELER_CONSTEXPR_FUNCTION auto null_log_message()
+{
+    return detail::NullLoggerMessage();
+}
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

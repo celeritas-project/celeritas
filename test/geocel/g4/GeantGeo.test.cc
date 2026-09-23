@@ -337,6 +337,11 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
+}
+
 TEST_F(FourLevelsTest, reentrant)
 {
     this->impl().test_reentrant();
