@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "IntegrationBase.hh"
 
-#include <atomic>
 #include <G4Threading.hh>
 
 #include "corecel/Assert.hh"
@@ -29,16 +28,15 @@ namespace
  */
 void warn_auto_hooks_skip()
 {
-    // Atomic exchange so exactly one thread warns: in MT runs the master and
-    // worker run actions may all call this concurrently
-    static std::atomic<bool> warned{false};
-    if (!warned.exchange(true))
-    {
+    // Thread-safe static initialization warns exactly once even when the
+    // master and worker run actions all call this concurrently
+    [[maybe_unused]] static bool const warned = [] {
         CELER_LOG(warning)
             << "TrackingManagerIntegration auto hooks are active: remove "
                "manual Celeritas BeginOfRunAction and EndOfRunAction calls "
                "from user run actions";
-    }
+        return true;
+    }();
 }
 
 //---------------------------------------------------------------------------//
