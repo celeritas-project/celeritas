@@ -858,6 +858,58 @@ void FourLevelsGeoTest::test_locate_point() const
 }
 
 //---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_pico_step() const
+{
+    // With Geant4 usolids, the gap is within the surface tolerance
+    constexpr real_type gap = 1e-11;  // [cm]
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({16 - gap, 10, 10}, {1, 0, 0});
+    auto pos = geo.pos();
+    auto const volume = geo.volume_id();
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+    // No positive step has been cached: zero must still be a valid result.
+    Propagation next;
+    for (int i = 0; i < 2; ++i)
+    {
+        SCOPED_TRACE(std::to_string(i));
+        next = geo.find_next_step(from_cm(2 * gap));
+        ASSERT_TRUE(next.boundary);
+        EXPECT_LT(next.distance, 1.5 * gap);
+        if (test_->geometry_type() == "Geant4")
+        {
+            EXPECT_EQ(0, next.distance);
+        }
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(volume, geo.volume_id());
+        EXPECT_VEC_EQ(pos, geo.pos());
+    }
+
+    geo.move_to_boundary();
+    real_type const moved = next.distance;
+    axpy(moved, geo.dir(), &pos);
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ(volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    geo.cross_boundary();
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ("Envelope", test_->volume_name(geo));
+    if (test_->geometry_type() != "VecGeom")
+    {
+        // TODO: geo status
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    }
+
+    // Continue through the new volume rather than repeatedly hitting zero.
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(1 + (gap - moved), to_cm(next.distance));
+}
+
+//---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_safety() const
 {
     auto geo = test_->make_checked_track_view();

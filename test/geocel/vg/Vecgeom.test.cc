@@ -204,11 +204,6 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
-TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
-{
-    this->impl().test_small_steps();
-}
-
 TEST_F(FourLevelsTest, levels)
 {
     auto const& bbox = this->geometry()->bbox();
@@ -237,6 +232,11 @@ TEST_F(FourLevelsTest, levels)
     EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(pico_step))
+{
+    this->impl().test_pico_step();
+}
+
 TEST_F(FourLevelsTest, reentrant)
 {
     this->impl().test_detailed_tracking();
@@ -254,6 +254,11 @@ TEST_F(FourLevelsTest, reentrant_normal)
 TEST_F(FourLevelsTest, safety)
 {
     this->impl().test_safety();
+}
+
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
 }
 
 TEST_F(FourLevelsTest, trace)

@@ -113,6 +113,7 @@ class FourLevelsGeoTest
     void test_reentrant() const;
     void test_reentrant_normal() const;
     void test_locate_point() const;
+    void test_pico_step() const;
     void test_safety() const;
     void test_small_steps() const;
     void test_trace() const;
