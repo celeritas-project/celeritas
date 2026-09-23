@@ -192,6 +192,13 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test that legacy manual run action calls are harmless and warn
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LegacyTMIHooks run
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
+
 # Test optical
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run

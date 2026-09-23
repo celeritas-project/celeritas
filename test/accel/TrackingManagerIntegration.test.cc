@@ -104,9 +104,10 @@ class CounterTrackingAction final : public G4UserTrackingAction
  * The tracking manager will:
  * - Add a physics constructor that sets up tracking managers for the supported
  *   particles
- * - Set up Celeritas shared data at BeginOfRunAction on the main thread
- * - Set up Celeritas local data at BeginOfRunAction on the worker thread
- * - Clean up on EndOfRunAction
+ * - Set up Celeritas shared data on the main thread and local data on the
+ *   worker threads via automatic Geant4 state hooks: no explicit
+ *   BeginOfRunAction/EndOfRunAction calls are needed
+ * - Clean up local data at end of run and shared data at end of program
  */
 class TMITestBase : virtual public IntegrationTestBase
 {
@@ -121,17 +122,17 @@ class TMITestBase : virtual public IntegrationTestBase
             new TrackingManagerConstructor(&TMI::Instance()));
         return physics;
     }
-    void BeginOfRunAction(G4Run const* run) override
+    void BeginOfRunAction(G4Run const*) override
     {
-        TMI::Instance().BeginOfRunAction(run);
+        // Auto hooks set up Celeritas: only run test-specified checks here
         if (check_during_run_)
         {
             check_during_run_();
         }
     }
-    void EndOfRunAction(G4Run const* run) override
+    void EndOfRunAction(G4Run const*) override
     {
-        TMI::Instance().EndOfRunAction(run);
+        // Auto hooks tear down Celeritas
     }
     void BeginOfEventAction(G4Event const*) override
     {
@@ -493,9 +494,6 @@ TEST_F(LarSphere, no_set_options)
  */
 class TMIAutoHooks : public LarSphereIntegrationMixin, public TMITestBase
 {
-  protected:
-    void BeginOfRunAction(G4Run const*) override {}
-    void EndOfRunAction(G4Run const*) override {}
 };
 
 TEST_F(TMIAutoHooks, run)
@@ -565,6 +563,68 @@ TEST_F(TMIAutoHooks, run)
         static StreamId const expected_streams[] = {StreamId{0}, StreamId{0}};
         EXPECT_VEC_EQ(expected_streams, verified_streams);
     }
+}
+
+//---------------------------------------------------------------------------//
+// LEGACY MANUAL HOOKS
+//---------------------------------------------------------------------------//
+/*!
+ * Call the legacy manual begin/end-of-run hooks from user run actions.
+ *
+ * Auto hooks drive Celeritas setup and teardown, so the manual calls should
+ * be harmless no-ops that emit a one-time warning advising their removal.
+ */
+class LegacyTMIHooks : public LarSphereIntegrationMixin, public TMITestBase
+{
+  protected:
+    void BeginOfRunAction(G4Run const* run) override
+    {
+        TMI::Instance().BeginOfRunAction(run);
+    }
+    void EndOfRunAction(G4Run const* run) override
+    {
+        TMI::Instance().EndOfRunAction(run);
+    }
+};
+
+TEST_F(LegacyTMIHooks, run)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    CELER_LOG(status) << "Beam on (first run)";
+    ScopedLogStorer scoped_log{&celeritas::world_logger()};
+    rm.BeamOn(2);
+
+    auto has_msg = [](std::string const& msg) {
+        static auto expected_msg
+            = R"(remove manual Celeritas BeginOfRunAction and EndOfRunAction)";
+        return msg.find(expected_msg) != std::string::npos;
+    };
+    auto const& messages = scoped_log.messages();
+    auto it = std::find_if(messages.begin(), messages.end(), has_msg);
+    EXPECT_TRUE(it != messages.end())
+        << "Expected auto-hooks warning not found in logs:\n"
+        << scoped_log;
+
+    if (this->HasFatalFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(1);
+
+    // Check number of events
+    int total_events{0};
+    for (auto&& [sid, count] : num_local_events_)
+    {
+        total_events += count;
+    }
+    EXPECT_EQ(3, total_events);
 }
 
 //---------------------------------------------------------------------------//
