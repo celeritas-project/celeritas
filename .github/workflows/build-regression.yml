@@ -21,7 +21,7 @@ jobs:
   accel:
     env:
       CELER_CMAKE_PRESET: "orange-regression"
-      CELER_RUN_NAME: "regression-orange-g4@11.3"
+      CELER_RUN_NAME: "regression-orange-g4@11.4"
       CC: "clang-18"
       CXX: "clang++-18"
       CXXSTD: 20
@@ -35,7 +35,7 @@ jobs:
         uses: ./.github/actions/setup-spack
         with:
           cxxstd: 20
-          add: geant4@11.3
+          add: geant4@11.4
 
       - name: Configure Celeritas
         id: configure
