@@ -1524,7 +1524,7 @@ TEST_F(CmseTest, coarse)
     {
         geometry = "VecGeom";
         ref.messages[1] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1e-4 [cm]))"};
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)

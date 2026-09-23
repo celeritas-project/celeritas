@@ -215,7 +215,7 @@ class GeoTrackInterface
     virtual Propagation find_next_step(real_type max_step) = 0;
 
     /*!
-     * Move within the volume.
+     * Move within the volume along a straight line.
      *
      * Changes the physical position of the geometry state without altering
      * the logical state (i.e., it must remain within the current volume).
@@ -284,6 +284,8 @@ class GeoTrackInterface
      *
      * Changes the physical position of the geometry state without altering
      * the logical state (i.e., it must remain within the current volume).
+     * The original and updated points \em must be path-connected: a line can
+     * be drawn between them entirely within the current volume.
      */
     virtual void move_internal(Real3 const& pos) = 0;
     //!@}
