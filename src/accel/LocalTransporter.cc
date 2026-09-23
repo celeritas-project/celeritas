@@ -368,6 +368,13 @@ auto LocalTransporter::complete_step() -> StepperResult
     CELER_EXPECT(step_->valid());
 
     auto result = step_->get();
+    if (hit_processor_)
+    {
+        // copy_steps currently synchronizes, so defer the transfer and host
+        // processing until the result is ready. A future transfer can be
+        // enqueued during async, but must complete before scratch is reused.
+        hit_processor_->process_pending_steps();
+    }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
     run_accum_.steps += result.active;
