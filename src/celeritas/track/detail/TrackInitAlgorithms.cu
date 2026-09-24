@@ -146,17 +146,16 @@ void exclusive_scan_counts(
     // Exclusive scan:
     thrust::exclusive_scan(
         thrust_execute_on(stream_id), data, data + counts.size(), data, 0_sz);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
 #else
     auto& stream = device().stream(stream_id);
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
     size_t temp_storage_bytes = 0;
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream.get());
-    // Allocate temporary storage
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     CELER_DISCARD(cub_error_code);
+    // Allocate temporary storage
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     // Run exclusive prefix sum
     cub_error_code = cub::DeviceScan::ExclusiveSum(temp_storage.data(),
@@ -165,8 +164,8 @@ void exclusive_scan_counts(
                                                    counts.size(),
                                                    stream.get());
     CELER_DISCARD(cub_error_code);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
 #endif
+    CELER_DEVICE_API_CALL(PeekAtLastError());
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
     return;
