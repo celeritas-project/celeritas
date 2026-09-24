@@ -193,7 +193,8 @@
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -204,11 +205,6 @@
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_UNITS": "CLHEP"
       }
-    },
-    {
-      "name": "orange",
-      "description": "FINAL: ORANGE with debug checking",
-      "inherits": ["tool-spack"]
     },
     {
       "name": "orange-ancient",

@@ -34,8 +34,6 @@ jobs:
         geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
         include:
           - geometry: "orange"
-            geant: "11.3"
-          - geometry: "orange"
             special: "float"
             geant: "11.3"
           - geometry: "orange"
