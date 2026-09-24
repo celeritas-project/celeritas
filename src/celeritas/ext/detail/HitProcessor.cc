@@ -177,25 +177,43 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 void HitProcessor::operator()(StepStateHostRef const& states)
 {
     copy_steps(&steps_, states);
-    if (steps_)
-    {
-        num_hits_ += steps_.size();
-        (*this)(steps_);
-    }
+    this->process_local_steps();
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Process detector tallies (GPU).
+ * Save device detector tallies until their step completes.
+ *
+ * The step state remains valid until the next step starts. Deferring the copy
+ * keeps host-sensitive-detector reconstruction and its stream synchronization
+ * out of the device action sequence.
  */
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
-    copy_steps(&steps_, states);
-    if (steps_)
+    CELER_EXPECT(states);
+    CELER_EXPECT(!pending_device_steps_);
+    pending_device_steps_ = states;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy and process deferred device tallies after their step completes.
+ *
+ * The caller must establish device step completion before calling this
+ * function. The current detector-step copy still synchronizes internally; a
+ * future double-buffered transfer will enqueue that copy before processing the
+ * preceding host buffer.
+ */
+void HitProcessor::process_pending_steps()
+{
+    if (!pending_device_steps_)
     {
-        num_hits_ += steps_.size();
-        (*this)(steps_);
+        return;
     }
+
+    auto states = std::exchange(pending_device_steps_, {});
+    copy_steps(&steps_, states);
+    this->process_local_steps();
 }
 
 //---------------------------------------------------------------------------//
@@ -213,6 +231,19 @@ void HitProcessor::operator()(DetectorStepOutput const& out) const
     for (auto i : range(out.size()))
     {
         (*this)(out, i);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process hits already copied into temporary CPU storage.
+ */
+void HitProcessor::process_local_steps()
+{
+    if (steps_)
+    {
+        num_hits_ += steps_.size();
+        (*this)(steps_);
     }
 }
 
