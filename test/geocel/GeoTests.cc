@@ -908,7 +908,7 @@ void FourLevelsGeoTest::test_pico_step() const
     // Continue through the new volume rather than repeatedly hitting zero.
     next = geo.find_next_step(from_cm(10));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_EQ(1 + (from_cm(gap_cm) - moved), to_cm(next.distance));
+    EXPECT_SOFT_EQ(1 + (gap_cm - to_cm(moved)), to_cm(next.distance));
 }
 
 //---------------------------------------------------------------------------//
