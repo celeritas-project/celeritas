@@ -6,8 +6,6 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <type_traits>
-
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
@@ -359,12 +357,9 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
                       {other.surf(), other.sense()});
         this->geo_status(other.geo_status());
 
-        for (auto ulev_id : range(this->univ_level() + 1))
-        {
-            // Copy all data accessed via LSA
-            auto lsa = this->make_lsa(ulev_id);
-            lsa = other.make_lsa(ulev_id);
-        }
+        // Copy all data accessed via LSA
+        auto lsa = this->make_lsa();
+        lsa = other.make_lsa();
     }
 
     // Clear the next step information since we're changing direction or
@@ -476,38 +471,32 @@ CELER_FUNCTION void OrangeTrackView::foreach_volume_path(F&& visit) const
 
     VolumeLevelId next_vlev = this->volume_level() + 1;
 
-    // Loop over universes, local to global
     auto ui = this->make_univ_indexer();
     TrackerVisitor visit_tracker{params_};
 
-    using UnivLevelInt = std::make_signed_t<UnivLevelId::size_type>;
-    for (auto ulev_idx :
-         range<UnivLevelInt>(this->univ_level().get() + 1).step(-1))
-    {
-        auto lsa = this->make_lsa(id_cast<UnivLevelId>(ulev_idx));
-        auto const univ = lsa.univ();
+    auto lsa = this->make_lsa();
+    auto const univ = lsa.univ();
 
-        // Initialize local volume from state
-        LocalVolumeId lv_id = lsa.vol();
-        // Loop over all local volumes that have local parents
-        do
+    // Initialize local volume from state
+    LocalVolumeId lv_id = lsa.vol();
+    // Loop over all local volumes that have local parents
+    do
+    {
+        ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
+        if (auto vol_inst = params_.volume_instance_ids[impl_id].get())
         {
-            ImplVolumeId impl_id = ui.global_volume(univ, lv_id);
-            if (auto vol_inst = params_.volume_instance_ids[impl_id].get())
-            {
-                CELER_ASSERT(next_vlev > VolumeLevelId{0});
-                visit(--next_vlev, vol_inst);
-                // Update to parent level
-                lv_id = visit_tracker(
-                    [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
-            }
-            else
-            {
-                // No volume instance at this level
-                break;
-            }
-        } while (lv_id);
-    }
+            CELER_ASSERT(next_vlev > VolumeLevelId{0});
+            visit(--next_vlev, vol_inst);
+            // Update to parent level
+            lv_id = visit_tracker(
+                [lv_id](auto&& t) { return t.local_parent(lv_id); }, univ);
+        }
+        else
+        {
+            // No volume instance at this level
+            break;
+        }
+    } while (lv_id);
     CELER_ENSURE(next_vlev == VolumeLevelId{0});
 }
 
@@ -520,19 +509,12 @@ CELER_FUNCTION VolumeLevelId OrangeTrackView::volume_level() const
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(!params_.volume_instance_ids.empty());
 
-    vol_level_uint result = 0;
     TrackerVisitor visit_tracker{params_};
 
-    // Loop over current universe path (different from canonical path)
-    for (auto ulev : range(this->univ_level() + 1))
-    {
-        // Add the local volume level: placement in the parent universe is
-        // handled by the local volume at that level, not the universe depth
-        auto lsa = this->make_lsa(ulev);
-        result += visit_tracker(
-            [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
-            lsa.univ());
-    }
+    auto lsa = this->make_lsa();
+    vol_level_uint result = visit_tracker(
+        [vol = lsa.vol()](auto&& t) { return t.local_vol_level(vol); },
+        lsa.univ());
 
     return VolumeLevelId{result};
 }
@@ -647,25 +629,19 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
     UnivLevelId next_ulev{};
     detail::OnLocalSurface next_local_surf{};
 
-    // Find the nearest intersection from 0 to current
-    // univ_level inclusive, preferring the most global level
-    // (i.e., lowest univ_id)
-    // TODO: reverse the loop and use IsNotFurtherThan; this means smaller
-    // distance checks that will eliminate work at the global level
-    for (auto ulev_id : range(this->univ_level() + 1))
-    {
-        // Find intersection for this local universe
-        auto local_isect = visit_tracker(
-            [local_state = this->make_local_state(ulev_id), next_step](
-                auto&& t) { return t.intersect(local_state, next_step); },
-            this->make_lsa(ulev_id).univ());
+    UnivLevelId ulev_id = this->univ_level();
+    // Find intersection for this local universe
+    auto local_isect = visit_tracker(
+        [local_state = this->make_local_state(ulev_id), next_step](auto&& t) {
+            return t.intersect(local_state, next_step);
+        },
+        this->make_lsa(ulev_id).univ());
 
-        if (local_isect && local_isect.distance < next_step)
-        {
-            next_step = local_isect.distance;
-            next_local_surf = local_isect.surface;
-            next_ulev = ulev_id;
-        }
+    if (local_isect && local_isect.distance < next_step)
+    {
+        next_step = local_isect.distance;
+        next_local_surf = local_isect.surface;
+        next_ulev = ulev_id;
     }
 
     this->next_step(next_step);
@@ -703,14 +679,11 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
                                     ? this->next_step()
                                     : NumericLimits<real_type>::infinity();
 
-    for (auto ulev_id : range(this->univ_level() + 1))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        auto local_safety = visit_tracker(
-            [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
-            lsa.univ());
-        min_safety_dist = celeritas::min(min_safety_dist, local_safety);
-    }
+    auto lsa = this->make_lsa();
+    auto local_safety = visit_tracker(
+        [&lsa](auto&& t) { return t.safety(lsa.pos(), lsa.vol()); },
+        lsa.univ());
+    min_safety_dist = celeritas::min(min_safety_dist, local_safety);
     return min_safety_dist;
 }
 
@@ -741,11 +714,8 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 
     // Physically move next step
     real_type const dist = this->next_step();
-    for (auto ulev_id : range(this->univ_level() + 1))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        axpy(dist, lsa.dir(), &lsa.pos());
-    }
+    auto lsa = this->make_lsa();
+    axpy(dist, lsa.dir(), &lsa.pos());
 
     this->geo_status(GeoStatus::boundary_inc);
     this->surface(this->next_univ_level(), this->next_surf());
@@ -769,11 +739,8 @@ CELER_FUNCTION void OrangeTrackView::move_internal(real_type dist)
     CELER_EXPECT(this->geo_status() != GeoStatus::error);
 
     // Move and update the next step
-    for (auto i : range(this->univ_level() + 1))
-    {
-        auto lsa = this->make_lsa(UnivLevelId{i});
-        axpy(dist, lsa.dir(), &lsa.pos());
-    }
+    auto lsa = this->make_lsa();
+    axpy(dist, lsa.dir(), &lsa.pos());
     this->next_step(this->next_step() - dist);
     this->clear_surface();
 
