@@ -82,19 +82,17 @@ void remove_if_alive(
 #if CELER_USE_THRUST
     auto start = device_pointer_cast(init.vacancies.data());
     auto counters = device_pointer_cast(init.counters.data());
-    auto host_counters
-        = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     auto end = thrust::remove_if(thrust_execute_on(stream_id),
                                  start,
                                  start + init.vacancies.size(),
                                  LogicalNot{});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
-    // New size of the vacancy vector
-    host_counters.num_vacancies = end - start;
-    Copier<CoreStateCounters, MemSpace::device> copy{{counters.get(), 1},
-                                                     stream_id};
-    copy(MemSpace::host, {&host_counters, 1});
+    // Update the number of vacancies
+    size_type num_vacancies = end - start;
+    Copier<size_type, MemSpace::device> copy{{&(counters->num_vacancies), 1},
+                                             stream_id};
+    copy(MemSpace::host, {&num_vacancies, 1});
     stream.sync();
 #else
     // Calling with nullptr causes the function to return the amount of working
