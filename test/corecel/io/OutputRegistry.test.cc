@@ -7,15 +7,21 @@
 #include "corecel/io/OutputRegistry.hh"
 
 #include <exception>
+#include <memory>
 #include <regex>
 #include <sstream>
 
 #include "corecel/Config.hh"
 
+#include "corecel/Assert.hh"
+#include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/BuildOutput.hh"
 #include "corecel/io/ExceptionOutput.hh"
 #include "corecel/io/JsonPimpl.hh"
+#include "corecel/io/Logger.hh"
+#include "corecel/io/LoggerTypes.hh"
 #include "corecel/io/OpenmpOutput.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/sys/Openmp.hh"
 
 #include "celeritas_test.hh"
@@ -43,6 +49,24 @@ class TestInterface final : public OutputInterface
     Category cat_{};
     std::string label_{};
     int value_{};
+};
+
+class GlobalResultInterface final : public OutputInterface
+{
+  public:
+    using SPString = std::shared_ptr<std::string>;
+
+  public:
+    GlobalResultInterface(SPString value) : value_(value)
+    {
+        CELER_EXPECT(value_);
+    }
+    Category category() const final { return Category::result; }
+    std::string_view label() const final { return "*"; }
+    void output(JsonPimpl* json) const final { json->obj = *value_; }
+
+  private:
+    SPString value_{};
 };
 
 //---------------------------------------------------------------------------//
@@ -125,6 +149,91 @@ TEST_F(OutputRegistryTest, minimal)
     EXPECT_JSON_EQ(
         R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
         this->to_string(reg));
+
+    // Test persistent output filename
+    EXPECT_FALSE(reg.is_open());
+    reg.open("-");
+    EXPECT_TRUE(reg.is_open());
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::info};
+        std::string s;
+        {
+            ScopedStreamRedirect ssr{&std::cout};
+            reg.output();
+            s = ssr.str();
+        }
+
+        EXPECT_JSON_EQ(this->to_string(reg), s);
+        static char const* const expected_log_messages[]
+            = {"Appending 4 output entries to <stdout>"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+    }
+
+    // Clearing just removes already-written diagnostics
+    reg.clear();
+    EXPECT_TRUE(reg.empty());
+    EXPECT_TRUE(reg.is_open());
+}
+
+TEST_F(OutputRegistryTest, persistent_output)
+{
+    auto const filename = this->make_unique_filename(".jsonl");
+    auto result_string = std::make_shared<std::string>("");
+    {
+        std::ofstream(filename) << "Should be deleted by later trunc\n";
+    }
+
+    ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::info};
+    OutputRegistry reg;
+    reg.insert(std::make_shared<GlobalResultInterface>(result_string));
+    if (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(reg.output_filename(), DebugError);
+    }
+    EXPECT_THROW(reg.open(""), RuntimeError);
+
+    // Default "open" for filename should truncate, but continue writing to
+    // same file
+    reg.open(filename);
+    *result_string = "trunc";
+    reg.output();
+    reg.output();
+
+    // Default stdout should append to stdout
+    auto s = [&] {
+        ScopedStreamRedirect ssr{&std::cout};
+        reg.open("-");
+        *result_string = "stdout";
+        reg.output();
+        return ssr.get().str();
+    }();
+    EXPECT_EQ(R"({"result":"stdout"}
+)",
+              s)
+        << repr(s);
+
+    // Open orig filename with append
+    reg.open(filename, OutputRegistry::OpenMode::app);
+    *result_string = "app";
+    reg.output();
+    reg.output();
+    *result_string = "with\nnewline";
+    reg.output();
+    reg.close();
+
+    s = [&filename] {
+        std::stringstream buffer;
+        buffer << std::ifstream(filename).rdbuf();
+        return std::move(buffer).str();
+    }();
+    EXPECT_EQ(R"({"result":"trunc"}
+{"result":"trunc"}
+{"result":"app"}
+{"result":"app"}
+{"result":"with\nnewline"}
+)",
+              s)
+        << repr(s);
 }
 
 TEST_F(OutputRegistryTest, build_output)

@@ -47,20 +47,27 @@ inline auto sleep_for(std::chrono::duration<Rep, Period> const& duration)
 
 TEST(StopwatchTest, all)
 {
-    double tolerance = 0.1;
+    constexpr double tolerance = 0.1;
+    constexpr double ms_to_s = 0.001;
 
     // Start the clock, sleep, measure
     Stopwatch elapsed_time;
     auto actual_ms = sleep_for(std::chrono::milliseconds(50));
     double measured_s = elapsed_time();
-    EXPECT_GE(measured_s, 0.05);
-    EXPECT_SOFT_NEAR(actual_ms.count() * 0.001, measured_s, tolerance);
+    EXPECT_GE(measured_s, 50 * ms_to_s);
+    EXPECT_SOFT_NEAR(actual_ms.count() * ms_to_s, measured_s, tolerance);
     EXPECT_LT(measured_s, 5.0);
 
     // Reset and immediately measure
     elapsed_time = {};
     measured_s = elapsed_time();
     EXPECT_LT(measured_s, 0.05);
+
+    // Measure then reset
+    actual_ms = sleep_for(std::chrono::milliseconds(50));
+    measured_s = std::move(elapsed_time)();
+    EXPECT_SOFT_NEAR(actual_ms.count() * ms_to_s, measured_s, tolerance);
+    EXPECT_LT(elapsed_time(), 0.05);
 }
 
 //---------------------------------------------------------------------------//

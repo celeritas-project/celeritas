@@ -17,6 +17,8 @@
 #include "geocel/Types.hh"
 #include "celeritas/optical/DetectorData.hh"
 
+#include "detail/LarRunnerDiagnostics.hh"
+
 namespace sim
 {
 class SimEnergyDeposit;
@@ -25,6 +27,7 @@ class OBTRHelper;
 
 namespace celeritas
 {
+class OutputRegistry;
 namespace inp
 {
 struct OpticalStandaloneInput;
@@ -119,6 +122,9 @@ class LarStandaloneRunner
     std::shared_ptr<optical::Runner> runner_;
     // Celeritas volume instance ID for each LArSoft detector channel
     std::unordered_map<VolumeInstanceId, unsigned int> geo_to_channel_;
+    // Diagnostics written at every step
+    std::shared_ptr<OutputRegistry> output_;
+    std::shared_ptr<detail::LarRunnerDiagnostics> diagnostics_;
 
     //!@}
     //!@{

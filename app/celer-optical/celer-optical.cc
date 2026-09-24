@@ -50,7 +50,6 @@ namespace
  * Run, launch, and get output.
  */
 void run(std::shared_ptr<OutputRegistry>& output,
-         std::string& output_filename,
          std::string const& input_filename)
 {
     using Runner = celeritas::optical::Runner;
@@ -66,9 +65,6 @@ void run(std::shared_ptr<OutputRegistry>& output,
     // Standalone optical is run on a single GPU stream
     input.problem.num_streams = 1;
 
-    // Get the output filename
-    output_filename = input.problem.output_file;
-
     // Save the generator input
     auto generator = input.problem.generator;
 
@@ -82,8 +78,13 @@ void run(std::shared_ptr<OutputRegistry>& output,
 
     // Get output registry
     output = run.params()->output_reg();
+    CELER_ASSERT(output);
+    // Add shared simulation result to output
+    output->insert(
+        std::make_shared<celeritas::OutputInterfaceAdapter<SimulationResult>>(
+            OutputInterface::Category::result, "*", result));
 
-    // Transport all tracks to completion
+    // Add primaries
     std::visit(Overload{
                    [&run](celeritas::inp::OpticalPrimaryGenerator const&) {
                        run.insert();
@@ -119,11 +120,6 @@ void run(std::shared_ptr<OutputRegistry>& output,
     result->time.actions = std::move(run_result.action_times);
     result->time.steps = std::move(run_result.step_times);
     result->counters = std::move(run_result.counters);
-
-    // Add simulation result to output
-    output->insert(
-        std::make_shared<celeritas::OutputInterfaceAdapter<SimulationResult>>(
-            OutputInterface::Category::result, "*", result));
 }
 
 void print_config()
@@ -198,11 +194,10 @@ int main(int argc, char* argv[])
 
     // Set up the problem and run
     std::shared_ptr<celeritas::OutputRegistry> output;
-    std::string output_filename = "-";
     int return_code = EXIT_SUCCESS;
     try
     {
-        run(output, output_filename, input_filename);
+        run(output, input_filename);
     }
     catch (std::exception const& e)
     {
@@ -217,17 +212,14 @@ int main(int argc, char* argv[])
     }
 
     // Save output
-    celeritas::FileOrStdout ostream{output_filename};
-    CELER_LOG(status) << "Saving output to " << ostream.filename();
-    if (!output)
+    if (CELER_UNLIKELY(!output))
     {
-        CELER_LOG(warning) << "No output available";
-        ostream << "null\n";
+        CELER_LOG(error) << "Failed before initializing output";
         return_code = EXIT_FAILURE;
     }
     else
     {
-        output->output(&static_cast<std::ostream&>(ostream));
+        output->output();
     }
 
     // Delete streams before end of program (TODO: this is because of a static
