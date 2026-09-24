@@ -98,6 +98,11 @@
       }
     },
     {
+      "name": "nospack",
+      "displayName": "Executor no-spack build",
+      "inherits": [".ccache", ".base", ".debug"]
+    },
+    {
       "name": "base",
       "displayName": "Executor default options",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],

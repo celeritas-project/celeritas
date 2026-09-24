@@ -2862,19 +2862,24 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
-    // Shouldn't hit boundary
+    // Move along a straigiht line
     auto next = geo.find_next_step(from_cm(1.25));
     EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
-
     geo.move_internal(from_cm(1.25));
+    EXPECT_VEC_EQ(from_cm(Real3{0, 0, 1.25}), geo.pos());
+
+    // Move within the safety sphere
     real_type expected_safety = 5 - 1.25;
     EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
+    geo.move_internal(from_cm(Real3{2, 1, 1.25}));
+    EXPECT_VEC_EQ(from_cm(Real3{2, 1, 1.25}), geo.pos());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Change direction and try again (hit)
     geo.set_dir({1, 0, 0});
     next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_SOFT_EQ(3, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary();
@@ -2887,14 +2892,14 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 1, 1.25}), to_cm(geo.pos()));
 
     // Scatter to tangent along boundary
     constexpr real_type dx
         = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
     geo.set_dir({dx, 1, 0});
     next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(500, to_cm(next.distance));
+    EXPECT_SOFT_EQ(499, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_internal(from_cm(2));
 
@@ -2926,7 +2931,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
 
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 3, 1.25}), to_cm(geo.pos()));
 }
 
 /*!
