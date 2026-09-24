@@ -33,8 +33,6 @@
 
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
-#else
-#    include "detail/VgNavStateWrapper.hh"
 #endif
 
 #if !CELER_DEVICE_COMPILE
@@ -162,12 +160,6 @@ class VecgeomTrackView
     using VgLogVol = VgLogicalVolume<MemSpace::native>;
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
 
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavStateWrapper = vecgeom::NavStatePath&;
-#else
-    using NavStateWrapper = detail::VgNavStateWrapper;
-#endif
-
     //// DATA ////
 
     //! Shared/persistent geometry data
@@ -177,8 +169,8 @@ class VecgeomTrackView
 
     //!@{
     //! Referenced thread-local data
-    NavStateWrapper vgstate_;
-    NavStateWrapper vgnext_;
+    VgNavState& vgstate_;
+    VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
 
@@ -201,6 +193,9 @@ class VecgeomTrackView
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
+
+    // Forget the last exited volume after it has been used for relocation
+    static inline CELER_FUNCTION void clear_last_exited(VgNavState& state);
 };
 
 //---------------------------------------------------------------------------//
@@ -214,14 +209,8 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     : params_(params)
     , state_(states)
     , tid_(tid)
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    // Nav path holds direct references to state with unused "last state"
     , vgstate_{states.state[tid]}
     , vgnext_{states.next_state[tid]}
-#else
-    , vgstate_{states.state[tid], states.boundary[tid]}
-    , vgnext_{states.next_state[tid], states.next_boundary[tid]}
-#endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 {
@@ -522,6 +511,9 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                         vgnext_);
     }
 
+    // The exited volume only applies to this crossing: a subsequent crossing
+    // after a direction change (e.g., reflection) may reenter it
+    clear_last_exited(vgnext_);
     vgstate_ = vgnext_;
 
     CELER_ENSURE(this->is_on_boundary());
@@ -618,6 +610,31 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Forget the last exited volume after it has been used for relocation.
+ *
+ * VecGeom records the last exited volume when a step leaves one or more
+ * volumes, and relocation excludes it to avoid reentering at the exact
+ * boundary position. Clearing it after each crossing prevents a stale value
+ * from blocking a later relocation, and ensures that entering a daughter
+ * volume never inherits an unrelated excluded volume.
+ */
+CELER_FUNCTION void VecgeomTrackView::clear_last_exited(VgNavState& state)
+{
+#if CELER_VGNAV == CELER_VGNAV_PATH
+    // Path state stores the last exited volume implicitly in the path
+    CELER_DISCARD(state);
+#elif CELERITAS_VECGEOM_VERSION >= 0x020000
+    state.SetLastExited(decltype(state.GetLastExitedState()){});
+#else
+    // VecGeom 1.x index state has no setter: rebuild from the current path
+    VgNavState temp{state.GetNavIndex()};
+    temp.SetBoundaryState(state.IsOnBoundary());
+    state = temp;
+#endif
 }
 
 //---------------------------------------------------------------------------//

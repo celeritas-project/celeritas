@@ -30,7 +30,7 @@
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
 #else
-#    include "VgNavStateWrapper.hh"
+#    include <VecGeom/navigation/NavStateIndex.h>
 #endif
 
 namespace celeritas
@@ -38,15 +38,17 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Navigate VecGeom 1.x geometry using its BVH.
+ *
+ * \deprecated This is only used for VecGeom 1.x and will be removed along
+ * with it.
+ */
 class BVHNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavState = vecgeom::NavStatePath;
-#else
-    using NavState = detail::VgNavStateWrapper;
-#endif
+    using NavState = VgNavState;
 
 #ifdef VECGEOM_FLOAT_PRECISION
     static constexpr vg_real_type kBoundaryPush = 10 * 1e-3f;
