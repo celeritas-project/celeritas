@@ -204,16 +204,6 @@ class OrangeTrackView
     // Clear the surface at the current universe level
     inline CELER_FUNCTION void clear_surface();
 
-    // Get the daughter ID for the volume in the universe (or null)
-    inline CELER_FUNCTION DaughterId get_daughter(LSA const& lsa) const;
-
-    // Get the transform ID for the given daughter.
-    inline CELER_FUNCTION TransformId get_transform(
-        DaughterId daughter_id) const;
-
-    // Get the transform ID to increase the universe level by 1
-    inline CELER_FUNCTION TransformId get_transform(UnivLevelId ulev_id) const;
-
     // The implementation volume ID at a given level
     inline CELER_FUNCTION ImplVolumeId impl_volume_id(
         UnivLevelId ulev_id) const;
@@ -366,21 +356,8 @@ CELER_FUNCTION OrangeTrackView& OrangeTrackView::operator=(
     // initializing a new state
     this->clear_next();
 
-    // Transform direction from global to local
-    Real3 localdir = init.dir;
-    auto apply_transform = TransformVisitor{params_};
-    auto rotate_down
-        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
-    for (auto ulev_id : range(this->univ_level()))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        lsa.dir() = localdir;
-        apply_transform(rotate_down,
-                        this->get_transform(this->get_daughter(lsa)));
-    }
-
     // Save direction in deepest universe
-    this->make_lsa().dir() = localdir;
+    this->make_lsa().dir() = init.dir;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -758,24 +735,9 @@ CELER_FUNCTION void OrangeTrackView::move_internal(Real3 const& pos)
 {
     CELER_EXPECT(this->geo_status() != GeoStatus::error);
 
-    // Transform all nonlocal universe levels
-    auto local_pos = pos;
-    auto apply_transform = TransformVisitor{params_};
-    auto translate_down
-        = [&local_pos](auto&& t) { local_pos = t.transform_down(local_pos); };
-    for (auto ulev_id : range(this->univ_level()))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        lsa.pos() = local_pos;
-
-        // Apply "transform down" based on stored transform
-        apply_transform(translate_down,
-                        this->get_transform(this->get_daughter(lsa)));
-    }
-
     // Save final level
     auto lsa = this->make_lsa();
-    lsa.pos() = local_pos;
+    lsa.pos() = pos;
 
     // Clear surface state and next-step info
     this->clear_surface();
@@ -948,20 +910,8 @@ CELER_FUNCTION void OrangeTrackView::set_dir(Real3 const& newdir)
         }
     }
 
-    // Complete direction setting by transforming direction all the way down
-    Real3 localdir = newdir;
-    auto apply_transform = TransformVisitor{params_};
-    auto rotate_down
-        = [&localdir](auto&& t) { localdir = t.rotate_down(localdir); };
-    for (auto ulev_id : range(this->univ_level()))
-    {
-        auto lsa = this->make_lsa(ulev_id);
-        lsa.dir() = localdir;
-        apply_transform(rotate_down,
-                        this->get_transform(this->get_daughter(lsa)));
-    }
     // Save direction at deepest level
-    this->make_lsa().dir() = localdir;
+    this->make_lsa().dir() = newdir;
 
     this->clear_next();
 }
@@ -1240,42 +1190,6 @@ CELER_FUNCTION void OrangeTrackView::clear_surface()
 
 //---------------------------------------------------------------------------//
 /*!
- * Get the daughter ID for the given volume in the given universe.
- *
- * \return DaughterId or {} if the current volume is a leaf.
- */
-CELER_FUNCTION DaughterId OrangeTrackView::get_daughter(LSA const& lsa) const
-{
-    TrackerVisitor visit_tracker{params_};
-    return visit_tracker([&lsa](auto&& t) { return t.daughter(lsa.vol()); },
-                         lsa.univ());
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the transform ID for the given daughter.
- */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(
-    DaughterId daughter_id) const
-{
-    CELER_EXPECT(daughter_id);
-    return params_.daughters[daughter_id].trans_id;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the transform ID for the given daughter.
- */
-CELER_FUNCTION TransformId OrangeTrackView::get_transform(
-    UnivLevelId ulev_id) const
-{
-    CELER_EXPECT(ulev_id < this->univ_level());
-    LSA lsa(params_.scalars, &states_, track_slot_, ulev_id);
-    return this->get_transform(this->get_daughter(lsa));
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * The global-indexed volume ID at a given univ level.
  *
  * \note It is allowable to call this function when "outside", because the
@@ -1306,15 +1220,6 @@ CELER_FUNCTION Real3 OrangeTrackView::geo_normal() const
         return visit_tracker(
             [&](auto&& t) { return t.normal(pos, local_surf); }, lsa.univ());
     }();
-
-    // Rotate normal up to global coordinates
-    auto apply_transform = TransformVisitor{params_};
-    auto rotate_up = [&normal](auto&& t) { normal = t.rotate_up(normal); };
-    for (auto ulev_id : range<int>(this->surface_univ_level().get()).step(-1))
-    {
-        apply_transform(rotate_up,
-                        this->get_transform(id_cast<UnivLevelId>(ulev_id)));
-    }
 
     CELER_ENSURE(is_soft_unit_vector(normal));
     return normal;
