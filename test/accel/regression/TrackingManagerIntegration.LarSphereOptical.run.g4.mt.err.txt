@@ -41,18 +41,18 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 [M] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 [M] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 [M] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-[M] debug@SupportedOpticalPhysics.cc: Added optical absorption process
-[M] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
-[M] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
-[M] debug@SupportedOpticalPhysics.cc: Added optical boundary process
-[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
-[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
-[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
-[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
-[M] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
-[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
-[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
-[M] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+[M] debug@SupportedOpticalPhysics.cc: Adding optical absorption process
+[M] debug@SupportedOpticalPhysics.cc: Adding optical Rayleigh scattering process
+[M] debug@SupportedOpticalPhysics.cc: Adding optical Mie (Henyey-Greenstein phase function) scattering process
+[M] debug@SupportedOpticalPhysics.cc: Adding optical boundary process
+[M] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to gamma
+[M] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to geantino
+[M] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to proton
+[M] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e+
+[M] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e-
+[M] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to proton
 [M] info@SharedParams.cc: Disabling Celeritas offloading since the 'CELER_DISABLE' environment variable is present and non-empty
 [M] debug@TrackingManagerConstructor.cc: Skipping tracking manager since Celeritas is disabled
 [M] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
@@ -78,18 +78,18 @@ G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 G4WT0 > [W] debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical absorption process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added optical boundary process
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
-G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding optical absorption process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding optical Rayleigh scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding optical Mie (Henyey-Greenstein phase function) scattering process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding optical boundary process
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to gamma
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to geantino
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding scintillation physics to proton
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e+
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e-
+G4WT0 > [W] debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to proton
 G4WT0 > [W] debug@TrackingManagerConstructor.cc: Skipping tracking manager since Celeritas is disabled
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 G4WT0 > [W] debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
@@ -141,7 +141,7 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::BeginOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
-[M] info@TrackingManagerIntegration.test.cc: Geant4 tracked a total of 5305 optical photons and 35 electrons
+[M] info@TrackingManagerIntegration.test.cc: Geant4 tracked a total of 21514 optical photons and 37 electrons
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphereoptical-run-g4-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters

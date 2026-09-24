@@ -104,6 +104,7 @@ debug: Creating scoped G4 exception handler (depth 1)
 [M] debug@GeantImporter.cc: Loaded 5 isotopes
 [M] debug@GeantImporter.cc: Loaded 3 elements
 [M] debug@GeantImporter.cc: Loaded 3 geo materials
+[M] debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 [M] debug@GeantImporter.cc: Loaded 3 physics materials
 [M] debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
 [M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)

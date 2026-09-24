@@ -10,9 +10,9 @@ if [ -z "${CELER_INSTALL_DIR}" ]; then
   CELER_INSTALL_DIR="${CELER_SOURCE_DIR}/install"
   echo "CELER_INSTALL_DIR is undefined: using ${CELER_INSTALL_DIR}"
 fi
-if [ -z "${CMAKE_PRESET}" ]; then
-  CMAKE_PRESET="base"
-  echo "CMAKE_PRESET is undefined: using ${CMAKE_PRESET}"
+if [ -z "${CELER_CMAKE_PRESET}" ]; then
+  CELER_CMAKE_PRESET="base"
+  echo "CMAKE_PRESET is undefined: using ${CELER_CMAKE_PRESET}"
 fi
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
