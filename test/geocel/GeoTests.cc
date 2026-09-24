@@ -78,7 +78,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 auto const vecgeom_version = celeritas::Version::from_string(
-    CELERITAS_USE_VECGEOM ? cmake::vecgeom_version : "0.0.0");
+    CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS ? cmake::vecgeom_version
+                                                      : "0.0.0");
 auto const geant4_version = celeritas::Version::from_string(
     CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
@@ -862,9 +863,9 @@ void FourLevelsGeoTest::test_locate_point() const
 void FourLevelsGeoTest::test_pico_step() const
 {
     // With Geant4 usolids, the gap is within the surface tolerance
-    constexpr real_type gap = 1e-11;  // [cm]
+    constexpr real_type gap_cm = 1e-11;
     auto geo = test_->make_checked_track_view();
-    geo = test_->make_initializer({16 - gap, 10, 10}, {1, 0, 0});
+    geo = test_->make_initializer({16 - gap_cm, 10, 10}, {1, 0, 0});
     auto pos = geo.pos();
     auto const volume = geo.volume_id();
     EXPECT_EQ("Shape1", test_->volume_name(geo));
@@ -874,9 +875,9 @@ void FourLevelsGeoTest::test_pico_step() const
     for (int i = 0; i < 2; ++i)
     {
         SCOPED_TRACE(std::to_string(i));
-        next = geo.find_next_step(from_cm(2 * gap));
+        next = geo.find_next_step(from_cm(2 * gap_cm));
         ASSERT_TRUE(next.boundary);
-        EXPECT_LT(next.distance, 1.5 * gap);
+        EXPECT_LT(next.distance, from_cm(1.5 * gap_cm));
         if (test_->geometry_type() == "Geant4")
         {
             EXPECT_EQ(0, next.distance);
@@ -907,7 +908,7 @@ void FourLevelsGeoTest::test_pico_step() const
     // Continue through the new volume rather than repeatedly hitting zero.
     next = geo.find_next_step(from_cm(10));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_EQ(1 + (gap - moved), to_cm(next.distance));
+    EXPECT_SOFT_EQ(1 + (from_cm(gap_cm) - moved), to_cm(next.distance));
 }
 
 //---------------------------------------------------------------------------//
