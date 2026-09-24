@@ -6,7 +6,7 @@ Update .vscode/launch.json to debug a specific CTest test.
 
 Usage::
 
-    debug-ctest.py [--workspace <dir>] [--build-dir <dir>] <test-name>
+    ctest-debug-launch.py [--workspace <dir>] [--build-dir <dir>] <test-name>
 
 The test name can be a full CTest name (e.g.
 ``accel/UserActionIntegration:LarSphereOpticalOffload.run:g4:mt``) or a
@@ -50,6 +50,18 @@ def find_workspace_root():
         return Path(result.stdout.strip())
     # Fall back: scripts/dev/ -> project root
     return Path(__file__).resolve().parent.parent.parent
+
+
+def find_build_dir(workspace: Path) -> Path:
+    cwd = Path.cwd()
+    if (cwd / "CMakeCache.txt").exists():
+        print(f"Set default build to current working directory {cwd}", file=sys.stderr)
+        return cwd
+    build = workspace / "build"
+    if build.is_dir():
+        print(f"Set default build in workspace {workspace}", file=sys.stderr)
+        return build
+    raise RuntimeError("Cannot find a build directory: specify with --build-dir")
 
 
 def find_test(build_dir, test_name):
@@ -134,7 +146,7 @@ def main():
     args = parser.parse_args()
 
     workspace = args.workspace or find_workspace_root()
-    build_dir = args.build_dir or workspace / "build"
+    build_dir = args.build_dir or find_build_dir(workspace)
 
     test = find_test(build_dir, args.test_name)
     print(f"Found: {test['name']}", file=sys.stderr)
