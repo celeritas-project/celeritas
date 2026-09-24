@@ -76,7 +76,7 @@ jobs:
     uses: ./.github/workflows/build-regression.yml
   build-docker:
     if: ${{github.event.pull_request.draft == false}}
-    needs: [build-spack] # Fail first
+    needs: [all-prechecks]
     uses: ./.github/workflows/build-docker.yml
   build-codecov:
     if: ${{github.event.pull_request.draft == false}}
