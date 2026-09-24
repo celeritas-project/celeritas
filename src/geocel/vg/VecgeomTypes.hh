@@ -89,22 +89,6 @@ struct IsTriviallyCopyable<vecgeom::NavStateTuple> : std::true_type
 using VgVolumeInstanceId = OpaqueId<struct VecgeomPlacedVolume_,
                                     std::make_unsigned_t<VgPlacedVolumeInt>>;
 
-enum class VgBoundary : bool
-{
-    off,
-    on
-};
-
-CELER_CONSTEXPR_FUNCTION bool to_bool(VgBoundary b)
-{
-    return static_cast<bool>(b);
-}
-
-CELER_CONSTEXPR_FUNCTION VgBoundary to_vgboundary(bool b)
-{
-    return static_cast<VgBoundary>(b);
-}
-
 //---------------------------------------------------------------------------//
 // VOLUME/VECTOR TYPES
 //---------------------------------------------------------------------------//
@@ -129,17 +113,14 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 
 using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
 
-//! Low-level (POD compatible) VecGeom navigation state
-#if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
-using VgOpaqueNavPath = VgNavIndex;
-#elif CELER_VGNAV == CELER_VGNAV_TUPLE
-using VgOpaqueNavPath = vecgeom::NavTuple<VECGEOM_NAVTUPLE_MAXDEPTH>;
-#elif CELER_VGNAV == CELER_VGNAV_PATH
-// Only used clangd parsing of VgNavStateWrapper
-using VgOpaqueNavPath = VgNavIndex;
-#endif
-
-//! High level VecGeom navigation state
+/*!
+ * VecGeom navigation state.
+ *
+ * This is \c NavStateTuple or \c NavStateIndex (VecGeom 2) or \c
+ * NavStateIndex or \c NavStatePath (VecGeom 1). The index and tuple states
+ * are stored directly in Celeritas state collections and include the boundary
+ * flag and last-exited state.
+ */
 using VgNavState = vecgeom::NavigationState;
 
 //---------------------------------------------------------------------------//
