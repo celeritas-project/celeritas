@@ -39,12 +39,13 @@ class VgNavStateWrapper
     using VgNavState = vecgeom::NavStateTuple;
 #else
     // Note that the type corresponds to the Celeritas type alias
-    // VgNavStateImpl, but it is *only* used if VECEGOM_USE_NAVINDEX is defined
+    // VgOpaqueNavPath, but it is *only* used if VECEGOM_USE_NAVINDEX is
+    // defined
     using VgNavState = vecgeom::NavStateIndex;
 #endif
 
     // Constructor takes reference to low-level state and boundary
-    CELER_CONSTEXPR_FUNCTION VgNavStateWrapper(VgNavStateImpl& impl_state,
+    CELER_CONSTEXPR_FUNCTION VgNavStateWrapper(VgOpaqueNavPath& impl_state,
                                                VgBoundary& boundary);
 
     //! Default copy constructor: both will reference the same data
@@ -78,7 +79,7 @@ class VgNavStateWrapper
         return result;
     }
 
-    CELER_FIF VgNavStateImpl const& GetState() const { return s_; }
+    CELER_FIF VgOpaqueNavPath const& GetState() const { return s_; }
 
     //! Debug print
     CELER_FIF void Print() const { VgNavState{*this}.Print(); }
@@ -135,7 +136,7 @@ class VgNavStateWrapper
     CELER_FIF VPlacedVolume const* GetLastExited() { return nullptr; }
 
   private:
-    VgNavStateImpl& s_;
+    VgOpaqueNavPath& s_;
     VgBoundary& b_;
 };
 
@@ -144,7 +145,7 @@ class VgNavStateWrapper
 //---------------------------------------------------------------------------//
 
 CELER_CONSTEXPR_FUNCTION VgNavStateWrapper::VgNavStateWrapper(
-    VgNavStateImpl& impl_state, VgBoundary& boundary)
+    VgOpaqueNavPath& impl_state, VgBoundary& boundary)
     : s_{impl_state}, b_{boundary}
 {
     CELER_EXPECT(CELER_VGNAV != CELER_VGNAV_PATH);

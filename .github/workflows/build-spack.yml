@@ -84,10 +84,7 @@ jobs:
                || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
                || ''
             }}
-            ${{(matrix.geometry == 'vecgeom'
-                || matrix.geometry == 'vecgeom2')
-               && 'g4vg' || ''
-            }}
+            ${{ contains(matrix.geometry, 'vecgeom') && 'g4vg' || '' }}
 
       ### BUILD ###
 
@@ -119,7 +116,7 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run tests
         id: test
-        if: ${{matrix.special != 'static'}}
+        if: ${{matrix.special != 'static'}} # static disables tests due to build size
         uses: ./.github/actions/run-ctest
         with:
           name: ${{env.CELER_RUN_NAME}}
