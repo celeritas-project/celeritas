@@ -118,8 +118,8 @@ void count_num_photons(
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
     size_type count;
-    // copy_to_host uses the stream ID, so no synchronization is required
     total.copy_to_host({&count, 1});
+    stream.sync();
 #else
     size_type count = thrust::transform_reduce(
         thrust_execute_on(stream_id),
