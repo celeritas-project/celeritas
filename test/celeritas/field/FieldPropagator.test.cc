@@ -1518,7 +1518,7 @@ TEST_F(CmseTest, coarse)
         ref.messages[1].insert(
             ref.messages[1].end(),
             {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
-             R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
+             R"(failed during cross_boundary: at {10.47,-6.625,797.1} [cm] along {0.6625,-0.2470,0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
