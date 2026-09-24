@@ -175,17 +175,23 @@
 /*!
  * \def CELER_USE_THRUST
  * \def CELER_CUB_HAS_TRANSFORM
+ * \def CELER_CUB_HAS_TRANSFORM_REDUCE
  * \def CELER_CUB_HAS_FLAGGEDIF
  * \def CELER_HIPCUB_HAS_TRANSFORM
+ * \def CELER_HIPCUB_HAS_TRANSFORM_REDUCE
  *
- * Determine if CUB or hipCUB is available, anf if so, check the version.
+ * Determine if CUB or hipCUB is available, and if so, check the version.
  *
  * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
  * default, so test for the availability of hipCUB and use thrust instead if
  * it's unavailable.
  *
- * DeviceTransform is unavailable in earlier versions of CUB/hipCUB, so the
- * code uses thrust::transform in that case.
+ * DeviceTransform::Transform is unavailable in earlier versions of CUB/hipCUB,
+ * so the code uses thrust::transform in that case.
+ *
+ * DeviceReduce::TransformReduce is unavailable in earlier versions of
+ * CUB/hipCUB, so the code uses a thrust::transform iterator followed by a
+ * DeviceReduce::Reduce in that case.
  *
  * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
  * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
