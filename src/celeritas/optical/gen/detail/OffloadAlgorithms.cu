@@ -18,11 +18,6 @@
 #    include <hipcub/device/device_reduce.hpp>
 #else
 #    include <thrust/transform_reduce.h>
-
-#    include "celeritas/optical/TrackExecutor.hh"
-#    include "celeritas/optical/action/ActionLauncher.device.hh"
-
-#    include "UpdatePendingExecutor.hh"
 #endif
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
@@ -34,6 +29,10 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
+#include "celeritas/optical/TrackExecutor.hh"
+#include "celeritas/optical/action/ActionLauncher.device.hh"
+
+#include "UpdatePendingExecutor.hh"
 
 #if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
@@ -86,11 +85,7 @@ void count_num_photons(
     auto start = thrust::device_pointer_cast(buffer.data().get());
 #if CELER_CUB_HAS_TRANSFORM_REDUCE || CELER_HIPCUB_HAS_TRANSFORM_REDUCE
     size_t temp_storage_bytes = 0;
-    auto counters = device_pointer_cast(state.ref().init.counters.data());
-    // Can't pass the current value of the num_pending counter on device to
-    // the reduction, but need it to initialize the sum
-    auto cpucntrs = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
+    DeviceVector<size_type> total(1, stream_id);
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
     // Note: The CUB/hipCUB functions need the number of entries being
@@ -100,12 +95,13 @@ void count_num_photons(
         nullptr,
         temp_storage_bytes,
         start + offset,
-        &(counters->num_pending),
+        total.data(),
         size - offset,
         thrust::plus<size_type>(),
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        cpucntrs.num_pending,
+        0_sz,
         stream.get());
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     CELER_DISCARD(cub_error_code);
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     // Run reduction
@@ -113,14 +109,17 @@ void count_num_photons(
         temp_storage.data(),
         temp_storage_bytes,
         start + offset,
-        &(counters->num_pending),
+        total.data(),
         size - offset,
         thrust::plus<size_type>(),
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        cpucntrs.num_pending,
+        0_sz,
         stream.get());
     CELER_DISCARD(cub_error_code);
     CELER_DEVICE_API_CALL(PeekAtLastError());
+    size_type count;
+    // copy_to_host uses the stream ID, so no synchronization is required
+    total.copy_to_host({&count, 1});
 #else
     size_type count = thrust::transform_reduce(
         thrust_execute_on(stream_id),
@@ -130,6 +129,7 @@ void count_num_photons(
         0_sz,
         thrust::plus<size_type>());
     CELER_DEVICE_API_CALL(PeekAtLastError());
+#endif
     // Update the number of pending optical photons
     auto execute_thread = make_single_track_executor(
         params->ptr<MemSpace::native>(),
@@ -137,9 +137,7 @@ void count_num_photons(
         optical::detail::UpdatePendingExecutor{count});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
-    launch_kernel(1, state.stream_id(), execute_thread);
-#endif
-    stream.sync();
+    launch_kernel(1, stream_id, execute_thread);
     return;
 }
 
