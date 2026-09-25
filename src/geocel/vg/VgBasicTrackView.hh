@@ -43,8 +43,6 @@ namespace celeritas
  * \par Removed
  *
  * - Mapping of Geant4 volumes
- * - Assertion checking of the internal movement compared to last found (this
- *   will rely on CheckedGeoTrackView)
  *
  * \par Example
  *

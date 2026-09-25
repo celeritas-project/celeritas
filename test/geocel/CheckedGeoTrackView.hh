@@ -210,7 +210,8 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 
     // Temporary state
     bool checked_internal_{false};
-    std::optional<real_type> next_boundary_;
+    //! Last find_next_step result, less any internal movement since then
+    std::optional<Propagation> next_step_;
 };
 
 class CheckedGeoError : public RuntimeError

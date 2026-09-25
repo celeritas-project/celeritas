@@ -206,7 +206,7 @@ CheckedGeoTrackView& CheckedGeoTrackView::operator=(
         CGTV_LOG(warning) << "Started on a boundary: " << *this;
     }
     count_ = {};
-    next_boundary_.reset();
+    next_step_.reset();
     CGTV_LOG(status) << "Initialized: " << *this;
     return *this;
 }
@@ -296,7 +296,7 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
     CGTV_VALIDATE(*this,
                   impl_vol == t_->impl_volume_id(),
                   << "volume changed during set_dir");
-    next_boundary_.reset();
+    next_step_.reset();
 
     CGTV_LOG(status) << "Set direction to " << repr(newdir);
 }
@@ -320,11 +320,11 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                    << "cannot find next step from outside");
     auto const& units = this->unit_length();
 
-    if (next_boundary_ && distance <= *next_boundary_)
+    if (next_step_ && distance <= next_step_->distance)
     {
         CGTV_LOG(warning) << "Finding next step up to " << repr(distance)
                           << NativeLength{} << " when previous step "
-                          << repr(*next_boundary_) << NativeLength{}
+                          << repr(next_step_->distance) << NativeLength{}
                           << " was already calculated";
     }
 
@@ -380,7 +380,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     CGTV_LOG(info) << (result.boundary ? "Found" : "No") << " boundary at "
                    << result.distance;
 
-    next_boundary_ = result.distance;
+    next_step_ = result;
     return result;
 }
 
@@ -395,10 +395,23 @@ void CheckedGeoTrackView::move_internal(real_type step)
     CGTV_LOG(debug) << "Moving " << StreamableLength{step, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
-    // TODO: check next_boundary_
+    if (next_step_)
+    {
+        // Moving the full distance to a boundary requires move_to_boundary
+        CELER_VALIDATE(next_step_->boundary ? step < next_step_->distance
+                                            : step <= next_step_->distance,
+                       << "internal move " << repr(step) << NativeLength{}
+                       << (next_step_->boundary ? " reaches boundary at "
+                                                : " exceeds step of ")
+                       << repr(next_step_->distance) << NativeLength{});
+    }
 
     t_->move_internal(step);
-    next_boundary_.reset();
+    if (next_step_)
+    {
+        // Allow moving to the boundary with the remaining distance
+        next_step_->distance -= step;
+    }
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !t_->is_on_boundary() && !t_->is_outside(),
@@ -424,7 +437,7 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
     real_type orig_safety = (t_->is_on_boundary() ? 0 : t_->find_safety());
     auto orig_pos = t_->pos();
     t_->move_internal(pos);
-    next_boundary_.reset();
+    next_step_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !this->is_on_boundary() && !t_->is_outside(),
@@ -464,8 +477,8 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
 /*!
  * Move to the next boundary.
  *
- * If the most recent operation was \c find_next_step, the distance must match
- * its result.
+ * If a \c find_next_step result is known, it must be a boundary, and the
+ * distance must match it less any internal movement since then.
  *
  * \post On boundary
  */
@@ -475,13 +488,21 @@ void CheckedGeoTrackView::move_to_boundary(real_type dist)
                     << StreamableLength{dist, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
-    CELER_VALIDATE(!next_boundary_ || soft_equal(*next_boundary_, dist),
-                   << "move_to_boundary distance " << repr(dist)
-                   << NativeLength{} << " does not match find_next_step "
-                   << "distance " << repr(*next_boundary_) << NativeLength{});
+    if (next_step_)
+    {
+        CELER_VALIDATE(next_step_->boundary,
+                       << "cannot move to boundary: find_next_step found "
+                          "none within "
+                       << repr(next_step_->distance) << NativeLength{});
+        CELER_VALIDATE(soft_equal(next_step_->distance, dist),
+                       << "move_to_boundary distance " << repr(dist)
+                       << NativeLength{} << " does not match remaining "
+                       << "find_next_step distance "
+                       << repr(next_step_->distance) << NativeLength{});
+    }
 
     t_->move_to_boundary(dist);
-    next_boundary_.reset();
+    next_step_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_to_boundary");
     checked_internal_ = false;
 
