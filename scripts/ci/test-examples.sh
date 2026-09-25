@@ -84,12 +84,12 @@ if [ "${G4VERSION_NUMBER}" -lt 1100 ]; then
   # Test that it fails
   echo "*** THE FOLLOWING EXECUTION SHOULD FAIL ***"
   echo "*** (Requires Geant4 11.0 but we have ${G4VERSION_STRING}) ***"
-  if ! ./run-offload > offload-should-fail.txt 2>&1 ; then
+  if ./run-offload > offload-should-fail.txt 2>&1 ; then
     cat offload-should-fail.txt
     echo "Expected run-offload to fail but it PASSED"
     exit 1
   fi
-  echo "::group::Offload template output"
+  echo "::group::Offload output"
   cat offload-should-fail.txt
   echo "::endgroup::"
   echo "Run-offload failed as expected"
