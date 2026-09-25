@@ -46,6 +46,8 @@ jobs:
             geant: "11.3"
           - geometry: "geant4"
             geant: "11.3"
+          - geometry: "geant4"
+            geant: "11.3+vecgeom" # NOTE: non-numeric version requires special casing fromJSON
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(
@@ -81,7 +83,8 @@ jobs:
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
-               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
+               || contains(matrix.geometry, 'vecgeom') && 'vecgeom@2.1.0'
+               || contains(matrix.geant, 'vecgeom') && 'vecgeom@2.1.0'
                || ''
             }}
             ${{ contains(matrix.geometry, 'vecgeom') && 'g4vg' || '' }}
@@ -126,6 +129,7 @@ jobs:
           filter-unit: >-
             ${{
               matrix.special == 'static' && 'none'
+              || contains(matrix.geant, '+vecgeom') && '^geocel/'
               || fromJSON(matrix.geant) < 11 && '^accel/'
              }}
       - name: Test basic downstream compilation against build dir

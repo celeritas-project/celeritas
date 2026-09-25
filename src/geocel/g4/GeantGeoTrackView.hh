@@ -427,6 +427,10 @@ auto GeantGeoTrackView::normal() const -> Real3 const&
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the next geometric boundary.
+ *
+ * Geant4 can return a zero-distance boundary hit within its surface tolerance.
+ * It is treated like any other hit, and the boundary is finalized in
+ * move_to_boundary.
  */
 Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 {
@@ -436,6 +440,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     if (this->geo_status() == GeoStatus::boundary_inc)
     {
         // On a boundary, headed in: next step is zero
+        // TODO: add a test for this
         return {0, true};
     }
 
@@ -469,15 +474,6 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     result.distance = native_value_from(ClhepLength{g4step});
     if (result.distance <= max_step)
     {
-        if (CELER_UNLIKELY(result.distance == 0))
-        {
-            CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
-            // Oops, we might be on the inside of a concave object (boundary
-            // direction was incorrect)
-            this->geo_status(GeoStatus::boundary_inc);
-            // On a boundary, headed in: next step is zero
-            return {0, true};
-        }
         result.boundary = true;
     }
     else
@@ -486,7 +482,8 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
         result.distance = max_step;
     }
 
-    CELER_ENSURE(result.distance > 0);
+    CELER_ENSURE(result.distance >= 0);
+    CELER_ENSURE(result.distance > 0 || result.boundary);
     CELER_ENSURE(result.distance <= max_step);
     CELER_ENSURE(result.boundary || result.distance == max_step);
     return result;
@@ -533,6 +530,14 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
 void GeantGeoTrackView::move_to_boundary(real_type dist)
 {
     CELER_EXPECT(dist >= 0);
+
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // Already on the surface, e.g. after reversing the direction.
+        CELER_ASSERT(this->is_on_boundary());
+        CELER_ASSERT(dist == 0);
+        return;
+    }
 
     // Move to the boundary
     axpy(dist, dir_, &pos_);

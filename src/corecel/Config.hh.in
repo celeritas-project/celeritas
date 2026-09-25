@@ -78,6 +78,7 @@
 
 // Configurations of software dependencies
 @CELERITAS_VECGEOM_CONFIG@
+@CELERITAS_GEANT4_CONFIG@
 
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information

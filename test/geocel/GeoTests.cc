@@ -11,16 +11,6 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_USE_GEANT4 && CELERITAS_GEANT4_VERSION >= 0x0a0600
-#    include <G4GeomConfig.hh>
-#endif
-
-#if CELERITAS_USE_GEANT4 && defined(G4GEOM_USE_USOLIDS)
-#    define CELERITAS_TEST_GEANT4_USOLIDS 1
-#else
-#    define CELERITAS_TEST_GEANT4_USOLIDS 0
-#endif
-
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
@@ -34,7 +24,6 @@
 #include "geocel/GeoParamsInterface.hh"
 #include "geocel/Types.hh"
 #include "geocel/VolumeParams.hh"
-#include "geocel/detail/LengthUnits.hh"
 
 #include "GenericGeoResults.hh"
 #include "GenericGeoTestInterface.hh"
@@ -57,7 +46,7 @@ using namespace celeritas::literals;
         { \
             STATEMENT; \
         } \
-        catch (::celeritas::test::CheckedGeoError const& e) \
+        catch (::celeritas::CheckedGeoError const& e) \
         { \
             threw_ = true; \
             if (COND) \
@@ -89,7 +78,8 @@ namespace
 {
 //---------------------------------------------------------------------------//
 auto const vecgeom_version = celeritas::Version::from_string(
-    CELERITAS_USE_VECGEOM ? cmake::vecgeom_version : "0.0.0");
+    CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS ? cmake::vecgeom_version
+                                                      : "0.0.0");
 auto const geant4_version = celeritas::Version::from_string(
     CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
 
@@ -273,7 +263,8 @@ void AtlasHgtdGeoTest::test_trace() const
             0.5784236876658104, 0.8157365000698582, -9.290358099212079e-7};
         axpy(-1_r, dir, &pos);
 
-        if (test_->geometry_type() == "VecGeom")
+        if (test_->geometry_type() == "VecGeom"
+            && vecgeom_version < Version{2, 0})
         {
             GTEST_SKIP() << "VecGeom fails the tangent trace";
         }
@@ -861,6 +852,58 @@ void FourLevelsGeoTest::test_locate_point() const
 }
 
 //---------------------------------------------------------------------------//
+void FourLevelsGeoTest::test_pico_step() const
+{
+    // With Geant4 usolids, the gap is within the surface tolerance
+    constexpr real_type gap_cm = 1e-11;
+    auto geo = test_->make_checked_track_view();
+    geo = test_->make_initializer({16 - gap_cm, 10, 10}, {1, 0, 0});
+    auto pos = geo.pos();
+    auto const volume = geo.volume_id();
+    EXPECT_EQ("Shape1", test_->volume_name(geo));
+
+    // No positive step has been cached: zero must still be a valid result.
+    Propagation next;
+    for (int i = 0; i < 2; ++i)
+    {
+        SCOPED_TRACE(std::to_string(i));
+        next = geo.find_next_step(from_cm(2 * gap_cm));
+        ASSERT_TRUE(next.boundary);
+        EXPECT_LT(next.distance, from_cm(1.5 * gap_cm));
+        if (test_->geometry_type() == "Geant4")
+        {
+            EXPECT_EQ(0, next.distance);
+        }
+        EXPECT_EQ(GeoStatus::interior, geo.geo_status());
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_EQ(volume, geo.volume_id());
+        EXPECT_VEC_EQ(pos, geo.pos());
+    }
+
+    geo.move_to_boundary(next.distance);
+    real_type const moved = next.distance;
+    axpy(moved, geo.dir(), &pos);
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ(volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ(GeoStatus::boundary_inc, geo.geo_status());
+    EXPECT_VEC_EQ((Real3{1, 0, 0}), geo.normal());
+    geo.cross_boundary();
+    EXPECT_VEC_EQ(pos, geo.pos());
+    EXPECT_EQ("Envelope", test_->volume_name(geo));
+    if (test_->geometry_type() != "VecGeom")
+    {
+        // TODO: geo status
+        EXPECT_EQ(GeoStatus::boundary_out, geo.geo_status());
+    }
+
+    // Continue through the new volume rather than repeatedly hitting zero.
+    next = geo.find_next_step(from_cm(10));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(1 + (gap_cm - to_cm(moved)), to_cm(next.distance));
+}
+
+//---------------------------------------------------------------------------//
 void FourLevelsGeoTest::test_safety() const
 {
     auto geo = test_->make_checked_track_view();
@@ -971,7 +1014,7 @@ void FourLevelsGeoTest::test_small_steps() const
     EXPECT_EQ(box_volume, geo.volume_id());
 
     next = geo.find_next_step(from_cm(gap / 2));
-    if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+    if (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
     {
         // USolids reports the nearby surface even before the requested limit
         // reaches it, since the point is within the surface tolerance.
@@ -996,7 +1039,15 @@ void FourLevelsGeoTest::test_small_steps() const
         EXPECT_GT(to_cm(next.distance), gap / 2);
     }
     EXPECT_LT(to_cm(next.distance), 2 * gap);
+    auto const pos = geo.pos();
     geo.move_to_boundary(next.distance);
+    if (next.distance == 0)
+    {
+        // A zero-distance hit must not move by a previously found step
+        EXPECT_VEC_EQ(pos, geo.pos());
+    }
+    EXPECT_EQ(box_volume, geo.volume_id());
+    EXPECT_TRUE(geo.is_on_boundary());
     geo.cross_boundary();
     EXPECT_NE(box_volume, geo.volume_id());
 }
@@ -2009,13 +2060,6 @@ void SolidsGeoTest::test_trace() const
             // v1.2.10: unknown differences outside hyperboloid
             ref.halfway_safeties[1] = 1.99361986757606;
             ref.halfway_safeties[3] = 1.99361986757606;
-
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
         }
         delete_orange_safety(*test_, ref, result);
 
@@ -2089,7 +2133,7 @@ void SolidsGeoTest::test_trace() const
             33.481506089183,
         };
 
-        if (CELERITAS_TEST_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
+        if (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4")
         {
             // VecGeom's solid safety can be more conservative than native G4
             ref.halfway_safeties[2] = 36.9728429405546;
@@ -2102,13 +2146,6 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[12] = 42.8397753718277;
             ref.halfway_safeties[13] = 18.8833925371992;
             ref.halfway_safeties[14] = 42.8430141842906;
-
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
         }
         else if (single_orange)
         {
@@ -2185,9 +2222,9 @@ void SolidsGeoTest::test_trace() const
             9.9503719020999,
             14.882471509386,
             22.434755881362,
-            39.751735748889,
+            39.0470100365853,
             22.438088639235,
-            33.070197064425,
+            29.8360600858068,
             32.739905171863,
             15.672519698479,
             26.80540527207,
@@ -2210,36 +2247,33 @@ void SolidsGeoTest::test_trace() const
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
             }
-            if constexpr (CELERITAS_TEST_GEANT4_USOLIDS)
+            else if (geant4_version < Version{11, 4}
+                     && !CELERITAS_GEANT4_USOLIDS)
             {
-                // Geant4 navigation using VecGeom solid safety implementations
-                ref.halfway_safeties[4] = 17.4966506197896;
-                ref.halfway_safeties[5] = 39.0470100365853;
-                ref.halfway_safeties[6] = 17.5;
-                ref.halfway_safeties[7] = 29.8360600858068;
-                ref.halfway_safeties[8] = 29.1115376091068;
-                ref.halfway_safeties[14] = 19.0382940808067;
-                ref.halfway_safeties[15] = 0.5;
-                ref.halfway_safeties[16] = 0.5;
+                ref.halfway_safeties[5] = 39.751735748889;
+                ref.halfway_safeties[7] = 33.070197064425;
             }
         }
-        else if (test_->geometry_type() == "VecGeom")
+        if (test_->geometry_type() == "VecGeom"
+            || (CELERITAS_GEANT4_USOLIDS && test_->geometry_type() == "Geant4"))
         {
-            // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
-            // Geant4 v11.3.1
+            // VecGeom-based solids
             ref.halfway_safeties[4] = 17.4966506197896;
-            ref.halfway_safeties[5] = 27.7657728660916;
             ref.halfway_safeties[6] = 17.5;
-            ref.halfway_safeties[7] = 21.8864641598878;
             ref.halfway_safeties[8] = 29.1115376091067;
             ref.halfway_safeties[14] = 19.0382940808067;
             ref.halfway_safeties[15] = 0.5;
 
-            if (vecgeom_version >= Version{2, 0})
+            if (vecgeom_version < Version{2, 0})
             {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
+                // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
+                // Geant4 v11.3.1
+                ref.halfway_safeties[5] = 27.7657728660916;
+                ref.halfway_safeties[7] = 21.8864641598878;
+            }
+            else
+            {
+                ref.halfway_safeties[16] = 0.5;
             }
         }
         delete_orange_safety(*test_, ref, result);
@@ -2307,15 +2341,6 @@ void SolidsGeoTest::test_trace() const
             74.5,
         };
 
-        if (test_->geometry_type() == "VecGeom")
-        {
-            if (vecgeom_version >= Version{2, 0})
-            {
-                // TODO: VecGeom 2.x still missing some shapes
-                ref.fail_at(0);
-                result.fail_at(0);
-            }
-        }
         delete_orange_safety(*test_, ref, result);
 
         auto tol = test_->tracking_tol();
@@ -2829,19 +2854,24 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
-    // Shouldn't hit boundary
+    // Move along a straigiht line
     auto next = geo.find_next_step(from_cm(1.25));
     EXPECT_SOFT_EQ(1.25, to_cm(next.distance));
     EXPECT_FALSE(next.boundary);
-
     geo.move_internal(from_cm(1.25));
+    EXPECT_VEC_EQ(from_cm(Real3{0, 0, 1.25}), geo.pos());
+
+    // Move within the safety sphere
     real_type expected_safety = 5 - 1.25;
     EXPECT_SOFT_NEAR(expected_safety, to_cm(geo.find_safety()), safety_tol);
+    geo.move_internal(from_cm(Real3{2, 1, 1.25}));
+    EXPECT_VEC_EQ(from_cm(Real3{2, 1, 1.25}), geo.pos());
+    EXPECT_FALSE(geo.is_on_boundary());
 
     // Change direction and try again (hit)
     geo.set_dir({1, 0, 0});
     next = geo.find_next_step(from_cm(50));
-    EXPECT_SOFT_EQ(5, to_cm(next.distance));
+    EXPECT_SOFT_EQ(3, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
 
     geo.move_to_boundary(next.distance);
@@ -2854,14 +2884,14 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("world", test_->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 0, 1.25}), to_cm(geo.pos()));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 1, 1.25}), to_cm(geo.pos()));
 
     // Scatter to tangent along boundary
     constexpr real_type dx
         = (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE ? 1e-8 : 1e-4);
     geo.set_dir({dx, 1, 0});
     next = geo.find_next_step(from_cm(1000));
-    EXPECT_SOFT_EQ(500, to_cm(next.distance));
+    EXPECT_SOFT_EQ(499, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     geo.move_internal(from_cm(2));
 
@@ -2893,7 +2923,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
 
     EXPECT_FALSE(geo.is_outside());
     EXPECT_EQ("inner", test_->volume_name(geo));
-    EXPECT_VEC_SOFT_EQ(Real3({5, 2, 1.25}), to_cm(geo.pos()));
+    EXPECT_VEC_SOFT_EQ(Real3({5, 3, 1.25}), to_cm(geo.pos()));
 }
 
 /*!
@@ -3181,11 +3211,6 @@ void ZnenvGeoTest::test_trace() const
 
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result, "World");
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0})
-        {
-            GTEST_SKIP() << "FIXME: Znenv VecGeom model construction failure.";
-        }
         EXPECT_REF_NEAR(ref, result, tol);
     }
 }
