@@ -354,6 +354,8 @@ class TwoBoxesGeoTest
     void test_detailed_tracking() const;
     void test_reentrant() const;
     void test_reentrant_undo() const;
+    void test_substep_retry() const;
+    void test_substep_retry_backscatter() const;
     void test_tangent() const;
     void test_trace() const;
 
