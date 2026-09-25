@@ -180,7 +180,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     void move_internal(Real3 const& pos) final;
 
     // Move to the boundary in preparation for crossing it
-    void move_to_boundary() final;
+    void move_to_boundary(real_type dist) final;
 
     // Cross from one side of the current surface to the other
     void cross_boundary() final;

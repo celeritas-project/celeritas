@@ -20,6 +20,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "geocel/Types.hh"
 #include "geocel/detail/GeantVolumeInstanceMapper.hh"
 
@@ -122,7 +123,7 @@ class GeantGeoTrackView
     inline real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline void move_to_boundary();
+    inline void move_to_boundary(real_type dist);
 
     // Move within the volume
     inline void move_internal(real_type step);
@@ -480,6 +481,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
             // direction was incorrect)
             this->geo_status(GeoStatus::boundary_inc);
             // On a boundary, headed in: next step is zero
+            next_step_ = 0;
             return {0, true};
         }
         result.boundary = true;
@@ -533,10 +535,16 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary but don't cross yet.
+ *
+ * The given distance must match the stored next step, which is used for the
+ * movement. It may be zero if Geant4 considers the track to be within the
+ * surface tolerance.
  */
-void GeantGeoTrackView::move_to_boundary()
+void GeantGeoTrackView::move_to_boundary(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(dist >= 0);
+    CELER_EXPECT(soft_equal(next_step_, dist));
+    CELER_DISCARD(dist);
 
     // Move next step
     axpy(next_step_, dir_, &pos_);

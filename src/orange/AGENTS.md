@@ -123,7 +123,8 @@ State is split into two tiers:
 
 ```
 find_next_step(max_step)   → sets next_step / next_surf / next_univ_level
-move_to_boundary()         → physically moves; sets geo_status = boundary_inc
+move_to_boundary(dist)     → physically moves by stored next_step (checked
+                             against dist); sets geo_status = boundary_inc
 cross_boundary()           → flips sense, re-initializes volume at surface level
                              and re-descends into daughters below
 ```

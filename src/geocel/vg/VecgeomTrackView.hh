@@ -19,6 +19,7 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/math/ArraySoftUnit.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -140,7 +141,7 @@ class VecgeomTrackView
     inline CELER_FUNCTION real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline CELER_FUNCTION void move_to_boundary();
+    inline CELER_FUNCTION void move_to_boundary(real_type dist);
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
@@ -477,10 +478,12 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
 /*!
  * Move to the next boundary but don't cross yet.
  */
-CELER_FUNCTION void VecgeomTrackView::move_to_boundary()
+CELER_FUNCTION void VecgeomTrackView::move_to_boundary(real_type dist)
 {
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->is_next_boundary());
+    CELER_EXPECT(soft_equal(next_step_, dist));
+    CELER_DISCARD(dist);
 
     // Move next step
     axpy(next_step_, dir_, &pos_);

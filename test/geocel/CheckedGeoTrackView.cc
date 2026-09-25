@@ -464,15 +464,24 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
 /*!
  * Move to the next boundary.
  *
+ * If the most recent operation was \c find_next_step, the distance must match
+ * its result.
+ *
  * \post On boundary
  */
-void CheckedGeoTrackView::move_to_boundary()
+void CheckedGeoTrackView::move_to_boundary(real_type dist)
 {
-    CGTV_LOG(debug) << "Moving to boundary";
+    CGTV_LOG(debug) << "Moving to boundary at "
+                    << StreamableLength{dist, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
+    CELER_VALIDATE(!next_boundary_ || soft_equal(*next_boundary_, dist),
+                   << "move_to_boundary distance " << repr(dist)
+                   << NativeLength{} << " does not match find_next_step "
+                   << "distance " << repr(*next_boundary_) << NativeLength{});
 
-    t_->move_to_boundary();
+    t_->move_to_boundary(dist);
+    next_boundary_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_to_boundary");
     checked_internal_ = false;
 

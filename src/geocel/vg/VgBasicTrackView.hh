@@ -43,9 +43,6 @@ namespace celeritas
  * \par Removed
  *
  * - Mapping of Geant4 volumes
- * - Ability to call \c move_to_boundary without providing the distance
- *   previously calculated (this will later be passed from the main stepping
- *   loop)
  * - Assertion checking of the internal movement compared to last found (this
  *   will rely on CheckedGeoTrackView)
  *
