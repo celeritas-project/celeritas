@@ -12,17 +12,16 @@
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
-
-#include "UnitUtils.hh"
+#include "geocel/UnitLength.hh"
 
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+template<class RT>
+class GeoTrackInterface;
 class GeoParamsInterface;
 class VolumeParams;
 
-namespace test
-{
 //---------------------------------------------------------------------------//
 /*!
  * Check validity of safety and volume crossings while navigating on CPU.
@@ -208,11 +207,19 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
         size_type safety{0};
     } count_;
 
-    // Temporary state
+    //// Temporary state ////
+
+    //! Check during a move_internal(Real3) that the updated point is within
+    //! the same volume
     bool checked_internal_{false};
-    std::optional<real_type> next_boundary_;
+    //! Store the maximum straight-line distance that has been found
+    std::optional<real_type> next_step_;
+    //! Whether the next straight-line distance (if found) is a boundary
+    bool next_is_boundary_{false};
 };
 
+//---------------------------------------------------------------------------//
+//! Geometry exception thrown by checked assertions
 class CheckedGeoError : public RuntimeError
 {
   public:
@@ -223,24 +230,7 @@ class CheckedGeoError : public RuntimeError
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 
-// Get the descriptive, robust volume name based on the geo state
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        VolumeParams const& params);
-
-// Get a robust name using impl volume params
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        GeoParamsInterface const& params);
-
-// Get the descriptive, robust volume instance name based on the geo state
-std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
-                                 VolumeParams const& params);
-
-// Get the descriptive, robust volume instance name based on the geo state
-std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
-                               VolumeParams const& params);
-
 std::ostream& operator<<(std::ostream&, CheckedGeoTrackView const&);
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

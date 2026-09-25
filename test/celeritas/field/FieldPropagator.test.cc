@@ -1518,13 +1518,13 @@ TEST_F(CmseTest, coarse)
         ref.messages[1].insert(
             ref.messages[1].end(),
             {R"(track failed to cross local surface 91 in universe 0 at local position {10.47, -6.625, 797.1} along local direction {0.6625, -0.2470, 0.7072})",
-             R"(failed during cross_boundary: at {10.47, -6.625, 797.1} [cm] along {0.6625, -0.2470, 0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
+             R"(failed during cross_boundary: at {10.47,-6.625,797.1} [cm] along {0.6625,-0.2470,0.7072}, [FAILED] [ON BOUNDARY] in [OUTSIDE])"});
     }
     else if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM)
     {
         geometry = "VecGeom";
         ref.messages[1] = {
-            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} [cm] to {10.32, -6.565, 796.9} [cm] (distance: 1e-4 [cm]))"};
+            R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1e-4 [cm]))"};
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)

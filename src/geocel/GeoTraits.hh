@@ -14,6 +14,9 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 class GeoParamsInterface;
+class NotConfiguredTrackView;
+template<class GTV>
+class WrappedGeoTrackView;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -51,6 +54,7 @@ struct NotConfiguredGeoTraits
     template<Ownership W, MemSpace M>
     using StateData = void;
     using TrackView = void;
+    using WrappedTrackView = NotConfiguredTrackView;
     static constexpr bool has_impl_surface = false;
     static constexpr bool has_impl_volume_instance = false;
     static constexpr char const name[] = "";

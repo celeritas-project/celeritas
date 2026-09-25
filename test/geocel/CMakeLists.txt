@@ -31,7 +31,6 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  CheckedGeoTrackView.cc
   LazyGeantGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoResults.cc
