@@ -58,7 +58,7 @@ using VgPlacedVolumeInt = int;
 #if VECGEOM_VERSION >= 0x020000
 using vg_real_type = vecgeom::Precision;
 #else
-using vg_real_type = Precision;
+using vg_real_type = ::Precision;
 #endif
 
 #if defined(VECGEOM_BVH_SINGLE) || defined(__DOXYGEN__)
@@ -127,7 +127,11 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 // NAVIGATION TYPES
 //---------------------------------------------------------------------------//
 
+#if VECGEOM_VERSION >= 0x020000
 using VgNavIndex = vecgeom::NavIndex_t;
+#else
+using VgNavIndex = ::NavIndex_t;
+#endif
 
 //! Low-level (POD compatible) VecGeom navigation state
 #if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
