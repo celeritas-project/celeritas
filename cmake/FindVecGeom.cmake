@@ -11,6 +11,7 @@ Celeritas.
 
 #]=======================================================================]
 
+# TODO: remove in v0.8 (require VecGeom 2)
 # TODO: remove once we require a veccore version including https://github.com/root-project/veccore/commit/743566fac1e9b2eaeb0f0b63242442ba430e0cc0
 cmake_policy(PUSH)
 if(POLICY CMP0146)
@@ -21,8 +22,8 @@ cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
-# VecGeom::vecgeomcuda was in use in VecGeom v1.2.10 and older and
-# in early dev release of v2.0.0 (at least up to v2.0.0-rc3 and v2.0.0-surfacedev.2).
+# VecGeom::vecgeomcuda was in use in VecGeom v1.2.10 and older
+# TODO: remove in v0.8 (require VecGeom 2)
 if(VecGeom_FOUND AND VecGeom_CUDA_FOUND AND (TARGET VecGeom::vecgeomcuda OR TARGET VecGeom::vecgeom_final))
   get_target_property(_vecgeom_lib_type VecGeom::vecgeom TYPE)
   if (_vecgeom_lib_type STREQUAL "STATIC_LIBRARY")
