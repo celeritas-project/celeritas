@@ -6,7 +6,6 @@
 import argparse
 import json
 import re
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -14,7 +13,13 @@ from collections.abc import Iterable, Sequence
 from enum import StrEnum
 from pathlib import Path
 
-from _regression_utils import LogLevel, escape_message, escape_property, log
+from _regression_utils import (
+    LogLevel,
+    command_path,
+    escape_message,
+    escape_property,
+    log,
+)
 
 SOURCE_PATH_RE = re.compile(r"^(src|app|test)/.*\.(cc|cpp|cu)$")
 HEADER_PATH_RE = re.compile(r"^(src|app|test)/.*\.hh$")
@@ -91,13 +96,6 @@ def select_sources(
         for source in changed_sources | affected_sources
     )
     return relative_sources
-
-
-def command_path(command: str) -> str:
-    """Resolve an executable name or fail with a helpful error."""
-    if path := shutil.which(command):
-        return path
-    raise RuntimeError(f"executable not found: {command}")
 
 
 def changed_paths(diff: str) -> tuple[list[str], list[str]]:

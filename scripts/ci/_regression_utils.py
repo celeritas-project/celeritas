@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
 import inspect
+import shutil
 import subprocess
 import sys
 from enum import StrEnum
@@ -20,6 +21,13 @@ class LogLevel(StrEnum):
     NOTICE = "notice"
     WARNING = "warning"
     ERROR = "error"
+
+
+def command_path(command: str) -> str:
+    """Resolve an executable name or fail with a helpful error."""
+    if path := shutil.which(command):
+        return path
+    raise RuntimeError(f"executable not found: {command}")
 
 
 def escape_property(value: str) -> str:
