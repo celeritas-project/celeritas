@@ -159,6 +159,14 @@ TEST_F(TwoBoxesVgdmlTest, checked_movement)
     EXPECT_TRUE(geo.is_on_boundary());
     geo.cross_boundary();
     EXPECT_EQ("world", this->volume_name(geo));
+
+    // Moving to another boundary requires a new search, including after a
+    // direction change on the boundary
+    EXPECT_THROW(geo.move_to_boundary(next.distance), RuntimeError);
+    next = geo.find_next_step(from_cm(1000));
+    ASSERT_TRUE(next.boundary);
+    geo.set_dir({0.6, 0.8, 0});
+    EXPECT_THROW(geo.move_to_boundary(next.distance), RuntimeError);
 }
 
 //---------------------------------------------------------------------------//

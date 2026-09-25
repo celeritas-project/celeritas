@@ -477,8 +477,10 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
 /*!
  * Move to the next boundary.
  *
- * If a \c find_next_step result is known, it must be a boundary, and the
- * distance must match it less any internal movement since then.
+ * The last \c find_next_step result must be a boundary, and the distance
+ * must match it less any internal movement since then. A new \c
+ * find_next_step is required after initialization, a direction change,
+ * movement to an arbitrary point, or a previous move to a boundary.
  *
  * \post On boundary
  */
@@ -488,18 +490,18 @@ void CheckedGeoTrackView::move_to_boundary(real_type dist)
                     << StreamableLength{dist, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
-    if (next_step_)
-    {
-        CELER_VALIDATE(next_step_->boundary,
-                       << "cannot move to boundary: find_next_step found "
-                          "none within "
-                       << repr(next_step_->distance) << NativeLength{});
-        CELER_VALIDATE(soft_equal(next_step_->distance, dist),
-                       << "move_to_boundary distance " << repr(dist)
-                       << NativeLength{} << " does not match remaining "
-                       << "find_next_step distance "
-                       << repr(next_step_->distance) << NativeLength{});
-    }
+    CELER_VALIDATE(next_step_,
+                   << "cannot move to boundary without a preceding "
+                      "find_next_step");
+    CELER_VALIDATE(next_step_->boundary,
+                   << "cannot move to boundary: find_next_step found none "
+                      "within "
+                   << repr(next_step_->distance) << NativeLength{});
+    CELER_VALIDATE(soft_equal(next_step_->distance, dist),
+                   << "move_to_boundary distance " << repr(dist)
+                   << NativeLength{} << " does not match remaining "
+                   << "find_next_step distance " << repr(next_step_->distance)
+                   << NativeLength{});
 
     t_->move_to_boundary(dist);
     next_step_.reset();

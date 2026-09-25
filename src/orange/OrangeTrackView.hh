@@ -734,8 +734,8 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
  * Even though this does not change the universe or volume, it \em may change
  * the universe of the current surface.
  *
- * The given distance must match the stored next step, which is used for the
- * movement.
+ * The track moves by the given distance, which must match the stored next
+ * step (less any internal movement since it was found).
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary(real_type dist)
 {
@@ -743,14 +743,12 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary(real_type dist)
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
     CELER_EXPECT(soft_equal(this->next_step(), dist));
-    CELER_DISCARD(dist);
 
-    // Physically move next step
-    real_type const next_dist = this->next_step();
+    // Physically move to the boundary
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
-        axpy(next_dist, lsa.dir(), &lsa.pos());
+        axpy(dist, lsa.dir(), &lsa.pos());
     }
 
     this->geo_status(GeoStatus::boundary_inc);

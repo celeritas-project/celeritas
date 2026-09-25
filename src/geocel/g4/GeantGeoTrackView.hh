@@ -536,19 +536,18 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
 /*!
  * Move to the next boundary but don't cross yet.
  *
- * The given distance must match the stored next step, which is used for the
- * movement. It may be zero if Geant4 considers the track to be within the
- * surface tolerance.
+ * The track moves by the given distance, which must match the stored next
+ * step (less any internal movement since it was found). It may be zero if
+ * Geant4 considers the track to be within the surface tolerance.
  */
 void GeantGeoTrackView::move_to_boundary(real_type dist)
 {
     CELER_EXPECT(dist >= 0);
     CELER_EXPECT(soft_equal(next_step_, dist));
-    CELER_DISCARD(dist);
 
-    // Move next step
-    axpy(next_step_, dir_, &pos_);
-    axpy(native_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
+    // Move to the boundary
+    axpy(dist, dir_, &pos_);
+    axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
     next_step_ = 0;
     safety_radius_ = 0;
     g4safety_ = 0;

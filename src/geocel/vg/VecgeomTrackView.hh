@@ -480,7 +480,9 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  *
  * The distance must be the one returned by the last \c find_next_step , less
  * any \c move_internal step since then. It may be zero after internal
- * movement up to the boundary tolerance.
+ * movement up to the boundary tolerance. A boundary that has already been
+ * moved to, or that was found before a direction change, cannot be reused:
+ * \c find_next_step must be called again.
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary(real_type dist)
 {
@@ -572,7 +574,8 @@ CELER_FUNCTION void VecgeomTrackView::move_internal(Real3 const& pos)
  * Away from a boundary, it invalidates the boundary found by the last \c
  * find_next_step . On a boundary, the next state is kept so that the track
  * can still cross it (e.g., after the field propagator updates the direction
- * between \c move_to_boundary and \c cross_boundary ).
+ * between \c move_to_boundary and \c cross_boundary ). In either case, moving
+ * to a boundary along the new direction requires a new \c find_next_step .
  */
 CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 {
@@ -623,24 +626,21 @@ CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 /*!
  * Forget the last exited volume after it has been used for relocation.
  *
- * VecGeom records the last exited volume when a step leaves one or more
+ * VecGeom 2 records the last exited volume when a step leaves one or more
  * volumes, and relocation excludes it to avoid reentering at the exact
  * boundary position. Clearing it after each crossing prevents a stale value
  * from blocking a later relocation, and ensures that entering a daughter
  * volume never inherits an unrelated excluded volume.
+ *
+ * The VecGeom 1 navigator instead determines the exited volume by comparing
+ * the pre- and post-step states, so no metadata needs to be cleared.
  */
 CELER_FUNCTION void VecgeomTrackView::clear_last_exited(VgNavState& state)
 {
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    // Path state stores the last exited volume implicitly in the path
-    CELER_DISCARD(state);
-#elif CELERITAS_VECGEOM_VERSION >= 0x020000
+#if CELERITAS_VECGEOM_VERSION >= 0x020000
     state.SetLastExited(decltype(state.GetLastExitedState()){});
 #else
-    // VecGeom 1.x index state has no setter: rebuild from the current path
-    VgNavState temp{state.GetNavIndex()};
-    temp.SetBoundaryState(state.IsOnBoundary());
-    state = temp;
+    CELER_DISCARD(state);
 #endif
 }
 

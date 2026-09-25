@@ -231,13 +231,15 @@ class GeoTrackInterface
     /*!
      * Move to the boundary in preparation for crossing it.
      *
-     * Moves the track to the boundary of the current volume along the current
-     * direction, updating its logical state to indicate that it is on the
-     * boundary of the current volume.
+     * Moves the track by \c dist along the current direction, updating its
+     * logical state to indicate that it is on the boundary of the current
+     * volume. Implementations that store the found distance may check it
+     * against \c dist but always move by the given distance.
      *
      * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
      * \pre The given \c dist is the boundary distance from the previous \c
      *   find_next_step result, less any \c move_internal step since then.
+     *   The direction must not have changed since that \c find_next_step .
      * \post \c geo_status() is \c GeoStatus::boundary_inc .
      */
     virtual void move_to_boundary(real_type dist) = 0;
