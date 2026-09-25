@@ -22,6 +22,22 @@ class LogLevel(StrEnum):
     ERROR = "error"
 
 
+def escape_property(value: str) -> str:
+    """Escape a GitHub Actions annotation property value."""
+    return (
+        value.replace("%", "%25")
+        .replace("\r", "%0D")
+        .replace("\n", "%0A")
+        .replace(":", "%3A")
+        .replace(",", "%2C")
+    )
+
+
+def escape_message(value: str) -> str:
+    """Escape a GitHub Actions annotation message."""
+    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+
+
 def log(level: str | LogLevel, what: str) -> None:
     """Emit a plain notice or GitHub Actions annotation at the caller location."""
     if not isinstance(level, LogLevel):

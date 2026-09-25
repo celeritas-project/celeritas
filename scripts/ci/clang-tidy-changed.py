@@ -12,7 +12,7 @@ import tempfile
 from collections.abc import Iterable, Sequence
 from pathlib import Path
 
-from _regression_utils import LogLevel, log
+from _regression_utils import LogLevel, escape_message, escape_property, log
 from clang_tidy_source_selector import SourceSelection, run as select_sources
 
 SOURCE_PATH_RE = re.compile(r"^(src|app|test)/.*\.(cc|cpp|cu)$")
@@ -49,22 +49,6 @@ def scanner_path(clang_tidy: str) -> str:
     match = re.fullmatch(r"clang-tidy(-.*)?", tidy_path.name)
     suffix = match.group(1) if match is not None else "-18"
     return str(tidy_path.with_name(f"clang-scan-deps{suffix}"))
-
-
-def escape_property(value: str) -> str:
-    """Escape GitHub Actions annotation property values."""
-    return (
-        value.replace("%", "%25")
-        .replace("\r", "%0D")
-        .replace("\n", "%0A")
-        .replace(":", "%3A")
-        .replace(",", "%2C")
-    )
-
-
-def escape_message(value: str) -> str:
-    """Escape a GitHub Actions annotation message."""
-    return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
 def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
