@@ -443,6 +443,7 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     if (this->geo_status() == GeoStatus::boundary_inc)
     {
         // On a boundary, headed in: next step is zero
+        // TODO: add a test for this
         next_step_ = 0;
         return {0, true};
     }

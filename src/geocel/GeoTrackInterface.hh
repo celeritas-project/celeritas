@@ -209,7 +209,9 @@ class GeoTrackInterface
      * direction, up to a given distance. Queries may be more efficient for
      * small distances.
      *
-     * \pre \c geo_status() is not \c GeoStatus::boundary_inc .
+     * \todo Revisit whether to allow \c geo_status() to be
+     * \c GeoStatus::boundary_inc , or to reconsider \c geo_status entirely
+     *
      * \post The returned distance is in the range \c [0, max_step] .
      * A zero distance must indicate a boundary hit, e.g. within the geometry's
      * surface tolerance. Call move_to_boundary followed by cross_boundary to
