@@ -193,7 +193,7 @@ def validate_inputs(args: argparse.Namespace) -> tuple[Path, Path]:
 
 
 def fetch_diff(remote: str, base_sha: str, repo_root: Path) -> str:
-    """Fetch the base commit and return its diff with the current HEAD."""
+    """Fetch the base commit and diff its tree against the current HEAD."""
     log(LogLevel.NOTICE, f"Fetching base commit {base_sha} from {remote}")
     subprocess.run(
         ["git", "fetch", "--depth", "1", remote, base_sha],
@@ -201,7 +201,7 @@ def fetch_diff(remote: str, base_sha: str, repo_root: Path) -> str:
         check=True,
     )
     return subprocess.run(
-        ["git", "diff", "--diff-filter=ACM", "-U0", f"{base_sha}...HEAD"],
+        ["git", "diff", "--diff-filter=ACM", "-U0", f"{base_sha}..HEAD"],
         cwd=repo_root,
         check=True,
         capture_output=True,
