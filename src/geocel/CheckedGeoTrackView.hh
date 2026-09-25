@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
@@ -223,7 +224,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
 class CheckedGeoError : public RuntimeError
 {
   public:
-    using RuntimeError::RuntimeError;
+    CheckedGeoError(RuntimeErrorDetails&& r) : RuntimeError(std::move(r)) {}
 };
 
 //---------------------------------------------------------------------------//

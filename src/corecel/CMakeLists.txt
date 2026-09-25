@@ -173,8 +173,24 @@ endforeach()
 list(JOIN _g4_opts "," _g4_opts)
 celeritas_append_cmake_string("geant4_options" "${_g4_opts}")
 
+# Save Geant4 options as always-on macros to simplify testing
+set(CELERITAS_GEANT4_CONFIG)
+foreach(_opt usolids multithreaded)
+  if(NOT DEFINED Geant4_${_opt}_FOUND)
+    set(_val "0 /* not defined */")
+  elseif(Geant4_${_opt}_FOUND)
+    set(_val 1)
+  else()
+    set(_val 0)
+  endif()
+  string(TOUPPER "${_opt}" _upper)
+  list(APPEND CELERITAS_GEANT4_CONFIG
+    "#define CELERITAS_GEANT4_${_upper} ${_val}"
+  )
+endforeach()
+
 # Convert lists to newline-separated strings
-foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG DEPENDENCY_VERSIONS)
+foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG GEANT4_CONFIG DEPENDENCY_VERSIONS)
   list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
 endforeach()
 

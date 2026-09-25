@@ -297,8 +297,7 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
         {
             // TODO: replace zero-distance from reentering geometry (ORANGE and
             // VecGeom 2+) with a different propagation status
-            CGTV_LOG(warning)
-                << "Returning zero distance should be prohibited: " << *this;
+            CGTV_LOG(info) << "Returning zero distance: " << *this;
         }
         if (t_->is_on_boundary() != started_on_boundary)
         {
