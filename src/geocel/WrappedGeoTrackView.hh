@@ -8,18 +8,18 @@
 
 #include <type_traits>
 
-#include "geocel/GeoTrackInterface.hh"
+#include "GeoTrackInterface.hh"
 
 namespace celeritas
-{
-namespace test
 {
 //---------------------------------------------------------------------------//
 /*!
  * Wrap a track view for CPU testing and interface validation.
  *
  * \note This uses composition to wrap the parent track view and exposes it
- * through the virtual interface for C++ testing.
+ * through the virtual interface for C++ testing. It should have zero overhead
+ * when used directly due to the 'final' class, but it is limited only to
+ * running on host.
  */
 template<class GTV>
 class WrappedGeoTrackView final
@@ -145,5 +145,4 @@ template<class GTV>
 WrappedGeoTrackView(GTV&&) -> WrappedGeoTrackView<GTV>;
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

@@ -10,12 +10,12 @@
 #include <string>
 #include <gtest/gtest.h>
 
+#include "geocel/CheckedGeoTrackView.hh"
 #include "geocel/GeoTrackInterface.hh"
 #include "geocel/Types.hh"
+#include "geocel/UnitLength.hh"
 
-#include "CheckedGeoTrackView.hh"
 #include "LazyGeantGeoManager.hh"
-#include "UnitUtils.hh"
 
 class G4VPhysicalVolume;
 

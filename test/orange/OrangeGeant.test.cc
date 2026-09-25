@@ -109,11 +109,6 @@ TEST_F(FourLevelsTest, accessors)
     this->impl().test_accessors();
 }
 
-TEST_F(FourLevelsTest, trace)
-{
-    this->impl().test_trace();
-}
-
 TEST_F(FourLevelsTest, consecutive_compute)
 {
     this->impl().test_consecutive_compute();
@@ -129,9 +124,9 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
-TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(pico_step))
 {
-    this->impl().test_small_steps();
+    this->impl().test_pico_step();
 }
 
 TEST_F(FourLevelsTest, reentrant)
@@ -144,18 +139,26 @@ TEST_F(FourLevelsTest, reentrant_normal)
     ScopedLogStorer scoped_log_{&self_logger(), LogLevel::warning};
     this->impl().test_reentrant_normal();
 
-    /*** ADD THE FOLLOWING UNIT TEST CODE ***/
     static char const* const expected_log_messages[] = {
         R"(track direction cannot change to {0,1,0} which is perpendicular to the current surface normal)"};
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[] = {"error"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
-    /*** END CODE ***/
 }
 
 TEST_F(FourLevelsTest, DISABLED_safety)
 {
     this->impl().test_safety();
+}
+
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
+}
+
+TEST_F(FourLevelsTest, trace)
+{
+    this->impl().test_trace();
 }
 
 //---------------------------------------------------------------------------//
