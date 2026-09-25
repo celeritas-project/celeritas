@@ -21,6 +21,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "VecgeomData.hh"
 #include "VecgeomTypes.hh"
@@ -38,7 +39,6 @@
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
-#    include "geocel/detail/LengthUnits.hh"
 #endif
 
 namespace celeritas
@@ -89,7 +89,11 @@ class VecgeomTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
+    //! (a physical length, so that it is resolvable in any unit system)
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push()
+    {
+        return real_type{1e-13} * lengthunits::centimeter;
+    }
 
     //// ACCESSORS ////
 
