@@ -66,6 +66,7 @@ jobs:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           token: ${{secrets.CODECOV_TOKEN}}
           gcov-exe: "${{github.workspace}}/scripts/ci/llvm-gcov.sh"
+          jobs: ${{vars.CELER_GHA_NUM_PROCS}}
 
   docker:
     name: docker-vecgeom-cuda
@@ -120,5 +121,6 @@ jobs:
         with:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           token: ${{secrets.CODECOV_TOKEN}}
+          jobs: ${{vars.CELER_GHA_NUM_PROCS}}
 
 # vim: set nowrap tw=100:

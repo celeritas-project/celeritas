@@ -21,6 +21,10 @@ inputs:
     description: "Path to gcov executable (if using llvm, set to llvm-gcov)"
     required: false
     default: "gcov"
+  jobs:
+    description: "Number of processors to use with gcovr (default: all)"
+    required: false
+    default: "0"
 
 runs:
   using: "composite"
@@ -32,7 +36,7 @@ runs:
         gcovr \
           --config=scripts/ci/gcovr.cfg \
           --gcov-executable=${{inputs.gcov-exe}} \
-          -j $(($(nproc) + 1)) \
+          -j ${{input.jobs}} \
           --output=cobertura-cov.xml --cobertura-pretty \
           --merge-mode-functions=merge-use-line-min
 
