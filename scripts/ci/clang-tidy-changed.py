@@ -16,8 +16,6 @@ from pathlib import Path
 from _regression_utils import (
     LogLevel,
     command_path,
-    escape_message,
-    escape_property,
     log,
 )
 
@@ -151,10 +149,12 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
             key = (relative_path, line_number, column, message)
             if key not in seen:
                 seen.add(key)
-                print(
-                    "::error file="
-                    f"{escape_property(relative_path)},line={line_number},col={column}::"
-                    f"{escape_message(message)}"
+                log(
+                    LogLevel.ERROR,
+                    message,
+                    file=relative_path,
+                    line=line_number,
+                    col=column,
                 )
             else:
                 suppress_context = 2

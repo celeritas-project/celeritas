@@ -46,7 +46,7 @@ def escape_message(value: str) -> str:
     return value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
-def log(level: str | LogLevel, what: str) -> None:
+def log(level: str | LogLevel, what: str, **properties: str | int) -> None:
     """Emit a plain notice or GitHub Actions annotation at the caller location."""
     if not isinstance(level, LogLevel):
         level = LogLevel(level.lower())
@@ -66,8 +66,15 @@ def log(level: str | LogLevel, what: str) -> None:
         filename = caller.f_code.co_filename
         lineno = caller.f_lineno
 
-    msg = str(what).replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-    print(f"::{level} file={filename},line={lineno}::{msg}", file=sys.stderr)
+    annotation_properties = {"file": filename, "line": lineno, **properties}
+    formatted_properties = ",".join(
+        f"{key}={escape_property(str(value))}"
+        for key, value in annotation_properties.items()
+    )
+    print(
+        f"::{level} {formatted_properties}::{escape_message(str(what))}",
+        file=sys.stderr,
+    )
 
 
 def run_git(repo_root: Path, *args: str, check: bool = True) -> str:
