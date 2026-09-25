@@ -190,8 +190,8 @@
  * so the code uses thrust::transform in that case.
  *
  * DeviceReduce::TransformReduce is unavailable in earlier versions of
- * CUB/hipCUB, so the code uses a thrust::transform iterator followed by a
- * DeviceReduce::Reduce in that case.
+ * CUB/hipCUB, so the code uses a thrust::transform_iterator followed by a
+ * DeviceReduce::Sum in that case.
  *
  * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
  * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
