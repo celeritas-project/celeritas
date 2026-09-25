@@ -91,7 +91,11 @@ def rel_path(path_str, workspace):
 
 
 def make_config(test, workspace):
-    command = test["command"]
+    try:
+        command = test["command"]
+    except KeyError:
+        print("Test has no 'command': perhaps the binary has not yet been built?")
+        sys.exit(1)
     props = {p["name"]: p["value"] for p in test.get("properties", [])}
     cwd = props.get("WORKING_DIRECTORY", "")
     env = {}
@@ -151,7 +155,11 @@ def main():
     test = find_test(build_dir, args.test_name)
     print(f"Found: {test['name']}", file=sys.stderr)
 
-    config = make_config(test, workspace)
+    try:
+        config = make_config(test, workspace)
+    except:
+        print("Failed to create test for", repr(test))
+        raise
 
     launch_path = workspace / ".vscode" / "launch.json"
     if launch_path.exists():
