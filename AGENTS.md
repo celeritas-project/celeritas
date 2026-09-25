@@ -55,6 +55,10 @@ write the commit message to `<build>/commit_msg.txt` (gitignored) and use
 the helper script. Use `create_file` to write it (never exists after a
 successful commit):
 
+Before invoking the helper, read the message file and verify it contains only
+the intended subject, body, and verbatim current prompt. If the file already
+exists, replace its full contents; do not append a new message to stale text.
+
 ```bash
 # Write message to file first, then commit (script handles add/format/rm)
 scripts/dev/agent-commit.sh <build>/commit_msg.txt "<agentic-tool>" "<model-name>"
