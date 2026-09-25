@@ -137,7 +137,7 @@ jobs:
       - name: Test basic downstream compilation against build dir
         if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         env:
-          CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
+          G4VERSION_NUMBER: 0 # Only test minimal example for this one
         run: |
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
 
@@ -149,9 +149,7 @@ jobs:
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build and run examples
-        env:
-          CELER_DISABLE_G4_EXAMPLES: "0"
+      - name: Build and run examples"
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
           export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')
