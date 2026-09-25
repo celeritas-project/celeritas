@@ -16,6 +16,7 @@
 #include "corecel/data/CollectionBuilder.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/detail/TrackInitAlgorithms.hh"
 #include "celeritas/optical/gen/detail/GeneratorAlgorithms.hh"
 
@@ -42,19 +43,21 @@ std::vector<int> locate_vacancies(std::vector<TrackStatus> const& input)
     StateVal<TrackStatus, MemSpace::host> host_status;
     make_builder(&host_status).insert_back(input.begin(), input.end());
     StateVal<TrackStatus, M> status(host_status);
+    optical::TrackInitStateData<Ownership::value, M> init;
 
-    StateVal<TrackSlotId, M> vacancies;
-    resize(&vacancies, status.size());
+    resize(&init, StreamId{0}, host_status.size());
 
     StateRef<TrackStatus, M> status_ref(status);
-    StateRef<TrackSlotId, M> vacancies_ref(vacancies);
-    size_type num_vacancies = optical::detail::copy_if_vacant(
-        status_ref, vacancies_ref, StreamId{0});
+    optical::TrackInitStateData<Ownership::reference, M> init_ref;
+    init_ref = init;
+    optical::detail::copy_if_vacant(status_ref, init_ref, StreamId{0});
 
-    auto host_vacancies = copy_to_host(vacancies);
+    auto host_vacancies = copy_to_host(init.vacancies);
+    auto host_counters_copy = copy_to_host(init.counters);
+    auto* host_counters = host_counters_copy.data().get();
 
     std::vector<int> result;
-    for (auto tid : range(TrackSlotId{num_vacancies}))
+    for (auto tid : range(TrackSlotId{host_counters->num_vacancies}))
     {
         result.push_back(static_cast<int>(host_vacancies[tid].unchecked_get()));
     }

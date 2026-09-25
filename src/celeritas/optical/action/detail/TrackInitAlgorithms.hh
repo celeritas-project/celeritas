@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/optical/TrackInitData.hh"
 
 namespace celeritas
 {
@@ -20,7 +21,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 template<MemSpace M>
-using TrackSlotRef = StateCollection<TrackSlotId, Ownership::reference, M>;
+using TrackInitRef = TrackInitStateData<Ownership::reference, M>;
 template<MemSpace M>
 using TrackStatusRef = StateCollection<TrackStatus, Ownership::reference, M>;
 
@@ -36,20 +37,20 @@ struct IsVacant
 
 //---------------------------------------------------------------------------//
 // Compact the \c TrackSlotIds of the inactive tracks
-size_type copy_if_vacant(TrackStatusRef<MemSpace::host> const&,
-                         TrackSlotRef<MemSpace::host> const&,
-                         StreamId);
-size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const&,
-                         TrackSlotRef<MemSpace::device> const&,
-                         StreamId);
+void copy_if_vacant(TrackStatusRef<MemSpace::host> const&,
+                    TrackInitRef<MemSpace::host> const&,
+                    StreamId);
+void copy_if_vacant(TrackStatusRef<MemSpace::device> const&,
+                    TrackInitRef<MemSpace::device> const&,
+                    StreamId);
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline size_type copy_if_vacant(TrackStatusRef<MemSpace::device> const&,
-                                TrackSlotRef<MemSpace::device> const&,
-                                StreamId)
+inline void copy_if_vacant(TrackStatusRef<MemSpace::device> const&,
+                           TrackInitRef<MemSpace::device> const&,
+                           StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

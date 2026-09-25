@@ -27,6 +27,16 @@ struct AppliesValid
     }
 };
 
+//! Launch on only a single thread
+struct IsThreadZero
+{
+    template<class T>
+    CELER_FUNCTION bool operator()(T const& track) const
+    {
+        return track.thread_id() == ThreadId{0};
+    }
+};
+
 //---------------------------------------------------------------------------//
 /*!
  * Apply only to tracks with the given post-step action ID.

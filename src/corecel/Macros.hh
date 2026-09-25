@@ -175,17 +175,23 @@
 /*!
  * \def CELER_USE_THRUST
  * \def CELER_CUB_HAS_TRANSFORM
+ * \def CELER_CUB_HAS_TRANSFORM_REDUCE
  * \def CELER_CUB_HAS_FLAGGEDIF
  * \def CELER_HIPCUB_HAS_TRANSFORM
+ * \def CELER_HIPCUB_HAS_TRANSFORM_REDUCE
  *
- * Determine if CUB or hipCUB is available, anf if so, check the version.
+ * Determine if CUB or hipCUB is available, and if so, check the version.
  *
  * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
  * default, so test for the availability of hipCUB and use thrust instead if
  * it's unavailable.
  *
- * DeviceTransform is unavailable in earlier versions of CUB/hipCUB, so the
- * code uses thrust::transform in that case.
+ * DeviceTransform::Transform is unavailable in earlier versions of CUB/hipCUB,
+ * so the code uses thrust::transform in that case.
+ *
+ * DeviceReduce::TransformReduce is unavailable in earlier versions of
+ * CUB/hipCUB, so the code uses a thrust::transform_iterator followed by a
+ * DeviceReduce::Sum in that case.
  *
  * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
  * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
@@ -207,16 +213,25 @@
 #    if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
 #        define CELER_CUB_HAS_TRANSFORM 1
 #        define CELER_CUB_HAS_FLAGGEDIF 1
+#        define CELER_CUB_HAS_TRANSFORM_REDUCE 1
 #    elif CELERITAS_USE_CUDA && CUB_VERSION >= 200500
 #        define CELER_CUB_HAS_FLAGGEDIF 1
+#        define CELER_CUB_HAS_TRANSFORM_REDUCE 1
+#    elif CELERITAS_USE_CUDA && CUB_VERSION >= 200400
+#        define CELER_CUB_HAS_TRANSFORM_REDUCE 1
 #    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
 #        define CELER_HIPCUB_HAS_TRANSFORM 1
+#        define CELER_HIPCUB_HAS_TRANSFORM_REDUCE 1
+#    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 300400
+#        define CELER_HIPCUB_HAS_TRANSFORM_REDUCE 1
 #    endif
 #elif defined(__DOXYGEN__)
 #    define CELER_USE_THRUST 0
 #    define CELER_CUB_HAS_TRANSFORM 0
 #    define CELER_CUB_HAS_FLAGGEDIF 0
+#    define CELER_CUB_HAS_TRANSFORM_REDUCE 0
 #    define CELER_HIPCUB_HAS_TRANSFORM 0
+#    define CELER_HIPCUB_HAS_TRANSFORM_REDUCE 0
 #endif
 
 /*!

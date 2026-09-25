@@ -11,10 +11,12 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
 #include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"  // IWYU pragma: associated
+#include "detail/UpdateSecondariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -70,32 +72,15 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    auto counters = core_state.sync_get_counters();
-    counters.num_secondaries = detail::exclusive_scan_counts(
-        init.secondary_counts, core_state.stream_id());
+    detail::exclusive_scan_counts(init.secondary_counts,
+                                  core_state.stream_id());
 
-    /*! \todo If we don't have space for all the secondaries, we will need to
-     * buffer the current track initializers to create room.
-     *
-     * This isn't trivial because we will need to:
-     * - Allocate a new buffer (probably do something like 2x, rounding up to
-     *   nearest power of 2)?
-     * - Update the collection references for track sim
-     * - Update the *copies* of that reference (?) like in track state
-     * - Copy to device to update the on-device references (state.ptr)
-     */
-    counters.num_initializers += counters.num_secondaries;
-    CELER_VALIDATE(
-        counters.num_initializers <= init.initializers.size(),
-        << "insufficient capacity (" << init.initializers.size()
-        << ") for track initializers (created " << counters.num_secondaries
-        << " new secondaries for a total capacity requirement of "
-        << counters.num_initializers
-        << "): increase initializer capacity or decrease track slots");
+    // Launch a kernel to update the secondaries and initializers counters
+    this->update_secondaries(core_params, core_state);
 
     // Launch a kernel to create track initializers from secondaries
-    counters.num_alive = core_state.size() - counters.num_vacancies;
-    core_state.sync_put_counters(counters);
+    // Note: Test for insufficient space for this many secondaries has been
+    // moved inside the ProcessSecondaries executor
     this->process_secondaries(core_params, core_state);
 }
 
@@ -111,6 +96,23 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
     detail::LocateAliveExecutor execute{core_params.ptr<MemSpace::native>(),
                                         core_state.ptr()};
     launch_action(*this, core_params, core_state, execute);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch a kernel to update the number of secondaries and initializers.
+ *
+ * Determine if there is sufficient capacity for all secondaries.
+ */
+void ExtendFromSecondariesAction::update_secondaries(
+    CoreParams const& core_params, CoreStateHost& core_state) const
+{
+    auto execute_thread = make_single_track_executor(
+        core_params.ptr<MemSpace::native>(),
+        core_state.ptr(),
+        detail::UpdateSecondariesExecutor{core_state.ptr()});
+    launch_core(
+        1, "update-secondaries", core_params, core_state, execute_thread);
 }
 
 //---------------------------------------------------------------------------//
@@ -137,6 +139,12 @@ void ExtendFromSecondariesAction::begin_run(CoreParams const&, CoreStateDevice&)
 
 void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
                                                CoreStateDevice&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void ExtendFromSecondariesAction::update_secondaries(CoreParams const&,
+                                                     CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
