@@ -114,7 +114,7 @@ if ! [ -f "${_spack_src_file}" ]; then
     >> ${_tmp_src_file}
   mv "${_tmp_src_file}" "${_spack_src_file}"
 else
-  celerlog debug "Reusing spack environment setup script"
+  celerlog debug "Skipping spack env setup: using extant script at '${_spack_src_file}'"
 fi
 
 if [ -z "${CELER_SPACK_ENV_LOADED}" ]; then

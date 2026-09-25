@@ -58,6 +58,9 @@ namespace celeritas
  *
  * The "next distance" is cached as part of `find_next_step`, but it is only
  * used when the immediate next call is `move_to_boundary`.
+ *
+ * \todo Normal calculation is not yet implemented!! Optical surface physics
+ * will not work.
  */
 class VecgeomTrackView
 {

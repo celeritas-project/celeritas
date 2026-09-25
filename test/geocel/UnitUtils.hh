@@ -54,19 +54,5 @@ CELER_CONSTEXPR_FUNCTION Array<real_type, 3> from_cm(
 }
 
 //---------------------------------------------------------------------------//
-//! Unit system used for reference results in a test
-struct UnitLength
-{
-    Constant value{::celeritas::lengthunits::centimeter};
-    std::string label{"cm"};
-
-    template<class T>
-    constexpr T from_native(T const& v) const
-    {
-        return v / value;
-    }
-};
-
-//---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

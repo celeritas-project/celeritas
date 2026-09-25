@@ -37,7 +37,6 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 
-inline constexpr VgSurfaceInt vg_null_surface{-1};
 inline constexpr VgNavIndex vg_outside_nav_index{0};
 
 //---------------------------------------------------------------------------//
@@ -131,7 +130,8 @@ struct VecgeomStateData
 #if CELER_VGNAV == CELER_VGNAV_PATH
     using VgStateItems = detail::VecgeomNavCollection<W, M>;
 #else
-    using VgStateItems = StateItems<VgNavStateImpl>;
+    // TODO: use actual nav state: prev, cur, boundary
+    using VgStateItems = StateItems<VgOpaqueNavPath>;
 #endif
 
     //// DATA ////
@@ -175,6 +175,59 @@ struct VecgeomStateData
         boundary = other.boundary;
         next_state = other.next_state;
         next_boundary = other.next_boundary;
+        return *this;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * State data for VecGeom 2.1+ that requires NavView.
+ *
+ * \todo Currently used only by VgBasicTrackViewTest .
+ */
+template<Ownership W, MemSpace M>
+struct FutureVecgeomStateData
+{
+    //// TYPES ////
+
+    template<class T>
+    using StateItems = StateCollection<T, W, M>;
+
+    //// DATA ////
+
+    // Physical state
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
+
+    // Logical volumetric state
+    StateItems<VgNavState> state;
+    StateItems<VgNavState> next_state;
+
+    //// METHODS ////
+
+    //! True if sizes are consistent and states are assigned
+    explicit CELER_FUNCTION operator bool() const
+    {
+        // clang-format off
+        return pos.size() > 0
+            && dir.size() == pos.size()
+            && state.size() == pos.size()
+            && next_state.size() == pos.size();
+        // clang-format on
+    }
+
+    //! State size
+    CELER_FUNCTION TrackSlotId::size_type size() const { return pos.size(); }
+
+    //! Assign from another set of data
+    template<Ownership W2, MemSpace M2>
+    FutureVecgeomStateData& operator=(FutureVecgeomStateData<W2, M2>& other)
+    {
+        CELER_EXPECT(other);
+        pos = other.pos;
+        dir = other.dir;
+        state = other.state;
+        next_state = other.next_state;
         return *this;
     }
 };

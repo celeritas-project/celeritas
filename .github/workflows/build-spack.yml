@@ -46,6 +46,8 @@ jobs:
             geant: "11.3"
           - geometry: "geant4"
             geant: "11.3"
+          - geometry: "geant4"
+            geant: "11.3+vecgeom" # NOTE: non-numeric version requires special casing fromJSON
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(
@@ -81,13 +83,11 @@ jobs:
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
-               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
+               || contains(matrix.geometry, 'vecgeom') && 'vecgeom@2.1.0'
+               || contains(matrix.geant, 'vecgeom') && 'vecgeom@2.1.0'
                || ''
             }}
-            ${{(matrix.geometry == 'vecgeom'
-                || matrix.geometry == 'vecgeom2')
-               && 'g4vg' || ''
-            }}
+            ${{ contains(matrix.geometry, 'vecgeom') && 'g4vg' || '' }}
 
       ### BUILD ###
 
@@ -119,7 +119,7 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run tests
         id: test
-        if: ${{matrix.special != 'static'}}
+        if: ${{matrix.special != 'static'}} # static disables tests due to build size
         uses: ./.github/actions/run-ctest
         with:
           name: ${{env.CELER_RUN_NAME}}
@@ -129,6 +129,7 @@ jobs:
           filter-unit: >-
             ${{
               matrix.special == 'static' && 'none'
+              || contains(matrix.geant, '+vecgeom') && '^geocel/'
               || fromJSON(matrix.geant) < 11 && '^accel/'
              }}
       - name: Test basic downstream compilation against build dir

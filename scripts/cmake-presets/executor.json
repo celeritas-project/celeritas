@@ -20,6 +20,7 @@
         "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_DD4hep": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_LArSoft": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_HIP": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_MPI": { "type": "BOOL", "value": "OFF" },
@@ -97,6 +98,11 @@
       }
     },
     {
+      "name": "nospack",
+      "displayName": "Executor no-spack build",
+      "inherits": [".ccache", ".base", ".debug"]
+    },
+    {
       "name": "base",
       "displayName": "Executor default options",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
@@ -143,7 +149,7 @@
       "displayName": "With local vecgeom (solids)",
       "inherits": [".ccache", ".base", ".debug", "default"],
       "environment": {
-        "CMAKE_PREFIX_PATH": "/opt/spack/opt/spack/tahoe/geant4/11.3.2/gykadvh:/opt/spack/opt/spack/tahoe/covfie/0.15.4/r5g2psb:/opt/spack/opt/spack/tahoe/nlohmann-json/3.12.0/7mlcviu:/opt/spack/opt/spack/tahoe/cli11/2.6.1/znuwv76:/opt/spack/opt/spack/tahoe/googletest/1.17.0/rmxgcak"
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vglocal/.spack-env/view"
       },
       "cacheVariables": {
         "CELERITAS_BUILTIN_CLI11": { "type": "BOOL", "value": "OFF" },
