@@ -16,11 +16,6 @@
 #include "corecel/OpaqueId.hh"
 #include "corecel/Types.hh"
 
-#ifndef VECGEOM_PRECISION_NAMESPACE
-// VecGeom <= 2.0.0-rc.7 puts navindex, precision in global namespace
-#    define VECGEOM_PRECISION_NAMESPACE
-#endif
-
 #define CELER_VGNAV_TUPLE 1
 #define CELER_VGNAV_INDEX 2
 #define CELER_VGNAV_PATH 3
@@ -42,7 +37,7 @@ static_assert(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE);
 namespace vecgeom
 {
 #if VECGEOM_VERSION >= 0x020000
-template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+template<vecgeom::uint MD>
 struct NavTuple;
 class NavStateTuple;
 #endif
@@ -59,7 +54,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 
 using VgPlacedVolumeInt = int;
-using vg_real_type = VECGEOM_PRECISION_NAMESPACE::Precision;
+
+#if VECGEOM_VERSION >= 0x020000
+using vg_real_type = vecgeom::Precision;
+#else
+using vg_real_type = Precision;
+#endif
 
 #if defined(VECGEOM_BVH_SINGLE) || defined(__DOXYGEN__)
 using vgbvh_real_type = float;
@@ -69,7 +69,7 @@ using vgbvh_real_type = double;
 
 #if VECGEOM_VERSION >= 0x020000
 // Allow trivial copying of tuple between device/host
-template<VECGEOM_PRECISION_NAMESPACE::uint MD>
+template<vecgeom::uint MD>
 struct IsTriviallyCopyable<vecgeom::NavTuple<MD>> : std::true_type
 {
 };
@@ -127,7 +127,7 @@ using VgReal3 = VgVector3<vg_real_type, MemSpace::native>;
 // NAVIGATION TYPES
 //---------------------------------------------------------------------------//
 
-using VgNavIndex = VECGEOM_PRECISION_NAMESPACE::NavIndex_t;
+using VgNavIndex = vecgeom::NavIndex_t;
 
 //! Low-level (POD compatible) VecGeom navigation state
 #if CELER_VGNAV == CELER_VGNAV_INDEX || defined(__DOXYGEN__)
