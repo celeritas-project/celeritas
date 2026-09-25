@@ -11,7 +11,6 @@
 #include "corecel/math/QuantityIO.json.hh"  // IWYU pragma: keep
 #include "geocel/VolumeParams.hh"
 
-#include "LevelStateAccessor.hh"
 #include "OrangeParams.hh"
 #include "OrangeTrackView.hh"
 
@@ -73,24 +72,20 @@ struct IdToJson
         return id;
     }
 
-    nlohmann::json operator()(LevelStateAccessor const& lsa) const
+    nlohmann::json operator()(OrangeTrackView const& view) const
     {
         CELER_EXPECT(orange);
 
-        UnivId u_id = lsa.univ();
+        ImplVolumeId impl_vol = view.impl_volume_id();
+        auto local = univ_indexer.local_volume(impl_vol);
 
         return {
-            {"pos", lsa.pos()},
-            {"dir", lsa.dir()},
-            {"universe", (*this)(u_id)},
+            {"pos", view.pos()},
+            {"dir", view.dir()},
+            {"universe", (*this)(local.univ)},
             {"volume",
              [&] {
-                 auto local_vol = lsa.vol();
-                 ImplVolumeId impl_vol;
-                 if (u_id && local_vol)
-                 {
-                     impl_vol = univ_indexer.global_volume(u_id, local_vol);
-                 }
+                 auto local_vol = local.volume;
 
                  nlohmann::json result = {
                      {"local", local_vol},
@@ -118,10 +113,7 @@ void to_json(nlohmann::json& j, OrangeTrackView const& view)
                         view.scalars().host_volume_params};
 
     nlohmann::json levels = nlohmann::json::array();
-    for (auto ulev_id : range(view.univ_level() + 1))
-    {
-        levels.push_back(id_to_json(view.make_lsa(ulev_id)));
-    }
+    levels.push_back(id_to_json(view));
 
     j = {
         {"levels", std::move(levels)},
