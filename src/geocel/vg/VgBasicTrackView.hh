@@ -62,7 +62,7 @@ class VgBasicTrackView
     //! \name Type aliases
     using Initializer_t = GeoTrackInitializer;
     using ParamsRef = NativeCRef<VecgeomParamsData>;
-    using StateRef = NativeRef<FutureVecgeomStateData>;
+    using StateRef = NativeRef<VecgeomStateData>;
     using NavView = vecgeom::NavView;
     using OpaquePath = NavView::OpaquePath;
     using real_type = vg_real_type;

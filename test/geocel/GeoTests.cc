@@ -377,14 +377,6 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         EXPECT_EQ("SPlate", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        if (test_->geometry_type() == "VecGeom" && vecgeom_version < Version{2})
-        {
-            // VecGeom fails to cross the boundary! the internal bump along the
-            // path of travel doesn't change the Z coordinate, so it assumes
-            // the updated point is still inside the original volume.
-            EXPECT_EQ("SPlate", test_->volume_name(geo));
-            return;
-        }
         EXPECT_EQ("HGTD", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 

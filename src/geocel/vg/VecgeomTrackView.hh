@@ -21,6 +21,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "VecgeomData.hh"
 #include "VecgeomTypes.hh"
@@ -33,14 +34,11 @@
 
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
-#else
-#    include "detail/VgNavStateWrapper.hh"
 #endif
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
-#    include "geocel/detail/LengthUnits.hh"
 #endif
 
 namespace celeritas
@@ -91,7 +89,11 @@ class VecgeomTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
+    //! (a physical length, so that it is resolvable in any unit system)
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push()
+    {
+        return real_type{1e-13} * lengthunits::centimeter;
+    }
 
     //// ACCESSORS ////
 
@@ -162,12 +164,6 @@ class VecgeomTrackView
     using VgLogVol = VgLogicalVolume<MemSpace::native>;
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
 
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavStateWrapper = vecgeom::NavStatePath&;
-#else
-    using NavStateWrapper = detail::VgNavStateWrapper;
-#endif
-
     //// DATA ////
 
     //! Shared/persistent geometry data
@@ -177,8 +173,8 @@ class VecgeomTrackView
 
     //!@{
     //! Referenced thread-local data
-    NavStateWrapper vgstate_;
-    NavStateWrapper vgnext_;
+    VgNavState& vgstate_;
+    VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
 
@@ -201,6 +197,9 @@ class VecgeomTrackView
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
+
+    // Forget the last exited volume after it has been used for relocation
+    static inline CELER_FUNCTION void clear_last_exited(VgNavState& state);
 };
 
 //---------------------------------------------------------------------------//
@@ -214,14 +213,8 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     : params_(params)
     , state_(states)
     , tid_(tid)
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    // Nav path holds direct references to state with unused "last state"
     , vgstate_{states.state[tid]}
     , vgnext_{states.next_state[tid]}
-#else
-    , vgstate_{states.state[tid], states.boundary[tid]}
-    , vgnext_{states.next_state[tid], states.next_boundary[tid]}
-#endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 {
@@ -522,6 +515,9 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                         vgnext_);
     }
 
+    // The exited volume only applies to this crossing: a subsequent crossing
+    // after a direction change (e.g., reflection) may reenter it
+    clear_last_exited(vgnext_);
     vgstate_ = vgnext_;
 
     CELER_ENSURE(this->is_on_boundary());
@@ -618,6 +614,28 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Forget the last exited volume after it has been used for relocation.
+ *
+ * VecGeom 2 records the last exited volume when a step leaves one or more
+ * volumes, and relocation excludes it to avoid reentering at the exact
+ * boundary position. Clearing it after each crossing prevents a stale value
+ * from blocking a later relocation, and ensures that entering a daughter
+ * volume never inherits an unrelated excluded volume.
+ *
+ * The VecGeom 1 navigator instead determines the exited volume by comparing
+ * the pre- and post-step states, so no metadata needs to be cleared.
+ */
+CELER_FUNCTION void VecgeomTrackView::clear_last_exited(VgNavState& state)
+{
+#if CELERITAS_VECGEOM_VERSION >= 0x020000
+    state.SetLastExited(decltype(state.GetLastExitedState()){});
+#else
+    CELER_DISCARD(state);
+#endif
 }
 
 //---------------------------------------------------------------------------//

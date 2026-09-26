@@ -203,9 +203,9 @@ void check_other_device_pointers()
  * This is needed because DeviceVector performs only initialization, not
  * allocation.
  */
-void init_navstate_device(Span<VgOpaqueNavPath> states, StreamId stream)
+void init_navstate_device(Span<VgNavState> states, StreamId stream)
 {
-    InplaceNew<VgOpaqueNavPath> execute_thread{states.data()};
+    InplaceNew<VgNavState> execute_thread{states.data()};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "vecgeom-init-navtuple");
     launch_kernel(states.size(), stream, execute_thread);
