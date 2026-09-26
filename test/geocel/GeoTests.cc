@@ -3145,7 +3145,6 @@ void TwoBoxesGeoTest::test_substep_retry() const
 
     // The chords of the next substeps curve back toward the surface: discard
     // their (nearly) zero-distance intersections
-    geo.check_zero_distance(false);
     for (Real3 const& dir : {Real3{-dx, dx, 0}, Real3{-0.6, 0.8, 0}})
     {
         geo.set_dir(dir);
@@ -3155,7 +3154,6 @@ void TwoBoxesGeoTest::test_substep_retry() const
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("world", test_->volume_name(geo));
     }
-    geo.check_zero_distance(true);
 
     // No substep could move: bump along the final direction
     geo.set_dir({dx, dx, 0});
