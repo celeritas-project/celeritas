@@ -17,6 +17,31 @@ These three behaviors apply unconditionally, every session. Read them before sta
 
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
+### Versioned tool options
+
+Before adding an option to a CI tool, check its `-h` output for the exact
+version configured by the workflow. Do not assume options from a newer local
+version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
+For LLVM 18 `clang-scan-deps`, capture the JSON by redirecting stdout; do not
+pass `-o`, which is unsupported by that version.
+In its `experimental-full` JSON, read `input-file` and `file-deps` from each
+entry in `translation-units[].commands`; they are not translation-unit-level
+fields.
+
+### GitHub Actions annotations
+
+When emitting `::error` or `::warning` workflow commands, use paths relative
+to the repository root in the `file=` property. Escape `%`, CR, LF, `:`, and
+`,` in property values so annotations link to the source location in PR views.
+
+### Header clang-tidy checks
+
+Before passing changed headers to `clang-tidy-diff.py`, map each header to
+translation units that include it and run clang-tidy using those translation
+units' compilation database commands. Do not invoke clang-tidy directly on a
+header, since headers are not compilation database entries and lack the target
+include paths and preprocessor definitions.
+
 ### After any completed task — commit
 Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
 
@@ -29,6 +54,10 @@ Inline `-m` strings break with multi-line messages in the shell. Instead,
 write the commit message to `<build>/commit_msg.txt` (gitignored) and use
 the helper script. Use `create_file` to write it (never exists after a
 successful commit):
+
+Before invoking the helper, read the message file and verify it contains only
+the intended subject, body, and verbatim current prompt. If the file already
+exists, replace its full contents; do not append a new message to stale text.
 
 ```bash
 # Write message to file first, then commit (script handles add/format/rm)
