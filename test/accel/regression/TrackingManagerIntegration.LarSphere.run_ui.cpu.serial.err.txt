@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
 debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
@@ -56,7 +57,6 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 info@FrameworkInput.cc: Activating Celeritas version [suppressed] on CPU
 debug@System.cc: Celeritas environment variables: {
@@ -122,6 +122,7 @@ debug@HitProcessor.cc: Setting up thread-local hit processor for 2 sensitive det
 debug@AuxStateVec.cc: Allocating 3 aux state classes for host on stream {0} with state size 128
 status@CoreState.cc: Celeritas core state initialization complete
 debug@TrackingManagerIntegration.cc: Verifying tracking managers
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@TrackingManagerIntegration.test.cc: Checking number of tracks
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
@@ -158,12 +159,14 @@ debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 613 steps from 2 flushes with 20 offloaded tracks over 2 events, generating 122 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
+debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
+debug@IntegrationSingleton.cc: Local Celeritas state already finalized on thread 0
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "larsphere-run-ui-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
-debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

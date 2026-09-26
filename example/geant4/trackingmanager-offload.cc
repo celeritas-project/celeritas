@@ -21,7 +21,6 @@
 #include <G4SystemOfUnits.hh>
 #include <G4ThreeVector.hh>
 #include <G4UserEventAction.hh>
-#include <G4UserRunAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VUserActionInitialization.hh>
 #include <G4VUserDetectorConstruction.hh>
@@ -135,20 +134,6 @@ class PrimaryGeneratorAction final : public G4VUserPrimaryGeneratorAction
 };
 
 //---------------------------------------------------------------------------//
-class RunAction final : public G4UserRunAction
-{
-  public:
-    void BeginOfRunAction(G4Run const* run) final
-    {
-        TMI::Instance().BeginOfRunAction(run);
-    }
-    void EndOfRunAction(G4Run const* run) final
-    {
-        TMI::Instance().EndOfRunAction(run);
-    }
-};
-
-//---------------------------------------------------------------------------//
 class EventAction final : public G4UserEventAction
 {
   public:
@@ -185,11 +170,9 @@ class EventAction final : public G4UserEventAction
 class ActionInitialization final : public G4VUserActionInitialization
 {
   public:
-    void BuildForMaster() const final { this->SetUserAction(new RunAction{}); }
     void Build() const final
     {
         this->SetUserAction(new PrimaryGeneratorAction{});
-        this->SetUserAction(new RunAction{});
         this->SetUserAction(new EventAction{});
     }
 };

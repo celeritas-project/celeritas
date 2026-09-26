@@ -151,11 +151,11 @@ debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@IntegrationSingleton.cc: Destroying local state
 info@LocalTransporter.cc: Finalizing Celeritas after 1345 steps from 2 flushes with 2 offloaded tracks over 2 events, generating 128 hits
+debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 status@IntegrationSingleton.cc: Finalizing Celeritas
 info@SharedParams.cc: Wrote Geant4 diagnostic output to "em3-run-cpu-serial.out.json"
 debug@SharedParams.cc: Resetting shared parameters
-debug@CoreState.cc: Deallocating host core state (stream 0)
 debug@PersistentSP.hh: Clearing persistent run manager 'testem3'
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)

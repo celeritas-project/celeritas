@@ -92,6 +92,9 @@ void ScopedLogStorer::operator()(
                 temp_msg
                     += "... [truncated: set CELER_LOG_SCOPED_VERBOSE to show]";
             }
+            // Trim trailing whitespace so that captured output stays
+            // consistent with whitespace-cleaned regression baselines
+            temp_msg.erase(temp_msg.find_last_not_of(" \t") + 1);
             debug_clog(prov, lev, temp_msg);
         }
     }

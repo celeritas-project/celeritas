@@ -247,12 +247,12 @@ G4WT0 > [1/1] debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 G4WT0 > [W] debug@IntegrationSingleton.cc: Destroying local state
 G4WT0 > [1/1] info@LocalTransporter.cc: Finalizing Celeritas after 1169 steps and 1697 optical steps (over 5 step iterations) from 2 flushes with 20 offloaded tracks over 2 events, generating 0 hits
+G4WT0 > [W] debug@CoreState.cc: Deallocating host core state (stream 0)
 G4WT0 > [W] debug@GeantTrackReconstruction.cc: Deallocating track reconstruction
 [M!] debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 [M] status@IntegrationSingleton.cc: Finalizing Celeritas
 [M] info@SharedParams.cc: Wrote Geant4 diagnostic output to "opnoviceoptical-run-cpu-mt.out.json"
 [M] debug@SharedParams.cc: Resetting shared parameters
-[M] debug@CoreState.cc: Deallocating host core state (stream 0)
 [M] debug@PersistentSP.hh: Clearing persistent run manager 'op-novice'
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 [M!] debug@IntegrationTestBase.cc: Tearing down action initialization
