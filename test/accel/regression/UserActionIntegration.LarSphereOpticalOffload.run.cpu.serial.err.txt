@@ -43,22 +43,22 @@ debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihil
 debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-debug@SupportedOpticalPhysics.cc: Added optical absorption process
-debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
-debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
-debug@SupportedOpticalPhysics.cc: Added optical boundary process
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu+
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to mu-
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu+
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to mu-
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+debug@SupportedOpticalPhysics.cc: Adding optical absorption process
+debug@SupportedOpticalPhysics.cc: Adding optical Rayleigh scattering process
+debug@SupportedOpticalPhysics.cc: Adding optical Mie (Henyey-Greenstein phase function) scattering process
+debug@SupportedOpticalPhysics.cc: Adding optical boundary process
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e+
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e-
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to gamma
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to geantino
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to mu+
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to mu-
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to proton
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e+
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e-
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to mu+
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to mu-
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to proton
 debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4eBremsstrahlungRelModel from 1000 to 1e+08 MeV
 debug@GeantBremsstrahlungProcess.cc: Using G4SeltzerBergerModel from 0.0001 to 1000 MeV
@@ -87,11 +87,14 @@ debug@GeantImporter.cc: Loaded 1 optical materials
 debug@GeantImporter.cc: Loaded 9 isotopes
 debug@GeantImporter.cc: Loaded 3 elements
 debug@GeantImporter.cc: Loaded 3 geo materials
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 debug@GeantImporter.cc: Loaded 2 physics materials
 debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
 debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
 debug@GeantProcessImporter.cc: Loading process 'eBrem' for particle e+ (-11)
 debug@GeantProcessImporter.cc: Loading MSC model 'UrbanMsc' for particle e+ (-11)
+warning@GeantScintillationLoader.cc: Ignoring scintillation grid spectrum definition (SCINTILLATIONCOMPONENT1): using gaussian lambda/sigma
+warning@GeantScintillationLoader.cc: Ignoring scintillation grid spectrum definition (SCINTILLATIONCOMPONENT2): using gaussian lambda/sigma
 debug@GeantPhysicsLoader.cc: Loaded 1 model data from process Scintillation("Scintillation")
 debug@GeantPhysicsLoader.cc: Loaded 1 model data from process Cerenkov("Cerenkov")
 debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e- (11)

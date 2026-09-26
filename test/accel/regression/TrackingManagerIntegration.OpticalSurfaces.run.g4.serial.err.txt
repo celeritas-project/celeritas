@@ -39,18 +39,18 @@ debug@SupportedEmStandardPhysics.cc: Using pair annihilation with G4eplusAnnihil
 debug@SupportedEmStandardPhysics.cc: Using ionization with G4MollerBhabhaModel
 debug@SupportedEmStandardPhysics.cc: Using Bremsstrahlung with G4SeltzerBergerModel and G4eBremsstrahlungRelModel
 debug@SupportedEmStandardPhysics.cc: Using multiple scattering with G4UrbanMscModel from 0.0001 MeV to 1e+08 MeV
-debug@SupportedOpticalPhysics.cc: Added optical absorption process
-debug@SupportedOpticalPhysics.cc: Added optical Rayleigh scattering process
-debug@SupportedOpticalPhysics.cc: Added optical Mie (Henyey-Greenstein phase function) scattering process
-debug@SupportedOpticalPhysics.cc: Added optical boundary process
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to e+
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to e-
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to gamma
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to geantino
-debug@SupportedOpticalPhysics.cc: Added scintillation physics to proton
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e+
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to e-
-debug@SupportedOpticalPhysics.cc: Added Cherenkov physics to proton
+debug@SupportedOpticalPhysics.cc: Adding optical absorption process
+debug@SupportedOpticalPhysics.cc: Adding optical Rayleigh scattering process
+debug@SupportedOpticalPhysics.cc: Adding optical Mie (Henyey-Greenstein phase function) scattering process
+debug@SupportedOpticalPhysics.cc: Adding optical boundary process
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e+
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to e-
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to gamma
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to geantino
+debug@SupportedOpticalPhysics.cc: Adding scintillation physics to proton
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e+
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to e-
+debug@SupportedOpticalPhysics.cc: Adding Cherenkov physics to proton
 info@SharedParams.cc: Disabling Celeritas offloading since the 'CELER_DISABLE' environment variable is present and non-empty
 debug@TrackingManagerConstructor.cc: Skipping tracking manager since Celeritas is disabled
 status@TrackingManagerIntegration.test.cc: Run two events

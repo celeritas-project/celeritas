@@ -62,6 +62,7 @@ warning@GeantImporter.cc: Optical materials were requested but none are present
 debug@GeantImporter.cc: Loaded 11 isotopes
 debug@GeantImporter.cc: Loaded 4 elements
 debug@GeantImporter.cc: Loaded 3 geo materials
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 debug@GeantImporter.cc: Loaded 4 physics materials
 debug@GeantProcessImporter.cc: Loading process 'Rayl' for particle gamma (22)
 debug@GeantImporter.cc: Loaded 1 EM processes

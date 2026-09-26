@@ -37,7 +37,9 @@ FtfpBertPhysicsList::FtfpBertPhysicsList(Options const& options)
 {
     using ClhepLen = Quantity<units::ClhepTraits::Length, double>;
 
-    ScopedStreamRedirect scoped_log(&std::cout);
+    // Redirection from stdout is required for old versions of G4; but we should
+    // at least be printing the scoped result (currently it's being discarded)
+    ScopedStreamRedirect scoped_stream(&std::cout);
 
     int verbosity = options.verbose;
     this->SetVerboseLevel(verbosity);

@@ -80,6 +80,7 @@ debug@GeantImporter.cc: Loaded 1 optical materials
 debug@GeantImporter.cc: Loaded 9 isotopes
 debug@GeantImporter.cc: Loaded 3 elements
 debug@GeantImporter.cc: Loaded 3 geo materials
+debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 debug@GeantImporter.cc: Loaded 2 physics materials
 debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
 debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)

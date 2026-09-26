@@ -61,12 +61,14 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/GeantGeoUtils.hh"
 #include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
+#include "geocel/ScopedGeantLogger.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/inp/Model.hh"
 #include "celeritas/Types.hh"
@@ -578,39 +580,39 @@ std::vector<ImportPhysMaterial> import_phys_materials(
                    << "no Geant4 production cuts are defined (you may need to "
                       "call G4RunManager::RunInitialization)");
 
+    // NOTE: static is necessary to work around Geant4 11.4 memory management
     using CutRange = std::pair<G4ProductionCutsIndex,
                                std::unique_ptr<G4VRangeToEnergyConverter>>;
-
-    std::vector<CutRange> cut_converters;
-    for (auto gi : range(NumberOfG4CutIndex))
-    {
-        PDGNumber pdg = to_pdg(gi);
-        if (!include_particle(pdg))
+    static auto const cut_converters = [] {
+        // If using pure EM physics (no proton) we get a verbose warning when
+        // creating G4RToEConvForProton
+        ScopedGeantLogger scoped_log{celeritas::world_logger()};
+        std::vector<CutRange> result;
+        for (auto gi : range(NumberOfG4CutIndex))
         {
-            continue;
-        }
+            std::unique_ptr<G4VRangeToEnergyConverter> converter;
+            switch (gi)
+            {
+                case idxG4GammaCut:
+                    converter = std::make_unique<G4RToEConvForGamma>();
+                    break;
+                case idxG4ElectronCut:
+                    converter = std::make_unique<G4RToEConvForElectron>();
+                    break;
+                case idxG4PositronCut:
+                    converter = std::make_unique<G4RToEConvForPositron>();
+                    break;
+                case idxG4ProtonCut:
+                    converter = std::make_unique<G4RToEConvForProton>();
+                    break;
+                default:
+                    CELER_ASSERT_UNREACHABLE();
+            }
 
-        std::unique_ptr<G4VRangeToEnergyConverter> converter;
-        switch (gi)
-        {
-            case idxG4GammaCut:
-                converter = std::make_unique<G4RToEConvForGamma>();
-                break;
-            case idxG4ElectronCut:
-                converter = std::make_unique<G4RToEConvForElectron>();
-                break;
-            case idxG4PositronCut:
-                converter = std::make_unique<G4RToEConvForPositron>();
-                break;
-            case idxG4ProtonCut:
-                converter = std::make_unique<G4RToEConvForProton>();
-                break;
-            default:
-                CELER_ASSERT_UNREACHABLE();
+            result.emplace_back(gi, std::move(converter));
         }
-
-        cut_converters.emplace_back(gi, std::move(converter));
-    }
+        return result;
+    }();
 
     double const len_scale = native_value_from_clhep(ImportUnits::len);
 
@@ -641,13 +643,18 @@ std::vector<ImportPhysMaterial> import_phys_materials(
         // Populate material production cut values
         auto const* g4prod_cuts = mcc->GetProductionCuts();
         CELER_ASSERT(g4prod_cuts);
-        for (auto const& idx_convert : cut_converters)
+        for (auto&& [g4i, converter] : cut_converters)
         {
-            G4ProductionCutsIndex g4i = idx_convert.first;
-            G4VRangeToEnergyConverter& converter = *idx_convert.second;
+            PDGNumber pdg = to_pdg(g4i);
+            if (!include_particle(pdg))
+            {
+                continue;
+            }
+
+            CELER_ASSERT(converter);
 
             double const range = g4prod_cuts->GetProductionCut(g4i);
-            double const energy = converter.Convert(range, g4material);
+            double const energy = converter->Convert(range, g4material);
 
             ImportProductionCut cutoffs;
             cutoffs.energy = energy * mev_scale;

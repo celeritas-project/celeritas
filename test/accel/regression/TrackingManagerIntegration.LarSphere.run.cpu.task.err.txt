@@ -92,6 +92,7 @@ G4WT0 > [W] info@TrackingManagerConstructor.cc: Built Celeritas tracking manager
 [M] debug@GeantImporter.cc: Loaded 9 isotopes
 [M] debug@GeantImporter.cc: Loaded 3 elements
 [M] debug@GeantImporter.cc: Loaded 3 geo materials
+[M] debug@ScopedGeantLogger.cc: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 [M] debug@GeantImporter.cc: Loaded 2 physics materials
 [M] debug@GeantProcessImporter.cc: Loading process 'annihil' for particle e+ (-11)
 [M] debug@GeantProcessImporter.cc: Loading process 'eIoni' for particle e+ (-11)
