@@ -100,6 +100,16 @@ TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
     this->impl().test_reentrant_undo();
 }
 
+TEST_F(TwoBoxesVgdmlTest, substep_retry)
+{
+    this->impl().test_substep_retry();
+}
+
+TEST_F(TwoBoxesVgdmlTest, substep_retry_backscatter)
+{
+    this->impl().test_substep_retry_backscatter();
+}
+
 TEST_F(TwoBoxesVgdmlTest, tangent)
 {
     this->impl().test_tangent();
