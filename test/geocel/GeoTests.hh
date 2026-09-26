@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class CheckedGeoTrackView;
+
 namespace test
 {
 class GenericGeoTestInterface;
@@ -361,6 +363,8 @@ class TwoBoxesGeoTest
 
   private:
     GenericGeoTestInterface* test_;
+
+    CheckedGeoTrackView approach_with_substeps() const;
 };
 
 //---------------------------------------------------------------------------//

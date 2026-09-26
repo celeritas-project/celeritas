@@ -3056,8 +3056,6 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     EXPECT_TRUE(geo.is_on_boundary());
 }
 
-namespace
-{
 //---------------------------------------------------------------------------//
 /*!
  * Approach the +x face of the inner box like the field propagator.
@@ -3067,13 +3065,14 @@ namespace
  * of a chord whose extended search hits the boundary past the end of the
  * step; and move to the boundary found just past the end of the last chord.
  */
-void approach_with_substeps(GenericGeoTestInterface const& test,
-                            CheckedGeoTrackView& geo)
+CheckedGeoTrackView TwoBoxesGeoTest::approach_with_substeps() const
 {
     constexpr auto dx = 1_r / constants::sqrt_two;
 
-    geo = test.make_initializer({3, 0, 0}, {1, 0, 0});
-    EXPECT_EQ("inner", test.volume_name(geo));
+    auto geo = test_->make_checked_track_view();
+
+    geo = test_->make_initializer({3, 0, 0}, {1, 0, 0});
+    EXPECT_EQ("inner", test_->volume_name(geo));
 
     // The chord hits the boundary far from the end of the curved substep:
     // discard the intersection
@@ -3089,7 +3088,7 @@ void approach_with_substeps(GenericGeoTestInterface const& test,
     EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
     geo.move_internal(from_cm(Real3{3 + dx, dx, 0}));
     EXPECT_FALSE(geo.is_on_boundary());
-    EXPECT_EQ("inner", test.volume_name(geo));
+    EXPECT_EQ("inner", test_->volume_name(geo));
 
     // The search past the end of the next chord hits the boundary, but the
     // step ends first: move to the end of the chord instead
@@ -3099,7 +3098,7 @@ void approach_with_substeps(GenericGeoTestInterface const& test,
     EXPECT_SOFT_EQ(2 - dx, to_cm(next.distance));
     geo.move_internal(from_cm(Real3{3 + dx + 1.25, dx, 0}));
     EXPECT_FALSE(geo.is_on_boundary());
-    EXPECT_EQ("inner", test.volume_name(geo));
+    EXPECT_EQ("inner", test_->volume_name(geo));
 
     // The search past the end of the next chord hits the boundary within the
     // step: move to the boundary
@@ -3108,12 +3107,11 @@ void approach_with_substeps(GenericGeoTestInterface const& test,
     EXPECT_SOFT_EQ(0.75 - dx, to_cm(next.distance));
     geo.move_to_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    EXPECT_EQ("inner", test.volume_name(geo));
+    EXPECT_EQ("inner", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ((Real3{5, dx, 0}), to_cm(geo.pos()));
-}
 
-//---------------------------------------------------------------------------//
-}  // namespace
+    return geo;
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -3133,8 +3131,7 @@ void approach_with_substeps(GenericGeoTestInterface const& test,
 void TwoBoxesGeoTest::test_substep_retry() const
 {
     constexpr auto dx = 1_r / constants::sqrt_two;
-    auto geo = test_->make_checked_track_view();
-    approach_with_substeps(*test_, geo);
+    auto geo = this->approach_with_substeps();
 
     // The final momentum still points outward
     geo.set_dir({dx, dx, 0});
@@ -3184,8 +3181,7 @@ void TwoBoxesGeoTest::test_substep_retry() const
 void TwoBoxesGeoTest::test_substep_retry_backscatter() const
 {
     constexpr auto dx = 1_r / constants::sqrt_two;
-    auto geo = test_->make_checked_track_view();
-    approach_with_substeps(*test_, geo);
+    auto geo = this->approach_with_substeps();
 
     // Scattering on the boundary points the track back inside
     geo.set_dir({-dx, dx, 0});
