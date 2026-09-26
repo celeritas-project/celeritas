@@ -110,6 +110,65 @@ TEST_F(TwoBoxesVgdmlTest, trace)
     this->impl().test_trace();
 }
 
+// The pending boundary crossing is stored in the track state, not the view
+TEST_F(TwoBoxesVgdmlTest, persistent_next_state)
+{
+    Propagation next;
+    {
+        auto geo = this->make_geo_track_view({0, 0, 0}, {1, 0, 0});
+        next = geo.find_next_step(from_cm(50));
+        EXPECT_SOFT_EQ(5, to_cm(next.distance));
+        ASSERT_TRUE(next.boundary);
+    }
+    {
+        // Reach the boundary from a new view after a partial move
+        auto geo = this->make_geo_track_view();
+        geo.move_internal(from_cm(2));
+        EXPECT_FALSE(geo.is_on_boundary());
+        geo.move_to_boundary(next.distance - from_cm(2));
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_VEC_SOFT_EQ((Real3{5, 0, 0}), to_cm(geo.pos()));
+        geo.cross_boundary();
+        EXPECT_EQ("world", this->volume_name(geo));
+    }
+    if (CELERITAS_DEBUG)
+    {
+        // Changing direction away from a boundary cancels the crossing
+        auto geo = this->make_geo_track_view({0, 0, 0}, {1, 0, 0});
+        next = geo.find_next_step(from_cm(50));
+        geo.set_dir({0, 1, 0});
+        EXPECT_THROW(geo.move_to_boundary(next.distance), DebugError);
+    }
+}
+
+// The checked view validates movement against the last find_next_step
+TEST_F(TwoBoxesVgdmlTest, checked_movement)
+{
+    auto geo = this->make_checked_track_view();
+    geo = this->make_initializer({0, 0, 0}, {1, 0, 0});
+    auto next = geo.find_next_step(from_cm(50));
+    ASSERT_TRUE(next.boundary);
+
+    // Moving internally all the way to the boundary is not allowed
+    EXPECT_THROW(geo.move_internal(next.distance), RuntimeError);
+
+    // The distance to the boundary must account for internal movement
+    geo.move_internal(from_cm(2));
+    EXPECT_THROW(geo.move_to_boundary(next.distance), RuntimeError);
+    geo.move_to_boundary(next.distance - from_cm(2));
+    EXPECT_TRUE(geo.is_on_boundary());
+    geo.cross_boundary();
+    EXPECT_EQ("world", this->volume_name(geo));
+
+    // Moving to another boundary requires a new search, including after a
+    // direction change on the boundary
+    EXPECT_THROW(geo.move_to_boundary(next.distance), RuntimeError);
+    next = geo.find_next_step(from_cm(1000));
+    ASSERT_TRUE(next.boundary);
+    geo.set_dir({0.6, 0.8, 0});
+    EXPECT_THROW(geo.move_to_boundary(next.distance), RuntimeError);
+}
+
 //---------------------------------------------------------------------------//
 // G4VG TESTS
 //---------------------------------------------------------------------------//
@@ -210,23 +269,23 @@ TEST_F(FourLevelsTest, levels)
     real_type const max_distance = distance(bbox.lower(), bbox.upper());
     auto geo = this->make_geo_track_view({10.0, 10.0, 10.0}, {1, 0, 0});
     EXPECT_EQ("World_PV/env1/Shape1/Shape2", this->unique_volume_name(geo));
-    geo.find_next_step(max_distance);
-    geo.move_to_boundary();
+    auto next = geo.find_next_step(max_distance);
+    geo.move_to_boundary(next.distance);
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV/env1/Shape1", this->unique_volume_name(geo));
-    geo.find_next_step(max_distance);
-    geo.move_to_boundary();
+    next = geo.find_next_step(max_distance);
+    geo.move_to_boundary(next.distance);
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV/env1", this->unique_volume_name(geo));
-    geo.find_next_step(max_distance);
-    geo.move_to_boundary();
+    next = geo.find_next_step(max_distance);
+    geo.move_to_boundary(next.distance);
     geo.cross_boundary();
 
     EXPECT_EQ("World_PV", this->unique_volume_name(geo));
-    geo.find_next_step(max_distance);
-    geo.move_to_boundary();
+    next = geo.find_next_step(max_distance);
+    geo.move_to_boundary(next.distance);
     geo.cross_boundary();
 
     EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));

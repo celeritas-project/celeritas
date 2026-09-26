@@ -180,7 +180,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     void move_internal(Real3 const& pos) final;
 
     // Move to the boundary in preparation for crossing it
-    void move_to_boundary() final;
+    void move_to_boundary(real_type dist) final;
 
     // Cross from one side of the current surface to the other
     void cross_boundary() final;
@@ -213,10 +213,8 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     //! Check during a move_internal(Real3) that the updated point is within
     //! the same volume
     bool checked_internal_{false};
-    //! Store the maximum straight-line distance that has been found
-    std::optional<real_type> next_step_;
-    //! Whether the next straight-line distance (if found) is a boundary
-    bool next_is_boundary_{false};
+    //! Last find_next_step result, less any internal movement since then
+    std::optional<Propagation> next_step_;
 };
 
 //---------------------------------------------------------------------------//

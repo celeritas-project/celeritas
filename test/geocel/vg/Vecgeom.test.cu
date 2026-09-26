@@ -57,7 +57,7 @@ __global__ void vgg_test_kernel(DeviceCRef<VecgeomParamsData> const params,
         auto next = geo.find_next_step(NumericLimits<real_type>::infinity());
         if (next.boundary)
         {
-            geo.move_to_boundary();
+            geo.move_to_boundary(next.distance);
             geo.cross_boundary();
         }
 

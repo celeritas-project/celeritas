@@ -14,9 +14,6 @@
 #include "corecel/Types.hh"
 #include "geocel/vg/VecgeomTypes.hh"
 
-#include "ScopedVgNavState.hh"
-#include "VgNavStateWrapper.hh"
-
 namespace celeritas
 {
 namespace detail
@@ -25,20 +22,15 @@ namespace detail
 /*!
  * Adapt VecGeom's solid navigation to Celeritas navigation state.
  *
- * Host and device queries use VecGeom's IndexedBVH-backed BVHNavigator.
- * The scoped state adapters copy the resulting navigation path back to
- * Celeritas after each query.
+ * Host and device queries use VecGeom's IndexedBVH-backed BVHNavigator
+ * directly on the stored VecGeom navigation state, which retains the boundary
+ * flag and the last exited volume between calls.
  */
 class SolidsNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavState = vecgeom::NavStatePath;
-#else
-    using NavState = detail::VgNavStateWrapper;
-#endif
+    using NavState = VgNavState;
 
     //-----------------------------------------------------------------------//
     // Locate a point in the geometry hierarchy
@@ -49,14 +41,11 @@ class SolidsNavigator
         bool top,
         VgPlacedVol const* exclude = nullptr)
     {
-        ScopedVgNavState temp_nav{nav};
-        vecgeom::BVHNavigator::LocatePointIn(
-            vol, point, temp_nav, top, exclude);
+        vecgeom::BVHNavigator::LocatePointIn(vol, point, nav, top, exclude);
 
         // Location alone does not establish a crossed boundary. In particular,
         // do not push a newly initialized track past a nearby surface.
-        VgNavState& located = temp_nav;
-        located.SetBoundaryState(false);
+        nav.SetBoundaryState(false);
     }
 
     //-----------------------------------------------------------------------//
@@ -68,18 +57,16 @@ class SolidsNavigator
         NavState const& in_state,
         NavState& out_state)
     {
-        ScopedVgNavState temp_out_state{out_state};
         // VecGeom treats sub-tolerance step limits as boundary crossings.
         // Query beyond its boundary push, then apply the physics limit here.
         auto query_limit = vecCore::math::Max(
             step_limit, 2 * vecgeom::BVHNavigator::kBoundaryPush);
         auto step = vecgeom::BVHNavigator::ComputeStepAndNextVolume(
-            glpos, gldir, query_limit, in_state, temp_out_state);
+            glpos, gldir, query_limit, in_state, out_state);
         if (step > step_limit)
         {
-            VgNavState& next = temp_out_state;
-            next = in_state;
-            next.SetBoundaryState(false);
+            out_state = in_state;
+            out_state.SetBoundaryState(false);
             return step_limit;
         }
 
@@ -102,31 +89,14 @@ class SolidsNavigator
 
     //-----------------------------------------------------------------------//
     // Relocate a state that was returned from ComputeStepAndNextVolume
-    CELER_FUNCTION static void RelocateToNextVolume(
-        VgReal3 const& glpos,
-        VgReal3 const& gldir,
-        [[maybe_unused]] NavState const& in_state,
-        NavState& out_state)
+    CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& glpos,
+                                                    VgReal3 const& gldir,
+                                                    NavState const&,
+                                                    NavState& out_state)
     {
-        ScopedVgNavState temp_out_state{out_state};
-#if CELER_VGNAV != CELER_VGNAV_PATH
-        // The compact state discards VecGeom's last-exited metadata. When
-        // leaving one or more volumes, recover the last popped ancestor so
-        // relocation cannot reenter it at the exact boundary position.
-        VgNavState& next = temp_out_state;
-        if (next.GetLevel() < in_state.GetLevel())
-        {
-            VgNavState exited{in_state};
-            while (exited.GetLevel() > next.GetLevel() + 1)
-            {
-                exited.Pop();
-            }
-            exited.SetLastExited();
-            next.SetLastExited(exited.GetLastExitedState());
-        }
-#endif
-        vecgeom::BVHNavigator::RelocateToNextVolume(
-            glpos, gldir, temp_out_state);
+        // The last exited volume was recorded in the output state by
+        // ComputeStepAndNextVolume, preventing reentry at the exact boundary
+        vecgeom::BVHNavigator::RelocateToNextVolume(glpos, gldir, out_state);
     }
 };
 
