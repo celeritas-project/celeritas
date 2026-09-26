@@ -15,13 +15,13 @@ if [ -z "${CELER_CMAKE_PRESET}" ]; then
   echo "CELER_CMAKE_PRESET is undefined: using ${CELER_CMAKE_PRESET}"
 fi
 if [ -z "${G4VERSION_NUMBER}" ]; then
-  if ! command -v geant4-config ; then
+  if ! _g4config_exe=$(command -v geant4-config) ; then
     echo "Could not find Geant4 version: define G4VERSION_NUMBER=0 to disable G4 tests"
     exit 1
   fi
   # Replace . with ' ' and convert to MMmp (major/minor/patch)
-  G4VERSION_NUMBER=$(geant4-config --version | tr '.' ' ' | xargs printf '%d%01d%01d')
-  echo "Set G4VERSION_NUMBER=${G4VERSION_NUMBER} from geant4-config"
+  G4VERSION_NUMBER=$(${_g4config_exe} --version | tr '.' ' ' | xargs printf '%d%01d%01d')
+  echo "Set G4VERSION_NUMBER=${G4VERSION_NUMBER} from ${_g4config_exe}"
 fi
 export CMAKE_PREFIX_PATH=${CELER_INSTALL_DIR}:${CMAKE_PREFIX_PATH}
 
@@ -57,7 +57,7 @@ fi
 
 ### WHEN USING GEANT4 ###
 
-echo "Using G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\" (version ${G4VERSION_STRING})"
+echo "Using G4VERSION_NUMBER=\"${G4VERSION_NUMBER}\""
 
 # Run small Geant4 examples, ensuring the documentation diff is still valid
 cd "${CELER_SOURCE_DIR}/example/geant4"
@@ -83,7 +83,7 @@ echo "::endgroup::"
 if [ "${G4VERSION_NUMBER}" -lt 1100 ]; then
   # Test that it fails
   echo "*** THE FOLLOWING EXECUTION SHOULD FAIL ***"
-  echo "*** (Requires Geant4 11.0 but we have ${G4VERSION_STRING}) ***"
+  echo "*** (Requires Geant4 11.0 but we have ${G4VERSION_NUMBER}) ***"
   if ./run-offload > offload-should-fail.txt 2>&1 ; then
     cat offload-should-fail.txt
     echo "Expected run-offload to fail but it PASSED"
