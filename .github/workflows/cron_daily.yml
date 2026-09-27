@@ -10,6 +10,7 @@ name: cron_daily
 on:
   schedule:
     - cron: "33 07 * * *" # Daily at 07:33 UTC
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -19,7 +20,7 @@ jobs:
   build-vecgeom-master:
     # This variable should always be set for celeritas-project, but can also
     # be set by your fork if desired
-    if: ${{vars.CELER_CI}}
+    if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
     uses: ./.github/workflows/build-vecgeom-master.yml
 
 # vim: set nowrap tw=100:

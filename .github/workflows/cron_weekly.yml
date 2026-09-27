@@ -10,10 +10,11 @@ name: cron_weekly
 on:
   schedule:
     - cron: "33 06 * * 0" # Sunday at 6:33 am UTC
+  workflow_dispatch: {}
 
 jobs:
   clear-cache:
-    if: ${{ vars.CELER_CI }}
+    if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
     uses: ./.github/workflows/clear-cache.yml
   build-ultralite:
     needs: [clear-cache]

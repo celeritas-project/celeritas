@@ -15,6 +15,7 @@ on:
     branches:
       - develop
       - backports/**
+  workflow_dispatch: {} # Allow manual invocation for testing when not using CELER_CI
 
 concurrency:
   group: push-${{github.ref_name}}-${{github.run_number}}
@@ -27,7 +28,7 @@ jobs:
     # This should be set to a "truthy" value for celeritas-project and any fork that
     # wants to do regular testing.
     name: Check CELER_CI variable
-    if: ${{ vars.CELER_CI }}
+    if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Success
