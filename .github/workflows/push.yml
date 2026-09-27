@@ -29,7 +29,7 @@ jobs:
     # wants to do regular testing.
     name: Check CELER_CI variable
     if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Success
         run: |

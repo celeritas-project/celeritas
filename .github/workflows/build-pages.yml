@@ -64,7 +64,7 @@ jobs:
 
   build-jekyll:
     runs-on: ubuntu-24.04
-    needs: update-pubs
+    needs: [update-pubs]
     outputs:
       artifact-id: ${{ steps.upload.outputs.artifact-id }}
     steps:
