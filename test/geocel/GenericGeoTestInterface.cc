@@ -306,7 +306,7 @@ GenericGeoTrackingTolerance GenericGeoTestInterface::tracking_tol() const
 {
     GenericGeoTrackingTolerance result;
     result.distance = SoftEqual{}.rel();
-    result.normal = celeritas::sqrt_tol();
+    result.normal = celeritas::sqrt_tol<real_type>;
     result.safety = result.distance;
     return result;
 }
