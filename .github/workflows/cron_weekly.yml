@@ -13,32 +13,26 @@ on:
 
 jobs:
   clear-cache:
+    if: ${{ vars.CELER_CI }}
     uses: ./.github/workflows/clear-cache.yml
   build-ultralite:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-ultralite.yml
   build-fast:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-fast.yml
   build-spack:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-spack-extra.yml
   build-regression:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-regression.yml
   build-codecov:
-    if: github.repository == 'celeritas-project/celeritas'
     needs: [clear-cache]
     uses: ./.github/workflows/build-codecov.yml
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    secrets: inherit
 
 # vim: set nowrap tw=100:

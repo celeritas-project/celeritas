@@ -21,19 +21,38 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-ci-vars:
+    # See https://github.com/celeritas-project/celeritas/settings/variables/actions
+    # or  https://github.com/{user}/celeritas/settings/variables/actions
+    # This should be set to a "truthy" value for celeritas-project and any fork that
+    # wants to do regular testing.
+    name: Check CELER_CI variable
+    if: ${{ vars.CELER_CI }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Success
+        run: |
+          echo "Running on repository ${{ github.repository }}"
   build-ultralite:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-ultralite.yml
   build-fast:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-fast.yml
   build-docker:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-docker.yml
   build-spack:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack-extra.yml
   build-regression:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-regression.yml
   build-codecov:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-codecov.yml
     secrets: inherit
 

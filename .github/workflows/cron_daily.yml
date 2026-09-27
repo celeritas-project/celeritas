@@ -17,7 +17,9 @@ permissions:
 
 jobs:
   build-vecgeom-master:
-    if: github.repository == 'celeritas-project/celeritas'
+    # This variable should always be set for celeritas-project, but can also
+    # be set by your fork if desired
+    if: ${{vars.CELER_CI}}
     uses: ./.github/workflows/build-vecgeom-master.yml
 
 # vim: set nowrap tw=100:
