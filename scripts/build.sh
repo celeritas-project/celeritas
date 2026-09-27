@@ -120,7 +120,7 @@ setup_presets() {
   if [ -e "${dst}" ] && [ ! -L "${dst}" ]; then
     if grep -qF "\"${src}\"" "${dst}"; then
       log debug "CMake preset already exists: ${dst} includes ${src}"
-    else
+    elif [ -e "${src}" ]; then
       log warning "${PWD}/${dst} is not a symbolic link and does not include ${src}: remove it or add the include manually"
     fi
     return
