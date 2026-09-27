@@ -133,6 +133,7 @@ setup_presets() {
     git add "${src}" || log error "Could not stage presets"
   fi
 
+  # Destionation is either a link or doesn't exist, so we can safely replace it
   if grep -q '"${sourceDir}/CMakePresets.json"' "${src}"; then
     log info "Writing ${dst} to include ${src}"
     # Write to a temporary file so that an existing link's target is untouched
