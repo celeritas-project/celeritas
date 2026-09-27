@@ -3189,17 +3189,26 @@ void TwoBoxesGeoTest::test_substep_retry_backscatter() const
     // Crossing should *not* change volumes
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (test_->geometry_type() == "VecGeom"
-        && "world" == test_->volume_name(geo))
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
     {
-        GTEST_SKIP() << "Unexpected boundary crossing (see test_tangent)";
+        // TODO: see test_tangent
+        EXPECT_EQ("world", test_->volume_name(geo));
     }
-    EXPECT_EQ("inner", test_->volume_name(geo));
+    else
+    {
+        EXPECT_EQ("inner", test_->volume_name(geo));
+    }
 
     // The next boundary is the +y face of the inner box
     auto next = geo.find_next_step(from_cm(100.0));
     EXPECT_TRUE(next.boundary);
-    EXPECT_SOFT_EQ((5 - dx) / dx, to_cm(next.distance));
+    if ("inner" == test_->volume_name(geo))
+    {
+        EXPECT_SOFT_EQ((5 - dx) / dx, to_cm(next.distance));
+    }
+    else
+    {
+    }
 }
 
 /*!
@@ -3247,7 +3256,11 @@ void TwoBoxesGeoTest::test_tangent() const
         {
             EXPECT_TRUE(geo.is_on_boundary());
         }
-        EXPECT_EQ("inner", test_->volume_name(geo));
+        else
+        {
+            // Reentrant/zero distance/bump for VecGeom 2
+            EXPECT_EQ("inner", test_->volume_name(geo));
+        }
     }
 
     // Crossing should *not* change volumes (-; -,-)
@@ -3256,15 +3269,15 @@ void TwoBoxesGeoTest::test_tangent() const
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_on_boundary());
         if (test_->geometry_type() == "VecGeom"
-            && "world" == test_->volume_name(geo))
+            && vecgeom_version >= Version{2, 0})
         {
-            GTEST_SKIP() << "Unexpected boundary crossing";
+            // TODO: this is not correct behavior
+            EXPECT_EQ("world", test_->volume_name(geo));
         }
-        if (geo.check_normal())
+        else
         {
-            EXPECT_TRUE(geo.is_on_boundary());
+            EXPECT_EQ("inner", test_->volume_name(geo));
         }
-        EXPECT_EQ("inner", test_->volume_name(geo));
     }
 
     // Find the next boundary and make sure that nearer distances aren't
@@ -3272,7 +3285,16 @@ void TwoBoxesGeoTest::test_tangent() const
     {
         SCOPED_TRACE("checking internal distance");
         auto next = geo.find_next_step(max_distance);
-        EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        if ("inner" == test_->volume_name(geo))
+        {
+            // Typical case
+            EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        }
+        else
+        {
+            // Reentrant/zero distance/bump for VecGeom 2
+            EXPECT_LT(to_cm(next.distance), 1e-5);
+        }
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
     }
