@@ -34,7 +34,6 @@ jobs:
       CELER_TARGET: ${{ matrix.target == 'dev' && 'doxygen' || 'doc' }}
       CELER_UPLOAD_DIR: ${{ matrix.target == 'dev' && 'build/doc/doxygen-html' || 'build/doc/html' }}
       CELER_RETENTION_DAYS: ${{ matrix.target == 'dev' && '1' || '7' }}
-      CELER_DOC_NAME: doc-${{ matrix.target }}
     outputs:
       artifact-id-user: ${{ steps.gen-output.outputs.user}}
       artifact-id-dev: ${{ steps.gen-output.outputs.dev}}
@@ -77,10 +76,11 @@ jobs:
              github.event_name != 'pull_request'
              || contains(github.event.pull_request.labels.*.name, 'documentation')
           }}
+        # NOTE: 'name' is used in build-pages
         uses: actions/upload-artifact@v7
         with:
-          path: ${{env.CELER_UPLOAD_DIR}}
-          name: ${{env.CELER_DOC_NAME}}
+          path: ${{ env.CELER_UPLOAD_DIR }}
+          name: doc-${{ matrix.target }}
           if-no-files-found: error
           overwrite: true
           retention-days: ${{env.CELER_RETENTION_DAYS}}

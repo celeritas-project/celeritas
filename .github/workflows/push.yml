@@ -2,7 +2,7 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Run tests on push to develop/backport branches.
+# Run tests and pages deployment when publishing develop/backport branches.
 #-----------------------------------------------------------------------------#
 
 name: push
@@ -55,5 +55,25 @@ jobs:
     needs: [check-ci-vars]
     uses: ./.github/workflows/build-codecov.yml
     secrets: inherit
+  build-pages:
+    needs: [check-ci-vars]
+    uses: ./.github/workflows/build-pages.yml
+    secrets: inherit
+  deploy-pages:
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    needs: [build-pages]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      deployments: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
 
 # vim: set nowrap tw=100:

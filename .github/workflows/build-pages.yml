@@ -1,0 +1,138 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build pages to be deployed.
+#-----------------------------------------------------------------------------#
+
+name: build-pages
+on:
+  # Enable testing via workflow dispatch
+  workflow_dispatch: {}
+  # Output artifact ID for publishing when called from pull_request
+  workflow_call:
+    outputs:
+      artifact-id:
+        description: "The ID of the pages artifact that was uploaded."
+        value: ${{ jobs.assemble.outputs.artifact-id }}
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: deploy-pages-${{github.event_name}}-${{github.event_name == 'pull_request' && github.event.number || github.ref_name}}
+  cancel-in-progress: false
+
+jobs:
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
+
+  update-pubs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out Celeritas doc base
+        uses: actions/checkout@v7
+        with:
+          ref: doc/gh-pages-base
+      - uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+      - name: Install Python packages
+        # NOTE: this is the requirements path in the orphaned
+        # doc/gh-pages-base branch, NOT the Celeritas branch!
+        run: |
+          pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+      - name: Update publications
+        id: update
+        env:
+          ZOTERO_TOKEN: ${{secrets.ZOTERO_TOKEN}}
+          ZOTERO_GROUP: 2380941
+        run: |
+          python scripts/generate-pubs.py -g $ZOTERO_GROUP
+          echo "DIFF_COUNT=$(git diff -- publications.md | wc -l)" >> $GITHUB_OUTPUT
+      - name: Push updated publications to doc branch
+        if: >-
+          ${{ steps.update.outcome != 'failure'
+              && fromJSON(steps.update.outputs.DIFF_COUNT) > 0 }}
+        continue-on-error: true
+        run: |
+          git commit \
+            -c user.name="Github Action" \
+            -c user.email="${{github.triggering_actor}}@users.noreply.github.com" \
+            -am "Update publications"
+          git push
+
+  build-jekyll:
+    runs-on: ubuntu-24.04
+    needs: update-pubs
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - name: Check out Celeritas doc base
+        uses: actions/checkout@v7
+        with:
+          ref: doc/gh-pages-base
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          destination: jekyll-build
+      - name: Upload artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: doc-jekyll
+          path: jekyll-build
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+
+  assemble:
+    runs-on: ubuntu-24.04
+    needs: [build-docs, build-jekyll]
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: >-
+            ${{ needs.jobs.build-docs.outputs.artifact-id-user }}
+            ${{ needs.jobs.build-docs.outputs.artifact-id-dev }}
+            ${{ needs.jobs.build-jekyll.outputs.artifact-id }}
+          merge-multiple: false
+      - name: Find everything
+        #if: ${{ runner.debug }}
+        run: |
+          # echo ::group::Find everything
+           find .
+          #  echo ::endgroup::
+      - name: Move into place
+        # NOTE: this uses the 'name' from the different artifacts
+        run: |
+          mv doc-jekyll _site
+          mv doc-user _site/user
+          mv doc-dev _site/dev
+      - name: Archive artifact
+        shell: sh
+        run: |
+          echo ::group::Archive artifact
+          tar \
+            --dereference --hard-dereference \
+            --directory "_site" \
+            -cvf "$RUNNER_TEMP/artifact.tar" \
+            --exclude=.git \
+            --exclude=.github \
+            .
+          echo ::endgroup::
+      - name: Upload artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
+
+# vim: set nowrap tw=100:
