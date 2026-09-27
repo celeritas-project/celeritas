@@ -13,6 +13,9 @@ If the system presets include the main presets file with
 9 and CMake 3.30), `CMakeUserPresets.json` is a small regular file that
 includes them. Otherwise it is a symbolic link to them. Only the former is
 copied into new Claude Code worktrees by the top-level `.worktreeinclude` file.
+The script only ever replaces a symbolic link: if `CMakeUserPresets.json` is a
+regular file that does not include the system presets, it warns and leaves the
+file alone.
 
 ```console
 $ ./build.sh base
