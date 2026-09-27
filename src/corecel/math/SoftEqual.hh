@@ -26,10 +26,8 @@ namespace celeritas
  * \todo Move orange tolerance and related operations into corecel/math
  * alongside this, revisit ArrayUtils soft comparisons.
  */
-CELER_CONSTEXPR_FUNCTION real_type sqrt_tol()
-{
-    return detail::SoftEqualTraits<real_type>::sqrt_prec();
-}
+template<class T = ::celeritas::real_type>
+constexpr inline T sqrt_tol = detail::SoftEqualTraits<T>::sqrt_prec();
 
 //---------------------------------------------------------------------------//
 /*!
