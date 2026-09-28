@@ -210,7 +210,22 @@ def fetch_diff(remote: str, base_sha: str, repo_root: Path) -> str:
 
 
 def generated_sources(build_dir: Path, repo_root: Path) -> set[Path]:
-    """Read generated source paths from the CMake File API codemodel."""
+    """Return source paths marked GENERATED in the CMake File API codemodel.
+
+    CMake's codemodel-v2 target ``sources`` entries set ``isGenerated`` when a
+    source has the `GENERATED` source-file property. See the `codemodel-v2
+    target object`_ and the `GENERATED property`_. The query must be requested
+    before CMake configures the build; the CI workflow creates
+    ``.cmake/api/v1/query/codemodel-v2`` for this purpose. CMake writes the
+    reply under ``.cmake/api/v1/reply`` during configuration. Codemodel paths
+    relative to the top-level source directory are resolved against
+    ``repo_root`` before being returned.
+
+    .. _codemodel-v2 target object:
+       https://cmake.org/cmake/help/latest/manual/cmake-file-api.7.html#codemodel-version-2-target-object
+    .. _GENERATED property:
+       https://cmake.org/cmake/help/latest/prop_sf/GENERATED.html
+    """
     reply_dir = build_dir / ".cmake/api/v1/reply"
     indexes = sorted(reply_dir.glob("index-*.json"))
     if not indexes:
@@ -249,9 +264,7 @@ def scan_dependencies(
     build_dir = build_dir.resolve()
     repo_root = repo_root.resolve()
     generated = generated_sources(build_dir, repo_root)
-    compilation_database = json.loads(
-        (build_dir / "compile_commands.json").read_text()
-    )
+    compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
     missing_unmarked: list[Path] = []
     for entry in compilation_database:
         directory = Path(entry.get("directory", build_dir))

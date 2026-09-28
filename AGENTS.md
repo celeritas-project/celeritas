@@ -17,6 +17,12 @@ These three behaviors apply unconditionally, every session. Read them before sta
 
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
 
+When asked to move or add documentation from a local log, first check whether
+the log is tracked (`git ls-files`) or ignored (`git check-ignore`). Do not
+leave requested project documentation only in an ignored build-directory file;
+put implementation details next to the owning code, or user-facing material in
+the appropriate tracked documentation.
+
 ### Versioned tool options
 
 Before adding an option to a CI tool, check its `-h` output for the exact
