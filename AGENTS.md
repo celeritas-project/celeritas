@@ -53,7 +53,10 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 
 **Pre-commit checklist — execute in order:**
 1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
-2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
+2. **Format**: run `pre-commit run`. If hooks modify files or return failure,
+   stage their changes and rerun `pre-commit run`; do not commit until a run
+   completes successfully without modifying files. A helper that stages hook
+   fixes after failure must not treat that failed run as success.
 3. **Compile**: confirm the build still succeeds.
 
 Inline `-m` strings break with multi-line messages in the shell. Instead,
