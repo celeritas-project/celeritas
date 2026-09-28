@@ -6,7 +6,18 @@ These three behaviors apply unconditionally, every session. Read them before sta
 
 ### Before any modification — verify code state
 
-**Avoid mixing user changes with assistant changes**. Before calling any file-editing tool for the first time in a session — including when transitioning from analysis to applying edits — check the repository for uncommitted changes and commit with `git commit -a --no-verify -m "WIP: user changes"` if so. Alert the user if this happens.
+**Avoid mixing user changes with assistant changes.** Before editing, check
+`git status` and inspect the relevant staged and unstaged diffs. A dirty
+worktree does not establish who made the changes: treat unattributed edits as
+user-owned, preserve them, and work around them. Do not make a WIP commit of
+existing changes, and never use `--no-verify` to checkpoint them. If existing
+changes prevent the requested work, ask before proceeding.
+
+Before reporting a commit as successful, verify its hash, subject, and file
+contents with `git show`; confirm that the committed diff contains the intended
+implementation, not just its log or documentation. If a commit or helper
+reports failure, inspect `git status` and recent history before retrying; do not
+assume either success or failure.
 
 ### After any user correction — update this file
 
