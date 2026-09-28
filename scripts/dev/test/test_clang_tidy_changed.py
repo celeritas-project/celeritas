@@ -87,13 +87,7 @@ def test_generated_sources_reads_codemodel(tmp_path):
         )
     )
     (reply_dir / "codemodel.json").write_text(
-        json.dumps(
-            {
-                "configurations": [
-                    {"targets": [{"jsonFile": "target.json"}]}
-                ]
-            }
-        )
+        json.dumps({"configurations": [{"targets": [{"jsonFile": "target.json"}]}]})
     )
     (reply_dir / "target.json").write_text(
         json.dumps(
@@ -120,22 +114,10 @@ def test_scan_dependencies_ignores_missing_generated_source(tmp_path, monkeypatc
         json.dumps([{"directory": str(build_dir), "file": str(generated)}])
     )
     (reply_dir / "index-abc.json").write_text(
-        json.dumps(
-            {
-                "reply": {
-                    "codemodel-v2": {"jsonFile": "codemodel.json"}
-                }
-            }
-        )
+        json.dumps({"reply": {"codemodel-v2": {"jsonFile": "codemodel.json"}}})
     )
     (reply_dir / "codemodel.json").write_text(
-        json.dumps(
-            {
-                "configurations": [
-                    {"targets": [{"jsonFile": "target.json"}]}
-                ]
-            }
-        )
+        json.dumps({"configurations": [{"targets": [{"jsonFile": "target.json"}]}]})
     )
     (reply_dir / "target.json").write_text(
         json.dumps({"sources": [{"path": str(generated), "isGenerated": True}]})
@@ -166,13 +148,7 @@ def test_scan_dependencies_errors_on_missing_unmarked_source(tmp_path, capsys):
         json.dumps([{"directory": str(build_dir), "file": str(source)}])
     )
     (reply_dir / "index-abc.json").write_text(
-        json.dumps(
-            {
-                "reply": {
-                    "codemodel-v2": {"jsonFile": "codemodel.json"}
-                }
-            }
-        )
+        json.dumps({"reply": {"codemodel-v2": {"jsonFile": "codemodel.json"}}})
     )
     (reply_dir / "codemodel.json").write_text(json.dumps({"configurations": []}))
 
