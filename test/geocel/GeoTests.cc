@@ -377,14 +377,6 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         EXPECT_EQ("SPlate", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
         geo.cross_boundary();
-        if (test_->geometry_type() == "VecGeom" && vecgeom_version < Version{2})
-        {
-            // VecGeom fails to cross the boundary! the internal bump along the
-            // path of travel doesn't change the Z coordinate, so it assumes
-            // the updated point is still inside the original volume.
-            EXPECT_EQ("SPlate", test_->volume_name(geo));
-            return;
-        }
         EXPECT_EQ("HGTD", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
 
@@ -3189,7 +3181,7 @@ void TwoBoxesGeoTest::test_substep_retry_backscatter() const
     // Crossing should *not* change volumes
     geo.cross_boundary();
     EXPECT_TRUE(geo.is_on_boundary());
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2, 0})
+    if (test_->geometry_type() == "VecGeom")
     {
         // TODO: see test_tangent
         EXPECT_EQ("world", test_->volume_name(geo));
@@ -3208,6 +3200,8 @@ void TwoBoxesGeoTest::test_substep_retry_backscatter() const
     }
     else
     {
+        // Reentrant/zero distance/bump for VecGeom
+        EXPECT_LT(to_cm(next.distance), 1e-5);
     }
 }
 
@@ -3268,10 +3262,9 @@ void TwoBoxesGeoTest::test_tangent() const
         SCOPED_TRACE("trying to cross");
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_on_boundary());
-        if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version >= Version{2, 0})
+        if (test_->geometry_type() == "VecGeom")
         {
-            // TODO: this is not correct behavior
+            // TODO: this is probably not correct behavior
             EXPECT_EQ("world", test_->volume_name(geo));
         }
         else
@@ -3292,7 +3285,7 @@ void TwoBoxesGeoTest::test_tangent() const
         }
         else
         {
-            // Reentrant/zero distance/bump for VecGeom 2
+            // Reentrant/zero distance/bump for VecGeom
             EXPECT_LT(to_cm(next.distance), 1e-5);
         }
         EXPECT_TRUE(next.boundary);
