@@ -16,6 +16,8 @@ _SPEC = importlib.util.spec_from_file_location(
 _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 log_compile_commands = _MODULE.log_compile_commands
+scan_dependencies = _MODULE.scan_dependencies
+generated_sources = _MODULE.generated_sources
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
 
@@ -68,13 +70,125 @@ def test_run_source_tidy_stops_for_missing_source(tmp_path, capsys):
     assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
 
 
+def test_generated_sources_reads_codemodel(tmp_path):
+    build_dir = tmp_path / "build"
+    reply_dir = build_dir / ".cmake/api/v1/reply"
+    reply_dir.mkdir(parents=True)
+    source = build_dir / "src" / "Generated.cxx"
+    (reply_dir / "index-abc.json").write_text(
+        json.dumps(
+            {
+                "reply": {
+                    "codemodel-v2": {
+                        "jsonFile": "codemodel.json",
+                    }
+                }
+            }
+        )
+    )
+    (reply_dir / "codemodel.json").write_text(
+        json.dumps(
+            {
+                "configurations": [
+                    {"targets": [{"jsonFile": "target.json"}]}
+                ]
+            }
+        )
+    )
+    (reply_dir / "target.json").write_text(
+        json.dumps(
+            {
+                "sources": [
+                    {"path": str(source), "isGenerated": True},
+                    {"path": str(tmp_path / "repo/src/Regular.cc")},
+                ]
+            }
+        )
+    )
+
+    assert generated_sources(build_dir, tmp_path / "repo") == {source.resolve()}
+
+
+def test_scan_dependencies_ignores_missing_generated_source(tmp_path, monkeypatch):
+    repo_root = tmp_path / "repo"
+    build_dir = repo_root / "build"
+    reply_dir = build_dir / ".cmake/api/v1/reply"
+    reply_dir.mkdir(parents=True)
+    generated = build_dir / "src" / "Generated.cxx"
+    database = build_dir / "compile_commands.json"
+    database.write_text(
+        json.dumps([{"directory": str(build_dir), "file": str(generated)}])
+    )
+    (reply_dir / "index-abc.json").write_text(
+        json.dumps(
+            {
+                "reply": {
+                    "codemodel-v2": {"jsonFile": "codemodel.json"}
+                }
+            }
+        )
+    )
+    (reply_dir / "codemodel.json").write_text(
+        json.dumps(
+            {
+                "configurations": [
+                    {"targets": [{"jsonFile": "target.json"}]}
+                ]
+            }
+        )
+    )
+    (reply_dir / "target.json").write_text(
+        json.dumps({"sources": [{"path": str(generated), "isGenerated": True}]})
+    )
+    scan_command = None
+
+    def fake_run(command, **kwargs):
+        nonlocal scan_command
+        scan_command = command
+        kwargs["stdout"].write('{"translation-units": []}')
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", fake_run)
+    output = tmp_path / "dependencies.json"
+
+    assert scan_dependencies("clang-scan-deps", build_dir, repo_root, output)
+    assert scan_command is not None
+    scan_database = Path(scan_command[scan_command.index("-compilation-database") + 1])
+    assert json.loads(scan_database.read_text()) == []
+
+
+def test_scan_dependencies_errors_on_missing_unmarked_source(tmp_path, capsys):
+    repo_root = tmp_path / "repo"
+    build_dir = repo_root / "build"
+    reply_dir = build_dir / ".cmake/api/v1/reply"
+    reply_dir.mkdir(parents=True)
+    source = repo_root / "src" / "Unexpected.cc"
+    (build_dir / "compile_commands.json").write_text(
+        json.dumps([{"directory": str(build_dir), "file": str(source)}])
+    )
+    (reply_dir / "index-abc.json").write_text(
+        json.dumps(
+            {
+                "reply": {
+                    "codemodel-v2": {"jsonFile": "codemodel.json"}
+                }
+            }
+        )
+    )
+    (reply_dir / "codemodel.json").write_text(json.dumps({"configurations": []}))
+
+    assert not scan_dependencies(
+        "clang-scan-deps", build_dir, repo_root, tmp_path / "dependencies.json"
+    )
+    assert "src/Unexpected.cc" in capsys.readouterr().err
+
+
 def test_run_header_tidy_stops_for_missing_source(tmp_path, capsys, monkeypatch):
     repo_root = tmp_path / "repo"
     build_dir = repo_root / "build"
     build_dir.mkdir(parents=True)
     (build_dir / "compile_commands.json").write_text("[]")
     monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
-    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: None)
+    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: True)
     monkeypatch.setattr(_MODULE, "select_sources", lambda **kwargs: ["src/missing.cc"])
 
     result = run_header_tidy(
