@@ -36,10 +36,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-inline constexpr VgNavIndex vg_outside_nav_index{0};
-
-//---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 struct VecgeomScalars
@@ -119,6 +115,10 @@ struct VecgeomParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Interface for VecGeom state information.
+ *
+ * The current and next navigation states are native VecGeom states that store
+ * the boundary flag and the last exited volume. The "next" state is set by
+ * \c find_next_step and consumed by \c cross_boundary .
  */
 template<Ownership W, MemSpace M>
 struct VecgeomStateData
@@ -130,8 +130,7 @@ struct VecgeomStateData
 #if CELER_VGNAV == CELER_VGNAV_PATH
     using VgStateItems = detail::VecgeomNavCollection<W, M>;
 #else
-    // TODO: use actual nav state: prev, cur, boundary
-    using VgStateItems = StateItems<VgOpaqueNavPath>;
+    using VgStateItems = StateItems<VgNavState>;
 #endif
 
     //// DATA ////
@@ -142,66 +141,7 @@ struct VecgeomStateData
 
     // Logical volumetric state
     VgStateItems state;
-    StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
-    VgStateItems next_state;  // TODO: prev_state
-    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
-
-    //// METHODS ////
-
-    //! True if sizes are consistent and states are assigned
-    explicit CELER_FUNCTION operator bool() const
-    {
-        // clang-format off
-        return pos.size() > 0
-            && dir.size() == pos.size()
-            && state.size() == pos.size()
-            && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
-            && next_state.size() == pos.size()
-            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0);
-        // clang-format on
-    }
-
-    //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const { return pos.size(); }
-
-    //! Assign from another set of data
-    template<Ownership W2, MemSpace M2>
-    VecgeomStateData& operator=(VecgeomStateData<W2, M2>& other)
-    {
-        CELER_EXPECT(other);
-        pos = other.pos;
-        dir = other.dir;
-        state = other.state;
-        boundary = other.boundary;
-        next_state = other.next_state;
-        next_boundary = other.next_boundary;
-        return *this;
-    }
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * State data for VecGeom 2.1+ that requires NavView.
- *
- * \todo Currently used only by VgBasicTrackViewTest .
- */
-template<Ownership W, MemSpace M>
-struct FutureVecgeomStateData
-{
-    //// TYPES ////
-
-    template<class T>
-    using StateItems = StateCollection<T, W, M>;
-
-    //// DATA ////
-
-    // Physical state
-    StateItems<Real3> pos;
-    StateItems<Real3> dir;
-
-    // Logical volumetric state
-    StateItems<VgNavState> state;
-    StateItems<VgNavState> next_state;
+    VgStateItems next_state;
 
     //// METHODS ////
 
@@ -221,7 +161,7 @@ struct FutureVecgeomStateData
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
-    FutureVecgeomStateData& operator=(FutureVecgeomStateData<W2, M2>& other)
+    VecgeomStateData& operator=(VecgeomStateData<W2, M2>& other)
     {
         CELER_EXPECT(other);
         pos = other.pos;

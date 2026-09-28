@@ -51,6 +51,17 @@ auto const vecgeom_version
 }  // namespace
 
 //---------------------------------------------------------------------------//
+// TRACK VIEW TESTS
+//---------------------------------------------------------------------------//
+
+TEST(VecgeomTrackViewTest, extra_push)
+{
+    // The push must be the same physical length in any unit system: in CLHEP
+    // units (mm), a smaller push fails to move tracks far from the origin
+    EXPECT_SOFT_EQ(1e-13, to_cm(VecgeomTrackView::extra_push()));
+}
+
+//---------------------------------------------------------------------------//
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
