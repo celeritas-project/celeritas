@@ -104,6 +104,12 @@ Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
 attachments>
 ```
 
+When the user asks only to commit completed work (for example, "Commit the
+change"), use the verbatim user request that initiated the code change for the
+`Prompt:` field, not the later commit instruction. Before writing the message,
+identify that original implementation request in the conversation and quote it
+exactly.
+
 **Common failure modes:**
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
 - Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.

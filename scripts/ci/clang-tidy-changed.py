@@ -254,8 +254,17 @@ def generated_sources(build_dir: Path, repo_root: Path) -> set[Path]:
     return generated
 
 
+def load_compilation_database(build_dir: Path) -> list[dict]:
+    """Load the compilation database from the build directory."""
+    return json.loads((build_dir / "compile_commands.json").read_text())
+
+
 def scan_dependencies(
-    scanner: str, build_dir: Path, repo_root: Path, output: Path
+    scanner: str,
+    build_dir: Path,
+    repo_root: Path,
+    output: Path,
+    compilation_database: list[dict],
 ) -> bool:
     """Scan compile commands, ignoring only missing sources marked generated.
 
@@ -264,7 +273,6 @@ def scan_dependencies(
     build_dir = build_dir.resolve()
     repo_root = repo_root.resolve()
     generated = generated_sources(build_dir, repo_root)
-    compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
     missing_unmarked: list[Path] = []
     for entry in compilation_database:
         directory = Path(entry.get("directory", build_dir))
@@ -335,14 +343,16 @@ def source_selector(paths: list[str]) -> str:
 
 
 def log_compile_commands(
-    sources: list[str], build_dir: Path, repo_root: Path
+    sources: list[str],
+    build_dir: Path,
+    repo_root: Path,
+    compilation_database: list[dict],
 ) -> list[str]:
     """Log compile commands and return sources without a database entry."""
     selected_paths = resolve_paths(sources, repo_root)
-    entries = json.loads((build_dir / "compile_commands.json").read_text())
     matched_sources: set[Path] = set()
 
-    for entry in entries:
+    for entry in compilation_database:
         directory = Path(entry.get("directory", build_dir))
         source_path = Path(entry["file"])
         if not source_path.is_absolute():
@@ -388,8 +398,11 @@ def run_header_tidy(
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         dependency_file = temp_dir / "dependencies.json"
+        compilation_database = load_compilation_database(build_dir)
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
-        if not scan_dependencies(scanner, build_dir, repo_root, dependency_file):
+        if not scan_dependencies(
+            scanner, build_dir, repo_root, dependency_file, compilation_database
+        ):
             return 1
         selected_sources = select_sources(
             header_source_selection=args.header_source_selection,
@@ -404,7 +417,9 @@ def run_header_tidy(
         log(LogLevel.NOTICE, f"Selected {len(selected_sources)} source files:")
         for source in selected_sources:
             log(LogLevel.NOTICE, f"  {source}")
-        missing_sources = log_compile_commands(selected_sources, build_dir, repo_root)
+        missing_sources = log_compile_commands(
+            selected_sources, build_dir, repo_root, compilation_database
+        )
         if missing_sources:
             return 1
         log(
@@ -436,7 +451,8 @@ def run_source_tidy(
     tidy_sources = [
         source for source in sources if re.fullmatch(r"(src|app|test)/.*\.cc", source)
     ]
-    if log_compile_commands(tidy_sources, build_dir, repo_root):
+    compilation_database = load_compilation_database(build_dir)
+    if log_compile_commands(tidy_sources, build_dir, repo_root, compilation_database):
         return 1
 
     return subprocess.run(

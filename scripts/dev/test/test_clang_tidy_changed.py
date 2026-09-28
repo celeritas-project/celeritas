@@ -69,8 +69,12 @@ def test_log_compile_commands_reports_missing_sources(build_tree, capsys):
         )
     )
 
+    compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
     result = log_compile_commands(
-        ["src/example.cc", "test/example.test.cc"], build_dir, repo_root
+        ["src/example.cc", "test/example.test.cc"],
+        build_dir,
+        repo_root,
+        compilation_database,
     )
 
     assert result == [str(missing)]
@@ -87,6 +91,12 @@ def test_run_tidy_stops_for_missing_source(
 ):
     repo_root, build_dir = build_tree
     (build_dir / "compile_commands.json").write_text("[]")
+    database_loads = []
+    monkeypatch.setattr(
+        _MODULE,
+        "load_compilation_database",
+        lambda _: database_loads.append(True) or [],
+    )
 
     if header_mode:
         monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
@@ -119,6 +129,7 @@ def test_run_tidy_stops_for_missing_source(
         )
 
     assert result == 1
+    assert len(database_loads) == 1
     assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
 
 
@@ -155,7 +166,10 @@ def test_scan_dependencies_ignores_missing_generated_source(
     monkeypatch.setattr(_MODULE.subprocess, "run", fake_run)
     output = repo_root / "dependencies.json"
 
-    assert scan_dependencies("clang-scan-deps", build_dir, repo_root, output)
+    compilation_database = json.loads(database.read_text())
+    assert scan_dependencies(
+        "clang-scan-deps", build_dir, repo_root, output, compilation_database
+    )
     assert scan_command is not None
     scan_database = Path(scan_command[scan_command.index("-compilation-database") + 1])
     assert json.loads(scan_database.read_text()) == []
@@ -171,7 +185,12 @@ def test_scan_dependencies_errors_on_missing_unmarked_source(
     )
     write_codemodel(build_dir, [])
 
+    compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
     assert not scan_dependencies(
-        "clang-scan-deps", build_dir, repo_root, repo_root / "dependencies.json"
+        "clang-scan-deps",
+        build_dir,
+        repo_root,
+        repo_root / "dependencies.json",
+        compilation_database,
     )
     assert "src/Unexpected.cc" in capsys.readouterr().err
