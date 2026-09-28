@@ -10,10 +10,6 @@ if [ -z "${CELER_INSTALL_DIR}" ]; then
   CELER_INSTALL_DIR="${CELER_SOURCE_DIR}/install"
   echo "CELER_INSTALL_DIR is undefined: using ${CELER_INSTALL_DIR}"
 fi
-if [ -z "${CELER_CMAKE_PRESET}" ]; then
-  CELER_CMAKE_PRESET="base"
-  echo "CELER_CMAKE_PRESET is undefined: using ${CELER_CMAKE_PRESET}"
-fi
 if [ -z "${G4VERSION_NUMBER}" ]; then
   if ! _g4config_exe=$(command -v geant4-config) ; then
     echo "Could not find Geant4 version: define G4VERSION_NUMBER=0 to disable G4 tests"
@@ -49,7 +45,7 @@ build_local
 ./minimal
 echo "::endgroup::"
 
-# Run Geant4 app examples unless DISABLE is set to a non-empty, non-zero value
+# Run Geant4 app examples unless G4VERSION_NUMBER is set to zero
 if [ "${G4VERSION_NUMBER}" -eq 0 ]; then
   printf "\033[31mSkipping Geant4 test: G4VERSION_NUMBER=0\033[m\n"
   exit 0

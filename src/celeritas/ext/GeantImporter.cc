@@ -61,7 +61,6 @@
 #include "corecel/cont/Range.hh"
 #include "corecel/inp/Grid.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/ScopedStreamRedirect.hh"
 #include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/TypeDemangler.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -69,8 +68,7 @@
 #include "geocel/GeoOpticalIdMap.hh"
 #include "geocel/ScopedGeantExceptionHandler.hh"
 #include "geocel/ScopedGeantLogger.hh"
-#include "geocel/VolumeParams.hh"
-#include "geocel/inp/Model.hh"
+#include "geocel/VolumeParams.hh"  // IWYU pragma: keep
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/io/ImportUnits.hh"
