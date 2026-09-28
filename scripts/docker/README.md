@@ -59,3 +59,46 @@ celeritas@abcd1234:~/src$ ./scripts/docker/ci/run-ci.sh valgrind
 ```
 
 Note that running as the `root` user requires the `MPIEXEC_PREFLAGS=--allow-run-as-root` to be defined for CMake: this is done by cmake-presets/ci-rocky-cuda.
+
+## Spack buildcache
+
+Pull requests install their Spack dependencies only from the
+`ghcr.io/celeritas-project/spack-buildcache` binary cache, so new dependency
+combinations in the CI matrix must be pushed there first by
+`scripts/ci/update-spack-buildcache-local.sh`. The `buildcache` image
+reproduces the toolchain of the GitHub `ubuntu-24.04` runners (the externals
+in `scripts/spack/ext-ubuntu24.yaml`) so that script can run on any x86_64
+Linux host. Build it from the top-level source directory:
+```console
+$ docker build -f scripts/docker/buildcache/Dockerfile -t celeritas-buildcache .
+```
+
+Pushing requires a GitHub personal access token (classic) with the
+`write:packages` scope, authorized for the `celeritas-project` organization.
+Put the credentials in a private file such as `buildcache.env`:
+```sh
+GITHUB_USER=your-github-username
+GITHUB_TOKEN=ghp_...
+```
+and run the update script with your Celeritas checkout mounted at `/celeritas`:
+```console
+$ docker run --rm -it \
+    -v "$PWD:/celeritas:ro" \
+    -v celeritas-opt-ci:/scratch/celeritas/opt-ci \
+    --env-file buildcache.env \
+    celeritas-buildcache
+```
+Append `bash` to the command for an interactive shell instead.
+
+Notes:
+- The entrypoint checks out the Spack and spack-packages commits pinned in the
+  mounted `.github/actions/setup-spack/action.yml`, so the concretization
+  matches CI even if the image is older than the pins.
+- The host CPU must support `x86_64_v3` (AVX2), the target required by
+  `scripts/spack/reqs-ci.yaml`: CPU emulation is not supported.
+- The first run takes several hours. The `celeritas-opt-ci` volume keeps the
+  installed packages, so rerunning after a failure or a matrix change only
+  builds what is missing.
+- Do not mount a volume at `/work`: the update script skips environment
+  directories that already exist there, which would silently skip
+  environments after the Spack version or the matrix changes.

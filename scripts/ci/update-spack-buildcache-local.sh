@@ -3,7 +3,8 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Run on excl (or any ubuntu24 system) to build and upload
+# Run on excl (or any ubuntu24 system) to build and upload, or use the
+# container in scripts/docker/buildcache (see scripts/docker/README.md)
 #-----------------------------------------------------------------------------#
 
 set -e
