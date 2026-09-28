@@ -33,7 +33,7 @@ class SourceSelection(StrEnum):
     ONE = "one"
 
 
-def resolve_paths(paths: Iterable[str], root: Path) -> set[Path]:
+def resolve_paths(paths: Iterable[Path], root: Path) -> set[Path]:
     """Resolve repository-relative paths against the root."""
     return {root.joinpath(path).resolve() for path in paths if path}
 
@@ -41,8 +41,8 @@ def resolve_paths(paths: Iterable[str], root: Path) -> set[Path]:
 def select_sources(
     *,
     header_source_selection: SourceSelection,
-    headers: list[str],
-    changed_sources: list[str],
+    headers: set[Path],
+    changed_sources: set[Path],
     dependency_file: Path,
     root: Path,
 ) -> list[str]:
@@ -96,7 +96,7 @@ def select_sources(
     return relative_sources
 
 
-def changed_paths(diff: str) -> tuple[list[str], list[str]]:
+def changed_paths(diff: str) -> tuple[set[Path], set[Path]]:
     """Extract changed headers and sources from a unified diff."""
     paths = [
         line.removeprefix("+++ b/")
@@ -104,8 +104,8 @@ def changed_paths(diff: str) -> tuple[list[str], list[str]]:
         if line.startswith("+++ b/")
     ]
     return (
-        [path for path in paths if HEADER_PATH_RE.match(path)],
-        [path for path in paths if SOURCE_PATH_RE.match(path)],
+        {Path(path) for path in paths if HEADER_PATH_RE.match(path)},
+        {Path(path) for path in paths if SOURCE_PATH_RE.match(path)},
     )
 
 
@@ -235,8 +235,8 @@ def source_selector(paths: list[str]) -> str:
 
 def run_header_tidy(
     args: argparse.Namespace,
-    headers: list[str],
-    sources: list[str],
+    headers: set[Path],
+    sources: set[Path],
     repo_root: Path,
     build_dir: Path,
 ) -> int:

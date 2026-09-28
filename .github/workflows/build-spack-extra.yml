@@ -100,7 +100,7 @@ jobs:
   tidy:
     name: tidy-vecgeom
     env:
-      CELER_CMAKE_PRESET: vecgeom-tidy
+      CELER_CMAKE_PRESET: vecgeom
       CLANG_TIDY: "clang-tidy-18"
       CLANG_TIDY_DIFF: "/usr/lib/llvm-18/share/clang/clang-tidy-diff.py"
       # The options are either "all" the sources that directly or indirectly
@@ -116,7 +116,7 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: "geant4@11.2 vecgeom@1.2.11:1 g4vg"
+          add: "geant4@11.3 vecgeom@2.1.0 g4vg" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure

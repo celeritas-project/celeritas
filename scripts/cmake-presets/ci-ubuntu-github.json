@@ -35,9 +35,11 @@
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "ON" },
         "CMAKE_BUILD_TYPE": { "type": "STRING", "value": "Release" },
         "CMAKE_CXX_STANDARD": "$env{CXXSTD}",
+        "CMAKE_CXX_CLANG_TIDY": { "type": "PATH", "value": "$env{CLANG_TIDY}" },
         "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
         "CMAKE_CXX_EXTENSIONS": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_FLAGS": "-Wall -Wextra -pedantic -Werror -Wno-error=deprecated-declarations",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install"
       }
     },
@@ -137,17 +139,6 @@
       }
     },
     {
-      "name": "vecgeom-tidy",
-      "description": "FINAL: VecGeom and clang-tidy checks",
-      "inherits": [".nogtest", ".vecgeom", "tool-spack"],
-      "cacheVariables": {
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
-        "CMAKE_CXX_SCAN_FOR_MODULES": { "type": "BOOL", "value": "OFF" },
-        "CMAKE_EXPORT_COMPILE_COMMANDS": { "type": "BOOL", "value": "ON" },
-        "CMAKE_CXX_CLANG_TIDY": { "type": "PATH", "value": "$env{CLANG_TIDY}" }
-      }
-    },
-    {
       "name": "vecgeom-clhep",
       "description": "FINAL: VecGeom and CLHEP units",
       "inherits": [".vecgeom", "tool-spack"],
@@ -193,8 +184,7 @@
         "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" },
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_Perfetto": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" }
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
       }
     },
     {
@@ -205,6 +195,11 @@
         "CELERITAS_CORE_GEO": "Geant4",
         "CELERITAS_UNITS": "CLHEP"
       }
+    },
+    {
+      "name": "orange",
+      "description": "FINAL: ORANGE with debug checking",
+      "inherits": ["tool-spack"]
     },
     {
       "name": "orange-ancient",
