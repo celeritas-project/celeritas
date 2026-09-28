@@ -55,8 +55,8 @@ export CELER_SOURCE_DIR=$(cd $SCRIPT_DIR/../.. && pwd)
 # due to the `--use-buildcache` option in `setup-spack/action.yaml`)
 matrix="
 20 base vecgeom@2.1.0 geant4@11.4 g4vg root dd4hep
+20 base vecgeom@2.1.0 geant4@11.3 g4vg root
 20 base vecgeom@2.1.0 geant4@11.3+vecgeom
-20 base vecgeom@2.0.0-rc.7 geant4@11.3 g4vg root
 20 base vecgeom@1.2.11 geant4@11.4 g4vg root py-gcovr
 20 base vecgeom@1.2.11 geant4@11.3 g4vg root
 20 base vecgeom@1.2.11 geant4@11.2 g4vg root

@@ -866,12 +866,20 @@ TEST_F(FourSteelSlabsEmStandard, ebrems)
         static real_type const expected_e[]
             = {1000, 100000000, 1000, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static real_type const expected_xs[] = {77.086886023111,
-                                                14.346968386977,
-                                                66.448046061979,
-                                                12.347652116819,
-                                                88.449439286966,
-                                                16.486040161073};
+        std::vector<real_type> expected_xs = {
+            77.086886023111,
+            14.346968386977,
+            66.448046061979,
+            12.347652116819,
+            88.449439286966,
+            16.486040161073,
+        };
+        if (geant4_version >= Version{11, 4})
+        {
+            expected_xs[1] = 13.8230751340639;
+            expected_xs[3] = 11.8968157228843;
+            expected_xs[5] = 15.8839849148429;
+        }
         EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
     }
 }
@@ -899,12 +907,20 @@ TEST_F(FourSteelSlabsEmStandard, conv)
         static real_type const expected_e[]
             = {1.02199782, 100000000, 1.02199782, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_e, result.energy);
-        static real_type const expected_xs[] = {1.4603666285612,
-                                                4.4976609946794,
-                                                1.250617083013,
-                                                3.8760336885145,
-                                                1.6856988385825,
-                                                5.1617257552977};
+        std::vector<real_type> expected_xs = {
+            1.4603666285612,
+            4.4976609946794,
+            1.250617083013,
+            3.8760336885145,
+            1.6856988385825,
+            5.1617257552977,
+        };
+        if (geant4_version >= Version{11, 4})
+        {
+            expected_xs[1] = 4.49213367238703;
+            expected_xs[3] = 3.87127465292614;
+            expected_xs[5] = 5.1553769178412;
+        }
         EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
     }
 }
@@ -1562,12 +1578,26 @@ TEST_F(OneSteelSphere, physics)
         static double const expected_energy[]
             = {1000, 100000000, 9549.6516356879, 100000000};
         EXPECT_VEC_SOFT_EQ(expected_energy, result.energy);
-        static double const expected_xs[] = {16.197663688566,
-                                             14.176435287746,
-                                             13.963271396942,
-                                             12.201090525228,
-                                             18.583905773638,
-                                             16.289792829097};
+        std::vector<double> expected_xs = {
+            16.197663688566,
+            14.176435287746,
+            13.963271396942,
+            12.201090525228,
+            18.583905773638,
+            16.289792829097,
+        };
+
+        if (geant4_version >= Version{11, 4})
+        {
+            expected_xs = {
+                16.1976636765356,
+                13.6730593453982,
+                13.9632713865697,
+                11.767951683065,
+                18.5839057598373,
+                15.7112542979618,
+            };
+        }
         EXPECT_VEC_SOFT_EQ(expected_xs, result.xs);
     }
     {
@@ -1691,12 +1721,23 @@ TEST_F(LarSphere, optical)
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto&& imported = this->imported_data();
 
-    static char const* const expected_log_messages[] = {
+    std::vector<std::string> expected_log_messages = {
+        R"(Ignoring scintillation grid spectrum definition (SCINTILLATIONCOMPONENT1): using gaussian lambda/sigma)",
+        R"(Ignoring scintillation grid spectrum definition (SCINTILLATIONCOMPONENT2): using gaussian lambda/sigma)",
         R"(Inconsistent Rayleigh input data: compressibility (provided) with optional scale (missing) is ignored in favor of MFP grid)",
         "Loaded no model data from process G4OpMieHG(\"OpMieHG\")",
     };
+    std::vector<std::string> expected_log_levels
+        = {"warning", "warning", "warning", "warning"};
+    if (geant4_version >= Version{11, 4} && geant4_version <= Version{11, 4, 2})
+    {
+        expected_log_messages.insert(
+            expected_log_messages.begin(),
+            R"(Scintillation process claims it applies to optical photons: we are preventing it)");
+        expected_log_levels.insert(expected_log_levels.begin(), "warning");
+    }
+
     EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
-    static char const* const expected_log_levels[] = {"warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
 
     ASSERT_EQ(1, imported.optical_materials.size());
@@ -1880,10 +1921,13 @@ TEST_F(LarSphereExtramat, optical)
         "Loaded no model data from process G4OpWLS(\"OpWLS\")",
         "Loaded no model data from process G4OpWLS2(\"OpWLS2\")",
     };
-    EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
     static char const* const expected_log_levels[]
         = {"error", "warning", "warning", "warning", "warning"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    if (geant4_version < Version{11, 4} || geant4_version > Version{11, 4, 2})
+    {
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
 
     ASSERT_EQ(1, imported.optical_materials.size());
     ASSERT_EQ(3, imported.geo_materials.size());

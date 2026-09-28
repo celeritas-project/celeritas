@@ -51,6 +51,17 @@ auto const vecgeom_version
 }  // namespace
 
 //---------------------------------------------------------------------------//
+// TRACK VIEW TESTS
+//---------------------------------------------------------------------------//
+
+TEST(VecgeomTrackViewTest, extra_push)
+{
+    // The push must be the same physical length in any unit system: in CLHEP
+    // units (mm), a smaller push fails to move tracks far from the origin
+    EXPECT_SOFT_EQ(1e-13, to_cm(VecgeomTrackView::extra_push()));
+}
+
+//---------------------------------------------------------------------------//
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
@@ -98,6 +109,16 @@ TEST_F(TwoBoxesVgdmlTest, reentrant)
 TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
 {
     this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesVgdmlTest, substep_retry)
+{
+    this->impl().test_substep_retry();
+}
+
+TEST_F(TwoBoxesVgdmlTest, substep_retry_backscatter)
+{
+    this->impl().test_substep_retry_backscatter();
 }
 
 TEST_F(TwoBoxesVgdmlTest, tangent)
