@@ -836,6 +836,16 @@ TEST_F(TwoBoxesTest, reentrant_undo)
     this->impl().test_reentrant_undo();
 }
 
+TEST_F(TwoBoxesTest, substep_retry)
+{
+    this->impl().test_substep_retry();
+}
+
+TEST_F(TwoBoxesTest, substep_retry_backscatter)
+{
+    this->impl().test_substep_retry_backscatter();
+}
+
 TEST_F(TwoBoxesTest, tangent)
 {
     this->impl().test_tangent();
