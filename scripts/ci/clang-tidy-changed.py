@@ -233,6 +233,47 @@ def source_selector(paths: list[str]) -> str:
     return "(?:^|/)(?:" + "|".join(re.escape(path) for path in paths) + ")$"
 
 
+def log_compile_commands(
+    sources: list[str], build_dir: Path, repo_root: Path
+) -> list[str]:
+    """Log compile commands and return sources without a database entry."""
+    selected_paths = resolve_paths(sources, repo_root)
+    entries = json.loads((build_dir / "compile_commands.json").read_text())
+    matched_sources: set[Path] = set()
+
+    for entry in entries:
+        directory = Path(entry.get("directory", build_dir))
+        source_path = Path(entry["file"])
+        if not source_path.is_absolute():
+            source_path = directory / source_path
+        source_path = source_path.resolve()
+        if source_path not in selected_paths:
+            continue
+
+        source = source_path.relative_to(repo_root).as_posix()
+        command = entry.get("command", entry.get("arguments"))
+        log(
+            LogLevel.NOTICE,
+            f"Compilation database entry: source={source}; "
+            f"directory={directory}; command={command!r}",
+        )
+        matched_sources.add(source_path)
+
+    missing_sources = sorted(selected_paths - matched_sources)
+    for source_path in missing_sources:
+        try:
+            relative_path = source_path.relative_to(repo_root).as_posix()
+        except ValueError:
+            relative_path = str(source_path)
+        log(
+            LogLevel.ERROR,
+            f"Source {relative_path!r} selected for clang-tidy has no "
+            "compilation database entry",
+            file=relative_path,
+        )
+    return [source.as_posix() for source in missing_sources]
+
+
 def run_header_tidy(
     args: argparse.Namespace,
     headers: set[Path],
@@ -258,6 +299,12 @@ def run_header_tidy(
         if not selected_sources:
             log(LogLevel.NOTICE, "No source files selected for the changed headers")
             return 0
+        log(LogLevel.NOTICE, f"Selected {len(selected_sources)} source files:")
+        for source in selected_sources:
+            log(LogLevel.NOTICE, f"  {source}")
+        missing_sources = log_compile_commands(selected_sources, build_dir, repo_root)
+        if missing_sources:
+            return 1
         log(
             LogLevel.NOTICE,
             f"Running clang-tidy on {len(selected_sources)} affected source files",
@@ -276,9 +323,20 @@ def run_header_tidy(
 
 
 def run_source_tidy(
-    args: argparse.Namespace, diff: str, repo_root: Path, build_dir: Path
+    args: argparse.Namespace,
+    diff: str,
+    sources: list[str],
+    repo_root: Path,
+    build_dir: Path,
 ) -> int:
     """Run clang-tidy-diff.py for changed source files only."""
+    # clang-tidy-diff.py is restricted to .cc files by the regex below.
+    tidy_sources = [
+        source for source in sources if re.fullmatch(r"(src|app|test)/.*\.cc", source)
+    ]
+    if log_compile_commands(tidy_sources, build_dir, repo_root):
+        return 1
+
     return subprocess.run(
         [
             sys.executable,
@@ -307,7 +365,7 @@ def run(args: argparse.Namespace) -> int:
     headers, sources = changed_paths(diff)
     if headers:
         return run_header_tidy(args, headers, sources, repo_root, build_dir)
-    return run_source_tidy(args, diff, repo_root, build_dir)
+    return run_source_tidy(args, diff, sources, repo_root, build_dir)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
