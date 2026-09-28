@@ -218,7 +218,7 @@ It intelligently configures the build environment by:
 - detecting the system hostname and loading the corresponding environment file
   from :file:`scripts/env/{hostname}.sh` (if available)
 - detecting and loading apptainer-specific setups using environment variables
-- linking the appropriate CMake user presets from
+- including or linking the appropriate CMake user presets from
   :file:`scripts/cmake-presets/{system}.json`
 - detecting and enabling ccache_ for faster rebuilds
 - configuring, building, and testing, and
@@ -362,8 +362,8 @@ different expectations for available dependencies.
 If you want to add your own set of custom options and flags, create a
 ``CMakeUserPresets.json`` file or, if you wish to contribute on a regular
 basis, create a preset at :file:`scripts/cmake-presets/{HOSTNAME}.json` and
-call ``scripts/build.sh {preset}`` to create the symlink, configure the preset,
-build, and test.
+call ``scripts/build.sh {preset}`` to create ``CMakeUserPresets.json``,
+configure the preset, build, and test.
 
 
 Installing for LArSoft/DUNE

@@ -66,6 +66,7 @@ debug: Loaded 1 optical materials
 debug: Loaded 9 isotopes
 debug: Loaded 3 elements
 debug: Loaded 3 geo materials
+debug: Ignoring ScopedGeantLogger initialization because log redirection is disabled
 debug: Loaded 2 physics materials
 debug: Loading process 'annihil' for particle e+ (-11)
 debug: Loading process 'eIoni' for particle e+ (-11)

@@ -86,7 +86,7 @@ struct GeantGeoStateData
     StateItems<Real3> pos;
     StateItems<Real3> dir;
     StateItems<Real3> normal;
-    StateItems<real_type> next_step;
+    StateItems<real_type> next_step;  //!< Negative if no step is cached
     StateItems<real_type> safety_radius;
     StateItems<GeoStatus> status;
 

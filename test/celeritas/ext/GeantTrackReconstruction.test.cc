@@ -42,10 +42,10 @@ class MockUserTrackInformation : public G4VUserTrackInformation
 };
 
 // Simple mock pointer class to test process pointer storage/restoration
-class MockProcess : public G4VProcess
+class MockG4Process : public G4VProcess
 {
   public:
-    explicit MockProcess(std::string name) : G4VProcess(name) {}
+    explicit MockG4Process(std::string name) : G4VProcess(name) {}
     G4VParticleChange* PostStepDoIt(G4Track const&, G4Step const&) override
     {
         return nullptr;
@@ -159,7 +159,7 @@ TEST_F(GtrTest, primary_registration)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process = std::make_unique<MockProcess>("TestCompton");
+    auto mock_process = std::make_unique<MockG4Process>("TestCompton");
     primary_track->SetCreatorProcess(mock_process.get());
 
     // Register primary
@@ -210,7 +210,7 @@ TEST_F(GtrTest, track_restoration)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process = std::make_unique<MockProcess>("TestBremsstrahlung");
+    auto mock_process = std::make_unique<MockG4Process>("TestBremsstrahlung");
     primary_track->SetCreatorProcess(mock_process.get());
 
     PrimaryId primary_id = recon.acquire(*primary_track);
@@ -270,12 +270,12 @@ TEST_F(GtrTest, end_event_cleanup)
         {G4ThreeVector(1, 0, 0), G4ThreeVector(0, 1, 0)}};
 
     Array<std::unique_ptr<G4Track>, num_primaries> primaries;
-    Array<std::unique_ptr<MockProcess>, num_primaries> processes;
+    Array<std::unique_ptr<MockG4Process>, num_primaries> processes;
 
     for (auto i : range(num_primaries))
     {
-        processes[i]
-            = std::make_unique<MockProcess>("MockProcess" + std::to_string(i));
+        processes[i] = std::make_unique<MockG4Process>(
+            "MockProcess" + std::to_string(i));
     }
     EXPECT_NE(processes[0].get(), processes[1].get());
 
@@ -384,7 +384,7 @@ TEST_F(GtrTest, reconstruction_data_persistence)
     primary_track->SetUserInformation(user_info.release());
 
     // Set creator process using mock process pointer
-    auto mock_process = std::make_unique<MockProcess>("TestIonization");
+    auto mock_process = std::make_unique<MockG4Process>("TestIonization");
     primary_track->SetCreatorProcess(mock_process.get());
 
     PrimaryId primary_id = recon.acquire(*primary_track);

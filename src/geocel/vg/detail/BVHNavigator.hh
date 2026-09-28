@@ -30,7 +30,7 @@
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
 #else
-#    include "VgNavStateWrapper.hh"
+#    include <VecGeom/navigation/NavStateIndex.h>
 #endif
 
 namespace celeritas
@@ -38,15 +38,17 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
+/*!
+ * Navigate VecGeom 1.x geometry using its BVH.
+ *
+ * \deprecated This is only used for VecGeom 1.x and will be removed along
+ * with it.
+ */
 class BVHNavigator
 {
   public:
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavState = vecgeom::NavStatePath;
-#else
-    using NavState = detail::VgNavStateWrapper;
-#endif
+    using NavState = VgNavState;
 
 #ifdef VECGEOM_FLOAT_PRECISION
     static constexpr vg_real_type kBoundaryPush = 10 * 1e-3f;
@@ -130,7 +132,8 @@ class BVHNavigator
     // Computes a step from the globalpoint (which must be in the current
     // volume) into globaldir, taking step_limit into account. If a volume is
     // hit, the function calls out_state.SetBoundaryState(true) and
-    //  - removes all volumes from out_state if the current volume is left, or
+    //  - removes all exited volumes from out_state if the current volume is
+    //    left, or
     //  - adds the hit daughter volume to out_state if one is hit.
     // However the function does _NOT_ relocate the state to the next volume,
     // that is entering multiple volumes that share a boundary.
@@ -183,7 +186,6 @@ class BVHNavigator
 
                 do
                 {
-                    out_state.SetLastExited();
                     out_state.Pop();
                     transformed
                         = currentmother->GetTransformation()->InverseTransform(
@@ -204,11 +206,25 @@ class BVHNavigator
 
     // Relocate a state that was returned from ComputeStepAndNextVolume: It
     // recursively locates the pushed point in the containing volume.
+    //
+    // If the step left one or more volumes, the outermost exited volume (a
+    // daughter of the new top volume) is excluded from the first search level
+    // so that the track cannot reenter it at the boundary. It is found by
+    // comparing with the pre-step state rather than from the navigation
+    // state's "last exited" metadata, which the path state does not track
+    // (it reports the top volume after a pop) and which would otherwise have
+    // to be cleared after every crossing.
     CELER_FUNCTION static void RelocateToNextVolume(VgReal3 const& globalpoint,
                                                     VgReal3 const& globaldir,
-                                                    NavState const&,
+                                                    NavState const& in_state,
                                                     NavState& state)
     {
+        VgPlacedVol const* exited = nullptr;
+        if (state.GetLevel() < in_state.GetLevel())
+        {
+            exited = in_state.At(state.GetLevel() + 1);
+        }
+
         // Push the point inside the next volume.
         VgReal3 pushed = globalpoint + kBoundaryPush * globaldir;
 
@@ -220,7 +236,7 @@ class BVHNavigator
         VgPlacedVol const* pvol = state.Top();
 
         state.Pop();
-        LocatePointIn(pvol, localpoint, state, false, state.GetLastExited());
+        LocatePointIn(pvol, localpoint, state, false, exited);
 
         if (state.Top() != nullptr)
         {
@@ -277,12 +293,11 @@ class BVHNavigator
         in_state.CopyTo(&out_state);
         if (step == vecgeom::kInfLength && step_limit > 0)
         {
+            // The point is leaving the current volume. Like any other exit,
+            // the caller pops up to the containing volume: popping here as
+            // well would skip a level and transform the point into the wrong
+            // frame.
             out_state.SetBoundaryState(true);
-            do
-            {
-                out_state.Pop();
-            } while (out_state.Top()->IsAssembly());
-
             return vecgeom::kTolerance;
         }
 

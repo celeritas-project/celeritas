@@ -31,8 +31,10 @@ jobs:
       fail-fast: false
       matrix:
         geometry: ["vecgeom"]
-        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3"]
+        geant: ["10.5", "10.6", "10.7", "11.0", "11.1", "11.2", "11.3", "11.4"]
         include:
+          - geometry: "orange"
+            geant: "11.3"
           - geometry: "orange"
             special: "float"
             geant: "11.3"
@@ -46,6 +48,8 @@ jobs:
             geant: "11.3"
           - geometry: "geant4"
             geant: "11.3"
+          - geometry: "geant4"
+            geant: "11.3+vecgeom" # NOTE: non-numeric version requires special casing fromJSON
     env:
       CELER_CMAKE_PRESET: >-
         ${{format(
@@ -81,13 +85,11 @@ jobs:
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
-               || matrix.geometry == 'vecgeom2' && 'vecgeom@2.1.0'
+               || contains(matrix.geometry, 'vecgeom') && 'vecgeom@2.1.0'
+               || contains(matrix.geant, 'vecgeom') && 'vecgeom@2.1.0'
                || ''
             }}
-            ${{(matrix.geometry == 'vecgeom'
-                || matrix.geometry == 'vecgeom2')
-               && 'g4vg' || ''
-            }}
+            ${{ contains(matrix.geometry, 'vecgeom') && 'g4vg' || '' }}
 
       ### BUILD ###
 
@@ -119,7 +121,7 @@ jobs:
           ninja -v -k0 update-root-test-data
       - name: Run tests
         id: test
-        if: ${{matrix.special != 'static'}}
+        if: ${{matrix.special != 'static'}} # static disables tests due to build size
         uses: ./.github/actions/run-ctest
         with:
           name: ${{env.CELER_RUN_NAME}}
@@ -129,12 +131,13 @@ jobs:
           filter-unit: >-
             ${{
               matrix.special == 'static' && 'none'
+              || contains(matrix.geant, '+vecgeom') && '^geocel/'
               || fromJSON(matrix.geant) < 11 && '^accel/'
              }}
       - name: Test basic downstream compilation against build dir
         if: ${{ !cancelled() && steps.build.outputs.outcome == 'success' }}
         env:
-          CELER_DISABLE_G4_EXAMPLES: 1 # Only test minimal example for this one
+          G4VERSION_NUMBER: 0 # Only test minimal example for this one
         run: |
           CELER_INSTALL_DIR=${PWD}/build ./scripts/ci/test-examples.sh
 
@@ -146,9 +149,7 @@ jobs:
         uses: ./.github/actions/install-and-check
         with:
           binaries: orange-update celer-geo celer-export-geant celer-sim celer-g4
-      - name: Build and run examples
-        env:
-          CELER_DISABLE_G4_EXAMPLES: "0"
+      - name: Build and run examples"
         if: ${{ !cancelled() && steps.install.outcome == 'success' }}
         run: |
           export G4VERSION_NUMBER=$(echo "${{matrix.geant}}" | awk '{printf "%.0f", $1 * 100}')

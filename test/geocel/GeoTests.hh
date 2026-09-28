@@ -16,6 +16,8 @@
 
 namespace celeritas
 {
+class CheckedGeoTrackView;
+
 namespace test
 {
 class GenericGeoTestInterface;
@@ -113,6 +115,7 @@ class FourLevelsGeoTest
     void test_reentrant() const;
     void test_reentrant_normal() const;
     void test_locate_point() const;
+    void test_pico_step() const;
     void test_safety() const;
     void test_small_steps() const;
     void test_trace() const;
@@ -353,11 +356,15 @@ class TwoBoxesGeoTest
     void test_detailed_tracking() const;
     void test_reentrant() const;
     void test_reentrant_undo() const;
+    void test_substep_retry() const;
+    void test_substep_retry_backscatter() const;
     void test_tangent() const;
     void test_trace() const;
 
   private:
     GenericGeoTestInterface* test_;
+
+    CheckedGeoTrackView approach_with_substeps() const;
 };
 
 //---------------------------------------------------------------------------//

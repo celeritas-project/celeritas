@@ -8,6 +8,8 @@
 
 #include <optional>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/io/Logger.hh"
@@ -16,90 +18,35 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/math/NumericLimits.hh"
 #include "corecel/math/SoftEqual.hh"
-#include "geocel/GeoParamsInterface.hh"
-#include "geocel/VolumeParams.hh"
+
+#include "GeoInterface.hh"
+#include "GeoParamsInterface.hh"  // IWYU pragma: keep
+#include "UnitLength.hh"
 
 using namespace celeritas::literals;
 
 namespace celeritas
 {
-namespace test
-{
 namespace
 {
 //---------------------------------------------------------------------------//
 
-struct StreamableUniqueVolName
+std::ostream& full_precision(std::ostream& os)
 {
-    GeoTrackInterface<real_type> const& geo;
-    VolumeParams const& params;
-};
-
-std::ostream& operator<<(std::ostream& os, StreamableUniqueVolName const& suvn)
-{
-    if (suvn.geo.is_outside())
-    {
-        return os << "[OUTSIDE]";
-    }
-
-    auto const& vi_labels = suvn.params.volume_instance_labels();
-    if (vi_labels.empty())
-    {
-        return os;
-    }
-
-    auto vlev = suvn.geo.volume_level();
-    CELER_ASSERT(vlev && vlev >= VolumeLevelId{0});
-
-    std::vector<VolumeInstanceId> ids(vlev.get() + 1);
-    suvn.geo.volume_instance_id(make_span(ids));
-
-    os << vi_labels.at(ids[0]);
-    for (auto i : range(std::size_t{1}, ids.size()))
-    {
-        os << '/';
-        if (ids[i])
-        {
-            os << vi_labels.at(ids[i]);
-        }
-        else
-        {
-            os << "[INVALID]";
-        }
-    }
+    os.precision(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT ? 7 : 14);
     return os;
 }
 
-//! Print a length/position as a quantity with units
-template<class T>
-struct StreamableLength
-{
-    T const& native_value;
-    UnitLength const& units;
-};
-
-// Needed for C++17
-template<class T>
-StreamableLength(T const&, UnitLength) -> StreamableLength<T>;
-
-template<class T>
-std::ostream& operator<<(std::ostream& os, StreamableLength<T> const& sl)
-{
-    os << repr(sl.units.from_native(sl.native_value)) << " [" << sl.units.label
-       << ']';
-    return os;
-}
-
-//! Print a length/position as a quantity with units
+//---------------------------------------------------------------------------//
+//! Print a label with the native unit length
 struct NativeLength
 {
+    friend std::ostream& operator<<(std::ostream& os, NativeLength const&)
+    {
+        os << " [" << native_unit_length.label << ']';
+        return os;
+    }
 };
-
-std::ostream& operator<<(std::ostream& os, NativeLength const&)
-{
-    os << " [" << lengthunits::native_label << ']';
-    return os;
-}
 
 //---------------------------------------------------------------------------//
 
@@ -112,7 +59,7 @@ std::ostream& operator<<(std::ostream& os, NativeLength const&)
     msg << ": " << cgtv;
     throw CheckedGeoError{{RuntimeError::validate_err_str,
                            std::move(msg).str(),
-                           cond,
+                           std::move(cond),
                            file,
                            line}};
 }
@@ -191,9 +138,9 @@ CheckedGeoTrackView& CheckedGeoTrackView::operator=(
     GeoTrackInitializer const& init)
 {
     CELER_EXPECT(t_);
-    CGTV_LOG(debug) << "Initializing at "
+    CGTV_LOG(debug) << "Initializing at " << full_precision
                     << StreamableLength{init.pos, unit_length_} << " along "
-                    << repr(init.dir);
+                    << init.dir;
     CELER_VALIDATE(is_soft_unit_vector(init.dir),
                    << "cannot initialize with a non-unit direction "
                    << repr(init.dir));
@@ -201,13 +148,14 @@ CheckedGeoTrackView& CheckedGeoTrackView::operator=(
     *t_ = init;
     CGTV_VALIDATE_NOT_FAILED(*this, "initialization");
     CGTV_VALIDATE(*this, !t_->is_outside(), << "initialized outside");
+    count_ = {};
+    next_step_.reset();
+
     if (t_->is_on_boundary())
     {
         CGTV_LOG(warning) << "Started on a boundary: " << *this;
     }
-    count_ = {};
-    next_boundary_.reset();
-    CGTV_LOG(status) << "Initialized: " << *this;
+    CGTV_LOG(status) << "Initialized " << *this;
     return *this;
 }
 
@@ -241,6 +189,7 @@ real_type CheckedGeoTrackView::find_safety()
  */
 real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 {
+    CGTV_LOG(debug) << "Finding safety up to " << full_precision << max_safety;
     CELER_VALIDATE(max_safety > 0,
                    << "invalid safety maximum " << repr(max_safety)
                    << NativeLength{});
@@ -258,14 +207,21 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
 
     if (result > max_safety)
     {
-        CGTV_LOG(warning) << "Returned safety " << repr(result)
-                          << NativeLength{}
+        CGTV_LOG(warning) << full_precision << "Returned safety "
+                          << StreamableLength{result, unit_length_} << " at "
+                          << StreamableLength{t_->pos(), unit_length_}
                           << " exceeds requested search distance "
-                          << repr(max_safety) << NativeLength{};
+                          << max_safety << NativeLength{};
     }
     else if (result == 0)
     {
         CGTV_LOG(warning) << "Encountered zero safety: " << *this;
+    }
+    else
+    {
+        CGTV_LOG(status) << "Found safety "
+                         << StreamableLength{result, unit_length_} << " at "
+                         << StreamableLength{t_->pos(), unit_length_};
     }
 
     return result;
@@ -280,6 +236,7 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
  */
 void CheckedGeoTrackView::set_dir(Real3 const& newdir)
 {
+    CGTV_LOG(debug) << "Changing direction to " << newdir;
     CELER_VALIDATE(is_soft_unit_vector(newdir),
                    << "cannot change to a non-unit direction " << repr(newdir));
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
@@ -296,9 +253,9 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
     CGTV_VALIDATE(*this,
                   impl_vol == t_->impl_volume_id(),
                   << "volume changed during set_dir");
-    next_boundary_.reset();
+    next_step_.reset();
 
-    CGTV_LOG(status) << "Set direction to " << repr(newdir);
+    CGTV_LOG(status) << "Set direction to " << repr(t_->dir());
 }
 
 //---------------------------------------------------------------------------//
@@ -311,7 +268,7 @@ void CheckedGeoTrackView::set_dir(Real3 const& newdir)
  */
 Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 {
-    CGTV_LOG(debug) << "Finding next step";
+    CGTV_LOG(debug) << full_precision << "Finding next step up to " << distance;
     CELER_VALIDATE(distance > 0,
                    << "invalid step maximum " << repr(distance)
                    << NativeLength{});
@@ -320,11 +277,11 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                    << "cannot find next step from outside");
     auto const& units = this->unit_length();
 
-    if (next_boundary_ && distance <= *next_boundary_)
+    if (next_step_ && distance <= *next_step_)
     {
         CGTV_LOG(warning) << "Finding next step up to " << repr(distance)
                           << NativeLength{} << " when previous step "
-                          << repr(*next_boundary_) << NativeLength{}
+                          << repr(*next_step_) << NativeLength{}
                           << " was already calculated";
     }
 
@@ -355,10 +312,9 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
     {
         if (check_zero_distance_)
         {
-            // TODO: replace zero-distance from reentering geometry (ORANGE)
-            // with a different propagation status
-            CGTV_LOG(warning)
-                << "Returning zero distance should be prohibited: " << *this;
+            // TODO: replace zero-distance from reentering geometry (ORANGE and
+            // VecGeom 2+) with a different propagation status
+            CGTV_LOG(info) << "Returning zero distance: " << *this;
         }
         if (t_->is_on_boundary() != started_on_boundary)
         {
@@ -377,10 +333,15 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
                       || result.distance == 0,
                   << "boundary state changed during find_next_step (started "
                   << (started_on_boundary ? "on" : "off") << " boundary)");
-    CGTV_LOG(info) << (result.boundary ? "Found" : "No") << " boundary at "
-                   << result.distance;
+    CGTV_LOG(status) << (result.boundary ? "Found" : "No") << " boundary at "
+                     << StreamableLength{result.distance, unit_length_};
 
-    next_boundary_ = result.distance;
+    if (result.boundary || result.distance > next_step_.value_or(0_r))
+    {
+        next_is_boundary_ = result.boundary;
+        next_step_ = result.distance;
+    }
+    CELER_ENSURE(next_step_);
     return result;
 }
 
@@ -388,22 +349,36 @@ Propagation CheckedGeoTrackView::find_next_step(real_type distance)
 /*!
  * Move within the volume along the current direction.
  *
+ * \pre Boundary must have been found and \em step is less than it
  * \post Not on boundary
  */
 void CheckedGeoTrackView::move_internal(real_type step)
 {
-    CGTV_LOG(debug) << "Moving " << StreamableLength{step, unit_length_};
+    CGTV_LOG(debug) << "Moving " << full_precision
+                    << StreamableLength{step, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
-    // TODO: check next_boundary_
+    CELER_VALIDATE(next_step_, << "tried to move before finding the next step");
+    CELER_VALIDATE(step <= *next_step_,
+                   << "internal step " << step << " exceeds linear step "
+                   << *next_step_ << " by " << (step - *next_step_)
+                   << NativeLength{});
+    CELER_VALIDATE(step != next_step_ || !next_is_boundary_,
+                   << "cannot move_internal to a boundary");
 
     t_->move_internal(step);
-    next_boundary_.reset();
+    *next_step_ -= step;
+    if (next_step_ <= 0)
+    {
+        next_step_.reset();
+    }
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !t_->is_on_boundary() && !t_->is_outside(),
                   << "on boundary after moving " << repr(step)
                   << NativeLength{});
+    CGTV_LOG(status) << "Moved internally by "
+                     << StreamableLength{step, unit_length_};
 }
 
 //---------------------------------------------------------------------------//
@@ -413,18 +388,24 @@ void CheckedGeoTrackView::move_internal(real_type step)
  * The first call to this function will perform additional checking by
  * reinitializing the geometry at the given position.
  *
+ * \note We do not validate that the input position is path-connected with the
+ * current position since that's non-trivial.
+ *
+ * \pre Inside the geometry
  * \post Not on boundary
  */
 void CheckedGeoTrackView::move_internal(Real3 const& pos)
 {
-    CGTV_LOG(debug) << "Moving to " << StreamableLength{pos, unit_length_};
+    CGTV_LOG(debug) << "Moving to " << full_precision
+                    << StreamableLength{pos, unit_length_};
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "cannot move while outside");
+    // TODO: store and check last found safety
 
     real_type orig_safety = (t_->is_on_boundary() ? 0 : t_->find_safety());
     auto orig_pos = t_->pos();
     t_->move_internal(pos);
-    next_boundary_.reset();
+    next_step_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_internal");
     CGTV_VALIDATE(*this,
                   !this->is_on_boundary() && !t_->is_outside(),
@@ -448,22 +429,24 @@ void CheckedGeoTrackView::move_internal(Real3 const& pos)
         real_type new_safety = t_->find_safety();
         if (!(new_safety > 0))
         {
-            auto const& units = this->unit_length();
-            CGTV_LOG(warning)
+            CELER_LOG_LOCAL(warning)
                 << "Moved internally from boundary but safety didn't "
                    "increase: volume "
                 << t_->impl_volume_id().get() << " from " << repr(orig_pos)
-                << NativeLength{} << " to " << repr(t_->pos())
-                << NativeLength{} << " (distance: " << distance(orig_pos, pos)
-                << NativeLength{} << ")";
+                << " to " << repr(t_->pos())
+                << " (distance: " << distance(orig_pos, pos) << NativeLength{}
+                << ")";
         }
     }
+    CGTV_LOG(status) << "Moved internally to "
+                     << StreamableLength{pos, unit_length_};
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary.
  *
+ * \pre Boundary has been found
  * \post On boundary
  */
 void CheckedGeoTrackView::move_to_boundary()
@@ -471,14 +454,21 @@ void CheckedGeoTrackView::move_to_boundary()
     CGTV_LOG(debug) << "Moving to boundary";
     CELER_VALIDATE(!this->failed() || !check_failure_, << "failure exists");
     CELER_VALIDATE(!this->is_outside(), << "invalid call while outside");
+    CELER_VALIDATE(next_step_ && next_is_boundary_,
+                   << "invalid call while outside");
+    auto const step = *next_step_;
 
     t_->move_to_boundary();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_to_boundary");
     checked_internal_ = false;
+    next_step_.reset();
+    next_is_boundary_ = false;
 
     CGTV_VALIDATE(*this,
                   t_->is_on_boundary(),
                   << "moving to boundary did not leave track on a boundary");
+    CGTV_LOG(status) << "Moved to boundary at "
+                     << StreamableLength{step, unit_length_};
 }
 
 //---------------------------------------------------------------------------//
@@ -495,10 +485,10 @@ void CheckedGeoTrackView::cross_boundary()
                    << "cannot cross boundary without being on boundary");
 
     // Capture pre-crossing normal if checking is enabled
-    std::optional<Real3> pre_crossing_normal;
+    std::optional<Real3> pre_norm;
     if (check_normal_ && !t_->is_outside())
     {
-        pre_crossing_normal = t_->normal();
+        pre_norm = t_->normal();
     }
 
     // Cross boundary
@@ -509,124 +499,55 @@ void CheckedGeoTrackView::cross_boundary()
                   << "not on boundary after crossing boundary");
 
     // Verify post-crossing normal if checking is enabled
-    if (pre_crossing_normal && !t_->is_outside())
+    std::optional<Real3> post_norm;
+    if (pre_norm && !t_->is_outside())
     {
-        auto post_norm = t_->normal();
-        CGTV_VALIDATE(
-            *this,
-            soft_equal(std::fabs(dot_product(*pre_crossing_normal, post_norm)),
-                       1_r),
-            << "inconsistent surface normal: pre-crossing "
-            << *pre_crossing_normal << ", post-crossing " << post_norm);
-
-        // Check for tangent crossing warning
-        if (soft_zero(dot_product(t_->dir(), post_norm)))
+        SoftZero const soft_zero_dir{celeritas::sqrt_tol<real_type>};
+        post_norm = t_->normal();
+        auto norm_error = min(std::fabs(distance(*pre_norm, *post_norm)),
+                              std::fabs(distance(*pre_norm, -*post_norm)));
+        CGTV_VALIDATE(*this,
+                      soft_zero_dir(norm_error),
+                      << "inconsistent surface normal "
+                      << "(error " << norm_error << "): pre-crossing "
+                      << repr(*pre_norm) << ", post-crossing "
+                      << repr(*post_norm));
+        constexpr real_type tight_tol
+            = std::is_same_v<real_type, float> ? 1e-5 : 1e-10;
+        if (!SoftZero<real_type>{tight_tol}(norm_error))
         {
             CGTV_LOG(warning)
-                << "Crossed at a tangent normal " << repr(post_norm)
-                << ": post-crossing state is " << *this;
+                << "Pre- and post- surface normals almost disagree "
+                << "(error " << norm_error << "): pre-crossing "
+                << repr(*pre_norm) << ", post-crossing " << repr(*post_norm);
+        }
+
+        // Check for tangent crossing
+        auto dot_normal = dot_product(t_->dir(), *post_norm);
+        if (soft_zero_dir(dot_normal))
+        {
+            CGTV_LOG(warning)
+                << "Crossed at a tangent: dot product of exiting normal "
+                << repr(*post_norm) << " with direction " << repr(t_->dir())
+                << " is " << dot_normal;
         }
     }
-    CGTV_LOG(status) << "Crossed boundary: " << *this;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the descriptive, robust volume name based on the geo state.
- */
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        VolumeParams const& params)
-{
-    if (geo.is_outside())
     {
-        return "[OUTSIDE]";
+        auto msg = CGTV_LOG(status);
+        msg << "Crossed boundary";
+        if (pre_norm)
+        {
+            msg << " with pre-crossing normal " << *pre_norm;
+        }
+        if (this->volumes())
+        {
+            msg << " into " << StreamableUniqueVolName{*this, *this->volumes()};
+        }
+        if (post_norm)
+        {
+            msg << " with post-crossing normal " << *post_norm;
+        }
     }
-
-    auto const& vol_labels = params.volume_labels();
-    if (vol_labels.empty())
-        return {};
-
-    VolumeId id = geo.volume_id();
-    if (!(id < vol_labels.size()))
-    {
-        return "[INVALID]";
-    }
-
-    return vol_labels.at(id).name;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the descriptive, robust impl volume name based on the geo state.
- */
-std::string volume_name(GeoTrackInterface<real_type> const& geo,
-                        GeoParamsInterface const& params)
-{
-    if (geo.is_outside())
-    {
-        return "[OUTSIDE]";
-    }
-
-    auto const& vol_labels = params.impl_volumes();
-    if (vol_labels.empty())
-        return {};
-
-    ImplVolumeId id = geo.impl_volume_id();
-    if (!(id < vol_labels.size()))
-    {
-        return "[INVALID]";
-    }
-
-    return vol_labels.at(id).name;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the descriptive, robust volume instance name based on the geo state.
- */
-std::string volume_instance_name(GeoTrackInterface<real_type> const& geo,
-                                 VolumeParams const& params)
-{
-    if (geo.is_outside())
-    {
-        return "[OUTSIDE]";
-    }
-
-    auto const& vi_labels = params.volume_instance_labels();
-    if (vi_labels.empty())
-        return {};
-
-    VolumeInstanceId vi_id;
-    try
-    {
-        vi_id = geo.volume_instance_id();
-    }
-    catch (celeritas::DebugError const& e)
-    {
-        std::ostringstream os;
-        auto const& d = e.details();
-        os << "<exception at " << d.file << ':' << d.line << ": "
-           << d.condition << '>';
-        return std::move(os).str();
-    }
-    if (!(vi_id < vi_labels.size()))
-    {
-        return "[INVALID]";
-    }
-
-    return to_string(vi_labels.at(vi_id));
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the descriptive, robust volume instance name based on the geo state.
- */
-std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
-                               VolumeParams const& params)
-{
-    std::ostringstream os;
-    os << StreamableUniqueVolName{geo, params};
-    return std::move(os).str();
 }
 
 //---------------------------------------------------------------------------//
@@ -635,11 +556,14 @@ std::string unique_volume_name(GeoTrackInterface<real_type> const& geo,
  */
 std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
 {
-    // Length scale and description
+    // Print high-precision pos/dir with desired units
     auto const& units = geo.unit_length();
+    auto const orig_precision = os.precision();
+    os << full_precision << "at " << StreamableLength{geo.pos(), units}
+       << " along " << geo.dir() << ", ";
+    os.precision(orig_precision);
 
-    os << "at " << StreamableLength{geo.pos(), units} << " along "
-       << repr(geo.dir()) << ", ";
+    // Flags and states
     if (geo.failed())
     {
         os << "[FAILED] ";
@@ -670,5 +594,4 @@ std::ostream& operator<<(std::ostream& os, CheckedGeoTrackView const& geo)
 }
 
 //---------------------------------------------------------------------------//
-}  // namespace test
 }  // namespace celeritas

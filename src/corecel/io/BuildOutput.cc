@@ -101,7 +101,11 @@ void BuildOutput::output(JsonPimpl* j) const
             CO_ADD_COND_VERS(LARSOFT, LArSoft, larsoft);
             CO_ADD_COND_VERS(ROOT, ROOT, root);
             CO_ADD_COND_VERS(VECGEOM, G4VG, g4vg);
-            CO_ADD_COND_VERS(VECGEOM, VecGeom, vecgeom);
+            // VecGeom version sitting underneath Geant4 affects G4 geometry
+            // tracking: output if either is true
+            constexpr bool CELERITAS_USE_VECGEOM_OR_USOLIDS
+                = CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS;
+            CO_ADD_COND_VERS(VECGEOM_OR_USOLIDS, VecGeom, vecgeom);
 #undef CO_ADD_COND_VERS
             return deps;
         }();
@@ -111,7 +115,7 @@ void BuildOutput::output(JsonPimpl* j) const
             cfg["geant4"] = std::string(cmake::geant4_options);
         }
 
-        if constexpr (CELERITAS_USE_VECGEOM)
+        if constexpr (CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS)
         {
             cfg["vecgeom"] = std::string(cmake::vecgeom_options);
         }

@@ -36,6 +36,9 @@ struct GeoTraits<OrangeParams>
     //! Geometry track view
     using TrackView = OrangeTrackView;
 
+    //! Geometry track view
+    using WrappedTrackView = WrappedGeoTrackView<TrackView>;
+
     //! ORANGE implementation uses surfaces
     static constexpr bool has_impl_surface = true;
     static constexpr bool has_impl_volume_instance = false;

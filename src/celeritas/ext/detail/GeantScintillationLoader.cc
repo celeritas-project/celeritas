@@ -206,9 +206,12 @@ GeantScintillationLoader::load_spectrum(GeantMaterialPropertyGetter const& get,
     bool has_grid = get(grid, prop("COMPONENT"), {IU::mev, IU::unitless});
 
     auto gaussian = load_gaussian(get, prefix, suffix);
-    CELER_VALIDATE(!(has_grid && gaussian),
-                   << "conflicting scintillation spectrum definitions for "
-                   << prefix + suffix);
+    if (has_grid && gaussian)
+    {
+        CELER_LOG(warning)
+            << "Ignoring scintillation grid spectrum definition (" << prefix
+            << "COMPONENT" << suffix << "): using gaussian lambda/sigma";
+    }
 
     CELER_VALIDATE(has_props == (has_grid || gaussian),
                    << "incomplete spectrum parameters provided");
