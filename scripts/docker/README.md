@@ -74,7 +74,7 @@ $ docker build -f scripts/docker/buildcache/Dockerfile -t celeritas-buildcache .
 ```
 
 Pushing requires a GitHub personal access token (classic) with the
-`write:packages` scope, authorized for the `celeritas-project` organization.
+`write:packages`, and `delete:packages` scopes, authorized for the `celeritas-project` organization.
 Put the credentials in a private file such as `buildcache.env`:
 ```sh
 GITHUB_USER=your-github-username
@@ -102,8 +102,6 @@ $ podman-hpc run --rm -it --user 0 \
     --env-file buildcache.env \
     celeritas-buildcache
 ```
-Run long builds on a compute node (`podman-hpc migrate celeritas-buildcache`
-makes the image available there) rather than a login node.
 
 Notes:
 - The entrypoint checks out the Spack and spack-packages commits pinned in the
@@ -111,9 +109,8 @@ Notes:
   matches CI even if the image is older than the pins.
 - The host CPU must support `x86_64_v3` (AVX2), the target required by
   `scripts/spack/reqs-ci.yaml`: CPU emulation is not supported.
-- The first run takes several hours. The `celeritas-opt-ci` volume keeps the
-  installed packages, so rerunning after a failure or a matrix change only
-  builds what is missing.
+- The `celeritas-opt-ci` volume keeps the installed packages,
+  so rerunning after a failure or a matrix change only builds what is missing.
 - Do not mount a volume at `/work`: the update script skips environment
   directories that already exist there, which would silently skip
   environments after the Spack version or the matrix changes.
