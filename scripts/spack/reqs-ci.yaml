@@ -17,6 +17,10 @@ mirrors::
     access_pair:
       id_variable: GITHUB_USER
       secret_variable: GITHUB_TOKEN
+  # Restore the Spack default source mirror for unreliable upstream hosts
+  spack-public:
+    binary: false
+    url: https://mirror.spack.io
 
 config:
   deprecated: True # needed for old vecgeom rc7

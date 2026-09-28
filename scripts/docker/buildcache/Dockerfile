@@ -17,10 +17,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8
 
 # System externals must match the versions in scripts/spack/ext-ubuntu24.yaml.
-# The GitHub runner also has GCC 14, whose libstdc++ headers clang-18 selects.
+# Like the GitHub runner, provide build-essential: some autotools packages
+# probe for the unversioned c++ and /lib/cpp even when they only need C. The
+# runner also has GCC 14, whose libstdc++ headers clang-18 selects.
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
-    autoconf bash clang-18 g++-13 gcc-13 gfortran-13 git m4 make perl \
+    autoconf bash build-essential clang-18 g++-13 gcc-13 gfortran-13 git \
+    m4 make perl \
     bzip2 ca-certificates curl file gzip libstdc++-14-dev patch python3 \
     python3-yaml tar unzip xz-utils zstd \
  && rm -rf /var/lib/apt/lists/*
@@ -33,6 +36,13 @@ RUN useradd --create-home --shell /bin/bash celeritas \
  && mkdir -p /opt/spack /opt/spack-packages /scratch/celeritas/opt-ci /work \
  && chown celeritas:celeritas \
     /opt/spack /opt/spack-packages /scratch/celeritas/opt-ci /work
+
+# Rootless podman (e.g. podman-hpc) must run as container root to access
+# bind-mounted files owned by the host user: allow root to use the Spack
+# checkouts and to configure autotools packages
+RUN git config --system --add safe.directory /opt/spack \
+ && git config --system --add safe.directory /opt/spack-packages
+ENV FORCE_UNSAFE_CONFIGURE=1
 
 # Match the environment of .github/actions/setup-spack
 ENV SPACK_ROOT=/opt/spack \

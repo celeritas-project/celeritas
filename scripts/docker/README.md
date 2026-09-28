@@ -90,6 +90,21 @@ $ docker run --rm -it \
 ```
 Append `bash` to the command for an interactive shell instead.
 
+With rootless podman, such as `podman-hpc` on Perlmutter, the container's
+`celeritas` user cannot read files owned by your host user: run as container
+root (which is your own user) and keep the installations in a scratch directory
+so they are visible from every node:
+```console
+$ mkdir -p $SCRATCH/celeritas-opt-ci
+$ podman-hpc run --rm -it --user 0 \
+    -v "$PWD:/celeritas:ro" \
+    -v $SCRATCH/celeritas-opt-ci:/scratch/celeritas/opt-ci \
+    --env-file buildcache.env \
+    celeritas-buildcache
+```
+Run long builds on a compute node (`podman-hpc migrate celeritas-buildcache`
+makes the image available there) rather than a login node.
+
 Notes:
 - The entrypoint checks out the Spack and spack-packages commits pinned in the
   mounted `.github/actions/setup-spack/action.yml`, so the concretization
@@ -102,3 +117,7 @@ Notes:
 - Do not mount a volume at `/work`: the update script skips environment
   directories that already exist there, which would silently skip
   environments after the Spack version or the matrix changes.
+- Build logs of failed packages (including `config.log`) stay in the stage
+  directory under `/tmp/<user>/spack-stage` inside the container. The update
+  script stops at the first failure, so omit `--rm` to keep the container and
+  copy them out with `docker cp`.
