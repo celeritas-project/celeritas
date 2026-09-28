@@ -1537,6 +1537,13 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[0] = 0.21064231509248;
+            ref.halfway_safeties[2] = 0.552671035949497;
+            ref.halfway_safeties[6] = 0.564195705685754;
+        }
+
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1600,6 +1607,12 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
+
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[2] = 0.679984226889976;
+        }
+
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1663,6 +1676,13 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
+
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[0] = 0.368525403784439;
+            ref.halfway_safeties[2] = 0.794094668559638;
+            ref.halfway_safeties[6] = 0.801538105676658;
+        }
 
         auto tol = test_->tracking_tol();
         // Bump the tolerance by 25% for safety comparisons only: this became
