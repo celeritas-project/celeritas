@@ -13,8 +13,8 @@
 #include "celeritas/Constants.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/io/ImportOpticalMaterial.hh"
-#include "celeritas/optical/GroupVelocityGridBuilder.hh"
 #include "celeritas/optical/MaterialParams.hh"
+#include "celeritas/optical/detail/GroupVelocityGridBuilder.hh"
 
 #include "celeritas_test.hh"
 
@@ -236,7 +236,7 @@ TEST_F(GroupVelocityCalculatorTest, group_velocity_grid_builder)
         = material->get(OptMatId{0}).make_refractive_index_calculator();
 
     inp::Grid actual_group_velocity
-        = GroupVelocityGridBuilder{rindex_calc}(rindex);
+        = detail::GroupVelocityGridBuilder{rindex_calc}(rindex);
 
     // Interior points correspond to the midpoint of the preceding interval.
     static real_type const expected_energy[]

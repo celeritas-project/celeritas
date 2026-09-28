@@ -2,24 +2,26 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/GroupVelocityGridBuilder.cc
+//! \file celeritas/optical/detail/GroupVelocityGridBuilder.cc
 //---------------------------------------------------------------------------//
 #include "GroupVelocityGridBuilder.hh"
 
-#include "celeritas/grid/NonuniformGridCalculator.hh"
+#include "corecel/Assert.hh"
+#include "corecel/grid/DerivativeGridCalculator.hh"
+#include "celeritas/Constants.hh"
+#include "celeritas/Types.hh"
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
+namespace optical
+{
+namespace detail
+{
 //---------------------------------------------------------------------------//
 /*!
- * Construct with defaults.
+ * Construct the group-velocity grid.
  */
-inp::Grid optical::GroupVelocityGridBuilder::operator()(
-    inp::Grid const& ri) const
+inp::Grid GroupVelocityGridBuilder::operator()(inp::Grid const& ri) const
 {
     CELER_EXPECT(ri);
 
@@ -41,15 +43,16 @@ inp::Grid optical::GroupVelocityGridBuilder::operator()(
         real_type const group_velocity
             = constants::c_light / (rindex + energy * rindex_derivative_val);
 
-        real_type const phase_velocity = constants::c_light / rindex;
+        CELER_ASSERT(group_velocity <= constants::c_light / rindex);
 
-        result.y[i] = (group_velocity > 0 && group_velocity <= phase_velocity)
-                          ? group_velocity
-                          : phase_velocity;
+        result.y[i] = group_velocity;
     }
 
     CELER_ENSURE(result);
     return result;
 }
+
 //---------------------------------------------------------------------------//
+}  // namespace detail
+}  // namespace optical
 }  // namespace celeritas

@@ -2,21 +2,18 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/optical/GroupVelocityGridBuilder.hh
+//! \file celeritas/optical/detail/GroupVelocityGridBuilder.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include "corecel/cont/Range.hh"
-#include "corecel/grid/DerivativeGridCalculator.hh"
 #include "corecel/inp/Grid.hh"
-#include "corecel/io/Logger.hh"
-#include "celeritas/Constants.hh"
-#include "celeritas/Types.hh"
 #include "celeritas/grid/NonuniformGridCalculator.hh"
 
 namespace celeritas
 {
 namespace optical
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -53,5 +50,6 @@ class GroupVelocityGridBuilder
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace optical
 }  // namespace celeritas

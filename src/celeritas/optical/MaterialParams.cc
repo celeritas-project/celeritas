@@ -22,7 +22,7 @@
 #include "celeritas/io/ImportData.hh"
 #include "celeritas/mat/MaterialParams.hh"
 
-#include "GroupVelocityGridBuilder.hh"
+#include "detail/GroupVelocityGridBuilder.hh"
 
 namespace celeritas
 {
@@ -132,7 +132,8 @@ MaterialParams::MaterialParams(Input const& inp)
 
         // Add group velocity grid use the rindex grid to interpolate the
         // refractive index and to evaluate its derivative
-        insert_group_velocity(GroupVelocityGridBuilder{rindex_calc}(ri));
+        insert_group_velocity(
+            detail::GroupVelocityGridBuilder{rindex_calc}(ri));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
     CELER_ASSERT(data.group_velocity.size() == inp.properties.size());
