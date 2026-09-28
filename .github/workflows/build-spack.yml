@@ -81,7 +81,7 @@ jobs:
           add: >-
             ${{(matrix.special != 'static'
                 && env.CXXSTD == '20')
-               && 'root' || ''
+               && 'root' || 'hepmc3~rootio'
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
             ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
