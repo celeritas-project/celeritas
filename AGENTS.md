@@ -19,6 +19,11 @@ implementation, not just its log or documentation. If a commit or helper
 reports failure, inspect `git status` and recent history before retrying; do not
 assume either success or failure.
 
+When analyzing a specific GitHub review discussion, retrieve the comment by its
+numeric discussion ID and verify the returned ID and body before interpreting
+it. Do not select a comment from a page-wide fetch, which may contain unrelated
+review threads.
+
 ### After any user correction — update this file
 
 **When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
