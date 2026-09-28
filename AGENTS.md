@@ -68,6 +68,11 @@ The script runs `git add -A`, `pre-commit run`, `git commit --trailer "Assisted-
 `--no-verify` as an extra argument only if pre-commit is already known to
 pass.
 
+After a commit command or helper reports an error, do not assume whether the
+commit succeeded. Verify the resulting `git status`, `git log`, and commit
+contents before retrying or reporting a commit ID. Report only commit IDs that
+resolve in the current repository and contain the intended changes.
+
 The commit message format for `build/commit_msg.txt`:
 
 ```
