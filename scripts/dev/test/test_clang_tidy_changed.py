@@ -82,33 +82,73 @@ def test_run_tidy_stops_for_missing_source(
         monkeypatch.setattr(
             _MODULE, "select_sources", lambda **kwargs: ["src/missing.cc"]
         )
-        result = run_header_tidy(
+        with pytest.raises(RuntimeError, match="^missing sources$"):
+            run_header_tidy(
+                Namespace(
+                    clang_scan_deps="clang-scan-deps",
+                    clang_tidy="clang-tidy",
+                    run_clang_tidy="run-clang-tidy",
+                    header_source_selection=_MODULE.SourceSelection.ALL,
+                ),
+                {repo_root / "src/example.hh"},
+                set(),
+                repo_root,
+                build_dir,
+            )
+    else:
+        with pytest.raises(RuntimeError, match="^missing sources$"):
+            run_source_tidy(
+                Namespace(
+                    clang_tidy="clang-tidy",
+                    clang_tidy_diff=Path("clang-tidy-diff.py"),
+                ),
+                "diff",
+                {Path("src/missing.cc")},
+                repo_root,
+                build_dir,
+            )
+
+    assert len(database_loads) == 1
+    assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
+
+
+def test_run_header_tidy_raises_on_scan_failure(build_tree, monkeypatch):
+    repo_root, build_dir = build_tree
+    (build_dir / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
+    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: False)
+
+    with pytest.raises(RuntimeError, match="^missing sources$"):
+        run_header_tidy(
             Namespace(
-                clang_scan_deps="clang-scan-deps",
-                clang_tidy="clang-tidy",
-                run_clang_tidy="run-clang-tidy",
-                header_source_selection=_MODULE.SourceSelection.ALL,
+                clang_scan_deps="clang-scan-deps", run_clang_tidy="run-clang-tidy"
             ),
-            {repo_root / "src/example.hh"},
+            {Path("src/example.hh")},
             set(),
             repo_root,
             build_dir,
         )
-    else:
-        result = run_source_tidy(
-            Namespace(
-                clang_tidy="clang-tidy",
-                clang_tidy_diff=Path("clang-tidy-diff.py"),
-            ),
-            "diff",
-            {Path("src/missing.cc")},
-            repo_root,
-            build_dir,
+
+
+def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
+    def fail(_):
+        raise RuntimeError("missing sources")
+
+    monkeypatch.setattr(_MODULE, "run", fail)
+    with pytest.raises(SystemExit) as exc:
+        _MODULE.main(
+            [
+                "origin",
+                "base",
+                "--clang-tidy",
+                "clang-tidy",
+                "--clang-tidy-diff",
+                "clang-tidy-diff.py",
+            ]
         )
 
-    assert result == 1
-    assert len(database_loads) == 1
-    assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
+    assert exc.value.code == 1
+    assert capsys.readouterr().err == "error: missing sources\n"
 
 
 def test_scan_dependencies_ignores_missing_root_dictionary(build_tree, monkeypatch):

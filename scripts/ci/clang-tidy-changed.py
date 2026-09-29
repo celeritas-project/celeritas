@@ -349,7 +349,7 @@ def run_header_tidy(
         if not scan_dependencies(
             scanner, build_dir, repo_root, dependency_file, compilation_database
         ):
-            return 1
+            raise RuntimeError("missing sources")
         selected_sources = select_sources(
             header_source_selection=args.header_source_selection,
             headers=headers,
@@ -367,7 +367,7 @@ def run_header_tidy(
             selected_sources, build_dir, repo_root, compilation_database
         )
         if missing_sources:
-            return 1
+            raise RuntimeError("missing sources")
         log(
             LogLevel.NOTICE,
             f"Running clang-tidy on {len(selected_sources)} affected source files",
@@ -397,7 +397,7 @@ def run_source_tidy(
     tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
     compilation_database = load_compilation_database(build_dir)
     if log_compile_commands(tidy_sources, build_dir, repo_root, compilation_database):
-        return 1
+        raise RuntimeError("missing sources")
 
     return subprocess.run(
         [
@@ -448,7 +448,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=SourceSelection.ALL,
     )
     args = parser.parse_args(argv)
-    return run(args)
+    try:
+        return run(args)
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":
