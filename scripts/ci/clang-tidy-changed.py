@@ -290,24 +290,27 @@ def validate_selected_sources(
     build_dir: Path,
     repo_root: Path,
     compilation_database: list[dict],
+    *,
+    print_commands: bool = False,
 ) -> list[str]:
-    """Log compile commands and return selected sources that cannot be checked."""
+    """Validate selected sources, optionally logging their compile commands."""
     selected_paths = resolve_paths(sources, repo_root)
     matched_sources: set[Path] = set()
 
     for entry in compilation_database:
-        directory = Path(entry.get("directory", build_dir))
         source_path = compilation_source(entry, build_dir)
         if source_path not in selected_paths:
             continue
 
-        source = source_path.relative_to(repo_root).as_posix()
-        command = entry.get("command", entry.get("arguments"))
-        log(
-            LogLevel.NOTICE,
-            f"Compilation database entry: source={source}; "
-            f"directory={directory}; command={command!r}",
-        )
+        if print_commands:
+            directory = Path(entry.get("directory", build_dir))
+            source = source_path.relative_to(repo_root).as_posix()
+            command = entry.get("command", entry.get("arguments"))
+            log(
+                LogLevel.NOTICE,
+                f"Compilation database entry: source={source}; "
+                f"directory={directory}; command={command!r}",
+            )
         matched_sources.add(source_path)
 
     unavailable_sources = sorted(
@@ -364,7 +367,11 @@ def run_header_tidy(
         for source in selected_sources:
             log(LogLevel.NOTICE, f"  {source}")
         missing_sources = validate_selected_sources(
-            selected_sources, build_dir, repo_root, compilation_database
+            selected_sources,
+            build_dir,
+            repo_root,
+            compilation_database,
+            print_commands=args.print_compile_commands,
         )
         if missing_sources:
             raise RuntimeError("missing sources")
@@ -397,7 +404,11 @@ def run_source_tidy(
     tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
     compilation_database = load_compilation_database(build_dir)
     if validate_selected_sources(
-        tidy_sources, build_dir, repo_root, compilation_database
+        tidy_sources,
+        build_dir,
+        repo_root,
+        compilation_database,
+        print_commands=args.print_compile_commands,
     ):
         raise RuntimeError("missing sources")
 
@@ -441,6 +452,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--clang-tidy-diff", type=Path, required=True)
     parser.add_argument("--clang-scan-deps")
     parser.add_argument("--run-clang-tidy", default="run-clang-tidy")
+    parser.add_argument("--print-compile-commands", action="store_true")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--build-dir", type=Path, default=Path.cwd() / "build")
     parser.add_argument(
