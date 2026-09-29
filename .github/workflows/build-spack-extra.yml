@@ -118,8 +118,6 @@ jobs:
         with:
           add: "geant4@11.3 vecgeom@2.1.0 g4vg" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
-      - name: Request CMake source metadata
-        run: mkdir -p build/.cmake/api/v1/query && touch build/.cmake/api/v1/query/codemodel-v2
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:

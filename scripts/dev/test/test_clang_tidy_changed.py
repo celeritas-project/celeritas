@@ -19,7 +19,6 @@ _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 log_compile_commands = _MODULE.log_compile_commands
 scan_dependencies = _MODULE.scan_dependencies
-generated_sources = _MODULE.generated_sources
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
 
@@ -30,27 +29,6 @@ def build_tree(tmp_path):
     build_dir = repo_root / "build"
     build_dir.mkdir(parents=True)
     return repo_root, build_dir
-
-
-@pytest.fixture
-def write_codemodel():
-    def write(build_dir, targets):
-        reply_dir = build_dir / ".cmake/api/v1/reply"
-        reply_dir.mkdir(parents=True)
-        target_refs = []
-        for index, sources in enumerate(targets):
-            target_name = f"target-{index}.json"
-            (reply_dir / target_name).write_text(json.dumps({"sources": sources}))
-            target_refs.append({"jsonFile": target_name})
-
-        (reply_dir / "index-abc.json").write_text(
-            json.dumps({"reply": {"codemodel-v2": {"jsonFile": "codemodel.json"}}})
-        )
-        (reply_dir / "codemodel.json").write_text(
-            json.dumps({"configurations": [{"targets": target_refs}]})
-        )
-
-    return write
 
 
 def test_log_compile_commands_reports_missing_sources(build_tree, capsys):
@@ -133,29 +111,21 @@ def test_run_tidy_stops_for_missing_source(
     assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
 
 
-@pytest.mark.parametrize("is_generated", [True, False])
-def test_generated_sources_reads_codemodel(build_tree, write_codemodel, is_generated):
+def test_scan_dependencies_ignores_missing_root_dictionary(build_tree, monkeypatch):
     repo_root, build_dir = build_tree
-    source = build_dir / "src" / "Generated.cxx"
-    write_codemodel(
-        build_dir,
-        [[{"path": str(source), "isGenerated": is_generated}]],
-    )
-
-    expected = {source.resolve()} if is_generated else set()
-    assert generated_sources(build_dir, repo_root) == expected
-
-
-def test_scan_dependencies_ignores_missing_generated_source(
-    build_tree, write_codemodel, monkeypatch
-):
-    repo_root, build_dir = build_tree
-    generated = build_dir / "src" / "Generated.cxx"
+    generated = build_dir / "src" / "CeleritasRootInterface.cxx"
+    existing = repo_root / "src" / "example.cc"
+    existing.parent.mkdir()
+    existing.touch()
     database = build_dir / "compile_commands.json"
     database.write_text(
-        json.dumps([{"directory": str(build_dir), "file": str(generated)}])
+        json.dumps(
+            [
+                {"directory": str(build_dir), "file": str(generated)},
+                {"directory": str(build_dir), "file": str(existing)},
+            ]
+        )
     )
-    write_codemodel(build_dir, [[{"path": str(generated), "isGenerated": True}]])
     scan_command = None
 
     def fake_run(command, **kwargs):
@@ -172,18 +142,15 @@ def test_scan_dependencies_ignores_missing_generated_source(
     )
     assert scan_command is not None
     scan_database = Path(scan_command[scan_command.index("-compilation-database") + 1])
-    assert json.loads(scan_database.read_text()) == []
+    assert json.loads(scan_database.read_text()) == [compilation_database[1]]
 
 
-def test_scan_dependencies_errors_on_missing_unmarked_source(
-    build_tree, write_codemodel, capsys
-):
+def test_scan_dependencies_errors_on_other_missing_source(build_tree, capsys):
     repo_root, build_dir = build_tree
-    source = repo_root / "src" / "Unexpected.cc"
+    source = repo_root / "src" / "Unexpected.cxx"
     (build_dir / "compile_commands.json").write_text(
         json.dumps([{"directory": str(build_dir), "file": str(source)}])
     )
-    write_codemodel(build_dir, [])
 
     compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
     assert not scan_dependencies(
@@ -193,4 +160,4 @@ def test_scan_dependencies_errors_on_missing_unmarked_source(
         repo_root / "dependencies.json",
         compilation_database,
     )
-    assert "src/Unexpected.cc" in capsys.readouterr().err
+    assert "src/Unexpected.cxx" in capsys.readouterr().err
