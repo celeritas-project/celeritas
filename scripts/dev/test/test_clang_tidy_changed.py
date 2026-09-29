@@ -17,7 +17,7 @@ _SPEC = importlib.util.spec_from_file_location(
 )
 _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
-log_compile_commands = _MODULE.log_compile_commands
+validate_selected_sources = _MODULE.validate_selected_sources
 scan_dependencies = _MODULE.scan_dependencies
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
@@ -31,10 +31,12 @@ def build_tree(tmp_path):
     return repo_root, build_dir
 
 
-def test_log_compile_commands_reports_missing_sources(build_tree, capsys):
+def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
     repo_root, build_dir = build_tree
     source = repo_root / "src" / "example.cc"
     missing = repo_root / "test" / "example.test.cc"
+    source.parent.mkdir()
+    source.touch()
     (build_dir / "compile_commands.json").write_text(
         json.dumps(
             [
@@ -48,7 +50,7 @@ def test_log_compile_commands_reports_missing_sources(build_tree, capsys):
     )
 
     compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
-    result = log_compile_commands(
+    result = validate_selected_sources(
         ["src/example.cc", "test/example.test.cc"],
         build_dir,
         repo_root,
@@ -63,17 +65,37 @@ def test_log_compile_commands_reports_missing_sources(build_tree, capsys):
     assert "no compilation database entry" in output.err
 
 
+def test_validate_selected_sources_reports_missing_files(build_tree, capsys):
+    repo_root, build_dir = build_tree
+    missing = repo_root / "src" / "missing.cc"
+    compilation_database = [
+        {"directory": str(build_dir), "file": str(missing), "command": "clang++"}
+    ]
+
+    assert validate_selected_sources(
+        ["src/missing.cc"], build_dir, repo_root, compilation_database
+    ) == [str(missing)]
+    output = capsys.readouterr().err
+    assert "::error file=src/missing.cc,line=" in output
+    assert "selected for clang-tidy does not exist" in output
+
+
 @pytest.mark.parametrize("header_mode", [False, True], ids=["changed-source", "header"])
+@pytest.mark.parametrize("has_entry", [False, True], ids=["no-entry", "missing-file"])
 def test_run_tidy_stops_for_missing_source(
-    build_tree, capsys, monkeypatch, header_mode
+    build_tree, capsys, monkeypatch, header_mode, has_entry
 ):
     repo_root, build_dir = build_tree
-    (build_dir / "compile_commands.json").write_text("[]")
+    missing = repo_root / "src" / "missing.cc"
+    database = (
+        [{"directory": str(build_dir), "file": str(missing)}] if has_entry else []
+    )
+    (build_dir / "compile_commands.json").write_text(json.dumps(database))
     database_loads = []
     monkeypatch.setattr(
         _MODULE,
         "load_compilation_database",
-        lambda _: database_loads.append(True) or [],
+        lambda _: database_loads.append(True) or database,
     )
 
     if header_mode:
@@ -112,22 +134,49 @@ def test_run_tidy_stops_for_missing_source(
     assert "::error file=src/missing.cc,line=" in capsys.readouterr().err
 
 
-def test_run_header_tidy_raises_on_scan_failure(build_tree, monkeypatch):
+def test_run_header_tidy_skips_unrelated_missing_scan_input(
+    build_tree, monkeypatch, capsys
+):
     repo_root, build_dir = build_tree
-    (build_dir / "compile_commands.json").write_text("[]")
+    selected = repo_root / "src" / "example.cc"
+    selected.parent.mkdir()
+    selected.touch()
+    unrelated = repo_root / "src" / "unrelated.cc"
+    (build_dir / "compile_commands.json").write_text(
+        json.dumps(
+            [
+                {"directory": str(build_dir), "file": str(selected)},
+                {"directory": str(build_dir), "file": str(unrelated)},
+            ]
+        )
+    )
     monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
-    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: False)
+    monkeypatch.setattr(_MODULE, "select_sources", lambda **kwargs: ["src/example.cc"])
+    monkeypatch.setattr(_MODULE, "run_tidy", lambda *args: 0)
 
-    with pytest.raises(RuntimeError, match="^missing sources$"):
+    def fake_run(command, **kwargs):
+        kwargs["stdout"].write('{"translation-units": []}')
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", fake_run)
+
+    assert (
         run_header_tidy(
             Namespace(
-                clang_scan_deps="clang-scan-deps", run_clang_tidy="run-clang-tidy"
+                clang_scan_deps="clang-scan-deps",
+                run_clang_tidy="run-clang-tidy",
+                clang_tidy="clang-tidy",
+                header_source_selection=_MODULE.SourceSelection.ALL,
             ),
             {Path("src/example.hh")},
             set(),
             repo_root,
             build_dir,
         )
+        == 0
+    )
+    assert "Skipping unavailable dependency-scan source 'src/unrelated.cc'" in (
+        capsys.readouterr().err
+    )
 
 
 def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
@@ -177,7 +226,7 @@ def test_scan_dependencies_ignores_missing_root_dictionary(build_tree, monkeypat
     output = repo_root / "dependencies.json"
 
     compilation_database = json.loads(database.read_text())
-    assert scan_dependencies(
+    scan_dependencies(
         "clang-scan-deps", build_dir, repo_root, output, compilation_database
     )
     assert scan_command is not None
@@ -185,7 +234,7 @@ def test_scan_dependencies_ignores_missing_root_dictionary(build_tree, monkeypat
     assert json.loads(scan_database.read_text()) == [compilation_database[1]]
 
 
-def test_scan_dependencies_errors_on_other_missing_source(build_tree, capsys):
+def test_scan_dependencies_skips_other_missing_source(build_tree, capsys, monkeypatch):
     repo_root, build_dir = build_tree
     source = repo_root / "src" / "Unexpected.cxx"
     (build_dir / "compile_commands.json").write_text(
@@ -193,7 +242,12 @@ def test_scan_dependencies_errors_on_other_missing_source(build_tree, capsys):
     )
 
     compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
-    assert not scan_dependencies(
+
+    def unexpected_run(*args, **kwargs):
+        pytest.fail("scanner should not run with an empty compilation database")
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", unexpected_run)
+    scan_dependencies(
         "clang-scan-deps",
         build_dir,
         repo_root,
@@ -201,3 +255,6 @@ def test_scan_dependencies_errors_on_other_missing_source(build_tree, capsys):
         compilation_database,
     )
     assert "src/Unexpected.cxx" in capsys.readouterr().err
+    assert json.loads((repo_root / "dependencies.json").read_text()) == {
+        "translation-units": []
+    }
