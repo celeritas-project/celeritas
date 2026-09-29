@@ -8,8 +8,8 @@
 
 #include <thrust/device_ptr.h>
 #include <thrust/functional.h>
-// TODO: Move these two headers inside the CELER_USE_THRUST block once the
-//       remove_if function is ported to CUB/hipCUB
+// TODO: Move these two headers inside the #else block once the
+//       remove_if_invalid function is ported to CUB/hipCUB
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
 #if CELER_CUB_HAS_TRANSFORM_REDUCE
@@ -94,7 +94,7 @@ void count_num_photons(
     // space needed instead of invoking the kernel
     // Note: The CUB/hipCUB functions need the number of entries being
     // processed instead of the end of the entries, so we need to pass the end
-    // of distributions (size) minus the starting point, which is offset
+    // of the distributions (size) minus the starting point, which is offset
     auto cub_error_code = cub::DeviceReduce::TransformReduce(
         nullptr,
         temp_storage_bytes,
@@ -119,11 +119,8 @@ void count_num_photons(
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
         0_sz,
         stream.get());
+    auto count = result.data();
     CELER_DISCARD(cub_error_code);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-    size_type count;
-    result.copy_to_host({&count, 1});
-    stream.sync();
 #elif CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
     // Summations don't require temp workspace, so we can simplify the calls
     DeviceVector<size_type> result(1, stream_id);
@@ -132,16 +129,13 @@ void count_num_photons(
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>());
     // Note: The CUB/hipCUB functions need the number of entries being
     // processed instead of the end of the entries, so we need to pass the end
-    // of distributions (size) minus the starting point, which is offset
+    // of the distributions (size) minus the starting point, which is offset
     // Compute summation
     auto cub_error_code = cub::DeviceReduce::Sum(
         transform, result.data(), size - offset, stream.get());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
+    auto count = result.data();
     CELER_DISCARD(cub_error_code);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-    size_type count;
-    result.copy_to_host({&count, 1});
-    stream.sync();
 #else
     size_type count = thrust::transform_reduce(
         thrust_execute_on(stream_id),
@@ -150,8 +144,8 @@ void count_num_photons(
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
         0_sz,
         thrust::plus<size_type>());
-    CELER_DEVICE_API_CALL(PeekAtLastError());
 #endif
+    CELER_DEVICE_API_CALL(PeekAtLastError());
     // Update the number of pending optical photons
     auto execute_thread = make_single_track_executor(
         params->ptr<MemSpace::native>(),
