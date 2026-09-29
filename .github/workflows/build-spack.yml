@@ -44,7 +44,7 @@ jobs:
           - geometry: "vecgeom"
             special: "clhep"
             geant: "11.3"
-          - geometry: "vecgeom2"
+          - geometry: "vecgeom1" # VecGeom 1.x compatibility
             geant: "11.3"
           - geometry: "geant4"
             geant: "11.3"
@@ -81,10 +81,10 @@ jobs:
           add: >-
             ${{(matrix.special != 'static'
                 && env.CXXSTD == '20')
-               && 'root' || ''
+               && 'root' || 'hepmc3~rootio'
             }}
             ${{format('geant4@{0}', matrix.geant) || ''}}
-            ${{matrix.geometry == 'vecgeom' && 'vecgeom@1.2.11'
+            ${{matrix.geometry == 'vecgeom1' && 'vecgeom@1.2.11'
                || contains(matrix.geometry, 'vecgeom') && 'vecgeom@2.1.0'
                || contains(matrix.geant, 'vecgeom') && 'vecgeom@2.1.0'
                || ''
@@ -127,7 +127,7 @@ jobs:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
           split-app: true
-          strict: ${{matrix.geant == '11.3' && matrix.geometry != 'vecgeom2'}}
+          strict: ${{matrix.geant == '11.3'}}
           filter-unit: >-
             ${{
               matrix.special == 'static' && 'none'
