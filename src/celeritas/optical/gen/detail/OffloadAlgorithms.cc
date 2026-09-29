@@ -77,8 +77,8 @@ void count_num_photons(
     auto execute_thread = make_single_track_executor(
         params->ptr<MemSpace::native>(),
         state.ptr(),
-        optical::detail::UpdatePendingExecutor{count});
-    launch_action(1, execute_thread);
+        optical::detail::UpdatePendingExecutor<size_type>{count});
+    optical::launch_action(1, execute_thread);
     return;
 }
 

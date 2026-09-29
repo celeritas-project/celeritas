@@ -65,7 +65,7 @@ void GeneratorBase::update_pending(CoreParams const& params,
     auto execute_thread = make_single_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::UpdatePendingExecutor{num_pending});
+        detail::UpdatePendingExecutor<size_type>{num_pending});
     launch_action(1, execute_thread);
 }
 
