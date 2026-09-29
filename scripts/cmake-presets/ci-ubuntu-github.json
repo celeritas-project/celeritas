@@ -172,8 +172,8 @@
       }
     },
     {
-      "name": "vecgeom2",
-      "description": "FINAL: release, assertions, VecGeom 2",
+      "name": "vecgeom1",
+      "description": "FINAL: release, assertions, VecGeom 1.x compatibility",
       "inherits": [".vecgeom", "tool-spack"]
     },
     {
