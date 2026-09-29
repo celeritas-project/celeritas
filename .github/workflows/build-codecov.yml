@@ -38,7 +38,7 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: vecgeom@1.2.11 geant4@11.3 g4vg root py-gcovr
+          add: vecgeom@2.1.0 geant4@11.3 g4vg root py-gcovr
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
