@@ -24,6 +24,11 @@ numeric discussion ID and verify the returned ID and body before interpreting
 it. Do not select a comment from a page-wide fetch, which may contain unrelated
 review threads.
 
+Before publishing any GitHub comment or review reply, ask the user to confirm
+the exact proposed text and destination, and wait for an explicit yes. Requests
+to analyze or "process" a discussion do not authorize posting; without
+confirmation, provide a draft reply locally only.
+
 ### After any user correction — update this file
 
 **When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
