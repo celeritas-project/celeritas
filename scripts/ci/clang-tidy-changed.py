@@ -442,15 +442,13 @@ def run_header_tidy(
 def run_source_tidy(
     args: argparse.Namespace,
     diff: str,
-    sources: list[str],
+    sources: set[Path],
     repo_root: Path,
     build_dir: Path,
 ) -> int:
     """Run clang-tidy-diff.py for changed source files only."""
     # clang-tidy-diff.py is restricted to .cc files by the regex below.
-    tidy_sources = [
-        source for source in sources if re.fullmatch(r"(src|app|test)/.*\.cc", source)
-    ]
+    tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
     compilation_database = load_compilation_database(build_dir)
     if log_compile_commands(tidy_sources, build_dir, repo_root, compilation_database):
         return 1

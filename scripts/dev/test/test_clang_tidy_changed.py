@@ -123,7 +123,7 @@ def test_run_tidy_stops_for_missing_source(
                 clang_tidy_diff=Path("clang-tidy-diff.py"),
             ),
             "diff",
-            ["src/missing.cc"],
+            {Path("src/missing.cc")},
             repo_root,
             build_dir,
         )
