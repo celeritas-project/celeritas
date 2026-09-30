@@ -98,6 +98,9 @@ class LarStandaloneRunner
     // Run optical photons from a single set of energy steps
     result_type operator()(VecSED const& edep);
 
+    //! Access output registry for testing
+    OutputRegistry const& output_reg() const { return *output_; }
+
   private:
     //// TYPES ////
     using SpanCelerHits = Span<optical::DetectorHit const>;

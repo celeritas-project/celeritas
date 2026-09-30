@@ -19,6 +19,7 @@ celeritas_add_test(LarStandaloneRunner.test.cc
   LINK_LIBRARIES
     Celeritas::celeritas
     lardataobj::Simulation
+    nlohmann_json::nlohmann_json
   SOURCES RunnerResults.cc
 )
 celeritas_add_test(LarDataReader.test.cc LINK_LIBRARIES Celeritas::celeritas)
