@@ -13,11 +13,7 @@
 //       remove_if_invalid function is ported to CUB/hipCUB
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
-#if CELER_CUB_HAS_TRANSFORM_REDUCE
-#    include <cub/device/device_reduce.cuh>
-#elif CELER_HIPCUB_HAS_TRANSFORM_REDUCE
-#    include <hipcub/device/device_reduce.hpp>
-#elif CELERITAS_USE_CUDA
+#if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <thrust/iterator/transform_iterator.h>
 #elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
@@ -88,41 +84,7 @@ void count_num_photons(
     CELER_EXPECT(params);
     auto& stream = device().stream(stream_id);
     auto start = thrust::device_pointer_cast(buffer.data().get());
-#if CELER_CUB_HAS_TRANSFORM_REDUCE || CELER_HIPCUB_HAS_TRANSFORM_REDUCE
-    size_t temp_storage_bytes = 0;
-    DeviceVector<size_type> result(1, stream_id);
-    // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel
-    // Note: The CUB/hipCUB functions need the number of entries being
-    // processed instead of the end of the entries, so we need to pass the end
-    // of the distributions (size) minus the starting point, which is offset
-    auto cub_error_code = cub::DeviceReduce::TransformReduce(
-        nullptr,
-        temp_storage_bytes,
-        start + offset,
-        result.data(),
-        size - offset,
-        thrust::plus<size_type>(),
-        celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        0_sz,
-        stream.get());
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    CELER_DISCARD(cub_error_code);
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    // Run reduction
-    cub_error_code = cub::DeviceReduce::TransformReduce(
-        temp_storage.data(),
-        temp_storage_bytes,
-        start + offset,
-        result.data(),
-        size - offset,
-        thrust::plus<size_type>(),
-        celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
-        0_sz,
-        stream.get());
-    auto count = result.data();
-    CELER_DISCARD(cub_error_code);
-#elif CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
+#if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
     // Summations don't require temp workspace, so we can simplify the calls
     DeviceVector<size_type> result(1, stream_id);
     auto transform = thrust::transform_iterator(
