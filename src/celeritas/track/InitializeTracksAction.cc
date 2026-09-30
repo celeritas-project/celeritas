@@ -128,8 +128,8 @@ void InitializeTracksAction::step_impl(
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
-void InitializeTracksAction::update_num_active(
-    CoreParams const&, CoreStateDevice&, size_type) const
+void InitializeTracksAction::update_num_active(CoreParams const&,
+                                               CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
