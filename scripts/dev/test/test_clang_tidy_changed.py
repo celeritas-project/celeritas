@@ -20,6 +20,7 @@ _SPEC.loader.exec_module(_MODULE)
 validate_selected_sources = _MODULE.validate_selected_sources
 select_sources = _MODULE.select_sources
 scan_dependencies = _MODULE.scan_dependencies
+scannable_commands = _MODULE.scannable_commands
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
 
@@ -408,6 +409,93 @@ def test_run_header_tidy_skips_source_without_compile_command(
         == 0
     )
     assert "::warning file=src/example.cc,line=" in capsys.readouterr().err
+
+
+def test_scannable_commands_omits_nvcc(build_tree, capsys):
+    repo_root, build_dir = build_tree
+    host = {"file": str(repo_root / "src/host.cc"), "command": "clang++ -c host.cc"}
+    cuda = {
+        "file": str(repo_root / "src/device.cu"),
+        "command": "/usr/local/cuda/bin/nvcc -Xcompiler=-fPIC -c device.cu",
+    }
+    generated = {
+        "file": str(build_dir / "emptyfile.cu"),
+        "arguments": ["/usr/local/cuda/bin/nvcc", "-c", "emptyfile.cu"],
+    }
+    assert scannable_commands([host, cuda, generated], build_dir) == [host]
+    output = capsys.readouterr().err
+    assert "device.cu" in output
+    assert "emptyfile.cu" in output
+
+
+def test_run_header_tidy_scans_only_host_commands(build_tree, monkeypatch, capsys):
+    repo_root, build_dir = build_tree
+    host = repo_root / "src/host.cc"
+    cuda = repo_root / "src/device.cu"
+    host.parent.mkdir()
+    host.touch()
+    cuda.touch()
+    database = [
+        {
+            "directory": str(build_dir),
+            "file": str(host),
+            "command": "clang++ -c host.cc",
+        },
+        {
+            "directory": str(build_dir),
+            "file": str(cuda),
+            "command": "nvcc -Xcompiler=-fPIC -c device.cu",
+        },
+    ]
+    (build_dir / "compile_commands.json").write_text(json.dumps(database))
+    monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
+    tidy_commands = []
+    monkeypatch.setattr(
+        _MODULE, "run_tidy", lambda command, root: tidy_commands.append(command) or 0
+    )
+
+    def fake_run(command, **kwargs):
+        scan_file = Path(command[command.index("-compilation-database") + 1])
+        assert json.loads(scan_file.read_text()) == [database[0]]
+        kwargs["stdout"].write(
+            json.dumps(
+                {
+                    "translation-units": [
+                        {
+                            "commands": [
+                                {
+                                    "input-file": str(host),
+                                    "file-deps": [str(repo_root / "src/shared.hh")],
+                                }
+                            ]
+                        }
+                    ]
+                }
+            )
+        )
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", fake_run)
+
+    assert (
+        run_header_tidy(
+            Namespace(
+                clang_scan_deps="clang-scan-deps",
+                run_clang_tidy="run-clang-tidy",
+                clang_tidy="clang-tidy",
+                header_source_selection=_MODULE.SourceSelection.ALL,
+                print_compile_commands=False,
+            ),
+            ["src/shared.hh"],
+            ["src/device.cu"],
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert len(tidy_commands) == 1
+    assert "host\\.cc" in tidy_commands[0][-1]
+    assert "device\\.cu" not in tidy_commands[0][-1]
+    assert "Skipping changed CUDA source" in capsys.readouterr().err
 
 
 def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):

@@ -6,6 +6,7 @@
 import argparse
 import json
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -242,6 +243,23 @@ def compilation_source(entry: dict, build_dir: Path) -> Path:
     return (directory / source).resolve()
 
 
+def scannable_commands(compilation_database: list[dict], build_dir: Path) -> list[dict]:
+    """Exclude nvcc commands, which clang-scan-deps cannot parse."""
+    result = []
+    for entry in compilation_database:
+        command = entry.get("arguments")
+        if command is None:
+            command = shlex.split(entry.get("command", ""))
+        if any(Path(arg).name == "nvcc" for arg in command):
+            log(
+                LogLevel.NOTICE,
+                f"Skipping nvcc dependency-scan source: {compilation_source(entry, build_dir)}",
+            )
+            continue
+        result.append(entry)
+    return result
+
+
 def scan_dependencies(
     scanner: str,
     build_dir: Path,
@@ -392,7 +410,9 @@ def run_header_tidy(
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         dependency_file = temp_dir / "dependencies.json"
-        compilation_database = load_compilation_database(build_dir)
+        compilation_database = scannable_commands(
+            load_compilation_database(build_dir), build_dir
+        )
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
         scan_dependencies(
             scanner, build_dir, repo_root, dependency_file, compilation_database
