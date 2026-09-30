@@ -18,6 +18,7 @@ _SPEC = importlib.util.spec_from_file_location(
 _MODULE = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(_MODULE)
 validate_selected_sources = _MODULE.validate_selected_sources
+select_sources = _MODULE.select_sources
 scan_dependencies = _MODULE.scan_dependencies
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
@@ -103,6 +104,139 @@ def test_validate_selected_sources_reports_missing_files(build_tree, capsys):
     output = capsys.readouterr().err
     assert "::error file=src/missing.cc,line=" in output
     assert "selected for clang-tidy does not exist" in output
+
+
+@pytest.mark.parametrize("mode", list(_MODULE.SourceSelection))
+@pytest.mark.parametrize("cuda_in_database", [False, True])
+def test_select_sources_cuda_requires_compilation_entry(
+    build_tree, tmp_path, capsys, mode, cuda_in_database
+):
+    repo_root, build_dir = build_tree
+    header = repo_root / "src" / "example.hh"
+    cuda = repo_root / "src" / "a.cu"
+    cpp = repo_root / "src" / "b.cc"
+    dependency_file = tmp_path / "dependencies.json"
+    dependency_file.write_text(
+        json.dumps(
+            {
+                "translation-units": [
+                    {
+                        "commands": [
+                            {"input-file": str(source), "file-deps": [str(header)]}
+                            for source in (cuda, cpp)
+                        ]
+                    }
+                ]
+            }
+        )
+    )
+    database = [{"directory": str(build_dir), "file": str(cpp)}]
+    if cuda_in_database:
+        database.append({"directory": str(build_dir), "file": str(cuda)})
+
+    result = select_sources(
+        header_source_selection=mode,
+        headers={header},
+        changed_sources={cuda},
+        dependency_file=dependency_file,
+        root=repo_root,
+        build_dir=build_dir,
+        compilation_database=database,
+    )
+
+    expected = (
+        ["src/a.cu"]
+        if mode is _MODULE.SourceSelection.ONE
+        else ["src/a.cu", "src/b.cc"]
+    )
+    assert result == (expected if cuda_in_database else ["src/b.cc"])
+    assert ("Skipping changed CUDA source" in capsys.readouterr().err) == (
+        not cuda_in_database
+    )
+
+
+@pytest.mark.parametrize("mode", list(_MODULE.SourceSelection))
+def test_select_sources_prefers_available_cc_over_unavailable_cuda(
+    build_tree, tmp_path, mode
+):
+    repo_root, build_dir = build_tree
+    header = repo_root / "src" / "example.hh"
+    dependency_file = tmp_path / "dependencies.json"
+    dependency_file.write_text(
+        json.dumps(
+            {
+                "translation-units": [
+                    {
+                        "commands": [
+                            {"input-file": "src/a.cu", "file-deps": [str(header)]},
+                            {"input-file": "src/b.cc", "file-deps": [str(header)]},
+                        ]
+                    }
+                ]
+            }
+        )
+    )
+
+    assert select_sources(
+        header_source_selection=mode,
+        headers={header},
+        changed_sources=set(),
+        dependency_file=dependency_file,
+        root=repo_root,
+        build_dir=build_dir,
+        compilation_database=[{"directory": str(build_dir), "file": "src/b.cc"}],
+    ) == ["src/b.cc"]
+
+
+def test_run_source_tidy_skips_cuda_and_checks_cc(build_tree, monkeypatch, capsys):
+    repo_root, build_dir = build_tree
+    cpp = repo_root / "src" / "example.cc"
+    cpp.parent.mkdir()
+    cpp.touch()
+    (build_dir / "compile_commands.json").write_text(
+        json.dumps([{"directory": str(build_dir), "file": str(cpp)}])
+    )
+    calls = []
+    monkeypatch.setattr(
+        _MODULE.subprocess,
+        "run",
+        lambda *args, **kwargs: calls.append((args, kwargs)) or Namespace(returncode=0),
+    )
+
+    assert (
+        run_source_tidy(
+            Namespace(
+                clang_tidy="clang-tidy",
+                clang_tidy_diff=Path("clang-tidy-diff.py"),
+                print_compile_commands=False,
+            ),
+            "diff",
+            {Path("src/example.cc"), Path("src/example.cu")},
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert len(calls) == 1
+    assert "Skipping changed CUDA source in .cc-only" in capsys.readouterr().err
+
+
+def test_run_source_tidy_cuda_only_skips_runner(build_tree, monkeypatch, capsys):
+    repo_root, build_dir = build_tree
+
+    def unexpected_run(*args, **kwargs):
+        pytest.fail("clang-tidy-diff should not run for CUDA-only changes")
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", unexpected_run)
+    assert (
+        run_source_tidy(
+            Namespace(), "diff", {Path("src/example.cu")}, repo_root, build_dir
+        )
+        == 0
+    )
+    output = capsys.readouterr().err
+    assert "Skipping changed CUDA source in .cc-only" in output
+    assert "No .cc source files selected" in output
 
 
 @pytest.mark.parametrize("header_mode", [False, True], ids=["changed-source", "header"])
