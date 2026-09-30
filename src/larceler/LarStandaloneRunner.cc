@@ -50,6 +50,30 @@ CELER_FORCEINLINE auto make_obtr(sim::OBTRHelper&& helper)
 {
     return sim::OpDetBacktrackerRecord(helper);
 }
+
+struct StreamableCounters
+{
+    CounterAccumStats const& counters;
+};
+std::ostream& operator<<(std::ostream& os, StreamableCounters const& sc)
+{
+    std::size_t num_generated{};
+    std::size_t buffer_size{};
+    for (auto const& gen : sc.counters.generators)
+    {
+        num_generated += gen.num_generated;
+        buffer_size += gen.buffer_size;
+    }
+    os << num_generated << " optical photons from " << buffer_size
+       << " generator distributions";
+    if (sc.counters.generators.size() != 1)
+    {
+        os << " (" << sc.counters.generators.size() << " generators)";
+    }
+    os << " with a total of " << sc.counters.steps << " steps over "
+       << sc.counters.step_iters << " step iterations";
+    return os;
+}
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -88,7 +112,7 @@ LarStandaloneRunner::LarStandaloneRunner(Input&& i, VecReal3 const& det_coords)
         if (KernelRegistry::profiling())
         {
             // Write accumulated kernel launch counts after every event
-            output_reg.insert(
+            output_->insert(
                 OutputInterfaceAdapter<KernelRegistry>::from_const_ref(
                     OutputInterface::Category::system,
                     "kernels",
@@ -253,15 +277,9 @@ auto LarStandaloneRunner::operator()(VecSED const& sim_energy_deposits)
     diagnostics_->time.setup = std::move(get_time_delta)();
     auto result = (*runner_)();
 
-    CELER_ASSERT(result.counters.generators.size() == 1);
-    auto const& gen = result.counters.generators.front();
-    CELER_LOG(debug) << "Transported " << gen.num_generated
-                     << " optical photons from " << gen.buffer_size
-                     << " generator distributions and " << step_md_.size()
-                     << " sim energy deposits with a total of "
-                     << result.counters.steps << " steps over "
-                     << result.counters.step_iters << " step iterations in "
-                     << get_time_delta() << "s";
+    CELER_LOG(debug) << "Transported " << StreamableCounters{result.counters}
+                     << " from " << step_md_.size()
+                     << " sim energy deposits  in " << get_time_delta() << "s";
 
     diagnostics_->time.run = std::move(get_time_delta)();
     diagnostics_->time.actions = std::move(result.action_times);
