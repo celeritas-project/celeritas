@@ -24,7 +24,9 @@ namespace detail
  *
  * Host and device queries use VecGeom's IndexedBVH-backed BVHNavigator
  * directly on the stored VecGeom navigation state, which retains the boundary
- * flag and the last exited volume between calls.
+ * flag between calls. The last exited volume is retained only from
+ * \c ComputeStepAndNextVolume until it is used and cleared by
+ * \c RelocateToNextVolume .
  */
 class SolidsNavigator
 {
@@ -97,6 +99,11 @@ class SolidsNavigator
         // The last exited volume was recorded in the output state by
         // ComputeStepAndNextVolume, preventing reentry at the exact boundary
         vecgeom::BVHNavigator::RelocateToNextVolume(glpos, gldir, out_state);
+
+        // The exited volume only applies to this crossing: clear it so that a
+        // later crossing (e.g., after reflection) may reenter it, and so that
+        // entering a daughter never inherits an unrelated excluded volume
+        out_state.SetLastExited(decltype(out_state.GetLastExitedState()){});
     }
 };
 

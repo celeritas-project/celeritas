@@ -45,8 +45,10 @@ def select_sources(
     changed_sources: set[Path],
     dependency_file: Path,
     root: Path,
+    build_dir: Path,
+    compilation_database: list[dict],
 ) -> list[str]:
-    """Select repository-relative source paths affected by changed headers."""
+    """Select affected sources, excluding CUDA files without compile commands."""
     if header_source_selection not in SourceSelection:
         raise ValueError(
             f"unsupported header source selection: {header_source_selection!r}"
@@ -55,6 +57,21 @@ def select_sources(
     root = root.resolve()
     headers = resolve_paths(headers, root)
     changed_sources = resolve_paths(changed_sources, root)
+    database_sources = {
+        compilation_source(entry, build_dir) for entry in compilation_database
+    }
+
+    def selectable(source: Path) -> bool:
+        return source.suffix != ".cu" or source in database_sources
+
+    for source in sorted(changed_sources):
+        if not selectable(source):
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source without a compilation database entry: "
+                f"{source.relative_to(root).as_posix()}",
+            )
+    changed_sources = {source for source in changed_sources if selectable(source)}
     data = json.loads(dependency_file.read_text())
     affected_sources: set[Path] = set()
     source_by_header: dict[Path, Path] = {}
@@ -70,6 +87,8 @@ def select_sources(
             continue
         directory = Path(command.get("directory", root))
         source_path = directory.joinpath(source).resolve()
+        if not selectable(source_path):
+            continue
         dependencies = command.get("file-deps", command.get("file_deps", []))
         resolved_dependencies = {
             directory.joinpath(dependency).resolve() for dependency in dependencies
@@ -359,6 +378,8 @@ def run_header_tidy(
             changed_sources=sources,
             dependency_file=dependency_file,
             root=repo_root,
+            build_dir=build_dir,
+            compilation_database=compilation_database,
         )
         if not selected_sources:
             log(LogLevel.NOTICE, "No source files selected for the changed headers")
@@ -399,9 +420,19 @@ def run_source_tidy(
     repo_root: Path,
     build_dir: Path,
 ) -> int:
-    """Run clang-tidy-diff.py for changed source files only."""
+    """Run clang-tidy-diff.py for changed .cc files, not CUDA sources."""
     # clang-tidy-diff.py is restricted to .cc files by the regex below.
+    for source in sorted(sources):
+        if source.suffix == ".cu":
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source in .cc-only clang-tidy-diff run: "
+                f"{source.as_posix()}",
+            )
     tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
+    if not tidy_sources:
+        log(LogLevel.NOTICE, "No .cc source files selected for clang-tidy-diff")
+        return 0
     compilation_database = load_compilation_database(build_dir)
     if validate_selected_sources(
         tidy_sources,
