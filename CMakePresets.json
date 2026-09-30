@@ -227,8 +227,8 @@
       }
     },
     {
-      "name": ".spack-base",
-      "description": "Setup for using Spack, possibly in a local env",
+      "name": ".nobuiltin",
+      "description": "Disable all built-in CMake package fetching",
       "hidden": true,
       "cacheVariables": {
         "CELERITAS_BUILTIN_CLI11": { "type": "BOOL", "value": "OFF" },
@@ -236,20 +236,6 @@
         "CELERITAS_BUILTIN_GTest": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILTIN_covfie": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_BUILTIN_nlohmann_json": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": ".spack-env",
-      "description": "Setup for using a Spack environment named 'celeritas'",
-      "hidden": true,
-      "inherits": [".spack-base"],
-      "environment": {
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
-      },
-      "condition": {
-        "lhs": "$env{SPACK_ROOT}",
-        "type": "notEquals",
-        "rhs": ""
       }
     }
   ],

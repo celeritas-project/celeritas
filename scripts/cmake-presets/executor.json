@@ -45,8 +45,10 @@
       "name": ".spackbase",
       "hidden": true,
       "generator": "Ninja",
-      "inherits": [".base", ".spack-env"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "inherits": [".base", ".nobuiltin"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },

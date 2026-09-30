@@ -5,7 +5,10 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["default", ".cuda", ".spack-env"],
+      "inherits": ["default", ".cuda", ".nobuiltin"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CMAKE_CUDA_ARCHITECTURES": { "type": "STRING", "value": "80" },
         "CELERITAS_CORE_GEO": { "type": "STRING", "value": "ORANGE" },
