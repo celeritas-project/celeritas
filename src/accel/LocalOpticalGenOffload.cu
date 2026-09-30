@@ -26,7 +26,7 @@ void LocalOpticalGenOffload::update_primaries(
     auto execute_thread = make_single_track_executor(
         optical_params.ptr<MemSpace::native>(),
         state.ptr(),
-        optical::detail::UpdatePendingExecutor{num_photons_});
+        optical::detail::UpdatePendingExecutor<size_type>{num_photons_});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, state.stream_id(), execute_thread);

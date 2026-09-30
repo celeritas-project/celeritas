@@ -260,7 +260,7 @@ void LocalOpticalGenOffload::update_primaries(
     auto execute_thread = make_single_track_executor(
         optical_params.ptr<MemSpace::native>(),
         state.ptr(),
-        optical::detail::UpdatePendingExecutor{num_photons_});
+        optical::detail::UpdatePendingExecutor<size_type>{num_photons_});
     launch_action(1, execute_thread);
 }
 

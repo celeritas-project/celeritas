@@ -29,7 +29,7 @@ void GeneratorBase::update_pending(CoreParams const& params,
     auto execute_thread = make_single_track_executor(
         params.ptr<MemSpace::native>(),
         state.ptr(),
-        detail::UpdatePendingExecutor{num_pending});
+        detail::UpdatePendingExecutor<size_type>{num_pending});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, state.stream_id(), execute_thread);

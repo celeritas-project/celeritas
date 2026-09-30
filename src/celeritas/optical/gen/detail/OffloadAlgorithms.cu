@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "OffloadAlgorithms.hh"
 
+#include <type_traits>
 #include <thrust/device_ptr.h>
 #include <thrust/functional.h>
 // TODO: Move these two headers inside the #else block once the
@@ -150,7 +151,7 @@ void count_num_photons(
     auto execute_thread = make_single_track_executor(
         params->ptr<MemSpace::native>(),
         state.ptr(),
-        optical::detail::UpdatePendingExecutor{count});
+        optical::detail::UpdatePendingExecutor<decltype(count)>{count});
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, stream_id, execute_thread);
