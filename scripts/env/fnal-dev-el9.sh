@@ -97,7 +97,7 @@ if ! [ -f "${_spack_src_file}" ]; then
   # Create a cached environment setup script
   celerlog info "Loading spack environment '${CELER_SPACK_ENV}' packages: ${CELER_SPACK_PACKAGES}"
   _tmp_src_file=$(mktemp ${_spack_src_file}.XXXXXX)
-  command spack -e "${CELER_SPACK_ENV}" load --sh \
+  spack -e "${CELER_SPACK_ENV}" load --sh \
     ${CELER_SPACK_PACKAGES} \
     > ${_tmp_src_file}
   _errcode=$?
@@ -113,6 +113,7 @@ if ! [ -f "${_spack_src_file}" ]; then
     "export CELER_SPACK_ENV_LOADED=${CELER_SPACK_ENV}" \
     >> ${_tmp_src_file}
   mv "${_tmp_src_file}" "${_spack_src_file}"
+  celerlog debug "Created script as '${_spack_src_file}'"
 else
   celerlog debug "Skipping spack env setup: using extant script at '${_spack_src_file}'"
 fi
