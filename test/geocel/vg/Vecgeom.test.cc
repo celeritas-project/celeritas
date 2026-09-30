@@ -51,6 +51,17 @@ auto const vecgeom_version
 }  // namespace
 
 //---------------------------------------------------------------------------//
+// TRACK VIEW TESTS
+//---------------------------------------------------------------------------//
+
+TEST(VecgeomTrackViewTest, extra_push)
+{
+    // The push must be the same physical length in any unit system: in CLHEP
+    // units (mm), a smaller push fails to move tracks far from the origin
+    EXPECT_SOFT_EQ(1e-13, to_cm(VecgeomTrackView::extra_push()));
+}
+
+//---------------------------------------------------------------------------//
 // VGDML TESTS
 //---------------------------------------------------------------------------//
 
@@ -98,6 +109,16 @@ TEST_F(TwoBoxesVgdmlTest, reentrant)
 TEST_F(TwoBoxesVgdmlTest, reentrant_undo)
 {
     this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesVgdmlTest, substep_retry)
+{
+    this->impl().test_substep_retry();
+}
+
+TEST_F(TwoBoxesVgdmlTest, substep_retry_backscatter)
+{
+    this->impl().test_substep_retry_backscatter();
 }
 
 TEST_F(TwoBoxesVgdmlTest, tangent)
@@ -232,6 +253,11 @@ TEST_F(FourLevelsTest, levels)
     EXPECT_EQ("[OUTSIDE]", this->unique_volume_name(geo));
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(pico_step))
+{
+    this->impl().test_pico_step();
+}
+
 TEST_F(FourLevelsTest, reentrant)
 {
     this->impl().test_detailed_tracking();
@@ -249,6 +275,11 @@ TEST_F(FourLevelsTest, reentrant_normal)
 TEST_F(FourLevelsTest, safety)
 {
     this->impl().test_safety();
+}
+
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
 }
 
 TEST_F(FourLevelsTest, trace)
@@ -289,6 +320,14 @@ TEST_F(FourLevelsTest, TEST_IF_CELERITAS_CUDA(device))
     // Check results
     EXPECT_VEC_EQ(expected_ids, output.ids);
     EXPECT_VEC_SOFT_EQ(expected_distances, output.distances);
+
+    // All tracks start at the centers of the innermost spheres (radius 5)
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 5),
+                       output.safeties);
+    EXPECT_VEC_SOFT_EQ(std::vector<double>(input.init.size(), 1),
+                       output.bounded_safeties);
+    EXPECT_VEC_EQ(std::vector<double>(input.init.size(), real_type{1e-20}),
+                  output.small_steps);
 }
 
 //---------------------------------------------------------------------------//
@@ -353,12 +392,6 @@ class ReplicaTest
 
 TEST_F(ReplicaTest, trace)
 {
-    if (vecgeom_version >= Version{2, 0})
-    {
-        // VecGeom 2.x-solid has small discrepancies in replica tracking
-        GTEST_SKIP() << "FIXME: VecGeom 2.x-solid: check ReplicaTest geom "
-                        "construction.";
-    }
     this->impl().test_trace();
 }
 

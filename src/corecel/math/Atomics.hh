@@ -11,6 +11,10 @@
  * utilities are meant for "kernel" code. Multiple independent events
  * must \em not use these functions to simultaneously modify shared data.
  *
+ * \warning Instantiating double-precision atomics is not supported when using
+ * a compute target less than 6.0, which has been removed from CUDA support for
+ * years.
+ *
  * ---------------------------------------------------------------------------*/
 #pragma once
 
@@ -18,10 +22,6 @@
 #include "corecel/Macros.hh"
 
 #include "Algorithms.hh"
-
-#if __CUDA_ARCH__ && (__CUDA_ARCH__ < 600)
-#    error "Celeritas requires CUDA arch 6.0 (P100) or greater"
-#endif
 
 #if defined(_OPENMP) && CELERITAS_OPENMP == CELERITAS_OPENMP_TRACK
 //! Capture the subsequent expression as an OpenMP atomic

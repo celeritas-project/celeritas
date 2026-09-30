@@ -36,11 +36,6 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-
-inline constexpr VgSurfaceInt vg_null_surface{-1};
-inline constexpr VgNavIndex vg_outside_nav_index{0};
-
-//---------------------------------------------------------------------------//
 // PARAMS
 //---------------------------------------------------------------------------//
 struct VecgeomScalars
@@ -120,6 +115,10 @@ struct VecgeomParamsData
 //---------------------------------------------------------------------------//
 /*!
  * Interface for VecGeom state information.
+ *
+ * The current and next navigation states are native VecGeom states that store
+ * the boundary flag and the last exited volume. The "next" state is set by
+ * \c find_next_step and consumed by \c cross_boundary .
  */
 template<Ownership W, MemSpace M>
 struct VecgeomStateData
@@ -131,7 +130,7 @@ struct VecgeomStateData
 #if CELER_VGNAV == CELER_VGNAV_PATH
     using VgStateItems = detail::VecgeomNavCollection<W, M>;
 #else
-    using VgStateItems = StateItems<VgNavStateImpl>;
+    using VgStateItems = StateItems<VgNavState>;
 #endif
 
     //// DATA ////
@@ -142,9 +141,7 @@ struct VecgeomStateData
 
     // Logical volumetric state
     VgStateItems state;
-    StateItems<VgBoundary> boundary;  // Empty if VGNAV=path
-    VgStateItems next_state;  // TODO: prev_state
-    StateItems<VgBoundary> next_boundary;  // Empty if VGNAV=path
+    VgStateItems next_state;
 
     //// METHODS ////
 
@@ -155,9 +152,7 @@ struct VecgeomStateData
         return pos.size() > 0
             && dir.size() == pos.size()
             && state.size() == pos.size()
-            && boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0)
-            && next_state.size() == pos.size()
-            && next_boundary.size() == (CELER_VGNAV != CELER_VGNAV_PATH ? pos.size() : 0);
+            && next_state.size() == pos.size();
         // clang-format on
     }
 
@@ -172,9 +167,7 @@ struct VecgeomStateData
         pos = other.pos;
         dir = other.dir;
         state = other.state;
-        boundary = other.boundary;
         next_state = other.next_state;
-        next_boundary = other.next_boundary;
         return *this;
     }
 };

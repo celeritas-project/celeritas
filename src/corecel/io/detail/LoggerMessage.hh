@@ -30,6 +30,7 @@ class LoggerMessage
     //!@{
     //! \name Type aliases
     using StreamManip = std::ios_base& (*)(std::ios_base&);
+    using IoState = std::ios_base::iostate;
     //!@}
 
   public:
@@ -51,7 +52,7 @@ class LoggerMessage
     inline LoggerMessage& operator<<(StreamManip manip);
 
     // Update the stream state
-    inline void setstate(std::ostream::iostate state);
+    inline void setstate(IoState state);
 
   private:
     LogHandler const* handle_;

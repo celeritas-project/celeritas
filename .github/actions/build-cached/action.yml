@@ -11,6 +11,10 @@ inputs:
   preset:
     description: "CMake build preset to execute"
     required: true
+  targets:
+    description: "Optional CMake build targets to execute"
+    required: false
+    default: ""
   name:
     description: "Cache key component, without the github.run_id suffix or ccache prefix"
     required: true
@@ -30,7 +34,7 @@ inputs:
     required: false
     default: "${{runner.temp}}/ccache-debug"
 outputs:
-  build-outcome:
+  outcome:
     description: "Outcome of the build step ('success', 'failure', 'cancelled', 'skipped')"
     value: ${{steps.build.outcome}}
 
@@ -51,6 +55,7 @@ runs:
         } >> "$GITHUB_ENV"
 
     - name: Restore ccache
+      id: restore
       uses: actions/cache/restore@v6
       with:
         path: ${{ env.CCACHE_DIR }}
@@ -65,14 +70,22 @@ runs:
     - name: Build
       id: build
       shell: bash
-      run: cmake --build --preset=${{ inputs.preset }}
+      run: cmake --build --preset=${{ inputs.preset }} ${{ inputs.targets && '--target' || '' }} ${{ inputs.targets }}
     - name: Show ccache stats
-      if: ${{ !cancelled() && steps.build.outcome != 'skipped' }}
+      if: ${{ !failure() && steps.build.outcome != 'skipped' }}
       shell: bash
       run: ccache -s
 
     - name: Save ccache
-      if: ${{ steps.build.outcome == 'success' }}
+      # Allow interrupted builds to save (use !failure not !cancelled)
+      # Cache names must be unique: don't save if there's an exact hit
+      # (maybe from a previously cancelled or errored build,
+      # or if two jobs use the same name)
+      if: >-
+        ${{ !failure()
+           && steps.build.outcome != 'skipped'
+           && !steps.restore.outputs.cache-hit
+         }}
       uses: actions/cache/save@v6
       with:
         upload-chunk-size: 67108864 # 64MB

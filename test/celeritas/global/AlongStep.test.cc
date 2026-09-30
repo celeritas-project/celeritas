@@ -889,10 +889,18 @@ TEST_F(LeadBoxAlongStepTest, mfp_steps)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(6.9164161686786e-07, result.eloss);
+            if (geant4_version >= Version{11, 4})
+            {
+                EXPECT_SOFT_EQ(6.9224006438162e-07, result.eloss);
+                EXPECT_SOFT_EQ(5.0838118432988e-08, result.step);
+            }
+            else
+            {
+                EXPECT_SOFT_EQ(6.9164161686786e-07, result.eloss);
+                EXPECT_SOFT_EQ(5.0794201375653e-08, result.step);
+            }
             EXPECT_SOFT_EQ(1, result.angle);
             EXPECT_SOFT_EQ(1.6943121845301e-18, result.time);
-            EXPECT_SOFT_EQ(5.0794201375653e-08, result.step);
         }
         EXPECT_SOFT_EQ(0, result.mfp);
         EXPECT_SOFT_EQ(1, result.alive);
@@ -904,7 +912,14 @@ TEST_F(LeadBoxAlongStepTest, mfp_steps)
         auto result = this->run(inp, num_tracks);
         if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE)
         {
-            EXPECT_SOFT_EQ(0.68234478660682, result.eloss);
+            if (geant4_version >= Version{11, 4})
+            {
+                EXPECT_SOFT_EQ(0.6829258066598, result.eloss);
+            }
+            else
+            {
+                EXPECT_SOFT_EQ(0.68234478660682, result.eloss);
+            }
         }
         EXPECT_SOFT_EQ(0, result.mfp);
         EXPECT_SOFT_EQ(1, result.alive);
@@ -919,7 +934,14 @@ TEST_F(LeadBoxAlongStepTest, mfp_steps)
             EXPECT_SOFT_EQ(2001.409778094, result.eloss);
             EXPECT_SOFT_EQ(4.9030072611395e-09, result.time);
             EXPECT_SOFT_EQ(146.988459649, result.step);
-            EXPECT_SOFT_EQ(2893.8039317112, result.mfp);
+            if (geant4_version >= Version{11, 4})
+            {
+                EXPECT_SOFT_EQ(2891.3040879503, result.mfp);
+            }
+            else
+            {
+                EXPECT_SOFT_EQ(2893.8039317112, result.mfp);
+            }
         }
         EXPECT_SOFT_EQ(1, result.alive);
         EXPECT_EQ("eloss-range", result.action);

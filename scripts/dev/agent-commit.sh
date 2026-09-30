@@ -44,7 +44,7 @@ pre-commit run || git add -A
 git commit \
   --trailer "Assisted-by: ${TRAILER}" \
   -F "$MSG_FILE" \
-  "$@"
+  "$@" || exit $?
 
 # Clean up so the agent can use create_file next time
 rm "$MSG_FILE"

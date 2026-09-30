@@ -2,11 +2,20 @@
 
 [CMake presets](https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html) have
 replaced the combination of shell scripts and CMake cache setters. Use the
-`build.sh` script in this directory to automatically link the
-`cmake-presets/${HOSTNAME}.json` file to `${SOURCE}/CMakeUserPresets.json`,
-then invoke CMake to configure, build, and test. The build script also sources
-any script at `env/${HOSTNAME}` for HPC systems that require environment
-modules to be loaded.
+`build.sh` script in this directory to automatically set up
+`${SOURCE}/CMakeUserPresets.json` from the `cmake-presets/${HOSTNAME}.json`
+file, then invoke CMake to configure, build, and test. The build script also
+sources any script at `env/${HOSTNAME}` for HPC systems that require
+environment modules to be loaded.
+
+If the system presets include the main presets file with
+`"include": ["${sourceDir}/CMakePresets.json"]` (which requires presets version
+9 and CMake 3.30), `CMakeUserPresets.json` is a small regular file that
+includes them. Otherwise it is a symbolic link to them. Only the former is
+copied into new Claude Code worktrees by the top-level `.worktreeinclude` file.
+The script only ever replaces a symbolic link: if `CMakeUserPresets.json` is a
+regular file that does not include the system presets, it warns and leaves the
+file alone.
 
 ```console
 $ ./build.sh base
@@ -20,7 +29,7 @@ Preset CMake variables:
 ```
 
 The main `CMakePresets.json` provides not only a handful of user-accessible
-presets (default, full, minimal) but also a set of hidden presets (`.ndebug`,
+presets (default, full, minimal) but also a set of hidden presets (`.release`,
 `.cuda-volta`, `.spack-base`) useful for inheriting in user presets. Make sure
 to put the overrides *before* the base definition in the `inherits` list.
 

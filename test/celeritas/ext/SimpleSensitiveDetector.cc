@@ -171,11 +171,9 @@ bool SimpleSensitiveDetector::ProcessHits(G4Step* step, G4TouchableHistory*)
         auto* vol = touchable->GetVolume();
         hits_.pre_physvol.push_back(vol ? vol->GetName() : "<nullptr>");
     }
-    hits_.post_time.push_back(
-        step->GetPostStepPoint()->GetGlobalTime() / CLHEP::ns);
-
     if (auto* post_step = step->GetPostStepPoint())
     {
+        hits_.post_time.push_back(post_step->GetGlobalTime() / CLHEP::ns);
         hits_.post_energy.push_back(post_step->GetKineticEnergy() / CLHEP::MeV);
         for (int i : range(3))
         {

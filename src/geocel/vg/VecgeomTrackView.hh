@@ -21,6 +21,7 @@
 #include "corecel/math/ArrayUtils.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
+#include "geocel/detail/LengthUnits.hh"
 
 #include "VecgeomData.hh"
 #include "VecgeomTypes.hh"
@@ -33,14 +34,11 @@
 
 #if CELER_VGNAV == CELER_VGNAV_PATH
 #    include <VecGeom/navigation/NavStatePath.h>
-#else
-#    include "detail/VgNavStateWrapper.hh"
 #endif
 
 #if !CELER_DEVICE_COMPILE
 #    include "corecel/io/Logger.hh"
 #    include "corecel/io/Repr.hh"
-#    include "geocel/detail/LengthUnits.hh"
 #endif
 
 namespace celeritas
@@ -58,6 +56,9 @@ namespace celeritas
  *
  * The "next distance" is cached as part of `find_next_step`, but it is only
  * used when the immediate next call is `move_to_boundary`.
+ *
+ * \todo Normal calculation is not yet implemented!! Optical surface physics
+ * will not work.
  */
 class VecgeomTrackView
 {
@@ -88,7 +89,11 @@ class VecgeomTrackView
     //// STATIC ACCESSORS ////
 
     //! A tiny push to make sure tracks do not get stuck at boundaries
-    static CELER_CONSTEXPR_FUNCTION real_type extra_push() { return 1e-13; }
+    //! (a physical length, so that it is resolvable in any unit system)
+    static CELER_CONSTEXPR_FUNCTION real_type extra_push()
+    {
+        return real_type{1e-13} * lengthunits::centimeter;
+    }
 
     //// ACCESSORS ////
 
@@ -159,12 +164,6 @@ class VecgeomTrackView
     using VgLogVol = VgLogicalVolume<MemSpace::native>;
     using VgPlacedVol = VgPlacedVolume<MemSpace::native>;
 
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    using NavStateWrapper = vecgeom::NavStatePath&;
-#else
-    using NavStateWrapper = detail::VgNavStateWrapper;
-#endif
-
     //// DATA ////
 
     //! Shared/persistent geometry data
@@ -174,8 +173,8 @@ class VecgeomTrackView
 
     //!@{
     //! Referenced thread-local data
-    NavStateWrapper vgstate_;
-    NavStateWrapper vgnext_;
+    VgNavState& vgstate_;
+    VgNavState& vgnext_;
     Real3& pos_;
     Real3& dir_;
 
@@ -211,14 +210,8 @@ CELER_FUNCTION VecgeomTrackView::VecgeomTrackView(
     : params_(params)
     , state_(states)
     , tid_(tid)
-#if CELER_VGNAV == CELER_VGNAV_PATH
-    // Nav path holds direct references to state with unused "last state"
     , vgstate_{states.state[tid]}
     , vgnext_{states.next_state[tid]}
-#else
-    , vgstate_{states.state[tid], states.boundary[tid]}
-    , vgnext_{states.next_state[tid], states.next_boundary[tid]}
-#endif
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
 {
@@ -513,8 +506,10 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
     {
-        Navigator::RelocateToNextVolume(
-            to_vgvector(this->pos_), to_vgvector(this->dir_), vgnext_);
+        Navigator::RelocateToNextVolume(to_vgvector(this->pos_),
+                                        to_vgvector(this->dir_),
+                                        vgstate_,
+                                        vgnext_);
     }
 
     vgstate_ = vgnext_;
