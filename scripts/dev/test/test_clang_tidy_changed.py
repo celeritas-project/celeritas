@@ -519,6 +519,36 @@ def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
     assert capsys.readouterr().err == "error: missing sources\n"
 
 
+def test_format_tidy_output_keeps_annotation_with_snippet(build_tree, capsys):
+    repo_root, _ = build_tree
+    source = repo_root / "src" / "Foo.cc"
+    lines = [
+        "clang-tidy -p=/tmp/db src/Foo.cc\n",
+        f"{source}:12:5: error: bad thing [check-name,-warnings-as-errors]\n",
+        "   12 |     do_bad();\n",
+        "      |     ^\n",
+        f"{source}:12:5: error: bad thing [check-name,-warnings-as-errors]\n",
+        "   12 |     do_bad();\n",
+        "      |     ^\n",
+        "1 warning treated as error\n",
+    ]
+
+    _MODULE.format_tidy_output(iter(lines), repo_root)
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    err_lines = captured.err.splitlines()
+    assert err_lines[0] == "clang-tidy -p=/tmp/db src/Foo.cc"
+    assert err_lines[1].startswith("::error ")
+    assert "file=src/Foo.cc,line=12,col=5::bad thing" in err_lines[1]
+    assert err_lines[2] == (
+        "src/Foo.cc:12:5: error: bad thing [check-name,-warnings-as-errors]"
+    )
+    assert err_lines[3:5] == ["   12 |     do_bad();", "      |     ^"]
+    assert err_lines[5] == "1 warning treated as error"
+    assert captured.err.count("::error ") == 1
+
+
 @pytest.mark.parametrize("print_commands", [False, True])
 def test_main_print_compile_commands_option(monkeypatch, print_commands):
     seen = []

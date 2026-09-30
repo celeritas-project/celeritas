@@ -138,10 +138,21 @@ def scanner_path(clang_tidy: str) -> str:
 
 
 def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
-    """Stream tidy output, emitting one GitHub annotation per error."""
+    """Stream tidy output, emitting one GitHub annotation per error.
+
+    All output is flushed to stderr, the stream used by ``log``, so that
+    annotations stay adjacent to the code snippet they describe in the GitHub
+    Actions log: stdout is block-buffered when piped and would otherwise be
+    emitted long after the annotations. Each new diagnostic is also echoed as
+    a plain ``path:line:col`` line so the following snippet remains
+    attributable even though GitHub renders the annotation separately.
+    """
     generated: set[str] = set()
     seen: set[tuple[str, str, str, str]] = set()
     suppress_context = 0
+
+    def emit(text: str) -> None:
+        print(text, file=sys.stderr, flush=True)
 
     for line in lines:
         line = line.rstrip("\n")
@@ -154,7 +165,7 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
                 generated.remove(count)
                 line = re.sub(r"^Suppressed ", f"{count} warnings generated; ", line)
                 line = line.replace(" warnings (", " suppressed (", 1)
-            print(line)
+            emit(line)
             continue
         if line == HEADER_FILTER_HINT:
             continue
@@ -176,13 +187,14 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
                     line=line_number,
                     col=column,
                 )
+                emit(f"{relative_path}:{line_number}:{column}: error: {message}")
             else:
                 suppress_context = 2
             continue
         if suppress_context:
             suppress_context -= 1
             continue
-        print(line)
+        emit(line)
 
 
 def run_tidy(command: list[str], repo_root: Path) -> int:
