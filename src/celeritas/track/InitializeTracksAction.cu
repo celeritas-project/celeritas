@@ -18,19 +18,29 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Launch (device) kernels to initialize tracks and to update the corresponding
+ * Launch (device) kernel to initialize tracks and to update the corresponding
  * counters.
  */
 void InitializeTracksAction::step_impl(CoreParams const& params,
                                        CoreStateDevice& state,
-                                       size_type max_new_tracks) const
+                                       size_type num_new_tracks) const
 {
-    {
-        detail::InitTracksExecutor execute{params.ptr<MemSpace::native>(),
-                                           state.ptr()};
-        static ActionLauncher<decltype(execute)> const launch_kernel(*this);
-        launch_kernel(max_new_tracks, state.stream_id(), execute);
-    }
+    detail::InitTracksExecutor execute{params.ptr<MemSpace::native>(),
+                                       state.ptr()};
+    static ActionLauncher<decltype(execute)> const launch_kernel(*this);
+    launch_kernel(num_new_tracks, state.stream_id(), execute);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Launch (device) kernel to update the corresponding counters.
+ *
+ */
+void InitializeTracksAction::update_num_active(CoreParams const& params,
+                                               CoreStateDevice& state) const
+{
+    // Store number of active tracks at the start of the loop, and update the
+    // number of vacancies and initializers if num_new_tracks > 0
     {
         auto execute_thread = make_single_track_executor(
             params.ptr<MemSpace::native>(),
