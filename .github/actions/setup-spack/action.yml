@@ -22,6 +22,18 @@ inputs:
     description: "Space-separated list of additional spack packages to add"
     required: false
     default: ""
+  cuda-version:
+    description: "Version of an installed CUDA toolkit to register as a Spack external"
+    required: false
+    default: ""
+  cuda-arch:
+    description: "CUDA architecture to prefer when concretizing GPU dependencies"
+    required: false
+    default: ""
+  use-buildcache:
+    description: "Spack install buildcache policy (defaults to only on PRs, auto otherwise)"
+    required: false
+    default: ""
   add-dependent:
     description: "Packages to build in a separate environment using the cached core specs"
     required: false
@@ -75,8 +87,25 @@ runs:
         CELER_SOURCE_DIR: "${{github.workspace}}"
         CELER_SPACK_OPT: "/opt/spack"
         SPACK_PACKAGES_REPO: "${{steps.vars.outputs.SPACK_PKG_REPO}}"
+        CUDA_VERSION: ${{inputs.cuda-version}}
+        CUDA_ARCH: ${{inputs.cuda-arch}}
       run: |
         "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
+
+        if [ -n "$CUDA_VERSION" ]; then
+          test -x "$CUDA_PATH/bin/nvcc"
+          spack -e . config add -f /dev/stdin <<EOF
+        packages:
+          cuda:
+            buildable: false
+            externals:
+              - spec: cuda@${CUDA_VERSION}
+                prefix: ${CUDA_PATH}
+        EOF
+        fi
+        if [ -n "$CUDA_ARCH" ]; then
+          spack -e . config add "packages:all:prefer:[cuda_arch=${CUDA_ARCH}]"
+        fi
 
         if [ "${{github.event_name}}" = "pull_request" ]; then
           # NOTE: padding MUST NOT be disabled if pushing to buildcache
@@ -141,7 +170,7 @@ runs:
       shell: sh
       working-directory: ${{env.CELER_SPACK_ENV}}
       env:
-        USE_BUILDCACHE: ${{ github.event_name == 'pull_request' && 'only' || 'auto' }}
+        USE_BUILDCACHE: ${{ inputs.use-buildcache || (github.event_name == 'pull_request' && 'only' || 'auto') }}
       run: |
         spack ${{runner.debug && '-vd' || ''}} -e . \
           install -p 8 --use-buildcache="$USE_BUILDCACHE"
