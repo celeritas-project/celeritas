@@ -120,6 +120,19 @@
       }
     },
     {
+      "name": "g4local",
+      "displayName": "Single-precision arithmetic",
+      "inherits": [".ccache", ".base", ".nobuiltin", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/geant4-dev/.spack-env/view"
+      },
+      "cacheVariables": {
+        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
       "name": "float",
       "displayName": "Single-precision arithmetic",
       "inherits": [".spackbase", ".debug", "default"],
