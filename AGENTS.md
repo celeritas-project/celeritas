@@ -6,7 +6,28 @@ These three behaviors apply unconditionally, every session. Read them before sta
 
 ### Before any modification — verify code state
 
-**Avoid mixing user changes with assistant changes**. Before calling any file-editing tool for the first time in a session — including when transitioning from analysis to applying edits — check the repository for uncommitted changes and commit with `git commit -a --no-verify -m "WIP: user changes"` if so. Alert the user if this happens.
+**Avoid mixing user changes with assistant changes.** Before editing, check
+`git status` and inspect the relevant staged and unstaged diffs. A dirty
+worktree does not establish who made the changes: treat unattributed edits as
+user-owned, preserve them, and work around them. Do not make a WIP commit of
+existing changes, and never use `--no-verify` to checkpoint them. If existing
+changes prevent the requested work, ask before proceeding.
+
+Before reporting a commit as successful, verify its hash, subject, and file
+contents with `git show`; confirm that the committed diff contains the intended
+implementation, not just its log or documentation. If a commit or helper
+reports failure, inspect `git status` and recent history before retrying; do not
+assume either success or failure.
+
+When analyzing a specific GitHub review discussion, retrieve the comment by its
+numeric discussion ID and verify the returned ID and body before interpreting
+it. Do not select a comment from a page-wide fetch, which may contain unrelated
+review threads.
+
+Before publishing any GitHub comment or review reply, ask the user to confirm
+the exact proposed text and destination, and wait for an explicit yes. Requests
+to analyze or "process" a discussion do not authorize posting; without
+confirmation, provide a draft reply locally only.
 
 ### After any user correction — update this file
 
@@ -16,6 +37,12 @@ These three behaviors apply unconditionally, every session. Read them before sta
 3. Include the AGENTS.md change in the current or next commit.
 
 Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
+
+When asked to move or add documentation from a local log, first check whether
+the log is tracked (`git ls-files`) or ignored (`git check-ignore`). Do not
+leave requested project documentation only in an ignored build-directory file;
+put implementation details next to the owning code, or user-facing material in
+the appropriate tracked documentation.
 
 ### Versioned tool options
 
@@ -47,7 +74,10 @@ Commit immediately when all todos are done. Do not wait to be told. Do not defer
 
 **Pre-commit checklist — execute in order:**
 1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
-2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
+2. **Format**: run `pre-commit run`. If hooks modify files or return failure,
+   stage their changes and rerun `pre-commit run`; do not commit until a run
+   completes successfully without modifying files. A helper that stages hook
+   fixes after failure must not treat that failed run as success.
 3. **Compile**: confirm the build still succeeds.
 
 Inline `-m` strings break with multi-line messages in the shell. Instead,
@@ -68,6 +98,11 @@ The script runs `git add -A`, `pre-commit run`, `git commit --trailer "Assisted-
 `--no-verify` as an extra argument only if pre-commit is already known to
 pass.
 
+After a commit command or helper reports an error, do not assume whether the
+commit succeeded. Verify the resulting `git status`, `git log`, and commit
+contents before retrying or reporting a commit ID. Report only commit IDs that
+resolve in the current repository and contain the intended changes.
+
 The commit message format for `build/commit_msg.txt`:
 
 ```
@@ -78,6 +113,12 @@ The commit message format for `build/commit_msg.txt`:
 Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
 attachments>
 ```
+
+When the user asks only to commit completed work (for example, "Commit the
+change"), use the verbatim user request that initiated the code change for the
+`Prompt:` field, not the later commit instruction. Before writing the message,
+identify that original implementation request in the conversation and quote it
+exactly.
 
 **Common failure modes:**
 - Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
