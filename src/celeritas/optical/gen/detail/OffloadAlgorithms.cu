@@ -85,18 +85,32 @@ void count_num_photons(
     auto& stream = device().stream(stream_id);
     auto start = thrust::device_pointer_cast(buffer.data().get());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
-    // Summations don't require temp workspace, so we can simplify the calls
+    size_t temp_storage_bytes = 0;
     DeviceVector<size_type> result(1, stream_id);
     auto transform = thrust::transform_iterator(
         start + offset,
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>());
+    // Calling with nullptr causes the function to return the amount of working
+    // space needed instead of invoking the kernel
     // Note: The CUB/hipCUB functions need the number of entries being
     // processed instead of the end of the entries, so we need to pass the end
     // of the distributions (size) minus the starting point, which is offset
     // Compute summation
-    auto cub_error_code = cub::DeviceReduce::Sum(
-        transform, result.data(), size - offset, stream.get());
+    auto cub_error_code = cub::DeviceReduce::Sum(nullptr,
+                                                 temp_storage_bytes,
+                                                 transform,
+                                                 result.data(),
+                                                 size - offset,
+                                                 stream.get());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
+    CELER_DISCARD(cub_error_code);
+    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
+    cub_error_code = cub::DeviceReduce::Sum(temp_storage,
+                                            temp_storage_bytes,
+                                            transform,
+                                            result.data(),
+                                            size - offset,
+                                            stream.get());
     auto count = result.data();
     CELER_DISCARD(cub_error_code);
 #else
