@@ -130,10 +130,10 @@ MaterialParams::MaterialParams(Input const& inp)
         NonuniformGridCalculator rindex_calc{data.refractive_index[rindex_id],
                                              make_ref(data.reals)};
 
-        // Add group velocity grid use the rindex grid to interpolate the
-        // refractive index and to evaluate its derivative
+        // Build dn/dE from the input samples and interpolate n(E) from the
+        // stored refractive-index grid at the derivative-grid energies
         insert_group_velocity(
-            detail::GroupVelocityGridBuilder{rindex_calc}(ri));
+            detail::build_group_velocity_grid(ri, rindex_calc));
     }
     CELER_ASSERT(data.refractive_index.size() == inp.properties.size());
     CELER_ASSERT(data.group_velocity.size() == inp.properties.size());

@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file celeritas/optical/GroupVelocityCalculator.test.cc
 //---------------------------------------------------------------------------//
-#include "celeritas/optical/detail/GroupVelocityCalculator.hh"
-
 #include <vector>
 
 #include "corecel/cont/Range.hh"
@@ -81,8 +79,7 @@ TEST_F(GroupVelocityCalculatorTest, host)
     rindex.interpolation.type = InterpolationType::linear;
     auto material = this->make_material(std::move(rindex));
 
-    detail::GroupVelocityCalculator calc{material->get(OptMatId{0})};
-
+    auto calc = material->get(OptMatId{0}).make_group_velocity_calculator();
     std::vector<real_type> actual_group_velocity_over_c;
 
     // Photon energies
@@ -117,7 +114,7 @@ TEST_F(GroupVelocityCalculatorTest, host)
 
     for (auto i : range(std::size(photon_energy)))
     {
-        real_type const group_vel = calc(units::MevEnergy{photon_energy[i]});
+        real_type const group_vel = calc(photon_energy[i]);
         actual_group_velocity_over_c.push_back(group_vel / constants::c_light);
     }
 
@@ -136,8 +133,7 @@ TEST_F(GroupVelocityCalculatorTest, clamp)
     rindex.interpolation.type = InterpolationType::linear;
     auto material = this->make_material(std::move(rindex));
 
-    detail::GroupVelocityCalculator calc{material->get(OptMatId{0})};
-
+    auto calc = material->get(OptMatId{0}).make_group_velocity_calculator();
     std::vector<real_type> actual_group_velocity_over_c;
 
     // photon energies
@@ -161,7 +157,7 @@ TEST_F(GroupVelocityCalculatorTest, clamp)
 
     for (auto i : range(std::size(photon_energy)))
     {
-        real_type const group_vel = calc(units::MevEnergy{photon_energy[i]});
+        real_type const group_vel = calc(photon_energy[i]);
         actual_group_velocity_over_c.push_back(group_vel / constants::c_light);
     }
 
@@ -182,8 +178,7 @@ TEST_F(GroupVelocityCalculatorTest, discontinuous_slope)
     rindex.interpolation.type = InterpolationType::linear;
     auto material = this->make_material(std::move(rindex));
 
-    detail::GroupVelocityCalculator calc{material->get(OptMatId{0})};
-
+    auto calc = material->get(OptMatId{0}).make_group_velocity_calculator();
     std::vector<real_type> actual_group_velocity_over_c;
 
     // photon energies
@@ -213,7 +208,7 @@ TEST_F(GroupVelocityCalculatorTest, discontinuous_slope)
 
     for (auto i : range(std::size(photon_energy)))
     {
-        real_type const group_vel = calc(units::MevEnergy{photon_energy[i]});
+        real_type const group_vel = calc(photon_energy[i]);
         actual_group_velocity_over_c.push_back(group_vel / constants::c_light);
     }
 
@@ -236,7 +231,7 @@ TEST_F(GroupVelocityCalculatorTest, group_velocity_grid_builder)
         = material->get(OptMatId{0}).make_refractive_index_calculator();
 
     inp::Grid actual_group_velocity
-        = detail::GroupVelocityGridBuilder{rindex_calc}(rindex);
+        = detail::build_group_velocity_grid(rindex, rindex_calc);
 
     // Interior points correspond to the midpoint of the preceding interval.
     static real_type const expected_energy[]
