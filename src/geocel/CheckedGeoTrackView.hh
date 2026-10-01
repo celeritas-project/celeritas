@@ -35,6 +35,11 @@ class VolumeParams;
  *
  * The constructor copies the "local" logger's target and level by default,
  * with the level overridden by the \c CELER_LOG_GEO env variable.
+ * - \c warning prints minor inconsistencies/potential issues
+ * - \c status also prints mutating actions and boundary/safety searches after
+ *   they are completed
+ * - \c debug also prints initialization and post-crossing state, as well as
+ *   function trace (in case an error is thrown)
  *
  * Two flags can alter the error checking:
  * - \c check_normal will validate the normal calculation when on a boundary

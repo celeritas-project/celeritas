@@ -288,28 +288,29 @@ void SupportedOpticalPhysics::ConstructProcess()
     // Add Optical Processes
     if (process_is_active(OpticalProcessType::absorption, options_))
     {
+        CELER_LOG(debug) << "Adding optical absorption process";
         auto absorption = std::make_unique<G4OpAbsorption>();
         process_manager->AddDiscreteProcess(absorption.release());
-        CELER_LOG(debug) << "Added optical absorption process";
     }
 
     if (process_is_active(OpticalProcessType::rayleigh, options_))
     {
+        CELER_LOG(debug) << "Adding optical Rayleigh scattering process";
         auto rayleigh = std::make_unique<G4OpRayleigh>();
         process_manager->AddDiscreteProcess(rayleigh.release());
-        CELER_LOG(debug) << "Added optical Rayleigh scattering process";
     }
 
     if (process_is_active(OpticalProcessType::mie_hg, options_))
     {
+        CELER_LOG(debug) << "Adding optical Mie (Henyey-Greenstein phase "
+                            "function) scattering process";
         auto mie = std::make_unique<G4OpMieHG>();
         process_manager->AddDiscreteProcess(mie.release());
-        CELER_LOG(debug) << "Added optical Mie (Henyey-Greenstein phase "
-                            "function) scattering process";
     }
 
     if (process_is_active(OpticalProcessType::boundary, options_))
     {
+        CELER_LOG(debug) << "Adding optical boundary process";
         auto boundary
             = ObservingUniquePtr{std::make_unique<G4OpBoundaryProcess>()};
 #if G4VERSION_NUMBER < 1070
@@ -318,26 +319,26 @@ void SupportedOpticalPhysics::ConstructProcess()
 #endif
         process_manager->AddDiscreteProcess(boundary.release());
         process_manager->SetProcessOrderingToLast(boundary, idxPostStep);
-        CELER_LOG(debug) << "Added optical boundary process";
     }
 
     if (process_is_active(OpticalProcessType::wavelength_shifting, options_))
     {
+        CELER_LOG(debug) << "Adding optical wavelength shifting process";
         auto wls = std::make_unique<G4OpWLS>();
 #if G4VERSION_NUMBER < 1070
         wls->UseTimeProfile(
             to_cstring(options_.wavelength_shifting->time_profile));
 #endif
         process_manager->AddDiscreteProcess(wls.release());
-        CELER_LOG(debug) << "Added optical wavelength shifting process";
     }
 
 #if G4VERSION_NUMBER >= 1070
     if (process_is_active(OpticalProcessType::wavelength_shifting_2, options_))
     {
+        CELER_LOG(debug)
+            << "Adding second optical wavelength shifting process";
         auto wls2 = std::make_unique<G4OpWLS2>();
         process_manager->AddDiscreteProcess(wls2.release());
-        CELER_LOG(debug) << "Added second optical wavelength shifting process";
     }
 #endif
 
@@ -372,14 +373,22 @@ void SupportedOpticalPhysics::ConstructProcess()
             {
                 return;
             }
+            if (&p == G4OpticalPhoton::Definition())
+            {
+                // Geant4 11.4.0-11.4.2 bug
+                CELER_LOG(warning)
+                    << "Scintillation process claims it applies to optical "
+                       "photons: we are preventing it";
+                return;
+            }
 
+            CELER_LOG(debug)
+                << "Adding scintillation physics to " << p.GetParticleName();
             G4ProcessManager* pm = p.GetProcessManager();
             CELER_ASSERT(pm);
             pm->AddProcess(scint.release_if_owned());
             pm->SetProcessOrderingToLast(scint, idxAtRest);
             pm->SetProcessOrderingToLast(scint, idxPostStep);
-            CELER_LOG(debug)
-                << "Added scintillation physics to " << p.GetParticleName();
         });
     }
 
@@ -405,12 +414,12 @@ void SupportedOpticalPhysics::ConstructProcess()
                 return;
             }
 
+            CELER_LOG(debug)
+                << "Adding Cherenkov physics to " << p.GetParticleName();
             G4ProcessManager* pm = p.GetProcessManager();
             CELER_ASSERT(pm);
             pm->AddProcess(cherenkov.release_if_owned());
             pm->SetProcessOrdering(cherenkov, idxPostStep);
-            CELER_LOG(debug)
-                << "Added Cherenkov physics to " << p.GetParticleName();
         });
     }
 }

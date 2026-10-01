@@ -21,6 +21,8 @@ Testing
 /spack-build*
 
 # Specific files in the top level
+/.claude/settings.local.json
+/.claude/worktrees/
 /.clangd
 /.vscode
 /CMakeCache.txt

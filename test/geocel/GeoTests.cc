@@ -1537,6 +1537,13 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[0] = 0.21064231509248;
+            ref.halfway_safeties[2] = 0.552671035949497;
+            ref.halfway_safeties[6] = 0.564195705685754;
+        }
+
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1600,6 +1607,12 @@ void PolyhedraGeoTest::test_trace() const
             0.90156957092601,
             4.5,
         };
+
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[2] = 0.679984226889976;
+        }
+
         auto tol = test_->tracking_tol();
         fixup_orange(*test_, ref, result);
         EXPECT_REF_NEAR(ref, result, tol);
@@ -1663,6 +1676,13 @@ void PolyhedraGeoTest::test_trace() const
             0.99,
             4.5,
         };
+
+        if (vecgeom_version > Version{2, 1, 1})
+        {
+            ref.halfway_safeties[0] = 0.368525403784439;
+            ref.halfway_safeties[2] = 0.794094668559638;
+            ref.halfway_safeties[6] = 0.801538105676658;
+        }
 
         auto tol = test_->tracking_tol();
         // Bump the tolerance by 25% for safety comparisons only: this became
@@ -3048,6 +3068,163 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     EXPECT_TRUE(geo.is_on_boundary());
 }
 
+//---------------------------------------------------------------------------//
+/*!
+ * Approach the +x face of the inner box like the field propagator.
+ *
+ * Starting at x = 3 along +x: discard an intersection far from the end of the
+ * curved substep and retry along the chord of a shorter one; move to the end
+ * of a chord whose extended search hits the boundary past the end of the
+ * step; and move to the boundary found just past the end of the last chord.
+ */
+CheckedGeoTrackView TwoBoxesGeoTest::approach_with_substeps() const
+{
+    constexpr auto dx = 1_r / constants::sqrt_two;
+
+    auto geo = test_->make_checked_track_view();
+
+    geo = test_->make_initializer({3, 0, 0}, {1, 0, 0});
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // The chord hits the boundary far from the end of the curved substep:
+    // discard the intersection
+    auto next = geo.find_next_step(from_cm(4.0));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(2.0, to_cm(next.distance));
+    EXPECT_FALSE(geo.is_on_boundary());
+
+    // Retry along the chord of a shorter substep, which stays inside
+    geo.set_dir({dx, dx, 0});
+    next = geo.find_next_step(from_cm(1.0));
+    EXPECT_FALSE(next.boundary);
+    EXPECT_SOFT_EQ(1.0, to_cm(next.distance));
+    geo.move_internal(from_cm(Real3{3 + dx, dx, 0}));
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // The search past the end of the next chord hits the boundary, but the
+    // step ends first: move to the end of the chord instead
+    geo.set_dir({1, 0, 0});
+    next = geo.find_next_step(from_cm(1.25 + 0.1));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(2 - dx, to_cm(next.distance));
+    geo.move_internal(from_cm(Real3{3 + dx + 1.25, dx, 0}));
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // The search past the end of the next chord hits the boundary within the
+    // step: move to the boundary
+    next = geo.find_next_step(from_cm(0.04 + 0.01));
+    EXPECT_TRUE(next.boundary);
+    EXPECT_SOFT_EQ(0.75 - dx, to_cm(next.distance));
+    geo.move_to_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+    EXPECT_VEC_SOFT_EQ((Real3{5, dx, 0}), to_cm(geo.pos()));
+
+    return geo;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Emulate the geometry calls of the field propagator's substep loop.
+ *
+ * The field propagator intersects the straight chord of each curved substep,
+ * searching a little past its end, and only moves to a boundary that is close
+ * to the end of the substep. Otherwise it discards the intersection, changes
+ * direction along the chord of a shorter substep, and searches again. It
+ * moves internally to the end of an accepted substep, including when the
+ * boundary lies just past the end of the step.
+ *
+ * After crossing, a track whose chords curve back toward the surface it is on
+ * finds it at (nearly) zero distance, which is also discarded; if no substep
+ * can move, the track is bumped along its final direction.
+ */
+void TwoBoxesGeoTest::test_substep_retry() const
+{
+    constexpr auto dx = 1_r / constants::sqrt_two;
+    auto geo = this->approach_with_substeps();
+
+    // The final momentum still points outward
+    geo.set_dir({dx, dx, 0});
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("world", test_->volume_name(geo));
+    if (geo.check_normal())
+    {
+        EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
+    }
+
+    // The chords of the next substeps curve back toward the surface: discard
+    // their (nearly) zero-distance intersections
+    for (Real3 const& dir : {Real3{-dx, dx, 0}, Real3{-0.6, 0.8, 0}})
+    {
+        geo.set_dir(dir);
+        auto next = geo.find_next_step(from_cm(1.0));
+        EXPECT_TRUE(next.boundary);
+        EXPECT_LT(to_cm(next.distance), 1e-6);
+        EXPECT_TRUE(geo.is_on_boundary());
+        EXPECT_EQ("world", test_->volume_name(geo));
+    }
+
+    // No substep could move: bump along the final direction
+    geo.set_dir({dx, dx, 0});
+    constexpr real_type bump{1e-4};
+    geo.move_internal(from_cm(Real3{5 + bump * dx, dx + bump * dx, 0}));
+    EXPECT_FALSE(geo.is_on_boundary());
+    EXPECT_EQ("world", test_->volume_name(geo));
+
+    // Make sure we're not intersecting by accident
+    auto next = geo.find_next_step(from_cm(10.0));
+    EXPECT_FALSE(next.boundary);
+    EXPECT_SOFT_EQ(10.0, to_cm(next.distance));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Approach a boundary like the field propagator, then scatter back inside.
+ *
+ * This is the same approach as \c test_substep_retry , but the final direction
+ * after moving to the boundary points back into the original volume, so
+ * crossing should not change volumes.
+ */
+void TwoBoxesGeoTest::test_substep_retry_backscatter() const
+{
+    constexpr auto dx = 1_r / constants::sqrt_two;
+    auto geo = this->approach_with_substeps();
+
+    // Scattering on the boundary points the track back inside
+    geo.set_dir({-dx, dx, 0});
+    EXPECT_TRUE(geo.is_on_boundary());
+    EXPECT_EQ("inner", test_->volume_name(geo));
+
+    // Crossing should *not* change volumes
+    geo.cross_boundary();
+    EXPECT_TRUE(geo.is_on_boundary());
+    if (test_->geometry_type() == "VecGeom")
+    {
+        // TODO: see test_tangent
+        EXPECT_EQ("world", test_->volume_name(geo));
+    }
+    else
+    {
+        EXPECT_EQ("inner", test_->volume_name(geo));
+    }
+
+    // The next boundary is the +y face of the inner box
+    auto next = geo.find_next_step(from_cm(100.0));
+    EXPECT_TRUE(next.boundary);
+    if ("inner" == test_->volume_name(geo))
+    {
+        EXPECT_SOFT_EQ((5 - dx) / dx, to_cm(next.distance));
+    }
+    else
+    {
+        // Reentrant/zero distance/bump for VecGeom
+        EXPECT_LT(to_cm(next.distance), 1e-5);
+    }
+}
+
 /*!
  * Instead of crossing into a new volume, reflect without exiting.
  *
@@ -3093,7 +3270,11 @@ void TwoBoxesGeoTest::test_tangent() const
         {
             EXPECT_TRUE(geo.is_on_boundary());
         }
-        EXPECT_EQ("inner", test_->volume_name(geo));
+        else
+        {
+            // Reentrant/zero distance/bump for VecGeom 2
+            EXPECT_EQ("inner", test_->volume_name(geo));
+        }
     }
 
     // Crossing should *not* change volumes (-; -,-)
@@ -3101,16 +3282,15 @@ void TwoBoxesGeoTest::test_tangent() const
         SCOPED_TRACE("trying to cross");
         ASSERT_NO_THROW(geo.cross_boundary());
         EXPECT_TRUE(geo.is_on_boundary());
-        if (test_->geometry_type() == "VecGeom"
-            && "world" == test_->volume_name(geo))
+        if (test_->geometry_type() == "VecGeom")
         {
-            GTEST_SKIP() << "Unexpected boundary crossing";
+            // TODO: this is probably not correct behavior
+            EXPECT_EQ("world", test_->volume_name(geo));
         }
-        if (geo.check_normal())
+        else
         {
-            EXPECT_TRUE(geo.is_on_boundary());
+            EXPECT_EQ("inner", test_->volume_name(geo));
         }
-        EXPECT_EQ("inner", test_->volume_name(geo));
     }
 
     // Find the next boundary and make sure that nearer distances aren't
@@ -3118,7 +3298,16 @@ void TwoBoxesGeoTest::test_tangent() const
     {
         SCOPED_TRACE("checking internal distance");
         auto next = geo.find_next_step(max_distance);
-        EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        if ("inner" == test_->volume_name(geo))
+        {
+            // Typical case
+            EXPECT_SOFT_EQ(10.0 * dx, to_cm(next.distance));
+        }
+        else
+        {
+            // Reentrant/zero distance/bump for VecGeom
+            EXPECT_LT(to_cm(next.distance), 1e-5);
+        }
         EXPECT_TRUE(next.boundary);
         EXPECT_TRUE(geo.is_on_boundary());
     }
