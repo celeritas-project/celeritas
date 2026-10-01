@@ -138,7 +138,10 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
 
     auto& aux_state = this->counters(*state.aux());
     aux_state.counters.num_pending = data_.num_photons;
-    this->update_pending(*core_params_, state, data_.num_photons);
+    if (data_.num_photons > 0)
+    {
+        this->update_pending(*core_params_, state, data_.num_photons);
+    }
 }
 
 //---------------------------------------------------------------------------//

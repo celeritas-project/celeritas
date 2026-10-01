@@ -147,10 +147,12 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    // Update the core state counters with the number of new pending tracks
-    this->update_pending(
-        params, state, counters.num_pending - num_pending_prev);
-
+    // Update the core state counters if there are new pending tracks
+    if (counters.num_pending - num_pending_prev > 0)
+    {
+        this->update_pending(
+            params, state, counters.num_pending - num_pending_prev);
+    }
     if (counters.num_pending > 0)
     {
         // Generate the optical photons from the distribution data. To avoid

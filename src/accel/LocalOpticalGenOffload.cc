@@ -183,15 +183,18 @@ void LocalOpticalGenOffload::Flush()
 
     // Update the number of primaries waiting to be generated based on the
     // number of photons.
-    if (celeritas::device())
+    if (auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_))
     {
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
+        this->update_primaries(*s);
+    }
+    else if (
+        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_))
+    {
         this->update_primaries(*s);
     }
     else
     {
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
-        this->update_primaries(*s);
+        CELER_ASSERT_UNREACHABLE();
     }
 
     num_photons_ = 0;

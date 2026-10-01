@@ -86,6 +86,7 @@ void count_num_photons(
     auto start = thrust::device_pointer_cast(buffer.data().get());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
     size_t temp_storage_bytes = 0;
+    // This could be allocated once and reused for each call
     DeviceVector<size_type> result(1, stream_id);
     auto transform = thrust::transform_iterator(
         start + offset,
@@ -104,6 +105,8 @@ void count_num_photons(
                                                  stream.get());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     CELER_DISCARD(cub_error_code);
+    // Note: Reductions are done in place but allocate 1 byte, so this could
+    // be done once and reused
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
     cub_error_code = cub::DeviceReduce::Sum(temp_storage.data(),
                                             temp_storage_bytes,
@@ -121,6 +124,14 @@ void count_num_photons(
         celeritas::optical::GetNumPhotons<GeneratorDistributionData>{},
         0_sz,
         thrust::plus<size_type>());
+    // If there aren't any new photons, skip updating the counter. Can't do the
+    // same check with the cub/hipcub functions because the counter is device
+    // resident.
+    if (count == 0)
+    {
+        CELER_DEVICE_API_CALL(PeekAtLastError());
+        return;
+    }
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Update the number of pending optical photons

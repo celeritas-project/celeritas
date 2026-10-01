@@ -138,15 +138,22 @@ void Runner::insert(SpanConstGenDist data)
     {
         total_pending += d.num_photons;
     }
-    if (celeritas::device())
+    if (total_pending > 0)
     {
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_);
-        this->update_pending(*s, total_pending);
-    }
-    else
-    {
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_);
-        this->update_pending(*s, total_pending);
+        if (auto* s
+            = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_))
+        {
+            this->update_pending(*s, total_pending);
+        }
+        else if (auto* s
+                 = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_))
+        {
+            this->update_pending(*s, total_pending);
+        }
+        else
+        {
+            CELER_ASSERT_UNREACHABLE();
+        }
     }
 }
 

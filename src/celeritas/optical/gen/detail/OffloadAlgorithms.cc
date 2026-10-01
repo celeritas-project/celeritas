@@ -73,12 +73,15 @@ void count_num_photons(
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
         start + offset, start + size, 0_sz, AccumNumPhotons{});
-    // Update the number of pending optical photons
-    auto execute_thread = make_single_track_executor(
-        params->ptr<MemSpace::native>(),
-        state.ptr(),
-        optical::detail::UpdatePendingExecutor<size_type>{count});
-    optical::launch_action(1, execute_thread);
+    // If there are more photons, update the number of pending optical photons
+    if (count > 0)
+    {
+        auto execute_thread = make_single_track_executor(
+            params->ptr<MemSpace::native>(),
+            state.ptr(),
+            optical::detail::UpdatePendingExecutor<size_type>{count});
+        optical::launch_action(1, execute_thread);
+    }
     return;
 }
 
