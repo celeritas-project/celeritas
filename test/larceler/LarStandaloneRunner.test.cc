@@ -319,11 +319,11 @@ TEST_F(DuneCryoTest, two_sim_edeps)
         }
     }
 
-    static unsigned int const expected_flushes[] = {1u, 2u, 3u};
-    static unsigned int const expected_num_cut[] = {1696u, 3378u, 3381u};
+    static unsigned int const expected_flushes[] = {1u, 1u, 1u};
+    static unsigned int const expected_num_cut[] = {1696u, 1682u, 3u};
     static unsigned int const expected_num_errored[] = {0u, 0u, 0u};
-    static unsigned int const expected_step_iters[] = {8u, 16u, 24u};
-    static unsigned int const expected_steps[] = {25393u, 50923u, 51014u};
+    static unsigned int const expected_step_iters[] = {8u, 8u, 8u};
+    static unsigned int const expected_steps[] = {25393u, 25530u, 91u};
     static unsigned int const expected_gen_size[] = {1u, 1u, 1u};
     static unsigned int const expected_buffer_size[] = {4u, 4u, 4u};
     static unsigned int const expected_num_generated[] = {8192u, 8192u, 30u};

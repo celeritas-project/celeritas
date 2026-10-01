@@ -163,7 +163,7 @@ auto Runner::operator()() -> Result
  */
 CounterAccumStats Runner::exchange_counters()
 {
-    CounterAccumStats counters = std::move(state_->accum());
+    CounterAccumStats counters = std::exchange(state_->accum(), {});
     for (auto gen_id : range(GeneratorId(this->params()->gen_reg()->size())))
     {
         auto const& gen = this->params()->gen_reg()->at(gen_id);
