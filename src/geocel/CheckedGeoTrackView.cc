@@ -477,10 +477,8 @@ void CheckedGeoTrackView::move_to_boundary(real_type dist)
                    << NativeLength{} << " does not match remaining "
                    << "find_next_step distance " << repr(next_step_->distance)
                    << NativeLength{});
-    auto const step = *next_step_;
 
     t_->move_to_boundary(dist);
-    next_step_.reset();
     CGTV_VALIDATE_NOT_FAILED(*this, "move_to_boundary");
     checked_internal_ = false;
     next_step_.reset();
@@ -489,7 +487,7 @@ void CheckedGeoTrackView::move_to_boundary(real_type dist)
                   t_->is_on_boundary(),
                   << "moving to boundary did not leave track on a boundary");
     CGTV_LOG(status) << "Moved to boundary at "
-                     << StreamableLength{step, unit_length_};
+                     << StreamableLength{next_step_->distance, unit_length_};
 }
 
 //---------------------------------------------------------------------------//

@@ -3117,7 +3117,7 @@ CheckedGeoTrackView TwoBoxesGeoTest::approach_with_substeps() const
     next = geo.find_next_step(from_cm(0.04 + 0.01));
     EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_EQ(0.75 - dx, to_cm(next.distance));
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("inner", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ((Real3{5, dx, 0}), to_cm(geo.pos()));
