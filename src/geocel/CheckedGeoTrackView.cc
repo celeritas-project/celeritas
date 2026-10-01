@@ -481,13 +481,14 @@ void CheckedGeoTrackView::move_to_boundary(real_type dist)
     t_->move_to_boundary(dist);
     CGTV_VALIDATE_NOT_FAILED(*this, "move_to_boundary");
     checked_internal_ = false;
+    auto distance = next_step_->distance;
     next_step_.reset();
 
     CGTV_VALIDATE(*this,
                   t_->is_on_boundary(),
                   << "moving to boundary did not leave track on a boundary");
     CGTV_LOG(status) << "Moved to boundary at "
-                     << StreamableLength{next_step_->distance, unit_length_};
+                     << StreamableLength{distance, unit_length_};
 }
 
 //---------------------------------------------------------------------------//
