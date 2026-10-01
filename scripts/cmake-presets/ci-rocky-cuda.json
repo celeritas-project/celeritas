@@ -53,9 +53,9 @@
       "cacheVariables": {}
     },
     {
-      "name": "ndebug-orange",
+      "name": "release-orange",
       "description": "Build with release ORANGE",
-      "inherits": [".ndebug", "base"],
+      "inherits": [".release", "base"],
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "BUILD_SHARED_LIBS": { "type": "BOOL", "value": "OFF" },
@@ -63,9 +63,9 @@
       }
     },
     {
-      "name": "ndebug-vecgeom",
+      "name": "release-vecgeom",
       "description": "Build release with vecgeom for testing *only* demos",
-      "inherits": [".ndebug", ".vecgeom", "base"],
+      "inherits": [".release", ".vecgeom", "base"],
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "BUILD_TESTING": { "type": "BOOL", "value": "ON" },
@@ -73,9 +73,9 @@
       }
     },
     {
-      "name": "ndebug-vecgeom-codecov",
+      "name": "vecgeom-codecov",
       "description": "Build with code coverage with vecgeom (no CUDA, no assertions)",
-      "inherits": [".gcov", ".ndebug", ".vecgeom", "base"],
+      "inherits": [".gcov", ".release", ".vecgeom", "base"],
       "cacheVariables": {
         "CELERITAS_USE_CUDA": { "type": "BOOL", "value": "OFF" },
         "CMAKE_CXX_FLAGS": null

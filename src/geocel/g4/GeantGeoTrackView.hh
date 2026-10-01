@@ -237,7 +237,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     // Initialize position/direction
     std::copy(init.pos.begin(), init.pos.end(), pos_.begin());
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
-    next_step_ = 0;
+    next_step_ = -1;
     safety_radius_ = -1;  // Assume *not* on a boundary
 
     g4pos_ = native_to_geant<ClhepLength>(pos_);
@@ -288,7 +288,7 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
 
     // Set up the next state and initialize the direction
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
-    next_step_ = 0;
+    next_step_ = -1;
 
     CELER_ENSURE(!this->has_next_step());
     return *this;
@@ -431,6 +431,9 @@ auto GeantGeoTrackView::normal() const -> Real3 const&
 //---------------------------------------------------------------------------//
 /*!
  * Find the distance to the next geometric boundary.
+ *
+ * Geant4 can return a zero-distance boundary hit within its surface tolerance.
+ * Cache it like any other hit, and finalize the boundary in move_to_boundary.
  */
 Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 {
@@ -440,6 +443,8 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     if (this->geo_status() == GeoStatus::boundary_inc)
     {
         // On a boundary, headed in: next step is zero
+        // TODO: add a test for this
+        next_step_ = 0;
         return {0, true};
     }
 
@@ -473,15 +478,6 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     result.distance = native_value_from(ClhepLength{g4step});
     if (result.distance <= max_step)
     {
-        if (CELER_UNLIKELY(result.distance == 0))
-        {
-            CELER_LOG_LOCAL(warning) << "Boundary direction was inconsistent";
-            // Oops, we might be on the inside of a concave object (boundary
-            // direction was incorrect)
-            this->geo_status(GeoStatus::boundary_inc);
-            // On a boundary, headed in: next step is zero
-            return {0, true};
-        }
         result.boundary = true;
     }
     else
@@ -493,7 +489,8 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     // Save the next step
     next_step_ = result.distance;
 
-    CELER_ENSURE(result.distance > 0);
+    CELER_ENSURE(result.distance >= 0);
+    CELER_ENSURE(result.distance > 0 || result.boundary);
     CELER_ENSURE(result.distance <= max_step);
     CELER_ENSURE(result.boundary || result.distance == max_step);
     CELER_ENSURE(this->has_next_step());
@@ -538,10 +535,19 @@ void GeantGeoTrackView::move_to_boundary()
 {
     CELER_EXPECT(this->has_next_step());
 
+    if (this->geo_status() == GeoStatus::boundary_inc)
+    {
+        // Already on the surface, e.g. after reversing the direction.
+        CELER_ASSERT(this->is_on_boundary());
+        CELER_ASSERT(next_step_ == 0);
+        next_step_ = -1;
+        return;
+    }
+
     // Move next step
     axpy(next_step_, dir_, &pos_);
     axpy(native_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
-    next_step_ = 0;
+    next_step_ = -1;
     safety_radius_ = 0;
     g4safety_ = 0;
 
@@ -608,6 +614,11 @@ void GeantGeoTrackView::move_internal(real_type dist)
     axpy(dist, dir_, &pos_);
     axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
     next_step_ -= dist;
+    if (next_step_ == 0)
+    {
+        // A non-boundary limited step has been consumed: require a new query.
+        next_step_ = -1;
+    }
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
     safety_radius_ = -1;
@@ -626,7 +637,7 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
     g4pos_ = native_to_geant<ClhepLength>(pos_);
-    next_step_ = 0;
+    next_step_ = -1;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
     safety_radius_ = -1;
@@ -673,7 +684,7 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 
     dir_ = newdir;
     g4dir_ = to_g4vector(newdir);
-    next_step_ = 0;
+    next_step_ = -1;
 }
 
 //---------------------------------------------------------------------------//
@@ -691,11 +702,11 @@ G4NavigationHistory const* GeantGeoTrackView::nav_history() const
 // PRIVATE MEMBER FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Whether a next step has been calculated.
+ * Whether a next step has been calculated, including zero-distance hits.
  */
 CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
 {
-    return next_step_ != 0;
+    return next_step_ >= 0;
 }
 
 //---------------------------------------------------------------------------//

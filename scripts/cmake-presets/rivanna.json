@@ -26,7 +26,7 @@
     {
       "name": "rivanna",
       "description": "Build on UVA's Rivanna HPC",
-      "inherits": [".base", ".ndebug"],
+      "inherits": [".base", ".release"],
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-march=x86-64-v3"
       }

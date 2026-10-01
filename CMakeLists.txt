@@ -477,6 +477,13 @@ if(CELERITAS_USE_Geant4)
   if(NOT Geant4_FOUND)
     find_package(Geant4 REQUIRED)
   endif()
+  if(Geant4_usolids_FOUND AND Geant4_VERSION VERSION_LESS 10.6)
+    celeritas_error_incompatible_option(
+      "Geant4 with USolids requires Geant4 10.6 or newer"
+      CELERITAS_USE_Geant4
+      OFF
+    )
+  endif()
   if(CELERITAS_OPENMP STREQUAL "track" AND Geant4_multithreaded_FOUND)
     message(WARNING "Track-level OpenMP will conflict with MT runs of geant4:"
       "consider setting CELERITAS_OPENMP to \"event\" or disabling OpenMP"

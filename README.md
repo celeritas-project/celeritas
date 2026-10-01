@@ -247,24 +247,26 @@ Celeritas guarantees full compatibility and correctness only on the
 combinations of compilers and dependencies tested under continuous integration.
 See the configure output from the [GitHub runners][runners] for the full list of combinations.
 - Compilers
-    - GCC 12, 14, 15
+    - GCC 8.5, 12, 14, 15
     - Clang 15, 18, 22
     - MSVC 19
     - GCC 11.5 + NVCC 12.6
     - ROCm Clang 18
 - Platforms
     - Linux x86_64, ARM
+    - macOS Apple Silicon
     - Windows x86_64
 - C++ standard
-    - C++17 and C++20
+    - C++17, C++20, C++23
 - Dependencies:
     - Geant4 10.5-11.4
-    - VecGeom 1.2.10
+    - VecGeom 1.2.10-2.1
 
 Partial compatibility and correctness is available for an extended range of
 Geant4:
 - 10.5-10.7: no support for tracking manager offload
 - 11.0: no support for fast simulation offload
+- 11.4: see https://github.com/celeritas-project/celeritas/issues/2483
 
 Note also that navigation bugs in Geant4 and VecGeom older than the versions
 listed above *will* cause failures in some geometry-related unit tests. Future

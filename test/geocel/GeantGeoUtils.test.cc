@@ -9,11 +9,14 @@
 #include <sstream>
 #include <vector>
 #include <G4LogicalVolume.hh>
+#include <G4Version.hh>
+#if G4VERSION_NUMBER >= 1060
+#    include <G4GeomConfig.hh>
+#endif
 
-#include "geocel/Types.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/g4/GeantGeoTrackView.hh"
 
-#include "UnitUtils.hh"
 #include "celeritas_test.hh"
 #include "g4/GeantGeoTestBase.hh"
 
@@ -40,6 +43,19 @@ decltype(auto) get_vol_names(InputIterator iter, InputIterator stop)
 
 //---------------------------------------------------------------------------//
 }  // namespace
+
+TEST(GeantGeo, config)
+{
+#ifdef G4GEOM_USE_USOLIDS
+    constexpr bool g4_usolids{true};
+#else
+    constexpr bool g4_usolids{false};
+#endif
+    constexpr bool celer_g4_usolids{CELERITAS_GEANT4_USOLIDS};
+    EXPECT_EQ(g4_usolids, celer_g4_usolids);
+    EXPECT_EQ(celeritas::Version::from_dec_xyz(G4VERSION_NUMBER),
+              celeritas::Version::from_hex_xxyyzz(CELERITAS_GEANT4_VERSION));
+}
 
 class GeantGeoUtilsTest : public GeantGeoTestBase
 {

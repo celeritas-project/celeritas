@@ -31,7 +31,6 @@ endif()
 # LIBRARY
 #-----------------------------------------------------------------------------#
 set(SOURCES
-  CheckedGeoTrackView.cc
   LazyGeantGeoManager.cc
   GeantImportVolumeResult.cc
   GenericGeoResults.cc
@@ -134,6 +133,12 @@ if(CELERITAS_USE_VecGeom)
       nlohmann_json::nlohmann_json
     ${_vecgeom_test_filter}
     ${_fixme_cgs}
+  )
+endif()
+
+if(CELERITAS_USE_VecGeom AND VecGeom_VERSION VERSION_GREATER_EQUAL 2.1)
+  celeritas_add_test(vg/VgBasicTrackView.test.cc
+    LINK_LIBRARIES VecGeom::vecgeom
   )
 endif()
 

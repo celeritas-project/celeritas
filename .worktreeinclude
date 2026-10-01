@@ -1,0 +1,2 @@
+# Ignored files that Claude Code copies into new worktrees (symlinks are skipped)
+/CMakeUserPresets.json

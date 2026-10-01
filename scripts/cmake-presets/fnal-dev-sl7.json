@@ -33,7 +33,7 @@
     {
       "name": "release-orange",
       "displayName": "Build with full optimizations (ORANGE)",
-      "inherits": [".base", ".ndebug"],
+      "inherits": [".base", ".release"],
       "cacheVariables": {}
     },
     {

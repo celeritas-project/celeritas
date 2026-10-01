@@ -16,7 +16,7 @@ concurrency:
 
 env:
   CELER_CMAKE_PRESET: ultralite
-  CXXSTD: 17
+  CXXSTD: 20
   CELER_VERSION_STRING: >-
     ${{
       github.event.pull_request
@@ -30,9 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - platform: ubuntu
-          - platform: windows
+        platform: ["ubuntu", "windows"]
     runs-on: >-
       ${{  matrix.platform == 'ubuntu' && 'ubuntu-24.04'
         || matrix.platform == 'windows' && 'windows-2025'
@@ -46,7 +44,7 @@ jobs:
         run: |
           sudo apt-get -q -y update
           sudo apt-get -q -y install \
-            ccache nlohmann-json3-dev libpng-dev
+            ccache nlohmann-json3-dev libpng-dev libgtest-dev
       - name: Install dependencies (Windows)
         if: ${{matrix.platform == 'windows'}}
         run: |

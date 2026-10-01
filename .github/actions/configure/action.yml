@@ -19,6 +19,10 @@ inputs:
     description: "Value for -DCeleritas_VERSION_STRING"
     required: false
     default: ""
+  args:
+    description: "Additional arguments to pass to cmake"
+    required: false
+    default: ""
 
 runs:
   using: "composite"
@@ -46,7 +50,7 @@ runs:
       shell: bash
       run: |
         cmake --preset=${{inputs.preset}} --log-level=VERBOSE \
-          ${{inputs.extra-args}} \
+          ${{inputs.args}} \
           -DCeleritas_VERSION_STRING="${{inputs.version-string}}"
     - name: Print debug diagnostics on failure
       if: ${{ failure() || runner.debug }}

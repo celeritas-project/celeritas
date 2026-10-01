@@ -60,7 +60,13 @@ class GeantGeoTest : public GeantGeoTestBase
         static bool const have_printed_ = [] {
             using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << " (" << geant4_options << ")" << color_code(' ') << endl;
+                 << " (" << geant4_options << ")";
+            if (CELERITAS_GEANT4_USOLIDS)
+            {
+                cout << " with VecGeom " << cmake::vecgeom_version << " solids";
+            }
+
+            cout << color_code(' ') << endl;
             return true;
         }();
         EXPECT_TRUE(have_printed_);
@@ -337,6 +343,11 @@ TEST_F(FourLevelsTest, locate_point)
     this->impl().test_locate_point();
 }
 
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(pico_step))
+{
+    this->impl().test_pico_step();
+}
+
 TEST_F(FourLevelsTest, reentrant)
 {
     this->impl().test_reentrant();
@@ -363,6 +374,11 @@ TEST_F(FourLevelsTest, safety)
     static char const* const expected_log_levels[]
         = {"warning", "warning", "warning", "warning", "warning", "warning"};
     EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+}
+
+TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))
+{
+    this->impl().test_small_steps();
 }
 
 TEST_F(FourLevelsTest, trace)
@@ -818,6 +834,16 @@ TEST_F(TwoBoxesTest, reentrant)
 TEST_F(TwoBoxesTest, reentrant_undo)
 {
     this->impl().test_reentrant_undo();
+}
+
+TEST_F(TwoBoxesTest, substep_retry)
+{
+    this->impl().test_substep_retry();
+}
+
+TEST_F(TwoBoxesTest, substep_retry_backscatter)
+{
+    this->impl().test_substep_retry_backscatter();
 }
 
 TEST_F(TwoBoxesTest, tangent)

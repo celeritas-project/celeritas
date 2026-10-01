@@ -31,6 +31,8 @@ jobs:
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
     uses: ./.github/workflows/build-spack-extra.yml
+  build-regression:
+    uses: ./.github/workflows/build-regression.yml
   build-codecov:
     uses: ./.github/workflows/build-codecov.yml
     secrets: inherit

@@ -163,7 +163,10 @@ void GeantSd::process_steps(HostStepState state)
 
 //---------------------------------------------------------------------------//
 /*!
- * Process detector tallies (GPU).
+ * Defer device detector tallies to the thread-local hit processor.
+ *
+ * LocalTransporter completes the transfer and invokes the host sensitive
+ * detectors after the asynchronous step result is ready.
  */
 void GeantSd::process_steps(DeviceStepState state)
 {

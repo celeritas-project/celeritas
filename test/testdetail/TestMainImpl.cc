@@ -6,14 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "TestMainImpl.hh"
 
-#include <stdexcept>
 #include <string_view>
 
 #include "corecel/Config.hh"
 #include "corecel/Version.hh"
 
 #include "corecel/Macros.hh"
-#include "corecel/cont/Range.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
@@ -172,8 +170,9 @@ int test_main(int argc, char** argv)
         }
 
         // Write diagnostics and overall test result
-        CELER_LOG(debug) << "Celeritas environment variables: "
-                         << environment();
+        CELER_LOG(debug)
+            << "Environment variables accessed by Celeritas code: "
+            << environment();
 
         cout << color_code('x') << (argc > 0 ? argv[0] : "UNKNOWN")
              << ": tests " << (failed ? "FAILED" : "PASSED") << color_code(' ')

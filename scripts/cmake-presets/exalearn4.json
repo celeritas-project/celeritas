@@ -55,14 +55,14 @@
       }
     },
     {
-      "name": "ndebug",
+      "name": "release",
       "displayName": "Exalearn4 release mode",
-      "inherits": [".ndebug", ".base"]
+      "inherits": [".release", ".base"]
     },
     {
-      "name": "ndebug-serial",
+      "name": "release-serial",
       "displayName": "Exalearn4 release mode (no openmp)",
-      "inherits": [".ndebug", ".base"],
+      "inherits": [".release", ".base"],
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_OpenMP": { "type": "BOOL", "value": "OFF" }
@@ -76,7 +76,7 @@
       "jobs": 8,
       "nativeToolOptions": ["-k0"]
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" }
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
   ],
   "testPresets": [
     {
@@ -89,6 +89,6 @@
         "jobs": 8
       }
     },
-    { "name": "ndebug", "configurePreset": "ndebug", "inherits": "base" }
+    { "name": "release", "configurePreset": "release", "inherits": "base" }
   ]
 }

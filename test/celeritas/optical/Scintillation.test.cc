@@ -530,6 +530,46 @@ TEST_F(MaterialScintillationGaussianTest, stress_test)
     EXPECT_SOFT_NEAR(avg_lambda, expected_lambda, 1e-4);
 }
 
+TEST_F(MaterialScintillationGaussianTest, specified_component)
+{
+    static constexpr real_type nm{units::meter * 1e-9};
+
+    auto const params = this->build_scintillation_params();
+    auto const& data = params->host_ref();
+
+    optical::GeneratorDistributionData gdd;
+    gdd.type = GeneratorType::scintillation;
+    gdd.num_photons = 100;
+    gdd.step_length = from_cm(step_length_);
+    gdd.material = opt_mat_;
+    gdd.continuous_edep_fraction = 0;
+    gdd.points[StepPoint::pre].pos = {0, 0, 0};
+    gdd.points[StepPoint::post].pos = post_pos_;
+    gdd.points[StepPoint::pre].time = 0;
+    gdd.points[StepPoint::post].time = 1.0 * units::nanosecond;
+
+    static real_type const expected_lambda[] = {100, 200, 400};
+
+    for (size_type comp_idx : range(3))
+    {
+        gdd.component_id = ScintComponentId{comp_idx};
+
+        Rng rng;
+        optical::ScintillationGenerator generate(data, gdd);
+
+        real_type avg_lambda{};
+        size_type const num_samples{10000};
+        for (size_type i = 0; i < num_samples; i++)
+        {
+            auto photon = generate(rng);
+            avg_lambda += optical::detail::energy_to_wavelength(photon.energy);
+        }
+
+        avg_lambda /= num_samples * nm;
+        EXPECT_SOFT_NEAR(expected_lambda[comp_idx], avg_lambda, 1e-3);
+    }
+}
+
 TEST_F(MaterialScintillationTabularTest, uses_nonuniform_grid_calculator)
 {
     auto const params = this->build_scintillation_params();

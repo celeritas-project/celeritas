@@ -12,6 +12,7 @@ set(PUBLIC_DEPS Celeritas::corecel)
 #-----------------------------------------------------------------------------#
 
 list(APPEND SOURCES
+  CheckedGeoTrackView.cc
   DetectorParams.cc
   GeoInterface.cc
   GeoParamsOutput.cc
