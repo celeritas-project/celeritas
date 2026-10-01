@@ -105,14 +105,12 @@ void ExtendFromPrimariesAction::insert(CoreParams const& params,
                                        CoreStateInterface& state,
                                        Span<Primary const> host_primaries) const
 {
+    size_type num_initializers = state.sync_get_counters().num_initializers;
     size_type init_capacity = params.init()->capacity();
 
-    // To avoid synchronization, defer the check for whether there is space for
-    // all host primaries and num_initializers until the process_primaries
-    // executor, but keep a more basic check here to ensure insert_impl doesn't
-    // increase the storage space beyond the init capacity.
-    CELER_VALIDATE(host_primaries.size() <= init_capacity,
+    CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
                    << "insufficient initializer capacity (" << init_capacity
+                   << ") with size (" << num_initializers
                    << ") for primaries (" << host_primaries.size() << ")");
 
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
