@@ -105,7 +105,7 @@ void count_num_photons(
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     CELER_DISCARD(cub_error_code);
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    cub_error_code = cub::DeviceReduce::Sum(temp_storage,
+    cub_error_code = cub::DeviceReduce::Sum(temp_storage.data(),
                                             temp_storage_bytes,
                                             transform,
                                             result.data(),
