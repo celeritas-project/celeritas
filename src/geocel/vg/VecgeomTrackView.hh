@@ -197,9 +197,6 @@ class VecgeomTrackView
 
     // Get a reference to the current volume
     inline CELER_FUNCTION VgLogVol const& logical_volume() const;
-
-    // Forget the last exited volume after it has been used for relocation
-    static inline CELER_FUNCTION void clear_last_exited(VgNavState& state);
 };
 
 //---------------------------------------------------------------------------//
@@ -524,9 +521,6 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
                                         vgnext_);
     }
 
-    // The exited volume only applies to this crossing: a subsequent crossing
-    // after a direction change (e.g., reflection) may reenter it
-    clear_last_exited(vgnext_);
     vgstate_ = vgnext_;
 
     CELER_ENSURE(this->is_on_boundary());
@@ -624,28 +618,6 @@ CELER_FUNCTION auto VecgeomTrackView::physical_volume() const
 CELER_FUNCTION auto VecgeomTrackView::logical_volume() const -> VgLogVol const&
 {
     return *this->physical_volume().GetLogicalVolume();
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Forget the last exited volume after it has been used for relocation.
- *
- * VecGeom 2 records the last exited volume when a step leaves one or more
- * volumes, and relocation excludes it to avoid reentering at the exact
- * boundary position. Clearing it after each crossing prevents a stale value
- * from blocking a later relocation, and ensures that entering a daughter
- * volume never inherits an unrelated excluded volume.
- *
- * The VecGeom 1 navigator instead determines the exited volume by comparing
- * the pre- and post-step states, so no metadata needs to be cleared.
- */
-CELER_FUNCTION void VecgeomTrackView::clear_last_exited(VgNavState& state)
-{
-#if CELERITAS_VECGEOM_VERSION >= 0x020000
-    state.SetLastExited(decltype(state.GetLastExitedState()){});
-#else
-    CELER_DISCARD(state);
-#endif
 }
 
 //---------------------------------------------------------------------------//
