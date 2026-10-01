@@ -152,6 +152,50 @@ TEST_F(TwoBoxesVgdmlTest, persistent_next_state)
         geo.cross_boundary();
         EXPECT_EQ("world", this->volume_name(geo));
     }
+    {
+        // Mimic optical surface physics, using a new view for each action:
+        // propagate to the boundary and cross it, reflect, then cross back
+        {
+            auto geo = this->make_geo_track_view({0, 0, 0}, {1, 0, 0});
+            next = geo.find_next_step(from_cm(50));
+            ASSERT_TRUE(next.boundary);
+            geo.move_to_boundary(next.distance);
+        }
+        {
+            auto geo = this->make_geo_track_view();
+            geo.cross_boundary();
+            EXPECT_EQ("world", this->volume_name(geo));
+            if (CELERITAS_DEBUG)
+            {
+                // The crossing consumed the boundary
+                EXPECT_THROW(geo.move_to_boundary(0), DebugError);
+            }
+        }
+        {
+            auto geo = this->make_geo_track_view();
+            geo.set_dir({-1, 0, 0});
+            EXPECT_TRUE(geo.is_on_boundary());
+            if (CELERITAS_DEBUG)
+            {
+                // Reflecting on the boundary does not restore it
+                EXPECT_THROW(geo.move_to_boundary(0), DebugError);
+            }
+        }
+        {
+            auto geo = this->make_geo_track_view();
+            geo.cross_boundary();
+            EXPECT_TRUE(geo.is_on_boundary());
+            EXPECT_EQ("inner", this->volume_name(geo));
+            EXPECT_VEC_SOFT_EQ((Real3{5, 0, 0}), to_cm(geo.pos()));
+
+            // A new search from the boundary allows moving again
+            next = geo.find_next_step(from_cm(50));
+            EXPECT_SOFT_EQ(10, to_cm(next.distance));
+            ASSERT_TRUE(next.boundary);
+            geo.move_to_boundary(next.distance);
+            EXPECT_VEC_SOFT_EQ((Real3{-5, 0, 0}), to_cm(geo.pos()));
+        }
+    }
     if (CELERITAS_DEBUG)
     {
         // Changing direction away from a boundary cancels the crossing

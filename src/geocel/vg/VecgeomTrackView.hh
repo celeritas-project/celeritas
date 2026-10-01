@@ -483,7 +483,10 @@ CELER_FUNCTION real_type VecgeomTrackView::find_safety(real_type max_radius)
  * any \c move_internal step since then. It may be zero after internal
  * movement up to the boundary tolerance. A boundary that has already been
  * moved to, or that was found before a direction change, cannot be reused:
- * \c find_next_step must be called again.
+ * \c find_next_step must be called again. Reuse after a crossing or a
+ * direction change away from a boundary is rejected by a debug assertion;
+ * moving to the same boundary twice without crossing it is not detected here
+ * (see \c CheckedGeoTrackView ).
  */
 CELER_FUNCTION void VecgeomTrackView::move_to_boundary(real_type dist)
 {
@@ -500,17 +503,25 @@ CELER_FUNCTION void VecgeomTrackView::move_to_boundary(real_type dist)
 /*!
  * Cross from one side of the current surface to the other.
  *
- * The position *must* be on the boundary following a move-to-boundary.
+ * The position *must* be on the boundary, either following a move-to-boundary
+ * or a previous crossing.
  *
- * The next state keeps its boundary flag after crossing, so that a direction
- * change on the boundary (e.g., reflection) can be followed by another
- * crossing without a new \c find_next_step .
+ * Crossing consumes the boundary found by \c find_next_step , so a later
+ * \c move_to_boundary requires a new search. A track can still cross again
+ * after a direction change on the boundary (e.g., optical reflection back
+ * into the pre-crossing volume): with no pending crossing, the track is
+ * relocated from its current state along the new direction.
  */
 CELER_FUNCTION void VecgeomTrackView::cross_boundary()
 {
     CELER_EXPECT(!this->is_outside());
     CELER_EXPECT(this->is_on_boundary());
-    CELER_EXPECT(this->is_next_boundary());
+
+    if (!this->is_next_boundary())
+    {
+        // Cross again from the current state (e.g., after a reflection)
+        vgnext_ = vgstate_;
+    }
 
     // Relocate to next tracking volume (maybe across multiple boundaries)
     if (vgnext_.Top() != nullptr)
@@ -522,8 +533,10 @@ CELER_FUNCTION void VecgeomTrackView::cross_boundary()
     }
 
     vgstate_ = vgnext_;
+    vgnext_.SetBoundaryState(false);
 
     CELER_ENSURE(this->is_on_boundary());
+    CELER_ENSURE(!this->is_next_boundary());
 }
 
 //---------------------------------------------------------------------------//
@@ -591,8 +604,9 @@ CELER_FUNCTION void VecgeomTrackView::set_dir(Real3 const& newdir)
 /*!
  * Whether a boundary crossing is pending.
  *
- * This is true after \c find_next_step finds a boundary, until the direction
- * changes away from a boundary or the track is reinitialized.
+ * This is true after \c find_next_step finds a boundary, until the track
+ * crosses it, the direction changes away from a boundary, the track moves to
+ * an arbitrary point, or the track is reinitialized.
  */
 CELER_FUNCTION bool VecgeomTrackView::is_next_boundary() const
 {
