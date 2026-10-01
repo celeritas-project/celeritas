@@ -272,8 +272,8 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
         }
     }
 
-    // Reset the next state so that no boundary crossing is pending
-    vgnext_ = vgstate_;
+    // Cancel any pending boundary crossing: the rest of the next state is
+    // unused until find_next_step overwrites it
     vgnext_.SetBoundaryState(false);
 
     CELER_ENSURE(!init.parent || this->pos() == init.pos);

@@ -160,6 +160,25 @@ TEST_F(TwoBoxesVgdmlTest, persistent_next_state)
         geo.set_dir({0, 1, 0});
         EXPECT_THROW(geo.move_to_boundary(next.distance), DebugError);
     }
+    if (CELERITAS_DEBUG)
+    {
+        // Reinitializing from a position cancels the crossing
+        auto geo = this->make_geo_track_view({0, 0, 0}, {1, 0, 0});
+        next = geo.find_next_step(from_cm(50));
+        ASSERT_TRUE(next.boundary);
+        geo = this->make_initializer({0, 0, 0}, {1, 0, 0});
+        EXPECT_THROW(geo.move_to_boundary(next.distance), DebugError);
+    }
+    if (CELERITAS_DEBUG)
+    {
+        // Reinitializing from a parent cancels the crossing
+        auto geo = this->make_geo_track_view({0, 0, 0}, {1, 0, 0});
+        next = geo.find_next_step(from_cm(50));
+        ASSERT_TRUE(next.boundary);
+        geo = GeoTrackInitializer{geo.pos(), {1, 0, 0}, TrackSlotId{0}};
+        EXPECT_FALSE(geo.is_on_boundary());
+        EXPECT_THROW(geo.move_to_boundary(next.distance), DebugError);
+    }
 }
 
 // The checked view validates movement against the last find_next_step
