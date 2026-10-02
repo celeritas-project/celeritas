@@ -68,10 +68,18 @@ combinations in the CI matrix must be pushed there first by
 `scripts/ci/update-spack-buildcache-local.sh`. The `buildcache` image
 reproduces the toolchain of the GitHub `ubuntu-24.04` runners (the externals
 in `scripts/spack/ext-ubuntu24.yaml`) so that script can run on any x86_64
-Linux host. Build it from the top-level source directory:
+Linux host. Build it with:
 ```console
-$ docker build -f scripts/docker/buildcache/Dockerfile -t celeritas-buildcache .
+$ scripts/docker/buildcache/build.sh
 ```
+The script reads the Spack and spack-packages commits pinned in
+`.github/actions/setup-spack/action.yml` and passes them as build arguments.
+It tags two images with the abbreviated commits:
+`celeritas/spack-ubuntu24:<spack>-<packages>`, the runner toolchain with Spack
+checked out and bootstrapped, and `celeritas-buildcache:<spack>-<packages>`
+(also tagged `latest`), which runs the update script. Extra arguments are
+passed to each build command, and `DOCKER` selects the container engine
+(e.g. `DOCKER=podman-hpc`).
 
 Pushing requires a GitHub personal access token (classic) with the
 `write:packages`, and `delete:packages` scopes, authorized for the `celeritas-project` organization.
@@ -95,6 +103,7 @@ With rootless podman, such as `podman-hpc` on Perlmutter, the container's
 root (which is your own user) and keep the installations in a scratch directory
 so they are visible from every node:
 ```console
+$ DOCKER=podman-hpc scripts/docker/buildcache/build.sh
 $ mkdir -p $SCRATCH/celeritas-opt-ci
 $ podman-hpc run --rm -it --user 0 \
     -v "$PWD:/celeritas:ro" \
@@ -104,9 +113,10 @@ $ podman-hpc run --rm -it --user 0 \
 ```
 
 Notes:
-- The entrypoint checks out the Spack and spack-packages commits pinned in the
-  mounted `.github/actions/setup-spack/action.yml`, so the concretization
-  matches CI even if the image is older than the pins.
+- The entrypoint refuses to run if the Spack commits in the image differ from
+  the ones pinned in the mounted `.github/actions/setup-spack/action.yml`, so
+  the concretization always matches CI. After updating the pins, rerun
+  `build.sh`: only the Spack layers are rebuilt.
 - The host CPU must support `x86_64_v3` (AVX2), the target required by
   `scripts/spack/reqs-ci.yaml`: CPU emulation is not supported.
 - The `celeritas-opt-ci` volume keeps the installed packages,

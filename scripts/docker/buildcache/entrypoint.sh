@@ -3,8 +3,9 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Check out the Spack and spack-packages revisions pinned by the setup-spack
-# CI action of the Celeritas source at CELER_SOURCE_DIR, then run a command.
+# Check that the Spack revisions built into the image match the ones pinned by
+# the setup-spack CI action of the Celeritas source at CELER_SOURCE_DIR, then
+# run a command.
 #-----------------------------------------------------------------------------#
 
 set -e
@@ -18,42 +19,15 @@ if [ ! -f "${ACTION_FILE}" ]; then
   exit 1
 fi
 
-# Print "<destination> <url> <sha>" for each Spack checkout in the action
-refs=$(python3 - "${ACTION_FILE}" <<'EOF'
-import os
-import sys
-
-import yaml
-
-dests = {
-    "spack/spack": os.environ["SPACK_ROOT"],
-    "spack/spack-packages": os.environ["SPACK_PACKAGES_REPO"],
-}
-with open(sys.argv[1]) as f:
-    steps = yaml.safe_load(f)["runs"]["steps"]
-for step in steps:
-    inputs = step.get("with") or {}
-    repo = inputs.get("repository")
-    if repo in dests:
-        print(dests.pop(repo), f"https://github.com/{repo}.git", inputs["ref"])
-if dests:
-    sys.exit("error: no pinned ref for " + ", ".join(dests))
-EOF
-)
-
-printf "%s\n" "${refs}" | while read -r dest url sha; do
-  if [ ! -d "${dest}/.git" ]; then
-    git init -q "${dest}"
-    git -C "${dest}" remote add origin "${url}"
-  fi
-  if [ "$(git -C "${dest}" rev-parse -q --verify HEAD || true)" != "${sha}" ]; then
-    log info "Checking out ${url} at ${sha}"
-    git -C "${dest}" fetch -q --depth 1 origin "${sha}"
-    git -C "${dest}" checkout -q --detach FETCH_HEAD
-  fi
-done
-
-# Use the pinned package repository instead of letting Spack clone its own
-spack repo set --destination "${SPACK_PACKAGES_REPO}" builtin
+pins=$(python3 "$(dirname "$0")/spack-pins.py" "${ACTION_FILE}")
+eval "${pins}"
+if [ "${SPACK_REF}" != "${CELER_SPACK_REF}" ] \
+    || [ "${SPACK_PACKAGES_REF}" != "${CELER_SPACK_PACKAGES_REF}" ]; then
+  log error "Spack revisions in the image do not match ${ACTION_FILE}:"
+  log error "  spack:          image ${CELER_SPACK_REF}, source ${SPACK_REF}"
+  log error "  spack-packages: image ${CELER_SPACK_PACKAGES_REF}, source ${SPACK_PACKAGES_REF}"
+  log error "rebuild the image with scripts/docker/buildcache/build.sh"
+  exit 1
+fi
 
 exec "$@"
