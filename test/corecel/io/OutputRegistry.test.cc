@@ -150,8 +150,20 @@ TEST_F(OutputRegistryTest, minimal)
         R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
         this->to_string(reg));
 
-    // Test persistent output filename
+    // No persistent output configured
     EXPECT_FALSE(reg.is_open());
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::debug};
+        reg.output();
+        scoped_log_.print_expected();
+    }
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(reg.output_filename(), DebugError);
+    }
+
+    // Test persistent output to stdout
     reg.open("-");
     EXPECT_TRUE(reg.is_open());
     {
@@ -172,7 +184,8 @@ TEST_F(OutputRegistryTest, minimal)
     // Clearing just removes already-written diagnostics
     reg.clear();
     EXPECT_TRUE(reg.empty());
-    EXPECT_TRUE(reg.is_open());
+    ASSERT_TRUE(reg.is_open());
+    EXPECT_EQ("-", reg.output_filename());
 }
 
 TEST_F(OutputRegistryTest, persistent_output)
