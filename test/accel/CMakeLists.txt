@@ -185,6 +185,20 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test automatic state-dependent hooks without manual run action calls
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TMIAutoHooks run
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
+
+# Test that legacy manual run action calls are harmless and warn
+celeritas_add_integration_tests(
+  TrackingManagerIntegration LegacyTMIHooks run
+  OFFLOAD cpu
+  RMTYPE serial mt
+)
+
 # Test optical
 celeritas_add_integration_tests(
   TrackingManagerIntegration LarSphereOptical run

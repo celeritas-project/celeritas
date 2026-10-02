@@ -30,11 +30,9 @@ Example classes
 
 :cpp:class:`MakeCelerOptions`
   Build Celeritas integration options before the beginning of the run.
-
-:cpp:class:`RunAction`
-  :cpp:class:`BeginOfRunAction` initializes Celeritas global shared data on
-  master and worker threads, setting up a tracking manager under the hood.
-  :cpp:class:`EndOfRunAction` clears data and finalizes Celeritas data.
+  Once the options are set and the tracking manager is registered, Celeritas
+  global and thread-local data are initialized and finalized automatically
+  through Geant4 state hooks: no user run action is needed.
 
 :cpp:class:`EventAction`
   This optional event action demonstrates how to profile Geant4

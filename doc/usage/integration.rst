@@ -127,12 +127,15 @@ recommended for all applications that support Geant4 11.0 or higher.
    - Tweak the ``SetupOptions`` based on problem requirements, or use the
      :ref:`g4_ui_macros`.
 
-3. Add hooks to safely set up and tear down Celeritas and its GPU code.
+3. Let Celeritas set up and tear down automatically.
 
-   - Call ``BeginOfRunAction`` at the beginning of the run to initialize
-     problem data (master or serial) and local state (worker or serial).
-   - Call ``EndOfRunAction`` at the end of the run to safely deallocate
-     everything.
+   - Geant4 state hooks initialize problem data (master or serial) at the
+     beginning of the run and local state (worker or serial) on each thread,
+     and safely deallocate everything at the end of the program.
+   - Manual ``BeginOfRunAction`` and ``EndOfRunAction`` calls from user run
+     actions, required by earlier versions of Celeritas, are no longer needed:
+     they are harmless no-ops that emit a one-time warning advising their
+     removal.
 
 The changes for a simple application look like:
 
