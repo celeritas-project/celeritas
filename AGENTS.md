@@ -131,19 +131,6 @@ Celeritas separates immutable setup from mutable runtime data:
 
 Data flow: Build params on host → copy to device → access via Views
 
-```cpp
-// Params: immutable setup data
-struct MyParamsData { Collection<Material> materials; /* ... */ };
-
-// View: lightweight accessor for device code
-class MyView {
-    MyParamsData<const_reference, MemSpace::native> const& data_;
-public:
-    CELER_FUNCTION Material const& get(MaterialId id) const;
-};
-```
-Data structs must have `operator bool` to check construction/assignment.
-
 ### Action/Executor/Interactor
 The stepping loop uses three layers:
 
@@ -162,30 +149,15 @@ launch_action(*this, params, state, execute);
 See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}`
 
 ### Inserters for Building Params
-Use inserter classes to populate Collections with deduplication:
-```cpp
-class XsGridInserter {
-  public:
-    GridId operator()(inp::XsGrid const& grid);
-  private:
-    DedupeCollectionBuilder<real_type> reals_;
-    CollectionBuilder<XsGridRecord> grids_;
-};
-```
+Use inserter classes to populate Collections with deduplication
+(`DedupeCollectionBuilder`, `CollectionBuilder`); see
+`src/celeritas/grid/XsGridInserter.hh`.
 
 ### Collection Ranges & Maps
-- `ItemRange<T>`: Contiguous slice [begin, end)
+- `ItemRange<T>`: Contiguous slice [begin, end) into a backing
+  `Collection<T>`; records store ranges instead of nested containers (e.g.
+  `MaterialRecord::elements` indexes `MaterialParamsData::elcomponents`)
 - `ItemMap<K, V>`: Offset-based mapping (not hash map)
-
-```cpp
-struct MyParamsData {
-    Collection<Material> materials;
-    Collection<Element> elements;        // Backend storage
-    // Material stores ItemRange<Element> into elements collection
-};
-```
-
-State collections need `resize(size)` operators for track slots.
 
 ## Code Conventions
 
@@ -211,7 +183,6 @@ State collections need `resize(size)` operators for track slots.
 ### Style
 
 Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`. Most often missed:
-- East const (`T const&`), 79-column limit (enforced by `.clang-format`).
 - Call members via `this->`; write `template<class T>`, not `typename`.
 - Mark classes `final` where possible; use exactly one of `final`/`override`.
 - Prefer enums over `bool` parameters; no top-level `const` on by-value params.
@@ -235,16 +206,10 @@ Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`. Most
 
 | Type | Purpose |
 |------|--------|
-| `OpaqueId<T>` | Type-safe index — never use raw integers for indices |
+| `OpaqueId<T>` | Type-safe index |
 | `Collection<T>` | GPU-compatible array with ownership semantics |
 | `Span<T>` | Non-owning array view |
 | `Array<T, N>` | Fixed-size stack array |
-
-```cpp
-using FooId = OpaqueId<Foo>;
-Collection<Foo, Ownership::value, MemSpace::host> foos;           // Owns data
-Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
-```
 
 ## Common Patterns
 
@@ -254,7 +219,7 @@ Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // V
 3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 4. Ensure consistency across the stack:
    - **Input**: `inp::Foo` constructs the data
-   - **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
+   - **Data**: Members, `operator bool()` (checks construction/assignment), `operator=`, `resize(size)` (for states, sized to track slots)
    - **View**: Lightweight accessor with `CELER_FUNCTION` methods
    - **Executor/Interactor**: Physics implementation
 

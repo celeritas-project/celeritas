@@ -29,7 +29,7 @@ The converter decomposes the logical volume graph into subgraphs that each becom
 - **Singly-placed volumes** without transforms are usually also inlined (controlled by `inp::InlineSingletons`).
 - **Multiply-placed or rotated volumes** become their own unit proto.
 
-Each `UnitProto` is built with a `build` call that produces surfaces, a CSG tree, and bounding boxes. The proto is then inserted by `UnitInserter` during geometry flattening into the final `OrangeInput`.
+Each `UnitProto` is then built and flattened as described in [Unit proto and build pipeline](#unit-proto-and-build-pipeline).
 
 ### Volume mapping (touchable history)
 
@@ -124,8 +124,7 @@ State is split into two tiers:
 ```
 find_next_step(max_step)   → sets next_step / next_surf / next_univ_level
 move_to_boundary()         → physically moves; sets geo_status = boundary_inc
-cross_boundary()           → flips sense, re-initializes volume at surface level
-                             and re-descends into daughters below
+cross_boundary()           → enters the next volume (see below)
 ```
 Or for a step that does not reach a boundary:
 ```

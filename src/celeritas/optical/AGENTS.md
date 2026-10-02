@@ -29,7 +29,6 @@ Following Celeritas conventions:
   - `status`: Track status (inactive, initializing, alive, errored)
   - `post_step_action`: Action to execute at step end
   - `num_steps`: Total step count
-- **Templates**: `W` = Ownership (value/reference/const_reference), `M` = MemSpace (host/device)
 
 ### Track Initialization
 
@@ -51,18 +50,15 @@ Optical photons originate from multiple sources:
 ### 1. Cherenkov Radiation (`CherenkovGenerator`)
 - Generated when charged particles are above light speed in medium
 - Uses material refractive index to compute emission spectrum
-- Includes parent track's primary ID
 - **Path**: `gen/CherenkovGenerator.{hh,cc}`
 
 ### 2. Scintillation (`ScintillationGenerator`)
 - Produced from energy deposition in scintillating materials
 - Samples from material-dependent time profiles and spectra
-- Includes parent track's primary ID
 - **Path**: `gen/ScintillationGenerator.{hh,cc}`
 
 ### 3. Wavelength Shifting (`WavelengthShiftGenerator`)
 - Secondary photons from absorbed optical photons
-- Inherits primary ID from parent optical track via `SimTrackView`
 - **Path**: `interactor/WavelengthShiftGenerator.hh`
 
 ### 4. Primary Generation (`PrimaryGenerator`)
@@ -75,7 +71,6 @@ Optical photons originate from multiple sources:
 - Direct initialization from pre-built `TrackInitializer` buffers
 - Used for Geant4 offload: buffers populated by offload actions, consumed by direct generator
 - Initializers stored in `DirectGeneratorStateData` and processed from back to front
-- Includes primary ID from originating Geant4 track
 - **Path**: `gen/DirectGeneratorData.hh`, `gen/detail/DirectGeneratorExecutor.hh`
 
 ## Primary ID Tracking
@@ -91,21 +86,15 @@ Primary IDs enable correlation between optical photons and their originating Gea
 6. **Propagation**: WLS secondaries inherit from parent via `SimTrackView`
 
 ### Key Files
-- [TrackInitializer.hh](TrackInitializer.hh): Track initialization data
-- [SimData.hh](SimData.hh): Simulation state storage
-- [SimTrackView.hh](SimTrackView.hh): Per-track simulation interface
+Besides `TrackInitializer.hh`, `SimData.hh`, and `SimTrackView.hh` (see
+[File Organization](#file-organization)):
 - [GeneratorData.hh](gen/GeneratorData.hh): Distribution data for offload
 - [WavelengthShiftData.hh](WavelengthShiftData.hh): WLS distribution data
 
 ## Action/Executor Pattern
 
-Optical stepping uses the same three-layer pattern as main Celeritas:
-
-1. **Action** (`StepActionInterface`): Manages execution order, launches kernels
-2. **Executor**: Wraps interactor, handles track-level logic
-3. **Interactor**: Pure physics functor operating on minimal state
-
-Example: `AbsorptionModel` → `AbsorptionExecutor` → absorption physics
+Optical stepping uses the same Action/Executor/Interactor pattern as the main
+stepping loop, e.g. `AbsorptionModel` → `AbsorptionExecutor` → absorption physics.
 
 ## Key Optical Processes
 
@@ -139,13 +128,6 @@ Example: `AbsorptionModel` → `AbsorptionExecutor` → absorption physics
 
 Optical materials (`OpticalMaterialParams`) map to geometry volumes.
 
-## GPU Execution
-
-All optical code is host-device compatible (`CELER_FUNCTION` macros):
-- Launch via `launch_action()` or device-specific launchers
-- Collections manage host/device data transfer
-- Explicit memory space handling (MemSpace::host/device)
-
 ## File Organization
 
 ```
@@ -168,23 +150,11 @@ src/celeritas/optical/
 ## Key Conventions
 
 1. **Initialization**: All `TrackInitializer` instances must set all fields (including `primary`)
-2. **Validity**: Use `explicit operator bool()` for validation
-3. **Assignment**: Support cross-memory-space assignment via templated `operator=`
-4. **Collections**: Use `ItemId<T>`, `ItemRange<T>` for type-safe indexing
-5. **Units**: Energy is `units::MevEnergy`, positions are `Real3` in cm by default
-
-## Related Documentation
-
-- Main AGENTS.md (repository root): General Celeritas patterns
-- Action/Executor/Interactor paradigm: See main stepping loop examples
-- Collections guide: `src/corecel/data/Collection.hh`
-- Testing: `test/celeritas/optical/` directory
+2. **Units**: Energy is `units::MevEnergy`, positions are `Real3` in cm by default
 
 ## Common Pitfalls
 
-1. **Missing CELER_FUNCTION**: Host-device code requires proper macros
-2. **Data/execution inconsistency**: Check that input, data, views, initializers, and executors match
-3. **Aggregate initialization**: Field order matters! Check structure definitions.
+- **Aggregate initialization**: Field order matters! Check structure definitions.
 
 ## Future Work / TODO
 
