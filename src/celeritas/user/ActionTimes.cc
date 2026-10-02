@@ -94,7 +94,6 @@ auto ActionTimes::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
  */
 void ActionTimes::clear_action_times(AuxStateVec& aux) const
 {
-    MapStrDbl result;
     auto& times = this->state(aux).accum_time;
     std::fill(times.begin(), times.end(), 0);
 }
