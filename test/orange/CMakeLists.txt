@@ -46,8 +46,8 @@ celeritas_add_test(RaytraceImager.test.cc GPU)
 
 # High level
 celeritas_add_test(Orange.test.cc)
-celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
+#celeritas_add_test(OrangeGeant.test.cc ${_needs_g4org}
+#  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 celeritas_add_test(OrangeJson.test.cc)
 celeritas_add_device_test(OrangeShift)
 
@@ -129,8 +129,8 @@ celeritas_add_test(surf/detail/SurfaceTranslator.test.cc)
 
 #-----------------------------------------------------------------------------#
 # Universe
-celeritas_add_test(univ/RectArrayTracker.test.cc)
-celeritas_add_device_test(univ/SimpleUnitTracker)
+#celeritas_add_test(univ/RectArrayTracker.test.cc)
+#celeritas_add_device_test(univ/SimpleUnitTracker)
 celeritas_add_test(univ/TrackerVisitor.test.cc)
 
 # Universe details

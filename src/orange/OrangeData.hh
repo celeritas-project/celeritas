@@ -468,23 +468,19 @@ struct OrangeStateData
     //// DATA ////
 
     // State with dimensions {num_tracks}
-    StateItems<UnivLevelId> univ_level;
-    StateItems<UnivLevelId> surface_univ_level;
     StateItems<LocalSurfaceId> surf;
     StateItems<Sense> sense;
     StateItems<GeoStatus> status;
 
     // "Local" state, needed for Shift {num_tracks}
     StateItems<real_type> next_step;
-    StateItems<UnivLevelId> next_univ_level;
     StateItems<LocalSurfaceId> next_surf;
     StateItems<Sense> next_sense;
 
-    // State with dimensions {num_tracks, scalars.num_univ_levels}
-    Items<Real3> pos;
-    Items<Real3> dir;
-    Items<LocalVolumeId> vol;
-    Items<UnivId> univ;
+    StateItems<Real3> pos;
+    StateItems<Real3> dir;
+    StateItems<LocalVolumeId> vol;
+    StateItems<UnivId> univ;
 
     // Scratch space with dimensions {track}{max_intersections}
     Items<FaceId> temp_face;
@@ -497,19 +493,16 @@ struct OrangeStateData
     explicit CELER_FUNCTION operator bool() const
     {
         // clang-format off
-        return !univ_level.empty()
-            && surface_univ_level.size() == this->size()
-            && surf.size() == this->size()
+        return !surf.empty()
             && sense.size() == this->size()
             && status.size() == this->size()
             && next_step.size() == this->size()
-            && next_univ_level.size() == this->size()
             && next_surf.size() == this->size()
             && next_sense.size() == this->size()
-            && pos.size() >= this->size()
-            && dir.size() == pos.size()
-            && vol.size() == pos.size()
-            && univ.size() == pos.size()
+            && pos.size() == this->size()
+            && dir.size() == this->size()
+            && vol.size() == this->size()
+            && univ.size() == this->size()
             && !temp_face.empty()
             && temp_distance.size() == temp_face.size()
             && temp_isect.size() == temp_face.size();
@@ -517,10 +510,7 @@ struct OrangeStateData
     }
 
     //! State size
-    CELER_FUNCTION TrackSlotId::size_type size() const
-    {
-        return univ_level.size();
-    }
+    CELER_FUNCTION TrackSlotId::size_type size() const { return surf.size(); }
 
     //! Assign from another set of data
     template<Ownership W2, MemSpace M2>
@@ -528,14 +518,11 @@ struct OrangeStateData
     {
         CELER_EXPECT(other);
 
-        univ_level = other.univ_level;
-        surface_univ_level = other.surface_univ_level;
         surf = other.surf;
         sense = other.sense;
         status = other.status;
 
         next_step = other.next_step;
-        next_univ_level = other.next_univ_level;
         next_surf = other.next_surf;
         next_sense = other.next_sense;
 
@@ -565,22 +552,18 @@ inline void resize(OrangeStateData<Ownership::value, M>* data,
     CELER_EXPECT(data);
     CELER_EXPECT(num_tracks > 0);
 
-    resize(&data->univ_level, num_tracks);
-    resize(&data->surface_univ_level, num_tracks);
     resize(&data->surf, num_tracks);
     resize(&data->sense, num_tracks);
     resize(&data->status, num_tracks);
 
     resize(&data->next_step, num_tracks);
-    resize(&data->next_univ_level, num_tracks);
     resize(&data->next_surf, num_tracks);
     resize(&data->next_sense, num_tracks);
 
-    size_type num_track_univ = params.scalars.num_univ_levels * num_tracks;
-    resize(&data->pos, num_track_univ);
-    resize(&data->dir, num_track_univ);
-    resize(&data->vol, num_track_univ);
-    resize(&data->univ, num_track_univ);
+    resize(&data->pos, num_tracks);
+    resize(&data->dir, num_tracks);
+    resize(&data->vol, num_tracks);
+    resize(&data->univ, num_tracks);
 
     size_type num_track_isect = params.scalars.max_intersections * num_tracks;
     resize(&data->temp_face, num_track_isect);
