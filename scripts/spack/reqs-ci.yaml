@@ -9,6 +9,11 @@
 
 # NOTE: use double-colon to override existing mirrors in site/mirrors.yaml
 mirrors::
+  # But always include the spack source cache for package mirrors
+  spack-public:
+    binary: false
+    url: https://mirror.spack.io
+
   celeritas:
     url: oci://ghcr.io/celeritas-project/spack-buildcache
     binary: true
@@ -23,7 +28,6 @@ mirrors::
     url: https://mirror.spack.io
 
 config:
-  deprecated: True # needed for old vecgeom rc7
   install_tree:
     # NOTE: use padded_length when pushing to buildcache, but it can be
     # avoided when installing as part of CI

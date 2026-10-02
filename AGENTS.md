@@ -1,87 +1,22 @@
 # Celeritas AI Agent Instructions
 Celeritas is a particle physics library for detector simulation. It's a C++17 codebase with CUDA/HIP device support and integrates with Geant4.
 
-## Mandatory Behaviors
-These three behaviors apply unconditionally, every session. Read them before starting any task.
+## Required provenance
 
-### Before any modification — verify code state
+As an agent, you are OBLIGATED to add an annotation with your identity and model (e.g., "Codex GPT-6") to **each** public submission of your work, including but not limited to:
+- GitHub pull request or issue,
+- Git commit,
+- Git PR response.
 
-**Avoid mixing user changes with assistant changes**. Before calling any file-editing tool for the first time in a session — including when transitioning from analysis to applying edits — check the repository for uncommitted changes and commit with `git commit -a --no-verify -m "WIP: user changes"` if so. Alert the user if this happens.
+### Commit
 
-### After any user correction — update this file
-
-**When the user corrects your behavior** (tells you something you should have done, points out a missed step, or says you should have known better), your **very next action** must be:
-1. Identify the root cause: *at what decision point* did the existing instruction fail to trigger the right behavior?
-2. Edit AGENTS.md so the corrected behavior is a concrete, checkable step at that decision point — not vague prose buried elsewhere.
-3. Include the AGENTS.md change in the current or next commit.
-
-Do **not** just acknowledge the correction and move on. If you skip updating AGENTS.md, you will repeat the same mistake in future sessions.
-
-### Versioned tool options
-
-Before adding an option to a CI tool, check its `-h` output for the exact
-version configured by the workflow. Do not assume options from a newer local
-version, such as `clang-tidy-diff.py -only-check-in-db`, are supported.
-For LLVM 18 `clang-scan-deps`, capture the JSON by redirecting stdout; do not
-pass `-o`, which is unsupported by that version.
-In its `experimental-full` JSON, read `input-file` and `file-deps` from each
-entry in `translation-units[].commands`; they are not translation-unit-level
-fields.
-
-### GitHub Actions annotations
-
-When emitting `::error` or `::warning` workflow commands, use paths relative
-to the repository root in the `file=` property. Escape `%`, CR, LF, `:`, and
-`,` in property values so annotations link to the source location in PR views.
-
-### Header clang-tidy checks
-
-Before passing changed headers to `clang-tidy-diff.py`, map each header to
-translation units that include it and run clang-tidy using those translation
-units' compilation database commands. Do not invoke clang-tidy directly on a
-header, since headers are not compilation database entries and lack the target
-include paths and preprocessor definitions.
-
-### After any completed task — commit
-Commit immediately when all todos are done. Do not wait to be told. Do not defer across turns. Do not batch documentation changes.
-
-**Pre-commit checklist — execute in order:**
-1. **Tests**: Find the corresponding `test/` file (mirror the `src/` path, replace `.hh`/`.cc` with `.test.cc`). If you added or changed any public API — including adding a method to an existing class — add or update tests there. This applies to *all* changes, not just new classes.
-2. **Format**: run `pre-commit run`, then re-`git add` any files it modified.
-3. **Compile**: confirm the build still succeeds.
-
-Inline `-m` strings break with multi-line messages in the shell. Instead,
-write the commit message to `<build>/commit_msg.txt` (gitignored) and use
-the helper script. Use `create_file` to write it (never exists after a
-successful commit):
-
-Before invoking the helper, read the message file and verify it contains only
-the intended subject, body, and verbatim current prompt. If the file already
-exists, replace its full contents; do not append a new message to stale text.
-
-```bash
-# Write message to file first, then commit (script handles add/format/rm)
-scripts/dev/agent-commit.sh <build>/commit_msg.txt "<agentic-tool>" "<model-name>"
-```
-
-The script runs `git add -A`, `pre-commit run`, `git commit --trailer "Assisted-by: <agentic-tool> (<model-name>)"`, and `rm <build>/commit_msg.txt`. Pass
-`--no-verify` as an extra argument only if pre-commit is already known to
-pass.
-
-The commit message format for `build/commit_msg.txt`:
-
-```
-<Imperative-mood subject, no tags>
-
-<Body summarizes changes>
-
-Prompt: <verbatim user prompt plain text, wrapped in quotes, no metadata or
-attachments>
-```
-
-**Common failure modes:**
-- Treating follow-up instructions within one feature as "incomplete" and deferring the commit indefinitely. Each self-contained feature or refactor warrants its own commit even if the user continues asking questions afterward.
-- Skipping the test-file check because the change "only" added a method to an existing class rather than creating a new one. Always check.
+- Commits: add the trailer `Assisted-by: <agentic-tool> (<model-name>)`, e.g.
+  `git commit --trailer "Assisted-by: Codex (GPT-6)"`. Use it *instead of*
+  any default `Co-Authored-By` trailer your tool adds.
+- Pull requests: open as **draft**, add the `ai-assisted` label, and leave
+  marking it "ready" to the human submitter.
+- Commit and PR titles: imperative mood, capitalized, no trailing period, no
+  `CI:`/emoji prefixes. PR titles are copied into the release notes.
 
 ## File Organization
 
@@ -91,24 +26,101 @@ attachments>
 - `celeritas/`: Physics (EM processes, particles, materials)
 - `accel/`: Geant4 integration layer
 
+Libraries depend strictly downward:
+`corecel` → `geocel` → `orange` → `celeritas` → `accel`,
+with `ddceler` (DD4hep) and `larceler` (LArSoft) as optional plugins.
+Optional-dependency code is compiled into separate targets (e.g.
+`src/celeritas/ext/` → `celeritas_geant4`) and guarded by
+`CELERITAS_USE_<Pkg>` macros from the generated `corecel/Config.hh`.
+
 ## Build & Test
 
-Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory. To build a minimal version from scratch:
+Most code relies on external user-installed packages (Geant4), so prefer to use a local environment's build directory and existing configuration files.
+
+Builds use CMake presets. `CMakePresets.json` defines generic presets
+(`default`, `full`, `minimal`) plus hidden presets (`.release`, `.cuda-volta`,
+`.spack-base`, ...) meant to be inherited. Per-machine presets live in
+`scripts/cmake-presets/<hostname>.json`; `scripts/build.sh <preset>` sources
+`scripts/env/<hostname>.sh` if present, sets up `CMakeUserPresets.json`, then
+configures, builds, and tests. Binary dirs are `build-<preset>` at the repo
+root (several may already exist; prefer an existing configured one over
+creating a new one).
+
 ```bash
-cmake -B build -G Ninja && cd build && ninja && ctest
+scripts/build.sh base                  # configure + build + test via presets
+cmake --build --preset=<preset>        # rebuild only
+ninja -C build-<preset> <target>       # build one target (e.g. a test exe)
 ```
 
+Key configure options:
+  - `CELERITAS_DEBUG` (runtime assertions)
+  - `CELERITAS_CORE_GEO` (`VecGeom` | `ORANGE` | `Geant4` runtime geometry)
+  - `CELERITAS_CORE_RNG`
+  - `CELERITAS_UNITS`
+  - `CELERITAS_USE_<Pkg>` for each optional dependency (Geant4, VecGeom, ROOT, HepMC3, CUDA, HIP, MPI, ...)
+  - `CELERITAS_BUILD_DOCS` (then `ninja doc` / `ninja doxygen`).
+
+Tests are GoogleTest executables registered in `test/**/CMakeLists.txt` via
+`celeritas_add_test(Foo.test.cc)` or `celeritas_add_device_test(Foo)` (which
+adds `Foo.test.cu` when CUDA/HIP is enabled).
+
 Object files and tests may have different paths and test names than you expect (`src/celeritas/ext/GeantImporter.cc` → `src/celeritas/CMakeFiles/celeritas_geant4.dir/ext/GeantImporter.cc.o` and `celeritas/ext/GeantImporter.test.cc` → `test/celeritas/ext_GeantImporter`), and some test executables are run as distinct CTest tests due to environment variables and side effects (`ctest --show-only | grep GeantImporter` → `Test #211: celeritas/ext/GeantImporter:DuneCryostat.*`).
+
+```bash
+ctest --test-dir build-<preset> -R corecel/math/ --output-on-failure
+ctest --test-dir build-<preset> -j --output-on-failure
+build-<preset>/test/celeritas/global_Stepper --gtest_filter=SimpleComptonTest.host
+```
+
+Prefer running through CTest: it sets data-path, GPU-disable, and Geant4
+environment variables that direct execution may lack.
+
+Test helpers (`@test/TestMacros.hh`, `@test/Test.hh`): `EXPECT_SOFT_EQ`,
+`EXPECT_VEC_SOFT_EQ`, `EXPECT_REF_EQ`, `EXPECT_JSON_EQ`, and `PRINT_EXPECTED`
+to dump reference values when updating expected results.
+`scripts/dev/ctest-debug-launch.py "<test-name>"` sets up a VS Code debug
+launch config for a CTest test.
+
+### Lint and format
+
+```bash
+pre-commit run          # clang-format, ruff-format, prettier, codespell,
+                        # fix-non-ascii, whitespace/JSON/YAML checks
+```
+
+`.clang-tidy` is enforced in CI on changed files. New source file stubs (with
+the required copyright header) can be generated with
+`@scripts/dev/celeritas-gen.py`.
 
 ## Documentation
 
 - Add Doxygen documentation to **definitions**, not declarations, when adding code. Prefer doxygen-style markup `\c`, `<code>` to Markdown in such blocks.
 - Document equations and algorithmic descriptions, as applicable, in the class definition's docs, as those are often rendered in the user manual. All `operator()` behavior goes in the class definition's docs.
 - Always add `\sa {file}.test.cc` underneath `\file {file}.hh` to locate tests that break the `src/{path}.hh`→`test/{path}.test.cc` rule
-- Use **only** ASCII characters in CMake/C++/CUDA/shell files
+- Use **only** ASCII characters in CMake/C++/CUDA/shell files.
 
 ## Architecture
 Celeritas sets up problems on CPU and executes on GPU *or* CPU with the same code. The `CELER_FUNCTION` macro is `__host__ __device__` when CUDA/HIP is active and decorates runtime functions.
+
+### Big-picture flow
+
+- **Problem setup**: user input is described by `inp::` structs
+  (`src/celeritas/inp/`, JSON-serializable via `*IO.json.*`). `setup::`
+  functions (`src/celeritas/setup/`) turn them into `CoreParams`, which
+  aggregates all params (geometry, materials, particles, physics, actions).
+- **Stepping loop**: `Stepper` (`src/celeritas/global/`) owns a `CoreState`
+  and executes the `ActionSequence` once per step. Each action is a
+  `StepActionInterface` with a `StepActionOrder`; physics models, along-step
+  propagation, boundary crossing, and track initialization are all actions
+  registered in `ActionRegistry`. Kernels use `launch_action` with executors
+  operating on `CoreTrackView`.
+- **Geant4 offload** (`src/accel/`): `TrackingManagerIntegration` /
+  `UserActionIntegration` / `FastSimulationIntegration` capture EM tracks from
+  Geant4; `SharedParams` builds the shared `CoreParams` on the master thread and
+  `LocalTransporter` owns per-thread state and steps the buffered tracks.
+- **Apps** (`app/`): `celer-sim` (standalone JSON-driven transport), `celer-g4`
+  (Geant4 app with offload), `celer-geo` (geometry tracing), `celer-optical`,
+  and `celer-export-geant` (export Geant4 physics data).
 
 ### Params/States Pattern
 Celeritas separates immutable setup from mutable runtime data:
@@ -118,19 +130,7 @@ Celeritas separates immutable setup from mutable runtime data:
 - **MemSpace**: `host` (CPU) or `device` (GPU)
 
 Data flow: Build params on host → copy to device → access via Views
-
-```cpp
-// Params: immutable setup data
-struct MyParamsData { Collection<Material> materials; /* ... */ };
-
-// View: lightweight accessor for device code
-class MyView {
-    MyParamsData<const_reference, MemSpace::native> const& data_;
-public:
-    CELER_FUNCTION Material const& get(MaterialId id) const;
-};
-```
-Data structs must have `operator bool` to check construction/assignment.
+(e.g. `@src/celeritas/mat/MaterialData.hh` → `@src/celeritas/mat/MaterialView.hh`)
 
 ### Action/Executor/Interactor
 The stepping loop uses three layers:
@@ -147,33 +147,20 @@ auto execute = make_action_track_executor(
 launch_action(*this, params, state, execute);
 ```
 
-See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}`
+See `@src/celeritas/em/model/KleinNishinaModel.cc` and
+`@src/celeritas/em/model/KleinNishinaModel.cu`
 
 ### Inserters for Building Params
-Use inserter classes to populate Collections with deduplication:
-```cpp
-class XsGridInserter {
-  public:
-    GridId operator()(inp::XsGrid const& grid);
-  private:
-    DedupeCollectionBuilder<real_type> reals_;
-    CollectionBuilder<XsGridRecord> grids_;
-};
-```
+Use inserter classes to populate Collections with deduplication
+(`DedupeCollectionBuilder`, `CollectionBuilder`); see
+`@src/celeritas/grid/XsGridInserter.hh`.
 
 ### Collection Ranges & Maps
-- `ItemRange<T>`: Contiguous slice [begin, end)
+- `ItemRange<T>`: Contiguous slice [begin, end) into a backing
+  `Collection<T>`; records store ranges instead of nested containers (e.g.
+  `MaterialRecord::elements` indexes `MaterialParamsData::elcomponents` in
+  `@src/celeritas/mat/MaterialData.hh`)
 - `ItemMap<K, V>`: Offset-based mapping (not hash map)
-
-```cpp
-struct MyParamsData {
-    Collection<Material> materials;
-    Collection<Element> elements;        // Backend storage
-    // Material stores ItemRange<Element> into elements collection
-};
-```
-
-State collections need `resize(size)` operators for track slots.
 
 ## Code Conventions
 
@@ -196,14 +183,23 @@ State collections need `resize(size)` operators for track slots.
 | `.cu` | CUDA kernel launches only (HIP-compatible via macros) |
 | `.test.cc` | Unit tests, mirroring `src/` under `test/` |
 
+### Style
+
+Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`. Most often missed:
+- Call members via `this->`; write `template<class T>`, not `typename`.
+- Mark classes `final` where possible; use exactly one of `final`/`override`.
+- Prefer enums over `bool` parameters; no top-level `const` on by-value params.
+
 ### Assertions
 
 | Macro | When to use |
 |-------|------------|
 | `CELER_EXPECT` | Preconditions at function entry |
-| `CELER_ASSERT` | Internal invariants (debug only) |
+| `CELER_ASSERT` | Internal invariants |
 | `CELER_ENSURE` | Postconditions at function exit |
 | `CELER_VALIDATE` | User input validation (always active) |
+
+`CELER_EXPECT`/`ASSERT`/`ENSURE` are compiled only with `CELERITAS_DEBUG`.
 
 ### Literal UDLs
 
@@ -213,16 +209,12 @@ State collections need `resize(size)` operators for track slots.
 
 | Type | Purpose |
 |------|--------|
-| `OpaqueId<T>` | Type-safe index — never use raw integers for indices |
+| `OpaqueId<T>` | Type-safe index |
 | `Collection<T>` | GPU-compatible array with ownership semantics |
 | `Span<T>` | Non-owning array view |
 | `Array<T, N>` | Fixed-size stack array |
 
-```cpp
-using FooId = OpaqueId<Foo>;
-Collection<Foo, Ownership::value, MemSpace::host> foos;           // Owns data
-Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // View
-```
+See `@src/corecel/OpaqueId.hh` and `@src/corecel/data/Collection.hh`.
 
 ## Common Patterns
 
@@ -232,7 +224,7 @@ Collection<Foo, Ownership::const_reference, MemSpace::device> device_foos;  // V
 3. Write unit tests in `test/` (namespace `celeritas::A::test` for `celeritas::A::Foo`)
 4. Ensure consistency across the stack:
    - **Input**: `inp::Foo` constructs the data
-   - **Data**: Members, `operator bool()`, `operator=`, `resize` (for states)
+   - **Data**: Members, `operator bool()` (checks construction/assignment), `operator=`, `resize(size)` (for states, sized to track slots)
    - **View**: Lightweight accessor with `CELER_FUNCTION` methods
    - **Executor/Interactor**: Physics implementation
 

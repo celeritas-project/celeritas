@@ -116,15 +116,17 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: "geant4@11.3 vecgeom@2.1.0 g4vg" # Same as vecgeom 11.3
+          add: "geant4@11.3 vecgeom@2.1.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
+          args: -DCELERITAS_USE_ROOT=OFF
       - name: Build changed files with clang-tidy
         if: ${{github.event_name == 'pull_request'}}
+        continue-on-error: true # FIXME: failures when non-tested translation units are built (CUDA, LArSoft)
         run: |
           python3 "${{github.workspace}}/scripts/ci/clang-tidy-changed.py" \
             "origin" \

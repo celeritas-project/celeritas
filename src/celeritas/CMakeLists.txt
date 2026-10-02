@@ -123,6 +123,7 @@ list(APPEND SOURCES
   optical/CoreParams.cc
   optical/CoreState.cc
   optical/CoreTrackData.cc
+
   optical/gen/CherenkovParams.cc
   optical/gen/ScintillationParams.cc
   optical/gen/GeneratorDataIO.json.cc
@@ -136,6 +137,7 @@ list(APPEND SOURCES
   optical/Types.cc
   optical/action/ActionGroups.cc
   optical/action/LocateVacanciesAction.cc
+  optical/detail/GroupVelocityGridBuilder.cc
   optical/detail/OpticalLaunchAction.cc
   optical/surface/SurfacePhysicsParams.cc
   optical/surface/SurfaceSteppingAction.cc

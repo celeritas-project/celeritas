@@ -8,6 +8,7 @@
 .nfs*
 
 # Specific filenames anywhere
+CLAUDE.local.md
 cmake_install.cmake
 compile_commands.json
 Testing

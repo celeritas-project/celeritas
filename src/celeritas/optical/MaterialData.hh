@@ -35,7 +35,7 @@ struct MaterialParamsData
     //// MEMBER DATA ////
 
     OpticalMaterialItems<NonuniformGridRecord> refractive_index;
-    OpticalMaterialItems<NonuniformGridRecord> refractive_index_derivative;
+    OpticalMaterialItems<NonuniformGridRecord> group_velocity;
     ImplVolumeItems<OptMatId> optical_id;
     OpticalMaterialItems<PhysMatId> core_material_id;
 
@@ -50,9 +50,9 @@ struct MaterialParamsData
     //! Whether all data are assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
-        return !refractive_index.empty()
-               && !refractive_index_derivative.empty() && !optical_id.empty()
-               && !core_material_id.empty() && !reals.empty();
+        return !refractive_index.empty() && !group_velocity.empty()
+               && !optical_id.empty() && !core_material_id.empty()
+               && !reals.empty();
     }
 
     //! Assign from another set of data
@@ -61,7 +61,7 @@ struct MaterialParamsData
     {
         CELER_EXPECT(other);
         refractive_index = other.refractive_index;
-        refractive_index_derivative = other.refractive_index_derivative;
+        group_velocity = other.group_velocity;
         optical_id = other.optical_id;
         core_material_id = other.core_material_id;
         reals = other.reals;
