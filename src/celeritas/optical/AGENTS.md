@@ -50,28 +50,28 @@ Optical photons originate from multiple sources:
 ### 1. Cherenkov Radiation (`CherenkovGenerator`)
 - Generated when charged particles are above light speed in medium
 - Uses material refractive index to compute emission spectrum
-- **Path**: `gen/CherenkovGenerator.{hh,cc}`
+- **Path**: `@gen/CherenkovGenerator.hh`
 
 ### 2. Scintillation (`ScintillationGenerator`)
 - Produced from energy deposition in scintillating materials
 - Samples from material-dependent time profiles and spectra
-- **Path**: `gen/ScintillationGenerator.{hh,cc}`
+- **Path**: `@gen/ScintillationGenerator.hh`
 
 ### 3. Wavelength Shifting (`WavelengthShiftGenerator`)
 - Secondary photons from absorbed optical photons
-- **Path**: `interactor/WavelengthShiftGenerator.hh`
+- **Path**: `@gen/WavelengthShiftGenerator.hh`
 
 ### 4. Primary Generation (`PrimaryGenerator`)
 - User-configurable distributions (energy, angle, shape)
 - For standalone testing without Geant4
 - Can specify primary ID explicitly (defaults to invalid)
-- **Path**: `gen/PrimaryGenerator.{hh,cc}`, `gen/PrimaryGeneratorAction.{hh,cc}`
+- **Path**: `@gen/PrimaryGenerator.hh`, `@gen/PrimaryGeneratorAction.hh`
 
 ### 5. Direct Generation (`DirectGenerator`)
 - Direct initialization from pre-built `TrackInitializer` buffers
 - Used for Geant4 offload: buffers populated by offload actions, consumed by direct generator
 - Initializers stored in `DirectGeneratorStateData` and processed from back to front
-- **Path**: `gen/DirectGeneratorData.hh`, `gen/detail/DirectGeneratorExecutor.hh`
+- **Path**: `@gen/DirectGeneratorData.hh`, `@gen/detail/DirectGeneratorExecutor.hh`
 
 ## Primary ID Tracking
 
@@ -86,10 +86,10 @@ Primary IDs enable correlation between optical photons and their originating Gea
 6. **Propagation**: WLS secondaries inherit from parent via `SimTrackView`
 
 ### Key Files
-Besides `TrackInitializer.hh`, `SimData.hh`, and `SimTrackView.hh` (see
+Besides `@TrackInitializer.hh`, `@SimData.hh`, and `@SimTrackView.hh` (see
 [File Organization](#file-organization)):
-- [GeneratorData.hh](gen/GeneratorData.hh): Distribution data for offload
-- [WavelengthShiftData.hh](WavelengthShiftData.hh): WLS distribution data
+- `@gen/GeneratorData.hh`: Distribution data for offload
+- `@WavelengthShiftData.hh`: WLS distribution data
 
 ## Action/Executor Pattern
 
@@ -101,7 +101,7 @@ stepping loop, e.g. `AbsorptionModel` → `AbsorptionExecutor` → absorption ph
 ### Surface Physics
 - Boundary interactions at optical surfaces
 - Models: Dielectric reflection/refraction, roughness (polished, Gaussian, smear)
-- **Path**: `surface/BoundaryAction.cc`, `surface/model/`
+- **Path**: `@surface/BoundaryAction.cc`, `surface/model/`
 
 ### Bulk Processes
 - **Absorption**: Photon killed based on attenuation length

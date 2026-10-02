@@ -75,7 +75,7 @@ build-<preset>/test/celeritas/global_Stepper --gtest_filter=SimpleComptonTest.ho
 Prefer running through CTest: it sets data-path, GPU-disable, and Geant4
 environment variables that direct execution may lack.
 
-Test helpers (`test/TestMacros.hh`, `test/Test.hh`): `EXPECT_SOFT_EQ`,
+Test helpers (`@test/TestMacros.hh`, `@test/Test.hh`): `EXPECT_SOFT_EQ`,
 `EXPECT_VEC_SOFT_EQ`, `EXPECT_REF_EQ`, `EXPECT_JSON_EQ`, and `PRINT_EXPECTED`
 to dump reference values when updating expected results.
 `scripts/dev/ctest-debug-launch.py "<test-name>"` sets up a VS Code debug
@@ -90,7 +90,7 @@ pre-commit run          # clang-format, ruff-format, prettier, codespell,
 
 `.clang-tidy` is enforced in CI on changed files. New source file stubs (with
 the required copyright header) can be generated with
-`scripts/dev/celeritas-gen.py`.
+`@scripts/dev/celeritas-gen.py`.
 
 ## Documentation
 
@@ -130,6 +130,7 @@ Celeritas separates immutable setup from mutable runtime data:
 - **MemSpace**: `host` (CPU) or `device` (GPU)
 
 Data flow: Build params on host → copy to device → access via Views
+(e.g. `@src/celeritas/mat/MaterialData.hh` → `@src/celeritas/mat/MaterialView.hh`)
 
 ### Action/Executor/Interactor
 The stepping loop uses three layers:
@@ -146,17 +147,19 @@ auto execute = make_action_track_executor(
 launch_action(*this, params, state, execute);
 ```
 
-See `src/celeritas/em/model/KleinNishinaModel.{cc,cu}`
+See `@src/celeritas/em/model/KleinNishinaModel.cc` and
+`@src/celeritas/em/model/KleinNishinaModel.cu`
 
 ### Inserters for Building Params
 Use inserter classes to populate Collections with deduplication
 (`DedupeCollectionBuilder`, `CollectionBuilder`); see
-`src/celeritas/grid/XsGridInserter.hh`.
+`@src/celeritas/grid/XsGridInserter.hh`.
 
 ### Collection Ranges & Maps
 - `ItemRange<T>`: Contiguous slice [begin, end) into a backing
   `Collection<T>`; records store ranges instead of nested containers (e.g.
-  `MaterialRecord::elements` indexes `MaterialParamsData::elcomponents`)
+  `MaterialRecord::elements` indexes `MaterialParamsData::elcomponents` in
+  `@src/celeritas/mat/MaterialData.hh`)
 - `ItemMap<K, V>`: Offset-based mapping (not hash map)
 
 ## Code Conventions
@@ -210,6 +213,8 @@ Full rules: `@doc/development/style.rst` and `@doc/development/coding.rst`. Most
 | `Collection<T>` | GPU-compatible array with ownership semantics |
 | `Span<T>` | Non-owning array view |
 | `Array<T, N>` | Fixed-size stack array |
+
+See `@src/corecel/OpaqueId.hh` and `@src/corecel/data/Collection.hh`.
 
 ## Common Patterns
 

@@ -15,7 +15,7 @@ The `g4org` sub-directory converts an in-memory Geant4 geometry into an `OrangeI
 | `Scaler` | Converts CLHEP/Geant4 length units to Celeritas `real_type` (default: mm) |
 | `Transformer` | Converts G4 affine/rotation/translation objects to ORANGE `VariantTransform` (daughter-to-parent convention) |
 
-**Intermediate data structures** (in `g4org/Volume.hh`):
+**Intermediate data structures** (in `@g4org/Volume.hh`):
 - `LogicalVolume` — ORANGE equivalent of `G4LogicalVolume`: holds an `ObjectInterface` plus child placements. Will be renamed `Volume`.
 - `PhysicalVolume` — ORANGE equivalent of `G4VPhysicalVolume`: holds a `VolumeInstanceId`, a `VariantTransform`, and a shared `LogicalVolume`. Will be renamed `VolumeInstance`.
 
