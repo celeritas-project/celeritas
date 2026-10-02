@@ -9,7 +9,7 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": ["full", ".cuda", ".spack-base"],
+      "inherits": ["full", ".cuda", ".nobuiltin"],
       "binaryDir": "/scratch/$env{USER}/build/celeritas-${presetName}",
       "generator": "Ninja",
       "cacheVariables": {

@@ -45,7 +45,7 @@
     },
     {
       "name": "tool-spack",
-      "inherits": ["base", ".spack-base"],
+      "inherits": ["base", ".nobuiltin"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
@@ -172,8 +172,8 @@
       }
     },
     {
-      "name": "vecgeom2",
-      "description": "FINAL: release, assertions, VecGeom 2",
+      "name": "vecgeom1",
+      "description": "FINAL: release, assertions, VecGeom 1.x compatibility",
       "inherits": [".vecgeom", "tool-spack"]
     },
     {

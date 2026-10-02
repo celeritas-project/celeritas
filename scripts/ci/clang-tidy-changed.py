@@ -45,8 +45,10 @@ def select_sources(
     changed_sources: set[Path],
     dependency_file: Path,
     root: Path,
+    build_dir: Path,
+    compilation_database: list[dict],
 ) -> list[str]:
-    """Select repository-relative source paths affected by changed headers."""
+    """Select affected sources, excluding CUDA files without compile commands."""
     if header_source_selection not in SourceSelection:
         raise ValueError(
             f"unsupported header source selection: {header_source_selection!r}"
@@ -55,6 +57,21 @@ def select_sources(
     root = root.resolve()
     headers = resolve_paths(headers, root)
     changed_sources = resolve_paths(changed_sources, root)
+    database_sources = {
+        compilation_source(entry, build_dir) for entry in compilation_database
+    }
+
+    def selectable(source: Path) -> bool:
+        return source.suffix != ".cu" or source in database_sources
+
+    for source in sorted(changed_sources):
+        if not selectable(source):
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source without a compilation database entry: "
+                f"{source.relative_to(root).as_posix()}",
+            )
+    changed_sources = {source for source in changed_sources if selectable(source)}
     data = json.loads(dependency_file.read_text())
     affected_sources: set[Path] = set()
     source_by_header: dict[Path, Path] = {}
@@ -70,6 +87,8 @@ def select_sources(
             continue
         directory = Path(command.get("directory", root))
         source_path = directory.joinpath(source).resolve()
+        if not selectable(source_path):
+            continue
         dependencies = command.get("file-deps", command.get("file_deps", []))
         resolved_dependencies = {
             directory.joinpath(dependency).resolve() for dependency in dependencies
@@ -209,16 +228,68 @@ def fetch_diff(remote: str, base_sha: str, repo_root: Path) -> str:
     ).stdout
 
 
+def load_compilation_database(build_dir: Path) -> list[dict]:
+    """Load the compilation database from the build directory."""
+    return json.loads((build_dir / "compile_commands.json").read_text())
+
+
+def compilation_source(entry: dict, build_dir: Path) -> Path:
+    """Resolve a compilation database source relative to its working directory."""
+    directory = Path(entry.get("directory", build_dir))
+    if not directory.is_absolute():
+        directory = build_dir / directory
+    source = Path(entry["file"])
+    return (directory / source).resolve()
+
+
 def scan_dependencies(
-    scanner: str, build_dir: Path, repo_root: Path, output: Path
+    scanner: str,
+    build_dir: Path,
+    repo_root: Path,
+    output: Path,
+    compilation_database: list[dict],
 ) -> None:
-    """Write LLVM's full compilation dependency data to an output file."""
+    """Scan available compile commands, reporting skipped missing inputs."""
+    build_dir = build_dir.resolve()
+    repo_root = repo_root.resolve()
+    scan_database = []
+    for entry in compilation_database:
+        source_path = compilation_source(entry, build_dir)
+        if source_path.is_file():
+            scan_database.append(entry)
+            continue
+        if source_path.name == "CeleritasRootInterface.cxx":
+            log(
+                LogLevel.NOTICE,
+                f"Ignoring missing ROOT dictionary source: {source_path}",
+            )
+            continue
+
+        try:
+            relative_path = source_path.relative_to(repo_root).as_posix()
+        except ValueError:
+            relative_path = str(source_path)
+        properties = (
+            {"file": relative_path} if source_path.is_relative_to(repo_root) else {}
+        )
+        log(
+            LogLevel.WARNING,
+            f"Skipping unavailable dependency-scan source {relative_path!r}",
+            **properties,
+        )
+
+    if not scan_database:
+        output.write_text(json.dumps({"translation-units": []}))
+        return
+
+    scan_database_path = output.with_name("compile_commands.json")
+    scan_database_path.write_text(json.dumps(scan_database))
     with output.open("w") as dependency_output:
         subprocess.run(
             [
                 scanner,
                 "-compilation-database",
-                str(build_dir / "compile_commands.json"),
+                str(scan_database_path),
                 "-format",
                 "experimental-full",
             ],
@@ -231,6 +302,56 @@ def scan_dependencies(
 def source_selector(paths: list[str]) -> str:
     """Create a run-clang-tidy regex that exactly matches source paths."""
     return "(?:^|/)(?:" + "|".join(re.escape(path) for path in paths) + ")$"
+
+
+def validate_selected_sources(
+    sources: list[str],
+    build_dir: Path,
+    repo_root: Path,
+    compilation_database: list[dict],
+    *,
+    print_commands: bool = False,
+) -> list[str]:
+    """Validate selected sources, optionally logging their compile commands."""
+    selected_paths = resolve_paths(sources, repo_root)
+    matched_sources: set[Path] = set()
+
+    for entry in compilation_database:
+        source_path = compilation_source(entry, build_dir)
+        if source_path not in selected_paths:
+            continue
+
+        if print_commands:
+            directory = Path(entry.get("directory", build_dir))
+            source = source_path.relative_to(repo_root).as_posix()
+            command = entry.get("command", entry.get("arguments"))
+            log(
+                LogLevel.NOTICE,
+                f"Compilation database entry: source={source}; "
+                f"directory={directory}; command={command!r}",
+            )
+        matched_sources.add(source_path)
+
+    unavailable_sources = sorted(
+        (selected_paths - matched_sources)
+        | {source for source in matched_sources if not source.is_file()}
+    )
+    for source_path in unavailable_sources:
+        try:
+            relative_path = source_path.relative_to(repo_root).as_posix()
+        except ValueError:
+            relative_path = str(source_path)
+        reason = (
+            "does not exist"
+            if source_path in matched_sources
+            else "has no compilation database entry"
+        )
+        log(
+            LogLevel.ERROR,
+            f"Source {relative_path!r} selected for clang-tidy {reason}",
+            file=relative_path,
+        )
+    return [source.as_posix() for source in unavailable_sources]
 
 
 def run_header_tidy(
@@ -246,18 +367,35 @@ def run_header_tidy(
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         dependency_file = temp_dir / "dependencies.json"
+        compilation_database = load_compilation_database(build_dir)
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
-        scan_dependencies(scanner, build_dir, repo_root, dependency_file)
+        scan_dependencies(
+            scanner, build_dir, repo_root, dependency_file, compilation_database
+        )
         selected_sources = select_sources(
             header_source_selection=args.header_source_selection,
             headers=headers,
             changed_sources=sources,
             dependency_file=dependency_file,
             root=repo_root,
+            build_dir=build_dir,
+            compilation_database=compilation_database,
         )
         if not selected_sources:
             log(LogLevel.NOTICE, "No source files selected for the changed headers")
             return 0
+        log(LogLevel.NOTICE, f"Selected {len(selected_sources)} source files:")
+        for source in selected_sources:
+            log(LogLevel.NOTICE, f"  {source}")
+        missing_sources = validate_selected_sources(
+            selected_sources,
+            build_dir,
+            repo_root,
+            compilation_database,
+            print_commands=args.print_compile_commands,
+        )
+        if missing_sources:
+            raise RuntimeError("missing sources")
         log(
             LogLevel.NOTICE,
             f"Running clang-tidy on {len(selected_sources)} affected source files",
@@ -276,9 +414,35 @@ def run_header_tidy(
 
 
 def run_source_tidy(
-    args: argparse.Namespace, diff: str, repo_root: Path, build_dir: Path
+    args: argparse.Namespace,
+    diff: str,
+    sources: set[Path],
+    repo_root: Path,
+    build_dir: Path,
 ) -> int:
-    """Run clang-tidy-diff.py for changed source files only."""
+    """Run clang-tidy-diff.py for changed .cc files, not CUDA sources."""
+    # clang-tidy-diff.py is restricted to .cc files by the regex below.
+    for source in sorted(sources):
+        if source.suffix == ".cu":
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source in .cc-only clang-tidy-diff run: "
+                f"{source.as_posix()}",
+            )
+    tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
+    if not tidy_sources:
+        log(LogLevel.NOTICE, "No .cc source files selected for clang-tidy-diff")
+        return 0
+    compilation_database = load_compilation_database(build_dir)
+    if validate_selected_sources(
+        tidy_sources,
+        build_dir,
+        repo_root,
+        compilation_database,
+        print_commands=args.print_compile_commands,
+    ):
+        raise RuntimeError("missing sources")
+
     return subprocess.run(
         [
             sys.executable,
@@ -307,7 +471,7 @@ def run(args: argparse.Namespace) -> int:
     headers, sources = changed_paths(diff)
     if headers:
         return run_header_tidy(args, headers, sources, repo_root, build_dir)
-    return run_source_tidy(args, diff, repo_root, build_dir)
+    return run_source_tidy(args, diff, sources, repo_root, build_dir)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -319,6 +483,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--clang-tidy-diff", type=Path, required=True)
     parser.add_argument("--clang-scan-deps")
     parser.add_argument("--run-clang-tidy", default="run-clang-tidy")
+    parser.add_argument("--print-compile-commands", action="store_true")
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
     parser.add_argument("--build-dir", type=Path, default=Path.cwd() / "build")
     parser.add_argument(
@@ -328,7 +493,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=SourceSelection.ALL,
     )
     args = parser.parse_args(argv)
-    return run(args)
+    try:
+        return run(args)
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":
