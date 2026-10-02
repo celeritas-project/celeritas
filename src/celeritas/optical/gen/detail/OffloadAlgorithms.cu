@@ -125,7 +125,7 @@ void count_num_photons(
         0_sz,
         thrust::plus<size_type>());
     // If there aren't any new photons, skip updating the counter. Can't do the
-    // same check with the cub/hipcub functions because the counter is device
+    // same check with the CUB/hipCUB functions because the counter is device
     // resident.
     if (count == 0)
     {
