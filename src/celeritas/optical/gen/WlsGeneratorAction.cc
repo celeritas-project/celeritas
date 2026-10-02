@@ -147,9 +147,11 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    // Update the core state counters if there are new pending tracks
+    // Update the core state counters if there the process created any photons
     if (counters.num_pending > num_pending_prev)
     {
+        // This function doesn't change the aux_state counters, so the next if
+        // statement is still checking inclusive_scan_photons() result
         this->update_pending(
             params, state, counters.num_pending - num_pending_prev);
     }
