@@ -148,7 +148,7 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     }
 
     // Update the core state counters if there are new pending tracks
-    if (counters.num_pending - num_pending_prev > 0)
+    if (counters.num_pending > num_pending_prev)
     {
         this->update_pending(
             params, state, counters.num_pending - num_pending_prev);
