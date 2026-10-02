@@ -58,15 +58,14 @@ template<MemSpace M>
 void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreState<M>& core_state) const
 {
-    auto counters = core_state.sync_get_counters();
-
-    // The number of new tracks to initialize is the smaller of the number of
-    // empty slots in the track vector and the number of track initializers
-    size_type num_new_tracks
-        = std::min(counters.num_vacancies, counters.num_initializers);
-    if (num_new_tracks > 0)
+    if (core_params.init()->track_order() == TrackOrder::init_charge)
     {
-        if (core_params.init()->track_order() == TrackOrder::init_charge)
+        // How many new tracks to initialize is the smaller of the number of
+        // vacancies in the track vector and the number of track initializers
+        auto counters = core_state.sync_get_counters();
+        size_type num_new_tracks
+            = std::min(counters.num_vacancies, counters.num_initializers);
+        if (num_new_tracks > 0)
         {
             // Reset track initializer indices
             fill_sequence(&core_state.ref().init.indices,
@@ -75,13 +74,14 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
             // Partition indices by whether tracks are charged or neutral
             detail::partition_initializers(core_params,
                                            core_state.ref().init,
+                                           counters.num_initializers,
                                            num_new_tracks,
                                            core_state.stream_id());
         }
-
-        // Launch a kernel to initialize tracks
-        this->step_impl(core_params, core_state, num_new_tracks);
     }
+
+    // Launch a kernel to initialize tracks
+    this->step_impl(core_params, core_state, core_state.size());
 
     // Store number of active tracks at the start of the loop
     this->update_num_active(core_params, core_state);
@@ -97,11 +97,11 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
  */
 void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreStateHost& core_state,
-                                       size_type num_new_tracks) const
+                                       size_type max_new_tracks) const
 {
     detail::InitTracksExecutor execute{core_params.ptr<MemSpace::native>(),
                                        core_state.ptr()};
-    launch_action(*this, num_new_tracks, core_params, core_state, execute);
+    launch_action(*this, max_new_tracks, core_params, core_state, execute);
 }
 
 //---------------------------------------------------------------------------//

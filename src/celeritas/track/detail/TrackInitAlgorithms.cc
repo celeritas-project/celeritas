@@ -81,15 +81,14 @@ void exclusive_scan_counts(
 void partition_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
+    size_type num_initializers,
     size_type count,
     StreamId)
 {
     // Partition the indices based on the track initializer charge
     auto* start = init.indices.data().get();
     auto* end = start + count;
-    auto* counters = init.counters.data().get();
-    auto* stencil = init.initializers.data().get() + counters->num_initializers
-                    - count;
+    auto* stencil = init.initializers.data().get() + num_initializers - count;
     std::stable_partition(
         start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
 }

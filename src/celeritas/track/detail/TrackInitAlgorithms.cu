@@ -180,6 +180,7 @@ void exclusive_scan_counts(
 void partition_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::device> const& init,
+    size_type num_initializers,
     size_type count,
     StreamId stream_id)
 {
@@ -188,11 +189,10 @@ void partition_initializers(
     ScopedProfiling profile_this{"partition-initializers"};
     // Partition the indices based on the track initializer charge
     auto counters = device_pointer_cast(init.counters.data());
-    auto cpucntrs = ItemCopier<CoreStateCounters>{stream_id}(counters.get());
     // The initializers array is large. Use stencil to point to the start where
     // this array is being used
     auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                   + cpucntrs.num_initializers - count;
+                   + num_initializers - count;
 #if CELER_USE_THRUST
     auto start = device_pointer_cast(init.indices.data());
     auto end = start + count;
