@@ -29,6 +29,63 @@ using celeritas::detail::SensDetInserter;
 
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+/*!
+ * Per-stream hit processor cache.
+ *
+ * The weak pointer is used only when creating or recreating a local processor.
+ * Step processing uses \c processor directly to avoid locking a weak pointer
+ * on every step iteration.
+ */
+struct GeantSd::ProcessorSlot
+{
+    std::weak_ptr<HitProcessor> weak_processor;
+    HitProcessor* processor{nullptr};
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Clear a slot's cached pointers when its hit processor is destroyed.
+ *
+ * The references between the slot and the processor are cyclic and
+ * deliberately non-owning in both directions:
+ * \verbatim
+   GeantSd --(shared)--> ProcessorSlot --(weak + raw cache)--> HitProcessor
+                               ^                                    |
+                               +--(weak, via this deleter)----------+
+
+   LocalTransporter --(shared, with this deleter)--> HitProcessor
+   \endverbatim
+ *
+ * The thread-local transporter shares ownership of the processor, and \c
+ * GeantSd owns the slot. Since the cross references are weak, either side
+ * may be destroyed first:
+ * - when the last local reference to the processor is released (on the
+ *   worker thread that created it), this deleter resets the slot's cached
+ *   pointers so a later \c make_local_processor call recreates the processor
+ *   instead of returning a dangling pointer;
+ * - when the \c GeantSd (and thus the slot) is destroyed first, locking the
+ *   weak pointer fails and only the processor is deleted.
+ */
+struct GeantSd::ProcessorSlotDeleter
+{
+    std::weak_ptr<ProcessorSlot> weak_slot;
+
+    void operator()(HitProcessor* processor) const
+    {
+        if (auto slot = weak_slot.lock())
+        {
+            if (slot->processor == processor)
+            {
+                slot->processor = nullptr;
+                slot->weak_processor.reset();
+            }
+        }
+        delete processor;
+    }
+};
+
+//---------------------------------------------------------------------------//
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -92,8 +149,11 @@ GeantSd::GeantSd(ParticleParams const& par,
     // geant4 thread-local SDs. They MUST also be DEallocated on the same
     // thread they're created due to Geant4 thread-local allocators.
     // There must be one hit processor per thread.
-    processor_weakptrs_.resize(num_streams);
-    processors_.resize(num_streams);
+    processor_slots_.reserve(num_streams);
+    for ([[maybe_unused]] auto i : range(num_streams))
+    {
+        processor_slots_.push_back(std::make_shared<ProcessorSlot>());
+    }
 
     // Map detector volumes
     this->setup_volumes(setup);
@@ -119,13 +179,24 @@ GeantSd::GeantSd(ParticleParams const& par,
  */
 auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
-    CELER_EXPECT(sid < processor_weakptrs_.size());
-    CELER_EXPECT(!processors_[sid.get()]);
+    CELER_EXPECT(sid < processor_slots_.size());
 
-    auto result = std::make_shared<HitProcessor>(
-        geant_vols_, particles_, selection_, locate_touchable_);
-    processor_weakptrs_[sid.get()] = result;
-    processors_[sid.get()] = result.get();
+    auto const& slot = processor_slots_[sid.get()];
+    CELER_EXPECT(slot);
+    if (auto result = slot->weak_processor.lock())
+    {
+        CELER_EXPECT(result.get() == slot->processor);
+        return result;
+    }
+
+    slot->processor = nullptr;
+
+    SPProcessor result{
+        new HitProcessor(
+            geant_vols_, particles_, selection_, locate_touchable_),
+        ProcessorSlotDeleter{slot}};
+    slot->weak_processor = result;
+    slot->processor = result.get();
     return result;
 }
 
@@ -279,14 +350,10 @@ void GeantSd::setup_particles(ParticleParams const& par)
  */
 auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
-    CELER_EXPECT(sid < processors_.size());
-    CELER_EXPECT(([&] {
-        // Check that shared pointer is still alive
-        auto sp = processor_weakptrs_[sid.get()].lock();
-        return sp && sp.get() == processors_[sid.get()];
-    }()));
-
-    return *processors_[sid.unchecked_get()];
+    CELER_EXPECT(sid < processor_slots_.size());
+    auto* result = processor_slots_[sid.get()]->processor;
+    CELER_EXPECT(result);
+    return *result;
 }
 
 //---------------------------------------------------------------------------//

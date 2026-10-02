@@ -1,0 +1,25 @@
+test/accel/TrackingManagerIntegration --gtest_filter=TMIAutoHooks.run
+Celeritas version [suppressed]
+Note: Google Test filter = TMIAutoHooks.run
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from TMIAutoHooks
+[ RUN      ] TMIAutoHooks.run
+Environment variable "G4RUN_MANAGER_TYPE" enabled with value == Serial. Overriding G4RunManager type...
+
+**************************************************************
+ Geant4 version [suppressed] geant4-11-03-patch-02 [MT]   (25-April-2025)
+                       Copyright : Geant4 Collaboration
+                      References : NIM A 506 (2003), 250-303
+                                 : IEEE-TNS 53 (2006), 270-278
+                                 : NIM A 835 (2016), 186-225
+                             WWW : http:geant4.org
+**************************************************************
+
+[       OK ] TMIAutoHooks.run (time suppressed)
+[----------] 1 test from TMIAutoHooks (time suppressed)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (time suppressed)
+[  PASSED  ] 1 test.
+TrackingManagerIntegration: tests PASSED

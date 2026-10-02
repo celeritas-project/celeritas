@@ -5,9 +5,12 @@
     {
       "name": ".base",
       "hidden": true,
-      "inherits": [".spack-env", ".cuda-volta", "full"],
+      "inherits": [".nobuiltin", ".cuda-volta", "full"],
       "binaryDir": "${sourceDir}/build-${presetName}",
       "generator": "Ninja",
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" },
         "CELERITAS_BUILD_DOCS": { "type": "BOOL", "value": "OFF" },

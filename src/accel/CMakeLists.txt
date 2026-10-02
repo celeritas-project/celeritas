@@ -63,7 +63,7 @@ if(CELERITAS_USE_HepMC3)
   list(APPEND SOURCES HepMC3PrimaryGenerator.cc)
 endif()
 
-celeritas_get_g4libs(_g4_private digits_hits run)
+celeritas_get_g4libs(_g4_private digits_hits run physicslists)
 list(APPEND PRIVATE_DEPS ${_g4_private})
 
 celeritas_get_g4libs(_g4_public event intercoms geometry global track tracking)

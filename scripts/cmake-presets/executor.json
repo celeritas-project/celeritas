@@ -45,8 +45,10 @@
       "name": ".spackbase",
       "hidden": true,
       "generator": "Ninja",
-      "inherits": [".base", ".spack-env"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "inherits": [".base", ".nobuiltin"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
@@ -115,6 +117,19 @@
         "CELERITAS_SPHINX_ARGS": "-W;--keep-going",
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/install",
         "DOXYGEN_WARN_AS_ERROR": "YES"
+      }
+    },
+    {
+      "name": "g4local",
+      "displayName": "Single-precision arithmetic",
+      "inherits": [".ccache", ".base", ".nobuiltin", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/geant4-dev/.spack-env/view"
+      },
+      "cacheVariables": {
+        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_REAL_TYPE": "float"
       }
     },
     {
