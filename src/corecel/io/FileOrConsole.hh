@@ -15,6 +15,14 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Tag struct to force opening to console (equivalent to "-"
+struct ConsoleIO
+{
+    //! Special filename for stdout ("-")
+    inline static constexpr char const filename[] = "-";
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Construct an input from an existing file, or stdin if the filename is "-".
  */
@@ -76,7 +84,7 @@ FileOrStdin::FileOrStdin(std::string filename) : filename_{std::move(filename)}
 {
     CELER_VALIDATE(!filename_.empty(),
                    << "empty filename is not valid for input");
-    if (filename_ == "-")
+    if (filename_ == ConsoleIO::filename)
     {
         filename_ = "<stdin>";
         return;
@@ -106,7 +114,7 @@ FileOrStdout::FileOrStdout(std::string filename, Mode mode)
 {
     CELER_VALIDATE(!filename_.empty(),
                    << "empty filename is not valid for output");
-    if (filename_ == "-")
+    if (filename_ == ConsoleIO::filename)
     {
         CELER_VALIDATE(!(mode & std::ios::trunc), << "cannot truncate stdout");
         filename_ = "<stdout>";

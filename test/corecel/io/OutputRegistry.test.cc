@@ -169,7 +169,7 @@ TEST_F(OutputRegistryTest, minimal)
     }
 
     // Test persistent output to stdout
-    reg.open("-");
+    reg.open(OutputRegistry::stdout_filename());
     ASSERT_TRUE(reg.is_open());
     EXPECT_EQ("<stdout>", reg.output_filename());
     {

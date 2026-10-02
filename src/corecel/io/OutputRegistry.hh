@@ -53,6 +53,9 @@ class OutputRegistry
         trunc,  //!< Overwrite existing file
     };
 
+    // Filename for writing to stdout
+    static std::string stdout_filename();
+
   public:
     //// PERSISTENT OUTPUT FILE MANAGEMENT ////
 
