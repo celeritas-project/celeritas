@@ -201,15 +201,12 @@ int main(int argc, char* argv[])
 
         if (!output)
         {
+            // Open and write to stdout
             output = std::make_shared<celeritas::OutputRegistry>();
+            output->open(celeritas::OutputRegistry::stdout_filename());
         }
         output->insert(std::make_shared<celeritas::ExceptionOutput>(
             std::current_exception()));
-        if (!output->is_open())
-        {
-            // Write to stdout
-            output->open(celeritas::OutputRegistry::stdout_filename());
-        }
     }
 
     // Save output

@@ -15,10 +15,10 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Tag struct to force opening to console (equivalent to "-")
+//! Tag struct for opening directly to console
 struct ConsoleIO
 {
-    //! Special filename for stdout ("-")
+    //! Special filename for stdout/stdin ("-")
     inline static constexpr char const filename[] = "-";
 };
 
