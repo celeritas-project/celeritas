@@ -15,7 +15,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-//! Tag struct to force opening to console (equivalent to "-"
+//! Tag struct to force opening to console (equivalent to "-")
 struct ConsoleIO
 {
     //! Special filename for stdout ("-")

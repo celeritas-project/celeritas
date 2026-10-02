@@ -30,9 +30,8 @@ namespace celeritas
  * \endverbatim
  *
  * \par Newline-delimited json output
- * The output registry will avoid newlines in its output by default
- * (when `os.width() == 0` or using ), allowing compatibility with NDJSON/
- JSONL :
+ * The output registry will avoid newlines in its output, allowing
+ * compatibility with NDJSON/JSONL.
  * \code
  * std::ofstream out("foo.jsonl");
  * out << reg << std::endl;
