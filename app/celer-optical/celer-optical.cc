@@ -12,10 +12,6 @@
 #include <CLI/CLI.hpp>
 #include <nlohmann/json.hpp>
 
-#include "corecel/Config.hh"
-#include "corecel/DeviceRuntimeApi.hh"
-#include "corecel/Version.hh"
-
 #include "corecel/Assert.hh"
 #include "corecel/cont/VariantUtils.hh"
 #include "corecel/io/BuildOutput.hh"
@@ -26,12 +22,12 @@
 #include "corecel/io/OutputInterfaceAdapter.hh"
 #include "corecel/io/OutputRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/DeviceIO.json.hh"
+#include "corecel/sys/DeviceIO.json.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedMpiInit.hh"
 #include "corecel/sys/Stopwatch.hh"
 #include "corecel/sys/TracingSession.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/inp/StandaloneInputIO.json.hh"  // IWYU pragma: keep
 #include "celeritas/io/OpticalDistributionReader.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/Runner.hh"
@@ -209,6 +205,11 @@ int main(int argc, char* argv[])
         }
         output->insert(std::make_shared<celeritas::ExceptionOutput>(
             std::current_exception()));
+        if (!output->is_open())
+        {
+            // Write to stdout
+            output->open(celeritas::OutputRegistry::stdout_filename());
+        }
     }
 
     // Save output
