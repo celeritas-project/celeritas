@@ -7,6 +7,7 @@ if(NOT CELERITAS_USE_Geant4)
   set(_needs_geant4 DISABLE)
 else()
   celeritas_get_g4libs(_g4_global_libs global)
+  celeritas_get_g4libs(_g4_sd_libs digits_hits)
 endif()
 
 if(CELERITAS_UNITS STREQUAL "CGS")
@@ -152,7 +153,8 @@ if(CELERITAS_USE_Geant4)
   # Tests that depend on GeantGeoTestBase will not link without it
   celeritas_add_test(GeantGeoUtils.test.cc)
   celeritas_add_test(ScopedGeantLogger.test.cc LINK_LIBRARIES ${_g4_global_libs})
-  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double})
+  celeritas_add_test(g4/GeantGeo.test.cc ${_needs_double}
+    LINK_LIBRARIES ${_g4_sd_libs} ${_g4_global_libs})
   celeritas_add_test(g4/GeantNavHistoryUpdater.test.cc)
 endif()
 
