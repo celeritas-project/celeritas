@@ -32,6 +32,9 @@ class FileOrStdin
     // Construct with a filename
     explicit inline FileOrStdin(std::string filename);
 
+    // Construct to read from stdin
+    explicit inline FileOrStdin(ConsoleIO);
+
     //! Implicitly cast to the opened stream
     operator std::istream&() { return inf_.is_open() ? inf_ : std::cin; }
 
@@ -59,6 +62,9 @@ class FileOrStdout
   public:
     // Construct with a filename in "append" mode
     explicit inline FileOrStdout(std::string filename);
+
+    // Construct to write to stdout in "append" mode
+    explicit inline FileOrStdout(ConsoleIO);
 
     // Construct with a filename with a given ios mode
     inline FileOrStdout(std::string filename, Mode);
@@ -96,6 +102,12 @@ FileOrStdin::FileOrStdin(std::string filename) : filename_{std::move(filename)}
 
 //---------------------------------------------------------------------------//
 /*!
+ * Construct to read from stdin.
+ */
+FileOrStdin::FileOrStdin(ConsoleIO) : FileOrStdin{ConsoleIO::filename} {}
+
+//---------------------------------------------------------------------------//
+/*!
  * Construct with filename in "append" mode.
  *
  * This gives consistent behavior between output files and the console.
@@ -104,6 +116,12 @@ FileOrStdout::FileOrStdout(std::string filename)
     : FileOrStdout{std::move(filename), std::ios::app | std::ios::out}
 {
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct to write to stdout in "append" mode.
+ */
+FileOrStdout::FileOrStdout(ConsoleIO) : FileOrStdout{ConsoleIO::filename} {}
 
 //---------------------------------------------------------------------------//
 /*!
