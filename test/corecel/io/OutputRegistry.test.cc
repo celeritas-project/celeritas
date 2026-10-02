@@ -156,7 +156,12 @@ TEST_F(OutputRegistryTest, minimal)
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::debug};
         reg.output();
-        scoped_log_.print_expected();
+
+        static char const* const expected_log_messages[]
+            = {"No output filename provided: suppressing 4 entries"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"debug"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
     }
     if constexpr (CELERITAS_DEBUG)
     {
@@ -165,7 +170,8 @@ TEST_F(OutputRegistryTest, minimal)
 
     // Test persistent output to stdout
     reg.open("-");
-    EXPECT_TRUE(reg.is_open());
+    ASSERT_TRUE(reg.is_open());
+    EXPECT_EQ("<stdout>", reg.output_filename());
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::info};
         std::string s;
@@ -184,8 +190,7 @@ TEST_F(OutputRegistryTest, minimal)
     // Clearing just removes already-written diagnostics
     reg.clear();
     EXPECT_TRUE(reg.empty());
-    ASSERT_TRUE(reg.is_open());
-    EXPECT_EQ("-", reg.output_filename());
+    EXPECT_TRUE(reg.is_open());
 }
 
 TEST_F(OutputRegistryTest, persistent_output)
