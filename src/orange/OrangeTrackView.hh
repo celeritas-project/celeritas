@@ -14,6 +14,7 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/NumericLimits.hh"
+#include "corecel/math/SoftEqual.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/Types.hh"
 
@@ -107,7 +108,7 @@ class OrangeTrackView
     inline CELER_FUNCTION real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline CELER_FUNCTION void move_to_boundary();
+    inline CELER_FUNCTION void move_to_boundary(real_type dist);
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
@@ -732,15 +733,18 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
  *
  * Even though this does not change the universe or volume, it \em may change
  * the universe of the current surface.
+ *
+ * The track moves by the given distance, which must match the stored next
+ * step (less any internal movement since it was found).
  */
-CELER_FUNCTION void OrangeTrackView::move_to_boundary()
+CELER_FUNCTION void OrangeTrackView::move_to_boundary(real_type dist)
 {
     CELER_EXPECT(this->geo_status() != GeoStatus::boundary_inc);
     CELER_EXPECT(this->has_next_step());
     CELER_EXPECT(this->has_next_surface());
+    CELER_EXPECT(soft_equal(this->next_step(), dist));
 
-    // Physically move next step
-    real_type const dist = this->next_step();
+    // Physically move to the boundary
     for (auto ulev_id : range(this->univ_level() + 1))
     {
         auto lsa = this->make_lsa(ulev_id);
