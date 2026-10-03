@@ -25,12 +25,17 @@
 #include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
+#include <Randomize.hh>
+
+#include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/cont/Array.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
@@ -1155,6 +1160,9 @@ class HandBackTrackingAction final : public G4UserTrackingAction
         int event;
         int track;
         int parent;
+        int pdg;
+        double energy;
+        G4ThreeVector pos;
     };
 
     void PreUserTrackingAction(G4Track const* t) final
@@ -1162,11 +1170,16 @@ class HandBackTrackingAction final : public G4UserTrackingAction
         auto const* event
             = G4EventManager::GetEventManager()->GetConstCurrentEvent();
         CELER_ASSERT(event);
-        started_.push_back(
-            {event->GetEventID(), t->GetTrackID(), t->GetParentID()});
+        started_.push_back({event->GetEventID(),
+                            t->GetTrackID(),
+                            t->GetParentID(),
+                            t->GetParticleDefinition()->GetPDGEncoding(),
+                            t->GetKineticEnergy(),
+                            t->GetPosition()});
     }
 
     std::vector<Started> const& started() const { return started_; }
+    void clear() { started_.clear(); }
 
   private:
     std::vector<Started> started_;
@@ -1231,6 +1244,14 @@ class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
         return opts;
     }
 
+    PrimaryInput make_primary_input() const override
+    {
+        auto result = TestEm3IntegrationMixin::make_primary_input();
+        // Allow repeating a run: every event has the same primary
+        result.num_events = 4;
+        return result;
+    }
+
     UPTrackAction make_tracking_action() override
     {
         auto result = std::make_unique<HandBackTrackingAction>();
@@ -1274,6 +1295,21 @@ class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
         rm.BeamOn(num_events);
     }
 
+    // Clear the recorded tracks
+    void clear_started()
+    {
+        for (auto* ta : tracking_)
+        {
+            ta->clear();
+        }
+    }
+
+    //! Whether a Geant4 track ID was assigned to a track created by Celeritas
+    static bool is_celeritas_born(int track_id)
+    {
+        return track_id >= std::numeric_limits<int>::max() / 2;
+    }
+
   protected:
     bool suspend_{false};
     std::vector<HandBackTrackingAction*> tracking_;
@@ -1313,7 +1349,7 @@ TEST_F(TestEm3HandBack, run)
         for (auto const& s : tracks)
         {
             // Tracks created by Celeritas have IDs counting down from INT_MAX
-            if (s.track >= std::numeric_limits<int>::max() / 2)
+            if (is_celeritas_born(s.track))
             {
                 ++num_celeritas_born;
             }
@@ -1380,6 +1416,74 @@ TEST_F(TestEm3HandBack, reoffload)
     // At least some suspended tracks were offloaded, transported, and
     // handed back again with the same ID
     EXPECT_GT(num_restarted, 0);
+}
+
+/*!
+ * Check that Geant4 tracks handed-back tracks in a reproducible order.
+ *
+ * Handed-back tracks are stacked when Celeritas is flushed, sorted by their
+ * state, so repeating a run with the same seed tracks the same tracks in the
+ * same order. Celeritas transport on device is reproducible only when
+ * reseeding each track, and the Geant4 IDs of tracks created by Celeritas
+ * (and of their children) depend on the execution order.
+ */
+TEST_F(TestEm3HandBack, reproducible)
+{
+    constexpr int num_events = 2;
+    constexpr long seed = 20251002;
+
+    G4Random::setTheSeed(seed);
+    this->run(num_events);
+    if (this->HasFatalFailure())
+    {
+        return;
+    }
+    bool const check_ids = !celeritas::device();
+    if (celeritas::device() && CELERITAS_RESEED != CELERITAS_RESEED_TRACK)
+    {
+        GTEST_SKIP() << "Celeritas device transport is not reproducible "
+                        "without reseeding each track";
+    }
+    auto const first = this->started_by_event();
+    this->clear_started();
+
+    G4Random::setTheSeed(seed);
+    this->run_manager().BeamOn(num_events);
+    auto const second = this->started_by_event();
+
+    ASSERT_EQ(num_events, first.size());
+    ASSERT_EQ(first.size(), second.size());
+    for (auto const& [event, expected] : first)
+    {
+        SCOPED_TRACE("event " + std::to_string(event));
+        auto iter = second.find(event);
+        ASSERT_NE(iter, second.end());
+        auto const& actual = iter->second;
+        EXPECT_GT(expected.size(), 1);
+        ASSERT_EQ(expected.size(), actual.size());
+        for (auto i : range(expected.size()))
+        {
+            auto const& e = expected[i];
+            auto const& a = actual[i];
+            SCOPED_TRACE("track " + std::to_string(i));
+            EXPECT_EQ(e.pdg, a.pdg);
+            EXPECT_EQ(e.energy, a.energy);
+            EXPECT_EQ(e.pos, a.pos);
+            if (check_ids || !is_celeritas_born(e.track))
+            {
+                EXPECT_EQ(e.track, a.track);
+            }
+            if (check_ids || !is_celeritas_born(e.parent))
+            {
+                EXPECT_EQ(e.parent, a.parent);
+            }
+            if (this->HasFailure())
+            {
+                // Don't print every subsequent difference
+                return;
+            }
+        }
+    }
 }
 
 //---------------------------------------------------------------------------//

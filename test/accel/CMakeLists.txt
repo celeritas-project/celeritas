@@ -196,6 +196,11 @@ celeritas_add_integration_tests(
   OFFLOAD cpu gpu
   RMTYPE serial
 )
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3HandBack reproducible
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
 
 # Test automatic state-dependent hooks without manual run action calls
 celeritas_add_integration_tests(
