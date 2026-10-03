@@ -48,7 +48,7 @@ class OutputRegistry
 
     enum class OpenMode
     {
-        app,  //!< Seek to end of file before each write (default)
+        app,  //!< Seek to end of file before each write
         trunc,  //!< Overwrite existing file
     };
 
@@ -58,10 +58,10 @@ class OutputRegistry
   public:
     //// PERSISTENT OUTPUT FILE MANAGEMENT ////
 
-    // Append to a persistent JSONL file for writing with `output`
+    // Open a persistent JSONL output, truncating files or writing to stdout
     void open(std::string s);
 
-    // Append to a persistent JSONL file for writing with `output`
+    // Open a persistent JSONL output with the given mode
     void open(std::string s, OpenMode);
 
     //! Close persistent file if open

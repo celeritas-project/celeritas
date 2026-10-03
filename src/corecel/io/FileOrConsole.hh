@@ -116,6 +116,7 @@ FileOrStdout::FileOrStdout(std::string filename, Mode mode)
                    << "empty filename is not valid for output");
     if (filename_ == ConsoleIO::filename)
     {
+        // NOLINTNEXTLINE(bugprone-non-zero-enum-to-bool-conversion)
         CELER_VALIDATE(!(mode & std::ios::trunc), << "cannot truncate stdout");
         filename_ = "<stdout>";
         return;
