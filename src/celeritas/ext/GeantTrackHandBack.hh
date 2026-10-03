@@ -52,10 +52,9 @@ namespace celeritas
  * - its trajectory, if any, is stored in the event,
  * - if it is suspended or postponed, it is pushed back to the stack \em
  *   without being marked as handed back, so that the next time it is popped
- *   it is offloaded to Celeritas again with the same ID (with the Geant4
- *   geometry backend, a track that stopped on a geometry boundary is first
- *   moved slightly into the next volume so that Celeritas locates it
- *   unambiguously), and otherwise
+ *   it is offloaded to Celeritas again with the same ID (if it stopped on a
+ *   geometry boundary, it is first moved slightly into the next volume so
+ *   that Celeritas locates it unambiguously), and otherwise
  * - the track is deleted.
  *
  * Handing back tracks requires Geant4 11.0 or higher.
