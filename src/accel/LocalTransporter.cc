@@ -205,8 +205,7 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         // Create on the local thread, which owns the reconstructed tracks
         hand_back_processor_ = geant_hand_back->make_local_processor(
             stream_id, track_reconstruction_);
-        hand_back_
-            = std::make_shared<GeantTrackHandBack>(track_reconstruction_);
+        hand_back_ = std::make_shared<GeantTrackHandBack>();
     }
 
     // Create stepper
@@ -596,7 +595,7 @@ void LocalTransporter::hand_back_tracks()
     ScopedProfiling profile_this{"hand-back"};
     for (auto& hb : tracks)
     {
-        (*hand_back_)(std::move(hb.track), hb.origin);
+        (*hand_back_)(std::move(hb.track));
     }
     run_accum_.handed_back += tracks.size();
 }

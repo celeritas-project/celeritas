@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "GeantTrackHandBack.hh"
 
-#include <utility>
 #include <G4Event.hh>
 #include <G4EventManager.hh>
 #include <G4StackManager.hh>
@@ -56,16 +55,6 @@ void store_trajectory(G4VTrajectory* trajectory)
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the thread-local track reconstruction.
- */
-GeantTrackHandBack::GeantTrackHandBack(SPTrackReconstruction recon)
-    : recon_{std::move(recon)}
-{
-    CELER_EXPECT(recon_);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Warn about tracks still pending in the Geant4 stack.
  */
 GeantTrackHandBack::~GeantTrackHandBack()
@@ -83,21 +72,20 @@ GeantTrackHandBack::~GeantTrackHandBack()
  * Return ownership of a reconstructed track to the current Geant4 event.
  *
  * The user stacking action may kill the track, in which case Geant4 deletes
- * it immediately along with any lent user information.
+ * it immediately.
  */
-void GeantTrackHandBack::operator()(UPTrack track, TrackOrigin origin)
+void GeantTrackHandBack::operator()(UPTrack track)
 {
     CELER_EXPECT(track);
-    CELER_EXPECT((origin == TrackOrigin::secondary)
-                 == (track->GetTrackID() == 0));
+    CELER_EXPECT(track->GetTrackID() > 0);
 
     // Ownership is transferred to Geant4
     G4Track* raw = track.release();
     handed_back_.insert(raw);
     ++num_handed_back_;
-    if (!this->stack(raw, origin == TrackOrigin::offloaded))
+    if (!GeantTrackHandBack::stack(raw))
     {
-        // Track (and possibly lent user info) were deleted by Geant4
+        // Don't keep the address of a deleted track
         handed_back_.erase(raw);
     }
 }
@@ -134,13 +122,12 @@ bool GeantTrackHandBack::process(G4Track* track)
             // Stack the track again *without* the hand-back mark so that it
             // is offloaded to Celeritas when popped
             store_trajectory(trajectory);
-            static_cast<void>(this->stack(track, /* id_already_set = */ true));
+            static_cast<void>(GeantTrackHandBack::stack(track));
             em.StackTracks(secondaries);
             break;
         case fStopAndKill:
             store_trajectory(trajectory);
             em.StackTracks(secondaries);
-            recon_->release(*track);
             delete track;
             break;
         case fKillTrackAndSecondaries:
@@ -153,7 +140,6 @@ bool GeantTrackHandBack::process(G4Track* track)
                 }
                 secondaries->clear();
             }
-            recon_->release(*track);
             delete track;
             break;
         case fAlive:
@@ -162,7 +148,6 @@ bool GeantTrackHandBack::process(G4Track* track)
                    "for handed-back track";
             store_trajectory(trajectory);
             em.StackTracks(secondaries);
-            recon_->release(*track);
             delete track;
             break;
     }
@@ -171,14 +156,17 @@ bool GeantTrackHandBack::process(G4Track* track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Push a track to the Geant4 stack, returning false if it was killed.
+ * Push a track with its existing ID to the Geant4 stack.
  *
  * A user stacking action that classifies the track as \c fKill causes the
  * stack manager to delete it. That is detected by the unchanged number of
- * stacked tracks, in which case the reconstruction forgets any user
- * information lent to the (now deleted) track.
+ * stacked tracks, so that the address of the deleted track is not kept. (A
+ * track moved to a sub-event stack, which is not counted, is treated the same
+ * way: it will be offloaded again rather than tracked on CPU.)
+ *
+ * \return Whether the track was stacked
  */
-bool GeantTrackHandBack::stack(G4Track* track, bool id_already_set)
+bool GeantTrackHandBack::stack(G4Track* track)
 {
     auto& em = event_manager();
     G4StackManager* sm = em.GetStackManager();
@@ -186,16 +174,8 @@ bool GeantTrackHandBack::stack(G4Track* track, bool id_already_set)
 
     auto const num_before = sm->GetNTotalTrack();
     G4TrackVector tracks{track};
-    em.StackTracks(&tracks, id_already_set);
-    if (sm->GetNTotalTrack() > num_before)
-    {
-        return true;
-    }
-
-    // The track was deleted, or moved to a stack that is not counted: in
-    // either case Geant4 owns any user information now attached to it
-    recon_->forfeit(track);
-    return false;
+    em.StackTracks(&tracks, /* IDhasAlreadySet = */ true);
+    return sm->GetNTotalTrack() > num_before;
 }
 
 //---------------------------------------------------------------------------//

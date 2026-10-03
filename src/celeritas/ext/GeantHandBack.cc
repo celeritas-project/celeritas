@@ -73,6 +73,7 @@ StepSelection GeantHandBack::selection() const
     post.volume_instance_ids = input_.locate_touchable;
 
     result.parent_id = true;
+    result.parent_is_primary = true;
     result.primary_id = true;
     result.post_step_action_id = true;
     result.weight = true;

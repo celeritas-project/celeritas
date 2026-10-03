@@ -64,12 +64,17 @@ HandBackProcessor::~HandBackProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
- * Reconstruct CPU-generated handed-back tracks.
+ * Copy CPU-generated handed-back tracks.
+ *
+ * Reconstruction is deferred to \c process_pending_steps , as on device, so
+ * that hits from the same step are always processed first: reconstructing an
+ * offloaded track transfers its user information to Geant4.
  */
 void HandBackProcessor::operator()(StepStateHostRef const& states)
 {
+    CELER_EXPECT(!this->has_pending_steps());
     copy_steps(&steps_, states);
-    (*this)(steps_);
+    pending_host_steps_ = true;
 }
 
 //---------------------------------------------------------------------------//
@@ -83,7 +88,7 @@ void HandBackProcessor::operator()(StepStateHostRef const& states)
 void HandBackProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
-    CELER_EXPECT(!pending_device_steps_);
+    CELER_EXPECT(!this->has_pending_steps());
 
     compact_steps_async(states, num_selected_.data());
     pending_device_steps_ = states;
@@ -91,7 +96,7 @@ void HandBackProcessor::operator()(StepStateDeviceRef const& states)
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy and reconstruct device-generated tracks after their step completes.
+ * Reconstruct tracks handed back during a step after it completes.
  *
  * The caller must establish device step completion before calling this
  * function, which guarantees that the number of selected tracks has been
@@ -100,6 +105,11 @@ void HandBackProcessor::operator()(StepStateDeviceRef const& states)
  */
 void HandBackProcessor::process_pending_steps()
 {
+    if (std::exchange(pending_host_steps_, false))
+    {
+        (*this)(steps_);
+        return;
+    }
     if (!pending_device_steps_)
     {
         return;
@@ -156,7 +166,8 @@ HandedBackTrack HandBackProcessor::reconstruct(DetectorStepOutput const& out,
 {
     CELER_EXPECT(i < out.size());
     CELER_EXPECT(i < out.particle_id.size() && i < out.primary_id.size()
-                 && i < out.parent_id.size());
+                 && i < out.parent_id.size()
+                 && i < out.parent_is_primary.size());
 
     auto const& post = out.points[StepPoint::post];
     CELER_ASSERT(i < post.pos.size() && i < post.dir.size()
@@ -172,8 +183,11 @@ HandedBackTrack HandBackProcessor::reconstruct(DetectorStepOutput const& out,
         result.reason = out.hand_back_reason[i];
     }
 
-    result.track = track_reconstruction_->create(
-        out.particle_id[i], out.primary_id[i], result.origin);
+    result.track = track_reconstruction_->create(out.particle_id[i],
+                                                 out.primary_id[i],
+                                                 out.track_id[i],
+                                                 out.parent_id[i],
+                                                 out.parent_is_primary[i]);
     CELER_ASSERT(result.track);
 
     // Set kinematic state at the end of the step

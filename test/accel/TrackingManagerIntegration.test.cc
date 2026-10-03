@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <regex>
@@ -1283,8 +1284,9 @@ class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
  * Check the identity of tracks handed back to Geant4.
  *
  * The primary crosses into the calorimeter on its first step and is handed
- * back with its original ID. Celeritas secondaries are handed back with new
- * unique IDs. Tracks created by Geant4 from handed-back tracks are offloaded
+ * back with its original ID. Celeritas secondaries are handed back with their
+ * own IDs, mapped from Celeritas track IDs by counting down from \c INT_MAX .
+ * Tracks created by Geant4 from handed-back tracks are offloaded
  * again, and they are handed back with their own IDs. Handed-back tracks are
  * never offloaded again (or the run would not complete).
  */
@@ -1307,8 +1309,14 @@ TEST_F(TestEm3HandBack, run)
 
         std::set<int> ids;
         bool found_primary{false};
+        int num_celeritas_born{0};
         for (auto const& s : tracks)
         {
+            // Tracks created by Celeritas have IDs counting down from INT_MAX
+            if (s.track >= std::numeric_limits<int>::max() / 2)
+            {
+                ++num_celeritas_born;
+            }
             // Each track is handed back and tracked by Geant4 exactly once
             EXPECT_TRUE(ids.insert(s.track).second)
                 << "duplicate track ID " << s.track;
@@ -1325,6 +1333,7 @@ TEST_F(TestEm3HandBack, run)
             }
         }
         EXPECT_TRUE(found_primary);
+        EXPECT_GT(num_celeritas_born, 0);
     }
 }
 

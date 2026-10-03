@@ -107,10 +107,12 @@ struct StepperResult;
  * \c SimTrackView::hand_back are killed in Celeritas and returned to Geant4.
  * Like hits, their state is compacted on device during the asynchronous step
  * launch, and copied and reconstructed when the step result is consumed,
- * after any hits from that step have been processed. The reconstructed tracks
- * are pushed to the Geant4 stack (see \c GeantTrackHandBack ), and \c
- * ProcessHandedBack lets the tracking manager track them on CPU instead of
- * offloading them again.
+ * after any hits from that step have been processed (the offloaded track's
+ * user information moves to the reconstructed track). The reconstructed
+ * tracks keep the Geant4 identity of the offloaded track, or are given their
+ * own (see \c GeantTrackReconstruction ). They are pushed to the Geant4 stack
+ * (see \c GeantTrackHandBack ), and \c ProcessHandedBack lets the tracking
+ * manager track them on CPU instead of offloading them again.
  *
  * \internal
  *

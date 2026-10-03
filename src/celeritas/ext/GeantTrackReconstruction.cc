@@ -161,8 +161,8 @@ GeantTrackReconstruction::~GeantTrackReconstruction()
  * afterward it will be impossible to reconstruct them.
  *
  * The primary ID offset is saved to ensure consistency when flushing before
- * an event is complete. User information still lent to handed-back tracks is
- * transferred to them; all other user information is deleted.
+ * an event is complete. User information that was not handed back to Geant4
+ * is deleted.
  */
 void GeantTrackReconstruction::clear()
 {
@@ -176,19 +176,6 @@ void GeantTrackReconstruction::clear()
         track->SetUserInformation(nullptr);
     }
     g4_track_data_.clear();
-
-    // Transfer ownership of lent user information to the tracks using it
-    for (auto&& [track, info] : lent_)
-    {
-        auto iter = user_info_.find(info);
-        CELER_ASSERT(iter != user_info_.end());
-        // The track now owns (and will delete) the user information
-        [[maybe_unused]] G4VUserTrackInformation* transferred
-            = iter->second.release();
-        user_info_.erase(iter);
-    }
-    lent_.clear();
-    user_info_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -213,8 +200,7 @@ void GeantTrackReconstruction::init_event()
  * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
  *
  * This will take ownership of the G4VUserTrackInformation and unset it in the
- * primary track. If the track was previously handed back to Geant4 with lent
- * user information, the lent information is reclaimed.
+ * primary track.
  */
 PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 {
@@ -232,26 +218,13 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
     data.creator_process = primary.GetCreatorProcess();
     CELER_ASSERT(data);
 
-    // Reclaim user information lent to this track, if any
-    if (auto iter = lent_.find(&primary); iter != lent_.end())
-    {
-        lent_.erase(iter);
-    }
-    if (G4VUserTrackInformation* info = primary.GetUserInformation())
-    {
-        if (user_info_.find(info) == user_info_.end())
-        {
-            // Take ownership
-            user_info_.emplace(info, UPUserInfo{info});
-        }
-        data.user_info = info;
-        // Clear user information so that it doesn't get deleted with the
-        // G4Track
-        primary.SetUserInformation(nullptr);
-    }
+    // Take ownership of the user information so that it doesn't get deleted
+    // with the G4Track
+    data.user_info.reset(primary.GetUserInformation());
+    primary.SetUserInformation(nullptr);
 
     auto primary_id = start_ + g4_track_data_.size();
-    g4_track_data_.push_back(data);
+    g4_track_data_.push_back(std::move(data));
     return primary_id;
 }
 
@@ -335,122 +308,50 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 /*!
  * Create a new track to hand back to Geant4.
  *
- * The track has the particle type of the Celeritas track, and its identity
- * depends on its origin:
- * - \c TrackOrigin::offloaded : the Celeritas track \em is the offloaded
- *   Geant4 track, so the original track ID, parent ID, and creator process are
- *   restored, and its user information is lent to the new track.
- * - \c TrackOrigin::secondary : the track was created in Celeritas and has no
- *   Geant4 identity. Its track ID is zero (unassigned: Geant4 assigns a new
- *   one when it is stacked), its parent is the offloaded ancestor track, and
- *   its creator process is that of the ancestor. It has no user information.
+ * The track has the particle type and the Geant4 identity of the Celeritas
+ * track (see the class documentation). If it is the offloaded track itself,
+ * the ownership of its user information is transferred to the new track:
+ * hits from that track must therefore be processed before it is handed back.
  *
  * The kinematic state of the track (position, direction, energy, time,
- * etc.) must be set by the caller. The returned pointer's deleter releases
- * lent user information if the track is never handed to Geant4; once it is
- * (via \c release() on the pointer), \c release(G4Track&) \b must be called
- * before Geant4 deletes it.
+ * etc.) must be set by the caller.
  *
  * \note This must be called on the thread that will own the track because of
  * Geant4 thread-local allocators.
  */
 auto GeantTrackReconstruction::create(ParticleId particle_id,
                                       PrimaryId primary_id,
-                                      TrackOrigin origin) const -> UPTrack
+                                      TrackId track_id,
+                                      TrackId parent_id,
+                                      bool parent_is_primary) -> UPTrack
 {
     CELER_EXPECT(particle_id < tracks_.size());
-    auto const& data = this->acquired(primary_id);
+    CELER_EXPECT(parent_id || !parent_is_primary);
+    auto& data = this->acquired(primary_id);
 
     G4ParticleDefinition const* pd
         = tracks_[particle_id.unchecked_get()]->GetParticleDefinition();
     CELER_ASSERT(pd);
     UPTrack result{
-        new G4Track(new G4DynamicParticle(pd, G4ThreeVector()), 0.0, {}),
-        TrackDeleter{this}};
-    result->SetCreatorProcess(data.creator_process);
+        new G4Track(new G4DynamicParticle(pd, G4ThreeVector()), 0.0, {})};
 
-    switch (origin)
+    if (!parent_id)
     {
-        case TrackOrigin::offloaded:
-            result->SetTrackID(data.track_id);
-            result->SetParentID(data.parent_id);
-            if (data.user_info)
-            {
-                CELER_ASSERT(user_info_.count(data.user_info));
-                result->SetUserInformation(data.user_info);
-                lent_.emplace(result.get(), data.user_info);
-            }
-            break;
-        case TrackOrigin::secondary:
-            result->SetTrackID(0);
-            result->SetParentID(data.track_id);
-            break;
+        // Offloaded track: restore its identity and give back its user info
+        result->SetTrackID(data.track_id);
+        result->SetParentID(data.parent_id);
+        result->SetCreatorProcess(data.creator_process);
+        result->SetUserInformation(data.user_info.release());
+    }
+    else
+    {
+        result->SetTrackID(geant_track_id(track_id));
+        result->SetParentID(parent_is_primary ? data.track_id
+                                              : geant_track_id(parent_id));
+        result->SetCreatorProcess(placeholder_.get());
     }
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Detach lent user information before Geant4 deletes a track.
- *
- * If the track still points to the user information lent by \c create, the
- * pointer is cleared so that deleting the track does not delete it. If user
- * code replaced the user information, the track keeps (and will delete) its
- * own. Calling this for a track without lent information has no effect.
- */
-void GeantTrackReconstruction::release(G4Track& track) const
-{
-    auto iter = lent_.find(&track);
-    if (iter == lent_.end())
-    {
-        return;
-    }
-    if (track.GetUserInformation() == iter->second)
-    {
-        track.SetUserInformation(nullptr);
-    }
-    lent_.erase(iter);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Forget user information deleted by Geant4 along with a lent track.
- *
- * Geant4 can delete a handed-back track without our involvement (e.g., when
- * a user stacking action kills it), which also deletes its user information.
- * The given pointer is \em not dereferenced: it is only used to find the
- * information that was lent, which is then dropped without being deleted.
- * Hits from Celeritas descendants of the same primary will have no user
- * information.
- */
-void GeantTrackReconstruction::forfeit(G4Track const* track)
-{
-    auto iter = lent_.find(track);
-    if (iter == lent_.end())
-    {
-        return;
-    }
-    G4VUserTrackInformation const* info = iter->second;
-    lent_.erase(iter);
-
-    // Drop ownership without deleting
-    if (auto owned = user_info_.find(info); owned != user_info_.end())
-    {
-        [[maybe_unused]] G4VUserTrackInformation* deleted
-            = owned->second.release();
-        user_info_.erase(owned);
-    }
-    for (auto& data : g4_track_data_)
-    {
-        if (data.user_info == info)
-        {
-            data.user_info = nullptr;
-        }
-    }
-    CELER_LOG_LOCAL(warning) << "User information of handed-back track was "
-                                "deleted by Geant4: it will be missing from "
-                                "remaining Celeritas hits";
 }
 
 //---------------------------------------------------------------------------//
@@ -473,6 +374,17 @@ auto GeantTrackReconstruction::acquired(PrimaryId primary_id) const
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Get the mutable acquired data for a primary in the current event.
+ */
+auto GeantTrackReconstruction::acquired(PrimaryId primary_id) -> AcquiredData&
+{
+    return const_cast<AcquiredData&>(
+        static_cast<GeantTrackReconstruction const*>(this)->acquired(
+            primary_id));
+}
+
+//---------------------------------------------------------------------------//
 // GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
 //---------------------------------------------------------------------------//
 /*!
@@ -485,23 +397,8 @@ void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
     CELER_EXPECT(*this);
     track.SetTrackID(track_id);
     track.SetParentID(parent_id);
-    track.SetUserInformation(user_info);
+    track.SetUserInformation(user_info.get());
     track.SetCreatorProcess(creator_process);
-}
-
-//---------------------------------------------------------------------------//
-// GEANTTRACKRECONSTRUCTION::TRACKDELETER
-//---------------------------------------------------------------------------//
-/*!
- * Delete a created track after releasing any lent user information.
- */
-void GeantTrackReconstruction::TrackDeleter::operator()(G4Track* track) const
-{
-    if (recon_ && track)
-    {
-        recon_->release(*track);
-    }
-    delete track;
 }
 
 //---------------------------------------------------------------------------//

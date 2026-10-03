@@ -153,8 +153,8 @@ auto GeantHandBackTest::run() -> VecTrack
     VecTrack result;
     auto complete_step = [&] {
         auto counts = step.get();
-        // Device data is processed only after the step completes
-        EXPECT_EQ(M == MemSpace::device, processor->has_pending_steps());
+        // Tracks are reconstructed only after the step completes
+        EXPECT_TRUE(processor->has_pending_steps());
         processor->process_pending_steps();
         EXPECT_FALSE(processor->has_pending_steps());
         for (auto& t : processor->exchange_tracks())
@@ -187,7 +187,19 @@ void GeantHandBackTest::check_tracks(VecTrack const& tracks) const
     ASSERT_FALSE(tracks.empty());
 
     auto const g4particles = detail::make_geant_particles(*this->particle());
+
+    // Celeritas track ID of the offloaded track
+    TrackId primary_track;
+    for (auto const& hb : tracks)
+    {
+        if (hb.origin == TrackOrigin::offloaded)
+        {
+            primary_track = hb.celer_track_id;
+        }
+    }
+
     int num_offloaded{0};
+    int num_children{0};
     for (auto const& hb : tracks)
     {
         ASSERT_TRUE(hb.track);
@@ -221,15 +233,30 @@ void GeantHandBackTest::check_tracks(VecTrack const& tracks) const
         }
         else
         {
-            // Celeritas secondaries are assigned an ID when stacked
+            // Celeritas secondaries have their own Geant4 identity
             EXPECT_TRUE(hb.celer_parent_id);
-            EXPECT_EQ(0, track.GetTrackID());
-            EXPECT_EQ(42, track.GetParentID());
+            EXPECT_EQ(
+                GeantTrackReconstruction::geant_track_id(hb.celer_track_id),
+                track.GetTrackID());
+            if (hb.celer_parent_id == primary_track)
+            {
+                ++num_children;
+                EXPECT_EQ(42, track.GetParentID());
+            }
+            else
+            {
+                EXPECT_EQ(GeantTrackReconstruction::geant_track_id(
+                              hb.celer_parent_id),
+                          track.GetParentID());
+            }
+            EXPECT_EQ(&recon_->placeholder_process(),
+                      track.GetCreatorProcess());
             EXPECT_EQ(nullptr, track.GetUserInformation());
         }
     }
     // The primary is handed back when it first crosses the boundary
     EXPECT_EQ(1, num_offloaded);
+    EXPECT_GT(num_children, 0);
 }
 
 //---------------------------------------------------------------------------//
@@ -240,16 +267,15 @@ TEST_F(GeantHandBackTest, host)
 {
     auto tracks = this->run<MemSpace::host>();
     this->check_tracks(tracks);
-    EXPECT_EQ(
-        static_cast<std::size_t>(std::count_if(
-            tracks.begin(),
-            tracks.end(),
-            [](auto const& t) { return t.origin == TrackOrigin::offloaded; })),
-        recon_->num_lent());
 
-    // Dropping the tracks without handing them back releases the lent info
+    // The handed-back offloaded track owns its user information: dropping it
+    // deletes the information, and the reconstruction no longer refers to it
+    auto iter = std::find_if(tracks.begin(), tracks.end(), [](auto const& t) {
+        return t.origin == TrackOrigin::offloaded;
+    });
+    ASSERT_NE(iter, tracks.end());
+    EXPECT_EQ(user_info_, iter->track->GetUserInformation());
     tracks.clear();
-    EXPECT_EQ(0, recon_->num_lent());
 }
 
 TEST_F(GeantHandBackTest, TEST_IF_CELER_DEVICE(device))

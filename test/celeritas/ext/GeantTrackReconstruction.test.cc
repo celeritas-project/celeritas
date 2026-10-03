@@ -533,29 +533,21 @@ TEST_F(GtrCreateTest, offloaded)
     g4track.reset();
     EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
 
-    // Hand back the offloaded track itself as a positron
-    auto track = recon.create(ParticleId{2}, pid, TrackOrigin::offloaded);
+    // Hand back the offloaded track itself (Celeritas track 0) as a positron
+    auto track = recon.create(ParticleId{2}, pid, TrackId{0}, {}, false);
     ASSERT_TRUE(track);
     EXPECT_EQ(particles_[2], track->GetParticleDefinition());
     EXPECT_EQ(12, track->GetTrackID());
     EXPECT_EQ(3, track->GetParentID());
     EXPECT_EQ(process_.get(), track->GetCreatorProcess());
+
+    // Ownership of the user information is transferred to the new track
     EXPECT_EQ(info, track->GetUserInformation());
-    EXPECT_EQ(1, recon.num_lent());
-
-    // Hits from other Celeritas descendants still see the user info
-    EXPECT_EQ(info, recon.view(ParticleId{0}, pid).GetUserInformation());
-
-    // Simulate Geant4 tracking and deleting the handed-back track
-    G4Track* g4owned = track.release();
-    recon.release(*g4owned);
-    EXPECT_EQ(nullptr, g4owned->GetUserInformation());
-    EXPECT_EQ(0, recon.num_lent());
-    delete g4owned;
-    EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+    EXPECT_EQ(nullptr, recon.view(ParticleId{0}, pid).GetUserInformation());
+    track.reset();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 
     recon.clear();
-    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 }
 
 TEST_F(GtrCreateTest, secondary)
@@ -564,40 +556,37 @@ TEST_F(GtrCreateTest, secondary)
     recon.init_event();
 
     auto g4track = this->make_offloaded(12, 3);
+    auto* info = g4track->GetUserInformation();
     PrimaryId pid = recon.acquire(*g4track);
     g4track.reset();
+    constexpr int max_id = std::numeric_limits<int>::max();
 
-    auto track = recon.create(ParticleId{0}, pid, TrackOrigin::secondary);
-    ASSERT_TRUE(track);
-    EXPECT_EQ(particles_[0], track->GetParticleDefinition());
-    EXPECT_EQ(0, track->GetTrackID());
-    EXPECT_EQ(12, track->GetParentID());
-    EXPECT_EQ(process_.get(), track->GetCreatorProcess());
-    EXPECT_EQ(nullptr, track->GetUserInformation());
-    EXPECT_EQ(0, recon.num_lent());
-
-    track.reset();
-    recon.clear();
-}
-
-TEST_F(GtrCreateTest, dropped_before_hand_back)
-{
-    GeantTrackReconstruction recon(particles_, step_);
-    recon.init_event();
-
-    auto g4track = this->make_offloaded(5, 0);
-    PrimaryId pid = recon.acquire(*g4track);
-    g4track.reset();
-
-    // Destroying the created track without handing it back must not delete
-    // the lent user information
     {
-        auto track = recon.create(ParticleId{1}, pid, TrackOrigin::offloaded);
-        EXPECT_EQ(1, recon.num_lent());
+        // Created by the offloaded track
+        auto track
+            = recon.create(ParticleId{0}, pid, TrackId{4}, TrackId{0}, true);
+        ASSERT_TRUE(track);
+        EXPECT_EQ(particles_[0], track->GetParticleDefinition());
+        EXPECT_EQ(max_id - 4, track->GetTrackID());
+        EXPECT_EQ(12, track->GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track->GetCreatorProcess());
+        EXPECT_EQ(nullptr, track->GetUserInformation());
     }
-    EXPECT_EQ(0, recon.num_lent());
+    {
+        // Created by another Celeritas secondary
+        auto track
+            = recon.create(ParticleId{1}, pid, TrackId{9}, TrackId{4}, false);
+        EXPECT_EQ(max_id - 9, track->GetTrackID());
+        EXPECT_EQ(max_id - 4, track->GetParentID());
+        EXPECT_EQ(nullptr, track->GetUserInformation());
+    }
+
+    // The offloaded track still owns its user information
     EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+    EXPECT_EQ(info, recon.view(ParticleId{0}, pid).GetUserInformation());
+
     recon.clear();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 }
 
 TEST_F(GtrCreateTest, reoffload)
@@ -611,14 +600,12 @@ TEST_F(GtrCreateTest, reoffload)
     g4track.reset();
 
     // Hand back, then Geant4 suspends the track and offloads it again
-    G4Track* g4owned
-        = recon.create(ParticleId{1}, pid, TrackOrigin::offloaded).release();
-    EXPECT_EQ(1, recon.num_lent());
-    PrimaryId pid2 = recon.acquire(*g4owned);
+    auto handed_back = recon.create(ParticleId{1}, pid, TrackId{0}, {}, false);
+    EXPECT_EQ(info, handed_back->GetUserInformation());
+    PrimaryId pid2 = recon.acquire(*handed_back);
     EXPECT_NE(pid, pid2);
-    EXPECT_EQ(0, recon.num_lent());
-    EXPECT_EQ(nullptr, g4owned->GetUserInformation());
-    delete g4owned;
+    EXPECT_EQ(nullptr, handed_back->GetUserInformation());
+    handed_back.reset();
 
     // Same identity and user information for the re-offloaded track
     G4Track& view = recon.view(ParticleId{1}, pid2);
@@ -628,9 +615,10 @@ TEST_F(GtrCreateTest, reoffload)
     EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
 
     recon.clear();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 }
 
-TEST_F(GtrCreateTest, clear_transfers_lent)
+TEST_F(GtrCreateTest, handed_back_survives_clear)
 {
     GeantTrackReconstruction recon(particles_, step_);
     recon.init_event();
@@ -640,19 +628,15 @@ TEST_F(GtrCreateTest, clear_transfers_lent)
     PrimaryId pid = recon.acquire(*g4track);
     g4track.reset();
 
-    G4Track* g4owned
-        = recon.create(ParticleId{1}, pid, TrackOrigin::offloaded).release();
+    auto handed_back = recon.create(ParticleId{1}, pid, TrackId{0}, {}, false);
 
     // Celeritas finishes the event while Geant4 still holds the track
     recon.clear();
-    EXPECT_EQ(0, recon.num_lent());
     EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
-    EXPECT_EQ(info, g4owned->GetUserInformation());
+    EXPECT_EQ(info, handed_back->GetUserInformation());
 
-    // Releasing is now a no-op, and the track deletes its user info
-    recon.release(*g4owned);
-    EXPECT_EQ(info, g4owned->GetUserInformation());
-    delete g4owned;
+    // The track deletes its user info
+    handed_back.reset();
     EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 }
 

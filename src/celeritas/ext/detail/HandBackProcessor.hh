@@ -49,15 +49,16 @@ struct HandedBackTrack
  * GeantTrackReconstruction::create . The reconstructed tracks are kept, in
  * track slot order, until they are retrieved with \c exchange_tracks .
  *
- * Host step data is copied and reconstructed immediately by the call
- * operator. For device step data, the call operator is invoked during the
- * asynchronous launch of the step: it enqueues the compaction of the selected
- * tracks and the copy of their number to pinned host memory, without
- * synchronizing, and retains a reference to the gathered step state. After the
- * producing step is complete, and before another step can overwrite the step
- * state, the caller must call \c process_pending_steps , which copies the
- * compacted data and reconstructs the tracks. Only one device step can be
- * pending.
+ * Host step data is copied immediately by the call operator. For device step
+ * data, the call operator is invoked during the asynchronous launch of the
+ * step: it enqueues the compaction of the selected tracks and the copy of
+ * their number to pinned host memory, without synchronizing, and retains a
+ * reference to the gathered step state. In both cases, after the producing
+ * step is complete, and before another step can overwrite the step state, the
+ * caller must call \c process_pending_steps , which reconstructs the tracks.
+ * Hits from the same step must be processed first, since reconstructing the
+ * offloaded track transfers its user information to the new \c G4Track . Only
+ * one step can be pending.
  *
  * The kinematic state of each track is its post-step state: position,
  * direction, kinetic energy, global time, and weight. The vertex is set to the
@@ -88,19 +89,19 @@ class HandBackProcessor
     ~HandBackProcessor();
     CELER_DELETE_COPY_MOVE(HandBackProcessor);
 
-    // Reconstruct CPU-generated handed-back tracks
+    // Copy CPU-generated handed-back tracks
     void operator()(StepStateHostRef const&);
 
     // Enqueue compaction of device-generated handed-back tracks
     void operator()(StepStateDeviceRef const&);
 
-    // Copy and reconstruct device-generated tracks after the step completes
+    // Reconstruct handed-back tracks after the step completes
     void process_pending_steps();
 
     //! Whether device-generated data is pending
     bool has_pending_steps() const noexcept
     {
-        return static_cast<bool>(pending_device_steps_);
+        return pending_host_steps_ || static_cast<bool>(pending_device_steps_);
     }
 
     // Reconstruct tracks from a compacted step output (for testing)
@@ -128,6 +129,8 @@ class HandBackProcessor
     std::unique_ptr<TouchableUpdaterInterface> update_touchable_;
     //! Device step data awaiting transfer after step completion
     StepStateDeviceRef pending_device_steps_;
+    //! Whether host step data was copied and awaits reconstruction
+    bool pending_host_steps_{false};
     //! Number of compacted device tracks (pinned for asynchronous copy)
     PinnedVec<size_type> num_selected_;
     //! Temporary CPU step information

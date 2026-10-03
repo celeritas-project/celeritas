@@ -7,7 +7,6 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "corecel/Macros.hh"
@@ -61,14 +60,10 @@ enum class TrackOrigin
  *
  * \par User information
  * The user information of an offloaded track is owned by this class from \c
- * acquire until \c clear, since hits from any of its Celeritas descendants
- * may refer to it. When the offloaded track itself is handed back to Geant4
- * (\c TrackOrigin::offloaded), the same user information object is \em lent
- * to the new track. Before Geant4 deletes that track, \c release \b must be
- * called to detach the lent object. If the track is offloaded again, \c
- * acquire recognizes the lent object and resumes sole ownership. At \c clear,
- * objects still lent are transferred to the tracks that hold them, since no
- * Celeritas track can refer to them any longer.
+ * acquire until the track is handed back to Geant4 (\c create transfers it to
+ * the new \c G4Track) or until \c clear . Since only the offloaded track
+ * itself refers to it, no other Celeritas track can observe it after the
+ * transfer.
  */
 class GeantTrackReconstruction
 {
@@ -78,25 +73,8 @@ class GeantTrackReconstruction
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using SPStep = std::shared_ptr<G4Step>;
     using EventIdGetter = int (*)();
+    using UPTrack = std::unique_ptr<G4Track>;
     //!@}
-
-    //! Delete a created track after releasing any lent user information
-    class TrackDeleter
-    {
-      public:
-        TrackDeleter() = default;
-        explicit TrackDeleter(GeantTrackReconstruction const* recon)
-            : recon_{recon}
-        {
-        }
-        void operator()(G4Track* track) const;
-
-      private:
-        GeantTrackReconstruction const* recon_{nullptr};
-    };
-
-    //! Owned track created for handing back to Geant4
-    using UPTrack = std::unique_ptr<G4Track, TrackDeleter>;
 
   public:
     // Create a G4Step object with cleared data
@@ -133,20 +111,15 @@ class GeantTrackReconstruction
     // View a track with the given particle ID
     [[nodiscard]] G4Track& view(ParticleId) const;
 
+    // Create a new track to hand back to Geant4
+    [[nodiscard]] UPTrack create(ParticleId particle,
+                                 PrimaryId primary,
+                                 TrackId track,
+                                 TrackId parent,
+                                 bool parent_is_primary);
+
     //! Creator process reported for tracks created by Celeritas
     G4VProcess const& placeholder_process() const { return *placeholder_; }
-
-    // Create a new track to hand back to Geant4
-    [[nodiscard]] UPTrack create(ParticleId, PrimaryId, TrackOrigin) const;
-
-    // Detach lent user information before Geant4 deletes a track
-    void release(G4Track&) const;
-
-    // Forget user information deleted by Geant4 along with a lent track
-    void forfeit(G4Track const*);
-
-    //! Number of user information objects lent to handed-back tracks
-    std::size_t num_lent() const { return lent_.size(); }
 
     // Event ID function pointer for unit testing (only used in
     // CELERITAS_DEBUG)
@@ -160,8 +133,8 @@ class GeantTrackReconstruction
         int track_id{-1};
         //! Original Geant4 parent ID
         int parent_id{0};
-        //! User track information (owned by the reconstruction)
-        G4VUserTrackInformation* user_info{nullptr};
+        //! User track information (until handed back)
+        std::unique_ptr<G4VUserTrackInformation> user_info;
         //! Process that created the track
         G4VProcess const* creator_process{nullptr};
 
@@ -170,8 +143,6 @@ class GeantTrackReconstruction
         //! Restore the G4Track from the reconstruction data
         void restore(G4Track&) const;
     };
-
-    using UPUserInfo = std::unique_ptr<G4VUserTrackInformation>;
 
     //! G4Track reconstruction data indexed by Celeritas PrimaryID
     std::vector<AcquiredData> g4_track_data_;
@@ -186,13 +157,9 @@ class GeantTrackReconstruction
     //! Last G4 event ID for error checking
     int g4_event_id_{-1};
 
-    //! User information owned by this class
-    std::unordered_map<G4VUserTrackInformation const*, UPUserInfo> user_info_;
-    //! User information lent to tracks handed back to Geant4
-    mutable std::unordered_map<G4Track const*, G4VUserTrackInformation*> lent_;
-
     // Get acquired data for a primary
     AcquiredData const& acquired(PrimaryId) const;
+    AcquiredData& acquired(PrimaryId);
 };
 
 //---------------------------------------------------------------------------//
