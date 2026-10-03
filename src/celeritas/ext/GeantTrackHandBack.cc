@@ -14,6 +14,7 @@
 #include <G4TrackingManager.hh>
 #include <G4TrajectoryContainer.hh>
 #include <G4VTrajectory.hh>
+#include <G4Version.hh>
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
@@ -51,6 +52,24 @@ void store_trajectory(G4VTrajectory* trajectory)
         event->SetTrajectoryContainer(container);
     }
     container->insert(trajectory);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Push tracks to the stack of the current event, like G4EventManager.
+ *
+ * \c G4EventManager::StackTracks is private before Geant4 11.0, which is also
+ * the oldest version supporting offload through a tracking manager.
+ */
+void stack_tracks(G4TrackVector* tracks, bool id_already_set = false)
+{
+#if G4VERSION_NUMBER >= 1100
+    event_manager().StackTracks(tracks, id_already_set);
+#else
+    CELER_DISCARD(tracks);
+    CELER_DISCARD(id_already_set);
+    CELER_NOT_IMPLEMENTED("handing back tracks with Geant4 older than 11.0");
+#endif
 }
 
 //---------------------------------------------------------------------------//
@@ -153,17 +172,19 @@ bool GeantTrackHandBack::process(G4Track* track)
     {
         case fStopButAlive:
         case fSuspend:
+#if G4VERSION_NUMBER >= 1120
         case fSuspendAndWait:
+#endif
         case fPostponeToNextEvent:
             // Stack the track again *without* the hand-back mark so that it
             // is offloaded to Celeritas when popped
             store_trajectory(trajectory);
             static_cast<void>(GeantTrackHandBack::stack(track));
-            em.StackTracks(secondaries);
+            stack_tracks(secondaries);
             break;
         case fStopAndKill:
             store_trajectory(trajectory);
-            em.StackTracks(secondaries);
+            stack_tracks(secondaries);
             delete track;
             break;
         case fKillTrackAndSecondaries:
@@ -183,7 +204,7 @@ bool GeantTrackHandBack::process(G4Track* track)
                 << "Illegal track status returned from G4TrackingManager "
                    "for handed-back track";
             store_trajectory(trajectory);
-            em.StackTracks(secondaries);
+            stack_tracks(secondaries);
             delete track;
             break;
     }
@@ -212,7 +233,7 @@ auto GeantTrackHandBack::stack(G4Track* track) -> Stacked
     auto const num_before = sm->GetNTotalTrack();
     auto const num_urgent_before = sm->GetNUrgentTrack();
     G4TrackVector tracks{track};
-    em.StackTracks(&tracks, /* IDhasAlreadySet = */ true);
+    stack_tracks(&tracks, /* id_already_set = */ true);
     if (sm->GetNTotalTrack() == num_before)
     {
         return Stacked::killed;

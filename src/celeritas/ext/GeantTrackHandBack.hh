@@ -55,6 +55,8 @@ namespace celeritas
  *   it is offloaded to Celeritas again with the same ID, and otherwise
  * - the track is deleted.
  *
+ * Handing back tracks requires Geant4 11.0 or higher.
+ *
  * \warning This class is thread-local: it must be used on the worker thread
  * that owns the tracks, while an event is being processed.
  */
