@@ -115,18 +115,18 @@ void move_off_boundary(G4Track& track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Push tracks to the stack of the current event, like G4EventManager.
+ * Push new secondaries to the stack of the current event with new track IDs.
  *
+ * This is what G4EventManager does with the secondaries of a tracked track.
  * \c G4EventManager::StackTracks is private before Geant4 11.0, which is also
  * the oldest version supporting offload through a tracking manager.
  */
-void stack_tracks(G4TrackVector* tracks, bool id_already_set = false)
+void stack_secondaries(G4TrackVector* secondaries)
 {
 #if G4VERSION_NUMBER >= 1100
-    event_manager().StackTracks(tracks, id_already_set);
+    event_manager().StackTracks(secondaries);
 #else
-    CELER_DISCARD(tracks);
-    CELER_DISCARD(id_already_set);
+    CELER_DISCARD(secondaries);
     CELER_NOT_IMPLEMENTED("handing back tracks with Geant4 older than 11.0");
 #endif
 }
@@ -183,6 +183,9 @@ void GeantTrackHandBack::flush()
 
     for (auto& track : deferred_)
     {
+        // The track originates where it is handed back, like its vertex
+        track->SetOriginTouchableHandle(track->GetTouchableHandle());
+
         G4Track* raw = track.release();
         handed_back_.insert(raw);
         ++num_handed_back_;
@@ -240,11 +243,11 @@ bool GeantTrackHandBack::process(G4Track* track)
             store_trajectory(trajectory);
             move_off_boundary(*track);
             static_cast<void>(GeantTrackHandBack::stack(track));
-            stack_tracks(secondaries);
+            stack_secondaries(secondaries);
             break;
         case fStopAndKill:
             store_trajectory(trajectory);
-            stack_tracks(secondaries);
+            stack_secondaries(secondaries);
             delete track;
             break;
         case fKillTrackAndSecondaries:
@@ -264,7 +267,7 @@ bool GeantTrackHandBack::process(G4Track* track)
                 << "Illegal track status returned from G4TrackingManager "
                    "for handed-back track";
             store_trajectory(trajectory);
-            stack_tracks(secondaries);
+            stack_secondaries(secondaries);
             delete track;
             break;
     }
@@ -274,6 +277,11 @@ bool GeantTrackHandBack::process(G4Track* track)
 //---------------------------------------------------------------------------//
 /*!
  * Push a track with its existing ID to the Geant4 stack.
+ *
+ * Like \c G4EventManager does when it stacks a suspended track again, this
+ * pushes the track directly to the stack manager (which calls the user
+ * stacking action): \c G4EventManager::StackTracks would also use up a track
+ * ID and overwrite the origin touchable of the track.
  *
  * A user stacking action that classifies the track as \c fKill causes the
  * stack manager to delete it. That is detected by the unchanged number of
@@ -292,8 +300,7 @@ auto GeantTrackHandBack::stack(G4Track* track) -> Stacked
 
     auto const num_before = sm->GetNTotalTrack();
     auto const num_urgent_before = sm->GetNUrgentTrack();
-    G4TrackVector tracks{track};
-    stack_tracks(&tracks, /* id_already_set = */ true);
+    sm->PushOneTrack(track);
     if (sm->GetNTotalTrack() == num_before)
     {
         return Stacked::killed;

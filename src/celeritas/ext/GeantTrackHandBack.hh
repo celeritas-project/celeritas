@@ -24,9 +24,11 @@ namespace celeritas
  *
  * Handing a track back transfers its ownership, including its user
  * information, to the current Geant4 event by pushing it onto the track stack
- * with \c G4EventManager::StackTracks , which invokes the user stacking
+ * with \c G4StackManager::PushOneTrack , which invokes the user stacking
  * action. Reconstructed tracks already have their Geant4 track ID (see \c
- * GeantTrackReconstruction ), so Geant4 does not assign a new one.
+ * GeantTrackReconstruction ), so, unlike secondaries, they don't use up an
+ * ID from the event's counter. Their origin touchable is where they were
+ * handed back, like their vertex.
  *
  * Handed-back tracks are \em deferred until \c flush is called, which stacks
  * them all in the order of \c detail::GeantTrackOrder . Stacking them as soon

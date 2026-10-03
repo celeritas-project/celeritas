@@ -6,8 +6,10 @@
 //---------------------------------------------------------------------------//
 #include "accel/TrackingManagerIntegration.hh"
 
+#include <algorithm>
 #include <atomic>
 #include <functional>
+#include <iterator>
 #include <limits>
 #include <map>
 #include <mutex>
@@ -22,6 +24,7 @@
 #include <G4Threading.hh>
 #include <G4Track.hh>
 #include <G4UImanager.hh>
+#include <G4UserStackingAction.hh>
 #include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
@@ -1223,6 +1226,54 @@ class SuspendSteppingAction final : public G4UserSteppingAction
 };
 
 /*!
+ * Record the tracks pushed to the Geant4 stack.
+ *
+ * Every track is classified as urgent, as Geant4 does by default. The origin
+ * touchable of each track is recorded when it is first stacked, and compared
+ * when a suspended track is stacked again.
+ */
+class HandBackStackingAction final : public G4UserStackingAction
+{
+  public:
+    G4ClassificationOfNewTrack ClassifyNewTrack(G4Track const* t) final
+    {
+        auto const* event
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        ids_[event->GetEventID()].insert(t->GetTrackID());
+
+        if (t->GetTrackStatus() == fSuspend)
+        {
+            ++num_restacked_;
+            auto iter = origins_.find(t);
+            if (iter != origins_.end()
+                && iter->second == t->GetOriginTouchable())
+            {
+                ++num_same_origin_;
+            }
+        }
+        else
+        {
+            origins_[t] = t->GetOriginTouchable();
+        }
+        return fUrgent;
+    }
+
+    //! IDs of the stacked tracks, by event
+    std::map<int, std::set<int>> const& ids() const { return ids_; }
+    //! Number of suspended tracks stacked again
+    size_type num_restacked() const { return num_restacked_; }
+    //! Number of those that kept the origin touchable they were stacked with
+    size_type num_same_origin() const { return num_same_origin_; }
+
+  private:
+    std::map<int, std::set<int>> ids_;
+    std::map<G4Track const*, G4VTouchable const*> origins_;
+    size_type num_restacked_{0};
+    size_type num_same_origin_{0};
+};
+
+/*!
  * Hand back tracks to Geant4 whenever they cross a geometry boundary.
  */
 class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
@@ -1272,6 +1323,28 @@ class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
         return result;
     }
 
+    UPStackAction make_stacking_action() override
+    {
+        auto result = std::make_unique<HandBackStackingAction>();
+        std::scoped_lock lock{mutex_};
+        stacking_.push_back(result.get());
+        return result;
+    }
+
+    // IDs of tracks pushed to the Geant4 stack, by event
+    std::map<int, std::set<int>> stacked_ids_by_event() const
+    {
+        std::map<int, std::set<int>> result;
+        for (auto const* sa : stacking_)
+        {
+            for (auto const& [event, ids] : sa->ids())
+            {
+                result[event].insert(ids.begin(), ids.end());
+            }
+        }
+        return result;
+    }
+
     // Tracks started by Geant4, by event
     std::map<int, std::vector<Started>> started_by_event() const
     {
@@ -1314,6 +1387,7 @@ class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
     bool suspend_{false};
     std::vector<HandBackTrackingAction*> tracking_;
     std::vector<SuspendSteppingAction*> stepping_;
+    std::vector<HandBackStackingAction*> stacking_;
 };
 
 /*!
@@ -1371,6 +1445,23 @@ TEST_F(TestEm3HandBack, run)
         EXPECT_TRUE(found_primary);
         EXPECT_GT(num_celeritas_born, 0);
     }
+
+    // Handed-back tracks are stacked with their IDs without using up Geant4
+    // IDs, so the IDs assigned by Geant4 are consecutive
+    auto stacked = this->stacked_ids_by_event();
+    ASSERT_EQ(2, stacked.size());
+    for (auto const& [event, ids] : stacked)
+    {
+        SCOPED_TRACE("event " + std::to_string(event));
+        std::vector<int> g4_ids;
+        std::copy_if(ids.begin(),
+                     ids.end(),
+                     std::back_inserter(g4_ids),
+                     [](int id) { return !is_celeritas_born(id); });
+        ASSERT_FALSE(g4_ids.empty());
+        EXPECT_EQ(1, g4_ids.front());
+        EXPECT_EQ(static_cast<int>(g4_ids.size()), g4_ids.back());
+    }
 }
 
 /*!
@@ -1416,6 +1507,18 @@ TEST_F(TestEm3HandBack, reoffload)
     // At least some suspended tracks were offloaded, transported, and
     // handed back again with the same ID
     EXPECT_GT(num_restarted, 0);
+
+    // Suspended tracks are stacked again with the origin they were handed
+    // back with
+    size_type num_restacked{0};
+    size_type num_same_origin{0};
+    for (auto const* sa : stacking_)
+    {
+        num_restacked += sa->num_restacked();
+        num_same_origin += sa->num_same_origin();
+    }
+    EXPECT_EQ(num_suspended, num_restacked);
+    EXPECT_EQ(num_restacked, num_same_origin);
 }
 
 /*!
