@@ -2,7 +2,7 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
-# Run tests on push to develop/backport branches.
+# Run tests and pages deployment when publishing develop/backport branches.
 #-----------------------------------------------------------------------------#
 
 name: push
@@ -15,26 +15,66 @@ on:
     branches:
       - develop
       - backports/**
+  workflow_dispatch: {} # Allow manual invocation for testing when not using CELER_CI
 
 concurrency:
   group: push-${{github.ref_name}}-${{github.run_number}}
   cancel-in-progress: true
 
 jobs:
+  check-ci-vars:
+    # See https://github.com/celeritas-project/celeritas/settings/variables/actions
+    # or  https://github.com/{user}/celeritas/settings/variables/actions
+    # This should be set to a "truthy" value for celeritas-project and any fork that
+    # wants to do regular testing.
+    name: Check CELER_CI variable
+    if: ${{ vars.CELER_CI || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Success
+        run: |
+          echo "Running on repository ${{ github.repository }}"
   build-ultralite:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-ultralite.yml
   build-fast:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-fast.yml
   build-docker:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-docker.yml
   build-spack:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack-extra.yml
   build-regression:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-regression.yml
   build-codecov:
+    needs: [check-ci-vars]
     uses: ./.github/workflows/build-codecov.yml
     secrets: inherit
+  build-pages:
+    needs: [check-ci-vars]
+    uses: ./.github/workflows/build-pages.yml
+    secrets: inherit
+  deploy-pages:
+    if: ${{ github.ref == 'refs/heads/develop' }}
+    needs: [build-pages]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      deployments: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
 
 # vim: set nowrap tw=100:
