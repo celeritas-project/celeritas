@@ -9,8 +9,8 @@
 #
 # Docker builds use BuildKit through the buildx plugin.
 # Podman is used if Docker is unavailable or cannot
-# reach its daemon (e.g. without root access). Set DOCKER to override the
-# container engine, e.g. DOCKER=podman-hpc.
+# reach its daemon (e.g. without root access). Set CONTAINER to override the
+# container engine, e.g. CONTAINER=podman-hpc.
 #-----------------------------------------------------------------------------#
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
@@ -39,32 +39,32 @@ check_docker() {
   fi
 }
 
-if [ -z "${DOCKER}" ]; then
+if [ -z "${CONTAINER}" ]; then
   if check_docker; then
-    DOCKER=docker
+    CONTAINER=docker
   elif have podman; then
-    DOCKER=podman
+    CONTAINER=podman
   else
     log error "neither docker (with buildx) nor podman is usable"
     exit 1
   fi
-elif [ "${DOCKER}" = docker ]; then
+elif [ "${CONTAINER}" = docker ]; then
   if ! check_docker; then
     log error "docker is not usable"
     exit 1
   fi
-elif ! have "${DOCKER}"; then
-  log error "${DOCKER} is not available"
+elif ! have "${CONTAINER}"; then
+  log error "${CONTAINER} is not available"
   exit 1
 fi
 
-if [ "${DOCKER}" = docker ]; then
+if [ "${CONTAINER}" = docker ]; then
   # Load into the local image store, which the docker-container driver of
   # non-default buildx builders does not do implicitly
   BUILD="docker buildx build --load"
 else
   # Podman defaults to the OCI format, which drops some Dockerfile metadata
-  BUILD="${DOCKER} build --format docker"
+  BUILD="${CONTAINER} build --format docker"
 fi
 
 pins=$(python3 "${SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \

@@ -84,8 +84,8 @@ Docker builds use BuildKit (`docker buildx build`), so the
 [buildx plugin](https://docs.docker.com/go/buildx/) must be installed: the
 legacy builder is deprecated. If Docker is missing, lacks buildx, or cannot
 reach its daemon (e.g. without root or `docker` group access), the script
-falls back to `podman`. Set `DOCKER` to choose the container engine
-explicitly (e.g. `DOCKER=podman-hpc`).
+falls back to `podman`. Set `CONTAINER` to choose the container engine
+explicitly (e.g. `CONTAINER=podman-hpc`).
 
 Pushing requires a GitHub personal access token (classic) with the
 `write:packages`, and `delete:packages` scopes, authorized for the `celeritas-project` organization.
@@ -109,7 +109,7 @@ With rootless podman, such as `podman-hpc` on Perlmutter, the container's
 root (which is your own user) and keep the installations in a scratch directory
 so they are visible from every node:
 ```console
-$ DOCKER=podman-hpc scripts/docker/buildcache/build.sh
+$ CONTAINER=podman-hpc scripts/docker/buildcache/build.sh
 $ mkdir -p $SCRATCH/celeritas-opt-ci
 $ podman-hpc run --rm -it --user 0 \
     -v "$PWD:/celeritas:ro" \
