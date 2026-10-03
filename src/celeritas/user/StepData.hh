@@ -81,11 +81,14 @@ struct StepSelection
     bool particle_id{false};
     bool energy_deposition{false};
 
+    bool hand_back_reason{false};
+
     //! Create StepSelection with all options set to true
     static constexpr StepSelection all()
     {
         return StepSelection{
             {StepPointSelection::all(), StepPointSelection::all()},
+            true,
             true,
             true,
             true,
@@ -103,7 +106,7 @@ struct StepSelection
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
                || parent_id || primary_id || post_step_action_id
                || track_step_count || step_length || weight || particle_id
-               || energy_deposition;
+               || energy_deposition || hand_back_reason;
     }
 
     //! Combine the selection with another
@@ -123,6 +126,7 @@ struct StepSelection
         this->weight |= other.weight;
         this->particle_id |= other.particle_id;
         this->energy_deposition |= other.energy_deposition;
+        this->hand_back_reason |= other.hand_back_reason;
         return *this;
     }
 };
@@ -130,6 +134,11 @@ struct StepSelection
 //---------------------------------------------------------------------------//
 /*!
  * Shared attributes about the hits being collected.
+ *
+ * At most one filter is active: either the \c detector mapping is nonempty
+ * (only steps inside sensitive detectors are kept), or \c hand_back is set
+ * (only tracks marked with \c SimTrackView::hand_back are kept), or neither
+ * (all active tracks are kept).
  *
  * This will be expanded to include filters for particle type, region, etc.
  */
@@ -146,6 +155,9 @@ struct StepParamsData
 
     //! Filter out steps that have not deposited energy (for sensitive det)
     bool nonzero_energy_deposition{false};
+
+    //! Only keep tracks that are handed back to the host application
+    bool hand_back{false};
 
     //! Per-state volume instance size if volume_instance_ids selected
     size_type num_volume_levels{0};
@@ -166,6 +178,7 @@ struct StepParamsData
         selection = other.selection;
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
+        hand_back = other.hand_back;
         num_volume_levels = other.num_volume_levels;
         return *this;
     }
@@ -236,6 +249,9 @@ struct StepPointStateData
  *   on the pre-step geometric volume. Data members will have \b unspecified
  *   values if the detector ID is "false" (i.e. no information is being
  *   collected). The detector ID for inactive threads is always "false".
+ * - If no detectors are specified, a slot's data is valid if and only if its
+ *   track ID is set. When gathering handed-back tracks, the track ID is
+ *   "false" for tracks that are not handed back.
  */
 template<Ownership W, MemSpace M>
 struct StepStateDataImpl
@@ -271,6 +287,9 @@ struct StepStateDataImpl
     StateItems<ParticleId> particle_id;
     StateItems<Energy> energy_deposition;
 
+    // Hand-back
+    StateItems<HandBackReason> hand_back_reason;
+
     //// METHODS ////
 
     //! True if constructed and correctly sized
@@ -285,7 +304,8 @@ struct StepStateDataImpl
                && right_sized(primary_id) && right_sized(post_step_action_id)
                && right_sized(track_step_count) && right_sized(step_length)
                && right_sized(weight) && right_sized(particle_id)
-               && right_sized(energy_deposition);
+               && right_sized(energy_deposition)
+               && right_sized(hand_back_reason);
     }
 
     //! State size
@@ -318,6 +338,7 @@ struct StepStateDataImpl
         weight = other.weight;
         particle_id = other.particle_id;
         energy_deposition = other.energy_deposition;
+        hand_back_reason = other.hand_back_reason;
         return *this;
     }
 };
@@ -470,6 +491,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(weight);
     SD_RESIZE_IF_SELECTED(particle_id);
     SD_RESIZE_IF_SELECTED(energy_deposition);
+    SD_RESIZE_IF_SELECTED(hand_back_reason);
 }
 
 //---------------------------------------------------------------------------//

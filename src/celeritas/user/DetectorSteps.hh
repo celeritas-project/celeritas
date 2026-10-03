@@ -57,8 +57,10 @@ struct DetectorStepPointOutput
  * selection of the \c StepInterface class that gathered the data.
  *
  * Unlike \c StepStateData, which leaves gaps for inactive or filtered
- * tracks, every entry of these vectors will be valid and correspond to a
- * single DetectorId.
+ * tracks, every entry of these vectors will be valid. If detectors are
+ * defined, each entry corresponds to a single DetectorId; otherwise
+ * \c detector_id is empty and each entry corresponds to a selected track.
+ * Entries are ordered by track slot.
  */
 struct DetectorStepOutput
 {
@@ -90,15 +92,21 @@ struct DetectorStepOutput
     PinnedVec<ParticleId> particle_id;
     PinnedVec<Energy> energy_deposition;
 
+    // Additional optional data (hand-back)
+    PinnedVec<HandBackReason> hand_back_reason;
+
     // 2D size for volume instances
     size_type num_volume_levels{0};
 
     //// METHODS ////
 
     //! Number of elements in the detector output.
-    size_type size() const { return detector_id.size(); }
+    size_type size() const
+    {
+        return detector_id.empty() ? track_id.size() : detector_id.size();
+    }
     //! Whether the size is nonzero
-    explicit operator bool() const { return !detector_id.empty(); }
+    explicit operator bool() const { return this->size() != 0; }
 };
 
 //---------------------------------------------------------------------------//

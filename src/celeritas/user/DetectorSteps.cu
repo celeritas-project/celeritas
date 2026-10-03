@@ -41,28 +41,42 @@ using ItemRef
     = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
 //---------------------------------------------------------------------------//
-struct HasDetector
+struct IsValid
 {
-    CELER_FORCEINLINE_FUNCTION bool operator()(DetectorId const& d)
+    template<class T>
+    CELER_FORCEINLINE_FUNCTION bool operator()(OpaqueId<T> const& id)
     {
-        return static_cast<bool>(d);
+        return static_cast<bool>(id);
     }
 };
+
+//---------------------------------------------------------------------------//
+template<class T>
+size_type copy_valid_ids(
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    StateRef<T> const& stencil)
+{
+    auto start = device_pointer_cast(state.valid_id.data());
+    auto end = thrust::copy_if(thrust_execute_on(state.stream_id),
+                               thrust::make_counting_iterator(0_sz),
+                               thrust::make_counting_iterator(state.size()),
+                               device_pointer_cast(stencil.data()),
+                               start,
+                               IsValid{});
+    return end - start;
+}
 
 //---------------------------------------------------------------------------//
 size_type count_num_valid(
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
-    // Store the thread IDs of active tracks that are in a detector
-    auto start = device_pointer_cast(state.valid_id.data());
-    auto end
-        = thrust::copy_if(thrust_execute_on(state.stream_id),
-                          thrust::make_counting_iterator(0_sz),
-                          thrust::make_counting_iterator(state.size()),
-                          device_pointer_cast(state.data.detector_id.data()),
-                          start,
-                          HasDetector{});
-    return end - start;
+    // Store the thread IDs of active tracks that are selected: in a detector
+    // if detectors are used, otherwise with a valid track ID
+    if (state.data.detector_id.empty())
+    {
+        return copy_valid_ids(state, state.data.track_id);
+    }
+    return copy_valid_ids(state, state.data.detector_id);
 }
 
 //---------------------------------------------------------------------------//
@@ -111,7 +125,10 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy to host results from tracks that interacted with a detector.
+ * Copy to host results from selected tracks.
+ *
+ * Tracks are selected if they interacted with a detector or, if no detectors
+ * are used, if their track ID was set during gathering.
  */
 template<>
 void copy_steps<MemSpace::device>(
@@ -164,6 +181,7 @@ void copy_steps<MemSpace::device>(
     DS_ASSIGN(weight);
     DS_ASSIGN(particle_id);
     DS_ASSIGN(energy_deposition);
+    DS_ASSIGN(hand_back_reason);
 
     output->num_volume_levels = state.num_volume_levels;
 
@@ -173,7 +191,7 @@ void copy_steps<MemSpace::device>(
     CELER_DEVICE_API_CALL(
         StreamSynchronize(celeritas::device().stream(state.stream_id).get()));
 
-    CELER_ENSURE(output->detector_id.size() == num_valid);
+    CELER_ENSURE(output->size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
 }
 

@@ -7,6 +7,8 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
@@ -24,11 +26,13 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/SimpleCalo.hh"
 
 #include "CaloTestBase.hh"
 #include "ExampleInstanceCalo.hh"
 #include "ExampleMctruth.hh"
+#include "HandBackTestAction.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -61,6 +65,73 @@ class CountingStepInterface final : public StepInterface
 
   private:
     size_type num_steps_{};
+};
+
+// Record compacted end-of-step data, optionally only for handed-back tracks
+class HandBackRecorder final : public StepInterface
+{
+  public:
+    struct Entry
+    {
+        PrimaryId primary;
+        TrackId track;
+        ActionId post_step_action;
+        HandBackReason reason{HandBackReason::none};
+    };
+    using VecEntry = std::vector<Entry>;
+
+    explicit HandBackRecorder(bool hand_back) : hand_back_{hand_back} {}
+
+    Filters filters() const final
+    {
+        Filters result;
+        result.hand_back = hand_back_;
+        return result;
+    }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.points[StepPoint::post].pos = true;
+        result.points[StepPoint::post].energy = true;
+        result.primary_id = true;
+        result.post_step_action_id = true;
+        return result;
+    }
+
+    void process_steps(HostStepState state) final { this->record(state); }
+    void process_steps(DeviceStepState state) final { this->record(state); }
+
+    //! Entries for each step
+    std::vector<VecEntry> const& steps() const { return steps_; }
+
+  private:
+    bool hand_back_;
+    std::vector<VecEntry> steps_;
+
+    template<MemSpace M>
+    void record(StepState<M> const& state)
+    {
+        DetectorStepOutput out;
+        copy_steps(&out, state.steps);
+        EXPECT_TRUE(out.detector_id.empty());
+        EXPECT_EQ(out.size(), out.track_id.size());
+        EXPECT_EQ(hand_back_ ? out.size() : 0, out.hand_back_reason.size());
+        auto& entries = steps_.emplace_back();
+        for (auto i : range(out.size()))
+        {
+            Entry e;
+            e.primary = out.primary_id[i];
+            e.track = out.track_id[i];
+            e.post_step_action = out.post_step_action_id[i];
+            if (hand_back_)
+            {
+                e.reason = out.hand_back_reason[i];
+            }
+            EXPECT_GT(out.points[StepPoint::post].energy[i].value(), 0);
+            entries.push_back(e);
+        }
+    }
 };
 }  // namespace
 
@@ -144,6 +215,95 @@ class KnWarmupTest : public KnSimpleLoopTestBase
         EXPECT_EQ(2, result.active);
         EXPECT_EQ(2, callback->num_steps());
     }
+};
+
+//---------------------------------------------------------------------------//
+
+class KnHandBackTest : public KnSimpleLoopTestBase
+{
+  protected:
+    using VecEntry = HandBackRecorder::VecEntry;
+
+    void SetUp() override
+    {
+        // Build core params, which registers the boundary action
+        this->core();
+        auto& action_reg = *this->action_reg();
+        boundary_ = action_reg.find_action("geo-boundary");
+        CELER_ASSERT(boundary_);
+        action_reg.insert(std::make_shared<HandBackTestAction>(
+            action_reg.next_id(), boundary_));
+
+        all_ = std::make_shared<HandBackRecorder>(false);
+        all_collector_ = StepCollector::make_and_insert(*this->core(), {all_});
+        handed_back_ = std::make_shared<HandBackRecorder>(true);
+        hand_back_collector_
+            = StepCollector::make_and_insert(*this->core(), {handed_back_});
+    }
+
+    template<MemSpace M>
+    void run_and_check(size_type num_tracks, size_type num_steps)
+    {
+        this->run_impl<M>(num_tracks, num_steps);
+
+        auto const& all_steps = all_->steps();
+        auto const& hb_steps = handed_back_->steps();
+        ASSERT_EQ(all_steps.size(), hb_steps.size());
+        ASSERT_FALSE(all_steps.empty());
+
+        // Unfiltered collection includes every active track
+        EXPECT_EQ(num_tracks, all_steps.front().size());
+
+        // Step at which each track was handed back
+        std::map<std::pair<PrimaryId, TrackId>, size_type> handed_back;
+        for (auto step : range(all_steps.size()))
+        {
+            // Every handed-back track hit a boundary and was marked by the
+            // test action
+            VecEntry expected;
+            for (auto const& e : all_steps[step])
+            {
+                if (e.post_step_action == boundary_)
+                {
+                    expected.push_back(e);
+                }
+            }
+            VecEntry const& actual = hb_steps[step];
+            ASSERT_EQ(expected.size(), actual.size()) << "step " << step;
+            for (auto i : range(actual.size()))
+            {
+                EXPECT_EQ(expected[i].primary, actual[i].primary);
+                EXPECT_EQ(expected[i].track, actual[i].track);
+                EXPECT_EQ(boundary_, actual[i].post_step_action);
+                EXPECT_EQ(HandBackReason::user, actual[i].reason);
+                // Each track is handed back (and killed) only once
+                EXPECT_TRUE(
+                    handed_back
+                        .insert({{actual[i].primary, actual[i].track}, step})
+                        .second);
+            }
+        }
+        EXPECT_FALSE(handed_back.empty());
+
+        // A handed-back track is never transported again
+        for (auto step : range(all_steps.size()))
+        {
+            for (auto const& e : all_steps[step])
+            {
+                auto iter = handed_back.find({e.primary, e.track});
+                if (iter != handed_back.end())
+                {
+                    EXPECT_LE(step, iter->second);
+                }
+            }
+        }
+    }
+
+    ActionId boundary_;
+    std::shared_ptr<HandBackRecorder> all_;
+    std::shared_ptr<HandBackRecorder> handed_back_;
+    std::shared_ptr<StepCollector> all_collector_;
+    std::shared_ptr<StepCollector> hand_back_collector_;
 };
 
 //---------------------------------------------------------------------------//
@@ -306,6 +466,59 @@ TEST_F(KnWarmupTest, host)
 TEST_F(KnWarmupTest, TEST_IF_CELER_DEVICE(device))
 {
     this->run<MemSpace::device>();
+}
+
+//---------------------------------------------------------------------------//
+// HAND-BACK
+//---------------------------------------------------------------------------//
+
+TEST_F(KnHandBackTest, host)
+{
+    this->run_and_check<MemSpace::host>(8, 32);
+}
+
+TEST_F(KnHandBackTest, TEST_IF_CELER_DEVICE(device))
+{
+    this->run_and_check<MemSpace::device>(8, 32);
+}
+
+TEST_F(KnSimpleLoopTestBase, hand_back_with_detectors)
+{
+    // A single callback cannot filter on both detectors and hand-back
+    class BothFilters final : public StepInterface
+    {
+      public:
+        explicit BothFilters(VolumeId vol) : vol_{vol} {}
+        Filters filters() const final
+        {
+            Filters result;
+            result.detectors[vol_] = DetectorId{0};
+            result.hand_back = true;
+            return result;
+        }
+        StepSelection selection() const final
+        {
+            StepSelection result;
+            result.energy_deposition = true;
+            return result;
+        }
+        void process_steps(HostStepState) final {}
+        void process_steps(DeviceStepState) final {}
+
+      private:
+        VolumeId vol_;
+    };
+
+    auto both = std::make_shared<BothFilters>(VolumeId{0});
+    EXPECT_THROW(StepCollector::make_and_insert(*this->core(), {both}),
+                 celeritas::RuntimeError);
+
+    // Hand-back and unfiltered callbacks cannot be mixed
+    StepCollector::VecInterface interfaces
+        = {std::make_shared<HandBackRecorder>(true),
+           std::make_shared<HandBackRecorder>(false)};
+    EXPECT_THROW(StepCollector::make_and_insert(*this->core(), interfaces),
+                 celeritas::RuntimeError);
 }
 
 //---------------------------------------------------------------------------//
