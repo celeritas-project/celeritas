@@ -11,6 +11,7 @@ ScopedGeantExceptionHandler.cc: debug: Creating scoped G4 exception handler (dep
 IntegrationTestBase.cc: debug: Creating default EM-only physics list
 SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 debug@IntegrationSingleton.cc: Celeritas logging redirected through Geant4
+debug@StateDependent.cc: Registered state dependent 0x0000 on {0}
 debug@SupportedEmStandardPhysics.cc: Constructing default EM particles: gamma, e+, e-
 debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
@@ -56,11 +57,12 @@ debug@TrackingManager.cc: Preparing physics table for gamma
 debug@TrackingManager.cc: Building physics table for gamma
 debug@TrackingManager.cc: Building physics table for e-
 debug@TrackingManager.cc: Building physics table for e+
-debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationSingleton.cc: Initializing shared params
 debug@ScopedGeantExceptionHandler.cc: Handling exception: Geant4 error / Celeritas runtime error / SetOptions or UI entries were not completely set before BeginRun / IntegrationSingleton.cc: 'celer.init.global' failed
 critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.init.global)
+Run is not in progress. AbortRun() ignored.
 debug@IntegrationSingleton.cc: Skipping local initialization due to failure
+debug@IntegrationTestBase.cc: RunAction::BeginOfRunAction
 debug@IntegrationTestBase.cc: Environment variables after setup: {
   CELER_LOG: 'debug',
   NO_COLOR: '',
@@ -80,6 +82,7 @@ critical@ScopedGeantExceptionHandler.cc: Aborting run due to exception (celer.tr
 debug@IntegrationTestBase.cc: EventAction::EndOfEventAction
 debug@IntegrationTestBase.cc: RunAction::EndOfRunAction
 debug@PersistentSP.hh: Clearing persistent run manager 'lar-sphere'
+debug@StateDependent.cc: Deregistering state dependent 0x0000 on {0}
 debug@IntegrationTestBase.cc: Tearing down action initialization
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 0)
 debug@TestMainImpl.cc: Environment variables accessed by Celeritas code: {

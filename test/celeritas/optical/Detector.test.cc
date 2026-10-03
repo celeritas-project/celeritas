@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 
+#include "corecel/Types.hh"
 #include "geocel/UnitUtils.hh"
 #include "geocel/VolumeParams.hh"
 #include "geocel/VolumePathFinder.hh"
@@ -237,20 +238,26 @@ TEST_F(DetectorTest, simple)
         0,
         0,
     };
-    // Adjust by group velocity: t = (c / v_g) * flight_time. The refractive
-    // index in optical-box-det-tra.gdml alternates between flat and rising
-    // linear intervals, so its slope is discontinuous at the grid points.
-    // At every interior point, one adjacent slope is zero, causing the
+    // Normalize by the expected flight time: t / t_vacuum = c / v_g. The
+    // refractive index in optical-box-det-tra.gdml alternates between flat and
+    // rising linear intervals, so its slope is discontinuous at the grid
+    // points. At every interior point, one adjacent slope is zero, causing the
     // harmonic-mean derivative to be zero.
     static double const expected_times[] = {
-        1.16665 * flight_time,
-        1.3333 * flight_time,
-        1.66665 * flight_time,
-        2 * flight_time,
-        2 * flight_time,
-        2 * flight_time,
-        flight_time,
+        1.49995,
+        1.3333,
+        3.66675,
+        3.27665278376179,
+        2.96157729252603,
+        2.70178023973369,
+        1,
     };
+    // Normalize hit times by the vacuum transit time so that
+    // t/t_vacuum = c/v_g.
+    for (real_type& time : scores.times)
+    {
+        time /= flight_time;
+    }
 
     static size_type const expected_volume_instance_ids[]
         = {5, 4, 6, 7, 5, 3, 5};

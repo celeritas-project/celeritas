@@ -45,8 +45,10 @@
       "name": ".spackbase",
       "hidden": true,
       "generator": "Ninja",
-      "inherits": [".base", ".spack-env"],
-      "binaryDir": "${sourceDir}/build-${presetName}",
+      "inherits": [".base", ".nobuiltin"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas/.spack-env/view"
+      },
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },
         "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" },
@@ -60,51 +62,8 @@
       }
     },
     {
-      "name": "iwyu",
-      "displayName": "Include-what-you-use (see scripts/dev/run-iwyu.sh)",
-      "inherits": [".spackbase"],
-      "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "min",
-      "displayName": "Executor minimal build",
-      "inherits": [".ccache", ".base", ".debug", "default"],
-      "environment": {
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-min/.spack-env/view"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
-        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "mpi",
-      "displayName": "Executor build with MPI",
-      "inherits": [".ccache", ".base", ".debug", "default"],
-      "environment": {
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-mpi/.spack-env/view"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
-        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "ON" }
-      }
-    },
-    {
-      "name": "nospack",
-      "displayName": "Executor no-spack build",
-      "inherits": [".ccache", ".base", ".debug"]
-    },
-    {
       "name": "base",
-      "displayName": "Executor default options",
+      "displayName": "executor: basic debug ORANGE build",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
@@ -118,27 +77,21 @@
       }
     },
     {
-      "name": "float",
-      "displayName": "Single-precision arithmetic",
-      "inherits": [".spackbase", ".debug", "default"],
+      "name": "g4local",
+      "displayName": "executor: Single-precision arithmetic",
+      "inherits": [".ccache", ".base", ".nobuiltin", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/geant4-dev/.spack-env/view"
+      },
       "cacheVariables": {
+        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_REAL_TYPE": "float"
       }
     },
     {
-      "name": "si",
-      "displayName": "With SI units",
-      "inherits": [".spackbase", ".debug", "default"],
-      "cacheVariables": {
-        "CELERITAS_UNITS": "SI",
-        "CELERITAS_CORE_GEO": "VecGeom",
-        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" }
-      }
-    },
-    {
       "name": "vecgeom",
-      "displayName": "With vecgeom",
+      "displayName": "executor: With vecgeom",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" }
@@ -146,7 +99,7 @@
     },
     {
       "name": "vglocal",
-      "displayName": "With local vecgeom (solids)",
+      "displayName": "executor: With local vecgeom (solids)",
       "inherits": [".ccache", ".base", ".debug", "default"],
       "environment": {
         "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-vglocal/.spack-env/view"
@@ -166,8 +119,86 @@
       }
     },
     {
+      "name": "reldeb",
+      "displayName": "executor: With ORANGE in optimized+errcheck mode",
+      "inherits": [".reldeb", ".spackbase"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "reldeb-vecgeom",
+      "displayName": "executor: With vecgeom in optimized+errcheck mode",
+      "inherits": [".reldeb", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" }
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "executor: With ORANGE in optimized mode",
+      "inherits": [".ccache", ".release", ".spackbase"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "release-vecgeom",
+      "displayName": "executor: With vecgeom, g4 in optimized mode",
+      "inherits": [".ccache", ".spackbase", ".release", "vecgeom"],
+      "cacheVariables": {
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" },
+        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "mpi",
+      "displayName": "executor: build with MPI",
+      "inherits": [".ccache", ".base", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-mpi/.spack-env/view"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_MPI": { "type": "BOOL", "value": "ON" }
+      }
+    },
+    {
+      "name": "nospack",
+      "displayName": "executor: no-spack build",
+      "inherits": [".ccache", ".base", ".debug"]
+    },
+    {
+      "name": "min",
+      "displayName": "executor: minimal build",
+      "inherits": [".ccache", ".base", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/celeritas-min/.spack-env/view"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_STANDARD": { "type": "STRING", "value": "17" },
+        "CELERITAS_USE_covfie": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_USE_Geant4": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "iwyu",
+      "displayName": "executor: Include-what-you-use (see scripts/dev/run-iwyu.sh)",
+      "inherits": [".spackbase"],
+      "cacheVariables": {
+        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_DEBUG": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
       "name": "geant4",
-      "displayName": "Using Geant4 navigation",
+      "displayName": "executor: Using Geant4 navigation",
       "inherits": [".spackbase", ".debug", "default"],
       "cacheVariables": {
         "CELERITAS_CORE_GEO": "Geant4",
@@ -177,38 +208,12 @@
       }
     },
     {
-      "name": "reldeb",
-      "displayName": "With ORANGE in optimized+errcheck mode",
-      "inherits": [".reldeb", ".spackbase"],
+      "name": "float",
+      "displayName": "executor: Single-precision arithmetic",
+      "inherits": [".spackbase", ".debug", "default"],
       "cacheVariables": {
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "reldeb-vecgeom",
-      "displayName": "With vecgeom in optimized+errcheck mode",
-      "inherits": [".reldeb", "vecgeom"],
-      "cacheVariables": {
-        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "ON" }
-      }
-    },
-    {
-      "name": "release",
-      "displayName": "With ORANGE in optimized mode",
-      "inherits": [".ccache", ".release", ".spackbase"],
-      "cacheVariables": {
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "release-vecgeom",
-      "displayName": "With vecgeom, g4 in optimized mode",
-      "inherits": [".ccache", ".spackbase", ".release", "vecgeom"],
-      "cacheVariables": {
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "ON" },
-        "CELERITAS_BUILD_TESTS": { "type": "BOOL", "value": "OFF" }
+        "CELERITAS_REAL_TYPE": "float"
       }
     }
   ],

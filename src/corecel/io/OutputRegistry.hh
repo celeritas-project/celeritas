@@ -30,9 +30,8 @@ namespace celeritas
  * \endverbatim
  *
  * \par Newline-delimited json output
- * The output registry will avoid newlines in its output by default
- * (when `os.width() == 0` or using ), allowing compatibility with NDJSON/
- JSONL :
+ * The output registry will avoid newlines in its output, allowing
+ * compatibility with NDJSON/JSONL.
  * \code
  * std::ofstream out("foo.jsonl");
  * out << reg << std::endl;
@@ -49,17 +48,20 @@ class OutputRegistry
 
     enum class OpenMode
     {
-        app,  //!< Seek to end of file before each write (default)
+        app,  //!< Seek to end of file before each write
         trunc,  //!< Overwrite existing file
     };
+
+    // Filename for writing to stdout
+    static std::string stdout_filename();
 
   public:
     //// PERSISTENT OUTPUT FILE MANAGEMENT ////
 
-    // Append to a persistent JSONL file for writing with `output`
+    // Open a persistent JSONL output, truncating files or writing to stdout
     void open(std::string s);
 
-    // Append to a persistent JSONL file for writing with `output`
+    // Open a persistent JSONL output with the given mode
     void open(std::string s, OpenMode);
 
     //! Close persistent file if open

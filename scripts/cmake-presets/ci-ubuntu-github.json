@@ -45,7 +45,7 @@
     },
     {
       "name": "tool-spack",
-      "inherits": ["base", ".spack-base"],
+      "inherits": ["base", ".nobuiltin"],
       "displayName": "CONFIG: use full spack toolchain",
       "cacheVariables": {
         "CELERITAS_USE_covfie": { "type": "BOOL", "value": "ON" },

@@ -35,6 +35,15 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
+ * Special filename for writing persistent output to stdout.
+ */
+std::string OutputRegistry::stdout_filename()
+{
+    return ConsoleIO::filename;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Open a persistent file to write with `output`.
  *
  * This signature defaults to overwriting a file \em or streaming to stdout.

@@ -104,9 +104,10 @@ class CounterTrackingAction final : public G4UserTrackingAction
  * The tracking manager will:
  * - Add a physics constructor that sets up tracking managers for the supported
  *   particles
- * - Set up Celeritas shared data at BeginOfRunAction on the main thread
- * - Set up Celeritas local data at BeginOfRunAction on the worker thread
- * - Clean up on EndOfRunAction
+ * - Set up Celeritas shared data on the main thread and local data on the
+ *   worker threads via automatic Geant4 state hooks: no explicit
+ *   BeginOfRunAction/EndOfRunAction calls are needed
+ * - Clean up local data at end of run and shared data at end of program
  */
 class TMITestBase : virtual public IntegrationTestBase
 {
@@ -121,17 +122,17 @@ class TMITestBase : virtual public IntegrationTestBase
             new TrackingManagerConstructor(&TMI::Instance()));
         return physics;
     }
-    void BeginOfRunAction(G4Run const* run) override
+    void BeginOfRunAction(G4Run const*) override
     {
-        TMI::Instance().BeginOfRunAction(run);
+        // Auto hooks set up Celeritas: only run test-specified checks here
         if (check_during_run_)
         {
             check_during_run_();
         }
     }
-    void EndOfRunAction(G4Run const* run) override
+    void EndOfRunAction(G4Run const*) override
     {
-        TMI::Instance().EndOfRunAction(run);
+        // Auto hooks tear down Celeritas
     }
     void BeginOfEventAction(G4Event const*) override
     {
@@ -291,17 +292,16 @@ TEST_F(LarSphere, state_dep)
         }
     };
 
-    // Set a callback that constructs the state dependent on every thread:
-    // we should probably do this as part of the tracking manager.
+    // Set a callback that constructs a raw state-dependent observer on every
+    // thread, mirroring the legacy tracking-manager construction path.
     this->set_build_cb([](StreamId s) {
         // Create the state dependent on the local threads
         // NOTE that Geant4 state manager base class "registers" this pointer
-        // and will deallocate it if it's not deregistered first (which the SD
-        // does via Notify but which may not always work).
-        // To provide safety against double-deletion due to this weird
-        // semantic, we DELIBERATELY leak the pointer. ALSO note that this
-        // thread_local declaration *must* be seen by each thread before it is
-        // used by that thread.
+        // and will deallocate it if it's not deregistered first.
+        // StateDependent deregisters itself on terminal Notify, but this raw
+        // observer is deliberately leaked because deleting it from inside its
+        // callback is unsafe. Also note that this thread_local declaration
+        // *must* be seen by each thread before it is used by that thread.
         static thread_local StateDependent* state_dep{
             new StateDependent{record_state_change}};
 
@@ -458,13 +458,22 @@ TEST_F(LarSphere, no_set_options)
 
     CELER_LOG(status) << "Run initialization";
     rm.Initialize();
-    EXPECT_EQ(0, exceptions_.size());
-    CELER_LOG(status) << "Run two events";
-    rm.BeamOn(2);
 
     std::vector<std::string> expected_exceptions = {
         "SetOptions or UI entries were not completely set before BeginRun",
     };
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    }
+    else
+    {
+        EXPECT_EQ(0, exceptions_.size());
+    }
+
+    CELER_LOG(status) << "Run two events";
+    rm.BeamOn(2);
+
     if (!G4Threading::IsMultithreadedApplication())
     {
         // Geant4 still starts the first local event if an error happens during
@@ -474,6 +483,161 @@ TEST_F(LarSphere, no_set_options)
     }
     EXPECT_VEC_EQ(expected_exceptions, exceptions_);
     exceptions_.clear();
+}
+
+//---------------------------------------------------------------------------//
+// AUTO HOOKS
+//---------------------------------------------------------------------------//
+/*!
+ * Verify that StateDependent auto hooks drive init/finalize without
+ * explicit BeginOfRunAction/EndOfRunAction calls.
+ */
+class TMIAutoHooks : public LarSphereIntegrationMixin, public TMITestBase
+{
+};
+
+TEST_F(TMIAutoHooks, run)
+{
+    auto& singleton = detail::IntegrationSingleton::instance();
+    auto& rm = this->run_manager();
+
+    EXPECT_TRUE(singleton.auto_hooks_active());
+    EXPECT_FALSE(singleton.shared_params());
+
+    std::mutex verified_streams_mutex;
+    std::vector<StreamId> verified_streams;
+    singleton.set_verify_callback(
+        [&verified_streams_mutex, &verified_streams](StreamId sid) {
+            std::lock_guard<std::mutex> scoped_lock{verified_streams_mutex};
+            verified_streams.push_back(sid);
+        });
+
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    rm.Initialize();
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        // The MT manager/global lifecycle hook initializes shared params
+        // during run-manager initialization.
+        EXPECT_TRUE(singleton.shared_params());
+    }
+    else
+    {
+        // Serial state hooks initialize at BeamOn.
+        EXPECT_FALSE(singleton.shared_params());
+    }
+
+    std::map<StreamId, int> init_stream_counts;
+    for (StreamId sid : verified_streams)
+    {
+        ++init_stream_counts[sid];
+    }
+
+    constexpr int num_runs{2};
+    for (int i = 0; i != num_runs; ++i)
+    {
+        rm.BeamOn(1);
+    }
+
+    if (G4Threading::IsMultithreadedApplication())
+    {
+        std::map<StreamId, int> stream_counts;
+        for (StreamId sid : verified_streams)
+        {
+            ++stream_counts[sid];
+        }
+
+        bool found_local = false;
+        for (auto&& [sid, count] : stream_counts)
+        {
+            found_local = found_local || static_cast<bool>(sid);
+            auto init_count = init_stream_counts[sid];
+            EXPECT_LE(init_count, 1);
+            EXPECT_EQ(num_runs + init_count, count) << "unexpected local "
+                                                       "setup count";
+        }
+        EXPECT_TRUE(found_local);
+    }
+    else
+    {
+        static StreamId const expected_streams[] = {StreamId{0}, StreamId{0}};
+        EXPECT_VEC_EQ(expected_streams, verified_streams);
+    }
+}
+
+//---------------------------------------------------------------------------//
+// LEGACY MANUAL HOOKS
+//---------------------------------------------------------------------------//
+/*!
+ * Call the legacy manual begin/end-of-run hooks from user run actions.
+ *
+ * Auto hooks drive Celeritas setup and teardown, so the manual calls should
+ * be harmless no-ops that emit a one-time warning advising their removal.
+ */
+class LegacyTMIHooks : public LarSphereIntegrationMixin, public TMITestBase
+{
+  protected:
+    void BeginOfRunAction(G4Run const* run) override
+    {
+        TMI::Instance().BeginOfRunAction(run);
+    }
+    void EndOfRunAction(G4Run const* run) override
+    {
+        TMI::Instance().EndOfRunAction(run);
+    }
+};
+
+TEST_F(LegacyTMIHooks, run)
+{
+    auto& rm = this->run_manager();
+    TMI::Instance().SetOptions(this->make_setup_options());
+
+    CELER_LOG(status) << "Run initialization";
+    rm.Initialize();
+
+    CELER_LOG(status) << "Beam on (first run)";
+    if (!G4Threading::IsMultithreadedApplication())
+    {
+        // Check the one-time warning advising removal of the manual calls.
+        // Capture logs only in serial mode: ScopedLogStorer is not thread
+        // safe, and in MT mode worker threads write to the world logger
+        // concurrently.
+        ScopedLogStorer scoped_log{&celeritas::world_logger()};
+        rm.BeamOn(2);
+
+        auto has_msg = [](std::string const& msg) {
+            static auto expected_msg
+                = R"(remove manual Celeritas BeginOfRunAction and EndOfRunAction)";
+            return msg.find(expected_msg) != std::string::npos;
+        };
+        auto const& messages = scoped_log.messages();
+        auto it = std::find_if(messages.begin(), messages.end(), has_msg);
+        EXPECT_TRUE(it != messages.end())
+            << "Expected auto-hooks warning not found in logs:\n"
+            << scoped_log;
+    }
+    else
+    {
+        // In MT mode just check that the manual calls don't break the run;
+        // the warning is checked against the captured log output
+        rm.BeamOn(2);
+    }
+
+    if (this->HasFatalFailure())
+    {
+        GTEST_SKIP() << "Skipping remaining tests since we've already failed";
+    }
+
+    CELER_LOG(status) << "Beam on (second run)";
+    rm.BeamOn(1);
+
+    // Check number of events
+    int total_events{0};
+    for (auto&& [sid, count] : num_local_events_)
+    {
+        total_events += count;
+    }
+    EXPECT_EQ(3, total_events);
 }
 
 //---------------------------------------------------------------------------//

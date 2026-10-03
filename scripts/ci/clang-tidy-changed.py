@@ -45,8 +45,10 @@ def select_sources(
     changed_sources: set[Path],
     dependency_file: Path,
     root: Path,
+    build_dir: Path,
+    compilation_database: list[dict],
 ) -> list[str]:
-    """Select repository-relative source paths affected by changed headers."""
+    """Select affected sources, excluding CUDA files without compile commands."""
     if header_source_selection not in SourceSelection:
         raise ValueError(
             f"unsupported header source selection: {header_source_selection!r}"
@@ -55,6 +57,21 @@ def select_sources(
     root = root.resolve()
     headers = resolve_paths(headers, root)
     changed_sources = resolve_paths(changed_sources, root)
+    database_sources = {
+        compilation_source(entry, build_dir) for entry in compilation_database
+    }
+
+    def selectable(source: Path) -> bool:
+        return source.suffix != ".cu" or source in database_sources
+
+    for source in sorted(changed_sources):
+        if not selectable(source):
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source without a compilation database entry: "
+                f"{source.relative_to(root).as_posix()}",
+            )
+    changed_sources = {source for source in changed_sources if selectable(source)}
     data = json.loads(dependency_file.read_text())
     affected_sources: set[Path] = set()
     source_by_header: dict[Path, Path] = {}
@@ -70,6 +87,8 @@ def select_sources(
             continue
         directory = Path(command.get("directory", root))
         source_path = directory.joinpath(source).resolve()
+        if not selectable(source_path):
+            continue
         dependencies = command.get("file-deps", command.get("file_deps", []))
         resolved_dependencies = {
             directory.joinpath(dependency).resolve() for dependency in dependencies
@@ -293,7 +312,11 @@ def validate_selected_sources(
     *,
     print_commands: bool = False,
 ) -> list[str]:
-    """Validate selected sources, optionally logging their compile commands."""
+    """Validate selected sources and log missing compilation commands.
+
+    Existing sources without compile commands are warned about and skipped;
+    nonexistent sources are returned as errors.
+    """
     selected_paths = resolve_paths(sources, repo_root)
     matched_sources: set[Path] = set()
 
@@ -317,22 +340,43 @@ def validate_selected_sources(
         (selected_paths - matched_sources)
         | {source for source in matched_sources if not source.is_file()}
     )
+    missing_sources: list[str] = []
     for source_path in unavailable_sources:
         try:
             relative_path = source_path.relative_to(repo_root).as_posix()
         except ValueError:
             relative_path = str(source_path)
-        reason = (
-            "does not exist"
-            if source_path in matched_sources
-            else "has no compilation database entry"
-        )
+        if not source_path.is_file():
+            reason = "does not exist"
+            level = LogLevel.ERROR
+            missing_sources.append(source_path.as_posix())
+        else:
+            reason = "has no compilation database entry"
+            level = LogLevel.WARNING
         log(
-            LogLevel.ERROR,
+            level,
             f"Source {relative_path!r} selected for clang-tidy {reason}",
             file=relative_path,
         )
-    return [source.as_posix() for source in unavailable_sources]
+    return missing_sources
+
+
+def sources_with_compilation_commands(
+    sources: list[str],
+    build_dir: Path,
+    repo_root: Path,
+    compilation_database: list[dict],
+) -> list[str]:
+    """Return selected existing sources with compilation database entries."""
+    selected_paths = resolve_paths((Path(source) for source in sources), repo_root)
+    matched_sources = {
+        compilation_source(entry, build_dir) for entry in compilation_database
+    }
+    return sorted(
+        source.relative_to(repo_root).as_posix()
+        for source in selected_paths & matched_sources
+        if source.is_file()
+    )
 
 
 def run_header_tidy(
@@ -359,6 +403,8 @@ def run_header_tidy(
             changed_sources=sources,
             dependency_file=dependency_file,
             root=repo_root,
+            build_dir=build_dir,
+            compilation_database=compilation_database,
         )
         if not selected_sources:
             log(LogLevel.NOTICE, "No source files selected for the changed headers")
@@ -375,6 +421,12 @@ def run_header_tidy(
         )
         if missing_sources:
             raise RuntimeError("missing sources")
+        selected_sources = sources_with_compilation_commands(
+            selected_sources, build_dir, repo_root, compilation_database
+        )
+        if not selected_sources:
+            log(LogLevel.NOTICE, "No source files with compilation database entries")
+            return 0
         log(
             LogLevel.NOTICE,
             f"Running clang-tidy on {len(selected_sources)} affected source files",
@@ -399,9 +451,19 @@ def run_source_tidy(
     repo_root: Path,
     build_dir: Path,
 ) -> int:
-    """Run clang-tidy-diff.py for changed source files only."""
+    """Run clang-tidy-diff.py for changed .cc files, not CUDA sources."""
     # clang-tidy-diff.py is restricted to .cc files by the regex below.
+    for source in sorted(sources):
+        if source.suffix == ".cu":
+            log(
+                LogLevel.NOTICE,
+                f"Skipping changed CUDA source in .cc-only clang-tidy-diff run: "
+                f"{source.as_posix()}",
+            )
     tidy_sources = [source.as_posix() for source in sources if source.suffix == ".cc"]
+    if not tidy_sources:
+        log(LogLevel.NOTICE, "No .cc source files selected for clang-tidy-diff")
+        return 0
     compilation_database = load_compilation_database(build_dir)
     if validate_selected_sources(
         tidy_sources,
@@ -411,6 +473,13 @@ def run_source_tidy(
         print_commands=args.print_compile_commands,
     ):
         raise RuntimeError("missing sources")
+
+    tidy_sources = sources_with_compilation_commands(
+        tidy_sources, build_dir, repo_root, compilation_database
+    )
+    if not tidy_sources:
+        log(LogLevel.NOTICE, "No .cc source files with compilation database entries")
+        return 0
 
     return subprocess.run(
         [
@@ -425,7 +494,7 @@ def run_source_tidy(
             "-path",
             str(build_dir),
             "-regex",
-            r"^(src|app|test)/.*\.cc$",
+            source_selector(tidy_sources),
         ],
         cwd=repo_root,
         input=diff,

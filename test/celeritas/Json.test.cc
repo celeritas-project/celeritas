@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/inp/JsonIO.test.cc
+//! \file celeritas/Json.test.cc
 //---------------------------------------------------------------------------//
-// TODO: combine all inp/IO.json
+// TODO: combine all IO.json
 #include "corecel/inp/DistributionsIO.json.hh"
 #include "celeritas/inp/ControlIO.json.hh"
 #include "celeritas/inp/DiagnosticsIO.json.hh"
@@ -16,18 +16,53 @@
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/inp/SystemIO.json.hh"
 #include "celeritas/inp/TrackingIO.json.hh"
+#include "celeritas/phys/GeneratorCountersIO.json.hh"
 
 #include "JsonTestMacros.hh"
 #include "celeritas_test.hh"
 
 namespace celeritas
 {
+namespace test
+{
+//---------------------------------------------------------------------------//
+TEST(Phys, GeneratorCounters)
+{
+    GeneratorCounters<> input;
+    input.buffer_size = 7;
+    input.num_pending = 5;
+    input.num_generated = 2;
+
+    static char const expected[]
+        = R"json({"buffer_size":7,"num_pending":5,"num_generated":2})json";
+    EXPECT_JSON_ROUND_TRIP(input, expected);
+}
+
+//---------------------------------------------------------------------------//
+TEST(Phys, CounterAccumStats)
+{
+    CounterAccumStats input;
+    input.generators = {{7u, 5u, 2u}, {3u, 1u, 0u}};
+    input.steps = 9;
+    input.step_iters = 11;
+    input.flushes = 4;
+    input.num_cut = 13;
+    input.num_errored = 17;
+
+    static char const expected[]
+        = R"json({"generators":[{"buffer_size":7,"num_pending":5,"num_generated":2},{"buffer_size":3,"num_pending":1,"num_generated":0}],"steps":9,"step_iters":11,"flushes":4,"num_cut":13,"num_errored":17})json";
+    EXPECT_JSON_ROUND_TRIP(input, expected);
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace test
+
 namespace inp
 {
 namespace test
 {
 //---------------------------------------------------------------------------//
-TEST(JsonIO, control)
+TEST(Inp, control)
 {
     Control input;
     input.capacity = [] {
@@ -53,7 +88,7 @@ TEST(JsonIO, control)
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
-TEST(JsonIO, diagnostics)
+TEST(Inp, diagnostics)
 {
     Diagnostics input;
     input.export_files.physics = "physics.root";
@@ -76,7 +111,7 @@ TEST(JsonIO, diagnostics)
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
-TEST(JsonIO, events)
+TEST(Inp, events)
 {
     {
         // Test optical EM generator round trip
@@ -175,7 +210,7 @@ TEST(JsonIO, events)
     }
 }
 
-TEST(JsonIO, field)
+TEST(Inp, field)
 {
     {
         Field input = NoField{};
@@ -238,7 +273,7 @@ TEST(JsonIO, field)
     }
 }
 
-TEST(JsonIO, physics_import)
+TEST(Inp, physics_import)
 {
     {
         PhysicsImport input = [] {
@@ -264,7 +299,7 @@ TEST(JsonIO, physics_import)
     }
 }
 
-TEST(JsonIO, scoring)
+TEST(Inp, scoring)
 {
     Scoring input;
     input.simple_calo = [] {
@@ -278,7 +313,7 @@ TEST(JsonIO, scoring)
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
-TEST(JsonIO, setup_geant)
+TEST(Inp, setup_geant)
 {
     // lar-sphere-cpu.inp.json from celer-sim/simple
     std::istringstream input{
@@ -320,7 +355,7 @@ TEST(JsonIO, setup_geant)
     }
 }
 
-TEST(JsonIO, setup_geant_muon)
+TEST(Inp, setup_geant_muon)
 {
     GeantSetup::MuonSetup input;
     nlohmann::json::parse(R"json({"bremsstrahlung":true})json").get_to(input);
@@ -332,7 +367,7 @@ TEST(JsonIO, setup_geant_muon)
     // Null muon physics is represented as std::nullopt in GeantPhysicsOptions
 }
 
-TEST(JsonIO, setup_geant_optical)
+TEST(Inp, setup_geant_optical)
 {
     // Create with most processes disabled
     GeantSetup::OpticalSetup input;
@@ -357,7 +392,7 @@ TEST(JsonIO, setup_geant_optical)
     // GeantPhysicsOptions
 }
 
-TEST(JsonIO, optical_standalone_input)
+TEST(Inp, optical_standalone_input)
 {
     OpticalStandaloneInput input;
     input.problem.model.geometry = "geometry.gdml";
@@ -369,7 +404,7 @@ TEST(JsonIO, optical_standalone_input)
     EXPECT_JSON_ROUND_TRIP(input, expected);
 }
 
-TEST(JsonIO, standalone_input)
+TEST(Inp, standalone_input)
 {
     StandaloneInput input;
     input.problem.model.geometry = "geometry.gdml";
@@ -387,7 +422,7 @@ TEST(JsonIO, standalone_input)
     }
 }
 
-TEST(JsonIO, system)
+TEST(Inp, system)
 {
     System input;
     input.environment = {{"TWO", "2"}, {"ONE", "1"}};
@@ -409,7 +444,7 @@ TEST(JsonIO, system)
     }
 }
 
-TEST(JsonIO, tracking)
+TEST(Inp, tracking)
 {
     Tracking input;
     input.limits.steps = 1000;

@@ -150,10 +150,28 @@ TEST_F(OutputRegistryTest, minimal)
         R"json({"input":{"input_value":42},"result":{"out":1,"timing":2}})json",
         this->to_string(reg));
 
-    // Test persistent output filename
+    // No persistent output configured
     EXPECT_FALSE(reg.is_open());
-    reg.open("-");
-    EXPECT_TRUE(reg.is_open());
+    {
+        ScopedLogStorer scoped_log_{&celeritas::world_logger(),
+                                    LogLevel::debug};
+        reg.output();
+
+        static char const* const expected_log_messages[]
+            = {"No output filename provided: suppressing 4 entries"};
+        EXPECT_VEC_EQ(expected_log_messages, scoped_log_.messages());
+        static char const* const expected_log_levels[] = {"debug"};
+        EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    }
+    if constexpr (CELERITAS_DEBUG)
+    {
+        EXPECT_THROW(reg.output_filename(), DebugError);
+    }
+
+    // Test persistent output to stdout
+    reg.open(OutputRegistry::stdout_filename());
+    ASSERT_TRUE(reg.is_open());
+    EXPECT_EQ("<stdout>", reg.output_filename());
     {
         ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::info};
         std::string s;
