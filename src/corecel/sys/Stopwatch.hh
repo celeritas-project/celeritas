@@ -32,7 +32,10 @@ class Stopwatch
     inline Stopwatch();
 
     // Get the current elapsed time [s]
-    inline double operator()() const;
+    inline double operator()() const&;
+
+    // Get and erase the current elapsed time [s]
+    inline double operator()() &&;
 
   private:
     using Clock = std::chrono::high_resolution_clock;
@@ -54,12 +57,23 @@ Stopwatch::Stopwatch() : start_(Clock::now()) {}
 /*!
  * Get the current elapsed time in seconds.
  */
-double Stopwatch::operator()() const
+double Stopwatch::operator()() const&
 {
     using DurationSec = std::chrono::duration<double>;
 
     auto duration = Clock::now() - start_;
     return std::chrono::duration_cast<DurationSec>(duration).count();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get the current elapsed time in seconds, then erase.
+ */
+double Stopwatch::operator()() &&
+{
+    double result = const_cast<Stopwatch const&>(*this)();
+    *this = {};
+    return result;
 }
 
 //---------------------------------------------------------------------------//
