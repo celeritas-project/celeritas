@@ -33,24 +33,34 @@ CELER_FORCEINLINE_FUNCTION decltype(auto) fast_get(C&& cont, OpaqueId<O> tid)
 //---------------------------------------------------------------------------//
 /*!
  * Compact entries, copying from a full state vector to one with # hits.
+ *
+ * The number of selected entries is read from device memory so that the
+ * kernel can be launched over all track slots without first copying the
+ * count to the host.
  */
 struct StepScratchCopyExecutor
 {
     NativeRef<StepStateData> state;
-    size_type num_valid{};
+    size_type const* num_valid{nullptr};
 
-    // Gather results from active tracks that are in a detector
+    // Gather results from selected tracks
     inline CELER_FUNCTION void operator()(ThreadId id);
 };
 
 //---------------------------------------------------------------------------//
 /*!
- * Gather results from active tracks that are in a detector.
+ * Gather results from selected tracks.
  */
 CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
 {
+    CELER_EXPECT(num_valid);
+    if (!(dst_id.unchecked_get() < *num_valid))
+    {
+        // Past the end of the compacted data
+        return;
+    }
     CELER_EXPECT(state.size() == state.scratch.size()
-                 && num_valid <= state.size()
+                 && *num_valid <= state.size()
                  && dst_id < state.valid_id.size());
 
     // Indirect from thread to compressed track slot
