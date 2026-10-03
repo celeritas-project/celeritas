@@ -481,6 +481,7 @@ TEST_F(SimpleComptonTest, fail_queued_primary_operations)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_NO_THROW(step.kill_active());
 
     step.stage_primaries();
@@ -489,6 +490,7 @@ TEST_F(SimpleComptonTest, fail_queued_primary_operations)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_THROW(step.kill_active(), RuntimeError);
 
     step.async();
@@ -530,6 +532,7 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     EXPECT_THROW(step.warm_up(), RuntimeError);
     EXPECT_THROW(step.reset_state(), RuntimeError);
     EXPECT_THROW(step.reseed(UniqueEventId{123}), RuntimeError);
+    EXPECT_THROW(step.reset_track_ids(), RuntimeError);
     EXPECT_THROW(step.kill_active(), RuntimeError);
     EXPECT_THROW(step(make_span(primaries)), RuntimeError);
 
@@ -612,6 +615,33 @@ TEST_F(SimpleComptonTest, reseed)
     EXPECT_EQ(TrackStatus::alive, sim.status());
     EXPECT_EQ(TrackId{0}, sim.track_id());
     EXPECT_EQ(orig_next_random, engine());
+}
+
+TEST_F(SimpleComptonTest, reset_track_ids)
+{
+    constexpr auto M = MemSpace::host;
+
+    Stepper<M> step(this->make_stepper_input(1));
+    auto const primaries = this->make_primaries(1);
+    auto const& params_ref = this->core()->ref<M>();
+    auto const& state_ref
+        = dynamic_cast<CoreState<M> const&>(step.state()).ref();
+    SimTrackView sim{params_ref.sim, state_ref.sim, TrackSlotId{0}};
+
+    // Without a reset, track IDs keep increasing
+    step(make_span(primaries));
+    EXPECT_EQ(TrackId{0}, sim.track_id());
+    sim.status(TrackStatus::inactive);
+    step();
+    step(make_span(primaries));
+    EXPECT_LT(TrackId{0}, sim.track_id());
+    sim.status(TrackStatus::inactive);
+    step();
+
+    // Resetting restarts the numbering without reseeding
+    step.reset_track_ids();
+    step(make_span(primaries));
+    EXPECT_EQ(TrackId{0}, sim.track_id());
 }
 
 TEST_F(SimpleComptonTest, kill_active)

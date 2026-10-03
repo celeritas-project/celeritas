@@ -243,6 +243,7 @@ void LocalTransporter::InitializeEvent(int id)
     event_id_ = id;
     ++run_accum_.events;
 
+    bool reseeded{false};
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT)
     {
         if (!(G4Threading::IsMultithreadedApplication()
@@ -252,7 +253,14 @@ void LocalTransporter::InitializeEvent(int id)
             // RNGs using the Geant4 event ID for reproducibility. This
             // guarantees that an event can be reproduced given the event ID.
             step_->reseed(id_cast<UniqueEventId>(event_id_));
+            reseeded = true;
         }
+    }
+    if (!reseeded)
+    {
+        // Track IDs are unique per event and mapped to Geant4 track IDs, so
+        // they must restart at every event (reseeding also resets them)
+        step_->reset_track_ids();
     }
 
     // Initialize Geant4 event reconstruction and primary ID mapping
