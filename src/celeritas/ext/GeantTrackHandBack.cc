@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "GeantTrackHandBack.hh"
 
+#include <algorithm>
 #include <G4Event.hh>
 #include <G4EventManager.hh>
 #include <G4StackManager.hh>
@@ -16,6 +17,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
+
+#include "detail/GeantTrackOrder.hh"
 
 namespace celeritas
 {
@@ -55,10 +58,16 @@ void store_trajectory(G4VTrajectory* trajectory)
 
 //---------------------------------------------------------------------------//
 /*!
- * Warn about tracks still pending in the Geant4 stack.
+ * Warn about tracks not flushed or still pending in the Geant4 stack.
  */
 GeantTrackHandBack::~GeantTrackHandBack()
 {
+    if (!deferred_.empty())
+    {
+        CELER_LOG_LOCAL(warning)
+            << deferred_.size()
+            << " handed-back tracks were never returned to Geant4";
+    }
     if (!handed_back_.empty())
     {
         CELER_LOG_LOCAL(warning)
@@ -69,25 +78,52 @@ GeantTrackHandBack::~GeantTrackHandBack()
 
 //---------------------------------------------------------------------------//
 /*!
- * Return ownership of a reconstructed track to the current Geant4 event.
- *
- * The user stacking action may kill the track, in which case Geant4 deletes
- * it immediately.
+ * Defer returning a reconstructed track to the current Geant4 event.
  */
 void GeantTrackHandBack::operator()(UPTrack track)
 {
     CELER_EXPECT(track);
     CELER_EXPECT(track->GetTrackID() > 0);
 
-    // Ownership is transferred to Geant4
-    G4Track* raw = track.release();
-    handed_back_.insert(raw);
-    ++num_handed_back_;
-    if (!GeantTrackHandBack::stack(raw))
+    deferred_.push_back(std::move(track));
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Return deferred tracks to the current Geant4 event in a fixed order.
+ *
+ * Ownership of each track is transferred to Geant4. The user stacking action
+ * may kill a track, in which case Geant4 deletes it immediately.
+ */
+void GeantTrackHandBack::flush()
+{
+    std::sort(deferred_.begin(),
+              deferred_.end(),
+              [](UPTrack const& lhs, UPTrack const& rhs) {
+                  return detail::GeantTrackOrder{}(*lhs, *rhs);
+              });
+
+    for (auto& track : deferred_)
     {
-        // Don't keep the address of a deleted track
-        handed_back_.erase(raw);
+        G4Track* raw = track.release();
+        handed_back_.insert(raw);
+        ++num_handed_back_;
+        auto stacked = GeantTrackHandBack::stack(raw);
+        if (stacked == Stacked::killed)
+        {
+            // Don't keep the address of a deleted track
+            handed_back_.erase(raw);
+        }
+        else if (stacked == Stacked::other && !warned_not_urgent_)
+        {
+            CELER_LOG_LOCAL(warning)
+                << "Handed-back track " << raw->GetTrackID()
+                << " was not classified as urgent by the user stacking "
+                   "action: it may not be tracked in the current event";
+            warned_not_urgent_ = true;
+        }
     }
+    deferred_.clear();
 }
 
 //---------------------------------------------------------------------------//
@@ -164,18 +200,25 @@ bool GeantTrackHandBack::process(G4Track* track)
  * track moved to a sub-event stack, which is not counted, is treated the same
  * way: it will be offloaded again rather than tracked on CPU.)
  *
- * \return Whether the track was stacked
+ * \return Whether the track was killed, stacked as urgent, or stacked in a
+ * waiting or postponed stack
  */
-bool GeantTrackHandBack::stack(G4Track* track)
+auto GeantTrackHandBack::stack(G4Track* track) -> Stacked
 {
     auto& em = event_manager();
     G4StackManager* sm = em.GetStackManager();
     CELER_ASSERT(sm);
 
     auto const num_before = sm->GetNTotalTrack();
+    auto const num_urgent_before = sm->GetNUrgentTrack();
     G4TrackVector tracks{track};
     em.StackTracks(&tracks, /* IDhasAlreadySet = */ true);
-    return sm->GetNTotalTrack() > num_before;
+    if (sm->GetNTotalTrack() == num_before)
+    {
+        return Stacked::killed;
+    }
+    return sm->GetNUrgentTrack() > num_urgent_before ? Stacked::urgent
+                                                     : Stacked::other;
 }
 
 //---------------------------------------------------------------------------//

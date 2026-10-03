@@ -110,9 +110,21 @@ struct StepperResult;
  * after any hits from that step have been processed (the offloaded track's
  * user information moves to the reconstructed track). The reconstructed
  * tracks keep the Geant4 identity of the offloaded track, or are given their
- * own (see \c GeantTrackReconstruction ). They are pushed to the Geant4 stack
- * (see \c GeantTrackHandBack ), and \c ProcessHandedBack lets the tracking
- * manager track them on CPU instead of offloading them again.
+ * own (see \c GeantTrackReconstruction ). They are held until the end of \c
+ * Flush , when all offloaded tracks have been transported, and then pushed to
+ * the Geant4 stack in an order that depends only on their state (see \c
+ * GeantTrackHandBack ). \c ProcessHandedBack lets the tracking manager track
+ * them on CPU instead of offloading them again.
+ *
+ * Deferring the hand-back makes the point where handed-back tracks enter the
+ * Geant4 track stack (and thus the Geant4 random number sequence) independent
+ * of when asynchronous steps complete. The cost is that, on device, handed-back
+ * tracks are not tracked by Geant4 while Celeritas is still transporting: each
+ * round trip from Geant4 to Celeritas and back requires a full flush. A run is
+ * fully reproducible only if Celeritas transport also is: on device, this
+ * requires reseeding the RNG for each track (\c CELERITAS_RESEED=track ).
+ * The Geant4 IDs given to tracks created by Celeritas are not reproducible on
+ * device, since Celeritas track IDs depend on the execution order.
  *
  * \internal
  *

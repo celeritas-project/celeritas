@@ -576,10 +576,11 @@ bool LocalTransporter::ProcessHandedBack(G4Track* track)
 
 //---------------------------------------------------------------------------//
 /*!
- * Reconstruct tracks handed back during the last step and stack them.
+ * Reconstruct tracks handed back during the last step.
  *
  * This must be called after the step result is consumed and before the next
- * step is launched.
+ * step is launched. The tracks are returned to Geant4 only at the end of \c
+ * Flush .
  */
 void LocalTransporter::hand_back_tracks()
 {
@@ -717,8 +718,10 @@ void LocalTransporter::Flush()
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
+    // Transport may have completed while polling, leaving handed-back tracks
+    bool const has_handed_back = hand_back_ && hand_back_->num_deferred() > 0;
     // Rejected primaries have no Stepper state but still need loss accounting.
-    if (!step_->valid() && !has_staged && !has_buffered
+    if (!step_->valid() && !has_staged && !has_buffered && !has_handed_back
         && buffered_accum_.lost_primaries == 0)
     {
         return;
@@ -777,6 +780,13 @@ void LocalTransporter::Flush()
         }
     }
     track_reconstruction_->clear();
+
+    if (hand_back_)
+    {
+        // All offloaded tracks have been transported: return the handed-back
+        // tracks to Geant4 in an order independent of the step scheduling
+        hand_back_->flush();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -808,11 +818,14 @@ void LocalTransporter::Finalize()
     auto const buffer_size = this->GetBufferSize();
     // Submitted-batch accounting may already be clear while active tail tracks
     // or an unconsumed Stepper result still require transport.
+    auto const num_deferred = hand_back_ ? hand_back_->num_deferred() : 0;
     CELER_VALIDATE(
-        !step_->valid() && !transport_active_ && buffer_size == 0,
+        !step_->valid() && !transport_active_ && buffer_size == 0
+            && num_deferred == 0,
         << "offloaded tracks were not flushed (" << buffer_size
         << " primaries buffered" << (step_->valid() ? ", step in flight" : "")
-        << (transport_active_ ? ", transport incomplete" : "") << ")");
+        << (transport_active_ ? ", transport incomplete" : "")
+        << (num_deferred > 0 ? ", tracks not handed back" : "") << ")");
 
     std::size_t num_optical_steps{0};
     {
