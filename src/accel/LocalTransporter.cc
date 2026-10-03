@@ -36,9 +36,13 @@
 #include "geocel/GeantUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantHandBack.hh"
 #include "celeritas/ext/GeantSd.hh"  // IWYU pragma: keep
+#include "celeritas/ext/GeantTrackHandBack.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/ext/GeantTrackView.hh"
+#include "celeritas/ext/detail/GeantParticleUtils.hh"
+#include "celeritas/ext/detail/HandBackProcessor.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
@@ -178,13 +182,31 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         hit_processor_ = hit_manager->make_local_processor(stream_id);
         track_reconstruction_ = hit_processor_->track_reconstruction();
     }
+    auto const& geant_hand_back = params.problem_loaded().geant_hand_back;
     if (!track_reconstruction_)
     {
         using VecConstPD = GeantTrackReconstruction::VecParticle;
-        auto const& offload = params.OffloadParticles();
+        VecConstPD particles;
+        if (geant_hand_back)
+        {
+            // Handed-back tracks of any particle type are reconstructed
+            particles = detail::make_geant_particles(*particles_);
+        }
+        else
+        {
+            auto const& offload = params.OffloadParticles();
+            particles.assign(offload.begin(), offload.end());
+        }
         track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
-            VecConstPD(offload.begin(), offload.end()),
-            GeantTrackReconstruction::make_g4step());
+            std::move(particles), GeantTrackReconstruction::make_g4step());
+    }
+    if (geant_hand_back)
+    {
+        // Create on the local thread, which owns the reconstructed tracks
+        hand_back_processor_ = geant_hand_back->make_local_processor(
+            stream_id, track_reconstruction_);
+        hand_back_
+            = std::make_shared<GeantTrackHandBack>(track_reconstruction_);
     }
 
     // Create stepper
@@ -372,6 +394,11 @@ auto LocalTransporter::complete_step() -> StepperResult
         // enqueued during async, but must complete before scratch is reused.
         hit_processor_->process_pending_steps();
     }
+    if (hand_back_processor_)
+    {
+        // Hand back tracks after SDs have processed their final step
+        this->hand_back_tracks();
+    }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
     run_accum_.steps += result.active;
@@ -525,6 +552,45 @@ void LocalTransporter::drain_transport()
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Track on CPU a track that was handed back by Celeritas.
+ *
+ * This returns false, without taking ownership of the track, if it was not
+ * handed back (or hand-back is disabled).
+ */
+bool LocalTransporter::ProcessHandedBack(G4Track* track)
+{
+    CELER_EXPECT(track);
+    return hand_back_ && hand_back_->process(track);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reconstruct tracks handed back during the last step and stack them.
+ *
+ * This must be called after the step result is consumed and before the next
+ * step is launched.
+ */
+void LocalTransporter::hand_back_tracks()
+{
+    CELER_EXPECT(hand_back_processor_ && hand_back_);
+
+    hand_back_processor_->process_pending_steps();
+    auto tracks = hand_back_processor_->exchange_tracks();
+    if (tracks.empty())
+    {
+        return;
+    }
+
+    ScopedProfiling profile_this{"hand-back"};
+    for (auto& hb : tracks)
+    {
+        (*hand_back_)(std::move(hb.track), hb.origin);
+    }
+    run_accum_.handed_back += tracks.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -757,6 +823,10 @@ void LocalTransporter::Finalize()
             << run_accum_.primaries << " offloaded tracks over "
             << run_accum_.events << " events, generating " << run_accum_.hits
             << " hits";
+        if (hand_back_)
+        {
+            msg << " and handing back " << run_accum_.handed_back << " tracks";
+        }
     }
     if (run_accum_.lost_primaries > 0)
     {

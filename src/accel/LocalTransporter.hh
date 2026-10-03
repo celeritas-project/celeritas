@@ -25,10 +25,12 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace detail
 {
+class HandBackProcessor;
 class HitProcessor;
 }  // namespace detail
 
 struct SetupOptions;
+class GeantTrackHandBack;
 class CoreStateInterface;
 class OffloadWriter;
 class OpticalCollector;
@@ -99,6 +101,17 @@ struct StepperResult;
  * full producer buffer calls \c Flush and is transported to completion before
  * \c Push returns.
  *
+ * \par Hand-back
+ *
+ * If \c SetupOptions::hand_back is enabled, tracks marked during a step with
+ * \c SimTrackView::hand_back are killed in Celeritas and returned to Geant4.
+ * Like hits, their state is compacted on device during the asynchronous step
+ * launch, and copied and reconstructed when the step result is consumed,
+ * after any hits from that step have been processed. The reconstructed tracks
+ * are pushed to the Geant4 stack (see \c GeantTrackHandBack ), and \c
+ * ProcessHandedBack lets the tracking manager track them on CPU instead of
+ * offloading them again.
+ *
  * \internal
  *
  * LocalTransporter accounting follows the Stepper primary lifecycle:
@@ -162,6 +175,9 @@ class LocalTransporter final : public TrackOffloadInterface
     // Offload this track
     void Push(G4Track&) final;
 
+    // Track on CPU a track that was handed back by Celeritas
+    bool ProcessHandedBack(G4Track*) final;
+
     // Access core state data for user diagnostics
     CoreStateInterface const& GetState() const;
 
@@ -195,6 +211,7 @@ class LocalTransporter final : public TrackOffloadInterface
         std::size_t steps{0};
         std::size_t lost_primaries{0};
         std::size_t hits{0};
+        std::size_t handed_back{0};
     };
 
     //// HELPER FUNCTIONS ////
@@ -207,6 +224,7 @@ class LocalTransporter final : public TrackOffloadInterface
     StepperResult advance_transport();
     StepperResult wait_for_initializer_capacity();
     void drain_transport();
+    void hand_back_tracks();
 
     //// DATA ////
 
@@ -229,6 +247,8 @@ class LocalTransporter final : public TrackOffloadInterface
     // Thread-local Geant4 integration data
     std::shared_ptr<detail::HitProcessor> hit_processor_;
     std::shared_ptr<GeantTrackReconstruction> track_reconstruction_;
+    std::shared_ptr<detail::HandBackProcessor> hand_back_processor_;
+    std::shared_ptr<GeantTrackHandBack> hand_back_;
     std::shared_ptr<OpticalCollector const> optical_;
 
     // Last seen event ID and manager for obtaining it

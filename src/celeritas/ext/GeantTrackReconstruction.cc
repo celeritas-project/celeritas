@@ -363,6 +363,46 @@ void GeantTrackReconstruction::release(G4Track& track) const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Forget user information deleted by Geant4 along with a lent track.
+ *
+ * Geant4 can delete a handed-back track without our involvement (e.g., when
+ * a user stacking action kills it), which also deletes its user information.
+ * The given pointer is \em not dereferenced: it is only used to find the
+ * information that was lent, which is then dropped without being deleted.
+ * Hits from Celeritas descendants of the same primary will have no user
+ * information.
+ */
+void GeantTrackReconstruction::forfeit(G4Track const* track)
+{
+    auto iter = lent_.find(track);
+    if (iter == lent_.end())
+    {
+        return;
+    }
+    G4VUserTrackInformation const* info = iter->second;
+    lent_.erase(iter);
+
+    // Drop ownership without deleting
+    if (auto owned = user_info_.find(info); owned != user_info_.end())
+    {
+        [[maybe_unused]] G4VUserTrackInformation* deleted
+            = owned->second.release();
+        user_info_.erase(owned);
+    }
+    for (auto& data : g4_track_data_)
+    {
+        if (data.user_info == info)
+        {
+            data.user_info = nullptr;
+        }
+    }
+    CELER_LOG_LOCAL(warning) << "User information of handed-back track was "
+                                "deleted by Geant4: it will be missing from "
+                                "remaining Celeritas hits";
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get the acquired data for a primary in the current event.
  */
 auto GeantTrackReconstruction::acquired(PrimaryId primary_id) const

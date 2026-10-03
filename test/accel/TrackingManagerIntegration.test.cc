@@ -11,10 +11,17 @@
 #include <map>
 #include <mutex>
 #include <regex>
+#include <set>
 #include <string_view>
+#include <utility>
+#include <G4Event.hh>
+#include <G4EventManager.hh>
 #include <G4RunManager.hh>
+#include <G4Step.hh>
 #include <G4Threading.hh>
+#include <G4Track.hh>
 #include <G4UImanager.hh>
+#include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VModularPhysicsList.hh>
 
@@ -22,18 +29,21 @@
 #include "corecel/cont/Array.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/io/LoggerTypes.hh"
+#include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "geocel/GeantUtils.hh"
 #include "geocel/UnitUtils.hh"
 #include "celeritas/ext/GeantParticleView.hh"
 #include "celeritas/g4/StateDependent.hh"
 #include "celeritas/g4/Threading.hh"
+#include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/inp/Events.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/DetectorData.hh"
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/PDGNumber.hh"
+#include "celeritas/user/HandBackTestAction.hh"
 #include "accel/LocalTransporter.hh"
 #include "accel/SetupOptions.hh"
 #include "accel/SharedParams.hh"
@@ -1125,6 +1135,242 @@ TEST_F(TestEm3Rayleigh, run_small_capacity)
     rm.Initialize();
     ASSERT_FALSE(this->HasFatalFailure());
     rm.BeamOn(1);
+}
+
+//---------------------------------------------------------------------------//
+// HAND-BACK
+//---------------------------------------------------------------------------//
+/*!
+ * Record the tracks that Geant4 starts tracking on CPU.
+ *
+ * With EM-only physics, every offloaded particle type is transported by
+ * Celeritas: tracks reaching the Geant4 tracking manager were handed back.
+ */
+class HandBackTrackingAction final : public G4UserTrackingAction
+{
+  public:
+    struct Started
+    {
+        int event;
+        int track;
+        int parent;
+    };
+
+    void PreUserTrackingAction(G4Track const* t) final
+    {
+        auto const* event
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        started_.push_back(
+            {event->GetEventID(), t->GetTrackID(), t->GetParentID()});
+    }
+
+    std::vector<Started> const& started() const { return started_; }
+
+  private:
+    std::vector<Started> started_;
+};
+
+/*!
+ * Suspend handed-back tracks after a few Geant4 steps.
+ *
+ * Each track is suspended only once: the tracking manager then offloads it
+ * to Celeritas again.
+ */
+class SuspendSteppingAction final : public G4UserSteppingAction
+{
+  public:
+    void UserSteppingAction(G4Step const* step) final
+    {
+        auto* track = step->GetTrack();
+        if (track->GetCurrentStepNumber() == 2
+            && track->GetTrackStatus() == fAlive
+            && suspended_.insert(this->key(*track)).second)
+        {
+            track->SetTrackStatus(fSuspend);
+        }
+    }
+
+    std::set<std::pair<int, int>> const& suspended() const
+    {
+        return suspended_;
+    }
+
+  private:
+    std::set<std::pair<int, int>> suspended_;
+
+    static std::pair<int, int> key(G4Track const& track)
+    {
+        auto const* event
+            = G4EventManager::GetEventManager()->GetConstCurrentEvent();
+        CELER_ASSERT(event);
+        return {event->GetEventID(), track.GetTrackID()};
+    }
+};
+
+/*!
+ * Hand back tracks to Geant4 whenever they cross a geometry boundary.
+ */
+class TestEm3HandBack : public TestEm3IntegrationMixin, public TMITestBase
+{
+  public:
+    using Started = HandBackTrackingAction::Started;
+
+    SetupOptions make_setup_options() override
+    {
+        auto opts = TMITestBase::make_setup_options();
+        opts.hand_back = inp::HandBack{};
+        opts.add_user_actions = [](CoreParams const& core) {
+            auto& reg = *core.action_reg();
+            auto boundary = reg.find_action("geo-boundary");
+            CELER_ASSERT(boundary);
+            reg.insert(
+                std::make_shared<HandBackTestAction>(reg.next_id(), boundary));
+        };
+        return opts;
+    }
+
+    UPTrackAction make_tracking_action() override
+    {
+        auto result = std::make_unique<HandBackTrackingAction>();
+        std::scoped_lock lock{mutex_};
+        tracking_.push_back(result.get());
+        return result;
+    }
+
+    UPStepAction make_stepping_action() override
+    {
+        if (!suspend_)
+        {
+            return nullptr;
+        }
+        auto result = std::make_unique<SuspendSteppingAction>();
+        std::scoped_lock lock{mutex_};
+        stepping_.push_back(result.get());
+        return result;
+    }
+
+    // Tracks started by Geant4, by event
+    std::map<int, std::vector<Started>> started_by_event() const
+    {
+        std::map<int, std::vector<Started>> result;
+        for (auto const* ta : tracking_)
+        {
+            for (auto const& s : ta->started())
+            {
+                result[s.event].push_back(s);
+            }
+        }
+        return result;
+    }
+
+    void run(int num_events)
+    {
+        auto& rm = this->run_manager();
+        TMI::Instance().SetOptions(this->make_setup_options());
+        rm.Initialize();
+        ASSERT_FALSE(this->HasFatalFailure());
+        rm.BeamOn(num_events);
+    }
+
+  protected:
+    bool suspend_{false};
+    std::vector<HandBackTrackingAction*> tracking_;
+    std::vector<SuspendSteppingAction*> stepping_;
+};
+
+/*!
+ * Check the identity of tracks handed back to Geant4.
+ *
+ * The primary crosses into the calorimeter on its first step and is handed
+ * back with its original ID. Celeritas secondaries are handed back with new
+ * unique IDs. Tracks created by Geant4 from handed-back tracks are offloaded
+ * again, and they are handed back with their own IDs. Handed-back tracks are
+ * never offloaded again (or the run would not complete).
+ */
+TEST_F(TestEm3HandBack, run)
+{
+    this->run(2);
+    if (this->HasFatalFailure())
+    {
+        return;
+    }
+
+    auto started = this->started_by_event();
+    ASSERT_EQ(2, started.size());
+    for (auto const& [event, tracks] : started)
+    {
+        SCOPED_TRACE("event " + std::to_string(event));
+        CELER_LOG(info) << "Geant4 tracked " << tracks.size()
+                        << " handed-back tracks in event " << event;
+        EXPECT_GT(tracks.size(), 1);
+
+        std::set<int> ids;
+        bool found_primary{false};
+        for (auto const& s : tracks)
+        {
+            // Each track is handed back and tracked by Geant4 exactly once
+            EXPECT_TRUE(ids.insert(s.track).second)
+                << "duplicate track ID " << s.track;
+            EXPECT_GT(s.track, 0);
+            if (s.track == 1)
+            {
+                // The primary keeps its identity
+                EXPECT_EQ(0, s.parent);
+                found_primary = true;
+            }
+            else
+            {
+                EXPECT_GT(s.parent, 0);
+            }
+        }
+        EXPECT_TRUE(found_primary);
+    }
+}
+
+/*!
+ * Check that suspended handed-back tracks are offloaded again.
+ *
+ * A re-offloaded track keeps its ID: if it crosses another boundary, it is
+ * handed back again with the same ID.
+ */
+TEST_F(TestEm3HandBack, reoffload)
+{
+    suspend_ = true;
+    this->run(1);
+    if (this->HasFatalFailure())
+    {
+        return;
+    }
+
+    std::map<std::pair<int, int>, int> num_started;
+    for (auto const& [event, tracks] : this->started_by_event())
+    {
+        for (auto const& s : tracks)
+        {
+            ++num_started[{s.event, s.track}];
+        }
+    }
+
+    std::size_t num_suspended{0};
+    std::size_t num_restarted{0};
+    for (auto const* sa : stepping_)
+    {
+        for (auto const& key : sa->suspended())
+        {
+            ++num_suspended;
+            auto iter = num_started.find(key);
+            ASSERT_NE(iter, num_started.end());
+            if (iter->second > 1)
+            {
+                ++num_restarted;
+            }
+        }
+    }
+    EXPECT_GT(num_suspended, 0);
+    // At least some suspended tracks were offloaded, transported, and
+    // handed back again with the same ID
+    EXPECT_GT(num_restarted, 0);
 }
 
 //---------------------------------------------------------------------------//

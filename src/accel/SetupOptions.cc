@@ -148,6 +148,8 @@ void ProblemSetup::operator()(inp::Problem& p) const
         p.scoring.sd = to_inp(so.sd);
     }
 
+    p.tracking.hand_back = so.hand_back;
+
     if (auto* u = so.make_along_step.target<UniformAlongStepFactory>())
     {
         // Check if magnitude is zero

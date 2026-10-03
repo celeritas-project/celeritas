@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "corecel/Config.hh"
+
 #include "celeritas/user/StepInterface.hh"
 
 #include "detail/LocalProcessorSlots.hh"
@@ -87,6 +89,43 @@ class GeantHandBack final : public StepInterface
     // Thread-local hand-back processors
     detail::LocalProcessorSlots<HandBackProcessor> processors_;
 };
+
+#if !CELERITAS_USE_GEANT4
+
+inline GeantHandBack::GeantHandBack(Input const&, StreamId::size_type)
+{
+    CELER_NOT_CONFIGURED("Geant4");
+}
+
+inline GeantHandBack::~GeantHandBack() = default;
+
+inline GeantHandBack::SPProcessor GeantHandBack::make_local_processor(
+    StreamId, SPTrackReconstruction)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline GeantHandBack::Filters GeantHandBack::filters() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline StepSelection GeantHandBack::selection() const
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantHandBack::process_steps(HostStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+inline void GeantHandBack::process_steps(DeviceStepState)
+{
+    CELER_ASSERT_UNREACHABLE();
+}
+
+#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

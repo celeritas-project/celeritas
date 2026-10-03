@@ -117,6 +117,9 @@ class GeantTrackReconstruction
     // Detach lent user information before Geant4 deletes a track
     void release(G4Track&) const;
 
+    // Forget user information deleted by Geant4 along with a lent track
+    void forfeit(G4Track const*);
+
     //! Number of user information objects lent to handed-back tracks
     std::size_t num_lent() const { return lent_.size(); }
 
