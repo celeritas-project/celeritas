@@ -243,21 +243,19 @@ void PhysicsParams::build_particle_options(ParticleOptions const& opts,
     CELER_VALIDATE(opts.range_factor > 0 && opts.range_factor < 1,
                    << "invalid range_factor=" << opts.range_factor
                    << " (should be within 0 < limit < 1)");
+    CELER_VALIDATE(opts.step_limit_algorithm
+                       != MscStepLimitAlgorithm::distance_to_boundary,
+                   << "Unsupported MSC step limit algorithm '"
+                   << opts.step_limit_algorithm << "': use '"
+                   << MscStepLimitAlgorithm::minimal << "', "
+                   << MscStepLimitAlgorithm::safety << "', or "
+                   << MscStepLimitAlgorithm::safety_plus << "'");
     data->min_range = opts.min_range;
     data->max_step_over_range = opts.max_step_over_range;
     data->lowest_energy = opts.lowest_energy;
     data->displaced = opts.displaced;
     data->range_factor = opts.range_factor;
     data->step_limit_algorithm = opts.step_limit_algorithm;
-    if (data->step_limit_algorithm
-        == MscStepLimitAlgorithm::distance_to_boundary)
-    {
-        CELER_LOG(warning) << "Unsupported MSC step limit algorithm '"
-                           << data->step_limit_algorithm
-                           << "': defaulting to '"
-                           << MscStepLimitAlgorithm::safety << "'";
-        data->step_limit_algorithm = MscStepLimitAlgorithm::safety;
-    }
 }
 
 //---------------------------------------------------------------------------//

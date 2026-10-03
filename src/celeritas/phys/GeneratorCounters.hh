@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <type_traits>
+
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
@@ -23,6 +25,7 @@ namespace celeritas
 template<class T = ::celeritas::size_type>
 struct GeneratorCounters
 {
+    static_assert(std::is_unsigned_v<T>);
     using size_type = T;
 
     //! Number of generators

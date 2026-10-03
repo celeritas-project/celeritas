@@ -152,7 +152,7 @@ class SharedParams
     // Hit manager, to be used only by LocalTransporter
     inline SPGeantSd const& hit_manager() const;
 
-    // Optional offload writer, only for use by LocalTransporter
+    // Optional offload writer, for use by LocalTransporter
     inline SPOffloadWriter const& offload_writer() const;
 
     // Output registry

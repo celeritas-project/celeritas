@@ -71,7 +71,7 @@ ActionTimesState& ActionTimes::state(AuxStateVec& aux) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Create a map of action label tp accumulated time.
+ * Create a map of action label to accumulated time.
  */
 auto ActionTimes::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
 {
@@ -86,6 +86,16 @@ auto ActionTimes::get_action_times(AuxStateVec const& aux) const -> MapStrDbl
         }
     }
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset accumulated times.
+ */
+void ActionTimes::clear_action_times(AuxStateVec& aux) const
+{
+    auto& times = this->state(aux).accum_time;
+    std::fill(times.begin(), times.end(), 0);
 }
 
 //---------------------------------------------------------------------------//

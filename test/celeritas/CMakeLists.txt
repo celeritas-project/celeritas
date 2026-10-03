@@ -143,6 +143,7 @@ celeritas_setup_tests(SERIAL
 
 celeritas_add_test(Constants.test.cc LINK_LIBRARIES ${_g4_global_libs})
 celeritas_add_test(Units.test.cc LINK_LIBRARIES ${_g4_global_libs})
+celeritas_add_test(Json.test.cc LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 #-----------------------------------------------------------------------------#
 # Decay
@@ -402,11 +403,6 @@ celeritas_add_test(io/JsonEventIO.test.cc)
 celeritas_add_test(io/OpticalDistributionIO.test.cc)
 celeritas_add_test(io/RootEventIO.test.cc ${_needs_root})
 celeritas_add_test(io/SeltzerBergerReader.test.cc ${_needs_geant4})
-
-#-----------------------------------------------------------------------------#
-# Inp
-celeritas_add_test(inp/JsonIO.test.cc
-  LINK_LIBRARIES nlohmann_json::nlohmann_json)
 
 #-----------------------------------------------------------------------------#
 # Optical
