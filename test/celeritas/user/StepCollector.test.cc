@@ -96,6 +96,8 @@ class HandBackRecorder final : public StepInterface
         result.points[StepPoint::post].energy = true;
         result.primary_id = true;
         result.post_step_action_id = true;
+        result.parent_id = true;
+        result.parent_is_primary = true;
         return result;
     }
 
@@ -105,9 +107,48 @@ class HandBackRecorder final : public StepInterface
     //! Entries for each step
     std::vector<VecEntry> const& steps() const { return steps_; }
 
+    //! Whether the parent of each recorded track is a primary
+    std::map<std::pair<PrimaryId, TrackId>, std::pair<TrackId, bool>> const&
+    parents() const
+    {
+        return parents_;
+    }
+
   private:
     bool hand_back_;
     std::vector<VecEntry> steps_;
+    std::map<std::pair<PrimaryId, TrackId>, std::pair<TrackId, bool>> parents_;
+
+    // Check the "parent is primary" flags, returning the number of tracks
+    // whose parent is a primary and the number of deeper descendants
+  public:
+    std::pair<size_type, size_type> check_parent_flags() const
+    {
+        size_type num_children{0};
+        size_type num_descendants{0};
+        for (auto const& [key, value] : parents_)
+        {
+            auto const& [parent, parent_is_primary] = value;
+            if (!parent)
+            {
+                // Primaries have no parent
+                EXPECT_FALSE(parent_is_primary);
+                continue;
+            }
+            auto iter = parents_.find({key.first, parent});
+            if (iter == parents_.end())
+            {
+                ADD_FAILURE() << "parent " << parent.get() << " of track "
+                              << key.second.get() << " was never recorded";
+                continue;
+            }
+            bool const expected = !iter->second.first;
+            EXPECT_EQ(expected, parent_is_primary)
+                << "track " << key.second.get();
+            ++(expected ? num_children : num_descendants);
+        }
+        return {num_children, num_descendants};
+    }
 
     template<MemSpace M>
     void record(StepState<M> const& state)
@@ -126,10 +167,13 @@ class HandBackRecorder final : public StepInterface
             e.post_step_action = out.post_step_action_id[i];
             if (hand_back_)
             {
+                // Handed-back tracks are killed without losing energy
                 e.reason = out.hand_back_reason[i];
+                EXPECT_GT(out.points[StepPoint::post].energy[i].value(), 0);
             }
-            EXPECT_GT(out.points[StepPoint::post].energy[i].value(), 0);
             entries.push_back(e);
+            parents_[{e.primary, e.track}] = {
+                out.parent_id[i], static_cast<bool>(out.parent_is_primary[i])};
         }
     }
 };
@@ -284,6 +328,11 @@ class KnHandBackTest : public KnSimpleLoopTestBase
             }
         }
         EXPECT_FALSE(handed_back.empty());
+
+        // Compton electrons are children of primary photons
+        auto [num_children, num_descendants] = all_->check_parent_flags();
+        EXPECT_GT(num_children, 0);
+        EXPECT_EQ(0, num_descendants);
 
         // A handed-back track is never transported again
         for (auto step : range(all_steps.size()))
@@ -594,6 +643,23 @@ TEST_F(KnCaloTest, single_track)
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
+
+#define TestEm3ParentTest TEST_IF_CELERITAS_GEANT(TestEm3ParentTest)
+class TestEm3ParentTest : public TestEm3CollectorTestBase
+{
+};
+
+TEST_F(TestEm3ParentTest, parent_is_primary)
+{
+    // All primaries are in a single event: track IDs are unique
+    auto recorder = std::make_shared<HandBackRecorder>(false);
+    auto collector = StepCollector::make_and_insert(*this->core(), {recorder});
+    this->run_impl<MemSpace::host>(16, 64);
+
+    auto [num_children, num_descendants] = recorder->check_parent_flags();
+    EXPECT_GT(num_children, 0);
+    EXPECT_GT(num_descendants, 0);
+}
 
 TEST_F(TestEm3MctruthTest, four_step)
 {

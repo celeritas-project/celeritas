@@ -178,6 +178,14 @@ TEST_F(SimTest, hand_back)
     sim = init;
     EXPECT_EQ(HandBackReason::none, sim.hand_back_reason());
     EXPECT_EQ(TrackStatus::initializing, sim.status());
+    EXPECT_FALSE(sim.parent_is_primary());
+
+    // Secondary of a primary
+    init.track_id = TrackId{2};
+    init.parent_id = TrackId{0};
+    init.parent_is_primary = true;
+    sim = init;
+    EXPECT_TRUE(sim.parent_is_primary());
 
     if (CELERITAS_DEBUG)
     {
