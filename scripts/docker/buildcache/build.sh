@@ -5,24 +5,66 @@
 #-----------------------------------------------------------------------------#
 # Build the Spack base image and the buildcache image with the Spack revisions
 # pinned by .github/actions/setup-spack. Additional arguments are passed to
-# each build command, e.g. --no-cache. Set DOCKER to override the container
-# engine, e.g. DOCKER=podman-hpc.
+# each build command, e.g. --no-cache.
+#
+# Docker builds use BuildKit through the buildx plugin, since the legacy
+# builder is deprecated. Podman is used if Docker is unavailable or cannot
+# reach its daemon (e.g. without root access). Set DOCKER to override the
+# container engine, e.g. DOCKER=podman-hpc.
 #-----------------------------------------------------------------------------#
 
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
 SOURCE_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
 
-BUILDARGS=
-if [ -z "${DOCKER}" ]; then
-  DOCKER=docker
-  if ! command -v ${DOCKER} >/dev/null 2>&1; then
-    DOCKER=podman
-    BUILDARGS="--format docker"
+log() {
+  printf "%s: %s\n" "$1" "$2" >&2
+}
+
+have() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+# Check that docker can build with BuildKit and reach its daemon
+check_docker() {
+  if ! have docker; then
+    return 1
   fi
-fi
-if ! command -v ${DOCKER} >/dev/null 2>&1; then
-  echo "error: ${DOCKER} is not available" >&2
+  if ! docker buildx version >/dev/null 2>&1; then
+    log warning "docker buildx is not installed: see https://docs.docker.com/go/buildx/"
+    return 1
+  fi
+  if ! docker info >/dev/null 2>&1; then
+    log warning "cannot connect to the docker daemon"
+    return 1
+  fi
+}
+
+if [ -z "${DOCKER}" ]; then
+  if check_docker; then
+    DOCKER=docker
+  elif have podman; then
+    DOCKER=podman
+  else
+    log error "neither docker (with buildx) nor podman is usable"
+    exit 1
+  fi
+elif [ "${DOCKER}" = docker ]; then
+  if ! check_docker; then
+    log error "docker is not usable"
+    exit 1
+  fi
+elif ! have "${DOCKER}"; then
+  log error "${DOCKER} is not available"
   exit 1
+fi
+
+if [ "${DOCKER}" = docker ]; then
+  # Load into the local image store, which the docker-container driver of
+  # non-default buildx builders does not do implicitly
+  BUILD="docker buildx build --load"
+else
+  # Podman defaults to the OCI format, which drops some Dockerfile metadata
+  BUILD="${DOCKER} build --format docker"
 fi
 
 pins=$(python3 "${SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
@@ -33,7 +75,7 @@ TAG=$(printf "%.7s-%.7s" "${SPACK_REF}" "${SPACK_PACKAGES_REF}")
 build() {
   target=$1
   shift
-  ${DOCKER} build ${BUILDARGS} \
+  ${BUILD} \
     --build-arg SPACK_REF="${SPACK_REF}" \
     --build-arg SPACK_PACKAGES_REF="${SPACK_PACKAGES_REF}" \
     --target "${target}" \

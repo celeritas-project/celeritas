@@ -78,8 +78,14 @@ It tags two images with the abbreviated commits:
 `celeritas/spack-ubuntu24:<spack>-<packages>`, the runner toolchain with Spack
 checked out and bootstrapped, and `celeritas-buildcache:<spack>-<packages>`
 (also tagged `latest`), which runs the update script. Extra arguments are
-passed to each build command, and `DOCKER` selects the container engine
-(e.g. `DOCKER=podman-hpc`).
+passed to each build command.
+
+Docker builds use BuildKit (`docker buildx build`), so the
+[buildx plugin](https://docs.docker.com/go/buildx/) must be installed: the
+legacy builder is deprecated. If Docker is missing, lacks buildx, or cannot
+reach its daemon (e.g. without root or `docker` group access), the script
+falls back to `podman`. Set `DOCKER` to choose the container engine
+explicitly (e.g. `DOCKER=podman-hpc`).
 
 Pushing requires a GitHub personal access token (classic) with the
 `write:packages`, and `delete:packages` scopes, authorized for the `celeritas-project` organization.
