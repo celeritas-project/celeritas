@@ -31,8 +31,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 # runner also has GCC 14, whose libstdc++ headers clang-18 selects.
 RUN apt-get -qq update \
  && apt-get -qq install -y --no-install-recommends \
-    autoconf bash build-essential clang-18 g++-13 gcc-13 gfortran-13 git \
-    m4 make perl \
+    autoconf bash build-essential clang-18 git m4 make perl \
     bzip2 ca-certificates curl file gzip libstdc++-14-dev patch python3 \
     tar unzip xz-utils zstd \
  && rm -rf /var/lib/apt/lists/*
