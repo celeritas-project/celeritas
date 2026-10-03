@@ -27,7 +27,7 @@
 #include "geocel/g4/Convert.hh"
 
 #if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_VECGEOM
-#    include <VecGeom/base/Math.h>
+#    include <VecGeom/base/Global.h>
 #endif
 
 #include "detail/GeantTrackOrder.hh"
