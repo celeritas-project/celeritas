@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/global/TrackExecutor.hh
+//! \file celeritas/optical/TrackExecutor.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -18,9 +18,11 @@
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
- * Call a \c CoreTrackView executor for a given ThreadId.
+ * Call an optical \c CoreTrackView executor for a given ThreadId.
  *
  * This class can be used to call a functor that applies to \c CoreTrackView
  * using a \c ThreadId, so that the tracks can be easily looped over as a
@@ -140,12 +142,12 @@ class ConditionalTrackExecutor
 // DEDUCTION GUIDES
 //---------------------------------------------------------------------------//
 template<class T>
-CELER_CTAD_FUNCTION TrackExecutor(
+CELER_FUNCTION TrackExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, T&&)
     -> TrackExecutor<T>;
 
 template<class C, class T>
-CELER_CTAD_FUNCTION ConditionalTrackExecutor(
+CELER_FUNCTION ConditionalTrackExecutor(
     CoreParamsPtr<MemSpace::native>, CoreStatePtr<MemSpace::native>, C&&, T&&)
     -> ConditionalTrackExecutor<C, T>;
 
@@ -221,4 +223,5 @@ inline CELER_FUNCTION decltype(auto) make_along_step_track_executor(
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas

@@ -11,6 +11,8 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/CoreParams.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
 
 #include "../GeneratorData.hh"
@@ -22,6 +24,7 @@ namespace detail
 //---------------------------------------------------------------------------//
 using celeritas::optical::GeneratorDistributionData;
 using celeritas::optical::WlsDistributionData;
+using SPConstOpticalParams = std::shared_ptr<optical::CoreParams const>;
 
 template<class T, MemSpace M>
 using ItemsRef = Collection<T, Ownership::reference, M>;
@@ -36,13 +39,18 @@ size_type remove_if_invalid(
     ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId);
 
 //---------------------------------------------------------------------------//
-// Count the number of optical photons in the distributions.
-size_type count_num_photons(
+// Count the number of optical photons in the distributions and add these to
+// the number of pending  tracks.
+void count_num_photons(
+    SPConstOpticalParams params,
+    optical::CoreState<MemSpace::host>&,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
     size_type,
     size_type,
     StreamId);
-size_type count_num_photons(
+void count_num_photons(
+    SPConstOpticalParams params,
+    optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,
     size_type,
@@ -59,7 +67,9 @@ inline size_type remove_if_invalid(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline size_type count_num_photons(
+inline void count_num_photons(
+    SPConstOpticalParams,
+    optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,
     size_type,
