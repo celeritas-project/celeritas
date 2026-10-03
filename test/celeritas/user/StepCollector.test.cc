@@ -321,10 +321,10 @@ class KnHandBackTest : public KnSimpleLoopTestBase
                 EXPECT_EQ(boundary_, actual[i].post_step_action);
                 EXPECT_EQ(HandBackReason::user, actual[i].reason);
                 // Each track is handed back (and killed) only once
-                EXPECT_TRUE(
-                    handed_back
-                        .insert({{actual[i].primary, actual[i].track}, step})
-                        .second);
+                EXPECT_TRUE(handed_back
+                                .insert({{actual[i].primary, actual[i].track},
+                                         static_cast<size_type>(step)})
+                                .second);
             }
         }
         EXPECT_FALSE(handed_back.empty());
