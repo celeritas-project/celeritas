@@ -20,6 +20,8 @@
 #include <G4VTrajectory.hh>
 #include <G4Version.hh>
 
+#include "corecel/Config.hh"
+
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
@@ -63,16 +65,22 @@ void store_trajectory(G4VTrajectory* trajectory)
  * Move a track that stopped on a geometry boundary into the next volume.
  *
  * A track stopped by Geant4 on a boundary is located by its position when it
- * is offloaded again, which places it in either volume (the Geant4 geometry
- * backend picks the one it is leaving and then fails to take a step).
- * Moving the track by a few times the Geant4 surface tolerance along its
- * direction removes the ambiguity, except for nearly tangent directions.
+ * is offloaded again. The Geant4 geometry backend ignores the direction when
+ * locating it, so it can place it in the volume it is leaving, where it then
+ * fails to take a step. Moving the track by a few times the Geant4 surface
+ * tolerance along its direction removes the ambiguity, except for nearly
+ * tangent directions. The other geometry backends handle tracks starting on
+ * a boundary, so their tracks are left untouched.
  *
  * This must be called right after the track was tracked: the step it points
  * to is shared by all tracks.
  */
 void move_off_boundary(G4Track& track)
 {
+    if constexpr (CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4)
+    {
+        return;
+    }
     G4Step const* step = track.GetStep();
     if (!step || step->GetPostStepPoint()->GetStepStatus() != fGeomBoundary)
     {
