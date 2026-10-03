@@ -102,6 +102,8 @@ struct SimTrackInitializer
     EventId event_id;  //!< ID of originating event
     real_type time{0};  //!< Time elapsed in lab frame since start of event
     real_type weight{1.0};
+    bool parent_is_primary{false};  //!< Parent has no parent itself
+
     //! True if assigned and valid
     explicit CELER_FUNCTION operator bool() const
     {
@@ -132,6 +134,7 @@ struct SimStateData
     Items<TrackId> track_ids;  //!< Unique ID for this track
     Items<PrimaryId> primary_ids;  //!< ID of originating primary
     Items<TrackId> parent_ids;  //!< ID of parent that created it
+    Items<char> parent_is_primary;  //!< Whether the parent is a primary
     Items<EventId> event_ids;  //!< ID of originating event
     Items<size_type> num_steps;  //!< Total number of steps taken
     Items<size_type> num_looping_steps;  //!< Number of steps taken since the
@@ -143,6 +146,7 @@ struct SimStateData
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
     Items<real_type> weight;
+    Items<HandBackReason> hand_back;  //!< Why the track is handed back
 
     //// METHODS ////
 
@@ -150,10 +154,11 @@ struct SimStateData
     explicit CELER_FUNCTION operator bool() const
     {
         return !track_ids.empty() && !primary_ids.empty()
-               && !parent_ids.empty() && !event_ids.empty()
-               && !num_steps.empty() && !time.empty() && !status.empty()
-               && !step_length.empty() && !post_step_action.empty()
-               && !along_step_action.empty();
+               && !parent_ids.empty() && !parent_is_primary.empty()
+               && !event_ids.empty() && !num_steps.empty() && !time.empty()
+               && !status.empty() && !step_length.empty()
+               && !post_step_action.empty() && !along_step_action.empty()
+               && !hand_back.empty();
     }
 
     //! State size
@@ -170,6 +175,7 @@ struct SimStateData
         track_ids = other.track_ids;
         primary_ids = other.primary_ids;
         parent_ids = other.parent_ids;
+        parent_is_primary = other.parent_is_primary;
         event_ids = other.event_ids;
         num_steps = other.num_steps;
         num_looping_steps = other.num_looping_steps;
@@ -179,6 +185,7 @@ struct SimStateData
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
         weight = other.weight;
+        hand_back = other.hand_back;
         return *this;
     }
 };
@@ -197,6 +204,7 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->track_ids, size);
     resize(&data->primary_ids, size);
     resize(&data->parent_ids, size);
+    resize(&data->parent_is_primary, size);
     resize(&data->event_ids, size);
     resize(&data->num_steps, size);
     if (!params.looping.empty())
@@ -212,6 +220,8 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
     resize(&data->weight, size);
+    resize(&data->hand_back, size);
+    fill(HandBackReason::none, &data->hand_back);
 
     CELER_ENSURE(*data);
 }

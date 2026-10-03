@@ -72,6 +72,7 @@ struct StepSelection
 
     bool event_id{false};
     bool parent_id{false};
+    bool parent_is_primary{false};
     bool primary_id{false};
     bool post_step_action_id{false};
     bool track_step_count{false};
@@ -81,11 +82,15 @@ struct StepSelection
     bool particle_id{false};
     bool energy_deposition{false};
 
+    bool hand_back_reason{false};
+
     //! Create StepSelection with all options set to true
     static constexpr StepSelection all()
     {
         return StepSelection{
             {StepPointSelection::all(), StepPointSelection::all()},
+            true,
+            true,
             true,
             true,
             true,
@@ -101,9 +106,10 @@ struct StepSelection
     explicit CELER_FUNCTION operator bool() const
     {
         return points[StepPoint::pre] || points[StepPoint::post] || event_id
-               || parent_id || primary_id || post_step_action_id
-               || track_step_count || step_length || weight || particle_id
-               || energy_deposition;
+               || parent_id || parent_is_primary || primary_id
+               || post_step_action_id || track_step_count || step_length
+               || weight || particle_id || energy_deposition
+               || hand_back_reason;
     }
 
     //! Combine the selection with another
@@ -116,6 +122,7 @@ struct StepSelection
 
         this->event_id |= other.event_id;
         this->parent_id |= other.parent_id;
+        this->parent_is_primary |= other.parent_is_primary;
         this->primary_id |= other.primary_id;
         this->post_step_action_id |= other.post_step_action_id;
         this->track_step_count |= other.track_step_count;
@@ -123,6 +130,7 @@ struct StepSelection
         this->weight |= other.weight;
         this->particle_id |= other.particle_id;
         this->energy_deposition |= other.energy_deposition;
+        this->hand_back_reason |= other.hand_back_reason;
         return *this;
     }
 };
@@ -130,6 +138,11 @@ struct StepSelection
 //---------------------------------------------------------------------------//
 /*!
  * Shared attributes about the hits being collected.
+ *
+ * At most one filter is active: either the \c detector mapping is nonempty
+ * (only steps inside sensitive detectors are kept), or \c hand_back is set
+ * (only tracks marked with \c SimTrackView::hand_back are kept), or neither
+ * (all active tracks are kept).
  *
  * This will be expanded to include filters for particle type, region, etc.
  */
@@ -146,6 +159,9 @@ struct StepParamsData
 
     //! Filter out steps that have not deposited energy (for sensitive det)
     bool nonzero_energy_deposition{false};
+
+    //! Only keep tracks that are handed back to the host application
+    bool hand_back{false};
 
     //! Per-state volume instance size if volume_instance_ids selected
     size_type num_volume_levels{0};
@@ -166,6 +182,7 @@ struct StepParamsData
         selection = other.selection;
         detector = other.detector;
         nonzero_energy_deposition = other.nonzero_energy_deposition;
+        hand_back = other.hand_back;
         num_volume_levels = other.num_volume_levels;
         return *this;
     }
@@ -236,6 +253,9 @@ struct StepPointStateData
  *   on the pre-step geometric volume. Data members will have \b unspecified
  *   values if the detector ID is "false" (i.e. no information is being
  *   collected). The detector ID for inactive threads is always "false".
+ * - If no detectors are specified, a slot's data is valid if and only if its
+ *   track ID is set. When gathering handed-back tracks, the track ID is
+ *   "false" for tracks that are not handed back.
  */
 template<Ownership W, MemSpace M>
 struct StepStateDataImpl
@@ -261,6 +281,7 @@ struct StepStateDataImpl
     // Sim
     StateItems<EventId> event_id;
     StateItems<TrackId> parent_id;
+    StateItems<char> parent_is_primary;
     StateItems<PrimaryId> primary_id;
     StateItems<ActionId> post_step_action_id;
     StateItems<size_type> track_step_count;
@@ -270,6 +291,9 @@ struct StepStateDataImpl
     // Physics
     StateItems<ParticleId> particle_id;
     StateItems<Energy> energy_deposition;
+
+    // Hand-back
+    StateItems<HandBackReason> hand_back_reason;
 
     //// METHODS ////
 
@@ -282,10 +306,12 @@ struct StepStateDataImpl
 
         return !track_id.empty() && right_sized(detector_id)
                && right_sized(event_id) && right_sized(parent_id)
-               && right_sized(primary_id) && right_sized(post_step_action_id)
+               && right_sized(parent_is_primary) && right_sized(primary_id)
+               && right_sized(post_step_action_id)
                && right_sized(track_step_count) && right_sized(step_length)
                && right_sized(weight) && right_sized(particle_id)
-               && right_sized(energy_deposition);
+               && right_sized(energy_deposition)
+               && right_sized(hand_back_reason);
     }
 
     //! State size
@@ -311,6 +337,7 @@ struct StepStateDataImpl
         detector_id = other.detector_id;
         event_id = other.event_id;
         parent_id = other.parent_id;
+        parent_is_primary = other.parent_is_primary;
         primary_id = other.primary_id;
         post_step_action_id = other.post_step_action_id;
         track_step_count = other.track_step_count;
@@ -318,6 +345,7 @@ struct StepStateDataImpl
         weight = other.weight;
         particle_id = other.particle_id;
         energy_deposition = other.energy_deposition;
+        hand_back_reason = other.hand_back_reason;
         return *this;
     }
 };
@@ -354,6 +382,9 @@ struct StepStateData
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
 
+    //! Number of selected tracks after device compaction (single element)
+    Collection<size_type, W, M> num_selected;
+
     // Copy of params max depth for dimensioning volume_instance_ids
     size_type num_volume_levels{0};
 
@@ -371,6 +402,8 @@ struct StepStateData
         };
 
         return data.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+               && (num_selected.size() == 1
+                   || (num_selected.empty() && M == MemSpace::host))
                && stream_id;
     }
 
@@ -386,6 +419,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        num_selected = other.num_selected;
         num_volume_levels = other.num_volume_levels;
         stream_id = other.stream_id;
         return *this;
@@ -463,6 +497,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
 
     SD_RESIZE_IF_SELECTED(event_id);
     SD_RESIZE_IF_SELECTED(parent_id);
+    SD_RESIZE_IF_SELECTED(parent_is_primary);
     SD_RESIZE_IF_SELECTED(primary_id);
     SD_RESIZE_IF_SELECTED(post_step_action_id);
     SD_RESIZE_IF_SELECTED(track_step_count);
@@ -470,6 +505,7 @@ inline void resize(StepStateDataImpl<Ownership::value, M>* state,
     SD_RESIZE_IF_SELECTED(weight);
     SD_RESIZE_IF_SELECTED(particle_id);
     SD_RESIZE_IF_SELECTED(energy_deposition);
+    SD_RESIZE_IF_SELECTED(hand_back_reason);
 }
 
 //---------------------------------------------------------------------------//
@@ -495,6 +531,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
         // Allocate extra space on device for gathering step data
         resize(&state->scratch, params, size);
         resize(&state->valid_id, size);
+        resize(&state->num_selected, 1);
     }
 }
 

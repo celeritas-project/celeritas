@@ -81,6 +81,9 @@ class SimTrackView
     // Track ID of parent
     inline CELER_FUNCTION TrackId parent_id() const;
 
+    // Whether the parent of this track is a primary
+    inline CELER_FUNCTION bool parent_is_primary() const;
+
     // Event ID
     inline CELER_FUNCTION EventId event_id() const;
 
@@ -115,6 +118,12 @@ class SimTrackView
 
     // Update along-step action to take
     inline CELER_FUNCTION void along_step_action(ActionId action);
+
+    // Kill the track and mark it to be handed back to the host application
+    inline CELER_FUNCTION void hand_back(HandBackReason reason);
+
+    // Why the track is handed back (none if it is not)
+    inline CELER_FUNCTION HandBackReason hand_back_reason() const;
 
     //// PARAMETER DATA ////
 
@@ -153,6 +162,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.track_ids[track_slot_] = other.track_id;
     states_.primary_ids[track_slot_] = other.primary_id;
     states_.parent_ids[track_slot_] = other.parent_id;
+    states_.parent_is_primary[track_slot_] = other.parent_is_primary;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
     states_.weight[track_slot_] = other.weight;
@@ -165,6 +175,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.step_length[track_slot_] = {};
     states_.post_step_action[track_slot_] = {};
     states_.along_step_action[track_slot_] = {};
+    states_.hand_back[track_slot_] = HandBackReason::none;
     return *this;
 }
 
@@ -324,6 +335,31 @@ CELER_FUNCTION void SimTrackView::status(TrackStatus status)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Kill the track and mark it to be handed back to the host application.
+ *
+ * Any action may call this between the \c user_start and \c post step action
+ * orders. The track's kinematic state is left untouched, and no energy is
+ * deposited, so that the end-of-step state can be gathered (see \c
+ * StepInterface::Filters::hand_back) and transported further by the host
+ * application. If the track is marked multiple times during a step, the first
+ * reason is kept.
+ */
+CELER_FUNCTION void SimTrackView::hand_back(HandBackReason reason)
+{
+    CELER_EXPECT(reason != HandBackReason::none
+                 && reason != HandBackReason::size_);
+    CELER_EXPECT(this->status() == TrackStatus::alive
+                 || this->status() == TrackStatus::killed);
+    auto& current = states_.hand_back[track_slot_];
+    if (current == HandBackReason::none)
+    {
+        current = reason;
+    }
+    this->status(TrackStatus::killed);
+}
+
+//---------------------------------------------------------------------------//
 // DYNAMIC PROPERTIES
 //---------------------------------------------------------------------------//
 /*!
@@ -349,6 +385,20 @@ CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
 CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::parent_id() const
 {
     return states_.parent_ids[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the parent of this track is a primary.
+ *
+ * This is true for secondaries created by a primary track (one without a
+ * parent), and false for primaries and their deeper descendants. It allows
+ * the host application to map the parent of a secondary to the original
+ * (e.g., Geant4) identity of the primary.
+ */
+CELER_FORCEINLINE_FUNCTION bool SimTrackView::parent_is_primary() const
+{
+    return states_.parent_is_primary[track_slot_];
 }
 
 //---------------------------------------------------------------------------//
@@ -394,6 +444,15 @@ CELER_FORCEINLINE_FUNCTION real_type SimTrackView::time() const
 CELER_FORCEINLINE_FUNCTION TrackStatus SimTrackView::status() const
 {
     return states_.status[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Why the track is handed back to the host application.
+ */
+CELER_FORCEINLINE_FUNCTION HandBackReason SimTrackView::hand_back_reason() const
+{
+    return states_.hand_back[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

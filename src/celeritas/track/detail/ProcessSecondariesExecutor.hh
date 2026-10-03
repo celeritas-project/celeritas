@@ -84,6 +84,7 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
     // Save the parent ID since it will be overwritten if a secondary is
     // initialized in this slot
     TrackId const track_id{sim.track_id()};
+    bool const parent_is_primary{!sim.parent_id()};
 
     for (auto const& secondary : track.physics_step().secondaries())
     {
@@ -102,6 +103,7 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.sim.track_id = make_track_id(params->init, data, sim.event_id());
             ti.sim.primary_id = sim.primary_id();
             ti.sim.parent_id = track_id;
+            ti.sim.parent_is_primary = parent_is_primary;
             ti.sim.event_id = sim.event_id();
             ti.sim.time = sim.time();
             ti.sim.weight = sim.weight();
@@ -126,6 +128,12 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
                 // the parent's track slot. Keep the parent's geometry state
                 // but get the direction from the secondary.
                 ti.geo.parent = tid;
+                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+                {
+                    // Branch the parent's RNG as for any other secondary:
+                    // initializing the track copies the RNG state
+                    ti.rng = track.rng().branch();
+                }
                 track = ti;
             }
             else

@@ -8,7 +8,6 @@
 
 #include <utility>
 #include <G4LogicalVolumeStore.hh>
-#include <G4ParticleTable.hh>
 #include <G4RunManager.hh>
 #include <G4Threading.hh>
 
@@ -22,6 +21,7 @@
 #include "celeritas/inp/Scoring.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
+#include "detail/GeantParticleUtils.hh"
 #include "detail/HitProcessor.hh"
 #include "detail/SensDetInserter.hh"
 
@@ -29,62 +29,6 @@ using celeritas::detail::SensDetInserter;
 
 namespace celeritas
 {
-//---------------------------------------------------------------------------//
-/*!
- * Per-stream hit processor cache.
- *
- * The weak pointer is used only when creating or recreating a local processor.
- * Step processing uses \c processor directly to avoid locking a weak pointer
- * on every step iteration.
- */
-struct GeantSd::ProcessorSlot
-{
-    std::weak_ptr<HitProcessor> weak_processor;
-    HitProcessor* processor{nullptr};
-};
-
-//---------------------------------------------------------------------------//
-/*!
- * Clear a slot's cached pointers when its hit processor is destroyed.
- *
- * The references between the slot and the processor are cyclic and
- * deliberately non-owning in both directions:
- * \verbatim
-   GeantSd --(shared)--> ProcessorSlot --(weak + raw cache)--> HitProcessor
-                               ^                                    |
-                               +--(weak, via this deleter)----------+
-
-   LocalTransporter --(shared, with this deleter)--> HitProcessor
-   \endverbatim
- *
- * The thread-local transporter shares ownership of the processor, and \c
- * GeantSd owns the slot. Since the cross references are weak, either side
- * may be destroyed first:
- * - when the last local reference to the processor is released (on the
- *   worker thread that created it), this deleter resets the slot's cached
- *   pointers so a later \c make_local_processor call recreates the processor
- *   instead of returning a dangling pointer;
- * - when the \c GeantSd (and thus the slot) is destroyed first, locking the
- *   weak pointer fails and only the processor is deleted.
- */
-struct GeantSd::ProcessorSlotDeleter
-{
-    std::weak_ptr<ProcessorSlot> weak_slot;
-
-    void operator()(HitProcessor* processor) const
-    {
-        if (auto slot = weak_slot.lock())
-        {
-            if (slot->processor == processor)
-            {
-                slot->processor = nullptr;
-                slot->weak_processor.reset();
-            }
-        }
-        delete processor;
-    }
-};
-
 //---------------------------------------------------------------------------//
 namespace
 {
@@ -128,11 +72,14 @@ GeantSd::GeantSd(ParticleParams const& par,
                  Input const& setup,
                  StreamId::size_type num_streams)
     : nonzero_energy_deposition_(setup.ignore_zero_deposition)
+    , processors_{num_streams}
 {
     CELER_EXPECT(num_streams > 0);
 
     // Convert setup options to step data
     selection_.primary_id = setup.track;
+    selection_.parent_id = setup.track;
+    selection_.parent_is_primary = setup.track;
     selection_.particle_id = setup.track;
     selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;
@@ -145,16 +92,6 @@ GeantSd::GeantSd(ParticleParams const& par,
             locate_touchable_[p] = true;
         }
     }
-    // Hit processors MUST be allocated on the thread they're used because of
-    // geant4 thread-local SDs. They MUST also be DEallocated on the same
-    // thread they're created due to Geant4 thread-local allocators.
-    // There must be one hit processor per thread.
-    processor_slots_.reserve(num_streams);
-    for ([[maybe_unused]] auto i : range(num_streams))
-    {
-        processor_slots_.push_back(std::make_shared<ProcessorSlot>());
-    }
-
     // Map detector volumes
     this->setup_volumes(setup);
 
@@ -176,28 +113,19 @@ GeantSd::GeantSd(ParticleParams const& par,
  * Due to Geant4 multithread semantics, this \b must be done on the same CPU
  * thread on which the resulting processor used. It must be done once per
  * thread and can be done separately.
+ *
+ * Hit processors \b must be allocated on the thread they're used because of
+ * Geant4 thread-local SDs. They \b must also be deallocated on the same
+ * thread they're created due to Geant4 thread-local allocators.
  */
 auto GeantSd::make_local_processor(StreamId sid) -> SPProcessor
 {
-    CELER_EXPECT(sid < processor_slots_.size());
+    CELER_EXPECT(sid < processors_.size());
 
-    auto const& slot = processor_slots_[sid.get()];
-    CELER_EXPECT(slot);
-    if (auto result = slot->weak_processor.lock())
-    {
-        CELER_EXPECT(result.get() == slot->processor);
-        return result;
-    }
-
-    slot->processor = nullptr;
-
-    SPProcessor result{
-        new HitProcessor(
-            geant_vols_, particles_, selection_, locate_touchable_),
-        ProcessorSlotDeleter{slot}};
-    slot->weak_processor = result;
-    slot->processor = result.get();
-    return result;
+    return processors_.make(sid, [this] {
+        return new HitProcessor(
+            geant_vols_, particles_, selection_, locate_touchable_);
+    });
 }
 
 //---------------------------------------------------------------------------//
@@ -313,35 +241,7 @@ void GeantSd::setup_particles(ParticleParams const& par)
 {
     CELER_EXPECT(selection_.particle_id);
 
-    auto& g4particles = *G4ParticleTable::GetParticleTable();
-
-    particles_.resize(par.size());
-    std::vector<ParticleId> missing;
-    for (auto pid : range(ParticleId{par.size()}))
-    {
-        int pdg = par.id_to_pdg(pid).get();
-        if (G4ParticleDefinition* particle = g4particles.FindParticle(pdg))
-        {
-            particles_[pid.get()] = particle;
-        }
-        else
-        {
-            missing.push_back(pid);
-        }
-    }
-
-    CELER_VALIDATE(missing.empty(),
-                   << "failed to map Celeritas particles to Geant4: missing "
-                   << join_stream(missing.begin(),
-                                  missing.end(),
-                                  ", ",
-                                  [&par](std::ostream& os, ParticleId pid) {
-                                      os << '"' << par.id_to_label(pid)
-                                         << "\" (ID=" << pid.unchecked_get()
-                                         << ", PDG="
-                                         << par.id_to_pdg(pid).unchecked_get()
-                                         << ")";
-                                  }));
+    particles_ = detail::make_geant_particles(par);
 }
 
 //---------------------------------------------------------------------------//
@@ -350,10 +250,7 @@ void GeantSd::setup_particles(ParticleParams const& par)
  */
 auto GeantSd::get_local_hit_processor(StreamId sid) -> HitProcessor&
 {
-    CELER_EXPECT(sid < processor_slots_.size());
-    auto* result = processor_slots_[sid.get()]->processor;
-    CELER_EXPECT(result);
-    return *result;
+    return processors_.get(sid);
 }
 
 //---------------------------------------------------------------------------//

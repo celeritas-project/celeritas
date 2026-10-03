@@ -43,6 +43,21 @@ char const* to_cstring(TrackStatus value)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get a string corresponding to a hand-back reason.
+ */
+char const* to_cstring(HandBackReason value)
+{
+    static EnumStringMapper<HandBackReason> const to_cstring_impl{
+        "none",
+        "region",
+        "interaction",
+        "user",
+    };
+    return to_cstring_impl(value);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Get a string corresponding to a track ordering policy.
  */
 char const* to_cstring(TrackOrder value)

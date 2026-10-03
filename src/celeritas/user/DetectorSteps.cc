@@ -26,15 +26,43 @@ template<class T>
 using ItemRef
     = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
 
-using DetectorRef = StateRef<DetectorId>;
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the gathered data in a track slot is valid.
+ *
+ * If detectors are used, valid slots have a detector ID; otherwise valid
+ * slots have a track ID.
+ */
+class IsSelected
+{
+  public:
+    using StepDataRef
+        = StepStateDataImpl<Ownership::reference, MemSpace::native>;
+
+    explicit IsSelected(StepDataRef const& data) : data_{data} {}
+
+    //! Number of track slots
+    size_type size() const { return data_.size(); }
+
+    //! Whether the slot is selected
+    bool operator()(TrackSlotId tid) const
+    {
+        return data_.detector_id.empty()
+                   ? static_cast<bool>(data_.track_id[tid])
+                   : static_cast<bool>(data_.detector_id[tid]);
+    }
+
+  private:
+    StepDataRef const& data_;
+};
 
 //---------------------------------------------------------------------------//
-size_type count_num_valid(DetectorRef const& detector)
+size_type count_num_valid(IsSelected const& is_selected)
 {
     size_type size{0};
-    for (DetectorId id : detector[AllItems<DetectorId>{}])
+    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
     {
-        if (id)
+        if (is_selected(tid))
         {
             ++size;
         }
@@ -46,7 +74,7 @@ size_type count_num_valid(DetectorRef const& detector)
 template<class T>
 void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
                   StateRef<T> const& src,
-                  DetectorRef const& detector,
+                  IsSelected const& is_selected,
                   size_type size)
 
 {
@@ -61,9 +89,9 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
     dst->resize(size);
 
     auto iter = dst->begin();
-    for (TrackSlotId tid : range(TrackSlotId{detector.size()}))
+    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
     {
-        if (detector[tid])
+        if (is_selected(tid))
         {
             *iter++ = src[tid];
         }
@@ -75,7 +103,7 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
 template<class T>
 void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
                   ItemRef<T> const& src,
-                  DetectorRef const& detector,
+                  IsSelected const& is_selected,
                   size_type size,
                   size_type per_thread)
 
@@ -91,9 +119,9 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
     dst->resize(size * per_thread);
 
     auto iter = dst->begin();
-    for (TrackSlotId tid : range(TrackSlotId{detector.size()}))
+    for (TrackSlotId tid : range(TrackSlotId{is_selected.size()}))
     {
-        if (detector[tid])
+        if (is_selected(tid))
         {
             for (size_type i = 0; i != per_thread; ++i)
             {
@@ -109,7 +137,10 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
 
 //---------------------------------------------------------------------------//
 /*!
- * Consolidate results from tracks that interacted with a detector.
+ * Consolidate results from selected tracks.
+ *
+ * Tracks are selected if they interacted with a detector or, if no detectors
+ * are used, if their track ID was set during gathering.
  */
 template<>
 void copy_steps<MemSpace::host>(
@@ -120,13 +151,13 @@ void copy_steps<MemSpace::host>(
 
     ScopedProfiling profile_this{"copy-steps"};
 
-    // Get the number of threads that are active and in a detector
-    size_type size = count_num_valid(state.data.detector_id);
+    // Get the number of threads that are active and selected
+    IsSelected const is_selected{state.data};
+    size_type size = count_num_valid(is_selected);
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    assign_field( \
-        &(output->FIELD), state.data.FIELD, state.data.detector_id, size)
+    assign_field(&(output->FIELD), state.data.FIELD, is_selected, size)
 
     DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
@@ -141,7 +172,7 @@ void copy_steps<MemSpace::host>(
         {
             assign_field(&(output->points[sp].volume_instance_ids),
                          state.data.points[sp].volume_instance_ids,
-                         state.data.detector_id,
+                         is_selected,
                          size,
                          state.num_volume_levels);
         }
@@ -149,6 +180,7 @@ void copy_steps<MemSpace::host>(
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(parent_is_primary);
     DS_ASSIGN(primary_id);
     DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);
@@ -156,12 +188,13 @@ void copy_steps<MemSpace::host>(
     DS_ASSIGN(weight);
     DS_ASSIGN(particle_id);
     DS_ASSIGN(energy_deposition);
+    DS_ASSIGN(hand_back_reason);
 
     output->num_volume_levels = state.num_volume_levels;
 
 #undef DS_ASSIGN
 
-    CELER_ENSURE(output->detector_id.size() == size);
+    CELER_ENSURE(output->size() == size);
     CELER_ENSURE(output->track_id.size() == size);
 }
 

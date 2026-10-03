@@ -57,8 +57,10 @@ struct DetectorStepPointOutput
  * selection of the \c StepInterface class that gathered the data.
  *
  * Unlike \c StepStateData, which leaves gaps for inactive or filtered
- * tracks, every entry of these vectors will be valid and correspond to a
- * single DetectorId.
+ * tracks, every entry of these vectors will be valid. If detectors are
+ * defined, each entry corresponds to a single DetectorId; otherwise
+ * \c detector_id is empty and each entry corresponds to a selected track.
+ * Entries are ordered by track slot.
  */
 struct DetectorStepOutput
 {
@@ -80,6 +82,7 @@ struct DetectorStepOutput
     // Additional optional data (sim)
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
+    PinnedVec<char> parent_is_primary;
     PinnedVec<PrimaryId> primary_id;
     PinnedVec<ActionId> post_step_action_id;
     PinnedVec<size_type> track_step_count;
@@ -90,15 +93,21 @@ struct DetectorStepOutput
     PinnedVec<ParticleId> particle_id;
     PinnedVec<Energy> energy_deposition;
 
+    // Additional optional data (hand-back)
+    PinnedVec<HandBackReason> hand_back_reason;
+
     // 2D size for volume instances
     size_type num_volume_levels{0};
 
     //// METHODS ////
 
     //! Number of elements in the detector output.
-    size_type size() const { return detector_id.size(); }
+    size_type size() const
+    {
+        return detector_id.empty() ? track_id.size() : detector_id.size();
+    }
     //! Whether the size is nonzero
-    explicit operator bool() const { return !detector_id.empty(); }
+    explicit operator bool() const { return this->size() != 0; }
 };
 
 //---------------------------------------------------------------------------//
@@ -116,12 +125,37 @@ void copy_steps<MemSpace::device>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&);
 
+// Compact selected device step data without synchronizing the stream
+void compact_steps_async(
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    size_type* num_selected);
+
+// Copy device step data compacted by compact_steps_async
+void copy_compacted_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    size_type num_selected);
+
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
 inline void copy_steps<MemSpace::device>(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void compact_steps_async(
+    StepStateData<Ownership::reference, MemSpace::device> const&, size_type*)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void copy_compacted_steps(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    size_type)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

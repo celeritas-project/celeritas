@@ -1,18 +1,27 @@
-//------------------------------ -*- cuda -*- -------------------------------//
+//------------------------------- -*- C++ -*- -------------------------------//
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/detail/Filler.cu
+//! \file celeritas/ext/detail/GeantParticleUtils.hh
+//! \sa test/celeritas/ext/GeantSd.test.cc
 //---------------------------------------------------------------------------//
-#include "corecel/data/Filler.device.t.hh"
-#include "celeritas/Types.hh"
-#include "celeritas/track/CoreStateCounters.hh"
+#pragma once
+
+#include <vector>
+
+class G4ParticleDefinition;
 
 namespace celeritas
 {
+class ParticleParams;
+
+namespace detail
+{
 //---------------------------------------------------------------------------//
-template class Filler<TrackStatus, MemSpace::device>;
-template class Filler<CoreStateCounters, MemSpace::device>;
-template class Filler<HandBackReason, MemSpace::device>;
+// Map every Celeritas particle ID to a Geant4 particle definition
+std::vector<G4ParticleDefinition const*> make_geant_particles(
+    ParticleParams const& par);
+
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

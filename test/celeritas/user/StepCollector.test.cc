@@ -7,6 +7,8 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
@@ -24,11 +26,13 @@
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/SimpleCalo.hh"
 
 #include "CaloTestBase.hh"
 #include "ExampleInstanceCalo.hh"
 #include "ExampleMctruth.hh"
+#include "HandBackTestAction.hh"
 #include "MctruthTestBase.hh"
 #include "celeritas_test.hh"
 
@@ -61,6 +65,117 @@ class CountingStepInterface final : public StepInterface
 
   private:
     size_type num_steps_{};
+};
+
+// Record compacted end-of-step data, optionally only for handed-back tracks
+class HandBackRecorder final : public StepInterface
+{
+  public:
+    struct Entry
+    {
+        PrimaryId primary;
+        TrackId track;
+        ActionId post_step_action;
+        HandBackReason reason{HandBackReason::none};
+    };
+    using VecEntry = std::vector<Entry>;
+
+    explicit HandBackRecorder(bool hand_back) : hand_back_{hand_back} {}
+
+    Filters filters() const final
+    {
+        Filters result;
+        result.hand_back = hand_back_;
+        return result;
+    }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.points[StepPoint::post].pos = true;
+        result.points[StepPoint::post].energy = true;
+        result.primary_id = true;
+        result.post_step_action_id = true;
+        result.parent_id = true;
+        result.parent_is_primary = true;
+        return result;
+    }
+
+    void process_steps(HostStepState state) final { this->record(state); }
+    void process_steps(DeviceStepState state) final { this->record(state); }
+
+    //! Entries for each step
+    std::vector<VecEntry> const& steps() const { return steps_; }
+
+    //! Whether the parent of each recorded track is a primary
+    std::map<std::pair<PrimaryId, TrackId>, std::pair<TrackId, bool>> const&
+    parents() const
+    {
+        return parents_;
+    }
+
+  private:
+    bool hand_back_;
+    std::vector<VecEntry> steps_;
+    std::map<std::pair<PrimaryId, TrackId>, std::pair<TrackId, bool>> parents_;
+
+    // Check the "parent is primary" flags, returning the number of tracks
+    // whose parent is a primary and the number of deeper descendants
+  public:
+    std::pair<size_type, size_type> check_parent_flags() const
+    {
+        size_type num_children{0};
+        size_type num_descendants{0};
+        for (auto const& [key, value] : parents_)
+        {
+            auto const& [parent, parent_is_primary] = value;
+            if (!parent)
+            {
+                // Primaries have no parent
+                EXPECT_FALSE(parent_is_primary);
+                continue;
+            }
+            auto iter = parents_.find({key.first, parent});
+            if (iter == parents_.end())
+            {
+                ADD_FAILURE() << "parent " << parent.get() << " of track "
+                              << key.second.get() << " was never recorded";
+                continue;
+            }
+            bool const expected = !iter->second.first;
+            EXPECT_EQ(expected, parent_is_primary)
+                << "track " << key.second.get();
+            ++(expected ? num_children : num_descendants);
+        }
+        return {num_children, num_descendants};
+    }
+
+    template<MemSpace M>
+    void record(StepState<M> const& state)
+    {
+        DetectorStepOutput out;
+        copy_steps(&out, state.steps);
+        EXPECT_TRUE(out.detector_id.empty());
+        EXPECT_EQ(out.size(), out.track_id.size());
+        EXPECT_EQ(hand_back_ ? out.size() : 0, out.hand_back_reason.size());
+        auto& entries = steps_.emplace_back();
+        for (auto i : range(out.size()))
+        {
+            Entry e;
+            e.primary = out.primary_id[i];
+            e.track = out.track_id[i];
+            e.post_step_action = out.post_step_action_id[i];
+            if (hand_back_)
+            {
+                // Handed-back tracks are killed without losing energy
+                e.reason = out.hand_back_reason[i];
+                EXPECT_GT(out.points[StepPoint::post].energy[i].value(), 0);
+            }
+            entries.push_back(e);
+            parents_[{e.primary, e.track}] = {
+                out.parent_id[i], static_cast<bool>(out.parent_is_primary[i])};
+        }
+    }
 };
 }  // namespace
 
@@ -144,6 +259,100 @@ class KnWarmupTest : public KnSimpleLoopTestBase
         EXPECT_EQ(2, result.active);
         EXPECT_EQ(2, callback->num_steps());
     }
+};
+
+//---------------------------------------------------------------------------//
+
+class KnHandBackTest : public KnSimpleLoopTestBase
+{
+  protected:
+    using VecEntry = HandBackRecorder::VecEntry;
+
+    void SetUp() override
+    {
+        // Build core params, which registers the boundary action
+        this->core();
+        auto& action_reg = *this->action_reg();
+        boundary_ = action_reg.find_action("geo-boundary");
+        CELER_ASSERT(boundary_);
+        action_reg.insert(std::make_shared<HandBackTestAction>(
+            action_reg.next_id(), boundary_));
+
+        all_ = std::make_shared<HandBackRecorder>(false);
+        all_collector_ = StepCollector::make_and_insert(*this->core(), {all_});
+        handed_back_ = std::make_shared<HandBackRecorder>(true);
+        hand_back_collector_
+            = StepCollector::make_and_insert(*this->core(), {handed_back_});
+    }
+
+    template<MemSpace M>
+    void run_and_check(size_type num_tracks, size_type num_steps)
+    {
+        this->run_impl<M>(num_tracks, num_steps);
+
+        auto const& all_steps = all_->steps();
+        auto const& hb_steps = handed_back_->steps();
+        ASSERT_EQ(all_steps.size(), hb_steps.size());
+        ASSERT_FALSE(all_steps.empty());
+
+        // Unfiltered collection includes every active track
+        EXPECT_EQ(num_tracks, all_steps.front().size());
+
+        // Step at which each track was handed back
+        std::map<std::pair<PrimaryId, TrackId>, size_type> handed_back;
+        for (auto step : range(all_steps.size()))
+        {
+            // Every handed-back track hit a boundary and was marked by the
+            // test action
+            VecEntry expected;
+            for (auto const& e : all_steps[step])
+            {
+                if (e.post_step_action == boundary_)
+                {
+                    expected.push_back(e);
+                }
+            }
+            VecEntry const& actual = hb_steps[step];
+            ASSERT_EQ(expected.size(), actual.size()) << "step " << step;
+            for (auto i : range(actual.size()))
+            {
+                EXPECT_EQ(expected[i].primary, actual[i].primary);
+                EXPECT_EQ(expected[i].track, actual[i].track);
+                EXPECT_EQ(boundary_, actual[i].post_step_action);
+                EXPECT_EQ(HandBackReason::user, actual[i].reason);
+                // Each track is handed back (and killed) only once
+                EXPECT_TRUE(handed_back
+                                .insert({{actual[i].primary, actual[i].track},
+                                         static_cast<size_type>(step)})
+                                .second);
+            }
+        }
+        EXPECT_FALSE(handed_back.empty());
+
+        // Compton electrons are children of primary photons
+        auto [num_children, num_descendants] = all_->check_parent_flags();
+        EXPECT_GT(num_children, 0);
+        EXPECT_EQ(0, num_descendants);
+
+        // A handed-back track is never transported again
+        for (auto step : range(all_steps.size()))
+        {
+            for (auto const& e : all_steps[step])
+            {
+                auto iter = handed_back.find({e.primary, e.track});
+                if (iter != handed_back.end())
+                {
+                    EXPECT_LE(step, iter->second);
+                }
+            }
+        }
+    }
+
+    ActionId boundary_;
+    std::shared_ptr<HandBackRecorder> all_;
+    std::shared_ptr<HandBackRecorder> handed_back_;
+    std::shared_ptr<StepCollector> all_collector_;
+    std::shared_ptr<StepCollector> hand_back_collector_;
 };
 
 //---------------------------------------------------------------------------//
@@ -309,6 +518,59 @@ TEST_F(KnWarmupTest, TEST_IF_CELER_DEVICE(device))
 }
 
 //---------------------------------------------------------------------------//
+// HAND-BACK
+//---------------------------------------------------------------------------//
+
+TEST_F(KnHandBackTest, host)
+{
+    this->run_and_check<MemSpace::host>(8, 32);
+}
+
+TEST_F(KnHandBackTest, TEST_IF_CELER_DEVICE(device))
+{
+    this->run_and_check<MemSpace::device>(8, 32);
+}
+
+TEST_F(KnSimpleLoopTestBase, hand_back_with_detectors)
+{
+    // A single callback cannot filter on both detectors and hand-back
+    class BothFilters final : public StepInterface
+    {
+      public:
+        explicit BothFilters(VolumeId vol) : vol_{vol} {}
+        Filters filters() const final
+        {
+            Filters result;
+            result.detectors[vol_] = DetectorId{0};
+            result.hand_back = true;
+            return result;
+        }
+        StepSelection selection() const final
+        {
+            StepSelection result;
+            result.energy_deposition = true;
+            return result;
+        }
+        void process_steps(HostStepState) final {}
+        void process_steps(DeviceStepState) final {}
+
+      private:
+        VolumeId vol_;
+    };
+
+    auto both = std::make_shared<BothFilters>(VolumeId{0});
+    EXPECT_THROW(StepCollector::make_and_insert(*this->core(), {both}),
+                 celeritas::RuntimeError);
+
+    // Hand-back and unfiltered callbacks cannot be mixed
+    StepCollector::VecInterface interfaces
+        = {std::make_shared<HandBackRecorder>(true),
+           std::make_shared<HandBackRecorder>(false)};
+    EXPECT_THROW(StepCollector::make_and_insert(*this->core(), interfaces),
+                 celeritas::RuntimeError);
+}
+
+//---------------------------------------------------------------------------//
 // KLEIN-NISHINA
 //---------------------------------------------------------------------------//
 
@@ -381,6 +643,23 @@ TEST_F(KnCaloTest, single_track)
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
+
+#define TestEm3ParentTest TEST_IF_CELERITAS_GEANT(TestEm3ParentTest)
+class TestEm3ParentTest : public TestEm3CollectorTestBase
+{
+};
+
+TEST_F(TestEm3ParentTest, parent_is_primary)
+{
+    // All primaries are in a single event: track IDs are unique
+    auto recorder = std::make_shared<HandBackRecorder>(false);
+    auto collector = StepCollector::make_and_insert(*this->core(), {recorder});
+    this->run_impl<MemSpace::host>(16, 64);
+
+    auto [num_children, num_descendants] = recorder->check_parent_flags();
+    EXPECT_GT(num_children, 0);
+    EXPECT_GT(num_descendants, 0);
+}
 
 TEST_F(TestEm3MctruthTest, four_step)
 {

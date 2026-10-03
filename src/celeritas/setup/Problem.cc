@@ -35,6 +35,7 @@
 #include "celeritas/alongstep/AlongStepUniformMscAction.hh"
 #include "celeritas/em/params/UrbanMscParams.hh"
 #include "celeritas/em/params/WentzelOKVIParams.hh"
+#include "celeritas/ext/GeantHandBack.hh"
 #include "celeritas/ext/GeantPhysicsOptions.hh"
 #include "celeritas/ext/GeantSd.hh"
 #include "celeritas/ext/GeantSetup.hh"
@@ -707,6 +708,17 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
         // NOTE: step collector primarily *builds* the actions
         result.step_collector = StepCollector::make_and_insert(
             *core_params, std::move(step_interfaces));
+    }
+
+    if (auto const& hb = p.tracking.hand_back)
+    {
+        // Hand-back data is gathered by a separate collector
+        GeantHandBack::Input inp;
+        inp.locate_touchable = hb->locate_touchable;
+        result.geant_hand_back
+            = std::make_shared<GeantHandBack>(inp, num_streams);
+        result.hand_back_collector = StepCollector::make_and_insert(
+            *core_params, {result.geant_hand_back});
     }
 
     if (p.control.optical_capacity)

@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -238,6 +239,9 @@ struct SetupOptions
 
     //! Sensitive detector options
     SDSetupOptions sd;
+
+    //! Hand back tracks marked during transport to Geant4 [EXPERIMENTAL]
+    std::optional<inp::HandBack> hand_back;
 
     //!@{
     //! \name Physics options
