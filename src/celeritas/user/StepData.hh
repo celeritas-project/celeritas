@@ -375,6 +375,9 @@ struct StepStateData
     //! Thread IDs of active tracks that are in a detector
     StateItems<size_type> valid_id;
 
+    //! Number of selected tracks after device compaction (single element)
+    Collection<size_type, W, M> num_selected;
+
     // Copy of params max depth for dimensioning volume_instance_ids
     size_type num_volume_levels{0};
 
@@ -392,6 +395,8 @@ struct StepStateData
         };
 
         return data.size() > 0 && right_sized(scratch) && right_sized(valid_id)
+               && (num_selected.size() == 1
+                   || (num_selected.empty() && M == MemSpace::host))
                && stream_id;
     }
 
@@ -407,6 +412,7 @@ struct StepStateData
         data = other.data;
         scratch = other.scratch;
         valid_id = other.valid_id;
+        num_selected = other.num_selected;
         num_volume_levels = other.num_volume_levels;
         stream_id = other.stream_id;
         return *this;
@@ -517,6 +523,7 @@ inline void resize(StepStateData<Ownership::value, M>* state,
         // Allocate extra space on device for gathering step data
         resize(&state->scratch, params, size);
         resize(&state->valid_id, size);
+        resize(&state->num_selected, 1);
     }
 }
 
