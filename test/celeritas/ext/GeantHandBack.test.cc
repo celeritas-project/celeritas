@@ -100,10 +100,11 @@ class GeantHandBackTest : public SimpleCmsTestBase
 
         Primary result;
         result.particle_id = this->particle()->find(pdg::electron());
-        result.energy = units::MevEnergy{10};
-        // Start just inside the tracker so the electron reaches the
-        // calorimeter boundary
-        result.position = from_cm(Real3{0, 124.9, 0});
+        result.energy = units::MevEnergy{1000};
+        // Start inside the tracker so that the electron reaches the
+        // calorimeter boundary after making bremsstrahlung photons, which
+        // also cross it
+        result.position = from_cm(Real3{0, 120, 0});
         result.direction = {0, 1, 0};
         result.event_id = EventId{0};
         result.primary_id = recon_->acquire(g4track);
