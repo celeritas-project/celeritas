@@ -207,7 +207,8 @@ void GeantHandBackTest::check_tracks(VecTrack const& tracks) const
         EXPECT_EQ(HandBackReason::user, hb.reason);
         EXPECT_TRUE(hb.celer_track_id);
         EXPECT_GT(track.GetKineticEnergy(), 0);
-        EXPECT_SOFT_EQ(1.0, track.GetMomentumDirection().mag());
+        // Direction is reconstructed from native (possibly single) precision
+        EXPECT_SOFT_NEAR(1.0, track.GetMomentumDirection().mag(), coarse_eps);
         EXPECT_GT(track.GetGlobalTime(), 0);
         EXPECT_EQ(track.GetPosition(), track.GetVertexPosition());
         EXPECT_EQ(fAlive, track.GetTrackStatus());
