@@ -24,6 +24,8 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
+#include "detail/GeantPlaceholderProcess.hh"
+
 namespace celeritas
 {
 namespace
@@ -94,6 +96,7 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
 GeantTrackReconstruction::GeantTrackReconstruction(
     VecParticle const& particles, SPStep step)
     : step_(std::move(step))
+    , placeholder_{std::make_unique<detail::GeantPlaceholderProcess>()}
 {
     CELER_EXPECT(!particles.empty());
     CELER_EXPECT(step_);
@@ -264,6 +267,55 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 {
     G4Track& track = this->view(particle_id);
     this->acquired(primary_id).restore(track);
+    return track;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Geant4 track ID of a track created by Celeritas.
+ *
+ * Celeritas track IDs are unique within an event and start at zero for each
+ * event. Like AdePT, they are mapped to Geant4 IDs counting down from the
+ * largest integer, so that they never collide with the IDs that Geant4
+ * assigns in increasing order.
+ */
+int GeantTrackReconstruction::geant_track_id(TrackId track)
+{
+    CELER_EXPECT(track);
+    constexpr auto max_id = std::numeric_limits<int>::max();
+    CELER_VALIDATE(track.get() < static_cast<TrackId::size_type>(max_id / 2),
+                   << "Celeritas track ID " << track.get()
+                   << " is too large to be mapped to a Geant4 track ID");
+    return max_id - static_cast<int>(track.get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the Geant4 identity of any Celeritas track.
+ *
+ * A track without a parent is the offloaded Geant4 track and is restored with
+ * its original information. A track created by Celeritas is given its own
+ * identity (see the class documentation).
+ */
+G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
+                                        PrimaryId primary_id,
+                                        TrackId track_id,
+                                        TrackId parent_id,
+                                        bool parent_is_primary) const
+{
+    if (!parent_id)
+    {
+        CELER_EXPECT(!parent_is_primary);
+        return this->view(particle_id, primary_id);
+    }
+
+    auto const& data = this->acquired(primary_id);
+    G4Track& track = this->view(particle_id);
+    track.SetTrackID(geant_track_id(track_id));
+    track.SetParentID(parent_is_primary ? data.track_id
+                                        : geant_track_id(parent_id));
+    track.SetUserInformation(nullptr);
+    track.SetCreatorProcess(placeholder_.get());
     return track;
 }
 

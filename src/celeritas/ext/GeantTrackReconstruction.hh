@@ -47,6 +47,18 @@ enum class TrackOrigin
  * - then it can be initialized with a new event, or new primaries can be
  *   added to the current event.
  *
+ * \par Track identity
+ * A Celeritas track without a parent \em is the Geant4 track that was
+ * offloaded: it is reconstructed with the original track ID, parent ID,
+ * creator process, and user information. A track created by Celeritas has
+ * its own Geant4 identity, which never refers to the information of its
+ * offloaded ancestor:
+ * - its track ID is \c geant_track_id of its Celeritas track ID,
+ * - its parent ID is the original ID of the offloaded track if its parent is
+ *   that track, and otherwise the mapped ID of its Celeritas parent,
+ * - its creator process is an inert placeholder named "celeritas", and
+ * - it has no user information.
+ *
  * \par User information
  * The user information of an offloaded track is owned by this class from \c
  * acquire until \c clear, since hits from any of its Celeritas descendants
@@ -105,11 +117,24 @@ class GeantTrackReconstruction
     // Reset primary ID at each event start
     void init_event();
 
+    // Geant4 track ID of a track created by Celeritas
+    static int geant_track_id(TrackId);
+
     // Restore track information for given primary and particle IDs
     [[nodiscard]] G4Track& view(ParticleId, PrimaryId) const;
 
+    // Restore the Geant4 identity of any Celeritas track
+    [[nodiscard]] G4Track& view(ParticleId particle,
+                                PrimaryId primary,
+                                TrackId track,
+                                TrackId parent,
+                                bool parent_is_primary) const;
+
     // View a track with the given particle ID
     [[nodiscard]] G4Track& view(ParticleId) const;
+
+    //! Creator process reported for tracks created by Celeritas
+    G4VProcess const& placeholder_process() const { return *placeholder_; }
 
     // Create a new track to hand back to Geant4
     [[nodiscard]] UPTrack create(ParticleId, PrimaryId, TrackOrigin) const;
@@ -154,6 +179,8 @@ class GeantTrackReconstruction
     std::vector<std::unique_ptr<G4Track>> tracks_;
     //! Shared step object
     SPStep step_;
+    //! Creator process of Celeritas tracks
+    std::unique_ptr<G4VProcess> placeholder_;
     //! Starting primary id
     PrimaryId start_{0};
     //! Last G4 event ID for error checking
