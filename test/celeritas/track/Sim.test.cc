@@ -155,6 +155,30 @@ TEST_F(SimTest, weight)
     EXPECT_EQ(expected_weight, sim.weight());
 }
 
+TEST_F(SimTest, parent_is_primary)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.event_id = EventId{0};
+    sim = init;
+    EXPECT_FALSE(sim.parent_is_primary());
+
+    // Secondary of a primary
+    init.track_id = TrackId{2};
+    init.parent_id = TrackId{0};
+    init.parent_is_primary = true;
+    sim = init;
+    EXPECT_TRUE(sim.parent_is_primary());
+
+    // Reinitializing the slot resets the flag
+    init.track_id = TrackId{3};
+    init.parent_id = TrackId{2};
+    init.parent_is_primary = false;
+    sim = init;
+    EXPECT_FALSE(sim.parent_is_primary());
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas

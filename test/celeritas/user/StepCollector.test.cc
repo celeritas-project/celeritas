@@ -7,6 +7,8 @@
 #include "celeritas/user/StepCollector.hh"
 
 #include <algorithm>
+#include <map>
+#include <utility>
 
 #include "corecel/cont/Span.hh"
 #include "corecel/io/LogContextException.hh"
@@ -61,6 +63,70 @@ class CountingStepInterface final : public StepInterface
 
   private:
     size_type num_steps_{};
+};
+
+// Record the parent of every track and whether it is a primary (host only)
+class ParentRecorder final : public StepInterface
+{
+  public:
+    Filters filters() const final { return {}; }
+
+    StepSelection selection() const final
+    {
+        StepSelection result;
+        result.primary_id = true;
+        result.parent_id = true;
+        result.parent_is_primary = true;
+        return result;
+    }
+
+    void process_steps(HostStepState state) final
+    {
+        auto const& data = state.steps.data;
+        for (auto tid : range(TrackSlotId{data.size()}))
+        {
+            if (TrackId track = data.track_id[tid])
+            {
+                parents_[{data.primary_id[tid], track}]
+                    = {data.parent_id[tid],
+                       static_cast<bool>(data.parent_is_primary[tid])};
+            }
+        }
+    }
+    void process_steps(DeviceStepState) final { CELER_ASSERT_UNREACHABLE(); }
+
+    // Check the "parent is primary" flags, returning the number of tracks
+    // whose parent is a primary and the number of deeper descendants
+    std::pair<size_type, size_type> check_parent_flags() const
+    {
+        size_type num_children{0};
+        size_type num_descendants{0};
+        for (auto const& [key, value] : parents_)
+        {
+            auto const& [parent, parent_is_primary] = value;
+            if (!parent)
+            {
+                // Primaries have no parent
+                EXPECT_FALSE(parent_is_primary);
+                continue;
+            }
+            auto iter = parents_.find({key.first, parent});
+            if (iter == parents_.end())
+            {
+                ADD_FAILURE() << "parent " << parent.get() << " of track "
+                              << key.second.get() << " was never recorded";
+                continue;
+            }
+            bool const expected = !iter->second.first;
+            EXPECT_EQ(expected, parent_is_primary)
+                << "track " << key.second.get();
+            ++(expected ? num_children : num_descendants);
+        }
+        return {num_children, num_descendants};
+    }
+
+  private:
+    std::map<std::pair<PrimaryId, TrackId>, std::pair<TrackId, bool>> parents_;
 };
 }  // namespace
 
@@ -381,6 +447,23 @@ TEST_F(KnCaloTest, single_track)
 //---------------------------------------------------------------------------//
 // TESTEM3
 //---------------------------------------------------------------------------//
+
+#define TestEm3ParentTest TEST_IF_CELERITAS_GEANT(TestEm3ParentTest)
+class TestEm3ParentTest : public TestEm3CollectorTestBase
+{
+};
+
+TEST_F(TestEm3ParentTest, parent_is_primary)
+{
+    // All primaries are in a single event: track IDs are unique
+    auto recorder = std::make_shared<ParentRecorder>();
+    auto collector = StepCollector::make_and_insert(*this->core(), {recorder});
+    this->run_impl<MemSpace::host>(16, 64);
+
+    auto [num_children, num_descendants] = recorder->check_parent_flags();
+    EXPECT_GT(num_children, 0);
+    EXPECT_GT(num_descendants, 0);
+}
 
 TEST_F(TestEm3MctruthTest, four_step)
 {

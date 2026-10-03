@@ -81,6 +81,9 @@ class SimTrackView
     // Track ID of parent
     inline CELER_FUNCTION TrackId parent_id() const;
 
+    // Whether the parent of this track is a primary
+    inline CELER_FUNCTION bool parent_is_primary() const;
+
     // Event ID
     inline CELER_FUNCTION EventId event_id() const;
 
@@ -153,6 +156,7 @@ CELER_FUNCTION SimTrackView& SimTrackView::operator=(Initializer_t const& other)
     states_.track_ids[track_slot_] = other.track_id;
     states_.primary_ids[track_slot_] = other.primary_id;
     states_.parent_ids[track_slot_] = other.parent_id;
+    states_.parent_is_primary[track_slot_] = other.parent_is_primary;
     states_.event_ids[track_slot_] = other.event_id;
     states_.num_steps[track_slot_] = 0;
     states_.weight[track_slot_] = other.weight;
@@ -349,6 +353,20 @@ CELER_FORCEINLINE_FUNCTION PrimaryId SimTrackView::primary_id() const
 CELER_FORCEINLINE_FUNCTION TrackId SimTrackView::parent_id() const
 {
     return states_.parent_ids[track_slot_];
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether the parent of this track is a primary.
+ *
+ * This is true for secondaries created by a primary track (one without a
+ * parent), and false for primaries and their deeper descendants. It allows
+ * the host application to map the parent of a secondary to the original
+ * (e.g., Geant4) identity of the primary.
+ */
+CELER_FORCEINLINE_FUNCTION bool SimTrackView::parent_is_primary() const
+{
+    return states_.parent_is_primary[track_slot_];
 }
 
 //---------------------------------------------------------------------------//

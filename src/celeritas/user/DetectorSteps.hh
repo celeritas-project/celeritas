@@ -80,6 +80,7 @@ struct DetectorStepOutput
     // Additional optional data (sim)
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
+    PinnedVec<char> parent_is_primary;
     PinnedVec<PrimaryId> primary_id;
     PinnedVec<ActionId> post_step_action_id;
     PinnedVec<size_type> track_step_count;
