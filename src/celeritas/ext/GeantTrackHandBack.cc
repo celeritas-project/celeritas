@@ -9,7 +9,11 @@
 #include <algorithm>
 #include <G4Event.hh>
 #include <G4EventManager.hh>
+#include <G4GeometryTolerance.hh>
 #include <G4StackManager.hh>
+#include <G4Step.hh>
+#include <G4StepPoint.hh>
+#include <G4StepStatus.hh>
 #include <G4Track.hh>
 #include <G4TrackingManager.hh>
 #include <G4TrajectoryContainer.hh>
@@ -52,6 +56,32 @@ void store_trajectory(G4VTrajectory* trajectory)
         event->SetTrajectoryContainer(container);
     }
     container->insert(trajectory);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Move a track that stopped on a geometry boundary into the next volume.
+ *
+ * A track stopped by Geant4 on a boundary is located by its position when it
+ * is offloaded again, which places it in either volume (the Geant4 geometry
+ * backend picks the one it is leaving and then fails to take a step).
+ * Moving the track by a few times the Geant4 surface tolerance along its
+ * direction removes the ambiguity, except for nearly tangent directions.
+ *
+ * This must be called right after the track was tracked: the step it points
+ * to is shared by all tracks.
+ */
+void move_off_boundary(G4Track& track)
+{
+    G4Step const* step = track.GetStep();
+    if (!step || step->GetPostStepPoint()->GetStepStatus() != fGeomBoundary)
+    {
+        return;
+    }
+    double const distance
+        = 10 * G4GeometryTolerance::GetInstance()->GetSurfaceTolerance();
+    track.SetPosition(
+        track.GetPosition() + distance * track.GetMomentumDirection());
 }
 
 //---------------------------------------------------------------------------//
@@ -179,6 +209,7 @@ bool GeantTrackHandBack::process(G4Track* track)
             // Stack the track again *without* the hand-back mark so that it
             // is offloaded to Celeritas when popped
             store_trajectory(trajectory);
+            move_off_boundary(*track);
             static_cast<void>(GeantTrackHandBack::stack(track));
             stack_tracks(secondaries);
             break;
