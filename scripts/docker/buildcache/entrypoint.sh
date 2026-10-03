@@ -19,8 +19,6 @@ if [ ! -f "${ACTION_FILE}" ]; then
   exit 1
 fi
 
-# Parse the pins with the script from the same checkout as the action file,
-# rather than from a copy in the image
 pins=$(python3 "${CELER_SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
   "${ACTION_FILE}")
 eval "${pins}"

@@ -7,8 +7,8 @@
 # pinned by .github/actions/setup-spack. Additional arguments are passed to
 # each build command, e.g. --no-cache.
 #
-# Docker builds use BuildKit through the buildx plugin, since the legacy
-# builder is deprecated. Podman is used if Docker is unavailable or cannot
+# Docker builds use BuildKit through the buildx plugin.
+# Podman is used if Docker is unavailable or cannot
 # reach its daemon (e.g. without root access). Set DOCKER to override the
 # container engine, e.g. DOCKER=podman-hpc.
 #-----------------------------------------------------------------------------#
