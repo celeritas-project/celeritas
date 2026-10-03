@@ -38,6 +38,8 @@ def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
     missing = repo_root / "test" / "example.test.cc"
     source.parent.mkdir()
     source.touch()
+    missing.parent.mkdir()
+    missing.touch()
     (build_dir / "compile_commands.json").write_text(
         json.dumps(
             [
@@ -58,10 +60,10 @@ def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
         compilation_database,
     )
 
-    assert result == [str(missing)]
+    assert result == []
     output = capsys.readouterr()
     assert "Compilation database entry:" not in output.err
-    assert "::error file=test/example.test.cc,line=" in output.err
+    assert "::warning file=test/example.test.cc,line=" in output.err
     assert "Source 'test/example.test.cc' selected for clang-tidy" in output.err
     assert "no compilation database entry" in output.err
 
@@ -221,6 +223,37 @@ def test_run_source_tidy_skips_cuda_and_checks_cc(build_tree, monkeypatch, capsy
     assert "Skipping changed CUDA source in .cc-only" in capsys.readouterr().err
 
 
+def test_run_source_tidy_skips_source_without_compile_command(
+    build_tree, monkeypatch, capsys
+):
+    repo_root, build_dir = build_tree
+    source = repo_root / "src/example.cc"
+    source.parent.mkdir()
+    source.touch()
+    (build_dir / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr(
+        _MODULE.subprocess,
+        "run",
+        lambda *args, **kwargs: pytest.fail("clang-tidy-diff should be skipped"),
+    )
+
+    assert (
+        run_source_tidy(
+            Namespace(
+                clang_tidy="clang-tidy",
+                clang_tidy_diff=Path("clang-tidy-diff.py"),
+                print_compile_commands=False,
+            ),
+            "diff",
+            {Path("src/example.cc")},
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert "::warning file=src/example.cc,line=" in capsys.readouterr().err
+
+
 def test_run_source_tidy_cuda_only_skips_runner(build_tree, monkeypatch, capsys):
     repo_root, build_dir = build_tree
 
@@ -339,6 +372,42 @@ def test_run_header_tidy_skips_unrelated_missing_scan_input(
     assert "Skipping unavailable dependency-scan source 'src/unrelated.cc'" in (
         capsys.readouterr().err
     )
+
+
+def test_run_header_tidy_skips_source_without_compile_command(
+    build_tree, monkeypatch, capsys
+):
+    repo_root, build_dir = build_tree
+    source = repo_root / "src/example.cc"
+    source.parent.mkdir()
+    source.touch()
+    (build_dir / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
+    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: None)
+    monkeypatch.setattr(_MODULE, "select_sources", lambda **kwargs: ["src/example.cc"])
+    monkeypatch.setattr(
+        _MODULE,
+        "run_tidy",
+        lambda *args: pytest.fail("run-clang-tidy should be skipped"),
+    )
+
+    assert (
+        run_header_tidy(
+            Namespace(
+                clang_scan_deps="clang-scan-deps",
+                run_clang_tidy="run-clang-tidy",
+                clang_tidy="clang-tidy",
+                header_source_selection=_MODULE.SourceSelection.ALL,
+                print_compile_commands=False,
+            ),
+            {Path("src/example.hh")},
+            set(),
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert "::warning file=src/example.cc,line=" in capsys.readouterr().err
 
 
 def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
