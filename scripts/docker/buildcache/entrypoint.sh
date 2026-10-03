@@ -19,7 +19,10 @@ if [ ! -f "${ACTION_FILE}" ]; then
   exit 1
 fi
 
-pins=$(python3 "$(dirname "$0")/spack-pins.py" "${ACTION_FILE}")
+# Parse the pins with the script from the same checkout as the action file,
+# rather than from a copy in the image
+pins=$(python3 "${CELER_SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
+  "${ACTION_FILE}")
 eval "${pins}"
 if [ "${SPACK_REF}" != "${CELER_SPACK_REF}" ] \
     || [ "${SPACK_PACKAGES_REF}" != "${CELER_SPACK_PACKAGES_REF}" ]; then

@@ -25,7 +25,7 @@ if ! command -v ${DOCKER} >/dev/null 2>&1; then
   exit 1
 fi
 
-pins=$(python3 "${SCRIPT_DIR}/spack-pins.py" \
+pins=$(python3 "${SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
   "${SOURCE_DIR}/.github/actions/setup-spack/action.yml")
 eval "${pins}"
 TAG=$(printf "%.7s-%.7s" "${SPACK_REF}" "${SPACK_PACKAGES_REF}")

@@ -8,7 +8,9 @@ The output is a pair of shell assignments suitable for ``eval``::
     SPACK_REF=<sha>
     SPACK_PACKAGES_REF=<sha>
 
-Only the standard library is used so that this runs with any host python3.
+It is used to build and check the Spack buildcache container image (see
+``scripts/docker/buildcache``). Only the standard library is used so that this
+runs with any host python3.
 """
 
 import re

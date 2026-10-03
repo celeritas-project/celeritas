@@ -88,7 +88,7 @@ FROM spack-base AS buildcache
 
 LABEL description="Celeritas Spack buildcache builder for GitHub CI"
 
-COPY entrypoint.sh spack-pins.py /opt/celeritas/
+COPY entrypoint.sh /opt/celeritas/
 
 # Allow container root (see above) to configure autotools packages
 ENV FORCE_UNSAFE_CONFIGURE=1 \
