@@ -247,36 +247,38 @@ CELER_FUNCTION VecgeomTrackView& VecgeomTrackView::operator=(
             other.vgstate_.CopyTo(&vgstate_);
             pos_ = other.pos_;
         }
+        // Cancel any pending boundary crossing
+        vgnext_.SetBoundaryState(false);
+
+        CELER_ENSURE(this->pos() == init.pos);
+        CELER_ENSURE(!this->is_next_boundary());
+        return *this;
     }
-    else
+
+    // Initialize the state from a position
+    pos_ = init.pos;
+
+    // Set up current state and locate daughter volume
+    vgstate_.Clear();
+    auto const* world = params_.scalars.world<MemSpace::native>();
+    // LocatePointIn sets `vgstate_`
+    constexpr bool contains_point = true;
+    Navigator::LocatePointIn(
+        world, to_vgvector(pos_), vgstate_, contains_point);
+
+    if (CELER_UNLIKELY(vgstate_.IsOutside()))
     {
-        // Initialize the state from a position
-        pos_ = init.pos;
-
-        // Set up current state and locate daughter volume
-        vgstate_.Clear();
-        auto const* world = params_.scalars.world<MemSpace::native>();
-        // LocatePointIn sets `vgstate_`
-        constexpr bool contains_point = true;
-        Navigator::LocatePointIn(
-            world, to_vgvector(pos_), vgstate_, contains_point);
-
-        if (CELER_UNLIKELY(vgstate_.IsOutside()))
-        {
 #if !CELER_DEVICE_COMPILE
-            auto msg = CELER_LOG_LOCAL(error);
-            msg << "Failed to initialize geometry state at " << repr(pos_)
-                << ' ' << lengthunits::native_label;
+        auto msg = CELER_LOG_LOCAL(error);
+        msg << "Failed to initialize geometry state at " << repr(pos_) << ' '
+            << lengthunits::native_label;
 #endif
-            failed_ = true;
-        }
+        failed_ = true;
     }
 
-    // Cancel any pending boundary crossing: the rest of the next state is
-    // unused until find_next_step overwrites it
+    // Cancel any pending boundary crossing
     vgnext_.SetBoundaryState(false);
 
-    CELER_ENSURE(!init.parent || this->pos() == init.pos);
     CELER_ENSURE(!this->is_next_boundary());
     return *this;
 }
