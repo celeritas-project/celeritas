@@ -38,12 +38,12 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/inp/StandaloneInput.hh"
-#include "celeritas/inp/StandaloneInputIO.json.hh"
+#include "celeritas/inp/StandaloneInputIO.json.hh"  // IWYU pragma: keep
 
 #include "CliUtils.hh"
 #include "Runner.hh"
 #include "RunnerInput.hh"
-#include "RunnerInputIO.json.hh"
+#include "RunnerInputIO.json.hh"  // IWYU pragma: keep
 #include "RunnerOutput.hh"
 
 using namespace std::literals::string_view_literals;
@@ -304,14 +304,16 @@ int main(int argc, char* argv[])
 
         if (!output)
         {
+            // Open and write to stdout
             output = std::make_shared<celeritas::OutputRegistry>();
+            output->open(celeritas::OutputRegistry::stdout_filename());
         }
         output->insert(std::make_shared<celeritas::ExceptionOutput>(
             std::current_exception()));
     }
 
     // Save output
-    celeritas::FileOrStdout ostream{output_filename};
+    celeritas::FileOrStdout ostream{output_filename, std::ios::out};
     CELER_LOG(status) << "Saving output to " << ostream.filename();
     if (!output)
     {

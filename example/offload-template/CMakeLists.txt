@@ -50,7 +50,6 @@ set(SOURCES
   src/EventAction.cc
   src/MakeCelerOptions.cc
   src/PrimaryGeneratorAction.cc
-  src/RunAction.cc
   src/SensitiveDetector.cc
 )
 polysource_append(SOURCES src/StepDiagnostic)

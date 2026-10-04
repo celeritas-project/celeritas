@@ -15,7 +15,7 @@ The `g4org` sub-directory converts an in-memory Geant4 geometry into an `OrangeI
 | `Scaler` | Converts CLHEP/Geant4 length units to Celeritas `real_type` (default: mm) |
 | `Transformer` | Converts G4 affine/rotation/translation objects to ORANGE `VariantTransform` (daughter-to-parent convention) |
 
-**Intermediate data structures** (in `g4org/Volume.hh`):
+**Intermediate data structures** (in `@g4org/Volume.hh`):
 - `LogicalVolume` — ORANGE equivalent of `G4LogicalVolume`: holds an `ObjectInterface` plus child placements. Will be renamed `Volume`.
 - `PhysicalVolume` — ORANGE equivalent of `G4VPhysicalVolume`: holds a `VolumeInstanceId`, a `VariantTransform`, and a shared `LogicalVolume`. Will be renamed `VolumeInstance`.
 
@@ -29,7 +29,7 @@ The converter decomposes the logical volume graph into subgraphs that each becom
 - **Singly-placed volumes** without transforms are usually also inlined (controlled by `inp::InlineSingletons`).
 - **Multiply-placed or rotated volumes** become their own unit proto.
 
-Each `UnitProto` is built with a `build` call that produces surfaces, a CSG tree, and bounding boxes. The proto is then inserted by `UnitInserter` during geometry flattening into the final `OrangeInput`.
+Each `UnitProto` is then built and flattened as described in [Unit proto and build pipeline](#unit-proto-and-build-pipeline).
 
 ### Volume mapping (touchable history)
 
@@ -125,8 +125,7 @@ State is split into two tiers:
 find_next_step(max_step)   → sets next_surf / next_univ_level
 move_to_boundary(dist)     → physically moves by the caller's dist; sets the
                              surface to next_surf and geo_status = boundary_inc
-cross_boundary()           → flips sense, re-initializes volume at surface level
-                             and re-descends into daughters below
+cross_boundary()           → enters the next volume (see below)
 ```
 Or for a step that does not reach a boundary:
 ```
