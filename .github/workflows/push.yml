@@ -6,7 +6,7 @@
 #-----------------------------------------------------------------------------#
 
 name: push
-# Run name renders as `{branch}: {head commit subject}`
+# Run name renders as `{branch}: {head commit subject and body}`
 run-name: >-
   ${{github.ref_name}}: ${{github.event.head_commit.message}}
 

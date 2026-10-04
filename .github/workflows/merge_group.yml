@@ -6,9 +6,8 @@
 #-----------------------------------------------------------------------------#
 
 name: merge_group
-# Run name renders as `#{PR number}: {PR title}`
-run-name: >-
-  #${{github.event.number}}: ${{github.event.pull_request.title}}
+# Run name renders as `refs/heads/gh-readonly-queue/develop/pr-1-5c5a8f0a74fcd3c4bf682dc2f7b827f0b0344405`
+run-name: ${{github.merge_group.head_ref}}
 
 on:
   merge_group: {}
