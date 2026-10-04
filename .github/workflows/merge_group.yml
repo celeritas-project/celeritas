@@ -1,0 +1,82 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Launched when added to a merge queue
+#-----------------------------------------------------------------------------#
+
+name: merge_group
+# Run name renders as `#{PR number}: {PR title}`
+run-name: >-
+  #${{github.event.number}}: ${{github.event.pull_request.title}}
+
+on:
+  merge_group: {}
+
+concurrency:
+  group: merge-${{github.event.number}}
+  cancel-in-progress: true
+
+jobs:
+  metadata:
+    name: "Save job metadata"
+    runs-on: ubuntu-24.04
+    steps:
+      # Event file is needed for pull_request_completed to provide the fork's context
+      - name: Upload event file
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: event-file
+          path: ${{github.event_path}}
+          if-no-files-found: error
+          retention-days: 1
+
+  build-fast:
+    uses: ./.github/workflows/build-fast.yml
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
+  build-spack:
+    uses: ./.github/workflows/build-spack.yml
+  build-spack-extra:
+    uses: ./.github/workflows/build-spack-extra.yml
+  build-regression:
+    uses: ./.github/workflows/build-regression.yml
+  build-docker:
+    uses: ./.github/workflows/build-docker.yml
+  build-codecov:
+    uses: ./.github/workflows/build-codecov.yml
+  all:
+    needs:
+      - build-fast
+      - build-ultralite
+      - build-docs
+      - build-spack
+      - build-spack-extra
+      - build-regression
+      - build-docker
+      - build-codecov
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check failures
+        id: check
+        uses: actions/github-script@v9
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const needs = JSON.parse(process.env.NEEDS);
+            core.debug(`needs: ${JSON.stringify(needs)}`);
+
+            const unsuccessful = Object.entries(needs)
+              .filter(([, job]) => job.result !== 'success')
+              .map(([name]) => name);
+
+            core.setOutput('unsuccessful', unsuccessful.join(','));
+            if (unsuccessful.length) {
+              core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
+            }
+
+# vim: set nowrap tw=100:
