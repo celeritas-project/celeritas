@@ -48,6 +48,7 @@ jobs:
   build-codecov:
     uses: ./.github/workflows/build-codecov.yml
   all:
+    if: ${{ always() }}
     needs:
       - build-fast
       - build-ultralite
