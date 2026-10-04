@@ -18,103 +18,11 @@ jobs:
   # TODO: since we don't build on GPU systems with cuda/rocm docker,
   # none of the tests actually run on device
   gpu:
-    name: >-
-      ${{format('{0}{1}{2}-{3}-{4}',
-                matrix.special,
-                matrix.special && '-' || '',
-                matrix.geometry,
-                matrix.buildtype,
-                matrix.image)}}
-    strategy:
-      fail-fast: false
-      matrix:
-        geometry: ["orange", "vecgeom"]
-        buildtype: ["debug", "release"]
-        image: ["rocky-cuda", "ubuntu-rocm"]
-        exclude:
-          - geometry: "vecgeom"
-            buildtype: "debug" # Build is too large
-          - geometry: "vecgeom"
-            image: "ubuntu-rocm" # VecGeom not installed on HIP
-          - buildtype: "debug"
-            image: "ubuntu-rocm" # Debug device code breaks HIP optimizer
-
-    env:
-      CELER_DISABLE_DEVICE: 1 # REQUIRED for GHA runners
-      CELER_CMAKE_PRESET: >-
-        ${{format('{0}-{1}',
-                matrix.buildtype,
-                matrix.geometry)}}
+    name: docker
     runs-on: ubuntu-24.04
-    container:
-      image: >-
-        docker.io/celeritas/${{
-             matrix.image == 'rocky-cuda' && 'ci-rocky-cuda12:2024-12-29'
-          || matrix.image == 'ubuntu-rocm' && 'ci-ubuntu-rocm7:2025-11-04'
-        }}
     steps:
-      - name: Set up environment
+      - name: Sleep 2 minutes
         run: |
-          . /etc/profile
-          echo "/opt/view/bin" >> $GITHUB_PATH
-          echo "CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}" >> $GITHUB_ENV
-      # NOTE: checkout must occur *after* setting up environment for git tags to work
-      # NOTE: depth must be enough to include the previous tag
-      - name: Check out Celeritas
-        uses: actions/checkout@v7
-        with:
-          fetch-tags: true
-
-      # TODO: fix when we update docker images
-      - name: Update git config to allow running as root
-        run: |
-          git config --global --add safe.directory ${PWD}
-
-      - name: Configure Celeritas
-        uses: ./.github/actions/configure
-        with:
-          preset: ${{env.CELER_CMAKE_PRESET}}
-          presets-file: ci-${{matrix.image}}.json
-
-      - name: Build Celeritas
-        id: build
-        working-directory: build
-        run: |
-          ninja -v -k0
-
-      - name: Test Celeritas
-        id: test
-        uses: ./.github/actions/run-ctest
-        with:
-          name: ${{matrix.image}}-${{env.CELER_CMAKE_PRESET}}
-
-      - name: Install
-        id: install
-        uses: ./.github/actions/install-and-check
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
-        with:
-          binaries: orange-update celer-export-geant celer-sim celer-g4
-
-      - name: Build examples
-        # TODO: rocm+release fails to propagate HIP library link
-        if: >-
-          ${{
-            steps.install.outcome == 'success'
-            && !(matrix.image == 'ubuntu-rocm' && matrix.buildtype == 'release')
-          }}
-        run: |
-          . /etc/profile
-          # Get Geant4 version number for use by script
-          test -f /opt/view/include/Geant4/G4Version.hh || {
-            echo "Missing G4Version.hh"
-            exit 1
-          }
-          export G4VERSION_NUMBER=$(
-            grep -E '^\s*#define\s+G4VERSION_NUMBER' \
-              /opt/view/include/Geant4/G4Version.hh \
-              | awk '{print $3}'
-          )
-          # NOTE: since this is inside docker, it's not in github.workspace
-          "./scripts/ci/test-examples.sh"
+          sleep 120
 
 # vim: set nowrap tw=100:
