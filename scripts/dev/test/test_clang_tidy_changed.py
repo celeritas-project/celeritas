@@ -54,14 +54,15 @@ def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
     )
 
     compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
-    result = validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/example.cc", "test/example.test.cc"],
         build_dir,
         repo_root,
         compilation_database,
     )
 
-    assert result == []
+    assert missing_sources == []
+    assert runnable_sources == ["src/example.cc"]
     output = capsys.readouterr()
     assert "Compilation database entry:" not in output.err
     assert "::warning file=test/example.test.cc,line=" in output.err
@@ -82,13 +83,15 @@ def test_validate_selected_sources_prints_commands_when_requested(build_tree, ca
         }
     ]
 
-    assert not validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/example.cc"],
         build_dir,
         repo_root,
         compilation_database,
         print_commands=True,
     )
+    assert missing_sources == []
+    assert runnable_sources == ["src/example.cc"]
     assert (
         "Compilation database entry: source=src/example.cc;" in capsys.readouterr().err
     )
@@ -101,9 +104,11 @@ def test_validate_selected_sources_reports_missing_files(build_tree, capsys):
         {"directory": str(build_dir), "file": str(missing), "command": "clang++"}
     ]
 
-    assert validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/missing.cc"], build_dir, repo_root, compilation_database
-    ) == [str(missing)]
+    )
+    assert missing_sources == [str(missing)]
+    assert runnable_sources == []
     output = capsys.readouterr().err
     assert "::error file=src/missing.cc,line=" in output
     assert "selected for clang-tidy does not exist" in output

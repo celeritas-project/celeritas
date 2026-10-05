@@ -341,11 +341,12 @@ def validate_selected_sources(
     compilation_database: list[dict],
     *,
     print_commands: bool = False,
-) -> list[str]:
-    """Validate selected sources and log missing compilation commands.
+) -> tuple[list[str], list[str]]:
+    """Validate selected sources and return fatal and runnable paths.
 
     Existing sources without compile commands are warned about and skipped;
-    nonexistent sources are returned as errors.
+    nonexistent sources are returned as errors. The result contains missing
+    source paths followed by paths that have compilation commands.
     """
     selected_paths = resolve_paths(sources, repo_root)
     matched_sources: set[Path] = set()
@@ -388,25 +389,12 @@ def validate_selected_sources(
             f"Source {relative_path!r} selected for clang-tidy {reason}",
             file=relative_path,
         )
-    return missing_sources
-
-
-def sources_with_compilation_commands(
-    sources: list[str],
-    build_dir: Path,
-    repo_root: Path,
-    compilation_database: list[dict],
-) -> list[str]:
-    """Return selected existing sources with compilation database entries."""
-    selected_paths = resolve_paths((Path(source) for source in sources), repo_root)
-    matched_sources = {
-        compilation_source(entry, build_dir) for entry in compilation_database
-    }
-    return sorted(
+    runnable_sources = sorted(
         source.relative_to(repo_root).as_posix()
         for source in selected_paths & matched_sources
         if source.is_file()
     )
+    return missing_sources, runnable_sources
 
 
 def run_header_tidy(
@@ -444,7 +432,7 @@ def run_header_tidy(
         log(LogLevel.NOTICE, f"Selected {len(selected_sources)} source files:")
         for source in selected_sources:
             log(LogLevel.NOTICE, f"  {source}")
-        missing_sources = validate_selected_sources(
+        missing_sources, selected_sources = validate_selected_sources(
             selected_sources,
             build_dir,
             repo_root,
@@ -453,9 +441,6 @@ def run_header_tidy(
         )
         if missing_sources:
             raise RuntimeError("missing sources")
-        selected_sources = sources_with_compilation_commands(
-            selected_sources, build_dir, repo_root, compilation_database
-        )
         if not selected_sources:
             log(LogLevel.NOTICE, "No source files with compilation database entries")
             return 0
@@ -497,18 +482,15 @@ def run_source_tidy(
         log(LogLevel.NOTICE, "No .cc source files selected for clang-tidy-diff")
         return 0
     compilation_database = load_compilation_database(build_dir)
-    if validate_selected_sources(
+    missing_sources, tidy_sources = validate_selected_sources(
         tidy_sources,
         build_dir,
         repo_root,
         compilation_database,
         print_commands=args.print_compile_commands,
-    ):
-        raise RuntimeError("missing sources")
-
-    tidy_sources = sources_with_compilation_commands(
-        tidy_sources, build_dir, repo_root, compilation_database
     )
+    if missing_sources:
+        raise RuntimeError("missing sources")
     if not tidy_sources:
         log(LogLevel.NOTICE, "No .cc source files with compilation database entries")
         return 0
