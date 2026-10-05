@@ -1,0 +1,663 @@
+.. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+.. SPDX-License-Identifier: CC-BY-4.0
+
+Series 0.7
+==========
+
+Major development version 0.7 can be cited through its Zenodo code release
+:cite:p:`celeritas-0-7`.
+
+.. _release_v0.7.0:
+
+Version 0.7.0
+-------------
+*Released 2026/10/05*
+
+Version 0.7.0 is a major update to Celeritas featuring many new capabilities.
+
+-
+
+A few minor features are noteworthy:
+
+-
+
+Notable bug fixes include:
+
+-
+
+Some interfaces have been removed:
+
+-
+
+Known deficiencies:
+
+-
+
+Changes since v0.6.0, excluding those released in v0.6.3, follow.
+
+New features
+^^^^^^^^^^^^
+
+* Add default values for track slots and initializer capacity *(@amandalund, #1772)*
+* Complete optical stepping loop *(@amandalund, #1792)*
+* Create IntersectRegion for a convex extruded polygon *(@elliottbiondo, #1783)*
+* Adds Sensitive Detector parameter Class *(@lebuller, #1764)*
+* Print Celeritas configuration options when loading downstream *(@sethrj, #1802)*
+* Make optical `max_step_iters` configurable and properly reset state after aborting *(@amandalund, #1805)*
+* Add reflection to ORANGE *(@sethrj, #1807)*
+* Add options to forcibly disable Cherenkov and scintillation *(@amandalund, #1814)*
+* Add replica+parameterisation support to ORANGE *(@sethrj, #1817)*
+* Add surface normal calculations in GeoTrackView *(@hhollenb, #1804)*
+* Add WLS model class, generator, and executor and support second WLS process *(@amandalund, #1816)*
+* Support configurable WLS reemission time distribution *(@amandalund, #1822)*
+* Add volume params to represent Geant4 volume graph *(@sethrj, #1821)*
+* Full G4ExtrudedSolid support *(@elliottbiondo, #1808)*
+* Read and export Geant4 surface definitions *(@sethrj, #1824)*
+* Add in-situ cartesian field map construction from Geant4 *(@esseivaju, #1828)*
+* Add geometry surface definitions to runtime *(@sethrj, #1812)*
+* Output optical actions *(@amandalund, #1836)*
+* Add polar truncation for sphere shape *(@sethrj, #1832)*
+* Generate optical photons directly into track slots for 2× GPU speedup *(@amandalund, #1844)*
+* Add track weight propagation to secondaries track *(@Rashika-Gupta, #1847)*
+* Reconstruct Geant4 TrackID *(@esseivaju, #1837)*
+* Update HitProcessor test to support non unit weights *(@Rashika-Gupta, #1853)*
+* Add optical primary generator *(@amandalund, #1858)*
+* Add VolumeSurfaceSelector *(@hhollenb, #1859)*
+* Support single-precision Geant4->ORANGE conversion *(@sethrj, #1870)*
+* Provide canonical volume and instance IDs from ORANGE *(@sethrj, #1886)*
+* Add optical surface physics input and import surface physics data from Geant4 *(@stognini, #1862)*
+* Add ORANGE track debugging utilities *(@sethrj, #1911)*
+* Enable muon physics and add user-defined list of offloaded particles  *(@stognini, #1910)*
+* Add smear and Gaussian surface roughness calculators *(@hhollenb, #1896)*
+* Enable optical SetupOptions and allow Rayleigh when some materials lack MFP *(@Rashika-Gupta, #1913)*
+* Add optical surface physics *(@hhollenb, #1801)*
+* Implement Geant4 geometry normals and refactor/add tests *(@sethrj, #1934)*
+* Create placeholder SDs when loading GeantGeoParams from GDML *(@sethrj, #1949)*
+* Add surface normal state to optical surface physics *(@hhollenb, #1922)*
+* Add log code to print executable/source/dependency locations *(@sethrj, #1952)*
+* Simplify CSG expressions with two opposite clauses *(@sethrj, #1946)*
+* Adds Detectors to model input and builds the detectors from G4 sensitive detectors *(@lebuller, #1955)*
+* Skip wavelength shift model without data during optical model import *(@Rashika-Gupta, #1963)*
+* Improve optical setup and testing *(@sethrj, #1970)*
+* Support G4MultiUnion in ORANGE *(@elliottbiondo, #1987)*
+* Allow use of VecGeom solid model for surface-enabled build *(@sethrj, #1993)*
+* Improve autodetection of ANSI color support *(@sethrj, #1999)*
+* Add SurfaceModelView to optical surface physics *(@hhollenb, #1980)*
+* Add json event reader and writer *(@amandalund, #2004)*
+* Add polished surface roughness model *(@hhollenb, #2006)*
+* Check vecgeom navindex table for consistency *(@sethrj, #2000)*
+* Implement Mie scattering  *(@Rashika-Gupta, #1933)*
+* Refactor dielectric model *(@hhollenb, #2008)*
+* Add profiling capabilities to `celer-geo` *(@sethrj, #2011)*
+* Add SurfaceInteractionApplier and implement PostBoundaryAction *(@hhollenb, #2020)*
+* Make ORANGE conversion/construction options configurable *(@sethrj, #2018)*
+* Add regions to model input *(@amandalund, #2023)*
+* Add OpNovice GDML optical geometry and integration test *(@Rashika-Gupta, #2016)*
+* Code coverage *(@pcanal, #2013)*
+* Add G4Tet conversion to ORANGE *(@sethrj, #2032)*
+* Improve perfetto logger/failure integration *(@sethrj, #2040)*
+* Add orange diagnostic output to celer-geo *(@sethrj, #2036)*
+* Add support for G4CutTubs *(@elliottbiondo, #2051)*
+* Create .github/.codecov.yml, loosen test requirement *(@pcanal, #2062)*
+* Add Fresnel reflectivity, refraction, and UNIFIED reflection calculators *(@hhollenb, #1984)*
+* Add a trivial surface interaction model *(@hhollenb, #2061)*
+* Improve orange csg output and geocel test harness *(@sethrj, #2056)*
+* Add Geant4 options to unit test and build output *(@sethrj, #2076)*
+* Support G4Hype *(@sethrj, #2090)*
+* Enable checking of integration tests for older Geant4 versions *(@sethrj, #2089)*
+* Support offloading optical distributions to Celeritas standalone optical loop *(@amandalund, #2092)*
+* Reconstruct canonical volumes directly from ORANGE track view *(@sethrj, #2096)*
+* Update VecGeom support for 2.0 solid and surface *(@mrguilima, #1720)*
+* Support timing optical actions *(@amandalund, #2101)*
+* Replace thrust calls with cub towards reducing CPU synchronization *(@LSchwiebert, #2068)*
+* Add input option for infix notation *(@esseivaju, #1565)*
+* Add direct optical photon generator *(@hhollenb, #2104)*
+* Add initial skeleton implementation of the gamma-nuclear process *(@whokion, #2105)*
+* Add optical surface integration tests *(@hhollenb, #2112)*
+* Add grid-based sampling for scintillation spectra *(@Rashika-Gupta, #2100)*
+* Add helper classes for managing aux data *(@sethrj, #2120)*
+* Add CODEOWNERS and update roles *(@sethrj, #2113)*
+* Make optical primary generator distributions configurable *(@amandalund, #2122)*
+* Add Ranluxpp Random Number Generator *(@davidsgr, #2001)*
+* Add muon-catalyzed fusion inp:: skeleton and basic import *(@stognini, #2125)*
+* Support RANLUX++ as core RNG *(@sethrj, #2141)*
+* cuda rdc: Check for -z undefs only when CUDA enabled *(@pcanal, #2143)*
+* Add Ferrari-Cardano algorithm and general Quartic Solver test suite *(@osanstrong, #2010)*
+* Support different CODATA measured constants with `CELERITAS_CODATA` config option *(@sethrj, #2159)*
+* Add LArSoft plugin skeleton *(@sethrj, #2154)*
+* Add an option to kill optical tracks after a specified number of steps *(@amandalund, #2161)*
+* Add CHIPS gamma-nuclear cross sections  *(@whokion, #2149)*
+* Add a `celer-config` app and milan2 config *(@sethrj, #2172)*
+* Add an initial support for electro-nuclear process and model  *(@whokion, #2170)*
+* Implement Celeritas-DD4hep integration plugin *(@rahmans1, #1756)*
+* Use a reasonable project version for shallow clones *(@sethrj, #2175)*
+* Add NO_COLOR support and new env helper *(@sethrj, #2179)*
+* Link against development LArSim *(@sethrj, #2180)*
+* Add rng branching *(@davidsgr, #2155)*
+* Add builtin surface roughness models *(@hhollenb, #1928)*
+* Improve messaging from multi-exception handler *(@sethrj, #2196)*
+* Add copilot agent instructions *(@sethrj, #2195)*
+* Add muon-catalyzed fusion process/model skeletons *(@stognini, #2174)*
+* Simplify errors when initialization fails *(@sethrj, #2198)*
+* Move global CoreStateCounters to the GPU *(@LSchwiebert, #2177)*
+* Extract splitmix64 rng *(@davidsgr, #2200)*
+* Add standalone optical runner *(@amandalund, #2197)*
+* Switch to infix tracking to accelerate ORANGE point-in-volume (#2121) *(@esseivaju, #2121)*
+* Add primary IDs to optical simulation *(@sethrj, #2204)*
+* Add SD mapping params to core and optical data *(@sethrj, #2203)*
+* Add JSON serialization for distribution inputs *(@amandalund, #2210)*
+* Add grid documentation and fix detail build *(@sethrj, #2213)*
+* Add JSON serialization for optical standalone input *(@amandalund, #2212)*
+* Add MuCF interactor for muonic dt molecules *(@stognini, #2211)*
+* Move Optical Core State Counters to Device *(@LSchwiebert, #2208)*
+* Add generic G4 field adapter and add field testing *(@sethrj, #2218)*
+* Add standalone optical app *(@amandalund, #2219)*
+* Add options for constructing an ORANGE geometry *(@elliottbiondo, #2045)*
+* Modify ORANGE tracking assertions for production-level problems *(@elliottbiondo, #2224)*
+* Add abstract interface to CUDA/HIP events *(@sethrj, #2226)*
+* Add muCF atom and spin selectors *(@stognini, #2216)*
+* Add MuCF interactor for muonic dd molecules *(@stognini, #2236)*
+* Store BIH metadata and write to JSON *(@elliottbiondo, #2244)*
+* Accelerate ORANGE construction by two orders of magnitude *(@sethrj, #2249)*
+* Make proto construction independent of hardcoded runtime tracking *(@sethrj, #2239)*
+* Improve ORANGE construction performance by presizing label vectors *(@sethrj, #2246)*
+* Add DUNE mock cryostat/arapuca test geometry *(@sethrj, #2252)*
+* BIH depth limit *(@elliottbiondo, #2251)*
+* Add error checking to vecgeom track view *(@sethrj, #2245)*
+* Investigate and simplify ORANGE construction warning/debug messages  *(@sethrj, #2247)*
+* Improve surface deduplication reproducibility and performance *(@sethrj, #2253)*
+* Use smarter surface hash points for cyl and general quadrics *(@sethrj, #2254)*
+* Locate volume instance containing global point *(@hhollenb, #2250)*
+* Add optical sensitive detectors *(@hhollenb, #2215)*
+* Import muCF cycle rate data and construct muCF model  *(@stognini, #2240)*
+* Sample scintillation photon emission time from step times when speed is unavailable *(@amandalund, #2257)*
+* Add LArSoft data export module and reader *(@stognini, #2256)*
+* Offload distributions and transport photons in `LarStandaloneRunner` *(@amandalund, #2273)*
+* Add user-defined grid reflectivity for optical physics *(@hhollenb, #2266)*
+* Add BIHStructure for json output *(@elliottbiondo, #2268)*
+* Add flag for specifying the number of BIH partition candidates *(@elliottbiondo, #2274)*
+* Add optical front painted and back painted surface support *(@hhollenb, #2276)*
+* Find optical material ID from pre-step point *(@amandalund, #2280)*
+* Add optical only reflection model *(@hhollenb, #2279)*
+* Store geometry to optical material ID mapping in `GeantGeoParams` *(@amandalund, #2287)*
+* Add Toroid surface *(@osanstrong, #2158)*
+* Refactor larceler component into a module *(@sethrj, #2285)*
+* Use optical photon group velocity for along step time calculation *(@hhollenb, #2282)*
+* Enable optical photon track offloading from Geant4 to Celeritas *(@Rashika-Gupta, #2241)*
+* Add per track reseeding *(@davidsgr, #2229)*
+* Implement basic unit tests for FastSimulationIntegration *(@drbenmorgan, #2299)*
+* Allow geant geo params to be saved during detector construction *(@sethrj, #2295)*
+* Add helpers for array type, precision, and quantity conversion *(@sethrj, #2223)*
+* Integrate detector hits with larsoft *(@sethrj, #2278)*
+* Add an interface for invoking the PostStepDoIt action of Geant4 hadronic process *(@whokion, #2302)*
+* Accumulate and report cut/error counters for optical and EM tracks *(@sethrj, #2307)*
+* Improve consistency of scintillation/Cherenkov import with Geant4 *(@sethrj, #2303)*
+* Add geometry status for robust reentrant boundary handling *(@sethrj, #2312)*
+* Add AI contribution section and update AGENTS file *(@sethrj, #2315)*
+* Add volume params and view to core data *(@sethrj, #2316)*
+* Add pre-commit script to clean ASCII files *(@sethrj, #2319)*
+* Optimize depth finding for large number of touchable histories *(@sethrj, #2317)*
+* Improve performance of BIH lookup with maximum search distance *(@elliottbiondo, #2323)*
+* Add neutron capture cross sections and associated process *(@whokion, #2321)*
+* Improve agent commit behavior and add vscode debugging script *(@sethrj, #2337)*
+* Use robust boundary state for Geant4 navigator wrapper *(@sethrj, #2328)*
+* Define and map a scalar "volume unique instance" between a navigation path *(@sethrj, #2322)*
+* Add SpanUtils.hh with Span-based math functions *(@sethrj, #2336)*
+* Add covfie binary field map loaders *(@rahmans1, #2335)*
+* Add optical WLS secondary generation *(@amandalund, #2339)*
+* Refactor LdgIterator into wrapper function and ADL access *(@sethrj, #2343)*
+* Add JSON reader and writer for optical distribution data *(@amandalund, #2352)*
+* Add implicit constructor to Span *(@sethrj, #2348)*
+* Make OpaqueId more like `std::optional` *(@sethrj, #2355)*
+* Pr/rzmap covfie backend *(@rahmans1, #2344)*
+* Optimize BIH/bounding box to improve DUNE performance *(@elliottbiondo, #2359)*
+* Implement slab method for ray-bbox intersection *(@elliottbiondo, #2374)*
+* Add bare-metal Spack and apptainer UPS support for milan2 *(@sethrj, #2365)*
+* Add custom Geant4 Cherenkov and scintillation processes to offload generator distributions *(@hhollenb, #2378)*
+* Add G4 state monitor *(@sethrj, #2380)*
+* Improve traversal in BIHEnclosingVolFinder *(@elliottbiondo, #2377)*
+* Add optical step diagnostic *(@amandalund, #2386)*
+* Add LLDB synthetic/summary helper classes for improved debugging *(@sethrj, #2383)*
+* Rewrite MiniStack to use for BIH traversal *(@sethrj, #2385)*
+* Improve CUDA profiling with default NVTX and ranged kernels *(@sethrj, #2389)*
+* Support recording step times in optical loop and refactor step time storage as aux data *(@amandalund, #2387)*
+* Use separating axis test to speed up ORANGE propagation by 20% *(@sethrj, #2391)*
+* Add LDG support for array, bbox *(@sethrj, #2399)*
+* Support efficient VolumeUniqueInstanceId construction in geo navigators *(@sethrj, #2404)*
+* Add VolumeUniqueInstanceId to optical detector hits *(@hhollenb, #2402)*
+* Add OpenMP and ORANGE diagnostics to output *(@sethrj, #2413)*
+* Add reseed to config *(@davidsgr, #2414)*
+* Skip geometry initialization when locating missing optical material if only one material is present *(@amandalund, #2417)*
+* Add overlap fraction consideration to BVH partitioning *(@elliottbiondo, #2419)*
+* Add optical detector callbacks through accel setup *(@Rashika-Gupta, #2416)*
+* Enable profiling through Instruments on macOS *(@sethrj, #2421)*
+* Enable autovectorization of bbox intersect and fix logical all *(@sethrj, #2423)*
+* Add FHiCL files for FastSim and Celeritas LArSoft workflows; Add analyzer module *(@stognini, #2318)*
+* Add JSON IO for `inp::StandaloneInput` *(@amandalund, #2425)*
+* Use `inp::StandaloneInput` for celer-sim *(@amandalund, #2428)*
+* Integrate Toroidal surfaces into ORANGE construction *(@osanstrong, #2427)*
+* Add CI jobs for gcc15 and clang22 *(@esseivaju, #2436)*
+* Improve few-active-track GPU optical performance *(@sethrj, #2450)*
+* Add asynchronous Stepper launch and completion *(@esseivaju, #2446)*
+* Improve LarSoft integration and correctness *(@sethrj, #2465)*
+* Asynchronously copy primaries to device in LocalTransporter *(@esseivaju, #2406)*
+* Add placeholder models for EM-nuclear processes *(@whokion, #2466)*
+* Add universe metadata+structure to JSON output, make universe DAG dot graphs *(@elliottbiondo, #2475)*
+* Refactor and update github CI actions *(@sethrj, #2473)*
+* Add covfie field-map support to DD4HEP plugin *(@rahmans1, #2448)*
+* Check CUDA compute compatibility at configure time, not build time *(@sethrj, #2470)*
+* Add cron job to build off VecGeom master *(@esseivaju, #2482)*
+* Implement check on Celeritas-Geant4 fast simulation particle consistency *(@drbenmorgan, #2333)*
+* Make detector construction output reproducible and debuggable *(@sethrj, #2487)*
+* Support component-specific scintillation photon generation *(@amandalund, #2485)*
+* Add CI regression testing of accel integration tests *(@sethrj, #2479)*
+* Move scoring out of async step launch *(@esseivaju, #2468)*
+* Add initial integration of VecGeom navigator view *(@sethrj, #2489)*
+* Improve support and testing for G4 with vecgeom-based solids *(@sethrj, #2495)*
+* Use clang-tidy-diff for changed files *(@pcanal, #2490)*
+* Add additional diagnostics to checked geo output *(@sethrj, #2505)*
+* Support Geant4 11.4 *(@sethrj, #2499)*
+* Automatically initialize and finalize Celeritas when using TrackingManager *(@rahmans1, #2381)*
+* Refactor CI doc build and deploy *(@sethrj, #2508)*
+* Precompute optical group velocity grids *(@Rashika-Gupta, #2452)*
+* Add file handles to output registry to allow multiple writes *(@sethrj, #2520)*
+* Output Celeritas diagnostics from within LArSoft *(@sethrj, #2477)*
+
+Bug fixes
+^^^^^^^^^
+
+* Patch covfie shasum *(@esseivaju, #1771)*
+* Fix table size in physics construction *(@amandalund, #1780)*
+* Fix and refactor maximum cross section energy calculation for integral approach *(@amandalund, #1776)*
+* Support CUDA 12.9 and NVCC with cxxstd=20 *(@sethrj, #1787)*
+* Fix `sincospi` on device *(@amandalund, #1791)*
+* Fix assigning parent ID to track initializer *(@amandalund, #1795)*
+* Fix orange polyhedron orientation and roundoff error *(@sethrj, #1806)*
+* Flush optical tracks at the end of core stepping loop *(@amandalund, #1834)*
+* Reconstruct additional data in G4Track *(@sethrj, #1835)*
+* Add null pointer checks for Geant4 surfaces *(@sethrj, #1841)*
+* Fix counters in optical generator action *(@amandalund, #1857)*
+* Fix volume params construction in model setup *(@amandalund, #1878)*
+* Uniquely and consistently identify and map volume instances *(@sethrj, #1903)*
+* Fix volume instance IDs for background volumes in ORANGE *(@sethrj, #1912)*
+* Fix edge case where imported lambda and lambda prime tables have overlapping range *(@amandalund, #1936)*
+* Fix ORANGE surface normal calculation on boundary of daughter universes *(@sethrj, #1942)*
+* Fix initialization when starting on an internal surface *(@sethrj, #1947)*
+* Fix sincos on device when math/Turn.hh is included *(@sethrj, #1951)*
+* Fix data selection in `SetupOptions`` -> `` FrameworkInput` conversion *(@amandalund, #1959)*
+* Fix offloaded particles in celer-g4 *(@amandalund, #1961)*
+* Use consistent tolerance when checking for orthogonality *(@amandalund, #1972)*
+* Approximate two-point scintillation spectra as a gaussian *(@Rashika-Gupta, #1983)*
+* Fix setting CUDA heapSize through G4UI *(@esseivaju, #1989)*
+* Fix option to kill tracks after user-specified number of steps *(@amandalund, #1995)*
+* Move loading of celer-g4 setup options to after run manager construction *(@amandalund, #1996)*
+* Fix build issues with AMD ROCm *(@elliottbiondo, #2007)*
+* Allow degenerate G4Trd and reversed PolyCone used by ATLAS *(@sethrj, #2002)*
+* Fix unsigned wraparound for `SurfaceTrackPosition` *(@amandalund, #2019)*
+* Fix codecov deployment from master *(@sethrj, #2035)*
+* Fix Mie scattering execution on device *(@amandalund, #2050)*
+* Fix polysolid with zero-radius inner segment *(@sethrj, #2048)*
+* Fix calculation of distribution index in optical photon generation *(@amandalund, #2053)*
+* Fix opaque ID arithmetic for small integers *(@sethrj, #2071)*
+* Re-enable code coverage  *(@pcanal, #2073)*
+* Fix stack allocator/CUDA RDC weirdness *(@sethrj, #2075)*
+* Fix G4Polyhedra with azimuthal truncation *(@elliottbiondo, #2054)*
+* Fix construction of CMS polyhedra with discontinuities *(@elliottbiondo, #2085)*
+* Add tests for unusual boundary crossing scenarios *(@sethrj, #2087)*
+* Fix erroneous failure in gcov ci *(@pcanal, #2093)*
+* Avoid optical state dynamic casts in test *(@sethrj, #2094)*
+* Fix reentrant boundary crossing via surface physics *(@hhollenb, #2081)*
+* Fix VecGeom 2 solids behavior by clearing last exited state *(@sethrj, #2118)*
+* Fix uninitialized hit counter in `HitProcessor` *(@amandalund, #2137)*
+* Fix vecgeom 2.x with CUDA *(@sethrj, #2136)*
+* Reduce ORANGE state size for models with background volumes *(@elliottbiondo, #2139)*
+* Fix field copy to device in hip build *(@esseivaju, #2144)*
+* Fix document warnings related CI infrastructure *(@sethrj, #2148)*
+* Use correct energy when generating Cherenkov and scintillation photons *(@amandalund, #2152)*
+* Fix compile error with VecGeom `v2.0.0-rc.8` and Cuda *(@esseivaju, #2157)*
+* Fix device linking of downstream applications with Covfie+CUDA *(@esseivaju, #2162)*
+* Forward codecov secret to Spack workflow *(@esseivaju, #2166)*
+* Fix VgNavIndex narrowing conversion *(@esseivaju, #2163)*
+* Fix edge cases with optical setup and runtime *(@sethrj, #2191)*
+* Fix `GeantOpticalPhysicsOptions` JSON serialization  *(@amandalund, #2214)*
+* Warn and replace unphysical values in MFP grid *(@amandalund, #2217)*
+* Fix construction of CylMapMagneticField from G4MagneticField *(@esseivaju, #2222)*
+* Fix optical photon import for older Geant4 versions *(@amandalund, #2221)*
+* Clamp out-of-bound indices in `CartMapField` *(@esseivaju, #2225)*
+* Avoid integer overflow in `DeMorganSimplifier` for large geometries *(@amandalund, #2231)*
+* Fix infinities and unions in bounding zone *(@sethrj, #2255)*
+* Fix infinite safety distance edge case *(@sethrj, #2261)*
+* Fix conversion of subtractions with no transforms *(@sethrj, #2269)*
+* Remove spurious warning about importing G4OpBoundaryProcess *(@hhollenb, #2284)*
+* Avoid `id_cast` when null ID is allowed *(@amandalund, #2286)*
+* Use `std::optional` to disambiguate JSON physics setup *(@sethrj, #2291)*
+* Notify user when using G4-incompatible scintillation spectrum *(@sethrj, #2259)*
+* Add support for mixing Clang and GCC (as NVCC host). *(@pcanal, #2297)*
+* Correctly set optical options in celer-sim *(@amandalund, #2301)*
+* Fix errors and add warnings with optical properties *(@sethrj, #2306)*
+* Fix back painted surface double interaction *(@hhollenb, #2314)*
+* Allow detection in non-optical materials through an optical surface *(@sethrj, #2308)*
+* Fix missing optical detector hits on GPU *(@hhollenb, #2334)*
+* Fix accidental LdgSpan-to-Span conversion *(@sethrj, #2354)*
+* Resolve warnings from nvcc and some older gcc compilers *(@LSchwiebert, #2366)*
+* Hotfix: nvtx kernel names *(@sethrj, #2390)*
+* Fix primary ID initialization *(@sethrj, #2310)*
+* Fix missing copies of primary ID, post-step ID *(@sethrj, #2384)*
+* Reduce branching in ORANGE and eliminate bbox checks in BIH leaf visits *(@elliottbiondo, #2405)*
+* Kill optical tracks that hit world boundary *(@Rashika-Gupta, #2409)*
+* Fix HIP unused-variable warning *(@sethrj, #2412)*
+* Fix nvcc 13.3 compile error *(@esseivaju, #2415)*
+* Validate G4LEVELGAMMADATA to avoid bizarre crashes in G4 field propagation *(@sethrj, #2424)*
+* Fix mathjax rendering in Safari and other documentation issues *(@sethrj, #2430)*
+* Fix gcc15 + CUDA 13.1 compile error *(@esseivaju, #2432)*
+* Fix incorrect path of Host to Device covfie field copy *(@esseivaju, #2433)*
+* Expose OpaqueId hash during device compilation *(@esseivaju, #2435)*
+* Fix C++23 constexpr ODR usage issue in field *(@stephenswat, #2434)*
+* Fix typo in Mie scattering ratio sampling *(@hhollenb, #2442)*
+* Fix FerrariSolver *(@osanstrong, #2439)*
+* Fix JSON serialization for control and grid enums *(@amandalund, #2443)*
+* Use harmonic-mean grid derivatives for optical group velocity calculation *(@Rashika-Gupta, #2437)*
+* Fix warnings with ROCm 7.14 *(@sethrj, #2453)*
+* Fix BVH navigation when given a very large search distance *(@sethrj, #2471)*
+* Fix stale geometry parent IDs when inserting primaries *(@amandalund, #2476)*
+* Normalize USolids polycone conversion and test expectations *(@esseivaju, #2488)*
+* Support VecGeom 2.0 and vastly improve performance by using BVH navigator *(@esseivaju, #2492)*
+* Fix GeoTests with Geant4+USolids  *(@esseivaju, #2493)*
+* Update VecGeom2 safety values *(@esseivaju, #2512)*
+* Treat unsupported MSC step limit algorithm as error instead of warning *(@amandalund, #2524)*
+
+Documentation improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Release v0.6.0 *(@sethrj, #1688)*
+* Add helper for accumulating histograms *(@sethrj, #1759)*
+* Add zenodo citations to celeritas user manual *(@sethrj, #1762)*
+* Require covfie v0.14 *(@esseivaju, #1767)*
+* Replace hand-rolled hooks with pre-commit and CI *(@sethrj, #1765)*
+* Refactor micro xs CDF calculation and add test *(@amandalund, #1768)*
+* Edit user manual and fix PDF build *(@sethrj, #1782)*
+* Document geometry hierarchy and move EM table *(@sethrj, #1788)*
+* Round all floating point numbers in test output to a few digits *(@sethrj, #1758)*
+* Work around a doxy/breathe rendering bug and make some notes internal *(@sethrj, #1797)*
+* Replace EXPECT_VEC_CLOSE with soft comparator *(@sethrj, #1819)*
+* Finish updating copyrights *(@amandalund, #1820)*
+* Update build script and user presets *(@sethrj, #1845)*
+* Detect and use ccache *(@esseivaju, #1848)*
+* Remove spurious optical error messages *(@amandalund, #1881)*
+* Add volume test base *(@sethrj, #1880)*
+* Fix failing celer-sim unit test with simple calo *(@amandalund, #1927)*
+* Add minimal extensible testing for Geant4 integration *(@sethrj, #1925)*
+* Define EXPECT_NORMAL_EQUIV helper function *(@sethrj, #1944)*
+* Use JSON reference for CSG tree *(@sethrj, #1943)*
+* Add shell detectors around lAr sphere test problem *(@sethrj, #1948)*
+* Add a test of UI command modification *(@sethrj, #1957)*
+* Fix a few testing issues *(@amandalund, #1973)*
+* Split corecel docs into multiple pages *(@sethrj, #1994)*
+* Abandon sphinx-mermaid and add celerstruct directive *(@sethrj, #1988)*
+* Add covfie device test *(@esseivaju, #1997)*
+* Add optical physics documentation *(@sethrj, #2025)*
+* Add JLSE env file *(@elliottbiondo, #2017)*
+* Finish making JLSE env script POSIX compliant *(@elliottbiondo, #2028)*
+* Add copyrights and consistent special name to workflow *(@sethrj, #2037)*
+* Add TracingSession to documentation *(@sethrj, #2055)*
+* Format python files *(@sethrj, #2065)*
+* Update OpticalCollector device test for #1984 *(@LSchwiebert, #2070)*
+* Update pre-commit hooks and add ruff *(@sethrj, #2064)*
+* Fix run manager construction in integration test base *(@amandalund, #2083)*
+* Define a GeoTrackInterface class for documentation and testing *(@sethrj, #2069)*
+* Use dot instead of mermaid *(@sethrj, #2102)*
+* Add ExCL MI300A environment *(@sethrj, #2138)*
+* Improve geometry track view testing *(@sethrj, #2131)*
+* Demonstrate stuck particle in ATLAS *(@sethrj, #1914)*
+* Add documentation and debug statements about Geant4 logger redirection *(@sethrj, #2193)*
+* Add optical physics AGENTS.md *(@sethrj, #2205)*
+* Test grid deduplication *(@sethrj, #2227)*
+* Improve testing for field and geo view *(@sethrj, #2230)*
+* Improve testing for field integration edge case *(@sethrj, #2248)*
+* Add Rayleigh and absorption mean free paths to DUNE cryostat GDML *(@amandalund, #2260)*
+* Improve geometry track view testing *(@sethrj, #2262)*
+* Fix VecGeom device test for #2263 *(@amandalund, #2270)*
+* Fix solids GDML to avoid ORANGE discrepancy *(@sethrj, #2267)*
+* Document optical surface physics *(@sethrj, #2277)*
+* More tweaks to AGENTS file *(@sethrj, #2324)*
+* Prevent `is_ci_build` from crashing when using built-in CLHEP *(@mrguilima, #2418)*
+* Clarify the use of complex_intersect within background_intersect *(@elliottbiondo, #2429)*
+* Expand user documentation on input and standalone apps *(@amandalund, #2445)*
+* Add separate 'geo' logger to checked track view and move to core repo *(@sethrj, #2491)*
+* Test geometry calls of the field propagator substep loop *(@esseivaju, #2503)*
+* Add Claude Code skills and expand AGENTS.md *(@esseivaju, #2522)*
+
+Minor internal changes
+^^^^^^^^^^^^^^^^^^^^^^
+
+* Fail early if find-or-builtin package is missing *(@sethrj, #1770)*
+* Remove ``ValueGridBuilder`` s *(@amandalund, #1766)*
+* Add ostream support for enums *(@amandalund, #1774)*
+* Add missing typename and const to CartMapField *(@esseivaju, #1769)*
+* Apply pre-commit hooks across repository *(@sethrj, #1773)*
+* Rename logspace to geomspace *(@sethrj, #1777)*
+* Use correct types for physics grids *(@amandalund, #1781)*
+* Add tests and documentation for Tsai nuclear screening functions *(@sethrj, #1779)*
+* Adjust version compatibility for covfie *(@sethrj, #1778)*
+* Simplify nested join nodes *(@sethrj, #1784)*
+* Store hardwired model data by reference *(@amandalund, #1785)*
+* Organize optical directory *(@amandalund, #1789)*
+* Move core track initialization to `CoreTrackView` *(@amandalund, #1794)*
+* Add make_orthogonal helper function *(@sethrj, #1793)*
+* Move magnetic field retrieval to a helper function *(@sethrj, #1798)*
+* Extend auxiliary data helpers to support aux state data without params *(@amandalund, #1799)*
+* Keep persistent GeantGeoParams for geometry translation *(@sethrj, #1796)*
+* Refactor optical generation to reduce duplication *(@amandalund, #1800)*
+* Move optical photon generation to optical stepping loop *(@amandalund, #1803)*
+* Make Geant4 volume IDs consistent wrt load order *(@sethrj, #1809)*
+* Fix configuring against latest VecGeom with CUDA disabled *(@pcanal, #1813)*
+* Rename SurfaceId in preparation for volume-based surface definitions *(@sethrj, #1811)*
+* Rearrange generic geo test interface *(@sethrj, #1818)*
+* Use variant set for uniform field input *(@amandalund, #1826)*
+* Rename solid angle class *(@sethrj, #1825)*
+* Optimize cosine for turn *(@sethrj, #1830)*
+* Refactor solid Z slab as Truncated object *(@sethrj, #1827)*
+* Use start/stop instead of start/interior for azimuthal wedge *(@sethrj, #1831)*
+* Add surface properties to core and optical params *(@amandalund, #1838)*
+* Add a helper function for launching a CPU kernel with an arbitrary number of threads *(@amandalund, #1842)*
+* Define geometry implementation IDs *(@sethrj, #1839)*
+* Add generator interface and registry *(@amandalund, #1849)*
+* Document and improve build script *(@sethrj, #1854)*
+* Hotfix: revert accidental changes from #1839 *(@sethrj, #1856)*
+* Add volume params to core *(@sethrj, #1846)*
+* Add surface physics map *(@sethrj, #1852)*
+* Begin exposing Cherenkov/optical loop outside of the optical collector  *(@sethrj, #1861)*
+* Refactor geometry construction to use static methods and shared pointers *(@sethrj, #1864)*
+* Move generators into optical namespace and refactor track generation utilities *(@amandalund, #1865)*
+* Add `begin_run` to optical launch action *(@amandalund, #1868)*
+* Rename LogicalFalse and LogicalTrue *(@pcanal, #1872)*
+* Add volume params visitor *(@sethrj, #1874)*
+* Refactor optical params and stepping loop for optical-only mode *(@amandalund, #1875)*
+* Prevent splitting during ROOT I/O to reduce file size *(@amandalund, #1885)*
+* Rename volumes to "implementation volumes" *(@sethrj, #1884)*
+* Add mapping from ImplVolumeId to VolumeId *(@sethrj, #1889)*
+* Work around spurious -Wmaybe-uninitialized warning with GCC *(@amandalund, #1891)*
+* Update VolumeSurfaceSelector and optical BoundaryAction for oriented surfaces *(@hhollenb, #1876)*
+* Refactor geo testing to use persistent Geant4 geometry *(@sethrj, #1895)*
+* Add global VolumeParams and rename geant_geo->global_geant_geo *(@sethrj, #1905)*
+* Allow constant values for R index *(@Rashika-Gupta, #1904)*
+* Add uniform JSON IO to OpaqueId *(@sethrj, #1907)*
+* Use canonical volumes for VecGeom *(@sethrj, #1901)*
+* Make surface model its own hierarchy and add default surface *(@sethrj, #1909)*
+* Only warn when imported particle data is larger than user-defined offload list *(@stognini, #1915)*
+* Use IDs for some ORANGE indexing *(@sethrj, #1916)*
+* Move model testing to geant geo test *(@sethrj, #1923)*
+* Modularize and expose physics lists and PG generator *(@sethrj, #1918)*
+* Impose minimum size to split leaf nodes during BIH construction *(@elliottbiondo, #1930)*
+* Use double-precision energy for input energy distributions *(@sethrj, #1939)*
+* Replace `ImportParticle`` with `` inp::Particle` *(@amandalund, #1953)*
+* Define Geant particle view *(@sethrj, #1954)*
+* Work around another spurious -Wmaybe-uninitialized warning with GCC *(@amandalund, #1969)*
+* Use inp data for more physics *(@sethrj, #1976)*
+* Remove `weight`` field from `` Secondary` *(@amandalund, #1985)*
+* Add `CELER_` prefix to G4 material property names specific to Celeritas *(@sethrj, #1986)*
+* Improve some nomenclature *(@sethrj, #1990)*
+* Simplify perfetto integration *(@sethrj, #1998)*
+* Use empty MFP grids to have zero cross section for model/material *(@sethrj, #2005)*
+* Support unnormalized selection for a discrete PDF *(@sethrj, #2009)*
+* Improve warning messages during ORANGE simplification *(@sethrj, #2024)*
+* Only set MSVC warning when using MSVC *(@pcanal, #2033)*
+* Use a single generator action and distribution buffer for Cherenkov and scintillation *(@amandalund, #2034)*
+* Refactor traits for opaque ID, quantity, LDG *(@sethrj, #2074)*
+* Add UnivLevel and rename Level to VolumeLevel *(@sethrj, #2063)*
+* Add data() getter functions for the DeviceAllocation class *(@LSchwiebert, #2078)*
+* Refactor and extend optical setup and generation for standalone loop support *(@amandalund, #2082)*
+* Use opaque ID rather than integer for physics offset *(@sethrj, #2088)*
+* Silence some egregious shadowing warnings *(@sethrj, #2095)*
+* Upgrade CI docker image to ROCm 7.1 *(@LSchwiebert, #2091)*
+* Tweak optical offload settings and construction *(@amandalund, #2099)*
+* Use a single `ActionSequence` across all states *(@amandalund, #2108)*
+* Add customization of trivial traits to support some GPU types *(@sethrj, #2114)*
+* Use type aliases for vecgeom and simplify detail headers *(@sethrj, #2115)*
+* Move isotropic and uniform box distributions to corecel *(@amandalund, #2128)*
+* Fix spurious warning when loading scintillation properties and update device tests *(@amandalund, #2129)*
+* Rename SenseCalculator *(@esseivaju, #2130)*
+* Remove hidden state from VecGeom *(@sethrj, #2116)*
+* Reverse build order of protos *(@elliottbiondo, #2109)*
+* Validate and document Ranluxpp generator *(@sethrj, #2132)*
+* Fail on ROOT dictionary generation warning *(@pcanal, #2145)*
+* Move `Grid` input to corecel/inp *(@amandalund, #2146)*
+* Rename g4org::Options to orange::inp::OrangeGeoFromGeant *(@sethrj, #2134)*
+* Simplify CODEOWNERS *(@sethrj, #2150)*
+* Set up A100 environment on ExCL *(@sethrj, #2147)*
+* Support builds on fnal-dev-sl7 on scisoftbuild01 *(@sethrj, #2153)*
+* Hide known warnings and reduce verbosity related to Geant4 geometry and tracker *(@sethrj, #2151)*
+* Cleanup build script output *(@esseivaju, #2156)*
+* Simplify codeowners again *(@sethrj, #2167)*
+* Use local energy deposition to determine if scintillation photons should be sampled at collision site *(@amandalund, #2160)*
+* Use Vecgeom2 solids in CI job *(@esseivaju, #2164)*
+* Remove branching in CylMapField evaluation *(@esseivaju, #2169)*
+* Fix ExCL env script *(@elliottbiondo, #2171)*
+* Refactor along-step energy loss applier *(@sethrj, #2173)*
+* Document and add checks about tracking manager construction *(@sethrj, #2183)*
+* Ignore `BUILTIN_X`` when `` CELERITAS_USE_X` is false *(@sethrj, #2186)*
+* Centralize default capacity values *(@amandalund, #2185)*
+* Fix InitializedValue semantics *(@sethrj, #2181)*
+* Disable debug assertions for code coverage tests *(@sethrj, #2184)*
+* Add optical problem input and setup *(@amandalund, #2189)*
+* Hotfix: build errors in 2191 *(@sethrj, #2192)*
+* Fix ddceler build error due to IWYU  *(@sethrj, #2188)*
+* Add checks for container validity to improve coverage *(@sethrj, #2190)*
+* Simplify along-step propagation *(@sethrj, #2187)*
+* Refactor logger handles *(@sethrj, #2182)*
+* Tweak optical problem setup *(@sethrj, #2199)*
+* Debug and fix CUDA RDC linking issue in heuristic geo *(@sethrj, #2202)*
+* Rename SDParams and move to geocel *(@sethrj, #2201)*
+* Rename and slightly refactor G4 track reconstruction helper *(@sethrj, #2206)*
+* Add track offload interface base class *(@Rashika-Gupta, #2207)*
+* Add JSON IO for cumulative tracking counters *(@amandalund, #2220)*
+* Rename old classes to ``ParamsDataStore`` , `StateDataStore` *(@sethrj, #2228)*
+* Rename min_split_size to max_leaf_size *(@elliottbiondo, #2233)*
+* Add User-defined literals for units *(@esseivaju, #2234)*
+* Use unordered containers in DeMorganSimplifier *(@esseivaju, #2232)*
+* Use User-defined literals *(@esseivaju, #2235)*
+* Refactor logic builder and related utilities *(@sethrj, #2238)*
+* Eliminate identity rotations from displaced solids *(@sethrj, #2258)*
+* Check for unimplemented optical surface properties *(@sethrj, #2264)*
+* Consolidate stream operators into the classes that need them *(@sethrj, #2265)*
+* Tweak Geant4 physics options and construction to support Celeritas optical-only LArSoft use case *(@amandalund, #2271)*
+* Fix template deduction bug *(@elliottbiondo, #2281)*
+* Improve optical physics construction consistency with G4 *(@sethrj, #2289)*
+* Add make_ref for collections *(@sethrj, #2293)*
+* Refactor geant physics process loading *(@sethrj, #2290)*
+* Make python required for docs/tests *(@sethrj, #2296)*
+* Refactor optical model data into `inp::BulkOpticalPhysics` *(@sethrj, #2292)*
+* Fix python configure errors due to #2296 *(@sethrj, #2300)*
+* Add truncated distribution sampler *(@amandalund, #2304)*
+* Reorganize surface helper functions *(@sethrj, #2305)*
+* Rename StreamToString to StreamUtils and move enum IO to it *(@sethrj, #2311)*
+* Rename ORANGE volume and view for consistency *(@sethrj, #2313)*
+* Use GeantParticleView and avoid deprecated GetDefinition *(@sethrj, #2325)*
+* Move MuPPET table to GeantPhysicsLoader *(@sethrj, #2320)*
+* Refactor and simplify optical bulk model input and construction *(@amandalund, #2329)*
+* Add Rivanna cmake presets and environment script *(@hhollenb, #2331)*
+* Define views for Geant4 step/track integration *(@sethrj, #2209)*
+* Remove celeritas includes from downstream and more IWYU *(@sethrj, #2340)*
+* Use std::size_t for Array *(@sethrj, #2341)*
+* Make operators inline friends to improve template matching *(@sethrj, #2347)*
+* Add a helper for sampling polarization orthogonal to direction *(@amandalund, #2350)*
+* Adjust and document optical surface traversal *(@sethrj, #2345)*
+* Disentangle array/span includes *(@sethrj, #2353)*
+* Refactor collection traits and return types *(@sethrj, #2351)*
+* Add Constant and integral udl *(@esseivaju, #2358)*
+* Use Constant udl *(@esseivaju, #2356)*
+* Use real_type UDL *(@esseivaju, #2360)*
+* Use size_type UDL *(@esseivaju, #2361)*
+* Test volume intersection count in BIH *(@sethrj, #2362)*
+* Make NVTX range names consistent across kernels and apps *(@sethrj, #2364)*
+* Improve rejection sampler *(@sethrj, #2372)*
+* Tighten bboxes and improve edge traversal *(@elliottbiondo, #2375)*
+* Fix IWYU errors and use `std::{whatever}_t` *(@sethrj, #2382)*
+* Separate optical distribution loading from transport timing *(@amandalund, #2394)*
+* Fix BIH internal types and improve BIH output *(@sethrj, #2393)*
+* Define BIH node view to make data layout changes easier to test *(@sethrj, #2398)*
+* Allow G4 geo to keep persistent volume params *(@sethrj, #2396)*
+* Refactor bbox to allow performance testing of transpose storage *(@sethrj, #2400)*
+* Infrastructure: update pre-commit and clang-format, use SOURCE_DATE_EPOCH *(@sethrj, #2401)*
+* Add additional validation and testing to Cherenkov offload and array utils *(@sethrj, #2407)*
+* Remove unused bounding_plane_pos and update BIH dot graph script *(@elliottbiondo, #2410)*
+* BIH -> BVH rename *(@elliottbiondo, #2411)*
+* Update actions *(@sethrj, #2420)*
+* Reduce short-circuiting in intersect_segment *(@elliottbiondo, #2422)*
+* Add ldg function to Range *(@sethrj, #2426)*
+* Resolve `inp::Control` defaults in problem setup and tweak default capacity values *(@amandalund, #2438)*
+* Update clang-format *(@sethrj, #2441)*
+* Update clang-format again to fix vscode *(@sethrj, #2449)*
+* Use JSONL for contributor/collaborator list *(@sethrj, #2454)*
+* Use new spack environment on ExCL and support AlmaLinux9 *(@sethrj, #2440)*
+* Work around GCC 8.5 compiler error *(@tghaddar, #2462)*
+* Work around GCC 8.5 compiler bug *(@tghaddar, #2463)*
+* Generalize Poisson distribution to allow zeros *(@sethrj, #2408)*
+* Fix missing include path for MPI *(@sethrj, #2467)*
+* Add 'prettier' pre-commit hook for JSON, YAML *(@sethrj, #2472)*
+* Add track and step fields to optical detector hits *(@Rashika-Gupta, #2444)*
+* Fix VecGeom 2.2-dev build *(@esseivaju, #2481)*
+* Fix VecGeom 2.2-dev CUDA build *(@esseivaju, #2484)*
+* Improve CI and enable C++23 *(@sethrj, #2478)*
+* Add pre-advance to RayleighInteractor *(@davidsgr, #2469)*
+* Add env script for secretariat *(@sethrj, #2494)*
+* Move checked geo track view to main code and add additional assertions *(@sethrj, #2498)*
+* Support basic Claude workflow *(@esseivaju, #2504)*
+* Disable ROOT from clang-tidy build and when not requested *(@sethrj, #2513)*
+* Use VecGeom 2.1 by default in CI *(@esseivaju, #2509)*
+* Support clang-tidy for generated source files *(@pcanal, #2511)*
+* Clear VecGeom last exited volume in SolidsNavigator *(@esseivaju, #2515)*
+* Skip CUDA files without compilation commands in clang-tidy CI *(@pcanal, #2517)*
+* Simplify agent instructions *(@sethrj, #2519)*
+* Simplify presets and fix building against Geant4 build directory *(@sethrj, #2516)*
+* Continue-on-error for tidy *(@sethrj, #2521)*
+* Warn and skip sources without compile database entries on tidy-v2 *(@pcanal, #2523)*
+* Add a container image for updating Spack buildcache *(@esseivaju, #2510)*
+
+Deprecation and removal
+^^^^^^^^^^^^^^^^^^^^^^^
+
+* Remove combined bremsstrahlung model *(@amandalund, #1786)*
+* Do not set `-Wall -Wextra -pedantic` by default *(@sethrj, #2098)*
+* Remove temporary sense storage *(@esseivaju, #2127)*
+* Remove SimpleOffload and other deprecations *(@sethrj, #2168)*
+* Remove use of G4Backtrace *(@sethrj, #2176)*
+* Delete unused run input conversion code *(@sethrj, #2178)*
+* Remove polyprism *(@sethrj, #2194)*
+* Remove infinite-distance boundary search *(@sethrj, #2263)*
+* Begin refactor of optical "IO" to model-specific inp *(@sethrj, #2288)*
+* Remove bitset *(@sethrj, #2342)*
+* Remove UDLs *(@esseivaju, #2357)*
+* Removed scoped mem and scoped time log *(@sethrj, #2388)*
+* Remove infinite find-next-step *(@sethrj, #2392)*
+* Reduce app output *(@sethrj, #2395)*
+* Remove vecgeom surface support *(@sethrj, #2403)*
+* Remove support for pre-release VecGeom 2 *(@sethrj, #2501)*
+* Store native VecGeom navigation state in VecGeom track state *(@esseivaju, #2502)*
+* Remove deprecations for 0.7 and add ORANGE track compatibility methods *(@sethrj, #2526)*
+
+Reviewers
+^^^^^^^^^
+
+
+**Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.6.0...v0.7.0
