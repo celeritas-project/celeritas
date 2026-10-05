@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "LocalOpticalGenOffload.hh"
 
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/optical/TrackExecutor.hh"
 #include "celeritas/optical/Transporter.hh"
@@ -23,10 +24,10 @@ void LocalOpticalGenOffload::update_primaries(
     optical::CoreState<MemSpace::device>& state) const
 {
     auto const& optical_params = *transport_->params();
-    auto execute_thread = make_single_track_executor(
-        optical_params.ptr<MemSpace::native>(),
-        state.ptr(),
-        optical::detail::UpdatePendingExecutor<size_type>{num_photons_});
+
+    optical::detail::UpdatePendingExecutor<size_type> execute_thread{
+        state.ref().init.counters.data(), num_photons_};
+
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, state.stream_id(), execute_thread);

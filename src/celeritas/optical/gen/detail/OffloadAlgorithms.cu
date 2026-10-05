@@ -13,6 +13,8 @@
 //       remove_if_invalid function is ported to CUB/hipCUB
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
+
+#include "corecel/data/ObserverPtr.hh"
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <thrust/iterator/transform_iterator.h>
@@ -83,7 +85,7 @@ void count_num_photons(
     ScopedProfiling profile_this{"count-num-photons"};
     CELER_EXPECT(params);
     auto& stream = device().stream(stream_id);
-    auto start = thrust::device_pointer_cast(buffer.data().get());
+    auto start = device_pointer_cast(buffer.data());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
     size_t temp_storage_bytes = 0;
     // This could be allocated once and reused for each call
@@ -114,7 +116,8 @@ void count_num_photons(
                                             result.data(),
                                             size - offset,
                                             stream.get());
-    auto count = result.data();
+    size_type* count{
+        result.data()};  // Must match variable name in #else below for thrust
     CELER_DISCARD(cub_error_code);
 #else
     size_type count = thrust::transform_reduce(
@@ -135,10 +138,8 @@ void count_num_photons(
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Update the number of pending optical photons
-    auto execute_thread = make_single_track_executor(
-        params->ptr<MemSpace::native>(),
-        state.ptr(),
-        optical::detail::UpdatePendingExecutor<decltype(count)>{count});
+    optical::detail::UpdatePendingExecutor<decltype(count)> execute_thread{
+        state.ref().init.counters.data(), count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, stream_id, execute_thread);

@@ -31,39 +31,28 @@ struct UpdatePendingExecutor
 {
     //// DATA ////
 
+    ObserverPtr<CoreStateCounters, MemSpace::native> counters;
     CounterType num_photons;
 
     //// FUNCTIONS ////
 
     // Update number of primaries waiting to be generated
-    CELER_FORCEINLINE_FUNCTION void operator()(CoreTrackView& track);
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        size_type temp_num_photons{};
+        if constexpr (std::is_integral_v<CounterType>)
+        {
+            // Copied via kernel launch
+            temp_num_photons = num_photons;
+        }
+        else
+        {
+            // Lives elsewhere in this memspace
+            temp_num_photons = *num_photons;
+        }
+        counters->num_pending += temp_num_photons;
+    }
 };
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-/*!
- * Update number of primaries to be generated to include the buffered optical
- * photons.
- */
-template<typename CounterType>
-CELER_FORCEINLINE_FUNCTION void UpdatePendingExecutor<CounterType>::operator()(
-    CoreTrackView& track)
-{
-    CELER_EXPECT(track.thread_id() == ThreadId{0});  // single thread kernel
-
-    // This executor is called with two possible template values -- a size_type
-    // (the typical case) and a pointer to a size_type value stored on device
-    // that is produced after running a CUB/hipCUB function
-    if constexpr (std::is_pointer_v<CounterType>)
-    {
-        track.counters().num_pending += static_cast<size_type>(*num_photons);
-    }
-    else
-    {
-        track.counters().num_pending += static_cast<size_type>(num_photons);
-    }
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
