@@ -8,10 +8,8 @@
 
 #include "corecel/sys/KernelLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
-#include "celeritas/optical/TrackExecutor.hh"
 #include "celeritas/optical/Transporter.hh"
-#include "celeritas/optical/action/ActionLauncher.device.hh"
-#include "celeritas/optical/gen/detail/UpdatePendingExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 namespace celeritas
 {
@@ -25,7 +23,7 @@ void LocalOpticalGenOffload::update_primaries(
 {
     auto const& optical_params = *transport_->params();
 
-    optical::detail::UpdatePendingExecutor<size_type> execute_thread{
+    UpdatePendingExecutor<size_type> execute_thread{
         state.ref().init.counters.data(), num_photons_};
 
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(

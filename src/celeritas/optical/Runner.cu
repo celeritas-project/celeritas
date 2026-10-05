@@ -7,12 +7,12 @@
 #include "Runner.hh"
 
 #include "corecel/Assert.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "TrackExecutor.hh"
 #include "action/ActionLauncher.device.hh"
-#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {

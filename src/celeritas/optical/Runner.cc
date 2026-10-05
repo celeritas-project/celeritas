@@ -15,14 +15,13 @@
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
 #include "celeritas/optical/TrackExecutor.hh"
-#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
 #include "Transporter.hh"
-#include "gen/detail/UpdatePendingExecutor.hh"
 
 namespace celeritas
 {
