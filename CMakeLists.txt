@@ -824,7 +824,7 @@ foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeo
   endif()
 endforeach()
 if(CELERITAS_USE_LArSoft)
-  foreach(_dep lardataobj cetmodules)
+  foreach(_dep cetmodules art lardataobj larsim)
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endforeach()
 endif()

@@ -32,7 +32,7 @@ PDFullSimCeler:
     OpticalLimitStepIters: 524288
 
     // Celeritas output filename
-    OutputFile: "celeritas-output.json"
+    OutputFile: "celeritas.out.jsonl"
 
     // Accumulate elapsed time in actions
     ActionTimes: true

@@ -63,8 +63,8 @@ fi
 
 # BEGIN_DOC_FNALSPACK
 # Latest release of FNAL-Spack and DUNESW spack environment
-export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.1.1"
-CELER_SPACK_ENV="dunesw-10_21_01d00-justin-01_06_01-prototype"
+export SPACK_ROOT="/cvmfs/dune.opensciencegrid.org/spack/v1.2.2"
+CELER_SPACK_ENV="dunesw-10_23_00d01-justin-01_06_05-prototype"
 CELER_SPACK_PACKAGES="gcc cmake larsim googletest cuda"
 # END_DOC_FNALSPACK
 
@@ -97,7 +97,7 @@ if ! [ -f "${_spack_src_file}" ]; then
   # Create a cached environment setup script
   celerlog info "Loading spack environment '${CELER_SPACK_ENV}' packages: ${CELER_SPACK_PACKAGES}"
   _tmp_src_file=$(mktemp ${_spack_src_file}.XXXXXX)
-  command spack -e "${CELER_SPACK_ENV}" load --sh \
+  spack -e "${CELER_SPACK_ENV}" load --sh \
     ${CELER_SPACK_PACKAGES} \
     > ${_tmp_src_file}
   _errcode=$?
@@ -110,9 +110,11 @@ if ! [ -f "${_spack_src_file}" ]; then
   # Also note the environment that we loaded
   printf "\n%s\n%s\n" \
     "unset C_INCLUDE_PATH" \
+    "unset CPLUS_INCLUDE_PATH" \
     "export CELER_SPACK_ENV_LOADED=${CELER_SPACK_ENV}" \
     >> ${_tmp_src_file}
   mv "${_tmp_src_file}" "${_spack_src_file}"
+  celerlog debug "Created script as '${_spack_src_file}'"
 else
   celerlog debug "Skipping spack env setup: using extant script at '${_spack_src_file}'"
 fi
