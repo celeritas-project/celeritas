@@ -34,6 +34,11 @@ class SourceSelection(StrEnum):
     ONE = "one"
 
 
+def emit(text: str) -> None:
+    """Write text to standard error and flush the stream immediately."""
+    print(text, file=sys.stderr, flush=True)
+
+
 def resolve_paths(paths: Iterable[Path], root: Path) -> set[Path]:
     """Resolve repository-relative paths against the root."""
     return {root.joinpath(path).resolve() for path in paths if path}
@@ -151,9 +156,6 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
     seen: set[tuple[str, str, str, str]] = set()
     suppress_context = 0
 
-    def emit(text: str) -> None:
-        print(text, file=sys.stderr, flush=True)
-
     for line in lines:
         line = line.rstrip("\n")
         if re.fullmatch(r"\d+ warnings generated\.", line):
@@ -187,6 +189,7 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
                     line=line_number,
                     col=column,
                 )
+                # Preserve the clang-tidy diagnostic in the job log alongside its annotation.
                 emit(f"{relative_path}:{line_number}:{column}: error: {message}")
             else:
                 suppress_context = 2
@@ -342,11 +345,23 @@ def validate_selected_sources(
     *,
     print_commands: bool = False,
 ) -> tuple[list[str], list[str]]:
-    """Validate selected sources and return fatal and runnable paths.
+    """Validate selected sources against the compilation database.
 
-    Existing sources without compile commands are warned about and skipped;
-    nonexistent sources are returned as errors. The result contains missing
-    source paths followed by paths that have compilation commands.
+    Existing sources without compilation database entries are logged as
+    warnings and excluded from the runnable sources. Nonexistent sources are
+    logged as errors and included in the missing-sources result.
+
+    Args:
+        sources: Repository-relative source paths selected for clang-tidy.
+        build_dir: Build directory used to resolve compilation database paths.
+        repo_root: Repository root used to resolve and format source paths.
+        compilation_database: Entries loaded from the compilation database.
+        print_commands: Whether to log matched compilation commands.
+
+    Returns:
+        A pair containing missing source paths and existing selected source
+        paths with compilation database entries, respectively. Both lists use
+        repository-relative paths when possible.
     """
     selected_paths = resolve_paths(sources, repo_root)
     matched_sources: set[Path] = set()
