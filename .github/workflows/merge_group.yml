@@ -17,47 +17,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  metadata:
-    name: "Save job metadata"
-    runs-on: ubuntu-24.04
-    steps:
-      # Event file is needed for pull_request_completed to provide the fork's context
-      - name: Upload event file
-        id: upload
-        uses: actions/upload-artifact@v7
-        with:
-          name: event-file
-          path: ${{github.event_path}}
-          if-no-files-found: error
-          retention-days: 1
-
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
   build-fast:
     uses: ./.github/workflows/build-fast.yml
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
-  build-docs:
-    uses: ./.github/workflows/build-docs.yml
+
   build-spack:
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
     uses: ./.github/workflows/build-spack-extra.yml
-  build-regression:
-    uses: ./.github/workflows/build-regression.yml
-  build-docker:
-    uses: ./.github/workflows/build-docker.yml
+
   build-codecov:
     uses: ./.github/workflows/build-codecov.yml
+  build-docker:
+    uses: ./.github/workflows/build-docker.yml
+  build-regression:
+    uses: ./.github/workflows/build-regression.yml
+
   all:
     if: ${{ always() }}
     needs:
+      # IMPORTANT: should be the same as `jobs:all:needs` in `pull_request.yml`
       - build-fast
       - build-ultralite
       - build-docs
       - build-spack
       - build-spack-extra
-      - build-regression
-      - build-docker
       - build-codecov
+      - build-docker
+      - build-regression
     runs-on: ubuntu-24.04
     steps:
       - name: Check failures

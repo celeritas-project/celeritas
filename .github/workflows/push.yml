@@ -34,32 +34,34 @@ jobs:
       - name: Success
         run: |
           echo "Running on repository ${{ github.repository }}"
-  build-ultralite:
+  build-pages:
+    # NOTE: replaces build-docs because it includes jekyll from a separate branch
     needs: [check-ci-vars]
-    uses: ./.github/workflows/build-ultralite.yml
+    uses: ./.github/workflows/build-pages.yml
+    secrets: inherit
   build-fast:
     needs: [check-ci-vars]
     uses: ./.github/workflows/build-fast.yml
-  build-docker:
+  build-ultralite:
     needs: [check-ci-vars]
-    uses: ./.github/workflows/build-docker.yml
+    uses: ./.github/workflows/build-ultralite.yml
   build-spack:
     needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
     needs: [check-ci-vars]
     uses: ./.github/workflows/build-spack-extra.yml
-  build-regression:
+  build-docker:
     needs: [check-ci-vars]
-    uses: ./.github/workflows/build-regression.yml
+    uses: ./.github/workflows/build-docker.yml
   build-codecov:
     needs: [check-ci-vars]
     uses: ./.github/workflows/build-codecov.yml
     secrets: inherit
-  build-pages:
+  build-regression:
     needs: [check-ci-vars]
-    uses: ./.github/workflows/build-pages.yml
-    secrets: inherit
+    uses: ./.github/workflows/build-regression.yml
+
   deploy-pages:
     if: ${{ github.ref == 'refs/heads/develop' }}
     needs: [build-pages]
