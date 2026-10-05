@@ -132,7 +132,7 @@ std::mutex& updating_mutex()
  * Currently the mode is set by querying the environment variables \c
  * CELER_KILL_OFFLOAD and \c CELER_DISABLE .
  *
- * \todo This will be refactored for 0.7 to take a \c celeritas::inp object and
+ * \todo This will be refactored to take a \c celeritas::inp object and
  * determine values rather than from the environment .
  */
 auto SharedParams::GetMode() -> Mode
@@ -215,18 +215,6 @@ auto SharedParams::default_offload_particles() -> VecG4PD const&
     };
 
     return default_particles;
-}
-
-//---------------------------------------------------------------------------//
-bool SharedParams::CeleritasDisabled()
-{
-    return GetMode() == Mode::disabled;
-}
-
-//---------------------------------------------------------------------------//
-bool SharedParams::KillOffloadTracks()
-{
-    return GetMode() == Mode::kill_offload;
 }
 
 //---------------------------------------------------------------------------//

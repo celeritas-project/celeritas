@@ -97,10 +97,13 @@ class OrangeTrackView
 
     //// OPERATIONS ////
 
+    // DEPRECATED (remove in v0.8): infinite find_next_step
+    inline CELER_FUNCTION Propagation find_next_step();
+
     // Find the distance to the next boundary, up to and including a step
     inline CELER_FUNCTION Propagation find_next_step(real_type max_step);
 
-    // Find the distance to the nearest boundary in any direction
+    // DEPRECATED (remove in v0.8): infinite find_safety
     inline CELER_FUNCTION real_type find_safety();
 
     // Find the distance to the nearest nearby boundary in any direction
@@ -108,6 +111,9 @@ class OrangeTrackView
 
     // Move to the boundary in preparation for crossing it
     inline CELER_FUNCTION void move_to_boundary();
+
+    // Forward compatibility: move to the boundary
+    inline CELER_FUNCTION void move_to_boundary(real_type distance);
 
     // Move within the volume
     inline CELER_FUNCTION void move_internal(real_type step);
@@ -623,6 +629,18 @@ CELER_FUNCTION Real3 OrangeTrackView::normal() const
 
 //---------------------------------------------------------------------------//
 /*!
+ * Find a geometric boundary up to an infinite difference
+ *
+ * \deprecated Remove in v0.8: pass finite maximum step (precalculate from
+ * world bbox if needed).
+ */
+[[deprecated]] CELER_FUNCTION Propagation OrangeTrackView::find_next_step()
+{
+    return this->find_next_step(numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Find a nearby distance to the next geometric boundary up to a distance.
  *
  * Providing the "next step" (e.g., from the next collision point in a
@@ -686,13 +704,30 @@ CELER_FUNCTION Propagation OrangeTrackView::find_next_step(real_type next_step)
  * The safety distance at a given point is the minimum safety distance over all
  * universe levels, since surface deduplication can potentionally elide
  * bounding surfaces at more deeply embedded universe levels.
+ *
+ * \deprecated Remove in v0.8: use finite search instead
  */
 CELER_FUNCTION real_type OrangeTrackView::find_safety()
+{
+    return this->find_safety(numeric_limits<real_type>::infinity());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Find the distance to the nearest nearby boundary.
+ *
+ * The safety distance at a given point is the minimum safety distance over all
+ * universe levels, since surface deduplication can potentionally elide
+ * bounding surfaces at more deeply embedded universe levels.
+ *
+ * Since we currently support only "simple" safety distances, we can't
+ * eliminate anything by checking only nearby surfaces.
+ */
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
 {
     CELER_EXPECT(!this->is_on_boundary());
 
     TrackerVisitor visit_tracker{params_};
-
     // If we're intersecting a surface, the safety cannot be more than that.
     // Use that as a bound for degenerate cases such as starting in the exact
     // center of a sphere (where the safety can't correctly be calculated).
@@ -716,22 +751,12 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the distance to the nearest nearby boundary.
- *
- * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
- */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
-{
-    return this->find_safety();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Move to the next straight-line boundary but do not change volume.
  *
  * Even though this does not change the universe or volume, it \em may change
  * the universe of the current surface.
+ *
+ * \deprecated Remove in v0.8: pass step length to boundary
  */
 CELER_FUNCTION void OrangeTrackView::move_to_boundary()
 {
@@ -752,6 +777,16 @@ CELER_FUNCTION void OrangeTrackView::move_to_boundary()
     this->clear_next();
 
     CELER_ENSURE(this->geo_status() == GeoStatus::boundary_inc);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * For forward compatibility with 0.8: step is managed independently.
+ */
+CELER_FUNCTION void OrangeTrackView::move_to_boundary(real_type step)
+{
+    CELER_EXPECT(step == this->next_step());
+    this->move_to_boundary();
 }
 
 //---------------------------------------------------------------------------//
