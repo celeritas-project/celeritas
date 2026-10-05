@@ -99,18 +99,9 @@ auto ExtendFromPrimariesAction::create_state(
 /*!
  * Add user-provided primaries on host.
  */
-void ExtendFromPrimariesAction::insert(CoreParams const& params,
-                                       CoreStateInterface& state,
-                                       Span<Primary const> host_primaries) const
+void ExtendFromPrimariesAction::insert(
+    CoreStateInterface& state, Span<Primary const> host_primaries) const
 {
-    size_type num_initializers = state.sync_get_counters().num_initializers;
-    size_type init_capacity = params.init()->capacity();
-
-    CELER_VALIDATE(host_primaries.size() + num_initializers <= init_capacity,
-                   << "insufficient initializer capacity (" << init_capacity
-                   << ") with size (" << num_initializers
-                   << ") for primaries (" << host_primaries.size() << ")");
-
     if (auto* s = dynamic_cast<CoreState<MemSpace::host>*>(&state))
     {
         this->insert_impl(*s, host_primaries);

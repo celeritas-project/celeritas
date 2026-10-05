@@ -123,6 +123,8 @@ Stepper<M>::Stepper(Input input)
         step_done_ = DeviceEvent{celeritas::device()};
     }
 
+    result_counters_.front().num_vacancies = track_slots;
+
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, *state_);
@@ -181,6 +183,23 @@ void Stepper<M>::async()
     CELER_VALIDATE(
         !valid_,
         << "cannot start a step before the current step has been consumed");
+
+    /*! \todo If we don't have space for all the primaries or secondaries, we
+     * will need to buffer the current track initializers to create room.
+     *
+     * This isn't trivial because we will need to:
+     * - Allocate a new buffer (probably do something like 2x, rounding up to
+     *   nearest power of 2)?
+     * - Update the collection references for track sim
+     * - Update the *copies* of that reference (?) like in track state
+     * - Copy to device to update the on-device references (state.ptr)
+     */
+    size_type max_initializers = this->calc_max_initializers();
+    CELER_VALIDATE(
+        max_initializers <= this->initializer_capacity(),
+        << "insufficient initializer capacity (" << this->initializer_capacity()
+        << ") for a maximum possible requirement of " << max_initializers
+        << ". Increase initializer capacity or decrease track slots");
 
     ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
@@ -305,7 +324,7 @@ void Stepper<M>::stage_primaries()
     state_->sync_put_counters(counters);
     try
     {
-        primaries_action_->insert(*params_, *state_, primaries);
+        primaries_action_->insert(*state_, primaries);
     }
     catch (...)
     {
@@ -502,6 +521,8 @@ void Stepper<M>::reset_state()
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reset state with queued primaries");
     state_->reset();
+    result_counters_.front() = {};
+    result_counters_.front().num_vacancies = state_->size();
 }
 
 //---------------------------------------------------------------------------//
@@ -530,6 +551,35 @@ void Stepper<M>::reclaim_submitted_primaries()
         staged_primaries_.clear();
         primary_phase_ = PrimaryPhase::empty;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an upper bound on the number of initializers required in the step.
+ *
+ * This is a conservative initializer capacity requirement that accounts for
+ * current initializers, new primaries, available track slots, and maximum
+ * possible secondary production. This should be called after the step result
+ * has been retrieved with \c get.
+ */
+template<MemSpace M>
+size_type Stepper<M>::calc_max_initializers() const
+{
+    CELER_EXPECT(!valid_);
+
+    auto const& counters = result_counters_.front();
+
+    // Number of initializers before initializing new tracks
+    size_type pre_init_size = counters.num_initializers
+                              + this->staged_primaries().size();
+
+    // Number remaining after filling vacant track slots
+    size_type post_init_size
+        = pre_init_size - std::min(pre_init_size, counters.num_vacancies);
+
+    // Maximum buffer size is either before track initialization or after
+    // adding the maximum possible number of secondaries
+    return std::max(pre_init_size, post_init_size + this->secondary_capacity());
 }
 
 //---------------------------------------------------------------------------//
