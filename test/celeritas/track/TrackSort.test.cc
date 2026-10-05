@@ -311,7 +311,7 @@ TEST_F(TestTrackPartitionEm3Stepper,
        TEST_IF_CELER_DEVICE(device_is_partitioned))
 {
     // Initialize some primaries and take a step
-    auto step = this->make_stepper<MemSpace::device>(6400);
+    auto step = this->make_stepper<MemSpace::device>(1024);
     auto primaries = this->make_primaries(8);
     step(make_span(primaries));
 
@@ -395,7 +395,7 @@ TEST_F(TestTrackSortActionIdEm3Stepper, host_is_sorted)
 TEST_F(TestTrackSortActionIdEm3Stepper, TEST_IF_CELER_DEVICE(device_is_sorted))
 {
     // Initialize some primaries and take a step
-    auto step = this->make_stepper<MemSpace::device>(6400);
+    auto step = this->make_stepper<MemSpace::device>(1024);
     auto primaries = this->make_primaries(8);
     step(make_span(primaries));
 
