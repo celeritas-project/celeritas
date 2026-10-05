@@ -101,7 +101,6 @@ jobs:
     name: tidy-vecgeom
     env:
       CELER_CMAKE_PRESET: vecgeom
-      CUDA_VERSION: "12.6.3"
       CLANG_TIDY: "clang-tidy-18"
       CLANG_TIDY_DIFF: "/usr/lib/llvm-18/share/clang/clang-tidy-diff.py"
       # The options are either "all" the sources that directly or indirectly
@@ -114,25 +113,17 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-tags: true # to get version information
-      - name: Install CUDA toolkit
-        uses: Jimver/cuda-toolkit@b8bf9c6c28f8a92fbb04dcfcaee872e60c57462d # v0.2.36
-        with:
-          cuda: ${{env.CUDA_VERSION}}
-          linux-local-args: '["--toolkit"]'
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: "geant4@11.3 vecgeom@2.1.0+cuda g4vg hepmc3~rootio" # Same as vecgeom 11.3
+          add: "geant4@11.3 vecgeom@2.1.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
-          cuda-version: ${{env.CUDA_VERSION}}
-          cuda-arch: "70"
-          use-buildcache: auto # Build CUDA-enabled VecGeom if it is not cached
       - name: Configure Celeritas
         uses: ./.github/actions/configure
         with:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: "ci-ubuntu-github.json"
-          args: -DCELERITAS_USE_ROOT=OFF -DCELERITAS_USE_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=70
+          args: -DCELERITAS_USE_ROOT=OFF
       - name: Build changed files with clang-tidy
         if: ${{github.event_name == 'pull_request'}}
         continue-on-error: true # FIXME: failures when non-tested translation units are built (CUDA, LArSoft)
