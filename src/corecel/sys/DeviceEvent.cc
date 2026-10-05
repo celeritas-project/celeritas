@@ -41,11 +41,11 @@ void DeviceEvent::ImplDeleter::operator()(Impl* impl) noexcept
         }
         catch (RuntimeError const& e)
         {
-            std::cerr << "Failed to destroy event: " << e.what() << std::endl;
+            std::clog << "Failed to destroy event: " << e.what() << std::endl;
         }
         catch (...)
         {
-            std::cerr << "Failed to destroy event" << std::endl;
+            std::clog << "Failed to destroy event" << std::endl;
         }
     }
     else
