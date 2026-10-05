@@ -76,16 +76,6 @@ class SharedParams
     // Whether celeritas is disabled, set to kill, or to be enabled
     static Mode GetMode();
 
-    // True if Celeritas is globally disabled using the CELER_DISABLE env
-    // Remove in 0.7
-    [[deprecated]]
-    static bool CeleritasDisabled();
-
-    // Whether to kill tracks that would have been offloaded
-    // Remove in 0.7
-    [[deprecated]]
-    static bool KillOffloadTracks();
-
     // Get list of all supported particles in Celeritas
     static VecG4PD const& supported_offload_particles();
 
