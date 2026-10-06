@@ -130,12 +130,6 @@ class VolumeParams final : public ParamsDataInterface<VolumeParamsData>
         VolumeInstanceId vi_id) const;
 
     //!@{
-    //! \deprecated Use \c get instead
-    [[deprecated]] inline SpanVolInst parents(VolumeId v_id) const;
-    [[deprecated]] inline GeoMatId material(VolumeId v_id) const;
-    //!@}
-
-    //!@{
     //! \name Data interface
 
     //! Access volume graph data on the host
@@ -251,18 +245,6 @@ auto VolumeParams::offset(VolumeInstanceId vi_id) const
     -> VolumeUniqueInstanceId::size_type
 {
     return this->view().offset(vi_id);
-}
-
-//---------------------------------------------------------------------------//
-// DEPRECATED
-//---------------------------------------------------------------------------//
-auto VolumeParams::parents(VolumeId v_id) const -> SpanVolInst
-{
-    return remove_ldg_wrapper(this->get(v_id).parents());
-}
-GeoMatId VolumeParams::material(VolumeId v_id) const
-{
-    return this->get(v_id).material();
 }
 
 //---------------------------------------------------------------------------//

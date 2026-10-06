@@ -27,7 +27,7 @@ struct TimingResult
 {
     using MapStrDouble = std::unordered_map<std::string, double>;
 
-    double total{};  //!< Total transport time
+    double total{};  //!< Total transport time, not including initialization
     double setup{};  //!< One-time initialization cost
     MapStrDouble actions{};  //!< Accumulated action times
     std::vector<double> steps{};  //!< Step times

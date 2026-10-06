@@ -1,0 +1,72 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Launched when added to a merge queue
+#-----------------------------------------------------------------------------#
+
+name: merge_group
+# Run name renders as `refs/heads/gh-readonly-queue/develop/pr-1-5c5a8f0a74fcd3c4bf682dc2f7b827f0b0344405`
+run-name: ${{github.event.merge_group.head_ref}}
+
+on:
+  merge_group: {}
+
+concurrency:
+  group: merge-${{github.event.merge_group.head_ref}}
+  cancel-in-progress: true
+
+jobs:
+  build-docs:
+    uses: ./.github/workflows/build-docs.yml
+  build-fast:
+    uses: ./.github/workflows/build-fast.yml
+  build-ultralite:
+    uses: ./.github/workflows/build-ultralite.yml
+
+  build-spack:
+    uses: ./.github/workflows/build-spack.yml
+  build-spack-extra:
+    uses: ./.github/workflows/build-spack-extra.yml
+
+  build-codecov:
+    uses: ./.github/workflows/build-codecov.yml
+  build-docker:
+    uses: ./.github/workflows/build-docker.yml
+  build-regression:
+    uses: ./.github/workflows/build-regression.yml
+
+  all:
+    if: ${{ always() }}
+    needs:
+      # IMPORTANT: should be the same as `jobs:all:needs` in `pull_request.yml`
+      - build-fast
+      - build-ultralite
+      - build-docs
+      - build-spack
+      - build-spack-extra
+      - build-codecov
+      - build-docker
+      - build-regression
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check failures
+        id: check
+        uses: actions/github-script@v9
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        with:
+          script: |
+            const needs = JSON.parse(process.env.NEEDS);
+            core.debug(`needs: ${JSON.stringify(needs)}`);
+
+            const unsuccessful = Object.entries(needs)
+              .filter(([, job]) => job.result !== 'success')
+              .map(([name]) => name);
+
+            core.setOutput('unsuccessful', unsuccessful.join(','));
+            if (unsuccessful.length) {
+              core.setFailed(`Jobs did not succeed: ${unsuccessful.join(', ')}`);
+            }
+
+# vim: set nowrap tw=100:

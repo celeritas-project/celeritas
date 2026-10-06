@@ -59,12 +59,13 @@ GlobalTestBase::~GlobalTestBase()
         try
         {
             std::string destination = this->make_unique_filename(".out.json");
-            std::cerr << "Writing diagnostic output because test failed\n";
+            std::clog << "Writing diagnostic output because test failed\n";
             this->write_output();
         }
         catch (std::exception const& e)
         {
-            std::cerr << "Failed to write diagnostics: " << e.what();
+            std::clog << "Failed to write diagnostics: " << e.what()
+                      << std::endl;
         }
     }
 }

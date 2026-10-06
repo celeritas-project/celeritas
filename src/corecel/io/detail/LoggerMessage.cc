@@ -50,8 +50,8 @@ void LoggerMessage::destroy_impl() noexcept
     }
     catch (std::exception const& e)
     {
-        std::cerr << "An error occurred writing a log message: " << e.what()
-                  << std::endl;
+        std::clog << "An error occurred while writing a " << to_cstring(lev_)
+                  << " log message: " << e.what() << std::endl;
     }
 }
 

@@ -41,12 +41,6 @@ class IntegrationBase
     // Set options before starting the run
     void SetOptions(SetupOptions&& opts);
 
-    // REMOVE in v0.7
-    [[deprecated]] void BuildForMaster() {}
-
-    // REMOVE in v0.7
-    [[deprecated]] void Build() {}
-
     // Start the run
     void BeginOfRunAction(G4Run const* run);
 

@@ -20,6 +20,7 @@ _SPEC.loader.exec_module(_MODULE)
 validate_selected_sources = _MODULE.validate_selected_sources
 select_sources = _MODULE.select_sources
 scan_dependencies = _MODULE.scan_dependencies
+scannable_commands = _MODULE.scannable_commands
 run_header_tidy = _MODULE.run_header_tidy
 run_source_tidy = _MODULE.run_source_tidy
 
@@ -38,6 +39,8 @@ def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
     missing = repo_root / "test" / "example.test.cc"
     source.parent.mkdir()
     source.touch()
+    missing.parent.mkdir()
+    missing.touch()
     (build_dir / "compile_commands.json").write_text(
         json.dumps(
             [
@@ -51,17 +54,18 @@ def test_validate_selected_sources_reports_missing_entries(build_tree, capsys):
     )
 
     compilation_database = json.loads((build_dir / "compile_commands.json").read_text())
-    result = validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/example.cc", "test/example.test.cc"],
         build_dir,
         repo_root,
         compilation_database,
     )
 
-    assert result == [str(missing)]
+    assert missing_sources == []
+    assert runnable_sources == ["src/example.cc"]
     output = capsys.readouterr()
     assert "Compilation database entry:" not in output.err
-    assert "::error file=test/example.test.cc,line=" in output.err
+    assert "::warning file=test/example.test.cc,line=" in output.err
     assert "Source 'test/example.test.cc' selected for clang-tidy" in output.err
     assert "no compilation database entry" in output.err
 
@@ -79,13 +83,15 @@ def test_validate_selected_sources_prints_commands_when_requested(build_tree, ca
         }
     ]
 
-    assert not validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/example.cc"],
         build_dir,
         repo_root,
         compilation_database,
         print_commands=True,
     )
+    assert missing_sources == []
+    assert runnable_sources == ["src/example.cc"]
     assert (
         "Compilation database entry: source=src/example.cc;" in capsys.readouterr().err
     )
@@ -98,9 +104,11 @@ def test_validate_selected_sources_reports_missing_files(build_tree, capsys):
         {"directory": str(build_dir), "file": str(missing), "command": "clang++"}
     ]
 
-    assert validate_selected_sources(
+    missing_sources, runnable_sources = validate_selected_sources(
         ["src/missing.cc"], build_dir, repo_root, compilation_database
-    ) == [str(missing)]
+    )
+    assert missing_sources == [str(missing)]
+    assert runnable_sources == []
     output = capsys.readouterr().err
     assert "::error file=src/missing.cc,line=" in output
     assert "selected for clang-tidy does not exist" in output
@@ -219,6 +227,37 @@ def test_run_source_tidy_skips_cuda_and_checks_cc(build_tree, monkeypatch, capsy
     )
     assert len(calls) == 1
     assert "Skipping changed CUDA source in .cc-only" in capsys.readouterr().err
+
+
+def test_run_source_tidy_skips_source_without_compile_command(
+    build_tree, monkeypatch, capsys
+):
+    repo_root, build_dir = build_tree
+    source = repo_root / "src/example.cc"
+    source.parent.mkdir()
+    source.touch()
+    (build_dir / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr(
+        _MODULE.subprocess,
+        "run",
+        lambda *args, **kwargs: pytest.fail("clang-tidy-diff should be skipped"),
+    )
+
+    assert (
+        run_source_tidy(
+            Namespace(
+                clang_tidy="clang-tidy",
+                clang_tidy_diff=Path("clang-tidy-diff.py"),
+                print_compile_commands=False,
+            ),
+            "diff",
+            {Path("src/example.cc")},
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert "::warning file=src/example.cc,line=" in capsys.readouterr().err
 
 
 def test_run_source_tidy_cuda_only_skips_runner(build_tree, monkeypatch, capsys):
@@ -341,6 +380,129 @@ def test_run_header_tidy_skips_unrelated_missing_scan_input(
     )
 
 
+def test_run_header_tidy_skips_source_without_compile_command(
+    build_tree, monkeypatch, capsys
+):
+    repo_root, build_dir = build_tree
+    source = repo_root / "src/example.cc"
+    source.parent.mkdir()
+    source.touch()
+    (build_dir / "compile_commands.json").write_text("[]")
+    monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
+    monkeypatch.setattr(_MODULE, "scan_dependencies", lambda *args: None)
+    monkeypatch.setattr(_MODULE, "select_sources", lambda **kwargs: ["src/example.cc"])
+    monkeypatch.setattr(
+        _MODULE,
+        "run_tidy",
+        lambda *args: pytest.fail("run-clang-tidy should be skipped"),
+    )
+
+    assert (
+        run_header_tidy(
+            Namespace(
+                clang_scan_deps="clang-scan-deps",
+                run_clang_tidy="run-clang-tidy",
+                clang_tidy="clang-tidy",
+                header_source_selection=_MODULE.SourceSelection.ALL,
+                print_compile_commands=False,
+            ),
+            {Path("src/example.hh")},
+            set(),
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert "::warning file=src/example.cc,line=" in capsys.readouterr().err
+
+
+def test_scannable_commands_omits_nvcc(build_tree, capsys):
+    repo_root, build_dir = build_tree
+    host = {"file": str(repo_root / "src/host.cc"), "command": "clang++ -c host.cc"}
+    cuda = {
+        "file": str(repo_root / "src/device.cu"),
+        "command": "/usr/local/cuda/bin/nvcc -Xcompiler=-fPIC -c device.cu",
+    }
+    generated = {
+        "file": str(build_dir / "emptyfile.cu"),
+        "arguments": ["/usr/local/cuda/bin/nvcc", "-c", "emptyfile.cu"],
+    }
+    assert scannable_commands([host, cuda, generated], build_dir) == [host]
+    output = capsys.readouterr().err
+    assert "device.cu" in output
+    assert "emptyfile.cu" in output
+
+
+def test_run_header_tidy_scans_only_host_commands(build_tree, monkeypatch, capsys):
+    repo_root, build_dir = build_tree
+    host = repo_root / "src/host.cc"
+    cuda = repo_root / "src/device.cu"
+    host.parent.mkdir()
+    host.touch()
+    cuda.touch()
+    database = [
+        {
+            "directory": str(build_dir),
+            "file": str(host),
+            "command": "clang++ -c host.cc",
+        },
+        {
+            "directory": str(build_dir),
+            "file": str(cuda),
+            "command": "nvcc -Xcompiler=-fPIC -c device.cu",
+        },
+    ]
+    (build_dir / "compile_commands.json").write_text(json.dumps(database))
+    monkeypatch.setattr(_MODULE, "command_path", lambda command: command)
+    tidy_commands = []
+    monkeypatch.setattr(
+        _MODULE, "run_tidy", lambda command, root: tidy_commands.append(command) or 0
+    )
+
+    def fake_run(command, **kwargs):
+        scan_file = Path(command[command.index("-compilation-database") + 1])
+        assert json.loads(scan_file.read_text()) == [database[0]]
+        kwargs["stdout"].write(
+            json.dumps(
+                {
+                    "translation-units": [
+                        {
+                            "commands": [
+                                {
+                                    "input-file": str(host),
+                                    "file-deps": [str(repo_root / "src/shared.hh")],
+                                }
+                            ]
+                        }
+                    ]
+                }
+            )
+        )
+
+    monkeypatch.setattr(_MODULE.subprocess, "run", fake_run)
+
+    assert (
+        run_header_tidy(
+            Namespace(
+                clang_scan_deps="clang-scan-deps",
+                run_clang_tidy="run-clang-tidy",
+                clang_tidy="clang-tidy",
+                header_source_selection=_MODULE.SourceSelection.ALL,
+                print_compile_commands=False,
+            ),
+            ["src/shared.hh"],
+            ["src/device.cu"],
+            repo_root,
+            build_dir,
+        )
+        == 0
+    )
+    assert len(tidy_commands) == 1
+    assert "host\\.cc" in tidy_commands[0][-1]
+    assert "device\\.cu" not in tidy_commands[0][-1]
+    assert "Skipping changed CUDA source" in capsys.readouterr().err
+
+
 def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
     def fail(_):
         raise RuntimeError("missing sources")
@@ -360,6 +522,36 @@ def test_main_prints_runtime_error_and_exits(monkeypatch, capsys):
 
     assert exc.value.code == 1
     assert capsys.readouterr().err == "error: missing sources\n"
+
+
+def test_format_tidy_output_keeps_annotation_with_snippet(build_tree, capsys):
+    repo_root, _ = build_tree
+    source = repo_root / "src" / "Foo.cc"
+    lines = [
+        "clang-tidy -p=/tmp/db src/Foo.cc\n",
+        f"{source}:12:5: error: bad thing [check-name,-warnings-as-errors]\n",
+        "   12 |     do_bad();\n",
+        "      |     ^\n",
+        f"{source}:12:5: error: bad thing [check-name,-warnings-as-errors]\n",
+        "   12 |     do_bad();\n",
+        "      |     ^\n",
+        "1 warning treated as error\n",
+    ]
+
+    _MODULE.format_tidy_output(iter(lines), repo_root)
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    err_lines = captured.err.splitlines()
+    assert err_lines[0] == "clang-tidy -p=/tmp/db src/Foo.cc"
+    assert err_lines[1].startswith("::error ")
+    assert "file=src/Foo.cc,line=12,col=5::bad thing" in err_lines[1]
+    assert err_lines[2] == (
+        "src/Foo.cc:12:5: error: bad thing [check-name,-warnings-as-errors]"
+    )
+    assert err_lines[3:5] == ["   12 |     do_bad();", "      |     ^"]
+    assert err_lines[5] == "1 warning treated as error"
+    assert captured.err.count("::error ") == 1
 
 
 @pytest.mark.parametrize("print_commands", [False, True])

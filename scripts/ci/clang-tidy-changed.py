@@ -6,6 +6,7 @@
 import argparse
 import json
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -31,6 +32,11 @@ SOURCE_EXT = (".cc", ".cpp", ".cu")
 class SourceSelection(StrEnum):
     ALL = "all"
     ONE = "one"
+
+
+def emit(text: str) -> None:
+    """Write text to standard error and flush the stream immediately."""
+    print(text, file=sys.stderr, flush=True)
 
 
 def resolve_paths(paths: Iterable[Path], root: Path) -> set[Path]:
@@ -137,7 +143,15 @@ def scanner_path(clang_tidy: str) -> str:
 
 
 def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
-    """Stream tidy output, emitting one GitHub annotation per error."""
+    """Stream tidy output, emitting one GitHub annotation per error.
+
+    All output is flushed to stderr, the stream used by ``log``, so that
+    annotations stay adjacent to the code snippet they describe in the GitHub
+    Actions log: stdout is block-buffered when piped and would otherwise be
+    emitted long after the annotations. Each new diagnostic is also echoed as
+    a plain ``path:line:col`` line so the following snippet remains
+    attributable even though GitHub renders the annotation separately.
+    """
     generated: set[str] = set()
     seen: set[tuple[str, str, str, str]] = set()
     suppress_context = 0
@@ -153,7 +167,7 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
                 generated.remove(count)
                 line = re.sub(r"^Suppressed ", f"{count} warnings generated; ", line)
                 line = line.replace(" warnings (", " suppressed (", 1)
-            print(line)
+            emit(line)
             continue
         if line == HEADER_FILTER_HINT:
             continue
@@ -175,13 +189,15 @@ def format_tidy_output(lines: Iterable[str], repo_root: Path) -> None:
                     line=line_number,
                     col=column,
                 )
+                # Preserve the clang-tidy diagnostic in the job log alongside its annotation.
+                emit(f"{relative_path}:{line_number}:{column}: error: {message}")
             else:
                 suppress_context = 2
             continue
         if suppress_context:
             suppress_context -= 1
             continue
-        print(line)
+        emit(line)
 
 
 def run_tidy(command: list[str], repo_root: Path) -> int:
@@ -240,6 +256,23 @@ def compilation_source(entry: dict, build_dir: Path) -> Path:
         directory = build_dir / directory
     source = Path(entry["file"])
     return (directory / source).resolve()
+
+
+def scannable_commands(compilation_database: list[dict], build_dir: Path) -> list[dict]:
+    """Exclude nvcc commands, which clang-scan-deps cannot parse."""
+    result = []
+    for entry in compilation_database:
+        command = entry.get("arguments")
+        if command is None:
+            command = shlex.split(entry.get("command", ""))
+        if any(Path(arg).name == "nvcc" for arg in command):
+            log(
+                LogLevel.NOTICE,
+                f"Skipping nvcc dependency-scan source: {compilation_source(entry, build_dir)}",
+            )
+            continue
+        result.append(entry)
+    return result
 
 
 def scan_dependencies(
@@ -311,8 +344,25 @@ def validate_selected_sources(
     compilation_database: list[dict],
     *,
     print_commands: bool = False,
-) -> list[str]:
-    """Validate selected sources, optionally logging their compile commands."""
+) -> tuple[list[str], list[str]]:
+    """Validate selected sources against the compilation database.
+
+    Existing sources without compilation database entries are logged as
+    warnings and excluded from the runnable sources. Nonexistent sources are
+    logged as errors and included in the missing-sources result.
+
+    Args:
+        sources: Repository-relative source paths selected for clang-tidy.
+        build_dir: Build directory used to resolve compilation database paths.
+        repo_root: Repository root used to resolve and format source paths.
+        compilation_database: Entries loaded from the compilation database.
+        print_commands: Whether to log matched compilation commands.
+
+    Returns:
+        A pair containing missing source paths and existing selected source
+        paths with compilation database entries, respectively. Both lists use
+        repository-relative paths when possible.
+    """
     selected_paths = resolve_paths(sources, repo_root)
     matched_sources: set[Path] = set()
 
@@ -336,22 +386,30 @@ def validate_selected_sources(
         (selected_paths - matched_sources)
         | {source for source in matched_sources if not source.is_file()}
     )
+    missing_sources: list[str] = []
     for source_path in unavailable_sources:
         try:
             relative_path = source_path.relative_to(repo_root).as_posix()
         except ValueError:
             relative_path = str(source_path)
-        reason = (
-            "does not exist"
-            if source_path in matched_sources
-            else "has no compilation database entry"
-        )
+        if not source_path.is_file():
+            reason = "does not exist"
+            level = LogLevel.ERROR
+            missing_sources.append(source_path.as_posix())
+        else:
+            reason = "has no compilation database entry"
+            level = LogLevel.WARNING
         log(
-            LogLevel.ERROR,
+            level,
             f"Source {relative_path!r} selected for clang-tidy {reason}",
             file=relative_path,
         )
-    return [source.as_posix() for source in unavailable_sources]
+    runnable_sources = sorted(
+        source.relative_to(repo_root).as_posix()
+        for source in selected_paths & matched_sources
+        if source.is_file()
+    )
+    return missing_sources, runnable_sources
 
 
 def run_header_tidy(
@@ -367,7 +425,9 @@ def run_header_tidy(
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
         dependency_file = temp_dir / "dependencies.json"
-        compilation_database = load_compilation_database(build_dir)
+        compilation_database = scannable_commands(
+            load_compilation_database(build_dir), build_dir
+        )
         log(LogLevel.NOTICE, "Header changes detected: finding affected source files")
         scan_dependencies(
             scanner, build_dir, repo_root, dependency_file, compilation_database
@@ -387,7 +447,7 @@ def run_header_tidy(
         log(LogLevel.NOTICE, f"Selected {len(selected_sources)} source files:")
         for source in selected_sources:
             log(LogLevel.NOTICE, f"  {source}")
-        missing_sources = validate_selected_sources(
+        missing_sources, selected_sources = validate_selected_sources(
             selected_sources,
             build_dir,
             repo_root,
@@ -396,6 +456,9 @@ def run_header_tidy(
         )
         if missing_sources:
             raise RuntimeError("missing sources")
+        if not selected_sources:
+            log(LogLevel.NOTICE, "No source files with compilation database entries")
+            return 0
         log(
             LogLevel.NOTICE,
             f"Running clang-tidy on {len(selected_sources)} affected source files",
@@ -434,14 +497,18 @@ def run_source_tidy(
         log(LogLevel.NOTICE, "No .cc source files selected for clang-tidy-diff")
         return 0
     compilation_database = load_compilation_database(build_dir)
-    if validate_selected_sources(
+    missing_sources, tidy_sources = validate_selected_sources(
         tidy_sources,
         build_dir,
         repo_root,
         compilation_database,
         print_commands=args.print_compile_commands,
-    ):
+    )
+    if missing_sources:
         raise RuntimeError("missing sources")
+    if not tidy_sources:
+        log(LogLevel.NOTICE, "No .cc source files with compilation database entries")
+        return 0
 
     return subprocess.run(
         [
@@ -456,7 +523,7 @@ def run_source_tidy(
             "-path",
             str(build_dir),
             "-regex",
-            r"^(src|app|test)/.*\.cc$",
+            source_selector(tidy_sources),
         ],
         cwd=repo_root,
         input=diff,
