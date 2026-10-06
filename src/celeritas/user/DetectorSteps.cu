@@ -16,8 +16,7 @@
 #    include <cub/device/device_select.cuh>
 #elif CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_select.hpp>
-#endif
-#if CELER_USE_THRUST
+#else
 #    include <thrust/copy.h>
 #    include <thrust/execution_policy.h>
 #endif
