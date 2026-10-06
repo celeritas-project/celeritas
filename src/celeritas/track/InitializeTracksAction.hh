@@ -55,6 +55,8 @@ class InitializeTracksAction final : public CoreStepActionInterface
 
     void step_impl(CoreParams const&, CoreStateHost&, size_type) const;
     void step_impl(CoreParams const&, CoreStateDevice&, size_type) const;
+    void update_num_active(CoreParams const&, CoreStateHost&) const;
+    void update_num_active(CoreParams const&, CoreStateDevice&) const;
 };
 
 //---------------------------------------------------------------------------//

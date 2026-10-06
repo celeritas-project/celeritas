@@ -16,10 +16,12 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "TrackInitParams.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
+#include "detail/UpdateCountersExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -183,18 +185,10 @@ template<MemSpace M>
 void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
-    auto& primaries = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-
-    // Create track initializers from primaries
-    this->process_primaries(params, state, primaries);
-
-    // Mark that the primaries have been processed
-    auto counters = state.sync_get_counters();
-    counters.num_initializers += primaries.count;
-    counters.num_generated += primaries.count;
-    counters.num_pending = 0;
-    primaries.count = 0;
-    state.sync_put_counters(counters);
+    auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
+    this->process_primaries(params, state, pstate);
+    this->update_counters(params, state, pstate.count);
+    pstate.count = 0;
 }
 
 //---------------------------------------------------------------------------//
@@ -217,11 +211,33 @@ void ExtendFromPrimariesAction::process_primaries(
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Launch a (host) kernel to update state counters based on the number of
+ * primary particles.
+ */
+void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
+                                                CoreStateHost& state,
+                                                size_type num_primaries) const
+{
+    auto execute_thread = make_single_track_executor(
+        params.ptr<MemSpace::native>(),
+        state.ptr(),
+        detail::UpdateCountersExecutor{num_primaries});
+    launch_core(1, "update-counters", params, state, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,
     CoreStateDevice&,
     PrimaryStateData<MemSpace::device> const&) const
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void ExtendFromPrimariesAction::update_counters(
+    CoreParams const&, CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
