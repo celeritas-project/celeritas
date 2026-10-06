@@ -181,6 +181,10 @@ void FastSimulationIntegration::verify_local_setup()
 
     auto& singleton = detail::IntegrationSingleton::instance();
 
+    CELER_VALIDATE(!singleton.setup_options().hand_back,
+                   << "handing tracks back to Geant4 is only supported by the "
+                      "tracking manager integration");
+
     // Check particle/processes are consistent
     auto const& user_offload = singleton.setup_options().offload_particles;
     auto const& offload_particles

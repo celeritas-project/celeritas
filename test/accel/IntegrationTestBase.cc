@@ -10,6 +10,7 @@
 #include <G4Threading.hh>
 #include <G4UserEventAction.hh>
 #include <G4UserRunAction.hh>
+#include <G4UserStackingAction.hh>
 #include <G4UserSteppingAction.hh>
 #include <G4UserTrackingAction.hh>
 #include <G4VSensitiveDetector.hh>
@@ -237,6 +238,13 @@ class ActionInitialization final : public G4VUserActionInitialization
             CELER_LOG_LOCAL(debug) << "Setting step action of type "
                                    << demangle_type(*stepping_action);
             this->SetUserAction(stepping_action.release());
+        }
+        if (auto stacking_action = test_->make_stacking_action())
+        {
+            TypeDemangler<G4UserStackingAction> demangle_type;
+            CELER_LOG_LOCAL(debug) << "Setting stack action of type "
+                                   << demangle_type(*stacking_action);
+            this->SetUserAction(stacking_action.release());
         }
     }
 
@@ -476,6 +484,15 @@ auto IntegrationTestBase::make_tracking_action() -> UPTrackAction
  * Create optional stepping action (local, default null).
  */
 auto IntegrationTestBase::make_stepping_action() -> UPStepAction
+{
+    return nullptr;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Create optional stacking action (local, default null).
+ */
+auto IntegrationTestBase::make_stacking_action() -> UPStackAction
 {
     return nullptr;
 }

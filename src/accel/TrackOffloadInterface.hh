@@ -27,6 +27,10 @@ class TrackOffloadInterface : public LocalOffloadInterface
 
     // Push a full Geant4 track to Celeritas
     virtual void Push(G4Track&) = 0;
+
+    //! Track on CPU a track that was handed back by Celeritas
+    //! (returns false, without taking ownership, if it wasn't)
+    virtual bool ProcessHandedBack(G4Track*) { return false; }
 };
 
 //---------------------------------------------------------------------------//
