@@ -185,6 +185,23 @@ celeritas_add_integration_tests(
   RMTYPE serial mt
 )
 
+# Test handing tracks back to Geant4 and offloading them again
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3HandBack run
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3HandBack reoffload
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3HandBack reproducible
+  OFFLOAD cpu gpu
+  RMTYPE serial mt
+)
+
 # Test automatic state-dependent hooks without manual run action calls
 celeritas_add_integration_tests(
   TrackingManagerIntegration TMIAutoHooks run

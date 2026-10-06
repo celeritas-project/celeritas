@@ -121,7 +121,9 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
             = std::make_shared<GeantTrackReconstruction>(particles, step_);
     }
     CELER_ASSERT(ss_.particle_id == static_cast<bool>(track_reconstruction_)
-                 && ss_.primary_id == ss_.particle_id);
+                 && ss_.primary_id == ss_.particle_id
+                 && ss_.parent_id == ss_.particle_id
+                 && ss_.parent_is_primary == ss_.particle_id);
 
     GeantStepView step_view{*step_};
 
@@ -328,10 +330,16 @@ void HitProcessor::operator()(DetectorStepOutput const& out, size_type i) const
     {
         CELER_ASSERT(i < out.particle_id.size());
         CELER_ASSERT(i < out.primary_id.size());
-        // Get track corresponding to the particle type, and reload primary
-        // data if possible
-        G4Track& g4track = track_reconstruction_->view(out.particle_id[i],
-                                                       out.primary_id[i]);
+        CELER_ASSERT(i < out.parent_id.size());
+        CELER_ASSERT(i < out.parent_is_primary.size());
+        // Get track corresponding to the particle type, and restore the
+        // Geant4 identity of the offloaded track or the Celeritas secondary
+        G4Track& g4track
+            = track_reconstruction_->view(out.particle_id[i],
+                                          out.primary_id[i],
+                                          out.track_id[i],
+                                          out.parent_id[i],
+                                          out.parent_is_primary[i]);
         CELER_ASSERT(&g4track == step_->GetTrack());
         // Copy step information to the corresponding track
         GeantStepView{*step_}.update_track();

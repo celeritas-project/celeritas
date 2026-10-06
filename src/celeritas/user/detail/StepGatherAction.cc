@@ -40,10 +40,14 @@ StepGatherAction<P>::StepGatherAction(
     CELER_EXPECT(!callbacks_.empty() || P == StepPoint::pre);
     CELER_EXPECT(params_);
 
+    bool const hand_back = params_->is_hand_back();
+    label_ = hand_back ? "hand-back-gather-" : "step-gather-";
+    label_ += (P == StepPoint::pre ? "pre" : "post");
+
     description_ = "gather ";
     description_ += (P == StepPoint::pre ? "pre" : "post");
-    description_ += "-step steps/hits";
-    CELER_ENSURE(!description_.empty());
+    description_ += hand_back ? "-step handed-back tracks" : "-step steps/hits";
+    CELER_ENSURE(!label_.empty() && !description_.empty());
 }
 
 //---------------------------------------------------------------------------//

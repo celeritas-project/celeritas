@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 
+#include <limits>
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -367,6 +368,68 @@ TEST_F(GtrTest, multiple_particle_types)
 
 //---------------------------------------------------------------------------//
 
+TEST_F(GtrTest, secondary_view)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto primary_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary_track->SetTrackID(12);
+    primary_track->SetParentID(3);
+    primary_track->SetUserInformation(new MockUserTrackInformation(7));
+    auto mock_process = std::make_unique<MockG4Process>("TestCompton");
+    primary_track->SetCreatorProcess(mock_process.get());
+    PrimaryId const pid = recon.acquire(*primary_track);
+
+    constexpr int max_id = std::numeric_limits<int>::max();
+    EXPECT_EQ(max_id, GeantTrackReconstruction::geant_track_id(TrackId{0}));
+    EXPECT_EQ(max_id - 10,
+              GeantTrackReconstruction::geant_track_id(TrackId{10}));
+    EXPECT_EQ("celeritas", recon.placeholder_process().GetProcessName());
+
+    {
+        // The offloaded track itself (Celeritas track 0) keeps its identity
+        G4Track& track = recon.view(ParticleId{0}, pid, TrackId{0}, {}, false);
+        EXPECT_EQ(12, track.GetTrackID());
+        EXPECT_EQ(3, track.GetParentID());
+        EXPECT_EQ(mock_process.get(), track.GetCreatorProcess());
+        EXPECT_NE(nullptr, track.GetUserInformation());
+    }
+    {
+        // Electron created by the offloaded track
+        G4Track& track
+            = recon.view(ParticleId{1}, pid, TrackId{5}, TrackId{0}, true);
+        EXPECT_EQ(particles_[1], track.GetParticleDefinition());
+        EXPECT_EQ(max_id - 5, track.GetTrackID());
+        EXPECT_EQ(12, track.GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+    {
+        // Photon created by that electron
+        G4Track& track
+            = recon.view(ParticleId{0}, pid, TrackId{8}, TrackId{5}, false);
+        EXPECT_EQ(max_id - 8, track.GetTrackID());
+        EXPECT_EQ(max_id - 5, track.GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+
+    if (CELERITAS_DEBUG)
+    {
+        // A primary can't have a primary parent
+        EXPECT_THROW(static_cast<void>(recon.view(
+                         ParticleId{0}, pid, TrackId{0}, TrackId{}, true)),
+                     DebugError);
+    }
+    recon.clear();
+}
+
+//---------------------------------------------------------------------------//
+
 TEST_F(GtrTest, reconstruction_data_persistence)
 {
     GeantTrackReconstruction recon(particles_, step_);
@@ -406,6 +469,175 @@ TEST_F(GtrTest, reconstruction_data_persistence)
 
     // Clear after retrieving all tracks
     recon.clear();
+}
+
+//---------------------------------------------------------------------------//
+
+// Count live user information instances to check ownership
+class CountedUserTrackInformation : public MockUserTrackInformation
+{
+  public:
+    static int num_alive;
+
+    explicit CountedUserTrackInformation(int value)
+        : MockUserTrackInformation(value)
+    {
+        ++num_alive;
+    }
+    ~CountedUserTrackInformation() override { --num_alive; }
+};
+
+int CountedUserTrackInformation::num_alive{0};
+
+class GtrCreateTest : public GtrTest
+{
+  protected:
+    void SetUp() override
+    {
+        GtrTest::SetUp();
+        CountedUserTrackInformation::num_alive = 0;
+        process_ = std::make_unique<MockG4Process>("TestPhot");
+    }
+
+    void TearDown() override
+    {
+        EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
+    }
+
+    // Create a Geant4 track with user info and acquire it
+    std::unique_ptr<G4Track> make_offloaded(int track_id, int parent_id)
+    {
+        auto result = std::make_unique<G4Track>(
+            new G4DynamicParticle(particles_[1], G4ThreeVector(0, 0, 1)),
+            0.0,
+            G4ThreeVector(0, 0, 0));
+        result->SetTrackID(track_id);
+        result->SetParentID(parent_id);
+        result->SetCreatorProcess(process_.get());
+        result->SetUserInformation(new CountedUserTrackInformation(track_id));
+        return result;
+    }
+
+    std::unique_ptr<MockG4Process> process_;
+};
+
+TEST_F(GtrCreateTest, offloaded)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto g4track = this->make_offloaded(12, 3);
+    auto* info = g4track->GetUserInformation();
+    PrimaryId pid = recon.acquire(*g4track);
+    EXPECT_EQ(nullptr, g4track->GetUserInformation());
+    g4track.reset();
+    EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+
+    // Hand back the offloaded track itself (Celeritas track 0) as a positron
+    auto track = recon.create(ParticleId{2}, pid, TrackId{0}, {}, false);
+    ASSERT_TRUE(track);
+    EXPECT_EQ(particles_[2], track->GetParticleDefinition());
+    EXPECT_EQ(12, track->GetTrackID());
+    EXPECT_EQ(3, track->GetParentID());
+    EXPECT_EQ(process_.get(), track->GetCreatorProcess());
+
+    // Ownership of the user information is transferred to the new track
+    EXPECT_EQ(info, track->GetUserInformation());
+    EXPECT_EQ(nullptr, recon.view(ParticleId{0}, pid).GetUserInformation());
+    track.reset();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
+
+    recon.clear();
+}
+
+TEST_F(GtrCreateTest, secondary)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto g4track = this->make_offloaded(12, 3);
+    auto* info = g4track->GetUserInformation();
+    PrimaryId pid = recon.acquire(*g4track);
+    g4track.reset();
+    constexpr int max_id = std::numeric_limits<int>::max();
+
+    {
+        // Created by the offloaded track
+        auto track
+            = recon.create(ParticleId{0}, pid, TrackId{4}, TrackId{0}, true);
+        ASSERT_TRUE(track);
+        EXPECT_EQ(particles_[0], track->GetParticleDefinition());
+        EXPECT_EQ(max_id - 4, track->GetTrackID());
+        EXPECT_EQ(12, track->GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track->GetCreatorProcess());
+        EXPECT_EQ(nullptr, track->GetUserInformation());
+    }
+    {
+        // Created by another Celeritas secondary
+        auto track
+            = recon.create(ParticleId{1}, pid, TrackId{9}, TrackId{4}, false);
+        EXPECT_EQ(max_id - 9, track->GetTrackID());
+        EXPECT_EQ(max_id - 4, track->GetParentID());
+        EXPECT_EQ(nullptr, track->GetUserInformation());
+    }
+
+    // The offloaded track still owns its user information
+    EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+    EXPECT_EQ(info, recon.view(ParticleId{0}, pid).GetUserInformation());
+
+    recon.clear();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
+}
+
+TEST_F(GtrCreateTest, reoffload)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto g4track = this->make_offloaded(7, 1);
+    auto* info = g4track->GetUserInformation();
+    PrimaryId pid = recon.acquire(*g4track);
+    g4track.reset();
+
+    // Hand back, then Geant4 suspends the track and offloads it again
+    auto handed_back = recon.create(ParticleId{1}, pid, TrackId{0}, {}, false);
+    EXPECT_EQ(info, handed_back->GetUserInformation());
+    PrimaryId pid2 = recon.acquire(*handed_back);
+    EXPECT_NE(pid, pid2);
+    EXPECT_EQ(nullptr, handed_back->GetUserInformation());
+    handed_back.reset();
+
+    // Same identity and user information for the re-offloaded track
+    G4Track& view = recon.view(ParticleId{1}, pid2);
+    EXPECT_EQ(7, view.GetTrackID());
+    EXPECT_EQ(1, view.GetParentID());
+    EXPECT_EQ(info, view.GetUserInformation());
+    EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+
+    recon.clear();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
+}
+
+TEST_F(GtrCreateTest, handed_back_survives_clear)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto g4track = this->make_offloaded(9, 0);
+    auto* info = g4track->GetUserInformation();
+    PrimaryId pid = recon.acquire(*g4track);
+    g4track.reset();
+
+    auto handed_back = recon.create(ParticleId{1}, pid, TrackId{0}, {}, false);
+
+    // Celeritas finishes the event while Geant4 still holds the track
+    recon.clear();
+    EXPECT_EQ(1, CountedUserTrackInformation::num_alive);
+    EXPECT_EQ(info, handed_back->GetUserInformation());
+
+    // The track deletes its user info
+    handed_back.reset();
+    EXPECT_EQ(0, CountedUserTrackInformation::num_alive);
 }
 
 //---------------------------------------------------------------------------//

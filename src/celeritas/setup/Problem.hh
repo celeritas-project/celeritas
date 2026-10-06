@@ -26,6 +26,7 @@ class Transporter;
 
 class ActionSequence;
 class CoreParams;
+class GeantHandBack;
 class GeantSd;
 class OpticalDistributionWriter;
 class OffloadWriter;
@@ -52,6 +53,10 @@ struct ProblemLoaded
     std::shared_ptr<OpticalCollector> optical_collector;
     //! Geant4 SD interface
     std::shared_ptr<GeantSd> geant_sd;
+    //! Geant4 track hand-back interface
+    std::shared_ptr<GeantHandBack> geant_hand_back;
+    //! Step collector for handed-back tracks
+    std::shared_ptr<StepCollector> hand_back_collector;
     //! ROOT file manager
     std::shared_ptr<RootFileManager> root_manager;
     //! Action sequence

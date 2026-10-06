@@ -7,6 +7,7 @@
 #pragma once
 
 #include <limits>
+#include <optional>
 
 #include "corecel/Types.hh"
 
@@ -53,6 +54,20 @@ struct OpticalTrackingLimits : TrackingLimits
 
 //---------------------------------------------------------------------------//
 /*!
+ * Hand back tracks marked during transport to Geant4.
+ *
+ * Actions can mark a track during a step to be killed in Celeritas and handed
+ * back to Geant4, which continues transporting it. This is only supported
+ * when integrating with Geant4 using the tracking manager. The Geant4
+ * touchable of each handed-back track is always reconstructed from its
+ * Celeritas geometry state, which requires a geometry with volume instances.
+ */
+struct HandBack
+{
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Specify non-physical parameters which can affect the physics.
  */
 struct Tracking
@@ -64,6 +79,9 @@ struct Tracking
 
     //! Hardcoded maximum step for debugging charged particles (none if zero)
     real_type force_step_limit{};
+
+    //! Hand back marked tracks to Geant4 (Geant4 integration only)
+    std::optional<HandBack> hand_back;
 };
 
 //---------------------------------------------------------------------------//

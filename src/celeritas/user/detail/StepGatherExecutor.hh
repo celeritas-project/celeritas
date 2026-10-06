@@ -67,6 +67,15 @@ CELER_FUNCTION void StepGatherExecutor<P>::operator()(
             // No more data to be written
             return;
         }
+
+        if (P == StepPoint::post && this->params.hand_back
+            && sim.hand_back_reason() == HandBackReason::none)
+        {
+            // Only keep tracks being handed back: clear the track ID to mark
+            // the slot as unselected
+            this->state.data.track_id[track.track_slot_id()] = {};
+            return;
+        }
     }
 
     if (!this->params.detector.empty())
@@ -132,11 +141,13 @@ CELER_FUNCTION void StepGatherExecutor<P>::fill(
         {
             SGL_SET_IF_SELECTED(event_id, sim.event_id());
             SGL_SET_IF_SELECTED(parent_id, sim.parent_id());
+            SGL_SET_IF_SELECTED(parent_is_primary, sim.parent_is_primary());
             SGL_SET_IF_SELECTED(primary_id, sim.primary_id());
             SGL_SET_IF_SELECTED(post_step_action_id, sim.post_step_action());
             SGL_SET_IF_SELECTED(track_step_count, sim.num_steps());
             SGL_SET_IF_SELECTED(step_length, sim.step_length());
             SGL_SET_IF_SELECTED(weight, sim.weight());
+            SGL_SET_IF_SELECTED(hand_back_reason, sim.hand_back_reason());
         }
     }
 
