@@ -8,6 +8,7 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "../StepData.hh"
@@ -41,7 +42,7 @@ CELER_FORCEINLINE_FUNCTION decltype(auto) fast_get(C&& cont, OpaqueId<O> tid)
 struct StepScratchCopyExecutor
 {
     NativeRef<StepStateData> state;
-    size_type const* num_valid{nullptr};
+    ObserverPtr<size_type const> num_valid;
 
     // Gather results from selected tracks
     inline CELER_FUNCTION void operator()(ThreadId id);

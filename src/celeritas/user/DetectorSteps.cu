@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DetectorSteps.hh"
 
+#include <cstddef>
+
 #include "corecel/Config.hh"
 
 #include "corecel/Macros.hh"
@@ -122,7 +124,7 @@ void select_valid_ids(StepStateDeviceRef const& state,
     IsValidAt<IdT> is_valid{stencil.data().get()};
 
     // Calling with nullptr returns the amount of working space needed
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
     auto cub_error_code = cub::DeviceSelect::If(nullptr,
                                                 temp_storage_bytes,
@@ -226,7 +228,7 @@ void compact_steps_async(StepStateDeviceRef const& state,
     }
 
     // Gather the step data on device, using the count stored on device
-    size_type const* d_num_selected = state.num_selected.data().get();
+    ObserverPtr<size_type const> d_num_selected = state.num_selected.data();
     {
         auto execute_thread
             = detail::StepScratchCopyExecutor{state, d_num_selected};
@@ -237,7 +239,7 @@ void compact_steps_async(StepStateDeviceRef const& state,
 
     // Copy the count to the host
     Copier<size_type, MemSpace::host> copy{{num_selected, 1}, state.stream_id};
-    copy(MemSpace::device, {d_num_selected, 1});
+    copy(MemSpace::device, {d_num_selected.get(), 1});
 }
 
 //---------------------------------------------------------------------------//
