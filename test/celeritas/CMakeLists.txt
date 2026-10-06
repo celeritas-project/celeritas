@@ -103,6 +103,7 @@ set(_sources
   user/SimpleLoopTestBase.cc
 )
 celeritas_polysource_append(_sources track/MockInteractAction)
+celeritas_polysource_append(_sources user/HandBackTestAction)
 celeritas_polysource_append(_sources geo/HeuristicGeoTestBase)
 celeritas_add_test_library(testcel_celeritas ${_sources})
 
