@@ -62,7 +62,16 @@ struct AddPendingExecutor
 
 //---------------------------------------------------------------------------//
 /*!
- * Clear the num_generated, num-cut, and num_errored counters.
+ * Clear the num_generated, num_cut, and num_errored counters.
+ *
+ * This is called for the core loop immediately before a step iteration is
+ * started in Stepper<M>::async() .
+ *
+ * \todo Instead of manually calling there, should it be part of the pre-init
+ * action?
+ *
+ * \todo For the main EM loop, these are reset once per *step*. For the optical
+ * loop, they are reset once per *transport*.
  */
 struct ResetCountersExecutor
 {
@@ -112,7 +121,7 @@ struct UpdateAliveExecutor
 /*!
  * Update track initializer counters after processing primaries.
  */
-struct UpdateCountersExecutor
+struct AddPrimaryCountExecutor
 {
     //// DATA ////
 
@@ -139,7 +148,7 @@ struct UpdateCountersExecutor
  * The last entry in the secondary counts array holds the exclusive sum, which
  * is the number of secondaries.
  */
-struct UpdateSecondariesExecutor
+struct UpdateSecondariesCountExecutor
 {
     //// DATA ////
 

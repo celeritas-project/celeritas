@@ -184,7 +184,7 @@ void Stepper<M>::async()
         << "cannot start a step before the current step has been consumed");
 
     ScopedProfiling profile_this{"step"};
-    // Initialize the num_generated counter to zero
+    // Initialize the generated, error, and cut counters to zero
     state_->reset_counters();
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
@@ -196,6 +196,8 @@ void Stepper<M>::async()
 
     if constexpr (M == MemSpace::device)
     {
+        // Queue an asynchronous copy of the counters after the kernel
+        // completes, and record in step_done_.
         auto const* counters_ptr = static_cast<CoreStateCounters const*>(
             state_->ref().init.counters.data());
         Copier<CoreStateCounters, MemSpace::host> copy_counters{

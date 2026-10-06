@@ -54,7 +54,7 @@ void update_secondaries(CSCHostRef const& counters,
 {
     CELER_EXPECT(counters.size() == 1);
     launch_kernel(1,
-                  UpdateSecondariesExecutor{
+                  UpdateSecondariesCountExecutor{
                       counters.data(), num_secondaries, state_size});
 }
 

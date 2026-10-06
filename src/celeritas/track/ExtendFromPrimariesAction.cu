@@ -44,8 +44,8 @@ void ExtendFromPrimariesAction::process_primaries(
 void ExtendFromPrimariesAction::update_counters(
     CoreParams const&, CoreStateDevice& state, size_type num_primaries) const
 {
-    UpdateCountersExecutor execute_thread{state.ref().init.counters.data(),
-                                          num_primaries};
+    AddPrimaryCountExecutor execute_thread{state.ref().init.counters.data(),
+                                           num_primaries};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-counters");
     launch_kernel(1, state.stream_id(), execute_thread);

@@ -69,7 +69,7 @@ void update_secondaries(
     StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    UpdateSecondariesExecutor execute_thread{
+    UpdateSecondariesCountExecutor execute_thread{
         counters.data(), num_secondaries, state_size};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-secondaries");

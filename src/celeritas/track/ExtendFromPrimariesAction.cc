@@ -222,8 +222,8 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                 "update-counters",
                 params,
                 state,
-                UpdateCountersExecutor{state.ref().init.counters.data(),
-                                       num_primaries});
+                AddPrimaryCountExecutor{state.ref().init.counters.data(),
+                                        num_primaries});
 }
 
 //---------------------------------------------------------------------------//
