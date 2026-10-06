@@ -166,6 +166,9 @@ class CoreState final : public CoreStateBase
     // Add to the number of pending optical photons
     void add_pending(size_type count) final;
 
+    // Add to the number of pending optical photons from same-memspace memory
+    void add_pending(ObserverPtr<size_type, M> count);
+
     // Whether the state is being transported with no active particles
     bool warming_up() const;
 
@@ -206,6 +209,12 @@ void CoreState<MemSpace::host>::add_pending(
 template<>
 void CoreState<MemSpace::device>::add_pending(
     CoreState<MemSpace::device>::size_type);
+template<>
+void CoreState<MemSpace::host>::add_pending(
+    ObserverPtr<size_type, MemSpace::host>);
+template<>
+void CoreState<MemSpace::device>::add_pending(
+    ObserverPtr<size_type, MemSpace::device>);
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

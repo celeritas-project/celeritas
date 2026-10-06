@@ -28,5 +28,17 @@ void CoreState<MemSpace::device>::add_pending(size_type count)
 }
 
 //---------------------------------------------------------------------------//
+template<>
+void CoreState<MemSpace::device>::add_pending(
+    ObserverPtr<size_type, MemSpace::device> count)
+{
+    AddPendingExecutor<size_type*> execute_thread{
+        this->ref().init.counters.data(), static_cast<size_type*>(count)};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "add-pending");
+    launch_kernel(1, this->stream_id(), execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace optical
 }  // namespace celeritas

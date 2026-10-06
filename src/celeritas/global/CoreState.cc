@@ -211,7 +211,7 @@ void CoreState<M>::reset()
 {
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
-    sync_put_counters(counters);
+    this->sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

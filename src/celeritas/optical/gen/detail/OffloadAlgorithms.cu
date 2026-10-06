@@ -13,6 +13,8 @@
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
 
+#include "corecel/Types.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <thrust/iterator/transform_iterator.h>
@@ -26,11 +28,9 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
-#include "celeritas/track/CounterExecutors.hh"
 
 #if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
@@ -109,9 +109,10 @@ void count_num_photons(
                                             result.data(),
                                             size - offset,
                                             stream.get());
-    size_type* count{
-        result.data()};  // Must match variable name in #else below for thrust
     CELER_DISCARD(cub_error_code);
+
+    // Must match variable name in #else below for thrust
+    ObserverPtr<size_type, MemSpace::device> count{result.data()};
 #else
     size_type count = thrust::transform_reduce(
         thrust_execute_on(stream_id),
@@ -130,16 +131,7 @@ void count_num_photons(
     }
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
-#if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
-    // Update the number of pending optical photons
-    AddPendingExecutor<decltype(count)> execute_thread{
-        state.ref().init.counters.data(), count};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-pending");
-    launch_kernel(1, stream_id, execute_thread);
-#else
     state.add_pending(count);
-#endif
     return;
 }
 

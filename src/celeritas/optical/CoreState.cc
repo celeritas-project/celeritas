@@ -157,6 +157,14 @@ void CoreState<MemSpace::host>::add_pending(size_type count)
 }
 
 //---------------------------------------------------------------------------//
+template<>
+void CoreState<MemSpace::host>::add_pending(
+    ObserverPtr<size_type, MemSpace::host> count)
+{
+    this->add_pending(*count);
+}
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 template<>
 void CoreState<MemSpace::device>::add_pending(size_type)
@@ -178,7 +186,7 @@ void CoreState<M>::reset()
 {
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
-    sync_put_counters(counters);
+    this->sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);
