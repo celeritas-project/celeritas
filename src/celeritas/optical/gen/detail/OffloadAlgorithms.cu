@@ -130,12 +130,16 @@ void count_num_photons(
     }
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
+#if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
     // Update the number of pending optical photons
     AddPendingExecutor<decltype(count)> execute_thread{
         state.ref().init.counters.data(), count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
     launch_kernel(1, stream_id, execute_thread);
+#else
+    state.add_pending(count);
+#endif
     return;
 }
 

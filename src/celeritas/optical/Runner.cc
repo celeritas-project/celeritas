@@ -14,10 +14,8 @@
 #include "corecel/sys/Openmp.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/inp/StandaloneInputIO.json.hh"
-#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 #include "celeritas/setup/Problem.hh"
-#include "celeritas/track/CounterExecutors.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
@@ -142,12 +140,12 @@ void Runner::insert(SpanConstGenDist data)
         if (auto* s
             = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_))
         {
-            this->update_pending(*s, total_pending);
+            s->add_pending(total_pending);
         }
         else if (auto* s
                  = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_))
         {
-            this->update_pending(*s, total_pending);
+            s->add_pending(total_pending);
         }
         else
         {
@@ -171,19 +169,6 @@ auto Runner::operator()() -> Result
     result.step_times = this->exchange_step_times();
 
     return result;
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Launch a (host) kernel to update the number of pending optical photons.
- */
-void Runner::update_pending(CoreState<MemSpace::host>& state,
-                            size_type num_pending) const
-{
-    // Update the number of pending optical photons
-    launch_action(1,
-                  AddPendingExecutor<size_type>{
-                      state.ref().init.counters.data(), num_pending});
 }
 
 //---------------------------------------------------------------------------//
@@ -222,14 +207,6 @@ StepTimes::VecDbl Runner::exchange_step_times()
 {
     return loaded_.problem.transporter->exchange_step_times(*state_->aux());
 }
-
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-void Runner::update_pending(CoreState<MemSpace::device>&, size_type) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

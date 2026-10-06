@@ -11,8 +11,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/math/Algorithms.hh"
-#include "celeritas/optical/action/ActionLauncher.hh"
-#include "celeritas/track/CounterExecutors.hh"
 
 using namespace celeritas::literals;
 
@@ -72,9 +70,7 @@ void count_num_photons(
     // If there are more photons, update the number of pending optical photons
     if (count > 0)
     {
-        optical::launch_action(1,
-                               AddPendingExecutor<size_type>{
-                                   state.ref().init.counters.data(), count});
+        state.add_pending(count);
     }
     return;
 }

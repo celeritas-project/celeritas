@@ -160,6 +160,9 @@ class CoreState final : public CoreStateBase
     //! class, since sync_get_counters() doesn't return a reference
     void sync_put_counters(CoreStateCounters const&) final;
 
+    // Add to the number of pending optical photons
+    void add_pending(size_type count);
+
     // Whether the state is being transported with no active particles
     bool warming_up() const;
 
@@ -193,6 +196,13 @@ class CoreState final : public CoreStateBase
     // Native pointer to ref or
     Ptr ptr_;
 };
+
+template<>
+void CoreState<MemSpace::host>::add_pending(
+    CoreState<MemSpace::host>::size_type);
+template<>
+void CoreState<MemSpace::device>::add_pending(
+    CoreState<MemSpace::device>::size_type);
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

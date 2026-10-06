@@ -10,7 +10,9 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/random/RngReseed.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "CoreParams.hh"
 
@@ -143,6 +145,25 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
         device().stream(this->stream_id()).sync();
     }
 }
+
+//---------------------------------------------------------------------------//
+//! Add to the number of pending optical photons
+template<>
+void CoreState<MemSpace::host>::add_pending(size_type count)
+{
+    launch_action(1,
+                  AddPendingExecutor<size_type>{
+                      this->ref().init.counters.data(), count});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<>
+void CoreState<MemSpace::device>::add_pending(size_type)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

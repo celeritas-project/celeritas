@@ -2,34 +2,31 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file accel/LocalOpticalGenOffload.cu
+//! \file celeritas/optical/CoreState.cu
 //---------------------------------------------------------------------------//
-#include "LocalOpticalGenOffload.hh"
+#include "CoreState.hh"
 
 #include "corecel/sys/KernelLauncher.device.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/optical/Transporter.hh"
 #include "celeritas/track/CounterExecutors.hh"
 
 namespace celeritas
 {
+namespace optical
+{
 //---------------------------------------------------------------------------//
 /*!
- * Call the UpdatePending functor to update number of primaries to be generated
- * to include the buffered optical photons; use only one device thread.
+ * Add to the number of pending optical photons.
  */
-void LocalOpticalGenOffload::update_primaries(
-    optical::CoreState<MemSpace::device>& state) const
+template<>
+void CoreState<MemSpace::device>::add_pending(size_type count)
 {
-    auto const& optical_params = *transport_->params();
-
     AddPendingExecutor<size_type> execute_thread{
-        state.ref().init.counters.data(), num_photons_};
-
+        this->ref().init.counters.data(), count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-pending");
-    launch_kernel(1, state.stream_id(), execute_thread);
+        "add-pending");
+    launch_kernel(1, this->stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace optical
 }  // namespace celeritas
