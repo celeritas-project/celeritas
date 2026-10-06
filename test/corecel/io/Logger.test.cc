@@ -7,6 +7,8 @@
 #include "corecel/io/Logger.hh"
 
 #include <iomanip>
+#include <iostream>
+#include <stdexcept>
 #include <thread>
 
 #include "corecel/cont/Range.hh"
@@ -145,6 +147,24 @@ TEST_F(LoggerTest, custom_log)
     // Message should flush
     EXPECT_EQ(2, last_prov.line);
     EXPECT_EQ("Things failed because:  1 is the loneliest number", last_msg);
+}
+
+TEST_F(LoggerTest, error_handling)
+{
+    std::string output;
+    {
+        ScopedStreamRedirect scoped{&std::clog};
+        Logger log([](LogProvenance, LogLevel, std::string) {
+            throw std::runtime_error("handler error");
+        });
+
+        log({"test.cc", 42}, LogLevel::error) << "trigger handler";
+
+        output = scoped.str();
+    }
+    EXPECT_NE(output.find("writing a 'error' message"), std::string::npos);
+    EXPECT_NE(output.find("from test.cc:42"), std::string::npos);
+    EXPECT_NE(output.find("handler error"), std::string::npos);
 }
 
 TEST_F(LoggerTest, DISABLED_performance)
