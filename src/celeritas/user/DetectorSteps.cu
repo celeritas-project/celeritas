@@ -302,28 +302,4 @@ void copy_compacted_steps(DetectorStepOutput* output,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Copy to host results from selected tracks.
- *
- * Tracks are selected if they interacted with a detector or, if no detectors
- * are used, if their track ID was set during gathering. This synchronizes the
- * state's stream.
- */
-template<>
-void copy_steps<MemSpace::device>(DetectorStepOutput* output,
-                                  StepStateDeviceRef const& state)
-{
-    CELER_EXPECT(output);
-
-    ScopedProfiling profile_this{"copy-steps"};
-
-    // Enqueue compaction, then wait for the count to reach the host
-    size_type num_valid{0};
-    compact_steps_async(state, &num_valid);
-    device().stream(state.stream_id).sync();
-
-    copy_compacted_steps(output, state, num_valid);
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas
