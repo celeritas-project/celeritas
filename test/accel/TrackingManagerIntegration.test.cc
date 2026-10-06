@@ -149,6 +149,47 @@ class TMITestBase : virtual public IntegrationTestBase
         }
     }
 
+    //! Check wrapped RuntimeError caught by GeantExceptionHandler
+    void caught_g4_runtime_error(RuntimeError const& e) override
+    {
+        if (!check_runtime_errors_)
+        {
+            // Let the base class manage and fail on the caught error
+            return TMITestBase::caught_g4_runtime_error(e);
+        }
+        CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
+
+        static std::recursive_mutex exc_mutex;
+        std::scoped_lock lock{exc_mutex};
+
+        static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
+        std::smatch match;
+        std::string what = e.what();
+        if (std::regex_search(what, match, extract_error))
+        {
+            CELER_ASSERT(match.size() > 1);
+            exceptions_.push_back(match[1].str());
+        }
+        else
+        {
+            exceptions_.push_back(std::move(what));
+        }
+    }
+
+    void TearDown() override
+    {
+        if (!exceptions_.empty())
+        {
+            FAIL() << exceptions_.size()
+                   << " runtime errors were caught but not checked";
+        }
+    }
+
+    //! Append caught exceptions in this local test rather than failing
+    bool check_runtime_errors_{false};
+    //! Exceptions that were caught by this test suite's error handler
+    std::vector<std::string> exceptions_;
+
     std::mutex mutex_;
     std::function<void()> check_during_run_;
     std::map<StreamId, int> num_local_events_;
@@ -190,47 +231,6 @@ class LarSphere : public LarSphereIntegrationMixin, public TMITestBase
         EXPECT_DOUBLE_EQ((event_id == 1 ? 10.0 : 1.0),
                          step->GetTrack()->GetWeight());
     }
-
-    //! Check wrapped RuntimeError caught by GeantExceptionHandler
-    void caught_g4_runtime_error(RuntimeError const& e) override
-    {
-        if (!check_runtime_errors_)
-        {
-            // Let the base class manage and fail on the caught error
-            return TMITestBase::caught_g4_runtime_error(e);
-        }
-        CELER_EXPECT(std::string_view(e.details().which) == "Geant4"sv);
-
-        static std::recursive_mutex exc_mutex;
-        std::scoped_lock lock{exc_mutex};
-
-        static std::regex extract_error{R"(runtime error:\s*(.+?)(?:\n|$))"};
-        std::smatch match;
-        std::string what = e.what();
-        if (std::regex_search(what, match, extract_error))
-        {
-            CELER_ASSERT(match.size() > 1);
-            exceptions_.push_back(match[1].str());
-        }
-        else
-        {
-            exceptions_.push_back(std::move(what));
-        }
-    }
-
-    void TearDown() override
-    {
-        if (!exceptions_.empty())
-        {
-            FAIL() << exceptions_.size()
-                   << " runtime errors were caught but not checked";
-        }
-    }
-
-    //! Append caught exceptions in this local test rather than failing
-    bool check_runtime_errors_{false};
-    //! Exceptions that were caught by this test suite's error handler
-    std::vector<std::string> exceptions_;
 };
 
 /*!
@@ -1082,6 +1082,31 @@ TEST_F(TestEm3, run)
 
     CELER_LOG(status) << "Beam on (first run)";
     rm.BeamOn(2);
+}
+
+/*!
+ * Check cleanup after a fatal error during transport.
+ */
+TEST_F(TestEm3, max_step_iters_error)
+{
+    auto& rm = this->run_manager();
+
+    auto opts = this->make_setup_options();
+    opts.max_step_iters = 1;
+    opts.auto_flush = 1;
+    TMI::Instance().SetOptions(std::move(opts));
+
+    check_runtime_errors_ = true;
+
+    rm.Initialize();
+    ASSERT_FALSE(this->HasFatalFailure());
+    rm.BeamOn(1);
+
+    static char const* const expected_exceptions[] = {
+        "number of step iterations exceeded the allowed maximum (1)",
+    };
+    EXPECT_VEC_EQ(expected_exceptions, exceptions_);
+    exceptions_.clear();
 }
 
 //---------------------------------------------------------------------------//
