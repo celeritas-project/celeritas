@@ -106,7 +106,8 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.stage_primaries(make_span(primaries));
 
         auto counters = step.state().sync_get_counters();
-        EXPECT_EQ(num_primaries, counters.num_pending);
+        EXPECT_EQ(0, counters.num_pending);
+        EXPECT_EQ(num_primaries, step.staged_primaries().size());
 
         auto result = step();
         EXPECT_EQ(num_primaries, result.active);
@@ -114,6 +115,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
 
         counters = step.state().sync_get_counters();
         EXPECT_EQ(0, counters.num_pending);
+        EXPECT_EQ(0, step.staged_primaries().size());
     }
 
     template<MemSpace M>
@@ -424,7 +426,6 @@ TEST_F(SimpleComptonTest, initializer_capacity_failure)
     EXPECT_EQ(0, step.num_buffered_primaries());
     EXPECT_EQ(init_capacity + 1, step.staged_primaries().size());
     EXPECT_FALSE(step.staged_primaries().empty());
-    EXPECT_EQ(init_capacity + 1, step.state().sync_get_counters().num_pending);
     EXPECT_THROW(step(), RuntimeError);
 }
 

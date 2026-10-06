@@ -184,6 +184,8 @@ void Stepper<M>::async()
         !valid_,
         << "cannot start a step before the current step has been consumed");
 
+    ScopedProfiling profile_this{"step"};
+
     /*! \todo If we don't have space for all the primaries or secondaries, we
      * will need to buffer the current track initializers to create room.
      *
@@ -201,13 +203,15 @@ void Stepper<M>::async()
         << ") for a maximum possible requirement of " << max_initializers
         << ". Increase initializer capacity or decrease track slots");
 
-    ScopedProfiling profile_this{"step"};
     auto counters = state_->sync_get_counters();
+    counters.num_pending = this->staged_primaries().size();
     counters.num_generated = 0;
     counters.num_cut = 0;
     counters.num_errored = 0;
     state_->sync_put_counters(counters);
+
     actions_->step(*params_, *state_);
+
     if (primary_phase_ == PrimaryPhase::staged)
     {
         // The action sequence has enqueued work that consumes the staged input,
@@ -283,10 +287,9 @@ void Stepper<M>::push_primary(Primary const& primary)
  * Stage the producer buffer for transport.
  *
  * This validates and inserts primaries into the stepper state but does not
- * execute transport actions. This separation does not by itself make staging
- * nonblocking: in device mode the current counter updates may still
- * synchronize internally. Reusing the source of a previously submitted batch
- * waits only for its copy event, not for completion of the previous step.
+ * execute transport actions or update core state counters.  Reusing the source
+ * of a previously submitted batch waits only for its copy event, not for
+ * completion of the previous step.
  *
  * \pre No primaries are currently staged.
  */
@@ -315,25 +318,8 @@ void Stepper<M>::stage_primaries()
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    auto counters = state_->sync_get_counters();
-    CELER_VALIDATE(counters.num_pending == 0,
-                   << "cannot stage " << primaries.size()
-                   << " primaries while " << counters.num_pending
-                   << " primaries are already pending");
-    counters.num_pending = primaries.size();
-    state_->sync_put_counters(counters);
-    try
-    {
-        primaries_action_->insert(*state_, primaries);
-    }
-    catch (...)
-    {
-        // Insertion can fail when the batch plus queued initializers exceeds
-        // initializer capacity. Allow retrying with a smaller batch.
-        counters.num_pending = 0;
-        state_->sync_put_counters(counters);
-        throw;
-    }
+    primaries_action_->insert(*state_, primaries);
+
     if constexpr (M == MemSpace::device)
     {
         primary_copy_done_.record(
