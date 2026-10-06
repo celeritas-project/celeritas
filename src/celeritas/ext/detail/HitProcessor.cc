@@ -25,6 +25,7 @@
 #include "corecel/cont/EnumArray.hh"
 #include "corecel/cont/Range.hh"
 #include "corecel/io/Logger.hh"
+#include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/TraceCounter.hh"
 #include "geocel/GeantGeoParams.hh"
@@ -95,6 +96,9 @@ G4StepStatus get_step_status(DetectorStepOutput const& out,
 //---------------------------------------------------------------------------//
 /*!
  * Construct local navigator and step data.
+ *
+ * If a device is active, pinned host storage for device hit compaction is also
+ * allocated.
  */
 HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                            VecParticle const& particles,
@@ -167,6 +171,13 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
                        << StreamableLV{lv});
     }
 
+    if (celeritas::device())
+    {
+        // Allocate pinned count and event for compacting device hits
+        num_selected_.resize(1);
+        compacted_ = DeviceEvent{celeritas::device()};
+    }
+
     CELER_ENSURE(!detectors_.empty());
 }
 
@@ -182,27 +193,31 @@ void HitProcessor::operator()(StepStateHostRef const& states)
 
 //---------------------------------------------------------------------------//
 /*!
- * Save device detector tallies until their step completes.
+ * Enqueue compaction of device detector tallies without synchronizing.
  *
- * The step state remains valid until the next step starts. Deferring the copy
- * keeps host-sensitive-detector reconstruction and its stream synchronization
- * out of the device action sequence.
+ * The selection and compaction into the state's scratch space are enqueued on
+ * the state's stream, along with a copy of the selected count to pinned host
+ * memory. Deferring the data copy keeps host-sensitive-detector reconstruction
+ * and its stream synchronization out of the device action sequence.
  */
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(!pending_device_steps_);
+    CELER_EXPECT(compacted_ && num_selected_.size() == 1);
+
+    compact_steps_async(states, num_selected_.data());
+    compacted_.record(celeritas::device().stream(states.stream_id));
     pending_device_steps_ = states;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy and process deferred device tallies after their step completes.
+ * Copy and process compacted device tallies after their step completes.
  *
- * The caller must establish device step completion before calling this
- * function. The current detector-step copy still synchronizes internally; a
- * future double-buffered transfer will enqueue that copy before processing the
- * preceding host buffer.
+ * This waits for the compaction enqueued by the call operator, which has
+ * already completed if the caller established device step completion. The
+ * copy of the compacted data synchronizes the state's stream.
  */
 void HitProcessor::process_pending_steps()
 {
@@ -212,7 +227,8 @@ void HitProcessor::process_pending_steps()
     }
 
     auto states = std::exchange(pending_device_steps_, {});
-    copy_steps(&steps_, states);
+    compacted_.sync();
+    copy_compacted_steps(&steps_, states, num_selected_.front());
     this->process_local_steps();
 }
 

@@ -87,10 +87,11 @@ struct StepperResult;
  * producer buffer remains, it advances the current transport until that batch
  * satisfies the same initializer and secondary-capacity admission rule, then
  * stages and launches the producer batch. It finally steps all transport
- * synchronously to completion. Device-generated Geant SD data is copied and
- * reconstructed when each completed step result is consumed, keeping that work
- * out of the asynchronous action launch. The current copy still synchronizes
- * before the next step starts. Hit processing and Geant4 track reconstruction
+ * synchronously to completion. Device-generated Geant SD data is selected and
+ * compacted on the device as part of each step, then copied and reconstructed
+ * when the completed step result is consumed, keeping that work out of the
+ * asynchronous action launch. The current copy still synchronizes before the
+ * next step starts. Hit processing and Geant4 track reconstruction
  * are kept alive across the asynchronous work and cleared only after the drain
  * completes. A flush with only rejected primaries still reports and clears
  * their loss accounting.

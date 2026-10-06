@@ -367,9 +367,8 @@ auto LocalTransporter::complete_step() -> StepperResult
     auto result = step_->get();
     if (hit_processor_)
     {
-        // copy_steps currently synchronizes, so defer the transfer and host
-        // processing until the result is ready. A future transfer can be
-        // enqueued during async, but must complete before scratch is reused.
+        // Hits were compacted on device during the step: copy them to the
+        // host and process them before the next step can reuse the scratch.
         hit_processor_->process_pending_steps();
     }
     ++step_iters_;

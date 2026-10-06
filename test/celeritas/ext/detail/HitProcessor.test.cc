@@ -552,6 +552,26 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     EXPECT_EQ(2, this->get_hits("si_tracker").energy_deposition.size());
     EXPECT_EQ(2, this->get_hits("em_calorimeter").energy_deposition.size());
     EXPECT_EQ(2, this->get_hits("had_calorimeter").energy_deposition.size());
+
+    // Compaction is enqueued by the call operator, so the gathered step data
+    // can be overwritten before the pending steps are processed.
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = dso.detector_id[i];
+    }
+    device_states.data = host_states.data;
+    process_hits(make_ref(device_states));
+    celeritas::device().stream(StreamId{0}).sync();
+    for (auto i : range(dso.size()))
+    {
+        host_states.data.detector_id[TrackSlotId{i}] = {};
+    }
+    device_states.data = host_states.data;
+    process_hits.process_pending_steps();
+    EXPECT_EQ(3, process_hits.exchange_hits());
+    EXPECT_EQ(3, this->get_hits("si_tracker").energy_deposition.size());
+    EXPECT_EQ(3, this->get_hits("em_calorimeter").energy_deposition.size());
+    EXPECT_EQ(3, this->get_hits("had_calorimeter").energy_deposition.size());
 }
 
 //---------------------------------------------------------------------------//
