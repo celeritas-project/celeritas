@@ -14,6 +14,7 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
@@ -538,11 +539,7 @@ void Stepper<M>::reclaim_submitted_primaries()
 template<>
 void Stepper<MemSpace::host>::reset_counters()
 {
-    launch_core(1,
-                "reset-counters",
-                *params_,
-                *state_,
-                ResetCountersExecutor{state_->ref().init.counters.data()});
+    launch_kernel(1, ResetCountersExecutor{state_->ref().init.counters.data()});
 }
 
 //---------------------------------------------------------------------------//
