@@ -13,11 +13,10 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
-#include "celeritas/optical/TrackExecutor.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"
-#include "celeritas/optical/gen/detail/UpdatePendingExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -259,12 +258,9 @@ void LocalOpticalGenOffload::Finalize()
 void LocalOpticalGenOffload::update_primaries(
     optical::CoreState<MemSpace::host>& state) const
 {
-    auto const& optical_params = *transport_->params();
-    auto execute_thread = make_single_track_executor(
-        optical_params.ptr<MemSpace::native>(),
-        state.ptr(),
-        optical::detail::UpdatePendingExecutor<size_type>{num_photons_});
-    launch_action(1, execute_thread);
+    optical::launch_action(1,
+                           UpdatePendingExecutor<size_type>{
+                               state.ref().init.counters.data(), num_photons_});
 }
 
 //---------------------------------------------------------------------------//

@@ -18,7 +18,6 @@
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/CounterExecutors.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
@@ -539,11 +538,11 @@ void Stepper<M>::reclaim_submitted_primaries()
 template<>
 void Stepper<MemSpace::host>::reset_counters()
 {
-    auto execute_thread
-        = make_single_track_executor(params_->ptr<MemSpace::native>(),
-                                     state_->ptr(),
-                                     detail::ResetCountersExecutor{});
-    launch_core(1, "reset-counters", *params_, *state_, execute_thread);
+    launch_core(1,
+                "reset-counters",
+                *params_,
+                *state_,
+                ResetCountersExecutor{state_->ref().init.counters.data()});
 }
 
 //---------------------------------------------------------------------------//

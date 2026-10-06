@@ -29,13 +29,11 @@
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/KernelLauncher.device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
-#include "celeritas/optical/TrackExecutor.hh"
-#include "celeritas/optical/action/ActionLauncher.device.hh"
-
-#include "UpdatePendingExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
@@ -138,7 +136,7 @@ void count_num_photons(
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Update the number of pending optical photons
-    optical::detail::UpdatePendingExecutor<decltype(count)> execute_thread{
+    UpdatePendingExecutor<decltype(count)> execute_thread{
         state.ref().init.counters.data(), count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");

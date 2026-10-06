@@ -9,12 +9,10 @@
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "CoreParams.hh"
 #include "CoreState.hh"
-
-#include "detail/ResetCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -25,10 +23,7 @@ namespace celeritas
 template<>
 void Stepper<MemSpace::device>::reset_counters()
 {
-    auto execute_thread
-        = make_single_track_executor(params_->ptr<MemSpace::native>(),
-                                     state_->ptr(),
-                                     detail::ResetCountersExecutor{});
+    ResetCountersExecutor execute_thread{state_->ref().init.counters.data()};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "reset_counters");
     launch_kernel(1, state_->stream_id(), execute_thread);

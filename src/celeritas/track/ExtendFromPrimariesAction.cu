@@ -10,10 +10,9 @@
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"
-#include "detail/UpdateCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -42,14 +41,11 @@ void ExtendFromPrimariesAction::process_primaries(
  * Launch a (device) kernel to update state counters based on the number of
  * primary particles.
  */
-void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
-                                                CoreStateDevice& state,
-                                                size_type num_primaries) const
+void ExtendFromPrimariesAction::update_counters(
+    CoreParams const&, CoreStateDevice& state, size_type num_primaries) const
 {
-    auto execute_thread = make_single_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::UpdateCountersExecutor{num_primaries});
+    UpdateCountersExecutor execute_thread{state.ref().init.counters.data(),
+                                          num_primaries};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-counters");
     launch_kernel(1, state.stream_id(), execute_thread);

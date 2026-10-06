@@ -16,12 +16,11 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "TrackInitParams.hh"
 
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
-#include "detail/UpdateCountersExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -219,11 +218,12 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateHost& state,
                                                 size_type num_primaries) const
 {
-    auto execute_thread = make_single_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::UpdateCountersExecutor{num_primaries});
-    launch_core(1, "update-counters", params, state, execute_thread);
+    launch_core(1,
+                "update-counters",
+                params,
+                state,
+                UpdateCountersExecutor{state.ref().init.counters.data(),
+                                       num_primaries});
 }
 
 //---------------------------------------------------------------------------//

@@ -10,13 +10,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
-#include "ActionLauncher.device.hh"
 #include "../CoreParams.hh"
 #include "../CoreState.hh"
-#include "../TrackExecutor.hh"
-
-#include "detail/UpdateAliveExecutor.hh"
 
 namespace celeritas
 {
@@ -26,14 +23,11 @@ namespace optical
 /*!
  * Update the number of active slots as the empty slots have been compacted.
  */
-void LocateVacanciesAction::update_alive(CoreParams const& params,
-                                         CoreStateDevice& state,
-                                         size_type state_size) const
+void LocateVacanciesAction::update_alive(
+    CoreParams const&, CoreStateDevice& state, size_type state_size) const
 {
-    auto execute_thread
-        = make_single_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     detail::UpdateAliveExecutor{state_size});
+    UpdateAliveExecutor execute_thread{state.ref().init.counters.data(),
+                                       state_size};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-alive");
     launch_kernel(1, state.stream_id(), execute_thread);

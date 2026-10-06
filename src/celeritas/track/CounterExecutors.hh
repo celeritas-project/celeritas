@@ -108,4 +108,27 @@ struct UpdateAliveExecutor
 };
 
 //---------------------------------------------------------------------------//
+/*!
+ * Update track initializer counters after processing primaries.
+ */
+struct UpdateCountersExecutor
+{
+    //// DATA ////
+
+    ObserverPtr<CoreStateCounters, MemSpace::native> counters;
+    size_type num_primaries;
+
+    //// FUNCTIONS ////
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        CELER_EXPECT(tid == ThreadId{0});
+
+        counters->num_initializers += num_primaries;
+        counters->num_generated += num_primaries;
+        counters->num_pending = 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

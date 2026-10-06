@@ -10,12 +10,11 @@
 #include "corecel/Macros.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/TrackExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 #include "ActionLauncher.hh"
 
 #include "detail/TrackInitAlgorithms.hh"
-#include "detail/UpdateAliveExecutor.hh"
 
 namespace celeritas
 {
@@ -71,13 +70,10 @@ void LocateVacanciesAction::step_impl(CoreState<M>& state) const
  * Update the number of alive slots as the empty slots have been compacted.
  */
 void LocateVacanciesAction::update_alive(
-    CoreParams const& params, CoreStateHost& state, size_type state_size) const
+    CoreParams const&, CoreStateHost& state, size_type state_size) const
 {
-    auto execute_thread
-        = make_single_track_executor(params.ptr<MemSpace::native>(),
-                                     state.ptr(),
-                                     detail::UpdateAliveExecutor{state_size});
-    launch_action(1, execute_thread);
+    launch_action(
+        1, UpdateAliveExecutor{state.ref().init.counters.data(), state_size});
 }
 
 //---------------------------------------------------------------------------//

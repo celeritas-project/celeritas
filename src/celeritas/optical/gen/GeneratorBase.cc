@@ -10,10 +10,8 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/optical/TrackExecutor.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
-
-#include "detail/UpdatePendingExecutor.hh"
+#include "celeritas/track/CounterExecutors.hh"
 
 namespace celeritas
 {
@@ -57,16 +55,13 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 /*!
  * Launch a (host) kernel to update the number of pending optical photons.
  */
-void GeneratorBase::update_pending(CoreParams const& params,
-                                   CoreStateHost& state,
-                                   size_type num_pending) const
+void GeneratorBase::update_pending(
+    CoreParams const&, CoreStateHost& state, size_type num_pending) const
 {
     // Update the number of pending optical photons
-    auto execute_thread = make_single_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::UpdatePendingExecutor<size_type>{num_pending});
-    launch_action(1, execute_thread);
+    launch_action(1,
+                  UpdatePendingExecutor<size_type>{
+                      state.ref().init.counters.data(), num_pending});
 }
 
 //---------------------------------------------------------------------------//
