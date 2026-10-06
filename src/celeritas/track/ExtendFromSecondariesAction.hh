@@ -114,6 +114,9 @@ class ExtendFromSecondariesAction final : public CoreStepActionInterface,
     void locate_alive(CoreParams const&, CoreStateHost&) const;
     void locate_alive(CoreParams const&, CoreStateDevice&) const;
 
+    void update_secondaries(CoreParams const&, CoreStateHost&) const;
+    void update_secondaries(CoreParams const&, CoreStateDevice&) const;
+
     void process_secondaries(CoreParams const&, CoreStateHost&) const;
     void process_secondaries(CoreParams const&, CoreStateDevice&) const;
 };

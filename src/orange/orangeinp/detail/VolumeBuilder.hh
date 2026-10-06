@@ -8,6 +8,7 @@
 
 #include "corecel/Config.hh"
 
+#include "corecel/cont/InitializedValue.hh"
 #include "corecel/io/Label.hh"
 #include "orange/transform/VariantTransform.hh"
 
@@ -22,7 +23,6 @@ namespace detail
 //---------------------------------------------------------------------------//
 class CsgUnitBuilder;
 struct BoundingZone;
-class PopVBTransformOnDestruct;
 
 //---------------------------------------------------------------------------//
 /*!
@@ -45,6 +45,11 @@ class VolumeBuilder
     using Metadata = Label;
     using Tol = Tolerance<>;
     //!@}
+
+  private:
+    // Private types and type aliases
+    struct VBTransformPopper;
+    using ScopedTransform = InitializedValue<VolumeBuilder*, VBTransformPopper>;
 
   public:
     // Construct with unit builder (and volume name??)
@@ -76,7 +81,7 @@ class VolumeBuilder
     NodeId insert_region(Metadata&& md, Negated&& n);
 
     // Apply a transform within this scope
-    [[nodiscard]] PopVBTransformOnDestruct make_scoped_transform(
+    [[nodiscard]] ScopedTransform make_scoped_transform(
         VariantTransform const& t);
 
   private:
@@ -91,53 +96,18 @@ class VolumeBuilder
     void push_transform(VariantTransform&& vt);
 
     // Pop the last transform, used only by PopVBTransformOnDestruct
-    void pop_transform();
-
-    //// FRIENDS ////
-
-    friend class PopVBTransformOnDestruct;
+    void pop_transform() noexcept(!CELERITAS_DEBUG);
 };
 
 //---------------------------------------------------------------------------//
-//! Implementation-only RAII helper class for VolumeBuilder (detail detail)
-class PopVBTransformOnDestruct
+//! Finalizer for ScopedTransform
+struct VolumeBuilder::VBTransformPopper
 {
-  private:
-    friend class VolumeBuilder;
-
-    // Construct with a volume builder pointer
-    explicit PopVBTransformOnDestruct(VolumeBuilder* vb);
-
-  public:
-    //! Capture the pointer when move constructed
-    PopVBTransformOnDestruct(PopVBTransformOnDestruct&& other) noexcept
-        : vb_(std::exchange(other.vb_, nullptr))
+    inline void operator()(VolumeBuilder* vb) noexcept(!CELERITAS_DEBUG)
     {
+        CELER_EXPECT(vb);
+        vb->pop_transform();
     }
-
-    //! Capture the pointer when move assigned
-    PopVBTransformOnDestruct& operator=(
-        PopVBTransformOnDestruct&& other) noexcept
-    {
-        vb_ = std::exchange(other.vb_, nullptr);
-        return *this;
-    }
-
-    PopVBTransformOnDestruct(PopVBTransformOnDestruct const&) = default;
-    PopVBTransformOnDestruct& operator=(PopVBTransformOnDestruct const&)
-        = default;
-
-    //! Call pop when we own the pointer and go out of scope
-    ~PopVBTransformOnDestruct() noexcept(!CELERITAS_DEBUG)
-    {
-        if (vb_)
-        {
-            vb_->pop_transform();
-        }
-    }
-
-  private:
-    VolumeBuilder* vb_{nullptr};
 };
 
 //---------------------------------------------------------------------------//

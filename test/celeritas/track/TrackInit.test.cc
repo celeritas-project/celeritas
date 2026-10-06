@@ -10,12 +10,17 @@
 #include <numeric>
 #include <vector>
 
+#include "corecel/Config.hh"
+
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/Types.hh"
+#include "corecel/cont/Range.hh"
 #include "corecel/cont/Span.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/io/LogContextException.hh"
+#include "corecel/random/data/RngData.hh"
+#include "corecel/random/engine/RngEngine.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/SimpleTestBase.hh"
 #include "celeritas/global/CoreParams.hh"
@@ -135,6 +140,8 @@ class TrackInitTestBase : public SimpleTestBase
             p.direction = {0, 0, 1};
             p.time = 0;
             p.event_id = EventId{0};
+            // Needed to seed the RNG when reseeding each track
+            p.primary_id = PrimaryId{i};
             result.push_back(p);
         }
         return result;
@@ -590,6 +597,52 @@ TYPED_TEST(TrackInitTest, geo_parents)
         // The parent IDs for the deferred secondaries should have been cleared
         static int const expected_geo_parent_ids[] = {-1, -1};
         EXPECT_VEC_EQ(expected_geo_parent_ids, result.geo_parent_ids);
+    }
+}
+
+//---------------------------------------------------------------------------//
+using TrackInitHostTest = TrackInitTest<HostType>;
+
+//! A secondary initialized in its parent's slot branches the parent's RNG
+TEST_F(TrackInitHostTest, in_place_rng)
+{
+    if constexpr (CELERITAS_RESEED != CELERITAS_RESEED_TRACK)
+    {
+        GTEST_SKIP() << "RNG is not reseeded for each track";
+    }
+
+    size_type const num_tracks = 4;
+    this->build_states(num_tracks);
+    auto primaries = this->make_primaries(num_tracks);
+    this->extend_from_primaries(make_span(primaries));
+    this->init_tracks();
+
+    // Branch a copy of the parent's RNG
+    auto const& rng_params = this->core()->host_ref().rng;
+    TrackSlotId const parent{1};
+    HostVal<RngStateData> expected;
+    expected = this->state().ref().rng;
+    HostRef<RngStateData> expected_ref;
+    expected_ref = expected;
+    {
+        RngEngine parent_rng(rng_params, expected_ref, parent);
+        auto branched = parent_rng.branch();
+        parent_rng = branched;
+    }
+
+    // Kill the parent, producing a single secondary initialized in its slot
+    std::vector<bool> const alive = {true, false, true, true};
+    MockInteractAction interact{
+        ActionId{1}, std::vector<size_type>{0, 1, 0, 0}, alive};
+    interact.step(*this->core(), this->state());
+    ExtendFromSecondariesAction{ActionId{2}}.step(*this->core(), this->state());
+    EXPECT_EQ(0, this->state().sync_get_counters().num_initializers);
+
+    RngEngine expected_rng(rng_params, expected_ref, parent);
+    RngEngine actual_rng(rng_params, this->state().ref().rng, parent);
+    for ([[maybe_unused]] auto i : range(4))
+    {
+        EXPECT_EQ(expected_rng(), actual_rng());
     }
 }
 
