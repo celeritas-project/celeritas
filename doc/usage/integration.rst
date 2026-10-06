@@ -17,7 +17,7 @@ CMake integration
 -----------------
 
 The Celeritas library is most easily used when your downstream app is built with
-CMake, demonstrated by the :ref:`example_minimal` and :ref:`example_cmake` examples. It should require a single line to initialize::
+CMake, demonstrated by the :ref:`example_data_model` and :ref:`example_cmake` examples. It should require a single line to initialize::
 
    find_package(Celeritas REQUIRED)
 
