@@ -109,6 +109,13 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.geo.dir = secondary.direction;
             ti.particle.particle_id = secondary.particle_id;
             ti.particle.energy = secondary.energy;
+            if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+            {
+                // Branch the parent's RNG regardless of whether the
+                // secondary reuses the parent's slot, so that results are
+                // reproducible independent of the number of track slots
+                ti.rng = track.rng().branch();
+            }
             CELER_ASSERT(ti);
 
             if (sim.track_id() == track_id && sim.status() != TrackStatus::alive
@@ -131,14 +138,6 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             else
             {
                 CELER_ASSERT(offset > 0 && offset <= counters.num_initializers);
-
-                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
-                {
-                    // If we are reseeding with each track, because this
-                    // secondary is not reusing the primary track, branch the
-                    // rng
-                    ti.rng = track.rng().branch();
-                }
 
                 if (offset <= min(counters.num_secondaries,
                                   counters.num_vacancies)

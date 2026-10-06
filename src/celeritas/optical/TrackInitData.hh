@@ -29,7 +29,7 @@ namespace optical
  * - \c initializers stores the data for track initializers and secondaries
  *   waiting to be turned into new tracks and can be any size up to \c
  *   capacity.
- * - \c vacancies stores the \c TrackSlotid of the tracks that have been
+ * - \c vacancies stores the \c TrackSlotId of the tracks that have been
  *   killed; the size will be <= the number of track states.
  * - \c counters stores the number of tracks with a given status and is updated
  *   during each step of the simulation of an event.

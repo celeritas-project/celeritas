@@ -11,12 +11,30 @@
 #include <regex>
 #include <sstream>
 
+#include "corecel/io/Logger.hh"
+#include "corecel/io/Repr.hh"
+
 namespace celeritas
 {
 namespace test
 {
 namespace
 {
+double stod_impl(std::string const& s)
+{
+    try
+    {
+        return std::stod(s);
+    }
+    catch (std::invalid_argument const& e)
+    {
+        CELER_LOG_LOCAL(critical)
+            << "Invalid argument during string-to-double conversion: "
+            << repr(s);
+        throw;
+    }
+}
+
 using StreamManip = std::ios_base& (*)(std::ios_base&);
 std::string to_str_impl(double value, int precision, StreamManip mode)
 {
@@ -148,7 +166,7 @@ std::string StringSimplifier::simplify_sci(std::string s) const
         = std::min<int>(1 + std::distance(iter, exp_iter), precision_);
 
     // Format the rounded number with appropriate notation
-    s = to_sci(std::stod(s), precision);
+    s = to_sci(stod_impl(s), precision);
 
     return s;
 }
@@ -210,14 +228,14 @@ std::string StringSimplifier::simplify_float(std::string s) const
     {
         // Leading digits are too precise, or there are too many leading zeros:
         // write as scientific
-        s = to_sci(std::stod(s), precision);
+        s = to_sci(stod_impl(s), precision);
         CELER_ASSERT(!s.empty());
     }
     else
     {
         dec_precision = std::min(dec_precision, precision_ - lead_precision)
                         + lead_zeros;
-        s = to_float(std::stod(s), dec_precision);
+        s = to_float(stod_impl(s), dec_precision);
         if (dec_precision == 0)
         {
             // Don't make it an integer except if we parsed it as a float
