@@ -21,17 +21,27 @@ class G4VUserTrackInformation;
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+//! Origin of a track reconstructed from Celeritas
+enum class TrackOrigin
+{
+    offloaded,  //!< Same track as the one offloaded from Geant4
+    secondary,  //!< Track created by Celeritas
+};
+
+//---------------------------------------------------------------------------//
 /*!
  * Manage track information for reconstruction.
  *
  * This class handles the bookkeeping of Geant4 track information needed
- * to reconstruct tracks during hit processing. It maintains mappings between
- * Celeritas PrimaryID and Geant4 track data.
+ * to reconstruct tracks during hit processing and when handing tracks back to
+ * Geant4. It maintains mappings between Celeritas PrimaryID and Geant4 track
+ * data.
  *
  * \par Usage
  * - \c init_event
  * - \c acquire (multiple times)
- * - \c view (may be interleaved with acquire)
+ * - \c view (may be interleaved with acquire) to process hits
+ * - \c create (may be interleaved with acquire) to hand tracks back
  * - \c clear (once all active tracks are used up)
  * - then it can be initialized with a new event, or new primaries can be
  *   added to the current event.
@@ -50,7 +60,10 @@ namespace celeritas
  *
  * \par User information
  * The user information of an offloaded track is owned by this class from \c
- * acquire until \c clear .
+ * acquire until the track is handed back to Geant4 (\c create transfers it to
+ * the new \c G4Track) or until \c clear . Since only the offloaded track
+ * itself refers to it, no other Celeritas track can observe it after the
+ * transfer.
  */
 class GeantTrackReconstruction
 {
@@ -60,6 +73,7 @@ class GeantTrackReconstruction
     using VecParticle = std::vector<G4ParticleDefinition const*>;
     using SPStep = std::shared_ptr<G4Step>;
     using EventIdGetter = int (*)();
+    using UPTrack = std::unique_ptr<G4Track>;
     //!@}
 
   public:
@@ -97,6 +111,13 @@ class GeantTrackReconstruction
     // View a track with the given particle ID
     [[nodiscard]] G4Track& view(ParticleId) const;
 
+    // Create a new track to hand back to Geant4
+    [[nodiscard]] UPTrack create(ParticleId particle,
+                                 PrimaryId primary,
+                                 TrackId track,
+                                 TrackId parent,
+                                 bool parent_is_primary);
+
     //! Creator process reported for tracks created by Celeritas
     G4VProcess const& placeholder_process() const { return *placeholder_; }
 
@@ -112,7 +133,7 @@ class GeantTrackReconstruction
         int track_id{-1};
         //! Original Geant4 parent ID
         int parent_id{0};
-        //! User track information
+        //! User track information (until handed back)
         std::unique_ptr<G4VUserTrackInformation> user_info;
         //! Process that created the track
         G4VProcess const* creator_process{nullptr};
@@ -138,6 +159,7 @@ class GeantTrackReconstruction
 
     // Get acquired data for a primary
     AcquiredData const& acquired(PrimaryId) const;
+    AcquiredData& acquired(PrimaryId);
 };
 
 //---------------------------------------------------------------------------//
