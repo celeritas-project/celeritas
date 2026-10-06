@@ -4,9 +4,9 @@
 #-----------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.18...4.1)
-project(CeleritasDataModelExample VERSION 0.0.1 LANGUAGES CXX)
+project(CeleritasDataModelExample VERSION 0.1.0 LANGUAGES CXX)
 
-find_package(Celeritas 0.6 REQUIRED)
+find_package(Celeritas 0.7 REQUIRED)
 
 add_executable(data-model data-model.cc)
 # Use special linking macros to support CUDA+VecGeom when used
