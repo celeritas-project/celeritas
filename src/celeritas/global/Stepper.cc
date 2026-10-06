@@ -20,6 +20,7 @@
 #include "celeritas/Types.hh"
 #include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/random/RngReseed.hh"
+#include "celeritas/track/CounterExecutors.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -27,7 +28,6 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
-#include "detail/ResetCountersExecutor.hh"
 
 namespace celeritas
 {
