@@ -181,19 +181,7 @@ void LocalOpticalGenOffload::Flush()
 
     // Update the number of primaries waiting to be generated based on the
     // number of photons.
-    if (auto* s = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_))
-    {
-        s->add_pending(num_photons_);
-    }
-    else if (
-        auto* s = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_))
-    {
-        s->add_pending(num_photons_);
-    }
-    else
-    {
-        CELER_ASSERT_UNREACHABLE();
-    }
+    state_->add_pending(num_photons_);
 
     num_photons_ = 0;
     buffer_.clear();

@@ -92,6 +92,9 @@ class CoreStateBase : public CoreStateInterface
     //! Optical loop statistics
     CounterAccumStats& accum() { return accum_; }
 
+    //! Add to the number of pending optical photons
+    virtual void add_pending(size_type count) = 0;
+
     //// AUXILIARY DATA ////
 
     //! Access auxiliary core state data
@@ -161,7 +164,7 @@ class CoreState final : public CoreStateBase
     void sync_put_counters(CoreStateCounters const&) final;
 
     // Add to the number of pending optical photons
-    void add_pending(size_type count);
+    void add_pending(size_type count) final;
 
     // Whether the state is being transported with no active particles
     bool warming_up() const;

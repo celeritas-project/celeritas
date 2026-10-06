@@ -137,20 +137,7 @@ void Runner::insert(SpanConstGenDist data)
     }
     if (total_pending > 0)
     {
-        if (auto* s
-            = dynamic_cast<optical::CoreState<MemSpace::device>*>(&*state_))
-        {
-            s->add_pending(total_pending);
-        }
-        else if (auto* s
-                 = dynamic_cast<optical::CoreState<MemSpace::host>*>(&*state_))
-        {
-            s->add_pending(total_pending);
-        }
-        else
-        {
-            CELER_ASSERT_UNREACHABLE();
-        }
+        state_->add_pending({total_pending});
     }
 }
 
