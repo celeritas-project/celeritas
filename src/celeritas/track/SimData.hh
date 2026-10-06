@@ -146,6 +146,7 @@ struct SimStateData
     Items<ActionId> post_step_action;
     Items<ActionId> along_step_action;
     Items<real_type> weight;
+    Items<HandBackReason> hand_back;  //!< Why the track is handed back
 
     //// METHODS ////
 
@@ -156,7 +157,8 @@ struct SimStateData
                && !parent_ids.empty() && !parent_is_primary.empty()
                && !event_ids.empty() && !num_steps.empty() && !time.empty()
                && !status.empty() && !step_length.empty()
-               && !post_step_action.empty() && !along_step_action.empty();
+               && !post_step_action.empty() && !along_step_action.empty()
+               && !hand_back.empty();
     }
 
     //! State size
@@ -183,6 +185,7 @@ struct SimStateData
         post_step_action = other.post_step_action;
         along_step_action = other.along_step_action;
         weight = other.weight;
+        hand_back = other.hand_back;
         return *this;
     }
 };
@@ -217,6 +220,8 @@ void resize(SimStateData<Ownership::value, M>* data,
     resize(&data->post_step_action, size);
     resize(&data->along_step_action, size);
     resize(&data->weight, size);
+    resize(&data->hand_back, size);
+    fill(HandBackReason::none, &data->hand_back);
 
     CELER_ENSURE(*data);
 }

@@ -13,5 +13,6 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 template class Filler<TrackStatus, MemSpace::device>;
 template class Filler<CoreStateCounters, MemSpace::device>;
+template class Filler<HandBackReason, MemSpace::device>;
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
