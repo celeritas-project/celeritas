@@ -70,11 +70,11 @@ RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
            "use scripts/docker/buildcache/build.sh" >&2 ; \
       exit 1 ; \
     fi \
- && for pin in "${SPACK_ROOT} spack ${SPACK_REF}" \
-               "${SPACK_PACKAGES_REPO} spack-packages ${SPACK_PACKAGES_REF}"; do \
+ && for pin in "${SPACK_ROOT} spack/spack ${SPACK_REF}" \
+               "${SPACK_PACKAGES_REPO} spack/spack-packages ${SPACK_PACKAGES_REF}"; do \
       set -- ${pin} \
       && git init -q "$1" \
-      && git -C "$1" fetch -q --depth 1 "https://github.com/spack/$2.git" "$3" \
+      && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD \
       || exit 1 ; \
     done \
