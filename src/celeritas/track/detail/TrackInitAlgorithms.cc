@@ -9,9 +9,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "../Utils.hh"
 
 using namespace celeritas::literals;
 
@@ -55,14 +54,13 @@ ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
 {
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
-    auto* const last = data + counts.size() - 1;
+    auto* stop = data + counts.size();
 #ifdef __cpp_lib_parallel_algorithm
-    std::exclusive_scan(data, data + counts.size(), data, 0_sz);
+    std::exclusive_scan(data, stop, data, 0_sz);
 #else
     // Standard library shipped with GCC 8.5 does not include exclusive_scan
     // (I guess it's *too* exclusive)
     size_type acc = 0;
-    auto* const stop = data + counts.size();
     for (; data != stop; ++data)
     {
         size_type current = *data;
@@ -70,7 +68,8 @@ ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
         acc += current;
     }
 #endif
-    return ObserverPtr<size_type, MemSpace::host>{last};
+    // Return last value (*not* past-the-end)
+    return make_observer(stop - 1);
 }
 
 //---------------------------------------------------------------------------//

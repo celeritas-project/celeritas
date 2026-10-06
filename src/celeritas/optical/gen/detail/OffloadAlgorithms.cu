@@ -80,7 +80,7 @@ void count_num_photons(
     auto& stream = device().stream(stream_id);
     auto start = device_pointer_cast(buffer.data());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     // This could be allocated once and reused for each call
     DeviceVector<size_type> result(1, stream_id);
     auto transform = thrust::transform_iterator(
