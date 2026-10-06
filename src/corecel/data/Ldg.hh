@@ -171,7 +171,9 @@ CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
 template<class Class, class T>
 struct LdgMember
 {
-    T Class::* mp;
+    // Alias circumvents NVCC warning
+    using MemberPtr = T Class::*
+    MemberPtr mp;
 
     CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
