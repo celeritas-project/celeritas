@@ -126,6 +126,12 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
                 // the parent's track slot. Keep the parent's geometry state
                 // but get the direction from the secondary.
                 ti.geo.parent = tid;
+                if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
+                {
+                    // Branch the parent's RNG as for any other secondary:
+                    // initializing the track copies the RNG state
+                    ti.rng = track.rng().branch();
+                }
                 track = ti;
             }
             else
