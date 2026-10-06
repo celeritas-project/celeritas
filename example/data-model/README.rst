@@ -8,7 +8,7 @@ Core infrastructure example
 ===========================
 
 This simple example shows how to incorporate an already-installed Celeritas
-into a downstream project and use the Collection data structures.
+into a downstream CMake project.
 
 CMake infrastructure
 --------------------
