@@ -289,6 +289,7 @@ void copy_compacted_steps(DetectorStepOutput* output,
     DS_ASSIGN(weight);
     DS_ASSIGN(particle_id);
     DS_ASSIGN(energy_deposition);
+    DS_ASSIGN(hand_back_reason);
 
     output->num_volume_levels = state.num_volume_levels;
 

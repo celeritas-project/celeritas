@@ -93,6 +93,9 @@ struct DetectorStepOutput
     PinnedVec<ParticleId> particle_id;
     PinnedVec<Energy> energy_deposition;
 
+    // Additional optional data (hand-back)
+    PinnedVec<HandBackReason> hand_back_reason;
+
     // 2D size for volume instances
     size_type num_volume_levels{0};
 

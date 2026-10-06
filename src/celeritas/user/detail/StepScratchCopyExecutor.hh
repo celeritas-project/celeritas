@@ -115,6 +115,7 @@ CELER_FUNCTION void StepScratchCopyExecutor::operator()(ThreadId dst_id)
     DS_COPY_IF_SELECTED(weight);
     DS_COPY_IF_SELECTED(particle_id);
     DS_COPY_IF_SELECTED(energy_deposition);
+    DS_COPY_IF_SELECTED(hand_back_reason);
 #undef DS_COPY_IF_SELECTED
 }
 
