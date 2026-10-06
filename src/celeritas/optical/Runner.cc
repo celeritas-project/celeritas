@@ -137,7 +137,7 @@ void Runner::insert(SpanConstGenDist data)
     }
     if (total_pending > 0)
     {
-        state_->add_pending({total_pending});
+        state_->add_pending(total_pending);
     }
 }
 
