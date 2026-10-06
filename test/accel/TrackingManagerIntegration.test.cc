@@ -1116,10 +1116,8 @@ class TestEm3Rayleigh : public TestEm3IntegrationMixin, public TMITestBase
 
 /*!
  * Allow primary admission when secondary capacity exceeds initializer capacity.
- *
- * \todo Re-enable when the initializer buffer is automatically resized
  */
-TEST_F(TestEm3Rayleigh, DISABLED_run_small_capacity)
+TEST_F(TestEm3Rayleigh, run_small_capacity)
 {
     auto& rm = this->run_manager();
     TMI::Instance().SetOptions(this->make_setup_options());

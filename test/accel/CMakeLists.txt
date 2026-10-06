@@ -222,10 +222,12 @@ celeritas_add_integration_tests(
 )
 
 # Test primary admission with a larger secondary stack
+# TODO: Re-enable when the initializer buffer is automatically resized
 celeritas_add_integration_tests(
   TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
   OFFLOAD cpu gpu
   RMTYPE serial
+  DISABLE
 )
 
 # Test that we can safely flush and restore primaries multiple times per event
