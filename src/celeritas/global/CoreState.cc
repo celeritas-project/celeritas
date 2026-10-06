@@ -6,9 +6,12 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
+#include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/track/CounterExecutors.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -177,6 +180,23 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
         device().stream(this->stream_id()).sync();
     }
 }
+
+//---------------------------------------------------------------------------//
+//! Reset counters that are accumulated during a step
+template<>
+void CoreState<MemSpace::host>::reset_counters()
+{
+    launch_kernel(1, ResetCountersExecutor{this->ref().init.counters.data()});
+}
+
+//---------------------------------------------------------------------------//
+#if !CELER_USE_DEVICE
+template<>
+void CoreState<MemSpace::device>::reset_counters()
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+#endif
 
 //---------------------------------------------------------------------------//
 /*!

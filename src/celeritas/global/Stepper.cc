@@ -14,13 +14,11 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
-#include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/random/RngReseed.hh"
-#include "celeritas/track/CounterExecutors.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
@@ -187,7 +185,7 @@ void Stepper<M>::async()
 
     ScopedProfiling profile_this{"step"};
     // Initialize the num_generated counter to zero
-    this->reset_counters();
+    state_->reset_counters();
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
     {
@@ -531,27 +529,6 @@ void Stepper<M>::reclaim_submitted_primaries()
         primary_phase_ = PrimaryPhase::empty;
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Set the num_pending counter to the number of generated primaries.
- */
-template<>
-void Stepper<MemSpace::host>::reset_counters()
-{
-    launch_kernel(1, ResetCountersExecutor{state_->ref().init.counters.data()});
-}
-
-//---------------------------------------------------------------------------//
-// DEVICE-DISABLED IMPLEMENTATION
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-template<>
-void Stepper<MemSpace::device>::reset_counters()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

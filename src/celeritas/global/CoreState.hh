@@ -143,6 +143,9 @@ class CoreState final : public CoreStateInterface
     //! class, since sync_get_counters() doesn't return a reference
     void sync_put_counters(CoreStateCounters const&) final;
 
+    // Reset counters that are accumulated during a step
+    void reset_counters();
+
     //// AUXILIARY DATA ////
 
     //! Access auxiliary state data
@@ -246,6 +249,11 @@ auto& CoreState<M>::native_action_thread_offsets()
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
+
+template<>
+void CoreState<MemSpace::host>::reset_counters();
+template<>
+void CoreState<MemSpace::device>::reset_counters();
 
 extern template class CoreState<MemSpace::host>;
 extern template class CoreState<MemSpace::device>;
