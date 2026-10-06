@@ -172,8 +172,7 @@ template<class Class, class T>
 struct LdgMember
 {
     // Alias circumvents NVCC warning
-    using MemberPtr = T Class::*
-    MemberPtr mp;
+    using MemberPtr = T Class::* MemberPtr mp;
 
     CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
