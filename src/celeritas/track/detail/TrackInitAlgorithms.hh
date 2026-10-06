@@ -10,6 +10,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
 
@@ -46,10 +47,10 @@ void remove_if_alive(
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&,
     StreamId);
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId);
 
@@ -78,7 +79,7 @@ inline void remove_if_alive(
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline void exclusive_scan_counts(
+inline ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId)
 {

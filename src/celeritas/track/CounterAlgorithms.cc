@@ -47,6 +47,18 @@ void add_pending(CSCHostRef const& counters,
 }
 
 //---------------------------------------------------------------------------//
+void update_secondaries(CSCHostRef const& counters,
+                        ObserverPtr<size_type, MemSpace::host> num_secondaries,
+                        size_type state_size,
+                        StreamId)
+{
+    CELER_EXPECT(counters.size() == 1);
+    launch_kernel(1,
+                  UpdateSecondariesExecutor{
+                      counters.data(), num_secondaries, state_size});
+}
+
+//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void reset_counters(CSCDeviceRef const&, StreamId)
 {
@@ -65,6 +77,14 @@ void add_pending(CSCDeviceRef const&, size_type, StreamId)
 
 void add_pending(
     CSCDeviceRef const&, ObserverPtr<size_type, MemSpace::device>, StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
+void update_secondaries(CSCDeviceRef const&,
+                        ObserverPtr<size_type, MemSpace::device>,
+                        size_type,
+                        StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

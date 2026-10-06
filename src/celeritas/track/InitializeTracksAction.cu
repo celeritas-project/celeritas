@@ -11,8 +11,9 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
+#include "CounterExecutors.hh"
+
 #include "detail/InitTracksExecutor.hh"
-#include "detail/UpdateNumActiveExecutor.hh"
 
 namespace celeritas
 {
@@ -42,10 +43,8 @@ void InitializeTracksAction::update_num_active(CoreParams const& params,
     // Store number of active tracks at the start of the loop, and update the
     // number of vacancies and initializers if num_new_tracks > 0
     {
-        auto execute_thread = make_single_track_executor(
-            params.ptr<MemSpace::native>(),
-            state.ptr(),
-            detail::UpdateNumActiveExecutor{state.size()});
+        UpdateNumActiveExecutor execute_thread{
+            state.ref().init.counters.data(), state.size()};
         static KernelLauncher<decltype(execute_thread)> const launch_kernel(
             "update-active");
         launch_kernel(1, state.stream_id(), execute_thread);

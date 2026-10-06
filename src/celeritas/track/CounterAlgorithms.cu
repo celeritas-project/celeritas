@@ -62,4 +62,19 @@ void add_pending(CSCDeviceRef const& counters,
 }
 
 //---------------------------------------------------------------------------//
+void update_secondaries(
+    CSCDeviceRef const& counters,
+    ObserverPtr<size_type, MemSpace::device> num_secondaries,
+    size_type state_size,
+    StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    UpdateSecondariesExecutor execute_thread{
+        counters.data(), num_secondaries, state_size};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "update-secondaries");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

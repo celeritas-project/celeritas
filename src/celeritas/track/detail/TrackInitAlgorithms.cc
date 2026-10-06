@@ -45,15 +45,17 @@ void remove_if_alive(
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
  * The input size is one greater than the number of track slots so that the
- * final element will be the total accumulated value.
+ * final element will be the total accumulated value. The returned pointer
+ * refers to that final element.
  */
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&
         counts,
     StreamId)
 {
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
+    auto* const last = data + counts.size() - 1;
 #ifdef __cpp_lib_parallel_algorithm
     std::exclusive_scan(data, data + counts.size(), data, 0_sz);
 #else
@@ -68,7 +70,7 @@ void exclusive_scan_counts(
         acc += current;
     }
 #endif
-    return;
+    return ObserverPtr<size_type, MemSpace::host>{last};
 }
 
 //---------------------------------------------------------------------------//

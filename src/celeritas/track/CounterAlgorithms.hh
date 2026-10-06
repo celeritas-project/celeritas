@@ -41,5 +41,14 @@ void add_pending(CoreStateCounterRef<MemSpace::device> const&,
                  ObserverPtr<size_type, MemSpace::device>,
                  StreamId);
 
+void update_secondaries(CoreStateCounterRef<MemSpace::host> const&,
+                        ObserverPtr<size_type, MemSpace::host>,
+                        size_type,
+                        StreamId);
+void update_secondaries(CoreStateCounterRef<MemSpace::device> const&,
+                        ObserverPtr<size_type, MemSpace::device>,
+                        size_type,
+                        StreamId);
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

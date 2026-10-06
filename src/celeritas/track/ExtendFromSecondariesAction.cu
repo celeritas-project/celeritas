@@ -17,7 +17,6 @@
 
 #include "detail/LocateAliveExecutor.hh"
 #include "detail/ProcessSecondariesExecutor.hh"
-#include "detail/UpdateSecondariesExecutor.hh"
 
 namespace celeritas
 {
@@ -51,24 +50,6 @@ void ExtendFromSecondariesAction::locate_alive(
     static ActionLauncher<Executor> launch(*this, "locate-alive");
     launch(core_state,
            Executor{core_params.ptr<MemSpace::native>(), core_state.ptr()});
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Launch a kernel to update the number of secondaries and initializers.
- *
- * Determine if there is sufficient capacity for all secondaries.
- */
-void ExtendFromSecondariesAction::update_secondaries(
-    CoreParams const& params, CoreStateDevice& state) const
-{
-    auto execute_thread = make_single_track_executor(
-        params.ptr<MemSpace::native>(),
-        state.ptr(),
-        detail::UpdateSecondariesExecutor{state.ptr()});
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-secondaries");
-    launch_kernel(1, state.stream_id(), execute_thread);
 }
 
 //---------------------------------------------------------------------------//

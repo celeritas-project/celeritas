@@ -16,11 +16,11 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
+#include "CounterExecutors.hh"
 #include "TrackInitParams.hh"
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"
-#include "detail/UpdateNumActiveExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -114,11 +114,12 @@ void InitializeTracksAction::update_num_active(CoreParams const& core_params,
 {
     // Store number of active tracks at the start of the loop, and update the
     // number of vacancies and initializers if num_new_tracks > 0
-    auto execute_thread = make_single_track_executor(
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::UpdateNumActiveExecutor{core_state.size()});
-    launch_core(1, "update-active", core_params, core_state, execute_thread);
+    launch_core(1,
+                "update-active",
+                core_params,
+                core_state,
+                UpdateNumActiveExecutor{core_state.ref().init.counters.data(),
+                                        core_state.size()});
 }
 
 //---------------------------------------------------------------------------//

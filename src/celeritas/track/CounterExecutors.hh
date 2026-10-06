@@ -11,6 +11,7 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
 
 #include "CoreStateCounters.hh"
@@ -127,6 +128,66 @@ struct UpdateCountersExecutor
         counters->num_initializers += num_primaries;
         counters->num_generated += num_primaries;
         counters->num_pending = 0;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update the num_secondaries and num_initializers and then update the number
+ * of alive tracks to include these secondaries.
+ *
+ * The last entry in the secondary counts array holds the exclusive sum, which
+ * is the number of secondaries.
+ */
+struct UpdateSecondariesExecutor
+{
+    //// DATA ////
+
+    ObserverPtr<CoreStateCounters, MemSpace::native> counters;
+    ObserverPtr<size_type, MemSpace::native> secondary_count;
+    size_type state_size{};
+
+    //// FUNCTIONS ////
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        CELER_EXPECT(tid == ThreadId{0});  // single thread kernel
+        CELER_EXPECT(secondary_count);
+
+        size_type num_secondaries = *secondary_count;
+        counters->num_secondaries = num_secondaries;
+        counters->num_initializers += num_secondaries;
+        counters->num_alive = state_size - counters->num_vacancies;
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
+ * Update num_active state counter based on the number of vacancies.
+ */
+struct UpdateNumActiveExecutor
+{
+    //// DATA ////
+
+    ObserverPtr<CoreStateCounters, MemSpace::native> counters;
+    size_type state_size;
+
+    //// FUNCTIONS ////
+
+    CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
+    {
+        CELER_EXPECT(tid == ThreadId{0});  // single thread kernel
+
+        size_type num_new_tracks
+            = min(counters->num_vacancies, counters->num_initializers);
+        if (num_new_tracks > 0)
+        {
+            // Update initializers/vacancies
+            counters->num_initializers -= num_new_tracks;
+            counters->num_vacancies -= num_new_tracks;
+        }
+        // Store number of active tracks at the start of the loop
+        counters->num_active = state_size - counters->num_vacancies;
     }
 };
 

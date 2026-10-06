@@ -132,9 +132,10 @@ void remove_if_alive(
  * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
- * The return value is the sum of all elements in the input array.
+ * The returned pointer refers to the last element, which will hold the sum of
+ * all elements in the input array once the stream's work completes.
  */
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&
         counts,
     StreamId stream_id)
@@ -167,7 +168,8 @@ void exclusive_scan_counts(
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
-    return;
+    return ObserverPtr<size_type, MemSpace::device>{counts.data().get()
+                                                    + counts.size() - 1};
 }
 
 //---------------------------------------------------------------------------//
