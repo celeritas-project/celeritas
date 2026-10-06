@@ -242,6 +242,11 @@ if(CELERITAS_USE_Geant4)
   celeritas_add_test(ext/GeantHandBack.test.cc GPU
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/GeantTrackOrder.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4
+    ENVIRONMENT "${CELER_G4ENV}")
+  celeritas_add_test(ext/detail/HandedBackIds.test.cc
+    LINK_LIBRARIES testcel_celeritas_g4)
 
   celeritas_add_test(ext/detail/LevelTouchableUpdater.test.cc
     LINK_LIBRARIES testcel_celeritas_g4)
