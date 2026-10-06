@@ -19,8 +19,8 @@ namespace optical
 /*!
  * Launch a (device) kernel to update the number of pending optical photons.
  */
-void GeneratorBase::update_pending(
-    CoreParams const&, CoreStateDevice& state, size_type num_pending) const
+void GeneratorBase::update_pending(CoreStateDevice& state,
+                                   size_type num_pending) const
 {
     // Update the number of pending optical photons
     UpdatePendingExecutor<size_type> execute_thread{

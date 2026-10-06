@@ -75,8 +75,8 @@ class GeneratorBase : virtual public optical::OpticalStepActionInterface,
     inline void update_counters(optical::CoreState<M>&) const;
 
     // Update the num_pending state counter
-    void update_pending(CoreParams const&, CoreStateHost&, size_type) const;
-    void update_pending(CoreParams const&, CoreStateDevice&, size_type) const;
+    void update_pending(CoreStateHost&, size_type) const;
+    void update_pending(CoreStateDevice&, size_type) const;
 
   private:
     StaticActionData sad_;

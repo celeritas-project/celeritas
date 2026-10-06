@@ -8,7 +8,6 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/data/AuxStateVec.hh"
-#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/track/CounterExecutors.hh"
@@ -55,8 +54,8 @@ GeneratorStateBase const& GeneratorBase::counters(AuxStateVec const& aux) const
 /*!
  * Launch a (host) kernel to update the number of pending optical photons.
  */
-void GeneratorBase::update_pending(
-    CoreParams const&, CoreStateHost& state, size_type num_pending) const
+void GeneratorBase::update_pending(CoreStateHost& state,
+                                   size_type num_pending) const
 {
     // Update the number of pending optical photons
     launch_action(1,
@@ -66,8 +65,7 @@ void GeneratorBase::update_pending(
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void GeneratorBase::update_pending(
-    CoreParams const&, CoreStateDevice&, size_type) const
+void GeneratorBase::update_pending(CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
