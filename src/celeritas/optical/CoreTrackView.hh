@@ -95,9 +95,6 @@ class CoreTrackView
     // Return an RNG engine
     inline CELER_FUNCTION RngEngine rng() const;
 
-    // Get the index of the current thread in the current kernel
-    inline CELER_FUNCTION ThreadId thread_id() const;
-
     // Get the track's index among the states
     inline CELER_FUNCTION TrackSlotId track_slot_id() const;
 
@@ -114,29 +111,12 @@ class CoreTrackView
   private:
     ParamsRef const& params_;
     StateRef const& states_;
-    ThreadId const thread_id_;
     TrackSlotId const track_slot_id_;
 };
 
 //---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
-/*!
- * Construct with comprehensive param/state data and thread.
- *
- * For optical tracks, the value of the track slot is the same as the thread
- * ID.
- */
-CELER_FUNCTION CoreTrackView::CoreTrackView(
-    ParamsRef const& params, StateRef const& states, ThreadId thread)
-    : params_(params)
-    , states_(states)
-    , thread_id_(thread)
-    , track_slot_id_(TrackSlotId{thread.get()})
-{
-    CELER_EXPECT(track_slot_id_ < states_.size());
-}
-
 /*!
  * Construct with comprehensive param/state data and track slot.
  *
@@ -319,24 +299,6 @@ CELER_FUNCTION auto CoreTrackView::rng() const -> RngEngine
 CELER_FUNCTION SimTrackView CoreTrackView::sim() const
 {
     return SimTrackView{params_.sim, states_.sim, this->track_slot_id()};
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get the index of the current thread in the current kernel.
- *
- * \warning If the kernel calling this function is not applied to \em all
- * tracks, then comparing against a particular thread ID (e.g. zero for a
- * once-per-kernel initialization) may result in an error.
- *
- * \pre The thread ID is only set if the class is initialized with the thread
- * ID (e.g. from \c TrackExecutor ), which is not the case in track
- * initialization (where the "core track" is constructed from a vacancy).
- */
-CELER_FORCEINLINE_FUNCTION ThreadId CoreTrackView::thread_id() const
-{
-    CELER_EXPECT(thread_id_);
-    return thread_id_;
 }
 
 //---------------------------------------------------------------------------//
