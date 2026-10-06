@@ -250,11 +250,6 @@ auto& CoreState<M>::native_action_thread_offsets()
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
 
-template<>
-void CoreState<MemSpace::host>::reset_counters();
-template<>
-void CoreState<MemSpace::device>::reset_counters();
-
 extern template class CoreState<MemSpace::host>;
 extern template class CoreState<MemSpace::device>;
 

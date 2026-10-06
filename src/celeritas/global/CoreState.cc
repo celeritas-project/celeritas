@@ -9,9 +9,8 @@
 #include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
-#include "corecel/sys/KernelLauncher.hh"
 #include "corecel/sys/ScopedProfiling.hh"
-#include "celeritas/track/CounterExecutors.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -183,20 +182,11 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 
 //---------------------------------------------------------------------------//
 //! Reset counters that are accumulated during a step
-template<>
-void CoreState<MemSpace::host>::reset_counters()
+template<MemSpace M>
+void CoreState<M>::reset_counters()
 {
-    launch_kernel(1, ResetCountersExecutor{this->ref().init.counters.data()});
+    celeritas::reset_counters(this->ref().init.counters, this->stream_id());
 }
-
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-template<>
-void CoreState<MemSpace::device>::reset_counters()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -223,7 +213,9 @@ void CoreState<M>::reset()
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
+
 template class CoreState<MemSpace::host>;
 template class CoreState<MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

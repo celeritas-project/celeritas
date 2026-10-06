@@ -6,13 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "LocateVacanciesAction.hh"
 
-#include "corecel/Assert.hh"
-#include "corecel/Macros.hh"
-#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
-#include "celeritas/track/CounterExecutors.hh"
-
-#include "ActionLauncher.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 
 #include "detail/TrackInitAlgorithms.hh"
 
@@ -36,7 +31,6 @@ LocateVacanciesAction::LocateVacanciesAction(ActionId aid)
 void LocateVacanciesAction::step(CoreParams const&, CoreStateHost& state) const
 {
     this->step_impl(state);
-    return this->update_alive(state, state.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -47,7 +41,6 @@ void LocateVacanciesAction::step(CoreParams const&,
                                  CoreStateDevice& state) const
 {
     this->step_impl(state);
-    return this->update_alive(state, state.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -62,29 +55,9 @@ void LocateVacanciesAction::step_impl(CoreState<M>& state) const
     // the empty slots
     detail::copy_if_vacant(
         state.ref().sim.status, state.ref().init, state.stream_id());
+    return celeritas::update_alive(
+        state.ref().init.counters, state.size(), state.stream_id());
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Update the number of alive slots as the empty slots have been compacted.
- */
-void LocateVacanciesAction::update_alive(CoreStateHost& state,
-                                         size_type state_size) const
-{
-    launch_action(
-        1, UpdateAliveExecutor{state.ref().init.counters.data(), state_size});
-}
-
-//---------------------------------------------------------------------------//
-// INLINE DEFINITIONS
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-inline void LocateVacanciesAction::update_alive(CoreStateDevice&,
-                                                size_type) const
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

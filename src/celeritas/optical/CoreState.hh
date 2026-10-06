@@ -203,18 +203,12 @@ class CoreState final : public CoreStateBase
     Ptr ptr_;
 };
 
-template<>
-void CoreState<MemSpace::host>::add_pending(
-    CoreState<MemSpace::host>::size_type);
-template<>
-void CoreState<MemSpace::device>::add_pending(
-    CoreState<MemSpace::device>::size_type);
-template<>
-void CoreState<MemSpace::host>::add_pending(
-    ObserverPtr<size_type, MemSpace::host>);
-template<>
-void CoreState<MemSpace::device>::add_pending(
-    ObserverPtr<size_type, MemSpace::device>);
+//---------------------------------------------------------------------------//
+// EXPLICIT INSTANTIATION
+//---------------------------------------------------------------------------//
+
+extern template class CoreState<MemSpace::host>;
+extern template class CoreState<MemSpace::device>;
 
 //---------------------------------------------------------------------------//
 }  // namespace optical

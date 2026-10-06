@@ -13,7 +13,6 @@
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
 
-#include "../CoreStateCounters.hh"
 #include "../TrackInitData.hh"
 #include "../Utils.hh"
 

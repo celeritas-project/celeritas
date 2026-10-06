@@ -121,6 +121,7 @@ list(APPEND SOURCES
   neutron/process/NeutronElasticProcess.cc
   neutron/process/NeutronInelasticProcess.cc
   optical/CoreParams.cc
+  optical/CoreState.cc
   optical/CoreTrackData.cc
 
   optical/gen/CherenkovParams.cc
@@ -404,7 +405,6 @@ celeritas_polysource(em/model/RelativisticBremModel)
 celeritas_polysource(em/model/SeltzerBergerModel)
 celeritas_polysource(em/model/CoulombScatteringModel)
 celeritas_polysource(geo/detail/BoundaryAction)
-celeritas_polysource(global/CoreState)
 celeritas_polysource(global/detail/KillActive)
 celeritas_polysource(global/detail/TrackSlotUtils)
 celeritas_polysource(mucf/model/DTMixMucfModel)
@@ -412,14 +412,12 @@ celeritas_polysource(neutron/model/ChipsNeutronElasticModel)
 celeritas_polysource(neutron/model/NeutronCaptureModel)
 celeritas_polysource(neutron/model/NeutronInelasticModel)
 celeritas_polysource(optical/model/AbsorptionModel)
-celeritas_polysource(optical/CoreState)
 celeritas_polysource(optical/model/MieModel)
 celeritas_polysource(optical/model/RayleighModel)
 celeritas_polysource(optical/model/WavelengthShiftModel)
 celeritas_polysource(optical/action/AlongStepAction)
 celeritas_polysource(optical/action/DetectorAction)
 celeritas_polysource(optical/action/DiscreteSelectAction)
-celeritas_polysource(optical/action/LocateVacanciesAction)
 celeritas_polysource(optical/action/PreStepAction)
 celeritas_polysource(optical/action/StepDiagnostic)
 celeritas_polysource(optical/action/TrackingCutAction)
@@ -447,6 +445,7 @@ celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(track/CounterAlgorithms)
 celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)
