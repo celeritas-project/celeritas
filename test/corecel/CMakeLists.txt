@@ -148,6 +148,7 @@ celeritas_add_test(sys/MpiCommunicator.test.cc
 celeritas_add_test(sys/MultiExceptionHandler.test.cc)
 celeritas_add_test(sys/TypeDemangler.test.cc)
 celeritas_add_test(sys/ScopedSignalHandler.test.cc)
+celeritas_add_test(sys/ScopeExit.test.cc)
 celeritas_add_test(sys/Stopwatch.test.cc ADDED_TESTS _stopwatch)
 set_tests_properties(${_stopwatch} PROPERTIES LABELS "nomemcheck")
 celeritas_add_test(sys/Version.test.cc)

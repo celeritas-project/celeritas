@@ -29,6 +29,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopeExit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -529,9 +530,50 @@ void LocalTransporter::drain_transport()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Reset thread-local state when terminating run.
+ */
+void LocalTransporter::reset_local_state()
+{
+    CELER_EXPECT(*this);
+
+    // Ensure asynchronous work is complete before destroying the stepper/state
+    if (step_ && step_->valid())
+    {
+        try
+        {
+            step_->wait();
+        }
+        catch (...)
+        {
+        }
+    }
+
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Geant4 navigation states *MUST* be deallocated on the thread in
+        // which they're allocated
+        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
+            step_->sp_state());
+        CELER_ASSERT(state);
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+        state->ref().geometry.reset();
+#endif
+    }
+
+    // Flush any remaining performance counters on the worker thread
+    TracingSession::flush();
+
+    // Reset all data
+    *this = {};
+
+    CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a Geant4 track and add it to the Stepper producer buffer.
  */
-void LocalTransporter::Push(G4Track& g4track)
+void LocalTransporter::push_impl(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
@@ -629,7 +671,7 @@ void LocalTransporter::Push(G4Track& g4track)
         }
         else
         {
-            this->Flush();
+            this->flush_impl();
         }
     }
 }
@@ -638,7 +680,7 @@ void LocalTransporter::Push(G4Track& g4track)
 /*!
  * Transport all buffered tracks and produced secondaries.
  */
-void LocalTransporter::Flush()
+void LocalTransporter::flush_impl()
 {
     CELER_EXPECT(*this);
 
@@ -708,6 +750,40 @@ void LocalTransporter::Flush()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Convert a Geant4 track and add it to the Stepper producer buffer.
+ */
+void LocalTransporter::Push(G4Track& g4track)
+{
+    try
+    {
+        this->push_impl(g4track);
+    }
+    catch (...)
+    {
+        this->reset_local_state();
+        throw;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport all buffered tracks and produced secondaries.
+ */
+void LocalTransporter::Flush()
+{
+    try
+    {
+        this->flush_impl();
+    }
+    catch (...)
+    {
+        this->reset_local_state();
+        throw;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Number of accepted primaries not yet accounted as transported.
  */
 size_type LocalTransporter::GetBufferSize() const
@@ -732,6 +808,9 @@ size_type LocalTransporter::GetBufferSize() const
 void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
+
+    ScopeExit reset_state{[this] { this->reset_local_state(); }};
+
     auto const buffer_size = this->GetBufferSize();
     // Submitted-batch accounting may already be clear while active tail tracks
     // or an unconsumed Stepper result still require transport.
@@ -778,26 +857,6 @@ void LocalTransporter::Finalize()
             have_warned_slow = true;
         }
     }
-
-    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        // Geant4 navigation states *MUST* be deallocated on the thread in
-        // which they're allocated
-        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
-            step_->sp_state());
-        CELER_ASSERT(state);
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-        state->ref().geometry.reset();
-#endif
-    }
-
-    // Flush any remaining performance counters on the worker thread
-    TracingSession::flush();
-
-    // Reset all data
-    *this = {};
-
-    CELER_ENSURE(!*this);
 }
 
 //---------------------------------------------------------------------------//
