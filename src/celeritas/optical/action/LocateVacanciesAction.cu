@@ -23,8 +23,8 @@ namespace optical
 /*!
  * Update the number of active slots as the empty slots have been compacted.
  */
-void LocateVacanciesAction::update_alive(
-    CoreParams const&, CoreStateDevice& state, size_type state_size) const
+void LocateVacanciesAction::update_alive(CoreStateDevice& state,
+                                         size_type state_size) const
 {
     UpdateAliveExecutor execute_thread{state.ref().init.counters.data(),
                                        state_size};

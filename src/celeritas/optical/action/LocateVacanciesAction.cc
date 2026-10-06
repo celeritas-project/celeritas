@@ -33,22 +33,21 @@ LocateVacanciesAction::LocateVacanciesAction(ActionId aid)
 /*!
  * Execute the action with host data.
  */
-void LocateVacanciesAction::step(CoreParams const& params,
-                                 CoreStateHost& state) const
+void LocateVacanciesAction::step(CoreParams const&, CoreStateHost& state) const
 {
     this->step_impl(state);
-    return this->update_alive(params, state, state.size());
+    return this->update_alive(state, state.size());
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Execute the action with device data.
  */
-void LocateVacanciesAction::step(CoreParams const& params,
+void LocateVacanciesAction::step(CoreParams const&,
                                  CoreStateDevice& state) const
 {
     this->step_impl(state);
-    return this->update_alive(params, state, state.size());
+    return this->update_alive(state, state.size());
 }
 
 //---------------------------------------------------------------------------//
@@ -69,8 +68,8 @@ void LocateVacanciesAction::step_impl(CoreState<M>& state) const
 /*!
  * Update the number of alive slots as the empty slots have been compacted.
  */
-void LocateVacanciesAction::update_alive(
-    CoreParams const&, CoreStateHost& state, size_type state_size) const
+void LocateVacanciesAction::update_alive(CoreStateHost& state,
+                                         size_type state_size) const
 {
     launch_action(
         1, UpdateAliveExecutor{state.ref().init.counters.data(), state_size});
@@ -80,8 +79,8 @@ void LocateVacanciesAction::update_alive(
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline void LocateVacanciesAction::update_alive(
-    CoreParams const&, CoreStateDevice&, size_type) const
+inline void LocateVacanciesAction::update_alive(CoreStateDevice&,
+                                                size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

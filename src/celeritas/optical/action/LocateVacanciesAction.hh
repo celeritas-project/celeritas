@@ -37,8 +37,8 @@ class LocateVacanciesAction final : public OpticalStepActionInterface,
   private:
     template<MemSpace M>
     void step_impl(CoreState<M>&) const;
-    void update_alive(CoreParams const&, CoreStateHost&, size_type) const;
-    void update_alive(CoreParams const&, CoreStateDevice&, size_type) const;
+    void update_alive(CoreStateHost&, size_type) const;
+    void update_alive(CoreStateDevice&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//
