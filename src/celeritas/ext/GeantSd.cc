@@ -78,6 +78,8 @@ GeantSd::GeantSd(ParticleParams const& par,
 
     // Convert setup options to step data
     selection_.primary_id = setup.track;
+    selection_.parent_id = setup.track;
+    selection_.parent_is_primary = setup.track;
     selection_.particle_id = setup.track;
     selection_.weight = setup.track;
     selection_.energy_deposition = setup.energy_deposition;

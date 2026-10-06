@@ -24,6 +24,8 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
+#include "detail/GeantPlaceholderProcess.hh"
+
 namespace celeritas
 {
 namespace
@@ -94,6 +96,7 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
 GeantTrackReconstruction::GeantTrackReconstruction(
     VecParticle const& particles, SPStep step)
     : step_(std::move(step))
+    , placeholder_{std::make_unique<detail::GeantPlaceholderProcess>()}
 {
     CELER_EXPECT(!particles.empty());
     CELER_EXPECT(step_);
@@ -193,8 +196,10 @@ void GeantTrackReconstruction::init_event()
 
 //---------------------------------------------------------------------------//
 /*!
- * Register mapping from Celeritas PrimaryID to Geant4 TrackID. This will take
- * ownership of the G4VUserTrackInformation and unset it in the primary track.
+ * Register mapping from Celeritas PrimaryID to Geant4 TrackID.
+ *
+ * This will take ownership of the G4VUserTrackInformation and unset it in the
+ * primary track.
  */
 PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 {
@@ -206,8 +211,19 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
                           "called: last event "
                        << g4_event_id_ << " != current event " << cur_event_id);
     }
+    AcquiredData data;
+    data.track_id = primary.GetTrackID();
+    data.parent_id = primary.GetParentID();
+    data.creator_process = primary.GetCreatorProcess();
+    CELER_ASSERT(data);
+
+    // Take ownership of the user information so that it doesn't get deleted
+    // with the G4Track
+    data.user_info.reset(primary.GetUserInformation());
+    primary.SetUserInformation(nullptr);
+
     auto primary_id = start_ + g4_track_data_.size();
-    g4_track_data_.emplace_back(AcquiredData{primary});
+    g4_track_data_.push_back(std::move(data));
     return primary_id;
 }
 
@@ -221,18 +237,57 @@ PrimaryId GeantTrackReconstruction::acquire(G4Track& primary)
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
                                         PrimaryId primary_id) const
 {
-    CELER_EXPECT(primary_id && primary_id >= start_);
-    CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
-    if constexpr (CELERITAS_DEBUG)
+    G4Track& track = this->view(particle_id);
+    this->acquired(primary_id).restore(track);
+    return track;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Geant4 track ID of a track created by Celeritas.
+ *
+ * Celeritas track IDs are unique within an event and start at zero for each
+ * event. Like AdePT, they are mapped to Geant4 IDs counting down from the
+ * largest integer, so that they never collide with the IDs that Geant4
+ * assigns in increasing order.
+ */
+int GeantTrackReconstruction::geant_track_id(TrackId track)
+{
+    CELER_EXPECT(track);
+    constexpr auto max_id = std::numeric_limits<int>::max();
+    CELER_VALIDATE(track.get() < static_cast<TrackId::size_type>(max_id / 2),
+                   << "Celeritas track ID " << track.get()
+                   << " is too large to be mapped to a Geant4 track ID");
+    return max_id - static_cast<int>(track.get());
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restore the Geant4 identity of any Celeritas track.
+ *
+ * A track without a parent is the offloaded Geant4 track and is restored with
+ * its original information. A track created by Celeritas is given its own
+ * identity (see the class documentation).
+ */
+G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
+                                        PrimaryId primary_id,
+                                        TrackId track_id,
+                                        TrackId parent_id,
+                                        bool parent_is_primary) const
+{
+    if (!parent_id)
     {
-        int cur_event_id = get_current_event_id();
-        CELER_VALIDATE(g4_event_id_ == cur_event_id,
-                       << "cannot view a track from another event: "
-                       << g4_event_id_ << " != current event " << cur_event_id);
+        CELER_EXPECT(!parent_is_primary);
+        return this->view(particle_id, primary_id);
     }
 
+    auto const& data = this->acquired(primary_id);
     G4Track& track = this->view(particle_id);
-    g4_track_data_[primary_id - start_].restore(track);
+    track.SetTrackID(geant_track_id(track_id));
+    track.SetParentID(parent_is_primary ? data.track_id
+                                        : geant_track_id(parent_id));
+    track.SetUserInformation(nullptr);
+    track.SetCreatorProcess(placeholder_.get());
     return track;
 }
 
@@ -249,23 +304,26 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 }
 
 //---------------------------------------------------------------------------//
-// GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
-//---------------------------------------------------------------------------//
 /*!
- * Restore the G4Track from the reconstruction data. Takes ownership of the
- * user information by unsetting it in the original track.
+ * Get the acquired data for a primary in the current event.
  */
-GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
-    : track_id_{track.GetTrackID()}
-    , parent_id_{track.GetParentID()}
-    , user_info_{track.GetUserInformation()}
-    , creator_process_{track.GetCreatorProcess()}
+auto GeantTrackReconstruction::acquired(PrimaryId primary_id) const
+    -> AcquiredData const&
 {
-    CELER_EXPECT(*this);
-    // Clear user information so that it doesn't get deleted with the G4Track
-    track.SetUserInformation(nullptr);
+    CELER_EXPECT(primary_id && primary_id >= start_);
+    CELER_EXPECT(primary_id < start_ + g4_track_data_.size());
+    if constexpr (CELERITAS_DEBUG)
+    {
+        int cur_event_id = get_current_event_id();
+        CELER_VALIDATE(g4_event_id_ == cur_event_id,
+                       << "cannot view a track from another event: "
+                       << g4_event_id_ << " != current event " << cur_event_id);
+    }
+    return g4_track_data_[primary_id - start_];
 }
 
+//---------------------------------------------------------------------------//
+// GEANTTRACKRECONSTRUCTION::ACQUIREDDATA
 //---------------------------------------------------------------------------//
 /*!
  * Restore the G4Track from the reconstruction data. The restored track does
@@ -275,10 +333,10 @@ GeantTrackReconstruction::AcquiredData::AcquiredData(G4Track& track)
 void GeantTrackReconstruction::AcquiredData::restore(G4Track& track) const
 {
     CELER_EXPECT(*this);
-    track.SetTrackID(track_id_);
-    track.SetParentID(parent_id_);
-    track.SetUserInformation(user_info_.get());
-    track.SetCreatorProcess(creator_process_);
+    track.SetTrackID(track_id);
+    track.SetParentID(parent_id);
+    track.SetUserInformation(user_info.get());
+    track.SetCreatorProcess(creator_process);
 }
 
 //---------------------------------------------------------------------------//

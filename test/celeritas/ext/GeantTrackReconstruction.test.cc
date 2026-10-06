@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 
+#include <limits>
 #include <G4DynamicParticle.hh>
 #include <G4ParticleDefinition.hh>
 #include <G4ParticleTable.hh>
@@ -363,6 +364,68 @@ TEST_F(GtrTest, multiple_particle_types)
         EXPECT_EQ(0, track.GetTrackID());
         EXPECT_EQ(0, track.GetParentID());
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(GtrTest, secondary_view)
+{
+    GeantTrackReconstruction recon(particles_, step_);
+    recon.init_event();
+
+    auto primary_track = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary_track->SetTrackID(12);
+    primary_track->SetParentID(3);
+    primary_track->SetUserInformation(new MockUserTrackInformation(7));
+    auto mock_process = std::make_unique<MockG4Process>("TestCompton");
+    primary_track->SetCreatorProcess(mock_process.get());
+    PrimaryId const pid = recon.acquire(*primary_track);
+
+    constexpr int max_id = std::numeric_limits<int>::max();
+    EXPECT_EQ(max_id, GeantTrackReconstruction::geant_track_id(TrackId{0}));
+    EXPECT_EQ(max_id - 10,
+              GeantTrackReconstruction::geant_track_id(TrackId{10}));
+    EXPECT_EQ("celeritas", recon.placeholder_process().GetProcessName());
+
+    {
+        // The offloaded track itself (Celeritas track 0) keeps its identity
+        G4Track& track = recon.view(ParticleId{0}, pid, TrackId{0}, {}, false);
+        EXPECT_EQ(12, track.GetTrackID());
+        EXPECT_EQ(3, track.GetParentID());
+        EXPECT_EQ(mock_process.get(), track.GetCreatorProcess());
+        EXPECT_NE(nullptr, track.GetUserInformation());
+    }
+    {
+        // Electron created by the offloaded track
+        G4Track& track
+            = recon.view(ParticleId{1}, pid, TrackId{5}, TrackId{0}, true);
+        EXPECT_EQ(particles_[1], track.GetParticleDefinition());
+        EXPECT_EQ(max_id - 5, track.GetTrackID());
+        EXPECT_EQ(12, track.GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+    {
+        // Photon created by that electron
+        G4Track& track
+            = recon.view(ParticleId{0}, pid, TrackId{8}, TrackId{5}, false);
+        EXPECT_EQ(max_id - 8, track.GetTrackID());
+        EXPECT_EQ(max_id - 5, track.GetParentID());
+        EXPECT_EQ(&recon.placeholder_process(), track.GetCreatorProcess());
+        EXPECT_EQ(nullptr, track.GetUserInformation());
+    }
+
+    if (CELERITAS_DEBUG)
+    {
+        // A primary can't have a primary parent
+        EXPECT_THROW(static_cast<void>(recon.view(
+                         ParticleId{0}, pid, TrackId{0}, TrackId{}, true)),
+                     DebugError);
+    }
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//

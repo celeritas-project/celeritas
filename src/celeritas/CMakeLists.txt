@@ -260,6 +260,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantParticleUtils.cc
+    ext/detail/GeantPlaceholderProcess.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantScintillationLoader.cc
