@@ -49,13 +49,13 @@ auto make_state(StreamId stream, size_type size)
  * Construct and add to core params.
  */
 std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
-    CoreParams& params)
+    CoreParams const& params)
 {
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
     auto result = std::make_shared<DirectGeneratorAction>(
-        actions.next_id(), aux.next_id(), gen.next_id(), params);
+        actions.next_id(), aux.next_id(), gen.next_id());
     actions.insert(result);
     aux.insert(result);
     gen.insert(result);
@@ -67,16 +67,14 @@ std::shared_ptr<DirectGeneratorAction> DirectGeneratorAction::make_and_insert(
  * Construct with action and data IDs.
  */
 DirectGeneratorAction::DirectGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params)
+    ActionId id, AuxId aux_id, GeneratorId gen_id)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "generate-direct",
                     "directly generate optical photon primaries")
-    , params_(&params)
 
 {
-    CELER_EXPECT(params_);
 }
 
 //---------------------------------------------------------------------------//

@@ -60,14 +60,12 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const& buffer,
  * the number of pending tracks.
  */
 void count_num_photons(
-    SPConstOpticalParams params,
     optical::CoreState<MemSpace::host>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
     size_type offset,
     size_type size,
     StreamId)
 {
-    CELER_EXPECT(params);
     auto* start = buffer.data().get();
     size_type count = std::accumulate(
         start + offset, start + size, 0_sz, AccumNumPhotons{});

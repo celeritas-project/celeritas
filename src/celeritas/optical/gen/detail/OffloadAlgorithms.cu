@@ -6,7 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "OffloadAlgorithms.hh"
 
-#include <type_traits>
 #include <thrust/device_ptr.h>
 #include <thrust/functional.h>
 // TODO: Move these two headers inside the #else block once the
@@ -14,7 +13,6 @@
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
 
-#include "corecel/data/ObserverPtr.hh"
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <thrust/iterator/transform_iterator.h>
@@ -25,7 +23,6 @@
 #    include <thrust/transform_reduce.h>
 #endif
 #include "corecel/Assert.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
@@ -73,7 +70,6 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const& buffer,
  * the number of pending tracks.
  */
 void count_num_photons(
-    SPConstOpticalParams params,
     optical::CoreState<MemSpace::device>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
     size_type offset,
@@ -81,7 +77,6 @@ void count_num_photons(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"count-num-photons"};
-    CELER_EXPECT(params);
     auto& stream = device().stream(stream_id);
     auto start = device_pointer_cast(buffer.data());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
