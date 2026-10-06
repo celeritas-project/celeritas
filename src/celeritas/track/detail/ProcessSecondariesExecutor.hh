@@ -111,7 +111,9 @@ CELER_FUNCTION void ProcessSecondariesExecutor::operator()(
             ti.particle.energy = secondary.energy;
             if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
             {
-                // always branch the rng
+                // Branch the parent's RNG regardless of whether the
+                // secondary reuses the parent's slot, so that results are
+                // reproducible independent of the number of track slots
                 ti.rng = track.rng().branch();
             }
             CELER_ASSERT(ti);

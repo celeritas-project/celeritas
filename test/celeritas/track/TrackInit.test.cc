@@ -606,7 +606,11 @@ using TrackInitHostTest = TrackInitTest<HostType>;
 //! A secondary initialized in its parent's slot branches the parent's RNG
 TEST_F(TrackInitHostTest, in_place_rng)
 {
-#if CELERITAS_RESEED == CELERITAS_RESEED_TRACK
+    if constexpr (CELERITAS_RESEED != CELERITAS_RESEED_TRACK)
+    {
+        GTEST_SKIP() << "RNG is not reseeded for each track";
+    }
+
     size_type const num_tracks = 4;
     this->build_states(num_tracks);
     auto primaries = this->make_primaries(num_tracks);
@@ -640,9 +644,6 @@ TEST_F(TrackInitHostTest, in_place_rng)
     {
         EXPECT_EQ(expected_rng(), actual_rng());
     }
-#else
-    GTEST_SKIP() << "RNG is not reseeded for each track";
-#endif
 }
 
 //---------------------------------------------------------------------------//
