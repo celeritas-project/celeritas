@@ -131,7 +131,7 @@ void count_num_photons(
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // Update the number of pending optical photons
-    UpdatePendingExecutor<decltype(count)> execute_thread{
+    AddPendingExecutor<decltype(count)> execute_thread{
         state.ref().init.counters.data(), count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");

@@ -19,7 +19,7 @@ namespace celeritas
 {
 //---------------------------------------------------------------------------//
 /*!
- * Update the num_pending counter based on the generated photons from buffered
+ * Add to the num_pending counter based on photons from buffered
  * optical distribution data.
  *
  * This is a \em thread executor suitable for \c KernelLauncher or \c
@@ -30,7 +30,7 @@ namespace celeritas
  than being copied through the kernel launch.
  */
 template<typename CounterType>
-struct UpdatePendingExecutor
+struct AddPendingExecutor
 {
     //// DATA ////
 
@@ -39,7 +39,7 @@ struct UpdatePendingExecutor
 
     //// FUNCTIONS ////
 
-    // Update number of primaries waiting to be generated
+    // Add number of primaries waiting to be generated
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
     {
         CELER_EXPECT(tid == ThreadId{0});

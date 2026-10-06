@@ -259,7 +259,7 @@ void LocalOpticalGenOffload::update_primaries(
     optical::CoreState<MemSpace::host>& state) const
 {
     optical::launch_action(1,
-                           UpdatePendingExecutor<size_type>{
+                           AddPendingExecutor<size_type>{
                                state.ref().init.counters.data(), num_photons_});
 }
 

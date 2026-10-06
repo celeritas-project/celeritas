@@ -73,7 +73,7 @@ void count_num_photons(
     if (count > 0)
     {
         optical::launch_action(1,
-                               UpdatePendingExecutor<size_type>{
+                               AddPendingExecutor<size_type>{
                                    state.ref().init.counters.data(), count});
     }
     return;

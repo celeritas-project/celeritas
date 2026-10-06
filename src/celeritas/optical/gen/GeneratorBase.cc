@@ -59,7 +59,7 @@ void GeneratorBase::update_pending(CoreStateHost& state,
 {
     // Update the number of pending optical photons
     launch_action(1,
-                  UpdatePendingExecutor<size_type>{
+                  AddPendingExecutor<size_type>{
                       state.ref().init.counters.data(), num_pending});
 }
 

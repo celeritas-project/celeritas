@@ -23,7 +23,7 @@ void LocalOpticalGenOffload::update_primaries(
 {
     auto const& optical_params = *transport_->params();
 
-    UpdatePendingExecutor<size_type> execute_thread{
+    AddPendingExecutor<size_type> execute_thread{
         state.ref().init.counters.data(), num_photons_};
 
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(

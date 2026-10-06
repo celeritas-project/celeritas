@@ -24,7 +24,7 @@ void Runner::update_pending(CoreState<MemSpace::device>& state,
                             size_type num_pending) const
 {
     // Update the number of pending optical photons
-    UpdatePendingExecutor<size_type> execute_thread{
+    AddPendingExecutor<size_type> execute_thread{
         state.ref().init.counters.data(), num_pending};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-pending");
