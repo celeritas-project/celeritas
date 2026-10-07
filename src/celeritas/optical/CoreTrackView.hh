@@ -8,6 +8,7 @@
 
 #include "corecel/math/Atomics.hh"
 #include "corecel/random/engine/RngEngine.hh"
+#include "corecel/sys/ThreadId.hh"
 #include "geocel/AllVolumesView.hh"
 #include "geocel/DetectorView.hh"
 #include "geocel/VolumeSurfaceView.hh"

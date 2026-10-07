@@ -179,7 +179,7 @@ class CheckedGeoTrackView final : public GeoTrackInterface<real_type>
     Propagation find_next_step(real_type max_distance) final;
 
     // Move a linear step fraction
-    void move_internal(real_type) final;
+    void move_internal(real_type step) final;
 
     // Move within the safety distance to a specific point
     void move_internal(Real3 const& pos) final;

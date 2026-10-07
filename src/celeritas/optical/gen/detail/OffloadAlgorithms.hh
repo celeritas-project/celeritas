@@ -8,9 +8,8 @@
 
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 #include "corecel/data/Collection.hh"
-#include "corecel/math/Algorithms.hh"
+#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/WavelengthShiftData.hh"
 
 #include "../GeneratorData.hh"
@@ -36,13 +35,16 @@ size_type remove_if_invalid(
     ItemsRef<T, MemSpace::device> const&, size_type, size_type, StreamId);
 
 //---------------------------------------------------------------------------//
-// Count the number of optical photons in the distributions.
-size_type count_num_photons(
+// Count the number of optical photons in the distributions and add these to
+// the number of pending  tracks.
+void add_pending_photon_count(
+    optical::CoreState<MemSpace::host>&,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
     size_type,
     size_type,
     StreamId);
-size_type count_num_photons(
+void add_pending_photon_count(
+    optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,
     size_type,
@@ -59,7 +61,8 @@ inline size_type remove_if_invalid(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline size_type count_num_photons(
+inline void add_pending_photon_count(
+    optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,
     size_type,

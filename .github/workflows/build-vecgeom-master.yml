@@ -11,14 +11,14 @@ name: build-vecgeom-master
 on:
   workflow_dispatch:
     inputs:
-      vecgeom-sha:
+      commit:
         description: "VecGeom commit SHA, or latest for the current master"
         type: string
         required: false
         default: "latest"
   workflow_call:
     inputs:
-      vecgeom-sha:
+      commit:
         description: "VecGeom commit SHA, or latest for the current master"
         type: string
         required: false
@@ -49,6 +49,7 @@ jobs:
       CXXSTD: 20
     steps:
       - name: Check out Celeritas
+        id: celeritas
         uses: actions/checkout@v7
         with:
           fetch-tags: true
@@ -56,21 +57,19 @@ jobs:
       - name: Select VecGeom revision
         id: vecgeom
         env:
-          VECGEOM_SHA: ${{inputs.vecgeom-sha}}
+          VECGEOM_SHA: ${{inputs.commit}}
         run: |
           vecgeom_sha="$VECGEOM_SHA"
           if [[ "$vecgeom_sha" == "latest" ]]; then
             vecgeom_sha=$(git ls-remote --exit-code \
               https://gitlab.cern.ch/VecGeom/VecGeom.git refs/heads/master | cut -f1)
           fi
+          printf "VecGeom: %s -> %s\n" "$VECGEOM_SHA" "$vecgeom_sha"
           if [[ ! "$vecgeom_sha" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::VecGeom revision must resolve to a full commit SHA"
             exit 1
           fi
-          echo "sha=$vecgeom_sha" >> "$GITHUB_OUTPUT"
-          printf 'Celeritas: %s\nVecGeom: %s\n' \
-            "$(git rev-parse HEAD)" "$vecgeom_sha" | tee revisions.txt
-          cat revisions.txt >> "$GITHUB_STEP_SUMMARY"
+          echo "commit=$vecgeom_sha" >> "$GITHUB_OUTPUT"
 
       - name: Set up core and VecGeom Spack environments
         uses: ./.github/actions/setup-spack
@@ -80,7 +79,7 @@ jobs:
           add: geant4@11.3
           add-dependent: >-
             g4vg
-            vecgeom@${{steps.vecgeom.outputs.sha}}=master~cuda~surface
+            vecgeom@${{steps.vecgeom.outputs.commit}}=master~cuda~surface
 
       - name: Configure Celeritas
         id: configure
@@ -95,7 +94,7 @@ jobs:
         with:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
-          targets: geocel_vg_Vecgeom
+          targets: geocel_vg_Vecgeom celer-config
           ccache-max-size: 512Mi
 
       - name: Run VecGeom tests
@@ -107,11 +106,39 @@ jobs:
           ctest --preset=spack-unit -R '^geocel/vg/Vecgeom:' \
             --output-junit "$GITHUB_WORKSPACE/test-output/ctest/vecgeom-master.xml"
 
+      - name: Print versions
+        if: ${{ !cancelled() }}
+        env:
+          CELER_SHA: ${{steps.celeritas.outputs.commit}}
+          VECGEOM_SHA: ${{steps.vecgeom.outputs.commit}}
+        run: |
+          {
+            printf 'Celeritas: [%s](https://github.com/%s/commit/%s)\n' \
+              "$CELER_SHA" \
+              "celeritas-project/celeritas" \
+              "$CELER_SHA"
+            printf 'VecGeom: [%s](https://gitlab.cern.ch/%s/-/commit/%s)\n' \
+              "$VECGEOM_SHA" \
+              "VecGeom/VecGeom" \
+              "$VECGEOM_SHA"
+          } >> "$GITHUB_STEP_SUMMARY"
+          {
+            printf "Parsed versions:\n"
+
+            if [ -e build/bin/celer-config ] ; then
+              printf "%s\n" '```json'
+              ./build/bin/celer-config | jq .version,.config.versions
+              printf "%s\n" '```'
+            else
+              printf "**UNAVAILABLE**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload build and test diagnostics
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.sha || 'unresolved'}}
+          name: ${{env.CELER_RUN_NAME}}-${{steps.vecgeom.outputs.commit || 'unresolved'}}
           path: |
             revisions.txt
             spack.yaml

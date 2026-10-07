@@ -130,12 +130,15 @@ void Runner::insert(SpanConstGenDist data)
      * for some run modes, e.g. offloading distributions through accel where we
      * already know the number of pending tracks.
      */
-    auto counters = state_->sync_get_counters();
+    size_type total_pending(0);
     for (auto const& d : data)
     {
-        counters.num_pending += d.num_photons;
+        total_pending += d.num_photons;
     }
-    state_->sync_put_counters(counters);
+    if (total_pending > 0)
+    {
+        state_->add_pending(total_pending);
+    }
 }
 
 //---------------------------------------------------------------------------//

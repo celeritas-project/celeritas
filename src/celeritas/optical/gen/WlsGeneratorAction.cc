@@ -147,14 +147,17 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
             state.stream_id());
     }
 
-    // Update the core state counters with the number of new pending tracks
-    auto core_counters = state.sync_get_counters();
-    core_counters.num_pending += counters.num_pending - num_pending_prev;
-    state.sync_put_counters(core_counters);
-
-    if (counters.num_pending > 0 && core_counters.num_vacancies > 0)
+    // Update the core state counters if there the process created any photons
+    if (counters.num_pending > num_pending_prev)
     {
-        // Generate the optical photons from the distribution data
+        // This function doesn't change the aux_state counters, so the next if
+        // statement is still checking inclusive_scan_photons() result
+        state.add_pending(counters.num_pending - num_pending_prev);
+    }
+    if (counters.num_pending > 0)
+    {
+        // Generate the optical photons from the distribution data. To avoid
+        // synchronization, we defer the check for vacancies.
         this->generate(params, state);
 
         // Compact the buffer again to remove stale distributions and free up
@@ -194,8 +197,6 @@ void WlsGeneratorAction::generate(CoreParams const& params,
 
     auto& aux_state = get<WlsGeneratorState<MemSpace::native>>(*state.aux(),
                                                                this->aux_id());
-    size_type num_gen = min(state.sync_get_counters().num_vacancies,
-                            aux_state.counters.num_pending);
 
     // Generate optical photons in vacant track slots
     detail::WlsGeneratorExecutor execute{
@@ -205,6 +206,7 @@ void WlsGeneratorAction::generate(CoreParams const& params,
         wls2_ ? wls2_->host_ref() : NativeCRef<WavelengthShiftData>{},
         aux_state.store.ref(),
         aux_state.counters.buffer_size};
+    size_type num_gen = std::min(aux_state.counters.num_pending, state.size());
     launch_action(num_gen, execute);
 }
 

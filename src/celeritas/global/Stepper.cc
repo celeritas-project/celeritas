@@ -22,6 +22,7 @@
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
+#include "ActionLauncher.hh"
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
@@ -203,12 +204,9 @@ void Stepper<M>::async()
         << ") for a maximum possible requirement of " << max_initializers
         << ". Increase initializer capacity or decrease track slots");
 
-    auto counters = state_->sync_get_counters();
-    counters.num_pending = this->staged_primaries().size();
-    counters.num_generated = 0;
-    counters.num_cut = 0;
-    counters.num_errored = 0;
-    state_->sync_put_counters(counters);
+    // Initialize the generated, error, and cut counters to zero and set the
+    // number of pending primaries
+    state_->initialize_counters(this->staged_primaries().size());
 
     actions_->step(*params_, *state_);
 
@@ -221,6 +219,8 @@ void Stepper<M>::async()
 
     if constexpr (M == MemSpace::device)
     {
+        // Queue an asynchronous copy of the counters after the kernel
+        // completes, and record in step_done_.
         auto const* counters_ptr = static_cast<CoreStateCounters const*>(
             state_->ref().init.counters.data());
         Copier<CoreStateCounters, MemSpace::host> copy_counters{

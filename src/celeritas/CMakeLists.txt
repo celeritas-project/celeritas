@@ -259,6 +259,7 @@ if(CELERITAS_USE_Geant4)
     ext/detail/EmStandardPhysics.cc
     ext/detail/GeantMicroXsCalculator.cc
     ext/detail/GeantModelImporter.cc
+    ext/detail/GeantParticleUtils.cc
     ext/detail/GeantPhysicsLoader.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantScintillationLoader.cc
@@ -444,6 +445,7 @@ celeritas_polysource(phys/detail/TrackingCutAction)
 celeritas_polysource(random/RngReseed)
 celeritas_polysource(track/detail/TrackInitAlgorithms)
 celeritas_polysource(track/detail/TrackSortUtils)
+celeritas_polysource(track/CounterAlgorithms)
 celeritas_polysource(track/ExtendFromPrimariesAction)
 celeritas_polysource(track/ExtendFromSecondariesAction)
 celeritas_polysource(track/InitializeTracksAction)

@@ -11,6 +11,9 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
+
+#include "CounterAlgorithms.hh"
 
 #include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
 #include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
@@ -70,15 +73,17 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    auto counters = core_state.sync_get_counters();
-    counters.num_secondaries = detail::exclusive_scan_counts(
+    ObserverPtr<size_type, M> num_secondaries = detail::exclusive_scan_counts(
         init.secondary_counts, core_state.stream_id());
 
-    counters.num_initializers += counters.num_secondaries;
+    // Launch a kernel to update the number of secondaries, initializers, and
+    // alive counters
+    update_secondaries(init.counters,
+                       num_secondaries,
+                       core_state.size(),
+                       core_state.stream_id());
 
     // Launch a kernel to create track initializers from secondaries
-    counters.num_alive = core_state.size() - counters.num_vacancies;
-    core_state.sync_put_counters(counters);
     this->process_secondaries(core_params, core_state);
 }
 

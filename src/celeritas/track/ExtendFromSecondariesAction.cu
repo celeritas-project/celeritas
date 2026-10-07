@@ -13,6 +13,7 @@
 #include "celeritas/global/ActionLauncher.device.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/global/TrackExecutor.hh"
 
 #include "detail/LocateAliveExecutor.hh"
 #include "detail/ProcessSecondariesExecutor.hh"

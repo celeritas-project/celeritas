@@ -10,10 +10,10 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
 
-#include "../CoreStateCounters.hh"
 #include "../TrackInitData.hh"
 #include "../Utils.hh"
 
@@ -47,10 +47,10 @@ void remove_if_alive(
 
 //---------------------------------------------------------------------------//
 // Calculate the exclusive prefix sum of the number of surviving secondaries
-size_type exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&,
     StreamId);
-size_type exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId);
 
@@ -60,10 +60,12 @@ void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::host> const&,
     size_type,
+    size_type,
     StreamId);
 void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
+    size_type,
     size_type,
     StreamId);
 
@@ -77,7 +79,7 @@ inline void remove_if_alive(
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline size_type exclusive_scan_counts(
+inline ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&,
     StreamId)
 {
@@ -87,6 +89,7 @@ inline size_type exclusive_scan_counts(
 inline void partition_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
+    size_type,
     size_type,
     StreamId)
 {

@@ -143,6 +143,9 @@ class CoreState final : public CoreStateInterface
     //! class, since sync_get_counters() doesn't return a reference
     void sync_put_counters(CoreStateCounters const&) final;
 
+    // Reset counters that are accumulated during a step
+    void initialize_counters(size_type num_pending);
+
     //// AUXILIARY DATA ////
 
     //! Access auxiliary state data
