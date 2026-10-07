@@ -54,9 +54,10 @@ namespace detail
  * For device step data, the call operator enqueues the selection and
  * compaction of detector steps into the state's scratch space, along with an
  * asynchronous copy of the number of selected steps to pinned host memory,
- * without synchronizing. The gathered step data can be reused once the call
- * returns, but the scratch space must not be overwritten until the caller
- * calls \c process_pending_steps after the producing step is complete. Only
+ * without synchronizing. Because the enqueued kernels read the gathered step
+ * data, it may be overwritten only by work enqueued later on the same stream.
+ * The scratch space must not be overwritten until the caller calls \c
+ * process_pending_steps after the producing step is complete. Only
  * one device step can be pending, which prevents a subsequent compaction from
  * overwriting the scratch space. Processing waits for the compaction, copies
  * the compacted detector data to pinned host storage (synchronizing the
@@ -94,7 +95,8 @@ class HitProcessor
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);
 
-    ~HitProcessor() = default;
+    // Wait for any pending device compaction before releasing its buffers
+    ~HitProcessor();
     CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits

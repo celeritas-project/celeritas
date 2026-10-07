@@ -183,6 +183,29 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Wait for any pending device compaction before releasing its buffers.
+ *
+ * The count of selected steps is asynchronously copied into pinned memory
+ * owned by this class, so a pending copy must complete before that memory is
+ * freed (e.g., when an exception unwinds the transporter mid-step).
+ */
+HitProcessor::~HitProcessor()
+{
+    try
+    {
+        if (this->has_pending_steps())
+        {
+            compacted_.sync();
+        }
+    }
+    catch (...)  // NOLINT(bugprone-empty-catch)
+    {
+        // Ignore device errors while destroying
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Process detector tallies (CPU).
  */
 void HitProcessor::operator()(StepStateHostRef const& states)
