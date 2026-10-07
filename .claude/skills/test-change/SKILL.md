@@ -8,26 +8,15 @@ Verify a change by building and running only the affected tests.
 ## 1. Pick a build directory
 
 Use an existing configured `build-*` directory at the repo root (the one the
-user named, otherwise the most recently built) or inspect `.clangd` if it exists for a hint
-(since the build directory may be outside the source dir). Do not configure a new one.
+user named, otherwise the most recently built). Do not configure a new one.
 
 Always build through `cmake --build`: it uses the `ninja` recorded in
 `CMakeCache.txt`, which is often not on `PATH` (e.g. a Spack view).
 
-## 2. Map changed files to source libraries and build
+## 2. Map changed files to tests
 
 Changed files: `$ARGUMENTS` if given, else `git status --porcelain` plus
 `git diff --name-only develop...HEAD`.
-
-The appropriate build target for source changes is the package/library name in `src/<pkg>`.
-
-```bash
-cmake --build build-<preset> --target <target1> <target2> ...
-```
-
-Not all code is built in all configurations, and some code in the library is header-only and therefore built only by tests.
-
-## 3. Map changed files to tests
 
 - `test/<pkg>/<dir>/Foo.test.cc` is itself the test.
 - `src/<pkg>/<dir>/Foo.{hh,cc,cu}`: look for `test/<pkg>/<dir>/Foo.test.cc`.
@@ -51,16 +40,10 @@ names with `cmake --build <dir> --target help | grep <Name>` and
 list is likely disabled by configure options (e.g. `_needs_double`,
 `_needs_geant4_11`); say so rather than forcing it.
 
-
-If no test is found by searching the target and test names, simply warn the user: DO NOT explore the source or build directories further to try to find one.
-
-## 4. Build tests
-
-If tests were found, then build and run them:
+## 3. Build and run
 
 ```bash
 cmake --build build-<preset> --target <target1> <target2> ...
-# If a test was found:
 ctest --test-dir build-<preset> -R '^(celeritas/em/KleinNishina)($|:)' --output-on-failure --timeout 60
 ```
 
@@ -70,7 +53,7 @@ disabling, and Geant4 environment variables.
 If library sources changed and no specific test maps to them, run the whole
 package directory, e.g. `-R '^celeritas/em/'`.
 
-## 5. Report
+## 4. Report
 
 List the targets built and the CTest pass/fail summary. For failures, show
 the failing assertion output. Do not change expected values to make tests
