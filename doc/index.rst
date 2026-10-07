@@ -338,7 +338,7 @@ library, in independent and Geant4-integrated contexts.
    :maxdepth: 2
    :caption: Examples
 
-   example/minimal.rst
+   example/data-model.rst
    example/geant4.rst
    example/celer-sim.rst
    example/celer-optical.rst

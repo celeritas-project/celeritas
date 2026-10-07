@@ -7,7 +7,10 @@
 #include "celeritas/user/DetectorSteps.hh"
 
 #include "corecel/data/ParamsDataStore.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/Ref.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 #include "celeritas/user/StepData.hh"
 #include "celeritas/user/detail/StepScratchCopyExecutor.hh"
 
@@ -49,11 +52,14 @@ class DetectorStepsTest : public ::celeritas::test::Test
         // Construct params
         celeritas::HostVal<StepParamsData> host_data;
 
-        // Four volumes, three detectors
-        std::vector<DetectorId> detectors
-            = {DetectorId{}, DetectorId{2}, DetectorId{1}, DetectorId{0}};
-        make_builder(&host_data.detector)
-            .insert_back(detectors.begin(), detectors.end());
+        if (this->use_detectors())
+        {
+            // Four volumes, three detectors
+            std::vector<DetectorId> detectors
+                = {DetectorId{}, DetectorId{2}, DetectorId{1}, DetectorId{0}};
+            make_builder(&host_data.detector)
+                .insert_back(detectors.begin(), detectors.end());
+        }
 
         host_data.selection = this->selection();
         host_data.num_volume_levels = 4;
@@ -66,6 +72,9 @@ class DetectorStepsTest : public ::celeritas::test::Test
             d.create_streams(1);
         }
     }
+
+    // Filter steps by detector by default
+    virtual bool use_detectors() const { return true; }
 
     // Select all attributes by default
     virtual StepSelection selection() const
@@ -138,11 +147,14 @@ class DetectorStepsTest : public ::celeritas::test::Test
             // Leave occasional gaps in the track IDs
             step.track_id[tid] = tid.get() % 5 == 0 ? TrackId{} : TrackId(i++);
 
-            // Cycle through detector ids
-            DetectorId det{tid.get() % 4};
-            if (!step.track_id[tid] || det == DetectorId{3})
-                det = {};
-            step.detector_id[tid] = det;
+            if (!step.detector_id.empty())
+            {
+                // Cycle through detector ids
+                DetectorId det{tid.get() % 4};
+                if (!step.track_id[tid] || det == DetectorId{3})
+                    det = {};
+                step.detector_id[tid] = det;
+            }
 
             if (!step.event_id.empty())
                 step.event_id[tid] = EventId(i++);
@@ -178,6 +190,13 @@ class SmallDetectorStepsTest : public DetectorStepsTest
         result.energy_deposition = true;
         return result;
     }
+};
+
+// Steps gathered without detectors: active tracks are selected
+class UnfilteredStepsTest : public DetectorStepsTest
+{
+  public:
+    bool use_detectors() const override { return false; }
 };
 
 //---------------------------------------------------------------------------//
@@ -278,6 +297,34 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_VEC_EQ(host_post.volume_instance_ids, post.volume_instance_ids);
 }
 
+TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device_two_phase))
+{
+    size_type constexpr num_tracks = 300;
+
+    DeviceStates device_states;
+    resize(&device_states, this->params(), StreamId{0}, num_tracks);
+    auto host_states = this->build_states(num_tracks);
+    device_states.data = host_states.data;
+
+    DetectorStepOutput host_output;
+    copy_steps(&host_output, make_ref(host_states));
+
+    // Enqueue compaction, then wait for it before copying
+    std::vector<size_type, PinnedAllocator<size_type>> num_selected(1, 0);
+    compact_steps_async(make_ref(device_states), num_selected.data());
+    device().stream(StreamId{0}).sync();
+    EXPECT_EQ(host_output.size(), num_selected.front());
+
+    DetectorStepOutput output;
+    copy_compacted_steps(
+        &output, make_ref(device_states), num_selected.front());
+    EXPECT_VEC_EQ(host_output.detector_id, output.detector_id);
+    EXPECT_VEC_EQ(host_output.track_id, output.track_id);
+    EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
+    EXPECT_VEC_EQ(host_output.points[StepPoint::post].volume_instance_ids,
+                  output.points[StepPoint::post].volume_instance_ids);
+}
+
 TEST_F(SmallDetectorStepsTest, host)
 {
     auto states = this->build_states(32);
@@ -354,6 +401,45 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(0, post.dir.size());
     EXPECT_EQ(0, post.energy.size());
     EXPECT_EQ(0, post.volume_instance_ids.size());
+}
+
+TEST_F(UnfilteredStepsTest, host)
+{
+    auto states = this->build_states(12);
+
+    DetectorStepOutput output;
+    copy_steps(&output, make_ref(states));
+
+    // Every slot with a track ID (all but slots 0, 5, 10) is selected, in
+    // slot order
+    EXPECT_TRUE(output.detector_id.empty());
+    static int const expected_track[]
+        = {26, 43, 60, 77, 110, 127, 144, 161, 194};
+    EXPECT_VEC_EQ(expected_track, extract_ids(output.track_id));
+    EXPECT_EQ(9, output.size());
+    EXPECT_EQ(9, output.energy_deposition.size());
+    EXPECT_EQ(9 * 4, output.points[StepPoint::post].volume_instance_ids.size());
+}
+
+TEST_F(UnfilteredStepsTest, TEST_IF_CELER_DEVICE(device))
+{
+    size_type constexpr num_tracks = 300;
+
+    DeviceStates device_states;
+    resize(&device_states, this->params(), StreamId{0}, num_tracks);
+    auto host_states = this->build_states(num_tracks);
+    device_states.data = host_states.data;
+
+    DetectorStepOutput host_output;
+    copy_steps(&host_output, make_ref(host_states));
+
+    DetectorStepOutput output;
+    copy_steps(&output, make_ref(device_states));
+    EXPECT_TRUE(output.detector_id.empty());
+    EXPECT_VEC_EQ(host_output.track_id, output.track_id);
+    EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
+    EXPECT_VEC_EQ(host_output.points[StepPoint::post].volume_instance_ids,
+                  output.points[StepPoint::post].volume_instance_ids);
 }
 
 //---------------------------------------------------------------------------//

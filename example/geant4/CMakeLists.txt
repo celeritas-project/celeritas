@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------#
 
 cmake_minimum_required(VERSION 3.18...4.1)
-project(CeleritasAccelExample VERSION 0.0.1 LANGUAGES CXX)
+project(CeleritasAccelExample VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(Celeritas 0.7 REQUIRED)
 find_package(Geant4 REQUIRED)
