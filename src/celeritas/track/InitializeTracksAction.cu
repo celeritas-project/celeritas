@@ -7,11 +7,9 @@
 #include "InitializeTracksAction.hh"
 
 #include "celeritas/global/ActionLauncher.device.hh"
-#include "celeritas/global/CoreParams.hh"
-#include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
+#include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
+#include "celeritas/global/CoreState.hh"  // IWYU pragma: keep
 
-#include "detail/CounterExecutors.hh"
 #include "detail/InitTracksExecutor.hh"
 
 namespace celeritas

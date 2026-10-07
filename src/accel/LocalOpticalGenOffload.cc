@@ -13,6 +13,7 @@
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "geocel/GeantUtils.hh"
+#include "celeritas/optical/CoreParams.hh"
 #include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/Transporter.hh"
 #include "celeritas/optical/gen/GeneratorAction.hh"

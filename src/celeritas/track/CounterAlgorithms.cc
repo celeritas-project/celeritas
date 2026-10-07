@@ -24,6 +24,7 @@ void reset_counters(CSCHostRef const& counters, StreamId)
     CELER_EXPECT(counters.size() == 1);
     launch_kernel(1, detail::ResetCountersExecutor{counters.data()});
 }
+
 //---------------------------------------------------------------------------//
 void add_pending(CSCHostRef const& counters, size_type count, StreamId)
 {
