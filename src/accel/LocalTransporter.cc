@@ -545,6 +545,8 @@ void LocalTransporter::reset_local_state()
         }
         catch (...)
         {
+            CELER_LOG(error)
+                << "Failed to synchronize transport during cleanup";
         }
     }
 

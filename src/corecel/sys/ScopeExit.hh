@@ -21,7 +21,7 @@ class ScopeExit
 {
   public:
     //! Construct with functor
-    ScopeExit(F func) : func_{std::forward<F>(func)} {}
+    ScopeExit(F&& func) : func_{std::forward<F>(func)} {}
 
     //! Call functor on destruction
     ~ScopeExit() { func_(); }
