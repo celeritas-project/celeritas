@@ -98,6 +98,7 @@ void BuildOutput::output(JsonPimpl* j) const
                 deps[std::string{name}] = std::string{v};
             };
             append_version(CELERITAS_USE_COVFIE, "covfie");
+            append_version(CELERITAS_USE_CUDA, "CUB");
             append_version(CELERITAS_USE_CUDA, "CUDA");
             append_version(CELERITAS_USE_CUDA, "Thrust");
             append_version(CELERITAS_USE_GEANT4, "CLHEP");
@@ -106,6 +107,7 @@ void BuildOutput::output(JsonPimpl* j) const
             append_version(CELERITAS_USE_HIP, "hip");
             append_version(CELERITAS_USE_HIP, "hipcub");
             append_version(CELERITAS_USE_HIP, "hiprand");
+            append_version(CELERITAS_USE_HIP, "rocthrust");
             append_version(CELERITAS_USE_HIP, "roctracer");
             append_version(CELERITAS_USE_LARSOFT, "LArSoft");
             append_version(CELERITAS_USE_ROOT, "ROOT");
