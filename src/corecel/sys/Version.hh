@@ -59,6 +59,9 @@ class Version
     inline constexpr Version(
         size_type major, size_type minor = 0, size_type patch = 0);
 
+    //! Default (false) version
+    constexpr Version() = default;
+
     //!@{
     //! \name Accessors
 
@@ -74,7 +77,33 @@ class Version
     //! Get patch version
     constexpr size_type patch() const { return version_[2]; }
 
+    //! Whether the
+    constexpr explicit operator bool() const
+    {
+        return version_[0] || version_[1] || version_[2];
+    }
     //!@}
+
+    //// INLINE FRIENDS ////
+    // NOTE: constexpr is only defined for std::array in C++20
+
+#define CELER_DEFINE_VERSION_CMP(TOKEN) \
+    inline friend bool operator TOKEN(Version const& lhs, Version const& rhs) \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
+    }
+
+    CELER_DEFINE_VERSION_CMP(==)
+    CELER_DEFINE_VERSION_CMP(!=)
+    CELER_DEFINE_VERSION_CMP(<)
+    CELER_DEFINE_VERSION_CMP(>)
+    CELER_DEFINE_VERSION_CMP(<=)
+    CELER_DEFINE_VERSION_CMP(>=)
+
+#undef CELER_DEFINE_VERSION_CMP
+
+    // Write to stream
+    friend std::ostream& operator<<(std::ostream&, Version const&);
 
   private:
     ArrayT version_;
@@ -113,29 +142,6 @@ constexpr Version::Version(size_type major, size_type minor, size_type patch)
     : version_{{major, minor, patch}}
 {
 }
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// NOTE: constexpr is only defined for std::array in C++20
-
-#define CELER_DEFINE_VERSION_CMP(TOKEN) \
-    inline bool operator TOKEN(Version const& lhs, Version const& rhs) \
-    { \
-        return lhs.value() TOKEN rhs.value(); \
-    }
-
-CELER_DEFINE_VERSION_CMP(==)
-CELER_DEFINE_VERSION_CMP(!=)
-CELER_DEFINE_VERSION_CMP(<)
-CELER_DEFINE_VERSION_CMP(>)
-CELER_DEFINE_VERSION_CMP(<=)
-CELER_DEFINE_VERSION_CMP(>=)
-
-#undef CELER_DEFINE_VERSION_CMP
-
-// Write to stream
-std::ostream& operator<<(std::ostream&, Version const&);
 
 // Get the Celeritas version as an object
 Version celer_version();
