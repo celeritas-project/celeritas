@@ -99,9 +99,6 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     void process_primaries(CoreParams const&,
                            CoreStateDevice&,
                            PrimaryStateData<MemSpace::device> const&) const;
-
-    void update_counters(CoreParams const&, CoreStateHost&, size_type) const;
-    void update_counters(CoreParams const&, CoreStateDevice&, size_type) const;
 };
 
 template<MemSpace M>

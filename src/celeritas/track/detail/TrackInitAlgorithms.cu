@@ -96,7 +96,7 @@ void remove_if_alive(
 #else
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel.
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     auto data = device_pointer_cast(init.vacancies.data());
     auto counters = device_pointer_cast(init.counters.data());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
@@ -132,9 +132,10 @@ void remove_if_alive(
  * array elements, i.e., \f$ y_i = \sum_{j=0}^{i-1} x_j \f$,
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
- * The return value is the sum of all elements in the input array.
+ * The returned pointer refers to the last element, which will hold the sum of
+ * all elements in the input array once the stream's work completes.
  */
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::device> const&
         counts,
     StreamId stream_id)
@@ -149,7 +150,7 @@ void exclusive_scan_counts(
     auto& stream = device().stream(stream_id);
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     auto cub_error_code = cub::DeviceScan::ExclusiveSum(
         nullptr, temp_storage_bytes, data, counts.size(), stream.get());
     // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
@@ -167,7 +168,7 @@ void exclusive_scan_counts(
     CELER_DEVICE_API_CALL(PeekAtLastError());
     // No synchronization since the next use of the results (data array), which
     // pulls the value from the results, will use another call on this stream
-    return;
+    return make_observer(counts.data().get() + counts.size() - 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -230,7 +231,7 @@ void partition_initializers(
 #    endif
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     // CUB doesn't support in-place partitioning, so use a counting iterator
     // because the indices are always sequential from zero
     auto start = thrust::make_counting_iterator<size_type>(0);

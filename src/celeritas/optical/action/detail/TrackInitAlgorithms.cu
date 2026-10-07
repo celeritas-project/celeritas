@@ -95,7 +95,7 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 #    if CELER_CUB_HAS_FLAGGEDIF
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     auto flags = device_pointer_cast(status.data());
     cub::DeviceSelect::FlaggedIf(nullptr,
                                  temp_storage_bytes,
@@ -136,7 +136,7 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
 #        endif
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     auto cub_error_code = cub::DeviceSelect::Flagged(nullptr,
                                                      temp_storage_bytes,
                                                      start,

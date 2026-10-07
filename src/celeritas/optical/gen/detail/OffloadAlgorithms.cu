@@ -6,13 +6,15 @@
 //---------------------------------------------------------------------------//
 #include "OffloadAlgorithms.hh"
 
-#include <type_traits>
 #include <thrust/device_ptr.h>
 #include <thrust/functional.h>
 // TODO: Move these two headers inside the #else block once the
 //       remove_if_invalid function is ported to CUB/hipCUB
 #include <thrust/execution_policy.h>
 #include <thrust/remove.h>
+
+#include "corecel/Types.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_reduce.cuh>
 #    include <thrust/iterator/transform_iterator.h>
@@ -23,17 +25,12 @@
 #    include <thrust/transform_reduce.h>
 #endif
 #include "corecel/Assert.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "corecel/sys/Thrust.device.hh"
-#include "celeritas/optical/TrackExecutor.hh"
-#include "celeritas/optical/action/ActionLauncher.device.hh"
-
-#include "UpdatePendingExecutor.hh"
 
 #if CELERITAS_HAVE_HIPCUB
 namespace cub = hipcub;
@@ -72,8 +69,7 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::device> const& buffer,
  * Count the number of optical photons in the distributions and add these to
  * the number of pending tracks.
  */
-void count_num_photons(
-    SPConstOpticalParams params,
+void add_pending_photon_count(
     optical::CoreState<MemSpace::device>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const& buffer,
     size_type offset,
@@ -81,11 +77,10 @@ void count_num_photons(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"count-num-photons"};
-    CELER_EXPECT(params);
     auto& stream = device().stream(stream_id);
-    auto start = thrust::device_pointer_cast(buffer.data().get());
+    auto start = device_pointer_cast(buffer.data());
 #if CELERITAS_USE_CUDA || (CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB)
-    size_t temp_storage_bytes = 0;
+    std::size_t temp_storage_bytes = 0;
     // This could be allocated once and reused for each call
     DeviceVector<size_type> result(1, stream_id);
     auto transform = thrust::transform_iterator(
@@ -114,8 +109,10 @@ void count_num_photons(
                                             result.data(),
                                             size - offset,
                                             stream.get());
-    auto count = result.data();
     CELER_DISCARD(cub_error_code);
+
+    // Must match variable name in #else below for thrust
+    ObserverPtr<size_type, MemSpace::device> count{result.data()};
 #else
     size_type count = thrust::transform_reduce(
         thrust_execute_on(stream_id),
@@ -134,14 +131,7 @@ void count_num_photons(
     }
 #endif
     CELER_DEVICE_API_CALL(PeekAtLastError());
-    // Update the number of pending optical photons
-    auto execute_thread = make_single_track_executor(
-        params->ptr<MemSpace::native>(),
-        state.ptr(),
-        optical::detail::UpdatePendingExecutor<decltype(count)>{count});
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-pending");
-    launch_kernel(1, stream_id, execute_thread);
+    state.add_pending(count);
     return;
 }
 
