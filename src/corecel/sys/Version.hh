@@ -63,7 +63,7 @@ class Version
         size_type major, size_type minor = 0, size_type patch = 0);
 
     //! Default (false) version
-    constexpr Version() = default;
+    constexpr Version() : version_{0, 0, 0} {}
 
     //!@{
     //! \name Accessors
