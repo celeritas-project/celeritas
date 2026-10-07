@@ -177,16 +177,21 @@ void ExtendFromPrimariesAction::insert_impl(
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct primaries.
+ * Create track initializers from primary particles.
  */
 template<MemSpace M>
 void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
                                           CoreState<M>& state) const
 {
     auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
-    this->process_primaries(params, state, pstate);
-    add_primaries(state.ref().init.counters, pstate.count, state.stream_id());
-    pstate.count = 0;
+    if (pstate.count > 0)
+    {
+        // TODO: if trying CUDA graphs we may need to always call this.
+        this->process_primaries(params, state, pstate);
+        add_primaries(
+            state.ref().init.counters, pstate.count, state.stream_id());
+        pstate.count = 0;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -198,14 +203,12 @@ void ExtendFromPrimariesAction::process_primaries(
     CoreStateHost& state,
     PrimaryStateData<MemSpace::host> const& pstate) const
 {
+    CELER_EXPECT(pstate.count > 0);
     auto primaries = pstate.primaries();
     detail::ProcessPrimariesExecutor execute{
         params.ptr<MemSpace::native>(), state.ptr(), primaries};
-    if (!primaries.empty())
-    {
-        auto num_threads = max<size_type>(primaries.size(), state.size());
-        return launch_action(*this, num_threads, params, state, execute);
-    }
+    auto num_threads = max<size_type>(primaries.size(), state.size());
+    return launch_action(*this, num_threads, params, state, execute);
 }
 
 //---------------------------------------------------------------------------//

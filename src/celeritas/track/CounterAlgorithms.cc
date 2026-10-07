@@ -44,6 +44,7 @@ void add_pending(CSCHostRef const& counters,
 //---------------------------------------------------------------------------//
 void add_primaries(CSCHostRef const& counters, size_type count, StreamId)
 {
+    CELER_EXPECT(count > 0);
     CELER_EXPECT(counters.size() == 1);
     launch_kernel(1, detail::AddPrimariesCountExecutor{counters.data(), count});
 }
