@@ -19,7 +19,6 @@
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/global/TrackExecutor.hh"
 #include "celeritas/random/RngReseed.hh"
 #include "celeritas/track/ExtendFromPrimariesAction.hh"
 #include "celeritas/track/TrackInitParams.hh"
@@ -28,7 +27,6 @@
 #include "CoreParams.hh"
 
 #include "detail/KillActive.hh"
-#include "detail/ResetCountersExecutor.hh"
 
 namespace celeritas
 {
@@ -164,8 +162,8 @@ void Stepper<M>::async()
         << "cannot start a step before the current step has been consumed");
 
     ScopedProfiling profile_this{"step"};
-    // Initialize the num_generated counter to zero
-    this->reset_counters();
+    // Initialize the generated, error, and cut counters to zero
+    state_->reset_counters();
     actions_->step(*params_, *state_);
     if (primary_phase_ == PrimaryPhase::staged)
     {
@@ -176,6 +174,8 @@ void Stepper<M>::async()
 
     if constexpr (M == MemSpace::device)
     {
+        // Queue an asynchronous copy of the counters after the kernel
+        // completes, and record in step_done_.
         auto const* counters_ptr = static_cast<CoreStateCounters const*>(
             state_->ref().init.counters.data());
         Copier<CoreStateCounters, MemSpace::host> copy_counters{
@@ -509,31 +509,6 @@ void Stepper<M>::reclaim_submitted_primaries()
         primary_phase_ = PrimaryPhase::empty;
     }
 }
-
-//---------------------------------------------------------------------------//
-/*!
- * Set the num_pending counter to the number of generated primaries.
- */
-template<>
-void Stepper<MemSpace::host>::reset_counters()
-{
-    auto execute_thread
-        = make_single_track_executor(params_->ptr<MemSpace::native>(),
-                                     state_->ptr(),
-                                     detail::ResetCountersExecutor{});
-    launch_core(1, "reset-counters", *params_, *state_, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
-// DEVICE-DISABLED IMPLEMENTATION
-//---------------------------------------------------------------------------//
-#if !CELER_USE_DEVICE
-template<>
-void Stepper<MemSpace::device>::reset_counters()
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-#endif
 
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION

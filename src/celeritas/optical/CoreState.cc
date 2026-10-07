@@ -11,6 +11,7 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "celeritas/random/RngReseed.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 
 #include "CoreParams.hh"
 
@@ -145,6 +146,22 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 }
 
 //---------------------------------------------------------------------------//
+//! Add to the number of pending optical photons
+template<MemSpace M>
+void CoreState<M>::add_pending(size_type count)
+{
+    celeritas::add_pending(this->ref().init.counters, count, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
+//! Add to the number of pending optical photons (in-memory pointer)
+template<MemSpace M>
+void CoreState<M>::add_pending(ObserverPtr<size_type, M> count)
+{
+    celeritas::add_pending(this->ref().init.counters, count, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Reset the state data.
  *
@@ -157,7 +174,7 @@ void CoreState<M>::reset()
 {
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
-    sync_put_counters(counters);
+    this->sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);
