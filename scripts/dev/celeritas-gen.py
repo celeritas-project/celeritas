@@ -1,47 +1,38 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Generate file stubs for Celeritas."""
 
-from __future__ import annotations
-
-import argparse
+from datetime import datetime
 import os
+import os.path
 import re
 import subprocess
-from collections.abc import Iterable, Sequence
-from pathlib import Path
+import stat
+import sys
 
 ###############################################################################
 
 CODE_LICENSE = "(Apache-2.0 OR MIT)"
 DOC_LICENSE = "CC-BY-4.0"
-StringOrLines = str | Iterable[str]
 
 
-def _make_top(
-    comment_prefix: str,
-    preamble: StringOrLines | None = None,
-    postamble: StringOrLines | None = None,
-    *,
-    license: str = CODE_LICENSE,
-) -> str:
-    lines: list[str] = []
+def _make_top(comment_prefix, preamble=None, postamble=None, license=CODE_LICENSE):
+    lines = []
 
-    def _append_lines(value: StringOrLines | None) -> None:
-        if not value:
-            return
-        if isinstance(value, str):
-            lines.append(value)
-            return
-        lines.extend(value)
+    def _append_lines(s):
+        if s:
+            if isinstance(s, str):
+                lines.append(s)
+            else:
+                lines.extend(s)
 
     _append_lines(preamble)
     lines.extend(
-        f"{comment_prefix} {line}"
+        comment_prefix + " " + line
         for line in [
             "Copyright Celeritas contributors: see top-level COPYRIGHT file for details",
-            f"SPDX-License-Identifier: {license}",
+            "SPDX-License-Identifier: " + license,
         ]
     )
     _append_lines(postamble)
@@ -368,23 +359,6 @@ endfunction()
 #-----------------------------------------------------------------------------#
 """
 
-CMAKE_FIND_FILE = """\
-#[=======================================================================[.rst:
-
-Find{name}
---------
-
-Find the {name} library.
-
-#]=======================================================================]
-
-find_package({name} QUIET CONFIG)
-include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args({name} CONFIG_MODE)
-
-#-----------------------------------------------------------------------------#
-"""
-
 PYTHON_TOP = _make_top("#", "#!/usr/bin/env python")
 
 PYTHON_FILE = '''\
@@ -476,7 +450,6 @@ TEMPLATES = {
     "test.cu": TEST_CODE_FILE,
     "test.hh": TEST_HEADER_FILE,
     "cmake": CMAKE_FILE,
-    "Find.cmake": CMAKE_FIND_FILE,
     "CMakeLists.txt": CMAKELISTS_FILE,
     "py": PYTHON_FILE,
     "sh": SHELL_FILE,
@@ -516,38 +489,13 @@ HEXT = {
 }
 
 
-def deduce_language_template(basename: str, longext: str, ext: str) -> tuple[str, str]:
-    lang: str | None = None
-    template: str | None = None
-    for check_lang in [basename, longext, ext]:
-        if lang is None:
-            lang = LANG.get(check_lang)
-        if template is None:
-            template = TEMPLATES.get(check_lang)
-    if not lang:
-        print(f"No known language for '.{ext}' files")
-    if not template:
-        print(f"No configured template for '.{ext}' files")
-    if not lang or not template:
-        raise SystemExit(1)
+def generate(repodir, filename, namespace):
+    if os.path.exists(filename):
+        print("Skipping existing file " + filename)
+        return
 
-    return lang, template
-
-
-def generate(
-    repodir: str | Path, filename: str | Path, namespace: str | None
-) -> str | None:
-    path = Path(filename)
-    if not path.is_absolute():
-        path = Path.cwd() / path
-
-    if path.exists():
-        print(f"Skipping existing file {path}")
-        return None
-
-    repo_root = Path(repodir).resolve()
-    dirname = Path(os.path.relpath(path, start=str(repo_root)))
-    all_dirs = list(dirname.parts[:-1])
+    dirname = os.path.relpath(filename, start=repodir)
+    all_dirs = dirname.split(os.sep)[:-1]
     if not all_dirs:
         print("warning: not inside a celeritas subdirectory")
         all_dirs = [""]
@@ -559,23 +507,32 @@ def generate(
         if all_dirs[-1] == "detail":
             namespace += "::detail"
 
-    dirname_str = "/".join(all_dirs[1:])
-    if dirname_str:
-        dirname_str += "/"
+    # Construct directory name with src/app/test dropped
+    dirname = os.sep.join(all_dirs[1:])
+    if dirname:
+        dirname += os.sep
 
-    basename = path.name
-    name, _, longext = basename.partition(".")
+    basename = os.path.basename(filename)
+    (name, _, longext) = basename.partition(".")
+
+    lang = None
+    template = None
     ext = longext.split(".")[-1]
-
-    lang, template = deduce_language_template(basename, longext, ext)
-
-    if lang == "cmake" and (match := re.match(r"Find(\w+)", basename)) is not None:
-        template = CMAKE_FIND_FILE
-        name = match.group(1)
+    for check_lang in [basename, longext, ext]:
+        if not lang:
+            lang = LANG.get(check_lang, None)
+        if not template:
+            template = TEMPLATES.get(check_lang, None)
+    if not lang:
+        print(f"No known language for '.{ext}' files")
+    if not template:
+        print(f"No configured template for '.{ext}' files")
+    if not lang or not template:
+        sys.exit(1)
 
     top = TOPS[lang]
-    nsbeg: list[str] = []
-    nsend: list[str] = []
+    nsbeg = []
+    nsend = []
     for subns in namespace.split("::"):
         nsbeg.append(f"namespace {subns}\n{{")
         nsend.append(f"}}  // namespace {subns}")
@@ -584,75 +541,61 @@ def generate(
     variables = {
         "longext": longext,
         "ext": ext,
-        "hext": HEXT.get(lang, ext),
+        "hext": "hh" if lang != "C" else "h",
         "modeline": f" -*- {lang} -*- ",
         "name": name,
         "namespace": namespace,
         "namespace_begin": "\n".join(nsbeg),
         "namespace_end": "\n".join(reversed(nsend)),
         "basename": basename,
-        "dirname": dirname_str,
+        "dirname": dirname,
         "capabbr": capabbr,
         "lowabbr": capabbr.lower(),
         "corecel_ns": "",  # or "celeritas::" or someday(?) "corecel::"
         "celeritas_ns": "",
     }
-
-    path.parent.mkdir(parents=True, exist_ok=True)
-    content = (top + template).format(**variables)
-    with path.open("w", encoding="utf-8", newline="\n") as file:
-        file.write(content)
+    with open(filename, "w") as f:
+        f.write((top + template).format(**variables))
         if top.startswith("#!"):
-            mode = path.stat().st_mode
+            # Set executable bits
+            mode = os.fstat(f.fileno()).st_mode
             mode |= 0o111
-            path.chmod(mode)
-    return str(filename)
+            os.fchmod(f.fileno(), stat.S_IMODE(mode))
+    return filename
 
 
-def get_main_repo() -> Path:
+def get_main_repo():
     try:
-        completed = subprocess.run(
-            ["git", "rev-parse", "--show-toplevel"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-    except subprocess.SubprocessError:
-        return Path("..")
-    return Path(completed.stdout.strip())
+        out = subprocess.check_output(["git", "rev-parse", "--show-toplevel"])
+    except subprocess.SubprocessError as e:
+        return ".."
+
+    return out.decode().strip()
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main():
+    import argparse
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("filename", nargs="+", help="file names to generate")
+    parser.add_argument("--repodir", help="root source directory for file naming")
     parser.add_argument(
-        "--repodir", type=Path, help="root source directory for file naming"
+        "-o", "--open", action="store_true", help='call "open" on the created files'
     )
     parser.add_argument(
-        "-o",
-        "--open",
-        action="store_true",
-        help='call "open" on the created files',
+        "--namespace", "-n", default=None, help="C++ namespace to generate"
     )
-    parser.add_argument(
-        "--namespace",
-        "-n",
-        default=None,
-        help="C++ namespace to generate",
-    )
-    args = parser.parse_args(argv)
-
+    args = parser.parse_args()
     repodir = args.repodir or get_main_repo()
-    generated: list[str] = []
+    generated = []
     for fn in args.filename:
-        created = generate(repodir, fn, args.namespace)
-        if created:
-            generated.append(created)
+        fn = generate(repodir, fn, args.namespace)
+        if fn:
+            generated.append(fn)
 
     if args.open and generated:
-        subprocess.run(["open", *generated], check=False)
-    return 0
+        subprocess.call(["open"] + generated)
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
