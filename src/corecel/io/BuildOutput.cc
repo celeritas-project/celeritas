@@ -95,7 +95,7 @@ void BuildOutput::output(JsonPimpl* j) const
                 char const* v = package_version_cstring(lower.c_str());
                 CELER_VALIDATE(v != nullptr,
                                << "invalid package '" << name << "'");
-                deps[name] = std::string{v};
+                deps[std::string{name}] = std::string{v};
             };
             append_version(CELERITAS_USE_COVFIE, "covfie");
             append_version(CELERITAS_USE_CUDA, "CUDA");
