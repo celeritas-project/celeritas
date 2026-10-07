@@ -15,10 +15,10 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 
 #include "TrackInitParams.hh"  // IWYU pragma: keep
 
-#include "detail/CounterExecutors.hh"
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -185,7 +185,7 @@ void ExtendFromPrimariesAction::step_impl(CoreParams const& params,
 {
     auto& pstate = get<PrimaryStateData<M>>(state.aux(), aux_id_);
     this->process_primaries(params, state, pstate);
-    this->update_counters(params, state, pstate.count);
+    add_primaries(state.ref().init.counters, pstate.count, state.stream_id());
     pstate.count = 0;
 }
 
@@ -209,36 +209,11 @@ void ExtendFromPrimariesAction::process_primaries(
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Launch a (host) kernel to update state counters based on the number of
- * primary particles.
-
- * TODO: move to CounterAlgorithms
- */
-void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
-                                                CoreStateHost& state,
-                                                size_type num_primaries) const
-{
-    launch_core(1,
-                "update-counters",
-                params,
-                state,
-                detail::AddPrimaryCountExecutor{
-                    state.ref().init.counters.data(), num_primaries});
-}
-
-//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void ExtendFromPrimariesAction::process_primaries(
     CoreParams const&,
     CoreStateDevice&,
     PrimaryStateData<MemSpace::device> const&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-void ExtendFromPrimariesAction::update_counters(
-    CoreParams const&, CoreStateDevice&, size_type) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

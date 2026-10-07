@@ -28,28 +28,6 @@ void reset_counters(CSCDeviceRef const& counters, StreamId stream_id)
 }
 
 //---------------------------------------------------------------------------//
-void update_active(
-    CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
-{
-    CELER_EXPECT(counters.size() == 1);
-    detail::UpdateActiveExecutor execute_thread{counters.data(), state_size};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-active");
-    launch_kernel(1, stream_id, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
-void update_alive(
-    CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
-{
-    CELER_EXPECT(counters.size() == 1);
-    detail::UpdateAliveExecutor execute_thread{counters.data(), state_size};
-    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-        "update-alive");
-    launch_kernel(1, stream_id, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
 void add_pending(
     CSCDeviceRef const& counters, size_type count, StreamId stream_id)
 {
@@ -71,6 +49,39 @@ void add_pending(CSCDeviceRef const& counters,
         counters.data(), static_cast<size_type*>(count)};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "add-pending");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+void add_primaries(
+    CSCDeviceRef const& counters, size_type count, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    detail::AddPrimariesCountExecutor execute_thread{counters.data(), count};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "add-primary");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+void update_active(
+    CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    detail::UpdateActiveExecutor execute_thread{counters.data(), state_size};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "update-active");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
+void update_alive(
+    CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    detail::UpdateAliveExecutor execute_thread{counters.data(), state_size};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "update-alive");
     launch_kernel(1, stream_id, execute_thread);
 }
 

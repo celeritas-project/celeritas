@@ -100,7 +100,7 @@ struct AddPendingExecutor
  * This uses a primary count sent from the host via the kernel launch, so the
  * number of primaries must be positive.
  */
-struct AddPrimaryCountExecutor
+struct AddPrimariesCountExecutor
 {
     //// DATA ////
 

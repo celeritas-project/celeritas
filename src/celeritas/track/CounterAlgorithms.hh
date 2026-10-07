@@ -36,6 +36,11 @@ void add_pending(CoreStateCounterRef<MemSpace::device> const&,
                  ObserverPtr<size_type, MemSpace::device>,
                  StreamId);
 
+void add_primaries(
+    CoreStateCounterRef<MemSpace::host> const&, size_type, StreamId);
+void add_primaries(
+    CoreStateCounterRef<MemSpace::device> const&, size_type, StreamId);
+
 void update_active(
     CoreStateCounterRef<MemSpace::host> const&, size_type, StreamId);
 void update_active(
