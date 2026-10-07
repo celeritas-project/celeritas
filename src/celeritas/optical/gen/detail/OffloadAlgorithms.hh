@@ -37,13 +37,13 @@ size_type remove_if_invalid(
 //---------------------------------------------------------------------------//
 // Count the number of optical photons in the distributions and add these to
 // the number of pending  tracks.
-void count_num_photons(
+void add_pending_photon_count(
     optical::CoreState<MemSpace::host>&,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const&,
     size_type,
     size_type,
     StreamId);
-void count_num_photons(
+void add_pending_photon_count(
     optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,
@@ -61,8 +61,7 @@ inline size_type remove_if_invalid(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
-inline void count_num_photons(
-    SPConstOpticalParams,
+inline void add_pending_photon_count(
     optical::CoreState<MemSpace::device>&,
     ItemsRef<GeneratorDistributionData, MemSpace::device> const&,
     size_type,

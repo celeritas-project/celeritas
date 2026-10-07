@@ -27,6 +27,17 @@ void reset_counters(CSCDeviceRef const& counters, StreamId stream_id)
 }
 
 //---------------------------------------------------------------------------//
+void update_active(
+    CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
+{
+    CELER_EXPECT(counters.size() == 1);
+    UpdateActiveExecutor execute_thread{counters.data(), state_size};
+    static KernelLauncher<decltype(execute_thread)> const launch_kernel(
+        "update-active");
+    launch_kernel(1, stream_id, execute_thread);
+}
+
+//---------------------------------------------------------------------------//
 void update_alive(
     CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
 {

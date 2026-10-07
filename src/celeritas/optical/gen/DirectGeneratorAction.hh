@@ -43,7 +43,7 @@ class DirectGeneratorAction final : public GeneratorBase
   public:
     // Construct and add to core params
     static std::shared_ptr<DirectGeneratorAction> make_and_insert(
-        CoreParams const& params);
+        CoreParams const&);
 
     // Construct with action ID and data IDs
     DirectGeneratorAction(ActionId, AuxId, GeneratorId);
@@ -61,8 +61,6 @@ class DirectGeneratorAction final : public GeneratorBase
     void step(CoreParams const&, CoreStateDevice&) const final;
 
   private:
-    //// DATA ////
-
     //// HELPER FUNCTIONS ////
 
     template<MemSpace M>

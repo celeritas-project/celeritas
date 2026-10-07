@@ -44,10 +44,6 @@ class CoreTrackView
     //!@}
 
   public:
-    // Construct with comprehensive param/state data and thread
-    inline CELER_FUNCTION CoreTrackView(
-        ParamsRef const& params, StateRef const& states, ThreadId thread);
-
     // Construct directly from a track slot ID
     inline CELER_FUNCTION CoreTrackView(
         ParamsRef const& params, StateRef const& states, TrackSlotId slot);

@@ -10,8 +10,6 @@
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 
 #include "LocalOffloadInterface.hh"

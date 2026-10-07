@@ -154,6 +154,7 @@ void CoreState<M>::add_pending(size_type count)
 }
 
 //---------------------------------------------------------------------------//
+//! Add to the number of pending optical photons (in-memory pointer)
 template<MemSpace M>
 void CoreState<M>::add_pending(ObserverPtr<size_type, M> count)
 {

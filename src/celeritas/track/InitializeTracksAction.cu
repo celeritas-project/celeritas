@@ -33,23 +33,4 @@ void InitializeTracksAction::step_impl(CoreParams const& params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Launch (device) kernel to update the corresponding counters.
- *
- */
-void InitializeTracksAction::update_num_active(CoreParams const& params,
-                                               CoreStateDevice& state) const
-{
-    // Store number of active tracks at the start of the loop, and update the
-    // number of vacancies and initializers if num_new_tracks > 0
-    {
-        UpdateNumActiveExecutor execute_thread{
-            state.ref().init.counters.data(), state.size()};
-        static KernelLauncher<decltype(execute_thread)> const launch_kernel(
-            "update-active");
-        launch_kernel(1, state.stream_id(), execute_thread);
-    }
-}
-
-//---------------------------------------------------------------------------//
 }  // namespace celeritas

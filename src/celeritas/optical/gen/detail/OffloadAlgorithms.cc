@@ -57,7 +57,7 @@ size_type remove_if_invalid(ItemsRef<T, MemSpace::host> const& buffer,
  * Count the number of optical photons in the distributions and add these to
  * the number of pending tracks.
  */
-void count_num_photons(
+void add_pending_photon_count(
     optical::CoreState<MemSpace::host>& state,
     ItemsRef<GeneratorDistributionData, MemSpace::host> const& buffer,
     size_type offset,

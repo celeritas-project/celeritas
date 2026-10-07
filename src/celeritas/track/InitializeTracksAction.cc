@@ -14,10 +14,8 @@
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/global/TrackExecutor.hh"
 
-#include "CounterExecutors.hh"
-#include "TrackInitParams.hh"
+#include "CounterAlgorithms.hh"
 
 #include "detail/InitTracksExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"
@@ -84,7 +82,9 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
     this->step_impl(core_params, core_state, core_state.size());
 
     // Store number of active tracks at the start of the loop
-    this->update_num_active(core_params, core_state);
+    update_active(core_state.ref().init.counters,
+                  core_state.size(),
+                  core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//
@@ -105,32 +105,9 @@ void InitializeTracksAction::step_impl(CoreParams const& core_params,
 }
 
 //---------------------------------------------------------------------------//
-/*!
- * Launch (host) kernel to update the corresponding counters.
- *
- */
-void InitializeTracksAction::update_num_active(CoreParams const& core_params,
-                                               CoreStateHost& core_state) const
-{
-    // Store number of active tracks at the start of the loop, and update the
-    // number of vacancies and initializers if num_new_tracks > 0
-    launch_core(1,
-                "update-active",
-                core_params,
-                core_state,
-                UpdateNumActiveExecutor{core_state.ref().init.counters.data(),
-                                        core_state.size()});
-}
-
-//---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 void InitializeTracksAction::step_impl(
     CoreParams const&, CoreStateDevice&, size_type) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-void InitializeTracksAction::update_num_active(CoreParams const&,
-                                               CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

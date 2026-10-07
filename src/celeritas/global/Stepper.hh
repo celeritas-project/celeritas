@@ -315,8 +315,6 @@ class Stepper final : public StepperInterface
     //!@{
     //! \name Type aliases
     using StateRef = CoreStateData<Ownership::reference, M>;
-    using CoreStateHost = CoreState<MemSpace::host>;
-    using CoreStateDevice = CoreState<MemSpace::device>;
     //!@}
 
   public:

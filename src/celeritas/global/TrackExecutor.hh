@@ -153,7 +153,7 @@ CELER_CTAD_FUNCTION ConditionalTrackExecutor(
 // FREE FUNCTIONS
 //---------------------------------------------------------------------------//
 /*!
- * Return a track executor that applies to only active, non-errored tracks.
+ * Return a track executor that applies only to active, non-errored tracks.
  */
 template<class T>
 inline CELER_FUNCTION decltype(auto) make_active_track_executor(

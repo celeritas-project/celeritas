@@ -30,7 +30,7 @@ LocateVacanciesAction::LocateVacanciesAction(ActionId aid)
  */
 void LocateVacanciesAction::step(CoreParams const&, CoreStateHost& state) const
 {
-    this->step_impl(state);
+    return this->step_impl(state);
 }
 
 //---------------------------------------------------------------------------//
@@ -40,7 +40,7 @@ void LocateVacanciesAction::step(CoreParams const&, CoreStateHost& state) const
 void LocateVacanciesAction::step(CoreParams const&,
                                  CoreStateDevice& state) const
 {
-    this->step_impl(state);
+    return this->step_impl(state);
 }
 
 //---------------------------------------------------------------------------//
