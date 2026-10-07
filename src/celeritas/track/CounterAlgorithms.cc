@@ -93,6 +93,11 @@ void add_pending(
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }
 
+void add_primaries(CSCDeviceRef const&, size_type, StreamId)
+{
+    CELER_NOT_CONFIGURED("CUDA OR HIP");
+}
+
 void update_active(CSCDeviceRef const&, size_type, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
