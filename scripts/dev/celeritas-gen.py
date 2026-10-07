@@ -8,12 +8,9 @@ from __future__ import annotations
 import argparse
 import os
 import re
-import stat
 import subprocess
-import sys
-from datetime import datetime
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Iterable, Sequence
 
 ###############################################################################
 
@@ -371,6 +368,23 @@ endfunction()
 #-----------------------------------------------------------------------------#
 """
 
+CMAKE_FIND_FILE = """\
+#[=======================================================================[.rst:
+
+Find{name}
+--------
+
+Find the {name} library.
+
+#]=======================================================================]
+
+find_package({name} QUIET CONFIG)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args({name} CONFIG_MODE)
+
+#-----------------------------------------------------------------------------#
+"""
+
 PYTHON_TOP = _make_top("#", "#!/usr/bin/env python")
 
 PYTHON_FILE = '''\
@@ -462,6 +476,7 @@ TEMPLATES = {
     "test.cu": TEST_CODE_FILE,
     "test.hh": TEST_HEADER_FILE,
     "cmake": CMAKE_FILE,
+    "Find.cmake": CMAKE_FIND_FILE,
     "CMakeLists.txt": CMAKELISTS_FILE,
     "py": PYTHON_FILE,
     "sh": SHELL_FILE,
@@ -501,6 +516,24 @@ HEXT = {
 }
 
 
+def deduce_language_template(basename: str, longext: str, ext: str) -> tuple[str, str]:
+    lang: str | None = None
+    template: str | None = None
+    for check_lang in [basename, longext, ext]:
+        if lang is None:
+            lang = LANG.get(check_lang)
+        if template is None:
+            template = TEMPLATES.get(check_lang)
+    if not lang:
+        print(f"No known language for '.{ext}' files")
+    if not template:
+        print(f"No configured template for '.{ext}' files")
+    if not lang or not template:
+        raise SystemExit(1)
+
+    return lang, template
+
+
 def generate(
     repodir: str | Path, filename: str | Path, namespace: str | None
 ) -> str | None:
@@ -519,13 +552,12 @@ def generate(
         print("warning: not inside a celeritas subdirectory")
         all_dirs = [""]
 
-    namespace_value = namespace
-    if namespace_value is None:
-        namespace_value = "celeritas"
+    if namespace is None:
+        namespace = "celeritas"
         if all_dirs[0] in ("app", "test", "example"):
-            namespace_value += "::" + all_dirs[0]
+            namespace += "::" + all_dirs[0]
         if all_dirs[-1] == "detail":
-            namespace_value += "::detail"
+            namespace += "::detail"
 
     dirname_str = "/".join(all_dirs[1:])
     if dirname_str:
@@ -533,26 +565,18 @@ def generate(
 
     basename = path.name
     name, _, longext = basename.partition(".")
-
-    lang: str | None = None
-    template: str | None = None
     ext = longext.split(".")[-1]
-    for check_lang in [basename, longext, ext]:
-        if lang is None:
-            lang = LANG.get(check_lang)
-        if template is None:
-            template = TEMPLATES.get(check_lang)
-    if not lang:
-        print(f"No known language for '.{ext}' files")
-    if not template:
-        print(f"No configured template for '.{ext}' files")
-    if not lang or not template:
-        raise SystemExit(1)
+
+    lang, template = deduce_language_template(basename, longext, ext)
+
+    if lang == "cmake" and (match := re.match(r"Find(\w+)", basename)) is not None:
+        template = CMAKE_FIND_FILE
+        name = match.group(1)
 
     top = TOPS[lang]
     nsbeg: list[str] = []
     nsend: list[str] = []
-    for subns in namespace_value.split("::"):
+    for subns in namespace.split("::"):
         nsbeg.append(f"namespace {subns}\n{{")
         nsend.append(f"}}  // namespace {subns}")
 
@@ -560,10 +584,10 @@ def generate(
     variables = {
         "longext": longext,
         "ext": ext,
-        "hext": "hh" if lang != "C" else "h",
+        "hext": HEXT.get(lang, ext),
         "modeline": f" -*- {lang} -*- ",
         "name": name,
-        "namespace": namespace_value,
+        "namespace": namespace,
         "namespace_begin": "\n".join(nsbeg),
         "namespace_end": "\n".join(reversed(nsend)),
         "basename": basename,
