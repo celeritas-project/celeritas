@@ -63,7 +63,8 @@ class GeantGeoTest : public GeantGeoTestBase
                  << " (" << geant4_options << ")";
             if (CELERITAS_GEANT4_USOLIDS)
             {
-                cout << " with VecGeom " << cmake::vecgeom_version << " solids";
+                cout << " with VecGeom " << Version::from_package("VecGeom")
+                     << " solids";
             }
 
             cout << color_code(' ') << endl;

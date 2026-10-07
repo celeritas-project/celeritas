@@ -7,6 +7,7 @@
 #include "BuildOutput.hh"
 
 #include <string>
+#include <string_view>
 #include <utility>
 #include <nlohmann/json.hpp>
 
@@ -86,27 +87,32 @@ void BuildOutput::output(JsonPimpl* j) const
         cfg["versions"] = [] {
             auto deps = nlohmann::json::object();
 
-#define CO_ADD_COND_VERS(USE, NAME, LOWER) \
-    if constexpr (CELERITAS_USE_##USE) \
-    { \
-        deps[#NAME] = std::string(cmake::LOWER##_version); \
-    }
-            CO_ADD_COND_VERS(COVFIE, covfie, covfie);
-            CO_ADD_COND_VERS(CUDA, CUDA, cuda);
-            CO_ADD_COND_VERS(CUDA, Thrust, thrust);
-            CO_ADD_COND_VERS(GEANT4, CLHEP, clhep);
-            CO_ADD_COND_VERS(GEANT4, Geant4, geant4);
-            CO_ADD_COND_VERS(HEPMC3, HepMC3, hepmc3);
-            CO_ADD_COND_VERS(HIP, HIP, hip);
-            CO_ADD_COND_VERS(LARSOFT, LArSoft, larsoft);
-            CO_ADD_COND_VERS(ROOT, ROOT, root);
-            CO_ADD_COND_VERS(VECGEOM, G4VG, g4vg);
-            // VecGeom version sitting underneath Geant4 affects G4 geometry
-            // tracking: output if either is true
-            constexpr bool CELERITAS_USE_VECGEOM_OR_USOLIDS
-                = CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS;
-            CO_ADD_COND_VERS(VECGEOM_OR_USOLIDS, VecGeom, vecgeom);
-#undef CO_ADD_COND_VERS
+            // TODO: export CELERITAS_ENABLED_COMPONENTS from cmake
+            auto append_version = [&deps](bool enabled, std::string_view name) {
+                if (!enabled)
+                    return;
+                auto lower = tolower(name);
+                char const* v = package_version_cstring(lower.c_str());
+                CELER_VALIDATE(v != nullptr,
+                               << "invalid package '" << name << "'");
+                deps[name] = v;
+            };
+            append_version(CELERITAS_USE_COVFIE, "covfie");
+            append_version(CELERITAS_USE_CUDA, "CUDA");
+            append_version(CELERITAS_USE_CUDA, "Thrust");
+            append_version(CELERITAS_USE_GEANT4, "CLHEP");
+            append_version(CELERITAS_USE_GEANT4, "Geant4");
+            append_version(CELERITAS_USE_HEPMC3, "HepMC3");
+            append_version(CELERITAS_USE_HIP, "hip");
+            append_version(CELERITAS_USE_HIP, "hipcub");
+            append_version(CELERITAS_USE_HIP, "hiprand");
+            append_version(CELERITAS_USE_HIP, "roctracer");
+            append_version(CELERITAS_USE_LARSOFT, "LArSoft");
+            append_version(CELERITAS_USE_ROOT, "ROOT");
+            append_version(CELERITAS_USE_VECGEOM, "G4VG");
+            append_version(CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS,
+                           "VecGeom");
+
             return deps;
         }();
 

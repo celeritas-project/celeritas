@@ -9,11 +9,13 @@
 #include <cstdlib>
 #include <iostream>
 #include <regex>
+#include <string_view>
 
 #include "corecel/Version.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/io/Join.hh"
+#include "corecel/io/StringUtils.hh"
 
 namespace celeritas
 {
@@ -45,6 +47,29 @@ Version Version::from_string(std::string_view sv)
     return Version{match_to_int(version_match[1]),
                    match_to_int(version_match[2]),
                    match_to_int(version_match[3])};
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct from a Celeritas-configured package name "vecgeom"/"VecGeom".
+ *
+ * - Invalid packages will raise RuntimeError.
+ * - Non-configured or unknown-version packages will return a \c false version.
+ * - Version suffixes (dev, beta, rc) will be truncated.
+ */
+Version Version::from_package(std::string_view p)
+{
+    auto s = tolower(p);
+    auto* found_cstr = ::celeritas::package_version_cstring(s.c_str());
+    CELER_VALIDATE(found_cstr != nullptr,
+                   << "unknown package '" << s
+                   << "': Celeritas does not include it as a dependency");
+    if (found_cstr == std::string_view{})
+    {
+        // Empty string, not nullptr
+        return Version{};
+    }
+    return Version::from_string(found_cstr);
 }
 
 //---------------------------------------------------------------------------//

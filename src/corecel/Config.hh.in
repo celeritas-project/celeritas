@@ -90,4 +90,15 @@ namespace cmake
 {
 @CELERITAS_CMAKE_STRINGS_DECL@
 }
+
+/*!
+* Get the version of a configured lowercase package.
+*
+* This acts like \c std::getenv in that it returns nullptr if the variable
+* is not defined, but it returns empty if defined and empty.
+*
+* \return Package string, empty if unknown, nullptr if unknown package name
+* \sa Version::from_package
+*/
+char const* package_version_cstring(char const* package);
 }

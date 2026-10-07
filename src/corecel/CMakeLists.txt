@@ -96,17 +96,20 @@ celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
 # Save dependency versions as strings
+# NOTE: update corresponding src/corecel/sys/BuildOutput.cc
+set(CELERITAS_CMAKE_VERSIONS_INIT)
 set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
 foreach(_pkg CLHEP covfie CUDA HepMC3 hip hiprand hipcub roctracer Geant4 G4VG LArSoft ROOT Thrust VecGeom)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
-    set(_value "${${_pkg}_VERSION_STRING}")
+    set(_value "\"${${_pkg}_VERSION_STRING}\"")
   elseif(DEFINED ${_pkg}_VERSION)
-    set(_value "${${_pkg}_VERSION}")
+    set(_value "\"${${_pkg}_VERSION}\"")
   else()
-    set(_value "")
+    # Special constexpr empty string for documentation: see Config.cc.in
+    set(_value "undefined_version")
   endif()
-  celeritas_append_cmake_string("${_lower}_version" "${_value}")
+  list(APPEND CELERITAS_CMAKE_VERSIONS_INIT "{\"${_lower}\", ${_value}},")
 endforeach()
 
 # NOTE: some values are defined in top-level CMakeLists
@@ -189,8 +192,15 @@ foreach(_opt usolids multithreaded)
 endforeach()
 
 # Convert lists to newline-separated strings
-foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG GEANT4_CONFIG DEPENDENCY_VERSIONS)
-  list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
+foreach(_var
+    CELERITAS_CMAKE_STRINGS_DECL
+    CELERITAS_CMAKE_STRINGS_DEF
+    CELERITAS_CMAKE_VERSIONS_INIT
+    CELERITAS_VECGEOM_CONFIG
+    CELERITAS_GEANT4_CONFIG
+    CELERITAS_DEPENDENCY_VERSIONS
+  )
+  list(JOIN ${_var} "\n" ${_var})
 endforeach()
 
 #-----------------------------------------------------------------------------#

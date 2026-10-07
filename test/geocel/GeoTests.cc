@@ -77,11 +77,16 @@ namespace test
 namespace
 {
 //---------------------------------------------------------------------------//
-auto const vecgeom_version = celeritas::Version::from_string(
-    CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS ? cmake::vecgeom_version
-                                                      : "0.0.0");
-auto const geant4_version = celeritas::Version::from_string(
-    CELERITAS_USE_GEANT4 ? cmake::geant4_version : "0.0.0");
+Version vecgeom_version()
+{
+    static auto const result = Version::from_package("vecgeom");
+    return result;
+}
+Version geant4_version()
+{
+    static auto const result = Version::from_package("geant4");
+    return result;
+}
 
 BoundingBox<> calc_expected_bbox(std::string_view geo_type, Real3 lo, Real3 hi)
 {
@@ -264,7 +269,7 @@ void AtlasHgtdGeoTest::test_trace() const
         axpy(-1_r, dir, &pos);
 
         if (test_->geometry_type() == "VecGeom"
-            && vecgeom_version < Version{2, 0})
+            && vecgeom_version() < Version{2, 0})
         {
             GTEST_SKIP() << "VecGeom fails the tangent trace";
         }
@@ -340,7 +345,7 @@ void AtlasHgtdGeoTest::test_volume_stack() const
         // volume extents
         expected_all_stacks[3] = expected_all_stacks.front();
     }
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version() >= Version{2})
     {
         expected_all_stacks[3] = expected_all_stacks.front();
         expected_all_stacks[4] = expected_all_stacks.front();
@@ -937,7 +942,7 @@ void FourLevelsGeoTest::test_safety() const
         3.1,
     };
     auto tol = test_->tracking_tol();
-    if (test_->geometry_type() == "VecGeom" && vecgeom_version >= Version{2})
+    if (test_->geometry_type() == "VecGeom" && vecgeom_version() >= Version{2})
     {
         // IndexedBVH resolves the diagonal distance to the envelope rather
         // than its conservative box safety. At {20.1, 20.1, 20.1}, the world
@@ -1537,7 +1542,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version > Version{2, 1, 1})
+        if (vecgeom_version() > Version{2, 1, 1})
         {
             ref.halfway_safeties[0] = 0.21064231509248;
             ref.halfway_safeties[2] = 0.552671035949497;
@@ -1608,7 +1613,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version > Version{2, 1, 1})
+        if (vecgeom_version() > Version{2, 1, 1})
         {
             ref.halfway_safeties[2] = 0.679984226889976;
         }
@@ -1677,7 +1682,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version > Version{2, 1, 1})
+        if (vecgeom_version() > Version{2, 1, 1})
         {
             ref.halfway_safeties[0] = 0.368525403784439;
             ref.halfway_safeties[2] = 0.794094668559638;
@@ -1838,7 +1843,7 @@ void ReplicaGeoTest::test_trace() const
 
         delete_orange_safety(*test_, ref, result);
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0})
+            || vecgeom_version() < Version{2, 0})
         {
             // TODO: VecGemo 2.x returns wrong distance values
             EXPECT_REF_NEAR(ref, result, tol);
@@ -1877,7 +1882,7 @@ void ReplicaGeoTest::test_volume_stack() const
             ref.volume_instances.pop_back();
         }
         if (test_->geometry_type() != "VecGeom"
-            || vecgeom_version < Version{2, 0})
+            || vecgeom_version() < Version{2, 0})
         {
             // TODO: VecGeom 2.x returns wrong volume instances
             EXPECT_REF_EQ(ref, result);
@@ -2260,14 +2265,14 @@ void SolidsGeoTest::test_trace() const
 
         if (test_->geometry_type() == "Geant4")
         {
-            if (geant4_version < Version{11, 3})
+            if (geant4_version() < Version{11, 3})
             {
                 // Older versions of Geant4 have a bug in Arb8 that
                 // overestimates safety distance to twisted surfaces
                 ref.halfway_safeties[5] = 38.205672682313;
                 ref.halfway_safeties[7] = 38.803595749271;
             }
-            else if (geant4_version < Version{11, 4}
+            else if (geant4_version() < Version{11, 4}
                      && !CELERITAS_GEANT4_USOLIDS)
             {
                 ref.halfway_safeties[5] = 39.751735748889;
@@ -2284,7 +2289,7 @@ void SolidsGeoTest::test_trace() const
             ref.halfway_safeties[14] = 19.0382940808067;
             ref.halfway_safeties[15] = 0.5;
 
-            if (vecgeom_version < Version{2, 0})
+            if (vecgeom_version() < Version{2, 0})
             {
                 // VecGeom v1.2.11 (path,Scalar) using G4VG v1.0.4+builtin and
                 // Geant4 v11.3.1

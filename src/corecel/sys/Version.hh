@@ -9,7 +9,6 @@
 #include <array>
 #include <cstdlib>  // IWYU pragma: keep
 #include <iosfwd>
-#include <string>
 #include <string_view>
 
 // Undefine macros from sys/sysmacros.h
@@ -48,6 +47,10 @@ class Version
   public:
     // Construct from a string "1.2.3"
     static Version from_string(std::string_view sv);
+
+    // Construct from a Celeritas-configured package name "vecgeom"/"VecGeom"
+    // False/zero if undefined
+    static Version from_package(std::string_view p);
 
     // Construct from an 0xXXYYZZ integer
     static inline constexpr Version from_hex_xxyyzz(size_type value);

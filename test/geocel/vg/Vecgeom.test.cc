@@ -45,8 +45,7 @@ namespace test
 
 namespace
 {
-auto const vecgeom_version
-    = celeritas::Version::from_string(cmake::vecgeom_version);
+auto const vecgeom_version = celeritas::Version::from_package("VecGeom");
 
 }  // namespace
 
@@ -72,8 +71,9 @@ class VecgeomVgdmlTestBase : public VecgeomTestBase
     SPConstGeo build_geometry() const final
     {
         using namespace celeritas::cmake;
-        cout << color_code('x') << "VecGeom " << cmake::vecgeom_version << " ("
-             << vecgeom_options << ") using VGDML" << color_code(' ') << endl;
+        cout << color_code('x') << "VecGeom "
+             << Version::from_package("VecGeom") << " (" << vecgeom_options
+             << ") using VGDML" << color_code(' ') << endl;
 
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};
