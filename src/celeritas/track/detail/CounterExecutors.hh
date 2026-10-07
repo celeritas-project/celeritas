@@ -136,18 +136,19 @@ struct UpdateActiveExecutor
     CELER_FORCEINLINE_FUNCTION void operator()(ThreadId tid) const
     {
         CELER_EXPECT(tid == ThreadId{0});  // single thread kernel
-        CELER_EXPECT(state_size > 0);
+        CELER_EXPECT(state_size >= counters->num_vacancies);
 
         size_type num_new_tracks
             = min(counters->num_vacancies, counters->num_initializers);
-        if (num_new_tracks > 0)
-        {
-            // Update initializers/vacancies
-            counters->num_initializers -= num_new_tracks;
-            counters->num_vacancies -= num_new_tracks;
-        }
+
+        // Update initializers/vacancies
+        counters->num_initializers -= num_new_tracks;
+        counters->num_vacancies -= num_new_tracks;
+
         // Store number of active tracks at the start of the loop
         counters->num_active = state_size - counters->num_vacancies;
+
+        CELER_ENSURE(counters->num_active <= state_size);
     }
 };
 
@@ -199,7 +200,7 @@ struct UpdateSecondariesCountExecutor
     {
         CELER_EXPECT(tid == ThreadId{0});  // single thread kernel
         CELER_EXPECT(secondary_count);
-        CELER_EXPECT(state_size > 0);
+        CELER_EXPECT(state_size >= counters->num_vacancies);
 
         size_type num_secondaries = *secondary_count;
         counters->num_secondaries = num_secondaries;
