@@ -424,8 +424,6 @@ if(CELERITAS_USE_DD4hep)
   endif()
 endif()
 
-# NOTE: some older versions of CUDA/HIP/Thrust lack CMake configuration
-# files, so we don't make them required
 if(CELERITAS_USE_CUDA)
   if(NOT CMAKE_CUDA_ARCHITECTURES AND NOT (DEFINED ENV{CUDAARCHS}))
     message(WARNING "The CMAKE_CUDA_ARCHITECTURES variable, necessary "
@@ -450,25 +448,27 @@ if(CELERITAS_USE_CUDA)
       "${_allowed_arch}"
     )
   endif()
-  find_package(Thrust)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
-  find_package(hip)
-  find_package(hiprand)
-  find_package(hipcub)
-  find_package(roctracer)
-  # DEPRECATE
-  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${roctracer_FOUND})
-  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${hipcub_FOUND})
-
   # NOTE: known broken up to 5.6; unknown after
-  if(CELERITAS_DEVICE_DEBUG AND "${hip_VERSION}" VERSION_LESS 5.7)
+  if(CELERITAS_DEVICE_DEBUG AND "${hip-lang_VERSION}" VERSION_LESS 5.7)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
       CELERITAS_DEVICE_DEBUG
       OFF
     )
   endif()
+  # Include the default ROCm installation path in the search
+  find_library(ROCTX_LIBRARY roctx64 PATHS /opt/rocm/lib)
+  celeritas_set_onoff(CELERITAS_HAVE_ROCTX ${ROCTX_LIBRARY})
+  find_file(HIPCUB hipcub_version.hpp PATHS /opt/rocm/include/hipcub)
+  celeritas_set_onoff(CELERITAS_HAVE_HIPCUB ${HIPCUB})
+endif()
+
+if(CELERITAS_USE_CUDA)
+  # NOTE: older versions of CUDA/Thrust don't include a CMake configuration
+  # file, so don't make it required
+  find_package(Thrust)
 endif()
 # Unconditionally set Thrust availability for downstream configuration
 celeritas_force_package(Thrust "${Thrust_FOUND}")

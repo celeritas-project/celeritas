@@ -103,10 +103,7 @@ void BuildOutput::output(JsonPimpl* j) const
             append_version(CELERITAS_USE_GEANT4, "CLHEP");
             append_version(CELERITAS_USE_GEANT4, "Geant4");
             append_version(CELERITAS_USE_HEPMC3, "HepMC3");
-            append_version(CELERITAS_USE_HIP, "hip");
-            append_version(CELERITAS_USE_HIP, "hipcub");
-            append_version(CELERITAS_USE_HIP, "hiprand");
-            append_version(CELERITAS_USE_HIP, "roctracer");
+            append_version(CELERITAS_USE_HIP, "HIP");
             append_version(CELERITAS_USE_LARSOFT, "LArSoft");
             append_version(CELERITAS_USE_ROOT, "ROOT");
             append_version(CELERITAS_USE_VECGEOM, "G4VG");
