@@ -8,7 +8,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/KernelLauncher.device.hh"
-#include "celeritas/track/CounterExecutors.hh"
+
+#include "detail/CounterExecutors.hh"
 
 namespace celeritas
 {
@@ -20,7 +21,7 @@ using CSCDeviceRef = CoreStateCounterRef<MemSpace::device>;
 void reset_counters(CSCDeviceRef const& counters, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    ResetCountersExecutor execute_thread{counters.data()};
+    detail::ResetCountersExecutor execute_thread{counters.data()};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "reset-counters");
     launch_kernel(1, stream_id, execute_thread);
@@ -31,7 +32,7 @@ void update_active(
     CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    UpdateActiveExecutor execute_thread{counters.data(), state_size};
+    detail::UpdateActiveExecutor execute_thread{counters.data(), state_size};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-active");
     launch_kernel(1, stream_id, execute_thread);
@@ -42,7 +43,7 @@ void update_alive(
     CSCDeviceRef const& counters, size_type state_size, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    UpdateAliveExecutor execute_thread{counters.data(), state_size};
+    detail::UpdateAliveExecutor execute_thread{counters.data(), state_size};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-alive");
     launch_kernel(1, stream_id, execute_thread);
@@ -53,7 +54,8 @@ void add_pending(
     CSCDeviceRef const& counters, size_type count, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    AddPendingExecutor<size_type> execute_thread{counters.data(), count};
+    detail::AddPendingExecutor<size_type> execute_thread{counters.data(),
+                                                         count};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "add-pending");
     launch_kernel(1, stream_id, execute_thread);
@@ -65,7 +67,7 @@ void add_pending(CSCDeviceRef const& counters,
                  StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    AddPendingExecutor<size_type*> execute_thread{
+    detail::AddPendingExecutor<size_type*> execute_thread{
         counters.data(), static_cast<size_type*>(count)};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "add-pending");
@@ -80,7 +82,7 @@ void update_secondaries(
     StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    UpdateSecondariesCountExecutor execute_thread{
+    detail::UpdateSecondariesCountExecutor execute_thread{
         counters.data(), num_secondaries, state_size};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "update-secondaries");

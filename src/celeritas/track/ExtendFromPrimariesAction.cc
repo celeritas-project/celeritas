@@ -9,17 +9,16 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/data/AuxParamsRegistry.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreParams.hh"
 #include "celeritas/global/CoreState.hh"
-#include "celeritas/track/CounterExecutors.hh"
 
-#include "TrackInitParams.hh"
+#include "TrackInitParams.hh"  // IWYU pragma: keep
 
+#include "detail/CounterExecutors.hh"
 #include "detail/ProcessPrimariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
@@ -213,6 +212,8 @@ void ExtendFromPrimariesAction::process_primaries(
 /*!
  * Launch a (host) kernel to update state counters based on the number of
  * primary particles.
+
+ * TODO: move to CounterAlgorithms
  */
 void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                                                 CoreStateHost& state,
@@ -222,8 +223,8 @@ void ExtendFromPrimariesAction::update_counters(CoreParams const& params,
                 "update-counters",
                 params,
                 state,
-                AddPrimaryCountExecutor{state.ref().init.counters.data(),
-                                        num_primaries});
+                detail::AddPrimaryCountExecutor{
+                    state.ref().init.counters.data(), num_primaries});
 }
 
 //---------------------------------------------------------------------------//

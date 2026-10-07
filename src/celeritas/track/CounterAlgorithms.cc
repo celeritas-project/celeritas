@@ -8,7 +8,8 @@
 
 #include "corecel/Assert.hh"
 #include "corecel/sys/KernelLauncher.hh"
-#include "celeritas/track/CounterExecutors.hh"
+
+#include "detail/CounterExecutors.hh"
 
 namespace celeritas
 {
@@ -21,13 +22,14 @@ using CSCDeviceRef = CoreStateCounterRef<MemSpace::device>;
 void reset_counters(CSCHostRef const& counters, StreamId)
 {
     CELER_EXPECT(counters.size() == 1);
-    launch_kernel(1, ResetCountersExecutor{counters.data()});
+    launch_kernel(1, detail::ResetCountersExecutor{counters.data()});
 }
 //---------------------------------------------------------------------------//
 void add_pending(CSCHostRef const& counters, size_type count, StreamId)
 {
     CELER_EXPECT(counters.size() == 1);
-    launch_kernel(1, AddPendingExecutor<size_type>{counters.data(), count});
+    launch_kernel(
+        1, detail::AddPendingExecutor<size_type>{counters.data(), count});
 }
 
 //---------------------------------------------------------------------------//
@@ -42,14 +44,14 @@ void add_pending(CSCHostRef const& counters,
 void update_active(CSCHostRef const& counters, size_type state_size, StreamId)
 {
     CELER_EXPECT(counters.size() == 1);
-    launch_kernel(1, UpdateActiveExecutor{counters.data(), state_size});
+    launch_kernel(1, detail::UpdateActiveExecutor{counters.data(), state_size});
 }
 
 //---------------------------------------------------------------------------//
 void update_alive(CSCHostRef const& counters, size_type state_size, StreamId)
 {
     CELER_EXPECT(counters.size() == 1);
-    launch_kernel(1, UpdateAliveExecutor{counters.data(), state_size});
+    launch_kernel(1, detail::UpdateAliveExecutor{counters.data(), state_size});
 }
 
 //---------------------------------------------------------------------------//
@@ -60,7 +62,7 @@ void update_secondaries(CSCHostRef const& counters,
 {
     CELER_EXPECT(counters.size() == 1);
     launch_kernel(1,
-                  UpdateSecondariesCountExecutor{
+                  detail::UpdateSecondariesCountExecutor{
                       counters.data(), num_secondaries, state_size});
 }
 

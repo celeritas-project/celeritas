@@ -11,8 +11,7 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
-#include "CounterExecutors.hh"
-
+#include "detail/CounterExecutors.hh"
 #include "detail/InitTracksExecutor.hh"
 
 namespace celeritas

@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/track/CounterExecutors.hh
+//! \file celeritas/track/detail/CounterExecutors.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -14,9 +14,11 @@
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
 
-#include "CoreStateCounters.hh"
+#include "../CoreStateCounters.hh"
 
 namespace celeritas
+{
+namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -207,4 +209,5 @@ struct UpdateSecondariesCountExecutor
 };
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas
