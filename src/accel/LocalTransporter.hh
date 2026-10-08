@@ -199,6 +199,8 @@ class LocalTransporter final : public TrackOffloadInterface
 
     //// HELPER FUNCTIONS ////
 
+    void flush_impl();
+    void push_impl(G4Track&);
     void stage_buffered_primaries(StepperResult const&);
     size_type available_primary_capacity(StepperResult const&) const;
     void launch_step();
@@ -207,6 +209,7 @@ class LocalTransporter final : public TrackOffloadInterface
     StepperResult advance_transport();
     StepperResult wait_for_initializer_capacity();
     void drain_transport();
+    void reset_local_state();
 
     //// DATA ////
 
