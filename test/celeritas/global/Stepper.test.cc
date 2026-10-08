@@ -144,7 +144,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         auto const* first_data = step.staged_primaries().data();
 
         step.async();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
         EXPECT_TRUE(step.staged_primaries().empty());
 
         for (auto primary : second)
@@ -158,7 +158,7 @@ class SimpleComptonTest : public SimpleTestBase, public StepperTestBase
         step.wait();
         EXPECT_TRUE(step.ready());
         expect_stepper_eq(expected_first, step.get());
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
         EXPECT_EQ(num_primaries, step.staged_primaries().size());
 
         step.async();
@@ -504,27 +504,27 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
     Stepper<MemSpace::host> step(this->make_stepper_input(num_tracks));
     auto primaries = this->make_primaries(num_primaries);
 
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
     EXPECT_THROW(step.ready(), RuntimeError);
     EXPECT_THROW(step.wait(), RuntimeError);
     EXPECT_THROW(step.get(), RuntimeError);
 
     auto expected_result = expected_step(make_span(primaries));
     step.async(make_span(primaries));
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_TRUE(step.ready());
     step.wait();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     auto result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
 
     expected_result = expected_step();
     step.async();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_TRUE(step.ready());
     EXPECT_NO_THROW(step.wait());
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     EXPECT_THROW(step.async(), RuntimeError);
     EXPECT_THROW(step.async(make_span(primaries)), RuntimeError);
     EXPECT_THROW(step.warm_up(), RuntimeError);
@@ -535,7 +535,7 @@ TEST_F(SimpleComptonTest, async_lifecycle_host)
 
     result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
     EXPECT_THROW(step.ready(), RuntimeError);
     EXPECT_THROW(step.wait(), RuntimeError);
     EXPECT_THROW(step.get(), RuntimeError);
@@ -552,25 +552,25 @@ TEST_F(AsyncStepperTest, TEST_IF_CELER_DEVICE(async_lifecycle_device))
     auto primaries = this->make_primaries(num_primaries);
     auto expected_result = expected_step(make_span(primaries));
     step.async(make_span(primaries));
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     step.wait();
-    EXPECT_TRUE(step.valid());
+    EXPECT_TRUE(step.has_outstanding_result());
     auto result = step.get();
     expect_stepper_eq(expected_result, result);
-    EXPECT_FALSE(step.valid());
+    EXPECT_FALSE(step.has_outstanding_result());
 
     for (int i = 0; i < 2; ++i)
     {
         expected_result = expected_step();
         step.async();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
         EXPECT_NO_THROW(static_cast<void>(step.ready()));
         step.wait();
-        EXPECT_TRUE(step.valid());
+        EXPECT_TRUE(step.has_outstanding_result());
 
         result = step.get();
         expect_stepper_eq(expected_result, result);
-        EXPECT_FALSE(step.valid());
+        EXPECT_FALSE(step.has_outstanding_result());
     }
 }
 

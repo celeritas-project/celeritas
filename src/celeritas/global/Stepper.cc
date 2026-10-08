@@ -126,7 +126,8 @@ Stepper<M>::~Stepper() = default;
 template<MemSpace M>
 void Stepper<M>::warm_up()
 {
-    CELER_VALIDATE(!valid_, << "cannot warm up with a pending step");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot warm up with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot warm up with queued primaries");
     CELER_VALIDATE(state_->sync_get_counters().num_active == 0,
@@ -158,8 +159,8 @@ template<MemSpace M>
 void Stepper<M>::async()
 {
     CELER_VALIDATE(
-        !valid_,
-        << "cannot start a step before the current step has been consumed");
+        !has_outstanding_result_,
+        << R"(cannot start a step before the previous result has been retrieved)");
 
     ScopedProfiling profile_this{"step"};
     // Initialize the generated, error, and cut counters to zero
@@ -187,7 +188,7 @@ void Stepper<M>::async()
     {
         result_counters_.front() = state_->sync_get_counters();
     }
-    valid_ = true;
+    has_outstanding_result_ = true;
     CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
 }
 
@@ -202,8 +203,8 @@ template<MemSpace M>
 void Stepper<M>::async(SpanConstPrimary primaries)
 {
     CELER_VALIDATE(
-        !valid_,
-        << "cannot start a step before the current step has been consumed");
+        !has_outstanding_result_,
+        << R"(cannot start a step before the previous result has been retrieved)");
     this->stage_primaries(primaries);
     this->async();
 }
@@ -361,7 +362,9 @@ auto Stepper<M>::staged_primaries() const noexcept -> SpanConstPrimary
 template<MemSpace M>
 bool Stepper<M>::ready() const
 {
-    CELER_VALIDATE(valid_, << "cannot query readiness without a pending step");
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << R"(cannot query whether step has completed without an outstanding step result)");
     return step_done_.ready();
 }
 
@@ -372,7 +375,9 @@ bool Stepper<M>::ready() const
 template<MemSpace M>
 void Stepper<M>::wait() const
 {
-    CELER_VALIDATE(valid_, << "cannot wait without a pending step");
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << R"(cannot wait for step to complete without an outstanding step result)");
     step_done_.sync();
 }
 
@@ -386,11 +391,13 @@ void Stepper<M>::wait() const
 template<MemSpace M>
 auto Stepper<M>::get() -> result_type
 {
-    CELER_VALIDATE(valid_, << "cannot get without a pending step");
+    CELER_VALIDATE(
+        has_outstanding_result_,
+        << "cannot get the result without an outstanding step result");
 
     this->wait();
     auto result = make_stepper_result(result_counters_.front());
-    valid_ = false;
+    has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
 }
@@ -434,7 +441,8 @@ template<MemSpace M>
 void Stepper<M>::kill_active()
 {
     CELER_VALIDATE(
-        !valid_, << "cannot kill active tracks while an asynchronous step is executing");
+        !has_outstanding_result_,
+        << "cannot kill active tracks with an outstanding step result");
     CELER_VALIDATE(primary_phase_ != PrimaryPhase::staged,
                    << "cannot kill active tracks with staged primaries");
     CELER_LOG_LOCAL(error) << "Killing "
@@ -455,8 +463,8 @@ void Stepper<M>::kill_active()
 template<MemSpace M>
 void Stepper<M>::reseed(UniqueEventId event_id)
 {
-    CELER_VALIDATE(!valid_,
-                   << "cannot reseed while an asynchronous step is executing");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot reseed with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reseed with queued primaries");
     ScopedProfiling profile_this{"reseed"};
@@ -474,9 +482,8 @@ void Stepper<M>::reseed(UniqueEventId event_id)
 template<MemSpace M>
 void Stepper<M>::reset_state()
 {
-    CELER_VALIDATE(
-        !valid_,
-        << "cannot reset state while an asynchronous step is executing");
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot reset state with an outstanding step result");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reset state with queued primaries");
     state_->reset();
@@ -490,7 +497,7 @@ template<MemSpace M>
 bool Stepper<M>::has_queued_primaries() const noexcept
 {
     // A submitted copy source is owned by the pending result lifecycle, which
-    // callers validate separately through valid_.
+    // callers validate separately through has_outstanding_result_.
     return !primary_buffer_.empty() || primary_phase_ == PrimaryPhase::staged;
 }
 
