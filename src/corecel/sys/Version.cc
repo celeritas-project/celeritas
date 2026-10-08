@@ -24,6 +24,7 @@ namespace celeritas
  * Construct from a string "1.2.3".
  *
  * Ignore prerelease and build metadata suffixes introduced by '-' or '+'.
+ * Empty strings will raise a \c RuntimeError.
  */
 Version Version::from_string(std::string_view sv)
 {

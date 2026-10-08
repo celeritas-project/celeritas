@@ -74,6 +74,7 @@
 @CELERITAS_SINCOSPI_PREFIX_DEF@
 
 // Versions of software dependencies
+// See \c celeritas::Version::from_hex_xxyyzz
 @CELERITAS_DEPENDENCY_VERSIONS@
 
 // Configurations of software dependencies
