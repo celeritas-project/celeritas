@@ -45,7 +45,7 @@ void copy_device_steps(
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
     std::vector<size_type, PinnedAllocator<size_type>> num_selected(1, 0);
-    compact_steps_async(state, num_selected.data());
+    compact_steps_async(state, AsyncResultRef{num_selected});
     device().stream(state.stream_id).sync();
     copy_compacted_steps(output, state, num_selected.front());
 }

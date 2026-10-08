@@ -238,7 +238,7 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
     CELER_EXPECT(!pending_device_steps_);
     CELER_EXPECT(compacted_ && num_selected_.size() == 1);
 
-    compact_steps_async(states, num_selected_.data());
+    compact_steps_async(states, AsyncResultRef{num_selected_});
     compacted_.record(celeritas::device().stream(states.stream_id));
     pending_device_steps_ = states;
 }

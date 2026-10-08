@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/data/AsyncResultRef.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -115,7 +116,7 @@ void copy_steps(
 // Compact selected device step data without synchronizing the stream
 void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const& state,
-    size_type* num_selected);
+    AsyncResultRef<size_type> num_selected);
 
 // Copy device step data compacted by compact_steps_async
 void copy_compacted_steps(
@@ -126,7 +127,8 @@ void copy_compacted_steps(
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline void compact_steps_async(
-    StepStateData<Ownership::reference, MemSpace::device> const&, size_type*)
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    AsyncResultRef<size_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
