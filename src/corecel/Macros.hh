@@ -173,12 +173,22 @@
 #endif
 
 /*!
- * \def CELER_USE_THRUST
- * \def CELER_CUB_HAS_TRANSFORM
- * \def CELER_CUB_HAS_FLAGGEDIF
- * \def CELER_HIPCUB_HAS_TRANSFORM
+ * \def CELER_DEVICE_COMPILE
  *
- * Determine if CUB or hipCUB is available, and if so, check the version.
+ * Defined and true if building device code in HIP or CUDA. This is a generic
+ * replacement for \c __CUDA_ARCH__ .
+ */
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#    define CELER_DEVICE_COMPILE 1
+#elif defined(__DOXYGEN__)
+#    define CELER_DEVICE_COMPILE 0
+#endif
+
+/*
+ * Determine CUB or hipCUB features.
+ *
+ * \sa src/celeritas/track/detail/TrackInitAlgorithms.cu
+ * \sa src/celeritas/optical/action/detail/TrackInitAlgorithms.cu
  *
  * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
  * default, so test for the availability of hipCUB and use thrust instead if
@@ -205,28 +215,16 @@
 #    define CELER_USE_THRUST 0
 #endif
 
-/*!
- * \def CELER_DEVICE_COMPILE
- *
- * Defined and true if building device code in HIP or CUDA. This is a generic
- * replacement for \c __CUDA_ARCH__ .
- */
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
-#    define CELER_DEVICE_COMPILE 1
-#elif defined(__DOXYGEN__)
-#    define CELER_DEVICE_COMPILE 0
-#endif
-
-#if CELERITAS_USE_CUDA \
-    && (__CUDACC_VER_MAJOR__ < 11 \
-        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
-/*!
+/*
  * Work around older NVCC bugs with `if constexpr`.
  *
  * These cause errors such as \verbatim
  *    error: missing return statement at end of non-void function
  * \endverbatim
  */
+#if CELERITAS_USE_CUDA \
+    && (__CUDACC_VER_MAJOR__ < 11 \
+        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
 #    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 1
 #else
 #    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 0
