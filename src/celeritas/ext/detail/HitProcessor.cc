@@ -7,6 +7,7 @@
 #include "HitProcessor.hh"
 
 #include <cstddef>
+#include <exception>
 #include <utility>
 #include <CLHEP/Units/SystemOfUnits.h>
 #include <G4LogicalVolume.hh>
@@ -198,9 +199,17 @@ HitProcessor::~HitProcessor()
             compacted_.sync();
         }
     }
-    catch (...)  // NOLINT(bugprone-empty-catch)
+    catch (std::exception const& e)
     {
-        // Ignore device errors while destroying
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
+                                  "while destroying hit processor: "
+                               << e.what();
+    }
+    catch (...)
+    {
+        CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
+                                  "while destroying hit processor: unknown "
+                                  "exception";
     }
 }
 
