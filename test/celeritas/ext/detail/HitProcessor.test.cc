@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/HitProcessor.hh"
 
+#include <limits>
 #include <G4DynamicParticle.hh>
 #include <G4ParticleTable.hh>
 #include <G4ThreeVector.hh>
@@ -97,6 +98,8 @@ void SimpleCmsTest::SetUp()
     selection_.points[StepPoint::post].energy = true;
     selection_.particle_id = true;
     selection_.primary_id = true;
+    selection_.parent_id = true;
+    selection_.generation = true;
 }
 
 auto SimpleCmsTest::detector_volumes() const -> SetStr
@@ -190,6 +193,19 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             PrimaryId{1},
             PrimaryId{1},
         };
+    }
+    if (selection_.parent_id)
+    {
+        // The last step is from a secondary of the second primary's track
+        dso.parent_id = {
+            TrackId{},
+            TrackId{},
+            TrackId{2},
+        };
+    }
+    if (selection_.generation)
+    {
+        dso.generation = {0, 0, 1};
     }
     if (selection_.energy_deposition)
     {
@@ -559,6 +575,8 @@ TEST_F(SimpleCmsTest, touchable_midvol)
 {
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
     auto dso_hits = this->make_dso();
@@ -590,6 +608,8 @@ TEST_F(SimpleCmsTest, touchable_edgecase)
 {
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     locate_touchable_ = {true, false};
     HitProcessor process_hits = this->make_hit_processor();
 
@@ -643,6 +663,8 @@ TEST_F(SimpleCmsTest, touchable_exiting)
     locate_touchable_ = {true, true};
     selection_.particle_id = false;
     selection_.primary_id = false;
+    selection_.parent_id = false;
+    selection_.generation = false;
     selection_.points[StepPoint::pre].time = false;
     selection_.points[StepPoint::post].time = false;
     selection_.points[StepPoint::pre].energy = false;
@@ -754,11 +776,12 @@ TEST_F(SimpleCmsTest, with_primary_id)
         EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
     {
-        // had_calorimeter -> PrimaryId{1} -> track_id=20, parent_id=5
+        // had_calorimeter -> secondary (Celeritas track 4) of PrimaryId{1}:
+        // its own mapped ID, with the offloaded track as parent
         auto& result = this->get_hits("had_calorimeter");
-        static int const expected_track_id[] = {20};
+        int const expected_track_id[] = {std::numeric_limits<int>::max() - 4};
         EXPECT_VEC_EQ(expected_track_id, result.track_id);
-        static int const expected_parent_id[] = {5};
+        static int const expected_parent_id[] = {20};
         EXPECT_VEC_EQ(expected_parent_id, result.parent_id);
     }
 }

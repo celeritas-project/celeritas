@@ -282,6 +282,7 @@ void copy_compacted_steps(DetectorStepOutput* output,
 
     DS_ASSIGN(event_id);
     DS_ASSIGN(parent_id);
+    DS_ASSIGN(generation);
     DS_ASSIGN(primary_id);
     DS_ASSIGN(post_step_action_id);
     DS_ASSIGN(track_step_count);

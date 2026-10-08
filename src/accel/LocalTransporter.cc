@@ -218,6 +218,12 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
     CELER_EXPECT(id != event_id_);
+    // Restarting track IDs (and reseeding) requires the previous event to be
+    // fully transported
+    CELER_VALIDATE(
+        !step_->valid() && !transport_active_ && this->GetBufferSize() == 0,
+        << "cannot start event " << id << " before tracks from event "
+        << event_id_ << " are flushed");
 
     event_id_ = id;
     ++run_accum_.events;
@@ -233,6 +239,9 @@ void LocalTransporter::InitializeEvent(int id)
             step_->reseed(id_cast<UniqueEventId>(event_id_));
         }
     }
+    // Track IDs are unique per event and mapped to Geant4 track IDs, so they
+    // must restart at every event even without reseeding
+    step_->reset_track_ids();
 
     // Initialize Geant4 event reconstruction and primary ID mapping
     track_reconstruction_->init_event();

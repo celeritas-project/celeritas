@@ -464,6 +464,25 @@ void Stepper<M>::reseed(UniqueEventId event_id)
                state_->ref().rng,
                state_->stream_id(),
                event_id);
+    this->reset_track_ids();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Restart track ID numbering at the start of an event.
+ *
+ * Track IDs are unique within an event. Resetting them at each event keeps
+ * them small, which lets integrations map them to other ID spaces (e.g.,
+ * Geant4 track IDs) without overflow.
+ */
+template<MemSpace M>
+void Stepper<M>::reset_track_ids()
+{
+    CELER_VALIDATE(
+        !valid_,
+        << "cannot reset track IDs while an asynchronous step is executing");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot reset track IDs with queued primaries");
     params_->init()->reset_track_ids(state_->stream_id(), &state_->ref().init);
 }
 

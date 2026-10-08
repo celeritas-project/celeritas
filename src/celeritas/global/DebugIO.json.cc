@@ -157,6 +157,7 @@ void to_json_impl(
     {
         DIO_ASSIGN(track_id, passthrough);
         DIO_ASSIGN(parent_id, passthrough);
+        DIO_ASSIGN(generation, passthrough);
         DIO_ASSIGN(primary_id, passthrough);
         DIO_ASSIGN(event_id, passthrough);
         DIO_ASSIGN(num_steps, passthrough);

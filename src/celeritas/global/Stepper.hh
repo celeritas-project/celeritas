@@ -194,6 +194,9 @@ class StepperInterface
     // Reseed the RNGs at the start of an event for reproducibility
     virtual void reseed(UniqueEventId event_id) = 0;
 
+    // Restart track ID numbering at the start of an event
+    virtual void reset_track_ids() = 0;
+
     //! Get action sequence for timing diagnostics
     virtual ActionSequence const& actions() const = 0;
 
@@ -303,10 +306,10 @@ class StepperInterface
  * Primaries may be pushed and staged while a result is valid, and the producer
  * may begin filling again while that next batch is staged. The staged batch
  * cannot be submitted until the prior result is consumed. Calls to \c warm_up,
- * \c reset_state, and \c reseed are rejected while a result or queued primary
- * batch exists. Calling \c kill_active permits buffered primaries but rejects a
- * pending result or staged batch. The synchronous call operators perform \c
- * async followed immediately by \c get.
+ * \c reset_state, \c reseed, and \c reset_track_ids are rejected while a
+ * result or queued primary batch exists. Calling \c kill_active permits
+ * buffered primaries but rejects a pending result or staged batch. The
+ * synchronous call operators perform \c async followed immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface
@@ -389,6 +392,9 @@ class Stepper final : public StepperInterface
 
     // Reseed the RNGs at the start of an event for reproducibility
     void reseed(UniqueEventId event_id) final;
+
+    // Restart track ID numbering at the start of an event
+    void reset_track_ids() final;
 
     //! Get action sequence for timing diagnostics
     ActionSequence const& actions() const final { return *actions_; }

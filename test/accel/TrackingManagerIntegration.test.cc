@@ -8,6 +8,7 @@
 
 #include <atomic>
 #include <functional>
+#include <limits>
 #include <map>
 #include <mutex>
 #include <regex>
@@ -1168,35 +1169,37 @@ class WaterSphere : public WaterSphereIntegrationMixin, public TMITestBase
         EXPECT_GE(track_id, 0);
         EXPECT_GE(parent_id, 0);
 
-        auto atomic_max = [](std::atomic<int>& dst, int value) {
-            int current = dst.load(std::memory_order_relaxed);
-            while (current < value
-                   && !dst.compare_exchange_weak(current,
-                                                 value,
-                                                 std::memory_order_relaxed,
-                                                 std::memory_order_relaxed))
-            {
-            }
-        };
-
-        atomic_max(max_track_id_, track_id);
-        atomic_max(max_parent_id_, parent_id);
+        // Celeritas counts the IDs of the tracks it creates down from INT_MAX
+        // (see GeantTrackReconstruction::geant_track_id)
+        constexpr int min_celeritas_id = std::numeric_limits<int>::max() / 2;
+        if (track_id < min_celeritas_id)
+        {
+            // Geant4 numbers a parent before its secondaries
+            EXPECT_LT(parent_id, track_id);
+        }
+        else
+        {
+            // A track created by Celeritas descends from the offloaded track
+            // (Geant4 ID) or from a track Celeritas created before it
+            EXPECT_TRUE(parent_id < min_celeritas_id || parent_id > track_id)
+                << "track " << track_id << " has parent " << parent_id;
+            ++num_celeritas_hits_;
+        }
         ++num_hits_;
     }
 
-    //! Get and reset track, parent IDs
-    std::pair<int, int> exchange_max_ids()
+    //! Exchange counter of hits from tracks created by Celeritas
+    int exchange_celeritas_hit_count()
     {
-        return {max_track_id_.exchange(-1), max_parent_id_.exchange(-1)};
+        return num_celeritas_hits_.exchange(0);
     }
 
     //! Exchange hit counter
     int exchange_hit_count() { return num_hits_.exchange(0); }
 
   protected:
-    std::atomic<int> max_track_id_{-1};
-    std::atomic<int> max_parent_id_{-1};
     std::atomic<int> num_hits_{0};
+    std::atomic<int> num_celeritas_hits_{0};
 };
 
 /*!
@@ -1235,9 +1238,9 @@ TEST_F(WaterSphere, run_small_flush)
 
         auto num_hits = this->exchange_hit_count();
         EXPECT_GT(num_hits, 0);
-        auto&& [max_track, max_parent] = this->exchange_max_ids();
-        EXPECT_GE(max_parent, 0);
-        EXPECT_GT(max_track, max_parent);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
     }
 
     if (this->HasFatalFailure())
@@ -1249,9 +1252,9 @@ TEST_F(WaterSphere, run_small_flush)
     {
         auto num_hits = this->exchange_hit_count();
         EXPECT_GT(num_hits, 0);
-        auto&& [max_track, max_parent] = this->exchange_max_ids();
-        EXPECT_GE(max_parent, 0);
-        EXPECT_GT(max_track, max_parent);
+        auto num_celeritas_hits = this->exchange_celeritas_hit_count();
+        EXPECT_GT(num_celeritas_hits, 0);
+        EXPECT_LT(num_celeritas_hits, num_hits);
     }
 }
 
