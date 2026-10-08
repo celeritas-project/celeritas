@@ -113,12 +113,8 @@ void OffloadAction<G>::step_impl(CoreParams const& core_params,
     // tracks counter accordingly.
     auto& optical_state
         = get<optical::CoreState<M>>(core_state.aux(), data_.optical_id);
-    detail::count_num_photons(this->optical_params(),
-                              optical_state,
-                              buffer,
-                              start,
-                              buffer_size,
-                              core_state.stream_id());
+    detail::add_pending_photon_count(
+        optical_state, buffer, start, buffer_size, core_state.stream_id());
 }
 
 //---------------------------------------------------------------------------//

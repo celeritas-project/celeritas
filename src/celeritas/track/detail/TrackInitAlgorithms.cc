@@ -9,9 +9,8 @@
 #include <algorithm>
 #include <numeric>
 
+#include "corecel/data/ObserverPtr.hh"
 #include "corecel/math/Algorithms.hh"
-
-#include "../Utils.hh"
 
 using namespace celeritas::literals;
 
@@ -45,22 +44,23 @@ void remove_if_alive(
  * where \f$ y_0 = 0 \f$, and stores the result in the input array.
  *
  * The input size is one greater than the number of track slots so that the
- * final element will be the total accumulated value.
+ * final element will be the total accumulated value. The returned pointer
+ * refers to that final element.
  */
-void exclusive_scan_counts(
+ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
     StateCollection<size_type, Ownership::reference, MemSpace::host> const&
         counts,
     StreamId)
 {
     CELER_EXPECT(!counts.empty());
     auto* data = counts.data().get();
+    auto* stop = data + counts.size();
 #ifdef __cpp_lib_parallel_algorithm
-    std::exclusive_scan(data, data + counts.size(), data, 0_sz);
+    std::exclusive_scan(data, stop, data, 0_sz);
 #else
     // Standard library shipped with GCC 8.5 does not include exclusive_scan
     // (I guess it's *too* exclusive)
     size_type acc = 0;
-    auto* const stop = data + counts.size();
     for (; data != stop; ++data)
     {
         size_type current = *data;
@@ -68,7 +68,8 @@ void exclusive_scan_counts(
         acc += current;
     }
 #endif
-    return;
+    // Return last value (*not* past-the-end)
+    return make_observer(stop - 1);
 }
 
 //---------------------------------------------------------------------------//

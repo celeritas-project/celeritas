@@ -13,10 +13,11 @@
 #include "celeritas/global/CoreState.hh"
 #include "celeritas/global/TrackExecutor.hh"
 
+#include "CounterAlgorithms.hh"
+
 #include "detail/LocateAliveExecutor.hh"  // IWYU pragma: associated
 #include "detail/ProcessSecondariesExecutor.hh"  // IWYU pragma: associated
 #include "detail/TrackInitAlgorithms.hh"  // IWYU pragma: associated
-#include "detail/UpdateSecondariesExecutor.hh"  // IWYU pragma: associated
 
 namespace celeritas
 {
@@ -72,12 +73,15 @@ void ExtendFromSecondariesAction::step_impl(CoreParams const& core_params,
     // for each thread. Starting at that index, each thread creates track
     // initializers from all surviving secondaries produced in its
     // interaction.
-    detail::exclusive_scan_counts(init.secondary_counts,
-                                  core_state.stream_id());
+    ObserverPtr<size_type, M> num_secondaries = detail::exclusive_scan_counts(
+        init.secondary_counts, core_state.stream_id());
 
     // Launch a kernel to update the number of secondaries, initializers, and
     // alive counters
-    this->update_secondaries(core_params, core_state);
+    update_secondaries(init.counters,
+                       num_secondaries,
+                       core_state.size(),
+                       core_state.stream_id());
 
     /*! \todo If we don't have space for all the secondaries, we will need to
      * buffer the current track initializers to create room.
@@ -118,23 +122,6 @@ void ExtendFromSecondariesAction::locate_alive(CoreParams const& core_params,
 
 //---------------------------------------------------------------------------//
 /*!
- * Launch a kernel to update the number of secondaries and initializers.
- *
- * Determine if there is sufficient capacity for all secondaries.
- */
-void ExtendFromSecondariesAction::update_secondaries(
-    CoreParams const& core_params, CoreStateHost& core_state) const
-{
-    auto execute_thread = make_single_track_executor(
-        core_params.ptr<MemSpace::native>(),
-        core_state.ptr(),
-        detail::UpdateSecondariesExecutor{core_state.ptr()});
-    launch_core(
-        1, "update-secondaries", core_params, core_state, execute_thread);
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Create track initializers from secondary particles.
  */
 void ExtendFromSecondariesAction::process_secondaries(
@@ -157,12 +144,6 @@ void ExtendFromSecondariesAction::begin_run(CoreParams const&, CoreStateDevice&)
 
 void ExtendFromSecondariesAction::locate_alive(CoreParams const&,
                                                CoreStateDevice&) const
-{
-    CELER_NOT_CONFIGURED("CUDA OR HIP");
-}
-
-void ExtendFromSecondariesAction::update_secondaries(CoreParams const&,
-                                                     CoreStateDevice&) const
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

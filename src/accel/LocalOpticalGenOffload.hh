@@ -10,8 +10,6 @@
 
 #include "corecel/Types.hh"
 #include "celeritas/Types.hh"
-#include "celeritas/optical/CoreParams.hh"
-#include "celeritas/optical/CoreState.hh"
 #include "celeritas/optical/gen/GeneratorData.hh"
 
 #include "LocalOffloadInterface.hh"
@@ -81,11 +79,6 @@ class LocalOpticalGenOffload final : public LocalOffloadInterface
     explicit operator bool() const { return this->Initialized(); }
 
   private:
-    // Update the number of primaries waiting to be generated on host/device
-    // Called by Flush()
-    void update_primaries(optical::CoreState<MemSpace::host>&) const;
-    void update_primaries(optical::CoreState<MemSpace::device>&) const;
-
     // Transport pending optical tracks
     std::shared_ptr<optical::Transporter> transport_;
 

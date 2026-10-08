@@ -6,9 +6,11 @@
 //---------------------------------------------------------------------------//
 #include "CoreState.hh"
 
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
+#include "celeritas/track/CounterAlgorithms.hh"
 #include "celeritas/track/TrackInitParams.hh"
 
 #include "CoreParams.hh"
@@ -179,6 +181,14 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 }
 
 //---------------------------------------------------------------------------//
+//! Reset counters that are accumulated during a step
+template<MemSpace M>
+void CoreState<M>::reset_counters()
+{
+    celeritas::reset_counters(this->ref().init.counters, this->stream_id());
+}
+
+//---------------------------------------------------------------------------//
 /*!
  * Reset the state data.
  *
@@ -191,7 +201,7 @@ void CoreState<M>::reset()
 {
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
-    sync_put_counters(counters);
+    this->sync_put_counters(counters);
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);
@@ -203,7 +213,9 @@ void CoreState<M>::reset()
 //---------------------------------------------------------------------------//
 // EXPLICIT INSTANTIATION
 //---------------------------------------------------------------------------//
+
 template class CoreState<MemSpace::host>;
 template class CoreState<MemSpace::device>;
+
 //---------------------------------------------------------------------------//
 }  // namespace celeritas
