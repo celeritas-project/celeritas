@@ -53,7 +53,6 @@ namespace celeritas
  * \par Example
  *
  * \code
- * if (
  * assert(Version(4) == Version(4.0) == Version(4.0.0));
  * assert(Version(3.1) > Version(3));
  * \endcode

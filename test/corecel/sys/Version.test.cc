@@ -101,7 +101,7 @@ TEST(VersionTest, from_package)
 {
     EXPECT_NO_THROW(Version::from_package("Geant4"));
     EXPECT_THROW(Version::from_package("invalid"), RuntimeError);
-    if constexpr (CELERITAS_USE_VECGEOM)
+    if constexpr (CELERITAS_USE_GEANT4)
     {
         auto g4_vers = Version::from_package("geant4");
         EXPECT_TRUE(g4_vers);

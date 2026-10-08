@@ -95,12 +95,27 @@ celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
-# Save dependency versions as strings
-# NOTE: update corresponding src/corecel/sys/BuildOutput.cc
+## Save dependency versions as {lower_name, string} pairs
+# - see *AND UPDATE* src/corecel/io/BuildOutput.cc for usage
+# - see cmake/CeleritasOptionUtils.cmake for list of components
+# - remove non-link dependencies
+# - add important transient dependencies
+# - define fake version strings if not available in this cmake
+set(_celer_packages "${CELERITAS_COMPONENTS}")
+list(REMOVE_ITEM _celer_packages Python)
+list(APPEND _celer_packages CLHEP HIP)
 set(CELERITAS_CMAKE_VERSIONS_INIT)
-set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
-set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG LArSoft ROOT Thrust VecGeom)
+if(CELERITAS_USE_CUDA AND NOT CUDA_VERSION_STRING)
+  set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
+else()
+  unset(CUDA_VERSION_STRING)
+endif()
+if(CELERITAS_USE_HIP AND NOT HIP_VERSION_STRING)
+  set(HIP_VERSION_STRING "${hip-lang_VERSION}")
+else()
+  unset(CELERITAS_USE_HIP)
+endif()
+foreach(_pkg IN LISTS _celer_packages)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
     set(_value "\"${${_pkg}_VERSION_STRING}\"")
