@@ -191,21 +191,18 @@
  * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
  * OpaqueId data types, so use a transform and DeviceSelect::Flagged instead.
  */
-#if CELERITAS_USE_CUDA
-#    if CELERITAS_CUB_VERSION >= 0x020800
-#        define CELER_CUB_HAS_TRANSFORM 1
-#        define CELER_CUB_HAS_FLAGGEDIF 1
-#    elif CELERITAS_CUB_VERSION >= 0x020500
-#        define CELER_CUB_HAS_FLAGGEDIF 1
-#    else
-#        define CELER_USE_THRUST 1
-#    endif
-#elif CELERITAS_USE_HIP
-#    if CELERITAS_HIPCUB_VERSION >= 0x040100
-#        define CELER_HIPCUB_HAS_TRANSFORM 1
-#    else
-#        define CELER_USE_THRUST 1
-#    endif
+#if CELERITAS_CUB_VERSION >= 0x020800
+#    define CELER_CUB_HAS_TRANSFORM 1
+#    define CELER_CUB_HAS_FLAGGEDIF 1
+#elif CELERITAS_CUB_VERSION >= 0x020500
+#    define CELER_CUB_HAS_TRANSFORM 0
+#    define CELER_CUB_HAS_FLAGGEDIF 1
+#elif CELERITAS_HIPCUB_VERSION >= 0x040100
+#    define CELER_HIPCUB_HAS_TRANSFORM 1
+#elif CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_USE_THRUST 1
+#else
+#    define CELER_USE_THRUST 0
 #endif
 
 /*!
