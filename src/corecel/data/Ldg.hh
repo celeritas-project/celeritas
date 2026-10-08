@@ -171,7 +171,15 @@ CELER_CONSTEXPR_FUNCTION T ldg(Class const& obj, T Class::* mp) noexcept
 template<class Class, class T>
 struct LdgMember
 {
-    T Class::* mp;
+    //// TYPES ////
+
+    using MemberPtr = T Class::*;
+    
+    //// DATA ////
+
+    MemberPtr mp;
+
+    //// FUNCTIONS ////
 
     CELER_CONSTEXPR_FUNCTION T operator()(Class const& obj) const
     {
