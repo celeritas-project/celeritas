@@ -7,6 +7,9 @@
 //---------------------------------------------------------------------------//
 #include "corecel/Config.hh"
 
+#include <string>
+#include <unordered_map>
+
 namespace celeritas
 {
 namespace cmake
@@ -17,4 +20,26 @@ namespace cmake
 
 //---------------------------------------------------------------------------//
 }
+
+/*!
+ * Low-level function: get the version of a configured package.
+ *
+ * \param package Lowercase package name
+ * \return Version string: empty if unknown, nullptr if unknown package name
+ * \sa Version::from_package
+ */
+char const* package_version_cstring(char const* package)
+{
+    static constexpr char undefined_version[] = "";
+    static std::unordered_map<std::string, const char*> versions = {
+@CELERITAS_CMAKE_VERSIONS_INIT@
+    };
+    auto result = versions.find(package);
+    if (result == versions.end())
+        return nullptr;
+
+    return result->second;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas
