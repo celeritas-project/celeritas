@@ -63,14 +63,7 @@ class EmExtraPhysicsHelper
 #if CELERITAS_GEANT4_VERSION < 0x0b0000
 inline EmExtraPhysicsHelper::EmExtraPhysicsHelper()
 {
-#    if !CELERITAS_USE_GEANT4
-    CELER_NOT_CONFIGURED("Geant4");
-#    else
-    CELER_VALIDATE(
-        false,
-        << "Geant4 version " << Version::from_package("Geant4")
-        << " is too old for gamma-nuclear cross section calculation");
-#    endif
+    CELER_NOT_CONFIGURED("Geant4 11 or higher");
 }
 
 inline EmExtraPhysicsHelper::MmSqXs
