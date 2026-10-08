@@ -77,28 +77,6 @@
       }
     },
     {
-      "name": "g4local",
-      "displayName": "executor: build against local Geant4",
-      "inherits": [".ccache", ".base", ".nobuiltin", ".debug", "default"],
-      "environment": {
-        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/geant4-dev/.spack-env/view"
-      },
-      "cacheVariables": {
-        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "float",
-      "displayName": "executor: Single-precision arithmetic",
-      "inherits": [".spackbase", ".debug", "default"],
-      "cacheVariables": {
-        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_REAL_TYPE": "float"
-      }
-    },
-    {
       "name": "vecgeom",
       "displayName": "executor: With vecgeom",
       "inherits": [".ccache", ".spackbase", ".debug", "default"],
@@ -163,6 +141,27 @@
       }
     },
     {
+      "name": "g4local",
+      "displayName": "executor: build against local Geant4",
+      "inherits": [".ccache", ".base", ".nobuiltin", ".debug", "default"],
+      "environment": {
+        "CMAKE_PREFIX_PATH": "$env{SPACK_ROOT}/var/spack/environments/geant4-dev/.spack-env/view"
+      },
+      "cacheVariables": {
+        "Geant4_DIR": "/Users/seth/Code/geant4-dev/build",
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" }
+      }
+    },
+    {
+      "name": "float",
+      "displayName": "executor: Single-precision arithmetic",
+      "inherits": [".spackbase", ".debug", "default"],
+      "cacheVariables": {
+        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
+        "CELERITAS_REAL_TYPE": "float"
+      }
+    },
+    {
       "name": "mpi",
       "displayName": "executor: build with MPI",
       "inherits": [".ccache", ".base", ".debug", "default"],
@@ -214,15 +213,6 @@
         "CELERITAS_UNITS": "CLHEP",
         "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
         "CELERITAS_USE_VecGeom": { "type": "BOOL", "value": "OFF" }
-      }
-    },
-    {
-      "name": "float",
-      "displayName": "executor: Single-precision arithmetic",
-      "inherits": [".spackbase", ".debug", "default"],
-      "cacheVariables": {
-        "CELERITAS_USE_ROOT": { "type": "BOOL", "value": "OFF" },
-        "CELERITAS_REAL_TYPE": "float"
       }
     }
   ],
