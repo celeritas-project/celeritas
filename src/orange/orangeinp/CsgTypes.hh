@@ -8,15 +8,12 @@
 
 #include <functional>
 #include <iosfwd>
-#include <string>
 #include <variant>
 #include <vector>
 
 #include "corecel/Config.hh"
 
 #include "corecel/OpaqueId.hh"
-#include "corecel/cont/EnumArray.hh"
-#include "corecel/grid/GridTypes.hh"
 #include "corecel/math/HashUtils.hh"
 #include "orange/OrangeTypes.hh"
 
