@@ -70,10 +70,10 @@ class VecgeomVgdmlTestBase : public VecgeomTestBase
   public:
     SPConstGeo build_geometry() const final
     {
-        using namespace celeritas::cmake;
         cout << color_code('x') << "VecGeom "
-             << Version::from_package("VecGeom") << " (" << vecgeom_options
-             << ") using VGDML" << color_code(' ') << endl;
+             << Version::from_package("VecGeom") << " ("
+             << cmake::vecgeom_options << ") using VGDML" << color_code(' ')
+             << endl;
 
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),
                                     LogLevel::warning};

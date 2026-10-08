@@ -58,9 +58,8 @@ class GeantGeoTest : public GeantGeoTestBase
     {
         // Print version number for verification on CI systems etc.
         static bool const have_printed_ = [] {
-            using namespace celeritas::cmake;
             cout << color_code('x') << "Using Geant4 v" << geant4_version
-                 << " (" << geant4_options << ")";
+                 << " (" << ::celeritas::cmake::geant4_options << ")";
             if (CELERITAS_GEANT4_USOLIDS)
             {
                 cout << " with VecGeom " << Version::from_package("VecGeom")
