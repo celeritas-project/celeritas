@@ -174,7 +174,7 @@ struct LdgMember
     //// TYPES ////
 
     using MemberPtr = T Class::*;
-    
+
     //// DATA ////
 
     MemberPtr mp;

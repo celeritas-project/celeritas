@@ -6,8 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "corecel/cont/Array.hh"
 
-#include <gtest/gtest.h>
 #include <type_traits>
+#include <gtest/gtest.h>
 
 #include "corecel/cont/EnumArray.hh"
 
