@@ -14,6 +14,7 @@
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/Device.hh"
+#include "corecel/sys/ScopeExit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/Stream.hh"
 #include "orange/OrangeData.hh"
@@ -31,29 +32,6 @@ namespace celeritas
 {
 namespace
 {
-//---------------------------------------------------------------------------//
-/*!
- * Call a function when this object is destroyed (at end of scope).
- */
-template<class F>
-class ScopeExit
-{
-  public:
-    //! Construct with functor
-    ScopeExit(F func) : func_{std::forward<F>(func)} {}
-
-    //! Call functor on destruction
-    ~ScopeExit() { func_(); }
-
-    CELER_DELETE_COPY_MOVE(ScopeExit);
-
-  private:
-    F func_;
-};
-
-template<class F>
-ScopeExit(F&& func) -> ScopeExit<F>;
-
 //---------------------------------------------------------------------------//
 //! Convert internal state counters to a public step result
 StepperResult make_stepper_result(CoreStateCounters const& counters)

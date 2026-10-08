@@ -6,16 +6,12 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
-#include <memory>
 #include <vector>
 
-#include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
-#include "corecel/cont/Span.hh"
 
 #include "GridTypes.hh"
-#include "UniformGrid.hh"
 
 #include "detail/GridAccessor.hh"
 

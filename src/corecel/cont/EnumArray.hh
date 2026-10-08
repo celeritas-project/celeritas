@@ -50,7 +50,7 @@ class EnumArray
 
   public:
     //! Default construction initializes to zero
-    CELER_CEF EnumArray() : data_{T{}} {}
+    constexpr EnumArray() = default;
 
     //! Construct from an array for aggregate initialization of daughters
     CELER_CEF EnumArray(CArrayConstRef values)
@@ -113,7 +113,7 @@ class EnumArray
     //!@}
 
   private:
-    T data_[N];  //!< Storage
+    T data_[N] = {T()};  //!< Storage
 };
 
 //---------------------------------------------------------------------------//
