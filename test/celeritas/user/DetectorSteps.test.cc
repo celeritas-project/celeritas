@@ -38,15 +38,27 @@ std::vector<int> extract_ids(C const& ids)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy host steps.
+ */
+void copy_sync_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::host> const& state)
+{
+    copy_steps(output, state);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Compact and copy device steps, waiting for the count in between.
  */
-void copy_device_steps(
+void copy_sync_steps(
     DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
     std::vector<size_type, PinnedAllocator<size_type>> num_selected(1, 0);
     compact_steps_async(state, AsyncResultRef{num_selected});
     device().stream(state.stream_id).sync();
+    CELER_EXPECT(num_selected.front() > 0);
     copy_compacted_steps(output, state, num_selected.front());
 }
 
@@ -280,11 +292,11 @@ TEST_F(DetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
     // Construct reference values
     DetectorStepOutput host_output;
-    copy_steps(&host_output, make_ref(host_states));
+    copy_sync_steps(&host_output, make_ref(host_states));
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy_device_steps(&output, make_ref(device_states));
+    copy_sync_steps(&output, make_ref(device_states));
 
     EXPECT_VEC_EQ(host_output.track_id, output.track_id);
     EXPECT_VEC_EQ(host_output.event_id, output.event_id);
@@ -363,7 +375,7 @@ TEST_F(SmallDetectorStepsTest, TEST_IF_CELER_DEVICE(device))
 
     // Perform reduction on device and copy back to host
     DetectorStepOutput output;
-    copy_device_steps(&output, make_ref(device_states));
+    copy_sync_steps(&output, make_ref(device_states));
 
     std::size_t num_tracks = 614;
     EXPECT_EQ(num_tracks, output.track_id.size());
@@ -417,10 +429,10 @@ TEST_F(UnfilteredStepsTest, TEST_IF_CELER_DEVICE(device))
     device_states.data = host_states.data;
 
     DetectorStepOutput host_output;
-    copy_steps(&host_output, make_ref(host_states));
+    copy_sync_steps(&host_output, make_ref(host_states));
 
     DetectorStepOutput output;
-    copy_device_steps(&output, make_ref(device_states));
+    copy_sync_steps(&output, make_ref(device_states));
     EXPECT_TRUE(output.detector_id.empty());
     EXPECT_VEC_EQ(host_output.track_id, output.track_id);
     EXPECT_VEC_EQ(host_output.energy_deposition, output.energy_deposition);
