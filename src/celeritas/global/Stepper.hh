@@ -426,10 +426,6 @@ class Stepper final : public StepperInterface
     using VecPrimary = std::vector<Primary>;
     using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
     using PrimaryStorage = MemSpaceCond_t<M, VecPrimary, PinnedVecPrimary>;
-    using PinnedVecCounters
-        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
-    using CounterStorage
-        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
 
     // Params data
     std::shared_ptr<CoreParams const> params_;
@@ -449,8 +445,6 @@ class Stepper final : public StepperInterface
     DeviceEvent primary_copy_done_{nullptr};
     // Logical state of staged_primaries_
     PrimaryPhase primary_phase_{PrimaryPhase::empty};
-    // Preallocated result from the most recently started step
-    CounterStorage result_counters_;
     // Completion of device work and the result-counter snapshot
     DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved

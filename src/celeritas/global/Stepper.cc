@@ -9,7 +9,6 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "corecel/data/Copier.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/random/params/RngParams.hh"
 #include "corecel/sys/ActionRegistry.hh"
@@ -97,7 +96,6 @@ Stepper<M>::Stepper(Input input)
     if constexpr (M == MemSpace::device)
     {
         // Allocate reusable asynchronous state before stepping begins
-        result_counters_.resize(1);
         primary_copy_done_ = DeviceEvent{celeritas::device()};
         step_done_ = DeviceEvent{celeritas::device()};
     }
@@ -105,7 +103,6 @@ Stepper<M>::Stepper(Input input)
     // Execute beginning-of-run action
     ScopedProfiling profile_this{"begin-run"};
     actions_->begin_run(*params_, *state_);
-    CELER_ENSURE(result_counters_.size() == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -173,21 +170,14 @@ void Stepper<M>::async()
         primary_phase_ = PrimaryPhase::submitted;
     }
 
+    // Queue an asynchronous copy of the counters after the step actions
+    // complete, then record the completion event.
+    state_->async_copy_counters();
     if constexpr (M == MemSpace::device)
     {
-        // Queue an asynchronous copy of the counters after the kernel
-        // completes, and record in step_done_.
-        auto const* counters_ptr = static_cast<CoreStateCounters const*>(
-            state_->ref().init.counters.data());
-        Copier<CoreStateCounters, MemSpace::host> copy_counters{
-            make_span(result_counters_), state_->stream_id()};
-        copy_counters(MemSpace::device, {counters_ptr, 1});
         step_done_.record(celeritas::device().stream(state_->stream_id()));
     }
-    else
-    {
-        result_counters_.front() = state_->sync_get_counters();
-    }
+
     has_outstanding_result_ = true;
     CELER_ENSURE(primary_phase_ != PrimaryPhase::staged);
 }
@@ -396,7 +386,7 @@ auto Stepper<M>::get() -> result_type
         << "cannot get the result without an outstanding step result");
 
     this->wait();
-    auto result = make_stepper_result(result_counters_.front());
+    auto result = make_stepper_result(state_->host_counters());
     has_outstanding_result_ = false;
     this->reclaim_submitted_primaries();
     return result;
