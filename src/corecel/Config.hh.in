@@ -93,15 +93,15 @@ namespace config
 {
 // clang-format off
 @CELERITAS_CMAKE_STRINGS_DECL@
-// clang-format on
-}  // namespace config
+    // clang-format on
 
-/*!
- * Low-level function to get the version of a configured package.
- *
- * \param package Lowercase package name
- * \return Version string: empty if unknown, nullptr if unknown package name
- * \sa Version::from_package
- */
-char const* package_version_cstring(char const* package);
+    /*!
+     * Low-level function to get the version of a configured package.
+     *
+     * \param package Lowercase package name
+     * \return Version string: empty if unknown, nullptr if unknown package name
+     * \sa Version::from_package
+     */
+    char const* package_version_cstring(char const* package);
+}  // namespace config
 }  // namespace celeritas

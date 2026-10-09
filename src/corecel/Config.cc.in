@@ -16,15 +16,6 @@ namespace celeritas
 {
 namespace config
 {
-//---------------------------------------------------------------------------//
-
-// clang-format off
-@CELERITAS_CMAKE_STRINGS_DEF@
-// clang-format on
-
-//---------------------------------------------------------------------------//
-}  // namespace config
-
 namespace
 {
 //---------------------------------------------------------------------------//
@@ -50,6 +41,10 @@ auto const& version_map()
 //---------------------------------------------------------------------------//
 }  // namespace
 
+// clang-format off
+@CELERITAS_CMAKE_STRINGS_DEF@
+;  // clang-format on
+
 char const* package_version_cstring(char const* package)
 {
     auto const& versions = version_map();
@@ -61,4 +56,5 @@ char const* package_version_cstring(char const* package)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace config
 }  // namespace celeritas

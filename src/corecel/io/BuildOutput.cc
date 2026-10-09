@@ -92,7 +92,7 @@ void BuildOutput::output(JsonPimpl* j) const
                 if (!enabled)
                     return;
                 auto lower = tolower(name);
-                char const* v = package_version_cstring(lower.c_str());
+                char const* v = config::package_version_cstring(lower.c_str());
                 CELER_VALIDATE(v != nullptr,
                                << "invalid package '" << name << "'");
                 deps[std::string{name}] = std::string{v};
