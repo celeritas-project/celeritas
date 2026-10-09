@@ -103,7 +103,7 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 # - define fake version strings if not available in this cmake
 set(_celer_packages "${CELERITAS_COMPONENTS}")
 list(REMOVE_ITEM _celer_packages Python)
-list(APPEND _celer_packages CLHEP HIP)
+list(APPEND _celer_packages CLHEP hip hiprand hipcub roctracer)
 set(CELERITAS_CMAKE_VERSIONS_INIT)
 if(CELERITAS_USE_CUDA AND NOT CUDA_VERSION_STRING)
   set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
@@ -140,7 +140,7 @@ endif()
 
 # Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep CUDA HIP Geant4 VecGeom HepMC3)
+foreach(_dep covfie CUDA hip Geant4 VecGeom HepMC3)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS
@@ -371,6 +371,9 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
+  if(roctracer_FOUND)
+    list(APPEND PRIVATE_DEPS roctracer::roctx)
+  endif()
   # Build some files as HIP due to rocThrust
   set_source_files_properties(
     sys/Stream.cc
