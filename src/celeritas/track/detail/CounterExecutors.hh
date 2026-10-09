@@ -22,7 +22,7 @@ namespace detail
 {
 //---------------------------------------------------------------------------//
 /*!
- * Clear the num_generated, num_cut, and num_errored counters.
+ * Initialize the num_generated, num_cut, num_errored and num_pending counters.
  *
  * This is called for the core loop immediately before a step iteration is
  * started in Stepper<M>::async() .
@@ -33,11 +33,12 @@ namespace detail
  * \todo For the main EM loop, these are reset once per *step*. For the optical
  * loop, they are reset once per *transport*.
  */
-struct ResetCountersExecutor
+struct InitializeCountersExecutor
 {
     //// DATA ////
 
     ObserverPtr<CoreStateCounters, MemSpace::native> counters;
+    size_type num_pending{};
 
     //// FUNCTIONS ////
 
@@ -48,6 +49,7 @@ struct ResetCountersExecutor
         counters->num_generated = 0;
         counters->num_cut = 0;
         counters->num_errored = 0;
+        counters->num_pending = num_pending;
     }
 };
 

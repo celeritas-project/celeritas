@@ -18,10 +18,12 @@ namespace
 using CSCDeviceRef = CoreStateCounterRef<MemSpace::device>;
 }  // namespace
 //---------------------------------------------------------------------------//
-void reset_counters(CSCDeviceRef const& counters, StreamId stream_id)
+void initialize_counters(
+    CSCDeviceRef const& counters, size_type num_pending, StreamId stream_id)
 {
     CELER_EXPECT(counters.size() == 1);
-    detail::ResetCountersExecutor execute_thread{counters.data()};
+    detail::InitializeCountersExecutor execute_thread{counters.data(),
+                                                      num_pending};
     static KernelLauncher<decltype(execute_thread)> const launch_kernel(
         "reset-counters");
     launch_kernel(1, stream_id, execute_thread);

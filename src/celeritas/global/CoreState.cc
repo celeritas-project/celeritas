@@ -187,9 +187,10 @@ void CoreState<M>::sync_put_counters(CoreStateCounters const& host_counters)
 //---------------------------------------------------------------------------//
 //! Reset counters that are accumulated during a step
 template<MemSpace M>
-void CoreState<M>::reset_counters()
+void CoreState<M>::initialize_counters(size_type num_pending)
 {
-    celeritas::reset_counters(this->ref().init.counters, this->stream_id());
+    celeritas::initialize_counters(
+        this->ref().init.counters, num_pending, this->stream_id());
 }
 
 //---------------------------------------------------------------------------//

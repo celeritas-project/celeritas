@@ -146,7 +146,7 @@ class CoreState final : public CoreStateInterface
     void sync_put_counters(CoreStateCounters const&) final;
 
     // Reset counters that are accumulated during a step
-    void reset_counters();
+    void initialize_counters(size_type num_pending);
 
     // Asynchronously copy counters to host-accessible storage
     void async_copy_counters();

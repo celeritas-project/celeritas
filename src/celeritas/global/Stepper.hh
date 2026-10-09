@@ -455,6 +455,9 @@ class Stepper final : public StepperInterface
 
     // Release a submitted primary source after its copy completes
     void reclaim_submitted_primaries();
+
+    // Calculate an upper bound on the number of initializers required
+    size_type calc_max_initializers() const;
 };
 
 //---------------------------------------------------------------------------//

@@ -160,9 +160,30 @@ void Stepper<M>::async()
         << R"(cannot start a step before the previous result has been retrieved)");
 
     ScopedProfiling profile_this{"step"};
-    // Initialize the generated, error, and cut counters to zero
-    state_->reset_counters();
+
+    /*! \todo If we don't have space for all the primaries or secondaries, we
+     * will need to buffer the current track initializers to create room.
+     *
+     * This isn't trivial because we will need to:
+     * - Allocate a new buffer (probably do something like 2x, rounding up to
+     *   nearest power of 2)?
+     * - Update the collection references for track sim
+     * - Update the *copies* of that reference (?) like in track state
+     * - Copy to device to update the on-device references (state.ptr)
+     */
+    size_type max_initializers = this->calc_max_initializers();
+    CELER_VALIDATE(
+        max_initializers <= this->initializer_capacity(),
+        << "insufficient initializer capacity (" << this->initializer_capacity()
+        << ") for a maximum possible requirement of " << max_initializers
+        << ". Increase initializer capacity or decrease track slots");
+
+    // Initialize the generated, error, and cut counters to zero and set the
+    // number of pending primaries
+    state_->initialize_counters(this->staged_primaries().size());
+
     actions_->step(*params_, *state_);
+
     if (primary_phase_ == PrimaryPhase::staged)
     {
         // The action sequence has enqueued work that consumes the staged input,
@@ -233,10 +254,9 @@ void Stepper<M>::push_primary(Primary const& primary)
  * Stage the producer buffer for transport.
  *
  * This validates and inserts primaries into the stepper state but does not
- * execute transport actions. This separation does not by itself make staging
- * nonblocking: in device mode the current counter updates may still
- * synchronize internally. Reusing the source of a previously submitted batch
- * waits only for its copy event, not for completion of the previous step.
+ * execute transport actions or update core state counters.  Reusing the source
+ * of a previously submitted batch waits only for its copy event, not for
+ * completion of the previous step.
  *
  * \pre No primaries are currently staged.
  */
@@ -265,25 +285,8 @@ void Stepper<M>::stage_primaries()
                    << "event number " << max_id->event_id.unchecked_get()
                    << " exceeds max_events=" << params_->init()->max_events());
 
-    auto counters = state_->sync_get_counters();
-    CELER_VALIDATE(counters.num_pending == 0,
-                   << "cannot stage " << primaries.size()
-                   << " primaries while " << counters.num_pending
-                   << " primaries are already pending");
-    counters.num_pending = primaries.size();
-    state_->sync_put_counters(counters);
-    try
-    {
-        primaries_action_->insert(*params_, *state_, primaries);
-    }
-    catch (...)
-    {
-        // Insertion can fail when the batch plus queued initializers exceeds
-        // initializer capacity. Allow retrying with a smaller batch.
-        counters.num_pending = 0;
-        state_->sync_put_counters(counters);
-        throw;
-    }
+    primaries_action_->insert(*state_, primaries);
+
     if constexpr (M == MemSpace::device)
     {
         primary_copy_done_.record(
@@ -505,6 +508,35 @@ void Stepper<M>::reclaim_submitted_primaries()
         staged_primaries_.clear();
         primary_phase_ = PrimaryPhase::empty;
     }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate an upper bound on the number of initializers required in the step.
+ *
+ * This is a conservative initializer capacity requirement that accounts for
+ * current initializers, new primaries, available track slots, and maximum
+ * possible secondary production. This should be called after the step result
+ * has been retrieved with \c get.
+ */
+template<MemSpace M>
+size_type Stepper<M>::calc_max_initializers() const
+{
+    CELER_EXPECT(!has_outstanding_result_);
+
+    auto const& counters = state_->host_counters();
+
+    // Number of initializers before initializing new tracks
+    size_type pre_init_size = counters.num_initializers
+                              + this->staged_primaries().size();
+
+    // Number remaining after filling vacant track slots
+    size_type post_init_size
+        = pre_init_size - std::min(pre_init_size, counters.num_vacancies);
+
+    // Maximum buffer size is either before track initialization or after
+    // adding the maximum possible number of secondaries
+    return std::max(pre_init_size, post_init_size + this->secondary_capacity());
 }
 
 //---------------------------------------------------------------------------//

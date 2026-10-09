@@ -21,8 +21,10 @@ using CoreStateCounterRef
     = Collection<CoreStateCounters, Ownership::reference, M>;
 
 //---------------------------------------------------------------------------//
-void reset_counters(CoreStateCounterRef<MemSpace::host> const&, StreamId);
-void reset_counters(CoreStateCounterRef<MemSpace::device> const&, StreamId);
+void initialize_counters(
+    CoreStateCounterRef<MemSpace::host> const&, size_type, StreamId);
+void initialize_counters(
+    CoreStateCounterRef<MemSpace::device> const&, size_type, StreamId);
 
 void add_pending(
     CoreStateCounterRef<MemSpace::host> const&, size_type, StreamId);
