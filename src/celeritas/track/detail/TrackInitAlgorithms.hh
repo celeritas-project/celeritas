@@ -11,6 +11,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/ObserverPtr.hh"
+#include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ThreadId.hh"
 #include "celeritas/global/CoreParams.hh"
 
@@ -22,18 +23,35 @@ namespace celeritas
 namespace detail
 {
 //---------------------------------------------------------------------------//
-//! Predicate for separating charged from neutral tracks with a stencil
-struct IsNeutralStencil
+/*!
+ * Flag the initializers that will become neutral tracks in this step.
+ *
+ * The argument is an index into the initializers used to create new tracks
+ * in this step, which are the last \c min(num_vacancies,num_initializers)
+ * elements of the initializer storage. Indices past that range are flagged as
+ * zero so that the flags can be scanned over a fixed size (the number of track
+ * slots) without the host knowing the number of new tracks.
+ */
+struct IsNeutralNewTrack
 {
     using ParamsPtr = CRefPtr<CoreParamsData, MemSpace::native>;
 
     ParamsPtr params;
-    TrackInitializer const* initializers;
+    TrackInitializer const* initializers{nullptr};
+    CoreStateCounters const* counters{nullptr};
 
-    CELER_FUNCTION bool operator()(size_type i) const
+    CELER_FUNCTION size_type operator()(size_type i) const
     {
-        CELER_EXPECT(initializers);
-        return IsNeutral{params}(initializers[i]);
+        CELER_EXPECT(initializers && counters);
+        size_type num_new
+            = min(counters->num_vacancies, counters->num_initializers);
+        if (i >= num_new)
+        {
+            return 0;
+        }
+        TrackInitializer const& init
+            = initializers[counters->num_initializers - num_new + i];
+        return IsNeutral{params}(init) ? 1 : 0;
     }
 };
 
@@ -55,18 +73,14 @@ ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     StreamId);
 
 //---------------------------------------------------------------------------//
-// Sort the tracks that will be initialized in this step by charged/neutral
-void partition_initializers(
+// Count the neutral tracks that will be initialized in this step
+void scan_neutral_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::host> const&,
-    size_type,
-    size_type,
     StreamId);
-void partition_initializers(
+void scan_neutral_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    size_type,
-    size_type,
     StreamId);
 
 //---------------------------------------------------------------------------//
@@ -86,11 +100,9 @@ inline ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline void partition_initializers(
+inline void scan_neutral_initializers(
     CoreParams const&,
     TrackInitStateData<Ownership::reference, MemSpace::device> const&,
-    size_type,
-    size_type,
     StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");

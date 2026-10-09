@@ -7,32 +7,21 @@
 #include "TrackInitAlgorithms.hh"
 
 #if CELERITAS_USE_CUDA
-#    include <cub/device/device_partition.cuh>
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
-#    include <thrust/iterator/counting_iterator.h>
 #elif CELERITAS_HAVE_HIPCUB
-#    include <hipcub/device/device_partition.hpp>
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
-#    include <thrust/iterator/counting_iterator.h>
 #else
 #    include <thrust/execution_policy.h>
-#    include <thrust/partition.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>
 
 #    include "corecel/math/Algorithms.hh"  // For LogicalNot()
 #endif
-#if CELER_CUB_HAS_TRANSFORM
-#    include <cub/device/device_transform.cuh>
-#elif CELER_HIPCUB_HAS_TRANSFORM
-#    include <hipcub/device/device_transform.hpp>
-#elif !CELER_USE_THRUST
-#    include <thrust/execution_policy.h>
-#    include <thrust/transform.h>
-#endif
 #include <thrust/device_ptr.h>
+#include <thrust/iterator/counting_iterator.h>
+#include <thrust/iterator/transform_iterator.h>
 
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
@@ -173,89 +162,57 @@ ObserverPtr<size_type, MemSpace::device> exclusive_scan_counts(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sort the tracks that will be initialized in this step by charged/neutral.
+ * Count the neutral tracks that will be initialized in this step.
  *
- * This partitions an array of indices used to access the track initializers
- * and the thread IDs of the initializers' parent tracks.
+ * This calculates the inclusive prefix sum of \c IsNeutralNewTrack over all
+ * track slots and stores it in the \c indices array: element \em i is the
+ * number of neutral tracks among the first \em i + 1 initializers used in
+ * this step.
+ *
+ * The number of new tracks is read from the device-side counters by the
+ * flagging functor, and the scan size is fixed at the number of track slots,
+ * so no synchronization with the host is needed.
  */
-void partition_initializers(
+void scan_neutral_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::device> const& init,
-    size_type num_initializers,
-    size_type count,
     StreamId stream_id)
 {
-    CELER_EXPECT(count != 0);
+    CELER_EXPECT(!init.indices.empty());
 
-    ScopedProfiling profile_this{"partition-initializers"};
-    // Partition the indices based on the track initializer charge
-    auto counters = device_pointer_cast(init.counters.data());
-    // The initializers array is large. Use stencil to point to the start where
-    // this array is being used
-    auto stencil = static_cast<TrackInitializer*>(init.initializers.data())
-                   + num_initializers - count;
+    ScopedProfiling profile_this{"scan-neutral-initializers"};
+    auto is_neutral = thrust::make_transform_iterator(
+        thrust::make_counting_iterator<size_type>(0),
+        IsNeutralNewTrack{params.ptr<MemSpace::native>(),
+                          init.initializers.data().get(),
+                          init.counters.data().get()});
+    auto data = device_pointer_cast(init.indices.data());
 #if CELER_USE_THRUST
-    auto start = device_pointer_cast(init.indices.data());
-    auto end = start + count;
-    thrust::stable_partition(
-        thrust_execute_on(stream_id),
-        start,
-        end,
-        IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    thrust::inclusive_scan(thrust_execute_on(stream_id),
+                           is_neutral,
+                           is_neutral + init.indices.size(),
+                           data);
 #else
     auto& stream = device().stream(stream_id);
-    // CUB doesn't have a partition function that allows the user to specify
-    // both an iterator for the values to use for selection and a function to
-    // operate on that iterator. (This should change in the future.) So,
-    // instead we create an iterator by using a functor to transform the
-    // stencil values into boolean flags that determine how to partition
-    // the indices.
-    DeviceVector<unsigned char> flags{count, stream_id};
-#    if CELER_CUB_HAS_TRANSFORM || CELER_HIPCUB_HAS_TRANSFORM
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    {
-        auto cub_error_code = cub::DeviceTransform::Transform(
-            stencil,
-            flags.data(),
-            count,
-            IsNeutral{params.ptr<MemSpace::native>()},
-            stream.get());
-        CELER_DISCARD(cub_error_code);
-    }
-#    else
-    thrust::transform(thrust_execute_on(stream_id),
-                      stencil,
-                      stencil + count,
-                      flags.data(),
-                      IsNeutral{params.ptr<MemSpace::native>()});
-#    endif
     // Calling with nullptr causes the function to return the amount of working
     // space needed instead of invoking the kernel
     std::size_t temp_storage_bytes = 0;
-    // CUB doesn't support in-place partitioning, so use a counting iterator
-    // because the indices are always sequential from zero
-    auto start = thrust::make_counting_iterator<size_type>(0);
-    auto data = device_pointer_cast(init.indices.data());
-    auto cub_error_code
-        = cub::DevicePartition::Flagged(nullptr,
-                                        temp_storage_bytes,
-                                        start,
-                                        flags.data(),
-                                        data,
-                                        &(counters->num_neutral),
-                                        count,
-                                        stream.get());
+    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
+    auto cub_error_code = cub::DeviceScan::InclusiveSum(nullptr,
+                                                        temp_storage_bytes,
+                                                        is_neutral,
+                                                        data,
+                                                        init.indices.size(),
+                                                        stream.get());
     CELER_DISCARD(cub_error_code);
     // Allocate temporary storage
     DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    // Partition the indices based on the track initializer charge
-    cub_error_code = cub::DevicePartition::Flagged(temp_storage.data(),
+    // Run inclusive prefix sum
+    cub_error_code = cub::DeviceScan::InclusiveSum(temp_storage.data(),
                                                    temp_storage_bytes,
-                                                   start,
-                                                   flags.data(),
+                                                   is_neutral,
                                                    data,
-                                                   &(counters->num_neutral),
-                                                   count,
+                                                   init.indices.size(),
                                                    stream.get());
     CELER_DISCARD(cub_error_code);
 #endif
