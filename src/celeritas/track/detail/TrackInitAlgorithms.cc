@@ -74,24 +74,30 @@ ObserverPtr<size_type, MemSpace::host> exclusive_scan_counts(
 
 //---------------------------------------------------------------------------//
 /*!
- * Sort the tracks that will be initialized in this step by charged/neutral.
+ * Count the neutral tracks that will be initialized in this step.
  *
- * This partitions an array of indices used to access the track initializers
- * and the thread IDs of the initializers' parent tracks.
+ * This calculates the inclusive prefix sum of \c IsNeutralNewTrack over all
+ * track slots and stores it in the \c indices array: element \em i is the
+ * number of neutral tracks among the first \em i + 1 initializers used in
+ * this step.
  */
-void partition_initializers(
+void scan_neutral_initializers(
     CoreParams const& params,
     TrackInitStateData<Ownership::reference, MemSpace::host> const& init,
-    size_type num_initializers,
-    size_type count,
     StreamId)
 {
-    // Partition the indices based on the track initializer charge
-    auto* start = init.indices.data().get();
-    auto* end = start + count;
-    auto* stencil = init.initializers.data().get() + num_initializers - count;
-    std::stable_partition(
-        start, end, IsNeutralStencil{params.ptr<MemSpace::native>(), stencil});
+    CELER_EXPECT(!init.indices.empty());
+
+    IsNeutralNewTrack is_neutral{params.ptr<MemSpace::native>(),
+                                 init.initializers.data().get(),
+                                 init.counters.data().get()};
+    auto* data = init.indices.data().get();
+    size_type acc = 0;
+    for (size_type i = 0; i < init.indices.size(); ++i)
+    {
+        acc += is_neutral(i);
+        data[i] = acc;
+    }
 }
 
 //---------------------------------------------------------------------------//

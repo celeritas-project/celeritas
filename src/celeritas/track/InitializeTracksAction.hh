@@ -19,6 +19,12 @@ namespace celeritas
  * position. If there are more empty slots than new secondaries, they will be
  * filled by any track initializers remaining from previous steps using the
  * position.
+ *
+ * With \c TrackOrder::init_charge, new neutral tracks are placed in the
+ * vacancies at the front of the track vector and new charged tracks in the
+ * vacancies at the back. The placement is determined on the device from a
+ * prefix sum of neutral flags over all track slots, so the number of new
+ * tracks never has to be copied to the host.
  */
 class InitializeTracksAction final : public CoreStepActionInterface
 {
