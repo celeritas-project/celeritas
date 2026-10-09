@@ -13,12 +13,14 @@ namespace celeritas
 
 //! Celeritas version string with git metadata
 char const version_string[] = "@Celeritas_VERSION_STRING@";
+// clang-format off
 //! Celeritas major version
 unsigned int const version_major{@Celeritas_VERSION_MAJOR@};
 //! Celeritas minor version
 unsigned int const version_minor{@Celeritas_VERSION_MINOR@};
 //! Celeritas patch version
 unsigned int const version_patch{@Celeritas_VERSION_PATCH@};
+// clang-format on
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

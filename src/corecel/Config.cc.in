@@ -5,7 +5,9 @@
 //! \file corecel/Config.cc
 //! \brief Celeritas config definition.
 //---------------------------------------------------------------------------//
+// clang-format off
 #include "corecel/Config.hh"
+// clang-format on
 
 #include <string>
 #include <unordered_map>
@@ -16,10 +18,12 @@ namespace cmake
 {
 //---------------------------------------------------------------------------//
 
+// clang-format off
 @CELERITAS_CMAKE_STRINGS_DEF@
+// clang-format on
 
 //---------------------------------------------------------------------------//
-}
+}  // namespace cmake
 
 namespace
 {
@@ -30,7 +34,9 @@ std::unordered_map<std::string, char const*> const& versions()
     static constexpr char package_disabled[] = "";
     static constexpr char undefined_version[] = "";
     static MapStrCstr result = {
+        // clang-format off
 @CELERITAS_CMAKE_VERSIONS_INIT@
+        // clang-format on
     };
     return result;
 }

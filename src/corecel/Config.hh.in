@@ -21,6 +21,7 @@
 //---------------------------------------------------------------------------//
 // User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
+// clang-format off
 
 // Dependencies
 #cmakedefine01 CELERITAS_USE_COVFIE
@@ -84,12 +85,15 @@
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information
 //---------------------------------------------------------------------------//
+;  // clang-format on
 
 namespace celeritas
 {
 namespace cmake
 {
+// clang-format off
 @CELERITAS_CMAKE_STRINGS_DECL@
+// clang-format on
 }  // namespace cmake
 
 /*!
