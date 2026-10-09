@@ -116,7 +116,7 @@ jobs:
       - name: Set up Spack environment
         uses: ./.github/actions/setup-spack
         with:
-          add: "geant4@11.3 vecgeom@2.1.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
+          add: "geant4@11.3 vecgeom@2.2.0 g4vg hepmc3~rootio" # Same as vecgeom 11.3
           cxxstd: ${{env.CXXSTD}}
       - name: Configure Celeritas
         uses: ./.github/actions/configure
