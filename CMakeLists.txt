@@ -825,7 +825,7 @@ set(_cmake_files
   "${_LOCAL_RDCUTILS_FILENAME}"
 )
 # Add packages with custom Celeritas-provided FindX scripts
-foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom)
+foreach(_dep CLI11 covfie Geant4 G4VG HepMC3 LArSoft Perfetto ROOT Thrust VecGeom rocthrust roctracer)
   if(CELERITAS_USE_${_dep} AND NOT CELERITAS_BUILTIN_${_dep})
     list(APPEND _cmake_files "${PROJECT_SOURCE_DIR}/cmake/Find${_dep}.cmake")
   endif()

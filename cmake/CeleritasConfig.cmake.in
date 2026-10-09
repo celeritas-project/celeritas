@@ -96,6 +96,7 @@ elseif(CELERITAS_USE_HIP)
     STRING "HIP architectures"
   )
   find_dependency(hip REQUIRED QUIET)
+  find_dependency(roctracer REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_DD4hep)

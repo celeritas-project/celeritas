@@ -141,7 +141,7 @@ endif()
 
 # Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep covfie CUDA hip Geant4 VecGeom HepMC3)
+foreach(_dep covfie CUB CUDA hip Geant4 HepMC3 hipcub VecGeom)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS
