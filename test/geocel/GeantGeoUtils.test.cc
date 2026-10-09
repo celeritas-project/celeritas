@@ -53,8 +53,11 @@ TEST(GeantGeo, config)
 #endif
     constexpr bool celer_g4_usolids{CELERITAS_GEANT4_USOLIDS};
     EXPECT_EQ(g4_usolids, celer_g4_usolids);
-    EXPECT_EQ(celeritas::Version::from_dec_xyz(G4VERSION_NUMBER),
-              celeritas::Version::from_hex_xxyyzz(CELERITAS_GEANT4_VERSION));
+
+    constexpr auto g4vers = Version::from_dec_xyz(G4VERSION_NUMBER);
+    // NOTE: if this fails, it could indicate conflicting include paths
+    EXPECT_EQ(g4vers, Version::from_hex_xxyyzz(CELERITAS_GEANT4_VERSION));
+    EXPECT_EQ(g4vers, Version::from_package("geant4"));
 }
 
 class GeantGeoUtilsTest : public GeantGeoTestBase

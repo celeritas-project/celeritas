@@ -9,10 +9,10 @@
 #include <array>
 #include <cstdlib>  // IWYU pragma: keep
 #include <iosfwd>
-#include <string>
 #include <string_view>
 
-// Undefine macros from sys/sysmacros.h
+// Undefine macros from <sys/sysmacros.h> if included; possibly included
+// through <sys/types.h> for historical reasons
 #ifdef major
 #    undef major
 #endif
@@ -31,9 +31,30 @@ namespace celeritas
  * constexpr` expressions with preprocessor macros. In the constructor
  * documentation, x/y/z correspond to major/minor/patch.
  *
+ * Versions evaluate to \c false with the default constructor or when
+ * constructed from a Celeritas package that is disabled.
+ *
+ * \par Constructors
+ *
+ * With Geant4 enabled, these should all produce the same Version object:
  * \code
- * Version(4) == Version(4.0) == Version(4.0.0)
- * Version(3.1) > Version(3)
+ * Version::from_package("Geant4"); // [1]
+ * Version::from_hex_xxyyzz(CELERITAS_GEANT4_VERSION); // [1, 2]
+ * Version::from_dec_xyz(G4VERSION_NUMBER); // [2, 3]
+ * \endcode
+ *
+ * but note that:
+ * - [1] uses the built-in Celeritas CMake configuration (requires including
+ *   \c corecel/Config.hh)
+ * - [2] is constexpr
+ * - [3] uses an external header file (must link against a Geant4 cmake target
+ *   to access the include directories)
+ *
+ * \par Example
+ *
+ * \code
+ * assert(Version(4) == Version(4.0) == Version(4.0.0));
+ * assert(Version(3.1) > Version(3));
  * \endcode
  */
 class Version
@@ -49,6 +70,10 @@ class Version
     // Construct from a string "1.2.3"
     static Version from_string(std::string_view sv);
 
+    // Construct from a Celeritas-configured package name "vecgeom"/"VecGeom"
+    // False/zero if undefined, throw if unknown package
+    static Version from_package(std::string_view p);
+
     // Construct from an 0xXXYYZZ integer
     static inline constexpr Version from_hex_xxyyzz(size_type value);
 
@@ -58,6 +83,9 @@ class Version
     // Construct from x.y.z integers
     inline constexpr Version(
         size_type major, size_type minor = 0, size_type patch = 0);
+
+    //! Default (false) version
+    constexpr Version() : version_{0, 0, 0} {}
 
     //!@{
     //! \name Accessors
@@ -74,7 +102,32 @@ class Version
     //! Get patch version
     constexpr size_type patch() const { return version_[2]; }
 
+    //! Whether the version is defined
+    constexpr explicit operator bool() const
+    {
+        return version_[0] || version_[1] || version_[2];
+    }
     //!@}
+
+    //// INLINE FRIENDS ////
+
+#define CELER_DEFINE_VERSION_CMP(TOKEN) \
+    inline friend bool operator TOKEN(Version const& lhs, Version const& rhs) \
+    { \
+        return lhs.value() TOKEN rhs.value(); \
+    }
+
+    CELER_DEFINE_VERSION_CMP(==)
+    CELER_DEFINE_VERSION_CMP(!=)
+    CELER_DEFINE_VERSION_CMP(<)
+    CELER_DEFINE_VERSION_CMP(>)
+    CELER_DEFINE_VERSION_CMP(<=)
+    CELER_DEFINE_VERSION_CMP(>=)
+
+#undef CELER_DEFINE_VERSION_CMP
+
+    // Write to stream
+    friend std::ostream& operator<<(std::ostream&, Version const&);
 
   private:
     ArrayT version_;
@@ -113,29 +166,6 @@ constexpr Version::Version(size_type major, size_type minor, size_type patch)
     : version_{{major, minor, patch}}
 {
 }
-
-//---------------------------------------------------------------------------//
-// FREE FUNCTIONS
-//---------------------------------------------------------------------------//
-// NOTE: constexpr is only defined for std::array in C++20
-
-#define CELER_DEFINE_VERSION_CMP(TOKEN) \
-    inline bool operator TOKEN(Version const& lhs, Version const& rhs) \
-    { \
-        return lhs.value() TOKEN rhs.value(); \
-    }
-
-CELER_DEFINE_VERSION_CMP(==)
-CELER_DEFINE_VERSION_CMP(!=)
-CELER_DEFINE_VERSION_CMP(<)
-CELER_DEFINE_VERSION_CMP(>)
-CELER_DEFINE_VERSION_CMP(<=)
-CELER_DEFINE_VERSION_CMP(>=)
-
-#undef CELER_DEFINE_VERSION_CMP
-
-// Write to stream
-std::ostream& operator<<(std::ostream&, Version const&);
 
 // Get the Celeritas version as an object
 Version celer_version();

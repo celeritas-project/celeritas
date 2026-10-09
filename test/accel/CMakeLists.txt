@@ -230,6 +230,13 @@ celeritas_add_integration_tests(
   DISABLE
 )
 
+# Test cleanup after runtime error
+celeritas_add_integration_tests(
+  TrackingManagerIntegration TestEm3 max_step_iters_error
+  OFFLOAD cpu gpu
+  RMTYPE serial
+)
+
 # Test that we can safely flush and restore primaries multiple times per event
 celeritas_add_integration_tests(
   TrackingManagerIntegration WaterSphere run_small_flush

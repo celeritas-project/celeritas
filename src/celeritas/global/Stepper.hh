@@ -83,24 +83,26 @@ struct StepperResult
  * This allows higher-level classes not to care whether the stepper operates on
  * host or device.
  *
- * A stepper initially has no asynchronous result, so \c valid returns false.
- * Calling \c async, with or without primaries, starts one step and makes the
- * result valid. No other step can be started until \c get returns the result
- * and restores the initial state. The \c ready function queries completion
- * without blocking, \c wait blocks without consuming the result, and \c get
- * waits if necessary before consuming it. All three require a valid result.
- * A valid result can be ready: \c valid describes whether the result can be
- * retrieved, rather than whether device execution is still underway.
+ * A stepper initially has no asynchronous result, so \c has_outstanding_result
+ * returns false.  Calling \c async, with or without primaries, starts one step
+ * and creates an outstanding result. No other step can be started until \c get
+ * returns the result and restores the initial state. The \c ready function
+ * queries completion without blocking, \c wait blocks until completion without
+ * retrieving the result, and \c get waits if necessary before retrieving the
+ * result and restoring the initial state. All three require an outstanding
+ * result. An outstanding result does not imply that execution is still in
+ * progress: the step may already be complete and waiting for its result to be
+ * retrieved.
  *
  * Primary input is accumulated in a fixed-capacity producer buffer owned by
  * the stepper. Calling \c stage_primaries transfers that batch into the core
  * state and makes it available to the next call to \c async. The producer can
- * then accept another batch, including while a previous step result is valid.
- * At most one unsubmitted batch can be staged. The span overload copies its
- * input into stepper-owned storage, so the caller's span need not remain valid
- * after the call returns. The span returned by \c staged_primaries represents
- * only the current unsubmitted batch and should not be retained after a call
- * that changes the staging state.
+ * then accept another batch, including while a previous step has an
+ * outstanding result. At most one unsubmitted batch can be staged. The span
+ * overload copies its input into stepper-owned storage, so the caller's span
+ * need not remain valid after the call returns. The span returned by \c
+ * staged_primaries represents only the current unsubmitted batch and should
+ * not be retained after a call that changes the staging state.
  *
  * Calling \c async submits staged primaries, if present, and otherwise
  * advances existing tracks without changing the producer buffer. This allows
@@ -113,10 +115,10 @@ struct StepperResult
  * call operators preserve synchronous behavior by calling \c async followed
  * by \c get.
  *
- * Before destroying a device Stepper, the caller must ensure that any valid
- * asynchronous operation has completed by calling \c wait or \c get, and that
- * any staged primary batch has been submitted with \c async. Destruction does
- * not add hidden synchronization.
+ * Before destroying a device Stepper, the caller must ensure that any
+ * outstanding asynchronous operation has completed by calling \c wait or \c
+ * get, and that any staged primary batch has been submitted with \c async.
+ * Destruction does not add hidden synchronization.
  *
  * \note This interface and its implementations may be removed soon to
  * facilitate step gathering.
@@ -146,7 +148,7 @@ class StepperInterface
     virtual void async(SpanConstPrimary primaries) = 0;
 
     //! Whether an asynchronous step result can be retrieved
-    virtual bool valid() const noexcept = 0;
+    virtual bool has_outstanding_result() const noexcept = 0;
 
     // Whether the asynchronous step has completed
     virtual bool ready() const = 0;
@@ -253,12 +255,14 @@ class StepperInterface
  *
  * \par Asynchronous state
  *
- * The \c valid_ flag tracks whether a result can be consumed, whereas
- * \c step_done_ tracks completion of device work. Their states after successful
- * calls are:
+ * The \c has_outstanding_result_ flag tracks whether an asynchronous step has
+ * a result that has not yet been retrieved with \c get, whereas \c step_done_
+ * tracks completion of device work. Their states after successful calls are:
  *
- * | Lifecycle point | \c valid_ | CPU \c step_done_ | GPU \c step_done_ |
- * | --------------- | -------------- | ------------------ | ------------------ |
+ * | Lifecycle point | \c has_outstanding_result_ | CPU \c step_done_ | GPU \c
+ step_done_ |
+ * | --------------- | -------------------------- | ----------------- |
+ ----------------- |
  * | Construction or after \c get | false | Null | Allocated and ready |
  * | After \c async | true | Null and ready | Recorded; pending or ready |
  * | After \c ready returns false | true | Not possible | Recorded and pending |
@@ -266,11 +270,12 @@ class StepperInterface
  *
  * A host step executes synchronously, so its null event is always ready. A
  * device event is allocated once and re-recorded after each counter snapshot.
- * Calling \c get first waits for completion and then clears \c valid_;
- * it does not reset or replace the event. Primary buffering has an independent
- * state, tracked by \c primary_phase_ and \c primary_copy_done_. The staged
- * storage remains internal while a copy source is submitted, but the public
- * \c staged_primaries accessor returns only an unsubmitted batch:
+ * Calling \c get first waits for completion and then clears \c
+ * has_outstanding_result_; it does not reset or replace the event. Primary
+ * buffering has an independent state, tracked by \c primary_phase_ and \c
+ * primary_copy_done_. The staged storage remains internal while a copy source
+ * is submitted, but the public \c staged_primaries accessor returns only an
+ * unsubmitted batch:
  *
  * | Primary phase | Producer | Staged storage | Accessor | Copy event |
  * | ------------- | -------- | -------------- | -------- | ---------- |
@@ -288,25 +293,27 @@ class StepperInterface
  *
  * The expected state transitions are
  * \code
- *   no result + producer -- async() --> valid result + same producer
- *   no result + no queued input -- async(primaries) --> valid result
- *   valid result -- ready() or wait() --> valid result
- *   valid result -- get() --> no result
+ *   no result + producer -- async() --> outstanding result + same producer
+ *   no result + no queued input -- async(primaries) --> outstanding result
+ *   outstanding result -- ready() or wait() --> outstanding result
+ *   outstanding result -- get() --> no result
  *
  *   producer -- stage_primaries() --> staged
- *   valid result + producer -- stage_primaries() --> valid result + staged
- *   staged + no result -- async() --> submitted + valid result
+ *   outstanding result + producer -- stage_primaries() --> outstanding result
+ + staged
+ *   staged + no result -- async() --> submitted + outstanding result
  *   submitted + producer -- stage_primaries() --> staged
  * \endcode
- * Calling \c ready or \c wait repeatedly with a valid result is allowed. The
- * next \c async call is allowed only after \c get consumes the previous result.
- * Primaries may be pushed and staged while a result is valid, and the producer
- * may begin filling again while that next batch is staged. The staged batch
- * cannot be submitted until the prior result is consumed. Calls to \c warm_up,
- * \c reset_state, and \c reseed are rejected while a result or queued primary
- * batch exists. Calling \c kill_active permits buffered primaries but rejects a
- * pending result or staged batch. The synchronous call operators perform \c
- * async followed immediately by \c get.
+ * Calling \c ready or \c wait repeatedly with an outstanding result is
+ * allowed. The next \c async call is allowed only after \c get consumes the
+ * previous result.  Primaries may be pushed and staged while a result is
+ * outstanding, and the producer may begin filling again while that next batch
+ * is staged. The staged batch cannot be submitted until the prior result is
+ * consumed. Calls to \c warm_up, \c reset_state, and \c reseed are rejected
+ * while an outstanding result or queued primary batch exists. Calling \c
+ * kill_active permits buffered primaries but rejects an outstanding result or
+ * staged batch. The synchronous call operators perform \c async followed
+ * immediately by \c get.
  */
 template<MemSpace M>
 class Stepper final : public StepperInterface
@@ -334,7 +341,10 @@ class Stepper final : public StepperInterface
     void async(SpanConstPrimary primaries) final;
 
     //! Whether an asynchronous step result can be retrieved
-    bool valid() const noexcept final { return valid_; }
+    bool has_outstanding_result() const noexcept final
+    {
+        return has_outstanding_result_;
+    }
 
     // Whether the asynchronous step has completed
     bool ready() const final;
@@ -416,10 +426,6 @@ class Stepper final : public StepperInterface
     using VecPrimary = std::vector<Primary>;
     using PinnedVecPrimary = std::vector<Primary, PinnedAllocator<Primary>>;
     using PrimaryStorage = MemSpaceCond_t<M, VecPrimary, PinnedVecPrimary>;
-    using PinnedVecCounters
-        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
-    using CounterStorage
-        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
 
     // Params data
     std::shared_ptr<CoreParams const> params_;
@@ -439,12 +445,10 @@ class Stepper final : public StepperInterface
     DeviceEvent primary_copy_done_{nullptr};
     // Logical state of staged_primaries_
     PrimaryPhase primary_phase_{PrimaryPhase::empty};
-    // Preallocated result from the most recently started step
-    CounterStorage result_counters_;
     // Completion of device work and the result-counter snapshot
     DeviceEvent step_done_{nullptr};
     // Whether an asynchronous step result can be retrieved
-    bool valid_{false};
+    bool has_outstanding_result_{false};
 
     // Whether an operation would conflict with queued primaries
     bool has_queued_primaries() const noexcept;

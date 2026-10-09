@@ -7,6 +7,7 @@
 #include "CoreState.hh"
 
 #include "corecel/Assert.hh"
+#include "corecel/data/Copier.hh"
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/ActionRegistry.hh"
 #include "corecel/sys/ScopedProfiling.hh"
@@ -53,20 +54,22 @@ CoreState<M>::CoreState(
     states_ = StateDataStore<CoreStateData, M>(
         params.host_ref(), stream_id, num_track_slots);
 
-    auto counters = CoreStateCounters{};
-    counters.num_vacancies = num_track_slots;
-    this->sync_put_counters(counters);
-
     if constexpr (M == MemSpace::device)
     {
         device_ref_vec_ = DeviceVector<Ref>(1);
         device_ref_vec_.copy_to_device({&this->ref(), 1});
         ptr_ = make_observer(device_ref_vec_);
+        host_counters_.resize(1);
     }
     else if constexpr (M == MemSpace::host)
     {
         ptr_ = make_observer(&this->ref());
     }
+
+    auto counters = CoreStateCounters{};
+    counters.num_vacancies = num_track_slots;
+    this->sync_put_counters(counters);
+    host_counters_.front() = counters;
 
     if (params.aux_reg())
     {
@@ -84,6 +87,7 @@ CoreState<M>::CoreState(
     CELER_ENSURE(states_);
     CELER_ENSURE(ptr_);
     CELER_ENSURE(aux_state_);
+    CELER_ENSURE(host_counters_.size() == 1);
 }
 
 //---------------------------------------------------------------------------//
@@ -191,6 +195,47 @@ void CoreState<M>::initialize_counters(size_type num_pending)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Copy the current counters to host-accessible storage without synchronizing.
+ *
+ * For a device state, the copy is enqueued on the state's stream and completes
+ * asynchronously. The caller must ensure the copy has completed before
+ * accessing \c host_counters.
+ */
+template<MemSpace M>
+void CoreState<M>::async_copy_counters()
+{
+    auto const* counters = static_cast<CoreStateCounters const*>(
+        this->ref().init.counters.data());
+    CELER_ASSERT(counters);
+
+    if constexpr (M == MemSpace::device)
+    {
+        Copier<CoreStateCounters, MemSpace::host> copy_counters{
+            make_span(host_counters_), this->stream_id()};
+        copy_counters(MemSpace::device, {counters, 1});
+    }
+    else
+    {
+        host_counters_.front() = *counters;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the most recently copied host counters.
+ *
+ * For a device state, the caller must ensure the preceding counter copy has
+ * completed.
+ */
+template<MemSpace M>
+CoreStateCounters const& CoreState<M>::host_counters() const
+{
+    CELER_EXPECT(host_counters_.size() == 1);
+    return host_counters_.front();
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset the state data.
  *
  * This clears the state counters and initializes the necessary state data so
@@ -202,7 +247,9 @@ void CoreState<M>::reset()
 {
     auto counters = CoreStateCounters{};
     counters.num_vacancies = this->size();
+
     this->sync_put_counters(counters);
+    host_counters_.front() = counters;
 
     // Reset all the track slots to inactive
     fill(TrackStatus::inactive, &this->ref().sim.status);

@@ -8,6 +8,10 @@
 
 #include <string_view>
 
+#include "corecel/Config.hh"
+
+#include "corecel/Assert.hh"
+
 #include "celeritas_test.hh"
 
 #define VT_G4VERSION 1063
@@ -36,9 +40,14 @@ TEST(VersionTest, constructors)
     }
     {
         constexpr Version v{1};
+        EXPECT_TRUE(v);
         EXPECT_EQ(1, v.major());
         EXPECT_EQ(0, v.minor());
         EXPECT_EQ(0, v.patch());
+    }
+    {
+        constexpr Version v{0, 0, 1};
+        EXPECT_TRUE(v);
     }
     {
         constexpr auto v = Version::from_hex_xxyyzz(VT_CELERITAS_VERSION);
@@ -51,6 +60,10 @@ TEST(VersionTest, constructors)
         EXPECT_EQ(10, v.major());
         EXPECT_EQ(6, v.minor());
         EXPECT_EQ(3, v.patch());
+    }
+    {
+        constexpr Version v{};
+        EXPECT_FALSE(v);
     }
 }
 
@@ -82,6 +95,18 @@ TEST(VersionTest, from_string)
     EXPECT_THROW(Version::from_string("nope"sv), celeritas::RuntimeError);
     EXPECT_THROW(Version::from_string("0.3.1blakjsdf"sv),
                  celeritas::RuntimeError);
+}
+
+TEST(VersionTest, from_package)
+{
+    EXPECT_NO_THROW(Version::from_package("Geant4"));
+    EXPECT_THROW(Version::from_package("invalid"), RuntimeError);
+    if constexpr (CELERITAS_USE_GEANT4)
+    {
+        auto g4_vers = Version::from_package("geant4");
+        EXPECT_TRUE(g4_vers);
+        EXPECT_EQ(g4_vers, Version::from_hex_xxyyzz(CELERITAS_GEANT4_VERSION));
+    }
 }
 
 //---------------------------------------------------------------------------//

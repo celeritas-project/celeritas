@@ -128,7 +128,7 @@ class KnWarmupTest : public KnSimpleLoopTestBase
         for (int i = 0; i < 2; ++i)
         {
             step.warm_up();
-            EXPECT_FALSE(step.valid());
+            EXPECT_FALSE(step.has_outstanding_result());
             EXPECT_EQ(0, callback->num_steps());
         }
 

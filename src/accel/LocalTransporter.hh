@@ -87,10 +87,13 @@ struct StepperResult;
  * producer buffer remains, it advances the current transport until that batch
  * satisfies the same initializer and secondary-capacity admission rule, then
  * stages and launches the producer batch. It finally steps all transport
- * synchronously to completion. Device-generated Geant SD data is copied and
- * reconstructed when each completed step result is consumed, keeping that work
- * out of the asynchronous action launch. The current copy still synchronizes
- * before the next step starts. Hit processing and Geant4 track reconstruction
+ * synchronously to completion. Selection and compaction of device-generated
+ * Geant SD data are enqueued on the device during the action launch, so a step
+ * is not ready until they complete. The compacted data is copied to the host
+ * and reconstructed only when the completed step result is consumed, keeping
+ * the host copy and hit processing out of the asynchronous action launch. The
+ * current copy still synchronizes before the next step starts. Hit processing
+ * and Geant4 track reconstruction
  * are kept alive across the asynchronous work and cleared only after the drain
  * completes. A flush with only rejected primaries still reports and clears
  * their loss accounting.
@@ -199,6 +202,8 @@ class LocalTransporter final : public TrackOffloadInterface
 
     //// HELPER FUNCTIONS ////
 
+    void flush_impl();
+    void push_impl(G4Track&);
     void stage_buffered_primaries(StepperResult const&);
     size_type available_primary_capacity(StepperResult const&) const;
     void launch_step();
@@ -207,6 +212,8 @@ class LocalTransporter final : public TrackOffloadInterface
     StepperResult advance_transport();
     StepperResult wait_for_initializer_capacity();
     void drain_transport();
+    void reset_local_state();
+    void launch_pending_primaries();
 
     //// DATA ////
 

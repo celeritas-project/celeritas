@@ -29,6 +29,7 @@
 #include "corecel/io/Logger.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Environment.hh"
+#include "corecel/sys/ScopeExit.hh"
 #include "corecel/sys/ScopedProfiling.hh"
 #include "corecel/sys/ScopedSignalHandler.hh"
 #include "corecel/sys/TraceCounter.hh"
@@ -298,7 +299,7 @@ size_type LocalTransporter::available_primary_capacity(
 void LocalTransporter::launch_step()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(!step_->valid());
+    CELER_EXPECT(!step_->has_outstanding_result());
     CELER_EXPECT(in_flight_accum_.empty());
 
     auto const staged_primaries = step_->staged_primaries();
@@ -345,7 +346,7 @@ void LocalTransporter::launch_step()
     }
 
     step_->async();
-    CELER_ENSURE(step_->valid());
+    CELER_ENSURE(step_->has_outstanding_result());
     CELER_ENSURE(step_->staged_primaries().empty());
     if (has_staged)
     {
@@ -362,14 +363,13 @@ void LocalTransporter::launch_step()
 auto LocalTransporter::complete_step() -> StepperResult
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->has_outstanding_result());
 
     auto result = step_->get();
     if (hit_processor_)
     {
-        // copy_steps currently synchronizes, so defer the transfer and host
-        // processing until the result is ready. A future transfer can be
-        // enqueued during async, but must complete before scratch is reused.
+        // Hits were compacted on device during the step: copy them to the
+        // host and process them before the next step can reuse the scratch.
         hit_processor_->process_pending_steps();
     }
     ++step_iters_;
@@ -416,7 +416,7 @@ void LocalTransporter::advance_if_ready()
 {
     CELER_EXPECT(*this);
 
-    if (!step_->valid())
+    if (!step_->has_outstanding_result())
     {
         if (!step_->staged_primaries().empty())
         {
@@ -446,7 +446,7 @@ void LocalTransporter::advance_if_ready()
 auto LocalTransporter::advance_transport() -> StepperResult
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(!step_->valid());
+    CELER_EXPECT(!step_->has_outstanding_result());
 
     this->launch_step();
     return this->complete_step();
@@ -464,7 +464,7 @@ auto LocalTransporter::advance_transport() -> StepperResult
 auto LocalTransporter::wait_for_initializer_capacity() -> StepperResult
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->has_outstanding_result());
     CELER_EXPECT(step_->num_buffered_primaries() > 0);
     CELER_EXPECT(step_->staged_primaries().empty());
 
@@ -506,7 +506,7 @@ auto LocalTransporter::wait_for_initializer_capacity() -> StepperResult
 void LocalTransporter::drain_transport()
 {
     CELER_EXPECT(*this);
-    CELER_EXPECT(step_->valid());
+    CELER_EXPECT(step_->has_outstanding_result());
     CELER_EXPECT(step_->staged_primaries().empty());
 
     /*!
@@ -529,13 +529,95 @@ void LocalTransporter::drain_transport()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Launch any staged primaries, then admit and launch buffered primaries.
+ */
+void LocalTransporter::launch_pending_primaries()
+{
+    CELER_EXPECT(*this);
+
+    // Launch any batch that was staged while the current step was in flight
+    if (!step_->staged_primaries().empty())
+    {
+        if (step_->has_outstanding_result())
+        {
+            // Retrieve the previous step result before submitting another
+            // step. This records whether any active tracks remain so
+            // launch_step can distinguish between continuing transport and
+            // starting a new batch
+            static_cast<void>(this->complete_step());
+        }
+        this->launch_step();
+    }
+
+    // Stage and launch any batch remaining in the producer buffer
+    if (step_->num_buffered_primaries() > 0)
+    {
+        StepperResult track_counts;
+        if (step_->has_outstanding_result())
+        {
+            // Advance transport only as far as needed to make room for the
+            // buffered primaries while preserving space for secondaries
+            track_counts = this->wait_for_initializer_capacity();
+        }
+        this->stage_buffered_primaries(track_counts);
+        this->launch_step();
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reset thread-local state when terminating run.
+ */
+void LocalTransporter::reset_local_state()
+{
+    CELER_EXPECT(*this);
+
+    // Ensure asynchronous work is complete before destroying the stepper/state
+    if (step_ && step_->has_outstanding_result())
+    {
+        try
+        {
+            step_->wait();
+        }
+        catch (...)
+        {
+            CELER_LOG(error)
+                << "Failed to synchronize transport during cleanup";
+        }
+    }
+
+    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
+    {
+        // Geant4 navigation states *MUST* be deallocated on the thread in
+        // which they're allocated
+        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
+            step_->sp_state());
+        CELER_ASSERT(state);
+#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
+        state->ref().geometry.reset();
+#endif
+    }
+
+    // Flush any remaining performance counters on the worker thread
+    TracingSession::flush();
+
+    // Reset all data
+    *this = {};
+
+    CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Convert a Geant4 track and add it to the Stepper producer buffer.
  */
-void LocalTransporter::Push(G4Track& g4track)
+void LocalTransporter::push_impl(G4Track& g4track)
 {
     CELER_EXPECT(*this);
 
     ScopedProfiling profile_this{"push"};
+
+    // Use each push to advance any ready transport and keep the device busy
     this->advance_if_ready();
 
     // Always check the event ID when pushing the first EM track, since the
@@ -601,36 +683,22 @@ void LocalTransporter::Push(G4Track& g4track)
     step_->push_primary(track);
     ++buffered_accum_.primaries;
     buffered_accum_.energy += gtv.energy().value();
-    if (step_->num_buffered_primaries() == step_->primary_capacity())
+
+    if (step_->num_buffered_primaries() < step_->primary_capacity())
     {
-        if (celeritas::device())
-        {
-            if (!step_->staged_primaries().empty())
-            {
-                // Submit a staged successor before using the full producer as
-                // the next staged batch.
-                if (step_->valid())
-                {
-                    // complete_step stores continuation in transport_active_,
-                    // which launch_step uses after the result is discarded.
-                    static_cast<void>(this->complete_step());
-                }
-                this->launch_step();
-            }
-            StepperResult prior;
-            if (step_->valid())
-            {
-                // Preserve active tracks while making room for this producer
-                // batch and the next step's secondaries.
-                prior = this->wait_for_initializer_capacity();
-            }
-            this->stage_buffered_primaries(prior);
-            this->launch_step();
-        }
-        else
-        {
-            this->Flush();
-        }
+        // Keep buffering until the batch is full
+        return;
+    }
+
+    if (celeritas::device())
+    {
+        // Launch staged and buffered primaries
+        this->launch_pending_primaries();
+    }
+    else
+    {
+        // Host transport runs synchronously, so flush the whole batch immediately
+        this->flush_impl();
     }
 }
 
@@ -638,14 +706,15 @@ void LocalTransporter::Push(G4Track& g4track)
 /*!
  * Transport all buffered tracks and produced secondaries.
  */
-void LocalTransporter::Flush()
+void LocalTransporter::flush_impl()
 {
     CELER_EXPECT(*this);
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
+
     // Rejected primaries have no Stepper state but still need loss accounting.
-    if (!step_->valid() && !has_staged && !has_buffered
+    if (!step_->has_outstanding_result() && !has_staged && !has_buffered
         && buffered_accum_.lost_primaries == 0)
     {
         return;
@@ -653,33 +722,16 @@ void LocalTransporter::Flush()
 
     ScopedProfiling profile_this("flush");
 
-    if (!step_->staged_primaries().empty())
-    {
-        // Preserve an already staged successor by submitting it first.
-        if (step_->valid())
-        {
-            // complete_step stores continuation in transport_active_, which
-            // launch_step uses after the result is discarded.
-            static_cast<void>(this->complete_step());
-        }
-        this->launch_step();
-    }
-    if (step_->num_buffered_primaries() > 0)
-    {
-        // A partial producer follows the same admission rule as a full batch.
-        StepperResult prior;
-        if (step_->valid())
-        {
-            prior = this->wait_for_initializer_capacity();
-        }
-        this->stage_buffered_primaries(prior);
-        this->launch_step();
-    }
-    if (step_->valid())
+    // Launch staged and buffered primaries
+    this->launch_pending_primaries();
+
+    // Complete all remaining transport
+    if (step_->has_outstanding_result())
     {
         this->drain_transport();
     }
 
+    // Account for rejected primaries that were never transported
     if (buffered_accum_.lost_primaries > 0)
     {
         CELER_ASSERT(buffered_accum_.primaries == 0);
@@ -693,6 +745,7 @@ void LocalTransporter::Flush()
         buffered_accum_ = {};
     }
 
+    // Record the number of hits processed during this flush
     if (hit_processor_)
     {
         auto num_hits = hit_processor_->exchange_hits();
@@ -703,7 +756,43 @@ void LocalTransporter::Flush()
             run_accum_.hits += num_hits;
         }
     }
+
+    // Release reconstruction data now that all offloaded tracks are complete
     track_reconstruction_->clear();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Convert a Geant4 track and add it to the Stepper producer buffer.
+ */
+void LocalTransporter::Push(G4Track& g4track)
+{
+    try
+    {
+        this->push_impl(g4track);
+    }
+    catch (...)
+    {
+        this->reset_local_state();
+        throw;
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Transport all buffered tracks and produced secondaries.
+ */
+void LocalTransporter::Flush()
+{
+    try
+    {
+        this->flush_impl();
+    }
+    catch (...)
+    {
+        this->reset_local_state();
+        throw;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -732,13 +821,18 @@ size_type LocalTransporter::GetBufferSize() const
 void LocalTransporter::Finalize()
 {
     CELER_EXPECT(*this);
+
+    ScopeExit reset_state{[this] { this->reset_local_state(); }};
+
     auto const buffer_size = this->GetBufferSize();
     // Submitted-batch accounting may already be clear while active tail tracks
     // or an unconsumed Stepper result still require transport.
     CELER_VALIDATE(
-        !step_->valid() && !transport_active_ && buffer_size == 0,
+        !step_->has_outstanding_result() && !transport_active_
+            && buffer_size == 0,
         << "offloaded tracks were not flushed (" << buffer_size
-        << " primaries buffered" << (step_->valid() ? ", step in flight" : "")
+        << " primaries buffered"
+        << (step_->has_outstanding_result() ? ", step in flight" : "")
         << (transport_active_ ? ", transport incomplete" : "") << ")");
 
     std::size_t num_optical_steps{0};
@@ -778,26 +872,6 @@ void LocalTransporter::Finalize()
             have_warned_slow = true;
         }
     }
-
-    if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4)
-    {
-        // Geant4 navigation states *MUST* be deallocated on the thread in
-        // which they're allocated
-        auto state = std::dynamic_pointer_cast<CoreState<MemSpace::host>>(
-            step_->sp_state());
-        CELER_ASSERT(state);
-#if CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_GEANT4
-        state->ref().geometry.reset();
-#endif
-    }
-
-    // Flush any remaining performance counters on the worker thread
-    TracingSession::flush();
-
-    // Reset all data
-    *this = {};
-
-    CELER_ENSURE(!*this);
 }
 
 //---------------------------------------------------------------------------//

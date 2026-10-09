@@ -140,10 +140,11 @@ void assign_field(DetectorStepOutput::PinnedVec<T>* dst,
  * Consolidate results from selected tracks.
  *
  * Tracks are selected if they interacted with a detector or, if no detectors
- * are used, if their track ID was set during gathering.
+ * are used, if their track ID was set during gathering. Device step data is
+ * copied asynchronously with \c compact_steps_async and
+ * \c copy_compacted_steps.
  */
-template<>
-void copy_steps<MemSpace::host>(
+void copy_steps(
     DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::host> const& state)
 {

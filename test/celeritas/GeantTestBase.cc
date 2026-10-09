@@ -60,14 +60,13 @@ bool GeantTestBase::is_ci_build()
         return false;
     }
     // Check clhep/g4 versions
-    if (std::string_view{cmake::clhep_version}.empty()
-        && !std::string_view{cmake::geant4_version}.empty())
+    static auto const clhep = Version::from_package("CLHEP");
+    static auto const g4 = Version::from_package("Geant4");
+    if (g4 && !clhep)
     {
         // G4 build with a built-in CLHEP = non-CI build
         return false;
     }
-    auto clhep = Version::from_string(cmake::clhep_version);
-    auto g4 = Version::from_string(cmake::geant4_version);
     return clhep >= Version{2, 4, 6} && clhep < Version{2, 5}
            && g4 >= Version{11, 3} && g4 < Version{11, 4};
 }
@@ -222,8 +221,9 @@ GeantImportDataSelection GeantTestBase::build_import_data_selection() const
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&)
 {
-    os << "RNG=\"" << cmake::core_rng << "\", CLHEP=\"" << cmake::clhep_version
-       << "\", Geant4=\"" << cmake::geant4_version << '"';
+    os << "RNG=\"" << cmake::core_rng << "\", CLHEP=\""
+       << Version::from_package("CLHEP") << "\", Geant4=\""
+       << Version::from_package("Geant4") << '"';
     return os;
 }
 

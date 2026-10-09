@@ -8,6 +8,7 @@
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/ColorUtils.hh"
+#include "corecel/sys/Version.hh"
 #include "geocel/GenericGeoTestBase.t.hh"
 #include "geocel/vg/VecgeomData.hh"
 #include "geocel/vg/VecgeomParams.hh"
@@ -25,13 +26,13 @@ namespace test
  */
 auto VecgeomTestBase::build_geometry() const -> SPConstGeo
 {
-    using namespace celeritas::cmake;
     using std::cout;
     using std::endl;
 
-    cout << color_code('x') << "VecGeom v" << vecgeom_version << " ("
-         << vecgeom_options << ") using G4VG v" << g4vg_version
-         << " and Geant4 v" << geant4_version << color_code(' ') << endl;
+    cout << color_code('x') << "VecGeom v" << Version::from_package("VecGeom")
+         << " (" << ::celeritas::cmake::vecgeom_options << ") using G4VG v"
+         << Version::from_package("G4VG") << " and Geant4 v"
+         << Version::from_package("Geant4") << color_code(' ') << endl;
 
     ScopedLogStorer scoped_log_{&celeritas::world_logger(), LogLevel::warning};
     auto result = Base::build_geometry();
