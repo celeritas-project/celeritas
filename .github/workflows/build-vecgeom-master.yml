@@ -94,7 +94,7 @@ jobs:
         with:
           name: ${{env.CELER_RUN_NAME}}
           preset: spack
-          targets: geocel_vg_Vecgeom celer-config
+          targets: geocel_vg_Vecgeom geocel_vg_VgBasicTrackView celer-config
           ccache-max-size: 512Mi
 
       - name: Run VecGeom tests
@@ -103,7 +103,7 @@ jobs:
           CELER_TEST_STRICT: 0
         run: |
           mkdir -p test-output/ctest
-          ctest --preset=spack-unit -R '^geocel/vg/Vecgeom:' \
+          ctest --preset=spack-unit -R '^geocel/vg/(Vecgeom:|VgBasicTrackView$)' \
             --output-junit "$GITHUB_WORKSPACE/test-output/ctest/vecgeom-master.xml"
 
       - name: Print versions
