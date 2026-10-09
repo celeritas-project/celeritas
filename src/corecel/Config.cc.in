@@ -14,7 +14,7 @@
 
 namespace celeritas
 {
-namespace cmake
+namespace config
 {
 //---------------------------------------------------------------------------//
 
@@ -23,7 +23,7 @@ namespace cmake
 // clang-format on
 
 //---------------------------------------------------------------------------//
-}  // namespace cmake
+}  // namespace config
 
 namespace
 {

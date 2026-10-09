@@ -30,7 +30,7 @@ auto VecgeomTestBase::build_geometry() const -> SPConstGeo
     using std::endl;
 
     cout << color_code('x') << "VecGeom v" << Version::from_package("VecGeom")
-         << " (" << ::celeritas::cmake::vecgeom_options << ") using G4VG v"
+         << " (" << ::celeritas::config::vecgeom_options << ") using G4VG v"
          << Version::from_package("G4VG") << " and Geant4 v"
          << Version::from_package("Geant4") << color_code(' ') << endl;
 

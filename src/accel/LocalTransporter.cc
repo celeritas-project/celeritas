@@ -70,7 +70,7 @@ bool nonfatal_flush()
 
 bool not_release_build()
 {
-    std::string_view build_props{cmake::build_type};
+    std::string_view build_props{config::build_type};
     // Instead of searching for `release`, which may not be present in some
     // build systems, see if we have debug or relwithdebinfo.
     if (build_props.find("debug") != std::string_view::npos)

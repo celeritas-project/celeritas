@@ -56,7 +56,7 @@ void BuildOutput::output(JsonPimpl* j) const
             return options;
         }();
 
-#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(cmake::NAME);
+#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(config::NAME);
         CO_ADD_CFG(build_type);
         CO_ADD_CFG(hostname);
         CO_ADD_CFG(real_type);
@@ -118,12 +118,12 @@ void BuildOutput::output(JsonPimpl* j) const
 
         if constexpr (CELERITAS_USE_GEANT4)
         {
-            cfg["geant4"] = std::string(cmake::geant4_options);
+            cfg["geant4"] = std::string(config::geant4_options);
         }
 
         if constexpr (CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS)
         {
-            cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+            cfg["vecgeom"] = std::string(config::vecgeom_options);
         }
 
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
