@@ -52,6 +52,10 @@ jobs:
           name: spack-${{env.CELER_CMAKE_PRESET}}
           preset: spack
           ccache-max-size: 512Mi
+      - name: Check debug is disabled
+        working-directory: build
+        run: |
+          test $(./bin/celer-config | jq .config.debug) == "false"
       - name: Run tests
         id: test
         uses: ./.github/actions/run-ctest
