@@ -476,7 +476,7 @@ elseif(CELERITAS_USE_HIP)
   endif()
 endif()
 # Unconditionally set availability for downstream configuration
-foreach(_pkg IN ITEMS cub Thrust hip hiprand hipcub roctracer rocthrust)
+foreach(_pkg IN ITEMS cub Thrust hiprand hipcub roctracer rocthrust)
   celeritas_force_package(${_pkg} "${${_pkg}_FOUND}")
 endforeach()
 
