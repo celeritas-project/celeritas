@@ -27,7 +27,7 @@ packages:
       - "@6.28:"
   vecgeom:
     require:
-      - "@1.2.10:"
+      - "@1.2.10:1,2.2:"
       - +gdml
     version:
       - "2"
