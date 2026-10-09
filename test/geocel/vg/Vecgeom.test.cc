@@ -45,7 +45,8 @@ namespace test
 
 namespace
 {
-auto const vecgeom_version = celeritas::Version::from_package("VecGeom");
+constexpr auto vecgeom_version
+    = celeritas::Version::from_hex_xxyyzz(CELERITAS_VECGEOM_VERSION);
 
 }  // namespace
 
@@ -192,9 +193,9 @@ TEST_F(CmseTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (vecgeom_version >= Version{2})
+    if constexpr (vecgeom_version < Version{2})
     {
-        prefix += "2";
+        prefix += "1";
     }
 
     write_image(ImageParams{inp}, prefix + "-cmse.jsonl");
@@ -501,16 +502,6 @@ class SolidsTest
     : public GenericGeoParameterizedTest<GeantVecgeomTest, SolidsGeoTest>
 {
   public:
-    static void SetUpTestSuite()
-    {
-        if (vecgeom_version < Version(1, 2, 2))
-        {
-            ADD_FAILURE()
-                << "VecGeom " << vecgeom_version
-                << " is missing features: upgrade to 1.2.2 to pass this test";
-        }
-    }
-
     // VecGeom volume 1.2.10 boolean tracking disagrees ~1e-7 from Geant4
     GenericGeoTrackingTolerance tracking_tol() const override
     {
@@ -587,9 +578,9 @@ TEST_F(SolidsTest, imager)
     inp.vertical_pixels = 8;
 
     std::string prefix = "vg";
-    if (vecgeom_version >= Version{2})
+    if constexpr (vecgeom_version < Version{2})
     {
-        prefix += "2";
+        prefix += "1";
     }
 
     write_image(ImageParams{inp}, prefix + "-solids-xy-hi.jsonl");

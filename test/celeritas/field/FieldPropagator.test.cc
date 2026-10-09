@@ -7,14 +7,12 @@
 #include "celeritas/field/FieldPropagator.hh"
 
 #include <cmath>
-#include <regex>
 
 #include "corecel/Config.hh"
 
 #include "corecel/ScopedLogStorer.hh"
 #include "corecel/io/ColorUtils.hh"
 #include "corecel/io/Logger.hh"
-#include "corecel/io/StringUtils.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/math/ArrayUtils.hh"
 #include "geocel/CheckedGeoTrackView.hh"
@@ -25,9 +23,6 @@
 #include "celeritas/field/FieldDriverOptions.hh"
 #include "celeritas/field/MakeMagFieldPropagator.hh"
 #include "celeritas/field/UniformZField.hh"
-#include "celeritas/geo/CoreGeoParams.hh"
-#include "celeritas/geo/CoreGeoTrackView.hh"
-#include "celeritas/geo/GeoData.hh"
 #include "celeritas/phys/PDGNumber.hh"
 #include "celeritas/phys/ParticleParams.hh"
 
@@ -1288,9 +1283,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELERITAS_DOUBLE(electron_stuck))
         }
         EXPECT_SOFT_EQ(30, calc_radius());
         geo.cross_boundary();
-        EXPECT_EQ("si_tracker", this->volume_name(geo))
-            << " vecgeom_version=" << std::hex << CELERITAS_VECGEOM_VERSION
-            << std::dec;
+        EXPECT_EQ("si_tracker", this->volume_name(geo));
     }
 }
 

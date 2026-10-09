@@ -12,7 +12,6 @@ Celeritas.
 #]=======================================================================]
 
 find_package(VecGeom QUIET CONFIG)
-cmake_policy(POP)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(VecGeom CONFIG_MODE)
 
