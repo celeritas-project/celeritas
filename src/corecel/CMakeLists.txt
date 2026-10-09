@@ -124,7 +124,7 @@ foreach(_pkg IN LISTS _celer_packages)
     set(_value "package_disabled")
   else()
     # Special constexpr empty string for documentation: see Config.cc.in
-    set(_value "undefined_version")
+    set(_value "package_undefined")
   endif()
   list(APPEND CELERITAS_CMAKE_VERSIONS_INIT "{\"${_lower}\", ${_value}},")
 endforeach()

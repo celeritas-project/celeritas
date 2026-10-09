@@ -19,17 +19,11 @@ namespace config
 namespace
 {
 //---------------------------------------------------------------------------//
+[[maybe_unused]] static constexpr char package_disabled[] = "";
+[[maybe_unused]] static constexpr char package_undefined[] = "";
 
 auto const& version_map()
 {
-    static constexpr char package_disabled[] = "";
-    static constexpr char undefined_version[] = "";
-
-    // Packages should not be undefined if the CMake logic is working
-    // correctly, and we don't want a warning if all packages are enabled
-    (void)sizeof(package_disabled);
-    (void)sizeof(undefined_version);
-
     static std::unordered_map<std::string, char const*> const result = {
         // clang-format off
 @CELERITAS_CMAKE_VERSIONS_INIT@
@@ -45,6 +39,7 @@ auto const& version_map()
 @CELERITAS_CMAKE_STRINGS_DEF@
 ;  // clang-format on
 
+// Get a package version
 char const* package_version_cstring(char const* package)
 {
     auto const& versions = version_map();

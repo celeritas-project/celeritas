@@ -14,6 +14,10 @@
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
  * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
  * zero.
+ *
+ * This header should \em not include any C++ library functions because of its
+ * ubiquituous use. (This is why the package version signatures are primitive C
+ * style.)
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -93,15 +97,16 @@ namespace config
 {
 // clang-format off
 @CELERITAS_CMAKE_STRINGS_DECL@
-    // clang-format on
+;  // clang-format on
 
-    /*!
-     * Low-level function to get the version of a configured package.
-     *
-     * \param package Lowercase package name
-     * \return Version string: empty if unknown, nullptr if unknown package name
-     * \sa Version::from_package
-     */
-    char const* package_version_cstring(char const* package);
+/*!
+ * Low-level function to get the version of a configured package.
+ *
+ * \param package Lowercase package name
+ * \return Version string: empty if unknown, nullptr if unknown package name
+ * \sa Version::from_package
+ */
+char const* package_version_cstring(char const* package);
+
 }  // namespace config
 }  // namespace celeritas
