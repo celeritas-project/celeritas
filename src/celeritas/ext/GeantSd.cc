@@ -162,6 +162,7 @@ void GeantSd::process_steps(HostStepState state)
 /*!
  * Defer device detector tallies to the thread-local hit processor.
  *
+ * The hit processor enqueues compaction of the step data on device.
  * LocalTransporter completes the transfer and invokes the host sensitive
  * detectors after the asynchronous step result is ready.
  */
