@@ -114,12 +114,14 @@ else()
   set(_needs_python OFF)
 endif()
 
-# Automatic options
+# Automatic options (these set CELERITAS_USE_X and save version info to
+# Config.cc)
 celeritas_force_package(CLI11 ${CELERITAS_BUILD_APPS})
 celeritas_force_package(GTest ${CELERITAS_BUILD_TESTS})
-celeritas_force_package(G4VG ${_needs_g4vg})
 celeritas_force_package(nlohmann_json ON)
 celeritas_force_package(Python ${_needs_python})
+celeritas_force_package(CLHEP ${CELERITAS_USE_Geant4})
+celeritas_force_package(G4VG ${_needs_g4vg})
 
 # Optional capabilities
 # Enable torus by default for debugging but not optimized until performance consequences are known
@@ -130,7 +132,8 @@ option(CELERITAS_ORANGE_TORUS "Enable runtime ORANGE torus" ${CELERITAS_DEBUG})
 #----------------------------------------------------------------------------#
 
 if(CELERITAS_USE_Python)
-  # Note that these are used by the celeritas_get_python_env command
+  # Enabled for testing/docs (set by celeritas_force_package(Python))
+  # These variables are used by the celeritas_get_python_env command
   set(CELERITAS_PYTHONPATH "$ENV{PYTHONPATH}" CACHE STRING
     "Python path used for finding modules and generating documentation"
   )
@@ -474,8 +477,10 @@ elseif(CELERITAS_USE_HIP)
     )
   endif()
 endif()
-# Unconditionally set Thrust availability for downstream configuration
-celeritas_force_package(Thrust "${Thrust_FOUND}")
+# Unconditionally set availability for downstream configuration
+foreach(_pkg IN ITEMS cub Thrust hip hiprand hipcub roctracer hipthrust)
+  celeritas_force_package(${_pkg} "${${_pkg}_FOUND}")
+endforeach()
 
 if(CELERITAS_USE_Geant4)
   if(NOT Geant4_FOUND)

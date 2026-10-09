@@ -98,12 +98,10 @@ list(APPEND CELERITAS_CMAKE_STRINGS "")
 ## Save dependency versions as {lower_name, string} pairs
 # - see *AND UPDATE* src/corecel/io/BuildOutput.cc for usage
 # - see cmake/CeleritasOptionUtils.cmake for list of components
-# - remove non-link dependencies
-# - add important transient dependencies
+# - remove non-link dependencies (python)
 # - define fake version strings if not available in this cmake
 set(_celer_packages "${CELERITAS_COMPONENTS}")
 list(REMOVE_ITEM _celer_packages Python)
-list(APPEND _celer_packages CLHEP hip hiprand hipcub roctracer)
 set(CELERITAS_CMAKE_VERSIONS_INIT)
 if(CELERITAS_USE_CUDA AND NOT CUDA_VERSION_STRING)
   set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
@@ -121,6 +119,9 @@ foreach(_pkg IN LISTS _celer_packages)
     set(_value "\"${${_pkg}_VERSION_STRING}\"")
   elseif(DEFINED ${_pkg}_VERSION)
     set(_value "\"${${_pkg}_VERSION}\"")
+  elseif(DEFINED CELERITAS_USE_${_pkg} AND NOT CELERITAS_USE_${_pkg})
+    # Package name is valid but disabled in this configuration
+    set(_value "package_disabled")
   else()
     # Special constexpr empty string for documentation: see Config.cc.in
     set(_value "undefined_version")

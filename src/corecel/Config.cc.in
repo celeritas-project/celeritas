@@ -21,19 +21,25 @@ namespace cmake
 //---------------------------------------------------------------------------//
 }
 
-/*!
- * Low-level function: get the version of a configured package.
- *
- * \param package Lowercase package name
- * \return Version string: empty if unknown, nullptr if unknown package name
- * \sa Version::from_package
- */
-char const* package_version_cstring(char const* package)
+namespace
 {
+//---------------------------------------------------------------------------//
+
+std::unordered_map<std::string, char const*> const& versions()
+{
+    static constexpr char package_disabled[] = "";
     static constexpr char undefined_version[] = "";
-    static std::unordered_map<std::string, const char*> versions = {
+    static MapStrCstr result = {
 @CELERITAS_CMAKE_VERSIONS_INIT@
     };
+    return result;
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
+
+char const* package_version_cstring(char const* package)
+{
     auto result = versions.find(package);
     if (result == versions.end())
         return nullptr;
