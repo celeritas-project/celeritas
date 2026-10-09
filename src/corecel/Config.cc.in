@@ -29,11 +29,17 @@ namespace
 {
 //---------------------------------------------------------------------------//
 
-std::unordered_map<std::string, char const*> const& versions()
+auto const& version_map()
 {
     static constexpr char package_disabled[] = "";
     static constexpr char undefined_version[] = "";
-    static MapStrCstr result = {
+
+    // Packages should not be undefined if the CMake logic is working
+    // correctly, and we don't want a warning if all packages are enabled
+    (void)sizeof(package_disabled);
+    (void)sizeof(undefined_version);
+
+    static std::unordered_map<std::string, char const*> const result = {
         // clang-format off
 @CELERITAS_CMAKE_VERSIONS_INIT@
         // clang-format on
@@ -46,6 +52,7 @@ std::unordered_map<std::string, char const*> const& versions()
 
 char const* package_version_cstring(char const* package)
 {
+    auto const& versions = version_map();
     auto result = versions.find(package);
     if (result == versions.end())
         return nullptr;
