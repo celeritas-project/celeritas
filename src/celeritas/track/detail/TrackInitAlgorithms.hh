@@ -30,7 +30,9 @@ namespace detail
  * in this step, which are the last \c min(num_vacancies,num_initializers)
  * elements of the initializer storage. Indices past that range are flagged as
  * zero so that the flags can be scanned over a fixed size (the number of track
- * slots) without the host knowing the number of new tracks.
+ * slots) without the host knowing the number of new tracks. This returns an
+ * integer as this functor is used by \c thrust::make_counting_iterator to
+ * count the number of neutral tracks that will be initialized in this step.
  */
 struct IsNeutralNewTrack
 {
