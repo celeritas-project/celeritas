@@ -457,7 +457,7 @@ if(CELERITAS_USE_CUDA)
   find_package(Thrust)
 elseif(CELERITAS_USE_HIP)
   enable_language(HIP)
-  find_package(hip)
+  find_package(hip) # Enable hip API in host code, and support version diagnostics
   find_package(hipcub)
   find_package(hiprand)
   find_package(rocthrust)
@@ -476,7 +476,7 @@ elseif(CELERITAS_USE_HIP)
   endif()
 endif()
 # Unconditionally set availability for downstream configuration
-foreach(_pkg IN ITEMS cub Thrust hip hiprand hipcub roctracer hipthrust)
+foreach(_pkg IN ITEMS cub Thrust hip hiprand hipcub roctracer rocthrust)
   celeritas_force_package(${_pkg} "${${_pkg}_FOUND}")
 endforeach()
 
