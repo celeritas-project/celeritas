@@ -1,0 +1,105 @@
+digraph assertions {
+    rankdir=TB;
+    node [shape=box, fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9];
+
+    // ---------------- Entry macros ----------------
+    subgraph cluster_entry {
+        label="Public macros"; style=dashed;
+        EXPECT   [label="CELER_EXPECT / ASSERT / ENSURE", shape=oval];
+        ASSUME   [label="CELER_ASSUME", shape=oval];
+        AUNREACH [label="CELER_ASSERT_UNREACHABLE", shape=oval];
+        DFAIL    [label="CELER_DEBUG_FAIL", shape=oval];
+        VALIDATE [label="CELER_VALIDATE\n(cond fails)", shape=oval];
+        NOTCONF  [label="CELER_NOT_CONFIGURED /\nCELER_NOT_IMPLEMENTED", shape=oval];
+        DEVCALL  [label="CELER_DEVICE_API_CALL\n(CUDA/HIP on: call fails;\noff: not configured)", shape=oval];
+        MPICALL  [label="CELER_MPI_CALL\n(MPI on: call fails;\noff: not configured)", shape=oval];
+        RFAIL    [label="CELER_RUNTIME_FAIL", shape=oval];
+    }
+
+    // ---------------- Terminal ("stop") nodes ----------------
+    subgraph {
+        node [shape=box, style="rounded,filled", fillcolor="#f8c0c0"];
+        THROW_DBG [label="throw_debug_error"];
+        THROW_RT  [label="throw_runtime_error"];
+        ASSERT_STOP [label="assert(false && ...)"];
+        TRAP  [label="__trap()"];
+        ABORT [label="abort()"];
+        UNREACH_FN [label="unreachable()"];
+
+        NOASSERT [label="CELER_NOASSERT_\n(no-op; condition not evaluated)", fillcolor="#a0c0a0"];
+    }
+
+    // ---------------- Debug-enabled switch ----------------
+    DBG [label="CELERITAS_DEBUG (host)\nor CELERITAS_DEVICE_DEBUG (device)", shape=diamond];
+    EXPECT -> DBG;
+    ASSUME -> DBG;
+    AUNREACH -> DBG;
+
+    DBG -> NOASSERT [label="no\n(EXPECT/ASSERT/ENSURE)"];
+    NOASSERT_DONE [label="continue execution", shape=plaintext];
+
+    IMPL [label="CELER_ASSERT_IMPL_\nif (!COND)"];
+    DBG -> IMPL [label="yes\n(EXPECT/ASSERT/ENSURE/ASSUME)"];
+
+    ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_\nif (!COND)"];
+    DBG -> ASSUME_NDEBUG [label="no\n(ASSUME)"];
+    DBG -> UNREACH_FN [label="no\n(ASSERT_UNREACHABLE)"];
+    ASSUME_NDEBUG -> UNREACH_FN [label="cond false"];
+
+    DBG -> DFAIL_ [label="yes\n(ASSERT_UNREACHABLE)"];
+
+    // ---------------- Debug failure dispatch ----------------
+    DFAIL_ [label="CELER_DEBUG_FAIL_", shape=box];
+    IMPL -> DFAIL_ [label="cond false"];
+    DFAIL -> DFAIL_;
+    // DFAIL_ -> UNREACH_FN [label="(CELER_DEBUG_FAIL only)\nif it returns", style=dotted];
+
+    PLAT [label="Compilation target?", shape=diamond];
+    DFAIL_ -> PLAT;
+
+    PLAT -> THROW_DBG [label="host"];
+    PLAT -> CUDA_NDBG [label="CUDA"];
+    PLAT -> HIP_SIDE  [label="HIP"];
+
+    CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
+    CUDA_NDBG -> ASSERT_STOP [label="no"];
+    CUDA_NDBG -> CUDA_DDF [label="yes"];
+
+    CUDA_DDF [label="detail::device_debug_fail (CUDA)\nprintf(...)"];
+    CUDA_DDF -> TRAP;
+
+    HIP_SIDE [label="execution space", shape=diamond];
+    HIP_SIDE -> HIP_HOST [label="host"];
+    HIP_SIDE -> HIP_DEV  [label="device"];
+
+    HIP_HOST [label="device_debug_fail (HIP host)\nnever reachable"];
+    HIP_HOST -> UNREACH_FN;
+
+    HIP_DEV [label="device_debug_fail (HIP device)\nprintf only if CELERITAS_HIP_VERSION < 0x070b00"];
+    HIP_DEV -> ABORT;
+
+    // ---------------- Runtime failure dispatch ----------------
+    VALIDATE -> RFAIL;
+    NOTCONF -> RFAIL;
+    DEVCALL -> RFAIL;
+    MPICALL -> RFAIL;
+
+    RFAIL_ [label="CELER_RUNTIME_FAIL_"];
+    RFAIL -> RFAIL_;
+
+    RDEV [label="CELER_DEVICE_COMPILE?", shape=diamond];
+    RFAIL_ -> RDEV;
+    RDEV -> THROW_RT [label="no (host)"];
+    RDEV_DBG [label="CELERITAS_DEBUG?", shape=diamond];
+    RDEV -> RDEV_DBG [label="yes (device)"];
+    RDEV_DBG -> DFAIL_ [label="yes\n(diagnostic)"];
+    RDEV_DBG -> UNREACH_FN [label="no\n(empty expansion)"];
+
+    // CELER_UNREACHABLE expansion
+    NORET1 [label="", shape=point, style=invis];
+
+    THROW_DBG -> UNREACH_FN [style=invis];
+    THROW_DBG -> NORET1 [style=invis];
+    DFAIL_ -> THROW_DBG [style=invis];
+}
