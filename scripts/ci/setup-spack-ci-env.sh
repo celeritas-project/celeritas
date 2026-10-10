@@ -3,16 +3,16 @@
 # Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #-----------------------------------------------------------------------------#
+# Create a spack environment for use in CI and buildcache construction.
+# See:
+# - update-spack-buildcache.sh
+# - :/.github/actions/setup-spack/actions.yaml
+#-----------------------------------------------------------------------------#
 
 set -e
 log() {
   printf "%s: %s\n" "$1" "$2" >&2
 }
-
-if [ -z "${CELER_SOURCE_DIR}" ]; then
-  CELER_SOURCE_DIR=$(cd "$(dirname $0)"/../.. && pwd)
-fi
-export CELER_SOURCE_DIR # Used by spack environment script
 
 SPACK=$(command -v spack 2>/dev/null || printf "")
 
@@ -31,6 +31,10 @@ if [ -z "$SPACK_ENV_FILE" ]; then
   log info "Using default SPACK_ENV_FILE: env-ci-base.yaml"
 fi
 if ! [ -e "${SPACK_ENV_FILE}" ]; then
+  if [ -z "$CELER_SOURCE_DIR" ]; then
+    log error "Missing CELER_SOURCE_DIR"
+    exit 1
+  fi
   # Assume it lives in the spack env directory
   SPACK_ENV_FILE="${CELER_SOURCE_DIR}/scripts/spack/${SPACK_ENV_FILE}"
 fi

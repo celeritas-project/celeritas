@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------#
 # Reproduce the GitHub ubuntu-24.04 runner toolchain used by the setup-spack
 # action, to build and push the Spack buildcache with
-# scripts/ci/update-spack-buildcache-local.sh. Build both stages with the
+# scripts/ci/update-spack-buildcache.sh. Build both stages with the
 # pinned Spack revisions using:
 #   scripts/docker/buildcache/build.sh
 # See scripts/docker/README.md for usage.
@@ -97,4 +97,4 @@ ENV FORCE_UNSAFE_CONFIGURE=1 \
 USER celeritas
 WORKDIR /work
 ENTRYPOINT ["/opt/celeritas/entrypoint.sh"]
-CMD ["/celeritas/scripts/ci/update-spack-buildcache-local.sh"]
+CMD ["/celeritas/scripts/ci/update-spack-buildcache.sh"]
