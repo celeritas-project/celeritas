@@ -3,15 +3,14 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 #[=======================================================================[.rst:
 
-FindThrust
+FindCUB
 ----------
 
-Find the Thrust algorithm library for CUDA. Note that HIP's installation may be
-available under the name "rocthrust" but we can't handle that.
+Find the CUB algorithm library for CUDA. Note that HIP's installation may be
+available under the name "rocCUB" but we can't handle that.
 
 #]=======================================================================]
 
-# CUDA stores things in lib64 which isn't in cmake's default search
 set(_hints)
 foreach(_dir IN ITEMS
   "${CMAKE_CUDA_COMPILER_TOOLKIT_ROOT}"
@@ -19,15 +18,15 @@ foreach(_dir IN ITEMS
   "$ENV{CUDA_HOME}"
 )
   if(_dir)
-    list(APPEND _hints "${_dir}/lib64/cmake/thrust")
+    list(APPEND _hints "${_dir}/lib64/cmake/cub")
   endif()
 endforeach()
 unset(_dir)
 list(REMOVE_DUPLICATES _hints)
 
-find_package(Thrust QUIET CONFIG HINTS ${_hints})
+find_package(CUB QUIET CONFIG HINTS ${_hints})
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Thrust CONFIG_MODE)
+find_package_handle_standard_args(CUB CONFIG_MODE)
 unset(_hints)
 
 #-----------------------------------------------------------------------------#

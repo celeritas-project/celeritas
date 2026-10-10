@@ -529,9 +529,9 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_fail(
 #elif defined(__HIP__)
 //! Host-only HIP call (whether or not NDEBUG is in use)
 inline __host__ void device_debug_fail(
-    DebugErrorType which, char const* condition, char const* file, int line)
+    DebugErrorType, char const*, char const*, int)
 {
-    return ::celeritas::throw_debug_error({which, condition, file, line});
+    CELER_UNREACHABLE;
 }
 
 //! Device-only call for HIP (must always be declared; only used if
@@ -539,10 +539,17 @@ inline __host__ void device_debug_fail(
 inline __attribute__((noinline)) __device__ void device_debug_fail(
     DebugErrorType, char const* condition, char const* file, int line)
 {
-    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
+#    if CELERITAS_HIP_VERSION < 0x070b00
+    // The existence of a printf breaks HIP 7.14.60850 Stepper :(
+    printf("%s:%d:\nceleritas: internal assertion failed: %s\n",
            file,
            line,
            condition);
+#    else
+    CELER_DISCARD(condition);
+    CELER_DISCARD(file);
+    CELER_DISCARD(line);
+#    endif
     abort();
 }
 #endif

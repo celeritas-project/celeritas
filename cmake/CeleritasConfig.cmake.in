@@ -90,12 +90,16 @@ if(CELERITAS_USE_CUDA)
     endif()
   endif()
 elseif(CELERITAS_USE_HIP)
+  if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    enable_language(HIP)
+  endif()
   _celer_set_cache_default(
     CMAKE_HIP_ARCHITECTURES
     "${CELERITAS_CMAKE_HIP_ARCHITECTURES}"
     STRING "HIP architectures"
   )
   find_dependency(hip REQUIRED QUIET)
+  find_dependency(roctracer REQUIRED QUIET)
 endif()
 
 if(CELERITAS_USE_DD4hep)

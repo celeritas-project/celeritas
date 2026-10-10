@@ -5,35 +5,44 @@
 //! \file corecel/Config.cc
 //! \brief Celeritas config definition.
 //---------------------------------------------------------------------------//
+// clang-format off
 #include "corecel/Config.hh"
+// clang-format on
 
 #include <string>
 #include <unordered_map>
 
 namespace celeritas
 {
-namespace cmake
+namespace config
+{
+namespace
 {
 //---------------------------------------------------------------------------//
+[[maybe_unused]] static constexpr char package_disabled[] = "";
+[[maybe_unused]] static constexpr char package_undefined[] = "";
 
-@CELERITAS_CMAKE_STRINGS_DEF@
-
-//---------------------------------------------------------------------------//
+auto const& version_map()
+{
+    static std::unordered_map<std::string, char const*> const result = {
+        // clang-format off
+@CELERITAS_CMAKE_VERSIONS_INIT@
+        // clang-format on
+    };
+    return result;
 }
 
-/*!
- * Low-level function: get the version of a configured package.
- *
- * \param package Lowercase package name
- * \return Version string: empty if unknown, nullptr if unknown package name
- * \sa Version::from_package
- */
+//---------------------------------------------------------------------------//
+}  // namespace
+
+// clang-format off
+@CELERITAS_CMAKE_STRINGS_DEF@
+;  // clang-format on
+
+// Get a package version
 char const* package_version_cstring(char const* package)
 {
-    static constexpr char undefined_version[] = "";
-    static std::unordered_map<std::string, const char*> versions = {
-@CELERITAS_CMAKE_VERSIONS_INIT@
-    };
+    auto const& versions = version_map();
     auto result = versions.find(package);
     if (result == versions.end())
         return nullptr;
@@ -42,4 +51,5 @@ char const* package_version_cstring(char const* package)
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace config
 }  // namespace celeritas

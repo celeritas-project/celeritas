@@ -173,53 +173,6 @@
 #endif
 
 /*!
- * \def CELER_USE_THRUST
- * \def CELER_CUB_HAS_TRANSFORM
- * \def CELER_CUB_HAS_FLAGGEDIF
- * \def CELER_HIPCUB_HAS_TRANSFORM
- *
- * Determine if CUB or hipCUB is available, and if so, check the version.
- *
- * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
- * default, so test for the availability of hipCUB and use thrust instead if
- * it's unavailable.
- *
- * DeviceTransform::Transform is unavailable in earlier versions of CUB/hipCUB,
- * so the code uses thrust::transform in that case.
- *
- * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
- * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
- * OpaqueId data types, so use a transform and DeviceSelect::Flagged instead.
- *
- * \note These are unneeded and undefined if this isn't a HIP or CUDA source
- * file. This check is necessary because the version header file needs to be
- * included.
- */
-#if CELER_DEVICE_SOURCE
-#    if CELERITAS_USE_CUDA
-#        include <cub/version.cuh>
-#    elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
-#        include <hipcub/hipcub_version.hpp>
-#    endif
-#    if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
-#        define CELER_USE_THRUST 1
-#    endif
-#    if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
-#        define CELER_CUB_HAS_TRANSFORM 1
-#        define CELER_CUB_HAS_FLAGGEDIF 1
-#    elif CELERITAS_USE_CUDA && CUB_VERSION >= 200500
-#        define CELER_CUB_HAS_FLAGGEDIF 1
-#    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
-#        define CELER_HIPCUB_HAS_TRANSFORM 1
-#    endif
-#elif defined(__DOXYGEN__)
-#    define CELER_USE_THRUST 0
-#    define CELER_CUB_HAS_TRANSFORM 0
-#    define CELER_CUB_HAS_FLAGGEDIF 0
-#    define CELER_HIPCUB_HAS_TRANSFORM 0
-#endif
-
-/*!
  * \def CELER_DEVICE_COMPILE
  *
  * Defined and true if building device code in HIP or CUDA. This is a generic
@@ -231,16 +184,47 @@
 #    define CELER_DEVICE_COMPILE 0
 #endif
 
-#if CELERITAS_USE_CUDA \
-    && (__CUDACC_VER_MAJOR__ < 11 \
-        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
-/*!
+/*
+ * Determine CUB or hipCUB features.
+ *
+ * \sa src/celeritas/track/detail/TrackInitAlgorithms.cu
+ * \sa src/celeritas/optical/action/detail/TrackInitAlgorithms.cu
+ *
+ * CUDA has included CUB since CUDA 11, but ROCm does not include hipCUB by
+ * default, so test for the availability of hipCUB and use thrust instead if
+ * it's unavailable.
+ *
+ * DeviceTransform::Transform is unavailable in earlier versions of CUB/hipCUB,
+ * so the code uses thrust::transform in that case.
+ *
+ * DeviceSelect::FlaggedIf is unavailable in earlier versions of CUB and
+ * doesn't work with hipCUB versions 3.4.0 through 4.1.0 when using celeritas
+ * OpaqueId data types, so use a transform and DeviceSelect::Flagged instead.
+ */
+#if CELERITAS_CUB_VERSION >= 0x020800
+#    define CELER_CUB_HAS_TRANSFORM 1
+#    define CELER_CUB_HAS_FLAGGEDIF 1
+#elif CELERITAS_CUB_VERSION >= 0x020500
+#    define CELER_CUB_HAS_TRANSFORM 0
+#    define CELER_CUB_HAS_FLAGGEDIF 1
+#elif CELERITAS_HIPCUB_VERSION >= 0x040100
+#    define CELER_HIPCUB_HAS_TRANSFORM 1
+#elif CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_USE_THRUST 1
+#else
+#    define CELER_USE_THRUST 0
+#endif
+
+/*
  * Work around older NVCC bugs with `if constexpr`.
  *
  * These cause errors such as \verbatim
  *    error: missing return statement at end of non-void function
  * \endverbatim
  */
+#if CELERITAS_USE_CUDA \
+    && (__CUDACC_VER_MAJOR__ < 11 \
+        || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ < 5))
 #    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 1
 #else
 #    define CELER_CUDACC_BUGGY_IF_CONSTEXPR 0

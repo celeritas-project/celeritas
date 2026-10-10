@@ -56,7 +56,7 @@ void BuildOutput::output(JsonPimpl* j) const
             return options;
         }();
 
-#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(cmake::NAME);
+#define CO_ADD_CFG(NAME) cfg[#NAME] = std::string(config::NAME);
         CO_ADD_CFG(build_type);
         CO_ADD_CFG(hostname);
         CO_ADD_CFG(real_type);
@@ -92,18 +92,23 @@ void BuildOutput::output(JsonPimpl* j) const
                 if (!enabled)
                     return;
                 auto lower = tolower(name);
-                char const* v = package_version_cstring(lower.c_str());
+                char const* v = config::package_version_cstring(lower.c_str());
                 CELER_VALIDATE(v != nullptr,
                                << "invalid package '" << name << "'");
                 deps[std::string{name}] = std::string{v};
             };
             append_version(CELERITAS_USE_COVFIE, "covfie");
+            append_version(CELERITAS_USE_CUDA, "CUB");
             append_version(CELERITAS_USE_CUDA, "CUDA");
             append_version(CELERITAS_USE_CUDA, "Thrust");
             append_version(CELERITAS_USE_GEANT4, "CLHEP");
             append_version(CELERITAS_USE_GEANT4, "Geant4");
             append_version(CELERITAS_USE_HEPMC3, "HepMC3");
             append_version(CELERITAS_USE_HIP, "HIP");
+            append_version(CELERITAS_USE_HIP, "hipcub");
+            append_version(CELERITAS_USE_HIP, "hiprand");
+            append_version(CELERITAS_USE_HIP, "rocthrust");
+            append_version(CELERITAS_USE_HIP, "roctracer");
             append_version(CELERITAS_USE_LARSOFT, "LArSoft");
             append_version(CELERITAS_USE_ROOT, "ROOT");
             append_version(CELERITAS_USE_VECGEOM, "G4VG");
@@ -115,12 +120,12 @@ void BuildOutput::output(JsonPimpl* j) const
 
         if constexpr (CELERITAS_USE_GEANT4)
         {
-            cfg["geant4"] = std::string(cmake::geant4_options);
+            cfg["geant4"] = std::string(config::geant4_options);
         }
 
         if constexpr (CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS)
         {
-            cfg["vecgeom"] = std::string(cmake::vecgeom_options);
+            cfg["vecgeom"] = std::string(config::vecgeom_options);
         }
 
         if constexpr (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
