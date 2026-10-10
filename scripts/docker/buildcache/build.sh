@@ -13,8 +13,8 @@
 # container engine, e.g. CONTAINER=podman-hpc.
 #-----------------------------------------------------------------------------#
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-SOURCE_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd) # NOT the scripts/ci dir
+CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
 
 log() {
   printf "%s: %s\n" "$1" "$2" >&2
@@ -67,8 +67,8 @@ else
   BUILD="${CONTAINER} build --format docker"
 fi
 
-pins=$(python3 "${SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
-  "${SOURCE_DIR}/.github/actions/setup-spack/action.yml")
+pins=$(python3 "${CELER_SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
+  "${CELER_SOURCE_DIR}/.github/actions/setup-spack/action.yml")
 eval "${pins}"
 TAG=$(printf "%.7s-%.7s" "${SPACK_REF}" "${SPACK_PACKAGES_REF}")
 

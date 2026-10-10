@@ -30,7 +30,8 @@ if [ "${OS}" != "${EXPECTED_OS}" ]; then
 fi
 
 # Report git sha of spack repo and builtin:
-# these should be kept up-to-date with setup-spack/action.yml
+# these should be configured before running the script
+# using parse-spack-versions.py
 spack debug report
 
 CELER_BASE_IMAGE=ubuntu:24.04
@@ -45,8 +46,10 @@ else
 fi
 
 WORK_DIR=$PWD
-SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
-export CELER_SOURCE_DIR=$(cd $SCRIPT_DIR/../.. && pwd)
+if [ -z "${CELER_SOURCE_DIR}" ]; then
+  SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
+  CELER_SOURCE_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
+fi
 
 # Each line is: CXXSTD, env-ci-{WHAT}.yaml, additional spack packages to add
 # This should correspond to the matrix (and its "include" entries) from
@@ -72,7 +75,7 @@ matrix="
 
 printf "%s" "$matrix" | while read -r line; do
   [ -z "$line" ] && continue
-  # Convert line into arguments
+  # Convert line into arguments to be passed into setup-spack-ci-env.sh
   set -- $line
   cxxstd=$1
   envbase=$2
@@ -93,7 +96,8 @@ printf "%s" "$matrix" | while read -r line; do
   # Create environment
   SPACK_ENV_FILE="env-ci-${envbase}.yaml" \
   CXXSTD=${cxxstd} \
-    "${SCRIPT_DIR}/setup-spack-ci-env.sh" "$@"
+  CELER_SOURCE_DIR=${CELER_SOURCE_DIR} \
+    "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" "$@"
   # Install and push
   log status "Concretizing $envdir"
   spack -e . -v concretize --non-defaults --fresh

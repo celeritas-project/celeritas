@@ -54,7 +54,7 @@ RUN useradd --create-home --shell /bin/bash celeritas \
 # cache (including the bootstrap store) independent of HOME so that it is
 # shared by the celeritas and root users.
 ENV SPACK_ROOT=/opt/spack \
-    SPACK_PACKAGES_REPO=/opt/spack-packages \
+    SPACK_PACKAGES_ROOT=/opt/spack-packages \
     SPACK_USER_CACHE_PATH=/opt/spack-cache \
     SPACK_DISABLE_LOCAL_CONFIG=1 \
     SPACK_COLOR=always \
@@ -71,14 +71,14 @@ RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
       exit 1 ; \
     fi \
  && for pin in "${SPACK_ROOT} spack/spack ${SPACK_REF}" \
-               "${SPACK_PACKAGES_REPO} spack/spack-packages ${SPACK_PACKAGES_REF}"; do \
+               "${SPACK_PACKAGES_ROOT} spack/spack-packages ${SPACK_PACKAGES_REF}"; do \
       set -- ${pin} \
       && git init -q "$1" \
       && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD \
       || exit 1 ; \
     done \
- && spack repo set --destination "${SPACK_PACKAGES_REPO}" builtin \
+ && spack repo set --destination "${SPACK_PACKAGES_ROOT}" builtin \
  && spack bootstrap now
 
 #-----------------------------------------------------------------------------#

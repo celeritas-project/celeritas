@@ -39,15 +39,14 @@ if ! [ -f "${SPACK_ENV_FILE}" ]; then
   exit 1
 fi
 
-
 # Configure separate packages repository *first*: otherwise the
 # environment creation will do a lengthy unnecessary checkout
-if [ -n "${SPACK_PACKAGES_REPO}" ]; then
-  log info "Using custom builtin spack package repo: ${SPACK_PACKAGES_REPO}"
-  $SPACK repo set --destination "${SPACK_PACKAGES_REPO}" builtin
+if [ -n "${SPACK_PACKAGES_ROOT}" ]; then
+  log info "Using custom builtin spack package repo: ${SPACK_PACKAGES_ROOT}"
+  $SPACK repo set --destination "${SPACK_PACKAGES_ROOT}" builtin
 else
-  SPACK_PACKAGES_REPO=$(spack location -P builtin)
-  log warning "Using default builtin spack repo: ${SPACK_PACKAGES_REPO}"
+  SPACK_PACKAGES_ROOT=$(spack location -P builtin)
+  log warning "Using default builtin spack repo: ${SPACK_PACKAGES_ROOT}"
 fi
 
 # Create environment in current working directory
@@ -87,5 +86,5 @@ fi
 # Add the spack ref so that updating spack will reconcretize
 cat >> spack.yaml <<EOF
 # spack: $(git -C "${SPACK_ROOT}" log -1 --pretty=%H HEAD)
-# packages: $(git -C "${SPACK_PACKAGES_REPO}" log -1 --pretty=%H HEAD)
+# packages: $(git -C "${SPACK_PACKAGES_ROOT}" log -1 --pretty=%H HEAD)
 EOF
