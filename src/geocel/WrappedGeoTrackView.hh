@@ -108,7 +108,7 @@ class WrappedGeoTrackView final
         return t_.find_next_step(max_step);
     }
     void move_internal(real_type step) final { t_.move_internal(step); }
-    void move_to_boundary() final { t_.move_to_boundary(); }
+    void move_to_boundary(real_type dist) final { t_.move_to_boundary(dist); }
     void cross_boundary() final { t_.cross_boundary(); }
 
     // Locally bounded movement

@@ -144,6 +144,8 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
     // since the trial step always decreases *or* the actual position advances.
     real_type remaining = step;
     auto remaining_substeps = this->max_substeps();
+    // Straight-line distance to the boundary along the final chord
+    real_type boundary_distance{0};
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -232,7 +234,11 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
                                || result.distance + update_length <= step
                                || chord.length == 0);
 
-            if (!result.boundary)
+            if (result.boundary)
+            {
+                boundary_distance = linear_step.distance;
+            }
+            else
             {
                 // Don't move to the boundary, but instead move to the end of
                 // the substep. This should result in basically the same effect
@@ -270,7 +276,7 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             // We moved to a new boundary. Update the position to reflect the
             // geometry's state (and possibly "bump" the ODE state's position
             // because of the tolerance in the intercept checks above).
-            geo_.move_to_boundary();
+            geo_.move_to_boundary(boundary_distance);
             state_.pos = geo_.pos();
         }
         else if (CELER_UNLIKELY(result.distance < step))

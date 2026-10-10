@@ -324,6 +324,30 @@ TEST_F(RectArrayTrackerTest, safety)
     }
 }
 
+TEST_F(RectArrayTrackerTest, intersect_surface)
+{
+    RectArrayTracker tracker(this->host_params(), RectArrayId{0});
+
+    // Surface {x,1} at x = 3
+    auto isect = tracker.intersect(
+        this->make_state({0.1, 0.1, 0.1}, {1, 0, 0}, LocalVolumeId{0}));
+    ASSERT_EQ("{x,1}", this->id_to_label(UnivId{2}, isect.surface.id()));
+    LocalSurfaceId surf = isect.surface.id();
+
+    EXPECT_SOFT_EQ(
+        2.9, tracker.intersect_surface({0.1, 0.1, 0.1}, {1, 0, 0}, surf));
+    EXPECT_SOFT_EQ(
+        2.9 / 0.6,
+        tracker.intersect_surface({0.1, 0.1, 0.1}, {0.6, 0.8, 0}, surf));
+    EXPECT_SOFT_EQ(
+        0.5, tracker.intersect_surface({3.5, 0.1, 0.1}, {-1, 0, 0}, surf));
+    // Behind and parallel
+    EXPECT_EQ(no_intersection(),
+              tracker.intersect_surface({0.1, 0.1, 0.1}, {-1, 0, 0}, surf));
+    EXPECT_EQ(no_intersection(),
+              tracker.intersect_surface({0.1, 0.1, 0.1}, {0, 1, 0}, surf));
+}
+
 TEST_F(RectArrayTrackerTest, normal)
 {
     RectArrayTracker tracker(this->host_params(), RectArrayId{0});

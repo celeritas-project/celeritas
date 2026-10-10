@@ -40,6 +40,11 @@ namespace celeritas
  * duplicating the "geant4" position and direction that are also stored under
  * the hood in the heavyweight navigator.
  *
+ * No distance is stored between calls: the caller must pass the distance
+ * returned by \c find_next_step , less any \c move_internal step since then,
+ * to \c move_to_boundary . That distance is not checked here: see \c
+ * CheckedGeoTrackView .
+ *
  * \internal
  *
  * Geant4 thinks about boundaries differently to Celeritas. When we find the
@@ -122,7 +127,7 @@ class GeantGeoTrackView
     inline real_type find_safety(real_type max_step);
 
     // Move to the boundary in preparation for crossing it
-    inline void move_to_boundary();
+    inline void move_to_boundary(real_type dist);
 
     // Move within the volume
     inline void move_internal(real_type step);
@@ -166,7 +171,6 @@ class GeantGeoTrackView
     Real3& pos_;
     Real3& dir_;
     Real3& normal_;
-    real_type& next_step_;
     real_type& safety_radius_;
     G4TouchableHandle& touch_handle_;
     G4Navigator& navi_;
@@ -181,9 +185,6 @@ class GeantGeoTrackView
 
     // Initialize the state from a parent state and new direction
     inline GeantGeoTrackView& operator=(DetailedInitializer const& init);
-
-    // Whether any next distance-to-boundary has been found
-    inline bool has_next_step() const;
 
     // Whether the track direction is exiting the current volume
     inline bool is_dir_exiting() const;
@@ -209,7 +210,6 @@ GeantGeoTrackView::GeantGeoTrackView(
     , pos_(states.pos[tid])
     , dir_(states.dir[tid])
     , normal_(states.normal[tid])
-    , next_step_(states.next_step[tid])
     , safety_radius_(states.safety_radius[tid])
     , touch_handle_(states.nav_state.touch_handle(tid))
     , navi_(states.nav_state.navigator(tid))
@@ -237,7 +237,6 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     // Initialize position/direction
     std::copy(init.pos.begin(), init.pos.end(), pos_.begin());
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
-    next_step_ = -1;
     safety_radius_ = -1;  // Assume *not* on a boundary
 
     g4pos_ = native_to_geant<ClhepLength>(pos_);
@@ -251,7 +250,6 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(Initializer_t const& init)
     this->geo_status(this->is_outside() ? GeoStatus::invalid
                                         : GeoStatus::interior);
 
-    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -286,11 +284,9 @@ GeantGeoTrackView& GeantGeoTrackView::operator=(DetailedInitializer const& init)
         this->geo_status(state_.status[init.parent]);
     }
 
-    // Set up the next state and initialize the direction
+    // Initialize the direction
     std::copy(init.dir.begin(), init.dir.end(), dir_.begin());
-    next_step_ = -1;
 
-    CELER_ENSURE(!this->has_next_step());
     return *this;
 }
 
@@ -433,7 +429,8 @@ auto GeantGeoTrackView::normal() const -> Real3 const&
  * Find the distance to the next geometric boundary.
  *
  * Geant4 can return a zero-distance boundary hit within its surface tolerance.
- * Cache it like any other hit, and finalize the boundary in move_to_boundary.
+ * It is treated like any other hit, and the boundary is finalized in
+ * move_to_boundary.
  */
 Propagation GeantGeoTrackView::find_next_step(real_type max_step)
 {
@@ -444,7 +441,6 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
     {
         // On a boundary, headed in: next step is zero
         // TODO: add a test for this
-        next_step_ = 0;
         return {0, true};
     }
 
@@ -486,14 +482,10 @@ Propagation GeantGeoTrackView::find_next_step(real_type max_step)
         result.distance = max_step;
     }
 
-    // Save the next step
-    next_step_ = result.distance;
-
     CELER_ENSURE(result.distance >= 0);
     CELER_ENSURE(result.distance > 0 || result.boundary);
     CELER_ENSURE(result.distance <= max_step);
     CELER_ENSURE(result.boundary || result.distance == max_step);
-    CELER_ENSURE(this->has_next_step());
     return result;
 }
 
@@ -530,24 +522,26 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
 //---------------------------------------------------------------------------//
 /*!
  * Move to the next boundary but don't cross yet.
+ *
+ * The distance must be the one returned by the last \c find_next_step , less
+ * any \c move_internal step since then. It may be zero if Geant4 considers
+ * the track to be within the surface tolerance.
  */
-void GeantGeoTrackView::move_to_boundary()
+void GeantGeoTrackView::move_to_boundary(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
+    CELER_EXPECT(dist >= 0);
 
     if (this->geo_status() == GeoStatus::boundary_inc)
     {
         // Already on the surface, e.g. after reversing the direction.
         CELER_ASSERT(this->is_on_boundary());
-        CELER_ASSERT(next_step_ == 0);
-        next_step_ = -1;
+        CELER_ASSERT(dist == 0);
         return;
     }
 
-    // Move next step
-    axpy(next_step_, dir_, &pos_);
-    axpy(native_to_geant<ClhepLength>(next_step_), g4dir_, &g4pos_);
-    next_step_ = -1;
+    // Move to the boundary
+    axpy(dist, dir_, &pos_);
+    axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
     safety_radius_ = 0;
     g4safety_ = 0;
 
@@ -603,22 +597,15 @@ void GeantGeoTrackView::cross_boundary()
  * Move within the current volume.
  *
  * The straight-line distance *must* be less than the distance to the
- * boundary.
+ * boundary. This is not checked here since the distance is not stored: see
+ * \c CheckedGeoTrackView .
  */
 void GeantGeoTrackView::move_internal(real_type dist)
 {
-    CELER_EXPECT(this->has_next_step());
-    CELER_EXPECT(dist > 0 && dist <= next_step_);
+    CELER_EXPECT(dist > 0);
 
-    // Move and update next_step
     axpy(dist, dir_, &pos_);
     axpy(native_to_geant<ClhepLength>(dist), g4dir_, &g4pos_);
-    next_step_ -= dist;
-    if (next_step_ == 0)
-    {
-        // A non-boundary limited step has been consumed: require a new query.
-        next_step_ = -1;
-    }
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
     safety_radius_ = -1;
@@ -637,7 +624,6 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
 {
     pos_ = pos;
     g4pos_ = native_to_geant<ClhepLength>(pos_);
-    next_step_ = -1;
     navi_.LocateGlobalPointWithinVolume(g4pos_);
 
     safety_radius_ = -1;
@@ -650,7 +636,8 @@ void GeantGeoTrackView::move_internal(Real3 const& pos)
  * Change the track's direction.
  *
  * This happens after a scattering event or movement inside a magnetic field.
- * It resets the calculated distance-to-boundary.
+ * Moving to a boundary along the new direction requires a new \c
+ * find_next_step .
  */
 void GeantGeoTrackView::set_dir(Real3 const& newdir)
 {
@@ -684,7 +671,6 @@ void GeantGeoTrackView::set_dir(Real3 const& newdir)
 
     dir_ = newdir;
     g4dir_ = to_g4vector(newdir);
-    next_step_ = -1;
 }
 
 //---------------------------------------------------------------------------//
@@ -700,15 +686,6 @@ G4NavigationHistory const* GeantGeoTrackView::nav_history() const
 
 //---------------------------------------------------------------------------//
 // PRIVATE MEMBER FUNCTIONS
-//---------------------------------------------------------------------------//
-/*!
- * Whether a next step has been calculated, including zero-distance hits.
- */
-CELER_FORCEINLINE bool GeantGeoTrackView::has_next_step() const
-{
-    return next_step_ >= 0;
-}
-
 //---------------------------------------------------------------------------//
 /*!
  * Whether the track direction is exiting the current volume.
