@@ -213,6 +213,7 @@ class LocalTransporter final : public TrackOffloadInterface
     StepperResult wait_for_initializer_capacity();
     void drain_transport();
     void reset_local_state();
+    void launch_pending_primaries();
 
     //// DATA ////
 

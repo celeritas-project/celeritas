@@ -19,10 +19,12 @@ using CSCHostRef = CoreStateCounterRef<MemSpace::host>;
 using CSCDeviceRef = CoreStateCounterRef<MemSpace::device>;
 }  // namespace
 //---------------------------------------------------------------------------//
-void reset_counters(CSCHostRef const& counters, StreamId)
+void initialize_counters(
+    CSCHostRef const& counters, size_type num_pending, StreamId)
 {
     CELER_EXPECT(counters.size() == 1);
-    launch_kernel(1, detail::ResetCountersExecutor{counters.data()});
+    launch_kernel(
+        1, detail::InitializeCountersExecutor{counters.data(), num_pending});
 }
 
 //---------------------------------------------------------------------------//
@@ -77,7 +79,7 @@ void update_secondaries(CSCHostRef const& counters,
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-void reset_counters(CSCDeviceRef const&, StreamId)
+void initialize_counters(CSCDeviceRef const&, size_type, StreamId)
 {
     CELER_NOT_CONFIGURED("CUDA OR HIP");
 }

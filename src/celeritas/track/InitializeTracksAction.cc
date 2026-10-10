@@ -6,10 +6,7 @@
 //---------------------------------------------------------------------------//
 #include "InitializeTracksAction.hh"
 
-#include <algorithm>
-
 #include "corecel/Macros.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
 #include "celeritas/global/ActionLauncher.hh"
 #include "celeritas/global/CoreState.hh"
 
@@ -44,37 +41,16 @@ void InitializeTracksAction::step(CoreParams const& params,
 //---------------------------------------------------------------------------//
 /*!
  * Initialize track states.
- *
- * Tracks created from secondaries produced in this step will have the geometry
- * state copied over from the parent instead of initialized from the position.
- * If there are more empty slots than new secondaries, they will be filled by
- * any track initializers remaining from previous steps using the position.
  */
-
 template<MemSpace M>
 void InitializeTracksAction::step_impl(CoreParams const& core_params,
                                        CoreState<M>& core_state) const
 {
     if (core_params.init()->track_order() == TrackOrder::init_charge)
     {
-        // How many new tracks to initialize is the smaller of the number of
-        // vacancies in the track vector and the number of track initializers
-        auto counters = core_state.sync_get_counters();
-        size_type num_new_tracks
-            = std::min(counters.num_vacancies, counters.num_initializers);
-        if (num_new_tracks > 0)
-        {
-            // Reset track initializer indices
-            fill_sequence(&core_state.ref().init.indices,
-                          core_state.stream_id());
-
-            // Partition indices by whether tracks are charged or neutral
-            detail::partition_initializers(core_params,
-                                           core_state.ref().init,
-                                           counters.num_initializers,
-                                           num_new_tracks,
-                                           core_state.stream_id());
-        }
+        // Count neutral tracks to partition the vacancies by charge
+        detail::scan_neutral_initializers(
+            core_params, core_state.ref().init, core_state.stream_id());
     }
 
     // Launch a kernel to initialize tracks

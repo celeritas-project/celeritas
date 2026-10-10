@@ -6,6 +6,7 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <array>
 #include <vector>
 
 #include "corecel/Types.hh"
@@ -14,6 +15,7 @@
 #include "corecel/data/AuxStateVec.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/data/Ref.hh"
 #include "corecel/data/StateDataStore.hh"
 #include "corecel/sys/ThreadId.hh"
@@ -144,7 +146,13 @@ class CoreState final : public CoreStateInterface
     void sync_put_counters(CoreStateCounters const&) final;
 
     // Reset counters that are accumulated during a step
-    void reset_counters();
+    void initialize_counters(size_type num_pending);
+
+    // Asynchronously copy counters to host-accessible storage
+    void async_copy_counters();
+
+    // Access the most recently copied host counters
+    CoreStateCounters const& host_counters() const;
 
     //// AUXILIARY DATA ////
 
@@ -179,6 +187,11 @@ class CoreState final : public CoreStateInterface
     inline auto& native_action_thread_offsets();
 
   private:
+    using PinnedVecCounters
+        = std::vector<CoreStateCounters, PinnedAllocator<CoreStateCounters>>;
+    using CounterStorage
+        = MemSpaceCond_t<M, std::array<CoreStateCounters, 1>, PinnedVecCounters>;
+
     // State data
     StateDataStore<CoreStateData, M> states_;
 
@@ -196,6 +209,9 @@ class CoreState final : public CoreStateInterface
 
     // Whether no primaries should be generated
     bool warming_up_{false};
+
+    // Preallocated host storage for counters copied after most recent step
+    CounterStorage host_counters_;
 };
 
 //---------------------------------------------------------------------------//

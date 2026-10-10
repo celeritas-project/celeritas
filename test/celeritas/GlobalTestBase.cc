@@ -92,7 +92,7 @@ auto GlobalTestBase::primaries_action() -> SPConstPrimariesAction const&
 void GlobalTestBase::insert_primaries(CoreStateInterface& state,
                                       SpanConstPrimary primaries)
 {
-    this->primaries_action()->insert(*core_, state, primaries);
+    this->primaries_action()->insert(state, primaries);
 }
 
 //---------------------------------------------------------------------------//

@@ -47,8 +47,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     ExtendFromPrimariesAction(ActionId action_id, AuxId aux_id);
 
     // Add user-provided primaries on host
-    void insert(CoreParams const& params,
-                CoreStateInterface& state,
+    void insert(CoreStateInterface& state,
                 Span<Primary const> host_primaries) const;
 
     //!@{
