@@ -13,8 +13,13 @@ SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
 CELER_SOURCE_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 
 # Print a log message
+if ! command celerlog >/dev/null 2>&1; then
+  celerlog() {
+    printf "%s: %s\n" "$1" "$2" >&2
+  }
+fi
 log() {
-  printf "%s: %s\n" "$1" "$2" >&2
+  celerlog "$@"
 }
 
 # Ensure the git checkout at $2 matches ref $3 (description in $1)

@@ -8,8 +8,14 @@
 #-----------------------------------------------------------------------------#
 
 set -e
+
+if ! command celerlog >/dev/null 2>&1; then
+  celerlog() {
+    printf "%s: %s\n" "$1" "$2" >&2
+  }
+fi
 log() {
-  printf "%s: %s\n" "$1" "$2" >&2
+  celerlog "$@"
 }
 
 if [ -z "${GITHUB_USER}" ] || [ -z "${GITHUB_TOKEN}" ]; then
