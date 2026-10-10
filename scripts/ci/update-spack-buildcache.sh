@@ -57,34 +57,24 @@ if [ -z "${CELER_SOURCE_DIR}" ]; then
   CELER_SOURCE_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 fi
 
-# Each line is: CXXSTD, env-ci-{WHAT}.yaml, additional spack packages to add
-# This should correspond to the matrix (and its "include" entries) from
-# .github/workflows/build-spack.yml and other spack-based builds
-# (missing concretization will require running the build-spack workflows
-# on something *other* than a PR, and missing packages will cause a PR to fail
-# due to the `--use-buildcache` option in `setup-spack/action.yaml`)
-matrix="
-20 base vecgeom@2.2.0 geant4@11.4 g4vg root dd4hep
-20 base vecgeom@2.2.0 geant4@11.3 g4vg root py-gcovr
-20 base vecgeom@2.2.0 geant4@11.3 g4vg root
-20 base vecgeom@2.2.0 geant4@11.3+vecgeom
-20 base vecgeom@2.2.0 geant4@11.2 g4vg root
-20 base vecgeom@2.2.0 geant4@11.2 g4vg
-20 base vecgeom@2.2.0 geant4@11.1 g4vg root
-20 base vecgeom@2.2.0 geant4@11.0 g4vg root
-20 base vecgeom@2.2.0 geant4@10.7 g4vg root
-17 base vecgeom@2.2.0 geant4@10.6 g4vg
-17 base vecgeom@2.2.0 geant4@10.5 g4vg
-20 base vecgeom@1.2.11 geant4@11.3 g4vg root
-17 ancient
-"
+MATRIX_FILE="${CELER_SOURCE_DIR}/.github/buildcache-matrix.txt"
+if [ ! -f "$MATRIX_FILE" ]; then
+  log error "Missing matrix file ${MATRIX_FILE}"
+  exit 1
+fi
 
-printf "%s" "$matrix" | while read -r line; do
-  [ -z "$line" ] && continue
+grep -v '^[[:space:]]*\(#\|$\)' "$MATRIX_FILE" | while read -r line; do
   # Convert line into arguments to be passed into setup-spack-ci-env.sh
   set -- $line
-  cxxstd=$1
-  envbase=$2
+  case "$1:$2" in
+    cxxstd=*:envbase=*) ;;
+    *)
+      log error "Invalid matrix line (expected cxxstd=N envbase=NAME): $line"
+      exit 1
+      ;;
+  esac
+  cxxstd=${1#cxxstd=}
+  envbase=${2#envbase=}
   shift 2
 
   # Create temporary directory

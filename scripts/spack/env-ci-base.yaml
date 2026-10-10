@@ -15,14 +15,16 @@ spack:
     - ext-ubuntu24.yaml
 
   specs:
-    # Base packages
+    # Build packages
     - cmake
     - ninja
     - ccache
+    # Test/app packages
     - cli11
     - googletest
+    - nlohmann-json
+    # No reason not to install these as well
     - hepmc3
     - libpng
-    - nlohmann-json
     - covfie
     # Additional packages can be added with `spack add`
