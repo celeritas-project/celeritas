@@ -71,7 +71,7 @@ namespace
 #ifdef VECGEOM_ENABLE_CUDA
 #    define VG_CUDA_CALL(CODE) CODE
 #else
-#    define VG_CUDA_CALL(CODE) CELER_UNREACHABLE
+#    define VG_CUDA_CALL(CODE) ::celeritas::unreachable()
 #endif
 
 //---------------------------------------------------------------------------//

@@ -228,7 +228,7 @@
 #    define CELER_ENSURE(COND) CELER_ASSERT_IMPL_(COND, postcondition)
 #    define CELER_ASSUME(COND) CELER_ASSERT_IMPL_(COND, assumption)
 #    define CELER_ASSERT_UNREACHABLE() \
-        CELER_DEBUG_FAIL("unreachable code point encountered", unreachable)
+        CELER_DEBUG_FAIL_("unreachable code point encountered", unreachable)
 #else
 #    define CELER_EXPECT(COND) CELER_NOASSERT_(COND)
 #    define CELER_ASSERT(COND) CELER_NOASSERT_(COND)
@@ -381,7 +381,7 @@ struct RuntimeErrorDetails
 //! Invoke undefined behavior
 [[noreturn]] inline CELER_FUNCTION void unreachable()
 {
-    CELER_UNREACHABLE;
+    CELER_UNREACHABLE_;
 }
 
 // Get a pretty string version of a debug error
@@ -506,7 +506,7 @@ class DiscardStream
     }
 
     //! Provide a str() function for ostringstream-like compatibility
-    CELER_FUNCTION void str() const { CELER_UNREACHABLE; }
+    CELER_FUNCTION void str() const { ::celeritas::unreachable(); }
 };
 
 #if CELER_DEVICE_COMPILE

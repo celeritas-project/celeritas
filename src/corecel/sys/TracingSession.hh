@@ -94,7 +94,7 @@ inline void TracingSession::flush() noexcept {}
 
 inline void TracingSession::ImplDeleter::operator()(Impl*) noexcept
 {
-    CELER_UNREACHABLE;
+    ::celeritas::unreachable();
 }
 #endif
 
