@@ -1418,6 +1418,14 @@ void OpticalSurfacesGeoTest::test_trace() const
 //---------------------------------------------------------------------------//
 void PolyhedraGeoTest::test_trace() const
 {
+    // VecGeom 2 polyhedra, which Geant4 also uses when built with VecGeom
+    // solids, give different safety distances
+    auto const geo_type = test_->geometry_type();
+    bool const vg2_polyhedra
+        = vecgeom_version() >= Version{2}
+          && (geo_type == "VecGeom"
+              || (CELERITAS_GEANT4_USOLIDS && geo_type == "Geant4"));
+
     {
         SCOPED_TRACE("tri");
         auto result = test_->track({-6, 4.01, 0}, {1, 0, 0});
@@ -1542,7 +1550,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version() > Version{2, 1, 1})
+        if (vg2_polyhedra)
         {
             ref.halfway_safeties[0] = 0.21064231509248;
             ref.halfway_safeties[2] = 0.552671035949497;
@@ -1613,9 +1621,13 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version() > Version{2, 1, 1})
+        if (vg2_polyhedra)
         {
             ref.halfway_safeties[2] = 0.679984226889976;
+            if (geo_type == "Geant4")
+            {
+                ref.halfway_safeties[4] = 0.708287266722041;
+            }
         }
 
         auto tol = test_->tracking_tol();
@@ -1682,7 +1694,7 @@ void PolyhedraGeoTest::test_trace() const
             4.5,
         };
 
-        if (vecgeom_version() > Version{2, 1, 1})
+        if (vg2_polyhedra)
         {
             ref.halfway_safeties[0] = 0.368525403784439;
             ref.halfway_safeties[2] = 0.794094668559638;

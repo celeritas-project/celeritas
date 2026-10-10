@@ -589,6 +589,15 @@ if(CELERITAS_USE_VecGeom)
       OFF
     )
   endif()
+  if(VecGeom_VERSION VERSION_GREATER_EQUAL 2.0
+      AND VecGeom_VERSION VERSION_LESS 2.2)
+    # 2.2 is needed for the NavView navigation interface
+    celeritas_error_incompatible_option(
+      "VecGeom version \"${VecGeom_VERSION}\" at \"${VecGeom_DIR}\" is not supported by Celeritas: you must use VecGeom 1.2 or update to 2.2 or higher"
+      CELERITAS_USE_VecGeom
+      OFF
+    )
+  endif()
 
   # Save VecGeom_NAV variable for diagnostics
   if(VecGeom_VERSION VERSION_LESS 2.0)
