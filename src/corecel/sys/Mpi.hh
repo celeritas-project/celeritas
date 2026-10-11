@@ -2,7 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/MpiOperations.hh
+//! \file corecel/sys/Mpi.hh
 //! \brief MPI parallel functionality
 //---------------------------------------------------------------------------//
 #pragma once
@@ -22,10 +22,72 @@
 
 #include "MpiCommunicator.hh"
 
-#include "detail/MpiType.hh"
+#include "detail/MpiImpl.hh"
+
+//---------------------------------------------------------------------------//
+// MACROS
+//---------------------------------------------------------------------------//
+/*!
+ * \def CELER_MPI_CALL
+ *
+ * When MPI support is enabled, execute the wrapped statement and throw a
+ * RuntimeError if it fails. If MPI is disabled, throw an unconfigured
+ * assertion.
+ *
+ * \note A file that uses this macro must include \c mpi.h.
+ */
+#if CELERITAS_USE_MPI
+#    define CELER_MPI_CALL(STATEMENT) \
+        do \
+        { \
+            int mpi_result_ = (STATEMENT); \
+            if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS)) \
+            { \
+                CELER_RUNTIME_FAIL_( \
+                    "MPI", \
+                    ::celeritas::detail::mpi_error_to_string(mpi_result_), \
+                    #STATEMENT); \
+            } \
+        } while (0)
+#else
+#    define CELER_MPI_CALL(STATEMENT) \
+        do \
+        { \
+            CELER_NOT_CONFIGURED("MPI"); \
+        } while (0)
+#endif
 
 namespace celeritas
 {
+namespace detail
+{
+
+//---------------------------------------------------------------------------//
+/*!
+ * Get an MPI error string.
+ */
+std::string mpi_error_to_string(int errorcode)
+{
+#if CELERITAS_USE_MPI
+    std::string error_string;
+    error_string.resize(MPI_MAX_ERROR_STRING);
+    int length = 0;
+    int new_errorcode = 0;
+    new_errorcode = MPI_Error_string(errorcode, &error_string.front(), &length);
+    if (new_errorcode != 0)
+    {
+        // Even the string call failed... just return the code
+        return std::tostring(errorcode);
+    }
+    error_string.resize(length);
+    return error_string;
+#else
+    CELER_DISCARD(errorcode);
+    CELER_NOT_CONFIGURED("MPI");
+#endif
+}
+}  // namespace detail
+
 //---------------------------------------------------------------------------//
 // TYPES
 //---------------------------------------------------------------------------//
