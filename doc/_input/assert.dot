@@ -32,74 +32,75 @@ digraph assertions {
 
     // ---------------- Debug-enabled switch ----------------
     DBG [label="CELERITAS_DEBUG (host)\nor CELERITAS_DEVICE_DEBUG (device)", shape=diamond];
+
+    IMPL [label="CELER_ASSERT_IMPL_\nif (!COND)"];
+    ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_\nif (!COND)"];
+
     EXPECT -> DBG;
     ASSUME -> DBG;
     AUNREACH -> DBG;
 
     DBG -> NOASSERT [label="no\n(EXPECT/ASSERT/ENSURE)"];
-    NOASSERT_DONE [label="continue execution", shape=plaintext];
-
-    IMPL [label="CELER_ASSERT_IMPL_\nif (!COND)"];
     DBG -> IMPL [label="yes\n(EXPECT/ASSERT/ENSURE/ASSUME)"];
-
-    ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_\nif (!COND)"];
     DBG -> ASSUME_NDEBUG [label="no\n(ASSUME)"];
     DBG -> UNREACH_FN [label="no\n(ASSERT_UNREACHABLE)"];
-    ASSUME_NDEBUG -> UNREACH_FN [label="cond false"];
 
-    DBG -> DFAIL_ [label="yes\n(ASSERT_UNREACHABLE)"];
+    ASSUME_NDEBUG -> UNREACH_FN [label="cond false"];
 
     // ---------------- Debug failure dispatch ----------------
     DFAIL_ [label="CELER_DEBUG_FAIL_", shape=box];
+    CUDA_DF [label="cuda_debug_fail (CUDA)\nprintf(...)"];
+    HIP_DF [label="hip_debug_fail"];
+    HIP_DEV [label="device_debug_fail (HIP device)\nprintf only if CELERITAS_HIP_VERSION < 0x070b00"];
+
+    PLAT [label="Compiler", shape=diamond];
+    NVCC_PASS [label="NVCC compiler pass", shape=diamond];
+    CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
+    HIP_COMP [label="execution space", shape=diamond];
+
+    DBG -> DFAIL_ [label="yes\n(ASSERT_UNREACHABLE)"];
+
     IMPL -> DFAIL_ [label="cond false"];
     DFAIL -> DFAIL_;
     // DFAIL_ -> UNREACH_FN [label="(CELER_DEBUG_FAIL only)\nif it returns", style=dotted];
 
-    PLAT [label="Compilation target?", shape=diamond];
     DFAIL_ -> PLAT;
 
+    PLAT -> NVCC_PASS [label="CUDA"];
     PLAT -> THROW_DBG [label="host"];
-    PLAT -> CUDA_NDBG [label="CUDA"];
-    PLAT -> HIP_SIDE  [label="HIP"];
+    PLAT -> HIP_DF  [label="HIP"];
 
-    CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
+    NVCC_PASS -> CUDA_NDBG [label="device"];
+    NVCC_PASS -> THROW_DBG [label="host"];
+
     CUDA_NDBG -> ASSERT_STOP [label="no"];
-    CUDA_NDBG -> CUDA_DDF [label="yes"];
+    CUDA_NDBG -> CUDA_DF [label="yes"];
 
-    CUDA_DDF [label="detail::device_debug_fail (CUDA)\nprintf(...)"];
-    CUDA_DDF -> TRAP;
+    CUDA_DF -> TRAP;
 
-    HIP_SIDE [label="execution space", shape=diamond];
-    HIP_SIDE -> HIP_HOST [label="host"];
-    HIP_SIDE -> HIP_DEV  [label="device"];
+    HIP_DF -> HIP_COMP
+    HIP_COMP -> HIP_HOST [label="host"];
+    HIP_COMP -> HIP_DEV  [label="device"];
 
-    HIP_HOST [label="device_debug_fail (HIP host)\nnever reachable"];
-    HIP_HOST -> UNREACH_FN;
+    HIP_HOST -> THROW_DBG;
 
-    HIP_DEV [label="device_debug_fail (HIP device)\nprintf only if CELERITAS_HIP_VERSION < 0x070b00"];
     HIP_DEV -> ABORT;
 
     // ---------------- Runtime failure dispatch ----------------
+    RFAIL_ [label="CELER_RUNTIME_FAIL_"];
+    RDEV [label="CELER_DEVICE_COMPILE?", shape=diamond];
+    RDEV_DBG [label="CELERITAS_DEBUG?", shape=diamond];
+
     VALIDATE -> RFAIL;
     NOTCONF -> RFAIL;
     DEVCALL -> RFAIL;
     MPICALL -> RFAIL;
 
-    RFAIL_ [label="CELER_RUNTIME_FAIL_"];
     RFAIL -> RFAIL_;
 
-    RDEV [label="CELER_DEVICE_COMPILE?", shape=diamond];
     RFAIL_ -> RDEV;
     RDEV -> THROW_RT [label="no (host)"];
-    RDEV_DBG [label="CELERITAS_DEBUG?", shape=diamond];
     RDEV -> RDEV_DBG [label="yes (device)"];
-    RDEV_DBG -> DFAIL_ [label="yes\n(diagnostic)"];
-    RDEV_DBG -> UNREACH_FN [label="no\n(empty expansion)"];
-
-    // CELER_UNREACHABLE expansion
-    NORET1 [label="", shape=point, style=invis];
-
-    THROW_DBG -> UNREACH_FN [style=invis];
-    THROW_DBG -> NORET1 [style=invis];
-    DFAIL_ -> THROW_DBG [style=invis];
+    RDEV_DBG -> DFAIL_ [label="yes\n(code error)"];
+    RDEV_DBG -> NOASSERT [label="no"];
 }

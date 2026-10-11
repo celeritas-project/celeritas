@@ -140,22 +140,25 @@
 
 //! \cond
 
-#if !defined(__HIP__) && !defined(__CUDA_ARCH__)
-// Throw in host code
+#if defined(__HIP__)
+// HIP compiler (host *and* device): use H/D dispatch
 #    define CELER_DEBUG_FAIL_(MSG, WHICH) \
-        ::celeritas::throw_debug_error( \
-            {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
-#elif defined(__CUDA_ARCH__) && !defined(NDEBUG)
-// Use the assert macro for CUDA device target when supported
+        ::celeritas::detail::hip_debug_fail( \
+            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
+#elif defined(__CUDA_ARCH__) && defined(NDEBUG)
+// CUDA compiler in device phase but *without* assert
+#    define CELER_DEBUG_FAIL_(MSG, WHICH) \
+        ::celeritas::detail::cuda_debug_fail( \
+            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
+#elif defined(__CUDA_ARCH__)
+// CUDA compiler in device phase with debug build
 #    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         assert(false && sizeof(#WHICH ": " MSG))
 #else
-// Use a special device function to emulate assertion failure if HIP
-// (assertion from multiple threads simultaneously can cause unexpected device
-// failures on AMD hardware) or if NDEBUG is in use with CUDA
+// Host compiler or CUDA host pass
 #    define CELER_DEBUG_FAIL_(MSG, WHICH) \
-        ::celeritas::detail::device_debug_fail( \
-            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
+        ::celeritas::throw_debug_error( \
+            {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
 #endif
 
 #define CELER_ASSERT_IMPL_(COND, WHICH) \
@@ -218,7 +221,7 @@
 #else
 // Avoid printf statements which can add substantially to local memory: the
 // wrapper CELER_RUNTIME_FAIL will ensure this point is unreachable
-#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND)
+#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) CELER_NOASSERT_(COND)
 #endif
 
 #if (CELERITAS_DEBUG && !CELER_DEVICE_COMPILE) \
@@ -515,27 +518,16 @@ using ValidationStream = DiscardStream;
 using ValidationStream = ::std::ostringstream;
 #endif
 
-#if defined(__CUDA_ARCH__) && defined(NDEBUG)
-//! Host+device definition for CUDA when \c assert is unavailable
-inline __attribute__((noinline)) __host__ __device__ void device_debug_fail(
-    DebugErrorType, char const* condition, char const* file, int line)
-{
-    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
-           file,
-           line,
-           condition);
-    __trap();
-}
-#elif defined(__HIP__)
+#if defined(__HIP__)
 //! Assertion failure inside a HIP file during host code execution
-CELER_FORCEINLINE __host__ void device_debug_fail(
+CELER_FORCEINLINE __host__ void hip_debug_fail(
     DebugErrorType which, char const* condition, char const* file, int line)
 {
     return ::celeritas::throw_debug_error({which, condition, file, line});
 }
 
 //! Assertion failure inside device code
-inline __attribute__((noinline)) __device__ void device_debug_fail(
+inline __attribute__((noinline)) __device__ void hip_debug_fail(
     DebugErrorType, char const* condition, char const* file, int line)
 {
     // The existence of a printf breaks HIP 7.14.60850 kernel compilation
@@ -553,7 +545,19 @@ inline __attribute__((noinline)) __device__ void device_debug_fail(
 }
 #endif
 
-}  // namespace detail
+#if defined(__CUDA_ARCH__) && defined(NDEBUG)
+//! Definition for CUDA when \c assert is unavailable
+inline __attribute__((noinline)) __device__ void cuda_debug_fail(
+    DebugErrorType, char const* condition, char const* file, int line)
+{
+    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
+           file,
+           line,
+           condition);
+    __trap();
+}
+#endif
 
 //---------------------------------------------------------------------------//
+}  // namespace detail
 }  // namespace celeritas

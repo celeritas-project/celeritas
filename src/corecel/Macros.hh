@@ -33,7 +33,7 @@
  * a device compiler. The name of this function and its siblings is based on
  * the Kokkos naming scheme.
  */
-#if defined(__NVCC__) || defined(__HIP__)
+#if defined(__CUDACC__) || defined(__HIP__)
 #    define CELER_FUNCTION __host__ __device__
 #else
 #    define CELER_FUNCTION
