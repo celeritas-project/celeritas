@@ -51,7 +51,7 @@ jobs:
         if: ${{ matrix.target == 'user' }}
         uses: actions/setup-python@v7
         with:
-          python-version-file: .python-version
+          python-version-file: .github/python-version
       - name: Install Python packages
         if: ${{ matrix.target == 'user' }}
         run: |
