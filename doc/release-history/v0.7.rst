@@ -13,21 +13,27 @@ Version 0.7.0
 -------------
 *Released 2026/10/11*
 
-Version 0.7.0 is a major update to Celeritas featuring many new capabilities.
+Version 0.7.0 is a long-overdue major update to Celeritas featuring many new capabilities.
 
--
+- Optical physics is now fully supported, including surface properties, Geant4
+  process integration, and Mie/WLS processes.
+- A LArSoft plugin that stands in for PDFastSimPar uses full-fidelity MC transport
+  on CPU or GPU for optical photon transport from simulated energy deposition.
+- The EM tracking loop is now asynchronous (relying on built-in CUDA asynchronous
+  streaming and events rather than an additional control thread).
+- ORANGE geometry navigation is now substantially faster and now
+  completely supports Geant4 quadric solids.
+- G4 tracking manager integration is now set up automatically rather than
+  requiring BeginOfRun/EndOfRun actions.
 
-A few minor features are noteworthy:
+Major known deficiencies include:
 
--
-
-Notable bug fixes include:
-
--
-
-Known deficiencies:
-
--
+- Surface normal calculations for VecGeom is unsupported, so optical physics
+  will be wrong if any surface physics is used.
+- The behavior of reflectivity/efficiency grids acting as pure absorbers
+  around sensitive detector regions (i.e., black boxes for splicing)
+  currently differs from Geant4.
+- Tessellated solids are not supported when using ORANGE.
 
 Changes since v0.6.0, excluding those released in v0.6.3, follow.
 
