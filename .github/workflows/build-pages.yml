@@ -35,7 +35,7 @@ jobs:
           ref: doc/gh-pages-base
       - uses: actions/setup-python@v7
         with:
-          python-version-file: .python-version
+          python-version-file: .github/python-version
       - name: Install Python packages
         # NOTE: this is the requirements path in the orphaned
         # doc/gh-pages-base branch, NOT the Celeritas branch!
