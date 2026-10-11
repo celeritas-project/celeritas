@@ -6,12 +6,6 @@
 //---------------------------------------------------------------------------//
 #include "Assert.hh"
 
-#include "Macros.hh"
-
-#if CELERITAS_USE_MPI
-#    include <mpi.h>
-#endif
-
 #include <cstring>
 #include <sstream>
 #include <utility>
@@ -121,25 +115,6 @@ char const* to_cstring(DebugErrorType which)
             return "assumption failed";
     }
     return "";
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Get an MPI error string.
- */
-std::string mpi_error_to_string(int errorcode)
-{
-#if CELERITAS_USE_MPI
-    std::string error_string;
-    error_string.resize(MPI_MAX_ERROR_STRING);
-    int length = 0;
-    MPI_Error_string(errorcode, &error_string.front(), &length);
-    error_string.resize(length);
-    return error_string;
-#else
-    CELER_DISCARD(errorcode);
-    CELER_NOT_CONFIGURED("MPI");
-#endif
 }
 
 //---------------------------------------------------------------------------//
