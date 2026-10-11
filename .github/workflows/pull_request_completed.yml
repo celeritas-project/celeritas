@@ -123,7 +123,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version-file: .github/python-version
+          python-version-file: .python-version
       - name: Install Python packages
         run: |
           pip install --upgrade pip
