@@ -5,11 +5,11 @@ digraph assertions {
     node [shape=box, fontname="Helvetica", fontsize=10];
     edge [fontname="Helvetica", fontsize=9];
 
-    // ---------------- Entry macros ----------------
+    // ---------------- Public API macros ----------------
     subgraph {
         node [shape=oval, style="rounded,filled", fillcolor="#5ac0f2"];
         // label="Public macros"; style=dashed;
-        ASSERT   [label="CELER_ASSERT / ASSERT / ENSURE"];
+        ASSERT   [label="CELER_EXPECT / ASSERT / ENSURE"];
         ASSUME   [label="CELER_ASSUME"];
         AUNREACH [label="CELER_ASSERT_UNREACHABLE"];
         DFAIL    [label="CELER_DEBUG_FAIL"];
@@ -19,7 +19,7 @@ digraph assertions {
         RFAIL    [label="CELER_RUNTIME_FAIL"];
     }
 
-    // ---------------- Terminal ("stop") nodes ----------------
+    // ---------------- Terminal nodes ----------------
     subgraph {
         node [shape=box, style="rounded,filled", fillcolor="#f8c0c0"];
         THROW_DBG [label="throw_debug_error"];
