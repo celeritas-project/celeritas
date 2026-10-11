@@ -114,9 +114,6 @@ elseif(CELERITAS_USE_HIP)
   target_include_directories(ExtDeviceApi
     SYSTEM INTERFACE "${ROCM_PATH}/include"
   )
-  if(ROCTX_LIBRARY)
-    target_link_libraries(ExtDeviceApi INTERFACE "${ROCTX_LIBRARY}")
-  endif()
   if(NOT BUILD_SHARED_LIBS)
     # Downstream libs don't link against correct HIP dependencies when using
     # static libraries, and even though the code below propagates the library

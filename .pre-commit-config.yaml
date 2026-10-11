@@ -28,7 +28,7 @@ repos:
     hooks:
       - id: clang-format
         types_or: [file]
-        files: \.(cc|hh|h|cpp|hpp|cu|cuh)$
+        files: \.(cc|hh|h|cpp|hpp|cu|cuh)(\.in)?$
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.13 # 14 May 2026 (immutable)
     hooks:

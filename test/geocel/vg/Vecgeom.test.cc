@@ -72,7 +72,7 @@ class VecgeomVgdmlTestBase : public VecgeomTestBase
     {
         cout << color_code('x') << "VecGeom "
              << Version::from_package("VecGeom") << " ("
-             << cmake::vecgeom_options << ") using VGDML" << color_code(' ')
+             << config::vecgeom_options << ") using VGDML" << color_code(' ')
              << endl;
 
         ScopedLogStorer scoped_log_{&celeritas::world_logger(),

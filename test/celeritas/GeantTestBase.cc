@@ -54,7 +54,7 @@ bool GeantTestBase::is_ci_build()
     if (!(CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
           && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
           && CELERITAS_UNITS == CELERITAS_UNITS_CGS
-          && cstring_equal(cmake::core_rng, "xorwow")))
+          && cstring_equal(config::core_rng, "xorwow")))
     {
         // Config options are different
         return false;
@@ -221,7 +221,7 @@ GeantImportDataSelection GeantTestBase::build_import_data_selection() const
 //---------------------------------------------------------------------------//
 std::ostream& operator<<(std::ostream& os, StreamableBuildConf const&)
 {
-    os << "RNG=\"" << cmake::core_rng << "\", CLHEP=\""
+    os << "RNG=\"" << config::core_rng << "\", CLHEP=\""
        << Version::from_package("CLHEP") << "\", Geant4=\""
        << Version::from_package("Geant4") << '"';
     return os;

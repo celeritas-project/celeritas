@@ -14,6 +14,10 @@
  * (e.g.) \c CELERITAS_CORE_RNG and \c CELERITAS_CORE_RNG_HIPRAND; options that
  * are *invalid* (e.g. for missing libraries such as HIP) will have a value of
  * zero.
+ *
+ * This header should \em not include any C++ library functions because of its
+ * ubiquituous use. (This is why the package version signatures are primitive C
+ * style.)
  */
 //---------------------------------------------------------------------------//
 #pragma once
@@ -21,6 +25,7 @@
 //---------------------------------------------------------------------------//
 // User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
+// clang-format off
 
 // Dependencies
 #cmakedefine01 CELERITAS_USE_COVFIE
@@ -84,22 +89,24 @@
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information
 //---------------------------------------------------------------------------//
+;  // clang-format on
 
 namespace celeritas
 {
-namespace cmake
+namespace config
 {
+// clang-format off
 @CELERITAS_CMAKE_STRINGS_DECL@
-}
+;  // clang-format on
 
 /*!
-* Get the version of a configured lowercase package.
-*
-* This acts like \c std::getenv in that it returns nullptr if the variable
-* is not defined, but it returns empty if defined and empty.
-*
-* \return Package string, empty if unknown, nullptr if unknown package name
-* \sa Version::from_package
-*/
+ * Low-level function to get the version of a configured package.
+ *
+ * \param package Lowercase package name
+ * \return Version string: empty if unknown, nullptr if unknown package name
+ * \sa Version::from_package
+ */
 char const* package_version_cstring(char const* package);
-}
+
+}  // namespace config
+}  // namespace celeritas

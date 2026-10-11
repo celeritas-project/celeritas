@@ -61,7 +61,7 @@ Version Version::from_string(std::string_view sv)
 Version Version::from_package(std::string_view p)
 {
     auto s = tolower(p);
-    auto* found_cstr = ::celeritas::package_version_cstring(s.c_str());
+    auto* found_cstr = config::package_version_cstring(s.c_str());
     CELER_VALIDATE(found_cstr != nullptr,
                    << "unknown package '" << s
                    << "': Celeritas does not include it as a dependency");
