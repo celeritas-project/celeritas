@@ -410,6 +410,7 @@ Release History
    :maxdepth: 2
    :caption: Release history
 
+   release-history/v0.7.rst
    release-history/v0.6.rst
    release-history/v0.5.rst
    release-history/v0.4.rst
