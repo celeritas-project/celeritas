@@ -11,7 +11,7 @@ Major development version 0.7 can be cited through its Zenodo code release
 
 Version 0.7.0
 -------------
-*Released 2026/10/05*
+*Released 2026/10/11*
 
 Version 0.7.0 is a major update to Celeritas featuring many new capabilities.
 
@@ -22,10 +22,6 @@ A few minor features are noteworthy:
 -
 
 Notable bug fixes include:
-
--
-
-Some interfaces have been removed:
 
 -
 
@@ -146,7 +142,6 @@ New features
 * Add primary IDs to optical simulation *(@sethrj, #2204)*
 * Add SD mapping params to core and optical data *(@sethrj, #2203)*
 * Add JSON serialization for distribution inputs *(@amandalund, #2210)*
-* Add grid documentation and fix detail build *(@sethrj, #2213)*
 * Add JSON serialization for optical standalone input *(@amandalund, #2212)*
 * Add MuCF interactor for muonic dt molecules *(@stognini, #2211)*
 * Move Optical Core State Counters to Device *(@LSchwiebert, #2208)*
@@ -161,7 +156,6 @@ New features
 * Accelerate ORANGE construction by two orders of magnitude *(@sethrj, #2249)*
 * Make proto construction independent of hardcoded runtime tracking *(@sethrj, #2239)*
 * Improve ORANGE construction performance by presizing label vectors *(@sethrj, #2246)*
-* Add DUNE mock cryostat/arapuca test geometry *(@sethrj, #2252)*
 * BIH depth limit *(@elliottbiondo, #2251)*
 * Add error checking to vecgeom track view *(@sethrj, #2245)*
 * Investigate and simplify ORANGE construction warning/debug messages  *(@sethrj, #2247)*
@@ -185,7 +179,6 @@ New features
 * Use optical photon group velocity for along step time calculation *(@hhollenb, #2282)*
 * Enable optical photon track offloading from Geant4 to Celeritas *(@Rashika-Gupta, #2241)*
 * Add per track reseeding *(@davidsgr, #2229)*
-* Implement basic unit tests for FastSimulationIntegration *(@drbenmorgan, #2299)*
 * Allow geant geo params to be saved during detector construction *(@sethrj, #2295)*
 * Add helpers for array type, precision, and quantity conversion *(@sethrj, #2223)*
 * Integrate detector hits with larsoft *(@sethrj, #2278)*
@@ -193,7 +186,6 @@ New features
 * Accumulate and report cut/error counters for optical and EM tracks *(@sethrj, #2307)*
 * Improve consistency of scintillation/Cherenkov import with Geant4 *(@sethrj, #2303)*
 * Add geometry status for robust reentrant boundary handling *(@sethrj, #2312)*
-* Add AI contribution section and update AGENTS file *(@sethrj, #2315)*
 * Add volume params and view to core data *(@sethrj, #2316)*
 * Add pre-commit script to clean ASCII files *(@sethrj, #2319)*
 * Optimize depth finding for large number of touchable histories *(@sethrj, #2317)*
@@ -262,6 +254,13 @@ New features
 * Precompute optical group velocity grids *(@Rashika-Gupta, #2452)*
 * Add file handles to output registry to allow multiple writes *(@sethrj, #2520)*
 * Output Celeritas diagnostics from within LArSoft *(@sethrj, #2477)*
+* Support merge groups for pull requests *(@sethrj, #2528)*
+* Replace core state counter synchronization with device kernels and functors *(@LSchwiebert, #2376)*
+* Split device step compaction into async and copy phases *(@esseivaju, #2534)*
+* Enqueue HitProcessor hit compaction during async step *(@esseivaju, #2543)*
+* Remove synchronization from initializer buffer capacity validation *(@amandalund, #2535)*
+* Remove synchronization from init_charge track initialization *(@esseivaju, #2551)*
+* Load versions from CUDA, HIP packages at configure time and work around ROCm errors *(@sethrj, #2547)*
 
 Bug fixes
 ^^^^^^^^^
@@ -365,14 +364,16 @@ Bug fixes
 * Fix GeoTests with Geant4+USolids  *(@esseivaju, #2493)*
 * Update VecGeom2 safety values *(@esseivaju, #2512)*
 * Treat unsupported MSC step limit algorithm as error instead of warning *(@amandalund, #2524)*
+* Initialize the RNG of in-place secondaries when reseeding each track *(@esseivaju, #2531)*
+* Improve `LocalTransporter` cleanup after fatal errors *(@amandalund, #2541)*
+* Improve compatibility with NVCC and older compilers *(@sethrj, #2546)*
 
-Documentation improvements
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Documentation and testing
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Release v0.6.0 *(@sethrj, #1688)*
 * Add helper for accumulating histograms *(@sethrj, #1759)*
 * Add zenodo citations to celeritas user manual *(@sethrj, #1762)*
-* Require covfie v0.14 *(@esseivaju, #1767)*
 * Replace hand-rolled hooks with pre-commit and CI *(@sethrj, #1765)*
 * Refactor micro xs CDF calculation and add test *(@amandalund, #1768)*
 * Edit user manual and fix PDF build *(@sethrj, #1782)*
@@ -411,14 +412,18 @@ Documentation improvements
 * Demonstrate stuck particle in ATLAS *(@sethrj, #1914)*
 * Add documentation and debug statements about Geant4 logger redirection *(@sethrj, #2193)*
 * Add optical physics AGENTS.md *(@sethrj, #2205)*
+* Add grid documentation and fix detail build *(@sethrj, #2213)*
 * Test grid deduplication *(@sethrj, #2227)*
 * Improve testing for field and geo view *(@sethrj, #2230)*
 * Improve testing for field integration edge case *(@sethrj, #2248)*
+* Add DUNE mock cryostat/arapuca test geometry *(@sethrj, #2252)*
 * Add Rayleigh and absorption mean free paths to DUNE cryostat GDML *(@amandalund, #2260)*
 * Improve geometry track view testing *(@sethrj, #2262)*
 * Fix VecGeom device test for #2263 *(@amandalund, #2270)*
 * Fix solids GDML to avoid ORANGE discrepancy *(@sethrj, #2267)*
+* Implement basic unit tests for FastSimulationIntegration *(@drbenmorgan, #2299)*
 * Document optical surface physics *(@sethrj, #2277)*
+* Add AI contribution section and update AGENTS file *(@sethrj, #2315)*
 * More tweaks to AGENTS file *(@sethrj, #2324)*
 * Prevent `is_ci_build` from crashing when using built-in CLHEP *(@mrguilima, #2418)*
 * Clarify the use of complex_intersect within background_intersect *(@elliottbiondo, #2429)*
@@ -426,10 +431,12 @@ Documentation improvements
 * Add separate 'geo' logger to checked track view and move to core repo *(@sethrj, #2491)*
 * Test geometry calls of the field propagator substep loop *(@esseivaju, #2503)*
 * Add Claude Code skills and expand AGENTS.md *(@esseivaju, #2522)*
+* Move documentation closer to the associated code *(@sethrj, #2538)*
 
 Minor internal changes
 ^^^^^^^^^^^^^^^^^^^^^^
 
+* Require covfie v0.14 *(@esseivaju, #1767)*
 * Fail early if find-or-builtin package is missing *(@sethrj, #1770)*
 * Remove ``ValueGridBuilder`` s *(@amandalund, #1766)*
 * Add ostream support for enums *(@amandalund, #1774)*
@@ -633,6 +640,16 @@ Minor internal changes
 * Continue-on-error for tidy *(@sethrj, #2521)*
 * Warn and skip sources without compile database entries on tidy-v2 *(@pcanal, #2523)*
 * Add a container image for updating Spack buildcache *(@esseivaju, #2510)*
+* Add debugging output and use `std::clog` consistently *(@sethrj, #2530)*
+* Exclude nvcc commands from clang-tidy dependency scanning *(@pcanal, #2529)*
+* Print canonical vecgeom and celeritas versions in nightly runs *(@sethrj, #2539)*
+* Extract reusable thread-local processor slots from GeantSd *(@esseivaju, #2532)*
+* Use InitializedValue to simplify ORANGE implementation code *(@sethrj, #2537)*
+* More debugging for logger failure *(@sethrj, #2540)*
+* Clean up asynchronous stepping algorithm code *(@sethrj, #2542)*
+* Improve package config output *(@sethrj, #2544)*
+* Move counter snapshots to `CoreState` and clarify parts of async stepping *(@amandalund, #2548)*
+* Add FindX.cmake generator and modernize celeritas-gen python usage *(@sethrj, #2545)*
 
 Deprecation and removal
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -655,9 +672,25 @@ Deprecation and removal
 * Remove support for pre-release VecGeom 2 *(@sethrj, #2501)*
 * Store native VecGeom navigation state in VecGeom track state *(@esseivaju, #2502)*
 * Remove deprecations for 0.7 and add ORANGE track compatibility methods *(@sethrj, #2526)*
+* Require VecGeom 2.2.0 in release series 2 *(@esseivaju, #2552)*
 
 Reviewers
 ^^^^^^^^^
 
+* Seth R. Johnson *(@sethrj)*: 280
+* Amanda Lund *(@amandalund)*: 124
+* Philippe Canal *(@pcanal)*: 60
+* Elliott Biondo *(@elliottbiondo)*: 60
+* Julien Esseiva *(@esseivaju)*: 59
+* Stefano Tognini *(@stognini)*: 23
+* Hayden Hollenbeck *(@hhollenb)*: 23
+* Guilherme Lima *(@mrguilima)*: 18
+* Rashika Gupta *(@Rashika-Gupta)*: 9
+* Soon Yung Jun *(@whokion)*: 5
+* Sakib Rahman *(@rahmans1)*: 4
+* Loren Schwiebert *(@LSchwiebert)*: 4
+* Ben Morgan *(@drbenmorgan)*: 2
+* Lance Bullerwell *(@lebuller)*: 1
+* Greg Davidson *(@davidsgr)*: 1
 
 **Full Changelog**: https://github.com/celeritas-project/celeritas/compare/v0.6.0...v0.7.0
