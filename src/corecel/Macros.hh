@@ -15,15 +15,23 @@
 #include "corecel/Config.hh"
 
 //---------------------------------------------------------------------------//
-//!@{
-//! \name Compiler type/version macros
+/*!@{
+ * \name Compiler type/version macros
+ *
+ * See macro definitions in:
+ * - [LLVM](https://llvm.org/docs/CompileCudaWithLLVM.html)
+ * - [ROCm](
+ *   https://rocm.docs.amd.com/projects/HIP/en/latest/how-to/hip_porting_guide.html)
+ * - [NVCC](
+ *   https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#compilation-phases)
+ */
 
 /*!
  * \def CELER_FUNCTION
  *
  * Decorate a function that works on both host and device, with and without
- * NVCC. The name of this function and its siblings is based on the Kokkos
- * naming scheme.
+ * a device compiler. The name of this function and its siblings is based on
+ * the Kokkos naming scheme.
  */
 #if defined(__NVCC__) || defined(__HIP__)
 #    define CELER_FUNCTION __host__ __device__
