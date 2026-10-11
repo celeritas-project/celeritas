@@ -1,20 +1,22 @@
 digraph assertions {
     rankdir=TB;
+    labelloc=b;
+    label="[*]: CELERITAS_DEBUG (host) or CELERITAS_DEVICE_DEBUG (device)";
     node [shape=box, fontname="Helvetica", fontsize=10];
     edge [fontname="Helvetica", fontsize=9];
 
     // ---------------- Entry macros ----------------
-    subgraph cluster_entry {
-        label="Public macros"; style=dashed;
-        EXPECT   [label="CELER_EXPECT / ASSERT / ENSURE", shape=oval];
-        ASSUME   [label="CELER_ASSUME", shape=oval];
-        AUNREACH [label="CELER_ASSERT_UNREACHABLE", shape=oval];
-        DFAIL    [label="CELER_DEBUG_FAIL", shape=oval];
-        VALIDATE [label="CELER_VALIDATE\n(cond fails)", shape=oval];
-        NOTCONF  [label="CELER_NOT_CONFIGURED /\nCELER_NOT_IMPLEMENTED", shape=oval];
-        DEVCALL  [label="CELER_DEVICE_API_CALL\n(CUDA/HIP on: call fails;\noff: not configured)", shape=oval];
-        MPICALL  [label="CELER_MPI_CALL\n(MPI on: call fails;\noff: not configured)", shape=oval];
-        RFAIL    [label="CELER_RUNTIME_FAIL", shape=oval];
+    subgraph {
+        node [shape=oval, style="rounded,filled", fillcolor="#5ac0f2"];
+        // label="Public macros"; style=dashed;
+        ASSERT   [label="CELER_ASSERT / ASSERT / ENSURE"];
+        ASSUME   [label="CELER_ASSUME"];
+        AUNREACH [label="CELER_ASSERT_UNREACHABLE"];
+        DFAIL    [label="CELER_DEBUG_FAIL"];
+        VALIDATE [label="CELER_VALIDATE"];
+        NOTCONF  [label="CELER_NOT_CONFIGURED"];
+        NOTIMPL  [label="CELER_NOT_IMPLEMENTED"];
+        RFAIL    [label="CELER_RUNTIME_FAIL"];
     }
 
     // ---------------- Terminal ("stop") nodes ----------------
@@ -26,41 +28,60 @@ digraph assertions {
         TRAP  [label="__trap()"];
         ABORT [label="abort()"];
         UNREACH_FN [label="unreachable()"];
-
-        NOASSERT [label="CELER_NOASSERT_\n(no-op; condition not evaluated)", fillcolor="#a0c0a0"];
+        CONTINUE [label="continue", fillcolor="#a0c0a0"];
     }
 
+
+    // ---------------- Internal macros ----------------
+    subgraph {
+        node [shape=oval, style="rounded"];
+        IMPL [label="CELER_ASSERT_IMPL_"];
+        NOASSERT_ [label="CELER_NOASSERT_"];
+        ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_"];
+        DFAIL_ [label="CELER_DEBUG_FAIL_"];
+        RFAIL_ [label="CELER_RUNTIME_FAIL_"];
+    }
+
+
     // ---------------- Debug-enabled switch ----------------
-    DBG [label="CELERITAS_DEBUG (host)\nor CELERITAS_DEVICE_DEBUG (device)", shape=diamond];
+    ASSERT_DBG [label="Debug mode? [*]", shape=diamond];
+    ASSUME_DBG [label="Debug mode? [*]", shape=diamond];
+    AUNREACH_DBG [label="Debug mode? [*]", shape=diamond];
 
-    IMPL [label="CELER_ASSERT_IMPL_\nif (!COND)"];
-    ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_\nif (!COND)"];
+    IMPL_COND [label="COND false?", shape=diamond];
+    IMPL_COND [label="COND false?", shape=diamond];
+    ASSUME_COND [label="COND false?", shape=diamond];
 
-    EXPECT -> DBG;
-    ASSUME -> DBG;
-    AUNREACH -> DBG;
+    ASSERT -> ASSERT_DBG;
+    ASSUME -> ASSUME_DBG;
+    AUNREACH -> AUNREACH_DBG;
 
-    DBG -> NOASSERT [label="no\n(EXPECT/ASSERT/ENSURE)"];
-    DBG -> IMPL [label="yes\n(EXPECT/ASSERT/ENSURE/ASSUME)"];
-    DBG -> ASSUME_NDEBUG [label="no\n(ASSUME)"];
-    DBG -> UNREACH_FN [label="no\n(ASSERT_UNREACHABLE)"];
+    ASSERT_DBG -> NOASSERT_ [color="#ac1111", label="no"];
+    ASSERT_DBG -> IMPL [color="#1f8a3d", label="yes"];
+    ASSUME_DBG -> ASSUME_NDEBUG [color="#ac1111", label="no"];
+    ASSUME_DBG -> IMPL [color="#1f8a3d", label="yes"];
+    AUNREACH_DBG -> UNREACH_FN [color="#ac1111", label="no"];
+    AUNREACH_DBG -> DFAIL_ [color="#1f8a3d", label="yes"];
 
-    ASSUME_NDEBUG -> UNREACH_FN [label="cond false"];
+    IMPL -> IMPL_COND;
+    IMPL_COND -> DFAIL_ [color="#1f8a3d", label="yes"];
+    IMPL_COND -> CONTINUE [color="#ac1111", label="no"];
+    ASSUME_NDEBUG -> ASSUME_COND;
+    ASSUME_COND -> UNREACH_FN [color="#1f8a3d", label="yes"];
+    ASSUME_COND -> CONTINUE [color="#ac1111", label="no"];
+
+    NOASSERT_ -> CONTINUE
 
     // ---------------- Debug failure dispatch ----------------
-    DFAIL_ [label="CELER_DEBUG_FAIL_", shape=box];
     CUDA_DF [label="cuda_debug_fail (CUDA)\nprintf(...)"];
     HIP_DF [label="hip_debug_fail"];
-    HIP_DEV [label="device_debug_fail (HIP device)\nprintf only if CELERITAS_HIP_VERSION < 0x070b00"];
+    HIP_DEV [label="printf only if CELERITAS_HIP_VERSION < 0x070e00"];
 
     PLAT [label="Compiler", shape=diamond];
     NVCC_PASS [label="NVCC compiler pass", shape=diamond];
     CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
     HIP_COMP [label="execution space", shape=diamond];
 
-    DBG -> DFAIL_ [label="yes\n(ASSERT_UNREACHABLE)"];
-
-    IMPL -> DFAIL_ [label="cond false"];
     DFAIL -> DFAIL_;
     // DFAIL_ -> UNREACH_FN [label="(CELER_DEBUG_FAIL only)\nif it returns", style=dotted];
 
@@ -73,34 +94,32 @@ digraph assertions {
     NVCC_PASS -> CUDA_NDBG [label="device"];
     NVCC_PASS -> THROW_DBG [label="host"];
 
-    CUDA_NDBG -> ASSERT_STOP [label="no"];
-    CUDA_NDBG -> CUDA_DF [label="yes"];
+    CUDA_NDBG -> ASSERT_STOP [color="#ac1111", label="no"];
+    CUDA_NDBG -> CUDA_DF [color="#1f8a3d", label="yes"];
 
     CUDA_DF -> TRAP;
 
     HIP_DF -> HIP_COMP
-    HIP_COMP -> HIP_HOST [label="host"];
+    HIP_COMP -> THROW_DBG [label="host"];
     HIP_COMP -> HIP_DEV  [label="device"];
-
-    HIP_HOST -> THROW_DBG;
-
     HIP_DEV -> ABORT;
 
     // ---------------- Runtime failure dispatch ----------------
-    RFAIL_ [label="CELER_RUNTIME_FAIL_"];
     RDEV [label="CELER_DEVICE_COMPILE?", shape=diamond];
     RDEV_DBG [label="CELERITAS_DEBUG?", shape=diamond];
+    VAL_COND [label="COND false?", shape=diamond];
 
-    VALIDATE -> RFAIL;
-    NOTCONF -> RFAIL;
-    DEVCALL -> RFAIL;
-    MPICALL -> RFAIL;
+    VALIDATE -> VAL_COND
+    VAL_COND -> RFAIL_ [color="#1f8a3d", label="yes"];
+    VAL_COND -> CONTINUE [color="#ac1111", label="no"];
 
+    NOTCONF -> RFAIL_;
+    NOTIMPL -> RFAIL_;
     RFAIL -> RFAIL_;
 
     RFAIL_ -> RDEV;
-    RDEV -> THROW_RT [label="no (host)"];
-    RDEV -> RDEV_DBG [label="yes (device)"];
-    RDEV_DBG -> DFAIL_ [label="yes\n(code error)"];
-    RDEV_DBG -> NOASSERT [label="no"];
+    RDEV -> THROW_RT [color="#ac1111", label="no (host)"];
+    RDEV -> RDEV_DBG [color="#1f8a3d", label="yes (device)"];
+    RDEV_DBG -> DFAIL_ [color="#1f8a3d", label="yes"];
+    RDEV_DBG -> UNREACH_FN [color="#ac1111", label="no"];
 }

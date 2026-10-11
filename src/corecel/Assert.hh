@@ -202,7 +202,6 @@
     do \
     { \
         CELER_RUNTIME_FAIL_(WHICH, WHAT, COND); \
-        ::celeritas::unreachable(); \
     } while (0)
 
 #if !CELER_DEVICE_COMPILE
@@ -215,13 +214,14 @@
             __LINE__, \
         })
 #elif CELERITAS_DEBUG
+// Fail with a diagnostic message: this shouldn't be called on device!
 #    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) \
         CELER_DEBUG_FAIL_("Runtime errors cannot be thrown from device code", \
                           unreachable);
 #else
-// Avoid printf statements which can add substantially to local memory: the
-// wrapper CELER_RUNTIME_FAIL will ensure this point is unreachable
-#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) CELER_NOASSERT_(COND)
+// Optimized mode: printf statements can add substantially to local memory, so
+// mark unreachable
+#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) ::celeritas::unreachable();
 #endif
 
 #if (CELERITAS_DEBUG && !CELER_DEVICE_COMPILE) \
@@ -247,16 +247,17 @@
         { \
             ::celeritas::detail::ValidationStream celer_runtime_msg_; \
             celer_runtime_msg_ MSG; \
-            CELER_RUNTIME_FAIL(::celeritas::RuntimeError::validate_err_str, \
-                               celer_runtime_msg_.str(), \
-                               #COND); \
+            CELER_RUNTIME_FAIL_(::celeritas::RuntimeError::validate_err_str, \
+                                celer_runtime_msg_.str(), \
+                                #COND); \
         } \
     } while (0)
 
 #define CELER_NOT_CONFIGURED(WHAT) \
-    CELER_RUNTIME_FAIL(::celeritas::RuntimeError::not_config_err_str, WHAT, {})
+    CELER_RUNTIME_FAIL_( \
+        ::celeritas::RuntimeError::not_config_err_str, WHAT, {})
 #define CELER_NOT_IMPLEMENTED(WHAT) \
-    CELER_RUNTIME_FAIL(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
+    CELER_RUNTIME_FAIL_(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
 
 /*!
  * \def CELER_DEVICE_API_CALL
@@ -290,7 +291,7 @@
             if (CELER_UNLIKELY(result_ != CELER_DEVICE_API_SYMBOL(Success))) \
             { \
                 result_ = CELER_DEVICE_API_SYMBOL(GetLastError)(); \
-                CELER_RUNTIME_FAIL( \
+                CELER_RUNTIME_FAIL_( \
                     CELER_DEVICE_PLATFORM_UPPER_STR, \
                     CELER_DEVICE_API_SYMBOL(GetErrorString)(result_), \
                     #STMT); \
@@ -328,7 +329,7 @@
             int mpi_result_ = (STATEMENT); \
             if (CELER_UNLIKELY(mpi_result_ != MPI_SUCCESS)) \
             { \
-                CELER_RUNTIME_FAIL( \
+                CELER_RUNTIME_FAIL_( \
                     "MPI", mpi_error_to_string(mpi_result_), #STATEMENT); \
             } \
         } while (0)
