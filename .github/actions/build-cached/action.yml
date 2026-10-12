@@ -61,6 +61,12 @@ runs:
         path: ${{ env.CCACHE_DIR }}
         key: ccache-${{ inputs.name }}-${{ github.run_id }}
         restore-keys: ccache-${{ inputs.name }}
+        # NOTE: outputs.cache-hit is a *string* that has values:
+        # - '': no hit at all
+        # - 'false': hit but only using "restore-keys" (i.e. indirect match,
+        #   maybe  from an older build or from develop)
+        # - 'true': hit using the exact name: multiple jobs sharing cache within
+        #   the same run (or re-run)
 
     - name: Zero ccache stats
       shell: bash
@@ -84,7 +90,8 @@ runs:
       if: >-
         ${{ !failure()
            && steps.build.outcome != 'skipped'
-           && fromJSON(steps.restore.outputs.cache-hit)
+           && (steps.restore.outputs.cache-hit == ''
+               || fromJSON(steps.restore.outputs.cache-hit))
          }}
       uses: actions/cache/save@v6
       with:
