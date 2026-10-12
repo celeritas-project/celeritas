@@ -94,8 +94,7 @@ runs:
       if: >-
         ${{ !failure()
            && steps.build.outcome != 'skipped'
-           && (steps.restore.outputs.cache-hit == ''
-               || fromJSON(steps.restore.outputs.cache-hit))
+           && steps.restore.outputs.cache-hit != 'true'
          }}
       uses: actions/cache/save@v6
       with:
