@@ -77,10 +77,14 @@ runs:
       id: build
       shell: bash
       run: cmake --build --preset=${{ inputs.preset }} ${{ inputs.targets && '--target' || '' }} ${{ inputs.targets }}
-    - name: Show ccache stats
+    - name: Show cache result
       if: ${{ !failure() && steps.build.outcome != 'skipped' }}
       shell: bash
-      run: ccache -s
+      env:
+        CACHE_HIT_OUTPUT: ${{ steps.restore.outputs.cache-hit }}
+      run: |
+        printf "Cache restore result: %s\n" "$CACHE_HIT_OUTPUT"
+        ccache -s
 
     - name: Save ccache
       # Allow interrupted builds to save (use !failure not !cancelled)
