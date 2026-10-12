@@ -121,11 +121,18 @@ class BaseLogicBuilder
 class PostfixLogicBuilder : public BaseLogicBuilder<PostfixLogicBuilder>
 {
   public:
-    using BaseLogicBuilder::BaseLogicBuilder;
+    using Base = BaseLogicBuilder<PostfixLogicBuilder>;
+
+    PostfixLogicBuilder(CsgTree const& tree,
+                        VecLogic& logic,
+                        VecSurface const* mapping = nullptr)
+        : Base{tree, logic, mapping}
+    {
+    }
 
     //!@{
     //! \name Visit a node directly
-    using BaseLogicBuilder::operator();
+    using Base::operator();
 
     // Visit a negated node and append 'not'.
     void operator()(Negated const& n);
@@ -147,11 +154,18 @@ class PostfixLogicBuilder : public BaseLogicBuilder<PostfixLogicBuilder>
 class InfixLogicBuilder : public BaseLogicBuilder<InfixLogicBuilder>
 {
   public:
-    using BaseLogicBuilder::BaseLogicBuilder;
+    using Base = BaseLogicBuilder<InfixLogicBuilder>;
+
+    InfixLogicBuilder(CsgTree const& tree,
+                      VecLogic& logic,
+                      VecSurface const* mapping = nullptr)
+        : Base{tree, logic, mapping}
+    {
+    }
 
     //!@{
     //! \name Visit a node directly
-    using BaseLogicBuilder::operator();
+    using Base::operator();
 
     // Append 'not' and visit a negated node.
     void operator()(Negated const& n);
