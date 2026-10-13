@@ -66,10 +66,10 @@ class Translation
     inline CELER_FUNCTION Real3 transform_down(Real3 const& parent_pos) const;
 
     // Rotate from daughter to parent (identity)
-    inline CELER_FUNCTION Real3 const& rotate_up(Real3 const& d) const;
+    inline CELER_FUNCTION Real3 rotate_up(Real3 const& d) const;
 
     // Rotate from parent to daughter (identity)
-    inline CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const;
+    inline CELER_FUNCTION Real3 rotate_down(Real3 const& d) const;
 
     //! Calculate the inverse during preprocessing
     Translation calc_inverse() const { return Translation{negate(tra_)}; }
@@ -125,8 +125,7 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_down(
 /*!
  * Rotate from daughter to parent (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_up(
-    Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::rotate_up(Real3 const& d) const
 {
     return d;
 }
@@ -135,8 +134,7 @@ CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_up(
 /*!
  * Rotate from parent to daughter (identity).
  */
-CELER_FORCEINLINE_FUNCTION Real3 const& Translation::rotate_down(
-    Real3 const& d) const
+CELER_FORCEINLINE_FUNCTION Real3 Translation::rotate_down(Real3 const& d) const
 {
     return d;
 }

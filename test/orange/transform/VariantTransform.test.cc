@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "orange/transform/VariantTransform.hh"
 
+#include <type_traits>
+
 #include "geocel/BoundingBox.hh"
 #include "orange/transform/TransformHasher.hh"
 #include "orange/transform/Transformation.hh"
@@ -80,6 +82,10 @@ TEST_F(VariantTransformTest, variant_types)
     using std::holds_alternative;
     Translation tl{Real3{0, 1, 0}};
     Transformation tf{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 2}};
+    NoTransformation nt;
+
+    static_assert(std::is_same_v<Real3, decltype(nt.rotate_down(Real3{}))>);
+    static_assert(std::is_same_v<Real3, decltype(nt.rotate_up(Real3{}))>);
 
     VariantTransform const identity;
     EXPECT_TRUE(holds_alternative<NoTransformation>(

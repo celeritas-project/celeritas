@@ -48,22 +48,16 @@ class NoTransformation
     //// CALCULATION ////
 
     //! Transform from daughter to parent (identity)
-    CELER_FUNCTION Real3 const& transform_up(Real3 const& d) const
-    {
-        return d;
-    }
+    CELER_FUNCTION Real3 transform_up(Real3 const& d) const { return d; }
 
     //! Transform from parent to daughter (identity)
-    CELER_FUNCTION Real3 const& transform_down(Real3 const& d) const
-    {
-        return d;
-    }
+    CELER_FUNCTION Real3 transform_down(Real3 const& d) const { return d; }
 
     //! Rotate from daughter to parent (identity)
-    CELER_FUNCTION Real3 const& rotate_up(Real3 const& d) const { return d; }
+    CELER_FUNCTION Real3 rotate_up(Real3 const& d) const { return d; }
 
     //! Rotate from parent to daughter (identity)
-    CELER_FUNCTION Real3 const& rotate_down(Real3 const& d) const { return d; }
+    CELER_FUNCTION Real3 rotate_down(Real3 const& d) const { return d; }
 
     // Calculate the inverse during preprocessing
     inline NoTransformation calc_inverse() const { return {}; }
