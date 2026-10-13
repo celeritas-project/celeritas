@@ -133,6 +133,8 @@ TEST(AlgorithmsTest, all_adjacent)
 
 TEST(AlgorithmsTest, clamp)
 {
+    static_assert(std::is_same_v<int, decltype(clamp(123, 100, 200))>);
+
     EXPECT_EQ(123, clamp(123, 100, 200));
     EXPECT_EQ(100, clamp(99, 100, 200));
     EXPECT_EQ(200, clamp(999, 100, 200));
@@ -281,6 +283,9 @@ TEST(AlgorithmsTest, sort)
 }
 TEST(AlgorithmsTest, minmax)
 {
+    static_assert(std::is_same_v<int, decltype(min(1, 2))>);
+    static_assert(std::is_same_v<int, decltype(max(1, 2))>);
+
     EXPECT_EQ(1, min<int>(1, 2));
     EXPECT_EQ(2, max<int>(1, 2));
 
