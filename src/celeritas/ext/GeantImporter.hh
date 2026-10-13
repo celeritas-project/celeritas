@@ -122,9 +122,9 @@ inline GeantImporter::GeantImporter()
     CELER_NOT_CONFIGURED("Geant4");
 }
 
-inline GeantImporter::GeantImporter(GeantSetup&& setup)
+// NOLINTNEXTLINE(cppcoreguidelines-rvalue-reference-param-not-moved)
+inline GeantImporter::GeantImporter(GeantSetup&&)
 {
-    CELER_DISCARD(std::move(setup));
     CELER_NOT_CONFIGURED("Geant4");
 }
 
