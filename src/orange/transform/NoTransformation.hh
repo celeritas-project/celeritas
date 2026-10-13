@@ -17,7 +17,10 @@ namespace celeritas
  * Apply an identity transformation.
  *
  * This trivial class has the Transformation interface but has no storage
- * requirements and simply passes through all its data.
+ * requirements and simply passes through all its data. The operations return
+ * \c Real3 by value to avoid exposing references to their input arguments;
+ * the fixed-size three-scalar value is inexpensive to copy, and the compiler
+ * can often eliminate the copy when the operation is inlined.
  */
 class NoTransformation
 {

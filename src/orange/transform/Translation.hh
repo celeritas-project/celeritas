@@ -124,6 +124,10 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::transform_down(
 //---------------------------------------------------------------------------//
 /*!
  * Rotate from daughter to parent (identity).
+ *
+ * Return by value to match the transform interface and avoid exposing a
+ * reference to the input. \c Real3 is a small fixed-size value, and this
+ * force-inlined function lets the compiler eliminate the copy when possible.
  */
 CELER_FORCEINLINE_FUNCTION Real3 Translation::rotate_up(Real3 const& d) const
 {
@@ -133,6 +137,10 @@ CELER_FORCEINLINE_FUNCTION Real3 Translation::rotate_up(Real3 const& d) const
 //---------------------------------------------------------------------------//
 /*!
  * Rotate from parent to daughter (identity).
+ *
+ * Return by value to match the transform interface and avoid exposing a
+ * reference to the input. \c Real3 is a small fixed-size value, and this
+ * force-inlined function lets the compiler eliminate the copy when possible.
  */
 CELER_FORCEINLINE_FUNCTION Real3 Translation::rotate_down(Real3 const& d) const
 {
