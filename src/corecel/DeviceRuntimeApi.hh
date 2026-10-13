@@ -10,8 +10,6 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Assert.hh"
-
 #if CELERITAS_USE_CUDA
 #    include <cuda_runtime_api.h>
 #elif CELERITAS_USE_HIP
@@ -72,40 +70,10 @@
 #define CELER_DEVICE_RUNTIME_INCLUDED
 
 /*!
- * \def CELER_DEVICE_API_CALL
+ * Declare a dummy variable for disabled \c CELER_DEVICE_API_CALL calls.
  *
- * Safely and portably dispatch a CUDA/HIP API call.
- *
- * When CUDA or HIP support is enabled, execute the wrapped statement
- * prepend the argument with "cuda" or "hip" and throw a
- * RuntimeError if it fails. If no device platform is enabled, throw an
- * unconfigured assertion.
- *
- * \par Example:
- * \code
-   CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
-   CELER_DEVICE_API_CALL(DeviceSynchronize());
- * \endcode
+ * With this declaration, the build will fail if this include is missing.
+ * (Unfortunately, since the use of this symbol is embedded in a macro, IWYU
+ * won't include this file automatically.)
  */
-#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
-#    define CELER_DEVICE_API_CALL(STMT) \
-        do \
-        { \
-            using ErrT_ = CELER_DEVICE_API_SYMBOL(Error_t); \
-            ErrT_ result_ = CELER_DEVICE_API_SYMBOL(STMT); \
-            if (CELER_UNLIKELY(result_ != CELER_DEVICE_API_SYMBOL(Success))) \
-            { \
-                result_ = CELER_DEVICE_API_SYMBOL(GetLastError)(); \
-                CELER_RUNTIME_FAIL_( \
-                    CELER_DEVICE_PLATFORM_UPPER_STR, \
-                    CELER_DEVICE_API_SYMBOL(GetErrorString)(result_), \
-                    #STMT); \
-            } \
-        } while (0)
-#else
-#    define CELER_DEVICE_API_CALL(STMT) \
-        do \
-        { \
-            CELER_NOT_CONFIGURED("CUDA or HIP"); \
-        } while (0)
-#endif
+extern int const CorecelDeviceRuntimeApiHh;
