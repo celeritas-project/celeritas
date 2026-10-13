@@ -78,7 +78,8 @@ class BaseLogicBuilder
                   "face and surface ints");
 
   private:
-    // Construct with optional mapping pointer
+    // Construct with optional mapping pointer.  To enforce the CRTP pattern,
+    // the constructor is accessible only to the template parameter.
     BaseLogicBuilder(
         CsgTree const& tree, VecLogic& logic, VecSurface const* vs = nullptr);
 
@@ -106,6 +107,7 @@ class BaseLogicBuilder
     VecLogic& logic_;
     ContainerVisitor<CsgTree const&, NodeId> visit_node_;
     VecSurface const* mapping_{nullptr};
+    // Allow only the template parameter to access the private constructor.
     friend VisitorImpl;
 };
 
