@@ -89,16 +89,17 @@ runs:
             _ansi="33;1" # Exact match: unlikely, no saving after exit
             ;;
           "false")
-            _ansi="32;0" # Inexact match: typical case
+            _ansi="32" # Inexact match: typical case
             ;;
           "")
             _ansi="31;1" # No match: should only happen during weekly cron
             ;;
           *)
-            _ansi="0;30;41" # Shouldn't be possible unless action API changes
+            _ansi="30;41" # Shouldn't be possible unless action API changes
             ;;
         esac
-        printf "Cache restore result: \033[%sm%s from \033[%sm%s\033[0m\n" \
+        printf "\033[%smCache restore result: \033[0;%sm%s from \033[%sm%s\033[0m\n" \
+          "44;30" \
           "$_ansi" \
           "$CACHE_HIT_OUTPUT" \
           "1;30" \
