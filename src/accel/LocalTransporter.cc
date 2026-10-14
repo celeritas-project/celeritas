@@ -220,10 +220,11 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(id != event_id_);
     // Restarting track IDs (and reseeding) requires the previous event to be
     // fully transported
-    CELER_VALIDATE(
-        !step_->valid() && !transport_active_ && this->GetBufferSize() == 0,
-        << "cannot start event " << id << " before tracks from event "
-        << event_id_ << " are flushed");
+    CELER_VALIDATE(!step_->has_outstanding_result() && !transport_active_
+                       && this->GetBufferSize() == 0,
+                   << "cannot start event " << id
+                   << " before tracks from event " << event_id_
+                   << " are flushed");
 
     event_id_ = id;
     ++run_accum_.events;

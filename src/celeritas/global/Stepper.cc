@@ -480,7 +480,7 @@ template<MemSpace M>
 void Stepper<M>::reset_track_ids()
 {
     CELER_VALIDATE(
-        !valid_,
+        !has_outstanding_result_,
         << "cannot reset track IDs while an asynchronous step is executing");
     CELER_VALIDATE(!this->has_queued_primaries(),
                    << "cannot reset track IDs with queued primaries");
