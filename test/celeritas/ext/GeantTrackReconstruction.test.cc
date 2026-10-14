@@ -242,25 +242,6 @@ TEST_F(GtrTest, track_restoration)
 
 //---------------------------------------------------------------------------//
 
-TEST_F(GtrTest, track_restoration_without_primary)
-{
-    GeantTrackReconstruction recon(particles_, step_);
-
-    recon.init_event();
-
-    // Restore track without primary information (invalid PrimaryId)
-    G4Track& restored_track = recon.view(ParticleId{0});
-
-    // Verify basic track properties
-    EXPECT_EQ(particles_[0], restored_track.GetParticleDefinition());
-    EXPECT_EQ(0, restored_track.GetTrackID());
-    EXPECT_EQ(0, restored_track.GetParentID());
-    EXPECT_EQ(nullptr, restored_track.GetUserInformation());
-    EXPECT_EQ(nullptr, restored_track.GetCreatorProcess());
-}
-
-//---------------------------------------------------------------------------//
-
 TEST_F(GtrTest, end_event_cleanup)
 {
     GeantTrackReconstruction recon(particles_, step_);
@@ -340,13 +321,10 @@ TEST_F(GtrTest, end_event_cleanup)
             // Flush should clear reconstruction data
             recon.clear();
 
-            // Verify all tracks have cleared user information
-            for (auto particle_id :
-                 range(ParticleId{static_cast<size_type>(particles_.size())}))
-            {
-                G4Track& track = recon.view(particle_id);
-                EXPECT_EQ(nullptr, track.GetUserInformation());
-            }
+            // The shared track no longer refers to the user information,
+            // which was deleted with the reconstruction data
+            ASSERT_TRUE(step_->GetTrack());
+            EXPECT_EQ(nullptr, step_->GetTrack()->GetUserInformation());
         }
     }
 }
@@ -358,16 +336,27 @@ TEST_F(GtrTest, multiple_particle_types)
     GeantTrackReconstruction recon(particles_, step_);
     recon.init_event();
 
-    // Test all particle types can be restored
+    auto primary = std::make_unique<G4Track>(
+        new G4DynamicParticle(particles_[0], G4ThreeVector(1, 0, 0)),
+        0.0,
+        G4ThreeVector());
+    primary->SetTrackID(7);
+    PrimaryId const pid = recon.acquire(*primary);
+
+    // Secondaries of every particle type can be restored
+    constexpr int max_id = std::numeric_limits<int>::max();
     for (auto i : range(particles_.size()))
     {
         ParticleId particle_id{static_cast<size_type>(i)};
-        G4Track& track = recon.view(particle_id);
+        TrackId const track_id{static_cast<size_type>(i + 1)};
+        G4Track& track = recon.view(particle_id, pid, track_id, TrackId{0}, 1);
 
         EXPECT_EQ(particles_[i], track.GetParticleDefinition());
-        EXPECT_EQ(0, track.GetTrackID());
-        EXPECT_EQ(0, track.GetParentID());
+        EXPECT_EQ(&track, step_->GetTrack());
+        EXPECT_EQ(max_id - static_cast<int>(i + 1), track.GetTrackID());
+        EXPECT_EQ(7, track.GetParentID());
     }
+    recon.clear();
 }
 
 //---------------------------------------------------------------------------//

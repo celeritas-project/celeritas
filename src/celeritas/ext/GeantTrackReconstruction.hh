@@ -101,9 +101,6 @@ class GeantTrackReconstruction
                                 TrackId parent,
                                 size_type generation) const;
 
-    // View a track with the given particle ID
-    [[nodiscard]] G4Track& view(ParticleId) const;
-
     //! Creator process reported for tracks created by Celeritas
     G4VProcess const& placeholder_process() const { return *placeholder_; }
 
@@ -154,6 +151,9 @@ class GeantTrackReconstruction
 
     // Restore the saved identity of an offloaded track
     G4Track& view(ParticleId, PrimaryId) const;
+
+    // Get the shared track for a particle type and attach it to the step
+    G4Track& view(ParticleId) const;
 };
 
 //---------------------------------------------------------------------------//

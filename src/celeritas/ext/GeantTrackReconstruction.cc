@@ -284,7 +284,11 @@ G4Track& GeantTrackReconstruction::view(ParticleId particle_id,
 
 //---------------------------------------------------------------------------//
 /*!
- * View a track with the given particle ID.
+ * Get the shared track for a particle type and attach it to the step.
+ *
+ * The track is reused for every hit of this particle type: it still has the
+ * track ID, parent ID, creator process, and user information set by the
+ * previous view, so callers must overwrite them.
  */
 G4Track& GeantTrackReconstruction::view(ParticleId particle_id) const
 {
