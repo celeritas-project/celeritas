@@ -84,6 +84,8 @@ TEST_F(VariantTransformTest, variant_types)
     Transformation tf{make_rotation(Axis::z, Turn{0.25}), Real3{0, 0, 2}};
     NoTransformation nt;
 
+    static_assert(std::is_same_v<Real3, decltype(nt.transform_down(Real3{}))>);
+    static_assert(std::is_same_v<Real3, decltype(nt.transform_up(Real3{}))>);
     static_assert(std::is_same_v<Real3, decltype(nt.rotate_down(Real3{}))>);
     static_assert(std::is_same_v<Real3, decltype(nt.rotate_up(Real3{}))>);
 
