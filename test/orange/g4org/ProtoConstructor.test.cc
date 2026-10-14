@@ -70,7 +70,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
             os << opts;
             return std::move(os).str();
         }();
-        EXPECT_EQ(15, std::count(result_str.begin(), result_str.end(), ','))
+        EXPECT_EQ(16, std::count(result_str.begin(), result_str.end(), ','))
             << "JSON items changed: actual is " << repr(result_str);
     }
 

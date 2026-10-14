@@ -47,6 +47,8 @@ An ORANGE track state is a `[{universe, impl_volume}]` stack. The *local volume 
 `inp::OrangeGeoFromGeant` (deserialized from the `G4ORG_OPTIONS` environment variable for debugging) controls:
 - `unit_length` and `tol`: length scale and tracking tolerance.
 - `inp::InlineSingletons` enum (`none` / `untransformed` / `unrotated` / `all`): how aggressively to inline single-use volumes into their parent universe.
+- `universe_alignment`: map of logical volume names to a rotation matrices that makes the volume's daughters axis-aligned, to improve acceleration. Logical volumes included in this map are never inlined.
+
 
 ## ORANGE Construction (`orangeinp` namespace)
 
