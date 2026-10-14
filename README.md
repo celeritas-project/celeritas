@@ -260,7 +260,7 @@ See the configure output from the [GitHub runners][runners] for the full list of
     - C++17, C++20, C++23
 - Dependencies:
     - Geant4 10.5-11.4
-    - VecGeom 1.2.10-2.1
+    - VecGeom 1.2.10-1.2.11, 2.2
 
 Partial compatibility and correctness is available for an extended range of
 Geant4:

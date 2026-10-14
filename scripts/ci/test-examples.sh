@@ -39,10 +39,10 @@ build_local() {
 }
 export CELER_LOG=debug CELER_LOG_LOCAL=debug
 
-echo "::group::Build and run minimal example"
-cd "${CELER_SOURCE_DIR}/example/minimal"
+echo "::group::Build and run data model example"
+cd "${CELER_SOURCE_DIR}/example/data-model"
 build_local
-./minimal
+./data-model
 echo "::endgroup::"
 
 # Run Geant4 app examples unless G4VERSION_NUMBER is set to zero

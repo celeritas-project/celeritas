@@ -146,7 +146,7 @@
         ::celeritas::throw_debug_error( \
             {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
 #elif defined(__CUDA_ARCH__) && !defined(NDEBUG)
-// Use the assert macro for CUDA when supported
+// Use the assert macro for CUDA device target when supported
 #    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         assert(false && sizeof(#WHICH ": " MSG))
 #else
@@ -527,22 +527,28 @@ inline __attribute__((noinline)) __host__ __device__ void device_debug_fail(
     __trap();
 }
 #elif defined(__HIP__)
-//! Host-only HIP call (whether or not NDEBUG is in use)
-inline __host__ void device_debug_fail(
+//! Assertion failure inside a HIP file during host code execution
+CELER_FORCEINLINE __host__ void device_debug_fail(
     DebugErrorType which, char const* condition, char const* file, int line)
 {
     return ::celeritas::throw_debug_error({which, condition, file, line});
 }
 
-//! Device-only call for HIP (must always be declared; only used if
-//! NDEBUG)
+//! Assertion failure inside device code
 inline __attribute__((noinline)) __device__ void device_debug_fail(
     DebugErrorType, char const* condition, char const* file, int line)
 {
-    printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
+    // The existence of a printf breaks HIP 7.14.60850 kernel compilation
+#    if CELERITAS_HIP_VERSION < 0x070e00
+    printf("%s:%d:\nceleritas: internal assertion failed: %s\n",
            file,
            line,
            condition);
+#    else
+    CELER_DISCARD(condition);
+    CELER_DISCARD(file);
+    CELER_DISCARD(line);
+#    endif
     abort();
 }
 #endif

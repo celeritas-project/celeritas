@@ -44,17 +44,6 @@ celeritas_generate_option_config(CELERITAS_RESEED)
 #----------------------------------------------------------------------------#
 # Detailed build configuration for reproducibility/provenance
 
-# Get host system information
-if(NOT DEFINED CELERITAS_HOSTNAME)
-  set(_hostname "$ENV{LMOD_SYSTEM_NAME}")
-  if(NOT _hostname)
-    cmake_host_system_information(RESULT _hostname QUERY HOSTNAME)
-    string(REGEX REPLACE "\\..*" "" _hostname "${_hostname}")
-  endif()
-  set(CELERITAS_HOSTNAME "${_hostname}" CACHE INTERNAL
-    "Build/deploy system name")
-endif()
-
 # Save CMake variables as strings
 set(CELERITAS_CMAKE_STRINGS)
 set(CELERITAS_CMAKE_STRINGS_DECL)
@@ -78,7 +67,7 @@ else()
   endif()
 endif()
 set(CELERITAS_CONSTANTS "CODATA ${CELERITAS_CODATA}")
-foreach(_var BUILD_TYPE HOSTNAME REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG RESEED)
+foreach(_var BUILD_TYPE REAL_TYPE UNITS CONSTANTS OPENMP CORE_GEO CORE_RNG RESEED)
   string(TOLOWER "${_var}" _lower)
   celeritas_append_cmake_string("${_lower}" "${CELERITAS_${_var}}")
 endforeach()
@@ -95,23 +84,51 @@ celeritas_append_cmake_string("gpu_architectures" "${_gpu_arch}")
 
 list(APPEND CELERITAS_CMAKE_STRINGS "")
 
-# Save dependency versions as strings
-set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
-set(HIP_VERSION_STRING "${hip-lang_VERSION}")
-foreach(_pkg CLHEP covfie CUDA HepMC3 HIP Geant4 G4VG LArSoft ROOT Thrust VecGeom)
+## Save dependency versions as {lower_name, string} pairs
+# - see *AND UPDATE* src/corecel/io/BuildOutput.cc for usage
+# - see cmake/CeleritasOptionUtils.cmake for list of components
+# - remove non-link dependencies (python)
+# - define fake version strings if not available in this cmake
+set(_celer_packages "${CELERITAS_COMPONENTS}")
+list(REMOVE_ITEM _celer_packages Python)
+set(CELERITAS_CMAKE_VERSIONS_INIT)
+if(CELERITAS_USE_CUDA AND NOT CUDA_VERSION_STRING)
+  set(CUDA_VERSION_STRING "${CUDAToolkit_VERSION}")
+else()
+  unset(CUDA_VERSION_STRING)
+endif()
+if(CELERITAS_USE_HIP AND NOT HIP_VERSION_STRING)
+  if(hip_VERSION)
+    # From find_package(hip)
+    set(HIP_VERSION_STRING "${hip_VERSION}")
+  else()
+    # Via enable_language(HIP)
+    set(HIP_VERSION_STRING "${hip-lang_VERSION}")
+    # Support `hip_VERSION` with celeritas_version_to_hex
+    set(hip_VERSION "${hip-lang_VERSION}")
+  endif()
+else()
+  unset(HIP_VERSION_STRING)
+endif()
+foreach(_pkg IN LISTS _celer_packages)
   string(TOLOWER "${_pkg}" _lower)
   if(DEFINED ${_pkg}_VERSION_STRING)
-    set(_value "${${_pkg}_VERSION_STRING}")
+    set(_value "\"${${_pkg}_VERSION_STRING}\"")
   elseif(DEFINED ${_pkg}_VERSION)
-    set(_value "${${_pkg}_VERSION}")
+    set(_value "\"${${_pkg}_VERSION}\"")
+  elseif(DEFINED CELERITAS_USE_${_pkg} AND NOT CELERITAS_USE_${_pkg})
+    # Package name is valid but disabled in this configuration
+    set(_value "package_disabled")
   else()
-    set(_value "")
+    # Special constexpr empty string for documentation: see Config.cc.in
+    set(_value "package_undefined")
   endif()
-  celeritas_append_cmake_string("${_lower}_version" "${_value}")
+  list(APPEND CELERITAS_CMAKE_VERSIONS_INIT "{\"${_lower}\", ${_value}},")
 endforeach()
 
 # NOTE: some values are defined in top-level CMakeLists
 # - CELERITAS_HAVE_ROCTX
+# - CELERITAS_HAVE_HIPCUB
 # - CELERITAS_SINCOSPI_PREFIX
 
 if(DEFINED CELERITAS_SINCOSPI_PREFIX)
@@ -122,7 +139,7 @@ endif()
 
 # Save finicky dependency versions as hex
 set(CELERITAS_DEPENDENCY_VERSIONS)
-foreach(_dep CUDA HIP Geant4 VecGeom HepMC3)
+foreach(_dep covfie CUB CUDA hip Geant4 HepMC3 hipcub VecGeom)
   string(TOUPPER "${_dep}" _upper)
   celeritas_version_to_hex(_temp_version_hex ${_dep}_VERSION)
   list(APPEND CELERITAS_DEPENDENCY_VERSIONS
@@ -190,8 +207,15 @@ foreach(_opt usolids multithreaded)
 endforeach()
 
 # Convert lists to newline-separated strings
-foreach(_ext CMAKE_STRINGS_DECL CMAKE_STRINGS_DEF VECGEOM_CONFIG GEANT4_CONFIG DEPENDENCY_VERSIONS)
-  list(JOIN CELERITAS_${_ext} "\n" CELERITAS_${_ext})
+foreach(_var
+    CELERITAS_CMAKE_STRINGS_DECL
+    CELERITAS_CMAKE_STRINGS_DEF
+    CELERITAS_CMAKE_VERSIONS_INIT
+    CELERITAS_VECGEOM_CONFIG
+    CELERITAS_GEANT4_CONFIG
+    CELERITAS_DEPENDENCY_VERSIONS
+  )
+  list(JOIN ${_var} "\n" ${_var})
 endforeach()
 
 #-----------------------------------------------------------------------------#
@@ -346,6 +370,9 @@ if(CELERITAS_USE_HIP)
   list(APPEND SOURCES
     sys/ScopedProfiling.hip.cc
   )
+  if(roctracer_FOUND)
+    list(APPEND PRIVATE_DEPS roctracer::roctx)
+  endif()
   # Build some files as HIP due to rocThrust
   set_source_files_properties(
     sys/Stream.cc

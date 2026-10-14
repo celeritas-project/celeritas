@@ -221,9 +221,9 @@ celeritas_add_integration_tests(
   RMTYPE ${_optical_rm_type}
 )
 
-# Test primary admission with a larger secondary stack
+# Test cleanup after runtime error
 celeritas_add_integration_tests(
-  TrackingManagerIntegration TestEm3Rayleigh run_small_capacity
+  TrackingManagerIntegration TestEm3 max_step_iters_error
   OFFLOAD cpu gpu
   RMTYPE serial
 )

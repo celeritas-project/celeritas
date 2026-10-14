@@ -95,12 +95,6 @@ class Runner
   private:
     setup::OpticalStandaloneLoaded loaded_;
     std::shared_ptr<CoreStateBase> state_;
-
-    //// HELPER FUNCTIONS ////
-
-    // Update the num_pending state counter
-    void update_pending(CoreState<MemSpace::host>&, size_type) const;
-    void update_pending(CoreState<MemSpace::device>&, size_type) const;
 };
 
 //---------------------------------------------------------------------------//

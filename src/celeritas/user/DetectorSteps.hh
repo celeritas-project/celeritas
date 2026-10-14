@@ -11,6 +11,7 @@
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/data/AsyncResultRef.hh"
 #include "corecel/data/PinnedAllocator.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
@@ -57,8 +58,10 @@ struct DetectorStepPointOutput
  * selection of the \c StepInterface class that gathered the data.
  *
  * Unlike \c StepStateData, which leaves gaps for inactive or filtered
- * tracks, every entry of these vectors will be valid and correspond to a
- * single DetectorId.
+ * tracks, every entry of these vectors will be valid. If detectors are
+ * defined, each entry corresponds to a single DetectorId; otherwise
+ * \c detector_id is empty and each entry corresponds to a selected track.
+ * Entries are ordered by track slot.
  */
 struct DetectorStepOutput
 {
@@ -97,32 +100,44 @@ struct DetectorStepOutput
     //// METHODS ////
 
     //! Number of elements in the detector output.
-    size_type size() const { return detector_id.size(); }
+    size_type size() const
+    {
+        return detector_id.empty() ? track_id.size() : detector_id.size();
+    }
     //! Whether the size is nonzero
-    explicit operator bool() const { return !detector_id.empty(); }
+    explicit operator bool() const { return this->size() != 0; }
 };
 
 //---------------------------------------------------------------------------//
-// Copy state data for all steps inside detectors to the output.
-template<MemSpace M>
-void copy_steps(DetectorStepOutput* output,
-                StepStateData<Ownership::reference, M> const& state);
+// Copy host state data for all selected steps to the output
+void copy_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::host> const& state);
 
-template<>
-void copy_steps<MemSpace::host>(
-    DetectorStepOutput*,
-    StepStateData<Ownership::reference, MemSpace::host> const&);
-template<>
-void copy_steps<MemSpace::device>(
-    DetectorStepOutput*,
-    StepStateData<Ownership::reference, MemSpace::device> const&);
+// Compact selected device step data without synchronizing the stream
+void compact_steps_async(
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    AsyncResultRef<size_type> num_selected);
+
+// Copy device step data compacted by compact_steps_async
+void copy_compacted_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    size_type num_selected);
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-template<>
-inline void copy_steps<MemSpace::device>(
+inline void compact_steps_async(
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    AsyncResultRef<size_type>)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void copy_compacted_steps(
     DetectorStepOutput*,
-    StepStateData<Ownership::reference, MemSpace::device> const&)
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    size_type)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

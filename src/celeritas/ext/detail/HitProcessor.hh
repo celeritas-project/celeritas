@@ -15,6 +15,8 @@
 #include "corecel/Macros.hh"
 #include "corecel/Types.hh"
 #include "corecel/cont/EnumArray.hh"
+#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/sys/DeviceEvent.hh"
 #include "celeritas/Types.hh"
 #include "celeritas/user/DetectorSteps.hh"
 #include "celeritas/user/StepData.hh"
@@ -49,12 +51,17 @@ namespace detail
  * class \b must be destroyed on the same thread on which it was created.
  *
  * Host step data is copied and processed immediately by the call operator.
- * For device step data, the call operator retains a reference to the gathered
- * step state without copying it. After the producing step is complete, the
- * caller must call \c process_pending_steps before launching another step that
- * can overwrite the shared step state. Only one device step can be pending.
- * Processing currently copies the selected detector data synchronously to
- * pinned host storage, then:
+ * For device step data, the call operator enqueues the selection and
+ * compaction of detector steps into the state's scratch space, along with an
+ * asynchronous copy of the number of selected steps to pinned host memory,
+ * without synchronizing. Because the enqueued kernels read the gathered step
+ * data, it may be overwritten only by work enqueued later on the same stream.
+ * The scratch space must not be overwritten until the caller calls \c
+ * process_pending_steps after the producing step is complete. Only
+ * one device step can be pending, which prevents a subsequent compaction from
+ * overwriting the scratch space. Processing waits for the compaction, copies
+ * the compacted detector data to pinned host storage (synchronizing the
+ * stream once), then:
  * - loops over detector steps;
  * - updates step attributes based on the hit selection (TODO: selection is
  *   global for now); and
@@ -88,16 +95,17 @@ class HitProcessor
                  StepSelection const& selection,
                  StepPointBool const& locate_touchable);
 
-    ~HitProcessor() = default;
+    // Wait for any pending device compaction before releasing its buffers
+    ~HitProcessor();
     CELER_DEFAULT_MOVE_DELETE_COPY(HitProcessor);
 
     // Process CPU-generated hits
     void operator()(StepStateHostRef const&);
 
-    // Save device-generated hits for processing after step completion
+    // Enqueue compaction of device-generated hits for later processing
     void operator()(StepStateDeviceRef const&);
 
-    // Copy and process device-generated hits after their step completes
+    // Copy and process compacted device hits after their step completes
     void process_pending_steps();
 
     //! Whether device-generated hit data is pending
@@ -138,6 +146,10 @@ class HitProcessor
 
     //! Device step data awaiting transfer after step completion
     StepStateDeviceRef pending_device_steps_;
+    //! Number of compacted device steps (pinned, allocated if device is used)
+    std::vector<size_type, PinnedAllocator<size_type>> num_selected_;
+    //! Completion of the pending device step compaction
+    DeviceEvent compacted_{nullptr};
 
     //! Shared step object
     std::shared_ptr<G4Step> step_;

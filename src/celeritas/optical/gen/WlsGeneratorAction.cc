@@ -152,8 +152,7 @@ void WlsGeneratorAction::step_impl(CoreParams const& params,
     {
         // This function doesn't change the aux_state counters, so the next if
         // statement is still checking inclusive_scan_photons() result
-        this->update_pending(
-            params, state, counters.num_pending - num_pending_prev);
+        state.add_pending(counters.num_pending - num_pending_prev);
     }
     if (counters.num_pending > 0)
     {

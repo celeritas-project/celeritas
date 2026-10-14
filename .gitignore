@@ -8,28 +8,33 @@
 .nfs*
 
 # Specific filenames anywhere
+__pycache__
+.DS_Store
+.idea
 CLAUDE.local.md
 cmake_install.cmake
 compile_commands.json
+settings.local.json
 Testing
-.DS_Store
-.idea
 
 # Globs in specific places
 /build*
-/example/*/.clangd
 /install*
 /spack-build*
 
-# Specific files in the top level
-/.claude/settings.local.json
+# Specific directories in the top level
+/.claude/
 /.claude/worktrees/
+/node_modules/
+
+# Specific files in the top level
 /.clangd
+/.pytest_cache
+/.ruff_cache
 /.vscode
 /CMakeCache.txt
 /CMakeFiles
 /CMakeUserPresets.json
-/node_modules/
 /package-lock.json
 /package.json
 /spack.yaml

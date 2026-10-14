@@ -1,13 +1,14 @@
 .. Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 .. SPDX-License-Identifier: CC-BY-4.0
+.. ......................................................................... ..
+.. This file is included by doc/example/data-model.rst .
+.. ......................................................................... ..
 
-.. _example_minimal:
-
-Minimal Celeritas usage
-=======================
+Core infrastructure example
+===========================
 
 This simple example shows how to incorporate an already-installed Celeritas
-into a downstream project.
+into a downstream CMake project.
 
 CMake infrastructure
 --------------------
@@ -16,12 +17,12 @@ The CMake code itself is straightforward, though note the use of
 ``celeritas_target_link_libraries`` instead of ``target_link_libraries`` to
 support CUDA RDC, which is required by VecGeom.
 
-.. literalinclude:: ../../example/minimal/CMakeLists.txt
+.. literalinclude::  ../../example/data-model/CMakeLists.txt
    :language: cmake
    :start-at: project(
 
 Main executable
 ---------------
 
-.. literalinclude:: ../../example/minimal/minimal.cc
+.. literalinclude:: ../../example/data-model/data-model.cc
    :start-at: #include

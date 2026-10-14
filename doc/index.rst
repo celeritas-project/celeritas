@@ -63,7 +63,7 @@ more than a factor of two, about 40% of which is Monte Carlo (MC) detector
 simulation, without substantial research and development improvements.
 
 Celeritas
-:cite:p:`celeritas-0-1,celeritas-0-2,celeritas-0-3,celeritas-0-4,celeritas-0-5,celeritas-0-6`
+:cite:p:`celeritas-0-1,celeritas-0-2,celeritas-0-3,celeritas-0-4,celeritas-0-5,celeritas-0-6,celeritas-0-7`
 is a MC particle transport code designed for
 high performance simulation of complex HEP detectors on GPU-accelerated
 hardware.  Its immediate goal is to simulate electromagnetic (EM) physics for
@@ -338,7 +338,7 @@ library, in independent and Geant4-integrated contexts.
    :maxdepth: 2
    :caption: Examples
 
-   example/minimal.rst
+   example/data-model.rst
    example/geant4.rst
    example/celer-sim.rst
    example/celer-optical.rst
@@ -410,6 +410,7 @@ Release History
    :maxdepth: 2
    :caption: Release history
 
+   release-history/v0.7.rst
    release-history/v0.6.rst
    release-history/v0.5.rst
    release-history/v0.4.rst

@@ -13,8 +13,6 @@
 
 #include "corecel/io/Logger.hh"
 
-#include "Environment.hh"
-
 #if CELERITAS_HAVE_ROCTX
 #    include <roctracer/roctx.h>
 #endif

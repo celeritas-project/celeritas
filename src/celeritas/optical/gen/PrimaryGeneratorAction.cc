@@ -40,11 +40,8 @@ PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
     ActionRegistry& actions = *params.action_reg();
     AuxParamsRegistry& aux = *params.aux_reg();
     GeneratorRegistry& gen = *params.gen_reg();
-    auto result = std::make_shared<PrimaryGeneratorAction>(actions.next_id(),
-                                                           aux.next_id(),
-                                                           gen.next_id(),
-                                                           params,
-                                                           std::move(input));
+    auto result = std::make_shared<PrimaryGeneratorAction>(
+        actions.next_id(), aux.next_id(), gen.next_id(), std::move(input));
 
     actions.insert(result);
     aux.insert(result);
@@ -57,14 +54,12 @@ PrimaryGeneratorAction::make_and_insert(CoreParams& params, Input&& input)
  * Construct with IDs and distribution.
  */
 PrimaryGeneratorAction::PrimaryGeneratorAction(
-    ActionId id, AuxId aux_id, GeneratorId gen_id, CoreParams& params, Input inp)
+    ActionId id, AuxId aux_id, GeneratorId gen_id, Input inp)
     : GeneratorBase(id,
                     aux_id,
                     gen_id,
                     "primary-generate",
                     "generate optical photon primaries")
-    , core_params_(&params)
-
 {
     HostVal<DistributionParamsData> host_params;
     DistributionInserter insert(host_params);
@@ -77,7 +72,6 @@ PrimaryGeneratorAction::PrimaryGeneratorAction(
     params_ = ParamsDataStore<DistributionParamsData>{std::move(host_params)};
     CELER_ENSURE(data_);
     CELER_ENSURE(params_);
-    CELER_ENSURE(core_params_);
 }
 
 //---------------------------------------------------------------------------//
@@ -140,7 +134,7 @@ void PrimaryGeneratorAction::insert_impl(optical::CoreState<M>& state) const
     aux_state.counters.num_pending = data_.num_photons;
     if (data_.num_photons > 0)
     {
-        this->update_pending(*core_params_, state, data_.num_photons);
+        state.add_pending(data_.num_photons);
     }
 }
 

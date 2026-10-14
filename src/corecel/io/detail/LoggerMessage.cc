@@ -12,6 +12,7 @@
 #include <sstream>
 
 #include "corecel/Assert.hh"
+#include "corecel/sys/TypeDemangler.hh"
 
 #include "../Logger.hh"
 #include "../LoggerTypes.hh"
@@ -43,6 +44,7 @@ void LoggerMessage::construct_impl(LogProvenance&& prov, LogLevel lev)
  */
 void LoggerMessage::destroy_impl() noexcept
 {
+    CELER_EXPECT(handle_);
     try
     {
         // Write to the handler
@@ -50,8 +52,24 @@ void LoggerMessage::destroy_impl() noexcept
     }
     catch (std::exception const& e)
     {
-        std::clog << "An error occurred while writing a " << to_cstring(lev_)
-                  << " log message: " << e.what() << std::endl;
+        std::clog
+            << "celeritas::LoggerMessage: an error occurred while writing a '"
+            << to_cstring(lev_) << "' message from ";
+        if (!prov_.file.empty())
+        {
+            std::clog << prov_.file;
+        }
+        else
+        {
+            std::clog << "<UNKNOWN>";
+        }
+        if (prov_.line > 0)
+        {
+            std::clog << ':' << prov_.line;
+        }
+        std::clog << " to '"
+                  << demangled_typeid_name(handle_->target_type().name())
+                  << "': " << e.what() << std::endl;
     }
 }
 

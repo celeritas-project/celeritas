@@ -8,8 +8,8 @@
 
 #include "corecel/Config.hh"
 
-#if CELERITAS_VECGEOM_VERSION < 0x020100
-#    error "This file requires VecGeom 2.1+"
+#if CELERITAS_VECGEOM_VERSION < 0x020200
+#    error "This file requires VecGeom 2.2+"
 #endif
 
 #include <VecGeom/navigation/NavView.h>
@@ -189,6 +189,7 @@ class VgBasicTrackView
 
 struct VgBasicTrackView::LocalNavData
 {
+    NavView::NavSetupT nav_params;
     VgReal3 temp_pos;
     VgReal3 temp_dir;
 };
@@ -197,8 +198,14 @@ class VgBasicTrackView::LocalNav : public LocalNavData, public vecgeom::NavView
 {
   public:
     explicit CELER_FUNCTION LocalNav(VgBasicTrackView& vtv)
-        : LocalNavData{to_vgvector(vtv.pos_), to_vgvector(vtv.dir_)}
-        , NavView{vtv.vgstate_, vtv.vgnext_, this->temp_pos, this->temp_dir}
+        : LocalNavData{{vtv.params_.scalars.world<MemSpace::native>()},
+                       to_vgvector(vtv.pos_),
+                       to_vgvector(vtv.dir_)}
+        , NavView{this->nav_params,
+                  vtv.vgstate_,
+                  vtv.vgnext_,
+                  this->temp_pos,
+                  this->temp_dir}
     {
     }
 };

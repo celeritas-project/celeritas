@@ -47,8 +47,7 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     ExtendFromPrimariesAction(ActionId action_id, AuxId aux_id);
 
     // Add user-provided primaries on host
-    void insert(CoreParams const& params,
-                CoreStateInterface& state,
+    void insert(CoreStateInterface& state,
                 Span<Primary const> host_primaries) const;
 
     //!@{
@@ -99,9 +98,6 @@ class ExtendFromPrimariesAction final : public CoreStepActionInterface,
     void process_primaries(CoreParams const&,
                            CoreStateDevice&,
                            PrimaryStateData<MemSpace::device> const&) const;
-
-    void update_counters(CoreParams const&, CoreStateHost&, size_type) const;
-    void update_counters(CoreParams const&, CoreStateDevice&, size_type) const;
 };
 
 template<MemSpace M>
