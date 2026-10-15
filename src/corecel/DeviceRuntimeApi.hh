@@ -138,9 +138,8 @@
 #        include <cub/version.cuh>
 #    elif CELERITAS_USE_HIP && CELERITAS_HAVE_HIPCUB
 #        include <hipcub/hipcub_version.hpp>
-#    endif
-#    if CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
-#        define CELER_USE_THRUST 1
+#    elif CELERITAS_USE_HIP && !CELERITAS_HAVE_HIPCUB
+#        define HIPCUB_VERSION 0
 #    endif
 #    if CELERITAS_USE_CUDA && CUB_VERSION >= 200800
 #        define CELER_CUB_HAS_TRANSFORM 1
@@ -149,6 +148,8 @@
 #        define CELER_CUB_HAS_FLAGGEDIF 1
 #    elif CELERITAS_USE_HIP && HIPCUB_VERSION >= 400100
 #        define CELER_HIPCUB_HAS_TRANSFORM 1
+#    else
+#        define CELER_USE_THRUST 1
 #    endif
 #else
 #    define CELER_USE_THRUST 0

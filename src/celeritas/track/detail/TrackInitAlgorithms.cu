@@ -14,7 +14,8 @@
 #elif CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
-#else
+#endif
+#if CELER_USE_THRUST
 #    include <thrust/execution_policy.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>
