@@ -57,43 +57,39 @@ if [ -z "${CELER_SOURCE_DIR}" ]; then
   CELER_SOURCE_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
 fi
 
-MATRIX_FILE="${CELER_SOURCE_DIR}/.github/buildcache-matrix.txt"
+MATRIX_FILE="${CELER_SOURCE_DIR}/.github/buildcache-matrix.sh"
 if [ ! -f "$MATRIX_FILE" ]; then
   log error "Missing matrix file ${MATRIX_FILE}"
   exit 1
 fi
 
-grep -v '^[[:space:]]*\(#\|$\)' "$MATRIX_FILE" | while read -r line; do
-  # Convert line into arguments to be passed into setup-spack-ci-env.sh
-  set -- $line
-  case "$1:$2" in
-    cxxstd=*:envbase=*) ;;
-    *)
-      log error "Invalid matrix line (expected cxxstd=N envbase=NAME): $line"
-      exit 1
-      ;;
-  esac
-  cxxstd=${1#cxxstd=}
-  envbase=${2#envbase=}
-  shift 2
-
+# Called by the matrix file with cxxstd and ENV_CI set in the environment
+build_spack_env() (
+  if [ -z "${CXXSTD}" ]; then
+    log error "Missing $CXXSTD (args: $*)"
+    return 1
+  fi
+  if [ -z "${ENV_CI}" ]; then
+    log info "Missing $ENV_CI (args: $*)"
+    return 1
+  fi
   # Create temporary directory
-  envdir="$WORK_DIR/temp-spack-${envbase}-cxx${cxxstd}"
+  envdir="$WORK_DIR/temp-spack-${ENV_CI}-cxx${CXXSTD}"
   if [ $# -ne 0 ]; then
     envdir="${envdir}-$(echo "$*" | tr ' @' '--')"
   fi
   if [ -d $envdir ]; then
-    log info "Skipping existing env: $line"
-    continue
+    log info "Skipping existing env: $envdir"
+    return 0
   fi
   mkdir -p "$envdir"
   cd "$envdir"
 
   # Create environment
-  SPACK_ENV_FILE="env-ci-${envbase}.yaml" \
-  CXXSTD=${cxxstd} \
+  SPACK_ENV_FILE="env-ci-${ENV_CI}.yaml" \
   CELER_SOURCE_DIR=${CELER_SOURCE_DIR} \
     "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" "$@"
+
   # Install and push
   log status "Concretizing $envdir"
   spack -e . -v concretize --non-defaults --fresh
@@ -105,4 +101,6 @@ grep -v '^[[:space:]]*\(#\|$\)' "$MATRIX_FILE" | while read -r line; do
     --update-index \
     --allow-missing \
     $CELER_BUILDCACHE
-done
+)
+
+. "$MATRIX_FILE"
