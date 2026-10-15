@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
+#include "corecel/DeviceRuntimeApi.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>

@@ -8,9 +8,7 @@
 
 #include <cstddef>
 
-#include "corecel/Config.hh"
-
-#include "corecel/Macros.hh"
+#include "corecel/DeviceRuntimeApi.hh"
 
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
@@ -23,6 +21,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/iterator/counting_iterator.h>
 
+#include "corecel/Macros.hh"
 #include "corecel/data/Collection.hh"
 #include "corecel/data/Copier.hh"
 #include "corecel/data/DeviceVector.hh"
