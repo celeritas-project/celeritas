@@ -21,38 +21,33 @@ import subprocess
 import sys
 from pathlib import Path
 
-VARIABLES = {
-    "checkout-spack": ("SPACK_REPO", "SPACK_REF"),
-    "checkout-spack-pkg": ("SPACK_PACKAGES_REPO", "SPACK_PACKAGES_REF"),
+REPO_PREFIX = {
+    "checkout-spack": "SPACK",
+    "checkout-spack-pkg": "SPACK_PACKAGES",
 }
 STEP_RE = re.compile(r"^\s*-\s")
-ID_RE = re.compile(r"^\s*id:\s*(\S+)")
-REPO_RE = re.compile(r"^\s*repository:\s*(\S+)")
-REF_RE = re.compile(r"^\s*ref:\s*(\S+)")
+KEY_RE = re.compile(r"^\s*(id|repository|ref):\s*(\S+)")
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 
 
 def parse_pins(lines):
     """Map each relevant checkout step ID to its repository and ref."""
     pins = {}
-    step_id = None
-    repo = None
-    ref = None
-    # Append a sentinel step to close the last one
-    for line in lines + ["- "]:
-        id_match = ID_RE.match(line)
-        repo_match = REPO_RE.match(line)
-        ref_match = REF_RE.match(line)
-        if STEP_RE.match(line):
-            if step_id in VARIABLES and repo is not None and ref is not None:
-                pins[step_id] = (repo, ref)
-            step_id = repo = ref = None
-        elif id_match:
-            step_id = id_match.group(1)
-        elif repo_match:
-            repo = repo_match.group(1)
-        elif ref_match:
-            ref = ref_match.group(1)
+    keys = {}
+    for line in lines:
+        # A new step processes any keys gathered
+        if keys and STEP_RE.match(line):
+            step_id = keys.pop("id")
+            if step_id in REPO_PREFIX:
+                pins[step_id] = (keys.get("repository"), keys.get("ref"))
+            keys.clear()
+            continue
+
+        # Process key (presumably inside a step)
+        key_match = KEY_RE.match(line)
+        if key_match:
+            keys[key_match.group(1)] = key_match.group(2)
+    assert not keys
     return pins
 
 
@@ -86,15 +81,15 @@ def main():
     with open(path) as f:
         pins = parse_pins(f.read().splitlines())
 
-    missing = [step_id for step_id in VARIABLES if step_id not in pins]
+    missing = [step_id for step_id in REPO_PREFIX if step_id not in pins]
     if missing:
         sys.exit("error: no pinned checkout step for " + ", ".join(missing))
-    for step_id, (repo_var, ref_var) in VARIABLES.items():
+    for step_id, prefix in REPO_PREFIX.items():
         repo, ref = pins[step_id]
         if not SHA_RE.fullmatch(ref):
             sys.exit(f"error: ref for {step_id} is not a commit SHA: {ref}")
-        print(f"{repo_var}={repo}")
-        print(f"{ref_var}={ref}")
+        print(f"{prefix}_REPO={repo}")
+        print(f"{prefix}_REF={ref}")
 
 
 if __name__ == "__main__":
