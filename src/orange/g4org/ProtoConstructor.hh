@@ -12,6 +12,7 @@
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/ObjectInterface.hh"
 #include "orange/orangeinp/UnitProto.hh"
+#include "orange/transform/Transformation.hh"
 
 #include "Volume.hh"
 
@@ -54,11 +55,8 @@ class ProtoConstructor
     //!@}
 
   public:
-    //! Construct with verbosity setting
-    ProtoConstructor(VolumeParams const& vols, Input const& options)
-        : volumes_{vols}, opts_{options}
-    {
-    }
+    // Construct with volume parameters and options
+    ProtoConstructor(VolumeParams const& vols, Input const& options);
 
     // Construct a proto from the world volume
     SPUnitProto operator()(LogicalVolume const&);
@@ -68,10 +66,20 @@ class ProtoConstructor
 
     using MaterialInputId = orangeinp::UnitProto::MaterialInputId;
 
+    //! Data for aligning universes such that daughters are axis-aligned
+    struct Alignment
+    {
+        //! Rotation that makes a volume's daughters axis-aligned
+        Transformation rotation;
+        //! Inverse of the rotation, applied to each placement
+        Transformation inverse;
+    };
+
     //// DATA ////
 
     VolumeParams const& volumes_;
     std::unordered_map<LogicalVolume const*, SPUnitProto> protos_;
+    std::unordered_map<VolumeId, Alignment> alignment_;
     int depth_{0};
     Input const& opts_;
 

@@ -10,6 +10,7 @@
 
 #include "corecel/io/StreamableVariant.hh"
 #include "geocel/VolumeParams.hh"
+#include "orange/MatrixUtils.hh"
 #include "orange/inp/Import.hh"
 #include "orange/orangeinp/CsgObject.hh"
 #include "orange/orangeinp/PolySolid.hh"
@@ -43,7 +44,50 @@ GeoMatId background_fill(GeoMatId mat)
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Whether a matrix is a valid universe alignment rotation.
+ *
+ * A valid rotation matrix for universe alignment must be orthnormal with a
+ * determinant of 1. It cannot have a determinent of -1, i.e., it cannot be a
+ * reflection matrix.
+ */
+bool is_alignment_rotation(SquareMatrixReal3 const& mat, real_type tol)
+{
+    return is_orthonormal(mat, tol) && determinant(mat) > 0;
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace
+
+//---------------------------------------------------------------------------//
+/*!
+ * Construct with volume parameters and options.
+ */
+ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
+                                   Input const& options)
+    : volumes_{vols}, opts_{options}
+{
+    CELER_EXPECT(opts_.tol);
+
+    for (auto const& [name, rot] : opts_.universe_alignment)
+    {
+        VolumeId vol_id = volumes_.volume_labels().find_unique(name);
+        CELER_VALIDATE(vol_id,
+                       << "universe alignment refers to a nonexistent volume '"
+                       << name << "'");
+        CELER_VALIDATE(vol_id != volumes_.world(),
+                       << "the world volume '" << name
+                       << "' cannot be aligned");
+        CELER_VALIDATE(is_alignment_rotation(rot, opts_.tol.rel),
+                       << "universe alignment for volume '" << name
+                       << "' is not a valid rotation matrix: " << rot);
+
+        Alignment align;
+        align.rotation = Transformation{rot, Real3{0, 0, 0}};
+        align.inverse = align.rotation.calc_inverse();
+        alignment_.insert({vol_id, std::move(align)});
+    }
+}
 
 //---------------------------------------------------------------------------//
 /*!
