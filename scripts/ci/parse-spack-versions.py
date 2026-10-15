@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Print the Spack revisions pinned by the setup-spack CI action.
 
-The output is shell assignments suitable for ``eval``::
+The output is a list of shell assignments suitable for ``eval``::
 
     SPACK_REPO=spack/spack
     SPACK_REF=<sha>
