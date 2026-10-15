@@ -3,6 +3,13 @@ packages:
     target: [x86_64_v3]
     require:
       - "target=x86_64_v3"
+  libglx:
+    require: [opengl]
+  opengl:
+    buildable: false
+    externals:
+      - prefix: /usr/
+        spec: opengl@4.5
   bash:
     buildable: false
     externals:
