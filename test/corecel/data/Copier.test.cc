@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/PinnedAllocator.hh"
 #include "corecel/sys/Device.hh"
 #include "corecel/sys/Stream.hh"
 
@@ -78,7 +79,8 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(memcpy_stream))
                host_vec.size() * sizeof(int),
                stream);
 
-    std::vector<int> result(host_vec.size());
+    // Pinned destination so the device-to-host copy is truly asynchronous
+    std::vector<int, PinnedAllocator<int>> result(host_vec.size());
     copy_bytes(MemSpace::host,
                result.data(),
                MemSpace::device,
@@ -86,7 +88,7 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(memcpy_stream))
                result.size() * sizeof(int),
                stream);
     stream.sync();
-    EXPECT_VEC_EQ(host_vec, result);
+    EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
 }
 
 TEST(ItemCopierTest, TEST_IF_CELER_DEVICE(device))

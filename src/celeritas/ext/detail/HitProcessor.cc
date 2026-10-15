@@ -205,14 +205,14 @@ HitProcessor::~HitProcessor()
     catch (std::exception const& e)
     {
         CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
-                                  "while destroying hit processor: "
+                                  "or copy while destroying hit processor: "
                                << e.what();
     }
     catch (...)
     {
         CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
-                                  "while destroying hit processor: unknown "
-                                  "exception";
+                                  "or copy while destroying hit processor: "
+                                  "unknown exception";
     }
 }
 
@@ -270,11 +270,22 @@ void HitProcessor::copy_pending_steps()
     }
 
     this->process_copied_steps();
-    auto states = std::exchange(pending_device_steps_, {});
-    // The host-observed completion also orders the copy after the compaction
+    // The host-observed completion also orders the copy after the compaction.
+    // Keep the steps pending until then so the destructor waits on failure.
     compacted_.sync();
+    auto states = std::exchange(pending_device_steps_, {});
     auto& stream = celeritas::device().memcpy_stream(states.stream_id);
-    copy_compacted_steps_async(&steps_, states, num_selected_.front(), stream);
+    try
+    {
+        copy_compacted_steps_async(
+            &steps_, states, num_selected_.front(), stream);
+    }
+    catch (...)
+    {
+        // Don't leave partially enqueued copies writing into host buffers
+        stream.sync();
+        throw;
+    }
     copied_.record(stream);
     copy_in_flight_ = true;
 }
