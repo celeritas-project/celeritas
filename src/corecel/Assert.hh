@@ -256,6 +256,58 @@
     CELER_RUNTIME_FAIL(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
 
 /*!
+ * \def CELER_DEVICE_API_CALL
+ *
+ * Safely and portably dispatch a CUDA/HIP API call.
+ *
+ * When CUDA or HIP support is enabled, execute the wrapped statement
+ * prepend the argument with "cuda" or "hip" and throw a
+ * RuntimeError if it fails. If no device platform is enabled, throw an
+ * unconfigured assertion.
+ *
+ * \par Example:
+ * \code
+   CELER_DEVICE_API_CALL(Malloc(&ptr_gpu, 100 * sizeof(float)));
+   CELER_DEVICE_API_CALL(DeviceSynchronize());
+ * \endcode
+ *
+ * \note A file that uses this macro must include \c
+ * corecel/DeviceRuntimeApi.hh . The \c CorecelDeviceRuntimeApiHh
+ * declaration enforces this when CUDA/HIP are disabled, and the absence of
+ * \c CELER_DEVICE_API_SYMBOL enforces when enabled.
+ *
+ * \todo Move to DeviceRuntimeApi.hh?
+ */
+#if CELERITAS_USE_CUDA || CELERITAS_USE_HIP
+#    define CELER_DEVICE_API_CALL(STMT) \
+        do \
+        { \
+            using ErrT_ = CELER_DEVICE_API_SYMBOL(Error_t); \
+            ErrT_ result_ = CELER_DEVICE_API_SYMBOL(STMT); \
+            if (CELER_UNLIKELY(result_ != CELER_DEVICE_API_SYMBOL(Success))) \
+            { \
+                result_ = CELER_DEVICE_API_SYMBOL(GetLastError)(); \
+                CELER_RUNTIME_FAIL( \
+                    CELER_DEVICE_PLATFORM_UPPER_STR, \
+                    CELER_DEVICE_API_SYMBOL(GetErrorString)(result_), \
+                    #STMT); \
+            } \
+        } while (0)
+#else
+#    define CELER_DEVICE_API_CALL(STMT) \
+        do \
+        { \
+            CELER_NOT_CONFIGURED("CUDA or HIP"); \
+            CELER_DISCARD(CorecelDeviceRuntimeApiHh) \
+        } while (0)
+#endif
+
+// DEPRECATED: remove in v1.0
+#define CELER_DEVICE_PREFIX(STMT) CELER_DEVICE_API_SYMBOL(STMT)
+#define CELER_DEVICE_CALL_PREFIX(STMT) CELER_DEVICE_API_CALL(STMT)
+#define CELER_DEVICE_CHECK_ERROR() CELER_DEVICE_API_CALL(PeekAtLastError())
+
+/*!
  * \def CELER_MPI_CALL
  *
  * When MPI support is enabled, execute the wrapped statement and throw a
@@ -284,6 +336,10 @@
             CELER_NOT_CONFIGURED("MPI"); \
         } while (0)
 #endif
+
+//---------------------------------------------------------------------------//
+// ENUMERATIONS
+//---------------------------------------------------------------------------//
 
 namespace celeritas
 {
