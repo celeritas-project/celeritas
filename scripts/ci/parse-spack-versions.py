@@ -3,9 +3,11 @@
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 """Print the Spack revisions pinned by the setup-spack CI action.
 
-The output is a pair of shell assignments suitable for ``eval``::
+The output is shell assignments suitable for ``eval``::
 
+    SPACK_REPO=spack/spack
     SPACK_REF=<sha>
+    SPACK_PACKAGES_REPO=spack/spack-packages
     SPACK_PACKAGES_REF=<sha>
 
 It is used to build and check the Spack buildcache container image (see
@@ -20,28 +22,33 @@ import sys
 from pathlib import Path
 
 VARIABLES = {
-    "spack/spack": "SPACK_REF",
-    "spack/spack-packages": "SPACK_PACKAGES_REF",
+    "checkout-spack": ("SPACK_REPO", "SPACK_REF"),
+    "checkout-spack-pkg": ("SPACK_PACKAGES_REPO", "SPACK_PACKAGES_REF"),
 }
 STEP_RE = re.compile(r"^\s*-\s")
+ID_RE = re.compile(r"^\s*id:\s*(\S+)")
 REPO_RE = re.compile(r"^\s*repository:\s*(\S+)")
 REF_RE = re.compile(r"^\s*ref:\s*(\S+)")
 SHA_RE = re.compile(r"[0-9a-f]{40}")
 
 
 def parse_pins(lines):
-    """Map each pinned Spack repository to the ref of its checkout step."""
+    """Map each relevant checkout step ID to its repository and ref."""
     pins = {}
+    step_id = None
     repo = None
     ref = None
     # Append a sentinel step to close the last one
     for line in lines + ["- "]:
+        id_match = ID_RE.match(line)
         repo_match = REPO_RE.match(line)
         ref_match = REF_RE.match(line)
         if STEP_RE.match(line):
-            if repo in VARIABLES and ref is not None:
-                pins[repo] = ref
-            repo = ref = None
+            if step_id in VARIABLES and repo is not None and ref is not None:
+                pins[step_id] = (repo, ref)
+            step_id = repo = ref = None
+        elif id_match:
+            step_id = id_match.group(1)
         elif repo_match:
             repo = repo_match.group(1)
         elif ref_match:
@@ -79,13 +86,15 @@ def main():
     with open(path) as f:
         pins = parse_pins(f.read().splitlines())
 
-    missing = [repo for repo in VARIABLES if repo not in pins]
+    missing = [step_id for step_id in VARIABLES if step_id not in pins]
     if missing:
-        sys.exit("error: no pinned ref for " + ", ".join(missing))
-    for repo, var in VARIABLES.items():
-        if not SHA_RE.fullmatch(pins[repo]):
-            sys.exit(f"error: ref for {repo} is not a commit SHA: {pins[repo]}")
-        print(f"{var}={pins[repo]}")
+        sys.exit("error: no pinned checkout step for " + ", ".join(missing))
+    for step_id, (repo_var, ref_var) in VARIABLES.items():
+        repo, ref = pins[step_id]
+        if not SHA_RE.fullmatch(ref):
+            sys.exit(f"error: ref for {step_id} is not a commit SHA: {ref}")
+        print(f"{repo_var}={repo}")
+        print(f"{ref_var}={ref}")
 
 
 if __name__ == "__main__":
