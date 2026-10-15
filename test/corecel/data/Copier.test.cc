@@ -65,7 +65,7 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
     EXPECT_EQ(1234, new_host_vec.back());
 }
 
-TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(memcpy_stream))
+TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
 {
     device().create_streams(1);
     Stream& stream = device().memcpy_stream(StreamId{0});
