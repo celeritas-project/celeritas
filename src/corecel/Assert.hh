@@ -536,7 +536,7 @@ using ValidationStream = ::std::ostringstream;
 [[noreturn]] CELER_FORCEINLINE __host__ void hip_debug_fail(
     DebugErrorType which, char const* condition, char const* file, int line)
 {
-    return ::celeritas::throw_debug_error({which, condition, file, line});
+    ::celeritas::throw_debug_error({which, condition, file, line});
 }
 
 //! Assertion failure inside device code
@@ -568,6 +568,7 @@ using ValidationStream = ::std::ostringstream;
            line,
            condition);
     __trap();
+    CELER_UNREACHABLE_;
 }
 #endif
 
