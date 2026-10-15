@@ -40,17 +40,30 @@ behavior at runtime to allow compiler optimizations:
 
 Finally, a few runtime macros will always throw helpful
 :cpp:class:`celeritas::RuntimeError` errors based on incorrect configuration or
-input values.
+input values. These cannot be used in device code: they are intended to be
+called during setup time in host code.
 
 .. doxygendefine:: CELER_VALIDATE
 .. doxygendefine:: CELER_NOT_CONFIGURED
 .. doxygendefine:: CELER_NOT_IMPLEMENTED
 
-These macros all throw subclasses of standard exceptions. See the developer
-documentation for more details.
+The debug (assertion failure) and runtime (validation/configuration failure)
+errors are subclasses of standard library classes.
 
 .. doxygenclass:: celeritas::DebugError
 .. doxygenclass:: celeritas::RuntimeError
+
+Some fairly complicated logic is in place to reuse code and ensure device
+compatibility for all these macros (see :numref:`fig-assert`).
+
+.. _fig-assert:
+
+.. figure:: /_static/dot/assert.*
+   :align: center
+   :width: 90%
+
+   Flow chart describing dispatches for the public API macros (blue) and
+   ``[[noreturn]]`` functions (red).
 
 
 Utility macros

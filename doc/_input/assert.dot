@@ -73,7 +73,7 @@ digraph assertions {
     NOASSERT_ -> CONTINUE
 
     // ---------------- Debug failure dispatch ----------------
-    CUDA_DF [label="cuda_debug_fail (CUDA)\nprintf(...)"];
+    CUDA_DF [label="cuda_debug_fail"];
     HIP_DF [label="hip_debug_fail"];
     HIP_DEV [label="printf only if CELERITAS_HIP_VERSION < 0x070e00"];
 
