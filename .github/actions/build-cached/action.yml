@@ -98,7 +98,7 @@ runs:
             _ansi="30;41" # Shouldn't be possible unless action API changes
             ;;
         esac
-        printf "\033[%smCache restore result:\033[0m \033[%sm%s\033[0m \033[%smfrom %s\033[0m\n" \
+        printf "\033[%smCache restore result: \033[0;%sm%s from \033[%sm%s\033[0m\n" \
           "44;30" \
           "$_ansi" \
           "$CACHE_HIT_OUTPUT" \
