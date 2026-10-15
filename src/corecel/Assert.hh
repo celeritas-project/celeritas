@@ -218,8 +218,7 @@
 // Add an extra "unreachable" to work around older NVCC ignoring noreturn
 #    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) \
         CELER_DEBUG_FAIL_("Runtime errors cannot be thrown from device code", \
-                          unreachable); \
-        ::celeritas::unreachable()
+                          unreachable)
 
 #else
 // Optimized mode: printf statements can add substantially to local memory, so
@@ -520,7 +519,10 @@ class DiscardStream
     }
 
     //! Provide a str() function for ostringstream-like compatibility
-    CELER_FUNCTION void str() const { ::celeritas::unreachable(); }
+    [[noreturn]] CELER_FUNCTION void str() const
+    {
+        ::celeritas::unreachable();
+    }
 };
 
 #if CELER_DEVICE_COMPILE
@@ -531,14 +533,14 @@ using ValidationStream = ::std::ostringstream;
 
 #if defined(__HIP__)
 //! Assertion failure inside a HIP file during host code execution
-CELER_FORCEINLINE __host__ void hip_debug_fail(
+[[noreturn]] CELER_FORCEINLINE __host__ void hip_debug_fail(
     DebugErrorType which, char const* condition, char const* file, int line)
 {
     return ::celeritas::throw_debug_error({which, condition, file, line});
 }
 
 //! Assertion failure inside device code
-inline __attribute__((noinline)) __device__ void hip_debug_fail(
+[[noreturn]] inline __attribute__((noinline)) __device__ void hip_debug_fail(
     DebugErrorType, char const* condition, char const* file, int line)
 {
     // The existence of a printf breaks HIP 7.14.60850 kernel compilation
@@ -558,7 +560,7 @@ inline __attribute__((noinline)) __device__ void hip_debug_fail(
 
 #if defined(__CUDA_ARCH__) && defined(NDEBUG)
 //! Definition for CUDA when \c assert is unavailable
-inline __attribute__((noinline)) __device__ void cuda_debug_fail(
+[[noreturn]] inline __attribute__((noinline)) __device__ void cuda_debug_fail(
     DebugErrorType, char const* condition, char const* file, int line)
 {
     printf("%s:%u:\nceleritas: internal assertion failed: %s\n",
