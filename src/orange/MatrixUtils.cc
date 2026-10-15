@@ -161,6 +161,42 @@ void orthonormalize(SquareMatrix<T, N>* mat)
 
 //---------------------------------------------------------------------------//
 /*!
+ * Whether a small, dense matrix is the identity within a tolerance.
+ */
+template<class T, std::size_t N>
+bool is_identity(SquareMatrix<T, N> const& mat, T tol)
+{
+    CELER_EXPECT(tol > 0);
+    SoftClose<T> const soft_close{tol};
+
+    for (std::size_t i = 0; i != N; ++i)
+    {
+        for (std::size_t j = 0; j != N; ++j)
+        {
+            T const expected = (i == j ? 1 : 0);
+            if (!soft_close(expected, mat[i][j]))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a small, dense matrix is orthonormal within a tolerance.
+ *
+ * An orthonormal matrix satisfies \f$ \mathbf{A}^T \mathbf{A} = \mathbf{I} \f$.
+ */
+template<class T, std::size_t N>
+bool is_orthonormal(SquareMatrix<T, N> const& mat, T tol)
+{
+    return is_identity(gemm(matrix::transpose, mat, mat), tol);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Create a C-ordered rotation matrix from an arbitrary rotation.
  *
  * This is equation (38) in "Rotation Matrices in Two, Three, and Many
@@ -398,6 +434,12 @@ template SquareMatrix<real_type, 4> gemm(SquareMatrix<real_type, 4> const&,
 template SquareMatrix<real_type, 4> gemm(matrix::TransposePolicy,
                                          SquareMatrix<real_type, 4> const&,
                                          SquareMatrix<real_type, 4> const&);
+
+// Identity and orthonormality checks
+template bool is_identity(SquareMatrix<float, 3> const&, float);
+template bool is_identity(SquareMatrix<double, 3> const&, double);
+template bool is_orthonormal(SquareMatrix<float, 3> const&, float);
+template bool is_orthonormal(SquareMatrix<double, 3> const&, double);
 
 //---------------------------------------------------------------------------//
 }  // namespace celeritas

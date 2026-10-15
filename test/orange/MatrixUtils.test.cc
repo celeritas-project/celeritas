@@ -10,6 +10,7 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/math/ArrayUtils.hh"
+#include "corecel/math/SoftEqual.hh"
 
 #include "celeritas_test.hh"
 
@@ -138,6 +139,51 @@ TEST_F(MatrixUtilsTest, orthonormalize)
 
         EXPECT_THROW(orthonormalize(&result), DebugError);
     }
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MatrixUtilsTest, is_identity)
+{
+    using Mat3 = SquareMatrixReal3;
+    real_type tol = SoftEqual<>{}.rel();
+
+    // Base case
+    EXPECT_TRUE(is_identity(make_identity(), tol));
+
+    // Within tolerance
+    real_type eps = tol / 10;
+    Mat3 bumped_identity{Real3{1 + eps, eps, -eps},
+                         Real3{-eps, 1 - eps, eps},
+                         Real3{eps, -eps, 1}};
+    EXPECT_TRUE(is_identity(bumped_identity, tol));
+
+    // Outside of tolerance
+    EXPECT_FALSE(is_identity(bumped_identity, eps / 10));
+}
+
+//---------------------------------------------------------------------------//
+
+TEST_F(MatrixUtilsTest, is_orthonormal)
+{
+    using Mat3 = SquareMatrixReal3;
+    real_type const tol = SoftEqual<>{}.rel();
+
+    // Test known orthonormal matrix
+    auto rotation_matrix = make_rotation(Axis::x, Turn{0.25});
+    EXPECT_TRUE(is_orthonormal(rotation_matrix, tol));
+
+    // Change one of the values to make it non-orthonormal
+    rotation_matrix[0][0] += 2 * tol;
+    EXPECT_FALSE(is_orthonormal(rotation_matrix, tol));
+
+    // Arbitrary non-orthnonormal matrix
+    Mat3 arb{Real3{1, 2, 3}, Real3{-1, 0, 1}, Real3{-3, 2, -1}};
+    EXPECT_FALSE(is_orthonormal(arb, tol));
+
+    // Orthnormalization and retest
+    orthonormalize(&arb);
+    EXPECT_TRUE(is_orthonormal(arb, tol));
 }
 
 //---------------------------------------------------------------------------//
