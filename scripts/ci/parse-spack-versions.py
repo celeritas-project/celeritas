@@ -13,8 +13,11 @@ It is used to build and check the Spack buildcache container image (see
 runs with any host python3.
 """
 
+import argparse
 import re
+import subprocess
 import sys
+from pathlib import Path
 
 VARIABLES = {
     "spack/spack": "SPACK_REF",
@@ -46,10 +49,34 @@ def parse_pins(lines):
     return pins
 
 
+def default_action_path():
+    """Locate the setup-spack action in the enclosing git repository."""
+    try:
+        root = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        sys.exit("error: not in a git repository; specify the action path")
+    path = Path(root) / ".github" / "actions" / "setup-spack" / "action.yml"
+    if not path.is_file():
+        sys.exit(f"error: {path} does not exist; specify the action path")
+    return path
+
+
 def main():
-    if len(sys.argv) != 2:
-        sys.exit(f"usage: {sys.argv[0]} path/to/setup-spack/action.yml")
-    with open(sys.argv[1]) as f:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "action",
+        nargs="?",
+        type=Path,
+        help="path to setup-spack/action.yml (default: from git repo root)",
+    )
+    args = parser.parse_args()
+    path = args.action or default_action_path()
+    with open(path) as f:
         pins = parse_pins(f.read().splitlines())
 
     missing = [repo for repo in VARIABLES if repo not in pins]
