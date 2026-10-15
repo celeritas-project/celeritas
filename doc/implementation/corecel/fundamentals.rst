@@ -15,19 +15,33 @@ with device code enabled, but is a 64-bit integer on other 64-bit systems.
 
 .. _debug_assertions:
 
-Debug assertions
-^^^^^^^^^^^^^^^^
+Assertions and error checking
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Celeritas exception types and assertions are defined in
-:file:`corecel/Assert.hh`. Debug assertions (see :ref:`coding_testing`) are
-enabled through macros in :file:`corecel/Config.hh` defined through CMake:
+:file:`corecel/Assert.hh`.
+Debug assertions (see :ref:`coding_testing`) are enabled through macros in :file:`corecel/Config.hh` defined through CMake:
 
 .. doxygendefine:: CELERITAS_DEBUG
 .. doxygendefine:: CELERITAS_DEVICE_DEBUG
 
-The assertion macros ``CELER_EXPECT``, ``CELER_ASSERT``, and ``CELER_ENSURE``
-correspond to "precondition contract", "internal assertion", and "postcondition
-contract". They all throw :cpp:class:`celeritas::DebugError`.
+All of the following macros are *statements* and should be followed by
+a semicolon when used in code.
+
+Errors relating to the system, configuration, or user input will throw
+:cpp:class:`celeritas::RuntimeError` and are always enabled.
+These cannot be used in device code: they are intended to be
+called during setup time in host code.
+
+.. doxygendefine:: CELER_VALIDATE
+.. doxygendefine:: CELER_NOT_CONFIGURED
+.. doxygendefine:: CELER_NOT_IMPLEMENTED
+
+The debug assertion macros ``CELER_EXPECT``, ``CELER_ASSERT``, and
+``CELER_ENSURE`` correspond to "precondition contract", "internal assertion",
+and "postcondition contract".
+They are checks for internal programming errors and (on host code) will throw
+:cpp:class:`celeritas::DebugError` upon failing.
 
 .. doxygendefine:: CELER_EXPECT
 .. doxygendefine:: CELER_ASSERT
@@ -38,15 +52,6 @@ behavior at runtime to allow compiler optimizations:
 
 .. doxygendefine:: CELER_ASSERT_UNREACHABLE
 .. doxygendefine:: CELER_ASSUME
-
-Finally, a few runtime macros will always throw helpful
-:cpp:class:`celeritas::RuntimeError` errors based on incorrect configuration or
-input values. These cannot be used in device code: they are intended to be
-called during setup time in host code.
-
-.. doxygendefine:: CELER_VALIDATE
-.. doxygendefine:: CELER_NOT_CONFIGURED
-.. doxygendefine:: CELER_NOT_IMPLEMENTED
 
 The debug (assertion failure) and runtime (validation/configuration failure)
 errors are subclasses of standard library classes.
@@ -71,7 +76,6 @@ compatibility for all these macros (see :numref:`fig-assert`).
    compilation.
 
 
-
 Utility macros
 ^^^^^^^^^^^^^^
 
@@ -91,8 +95,9 @@ Exception handling
 
 During multithreaded execution or when called by a Geant4 simulation, it is
 important not to throw C++ exceptions lest they be uncaught and result in an
-immediate program abort. Celeritas provides macros and classes for managing
-exceptions and providing detailed diagnostics.
+immediate program abort
+Celeritas provides macros and classes for managing exceptions and providing
+detailed diagnostics.
 
 .. doxygendefine:: CELER_TRY_HANDLE
 .. doxygendefine:: CELER_TRY_HANDLE_CONTEXT
