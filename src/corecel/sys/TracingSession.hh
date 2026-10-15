@@ -12,7 +12,7 @@
 
 #include "corecel/Config.hh"
 
-#include "corecel/Macros.hh"
+#include "corecel/Assert.hh"
 #include "corecel/io/Logger.hh"
 
 namespace celeritas

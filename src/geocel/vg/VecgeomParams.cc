@@ -20,6 +20,8 @@
 
 #include "corecel/Config.hh"
 #include "corecel/DeviceRuntimeApi.hh"
+
+#include "corecel/Assert.hh"
 #ifdef VECGEOM_ENABLE_CUDA
 #    include <VecGeom/management/CudaManager.h>
 #endif
