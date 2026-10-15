@@ -22,10 +22,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+// clang-format off
 //---------------------------------------------------------------------------//
 // User-configurable options for Celeritas
 //---------------------------------------------------------------------------//
-// clang-format off
 
 // Dependencies
 #cmakedefine01 CELERITAS_USE_COVFIE
@@ -95,15 +95,12 @@
 //---------------------------------------------------------------------------//
 // Detailed CMake configuration information
 //---------------------------------------------------------------------------//
-;  // clang-format on
 
 namespace celeritas
 {
 namespace config
 {
-// clang-format off
 @CELERITAS_CMAKE_STRINGS_DECL@
-;  // clang-format on
 
 /*!
  * Low-level function to get the version of a configured package.
@@ -116,3 +113,4 @@ char const* package_version_cstring(char const* package);
 
 }  // namespace config
 }  // namespace celeritas
+// clang-format on
