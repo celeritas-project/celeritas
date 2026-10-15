@@ -26,7 +26,6 @@ packages:
   root:
     variants:
       # Disable GUI for a lighter build
-      # TODO: use ~builtin_llvm for ROOT
       # We generally don't use TBB threading
       # Examples aren't needed
       # Edm4hep requires root7
