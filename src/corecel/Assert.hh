@@ -537,6 +537,7 @@ using ValidationStream = ::std::ostringstream;
     DebugErrorType which, char const* condition, char const* file, int line)
 {
     ::celeritas::throw_debug_error({which, condition, file, line});
+    CELER_UNREACHABLE_;
 }
 
 //! Assertion failure inside device code
@@ -555,6 +556,7 @@ using ValidationStream = ::std::ostringstream;
     CELER_DISCARD(line);
 #    endif
     abort();
+    CELER_UNREACHABLE_;
 }
 #endif
 
