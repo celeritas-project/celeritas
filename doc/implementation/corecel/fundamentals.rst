@@ -66,9 +66,9 @@ compatibility for all these macros (see :numref:`fig-assert`).
    Flow chart describing dispatches for the public API macros (blue) and
    ``[[noreturn]]`` functions (red), with implementation macros and functions
    (gray) in between.
-   The "debug enabled" nodes use :cpp:macro:`CELERITAS_DEBUG` during host
-   compilation or :cpp:macro:`CELERITAS_DEVICE_DEBUG` during device
-   compilation;
+   The "debug enabled" nodes use :c:macro:`CELERITAS_DEBUG` during host
+   compilation or :c:macro:`CELERITAS_DEVICE_DEBUG` during device
+   compilation.
 
 
 
