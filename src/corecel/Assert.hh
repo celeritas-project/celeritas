@@ -266,7 +266,7 @@
     do \
     { \
         CELER_RUNTIME_FAIL_( \
-            ::celeritas::RuntimeError::not_impl_err_str, WHAT, {}) \
+            ::celeritas::RuntimeError::not_impl_err_str, WHAT, {}); \
     } while (0)
 
 /*!
