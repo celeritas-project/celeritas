@@ -18,7 +18,7 @@ namespace celeritas
  * MPI calls when built with CELERITAS_USE_MPI . \todo Change to
  * CELER_ENABLE_MPI .
  *
- * \note Unlike the MpiCommunicator and Mpi headers , it is not
+ * \note Unlike the MpiCommunicator and MpiOperations class, it is not
  * necessary to link against MPI to use this class.
  */
 class ScopedMpiInit

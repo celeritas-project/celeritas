@@ -7,7 +7,7 @@
 #include "corecel/sys/MpiCommunicator.hh"
 
 #include "corecel/cont/Span.hh"
-#include "corecel/sys/Mpi.hh"
+#include "corecel/sys/MpiOperations.hh"
 #include "corecel/sys/ScopedMpiInit.hh"
 
 #include "celeritas_test.hh"

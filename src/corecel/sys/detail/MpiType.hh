@@ -2,8 +2,7 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file corecel/sys/detail/MpiCommunicatorImpl.hh
-//! \brief Type definitions for MPI parallel operations (MPI optional)
+//! \file corecel/sys/detail/MpiType.hh
 //---------------------------------------------------------------------------//
 #pragma once
 
@@ -11,9 +10,6 @@
 
 #if CELERITAS_USE_MPI
 #    include <mpi.h>
-#    define CELER_IF_MPI_ELSE(TRUE, FALSE) TRUE
-#else
-#    define CELER_IF_MPI_ELSE(TRUE, FALSE) FALSE
 #endif
 
 namespace celeritas
@@ -57,48 +53,6 @@ CELER_DEFINE_MPITYPE(double, MPI_DOUBLE);
 CELER_DEFINE_MPITYPE(long double, MPI_LONG_DOUBLE);
 
 #undef CELER_DEFINE_MPITYPE
-
-//---------------------------------------------------------------------------//
-// MPI COMM WRAPPER
-//---------------------------------------------------------------------------//
-//!@{
-//! Mock MPI communicator
-struct MockMpiComm
-{
-    int value_;
-};
-
-constexpr inline bool operator==(MpiComm a, MpiComm b)
-{
-    return a.value_ == b.value_;
-}
-
-constexpr inline bool operator!=(MpiComm a, MpiComm b)
-{
-    return !(a == b);
-}
-//!@}
-
-//! Opaque MPI communicator
-using MpiComm = CELER_IF_MPI_ELSE(MPI_Comm, MockMpiComm);
-
-//! Used for invalid comm handles
-inline MpiComm mpi_comm_null()
-{
-    return CELER_IF_MPI_ELSE(MPI_COMM_NULL, {0});
-}
-
-//! Communicator for all processes
-inline MpiComm mpi_comm_world()
-{
-    return CELER_IF_MPI_ELSE(MPI_COMM_WORLD, {1});
-}
-
-//! Communicator with only the local process
-inline MpiComm mpi_comm_self()
-{
-    return CELER_IF_MPI_ELSE(MPI_COMM_SELF, {-1});
-}
 
 //---------------------------------------------------------------------------//
 }  // namespace detail
