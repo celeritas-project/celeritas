@@ -19,10 +19,11 @@ Debug assertions
 ^^^^^^^^^^^^^^^^
 
 Celeritas exception types and assertions are defined in
-:file:`corecel/Assert`. Debug assertions (see :ref:`coding_testing`) are only
-enabled when the
-``CELERITAS_DEBUG`` (host code) and ``CELERITAS_DEVICE_DEBUG`` (device code)
-CMake configuration options are set.
+:file:`corecel/Assert.hh`. Debug assertions (see :ref:`coding_testing`) are
+enabled through macros in :file:`corecel/Config.hh` defined through CMake:
+
+.. doxygendefine:: CELERITAS_DEBUG
+.. doxygendefine:: CELERITAS_DEVICE_DEBUG
 
 The assertion macros ``CELER_EXPECT``, ``CELER_ASSERT``, and ``CELER_ENSURE``
 correspond to "precondition contract", "internal assertion", and "postcondition
@@ -63,7 +64,12 @@ compatibility for all these macros (see :numref:`fig-assert`).
    :width: 90%
 
    Flow chart describing dispatches for the public API macros (blue) and
-   ``[[noreturn]]`` functions (red).
+   ``[[noreturn]]`` functions (red), with implementation macros and functions
+   (gray) in between.
+   The "debug enabled" nodes use :cpp:macro:`CELERITAS_DEBUG` during host
+   compilation or :cpp:macro:`CELERITAS_DEVICE_DEBUG` during device
+   compilation;
+
 
 
 Utility macros

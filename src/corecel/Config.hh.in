@@ -41,9 +41,15 @@
 #cmakedefine01 CELERITAS_USE_ROOT
 #cmakedefine01 CELERITAS_USE_VECGEOM
 
-// Debugging
+//!@{
+//! \name Debugging
+
+//! Enable debug assertions in host code
 #cmakedefine01 CELERITAS_DEBUG
+//! Enable debug assertions in device code
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
+
+//!@}
 
 // Device-only options
 #cmakedefine01 CELERITAS_HAVE_HIPCUB

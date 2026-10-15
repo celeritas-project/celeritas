@@ -1,7 +1,6 @@
 digraph assertions {
     rankdir=TB;
     labelloc=b;
-    label="[*]: CELERITAS_DEBUG (host) or CELERITAS_DEVICE_DEBUG (device)";
     node [shape=box, fontname="Helvetica", fontsize=10];
     edge [fontname="Helvetica", fontsize=9];
 
@@ -34,7 +33,7 @@ digraph assertions {
 
     // ---------------- Internal macros ----------------
     subgraph {
-        node [shape=oval, style="rounded"];
+        node [shape=oval, style="rounded,filled", fillcolor="#e0e0e0"];
         IMPL [label="CELER_ASSERT_IMPL_"];
         NOASSERT_ [label="CELER_NOASSERT_"];
         ASSUME_NDEBUG [label="CELER_ASSUME_NDEBUG_"];
@@ -42,15 +41,22 @@ digraph assertions {
         RFAIL_ [label="CELER_RUNTIME_FAIL_"];
     }
 
+    // ---------------- Internal functions ----------------
+    subgraph {
+        node [shape=box, style="filled", fillcolor="#e0e0e0"];
+        CUDA_DF [label="cuda_debug_fail"];
+        HIP_DF [label="hip_debug_fail"];
+        HIP_DEV [label="printf when HIP < 7.14", style="filled,dashed"];
+    }
 
     // ---------------- Debug-enabled switch ----------------
-    ASSERT_DBG [label="Debug mode? [*]", shape=diamond];
-    ASSUME_DBG [label="Debug mode? [*]", shape=diamond];
-    AUNREACH_DBG [label="Debug mode? [*]", shape=diamond];
+    ASSERT_DBG [label="Debug enabled?", shape=diamond];
+    ASSUME_DBG [label="Debug enabled?", shape=diamond];
+    AUNREACH_DBG [label="Debug enabled?", shape=diamond];
 
-    IMPL_COND [label="COND false?", shape=diamond];
-    IMPL_COND [label="COND false?", shape=diamond];
-    ASSUME_COND [label="COND false?", shape=diamond];
+    IMPL_COND [label="COND failed?", shape=diamond];
+    IMPL_COND [label="COND failed?", shape=diamond];
+    ASSUME_COND [label="COND failed?", shape=diamond];
 
     ASSERT -> ASSERT_DBG;
     ASSUME -> ASSUME_DBG;
@@ -73,10 +79,6 @@ digraph assertions {
     NOASSERT_ -> CONTINUE
 
     // ---------------- Debug failure dispatch ----------------
-    CUDA_DF [label="cuda_debug_fail"];
-    HIP_DF [label="hip_debug_fail"];
-    HIP_DEV [label="printf only if CELERITAS_HIP_VERSION < 0x070e00"];
-
     PLAT [label="Compiler", shape=diamond];
     NVCC_PASS [label="NVCC compiler pass", shape=diamond];
     CUDA_NDBG [label="NDEBUG defined?", shape=diamond];
@@ -105,9 +107,9 @@ digraph assertions {
     HIP_DEV -> ABORT;
 
     // ---------------- Runtime failure dispatch ----------------
-    RDEV [label="CELER_DEVICE_COMPILE?", shape=diamond];
-    RDEV_DBG [label="CELERITAS_DEBUG?", shape=diamond];
-    VAL_COND [label="COND false?", shape=diamond];
+    RDEV [label="Compiler", shape=diamond];
+    RDEV_DBG [label="Host debug enabled?", shape=diamond];
+    VAL_COND [label="COND failed?", shape=diamond];
 
     VALIDATE -> VAL_COND
     VAL_COND -> RFAIL_ [color="#1f8a3d", label="yes"];
@@ -118,8 +120,8 @@ digraph assertions {
     RFAIL -> RFAIL_;
 
     RFAIL_ -> RDEV;
-    RDEV -> THROW_RT [color="#ac1111", label="no (host)"];
-    RDEV -> RDEV_DBG [color="#1f8a3d", label="yes (device)"];
+    RDEV -> THROW_RT [label="host"];
+    RDEV -> RDEV_DBG [label="device"];
     RDEV_DBG -> DFAIL_ [color="#1f8a3d", label="yes"];
     RDEV_DBG -> UNREACH_FN [color="#ac1111", label="no"];
 }
