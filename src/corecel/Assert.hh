@@ -215,13 +215,16 @@
         })
 #elif CELERITAS_DEBUG
 // Fail with a diagnostic message: this shouldn't be called on device!
+// Add an extra "unreachable" to work around older NVCC ignoring noreturn
 #    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) \
         CELER_DEBUG_FAIL_("Runtime errors cannot be thrown from device code", \
-                          unreachable);
+                          unreachable); \
+        ::celeritas::unreachable()
+
 #else
 // Optimized mode: printf statements can add substantially to local memory, so
 // mark unreachable
-#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) ::celeritas::unreachable();
+#    define CELER_RUNTIME_FAIL_(WHICH, WHAT, COND) ::celeritas::unreachable()
 #endif
 
 #if (CELERITAS_DEBUG && !CELER_DEVICE_COMPILE) \
@@ -254,10 +257,17 @@
     } while (0)
 
 #define CELER_NOT_CONFIGURED(WHAT) \
-    CELER_RUNTIME_FAIL_( \
-        ::celeritas::RuntimeError::not_config_err_str, WHAT, {})
+    do \
+    { \
+        CELER_RUNTIME_FAIL_( \
+            ::celeritas::RuntimeError::not_config_err_str, WHAT, {}); \
+    } while (0)
 #define CELER_NOT_IMPLEMENTED(WHAT) \
-    CELER_RUNTIME_FAIL_(::celeritas::RuntimeError::not_impl_err_str, WHAT, {})
+    do \
+    { \
+        CELER_RUNTIME_FAIL_( \
+            ::celeritas::RuntimeError::not_impl_err_str, WHAT, {}) \
+    } while (0)
 
 /*!
  * \def CELER_DEVICE_API_CALL
