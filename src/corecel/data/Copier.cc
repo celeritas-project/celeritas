@@ -81,4 +81,25 @@ void copy_bytes(MemSpace dstmem,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Perform an asynchronous memcpy on the given stream.
+ */
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count,
+                Stream const& stream)
+{
+    if (srcmem != MemSpace::device && dstmem != MemSpace::device)
+    {
+        std::memcpy(dst, src, count);
+        return;
+    }
+    CELER_DISCARD(stream);
+    CELER_DEVICE_API_CALL(MemcpyAsync(
+        dst, src, count, to_memcpy_kind(srcmem, dstmem), stream.get()));
+}
+
+//---------------------------------------------------------------------------//
 }  // namespace celeritas

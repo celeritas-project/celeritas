@@ -127,6 +127,9 @@ class Device
     // Access a stream
     inline Stream& stream(StreamId) const;
 
+    // Access the data transfer stream paired with a stream
+    inline Stream& memcpy_stream(StreamId) const;
+
   private:
     //// DATA ////
 
@@ -145,6 +148,7 @@ class Device
     unsigned int eu_per_cu_{};
     MapStrInt extra_;
     std::vector<Stream> streams_;
+    std::vector<Stream> memcpy_streams_;
 };
 
 //---------------------------------------------------------------------------//
@@ -197,6 +201,21 @@ Stream& Device::stream(StreamId id) const
 {
     CELER_EXPECT(id < streams_.size());
     return const_cast<Stream&>(streams_[id.get()]);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Access the data transfer stream paired with a stream.
+ *
+ * Each stream ID has a "launch" stream for kernels (\c stream) and a
+ * "memcpy" stream for asynchronous transfers that can overlap with kernels on
+ * the launch stream. Dependencies between the two must be expressed with
+ * events.
+ */
+Stream& Device::memcpy_stream(StreamId id) const
+{
+    CELER_EXPECT(id < memcpy_streams_.size());
+    return const_cast<Stream&>(memcpy_streams_[id.get()]);
 }
 
 //---------------------------------------------------------------------------//
