@@ -309,19 +309,6 @@ void HitProcessor::process_copied_steps_if_ready()
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy and process compacted device tallies after their step completes.
- *
- * This processes any previously copied steps, then copies the pending
- * compacted steps and waits for them.
- */
-void HitProcessor::process_pending_steps()
-{
-    this->copy_pending_steps();
-    this->process_copied_steps();
-}
-
-//---------------------------------------------------------------------------//
-/*!
  * Generate and call hits from a detector output.
  *
  * In an application setting, this is always called with our local data \c

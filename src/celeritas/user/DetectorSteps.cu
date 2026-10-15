@@ -218,8 +218,9 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
  * - an asynchronous copy of the number of selected tracks to \c num_selected.
  *
  * The pinned host memory referenced by \c num_selected must remain valid
- * until the stream reaches this point, and the step data must not be modified
- * before \c copy_compacted_steps is called.
+ * until the stream reaches this point, and the scratch space must not be
+ * overwritten until the copy enqueued by \c copy_compacted_steps_async
+ * completes.
  */
 void compact_steps_async(StepStateDeviceRef const& state,
                          AsyncResultRef<size_type> num_selected)
@@ -317,25 +318,6 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
 
     CELER_ENSURE(output->size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
-}
-
-//---------------------------------------------------------------------------//
-/*!
- * Copy device step data compacted by \c compact_steps_async to the host.
- *
- * The number of selected tracks must have been copied to the host already,
- * i.e., the stream must have reached the end of \c compact_steps_async . This
- * synchronizes the state's stream.
- */
-void copy_compacted_steps(DetectorStepOutput* output,
-                          StepStateDeviceRef const& state,
-                          size_type num_valid)
-{
-    auto& stream = device().stream(state.stream_id);
-    copy_compacted_steps_async(output, state, num_valid, stream);
-
-    // Copies must be complete before returning
-    stream.sync();
 }
 
 //---------------------------------------------------------------------------//

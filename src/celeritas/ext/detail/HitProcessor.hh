@@ -69,8 +69,7 @@ namespace detail
  *
  * Only one device step can be compacted but not copied, and only one can be
  * copied but not processed: copying a new step first processes the previous
- * one, since they share host storage. \c process_pending_steps executes the
- * remaining phases synchronously. Processing a step:
+ * one, since they share host storage. Processing a step:
  * - loops over detector steps;
  * - updates step attributes based on the hit selection (TODO: selection is
  *   global for now); and
@@ -122,9 +121,6 @@ class HitProcessor
 
     // Process copied device hits if the copy has completed
     void process_copied_steps_if_ready();
-
-    // Copy and process compacted device hits after their step completes
-    void process_pending_steps();
 
     //! Whether device-generated hit data is pending
     bool has_pending_steps() const noexcept

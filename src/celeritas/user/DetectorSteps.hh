@@ -126,12 +126,6 @@ void copy_compacted_steps_async(
     size_type num_selected,
     Stream const& stream);
 
-// Copy device step data compacted by compact_steps_async
-void copy_compacted_steps(
-    DetectorStepOutput* output,
-    StepStateData<Ownership::reference, MemSpace::device> const& state,
-    size_type num_selected);
-
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
 inline void copy_compacted_steps_async(
@@ -146,14 +140,6 @@ inline void copy_compacted_steps_async(
 inline void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const&,
     AsyncResultRef<size_type>)
-{
-    CELER_NOT_CONFIGURED("CUDA or HIP");
-}
-
-inline void copy_compacted_steps(
-    DetectorStepOutput*,
-    StepStateData<Ownership::reference, MemSpace::device> const&,
-    size_type)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

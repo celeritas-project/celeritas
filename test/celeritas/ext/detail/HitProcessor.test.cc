@@ -37,6 +37,18 @@ namespace detail
 {
 namespace test
 {
+namespace
+{
+//---------------------------------------------------------------------------//
+//! Copy and process pending device hits synchronously
+void process_pending(HitProcessor& process_hits)
+{
+    process_hits.copy_pending_steps();
+    process_hits.process_copied_steps();
+}
+
+//---------------------------------------------------------------------------//
+}  // namespace
 
 //---------------------------------------------------------------------------//
 class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
@@ -464,7 +476,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
 
     HitProcessor process_hits = this->make_hit_processor();
     EXPECT_FALSE(process_hits.has_pending_steps());
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_EQ(0, process_hits.exchange_hits());
     auto const dso = this->make_dso();
 
@@ -505,7 +517,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
         EXPECT_TRUE(process_hits.has_pending_steps());
     }
 
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(3, process_hits.exchange_hits());
     EXPECT_EQ(1, this->get_hits("si_tracker").energy_deposition.size());
@@ -522,7 +534,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     process_hits(make_ref(device_states));
     EXPECT_TRUE(process_hits.has_pending_steps());
     EXPECT_EQ(1, this->get_hits("em_calorimeter").energy_deposition.size());
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(3, process_hits.exchange_hits());
     static real_type const expected_si_edep[] = {0.1, 0.2};
@@ -544,10 +556,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     device_states.data = host_states.data;
     process_hits(make_ref(device_states));
     EXPECT_TRUE(process_hits.has_pending_steps());
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_FALSE(process_hits.has_pending_steps());
     EXPECT_EQ(0, process_hits.exchange_hits());
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_EQ(0, process_hits.exchange_hits());
     EXPECT_EQ(2, this->get_hits("si_tracker").energy_deposition.size());
     EXPECT_EQ(2, this->get_hits("em_calorimeter").energy_deposition.size());
@@ -567,7 +579,7 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
         host_states.data.detector_id[TrackSlotId{i}] = {};
     }
     device_states.data = host_states.data;
-    process_hits.process_pending_steps();
+    process_pending(process_hits);
     EXPECT_EQ(3, process_hits.exchange_hits());
     EXPECT_EQ(3, this->get_hits("si_tracker").energy_deposition.size());
     EXPECT_EQ(3, this->get_hits("em_calorimeter").energy_deposition.size());
