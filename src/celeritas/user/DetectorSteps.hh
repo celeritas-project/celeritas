@@ -19,6 +19,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class Stream;
 template<Ownership W, MemSpace M>
 struct StepStateData;
 
@@ -118,6 +119,13 @@ void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const& state,
     AsyncResultRef<size_type> num_selected);
 
+// Enqueue a copy of device step data compacted by compact_steps_async
+void copy_compacted_steps_async(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state,
+    size_type num_selected,
+    Stream const& stream);
+
 // Copy device step data compacted by compact_steps_async
 void copy_compacted_steps(
     DetectorStepOutput* output,
@@ -126,6 +134,15 @@ void copy_compacted_steps(
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
+inline void copy_compacted_steps_async(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    size_type,
+    Stream const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
 inline void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const&,
     AsyncResultRef<size_type>)

@@ -150,22 +150,42 @@ void select_valid_ids(StepStateDeviceRef const& state,
 }
 
 //---------------------------------------------------------------------------//
+/*!
+ * Resize the destination and enqueue a copy of the first items of a field.
+ *
+ * The destination is cleared if the field is unused or empty.
+ */
 template<class T>
 void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
-                StateRef<T> const& src,
-                size_type num_valid,
-                StreamId stream)
+                T const* src,
+                size_type count,
+                Stream const& stream)
 {
-    if (src.empty() || num_valid == 0)
+    if (!src || count == 0)
     {
         // This field is not in use or had no hits
         dst->clear();
         return;
     }
-    dst->resize(num_valid);
+    dst->resize(count);
     // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), num_valid}, stream};
-    copy(MemSpace::device, {src.data().get(), num_valid});
+    copy_bytes(MemSpace::host,
+               dst->data(),
+               MemSpace::device,
+               src,
+               count * sizeof(T),
+               stream);
+}
+
+//---------------------------------------------------------------------------//
+template<class T>
+void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
+                StateRef<T> const& src,
+                size_type num_valid,
+                Stream const& stream)
+{
+    copy_field(
+        dst, src.empty() ? nullptr : src.data().get(), num_valid, stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -174,20 +194,13 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 ItemRef<T> const& src,
                 size_type num_valid,
                 size_type per_thread,
-                StreamId stream)
+                Stream const& stream)
 {
     CELER_EXPECT(per_thread > 0 || src.empty());
-    if (src.empty() || num_valid == 0)
-    {
-        // This attribute is not in use
-        dst->clear();
-        return;
-    }
-    dst->resize(num_valid * per_thread);
-    // Copy all items from valid threads
-    Copier<T, MemSpace::host> copy{{dst->data(), num_valid * per_thread},
-                                   stream};
-    copy(MemSpace::device, {src.data().get(), num_valid * per_thread});
+    copy_field(dst,
+               src.empty() ? nullptr : src.data().get(),
+               num_valid * per_thread,
+               stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -245,15 +258,22 @@ void compact_steps_async(StepStateDeviceRef const& state,
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy device step data compacted by \c compact_steps_async to the host.
+ * Enqueue a copy of compacted device step data to the host.
  *
  * The number of selected tracks must have been copied to the host already,
- * i.e., the stream must have reached the end of \c compact_steps_async . This
- * synchronizes the state's stream.
+ * i.e., the state's stream must have reached the end of
+ * \c compact_steps_async . The output is resized immediately, and copies from
+ * the state's scratch space are enqueued on the given stream without
+ * synchronizing. If \c stream is not the state's stream, it must wait on an
+ * event recorded after the compaction.
+ *
+ * The output must not be read or resized, and the scratch space must not be
+ * overwritten, until the stream reaches this point.
  */
-void copy_compacted_steps(DetectorStepOutput* output,
-                          StepStateDeviceRef const& state,
-                          size_type num_valid)
+void copy_compacted_steps_async(DetectorStepOutput* output,
+                                StepStateDeviceRef const& state,
+                                size_type num_valid,
+                                Stream const& stream)
 {
     CELER_EXPECT(output);
     CELER_EXPECT(num_valid <= state.size());
@@ -262,8 +282,7 @@ void copy_compacted_steps(DetectorStepOutput* output,
 
     // Resize and copy if the fields are present
 #define DS_ASSIGN(FIELD) \
-    copy_field( \
-        &(output->FIELD), state.scratch.FIELD, num_valid, state.stream_id)
+    copy_field(&(output->FIELD), state.scratch.FIELD, num_valid, stream)
 
     DS_ASSIGN(detector_id);
     DS_ASSIGN(track_id);
@@ -279,7 +298,7 @@ void copy_compacted_steps(DetectorStepOutput* output,
                    state.scratch.points[sp].volume_instance_ids,
                    num_valid,
                    state.num_volume_levels,
-                   state.stream_id);
+                   stream);
     }
 
     DS_ASSIGN(event_id);
@@ -296,11 +315,27 @@ void copy_compacted_steps(DetectorStepOutput* output,
 
 #undef DS_ASSIGN
 
-    // Copies must be complete before returning
-    device().stream(state.stream_id).sync();
-
     CELER_ENSURE(output->size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Copy device step data compacted by \c compact_steps_async to the host.
+ *
+ * The number of selected tracks must have been copied to the host already,
+ * i.e., the stream must have reached the end of \c compact_steps_async . This
+ * synchronizes the state's stream.
+ */
+void copy_compacted_steps(DetectorStepOutput* output,
+                          StepStateDeviceRef const& state,
+                          size_type num_valid)
+{
+    auto& stream = device().stream(state.stream_id);
+    copy_compacted_steps_async(output, state, num_valid, stream);
+
+    // Copies must be complete before returning
+    stream.sync();
 }
 
 //---------------------------------------------------------------------------//
