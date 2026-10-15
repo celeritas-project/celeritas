@@ -69,7 +69,14 @@ namespace detail
  *
  * Only one device step can be compacted but not copied, and only one can be
  * copied but not processed: copying a new step first processes the previous
- * one, since they share host storage. Processing a step:
+ * one, since they share host storage.
+ *
+ * \warning The next compaction waits only for this processor's copy. Since
+ * all callbacks of a \c StepCollector share the scratch space, no other
+ * callback may compact into it with \c compact_steps_async while a copy is in
+ * flight, or the copied hits would be silently replaced with later step data.
+ *
+ * Processing a step:
  * - loops over detector steps;
  * - updates step attributes based on the hit selection (TODO: selection is
  *   global for now); and

@@ -221,6 +221,13 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
  * until the stream reaches this point, and the scratch space must not be
  * overwritten until the copy enqueued by \c copy_compacted_steps_async
  * completes.
+ *
+ * \warning The scratch space is shared by all \c StepInterface callbacks of a
+ * \c StepCollector, but nothing tracks its outstanding copies: each caller
+ * can only order its compaction after its \em own copies. Only one callback
+ * per collector may therefore compact step data with this function if any
+ * caller defers its copy (currently only \c GeantSd , through
+ * \c detail::HitProcessor ).
  */
 void compact_steps_async(StepStateDeviceRef const& state,
                          AsyncResultRef<size_type> num_selected)
