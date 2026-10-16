@@ -245,6 +245,16 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
     CELER_EXPECT(!pending_device_steps_);
     CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
 
+    if (!steps_reserved_)
+    {
+        // Allocate the pinned hit output once, before any copy into it:
+        // growing it later would call cudaHostAlloc and cudaFreeHost, which
+        // serialize CUDA API calls from all host threads
+        CELER_ASSERT(!copy_in_flight_);
+        reserve_compacted_steps(&steps_, states);
+        steps_reserved_ = true;
+    }
+
     auto& stream = celeritas::device().stream(states.stream_id);
     // Don't overwrite the scratch space while it is being copied
     stream.wait(copied_);

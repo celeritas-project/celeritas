@@ -126,8 +126,20 @@ void copy_compacted_steps_async(
     size_type num_selected,
     Stream const& stream);
 
+// Reserve output capacity for the largest possible compacted step
+void reserve_compacted_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state);
+
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
+inline void reserve_compacted_steps(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
 inline void copy_compacted_steps_async(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&,

@@ -153,17 +153,12 @@ void select_valid_ids(StepStateDeviceRef const& state,
 /*!
  * Resize the destination and enqueue a copy of the first items of a field.
  *
- * The destination is cleared if the field is unused or empty. On first use,
- * the destination reserves \c capacity elements (the full size of the device
- * scratch field) so that later steps never reallocate it. Reallocating pinned
- * memory calls \c cudaHostAlloc and \c cudaFreeHost, which serialize CUDA API
- * calls from all host threads.
+ * The destination is cleared if the field is unused or empty.
  */
 template<class T>
 void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 T const* src,
                 size_type count,
-                size_type capacity,
                 Stream const& stream)
 {
     if (!src || count == 0)
@@ -171,12 +166,6 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
         // This field is not in use or had no hits
         dst->clear();
         return;
-    }
-    CELER_EXPECT(count <= capacity);
-    if (dst->capacity() < count)
-    {
-        // Allocate the maximum possible size once
-        dst->reserve(capacity);
     }
     dst->resize(count);
     // Copy all items from valid threads
@@ -195,11 +184,8 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 size_type num_valid,
                 Stream const& stream)
 {
-    copy_field(dst,
-               src.empty() ? nullptr : src.data().get(),
-               num_valid,
-               src.size(),
-               stream);
+    copy_field(
+        dst, src.empty() ? nullptr : src.data().get(), num_valid, stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -214,8 +200,20 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
     copy_field(dst,
                src.empty() ? nullptr : src.data().get(),
                num_valid * per_thread,
-               src.size(),
                stream);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reserve the destination for every item of a field if the field is in use.
+ */
+template<class T, class SrcRef>
+void reserve_field(DetectorStepOutput::PinnedVec<T>* dst, SrcRef const& src)
+{
+    if (!src.empty())
+    {
+        dst->reserve(src.size());
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -340,6 +338,51 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
 
     CELER_ENSURE(output->size() == num_valid);
     CELER_ENSURE(output->track_id.size() == num_valid);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reserve output capacity for the largest possible compacted step.
+ *
+ * Each field in use is reserved to the size of its scratch space, which bounds
+ * the number of items \c copy_compacted_steps_async can copy, so later copies
+ * into the output never reallocate it. Reallocating pinned memory calls
+ * \c cudaHostAlloc and \c cudaFreeHost, which serialize CUDA API calls from
+ * all host threads.
+ *
+ * The output must not be the destination of a copy in flight.
+ */
+void reserve_compacted_steps(DetectorStepOutput* output,
+                             StepStateDeviceRef const& state)
+{
+    CELER_EXPECT(output);
+    CELER_EXPECT(state);
+
+#define DS_RESERVE(FIELD) reserve_field(&(output->FIELD), state.scratch.FIELD)
+
+    DS_RESERVE(detector_id);
+    DS_RESERVE(track_id);
+
+    for (auto sp : range(StepPoint::size_))
+    {
+        DS_RESERVE(points[sp].time);
+        DS_RESERVE(points[sp].pos);
+        DS_RESERVE(points[sp].dir);
+        DS_RESERVE(points[sp].energy);
+        DS_RESERVE(points[sp].volume_instance_ids);
+    }
+
+    DS_RESERVE(event_id);
+    DS_RESERVE(parent_id);
+    DS_RESERVE(primary_id);
+    DS_RESERVE(post_step_action_id);
+    DS_RESERVE(track_step_count);
+    DS_RESERVE(step_length);
+    DS_RESERVE(weight);
+    DS_RESERVE(particle_id);
+    DS_RESERVE(energy_deposition);
+
+#undef DS_RESERVE
 }
 
 //---------------------------------------------------------------------------//

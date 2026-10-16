@@ -175,6 +175,8 @@ class HitProcessor
     DeviceEvent copied_{nullptr};
     //! Whether \c steps_ holds copied device steps awaiting processing
     bool copy_in_flight_{false};
+    //! Whether \c steps_ is reserved for the largest possible device step
+    bool steps_reserved_{false};
 
     //! Shared step object
     std::shared_ptr<G4Step> step_;
