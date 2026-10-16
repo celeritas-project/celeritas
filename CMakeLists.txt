@@ -465,6 +465,13 @@ elseif(CELERITAS_USE_HIP)
       OFF
     )
   endif()
+  if(CELERITAS_USE_covfie AND "${hip_VERSION}" VERSION_LESS 6)
+    celeritas_error_incompatible_option(
+      "covfie requires HIP to support C++20 (hip 6 and higher)"
+      CELERITAS_USE_covfie
+      OFF
+    )
+  endif()
 endif()
 # Unconditionally set availability for downstream configuration
 foreach(_pkg IN ITEMS CUB Thrust hipcub hiprand rocthrust roctracer)

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
+#include "corecel/DeviceRuntimeApi.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_select.cuh>
 #elif CELERITAS_HAVE_HIPCUB
@@ -75,7 +77,7 @@ void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
         thrust::make_counting_iterator<size_type>(0), TransformType{});
     auto result = device_pointer_cast(init.vacancies.data());
     auto counters = device_pointer_cast(init.counters.data());
-#ifdef CELER_USE_THRUST
+#if CELER_USE_THRUST
     auto end = thrust::copy_if(thrust_execute_on(stream_id),
                                start,
                                start + init.vacancies.size(),
