@@ -9,16 +9,22 @@
 #
 # Docker builds use BuildKit through the buildx plugin.
 # Podman is used if Docker is unavailable or cannot
-# reach its daemon (e.g. without root access). Set CONTAINER to override the
-# container engine, e.g. CONTAINER=podman-hpc.
+# reach its daemon (e.g. without root access).
+# Set CONTAINER_EXE to override the container engine, e.g. CONTAINER_EXE=podman-hpc.
 #-----------------------------------------------------------------------------#
 
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-SOURCE_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd) # NOT the scripts/ci dir
+CELER_SOURCE_DIR=$(cd "${SCRIPT_DIR}/../../.." && pwd)
 
-log() {
-  printf "%s: %s\n" "$1" "$2" >&2
-}
+if command -v celerlog; then
+  log() {
+    celerlog "$@"
+  }
+else
+  log() {
+    printf "%s: %s\n" "$1" "$2" >&2
+  }
+fi
 
 have() {
   command -v "$1" >/dev/null 2>&1
@@ -39,51 +45,58 @@ check_docker() {
   fi
 }
 
-if [ -z "${CONTAINER}" ]; then
+if [ -z "${CONTAINER_EXE}" ]; then
   if check_docker; then
-    CONTAINER=docker
+    CONTAINER_EXE=docker
   elif have podman; then
-    CONTAINER=podman
+    CONTAINER_EXE=podman
   else
     log error "neither docker (with buildx) nor podman is usable"
     exit 1
   fi
-elif [ "${CONTAINER}" = docker ]; then
+elif [ "${CONTAINER_EXE}" = docker ]; then
   if ! check_docker; then
     log error "docker is not usable"
     exit 1
   fi
-elif ! have "${CONTAINER}"; then
-  log error "${CONTAINER} is not available"
+elif ! have "${CONTAINER_EXE}"; then
+  log error "${CONTAINER_EXE} is not available"
   exit 1
 fi
 
-if [ "${CONTAINER}" = docker ]; then
+if [ "${CONTAINER_EXE}" = docker ]; then
   # Load into the local image store, which the docker-container driver of
   # non-default buildx builders does not do implicitly
   BUILD="docker buildx build --load"
 else
   # Podman defaults to the OCI format, which drops some Dockerfile metadata
-  BUILD="${CONTAINER} build --format docker"
+  BUILD="${CONTAINER_EXE} build --format docker"
 fi
 
-pins=$(python3 "${SOURCE_DIR}/scripts/ci/parse-spack-versions.py" \
-  "${SOURCE_DIR}/.github/actions/setup-spack/action.yml")
+GHA_FILE="${CELER_SOURCE_DIR}/.github/actions/setup-spack/action.yml"
+pins=$(python3 "${CELER_SOURCE_DIR}/scripts/ci/parse-spack-versions.py" "${GHA_FILE}")
 eval "${pins}"
 TAG=$(printf "%.7s-%.7s" "${SPACK_REF}" "${SPACK_PACKAGES_REF}")
+log info "Set tag ${TAG} from ${GHA_FILE}"
+
+PROJECT=celeritas
 
 build() {
   target=$1
   shift
   ${BUILD} \
+    --build-arg SPACK_REPO="${SPACK_REPO}" \
     --build-arg SPACK_REF="${SPACK_REF}" \
+    --build-arg SPACK_PACKAGES_REPO="${SPACK_PACKAGES_REPO}" \
     --build-arg SPACK_PACKAGES_REF="${SPACK_PACKAGES_REF}" \
     --target "${target}" \
+    -t "${PROJECT}/${target}:${TAG}" \
+    -t "${PROJECT}/${target}:latest" \
     -f "${SCRIPT_DIR}/Dockerfile" \
     "$@" \
     "${SCRIPT_DIR}"
 }
 
-build spack-base -t "celeritas/spack-ubuntu24:${TAG}" "$@"
-build buildcache -t "celeritas-buildcache:${TAG}" \
-  -t celeritas-buildcache:latest "$@"
+# Build target images inside Dockerfile
+build spack-base-ubuntu24 "$@"
+build buildcache "$@"
