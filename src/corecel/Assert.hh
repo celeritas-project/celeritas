@@ -202,6 +202,7 @@
     do \
     { \
         CELER_RUNTIME_FAIL_(WHICH, WHAT, COND); \
+        ::celeritas::unreachable(); \
     } while (0)
 
 #if !CELER_DEVICE_COMPILE
@@ -260,12 +261,14 @@
     { \
         CELER_RUNTIME_FAIL_( \
             ::celeritas::RuntimeError::not_config_err_str, WHAT, {}); \
+        ::celeritas::unreachable(); \
     } while (0)
 #define CELER_NOT_IMPLEMENTED(WHAT) \
     do \
     { \
         CELER_RUNTIME_FAIL_( \
             ::celeritas::RuntimeError::not_impl_err_str, WHAT, {}); \
+        ::celeritas::unreachable(); \
     } while (0)
 
 /*!
