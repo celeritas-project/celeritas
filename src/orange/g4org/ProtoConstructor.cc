@@ -95,14 +95,25 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
  *
  * We can use logical volume for the structure, but we need to associate the
  * world physical volume ID.
+ *
+ * If the volume is aligned, its boundary and daughters are rotated into the
+ * aligned frame.
  */
 auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 {
     ++depth_;
     auto const& label = volumes_.volume_labels().at(lv.id);
 
+    // Rotation applied to the boundary and daughters of an aligned volume
+    VariantTransform rotation{NoTransformation{}};
+    if (Alignment const* align = this->find_alignment(lv.id))
+    {
+        rotation = align->rotation;
+    }
+
     UnitProto::Input input;
-    input.boundary.interior = lv.solid;
+    input.boundary.interior
+        = orangeinp::Transformed::or_object(lv.solid, rotation);
     input.label = label;
 
     if (CELER_UNLIKELY(opts_.verbose_structure))
@@ -116,7 +127,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
     MaterialInputId local_parent;
     for (PhysicalVolume const& child_pv : lv.children)
     {
-        this->place_pv(NoTransformation{}, child_pv, local_parent, &input);
+        this->place_pv(rotation, child_pv, local_parent, &input);
     }
 
     // Heuristic: if LV has fewer than N daughters in the input, use an
@@ -130,8 +141,7 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
         local_parent = id_cast<MaterialInputId>(input.materials.size());
 
         orangeinp::UnitProto::MaterialInput background;
-        background.interior
-            = this->make_explicit_background(lv, NoTransformation{});
+        background.interior = this->make_explicit_background(lv, rotation);
         background.label = VolumeInstanceId{};
         background.fill = background_fill(lv.material_id);
         input.boundary.zorder = ZOrder::media;
@@ -167,6 +177,18 @@ auto ProtoConstructor::operator()(LogicalVolume const& lv) -> SPUnitProto
 
 //---------------------------------------------------------------------------//
 /*!
+ * Get the alignment for a volume.
+ *
+ * If the volume in not aligned, a nullptr is returned.
+ */
+auto ProtoConstructor::find_alignment(VolumeId vol_id) const -> Alignment const*
+{
+    auto iter = alignment_.find(vol_id);
+    return (iter == alignment_.end()) ? nullptr : &(iter->second);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Whether we should inline a volume based on its pv's transform.
  */
 bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
@@ -193,6 +215,8 @@ bool ProtoConstructor::can_inline_transform(VariantTransform const& vt) const
  *
  * It will return a "local child ID" if it generates a material input, or a
  * null ID if it spawns a daughter proto.
+ *
+ * An aligned volume is never inlined: it always becomes a daughter universe.
  */
 void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
                                 PhysicalVolume const& pv,
@@ -207,6 +231,20 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     // Transform for this PV, whether as a "top level" volume or as a volume
     // that's subtracted from an inlined LV
     auto transform = apply_transform(parent_transform, pv.transform);
+
+    // Get alignment and check that it is applicable
+    Alignment const* align = this->find_alignment(pv.lv->id);
+    if (align)
+    {
+        auto const& label = volumes_.volume_labels().at(pv.lv->id);
+        CELER_VALIDATE(!pv.lv->children.empty(),
+                       << "aligned volume '" << label
+                       << "' has no daughters to align");
+        CELER_VALIDATE(!is_union(pv.lv->solid),
+                       << "aligned volume '" << label
+                       << "' has a union boundary, which cannot be a "
+                          "universe boundary");
+    }
 
     if (CELER_UNLIKELY(opts_.verbose_structure))
     {
@@ -245,12 +283,14 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         }
     }
     else if (
-        (pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
-        || (opts_.inline_unions && is_union(pv.lv->solid)))
+        !align
+        && ((pv.lv.use_count() == 1 && this->can_inline_transform(pv.transform))
+            || (opts_.inline_unions && is_union(pv.lv->solid))))
     {
         // Child can be inlined into the parent because it's used only once
         // *and* it doesn't have a rotation relative to the parent
-        // OR: it must be inlined if it's a union (see #1260)
+        // OR: it must be inlined if it's a union (see #1260). Aligned volumes
+        // are never inlined.
         add_material(this->make_explicit_background(*pv.lv, transform));
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
@@ -271,13 +311,14 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
     else
     {
         // LV is referenced more than once *AND* has children *AND* has a
-        // transform *BUT* is not a union
+        // transform *BUT* is not a union, or it is aligned
         auto [iter, inserted] = protos_.emplace(pv.lv.get(), nullptr);
 
         if (CELER_UNLIKELY(opts_.verbose_structure))
         {
             std::clog << std::string(depth_, ' ') << " -> placing "
-                      << (inserted ? "new" : "existing") << " universe '"
+                      << (inserted ? "new" : "existing")
+                      << (align ? " aligned" : "") << " universe '"
                       << volumes_.volume_labels().at(pv.lv->id)
                       << "' locally inside " << local_parent << " at "
                       << StreamableVariant{pv.transform} << std::endl;
@@ -292,7 +333,17 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
 
         UnitProto::DaughterInput daughter;
         daughter.fill = iter->second;
-        daughter.transform = transform;
+        if (align)
+        {
+            // The universe is built in the rotated frame, so we have to place
+            // it with the inverse rotation so that the geometry itself
+            // remains the same.
+            daughter.transform = apply_transform(transform, align->inverse);
+        }
+        else
+        {
+            daughter.transform = transform;
+        }
         daughter.zorder = ZOrder::media;
         daughter.label = pv.id;
         daughter.local_parent = local_parent;
