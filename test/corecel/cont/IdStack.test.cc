@@ -86,7 +86,7 @@ TEST(IdStackTest, TEST_IF_CELERITAS_DEBUG(errors))
     if constexpr (!CELERITAS_DEBUG)
     {
         // Silence GCC warning
-        CELER_UNREACHABLE;
+        ::celeritas::unreachable();
     }
     EXPECT_THROW(stack.push(TestId{3}), DebugError);
 }

@@ -14,9 +14,6 @@
 #include "LoggerTypes.hh"
 
 #include "detail/LoggerMessage.hh"  // IWYU pragma: export
-#if CELER_DEVICE_COMPILE
-#    include "detail/NullLoggerMessage.hh"  // IWYU pragma: export
-#endif
 
 //---------------------------------------------------------------------------//
 // MACROS
