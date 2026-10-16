@@ -11,6 +11,7 @@
 #include "corecel/OpaqueIdUtils.hh"
 #include "corecel/StringSimplifier.hh"
 #include "corecel/io/Repr.hh"
+#include "corecel/io/StreamableVariant.hh"
 #include "geocel/GeantGeoParams.hh"
 #include "geocel/VolumeToString.hh"
 #include "orange/OrangeData.hh"
@@ -20,6 +21,7 @@
 #include "orange/orangeinp/UnitProto.hh"
 #include "orange/orangeinp/detail/CsgUnit.hh"
 #include "orange/orangeinp/detail/ProtoMap.hh"
+#include "orange/transform/TransformIO.hh"
 
 #include "GeantLoadTestBase.hh"
 #include "TestMacros.hh"
@@ -72,6 +74,13 @@ class ProtoConstructorTest : public GeantLoadTestBase
         }();
         EXPECT_EQ(16, std::count(result_str.begin(), result_str.end(), ','))
             << "JSON items changed: actual is " << repr(result_str);
+    }
+
+    std::string transform_string(VariantTransform const& transform)
+    {
+        std::ostringstream os;
+        os << StreamableVariant{transform};
+        return std::move(os).str();
     }
 
     std::shared_ptr<UnitProto> load(std::string const& basename)
@@ -160,7 +169,7 @@ class ProtoConstructorTest : public GeantLoadTestBase
         return proto->build(opts);
     }
 
-  private:
+  protected:
     Options opts_;
 };
 
@@ -817,6 +826,141 @@ TEST_F(Testem3Test, default)
         EXPECT_VEC_EQ(expected_bound_strings, bound_strings(u));
         EXPECT_JSON_EQ(expected_tree_string, tree_string(u));
     }
+}
+
+// "Align" the calorimeter, which is placed once and would otherwise be
+// inlined. Note that here everything is already axis-aligned, so we rotate 90
+// degrees around z to simply switch x and y.
+TEST_F(Testem3Test, aligned_calorimeter)
+{
+    // 90 degree rotation around z
+    SquareMatrixReal3 const rot{{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}};
+    opts_.universe_alignment["calorimeter"] = rot;
+
+    auto global_proto = this->load("testem3");
+    ProtoMap protos{*global_proto};
+
+    // Check proto names
+    static std::string const expected_proto_names[]
+        = {"world", "calorimeter", "layer"};
+    EXPECT_VEC_EQ(expected_proto_names, get_proto_names(protos));
+
+    // Check that the calorimeter is placed with the inverse rotation
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(1, daughters.size());
+    EXPECT_EQ("{{{0,1,0},{-1,0,0},{0,0,1}}, {0,0,0}}",
+              transform_string(daughters[0].transform));
+
+    // Check that we have one additional proto because the calorimeter is no
+    // longer inlined
+    ASSERT_EQ(3, protos.size());
+
+    // Build the global unit
+    {
+        SCOPED_TRACE("global");
+        auto u = this->build_unit(protos, UnivId{0});
+
+        // NOTE: 6 calorimeter and 6 world surfaces
+        auto surfaces = surface_strings(u);
+        EXPECT_EQ(6 + 6, surfaces.size()) << repr(surfaces);
+
+        auto transforms = transform_strings(u);
+        EXPECT_EQ(4, transforms.size()) << repr(transforms);
+        EXPECT_EQ("28: t=0", transforms[2]);  // calorimeter
+
+        auto bounds = bound_strings(u);
+        ASSERT_EQ(transforms.size(), bounds.size());
+        EXPECT_EQ(
+            R"(28: {{{-20,-20,-20}, {20,20,20}}, {{-20,-20,-20}, {20,20,20}}})",
+            bounds[2]);  // calorimeter
+
+        auto vols = volume_strings(u);
+        ASSERT_EQ(3, vols.size());  // exterior, calorimeter, world
+        EXPECT_EQ("all(+6, -7, +8, -9, +10, -11)", vols[1]);  // calorimeter
+        EXPECT_EQ(GeoMatId{}, u.background);
+    }
+
+    // Build the calorimeter unit
+    {
+        SCOPED_TRACE("calorimeter");
+        auto u = this->build_unit(protos, UnivId{1});
+
+        // NOTE: 49 y surfaces (not 51, due to deduplication)
+        auto surfaces = surface_strings(u);
+        EXPECT_EQ(49, surfaces.size()) << repr(surfaces);
+
+        auto transforms = transform_strings(u);
+        EXPECT_EQ(52, transforms.size()) << repr(transforms);
+        EXPECT_EQ("12: t=5 -> {{{0,-1,0},{1,0,0},{0,0,1}}, {0,-17.2,0}}",
+                  transforms[5]);  // same slab as default case
+
+        auto bounds = bound_strings(u);
+        ASSERT_EQ(transforms.size(), bounds.size());
+        EXPECT_EQ(
+            R"(12: {{{-20,-17.6,-20}, {20,-16.8,20}}, {{-20,-17.6,-20}, {20,-16.8,20}}})",
+            bounds[5]);  // same slab as default case
+
+        auto vols = volume_strings(u);
+        ASSERT_EQ(51, vols.size());  // slabs, then ext
+        EXPECT_EQ("+54", vols.back());  // ext
+        EXPECT_EQ(GeoMatId{0}, u.background);
+    }
+
+    // Build layer unit
+    {
+        SCOPED_TRACE("layer");
+        auto u = this->build_unit(protos, UnivId{2});
+
+        // Unchanged from the default case
+        static char const* const expected_surface_strings[] = {
+            "Plane: x=-0.17",
+        };
+        EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+    }
+}
+
+// Align the "layer" logical volume, whose placements have translations
+TEST_F(Testem3Test, aligned_layer)
+{
+    SquareMatrixReal3 const rot{{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}};
+    opts_.universe_alignment["layer"] = rot;
+
+    auto global_proto = this->load("testem3");
+    ProtoMap protos{*global_proto};
+
+    // Calorimeter is inlined, so we have 2 protos like "default", not three
+    // as was the case with "aliged_calorimeter"
+    ASSERT_EQ(2, protos.size());
+
+    // Check that a placement is done with inverse transformation applied
+    auto const& daughters = global_proto->input().daughters;
+    ASSERT_EQ(50, daughters.size());
+    EXPECT_EQ("{{{0,1,0},{-1,0,0},{0,0,1}}, {-17.2,0,0}}",
+              transform_string(daughters[3].transform));
+
+    // The universe is built with x and y swapped
+    auto u = this->build_unit(protos, UnivId{1});
+    static char const* const expected_surface_strings[] = {
+        "Plane: y=-0.17",
+    };
+    EXPECT_VEC_EQ(expected_surface_strings, surface_strings(u));
+}
+
+TEST_F(Testem3Test, alignment_errors)
+{
+    SquareMatrixReal3 const rot{{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}};
+
+    // Non-existent volume
+    opts_.universe_alignment = {{"non-existent", rot}};
+    EXPECT_THROW(this->load("testem3"), RuntimeError);
+
+    // World volume
+    opts_.universe_alignment = {{"world", rot}};
+    EXPECT_THROW(this->load("testem3"), RuntimeError);
+
+    // Volume without daughters
+    opts_.universe_alignment = {{"pb", rot}};
+    EXPECT_THROW(this->load("testem3"), RuntimeError);
 }
 
 //---------------------------------------------------------------------------//
