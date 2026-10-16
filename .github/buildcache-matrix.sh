@@ -18,7 +18,7 @@
 # due to the `--use-buildcache` option in `setup-spack/action.yaml`)
 #-----------------------------------------------------------------------------#
 
-if ! command build_spack_env >/dev/null 2>&1; then
+if ! command -v build_spack_env >/dev/null 2>&1; then
   echo "# Dry run: launch using scripts/ci/update-spack-buildcache.sh"
   build_spack_env() {
     echo "CXXSTD=${CXXSTD} ENV_CI=${ENV_CI} build_spack_env $*"
