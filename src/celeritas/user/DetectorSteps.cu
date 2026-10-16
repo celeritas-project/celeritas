@@ -153,12 +153,17 @@ void select_valid_ids(StepStateDeviceRef const& state,
 /*!
  * Resize the destination and enqueue a copy of the first items of a field.
  *
- * The destination is cleared if the field is unused or empty.
+ * The destination is cleared if the field is unused or empty. On first use,
+ * the destination reserves \c capacity elements (the full size of the device
+ * scratch field) so that later steps never reallocate it. Reallocating pinned
+ * memory calls \c cudaHostAlloc and \c cudaFreeHost, which serialize CUDA API
+ * calls from all host threads.
  */
 template<class T>
 void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 T const* src,
                 size_type count,
+                size_type capacity,
                 Stream const& stream)
 {
     if (!src || count == 0)
@@ -166,6 +171,12 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
         // This field is not in use or had no hits
         dst->clear();
         return;
+    }
+    CELER_EXPECT(count <= capacity);
+    if (dst->capacity() < count)
+    {
+        // Allocate the maximum possible size once
+        dst->reserve(capacity);
     }
     dst->resize(count);
     // Copy all items from valid threads
@@ -184,8 +195,11 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 size_type num_valid,
                 Stream const& stream)
 {
-    copy_field(
-        dst, src.empty() ? nullptr : src.data().get(), num_valid, stream);
+    copy_field(dst,
+               src.empty() ? nullptr : src.data().get(),
+               num_valid,
+               src.size(),
+               stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -200,6 +214,7 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
     copy_field(dst,
                src.empty() ? nullptr : src.data().get(),
                num_valid * per_thread,
+               src.size(),
                stream);
 }
 
