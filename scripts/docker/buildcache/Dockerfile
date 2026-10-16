@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------#
 # Runner toolchain with pinned and bootstrapped Spack
 #-----------------------------------------------------------------------------#
-FROM ubuntu:24.04 AS spack-base
+FROM ubuntu:24.04 AS spack-base-ubuntu24
 
 ARG SPACK_REF
 ARG SPACK_PACKAGES_REF
@@ -89,7 +89,7 @@ RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
 #-----------------------------------------------------------------------------#
 # Buildcache update
 #-----------------------------------------------------------------------------#
-FROM spack-base AS buildcache
+FROM spack-base-ubuntu24 AS buildcache
 
 LABEL description="Celeritas Spack buildcache builder for GitHub CI"
 
