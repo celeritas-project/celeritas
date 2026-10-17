@@ -47,7 +47,7 @@ runs:
         {
           echo "BASE_IMAGE=ubuntu:24.04"
           echo "BUILDCACHE=celeritas"
-          echo "SPACK_PKG_REPO=$GITHUB_WORKSPACE/spack-pkg"
+          echo "SPACK_PACKAGES_ROOT=$GITHUB_WORKSPACE/spack-pkg"
         } >> "$GITHUB_OUTPUT"
         echo "$SPACK_ROOT/bin" >> "$GITHUB_PATH"
     - name: Checkout Spack
@@ -62,7 +62,7 @@ runs:
       uses: actions/checkout@v7
       with:
         repository: spack/spack-packages
-        path: ${{steps.vars.outputs.SPACK_PKG_REPO}}
+        path: ${{steps.vars.outputs.SPACK_PACKAGES_ROOT}}
         ref: fa11df3be41f58bac19b73346422e06b103ee5b5 # upstream/develop, 6 October 2026
 
     - name: Initialize spack environment
@@ -74,7 +74,7 @@ runs:
         SPACK_ENV_FILE: ${{inputs.env-file}}
         CELER_SOURCE_DIR: "${{github.workspace}}"
         CELER_SPACK_OPT: "/opt/spack"
-        SPACK_PACKAGES_REPO: "${{steps.vars.outputs.SPACK_PKG_REPO}}"
+        SPACK_PACKAGES_ROOT: "${{steps.vars.outputs.SPACK_PACKAGES_ROOT}}"
       run: |
         "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" ${{inputs.add}}
 
@@ -89,7 +89,7 @@ runs:
           spack -e . config get --json | jq -c '.["spack"]'
           printf '{"repos": {"core": "%s", "builtin": "%s"}}\n' \
             "$(git -C "$SPACK_ROOT" rev-parse HEAD)" \
-            "$(git -C "$SPACK_PACKAGES_REPO" rev-parse HEAD)"
+            "$(git -C "$SPACK_PACKAGES_ROOT" rev-parse HEAD)"
         } > spack.config.jsonl
 
         # Save variables used later in the action

@@ -110,7 +110,8 @@ void BuildOutput::output(JsonPimpl* j) const
             append_version(CELERITAS_USE_HIP, "roctracer");
             append_version(CELERITAS_USE_LARSOFT, "LArSoft");
             append_version(CELERITAS_USE_ROOT, "ROOT");
-            append_version(CELERITAS_USE_VECGEOM, "G4VG");
+            append_version(CELERITAS_USE_VECGEOM && CELERITAS_USE_GEANT4,
+                           "G4VG");
             append_version(CELERITAS_USE_VECGEOM || CELERITAS_GEANT4_USOLIDS,
                            "VecGeom");
 

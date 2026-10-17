@@ -4,7 +4,7 @@
 #-----------------------------------------------------------------------------#
 # Reproduce the GitHub ubuntu-24.04 runner toolchain used by the setup-spack
 # action, to build and push the Spack buildcache with
-# scripts/ci/update-spack-buildcache-local.sh. Build both stages with the
+# scripts/ci/update-spack-buildcache.sh. Build both stages with the
 # pinned Spack revisions using:
 #   scripts/docker/buildcache/build.sh
 # See scripts/docker/README.md for usage.
@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------#
 # Runner toolchain with pinned and bootstrapped Spack
 #-----------------------------------------------------------------------------#
-FROM ubuntu:24.04 AS spack-base
+FROM ubuntu:24.04 AS spack-base-ubuntu24
 
 ARG SPACK_REF
 ARG SPACK_PACKAGES_REF
@@ -50,17 +50,22 @@ RUN useradd --create-home --shell /bin/bash celeritas \
  && git config --system --add safe.directory /opt/spack \
  && git config --system --add safe.directory /opt/spack-packages
 
+# Github repositories to clone
+ARG SPACK_REPO
+ARG SPACK_PACKAGES_REPO
+
 # Match the environment of .github/actions/setup-spack. Keep the Spack user
 # cache (including the bootstrap store) independent of HOME so that it is
 # shared by the celeritas and root users.
 ENV SPACK_ROOT=/opt/spack \
-    SPACK_PACKAGES_REPO=/opt/spack-packages \
+    SPACK_PACKAGES_ROOT=/opt/spack-packages \
     SPACK_USER_CACHE_PATH=/opt/spack-cache \
     SPACK_DISABLE_LOCAL_CONFIG=1 \
     SPACK_COLOR=always \
-    CELER_SPACK_REF=${SPACK_REF} \
-    CELER_SPACK_PACKAGES_REF=${SPACK_PACKAGES_REF} \
+    IMAGE_SPACK_REF=${SPACK_REF} \
+    IMAGE_SPACK_PACKAGES_REF=${SPACK_PACKAGES_REF} \
     PATH=/opt/spack/bin:$PATH
+
 
 # Check out the pinned revisions, use the pinned package repository instead
 # of letting Spack clone its own, and bootstrap the concretizer
@@ -70,21 +75,21 @@ RUN if [ -z "${SPACK_REF}" ] || [ -z "${SPACK_PACKAGES_REF}" ]; then \
            "use scripts/docker/buildcache/build.sh" >&2 ; \
       exit 1 ; \
     fi \
- && for pin in "${SPACK_ROOT} spack/spack ${SPACK_REF}" \
-               "${SPACK_PACKAGES_REPO} spack/spack-packages ${SPACK_PACKAGES_REF}"; do \
+ && for pin in "${SPACK_ROOT} ${SPACK_REPO} ${SPACK_REF}" \
+               "${SPACK_PACKAGES_ROOT} ${SPACK_PACKAGES_REPO} ${SPACK_PACKAGES_REF}"; do \
       set -- ${pin} \
       && git init -q "$1" \
       && git -C "$1" fetch -q --depth 1 "https://github.com/$2.git" "$3" \
       && git -C "$1" checkout -q --detach FETCH_HEAD \
       || exit 1 ; \
     done \
- && spack repo set --destination "${SPACK_PACKAGES_REPO}" builtin \
+ && spack repo set --destination "${SPACK_PACKAGES_ROOT}" builtin \
  && spack bootstrap now
 
 #-----------------------------------------------------------------------------#
 # Buildcache update
 #-----------------------------------------------------------------------------#
-FROM spack-base AS buildcache
+FROM spack-base-ubuntu24 AS buildcache
 
 LABEL description="Celeritas Spack buildcache builder for GitHub CI"
 
@@ -97,4 +102,4 @@ ENV FORCE_UNSAFE_CONFIGURE=1 \
 USER celeritas
 WORKDIR /work
 ENTRYPOINT ["/opt/celeritas/entrypoint.sh"]
-CMD ["/celeritas/scripts/ci/update-spack-buildcache-local.sh"]
+CMD ["/celeritas/scripts/ci/update-spack-buildcache.sh"]

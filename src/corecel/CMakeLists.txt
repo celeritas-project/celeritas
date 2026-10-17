@@ -20,6 +20,7 @@ celeritas_version_to_hex(CELERITAS_VERSION PROJECT_VERSION)
 #----------------------------------------------------------------------------#
 # Build configuration
 
+# TODO: generate by looping over component list
 set(CELERITAS_USE_COVFIE ${CELERITAS_USE_covfie})
 set(CELERITAS_USE_GEANT4  ${CELERITAS_USE_Geant4})
 set(CELERITAS_USE_HEPMC3  ${CELERITAS_USE_HepMC3})
@@ -28,11 +29,14 @@ set(CELERITAS_USE_OPENMP  ${CELERITAS_USE_OpenMP})
 set(CELERITAS_USE_PERFETTO ${CELERITAS_USE_Perfetto})
 set(CELERITAS_USE_VECGEOM ${CELERITAS_USE_VecGeom})
 
+# TODO: set macros (debug, etc) using same documentation as cmake strings
+
 # Set CELERITAS_CORE_RNG_CONFIG to a numeric table of RNG options and the
 # selection.
 # Start counter from 1 because undefined config have the implicit value of 0 in
 # the C preprocessor, so any unavailable options (e.g. CELERITAS_USE_CURAND
 # when HIP is in use) will implicitly be zero.
+# TODO: generate automatically from configs
 celeritas_generate_option_config(CELERITAS_CODATA)
 celeritas_generate_option_config(CELERITAS_CORE_GEO)
 celeritas_generate_option_config(CELERITAS_CORE_RNG)

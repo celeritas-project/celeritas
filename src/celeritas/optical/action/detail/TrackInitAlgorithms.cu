@@ -62,8 +62,6 @@ struct TransformType
 //---------------------------------------------------------------------------//
 /*!
  * Compact the \c TrackSlotIds of the inactive tracks.
- *
- * \return Number of vacant track slots
  */
 void copy_if_vacant(TrackStatusRef<MemSpace::device> const& status,
                     TrackInitRef<MemSpace::device> const& init,

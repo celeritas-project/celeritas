@@ -15,17 +15,25 @@
 #include "corecel/Config.hh"
 
 //---------------------------------------------------------------------------//
-//!@{
-//! \name Compiler type/version macros
+/*!@{
+ * \name Compiler type/version macros
+ *
+ * See macro definitions in:
+ * - [LLVM](https://llvm.org/docs/CompileCudaWithLLVM.html)
+ * - [ROCm](
+ *   https://rocm.docs.amd.com/projects/HIP/en/latest/how-to/hip_porting_guide.html)
+ * - [NVCC](
+ *   https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#compilation-phases)
+ */
 
 /*!
  * \def CELER_FUNCTION
  *
  * Decorate a function that works on both host and device, with and without
- * NVCC. The name of this function and its siblings is based on the Kokkos
- * naming scheme.
+ * a device compiler. The name of this function and its siblings is based on
+ * the Kokkos naming scheme.
  */
-#if defined(__NVCC__) || defined(__HIP__)
+#if defined(__CUDACC__) || defined(__HIP__)
 #    define CELER_FUNCTION __host__ __device__
 #else
 #    define CELER_FUNCTION
@@ -121,8 +129,6 @@
 #endif
 
 /*!
- * \def CELER_UNREACHABLE
- *
  * Mark a point in code as being impossible to reach in normal execution.
  *
  * See https://clang.llvm.org/docs/LanguageExtensions.html#builtin-unreachable
@@ -134,19 +140,20 @@
  * available in API version 11.3 or higher, which is encoded as
  * \code major*1000 + minor*10 \endcode).
  *
- * \note This macro should not generally be used; instead, the macro \c
- * CELER_ASSERT_UNREACHABLE() defined in base/Assert.hh should be used instead
- * (to provide a more detailed error message in case the point *is* reached).
+ * \note This macro should not generally be used; instead, use macro \c
+ * CELER_ASSERT_UNREACHABLE() to provide a more detailed error message in case
+ * * the point \em is reached, or call \c celeritas::unreachable(), which is
+ * equivalent to C++23 \c std::unreachable() .
  */
 #if (!defined(__CUDA_ARCH__) && (defined(__clang__) || defined(__GNUC__))) \
     || defined(__NVCOMPILER) \
     || (defined(__CUDA_ARCH__) && CUDART_VERSION >= 11030) \
     || defined(__HIP_DEVICE_COMPILE__)
-#    define CELER_UNREACHABLE __builtin_unreachable()
+#    define CELER_UNREACHABLE_ __builtin_unreachable()
 #elif defined(_MSC_VER)
-#    define CELER_UNREACHABLE __assume(false)
+#    define CELER_UNREACHABLE_ __assume(false)
 #else
-#    define CELER_UNREACHABLE
+#    define CELER_UNREACHABLE_
 #endif
 
 /*!
