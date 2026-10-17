@@ -17,6 +17,9 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class Stream;
+
+//---------------------------------------------------------------------------//
 /*!
  * Copy spans of data.
  *
@@ -88,6 +91,14 @@ void copy_bytes(MemSpace dstmem,
                 void const* src,
                 std::size_t count,
                 StreamId stream);
+
+// Asynchronously copy bytes between two memory spaces on a stream
+void copy_bytes(MemSpace dstmem,
+                void* dst,
+                MemSpace srcmem,
+                void const* src,
+                std::size_t count,
+                Stream const& stream);
 
 //---------------------------------------------------------------------------//
 /*!

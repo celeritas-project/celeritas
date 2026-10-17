@@ -174,9 +174,10 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
     if (celeritas::device())
     {
-        // Allocate pinned count and event for compacting device hits
+        // Allocate pinned count and events for compacting and copying hits
         num_selected_.resize(1);
         compacted_ = DeviceEvent{celeritas::device()};
+        copied_ = DeviceEvent{celeritas::device()};
     }
 
     CELER_ENSURE(!detectors_.empty());
@@ -184,11 +185,12 @@ HitProcessor::HitProcessor(SPConstVecLV detector_volumes,
 
 //---------------------------------------------------------------------------//
 /*!
- * Wait for any pending device compaction before releasing its buffers.
+ * Wait for any pending device compaction or copy before releasing buffers.
  *
- * The count of selected steps is asynchronously copied into pinned memory
- * owned by this class, so a pending copy must complete before that memory is
- * freed (e.g., when an exception unwinds the transporter mid-step).
+ * The count of selected steps and the compacted steps are asynchronously
+ * copied into pinned memory owned by this class, so pending copies must
+ * complete before that memory is freed (e.g., when an exception unwinds the
+ * transporter mid-step).
  */
 HitProcessor::~HitProcessor()
 {
@@ -197,19 +199,20 @@ HitProcessor::~HitProcessor()
         if (this->has_pending_steps())
         {
             compacted_.sync();
+            copied_.sync();
         }
     }
     catch (std::exception const& e)
     {
         CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
-                                  "while destroying hit processor: "
+                                  "or copy while destroying hit processor: "
                                << e.what();
     }
     catch (...)
     {
         CELER_LOG_LOCAL(error) << "Failed to wait for pending hit compaction "
-                                  "while destroying hit processor: unknown "
-                                  "exception";
+                                  "or copy while destroying hit processor: "
+                                  "unknown exception";
     }
 }
 
@@ -231,37 +234,98 @@ void HitProcessor::operator()(StepStateHostRef const& states)
  * the state's stream, along with a copy of the selected count to pinned host
  * memory. Deferring the data copy keeps host-sensitive-detector reconstruction
  * and its stream synchronization out of the device action sequence.
+ *
+ * The compaction waits on the device for any previous copy of the scratch
+ * space, so the step that produces this data can be launched before that copy
+ * completes.
  */
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(!pending_device_steps_);
-    CELER_EXPECT(compacted_ && num_selected_.size() == 1);
+    CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
 
+    if (!steps_reserved_)
+    {
+        // Allocate the pinned hit output once, before any copy into it:
+        // growing it later would call cudaHostAlloc and cudaFreeHost, which
+        // serialize CUDA API calls from all host threads
+        CELER_ASSERT(!copy_in_flight_);
+        reserve_compacted_steps(&steps_, states);
+        steps_reserved_ = true;
+    }
+
+    auto& stream = celeritas::device().stream(states.stream_id);
+    // Don't overwrite the scratch space while it is being copied
+    stream.wait(copied_);
     compact_steps_async(states, AsyncResultRef{num_selected_});
-    compacted_.record(celeritas::device().stream(states.stream_id));
+    compacted_.record(stream);
     pending_device_steps_ = states;
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Copy and process compacted device tallies after their step completes.
+ * Enqueue the copy of compacted device tallies after their step completes.
  *
  * This waits for the compaction enqueued by the call operator, which has
- * already completed if the caller established device step completion. The
- * copy of the compacted data synchronizes the state's stream.
+ * already completed if the caller established device step completion. Any
+ * previously copied steps are processed first since they share host storage.
+ * The copy is enqueued on the memcpy stream without synchronizing.
  */
-void HitProcessor::process_pending_steps()
+void HitProcessor::copy_pending_steps()
 {
     if (!pending_device_steps_)
     {
         return;
     }
 
-    auto states = std::exchange(pending_device_steps_, {});
+    this->process_copied_steps();
+    // The host-observed completion also orders the copy after the compaction.
+    // Keep the steps pending until then so the destructor waits on failure.
     compacted_.sync();
-    copy_compacted_steps(&steps_, states, num_selected_.front());
+    auto states = std::exchange(pending_device_steps_, {});
+    auto& stream = celeritas::device().memcpy_stream(states.stream_id);
+    try
+    {
+        copy_compacted_steps_async(
+            &steps_, states, num_selected_.front(), stream);
+    }
+    catch (...)
+    {
+        // Don't leave partially enqueued copies writing into host buffers
+        stream.sync();
+        throw;
+    }
+    copied_.record(stream);
+    copy_in_flight_ = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Wait for and process copied device tallies.
+ */
+void HitProcessor::process_copied_steps()
+{
+    if (!copy_in_flight_)
+    {
+        return;
+    }
+
+    copied_.sync();
+    copy_in_flight_ = false;
     this->process_local_steps();
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process copied device tallies only if the copy has completed.
+ */
+void HitProcessor::process_copied_steps_if_ready()
+{
+    if (copy_in_flight_ && copied_.ready())
+    {
+        this->process_copied_steps();
+    }
 }
 
 //---------------------------------------------------------------------------//

@@ -51,17 +51,32 @@ namespace detail
  * class \b must be destroyed on the same thread on which it was created.
  *
  * Host step data is copied and processed immediately by the call operator.
- * For device step data, the call operator enqueues the selection and
- * compaction of detector steps into the state's scratch space, along with an
- * asynchronous copy of the number of selected steps to pinned host memory,
- * without synchronizing. Because the enqueued kernels read the gathered step
- * data, it may be overwritten only by work enqueued later on the same stream.
- * The scratch space must not be overwritten until the caller calls \c
- * process_pending_steps after the producing step is complete. Only
- * one device step can be pending, which prevents a subsequent compaction from
- * overwriting the scratch space. Processing waits for the compaction, copies
- * the compacted detector data to pinned host storage (synchronizing the
- * stream once), then:
+ * Device step data goes through three phases so that the device-to-host
+ * transfer and the Geant4 hit processing can overlap with the next step:
+ * 1. \b Compacted: the call operator enqueues the selection and compaction of
+ *    detector steps into the state's scratch space, along with an
+ *    asynchronous copy of the number of selected steps to pinned host memory,
+ *    without synchronizing. Because the enqueued kernels read the gathered
+ *    step data, it may be overwritten only by work enqueued later on the same
+ *    stream.
+ * 2. \b Copied: once the producing step is complete, \c copy_pending_steps
+ *    reads the number of selected steps and enqueues the copy of the
+ *    compacted data to pinned host storage on the device's \c memcpy_stream ,
+ *    without synchronizing. The next compaction makes the state's stream wait
+ *    for this copy, so the next step can be launched immediately.
+ * 3. \b Processed: \c process_copied_steps waits for the copy, or
+ *    \c process_copied_steps_if_ready polls it, and then reconstructs hits.
+ *
+ * Only one device step can be compacted but not copied, and only one can be
+ * copied but not processed: copying a new step first processes the previous
+ * one, since they share host storage.
+ *
+ * \warning The next compaction waits only for this processor's copy. Since
+ * all callbacks of a \c StepCollector share the scratch space, no other
+ * callback may compact into it with \c compact_steps_async while a copy is in
+ * flight, or the copied hits would be silently replaced with later step data.
+ *
+ * Processing a step:
  * - loops over detector steps;
  * - updates step attributes based on the hit selection (TODO: selection is
  *   global for now); and
@@ -105,13 +120,19 @@ class HitProcessor
     // Enqueue compaction of device-generated hits for later processing
     void operator()(StepStateDeviceRef const&);
 
-    // Copy and process compacted device hits after their step completes
-    void process_pending_steps();
+    // Enqueue the copy of compacted device hits after their step completes
+    void copy_pending_steps();
+
+    // Wait for and process copied device hits
+    void process_copied_steps();
+
+    // Process copied device hits if the copy has completed
+    void process_copied_steps_if_ready();
 
     //! Whether device-generated hit data is pending
     bool has_pending_steps() const noexcept
     {
-        return static_cast<bool>(pending_device_steps_);
+        return static_cast<bool>(pending_device_steps_) || copy_in_flight_;
     }
 
     // Generate and call hits from a detector output (for testing)
@@ -150,6 +171,12 @@ class HitProcessor
     std::vector<size_type, PinnedAllocator<size_type>> num_selected_;
     //! Completion of the pending device step compaction
     DeviceEvent compacted_{nullptr};
+    //! Completion of the copy of compacted steps to \c steps_
+    DeviceEvent copied_{nullptr};
+    //! Whether \c steps_ holds copied device steps awaiting processing
+    bool copy_in_flight_{false};
+    //! Whether \c steps_ is reserved for the largest possible device step
+    bool steps_reserved_{false};
 
     //! Shared step object
     std::shared_ptr<G4Step> step_;

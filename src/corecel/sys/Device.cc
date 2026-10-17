@@ -294,6 +294,8 @@ StreamId::size_type Device::num_streams() const
 //---------------------------------------------------------------------------//
 /*!
  * Allocate the given number of streams.
+ *
+ * Each stream ID gets a launch stream and a paired memcpy stream.
  */
 void Device::create_streams(unsigned int num_streams) const
 {
@@ -301,10 +303,11 @@ void Device::create_streams(unsigned int num_streams) const
     CELER_EXPECT(num_streams > 0);
 
     // TODO: const correctness for Device is weird
-    auto& streams = const_cast<Device*>(this)->streams_;
+    auto* self = const_cast<Device*>(this);
 
     CELER_LOG(info) << "Creating " << num_streams << " device streams";
-    streams.resize(num_streams);
+    self->streams_.resize(num_streams);
+    self->memcpy_streams_.resize(num_streams);
 }
 
 //---------------------------------------------------------------------------//
@@ -328,8 +331,9 @@ void Device::destroy_streams() const
     {
         CELER_LOG(debug) << "Destroying streams";
     }
-    auto& streams = const_cast<Device*>(this)->streams_;
-    streams.clear();
+    auto* self = const_cast<Device*>(this);
+    self->memcpy_streams_.clear();
+    self->streams_.clear();
 }
 
 //---------------------------------------------------------------------------//

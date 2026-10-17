@@ -55,11 +55,13 @@ void copy_sync_steps(
     DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::device> const& state)
 {
+    auto& stream = device().stream(state.stream_id);
     std::vector<size_type, PinnedAllocator<size_type>> num_selected(1, 0);
     compact_steps_async(state, AsyncResultRef{num_selected});
-    device().stream(state.stream_id).sync();
+    stream.sync();
     CELER_EXPECT(num_selected.front() > 0);
-    copy_compacted_steps(output, state, num_selected.front());
+    copy_compacted_steps_async(output, state, num_selected.front(), stream);
+    stream.sync();
 }
 
 //---------------------------------------------------------------------------//

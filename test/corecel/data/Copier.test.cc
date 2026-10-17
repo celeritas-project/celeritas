@@ -10,6 +10,9 @@
 
 #include "corecel/cont/Range.hh"
 #include "corecel/data/DeviceVector.hh"
+#include "corecel/data/PinnedAllocator.hh"
+#include "corecel/sys/Device.hh"
+#include "corecel/sys/Stream.hh"
 
 #include "celeritas_test.hh"
 
@@ -60,6 +63,32 @@ TEST(CopierTest, TEST_IF_CELER_DEVICE(device))
     }
     EXPECT_EQ(1, new_host_vec.front());
     EXPECT_EQ(1234, new_host_vec.back());
+}
+
+TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
+{
+    device().create_streams(1);
+    Stream& stream = device().memcpy_stream(StreamId{0});
+
+    std::vector<int> host_vec{0, 1, 2, 3, 4};
+    DeviceVector<int> device_vec(host_vec.size());
+    copy_bytes(MemSpace::device,
+               device_vec.data(),
+               MemSpace::host,
+               host_vec.data(),
+               host_vec.size() * sizeof(int),
+               stream);
+
+    // Pinned destination so the device-to-host copy is truly asynchronous
+    std::vector<int, PinnedAllocator<int>> result(host_vec.size());
+    copy_bytes(MemSpace::host,
+               result.data(),
+               MemSpace::device,
+               device_vec.data(),
+               result.size() * sizeof(int),
+               stream);
+    stream.sync();
+    EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
 }
 
 TEST(ItemCopierTest, TEST_IF_CELER_DEVICE(device))
