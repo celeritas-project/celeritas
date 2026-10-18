@@ -236,7 +236,6 @@ endforeach()
 list(APPEND SOURCES
   AssertIO.json.cc
   Types.cc
-  data/Copier.cc
   data/DeviceAllocation.cc
   data/AuxInterface.cc
   data/AuxParamsRegistry.cc

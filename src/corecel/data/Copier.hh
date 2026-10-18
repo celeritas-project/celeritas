@@ -81,20 +81,31 @@ class ItemCopier
 };
 
 //---------------------------------------------------------------------------//
-// Copy bytes between two memory spaces
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count);
+/*!
+ * Copy bytes between two memory spaces.
+ */
+inline void copy_bytes(MemSpace dstmem,
+                       void* dst,
+                       MemSpace srcmem,
+                       void const* src,
+                       std::size_t count)
+{
+    detail::copy_bytes_sync(dstmem, dst, srcmem, src, count);
+}
 
-// Asynchronously copy bytes between two memory spaces
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count,
-                StreamId stream);
+//---------------------------------------------------------------------------//
+/*!
+ * Asynchronously copy bytes between two memory spaces.
+ */
+inline void copy_bytes(MemSpace dstmem,
+                       void* dst,
+                       MemSpace srcmem,
+                       void const* src,
+                       std::size_t count,
+                       StreamId stream)
+{
+    detail::copy_bytes_async(dstmem, dst, srcmem, src, count, stream);
+}
 
 //---------------------------------------------------------------------------//
 /*!
@@ -109,12 +120,12 @@ inline void copy_bytes(ObserverPtr<void, D> dst,
                        std::size_t count,
                        Stream const& stream)
 {
-    detail::copy_bytes_impl(D,
-                            static_cast<void*>(dst),
-                            S,
-                            static_cast<void const*>(src),
-                            count,
-                            stream);
+    detail::copy_bytes_async(D,
+                             static_cast<void*>(dst),
+                             S,
+                             static_cast<void const*>(src),
+                             count,
+                             stream);
 }
 
 //---------------------------------------------------------------------------//

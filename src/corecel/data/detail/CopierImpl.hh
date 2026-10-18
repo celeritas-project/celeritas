@@ -23,27 +23,27 @@ namespace detail
 // celeritas::copy_bytes with detail types is never ambiguous
 
 // Copy bytes between two memory spaces
-void copy_bytes_impl(MemSpace dstmem,
+void copy_bytes_sync(MemSpace dstmem,
                      void* dst,
                      MemSpace srcmem,
                      void const* src,
                      std::size_t count);
 
-// Asynchronously copy bytes between two memory spaces on a stream ID
-void copy_bytes_impl(MemSpace dstmem,
-                     void* dst,
-                     MemSpace srcmem,
-                     void const* src,
-                     std::size_t count,
-                     StreamId stream);
-
 // Asynchronously copy bytes between two memory spaces on a stream
-void copy_bytes_impl(MemSpace dstmem,
-                     void* dst,
-                     MemSpace srcmem,
-                     void const* src,
-                     std::size_t count,
-                     Stream const& stream);
+void copy_bytes_async(MemSpace dstmem,
+                      void* dst,
+                      MemSpace srcmem,
+                      void const* src,
+                      std::size_t count,
+                      Stream const& stream);
+
+// Asynchronously copy bytes between two memory spaces on a stream ID
+void copy_bytes_async(MemSpace dstmem,
+                      void* dst,
+                      MemSpace srcmem,
+                      void const* src,
+                      std::size_t count,
+                      StreamId stream);
 
 //---------------------------------------------------------------------------//
 }  // namespace detail

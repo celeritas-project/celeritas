@@ -36,28 +36,10 @@ inline auto to_memcpy_kind(MemSpace src, MemSpace dst)
 #endif
 
 //---------------------------------------------------------------------------//
-/*!
- * Perform an asynchronous memcpy on a lazily obtained native stream.
- *
- * The stream is only requested if a device is involved in the copy, since
- * host-only copies may use stream IDs for which no device stream exists.
- */
-template<class F>
-void copy_bytes_async(MemSpace dstmem,
-                      void* dst,
-                      MemSpace srcmem,
-                      void const* src,
-                      std::size_t count,
-                      F&& get_stream)
+//! Whether neither side of a copy is in device memory
+inline bool is_host_copy(MemSpace dstmem, MemSpace srcmem)
 {
-    if (srcmem != MemSpace::device && dstmem != MemSpace::device)
-    {
-        std::memcpy(dst, src, count);
-        return;
-    }
-    CELER_DISCARD(get_stream);
-    CELER_DEVICE_API_CALL(MemcpyAsync(
-        dst, src, count, to_memcpy_kind(srcmem, dstmem), get_stream()));
+    return dstmem != MemSpace::device && srcmem != MemSpace::device;
 }
 
 //---------------------------------------------------------------------------//
@@ -67,13 +49,13 @@ void copy_bytes_async(MemSpace dstmem,
 /*!
  * Perform a memcpy on the data.
  */
-void copy_bytes_impl(MemSpace dstmem,
+void copy_bytes_sync(MemSpace dstmem,
                      void* dst,
                      MemSpace srcmem,
                      void const* src,
                      std::size_t count)
 {
-    if (srcmem != MemSpace::device && dstmem != MemSpace::device)
+    if (is_host_copy(dstmem, srcmem))
     {
         std::memcpy(dst, src, count);
         return;
@@ -84,33 +66,54 @@ void copy_bytes_impl(MemSpace dstmem,
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform an asynchronous memcpy on the stream with the given ID.
+ * Perform an asynchronous memcpy on the given stream.
+ *
+ * Copies between host memory spaces are performed immediately.
  */
-void copy_bytes_impl(MemSpace dstmem,
-                     void* dst,
-                     MemSpace srcmem,
-                     void const* src,
-                     std::size_t count,
-                     StreamId stream)
+void copy_bytes_async(MemSpace dstmem,
+                      void* dst,
+                      MemSpace srcmem,
+                      void const* src,
+                      std::size_t count,
+                      Stream const& stream)
 {
-    copy_bytes_async(dstmem, dst, srcmem, src, count, [stream] {
-        return stream ? celeritas::device().stream(stream).get() : nullptr;
-    });
+    if (is_host_copy(dstmem, srcmem))
+    {
+        std::memcpy(dst, src, count);
+        return;
+    }
+    CELER_DISCARD(stream);
+    CELER_DEVICE_API_CALL(MemcpyAsync(
+        dst, src, count, to_memcpy_kind(srcmem, dstmem), stream.get()));
 }
 
 //---------------------------------------------------------------------------//
 /*!
- * Perform an asynchronous memcpy on the given stream.
+ * Perform an asynchronous memcpy on the stream with the given ID.
+ *
+ * Copies between host memory spaces are performed immediately without
+ * accessing the device stream, which doesn't exist in CPU-only runs.
  */
-void copy_bytes_impl(MemSpace dstmem,
-                     void* dst,
-                     MemSpace srcmem,
-                     void const* src,
-                     std::size_t count,
-                     Stream const& stream)
+void copy_bytes_async(MemSpace dstmem,
+                      void* dst,
+                      MemSpace srcmem,
+                      void const* src,
+                      std::size_t count,
+                      StreamId stream)
 {
-    copy_bytes_async(
-        dstmem, dst, srcmem, src, count, [&stream] { return stream.get(); });
+    CELER_EXPECT(stream);
+    if (is_host_copy(dstmem, srcmem))
+    {
+        std::memcpy(dst, src, count);
+        return;
+    }
+    CELER_DISCARD(stream);
+    CELER_DEVICE_API_CALL(
+        MemcpyAsync(dst,
+                    src,
+                    count,
+                    to_memcpy_kind(srcmem, dstmem),
+                    celeritas::device().stream(stream).get()));
 }
 
 //---------------------------------------------------------------------------//
