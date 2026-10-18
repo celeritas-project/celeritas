@@ -261,7 +261,7 @@ void HitProcessor::operator()(StepStateHostRef const& states)
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
-    CELER_EXPECT(!pending_device_steps_);
+    CELER_EXPECT(this->scratch_state() == ScratchState::free);
     CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
     CELER_EXPECT(steps_reserved_);
 
@@ -284,12 +284,15 @@ void HitProcessor::operator()(StepStateDeviceRef const& states)
  */
 void HitProcessor::copy_pending_steps()
 {
-    if (!pending_device_steps_)
+    if (this->scratch_state() == ScratchState::free)
     {
         return;
     }
 
+    // The copy overwrites the output, so finish processing it first
     this->process_copied_steps();
+    CELER_ASSERT(output_ == OutputState::empty);
+
     // The host-observed completion also orders the copy after the compaction.
     // Keep the steps pending until then so the destructor waits on failure.
     compacted_.sync();
@@ -310,7 +313,7 @@ void HitProcessor::copy_pending_steps()
         throw;
     }
     copied_.record(stream);
-    copy_in_flight_ = true;
+    output_ = OutputState::copied;
 }
 
 //---------------------------------------------------------------------------//
@@ -319,13 +322,13 @@ void HitProcessor::copy_pending_steps()
  */
 void HitProcessor::process_copied_steps()
 {
-    if (!copy_in_flight_)
+    if (output_ == OutputState::empty)
     {
         return;
     }
 
     copied_.sync();
-    copy_in_flight_ = false;
+    output_ = OutputState::empty;
     this->process_local_steps();
 }
 
@@ -335,7 +338,7 @@ void HitProcessor::process_copied_steps()
  */
 void HitProcessor::process_copied_steps_if_ready()
 {
-    if (copy_in_flight_ && copied_.ready())
+    if (output_ == OutputState::copied && copied_.ready())
     {
         this->process_copied_steps();
     }

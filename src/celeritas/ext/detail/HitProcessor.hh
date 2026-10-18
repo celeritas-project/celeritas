@@ -92,7 +92,9 @@ namespace detail
  *   first, and \c process_copied_steps[_if_ready] .
  *
  * Copy and process calls in other states are no-ops, and
- * \c has_pending_steps is true in every state but (free, empty).
+ * \c has_pending_steps is true in every state but (free, empty). The output
+ * state is stored, while the scratch state is derived from whether compacted
+ * step data is pending, so each buffer's state has a single source.
  *
  * \warning The next compaction waits only for this processor's copy. Since
  * all callbacks of a \c StepCollector share the scratch space, no other
@@ -158,7 +160,8 @@ class HitProcessor
     //! Whether device-generated hit data is pending
     bool has_pending_steps() const noexcept
     {
-        return static_cast<bool>(pending_device_steps_) || copy_in_flight_;
+        return this->scratch_state() != ScratchState::free
+               || output_ != OutputState::empty;
     }
 
     // Generate and call hits from a detector output (for testing)
@@ -183,6 +186,20 @@ class HitProcessor
     }
 
   private:
+    //! State of the device scratch space (see the class documentation)
+    enum class ScratchState
+    {
+        free,  //!< Available for the next compaction
+        compacted,  //!< Holds compacted steps awaiting a copy
+    };
+
+    //! State of the pinned host output (see the class documentation)
+    enum class OutputState
+    {
+        empty,  //!< Available for the next copy
+        copied,  //!< Holds copied steps awaiting processing
+    };
+
     //! Detector volumes for navigation updating
     SPConstVecLV detector_volumes_;
     StepSelection ss_;
@@ -191,7 +208,7 @@ class HitProcessor
     //! Temporary CPU hit information
     DetectorStepOutput steps_;
 
-    //! Device step data awaiting transfer after step completion
+    //! Device step data compacted in the scratch space, awaiting a copy
     StepStateDeviceRef pending_device_steps_;
     //! Number of compacted device steps (pinned, allocated if device is used)
     std::vector<size_type, PinnedAllocator<size_type>> num_selected_;
@@ -200,7 +217,7 @@ class HitProcessor
     //! Completion of the copy of compacted steps to \c steps_
     DeviceEvent copied_{nullptr};
     //! Whether \c steps_ holds copied device steps awaiting processing
-    bool copy_in_flight_{false};
+    OutputState output_{OutputState::empty};
     //! Whether \c steps_ is reserved for the largest possible device step
     bool steps_reserved_{false};
 
@@ -224,6 +241,13 @@ class HitProcessor
 
     // Process hits already copied into temporary CPU storage
     void process_local_steps();
+
+    //! State of the scratch space, derived from the pending step data
+    ScratchState scratch_state() const noexcept
+    {
+        return pending_device_steps_ ? ScratchState::compacted
+                                     : ScratchState::free;
+    }
 };
 
 //---------------------------------------------------------------------------//
