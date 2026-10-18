@@ -67,9 +67,32 @@ namespace detail
  * 3. \b Processed: \c process_copied_steps waits for the copy, or
  *    \c process_copied_steps_if_ready polls it, and then reconstructs hits.
  *
- * Only one device step can be compacted but not copied, and only one can be
- * copied but not processed: copying a new step first processes the previous
- * one, since they share host storage.
+ * These phases move each step through two buffers, the device \em scratch
+ * space and the pinned host \em output, which act as a two-stage pipeline:
+ * step \em n+1 can be compacted in the scratch while step \em n is still
+ * copied in the output, waiting to be processed.
+ * \verbatim
+                      operator()(DeviceRef)
+   scratch:   free ------------------------> compacted
+               ^                                 |
+               +------- copy_pending_steps ------+
+                                                 | (enqueues the copy)
+                                                 v
+   output:    empty <----------------------- copied
+                 process_copied_steps[_if_ready]
+   \endverbatim
+ *
+ * When the scratch is "free", the device may still be reading it for the
+ * previous copy: the next compaction waits for that copy on the device. The
+ * calls allowed in each combined (scratch, output) state are:
+ * - (free, empty): \c reserve , \c operator() and \c exchange_hits ;
+ * - (compacted, empty): \c copy_pending_steps ;
+ * - (free, copied): \c operator() and \c process_copied_steps[_if_ready] ;
+ * - (compacted, copied): \c copy_pending_steps , which processes the output
+ *   first, and \c process_copied_steps[_if_ready] .
+ *
+ * Copy and process calls in other states are no-ops, and
+ * \c has_pending_steps is true in every state but (free, empty).
  *
  * \warning The next compaction waits only for this processor's copy. Since
  * all callbacks of a \c StepCollector share the scratch space, no other
