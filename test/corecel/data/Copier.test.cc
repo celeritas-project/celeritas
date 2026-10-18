@@ -72,21 +72,17 @@ TEST(CopyBytesTest, TEST_IF_CELER_DEVICE(device_memcpy_stream))
 
     std::vector<int> host_vec{0, 1, 2, 3, 4};
     DeviceVector<int> device_vec(host_vec.size());
-    copy_bytes(MemSpace::device,
-               device_vec.data(),
-               MemSpace::host,
-               host_vec.data(),
-               host_vec.size() * sizeof(int),
-               stream);
+    copy_bytes<MemSpace::device, MemSpace::host>(make_observer(device_vec),
+                                                 make_observer(host_vec.data()),
+                                                 host_vec.size() * sizeof(int),
+                                                 stream);
 
     // Pinned destination so the device-to-host copy is truly asynchronous
     std::vector<int, PinnedAllocator<int>> result(host_vec.size());
-    copy_bytes(MemSpace::host,
-               result.data(),
-               MemSpace::device,
-               device_vec.data(),
-               result.size() * sizeof(int),
-               stream);
+    copy_bytes<MemSpace::host, MemSpace::device>(make_observer(result.data()),
+                                                 make_observer(device_vec),
+                                                 result.size() * sizeof(int),
+                                                 stream);
     stream.sync();
     EXPECT_VEC_EQ(host_vec, std::vector<int>(result.begin(), result.end()));
 }

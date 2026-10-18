@@ -241,6 +241,7 @@ list(APPEND SOURCES
   data/AuxInterface.cc
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
+  data/detail/CopierImpl.cc
   data/detail/PinnedAllocatorImpl.cc
   grid/DerivativeGridCalculator.cc
   grid/GridTypes.cc

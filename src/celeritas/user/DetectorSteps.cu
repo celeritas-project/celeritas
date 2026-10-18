@@ -157,7 +157,7 @@ void select_valid_ids(StepStateDeviceRef const& state,
  */
 template<class T>
 void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
-                T const* src,
+                ObserverPtr<T const, MemSpace::device> src,
                 size_type count,
                 Stream const& stream)
 {
@@ -168,13 +168,13 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
         return;
     }
     dst->resize(count);
-    // Copy all items from valid threads
-    copy_bytes(MemSpace::host,
-               dst->data(),
-               MemSpace::device,
-               src,
-               count * sizeof(T),
-               stream);
+    // Copy all items from valid threads. Note that make_observer would give
+    // a device pointer here since "native" memory is the device in .cu files.
+    copy_bytes<MemSpace::host, MemSpace::device>(
+        ObserverPtr<T, MemSpace::host>{dst->data()},
+        src,
+        count * sizeof(T),
+        stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -184,8 +184,9 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 size_type num_valid,
                 Stream const& stream)
 {
-    copy_field(
-        dst, src.empty() ? nullptr : src.data().get(), num_valid, stream);
+    // Unused fields are empty, so their data pointer is null. The explicit
+    // type converts the mutable reference data to a const pointer.
+    copy_field<T>(dst, src.data(), num_valid, stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -197,10 +198,7 @@ void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
                 Stream const& stream)
 {
     CELER_EXPECT(per_thread > 0 || src.empty());
-    copy_field(dst,
-               src.empty() ? nullptr : src.data().get(),
-               num_valid * per_thread,
-               stream);
+    copy_field<T>(dst, src.data(), num_valid * per_thread, stream);
 }
 
 //---------------------------------------------------------------------------//

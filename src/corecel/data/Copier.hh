@@ -14,6 +14,10 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "ObserverPtr.hh"
+
+#include "detail/CopierImpl.hh"
+
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
@@ -92,13 +96,26 @@ void copy_bytes(MemSpace dstmem,
                 std::size_t count,
                 StreamId stream);
 
-// Asynchronously copy bytes between two memory spaces on a stream
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count,
-                Stream const& stream);
+//---------------------------------------------------------------------------//
+/*!
+ * Asynchronously copy bytes between two memory spaces on a stream.
+ *
+ * The memory spaces are part of the pointer types, so they can't be mixed up.
+ * Copying to or from pageable host memory may be synchronous.
+ */
+template<MemSpace D, MemSpace S>
+inline void copy_bytes(ObserverPtr<void, D> dst,
+                       ObserverPtr<void const, S> src,
+                       std::size_t count,
+                       Stream const& stream)
+{
+    detail::copy_bytes_impl(D,
+                            static_cast<void*>(dst),
+                            S,
+                            static_cast<void const*>(src),
+                            count,
+                            stream);
+}
 
 //---------------------------------------------------------------------------//
 /*!

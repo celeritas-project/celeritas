@@ -293,6 +293,9 @@ void HitProcessor::copy_pending_steps()
     catch (...)
     {
         // Don't leave partially enqueued copies writing into host buffers
+        CELER_LOG_LOCAL(critical)
+            << "Failed to enqueue copy of compacted hits: waiting for "
+               "already enqueued copies before propagating the error";
         stream.sync();
         throw;
     }
