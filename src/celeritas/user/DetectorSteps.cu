@@ -53,10 +53,6 @@ template<class T>
 using StateRef
     = celeritas::StateCollection<T, Ownership::reference, MemSpace::native>;
 
-template<class T>
-using ItemRef
-    = celeritas::Collection<T, Ownership::reference, MemSpace::native>;
-
 using StepStateDeviceRef
     = StepStateData<Ownership::reference, MemSpace::device>;
 
@@ -153,52 +149,31 @@ void select_valid_ids(StepStateDeviceRef const& state,
 /*!
  * Resize the destination and enqueue a copy of the first items of a field.
  *
- * The destination is cleared if the field is unused or empty.
+ * The field may be indexed by track slot or, for multi-level data, by item.
+ * The destination is cleared if the field is unused or had no hits.
  */
-template<class T>
-void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
-                ObserverPtr<T const, MemSpace::device> src,
-                size_type count,
-                Stream const& stream)
+template<class T, class I>
+void copy_field(
+    DetectorStepOutput::PinnedVec<T>* dst,
+    Collection<T, Ownership::reference, MemSpace::native, I> const& src,
+    size_type count,
+    Stream const& stream)
 {
-    if (!src || count == 0)
+    if (src.empty() || count == 0)
     {
         // This field is not in use or had no hits
         dst->clear();
         return;
     }
+    CELER_EXPECT(count <= src.size());
     dst->resize(count);
     // Copy all items from valid threads. Note that make_observer would give
     // a device pointer here since "native" memory is the device in .cu files.
     copy_bytes<MemSpace::host, MemSpace::device>(
         ObserverPtr<T, MemSpace::host>{dst->data()},
-        src,
+        src.data(),
         count * sizeof(T),
         stream);
-}
-
-//---------------------------------------------------------------------------//
-template<class T>
-void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
-                StateRef<T> const& src,
-                size_type num_valid,
-                Stream const& stream)
-{
-    // Unused fields are empty, so their data pointer is null. The explicit
-    // type converts the mutable reference data to a const pointer.
-    copy_field<T>(dst, src.data(), num_valid, stream);
-}
-
-//---------------------------------------------------------------------------//
-template<class T>
-void copy_field(DetectorStepOutput::PinnedVec<T>* dst,
-                ItemRef<T> const& src,
-                size_type num_valid,
-                size_type per_thread,
-                Stream const& stream)
-{
-    CELER_EXPECT(per_thread > 0 || src.empty());
-    copy_field<T>(dst, src.data(), num_valid * per_thread, stream);
 }
 
 //---------------------------------------------------------------------------//
@@ -313,10 +288,12 @@ void copy_compacted_steps_async(DetectorStepOutput* output,
         DS_ASSIGN(points[sp].dir);
         DS_ASSIGN(points[sp].energy);
 
+        // Volume instances are stored per track and level
+        auto const& vids = state.scratch.points[sp].volume_instance_ids;
+        CELER_ASSERT(state.num_volume_levels > 0 || vids.empty());
         copy_field(&(output->points[sp].volume_instance_ids),
-                   state.scratch.points[sp].volume_instance_ids,
-                   num_valid,
-                   state.num_volume_levels,
+                   vids,
+                   num_valid * state.num_volume_levels,
                    stream);
     }
 
