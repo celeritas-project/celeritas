@@ -37,9 +37,13 @@
 #include "geocel/GeantUtils.hh"
 #include "celeritas/Quantities.hh"
 #include "celeritas/Types.hh"
+#include "celeritas/ext/GeantHandBack.hh"
 #include "celeritas/ext/GeantSd.hh"  // IWYU pragma: keep
+#include "celeritas/ext/GeantTrackHandBack.hh"
 #include "celeritas/ext/GeantTrackReconstruction.hh"
 #include "celeritas/ext/GeantTrackView.hh"
+#include "celeritas/ext/detail/GeantParticleUtils.hh"
+#include "celeritas/ext/detail/HandBackProcessor.hh"
 #include "celeritas/ext/detail/HitProcessor.hh"
 #include "celeritas/global/ActionSequence.hh"
 #include "celeritas/global/CoreParams.hh"  // IWYU pragma: keep
@@ -179,13 +183,30 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
         hit_processor_ = hit_manager->make_local_processor(stream_id);
         track_reconstruction_ = hit_processor_->track_reconstruction();
     }
+    auto const& geant_hand_back = params.problem_loaded().geant_hand_back;
     if (!track_reconstruction_)
     {
         using VecConstPD = GeantTrackReconstruction::VecParticle;
-        auto const& offload = params.OffloadParticles();
+        VecConstPD particles;
+        if (geant_hand_back)
+        {
+            // Handed-back tracks of any particle type are reconstructed
+            particles = detail::make_geant_particles(*particles_);
+        }
+        else
+        {
+            auto const& offload = params.OffloadParticles();
+            particles.assign(offload.begin(), offload.end());
+        }
         track_reconstruction_ = std::make_shared<GeantTrackReconstruction>(
-            VecConstPD(offload.begin(), offload.end()),
-            GeantTrackReconstruction::make_g4step());
+            std::move(particles), GeantTrackReconstruction::make_g4step());
+    }
+    if (geant_hand_back)
+    {
+        // Create on the local thread, which owns the reconstructed tracks
+        hand_back_processor_ = geant_hand_back->make_local_processor(
+            stream_id, track_reconstruction_);
+        hand_back_ = std::make_shared<GeantTrackHandBack>();
     }
 
     // Create stepper
@@ -218,6 +239,13 @@ void LocalTransporter::InitializeEvent(int id)
     CELER_EXPECT(*this);
     CELER_EXPECT(id >= 0);
     CELER_EXPECT(id != event_id_);
+    // Restarting track IDs (and reseeding) requires the previous event to be
+    // fully transported
+    CELER_VALIDATE(!step_->has_outstanding_result() && !transport_active_
+                       && this->GetBufferSize() == 0,
+                   << "cannot start event " << id
+                   << " before tracks from event " << event_id_
+                   << " are flushed");
 
     event_id_ = id;
     ++run_accum_.events;
@@ -233,6 +261,9 @@ void LocalTransporter::InitializeEvent(int id)
             step_->reseed(id_cast<UniqueEventId>(event_id_));
         }
     }
+    // Track IDs are unique per event and mapped to Geant4 track IDs, so they
+    // must restart at every event even without reseeding
+    step_->reset_track_ids();
 
     // Initialize Geant4 event reconstruction and primary ID mapping
     track_reconstruction_->init_event();
@@ -371,6 +402,11 @@ auto LocalTransporter::complete_step() -> StepperResult
         // Hits were compacted on device during the step: copy them to the
         // host and process them before the next step can reuse the scratch.
         hit_processor_->process_pending_steps();
+    }
+    if (hand_back_processor_)
+    {
+        // Hand back tracks after SDs have processed their final step
+        this->hand_back_tracks();
     }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
@@ -566,6 +602,19 @@ void LocalTransporter::launch_pending_primaries()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Track on CPU a track that was handed back by Celeritas.
+ *
+ * This returns false, without taking ownership of the track, if it was not
+ * handed back (or hand-back is disabled).
+ */
+bool LocalTransporter::ProcessHandedBack(G4Track* track)
+{
+    CELER_EXPECT(track);
+    return hand_back_ && hand_back_->process(track);
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Reset thread-local state when terminating run.
  */
 void LocalTransporter::reset_local_state()
@@ -605,6 +654,33 @@ void LocalTransporter::reset_local_state()
     *this = {};
 
     CELER_ENSURE(!*this);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Reconstruct tracks handed back during the last step.
+ *
+ * This must be called after the step result is consumed and before the next
+ * step is launched. The tracks are returned to Geant4 only at the end of \c
+ * Flush .
+ */
+void LocalTransporter::hand_back_tracks()
+{
+    CELER_EXPECT(hand_back_processor_ && hand_back_);
+
+    hand_back_processor_->process_pending_steps();
+    auto tracks = hand_back_processor_->exchange_tracks();
+    if (tracks.empty())
+    {
+        return;
+    }
+
+    ScopedProfiling profile_this{"hand-back"};
+    for (auto& hb : tracks)
+    {
+        (*hand_back_)(std::move(hb.track));
+    }
+    run_accum_.handed_back += tracks.size();
 }
 
 //---------------------------------------------------------------------------//
@@ -713,9 +789,11 @@ void LocalTransporter::flush_impl()
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
 
+    // Transport may have completed while polling, leaving handed-back tracks
+    bool const has_handed_back = hand_back_ && hand_back_->num_deferred() > 0;
     // Rejected primaries have no Stepper state but still need loss accounting.
     if (!step_->has_outstanding_result() && !has_staged && !has_buffered
-        && buffered_accum_.lost_primaries == 0)
+        && !has_handed_back && buffered_accum_.lost_primaries == 0)
     {
         return;
     }
@@ -759,6 +837,13 @@ void LocalTransporter::flush_impl()
 
     // Release reconstruction data now that all offloaded tracks are complete
     track_reconstruction_->clear();
+
+    if (hand_back_)
+    {
+        // All offloaded tracks have been transported: return the handed-back
+        // tracks to Geant4 in an order independent of the step scheduling
+        hand_back_->flush();
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -827,13 +912,15 @@ void LocalTransporter::Finalize()
     auto const buffer_size = this->GetBufferSize();
     // Submitted-batch accounting may already be clear while active tail tracks
     // or an unconsumed Stepper result still require transport.
+    auto const num_deferred = hand_back_ ? hand_back_->num_deferred() : 0;
     CELER_VALIDATE(
         !step_->has_outstanding_result() && !transport_active_
-            && buffer_size == 0,
+            && buffer_size == 0 && num_deferred == 0,
         << "offloaded tracks were not flushed (" << buffer_size
         << " primaries buffered"
         << (step_->has_outstanding_result() ? ", step in flight" : "")
-        << (transport_active_ ? ", transport incomplete" : "") << ")");
+        << (transport_active_ ? ", transport incomplete" : "")
+        << (num_deferred > 0 ? ", tracks not handed back" : "") << ")");
 
     std::size_t num_optical_steps{0};
     {
@@ -851,6 +938,10 @@ void LocalTransporter::Finalize()
             << run_accum_.primaries << " offloaded tracks over "
             << run_accum_.events << " events, generating " << run_accum_.hits
             << " hits";
+        if (hand_back_)
+        {
+            msg << " and handing back " << run_accum_.handed_back << " tracks";
+        }
     }
     if (run_accum_.lost_primaries > 0)
     {

@@ -83,6 +83,7 @@ struct DetectorStepOutput
     // Additional optional data (sim)
     PinnedVec<EventId> event_id;
     PinnedVec<TrackId> parent_id;
+    PinnedVec<size_type> generation;
     PinnedVec<PrimaryId> primary_id;
     PinnedVec<ActionId> post_step_action_id;
     PinnedVec<size_type> track_step_count;
@@ -92,6 +93,9 @@ struct DetectorStepOutput
     // Additional optional data (physics)
     PinnedVec<ParticleId> particle_id;
     PinnedVec<Energy> energy_deposition;
+
+    // Additional optional data (hand-back)
+    PinnedVec<HandBackReason> hand_back_reason;
 
     // 2D size for volume instances
     size_type num_volume_levels{0};
