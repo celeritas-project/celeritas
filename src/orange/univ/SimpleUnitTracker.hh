@@ -115,6 +115,10 @@ class SimpleUnitTracker
     inline CELER_FUNCTION real_type safety(Real3 const& pos,
                                            LocalVolumeId vol) const;
 
+    // Calculate the distance along a direction to a single surface
+    inline CELER_FUNCTION real_type intersect_surface(
+        Real3 const& pos, Real3 const& dir, LocalSurfaceId surf) const;
+
     // Calculate the local surface normal
     inline CELER_FUNCTION Real3 normal(Real3 const& pos,
                                        LocalSurfaceId surf) const;
@@ -406,6 +410,23 @@ CELER_FUNCTION real_type SimpleUnitTracker::safety(Real3 const& pos,
 
     CELER_ENSURE(result >= 0);
     return result;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Calculate the distance along a direction to a single surface.
+ *
+ * The position must not be on the surface. The nearest intersection with the
+ * surface is returned regardless of whether it bounds the current volume, or
+ * \c no_intersection() if the surface is not hit.
+ */
+CELER_FUNCTION real_type SimpleUnitTracker::intersect_surface(
+    Real3 const& pos, Real3 const& dir, LocalSurfaceId surf) const
+{
+    CELER_EXPECT(surf);
+
+    return this->make_surface_visitor()(
+        detail::CalcNearestIntersection{pos, dir}, surf);
 }
 
 //---------------------------------------------------------------------------//

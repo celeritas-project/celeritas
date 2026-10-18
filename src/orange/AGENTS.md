@@ -99,7 +99,7 @@ State is split into two tiers:
 - `surf` — `LocalSurfaceId` at `surface_univ_level`
 - `sense` — `Sense` (inside/outside) relative to `surf`
 - `geo_status` — `GeoStatus` enum (see below)
-- `next_step`, `next_univ_level`, `next_surf`, `next_sense` — lookahead from `find_next_step`
+- `next_univ_level`, `next_surf`, `next_sense` — next surface found by `find_next_step` (the distance is not stored)
 
 **Per-(track, universe-level)** (2D, flattened; accessed via `LevelStateAccessor`):
 - `pos`, `dir` — local position and direction at each universe level
@@ -122,14 +122,15 @@ State is split into two tiers:
 ### Typical per-step sequence
 
 ```
-find_next_step(max_step)   → sets next_step / next_surf / next_univ_level
-move_to_boundary()         → physically moves; sets geo_status = boundary_inc
+find_next_step(max_step)   → sets next_surf / next_univ_level
+move_to_boundary(dist)     → physically moves by the caller's dist; sets the
+                             surface to next_surf and geo_status = boundary_inc
 cross_boundary()           → enters the next volume (see below)
 ```
 Or for a step that does not reach a boundary:
 ```
 find_next_step(max_step)
-move_internal(dist)        → physically moves; subtracts dist from next_step
+move_internal(dist)        → physically moves; keeps next_surf
 ```
 
 ### Universe hierarchy
