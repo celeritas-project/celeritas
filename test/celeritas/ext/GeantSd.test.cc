@@ -159,6 +159,12 @@ void SimpleCmsTest::test_step_lifecycle()
         device().create_streams(1);
     }
     Stepper<M> step(input);
+    if constexpr (M == MemSpace::device)
+    {
+        // Allocate the pinned hit output before stepping
+        processor_->reserve(
+            collector->step_state<MemSpace::device>(step.state()));
+    }
 
     for (int i = 0; i < 2; ++i)
     {

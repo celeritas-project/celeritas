@@ -504,6 +504,10 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     resize(&device_states, make_const_ref(params), StreamId{0}, dso.size());
     device_states.data = host_states.data;
 
+    // Allocate the pinned output at setup rather than on the first step
+    process_hits.reserve(make_ref(device_states));
+    EXPECT_FALSE(process_hits.has_pending_steps());
+
     process_hits(make_ref(device_states));
     EXPECT_TRUE(process_hits.has_pending_steps());
     EXPECT_TRUE(this->get_hits("si_tracker").energy_deposition.empty());
@@ -514,6 +518,8 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     {
         EXPECT_THROW(process_hits(make_ref(device_states)), DebugError);
         EXPECT_THROW(process_hits.exchange_hits(), DebugError);
+        // Reallocating could free memory that pending copies target
+        EXPECT_THROW(process_hits.reserve(make_ref(device_states)), DebugError);
         EXPECT_TRUE(process_hits.has_pending_steps());
     }
 

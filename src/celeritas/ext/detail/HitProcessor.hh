@@ -117,6 +117,9 @@ class HitProcessor
     // Process CPU-generated hits
     void operator()(StepStateHostRef const&);
 
+    // Allocate pinned host output for the largest possible device step
+    void reserve(StepStateDeviceRef const&);
+
     // Enqueue compaction of device-generated hits for later processing
     void operator()(StepStateDeviceRef const&);
 

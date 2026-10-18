@@ -51,6 +51,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -197,6 +198,14 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
+        if (hit_processor_)
+        {
+            // Allocate pinned hit output now rather than while stepping
+            auto const& step_collector = params.problem_loaded().step_collector;
+            CELER_ASSERT(step_collector);
+            hit_processor_->reserve(
+                step_collector->step_state<MemSpace::device>(step_->state()));
+        }
     }
     else
     {

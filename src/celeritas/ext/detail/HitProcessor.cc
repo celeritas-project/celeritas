@@ -218,6 +218,25 @@ HitProcessor::~HitProcessor()
 
 //---------------------------------------------------------------------------//
 /*!
+ * Allocate pinned host output for the largest possible device step.
+ *
+ * This \b must be called during setup, once the device step state exists and
+ * before any device steps are processed, so that no pinned memory is
+ * allocated while stepping: growing the output later would call
+ * \c cudaHostAlloc and \c cudaFreeHost , which serialize CUDA API calls from
+ * all host threads.
+ */
+void HitProcessor::reserve(StepStateDeviceRef const& states)
+{
+    CELER_EXPECT(states);
+    CELER_EXPECT(!this->has_pending_steps());
+
+    reserve_compacted_steps(&steps_, states);
+    steps_reserved_ = true;
+}
+
+//---------------------------------------------------------------------------//
+/*!
  * Process detector tallies (CPU).
  */
 void HitProcessor::operator()(StepStateHostRef const& states)
@@ -237,23 +256,14 @@ void HitProcessor::operator()(StepStateHostRef const& states)
  *
  * The compaction waits on the device for any previous copy of the scratch
  * space, so the step that produces this data can be launched before that copy
- * completes.
+ * completes. The pinned host output must have been allocated with \c reserve .
  */
 void HitProcessor::operator()(StepStateDeviceRef const& states)
 {
     CELER_EXPECT(states);
     CELER_EXPECT(!pending_device_steps_);
     CELER_EXPECT(compacted_ && copied_ && num_selected_.size() == 1);
-
-    if (!steps_reserved_)
-    {
-        // Allocate the pinned hit output once, before any copy into it:
-        // growing it later would call cudaHostAlloc and cudaFreeHost, which
-        // serialize CUDA API calls from all host threads
-        CELER_ASSERT(!copy_in_flight_);
-        reserve_compacted_steps(&steps_, states);
-        steps_reserved_ = true;
-    }
+    CELER_EXPECT(steps_reserved_);
 
     auto& stream = celeritas::device().stream(states.stream_id);
     // Don't overwrite the scratch space while it is being copied
