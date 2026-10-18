@@ -295,7 +295,7 @@ StreamId::size_type Device::num_streams() const
 /*!
  * Allocate the given number of streams.
  *
- * Each stream ID gets a launch stream and a paired memcpy stream.
+ * Each stream ID gets a kernel execution stream and a paired memcpy stream.
  */
 void Device::create_streams(unsigned int num_streams) const
 {
