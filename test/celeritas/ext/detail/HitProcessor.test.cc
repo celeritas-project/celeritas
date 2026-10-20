@@ -509,10 +509,12 @@ auto SimpleCmsTest::run_threads(int num_threads, int num_steps)
 void SimpleCmsTest::check_thread_results(
     std::vector<ThreadResult> const& results, int num_steps) const
 {
-    std::vector<double> expected_em_edep;
+    // Use real_type for single-precision tolerance in float builds
+    std::vector<real_type> expected_em_edep;
     for (int step : range(num_steps))
     {
-        expected_em_edep.push_back(0.2 * (step + 1));
+        expected_em_edep.push_back(
+            static_cast<real_type>(step + 1) * real_type{0.2});
     }
     for (auto const& result : results)
     {
