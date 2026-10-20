@@ -6,10 +6,19 @@
 //---------------------------------------------------------------------------//
 #include "celeritas/ext/detail/HitProcessor.hh"
 
+#include <chrono>
+#include <exception>
+#include <memory>
+#include <random>
+#include <thread>
+#include <vector>
 #include <G4DynamicParticle.hh>
+#include <G4LogicalVolume.hh>
 #include <G4ParticleTable.hh>
+#include <G4Threading.hh>
 #include <G4ThreeVector.hh>
 #include <G4Track.hh>
+#include <G4WorkerThread.hh>
 
 #include "corecel/data/Ref.hh"
 #include "corecel/sys/Device.hh"
@@ -29,6 +38,7 @@
 
 using celeritas::test::from_cm;
 using celeritas::test::SimpleHitsResult;
+using celeritas::test::SimpleSensitiveDetector;
 using celeritas::units::MevEnergy;
 
 namespace celeritas
@@ -46,6 +56,28 @@ void process_pending(HitProcessor& process_hits)
     process_hits.copy_pending_steps();
     process_hits.process_copied_steps();
 }
+
+//---------------------------------------------------------------------------//
+/*!
+ * Set up Geant4 thread-local geometry data as in a worker thread.
+ *
+ * Geant4 stores per-thread data (including each logical volume's sensitive
+ * detector) in "split" classes that a worker thread copies from the master.
+ */
+class ScopedWorkerGeometry
+{
+  public:
+    explicit ScopedWorkerGeometry(int thread_id)
+    {
+        G4Threading::G4SetThreadId(thread_id);
+        G4WorkerThread::BuildGeometryAndPhysicsVector();
+    }
+    ~ScopedWorkerGeometry()
+    {
+        G4WorkerThread::DestroyGeometryAndPhysicsVector();
+    }
+    CELER_DELETE_COPY_MOVE(ScopedWorkerGeometry);
+};
 
 //---------------------------------------------------------------------------//
 }  // namespace
@@ -69,6 +101,22 @@ class SimpleCmsTest : public ::celeritas::test::SensDetTestBase,
     DetectorStepOutput make_dso() const;
 
     SimpleHitsResult const& get_hits(std::string const& name) const;
+
+    //! Hits recorded by one mock worker thread
+    struct ThreadResult
+    {
+        std::vector<double> em_edep;
+        size_type num_hits{0};
+        std::exception_ptr error;
+    };
+
+    // Process steps on independent threads with random delays
+    template<MemSpace M>
+    std::vector<ThreadResult> run_threads(int num_threads, int num_steps);
+
+    // Check that each thread processed every step exactly once, in order
+    void check_thread_results(std::vector<ThreadResult> const& results,
+                              int num_steps) const;
 
     // Event ID mock for GeantTrackReconstruction (used in CELERITAS_DEBUG)
     static int test_cur_event;
@@ -311,6 +359,176 @@ DetectorStepOutput SimpleCmsTest::make_dso() const
             = {wovi, sivi, wovi, emvi, wovi, havi};
     }
     return dso;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process steps on independent threads with random delays.
+ *
+ * This mocks up a multithreaded job: each thread owns Geant4 worker geometry,
+ * thread-local sensitive detectors, a hit processor, and step state on its own
+ * stream. Each step scales the energy deposition by the step number so that
+ * lost, duplicated, or mixed-up batches are detected. Random waits between
+ * the asynchronous phases vary how device work overlaps with host work.
+ */
+template<MemSpace M>
+auto SimpleCmsTest::run_threads(int num_threads, int num_steps)
+    -> std::vector<ThreadResult>
+{
+    CELER_EXPECT(num_threads > 0 && num_steps > 0);
+
+    selection_ = {};
+    selection_.energy_deposition = true;
+    selection_.step_length = true;
+    selection_.points[StepPoint::pre].time = true;
+
+    // Construct shared, read-only data on the master thread
+    auto const detector_volumes = this->make_detector_volumes();
+    auto const dso = this->make_dso();
+    auto const selection = selection_;
+    HostVal<StepParamsData> params;
+    params.selection = selection;
+    std::vector<DetectorId> detector_map{DetectorId{0}};
+    make_builder(&params.detector)
+        .insert_back(detector_map.begin(), detector_map.end());
+    if constexpr (M == MemSpace::device)
+    {
+        device().create_streams(num_threads);
+    }
+
+    std::vector<ThreadResult> results(num_threads);
+    auto run_thread = [&](int thread_idx) {
+        auto& result = results[thread_idx];
+        try
+        {
+            if constexpr (M == MemSpace::device)
+            {
+                activate_device_local();
+            }
+            ScopedWorkerGeometry worker_geo{thread_idx};
+
+            // Attach thread-local detectors, as each Geant4 worker owns
+            std::vector<std::unique_ptr<SimpleSensitiveDetector>> detectors;
+            for (G4LogicalVolume const* lv : *detector_volumes)
+            {
+                detectors.push_back(
+                    std::make_unique<SimpleSensitiveDetector>(lv));
+                const_cast<G4LogicalVolume*>(lv)->SetSensitiveDetector(
+                    detectors.back().get());
+            }
+
+            HitProcessor process_hits{
+                detector_volumes, {}, selection, {false, false}};
+
+            StreamId const stream_id(thread_idx);
+            HostVal<StepStateData> host_states;
+            resize(&host_states, make_const_ref(params), stream_id, dso.size());
+            StepStateData<Ownership::value, MemSpace::device> device_states;
+            if constexpr (M == MemSpace::device)
+            {
+                resize(&device_states,
+                       make_const_ref(params),
+                       stream_id,
+                       dso.size());
+                process_hits.reserve(make_ref(device_states));
+            }
+
+            std::mt19937 rng(thread_idx);
+            std::uniform_int_distribution<int> sample_wait(0, 500);
+            auto random_wait = [&] {
+                std::this_thread::sleep_for(
+                    std::chrono::microseconds(sample_wait(rng)));
+            };
+
+            for (int step : range(num_steps))
+            {
+                for (auto i : range(dso.size()))
+                {
+                    TrackSlotId const tid{i};
+                    auto& data = host_states.data;
+                    data.track_id[tid] = dso.track_id[i];
+                    data.detector_id[tid] = dso.detector_id[i];
+                    data.energy_deposition[tid]
+                        = static_cast<real_type>(step + 1)
+                          * dso.energy_deposition[i];
+                    data.step_length[tid] = dso.step_length[i];
+                    data.points[StepPoint::pre].time[tid]
+                        = dso.points[StepPoint::pre].time[i];
+                }
+
+                if constexpr (M == MemSpace::device)
+                {
+                    // "Launch" the step, which enqueues the compaction
+                    device_states.data = host_states.data;
+                    process_hits(make_ref(device_states));
+                    // Geant4 work while the step runs
+                    random_wait();
+                    // Wait for the compaction, then copy without waiting
+                    process_hits.copy_pending_steps();
+                    // Geant4 work while the copy runs
+                    random_wait();
+                    process_hits.process_copied_steps_if_ready();
+                }
+                else
+                {
+                    process_hits(make_ref(host_states));
+                    random_wait();
+                }
+            }
+            process_hits.process_copied_steps();
+
+            result.num_hits = process_hits.exchange_hits();
+            // Detectors are sorted by name: em_calorimeter is first
+            result.em_edep = detectors.front()->hits().energy_deposition;
+        }
+        catch (...)
+        {
+            result.error = std::current_exception();
+        }
+    };
+
+    std::vector<std::thread> threads;
+    for (int i : range(num_threads))
+    {
+        threads.emplace_back(run_thread, i);
+    }
+    for (auto& t : threads)
+    {
+        t.join();
+    }
+    return results;
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Check that each thread processed every step exactly once, in order.
+ *
+ * Each step has three hits, and the em_calorimeter energy deposition of step
+ * \em s is the base value (0.2 MeV) scaled by <code>s + 1</code>.
+ */
+void SimpleCmsTest::check_thread_results(
+    std::vector<ThreadResult> const& results, int num_steps) const
+{
+    std::vector<double> expected_em_edep;
+    for (int step : range(num_steps))
+    {
+        expected_em_edep.push_back(0.2 * (step + 1));
+    }
+    for (auto const& result : results)
+    {
+        if (result.error)
+        {
+            std::rethrow_exception(result.error);
+        }
+        EXPECT_EQ(3 * num_steps, result.num_hits);
+        EXPECT_VEC_SOFT_EQ(expected_em_edep, result.em_edep);
+    }
+
+    // Threads must use their own detectors, not the master thread's
+    for (auto const& name : this->detector_volumes())
+    {
+        EXPECT_TRUE(this->get_hits(name).energy_deposition.empty()) << name;
+    }
 }
 
 //---------------------------------------------------------------------------//
@@ -633,6 +851,21 @@ TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(deferred_device))
     process_hits.process_copied_steps();
     process_hits.process_copied_steps_if_ready();
     EXPECT_EQ(0, process_hits.exchange_hits());
+}
+
+//---------------------------------------------------------------------------//
+TEST_F(SimpleCmsTest, multithread_host)
+{
+    constexpr int num_steps = 20;
+    this->check_thread_results(this->run_threads<MemSpace::host>(4, num_steps),
+                               num_steps);
+}
+
+TEST_F(SimpleCmsTest, TEST_IF_CELER_DEVICE(multithread_device))
+{
+    constexpr int num_steps = 20;
+    this->check_thread_results(
+        this->run_threads<MemSpace::device>(4, num_steps), num_steps);
 }
 
 //---------------------------------------------------------------------------//
