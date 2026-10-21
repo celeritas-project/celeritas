@@ -155,6 +155,63 @@ TEST_F(SimTest, weight)
     EXPECT_EQ(expected_weight, sim.weight());
 }
 
+TEST_F(SimTest, generation)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.event_id = EventId{0};
+    sim = init;
+    EXPECT_EQ(0, sim.generation());
+
+    // Secondary of a secondary
+    init.track_id = TrackId{3};
+    init.parent_id = TrackId{2};
+    init.generation = 2;
+    sim = init;
+    EXPECT_EQ(2, sim.generation());
+
+    // Reinitializing the slot with a primary resets the generation
+    init = {};
+    init.track_id = TrackId{4};
+    init.event_id = EventId{0};
+    sim = init;
+    EXPECT_EQ(0, sim.generation());
+}
+
+TEST_F(SimTest, hand_back)
+{
+    SimTrackView sim(this->sim()->host_ref(), sim_state_.ref(), TrackSlotId{0});
+    SimTrackInitializer init;
+    init.track_id = TrackId{0};
+    init.event_id = EventId{0};
+    sim = init;
+    EXPECT_EQ(HandBackReason::none, sim.hand_back_reason());
+
+    // Marking kills the track and keeps the first reason
+    sim.status(TrackStatus::alive);
+    sim.hand_back(HandBackReason::region);
+    EXPECT_EQ(TrackStatus::killed, sim.status());
+    EXPECT_EQ(HandBackReason::region, sim.hand_back_reason());
+    sim.hand_back(HandBackReason::interaction);
+    EXPECT_EQ(HandBackReason::region, sim.hand_back_reason());
+    EXPECT_STREQ("region", to_cstring(sim.hand_back_reason()));
+
+    // Reinitializing the slot clears the mark
+    init.track_id = TrackId{1};
+    sim = init;
+    EXPECT_EQ(HandBackReason::none, sim.hand_back_reason());
+    EXPECT_EQ(TrackStatus::initializing, sim.status());
+
+    if (CELERITAS_DEBUG)
+    {
+        // Cannot hand back a track that isn't active
+        EXPECT_THROW(sim.hand_back(HandBackReason::user), DebugError);
+        sim.status(TrackStatus::alive);
+        EXPECT_THROW(sim.hand_back(HandBackReason::none), DebugError);
+    }
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
