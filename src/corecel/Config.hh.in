@@ -48,6 +48,8 @@
 #cmakedefine01 CELERITAS_DEBUG
 //! Enable debug assertions in device code
 #cmakedefine01 CELERITAS_DEVICE_DEBUG
+//! Trim source filenames in log and error messages at compile time
+#cmakedefine01 CELERITAS_TRIM_SOURCE_FILE
 
 //!@}
 

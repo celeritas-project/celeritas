@@ -24,6 +24,7 @@ Debug assertions (see :ref:`coding_testing`) are enabled through macros in :file
 
 .. doxygendefine:: CELERITAS_DEBUG
 .. doxygendefine:: CELERITAS_DEVICE_DEBUG
+.. doxygendefine:: CELERITAS_TRIM_SOURCE_FILE
 
 All of the following macros are *statements* and should be followed by
 a semicolon when used in code.

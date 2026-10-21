@@ -8,8 +8,6 @@
 
 #include <string_view>
 
-#include "corecel/io/StringUtils.hh"
-
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -65,7 +63,11 @@ constexpr char const* in_constexpr_function()
 }
 
 // The macro is itself a constant expression
+#if CELER_SOURCE_FILE_TRIM_
 static_assert(in_constexpr_function()[0] == 'c');
+#else
+static_assert(in_constexpr_function()[0] != '\0');
+#endif
 
 template<class T>
 char const* in_template(T)
@@ -91,31 +93,29 @@ TEST(SourceFileTest, fixed_paths)
     EXPECT_EQ(source_file<PosixPath>(), source_file<WindowsPath>());
 }
 
-TEST(SourceFileTest, trimmed)
+TEST(SourceFileTest, macro)
 {
+    if (!CELER_SOURCE_FILE_TRIM_)
+    {
+        EXPECT_STREQ(__FILE__, CELER_SOURCE_FILE);
+        GTEST_SKIP() << "Source file trimming is disabled";
+    }
+
     std::string_view expected{"corecel/SourceFile.test.cc"};
     EXPECT_EQ(expected, CELER_SOURCE_FILE);
     EXPECT_EQ(expected, in_constexpr_function());
     EXPECT_EQ(expected, in_template(1));
     EXPECT_EQ(expected, InMemberInitializer{}.file);
-}
 
-TEST(SourceFileTest, stable_pointer)
-{
-    // The same file yields a single static array, so pointers compare equal
-    char const* a = CELER_SOURCE_FILE;
-    char const* b = in_template(1.0);
-    EXPECT_EQ(a, b);
-    EXPECT_EQ(a, InMemberInitializer{}.file);
-}
-
-TEST(SourceFileTest, no_full_path)
-{
-    // The full path (if any) must not be the one reported
+    // The build directory must not be the one reported
     std::string_view result{CELER_SOURCE_FILE};
     EXPECT_EQ(std::string_view::npos, result.find("/test/"));
-    EXPECT_EQ(std::string_view::npos, result.find("\\test\\"));
-    EXPECT_TRUE(starts_with(result, "corecel/"));
+    EXPECT_EQ(std::string_view::npos, result.find('\\'));
+
+    // The same file yields a single static array, so pointers compare equal
+    char const* a = CELER_SOURCE_FILE;
+    EXPECT_EQ(a, in_template(1.0));
+    EXPECT_EQ(a, InMemberInitializer{}.file);
 }
 
 //---------------------------------------------------------------------------//

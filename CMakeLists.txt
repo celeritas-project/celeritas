@@ -68,6 +68,10 @@ cmake_dependent_option(CELERITAS_CODESIGN_APPS
 
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
+cmake_dependent_option(CELERITAS_TRIM_SOURCE_FILE
+  "Shorten source filenames in log and error messages at compile time" "OFF"
+  "NOT CELERITAS_DEBUG" OFF
+)
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
   set(_celeritas_use_device TRUE)

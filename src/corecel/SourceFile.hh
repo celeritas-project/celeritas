@@ -7,12 +7,19 @@
 #pragma once
 
 #include <cstddef>
-#include <initializer_list>
 #include <utility>
+
+#include "corecel/Config.hh"
+
+#include "Macros.hh"
 
 namespace celeritas
 {
 namespace detail
+{
+// Internal linkage lets the compiler address the trimmed strings relatively
+// instead of exporting one weak symbol per source file
+namespace
 {
 //---------------------------------------------------------------------------//
 /*!
@@ -73,6 +80,7 @@ constexpr bool is_dir_component(
  */
 constexpr std::size_t source_dir_offset(char const* s)
 {
+    constexpr char const* dirs[] = {"src", "app", "test"};
     std::size_t const len = cstr_length(s);
     std::size_t result = 0;
     for (std::size_t pos = 0; pos < len; ++pos)
@@ -81,7 +89,7 @@ constexpr std::size_t source_dir_offset(char const* s)
         {
             continue;
         }
-        for (char const* dir : {"src", "app", "test"})
+        for (char const* dir : dirs)
         {
             if (is_dir_component(s, len, pos, dir))
             {
@@ -118,6 +126,7 @@ constexpr char const* source_file()
 }
 
 //---------------------------------------------------------------------------//
+}  // namespace
 }  // namespace detail
 }  // namespace celeritas
 
@@ -131,7 +140,7 @@ constexpr char const* source_file()
  * tree, as a null-terminated string that lives for the duration of the
  * program.
  *
- * This replaces \c __FILE__ in log and runtime-error provenance so that build
+ * This replaces \c __FILE__ in log and error provenance so that build
  * directories are not compiled into the binary and so that messages show a
  * short path such as <code>corecel/io/Logger.hh</code> rather than a full
  * one. The trimming is done at compile time (see \c
@@ -140,21 +149,32 @@ constexpr char const* source_file()
  * Windows path separators are replaced with forward slashes.
  *
  * Each use expands to a lambda holding a local class, which costs the
- * compiler roughly as much as a small function definition. It is therefore
- * used only where the message is always compiled in (\c CELER_LOG, \c
- * CELER_VALIDATE, and friends): debug-only assertions keep \c __FILE__ since
- * they vanish from release builds and are far more numerous.
+ * compiler roughly as much as a small function definition. Trimming is
+ * therefore enabled only through the \c CELERITAS_TRIM_SOURCE_FILE
+ * configuration option, which is available only when debug assertions are
+ * disabled. Otherwise, and always in device code (where the trimmed string
+ * would be a host address), this macro is simply \c __FILE__ .
  *
- * \note The result is a host pointer: this macro cannot be used in device
- * code, where \c __FILE__ should still be used.
+ * \note GCC 8 fails to deduce the lambda's return type inside a discarded
+ * <code>if constexpr</code> branch, so trimming is also disabled there.
  */
-#define CELER_SOURCE_FILE \
-    ([] { \
-        struct CelerSourceFile_ \
-        { \
-            static constexpr char const* str() { return __FILE__; } \
-        }; \
-        return ::celeritas::detail::source_file<CelerSourceFile_>(); \
-    }())
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 9
+#    define CELER_SOURCE_FILE_TRIM_ 0
+#else
+#    define CELER_SOURCE_FILE_TRIM_ CELERITAS_TRIM_SOURCE_FILE
+#endif
+
+#if CELER_SOURCE_FILE_TRIM_ && !CELER_DEVICE_COMPILE
+#    define CELER_SOURCE_FILE \
+        ([] { \
+            struct CelerSourceFile_ \
+            { \
+                static constexpr char const* str() { return __FILE__; } \
+            }; \
+            return ::celeritas::detail::source_file<CelerSourceFile_>(); \
+        }())
+#else
+#    define CELER_SOURCE_FILE __FILE__
+#endif
 
 //---------------------------------------------------------------------------//

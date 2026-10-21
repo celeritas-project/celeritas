@@ -141,38 +141,26 @@
 
 //! \cond
 
-// CELER_DEBUG_FAIL_IMPL_ takes the source file as an argument so that
-// always-on failures can trim it (CELER_SOURCE_FILE) while the far more
-// numerous debug-only assertions, which vanish from release builds, keep
-// __FILE__ to avoid the compile-time cost. CELER_DEBUG_FAIL_FILE_ is the file
-// to report for always-on failures in the current compilation context.
 #if defined(__HIP__)
 // HIP compiler (host *and* device): use H/D dispatch
-#    define CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, FILE) \
+#    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         ::celeritas::detail::hip_debug_fail( \
-            ::celeritas::DebugErrorType::WHICH, MSG, FILE, __LINE__)
-#    define CELER_DEBUG_FAIL_FILE_ __FILE__
+            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
 #elif defined(__CUDA_ARCH__) && defined(NDEBUG)
 // CUDA compiler in device phase but *without* assert
-#    define CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, FILE) \
+#    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         ::celeritas::detail::cuda_debug_fail( \
-            ::celeritas::DebugErrorType::WHICH, MSG, FILE, __LINE__)
-#    define CELER_DEBUG_FAIL_FILE_ __FILE__
+            ::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__)
 #elif defined(__CUDA_ARCH__)
 // CUDA compiler in device phase with debug build
-#    define CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, FILE) \
+#    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         assert(false && sizeof(#WHICH ": " MSG))
-#    define CELER_DEBUG_FAIL_FILE_ __FILE__
 #else
 // Host compiler or CUDA host pass
-#    define CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, FILE) \
+#    define CELER_DEBUG_FAIL_(MSG, WHICH) \
         ::celeritas::throw_debug_error( \
-            {::celeritas::DebugErrorType::WHICH, MSG, FILE, __LINE__})
-#    define CELER_DEBUG_FAIL_FILE_ CELER_SOURCE_FILE
+            {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
 #endif
-
-#define CELER_DEBUG_FAIL_(MSG, WHICH) \
-    CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, __FILE__)
 
 #define CELER_ASSERT_IMPL_(COND, WHICH) \
     do \
@@ -207,7 +195,7 @@
 #define CELER_DEBUG_FAIL(MSG, WHICH) \
     do \
     { \
-        CELER_DEBUG_FAIL_IMPL_(MSG, WHICH, CELER_DEBUG_FAIL_FILE_); \
+        CELER_DEBUG_FAIL_(MSG, WHICH); \
         ::celeritas::unreachable(); \
     } while (0)
 
