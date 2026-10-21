@@ -173,7 +173,7 @@ bool is_identity(SquareMatrix<T, N> const& mat, T tol)
     {
         for (std::size_t j = 0; j != N; ++j)
         {
-            T const expected = (i == j ? 1 : 0);
+            T const expected = (i == j ? T{1} : T{0});
             if (!soft_close(expected, mat[i][j]))
             {
                 return false;
