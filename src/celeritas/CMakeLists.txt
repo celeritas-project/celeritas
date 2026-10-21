@@ -261,13 +261,13 @@ if(CELERITAS_USE_Geant4)
     ext/detail/GeantModelImporter.cc
     ext/detail/GeantParticleUtils.cc
     ext/detail/GeantPhysicsLoader.cc
-    ext/detail/GeantPlaceholderProcess.cc
     ext/detail/GeantProcessImporter.cc
     ext/detail/GeantScintillationLoader.cc
     ext/detail/GeantSurfacePhysicsLoader.cc
     ext/detail/HitProcessor.cc
     ext/detail/LevelTouchableUpdater.cc
     ext/detail/NaviTouchableUpdater.cc
+    ext/detail/NullGeantProcess.cc
     ext/detail/SensDetInserter.cc
     ext/detail/TouchableUpdaterInterface.cc
   )

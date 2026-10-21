@@ -24,7 +24,7 @@
 #include "corecel/io/Logger.hh"
 #include "celeritas/Types.hh"
 
-#include "detail/GeantPlaceholderProcess.hh"
+#include "detail/NullGeantProcess.hh"
 
 namespace celeritas
 {
@@ -99,7 +99,8 @@ auto GeantTrackReconstruction::make_g4step() -> SPStep
  */
 GeantTrackReconstruction::GeantTrackReconstruction(
     VecParticle const& particles, SPStep step)
-    : step_(std::move(step)), placeholder_{new detail::GeantPlaceholderProcess}
+    : step_(std::move(step))
+    , placeholder_{new detail::NullGeantProcess{"celeritas"}}
 {
     CELER_EXPECT(!particles.empty());
     CELER_EXPECT(step_);

@@ -2,9 +2,9 @@
 // Copyright Celeritas contributors: see top-level COPYRIGHT file for details
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 //---------------------------------------------------------------------------//
-//! \file celeritas/ext/detail/GeantPlaceholderProcess.cc
+//! \file celeritas/ext/detail/NullGeantProcess.cc
 //---------------------------------------------------------------------------//
-#include "GeantPlaceholderProcess.hh"
+#include "NullGeantProcess.hh"
 
 #include <limits>
 #include <G4ProcessType.hh>
@@ -17,61 +17,62 @@ namespace detail
 namespace
 {
 //---------------------------------------------------------------------------//
-constexpr G4double never = std::numeric_limits<G4double>::max();
+//! Interaction length (or time at rest) of a process that never occurs
+constexpr G4double no_interaction_length = std::numeric_limits<G4double>::max();
 
 //---------------------------------------------------------------------------//
 }  // namespace
 
 //---------------------------------------------------------------------------//
 /*!
- * Construct with the "celeritas" name.
+ * Construct with a process name.
  */
-GeantPlaceholderProcess::GeantPlaceholderProcess()
-    : G4VProcess("celeritas", fUserDefined)
+NullGeantProcess::NullGeantProcess(std::string const& name)
+    : G4VProcess(name, fUserDefined)
 {
     pParticleChange = &aParticleChange;
 }
 
 //---------------------------------------------------------------------------//
 //! Never limit the step
-G4double GeantPlaceholderProcess::AlongStepGetPhysicalInteractionLength(
+G4double NullGeantProcess::AlongStepGetPhysicalInteractionLength(
     G4Track const&, G4double, G4double, G4double&, G4GPILSelection* selection)
 {
     if (selection)
     {
         *selection = NotCandidateForSelection;
     }
-    return never;
+    return no_interaction_length;
 }
 
 //---------------------------------------------------------------------------//
 //! Never occur at rest
-G4double GeantPlaceholderProcess::AtRestGetPhysicalInteractionLength(
+G4double NullGeantProcess::AtRestGetPhysicalInteractionLength(
     G4Track const&, G4ForceCondition* condition)
 {
     if (condition)
     {
         *condition = NotForced;
     }
-    return never;
+    return no_interaction_length;
 }
 
 //---------------------------------------------------------------------------//
 //! Never occur after a step
-G4double GeantPlaceholderProcess::PostStepGetPhysicalInteractionLength(
+G4double NullGeantProcess::PostStepGetPhysicalInteractionLength(
     G4Track const&, G4double, G4ForceCondition* condition)
 {
     if (condition)
     {
         *condition = NotForced;
     }
-    return never;
+    return no_interaction_length;
 }
 
 //---------------------------------------------------------------------------//
 //! Leave the track unchanged
-G4VParticleChange* GeantPlaceholderProcess::AlongStepDoIt(G4Track const& track,
-                                                          G4Step const&)
+G4VParticleChange* NullGeantProcess::AlongStepDoIt(G4Track const& track,
+                                                   G4Step const&)
 {
     pParticleChange->Initialize(track);
     return pParticleChange;
@@ -79,8 +80,8 @@ G4VParticleChange* GeantPlaceholderProcess::AlongStepDoIt(G4Track const& track,
 
 //---------------------------------------------------------------------------//
 //! Leave the track unchanged
-G4VParticleChange* GeantPlaceholderProcess::AtRestDoIt(G4Track const& track,
-                                                       G4Step const&)
+G4VParticleChange* NullGeantProcess::AtRestDoIt(G4Track const& track,
+                                                G4Step const&)
 {
     pParticleChange->Initialize(track);
     return pParticleChange;
@@ -88,8 +89,8 @@ G4VParticleChange* GeantPlaceholderProcess::AtRestDoIt(G4Track const& track,
 
 //---------------------------------------------------------------------------//
 //! Leave the track unchanged
-G4VParticleChange* GeantPlaceholderProcess::PostStepDoIt(G4Track const& track,
-                                                         G4Step const&)
+G4VParticleChange* NullGeantProcess::PostStepDoIt(G4Track const& track,
+                                                  G4Step const&)
 {
     pParticleChange->Initialize(track);
     return pParticleChange;
