@@ -37,6 +37,38 @@ namespace celeritas
  * the closest distance between two positions by the field stepper and the
  * linear projection to the volume boundary.
  *
+ * Each substep normally searches for a boundary along its chord, which is the
+ * most expensive part of propagation. To avoid most of these searches when a
+ * track takes several substeps far from any boundary, the propagator keeps a
+ * \em safety \em sphere: a ball centered on a previous substep position whose
+ * radius is the safety distance there, so it contains no boundary. If the
+ * chord end point \f$ \mathbf{x} \f$ satisfies
+ * \f[
+   |\mathbf{x} - \mathbf{c}| + \delta \le r \,,
+ * \f]
+ * where \f$ \mathbf{c} \f$ and \f$ r \f$ are the sphere center and radius and
+ * \f$ \delta \f$ is the intersection tolerance, then the whole chord (a
+ * segment between two points in a convex ball), extended by \f$ \delta \f$,
+ * is boundary-free. The boundary search would have found no intersection, so
+ * the substep is accepted without it and the result is unchanged.
+ *
+ * The sphere is computed lazily to bound its cost:
+ * - It is never computed before the first substep has moved the track
+ *   internally, so a propagation that takes a single substep, or that starts
+ *   on a boundary and immediately hits another, does no extra work.
+ * - It is not computed for the substep that would complete the step: at best
+ *   that trades one boundary search for one safety calculation.
+ * - When the sphere does not contain the next chord end, it is recomputed at
+ *   the current position. If the new sphere still does not contain it, the
+ *   track is close to a boundary and the sphere is not recomputed again
+ *   during this call, so at most one safety calculation per call is wasted.
+ *
+ * \todo Seed the initial safety sphere from the safety distance that
+ * \c UrbanMsc::limit_step already calculates at the start of the step, so that
+ * the first substep can also skip the boundary search. This requires storing
+ * the safety and its center in the track state and invalidating it when the
+ * track moves or crosses a boundary before propagation.
+ *
  * \note This follows similar methods to Geant4's G4PropagatorInField class.
  */
 template<class SubstepperT, class GTV>
@@ -159,6 +191,10 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
         --remaining_substeps;
     };
 
+    // Lazily calculated sphere known to be free of boundaries
+    detail::SafetySphere sphere;
+    bool can_refresh_sphere = true;
+
     do
     {
         CELER_ASSERT(soft_zero(distance(state_.pos, geo_.pos())));
@@ -186,8 +222,31 @@ CELER_FUNCTION auto FieldPropagator<SubstepperT, GTV>::operator()(
             //   boundary test does lose some accuracy)
             geo_.set_dir(chord.dir);
         }
-        auto linear_step
-            = geo_.find_next_step(chord.length + this->delta_intersection());
+
+        // Skip the boundary search if the chord end point, plus the
+        // intersection tolerance, is inside the safety sphere
+        real_type const tol = this->delta_intersection();
+        bool is_safe = sphere.contains(substep.state.pos, tol);
+        if (!is_safe && can_refresh_sphere && result.distance > 0
+            && substep.length < remaining && !geo_.is_on_boundary())
+        {
+            // Recalculate the sphere at the current position, which is
+            // possible only after an internal move and worthwhile only if
+            // more substeps may follow; no later substep in this call can
+            // travel farther than the remaining distance
+            sphere.center = state_.pos;
+            sphere.radius = geo_.find_safety(remaining + tol);
+            is_safe = sphere.contains(substep.state.pos, tol);
+            // Close to a boundary: don't waste more safety calculations
+            can_refresh_sphere = is_safe;
+        }
+        if (is_safe)
+        {
+            accept_substep(substep);
+            continue;
+        }
+
+        auto linear_step = geo_.find_next_step(chord.length + tol);
 
         // Scale the effective substep length to travel by the fraction along
         // the chord to the boundary. This value can be slightly larger than 1

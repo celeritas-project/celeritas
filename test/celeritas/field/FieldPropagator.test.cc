@@ -224,11 +224,16 @@ TEST_F(TwoBoxesTest, electron_interior)
     // Test a very long (next quarter-turn) step
     {
         SCOPED_TRACE("Quarter turn");
+        geo.reset_count();
         result = propagate(0.5 * pi * radius);
         EXPECT_SOFT_EQ(0.5 * pi * radius, result.distance);
         EXPECT_LT(distance(Real3({-radius, 0, 0}), geo.pos()), coarse_eps);
         EXPECT_SOFT_EQ(1.0, dot_product(Real3({0, -1, 0}), geo.dir()));
         EXPECT_EQ(21, integrate.exchange_count());
+        // Substeps inside the safety sphere skip the boundary search: without
+        // the sphere this takes 7 searches and no safety calculations
+        EXPECT_EQ(2, geo.intersect_count());
+        EXPECT_EQ(4, geo.safety_count());
     }
 
     // Test a ridiculously long (half-turn) step to put us back at the start
@@ -1182,6 +1187,10 @@ TEST_F(LayersTest, revolutions_through_layers)
     EXPECT_SOFT_NEAR(-0.03453068, geo.dir()[1], coarse_eps);
     EXPECT_SOFT_NEAR(221.48171708, total_length, coarse_eps);
     EXPECT_EQ(148, icross);
+    // Short steps through thin layers take few substeps, so no safety
+    // calculation is spent
+    EXPECT_EQ(1459, geo.intersect_count());
+    EXPECT_EQ(0, geo.safety_count());
 }
 
 TEST_F(LayersTest, revolutions_through_cms_field)
@@ -1381,6 +1390,7 @@ struct FieldPropagationResult
     std::vector<int> num_boundary;
     std::vector<int> num_step;
     std::vector<int> num_intercept;
+    std::vector<int> num_safety;
     std::vector<int> num_integration;
     std::vector<std::vector<std::string>> messages;
 
@@ -1394,6 +1404,7 @@ void FieldPropagationResult::fail_at(std::size_t index)
     num_boundary[index] = -1;
     num_step[index] = -1;
     num_intercept[index] = -1;
+    num_safety[index] = -1;
     num_integration[index] = -1;
 }
 
@@ -1405,6 +1416,7 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
        << CELER_REF_ATTR(num_boundary)
        << CELER_REF_ATTR(num_step)
        << CELER_REF_ATTR(num_intercept)
+       << CELER_REF_ATTR(num_safety)
        << CELER_REF_ATTR(num_integration)
        << CELER_REF_ATTR(messages)
        << "EXPECT_REF_EQ(ref, result) << result;\n"
@@ -1432,6 +1444,7 @@ std::ostream& operator<<(std::ostream& os, FieldPropagationResult const& ref)
     IRE_COMPARE(num_boundary);
     IRE_COMPARE(num_step);
     IRE_COMPARE(num_intercept);
+    IRE_COMPARE(num_safety);
     IRE_COMPARE(num_integration);
     IRE_COMPARE(messages);
 
@@ -1497,6 +1510,7 @@ TEST_F(CmseTest, coarse)
         result.num_boundary.push_back(boundary_count);
         result.num_step.push_back(step_count);
         result.num_intercept.push_back(geo.intersect_count());
+        result.num_safety.push_back(geo.safety_count());
         result.num_integration.push_back(integrate.exchange_count());
         result.messages.push_back(std::move(scoped_log_).messages());
         if (geo.failed())
@@ -1514,7 +1528,8 @@ TEST_F(CmseTest, coarse)
     FieldPropagationResult ref;
     ref.num_boundary = {134, 101, 60, 40};
     ref.num_step = {10001, 6462, 3236, 1303};
-    ref.num_intercept = {30419, 19551, 16170, 9956};
+    ref.num_intercept = {11176, 7120, 3634, 4863};
+    ref.num_safety = {9954, 6424, 3285, 1944};
     ref.num_integration = {80659, 58282, 41914, 26114};
     ref.messages.resize(ref.num_boundary.size());
 
@@ -1522,6 +1537,10 @@ TEST_F(CmseTest, coarse)
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         geometry = "ORANGE";
+        // Safety distances differ from VecGeom, changing the number of
+        // skipped boundary searches
+        ref.num_intercept = {12548, 0, 6128, 5925};
+        ref.num_safety = {9954, 0, 3268, 1835};
         ref.fail_at(1);
         if (CELERITAS_DEBUG)
         {
