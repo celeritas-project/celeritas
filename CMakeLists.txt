@@ -11,6 +11,8 @@ set(Celeritas_VERSION 0.7)
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
+set(CMAKE_UNITY_BUILD ON)
+
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
