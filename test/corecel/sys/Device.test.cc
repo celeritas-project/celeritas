@@ -49,6 +49,9 @@ TEST_F(DeviceTest, json_output)
     if (d)
     {
         d.create_streams(10);
+        EXPECT_EQ(10u, d.num_streams());
+        EXPECT_TRUE(d.stream(StreamId{9}));
+        EXPECT_TRUE(d.memcpy_stream(StreamId{9}));
         d.destroy_streams();
     }
 }

@@ -240,11 +240,11 @@ endforeach()
 list(APPEND SOURCES
   AssertIO.json.cc
   Types.cc
-  data/Copier.cc
   data/DeviceAllocation.cc
   data/AuxInterface.cc
   data/AuxParamsRegistry.cc
   data/AuxStateVec.cc
+  data/detail/CopierImpl.cc
   data/detail/PinnedAllocatorImpl.cc
   grid/DerivativeGridCalculator.cc
   grid/GridTypes.cc

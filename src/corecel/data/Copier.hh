@@ -14,8 +14,15 @@
 #include "corecel/cont/Span.hh"
 #include "corecel/sys/ThreadId.hh"
 
+#include "ObserverPtr.hh"
+
+#include "detail/CopierImpl.hh"
+
 namespace celeritas
 {
+//---------------------------------------------------------------------------//
+class Stream;
+
 //---------------------------------------------------------------------------//
 /*!
  * Copy spans of data.
@@ -74,20 +81,52 @@ class ItemCopier
 };
 
 //---------------------------------------------------------------------------//
-// Copy bytes between two memory spaces
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count);
+/*!
+ * Copy bytes between two memory spaces.
+ */
+inline void copy_bytes(MemSpace dstmem,
+                       void* dst,
+                       MemSpace srcmem,
+                       void const* src,
+                       std::size_t count)
+{
+    detail::copy_bytes_sync(dstmem, dst, srcmem, src, count);
+}
 
-// Asynchronously copy bytes between two memory spaces
-void copy_bytes(MemSpace dstmem,
-                void* dst,
-                MemSpace srcmem,
-                void const* src,
-                std::size_t count,
-                StreamId stream);
+//---------------------------------------------------------------------------//
+/*!
+ * Asynchronously copy bytes between two memory spaces.
+ */
+inline void copy_bytes(MemSpace dstmem,
+                       void* dst,
+                       MemSpace srcmem,
+                       void const* src,
+                       std::size_t count,
+                       StreamId stream)
+{
+    detail::copy_bytes_async(dstmem, dst, srcmem, src, count, stream);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Asynchronously copy bytes between two memory spaces on a stream.
+ *
+ * The memory spaces are part of the pointer types, so they can't be mixed up.
+ * Copying to or from pageable host memory may be synchronous.
+ */
+template<MemSpace D, MemSpace S>
+inline void copy_bytes(ObserverPtr<void, D> dst,
+                       ObserverPtr<void const, S> src,
+                       std::size_t count,
+                       Stream const& stream)
+{
+    detail::copy_bytes_async(D,
+                             static_cast<void*>(dst),
+                             S,
+                             static_cast<void const*>(src),
+                             count,
+                             stream);
+}
 
 //---------------------------------------------------------------------------//
 /*!
