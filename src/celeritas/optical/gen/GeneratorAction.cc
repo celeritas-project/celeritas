@@ -33,7 +33,7 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state
 template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
+auto make_generator_state(StreamId stream, size_type size)
 {
     using StoreT = StateDataStore<GeneratorStateData, M>;
 
@@ -92,11 +92,11 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, initial_capacity_);
+        return make_generator_state<MemSpace::host>(id, initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, initial_capacity_);
+        return make_generator_state<MemSpace::device>(id, initial_capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }

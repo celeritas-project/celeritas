@@ -19,7 +19,7 @@ namespace celeritas
 namespace inp
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "standalone-input";
+static char const standalone_input_format_str[] = "standalone-input";
 static char const optical_format_str[] = "optical-standalone-input";
 
 //---------------------------------------------------------------------------//
@@ -36,12 +36,12 @@ void to_json(nlohmann::json& j, StandaloneInput const& v)
         CELER_JSON_PAIR(v, events),
     };
 
-    save_format(j, format_str);
+    save_format(j, standalone_input_format_str);
 }
 
 void from_json(nlohmann::json const& j, StandaloneInput& v)
 {
-    check_format(j, format_str);
+    check_format(j, standalone_input_format_str);
 
     CELER_JSON_LOAD_OPTION(j, v, system);
     CELER_JSON_LOAD_REQUIRED(j, v, problem);

@@ -30,7 +30,7 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state.
 template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
+auto make_direct_generator_state(StreamId stream, size_type size)
 {
     using StoreT = StateDataStore<DirectGeneratorStateData, M>;
 
@@ -160,11 +160,11 @@ auto DirectGeneratorAction::create_state(
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(stream, size);
+        return make_direct_generator_state<MemSpace::host>(stream, size);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(stream, size);
+        return make_direct_generator_state<MemSpace::device>(stream, size);
     }
     CELER_ASSERT_UNREACHABLE();
 }

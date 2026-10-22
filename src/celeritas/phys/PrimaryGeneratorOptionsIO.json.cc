@@ -23,7 +23,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const format_str[] = "primary-generator";
+static char const primary_generator_format_str[] = "primary-generator";
 
 //---------------------------------------------------------------------------//
 // JSON serializers
@@ -67,8 +67,8 @@ void to_json(nlohmann::json& j, DistributionOptions const& opts)
  */
 void from_json(nlohmann::json const& j, PrimaryGeneratorOptions& opts)
 {
-    check_format(j, format_str);
-    check_units(j, format_str);
+    check_format(j, primary_generator_format_str);
+    check_units(j, primary_generator_format_str);
 
     if (auto iter = j.find("seed"); iter != j.end())
     {
@@ -159,7 +159,7 @@ void to_json(nlohmann::json& j, PrimaryGeneratorOptions const& opts)
         CELER_JSON_PAIR(opts, direction),
     };
 
-    save_format(j, format_str);
+    save_format(j, primary_generator_format_str);
     save_units(j);
 }
 

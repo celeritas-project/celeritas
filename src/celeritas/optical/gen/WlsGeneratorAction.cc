@@ -37,7 +37,7 @@ namespace
 //---------------------------------------------------------------------------//
 //! Construct a state
 template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
+auto make_wls_generator_state(StreamId stream, size_type size)
 {
     using StoreT = StateDataStore<WlsGeneratorStateData, M>;
 
@@ -80,11 +80,11 @@ auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, capacity_);
+        return make_wls_generator_state<MemSpace::host>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, capacity_);
+        return make_wls_generator_state<MemSpace::device>(id, capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
