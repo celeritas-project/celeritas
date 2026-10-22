@@ -34,6 +34,17 @@ struct Chord
 };
 
 //---------------------------------------------------------------------------//
+//! Sphere that is known to contain no geometry boundaries
+struct SafetySphere
+{
+    Real3 center{0, 0, 0};
+    real_type radius{0};
+
+    // Whether a point is inside the sphere by at least a tolerance
+    inline CELER_FUNCTION bool contains(Real3 const& pos, real_type tol) const;
+};
+
+//---------------------------------------------------------------------------//
 // INLINE DEFINITIONS
 //---------------------------------------------------------------------------//
 /*!
@@ -87,6 +98,30 @@ inline CELER_FUNCTION bool is_intercept_close(Real3 const& pos,
         delta_sq += ipow<2>(pos[i] - target[i] + distance * dir[i]);
     }
     return delta_sq <= ipow<2>(tolerance);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Whether a point is inside the sphere by at least a tolerance.
+ *
+ * This is true if the ball of radius \c tol about \c pos is entirely inside
+ * the sphere. An empty sphere (zero radius) contains no points.
+ */
+CELER_FUNCTION bool SafetySphere::contains(Real3 const& pos,
+                                           real_type tol) const
+{
+    CELER_EXPECT(tol >= 0);
+    real_type const inner_radius = radius - tol;
+    if (!(inner_radius > 0))
+    {
+        return false;
+    }
+    real_type dist_sq = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        dist_sq += ipow<2>(pos[i] - center[i]);
+    }
+    return dist_sq <= ipow<2>(inner_radius);
 }
 
 //---------------------------------------------------------------------------//

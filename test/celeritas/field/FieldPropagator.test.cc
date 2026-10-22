@@ -155,6 +155,22 @@ constexpr real_type unit_radius_field_strength{3.5019461121752274
 // TESTS
 //---------------------------------------------------------------------------//
 
+TEST(SafetySphereTest, contains)
+{
+    detail::SafetySphere sphere;
+    EXPECT_FALSE(sphere.contains({0, 0, 0}, 0));
+
+    sphere.center = {1, 2, 3};
+    sphere.radius = 2;
+    EXPECT_TRUE(sphere.contains({1, 2, 3}, 0));
+    EXPECT_TRUE(sphere.contains({1, 2, 3}, 1.5));
+    EXPECT_FALSE(sphere.contains({1, 2, 3}, 2));
+    EXPECT_TRUE(sphere.contains({2.5, 2, 3}, 0.5));
+    EXPECT_FALSE(sphere.contains({2.5, 2, 3}, 0.6));
+    EXPECT_TRUE(sphere.contains({1, 2, 1}, 0));
+    EXPECT_FALSE(sphere.contains({1, 2, 0.9}, 0));
+}
+
 TEST_F(TwoBoxesTest, electron_interior)
 {
     // Initialize position and direction so its curved track is centered about
