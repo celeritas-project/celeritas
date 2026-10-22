@@ -213,8 +213,9 @@ real_type CheckedGeoTrackView::find_safety(real_type max_safety)
                           << " exceeds requested search distance "
                           << max_safety << NativeLength{};
     }
-    else if (result == 0)
+    else if (result == 0 && check_safety_)
     {
+        // A zero safety is expected if the geometry doesn't support safety
         CGTV_LOG(warning) << "Encountered zero safety: " << *this;
     }
     else
