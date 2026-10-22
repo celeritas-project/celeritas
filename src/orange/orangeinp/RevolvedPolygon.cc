@@ -25,11 +25,14 @@ namespace orangeinp
 namespace
 {
 //! Convenience enumeration for implementations in this file
+namespace rz_axes
+{
 enum
 {
     R = 0,
-    revolved_z = 1
+    Z = 1
 };
+}  // namespace rz_axes
 }  // namespace
 //---------------------------------------------------------------------------//
 /*!
@@ -41,6 +44,8 @@ RevolvedPolygon::RevolvedPolygon(
     , polygon_{std::move(polygon)}
     , enclosed_{std::move(enclosed)}
 {
+    using namespace rz_axes;
+
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
 
@@ -156,6 +161,8 @@ NodeId RevolvedPolygon::make_levels(detail::VolumeBuilder& vb,
 NodeId RevolvedPolygon::make_region(
     detail::VolumeBuilder& vb, VecReal2 const& polygon, SubIndex si) const
 {
+    using namespace rz_axes;
+
     // The polygon should have a strictly clockwise orientation
     CELER_VALIDATE(
         has_orientation(make_span(polygon),
@@ -176,8 +183,7 @@ NodeId RevolvedPolygon::make_region(
         auto const& p0 = polygon[i];
         auto const& p1 = polygon[(i + 1) % n];
 
-        if (soft_equal(p0[revolved_z], p1[revolved_z])
-            || (soft_zero(p0[R]) && soft_zero(p1[R])))
+        if (soft_equal(p0[Z], p1[Z]) || (soft_zero(p0[R]) && soft_zero(p1[R])))
         {
             // Perpendicular to or coincide with z, don't make a shape
             continue;
@@ -187,7 +193,7 @@ NodeId RevolvedPolygon::make_region(
         NodeId shape_id = soft_equal(p0[R], p1[R])
                               ? this->make_cylinder(vb, p0, p1, si)
                               : this->make_cone(vb, p0, p1, si);
-        (p0[revolved_z] < p1[revolved_z] ? outer_nodes : inner_nodes).push_back(shape_id);
+        (p0[Z] < p1[Z] ? outer_nodes : inner_nodes).push_back(shape_id);
 
         si.subregion++;
     }
@@ -226,8 +232,10 @@ NodeId RevolvedPolygon::make_cylinder(detail::VolumeBuilder& vb,
                                       Real2 const& p1,
                                       SubIndex const& si) const
 {
-    real_type hh = std::fabs(p1[revolved_z] - p0[revolved_z]) / 2;
-    auto z_bot = std::min(p0[revolved_z], p1[revolved_z]);
+    using namespace rz_axes;
+
+    real_type hh = std::fabs(p1[Z] - p0[Z]) / 2;
+    auto z_bot = std::min(p0[Z], p1[Z]);
     auto scoped_transform
         = vb.make_scoped_transform(Translation({0, 0, hh + z_bot}));
     Cylinder local_cyl{p0[R], hh};
@@ -244,19 +252,21 @@ NodeId RevolvedPolygon::make_cone(detail::VolumeBuilder& vb,
                                   Real2 const& p1,
                                   SubIndex const& si) const
 {
+    using namespace rz_axes;
+
     Real2 p_bot = p0;
     Real2 p_top = p1;
 
-    if (p_bot[revolved_z] > p_top[revolved_z])
+    if (p_bot[Z] > p_top[Z])
     {
         std::swap(p_bot, p_top);
     }
 
-    real_type hh = 0.5_r * (p_top[revolved_z] - p_bot[revolved_z]);
+    real_type hh = 0.5_r * (p_top[Z] - p_bot[Z]);
     Real2 radii{p_bot[R], p_top[R]};
 
-    auto scoped_transform = vb.make_scoped_transform(
-        Translation({0, 0, hh + p_bot[revolved_z]}));
+    auto scoped_transform
+        = vb.make_scoped_transform(Translation({0, 0, hh + p_bot[Z]}));
     Cone local_cone{radii, hh};
     return build_intersect_region(
         vb, std::string{label_}, this->make_subregion_ext(si), local_cone);

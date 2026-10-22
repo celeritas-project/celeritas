@@ -22,12 +22,15 @@ namespace orangeinp
 namespace
 {
 //! Convenience enumeration for implementations in this file
+namespace xyz_axes
+{
 enum
 {
     X = 0,
     Y = 1,
-    extruded_z = 2
+    Z = 2
 };
+}  // namespace xyz_axes
 }  // namespace
 //---------------------------------------------------------------------------//
 /*!
@@ -38,6 +41,8 @@ auto StackedExtrudedPolygon::or_solid(std::string&& label,
                                       VecReal3&& polyline,
                                       VecReal&& scaling) -> SPConstObject
 {
+    using namespace xyz_axes;
+
     CELER_VALIDATE(polygon.size() >= 3,
                    << "polygon must have at least 3 vertices");
     CELER_VALIDATE(polyline.size() >= 2,
@@ -53,7 +58,7 @@ auto StackedExtrudedPolygon::or_solid(std::string&& label,
         constexpr auto bot = to_int(Bound::lo);
         constexpr auto top = to_int(Bound::hi);
 
-        CELER_VALIDATE(polyline[bot][extruded_z] < polyline[top][extruded_z],
+        CELER_VALIDATE(polyline[bot][Z] < polyline[top][Z],
                        << "z coordinates must be strictly increasing");
         CELER_VALIDATE(scaling[bot] > 0 && scaling[top] > 0,
                        << "scaling values must be positive");
@@ -86,6 +91,8 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     , polyline_{std::move(polyline)}
     , scaling_{std::move(scaling)}
 {
+    using namespace xyz_axes;
+
     CELER_VALIDATE(polygon_.size() >= 3,
                    << "polygon must have at least 3 vertices");
     CELER_VALIDATE(polyline_.size() >= 2,
@@ -97,7 +104,7 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     CELER_VALIDATE(std::adjacent_find(polyline_.begin(),
                                       polyline_.end(),
                                       [](auto const& a, auto const& b) {
-                                          return a[extruded_z] > b[extruded_z];
+                                          return a[Z] > b[Z];
                                       })
                        == polyline_.end(),
                    << "z coordinates must be nondecreasing");
@@ -186,6 +193,8 @@ NodeId StackedExtrudedPolygon::make_stack(
     VecReal2 const& polygon,
     StackedExtrudedPolygon::SubRegionIndex si) const
 {
+    using namespace xyz_axes;
+
     std::vector<NodeId> nodes;
     SoftEqual<real_type> soft_equal(vb.tol().rel, vb.tol().abs);
     SoftZero<real_type> soft_zero(vb.tol().abs);
@@ -195,12 +204,11 @@ NodeId StackedExtrudedPolygon::make_stack(
     for (auto i : range(polyline_.size() - 1))
     {
         CELER_VALIDATE(soft_zero(scaling_[i]) == soft_zero(scaling_[i + 1])
-                           || soft_equal(polyline_[i][extruded_z],
-                                         polyline_[i + 1][extruded_z]),
+                           || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
                        << "non-zero-length polyline segment cannot have "
                           "scaling = 0 on exactly one z plane");
 
-        if (!soft_equal(polyline_[i][extruded_z], polyline_[i + 1][extruded_z])
+        if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
             && !soft_zero(scaling_[i]))
         {
             // Create the ExtrudedPolygon for this segment
