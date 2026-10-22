@@ -369,11 +369,7 @@ TEST_F(FourLevelsTest, safety)
 {
     ScopedLogStorer scoped_log_{&self_logger()};
     this->impl().test_safety();
-    // Don't test messages, which are unit system-dependent (they come from the
-    // CheckedGeoTrackView)
-    static char const* const expected_log_levels[]
-        = {"warning", "warning", "warning", "warning", "warning", "warning"};
-    EXPECT_VEC_EQ(expected_log_levels, scoped_log_.levels());
+    EXPECT_TRUE(scoped_log_.empty()) << scoped_log_;
 }
 
 TEST_F(FourLevelsTest, TEST_IF_CELERITAS_DOUBLE(small_steps))

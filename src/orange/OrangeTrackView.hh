@@ -721,11 +721,13 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety()
  * bounding surfaces at more deeply embedded universe levels.
  *
  * Since we currently support only "simple" safety distances, we can't
- * eliminate anything by checking only nearby surfaces.
+ * eliminate anything by checking only nearby surfaces. The result is limited
+ * to the maximum search distance.
  */
-CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
+CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type max_radius)
 {
     CELER_EXPECT(!this->is_on_boundary());
+    CELER_EXPECT(max_radius > 0);
 
     TrackerVisitor visit_tracker{params_};
     // If we're intersecting a surface, the safety cannot be more than that.
@@ -746,7 +748,7 @@ CELER_FUNCTION real_type OrangeTrackView::find_safety(real_type)
             lsa.univ());
         min_safety_dist = celeritas::min(min_safety_dist, local_safety);
     }
-    return min_safety_dist;
+    return celeritas::min(min_safety_dist, max_radius);
 }
 
 //---------------------------------------------------------------------------//

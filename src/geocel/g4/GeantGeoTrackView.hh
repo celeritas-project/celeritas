@@ -508,7 +508,10 @@ CELER_FORCEINLINE auto GeantGeoTrackView::find_safety() -> real_type
 
 //---------------------------------------------------------------------------//
 /*!
- * Find the safety at the current position.
+ * Find the safety at the current position up to a maximum distance.
+ *
+ * A previously calculated safety is reused if it is at least the maximum, and
+ * the result is limited to the maximum.
  *
  * \warning This can change the boundary state if the track was moved to or
  * initialized a point on the boundary.
@@ -524,7 +527,7 @@ auto GeantGeoTrackView::find_safety(real_type max_step) -> real_type
         safety_radius_ = max(native_value_from(ClhepLength{g4safety_}), 0.0);
     }
 
-    return safety_radius_;
+    return min(safety_radius_, max_step);
 }
 
 //---------------------------------------------------------------------------//

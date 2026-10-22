@@ -965,14 +965,10 @@ void FourLevelsGeoTest::test_safety() const
         3.9,
     };
 
-    if (test_->geometry_type() != "Geant4")
+    for (double& s : expected_lim_safeties)
     {
-        // Only G4 returns larger-than-requested distances
-        // TODO: our tracker interface should truncate those
-        for (double& s : expected_lim_safeties)
-        {
-            s = std::min(s, 1.5);
-        }
+        // Safety is truncated to the requested search distance
+        s = std::min(s, 1.5);
     }
 
     EXPECT_VEC_NEAR(expected_lim_safeties, lim_safeties, tol.safety);
