@@ -89,14 +89,16 @@ struct StepperResult;
  * stages and launches the producer batch. It finally steps all transport
  * synchronously to completion. Selection and compaction of device-generated
  * Geant SD data are enqueued on the device during the action launch, so a step
- * is not ready until they complete. The compacted data is copied to the host
- * and reconstructed only when the completed step result is consumed, keeping
- * the host copy and hit processing out of the asynchronous action launch. The
- * current copy still synchronizes before the next step starts. Hit processing
- * and Geant4 track reconstruction
- * are kept alive across the asynchronous work and cleared only after the drain
- * completes. A flush with only rejected primaries still reports and clears
- * their loss accounting.
+ * is not ready until they complete. When the completed step result is
+ * consumed, the copy of the compacted data to the host is enqueued on the
+ * device's memcpy stream without synchronizing, so the next step can start
+ * while it runs; that step's compaction waits for the copy on the device.
+ * These "lagged" hits are reconstructed on the host later, while a subsequent
+ * step is running: when \c Push polls a completed copy, before waiting for the
+ * next step result, or at the end of \c Flush . Hit processing and Geant4
+ * track reconstruction are kept alive across the asynchronous work and
+ * cleared only after the drain completes. A flush with only rejected
+ * primaries or lagged hits still reports and clears their accounting.
  *
  * Host mode has the same buffering interface but no asynchronous overlap: a
  * full producer buffer calls \c Flush and is transported to completion before
