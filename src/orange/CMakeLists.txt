@@ -114,6 +114,15 @@ endif()
 
 celeritas_polysource_append(SOURCES RaytraceImager)
 
+# With ORANGE as the core geometry, celeritas::GeoTrackView is an alias for
+# OrangeTrackView, so celeritas/global/DebugIO.json.cc defines the same
+# to_json overload. Keep this in its own object file so the linker only pulls
+# it from the static library when needed, rather than via a unity batch.
+set_source_files_properties(
+  DebugIO.json.cc
+  PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+)
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
