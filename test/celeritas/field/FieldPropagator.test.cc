@@ -1525,20 +1525,24 @@ TEST_F(CmseTest, coarse)
         }
     }
 
+    // Boundary searches without the safety sphere: one per substep
+    std::vector<int> const unskipped_intercept = {30419, 19551, 16170, 9956};
+
     FieldPropagationResult ref;
     ref.num_boundary = {134, 101, 60, 40};
     ref.num_step = {10001, 6462, 3236, 1303};
-    ref.num_intercept = {11176, 7120, 3634, 4863};
-    ref.num_safety = {9954, 6424, 3285, 1944};
     ref.num_integration = {80659, 58282, 41914, 26114};
     ref.messages.resize(ref.num_boundary.size());
 
+    // The number of skipped boundary searches depends on the safety distances
+    // calculated by the geometry, so only check the navigation counts exactly
+    // for geometry implementations where they were measured
+    bool exact_counts = false;
     char const* geometry = "unknown";
     if (CELERITAS_CORE_GEO == CELERITAS_CORE_GEO_ORANGE)
     {
         geometry = "ORANGE";
-        // Safety distances differ from VecGeom, changing the number of
-        // skipped boundary searches
+        exact_counts = true;
         ref.num_intercept = {12548, 0, 6128, 5925};
         ref.num_safety = {9954, 0, 3268, 1835};
         ref.fail_at(1);
@@ -1560,12 +1564,44 @@ TEST_F(CmseTest, coarse)
         geometry = "VecGeom";
         ref.messages[1] = {
             R"(Moved internally from boundary but safety didn't increase: volume 18 from {10.32, -6.565, 796.9} to {10.32, -6.565, 796.9} (distance: 1e-4 [cm]))"};
+        if (CELERITAS_VECGEOM_VERSION >= 0x020000)
+        {
+            // VecGeom 1.x calculates different safety distances
+            exact_counts = true;
+            ref.num_intercept = {11176, 7120, 3634, 4863};
+            ref.num_safety = {9954, 6424, 3285, 1944};
+        }
     }
 
     if (CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_FLOAT)
     {
         GTEST_SKIP()
             << "Ignore checks due to reduced-precision numerical sensitivity";
+    }
+
+    if (!exact_counts)
+    {
+        for (auto i : range(result.num_step.size()))
+        {
+            if (result.num_step[i] < 0)
+            {
+                // Propagation failed for this radius
+                continue;
+            }
+            SCOPED_TRACE(i);
+            // Some boundary searches were skipped
+            EXPECT_LT(result.num_intercept[i], unskipped_intercept[i]);
+            // Each recalculated safety either skips at least one boundary
+            // search or is the single wasted one in a propagation call
+            EXPECT_LE(result.num_intercept[i] + result.num_safety[i],
+                      unskipped_intercept[i] + result.num_step[i]);
+        }
+        // Don't compare counts exactly
+        for (auto* r : {&ref, &result})
+        {
+            r->num_intercept.clear();
+            r->num_safety.clear();
+        }
     }
 
     EXPECT_REF_EQ(ref, result)
