@@ -6,13 +6,16 @@
 //---------------------------------------------------------------------------//
 #include "TrackInitAlgorithms.hh"
 
+#include "corecel/DeviceRuntimeApi.hh"
+
 #if CELERITAS_USE_CUDA
 #    include <cub/device/device_scan.cuh>
 #    include <cub/device/device_select.cuh>
 #elif CELERITAS_HAVE_HIPCUB
 #    include <hipcub/device/device_scan.hpp>
 #    include <hipcub/device/device_select.hpp>
-#else
+#endif
+#if CELER_USE_THRUST
 #    include <thrust/execution_policy.h>
 #    include <thrust/remove.h>
 #    include <thrust/scan.h>

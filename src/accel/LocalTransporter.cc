@@ -51,6 +51,7 @@
 #include "celeritas/optical/OpticalCollector.hh"
 #include "celeritas/phys/ParticleParams.hh"  // IWYU pragma: keep
 #include "celeritas/phys/Primary.hh"
+#include "celeritas/user/StepCollector.hh"
 
 #include "SetupOptions.hh"
 #include "SharedParams.hh"
@@ -197,6 +198,14 @@ LocalTransporter::LocalTransporter(SetupOptions const& options,
     if (celeritas::device())
     {
         step_ = std::make_shared<Stepper<MemSpace::device>>(std::move(inp));
+        if (hit_processor_)
+        {
+            // Allocate pinned hit output now rather than while stepping
+            auto const& step_collector = params.problem_loaded().step_collector;
+            CELER_ASSERT(step_collector);
+            hit_processor_->reserve(
+                step_collector->step_state<MemSpace::device>(step_->state()));
+        }
     }
     else
     {
@@ -375,12 +384,17 @@ auto LocalTransporter::complete_step() -> StepperResult
     CELER_EXPECT(*this);
     CELER_EXPECT(step_->has_outstanding_result());
 
+    if (hit_processor_)
+    {
+        // Process hits from the previous step while this one runs
+        hit_processor_->process_copied_steps();
+    }
     auto result = step_->get();
     if (hit_processor_)
     {
-        // Hits were compacted on device during the step: copy them to the
-        // host and process them before the next step can reuse the scratch.
-        hit_processor_->process_pending_steps();
+        // Hits were compacted on device during the step: enqueue their copy
+        // to the host, which the next step's compaction waits for
+        hit_processor_->copy_pending_steps();
     }
     ++step_iters_;
     transport_active_ = static_cast<bool>(result);
@@ -425,6 +439,12 @@ auto LocalTransporter::complete_step() -> StepperResult
 void LocalTransporter::advance_if_ready()
 {
     CELER_EXPECT(*this);
+
+    if (hit_processor_)
+    {
+        // Process lagged hits whose copy to the host has completed
+        hit_processor_->process_copied_steps_if_ready();
+    }
 
     if (!step_->has_outstanding_result())
     {
@@ -722,10 +742,12 @@ void LocalTransporter::flush_impl()
 
     bool const has_buffered = step_->num_buffered_primaries() > 0;
     bool const has_staged = !step_->staged_primaries().empty();
+    bool const has_hits = hit_processor_ && hit_processor_->has_pending_steps();
 
-    // Rejected primaries have no Stepper state but still need loss accounting.
+    // Rejected primaries have no Stepper state but still need loss accounting,
+    // and hits from a completed step may still need processing.
     if (!step_->has_outstanding_result() && !has_staged && !has_buffered
-        && buffered_accum_.lost_primaries == 0)
+        && !has_hits && buffered_accum_.lost_primaries == 0)
     {
         return;
     }
@@ -758,6 +780,8 @@ void LocalTransporter::flush_impl()
     // Record the number of hits processed during this flush
     if (hit_processor_)
     {
+        // Process hits from the final step
+        hit_processor_->process_copied_steps();
         auto num_hits = hit_processor_->exchange_hits();
         if (num_hits > 0)
         {

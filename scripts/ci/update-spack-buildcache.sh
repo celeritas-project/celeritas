@@ -8,8 +8,14 @@
 #-----------------------------------------------------------------------------#
 
 set -e
+
+if ! command celerlog >/dev/null 2>&1; then
+  celerlog() {
+    printf "%s: %s\n" "$1" "$2" >&2
+  }
+fi
 log() {
-  printf "%s: %s\n" "$1" "$2" >&2
+  celerlog "$@"
 }
 
 if [ -z "${GITHUB_USER}" ] || [ -z "${GITHUB_TOKEN}" ]; then
@@ -30,7 +36,8 @@ if [ "${OS}" != "${EXPECTED_OS}" ]; then
 fi
 
 # Report git sha of spack repo and builtin:
-# these should be kept up-to-date with setup-spack/action.yml
+# these should be configured before running the script
+# using parse-spack-versions.py
 spack debug report
 
 CELER_BASE_IMAGE=ubuntu:24.04
@@ -45,55 +52,44 @@ else
 fi
 
 WORK_DIR=$PWD
-SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
-export CELER_SOURCE_DIR=$(cd $SCRIPT_DIR/../.. && pwd)
+if [ -z "${CELER_SOURCE_DIR}" ]; then
+  SCRIPT_DIR=$(cd "$(dirname $0)" && pwd)
+  CELER_SOURCE_DIR=$(cd "$SCRIPT_DIR/../.." && pwd)
+fi
 
-# Each line is: CXXSTD, env-ci-{WHAT}.yaml, additional spack packages to add
-# This should correspond to the matrix (and its "include" entries) from
-# .github/workflows/build-spack.yml and other spack-based builds
-# (missing concretization will require running the build-spack workflows
-# on something *other* than a PR, and missing packages will cause a PR to fail
-# due to the `--use-buildcache` option in `setup-spack/action.yaml`)
-matrix="
-20 base vecgeom@2.2.0 geant4@11.4 g4vg root dd4hep
-20 base vecgeom@2.2.0 geant4@11.3 g4vg root py-gcovr
-20 base vecgeom@2.2.0 geant4@11.3 g4vg root
-20 base vecgeom@2.2.0 geant4@11.3+vecgeom
-20 base vecgeom@2.2.0 geant4@11.2 g4vg root
-20 base vecgeom@2.2.0 geant4@11.2 g4vg
-20 base vecgeom@2.2.0 geant4@11.1 g4vg root
-20 base vecgeom@2.2.0 geant4@11.0 g4vg root
-20 base vecgeom@2.2.0 geant4@10.7 g4vg root
-17 base vecgeom@2.2.0 geant4@10.6 g4vg
-17 base vecgeom@2.2.0 geant4@10.5 g4vg
-20 base vecgeom@1.2.11 geant4@11.3 g4vg root
-17 ancient
-"
+MATRIX_FILE="${CELER_SOURCE_DIR}/.github/buildcache-matrix.sh"
+if [ ! -f "$MATRIX_FILE" ]; then
+  log error "Missing matrix file ${MATRIX_FILE}"
+  exit 1
+fi
 
-printf "%s" "$matrix" | while read -r line; do
-  [ -z "$line" ] && continue
-  # Convert line into arguments
-  set -- $line
-  cxxstd=$1
-  envbase=$2
-  shift 2
-
+# Called by the matrix file with cxxstd and ENV_CI set in the environment
+build_spack_env() (
+  if [ -z "${CXXSTD}" ]; then
+    log error "Missing $CXXSTD (args: $*)"
+    return 1
+  fi
+  if [ -z "${ENV_CI}" ]; then
+    log info "Missing $ENV_CI (args: $*)"
+    return 1
+  fi
   # Create temporary directory
-  envdir="$WORK_DIR/temp-spack-${envbase}-cxx${cxxstd}"
+  envdir="$WORK_DIR/temp-spack-${ENV_CI}-cxx${CXXSTD}"
   if [ $# -ne 0 ]; then
     envdir="${envdir}-$(echo "$*" | tr ' @' '--')"
   fi
   if [ -d $envdir ]; then
-    log info "Skipping existing env: $line"
-    continue
+    log info "Skipping existing env: $envdir"
+    return 0
   fi
   mkdir -p "$envdir"
   cd "$envdir"
 
   # Create environment
-  SPACK_ENV_FILE="env-ci-${envbase}.yaml" \
-  CXXSTD=${cxxstd} \
-    "${SCRIPT_DIR}/setup-spack-ci-env.sh" "$@"
+  SPACK_ENV_FILE="env-ci-${ENV_CI}.yaml" \
+  CELER_SOURCE_DIR=${CELER_SOURCE_DIR} \
+    "${CELER_SOURCE_DIR}/scripts/ci/setup-spack-ci-env.sh" "$@"
+
   # Install and push
   log status "Concretizing $envdir"
   spack -e . -v concretize --non-defaults --fresh
@@ -105,4 +101,6 @@ printf "%s" "$matrix" | while read -r line; do
     --update-index \
     --allow-missing \
     $CELER_BUILDCACHE
-done
+)
+
+. "$MATRIX_FILE"

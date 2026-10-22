@@ -221,7 +221,7 @@ $ spack env create celeritas scripts/spack/env-devmin.yaml
 $ spack env activate celeritas
 # Set up CUDA/HIP (optional; example here is for Nvidia A100)
 $ spack external find --not-buildable cuda
-$ spack config add packages:all:prefer:"+cuda cuda_arch=80"
+$ spack config add 'packages:all:prefer:["+cuda cuda_arch=80"]'
 # Install dependencies
 $ spack install
 # Configure, build, and test with a default development configure

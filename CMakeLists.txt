@@ -253,15 +253,6 @@ celeritas_setup_option(CELERITAS_REAL_TYPE float)
 celeritas_define_options(CELERITAS_REAL_TYPE
   "Global runtime precision for real numbers")
 
-if((CELERITAS_CORE_GEO STREQUAL "ORANGE")
-    AND (NOT CELERITAS_UNITS STREQUAL "CGS"))
-  celeritas_error_incompatible_option(
-    "ORANGE currently requires CGS units"
-    CELERITAS_UNITS
-    CGS
-  )
-endif()
-
 #----------------------------------------------------------------------------#
 # CMAKE VERSION CHECKS
 #----------------------------------------------------------------------------#
@@ -471,6 +462,13 @@ elseif(CELERITAS_USE_HIP)
     celeritas_error_incompatible_option(
       "HIP cannot build debug code (unhandled SGPR spill to memory)"
       CELERITAS_DEVICE_DEBUG
+      OFF
+    )
+  endif()
+  if(CELERITAS_USE_covfie AND "${hip_VERSION}" VERSION_LESS 6)
+    celeritas_error_incompatible_option(
+      "covfie requires HIP to support C++20 (hip 6 and higher)"
+      CELERITAS_USE_covfie
       OFF
     )
   endif()

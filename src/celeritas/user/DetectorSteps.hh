@@ -19,6 +19,7 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
+class Stream;
 template<Ownership W, MemSpace M>
 struct StepStateData;
 
@@ -119,25 +120,39 @@ void compact_steps_async(
     StepStateData<Ownership::reference, MemSpace::device> const& state,
     AsyncResultRef<size_type> num_selected);
 
-// Copy device step data compacted by compact_steps_async
-void copy_compacted_steps(
+// Enqueue a copy of device step data compacted by compact_steps_async
+void copy_compacted_steps_async(
     DetectorStepOutput* output,
     StepStateData<Ownership::reference, MemSpace::device> const& state,
-    size_type num_selected);
+    size_type num_selected,
+    Stream const& stream);
+
+// Reserve output capacity for the largest possible compacted step
+void reserve_compacted_steps(
+    DetectorStepOutput* output,
+    StepStateData<Ownership::reference, MemSpace::device> const& state);
 
 //---------------------------------------------------------------------------//
 #if !CELER_USE_DEVICE
-inline void compact_steps_async(
-    StepStateData<Ownership::reference, MemSpace::device> const&,
-    AsyncResultRef<size_type>)
+inline void reserve_compacted_steps(
+    DetectorStepOutput*,
+    StepStateData<Ownership::reference, MemSpace::device> const&)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }
 
-inline void copy_compacted_steps(
+inline void copy_compacted_steps_async(
     DetectorStepOutput*,
     StepStateData<Ownership::reference, MemSpace::device> const&,
-    size_type)
+    size_type,
+    Stream const&)
+{
+    CELER_NOT_CONFIGURED("CUDA or HIP");
+}
+
+inline void compact_steps_async(
+    StepStateData<Ownership::reference, MemSpace::device> const&,
+    AsyncResultRef<size_type>)
 {
     CELER_NOT_CONFIGURED("CUDA or HIP");
 }

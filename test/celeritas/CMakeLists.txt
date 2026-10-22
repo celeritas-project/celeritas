@@ -28,6 +28,7 @@ else()
   celeritas_get_g4libs(_g4_geo_lib geometry)
   celeritas_get_g4libs(_g4_event_lib event)
   celeritas_get_g4libs(_g4_global_libs global)
+  celeritas_get_g4libs(_g4_run_lib run)
 endif()
 
 if(NOT CELERITAS_USE_HepMC3)
@@ -233,7 +234,7 @@ if(CELERITAS_USE_Geant4)
     LINK_LIBRARIES testcel_celeritas_g4
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/detail/HitProcessor.test.cc GPU
-    LINK_LIBRARIES testcel_celeritas_g4
+    LINK_LIBRARIES testcel_celeritas_g4 ${_g4_run_lib}
     ENVIRONMENT "${CELER_G4ENV}")
   celeritas_add_test(ext/GeantTrackReconstruction.test.cc
     LINK_LIBRARIES testcel_celeritas_g4

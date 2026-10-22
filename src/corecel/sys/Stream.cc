@@ -180,7 +180,8 @@ void Stream::wait(DeviceEvent const& e)
 {
     CELER_EXPECT(*this);
     CELER_EXPECT(e);
-    CELER_DEVICE_API_CALL(StreamWaitEvent(this->get(), e.get()));
+    CELER_DEVICE_API_CALL(
+        StreamWaitEvent(this->get(), e.get(), /* flags = */ 0));
 }
 
 //---------------------------------------------------------------------------//
