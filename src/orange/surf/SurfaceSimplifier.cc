@@ -401,4 +401,5 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

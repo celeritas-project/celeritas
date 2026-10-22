@@ -169,4 +169,5 @@ std::string FaceNamer::Impl::operator()(Toroid const&) const
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

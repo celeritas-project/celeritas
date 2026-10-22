@@ -252,4 +252,5 @@ bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

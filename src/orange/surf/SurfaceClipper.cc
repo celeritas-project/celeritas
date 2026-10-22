@@ -227,4 +227,5 @@ void SurfaceClipper::operator()(Toroid const& surf) const
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

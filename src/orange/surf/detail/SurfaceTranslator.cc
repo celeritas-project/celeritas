@@ -214,5 +214,6 @@ Toroid SurfaceTranslator::operator()(Toroid const& other) const
 }
 
 //---------------------------------------------------------------------------//
+#undef ORANGE_INSTANTIATE_OP
 }  // namespace detail
 }  // namespace celeritas
