@@ -19,6 +19,7 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/optical/action/TrackSlotExecutor.hh"
 
+#include "RNGExecutor.hh"
 #include "RayleighExecutor.hh"
 #include "RayleighMfpCalculator.hh"
 
@@ -100,6 +101,16 @@ void RayleighModel::build_mfps(OptMatId mat, MfpBuilder& build) const
  */
 void RayleighModel::step(CoreParams const& params, CoreStateHost& state) const
 {
+#if (CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_RANLUXPP)
+    // Advance the RNG
+    launch_action(
+        state,
+        make_action_thread_executor(params.ptr<MemSpace::native>(),
+                                    state.ptr,
+                                    this->action_id(),
+                                    InteractionApplier{RNGExecutor{}}));
+#endif
+
     launch_action(
         state,
         make_action_thread_executor(params.ptr<MemSpace::native>(),
