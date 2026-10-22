@@ -26,7 +26,7 @@ enum
 {
     X = 0,
     Y = 1,
-    Z = 2
+    extruded_z = 2
 };
 }  // namespace
 //---------------------------------------------------------------------------//
@@ -53,7 +53,7 @@ auto StackedExtrudedPolygon::or_solid(std::string&& label,
         constexpr auto bot = to_int(Bound::lo);
         constexpr auto top = to_int(Bound::hi);
 
-        CELER_VALIDATE(polyline[bot][Z] < polyline[top][Z],
+        CELER_VALIDATE(polyline[bot][extruded_z] < polyline[top][extruded_z],
                        << "z coordinates must be strictly increasing");
         CELER_VALIDATE(scaling[bot] > 0 && scaling[top] > 0,
                        << "scaling values must be positive");
@@ -97,7 +97,7 @@ StackedExtrudedPolygon::StackedExtrudedPolygon(std::string&& label,
     CELER_VALIDATE(std::adjacent_find(polyline_.begin(),
                                       polyline_.end(),
                                       [](auto const& a, auto const& b) {
-                                          return a[Z] > b[Z];
+                                          return a[extruded_z] > b[extruded_z];
                                       })
                        == polyline_.end(),
                    << "z coordinates must be nondecreasing");
@@ -195,11 +195,12 @@ NodeId StackedExtrudedPolygon::make_stack(
     for (auto i : range(polyline_.size() - 1))
     {
         CELER_VALIDATE(soft_zero(scaling_[i]) == soft_zero(scaling_[i + 1])
-                           || soft_equal(polyline_[i][Z], polyline_[i + 1][Z]),
+                           || soft_equal(polyline_[i][extruded_z],
+                                         polyline_[i + 1][extruded_z]),
                        << "non-zero-length polyline segment cannot have "
                           "scaling = 0 on exactly one z plane");
 
-        if (!soft_equal(polyline_[i][Z], polyline_[i + 1][Z])
+        if (!soft_equal(polyline_[i][extruded_z], polyline_[i + 1][extruded_z])
             && !soft_zero(scaling_[i]))
         {
             // Create the ExtrudedPolygon for this segment
