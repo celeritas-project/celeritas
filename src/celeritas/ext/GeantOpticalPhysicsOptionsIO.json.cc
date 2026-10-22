@@ -14,8 +14,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const geant_optical_physics_format_str[]
-    = "geant4-optical-physics";
+namespace
+{
+namespace geant_optical_physics_io
+{
+char const format_str[] = "geant4-optical-physics";
+}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, CherenkovPhysicsOptions& options)
@@ -95,7 +100,7 @@ void to_json(nlohmann::json& j, BoundaryPhysicsOptions const& inp)
  */
 void from_json(nlohmann::json const& j, GeantOpticalPhysicsOptions& options)
 {
-    check_format(j, geant_optical_physics_format_str);
+    check_format(j, geant_optical_physics_io::format_str);
 
     CELER_JSON_LOAD_OPTIONAL(j, options, cherenkov);
     CELER_JSON_LOAD_OPTIONAL(j, options, scintillation);
@@ -126,7 +131,7 @@ void to_json(nlohmann::json& j, GeantOpticalPhysicsOptions const& inp)
         CELER_JSON_PAIR(inp, verbose),
     };
 
-    save_format(j, geant_optical_physics_format_str);
+    save_format(j, geant_optical_physics_io::format_str);
 }
 
 //---------------------------------------------------------------------------//

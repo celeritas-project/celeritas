@@ -20,7 +20,13 @@
 namespace celeritas
 {
 //---------------------------------------------------------------------------//
-static char const geant_physics_format_str[] = "geant-physics";
+namespace
+{
+namespace geant_physics_io
+{
+char const format_str[] = "geant-physics";
+}
+}  // namespace
 
 //---------------------------------------------------------------------------//
 void from_json(nlohmann::json const& j, MscModelSelection& value)
@@ -115,8 +121,8 @@ void to_json(nlohmann::json& j, GeantMuonPhysicsOptions const& inp)
 void from_json(nlohmann::json const& j, GeantPhysicsOptions& options)
 {
 #define GPO_LOAD_OPTION(NAME) CELER_JSON_LOAD_OPTION(j, options, NAME)
-    check_format(j, geant_physics_format_str);
-    check_units(j, geant_physics_format_str);
+    check_format(j, geant_physics_io::format_str);
+    check_units(j, geant_physics_io::format_str);
 
     GPO_LOAD_OPTION(compton_scattering);
     GPO_LOAD_OPTION(photoelectric);
@@ -224,7 +230,7 @@ void to_json(nlohmann::json& j, GeantPhysicsOptions const& inp)
         CELER_JSON_PAIR_OPTIONAL(inp, optical),
     };
 
-    save_format(j, geant_physics_format_str);
+    save_format(j, geant_physics_io::format_str);
     save_units(j);
 }
 
