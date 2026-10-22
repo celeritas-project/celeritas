@@ -33,6 +33,7 @@ CELER_FUNCTION void RNGExecutor::operator()(CoreTrackView const& track)
     RNGInteractor interact{};
     interact(rng);
 #endif
+    (void)track;  // Suppress warning
 }
 
 //---------------------------------------------------------------------------//
