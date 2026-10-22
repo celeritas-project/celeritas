@@ -21,11 +21,8 @@ namespace inp
 //---------------------------------------------------------------------------//
 namespace
 {
-namespace standalone_input_io
-{
-char const format_str[] = "standalone-input";
-char const optical_format_str[] = "optical-standalone-input";
-}  // namespace standalone_input_io
+char const standalone_format_str[] = "standalone-input";
+char const standalone_optical_format_str[] = "optical-standalone-input";
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -42,12 +39,12 @@ void to_json(nlohmann::json& j, StandaloneInput const& v)
         CELER_JSON_PAIR(v, events),
     };
 
-    save_format(j, standalone_input_io::format_str);
+    save_format(j, standalone_format_str);
 }
 
 void from_json(nlohmann::json const& j, StandaloneInput& v)
 {
-    check_format(j, standalone_input_io::format_str);
+    check_format(j, standalone_format_str);
 
     CELER_JSON_LOAD_OPTION(j, v, system);
     CELER_JSON_LOAD_REQUIRED(j, v, problem);
@@ -64,12 +61,12 @@ void to_json(nlohmann::json& j, OpticalStandaloneInput const& v)
         CELER_JSON_PAIR(v, geant_setup),
     };
 
-    save_format(j, standalone_input_io::optical_format_str);
+    save_format(j, standalone_optical_format_str);
 }
 
 void from_json(nlohmann::json const& j, OpticalStandaloneInput& v)
 {
-    check_format(j, standalone_input_io::optical_format_str);
+    check_format(j, standalone_optical_format_str);
 
     CELER_JSON_LOAD_OPTION(j, v, system);
     CELER_JSON_LOAD_REQUIRED(j, v, problem);

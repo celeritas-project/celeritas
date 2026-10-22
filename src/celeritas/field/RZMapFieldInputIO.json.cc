@@ -23,10 +23,7 @@ namespace celeritas
 //---------------------------------------------------------------------------//
 namespace
 {
-namespace rz_map_field_input_io
-{
-char const format_str[] = "rz-map-field";
-}
+char const rz_map_field_format_str[] = "rz-map-field";
 }  // namespace
 
 //---------------------------------------------------------------------------//
@@ -38,8 +35,8 @@ void from_json(nlohmann::json const& j, RZMapFieldInput& inp)
 #define RZFI_LOAD(NAME) j.at(#NAME).get_to(inp.NAME)
     using namespace celeritas::units;
 
-    check_format(j, rz_map_field_input_io::format_str);
-    check_units(j, rz_map_field_input_io::format_str);
+    check_format(j, rz_map_field_format_str);
+    check_units(j, rz_map_field_format_str);
 
     RZFI_LOAD(num_grid_z);
     RZFI_LOAD(num_grid_r);
@@ -165,7 +162,7 @@ void to_json(nlohmann::json& j, RZMapFieldInput const& inp)
         CELER_JSON_PAIR(inp, field_r),
         CELER_JSON_PAIR(inp, driver_options),
     };
-    save_format(j, rz_map_field_input_io::format_str);
+    save_format(j, rz_map_field_format_str);
     save_units(j);
 }
 
