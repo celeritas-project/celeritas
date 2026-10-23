@@ -114,6 +114,28 @@ struct CalcSafetyDistance
 
 //---------------------------------------------------------------------------//
 /*!
+ * Calculate the nearest distance to a surface along a direction.
+ *
+ * The point is assumed to be off the surface. If the surface is not
+ * intersected, the result is \c no_intersection() .
+ */
+struct CalcNearestIntersection
+{
+    Real3 const& pos;
+    Real3 const& dir;
+
+    //! Operate on a surface
+    template<class S>
+    CELER_FUNCTION real_type operator()(S const& surf)
+    {
+        auto all_dist
+            = surf.calc_intersections(this->pos, this->dir, SurfaceState::off);
+        return *celeritas::min_element(all_dist.begin(), all_dist.end());
+    }
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Fill an array with valid distances-to-intersection.
  *
  * \tparam F Predicate for returning whether the distance is allowable

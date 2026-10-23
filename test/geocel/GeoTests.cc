@@ -377,7 +377,7 @@ void AtlasHgtdGeoTest::test_detailed_tracking() const
         auto next = geo.find_next_step(from_cm(2.0));
         EXPECT_SOFT_NEAR(1.0, to_cm(next.distance), 1e-5);
         EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_SOFT_EQ(344.45, to_cm(geo.pos()[2]));
         EXPECT_EQ("SPlate", test_->volume_name(geo));
         EXPECT_TRUE(geo.is_on_boundary());
@@ -626,7 +626,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         ASSERT_NO_THROW(next = geo.find_next_step(from_cm(4.0)));
         EXPECT_SOFT_EQ(1.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_TRUE(geo.is_on_boundary());
         EXPECT_EQ("Shape2", test_->volume_name(geo));
         if (geo.check_normal())
@@ -667,7 +667,7 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
         EXPECT_TRUE(next.boundary);
 
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         EXPECT_FALSE(geo.is_outside());
         if (geo.check_normal())
         {
@@ -681,23 +681,23 @@ void FourLevelsGeoTest::test_detailed_tracking() const
         geo = test_->make_initializer({10.0, 10.0, 10.0}, {1, 0, 0});
         EXPECT_EQ("World_PV/env1/Shape1/Shape2",
                   test_->unique_volume_name(geo));
-        geo.find_next_step(max_distance);
-        geo.move_to_boundary();
+        next = geo.find_next_step(max_distance);
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1/Shape1", test_->unique_volume_name(geo));
-        geo.find_next_step(max_distance);
-        geo.move_to_boundary();
+        next = geo.find_next_step(max_distance);
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV/env1", test_->unique_volume_name(geo));
-        geo.find_next_step(max_distance);
-        geo.move_to_boundary();
+        next = geo.find_next_step(max_distance);
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
 
         EXPECT_EQ("World_PV", test_->unique_volume_name(geo));
-        geo.find_next_step(max_distance);
-        geo.move_to_boundary();
+        next = geo.find_next_step(max_distance);
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
 
         EXPECT_EQ("[OUTSIDE]", test_->unique_volume_name(geo));
@@ -722,7 +722,7 @@ void FourLevelsGeoTest::test_reentrant() const
     EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
     // Move left to the boundary but scatter perpendicularly, tangent
     // upward to the sphere (which is convex at this point)
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     if (geo.check_normal())
     {
         EXPECT_NORMAL_EQUIV((Real3{1, 0, 0}), geo.normal());
@@ -766,7 +766,7 @@ void FourLevelsGeoTest::test_reentrant() const
     geo.set_dir({1, 0, 0});
     ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1)));
     EXPECT_LE(next.distance, from_cm(1e-5));
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     if (geo.check_normal())
     {
@@ -808,7 +808,7 @@ void FourLevelsGeoTest::test_reentrant_normal() const
     Propagation next;
     ASSERT_NO_THROW(next = geo.find_next_step(from_cm(1.0)));
     EXPECT_SOFT_EQ(0.5, to_cm(next.distance));
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
 
     // We CANNOT scatter normal to a surface: the ONLY way the geometry can
@@ -885,7 +885,7 @@ void FourLevelsGeoTest::test_pico_step() const
         EXPECT_VEC_EQ(pos, geo.pos());
     }
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     real_type const moved = next.distance;
     axpy(moved, geo.dir(), &pos);
     EXPECT_VEC_EQ(pos, geo.pos());
@@ -996,7 +996,7 @@ void FourLevelsGeoTest::test_small_steps() const
     EXPECT_SOFT_EQ(5, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
     EXPECT_EQ(start_volume, geo.volume_id());
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_EQ(start_volume, geo.volume_id());
     geo.cross_boundary();
     EXPECT_NE(start_volume, geo.volume_id());
@@ -1045,10 +1045,10 @@ void FourLevelsGeoTest::test_small_steps() const
     }
     EXPECT_LT(to_cm(next.distance), 2 * gap);
     auto const pos = geo.pos();
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     if (next.distance == 0)
     {
-        // A zero-distance hit must replace any previously cached positive step.
+        // A zero-distance hit must not move by a previously found step
         EXPECT_VEC_EQ(pos, geo.pos());
     }
     EXPECT_EQ(box_volume, geo.volume_id());
@@ -1974,7 +1974,7 @@ void SolidsGeoTest::test_trace() const
         auto next = geo.find_next_step(to_cm(500));
         EXPECT_SOFT_EQ(10.0f, next.distance);
         ASSERT_TRUE(next.boundary);
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         geo.cross_boundary();
         EXPECT_EQ("World", test_->volume_name(geo));
         next = geo.find_next_step(to_cm(500));
@@ -2407,7 +2407,7 @@ void SimpleCmsGeoTest::test_detailed_tracking() const
     EXPECT_SOFT_EQ(30, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
     if (geo.check_normal())
@@ -2911,7 +2911,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     EXPECT_SOFT_EQ(3, to_cm(next.distance));
     EXPECT_TRUE(next.boundary);
 
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_FALSE(geo.is_outside());
     if (geo.check_normal())
@@ -2937,7 +2937,7 @@ void TwoBoxesGeoTest::test_detailed_tracking() const
     next = geo.find_next_step(from_cm(1000));
     EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_NEAR(2 * dx, to_cm(next.distance), 1e-4);
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     if (geo.check_normal())
     {
@@ -2989,7 +2989,7 @@ void TwoBoxesGeoTest::test_reentrant() const
     EXPECT_TRUE(next.boundary);
 
     // Move to boundary (-; +,-)
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     if (geo.check_normal())
     {
@@ -3055,7 +3055,7 @@ void TwoBoxesGeoTest::test_reentrant_undo() const
     EXPECT_TRUE(next.boundary);
 
     // Propagate: move to boundary (-; +,-)
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("inner", test_->volume_name(geo));
 
@@ -3134,7 +3134,7 @@ CheckedGeoTrackView TwoBoxesGeoTest::approach_with_substeps() const
     next = geo.find_next_step(from_cm(0.04 + 0.01));
     EXPECT_TRUE(next.boundary);
     EXPECT_SOFT_EQ(0.75 - dx, to_cm(next.distance));
-    geo.move_to_boundary();
+    geo.move_to_boundary(next.distance);
     EXPECT_TRUE(geo.is_on_boundary());
     EXPECT_EQ("inner", test_->volume_name(geo));
     EXPECT_VEC_SOFT_EQ((Real3{5, dx, 0}), to_cm(geo.pos()));
@@ -3272,7 +3272,7 @@ void TwoBoxesGeoTest::test_tangent() const
         EXPECT_TRUE(next.boundary);
 
         // Move to boundary (-; +,-)
-        geo.move_to_boundary();
+        geo.move_to_boundary(next.distance);
         if (geo.check_normal())
         {
             EXPECT_TRUE(geo.is_on_boundary());
