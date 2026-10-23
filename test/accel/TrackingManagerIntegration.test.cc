@@ -61,8 +61,6 @@ bool is_running_events()
 }
 }  // namespace
 
-namespace tracking_integration_test
-{
 /*!
  * Count particle types.
  */
@@ -95,9 +93,6 @@ class CounterTrackingAction final : public G4UserTrackingAction
     std::size_t num_electrons_{};
     std::size_t num_positrons_{};
 };
-
-}  // namespace tracking_integration_test
-using tracking_integration_test::CounterTrackingAction;
 
 //---------------------------------------------------------------------------//
 // TEST BASE
