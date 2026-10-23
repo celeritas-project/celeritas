@@ -48,7 +48,7 @@ GeoMatId background_fill(GeoMatId mat)
  * Whether a matrix is a valid universe alignment rotation.
  *
  * A valid rotation matrix for universe alignment must be orthnormal with a
- * determinant of 1. It cannot have a determinent of -1, i.e., it cannot be a
+ *determinantt of 1. It cannot have a determinent of -1, i.e., it cannot be a
  * reflection matrix.
  */
 bool is_alignment_rotation(SquareMatrixReal3 const& mat, real_type tol)
@@ -82,8 +82,12 @@ ProtoConstructor::ProtoConstructor(VolumeParams const& vols,
                        << "universe alignment for volume '" << name
                        << "' is not a valid rotation matrix: " << rot);
 
+        // Clean up a possibly low-precision matrix from user
+        auto rot_clean{rot};
+        orthonormalize(&rot_clean);
+
         Alignment align;
-        align.rotation = Transformation{rot, Real3{0, 0, 0}};
+        align.rotation = Transformation{rot_clean, Real3{0, 0, 0}};
         align.inverse = align.rotation.calc_inverse();
         alignment_.insert({vol_id, std::move(align)});
     }
@@ -240,10 +244,12 @@ void ProtoConstructor::place_pv(VariantTransform const& parent_transform,
         CELER_VALIDATE(!pv.lv->children.empty(),
                        << "aligned volume '" << label
                        << "' has no daughters to align");
+
+        // FIXME: remove this VALIDATE after union boundaries are implemented
         CELER_VALIDATE(!is_union(pv.lv->solid),
                        << "aligned volume '" << label
-                       << "' has a union boundary, which cannot be a "
-                          "universe boundary");
+                       << "' has a union boundary, which currently cannot be "
+                          "a universe boundary");
     }
 
     if (CELER_UNLIKELY(opts_.verbose_structure))

@@ -45,9 +45,9 @@ namespace g4org
  * it is constructed in a frame rotated by the given matrix so that its
  * daughters are axis-aligned (to improve acceleration performance). This is
  * done by applying the rotation to the local volume's boundary and all
- * daughters, and applying the inverse rotation to it's placement in its
- * parent. Note that this operation does not change the physical geometry,
- * only how it is represented computationally.
+ * daughters, and applying the inverse rotation to its placement in its parent
+ * parent. Note that this operation does not change the physical geometry, only
+ * how it is represented computationally.
  */
 class ProtoConstructor
 {
