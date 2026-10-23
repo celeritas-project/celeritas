@@ -98,6 +98,7 @@ void KernelContextException::output(JsonPimpl* json) const
     if (track_)
     {
         KCE_INSERT_IF_VALID(parent);
+        j["generation"] = generation_;
         KCE_INSERT_IF_VALID(primary);
         j["num_steps"] = num_steps_;
         KCE_INSERT_IF_VALID(particle);
@@ -128,6 +129,7 @@ void KernelContextException::initialize(CoreTrackView const& core)
         event_ = sim.event_id();
         track_ = sim.track_id();
         parent_ = sim.parent_id();
+        generation_ = sim.generation();
         primary_ = sim.primary_id();
         num_steps_ = sim.num_steps();
         {
