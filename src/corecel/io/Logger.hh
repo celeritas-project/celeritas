@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "corecel/Macros.hh"
+#include "corecel/SourceFile.hh"
 #include "corecel/io/detail/NullLoggerMessage.hh"
 
 #include "LoggerTypes.hh"
@@ -22,7 +23,7 @@
 #define CELER_CODE_PROVENANCE \
     ::celeritas::LogProvenance \
     { \
-        __FILE__, __LINE__ \
+        CELER_SOURCE_FILE, __LINE__ \
     }
 
 /*!
