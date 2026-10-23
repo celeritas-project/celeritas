@@ -314,7 +314,9 @@ CMake variables
   trackslot and track.  With trackslot, each trackslot gets a unique random
   number generator.  With track, every particle track gets a unique random
   number generator.  The track option provides improved reproducibility at
-  greater computational expense.
+  greater computational expense.  Each primary track is seeded from the RNG
+  seed, its (Geant4) event ID, and its primary ID within the event; secondaries
+  branch from their parent's generator.
 
 ``CELERITAS_UNITS``
   Choose the native Celeritas unit system: see :ref:`the unit

@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
 #include "corecel/cont/Span.hh"
@@ -51,6 +53,10 @@ struct ProcessPrimariesExecutor
 //---------------------------------------------------------------------------//
 /*!
  * Create track initializers from primaries.
+ *
+ * When reseeding each track, the RNG state is initialized from the primary ID
+ * and the primary's unique event ID, falling back to its local event ID if the
+ * unique ID is unset.
  */
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
@@ -97,10 +103,11 @@ CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
     // Set the RNG state initializer appropriately dispatched on RNG type
     if constexpr (CELERITAS_RESEED == CELERITAS_RESEED_TRACK)
     {
-        celeritas::initialize_rng_state(params->rng.seed,
-                                        ti.sim.event_id.get(),
-                                        ti.sim.primary_id.get(),
-                                        ti.rng);
+        std::uint64_t event_key = primary.unique_event_id
+                                      ? primary.unique_event_id.get()
+                                      : primary.event_id.get();
+        celeritas::initialize_rng_state(
+            params->rng.seed, event_key, ti.sim.primary_id.get(), ti.rng);
     }
 
     // Store the initializer

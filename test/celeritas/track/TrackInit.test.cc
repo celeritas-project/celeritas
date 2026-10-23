@@ -646,6 +646,51 @@ TEST_F(TrackInitHostTest, in_place_rng)
     }
 }
 
+//! Primaries are seeded from their unique event ID, else their local event ID
+TEST_F(TrackInitHostTest, unique_event_rng)
+{
+    if constexpr (CELERITAS_RESEED != CELERITAS_RESEED_TRACK)
+    {
+        GTEST_SKIP() << "RNG is not reseeded for each track";
+    }
+
+    // Primaries share local event and primary IDs; the first falls back to
+    // the local event ID (zero)
+    size_type const num_tracks = 4;
+    std::vector<UniqueEventId> const unique_event_ids{
+        UniqueEventId{}, UniqueEventId{0}, UniqueEventId{1}, UniqueEventId{1}};
+    this->build_states(num_tracks);
+    auto primaries = this->make_primaries(num_tracks);
+    for (auto i : range(num_tracks))
+    {
+        primaries[i].primary_id = PrimaryId{0};
+        primaries[i].unique_event_id = unique_event_ids[i];
+    }
+    this->extend_from_primaries(make_span(primaries));
+    InitializeTracksAction{ActionId{0}}.step(*this->core(), this->state());
+
+    // Draw from each track's RNG, indexed by primary (energy is 1 + index)
+    auto const& rng_params = this->core()->host_ref().rng;
+    auto const& state_ref = this->state().ref();
+    std::vector<RngEngine::result_type> draws(num_tracks);
+    for (auto tid : range(TrackSlotId{num_tracks}))
+    {
+        auto i = static_cast<size_type>(
+                     state_ref.particles.particle_energy[tid] + 0.5)
+                 - 1;
+        ASSERT_LT(i, num_tracks);
+        RngEngine rng(rng_params, state_ref.rng, tid);
+        draws[i] = rng();
+    }
+
+    // Unset unique ID falls back to the local event ID
+    EXPECT_EQ(draws[0], draws[1]);
+    // Different unique events have different streams
+    EXPECT_NE(draws[1], draws[2]);
+    // Same unique event and primary ID give the same stream
+    EXPECT_EQ(draws[2], draws[3]);
+}
+
 //---------------------------------------------------------------------------//
 }  // namespace test
 }  // namespace celeritas
