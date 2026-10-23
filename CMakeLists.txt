@@ -818,6 +818,32 @@ if(CELERITAS_BUILD_DOCS)
 endif()
 
 #----------------------------------------------------------------------------#
+# UNITY BUILD DIAGNOSTICS
+#----------------------------------------------------------------------------#
+
+if(CMAKE_UNITY_BUILD AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  function(celeritas_set_unity_build_code_before_include dir)
+    get_property(_targets DIRECTORY "${dir}" PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(_target IN LISTS _targets)
+      get_target_property(_type "${_target}" TYPE)
+      if(NOT _type STREQUAL "INTERFACE_LIBRARY")
+        set_property(TARGET "${_target}" PROPERTY
+          UNITY_BUILD_CODE_BEFORE_INCLUDE
+          "#pragma GCC diagnostic ignored \"-Wsubobject-linkage\""
+        )
+      endif()
+    endforeach()
+
+    get_property(_subdirs DIRECTORY "${dir}" PROPERTY SUBDIRECTORIES)
+    foreach(_subdir IN LISTS _subdirs)
+      celeritas_set_unity_build_code_before_include("${_subdir}")
+    endforeach()
+  endfunction()
+
+  celeritas_set_unity_build_code_before_include("${PROJECT_SOURCE_DIR}")
+endif()
+
+#----------------------------------------------------------------------------#
 # CONFIG FILE INSTALLATION
 #----------------------------------------------------------------------------#
 

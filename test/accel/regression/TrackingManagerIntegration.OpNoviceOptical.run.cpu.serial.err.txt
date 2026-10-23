@@ -17,7 +17,7 @@ debug@SupportedEmStandardPhysics.cc: Constructing: proton
 debug@IntegrationTestBase.cc: ActionInitialization::Build
 debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 1)
 debug@PrimaryGenerator.cc: Created primary generator with 12 events and 10 primaries per event
-debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::CounterTrackingAction
+debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::(anonymous namespace)::CounterTrackingAction
 debug@ScopedGeantExceptionHandler.cc: Destroying scoped G4 exception handler (depth 1)
 status@TrackingManagerIntegration.test.cc: Run initialization
 debug@DetectorConstruction.cc: Loading detector geometry

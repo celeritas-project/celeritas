@@ -67,7 +67,7 @@ SupportedEmStandardPhysics.cc: debug: Setting EM parameters
 G4WT0 > [1/1] debug@IntegrationTestBase.cc: ActionInitialization::Build
 G4WT0 > [1/1] debug@ScopedGeantExceptionHandler.cc: Creating scoped G4 exception handler (depth 0)
 G4WT0 > [W] debug@PrimaryGenerator.cc: Created primary generator with 12 events and 10 primaries per event
-G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::CounterTrackingAction
+G4WT0 > [1/1] debug@IntegrationTestBase.cc: Setting track action of type celeritas::test::(anonymous namespace)::CounterTrackingAction
 G4WT0 > [1/1] debug@DetectorConstruction.cc: Constructing sensitive detectors
 G4WT0 > [W] warning@DetectorConstruction.cc: No SensDet='OpNoviceSD' construction specified: ignoring for volumes 'Bubble, Tank, World, expHall'
 G4WT0 > [1/1] debug@SupportedEmStandardPhysics.cc: Constructing processes

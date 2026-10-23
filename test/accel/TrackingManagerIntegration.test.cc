@@ -59,7 +59,6 @@ bool is_running_events()
     return !G4Threading::IsMasterThread()
            || !G4Threading::IsMultithreadedApplication();
 }
-}  // namespace
 
 /*!
  * Count particle types.
@@ -93,6 +92,7 @@ class CounterTrackingAction final : public G4UserTrackingAction
     std::size_t num_electrons_{};
     std::size_t num_positrons_{};
 };
+}  // namespace
 
 //---------------------------------------------------------------------------//
 // TEST BASE
