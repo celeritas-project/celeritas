@@ -123,6 +123,16 @@ set_source_files_properties(
   PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
 )
 
+# GCC 15 at -O3 emits a spurious -Wmaybe-uninitialized from inlined
+# std::map moves of UnitInput when this file is batched with other sources.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+   AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
+  set_source_files_properties(
+    OrangeInputIO.json.cc
+    PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON
+  )
+endif()
+
 #-----------------------------------------------------------------------------#
 # Create library
 #-----------------------------------------------------------------------------#
