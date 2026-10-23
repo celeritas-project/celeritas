@@ -138,8 +138,6 @@ FieldDiagnostic::FieldDiagnostic(ActionId id,
     CELER_EXPECT(num_streams > 0);
     CELER_VALIDATE(input.bins > 0,
                    << "nonpositive field diagnostic bins " << input.bins);
-    CELER_VALIDATE(volume_->num_volumes() > 0,
-                   << "field diagnostic requires canonical volumes");
 
     HostVal<FieldDiagnosticParamsData> host_params;
     host_params.num_bins = input.bins + 1;
@@ -214,6 +212,9 @@ void FieldDiagnostic::output(JsonPimpl* j) const
         obj["particles"] = std::move(labels);
     }
 
+    // Number of count bins, the last of which is overflow
+    obj["num_bins"] = p.num_bins;
+
     // Histograms per step and per track for each quantity and particle
     auto hist_obj = [&](auto get, auto size_enum) {
         using E = decltype(size_enum);
@@ -260,6 +261,7 @@ void FieldDiagnostic::output(JsonPimpl* j) const
             {"tally", std::move(per_q)},
         };
     }
+    if (p.num_volumes > 0)
     {
         auto tally
             = sum_streams([](auto& s) { return s.volume; }, p.volume_size());

@@ -55,7 +55,10 @@ void resize(FieldDiagnosticStateData<Ownership::value, M>* state,
     resize_init(&state->step_hist, params.step_hist_size());
     resize_init(&state->track_hist, params.track_hist_size());
     resize_init(&state->energy, params.energy_size());
-    resize_init(&state->volume, params.volume_size());
+    if (params.num_volumes > 0)
+    {
+        resize_init(&state->volume, params.volume_size());
+    }
     resize_init(&state->safety, params.safety_size());
     if (params.num_step_records > 0)
     {

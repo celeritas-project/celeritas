@@ -141,7 +141,7 @@ struct FieldDiagnosticParamsData
     size_type num_bins{0};
     //! Number of particle types
     size_type num_particles{0};
-    //! Number of canonical volumes
+    //! Number of canonical volumes (zero to disable the volume tally)
     size_type num_volumes{0};
     //! Maximum number of step iterations to record
     size_type num_step_records{0};
@@ -167,8 +167,8 @@ struct FieldDiagnosticParamsData
     //! Whether the data is assigned
     explicit CELER_FUNCTION operator bool() const
     {
-        return num_bins > 1 && num_particles > 0 && num_volumes > 0
-               && num_energy_bins > 2 && num_safety_bins > 2;
+        return num_bins > 1 && num_particles > 0 && num_energy_bins > 2
+               && num_safety_bins > 2;
     }
 
     //! Assign from another set of data
@@ -357,7 +357,7 @@ struct FieldDiagnosticStateData
     {
         return !step.empty() && track.size() == step.size()
                && !step_hist.empty() && !track_hist.empty() && !energy.empty()
-               && !volume.empty() && !safety.empty();
+               && !safety.empty();
     }
 
     //! Assign from another set of states

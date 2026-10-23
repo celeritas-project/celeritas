@@ -81,7 +81,7 @@ CELER_FUNCTION void FieldDiagnosticExecutor::operator()(
 
         // Energy and volume tallies
         this->tally(rec, state.energy, params.energy_tally(rec.energy));
-        if (rec.volume)
+        if (rec.volume && rec.volume.get() < params.num_volumes)
         {
             this->tally(rec, state.volume, params.volume_tally(rec.volume));
         }
