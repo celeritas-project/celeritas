@@ -18,6 +18,8 @@
 #include "celeritas/optical/action/ActionLauncher.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "GeneratorAction.hh"
+
 #include "detail/DirectGeneratorExecutor.hh"
 #include "detail/GeneratorAlgorithms.hh"
 
@@ -25,25 +27,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state.
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<DirectGeneratorStateData, M>;
-
-    auto result = std::make_unique<DirectGeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -160,11 +143,11 @@ auto DirectGeneratorAction::create_state(
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(stream, size);
+        return make_state<MemSpace::host, DirectGeneratorState>(stream, size);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(stream, size);
+        return make_state<MemSpace::device, DirectGeneratorState>(stream, size);
     }
     CELER_ASSERT_UNREACHABLE();
 }

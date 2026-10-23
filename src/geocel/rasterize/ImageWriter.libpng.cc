@@ -16,23 +16,31 @@
 
 namespace celeritas
 {
-namespace
-{
 //---------------------------------------------------------------------------//
-//! Instead of deleting a managed FILE pointer, close it
-struct FileDeleter
+//! PIMPL implementation for a PNG file.
+struct ImageWriter::Impl
 {
-    void operator()(std::FILE* ptr)
+    //! Close, rather than delete, the managed FILE pointer.
+    struct FileDeleter
     {
-        auto result = std::fclose(ptr);
-        if (result)
+        void operator()(std::FILE* ptr) const
         {
-            CELER_LOG(error)
-                << "Failed to close PNG file: " << std::strerror(errno);
+            auto result = std::fclose(ptr);
+            if (result)
+            {
+                CELER_LOG(error)
+                    << "Failed to close PNG file: " << std::strerror(errno);
+            }
         }
-    }
+    };
+
+    std::unique_ptr<std::FILE, FileDeleter> file{nullptr};
+    png_structp png{nullptr};
+    png_infop info{nullptr};
 };
 
+namespace
+{
 //---------------------------------------------------------------------------//
 //! Log a warning when libpng emits one
 void log_png_warning(png_structp, png_const_charp msg)
@@ -50,14 +58,6 @@ void log_png_error(png_structp png_ptr, png_const_charp msg)
 
 //---------------------------------------------------------------------------//
 }  // namespace
-
-//---------------------------------------------------------------------------//
-struct ImageWriter::Impl
-{
-    std::unique_ptr<std::FILE, FileDeleter> file{nullptr};
-    png_structp png{nullptr};
-    png_infop info{nullptr};
-};
 
 //---------------------------------------------------------------------------//
 //! Deleter for PIMPL idiom

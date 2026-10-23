@@ -28,25 +28,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<GeneratorStateData, M>;
-
-    auto result = std::make_unique<GeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct and add to core params.
@@ -92,11 +73,13 @@ auto GeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_state<MemSpace::host>(id, initial_capacity_);
+        return make_state<MemSpace::host, GeneratorState>(id,
+                                                          initial_capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_state<MemSpace::device>(id, initial_capacity_);
+        return make_state<MemSpace::device, GeneratorState>(id,
+                                                            initial_capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
