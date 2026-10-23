@@ -161,8 +161,8 @@ void TestEm3FieldDiagnosticTest::check_consistency(json const& out) const
     EXPECT_GT(energy_total("boundary"), 0);
     EXPECT_EQ(0, energy_total("safeties"));
 
-    // Propagation occurred in several calorimeter volumes
-    EXPECT_GT(out.at("volume").at("label").size(), 2);
+    // Only volumes with propagation steps are written
+    EXPECT_GT(out.at("volume").at("label").size(), 0);
     EXPECT_EQ(out.at("volume").at("label").size(), volume.at("steps").size());
 }
 
@@ -183,6 +183,9 @@ TEST_F(TestEm3FieldDiagnosticTest, host)
     auto electron = this->particle()->find(pdg::electron());
     EXPECT_GT(sum(substeps.at(electron.get())), 0);
 
+    // Propagation reached several calorimeter volumes
+    EXPECT_GT(out.at("volume").at("label").size(), 2);
+
     // The step iteration records match the number of steps taken
     auto const& iters = out.at("step_iter").at(0);
     EXPECT_EQ(32, iters.at("tracks").size());
@@ -191,9 +194,13 @@ TEST_F(TestEm3FieldDiagnosticTest, host)
 
 TEST_F(TestEm3FieldDiagnosticTest, TEST_IF_CELER_DEVICE(device))
 {
+    // Only a few steps: primaries reach just the first volumes
     this->run_impl<MemSpace::device>(1024, 4);
     auto out = this->output();
     this->check_consistency(out);
+
+    auto const& iters = out.at("step_iter").at(0);
+    EXPECT_EQ(4, iters.at("tracks").size());
 }
 
 //---------------------------------------------------------------------------//
