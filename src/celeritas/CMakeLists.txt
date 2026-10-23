@@ -172,6 +172,7 @@ list(APPEND SOURCES
   track/TrackInitParams.cc
   user/ActionTimes.cc
   user/DetectorSteps.cc
+  user/FieldDiagnosticData.cc
   user/ParticleTallyData.cc
   user/RootStepWriterIO.json.cc
   user/SimpleCalo.cc
@@ -452,6 +453,7 @@ celeritas_polysource(track/InitializeTracksAction)
 celeritas_polysource(track/StatusChecker)
 celeritas_polysource(user/ActionDiagnostic)
 celeritas_polysource(user/DetectorSteps)
+celeritas_polysource(user/FieldDiagnostic)
 celeritas_polysource(user/SlotDiagnostic)
 celeritas_polysource(user/StepDiagnostic)
 celeritas_polysource(user/detail/SimpleCaloImpl)

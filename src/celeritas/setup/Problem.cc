@@ -88,6 +88,7 @@
 #include "celeritas/track/TrackInitParams.hh"
 #include "celeritas/user/ActionDiagnostic.hh"
 #include "celeritas/user/ActionTimes.hh"
+#include "celeritas/user/FieldDiagnostic.hh"
 #include "celeritas/user/RootStepWriter.hh"
 #include "celeritas/user/SimpleCalo.hh"
 #include "celeritas/user/SlotDiagnostic.hh"
@@ -202,10 +203,13 @@ auto build_track_init(inp::Control const& c, CoreParams::Input const& params)
 //---------------------------------------------------------------------------//
 /*!
  * Construct magnetic field from variant input.
+ *
+ * If the field diagnostic is present, the field propagation is instrumented.
  */
 auto build_along_step(inp::Field const& var_field,
                       CoreParams::Input const& params,
-                      ImportData const& imported)
+                      ImportData const& imported,
+                      std::shared_ptr<FieldDiagnostic const> field_diag)
 {
     bool const eloss = imported.em_params.energy_loss_fluct;
     auto msc = UrbanMscParams::from_import(
@@ -228,7 +232,8 @@ auto build_along_step(inp::Field const& var_field,
                                         *params.particle,
                                         field,
                                         msc,
-                                        eloss);
+                                        eloss,
+                                        field_diag);
             },
             [&](inp::RZMapField const& field) {
                 using ASA = AlongStepRZMapFieldMscAction;
@@ -237,7 +242,8 @@ auto build_along_step(inp::Field const& var_field,
                                         *params.particle,
                                         field,
                                         msc,
-                                        eloss);
+                                        eloss,
+                                        field_diag);
             },
             [&](inp::CylMapField const& field) {
                 using ASA = AlongStepCylMapFieldMscAction;
@@ -246,7 +252,8 @@ auto build_along_step(inp::Field const& var_field,
                                         *params.particle,
                                         field,
                                         msc,
-                                        eloss);
+                                        eloss,
+                                        field_diag);
             },
             [&](inp::CartMapField const& field) {
                 using ASA = AlongStepCartMapFieldMscAction;
@@ -255,7 +262,8 @@ auto build_along_step(inp::Field const& var_field,
                                         *params.particle,
                                         field,
                                         msc,
-                                        eloss);
+                                        eloss,
+                                        field_diag);
             },
         }),
         var_field);
@@ -537,8 +545,31 @@ ProblemLoaded problem(inp::Problem const& p, ImportData const& imported)
     // Load physics: create individual processes with make_shared
     params.physics = build_physics(p, params, imported);
 
+    // Construct the field diagnostic before the along-step action uses it
+    std::shared_ptr<FieldDiagnostic> field_diag;
+    if (p.diagnostics.field)
+    {
+        if (std::holds_alternative<inp::NoField>(p.field))
+        {
+            CELER_LOG(warning) << "Ignoring field diagnostic since no "
+                                  "magnetic field is present";
+        }
+        else
+        {
+            field_diag = std::make_shared<FieldDiagnostic>(
+                params.action_reg->next_id(),
+                *p.diagnostics.field,
+                params.particle,
+                params.volume,
+                params.sizes.streams);
+            params.action_reg->insert(field_diag);
+            params.output_reg->insert(field_diag);
+        }
+    }
+
     CELER_ASSUME(!p.field.valueless_by_exception());
-    params.action_reg->insert(build_along_step(p.field, params, imported));
+    params.action_reg->insert(
+        build_along_step(p.field, params, imported, field_diag));
 
     // Construct RNG params
     params.rng = std::make_shared<RngParams>(p.control.seed);

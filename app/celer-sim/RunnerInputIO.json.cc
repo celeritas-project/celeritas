@@ -23,6 +23,7 @@
 #include "celeritas/field/FieldDriverOptionsIO.json.hh"
 #include "celeritas/inp/Control.hh"
 #include "celeritas/inp/ControlIO.json.hh"
+#include "celeritas/inp/DiagnosticsIO.json.hh"
 #include "celeritas/inp/TrackingIO.json.hh"
 #include "celeritas/phys/PrimaryGeneratorOptionsIO.json.hh"
 #include "celeritas/user/RootStepWriterIO.json.hh"
@@ -126,6 +127,7 @@ void from_json(nlohmann::json const& j, RunnerInput& v)
     LDIO_LOAD_OPTION(physics_options);
 
     CELER_JSON_LOAD_OPTIONAL(j, v, optical)
+    CELER_JSON_LOAD_OPTIONAL(j, v, field_diagnostic)
 
 #undef LDIO_LOAD_DEPRECATED
 #undef LDIO_LOAD_OPTION
@@ -214,6 +216,7 @@ void to_json(nlohmann::json& j, RunnerInput const& v)
                        || !ends_with(v.physics_file, ".root"));
 
     LDIO_SAVE_OPTIONAL(optical);
+    LDIO_SAVE_OPTIONAL(field_diagnostic);
 
 #undef LDIO_SAVE_OPTIONAL
 #undef LDIO_SAVE_OPTION

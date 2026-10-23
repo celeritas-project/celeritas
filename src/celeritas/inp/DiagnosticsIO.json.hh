@@ -34,6 +34,9 @@ void from_json(nlohmann::json const& j, McTruth&);
 void to_json(nlohmann::json& j, StepDiagnostic const&);
 void from_json(nlohmann::json const& j, StepDiagnostic&);
 
+void to_json(nlohmann::json& j, FieldDiagnostic const&);
+void from_json(nlohmann::json const& j, FieldDiagnostic&);
+
 void to_json(nlohmann::json& j, Diagnostics const&);
 void from_json(nlohmann::json const& j, Diagnostics&);
 

@@ -10,7 +10,6 @@
 #include <utility>
 
 #include "corecel/Assert.hh"
-#include "celeritas/alongstep/detail/PropagationApplier.hh"
 #include "celeritas/em/msc/UrbanMsc.hh"
 #include "celeritas/em/params/FluctuationParams.hh"  // IWYU pragma: keep
 #include "celeritas/em/params/UrbanMscParams.hh"  // IWYU pragma: keep
@@ -23,12 +22,11 @@
 #include "celeritas/phys/ParticleTrackView.hh"
 
 #include "detail/ElossApplier.hh"
-#include "detail/FieldTrackPropagator.hh"
+#include "detail/FieldPropagationLauncher.hh"
 #include "detail/FluctELoss.hh"
 #include "detail/MeanELoss.hh"
 #include "detail/MscApplier.hh"
 #include "detail/MscStepLimitApplier.hh"
-#include "detail/PropagationApplier.hh"
 #include "detail/TimeUpdater.hh"
 #include "detail/TrackUpdater.hh"
 
@@ -47,7 +45,8 @@ AlongStepRZMapFieldMscAction::from_params(ActionId id,
                                           ParticleParams const& particles,
                                           RZMapFieldInput const& field_input,
                                           SPConstMsc const& msc,
-                                          bool eloss_fluctuation)
+                                          bool eloss_fluctuation,
+                                          SPConstFieldDiagnostic field_diag)
 {
     CELER_EXPECT(field_input);
 
@@ -58,22 +57,26 @@ AlongStepRZMapFieldMscAction::from_params(ActionId id,
     }
 
     return std::make_shared<AlongStepRZMapFieldMscAction>(
-        id, field_input, std::move(fluct), msc);
+        id, field_input, std::move(fluct), msc, std::move(field_diag));
 }
 
 //---------------------------------------------------------------------------//
 /*!
  * Construct with next action ID, energy loss parameters, and MSC.
+ *
+ * If a field diagnostic is given, the propagation kernel is instrumented.
  */
 AlongStepRZMapFieldMscAction::AlongStepRZMapFieldMscAction(
     ActionId id,
     RZMapFieldInput const& input,
     SPConstFluctuations fluct,
-    SPConstMsc msc)
+    SPConstMsc msc,
+    SPConstFieldDiagnostic field_diag)
     : id_(id)
     , field_{std::make_shared<RZMapFieldParams>(input)}
     , fluct_(std::move(fluct))
     , msc_(std::move(msc))
+    , field_diag_(std::move(field_diag))
 {
     CELER_EXPECT(id_);
     CELER_EXPECT(field_);
@@ -100,13 +103,15 @@ void AlongStepRZMapFieldMscAction::step(CoreParams const& params,
                 std::forward<decltype(execute_track)>(execute_track)));
     };
 
+    auto propagate = make_host_field_propagation<RZMapField>(
+        field_->ref<MemSpace::native>(), field_diag_.get(), state);
+
     launch_impl([&](CoreTrackView& track) {
         if (this->has_msc())
         {
             MscStepLimitApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
         }
-        PropagationApplier{FieldTrackPropagator<RZMapField>{
-            field_->ref<MemSpace::native>()}}(track);
+        propagate(track);
         if (this->has_msc())
         {
             MscApplier{UrbanMsc{msc_->ref<MemSpace::native>()}}(track);
