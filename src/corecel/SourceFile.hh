@@ -118,7 +118,7 @@ constexpr char const* make_source_file(std::index_sequence<Is...>)
 //---------------------------------------------------------------------------//
 //! Trim the path returned by \c S::str() at compile time
 template<class S>
-constexpr char const* source_file()
+constexpr CELER_FORCEINLINE char const* source_file()
 {
     constexpr std::size_t off = source_dir_offset(S::str());
     constexpr std::size_t len = cstr_length(S::str()) - off;
@@ -152,24 +152,19 @@ constexpr char const* source_file()
  * compiler roughly as much as a small function definition. Trimming is
  * therefore enabled only through the \c CELERITAS_TRIM_SOURCE_FILE
  * configuration option, which is available only when debug assertions are
- * disabled. Otherwise, and always in device code (where the trimmed string
- * would be a host address), this macro is simply \c __FILE__ .
- *
- * \note GCC 8 fails to deduce the lambda's return type inside a discarded
- * <code>if constexpr</code> branch, so trimming is also disabled there.
+ * disabled and the compiler is known to handle it. Otherwise, and always in
+ * device code (where the trimmed string would be a host address), this macro
+ * is simply \c __FILE__ .
  */
-#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 9
-#    define CELER_SOURCE_FILE_TRIM_ 0
-#else
-#    define CELER_SOURCE_FILE_TRIM_ CELERITAS_TRIM_SOURCE_FILE
-#endif
-
-#if CELER_SOURCE_FILE_TRIM_ && !CELER_DEVICE_COMPILE
+#if CELERITAS_TRIM_SOURCE_FILE && !CELER_DEVICE_COMPILE
 #    define CELER_SOURCE_FILE \
         ([] { \
             struct CelerSourceFile_ \
             { \
-                static constexpr char const* str() { return __FILE__; } \
+                static constexpr CELER_FORCEINLINE char const* str() \
+                { \
+                    return __FILE__; \
+                } \
             }; \
             return ::celeritas::detail::source_file<CelerSourceFile_>(); \
         }())

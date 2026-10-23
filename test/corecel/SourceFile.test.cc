@@ -8,6 +8,8 @@
 
 #include <string_view>
 
+#include "corecel/Config.hh"
+
 #include "celeritas_test.hh"
 
 namespace celeritas
@@ -63,7 +65,7 @@ constexpr char const* in_constexpr_function()
 }
 
 // The macro is itself a constant expression
-#if CELER_SOURCE_FILE_TRIM_
+#if CELERITAS_TRIM_SOURCE_FILE
 static_assert(in_constexpr_function()[0] == 'c');
 #else
 static_assert(in_constexpr_function()[0] != '\0');
@@ -95,7 +97,7 @@ TEST(SourceFileTest, fixed_paths)
 
 TEST(SourceFileTest, macro)
 {
-    if (!CELER_SOURCE_FILE_TRIM_)
+    if (!CELERITAS_TRIM_SOURCE_FILE)
     {
         EXPECT_STREQ(__FILE__, CELER_SOURCE_FILE);
         GTEST_SKIP() << "Source file trimming is disabled";

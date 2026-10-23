@@ -68,9 +68,17 @@ cmake_dependent_option(CELERITAS_CODESIGN_APPS
 
 # Assertion handling
 option(CELERITAS_DEBUG "Enable runtime assertions" OFF)
+
+# GCC 8 fails to deduce the return type of the lambda used by
+# CELER_SOURCE_FILE inside a discarded `if constexpr` branch
+set(_compiler_robust_constexpr TRUE)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
+    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+  set(_compiler_robust_constexpr FALSE)
+endif()
 cmake_dependent_option(CELERITAS_TRIM_SOURCE_FILE
   "Shorten source filenames in log and error messages at compile time" "OFF"
-  "NOT CELERITAS_DEBUG" OFF
+  "NOT CELERITAS_DEBUG;_compiler_robust_constexpr" OFF
 )
 
 if(CELERITAS_USE_CUDA OR CELERITAS_USE_HIP)
