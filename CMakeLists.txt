@@ -12,6 +12,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/CgvFindVersion.cmake")
 cgv_find_version(Celeritas)
 
 set(CMAKE_UNITY_BUILD ON)
+set(UNITY_BUILD_BATCH_SIZE 0)
 
 project(Celeritas VERSION "${Celeritas_VERSION}" LANGUAGES CXX)
 
