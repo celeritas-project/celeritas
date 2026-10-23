@@ -22,6 +22,7 @@
 #include "celeritas/optical/model/WavelengthShiftModel.hh"
 #include "celeritas/phys/GeneratorRegistry.hh"
 
+#include "GeneratorAction.hh"
 #include "WavelengthShiftGenerator.hh"
 
 #include "detail/GeneratorAlgorithms.hh"
@@ -32,25 +33,6 @@ namespace celeritas
 {
 namespace optical
 {
-namespace
-{
-//---------------------------------------------------------------------------//
-//! Construct a state
-template<MemSpace M>
-auto make_wls_generator_state(StreamId stream, size_type size)
-{
-    using StoreT = StateDataStore<WlsGeneratorStateData, M>;
-
-    auto result = std::make_unique<WlsGeneratorState<M>>();
-    result->store = StoreT{stream, size};
-
-    CELER_ENSURE(*result);
-    return result;
-}
-
-//---------------------------------------------------------------------------//
-}  // namespace
-
 //---------------------------------------------------------------------------//
 /*!
  * Construct with IDs, WLS model, and buffer capacity.
@@ -80,11 +62,11 @@ auto WlsGeneratorAction::create_state(MemSpace m, StreamId id, size_type) const
 {
     if (m == MemSpace::host)
     {
-        return make_wls_generator_state<MemSpace::host>(id, capacity_);
+        return make_state<MemSpace::host, WlsGeneratorState>(id, capacity_);
     }
     else if (m == MemSpace::device)
     {
-        return make_wls_generator_state<MemSpace::device>(id, capacity_);
+        return make_state<MemSpace::device, WlsGeneratorState>(id, capacity_);
     }
     CELER_ASSERT_UNREACHABLE();
 }
