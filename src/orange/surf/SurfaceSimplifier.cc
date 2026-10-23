@@ -210,6 +210,7 @@ auto SurfaceSimplifier::operator()(ConeAligned<T> const& c) const
 //! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!
@@ -401,5 +402,4 @@ auto SurfaceSimplifier::operator()(GeneralQuadric const& gq) const
 }
 
 //---------------------------------------------------------------------------//
-#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

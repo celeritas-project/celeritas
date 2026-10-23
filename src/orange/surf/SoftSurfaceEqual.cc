@@ -165,6 +165,7 @@ bool SoftSurfaceEqual::operator()(ConeAligned<T> const& a,
 //! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!
@@ -252,5 +253,4 @@ bool SoftSurfaceEqual::soft_eq_distance(Real3 const& a, Real3 const& b) const
 }
 
 //---------------------------------------------------------------------------//
-#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

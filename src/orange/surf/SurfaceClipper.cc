@@ -166,6 +166,7 @@ void SurfaceClipper::operator()(ConeAligned<T> const&) const
 //!\cond
 ORANGE_INSTANTIATE_OP(ConeAligned);
 //!\endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!
@@ -227,5 +228,4 @@ void SurfaceClipper::operator()(Toroid const& surf) const
 }
 
 //---------------------------------------------------------------------------//
-#undef ORANGE_INSTANTIATE_OP
 }  // namespace celeritas

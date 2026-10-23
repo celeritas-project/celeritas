@@ -120,6 +120,7 @@ ConeAligned<T> SurfaceTranslator::operator()(ConeAligned<T> const& other) const
 //! \cond
 ORANGE_INSTANTIATE_OP(ConeAligned, ConeAligned);
 //! \endcond
+#undef ORANGE_INSTANTIATE_OP
 
 //---------------------------------------------------------------------------//
 /*!
@@ -214,6 +215,5 @@ Toroid SurfaceTranslator::operator()(Toroid const& other) const
 }
 
 //---------------------------------------------------------------------------//
-#undef ORANGE_INSTANTIATE_OP
 }  // namespace detail
 }  // namespace celeritas
