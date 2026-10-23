@@ -48,7 +48,7 @@ GeoMatId background_fill(GeoMatId mat)
  * Whether a matrix is a valid universe alignment rotation.
  *
  * A valid rotation matrix for universe alignment must be orthnormal with a
- *determinantt of 1. It cannot have a determinent of -1, i.e., it cannot be a
+ * determinant of 1. It cannot have a determinant of -1, i.e., it cannot be a
  * reflection matrix.
  */
 bool is_alignment_rotation(SquareMatrixReal3 const& mat, real_type tol)
