@@ -225,6 +225,7 @@ inline CELER_FUNCTION bool all_adjacent(InputIt iter, InputIt last, Predicate p)
  * This is constructed to propagate \c NaN.
  */
 template<class T>
+// NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
 inline CELER_FUNCTION T const& clamp(T const& v, T const& lo, T const& hi)
 {
     CELER_EXPECT(!(hi < lo));
@@ -400,6 +401,7 @@ CELER_FORCEINLINE_FUNCTION void sort(RandomAccessIt first, RandomAccessIt last)
  * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
+// NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
 CELER_CONSTEXPR_FUNCTION T const& max(T const& a, T const& b) noexcept
 {
     return (b > a) ? b : a;
@@ -422,6 +424,7 @@ CELER_CONSTEXPR_FUNCTION T max(T a, T b) noexcept
  * for better performance on GPU and ARM.
  */
 template<class T, std::enable_if_t<!std::is_floating_point_v<T>, bool> = true>
+// NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
 CELER_CONSTEXPR_FUNCTION T const& min(T const& a, T const& b) noexcept
 {
     return (b < a) ? b : a;
