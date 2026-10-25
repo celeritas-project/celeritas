@@ -696,9 +696,12 @@ void LocalTransporter::push_impl(G4Track& g4track)
                    << "' particles");
 
     /*!
-     * \todo Eliminate event ID from primary.
+     * \todo Eliminate the local event ID from primary: it is only used as the
+     * slot for counting tracks.
      */
     track.event_id = EventId{0};
+    // Seed per-track RNGs from the Geant4 event
+    track.unique_event_id = id_cast<UniqueEventId>(event_id_);
 
     step_->push_primary(track);
     ++buffered_accum_.primaries;
