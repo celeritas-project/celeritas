@@ -110,76 +110,11 @@ void DepHitResult::print_expected() const
         helper.fail() << r.message();
     }
 
-    if (helper.equal_size(val1.num_photons.size(), val2.num_photons.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.num_photons, val2.num_photons);
-        if (!softeq_result)
-        {
-            helper.fail() << "  num_photons: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  num_photons: " << expr2 << " = "
-                      << repr(val2.num_photons);
-    }
-
-    if (helper.equal_size(val1.energy.size(), val2.energy.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.energy, val2.energy);
-        if (!softeq_result)
-        {
-            helper.fail() << "  energy: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  energy: " << expr2 << " = " << repr(val2.energy);
-    }
-
-    if (helper.equal_size(val1.x.size(), val2.x.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.x, val2.x);
-        if (!softeq_result)
-        {
-            helper.fail() << "  x: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  x: " << expr2 << " = " << repr(val2.x);
-    }
-
-    if (helper.equal_size(val1.y.size(), val2.y.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.y, val2.y);
-        if (!softeq_result)
-        {
-            helper.fail() << "  y: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  y: " << expr2 << " = " << repr(val2.y);
-    }
-
-    if (helper.equal_size(val1.z.size(), val2.z.size()))
-    {
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.z, val2.z);
-        if (!softeq_result)
-        {
-            helper.fail() << "  z: " << softeq_result.message();
-        }
-    }
-    else
-    {
-        helper.fail() << "  z: " << expr2 << " = " << repr(val2.z);
-    }
+    helper.vec_soft_eq("num_photons", val1.num_photons, val2.num_photons);
+    helper.vec_soft_eq("energy", val1.energy, val2.energy);
+    helper.vec_soft_eq("x", val1.x, val2.x);
+    helper.vec_soft_eq("y", val1.y, val2.y);
+    helper.vec_soft_eq("z", val1.z, val2.z);
 
     return helper;
 }

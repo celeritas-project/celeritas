@@ -837,4 +837,28 @@ IsRefEq(char const* expr1,
 
 //---------------------------------------------------------------------------//
 }  // namespace testdetail
+
+namespace test
+{
+// FIXME: move to assertion helper
+template<class ContainerE, class ContainerA>
+void test::AssertionHelper::vec_soft_eq(
+    char const* field, ContainerE const& expected, ContainerA const& actual)
+{
+    if (this->equal_size(expected.size(), actual.size()))
+    {
+        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
+            expected_expr_, actual_expr_, expected, actual);
+        if (!softeq_result)
+        {
+            this->fail() << "  " << field << ": " << softeq_result.message();
+        }
+    }
+    else
+    {
+        this->fail() << "  " << field << ": " << actual_expr_ << " = "
+                     << repr(actual);
+    }
+}
+}  // namespace test
 }  // namespace celeritas

@@ -44,22 +44,7 @@ std::ostream& operator<<(std::ostream& os, SampledHistogram const& sh)
                                    SampledHistogram const& val2)
 {
     AssertionHelper result(expr1, expr2);
-
-    if (result.equal_size(val1.distribution.size(), val2.distribution.size()))
-    {
-        // TODO make the vector soft equal composable
-        auto softeq_result = ::celeritas::testdetail::IsVecSoftEquiv(
-            expr1, expr2, val1.distribution, val2.distribution);
-        if (!softeq_result)
-        {
-            result.fail() << softeq_result.message();
-        }
-    }
-    else
-    {
-        result.fail() << "  distribution: " << expr2 << " = "
-                      << repr(val2.distribution);
-    }
+    result.vec_soft_eq("distribution", val1.distribution, val2.distribution);
     if (!soft_equal(val1.rng_count, val2.rng_count))
     {
         result.fail() << "  rng_count: " << val1.rng_count

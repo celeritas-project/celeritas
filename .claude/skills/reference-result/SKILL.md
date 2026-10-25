@@ -85,6 +85,35 @@ helps explain a failure.
 Return the `AssertionHelper` so callers receive all accumulated messages. Do
 not silence mismatches or compare unrelated fields under one broad tolerance.
 
+### Preserve soft vector comparisons
+
+When replacing an `EXPECT_VEC_SOFT_EQ` assertion with a result-struct
+comparison, call `::celeritas::testdetail::IsVecSoftEquiv` for that field.
+This uses the same default soft tolerances as the original macro. Follow the
+local pattern in `test/corecel/random/HistogramSampler.cc` and
+`test/larceler/RunnerResults.cc`: check field sizes with
+`AssertionHelper::equal_size`, prefix helper failures with the field name, and
+report the actual field value when the sizes differ. For example:
+
+```cpp
+if (result.equal_size(val1.values.size(), val2.values.size()))
+{
+  auto values_result = ::celeritas::testdetail::IsVecSoftEquiv(
+    expr1, expr2, val1.values, val2.values);
+  if (!values_result)
+  {
+    result.fail() << "  values: " << values_result.message();
+  }
+}
+else
+{
+  result.fail() << "  values: " << expr2 << " = " << repr(val2.values);
+}
+```
+
+Repeat this independently for each vector field so diagnostics identify which
+field failed and the comparator continues collecting other field failures.
+
 ## 5. Add or update focused tests
 
 Exercise both the comparator and the generated reference snippet workflow:

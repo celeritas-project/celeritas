@@ -24,6 +24,7 @@ namespace test
     {
         result.fail() "  foo: " << a.foo << " != " << b.foo;
     }
+    result.vec_soft_eq("bar", a.bar, b.bar);
     return result;
  *  \endcode
  */
@@ -38,6 +39,12 @@ class AssertionHelper
 
     // Check the sizes, returning success, adding failure message if not
     bool equal_size(std::size_t expected, std::size_t actual);
+
+    // Compare containers using soft equivalence, with a field-specific error
+    template<class ContainerE, class ContainerA>
+    void vec_soft_eq(char const* field,
+                     ContainerE const& expected,
+                     ContainerA const& actual);
 
     //! Get the streamable assertion result
     operator ::testing::AssertionResult const&() const { return result_; }
