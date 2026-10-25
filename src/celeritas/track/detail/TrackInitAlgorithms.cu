@@ -17,15 +17,13 @@
 #endif
 #if CELER_USE_THRUST
 #    include <thrust/execution_policy.h>
-#    include <thrust/remove.h>
 #    include <thrust/scan.h>
-
-#    include "corecel/math/Algorithms.hh"  // For LogicalNot()
 #endif
 #include <thrust/device_ptr.h>
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
 
+#include "corecel/data/DeviceAlgorithms.device.hh"
 #include "corecel/data/DeviceVector.hh"
 #include "corecel/data/ObserverPtr.device.hh"
 #include "corecel/sys/Device.hh"
@@ -45,7 +43,6 @@ namespace celeritas
 {
 namespace detail
 {
-#if !CELER_USE_THRUST
 //---------------------------------------------------------------------------//
 /*!
  * Whether the track slot is being used
@@ -57,7 +54,6 @@ struct NotNull
         return static_cast<bool>(a);
     }
 };
-#endif
 
 //---------------------------------------------------------------------------//
 /*!
@@ -69,51 +65,13 @@ void remove_if_alive(
     StreamId stream_id)
 {
     ScopedProfiling profile_this{"remove-if-alive"};
-    auto& stream = device().stream(stream_id);
-#if CELER_USE_THRUST
-    auto start = device_pointer_cast(init.vacancies.data());
-    auto counters = device_pointer_cast(init.counters.data());
-    auto end = thrust::remove_if(thrust_execute_on(stream_id),
-                                 start,
-                                 start + init.vacancies.size(),
-                                 LogicalNot{});
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-
-    // Update the number of vacancies
-    size_type num_vacancies = end - start;
-    Copier<size_type, MemSpace::device> copy{{&(counters->num_vacancies), 1},
-                                             stream_id};
-    copy(MemSpace::host, {&num_vacancies, 1});
-    stream.sync();
-#else
-    // Calling with nullptr causes the function to return the amount of working
-    // space needed instead of invoking the kernel.
-    std::size_t temp_storage_bytes = 0;
-    auto data = device_pointer_cast(init.vacancies.data());
-    auto counters = device_pointer_cast(init.counters.data());
-    // HIP defines hipCUB functions as [[nodiscard]], but we defer error checks
-    auto cub_error_code = cub::DeviceSelect::If(nullptr,
-                                                temp_storage_bytes,
-                                                data,
-                                                &(counters->num_vacancies),
-                                                init.vacancies.size(),
-                                                NotNull{},
-                                                stream.get());
-    CELER_DISCARD(cub_error_code);
-    // Allocate temporary storage
-    DeviceVector<char> temp_storage(temp_storage_bytes, stream_id);
-    // Run selection
-    cub_error_code = cub::DeviceSelect::If(temp_storage.data(),
-                                           temp_storage_bytes,
-                                           data,
-                                           &(counters->num_vacancies),
-                                           init.vacancies.size(),
-                                           NotNull{},
-                                           stream.get());
-    CELER_DISCARD(cub_error_code);
-    CELER_DEVICE_API_CALL(PeekAtLastError());
-#endif
-    return;
+    auto* counters = init.counters.data().get();
+    select_if_async(
+        init.vacancies.data(),
+        init.vacancies.size(),
+        ObserverPtr<size_type, MemSpace::device>{&counters->num_vacancies},
+        NotNull{},
+        stream_id);
 }
 
 //---------------------------------------------------------------------------//
