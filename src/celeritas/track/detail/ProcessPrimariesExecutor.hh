@@ -57,6 +57,12 @@ struct ProcessPrimariesExecutor
  * When reseeding each track, the RNG state is initialized from the primary ID
  * and the primary's unique event ID, falling back to its local event ID if the
  * unique ID is unset.
+ *
+ * \todo Revisit event IDs and seeding together with the supported
+ * threading/tasking models: the local event ID could be combined with the
+ * stream ID, and the RNG could be seeded from the unique event ID and the
+ * Geant4 track ID (e.g., hashed into 64 bits or used as a 128-bit seed) rather
+ * than from event IDs read from input files.
  */
 CELER_FUNCTION void ProcessPrimariesExecutor::operator()(ThreadId tid) const
 {
