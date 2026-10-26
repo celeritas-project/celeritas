@@ -71,7 +71,8 @@
  */
 #define CELER_DEVICE_RUNTIME_INCLUDED 1
 
-#if defined(CELER_DEVICE_RUNTIME_NEEDED)
+#if defined(CELER_DEVICE_RUNTIME_NEEDED) \
+    && defined(CELER_DEVICE_RUNTIME_INCLUDE_ERROR)
 static_assert(false,
               "A file that requires DeviceRuntimeApi.hh was included before "
               "this: " CELER_DEVICE_RUNTIME_NEEDED);
