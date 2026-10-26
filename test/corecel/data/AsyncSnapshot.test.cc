@@ -33,7 +33,7 @@ TEST(AsyncSnapshotTest, host)
     EXPECT_EQ(2, snapshot.value().second);
 
     Counts src{3, 4};
-    snapshot.copy_async(make_observer(&src), StreamId{});
+    snapshot.load_async(make_observer(&src), StreamId{});
     src.first = 10;
     EXPECT_EQ(3, snapshot.value().first);
     EXPECT_EQ(4, snapshot.value().second);
@@ -56,7 +56,7 @@ TEST(AsyncSnapshotTest, TEST_IF_CELER_DEVICE(device))
     src.copy_to_device({&init, 1});
 
     AsyncSnapshot<Counts> snapshot;
-    snapshot.copy_async(make_observer(src), sid);
+    snapshot.load_async(make_observer(src), sid);
     DeviceEvent done{device()};
     done.record(device().stream(sid));
     done.sync();

@@ -26,14 +26,14 @@ namespace celeritas
  * Host copy of a single value that is updated asynchronously from a stream.
  *
  * The value is stored in pinned host memory so that a device-to-host copy
- * enqueued with \c copy_async does not block the host. The copied value
+ * enqueued with \c load_async does not block the host. The loaded value
  * \b must not be read until the stream has completed the copy, either by
  * synchronizing the stream or an event recorded after the copy. Code that
  * enqueues its own write can be given the destination with \c ref .
  *
  * \code
     AsyncSnapshot<Counters> snapshot;
-    snapshot.copy_async(device_counters, stream_id);
+    snapshot.load_async(device_counters, stream_id);
     done.record(device().stream(stream_id));
     // ... enqueue more work ...
     done.sync();
@@ -50,9 +50,12 @@ class AsyncSnapshot
     // Construct with an initial host value
     explicit inline AsyncSnapshot(T const& value = {});
 
-    // Enqueue a copy of a single value from its memory space
-    template<class U, MemSpace M>
-    inline void copy_async(ObserverPtr<U, M> src, StreamId stream);
+    // Load a single value from host memory
+    inline void load_async(ObserverPtr<T const, MemSpace::host> src, StreamId);
+
+    // Enqueue a load of a single value from device memory
+    inline void load_async(ObserverPtr<T const, MemSpace::device> src,
+                           StreamId stream);
 
     //! Destination for an asynchronous write
     AsyncResultRef<T> ref()
@@ -93,32 +96,33 @@ AsyncSnapshot<T>::AsyncSnapshot(T const& value)
 
 //---------------------------------------------------------------------------//
 /*!
- * Enqueue a copy of a single value from its memory space.
+ * Load a single value from host memory.
  *
- * The memory space of the source is part of its type, so a device value
- * cannot be read as host memory. A copy from device memory is enqueued on the
- * given stream and completes asynchronously. A copy from host memory
- * completes immediately.
+ * The load completes immediately. The stream is accepted so that code
+ * templated on the memory space can call either overload.
  */
 template<class T>
-template<class U, MemSpace M>
-void AsyncSnapshot<T>::copy_async(ObserverPtr<U, M> src, StreamId stream)
+void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::host> src,
+                                  StreamId)
 {
-    static_assert(std::is_same_v<std::remove_const_t<U>, T>,
-                  "Source type must match the snapshot type");
     CELER_EXPECT(src);
+    *storage_ = *static_cast<T const*>(src);
+}
 
-    auto const* src_ptr = static_cast<T const*>(src);
-    if constexpr (M == MemSpace::host)
-    {
-        *storage_ = *src_ptr;
-    }
-    else
-    {
-        CELER_EXPECT(stream);
-        Copier<T, MemSpace::host> copy{{storage_.get(), 1}, stream};
-        copy(M, {src_ptr, 1});
-    }
+//---------------------------------------------------------------------------//
+/*!
+ * Enqueue a load of a single value from device memory.
+ *
+ * The copy is enqueued on the given stream and completes asynchronously.
+ */
+template<class T>
+void AsyncSnapshot<T>::load_async(ObserverPtr<T const, MemSpace::device> src,
+                                  StreamId stream)
+{
+    CELER_EXPECT(src);
+    CELER_EXPECT(stream);
+    Copier<T, MemSpace::host> copy{{storage_.get(), 1}, stream};
+    copy(MemSpace::device, {static_cast<T const*>(src), 1});
 }
 
 //---------------------------------------------------------------------------//

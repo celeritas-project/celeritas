@@ -202,7 +202,7 @@ void CoreState<M>::initialize_counters(size_type num_pending)
 template<MemSpace M>
 void CoreState<M>::async_copy_counters()
 {
-    host_counters_.copy_async(this->ref().init.counters.data(),
+    host_counters_.load_async(this->ref().init.counters.data(),
                               this->stream_id());
 }
 
