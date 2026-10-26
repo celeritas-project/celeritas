@@ -38,10 +38,13 @@
 
 namespace celeritas
 {
-namespace detail
-{
 //---------------------------------------------------------------------------//
-//! Negate a unary predicate (for compaction with Thrust)
+/*!
+ * Negate a unary predicate.
+ *
+ * This is used to compact with \c thrust::remove_if , which removes rather
+ * than selects the items that satisfy the predicate.
+ */
 template<class Pred>
 struct NotPredicate
 {
@@ -53,7 +56,6 @@ struct NotPredicate
         return !pred(value);
     }
 };
-}  // namespace detail
 
 //---------------------------------------------------------------------------//
 /*!
@@ -79,7 +81,7 @@ void select_if_async(ObserverPtr<T, MemSpace::device> data,
     auto stop = thrust::remove_if(thrust_execute_on(stream_id),
                                   start,
                                   start + num_items,
-                                  detail::NotPredicate<Pred>{pred});
+                                  NotPredicate<Pred>{pred});
     CELER_DEVICE_API_CALL(PeekAtLastError());
 
     // Store the number of selected items on device (synchronizes)
