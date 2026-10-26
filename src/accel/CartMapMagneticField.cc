@@ -4,7 +4,9 @@
 //---------------------------------------------------------------------------//
 //! \file accel/CartMapMagneticField.cc
 //---------------------------------------------------------------------------//
-#define DEBUG_CARTMAGFIELD
+#ifndef DEBUG_CARTMAGFIELD
+#    define DEBUG_CARTMAGFIELD
+#endif
 #include "CartMapMagneticField.hh"
 
 #include <algorithm>
