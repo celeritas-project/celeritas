@@ -1,0 +1,87 @@
+#-------------------------------- -*- yaml -*- ---------------------------------#
+# Copyright Celeritas contributors: see top-level COPYRIGHT file for details
+# SPDX-License-Identifier: (Apache-2.0 OR MIT)
+#-----------------------------------------------------------------------------#
+# Build unusual options directly on the GitHub runner
+#-----------------------------------------------------------------------------#
+
+name: build-fast-extra
+on:
+  workflow_dispatch: {}
+  workflow_call: {}
+
+concurrency:
+  group: build-fast-extra-${{github.event.number || github.ref_name}}
+  cancel-in-progress: true
+
+env:
+  CELER_CMAKE_PRESET: fast
+  CELER_VERSION_STRING: >-
+    ${{
+       github.event.pull_request
+       && format('-pr.{0}', github.event.pull_request.number)
+       || format('-{0}', github.ref_name)
+     }}
+
+jobs:
+  linux:
+    name: matrix.name
+    strategy:
+      matrix:
+        include:
+          - name: ranluxpp-trackslot
+            cmake-args: "-DCELERITAS_CORE_RNG=ranluxpp"
+          - name: xorwow-track
+            cmake-args: "-DCELERITAS_RESEED=track"
+          - name: omp-track
+            cmake-args: "-DCELERITAS_USE_OpenMP=ON -DCELERITAS_OPENMP=track"
+          - name: unity
+            cmake-args: "-DCMAKE_UNITY_BUILD:BOOL=ON"
+    env:
+      CELER_JOB_NAME: fast-${{matrix.name}}
+      CC: clang
+      CXX: clang++
+      CXXSTD: 20
+    runs-on: ubuntu-26.04-arm
+    steps:
+      - name: Check out Celeritas
+        uses: actions/checkout@v7
+
+      ### ENVIRONMENT ###
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install \
+            ccache nlohmann-json3-dev libgtest-dev
+          echo "Installed toolchain:"
+          ld --version | head -1
+          $CC --version | head -1
+          $CXX --version | head -1
+          $CXX -v -E -x c++ - < /dev/null
+
+      - name: Configure Celeritas
+        uses: ./.github/actions/configure
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          presets-file: ci-ubuntu-github.json
+          version-string: ${{env.CELER_VERSION_STRING}}
+          args: ${{matrix.cmake-args}}
+
+      - name: Build
+        id: build
+        uses: ./.github/actions/build-cached
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          name: ${{env.CELER_JOB_NAME}}
+          ccache-max-size: 192Mi
+
+      - name: Test
+        id: test
+        uses: ./.github/actions/run-ctest
+        with:
+          preset: ${{env.CELER_CMAKE_PRESET}}
+          split-app: true
+          name: ${{env.CELER_JOB_NAME}}
+
+# vim: set nowrap tw=100:

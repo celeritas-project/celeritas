@@ -125,9 +125,7 @@
       "name": "fast",
       "inherits": ["tool-system"],
       "displayName": "FINAL: fast build using apt-get",
-      "cacheVariables": {
-        "CELERITAS_USE_HepMC3": { "type": "BOOL", "value": "ON" }
-      }
+      "cacheVariables": {}
     },
     {
       "name": "ultralite",

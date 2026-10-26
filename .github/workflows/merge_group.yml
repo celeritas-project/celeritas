@@ -24,6 +24,8 @@ jobs:
   build-ultralite:
     uses: ./.github/workflows/build-ultralite.yml
 
+  build-fast-extra:
+    uses: ./.github/workflows/build-fast-extra.yml
   build-spack:
     uses: ./.github/workflows/build-spack.yml
   build-spack-extra:
