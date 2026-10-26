@@ -4,8 +4,6 @@
 //---------------------------------------------------------------------------//
 //! \file accel/AlongStepFactory.cc
 //---------------------------------------------------------------------------//
-#define DEBUG_CARTMAGFIELD
-
 #include "AlongStepFactory.hh"
 
 #include <CLHEP/Units/SystemOfUnits.h>
