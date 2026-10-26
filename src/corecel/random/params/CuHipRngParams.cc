@@ -4,8 +4,14 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/random/params/CuHipRngParams.cc
 //---------------------------------------------------------------------------//
+// This need to be included before Stream.hh
+// because it defines the stream type for CUDA/HIP
+#include "corecel/DeviceRuntimeApi.hh"
+
+// Main header include
 #include "CuHipRngParams.hh"
 
+// Headers needed for implementation
 #include <utility>
 
 #include "corecel/Assert.hh"

@@ -4,8 +4,14 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/random/data/detail/CuHipRngStateInit.cc
 //---------------------------------------------------------------------------//
+// This need to be included before Stream.hh
+// because it defines the stream type for CUDA/HIP
+#include "corecel/DeviceRuntimeApi.hh"
+
+// Main header include
 #include "CuHipRngStateInit.hh"
 
+// Headers needed for implementation
 #include "corecel/Assert.hh"
 #include "corecel/sys/KernelLauncher.hh"
 

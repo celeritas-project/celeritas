@@ -4,8 +4,14 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/DeviceIO.json.cc
 //---------------------------------------------------------------------------//
+// This need to be included before Stream.hh
+// because it defines the stream type for CUDA/HIP
+#include "corecel/DeviceRuntimeApi.hh"
+
+// Main header include
 #include "DeviceIO.json.hh"
 
+// Headers needed for implementation
 #include <map>
 
 #include "corecel/Config.hh"
