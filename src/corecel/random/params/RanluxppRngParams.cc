@@ -4,14 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/random/params/RanluxppRngParams.cc
 //---------------------------------------------------------------------------//
-// This need to be included before Stream.hh
-// because it defines the stream type for CUDA/HIP
-#include "corecel/DeviceRuntimeApi.hh"
-
-// Main header include
 #include "RanluxppRngParams.hh"
 
-// Headers needed for implementation
 #include "corecel/random/engine/detail/RanluxppImpl.hh"
 
 namespace celeritas

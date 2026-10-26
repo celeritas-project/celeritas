@@ -4,14 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/KernelRegistry.cc
 //---------------------------------------------------------------------------//
-// This need to be included before Stream.hh
-// because it defines the stream type for CUDA/HIP
-#include "corecel/DeviceRuntimeApi.hh"
-
-// Main header include
 #include "KernelRegistry.hh"
 
-// Headers needed for implementation
 #include <iostream>  // IWYU pragma: keep
 #include <utility>
 

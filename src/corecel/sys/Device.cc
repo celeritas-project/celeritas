@@ -4,14 +4,8 @@
 //---------------------------------------------------------------------------//
 //! \file corecel/sys/Device.cc
 //---------------------------------------------------------------------------//
-// This need to be included before Stream.hh
-// because it defines the stream type for CUDA/HIP
-#include "corecel/DeviceRuntimeApi.hh"
-
-// Main header include
 #include "Device.hh"
 
-// Headers needed for implementation
 #include <iostream>  // IWYU pragma: keep
 #include <limits>
 #include <mutex>
@@ -23,6 +17,8 @@
 #if CELERITAS_USE_OPENMP
 #    include <omp.h>
 #endif
+
+#include "corecel/DeviceRuntimeApi.hh"
 
 #include "corecel/Assert.hh"
 #include "corecel/Macros.hh"
