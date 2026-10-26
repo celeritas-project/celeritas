@@ -125,7 +125,8 @@ std::string Test::make_unique_filename(std::string_view ext)
 bool Test::strict_testing()
 {
     static bool result = [] {
-        return getenv_flag("CELER_TEST_STRICT", is_default_build()).value;
+        constexpr bool is_ref = is_reference_rng && is_reference_geo;
+        return getenv_flag("CELER_TEST_STRICT", is_ref).value;
     }();
     return result;
 }
