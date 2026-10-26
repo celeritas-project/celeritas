@@ -58,9 +58,16 @@ class AsyncSnapshot
                            StreamId stream);
 
     //! Destination for an asynchronous write
-    AsyncResultRef<T> ref()
+    AsyncResultRef<T> ref() &
     {
-        return AsyncResultRef<T>{make_observer(storage_.get())};
+        return AsyncResultRef<T>{make_observer(*this)};
+    }
+
+    //! Observe the host value, even when compiled as device code
+    friend ObserverPtr<T, MemSpace::host> make_observer(
+        AsyncSnapshot<T>& s) noexcept
+    {
+        return ObserverPtr<T, MemSpace::host>{s.storage_.get()};
     }
 
     // Overwrite the host value
