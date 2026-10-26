@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #include "DetectorAction.hh"
 
+#include "corecel/data/AsyncCompactedCopy.device.t.hh"
+
 #include "ActionLauncher.device.hh"
 #include "TrackSlotExecutor.hh"
 
@@ -29,7 +31,10 @@ void DetectorAction::step(CoreParams const& params,
     static ActionLauncher<decltype(execute)> const launch_kernel(*this);
     launch_kernel(state, execute);
 
-    this->callback_hits(this->load_hits_sync(state));
+    // Copy the hits of the previous step and compact the hits of this one
+    auto& hits = this->copy_hits_async(state);
+    auto const& device_hits = state.ref().detectors.detector_hits;
+    hits.compact_async(device_hits.data(), device_hits.size());
 }
 
 //---------------------------------------------------------------------------//

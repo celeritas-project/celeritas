@@ -12,7 +12,7 @@
 #include "corecel/Types.hh"
 #include "corecel/data/AuxParamsRegistry.hh"  // IWYU pragma: keep
 #include "corecel/data/AuxStateVec.hh"
-#include "corecel/data/CollectionAlgorithms.hh"
+#include "corecel/data/Collection.hh"
 #include "corecel/math/Algorithms.hh"
 #include "corecel/sys/ActionRegistry.hh"  // IWYU pragma: keep
 #include "corecel/sys/ScopedProfiling.hh"
@@ -65,18 +65,18 @@ DetectorAction::DetectorAction(
 /*!
  * Build auxiliary state data for a stream.
  *
- * The pinned hit buffer is allocated and sized here once per stream so that
- * \c step and \c load_hits_sync never need to reallocate.
+ * The device scratch and pinned hit buffers are allocated and sized here once
+ * per stream so that \c step never needs to reallocate.
  */
-auto DetectorAction::create_state(MemSpace m, StreamId, size_type size) const
-    -> UPState
+auto DetectorAction::create_state(
+    MemSpace m, StreamId stream, size_type size) const -> UPState
 {
     CELER_EXPECT(size > 0);
 
     auto result = std::make_unique<DetectorActionState>();
     if (m == MemSpace::device)
     {
-        result->hits.resize(size);
+        result->hits.emplace(size, stream);
     }
 
     CELER_ENSURE(result);
@@ -118,10 +118,29 @@ void DetectorAction::step(CoreParams const&, CoreStateDevice&) const
 
 //---------------------------------------------------------------------------//
 /*!
- * Process hits copied from the kernels and send them to the callback.
+ * Process the hits remaining from device in step order.
  */
-Span<DetectorHit const> DetectorAction::load_hits_sync(
-    CoreStateDevice const& state) const
+void DetectorAction::end_transport(CoreParams const&,
+                                   CoreStateDevice& state) const
+{
+    auto& aux_state = get<DetectorActionState>(*state.aux(), aux_id_);
+    if (aux_state.hits)
+    {
+        this->flush_hits(*aux_state.hits);
+    }
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Process the hits of the previous steps and copy the hits of the last.
+ *
+ * The hits copied during the previous step (i.e., from two steps ago) are
+ * sent to the callback, and the copy of the hits compacted in the previous
+ * step is enqueued. Because the transport loop waits for each step before
+ * starting the next, the compaction has completed and this does not wait.
+ * The returned buffer is ready for compacting the hits of the current step.
+ */
+auto DetectorAction::copy_hits_async(CoreStateDevice& state) const -> Hits&
 {
     if constexpr (!CELER_USE_DEVICE)
     {
@@ -129,39 +148,46 @@ Span<DetectorHit const> DetectorAction::load_hits_sync(
         CELER_ASSERT_UNREACHABLE();
     }
 
-    auto const& device_hits = state.ref().detectors.detector_hits;
-    auto& temp_hits = get<DetectorActionState>(*state.aux(), aux_id_).hits;
-    if (CELER_UNLIKELY(temp_hits.size() != device_hits.size()))
+    auto& aux_state = get<DetectorActionState>(*state.aux(), aux_id_);
+    CELER_ASSERT(aux_state.hits);
+
+    auto const num_slots = state.ref().detectors.detector_hits.size();
+    if (CELER_UNLIKELY(aux_state.hits->capacity() != num_slots))
     {
         // FIXME: we currently share a single aux state between core and optical
         // tracking loops, but they may have different number of tracks, so this
         // is an error. It basically amounts to doing a lazy resize.
         CELER_LOG(warning) << "FIXME: expected optical aux state to be size "
-                           << device_hits.size() << " but is actually size "
-                           << temp_hits.size();
-        temp_hits.resize(device_hits.size());
+                           << num_slots << " but is actually size "
+                           << aux_state.hits->capacity();
+        this->flush_hits(*aux_state.hits);
+        aux_state.hits.emplace(num_slots, state.stream_id());
     }
 
+    auto& hits = *aux_state.hits;
+    if (hits.has_compacted())
     {
-        // Copy all track hits to host from device
-        ScopedProfiling profile_this("copy");
-        copy_to_host(device_hits, make_span(temp_hits), state.stream_id());
-
-        // Ensure copy is complete
-        celeritas::device().stream(state.stream_id()).sync();
+        // The pinned output is reused by the next copy, so process it first
+        this->callback_hits(hits.take_copied());
+        hits.copy_async();
     }
+    CELER_ENSURE(!hits.has_compacted());
+    return hits;
+}
 
-    // Move all hits with a valid detector ID to the front of the buffer,
-    // keeping the buffer itself at its original size
-    std::size_t num_valid = [&temp_hits] {
-        ScopedProfiling profile_this("prune");
-        auto end
-            = std::remove_if(temp_hits.begin(), temp_hits.end(), LogicalNot{});
-        return std::distance(temp_hits.begin(), end);
-    }();
-    CELER_ASSERT(num_valid <= temp_hits.size());
-
-    return make_span(temp_hits).first(num_valid);
+//---------------------------------------------------------------------------//
+/*!
+ * Process all hits remaining from device in step order.
+ */
+void DetectorAction::flush_hits(Hits& hits) const
+{
+    this->callback_hits(hits.take_copied());
+    if (hits.has_compacted())
+    {
+        hits.copy_async();
+        this->callback_hits(hits.take_copied());
+    }
+    CELER_ENSURE(!hits.has_compacted() && !hits.has_copied());
 }
 
 //---------------------------------------------------------------------------//
