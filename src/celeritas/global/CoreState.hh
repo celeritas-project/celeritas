@@ -148,6 +148,12 @@ class CoreState final : public CoreStateInterface
     // Asynchronously copy counters to host-accessible storage
     void async_copy_counters();
 
+    //! Whether the most recent counter copy has completed
+    bool counters_ready() const { return host_counters_.ready(); }
+
+    // Wait for the most recent counter copy and access it
+    CoreStateCounters const& wait_counters() const;
+
     // Access the most recently copied host counters
     CoreStateCounters const& host_counters() const;
 
