@@ -26,6 +26,7 @@
 #include "corecel/Config.hh"
 
 #include "Macros.hh"
+#include "SourceFile.hh"
 
 //---------------------------------------------------------------------------//
 // MACROS
@@ -157,8 +158,10 @@
 #else
 // Host compiler or CUDA host pass
 #    define CELER_DEBUG_FAIL_(MSG, WHICH) \
-        ::celeritas::throw_debug_error( \
-            {::celeritas::DebugErrorType::WHICH, MSG, __FILE__, __LINE__})
+        ::celeritas::throw_debug_error({::celeritas::DebugErrorType::WHICH, \
+                                        MSG, \
+                                        CELER_SOURCE_FILE, \
+                                        __LINE__})
 #endif
 
 #define CELER_ASSERT_IMPL_(COND, WHICH) \
@@ -211,7 +214,7 @@
             WHICH, \
             WHAT, \
             COND, \
-            __FILE__, \
+            CELER_SOURCE_FILE, \
             __LINE__, \
         })
 #elif CELERITAS_DEBUG

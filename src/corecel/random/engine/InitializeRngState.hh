@@ -6,6 +6,8 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <cstdint>
+
 #include "RanluxppRngEngine.hh"
 #include "SplitMix64.hh"
 #include "XorwowRngEngine.hh"
@@ -16,17 +18,20 @@ namespace celeritas
 /*!
  * Fill a XorwowRngEngine state initializer given a seed, event id, and primary
  * id.
+ *
+ * The event ID is 64-bit so that it can hold a unique (e.g. Geant4) event
+ * number.
  */
 CELER_FUNCTION inline void initialize_rng_state(
     XorwowSeed seed,
-    unsigned int event_id,
+    std::uint64_t event_id,
     unsigned int primary_id,
     XorwowRngEngine::RngStateInitializer_t& rng_init)
 {
     // Seed and setup SplitMix64 with the seed, event_id, and primary_id
     // incorporated into the state
     SplitMix64 rng(seed[0]);
-    for (unsigned int v : {event_id, primary_id})
+    for (std::uint64_t v : {event_id, std::uint64_t{primary_id}})
     {
         rng.advance();
         rng.xor_state(v);
@@ -54,18 +59,21 @@ CELER_FUNCTION inline void initialize_rng_state(
 
 //---------------------------------------------------------------------------//
 /*!
- * Fill a Ranluxpp state initializer given a seed, event id, and primary id
+ * Fill a Ranluxpp state initializer given a seed, event id, and primary id.
+ *
+ * The event ID is 64-bit so that it can hold a unique (e.g. Geant4) event
+ * number.
  */
 CELER_FUNCTION inline void initialize_rng_state(
     RanluxppUInt seed,
-    unsigned int event_id,
+    std::uint64_t event_id,
     unsigned int primary_id,
     RanluxppRngEngine::RngStateInitializer_t& rng_init)
 {
     // Seed and setup SplitMix64 with the seed, event_id, and primary_id
     // incorporated into the state
     SplitMix64 rng(seed);
-    for (unsigned int v : {event_id, primary_id})
+    for (std::uint64_t v : {event_id, std::uint64_t{primary_id}})
     {
         rng.advance();
         rng.xor_state(v);

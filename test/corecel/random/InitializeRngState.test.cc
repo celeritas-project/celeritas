@@ -15,7 +15,7 @@ namespace test
 
 // Create and initialize SplitMix64
 celeritas::SplitMix64 makeSplitMix64(
-    unsigned int seed, unsigned int event_id, unsigned int primary_id)
+    unsigned int seed, std::uint64_t event_id, unsigned int primary_id)
 {
     celeritas::SplitMix64 rng(seed);
     rng.advance();
@@ -111,6 +111,34 @@ TEST(InitializeRngStateTest, ranluxpp)
         seed, event_id, primary_id, test_initializer);
 
     EXPECT_VEC_EQ(ref_initializer.value.number, test_initializer.value.number);
+}
+
+//---------------------------------------------------------------------------//
+
+//! Event IDs that differ only above 32 bits give different states
+TEST(InitializeRngStateTest, wide_event_id)
+{
+    unsigned int seed = 12345;
+    std::uint64_t event_id = 5;
+    std::uint64_t wide_event_id = event_id + (std::uint64_t{1} << 32);
+    unsigned int primary_id = 3;
+
+    {
+        XorwowSeed xorwow_seed;
+        xorwow_seed[0] = seed;
+        XorwowRngEngine::RngStateInitializer_t narrow;
+        XorwowRngEngine::RngStateInitializer_t wide;
+        initialize_rng_state(xorwow_seed, event_id, primary_id, narrow);
+        initialize_rng_state(xorwow_seed, wide_event_id, primary_id, wide);
+        EXPECT_NE(narrow.xorstate, wide.xorstate);
+    }
+    {
+        RanluxppRngEngine::RngStateInitializer_t narrow;
+        RanluxppRngEngine::RngStateInitializer_t wide;
+        initialize_rng_state(seed, event_id, primary_id, narrow);
+        initialize_rng_state(seed, wide_event_id, primary_id, wide);
+        EXPECT_NE(narrow.value.number, wide.value.number);
+    }
 }
 
 //---------------------------------------------------------------------------//

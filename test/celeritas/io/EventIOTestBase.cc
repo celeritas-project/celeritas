@@ -133,7 +133,8 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                       5.67e-9 * units::second,
                       /* weight = */ 1.0,
                       EventId{0},
-                      PrimaryId{0}};
+                      PrimaryId{0},
+                      UniqueEventId{}};
         Primary proton{proton_id,
                        MevEnergy{2.34},
                        from_cm(Real3{3, 5, 8}),
@@ -141,7 +142,8 @@ void EventIOTestBase::write_test_event(Writer& write_event) const
                        5.78e-9 * units::second,
                        /* weight = */ 1.0,
                        EventId{0},
-                       PrimaryId{0}};
+                       PrimaryId{0},
+                       UniqueEventId{}};
         std::vector<Primary> primaries{gamma, proton, gamma, proton};
         primaries[1].position = from_cm(Real3{-3, -4, 5});
         primaries[3].position = primaries[2].position;
