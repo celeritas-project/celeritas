@@ -6,6 +6,10 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#ifdef DEBUG_CARTMAGFIELD
+#    warning "Including Stream.hh"
+#endif
+
 #include <cstddef>
 #include <memory>
 
