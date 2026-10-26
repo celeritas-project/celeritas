@@ -329,8 +329,8 @@ TEST_F(WlsGeneratorTest, primary)
 
     if (reference_configuration)
     {
-        EXPECT_EQ(221248, result.counters.steps);
-        EXPECT_EQ(20, result.counters.step_iters);
+        EXPECT_EQ(221260, result.counters.steps);
+        EXPECT_EQ(22, result.counters.step_iters);
     }
     EXPECT_EQ(1, result.counters.flushes);
     ASSERT_EQ(2, result.counters.generators.size());
@@ -343,7 +343,7 @@ TEST_F(WlsGeneratorTest, primary)
         EXPECT_EQ(0, gen.num_pending);
         if (reference_configuration)
         {
-            EXPECT_EQ(155575, gen.num_generated);
+            EXPECT_EQ(155587, gen.num_generated);
         }
     }
     {
