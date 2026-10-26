@@ -6,8 +6,9 @@
 //---------------------------------------------------------------------------//
 #pragma once
 
+#include <memory>
+#include <new>
 #include <type_traits>
-#include <vector>
 
 #include "corecel/Assert.hh"
 #include "corecel/Types.hh"
@@ -83,17 +84,25 @@ class AsyncSnapshot
     template<class U, MemSpace M>
     inline void copy_async(ObserverPtr<U, M> src, StreamId stream);
 
-    //! Destination for an asynchronous write
-    AsyncResultRef<T> ref() { return AsyncResultRef<T>{storage_}; }
+    // Destination for an asynchronous write
+    inline AsyncResultRef<T> ref();
 
     // Overwrite the host value
     inline void assign(T const& value);
 
     //! Access the most recently copied value
-    T const& value() const { return storage_.front(); }
+    T const& value() const { return *storage_; }
 
   private:
-    std::vector<T, PinnedAllocator<T>> storage_;
+    struct PinnedDeleter
+    {
+        void operator()(T* ptr) const noexcept
+        {
+            PinnedAllocator<T>{}.deallocate(ptr, 1);
+        }
+    };
+
+    std::unique_ptr<T, PinnedDeleter> storage_;
 };
 
 //---------------------------------------------------------------------------//
@@ -103,8 +112,22 @@ class AsyncSnapshot
  * Construct with an initial host value.
  */
 template<class T>
-AsyncSnapshot<T>::AsyncSnapshot(T const& value) : storage_(1, value)
+AsyncSnapshot<T>::AsyncSnapshot(T const& value)
+    : storage_{new (PinnedAllocator<T>{}.allocate(1)) T(value)}
 {
+    CELER_ENSURE(storage_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Destination for an asynchronous write.
+ */
+template<class T>
+AsyncResultRef<T> AsyncSnapshot<T>::ref()
+{
+    AsyncResultRef<T> result;
+    result.ptr = make_observer(storage_.get());
+    return result;
 }
 
 //---------------------------------------------------------------------------//
@@ -134,7 +157,7 @@ void AsyncSnapshot<T>::copy_async(ObserverPtr<U, M> src, StreamId stream)
 template<class T>
 void AsyncSnapshot<T>::assign(T const& value)
 {
-    storage_.front() = value;
+    *storage_ = value;
 }
 
 //---------------------------------------------------------------------------//
