@@ -106,7 +106,7 @@ jobs:
           preset: ${{env.CELER_CMAKE_PRESET}}
           presets-file: ci-ubuntu-github.json
           version-string: ${{env.CELER_VERSION_STRING}}
-          args: "-DCELERITAS_USE_HepMC3:BOOL=ON"
+          args: "-DCELERITAS_USE_HepMC3:BOOL=ON -DCELERITAS_USE_PNG:BOOL=ON"
 
       - name: Build
         id: build

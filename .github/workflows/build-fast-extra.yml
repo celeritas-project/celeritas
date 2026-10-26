@@ -27,6 +27,7 @@ jobs:
   linux:
     name: ${{matrix.name}}
     strategy:
+      fail-fast: false
       matrix:
         include:
           - name: ranluxpp-trackslot
