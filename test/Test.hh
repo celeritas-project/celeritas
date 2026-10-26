@@ -66,6 +66,16 @@ class Test : public ::testing::Test
     // True if CELER_TEST_STRICT is set (under CI)
     static bool strict_testing();
 
+    //! Whether the build uses the reference RNG needed for regression tests
+    static constexpr bool is_default_build()
+    {
+        return CELERITAS_REAL_TYPE == CELERITAS_REAL_TYPE_DOUBLE
+               && CELERITAS_CORE_GEO != CELERITAS_CORE_GEO_GEANT4
+               && CELERITAS_UNITS == CELERITAS_UNITS_CGS
+               && CELERITAS_CORE_RNG == CELERITAS_CORE_RNG_XORWOW
+               && CELERITAS_RESEED == CELERITAS_RESEED_TRACKSLOT;
+    }
+
     // Define "inf" value for subclass testing
     static constexpr double inf = HUGE_VAL;
     static constexpr float inff = HUGE_VALF;
