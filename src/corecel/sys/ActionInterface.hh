@@ -186,6 +186,30 @@ class StepActionInterface : public ActionTypeTraits<P, S>,
 
 //---------------------------------------------------------------------------//
 /*!
+ * Interface for completing deferred work once a stepping loop has finished.
+ *
+ * Actions that buffer work across steps based on asynchronously copied
+ * counters (for example, launching a secondary stepping loop once enough
+ * work has accumulated) cannot reliably detect the last step of a stepping
+ * loop. The driver of the loop calls this once all tracks have been
+ * transported so that the remaining buffered work is completed.
+ *
+ * \tparam P Core param class
+ * \tparam S Core state class
+ */
+template<class P, template<MemSpace M> class S>
+class EndTransportActionInterface : public ActionTypeTraits<P, S>,
+                                    virtual public ActionInterface
+{
+  public:
+    //! Complete buffered work with host data
+    virtual void end_transport(P const&, S<MemSpace::host>&) const = 0;
+    //! Complete buffered work with device data
+    virtual void end_transport(P const&, S<MemSpace::device>&) const = 0;
+};
+
+//---------------------------------------------------------------------------//
+/*!
  * Concrete mixin utility class for managing an action.
  *
  * \par Example:

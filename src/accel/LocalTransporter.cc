@@ -555,6 +555,9 @@ void LocalTransporter::drain_transport()
         CELER_VALIDATE_OR_KILL_ACTIVE(
             !interrupted(), << "caught interrupt signal", *step_);
     }
+
+    // Complete deferred work such as transporting buffered optical photons
+    step_->end_transport();
 }
 
 //---------------------------------------------------------------------------//

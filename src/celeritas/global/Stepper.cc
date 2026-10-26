@@ -147,9 +147,10 @@ void Stepper<M>::warm_up()
  * Primaries in the producer buffer remain there unless they have first been
  * staged.
  *
- * Existing synchronization within the action sequence can still block this
- * call. Removing those counter-dependent synchronization points is handled
- * separately.
+ * The actions in the sequence do not synchronize by default, with a few
+ * exceptions that can still block this call: sorting tracks by action, action
+ * and step timers, and launching the optical stepping loop, which runs to
+ * completion inside the step once enough optical photons are pending.
  */
 template<MemSpace M>
 void Stepper<M>::async()
@@ -438,6 +439,27 @@ void Stepper<M>::kill_active()
                            << state_->sync_get_counters().num_active
                            << " active tracks";
     detail::kill_active(*params_, *state_);
+}
+
+//---------------------------------------------------------------------------//
+/*!
+ * Complete buffered work once all tracks have been transported.
+ *
+ * Some actions defer work across steps using asynchronously copied counters,
+ * so they cannot detect the final step of the stepping loop. This executes
+ * the end-of-transport actions (for example, transporting the remaining
+ * buffered optical photons) and should be called after the last step result
+ * has been retrieved, before the next event is started.
+ */
+template<MemSpace M>
+void Stepper<M>::end_transport()
+{
+    CELER_VALIDATE(!has_outstanding_result_,
+                   << "cannot end transport with an outstanding step result");
+    CELER_VALIDATE(!this->has_queued_primaries(),
+                   << "cannot end transport with queued primaries");
+    ScopedProfiling profile_this{"end-transport"};
+    actions_->end_transport(*params_, *state_);
 }
 
 //---------------------------------------------------------------------------//
